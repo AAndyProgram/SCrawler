@@ -48,7 +48,7 @@ Users can be added by patterns:
 - u/SomeUserName
 - SomeUserName (in this case you must to choose user site)
 
-More about users adding here
+More about users adding [here](https://github.com/AAndyProgram/SCrawler/wiki/Users)
 
 ## Using program as just video downloader
 
