@@ -1,0 +1,60 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31515.178
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "SCrawler", "SCrawler\SCrawler.vbproj", "{4A016FAD-9F07-4957-8BB2-AE86C88BA342}"
+EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "PersonalUtilities", "..\..\MyUtilities\PersonalUtilities\PersonalUtilities.vbproj", "{8405896B-2685-4916-BC93-1FB514C323A9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{FE5CE5B9-DDBE-4399-A17C-880893635307}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		README.md = README.md
+		Info\RedditUrlsInfo.txt = Info\RedditUrlsInfo.txt
+		Info\TwitterNewAlgo.txt = Info\TwitterNewAlgo.txt
+		Info\TwitterUrlsInfo.txt = Info\TwitterUrlsInfo.txt
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4A016FAD-9F07-4957-8BB2-AE86C88BA342}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4A016FAD-9F07-4957-8BB2-AE86C88BA342}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4A016FAD-9F07-4957-8BB2-AE86C88BA342}.Debug|x64.ActiveCfg = Debug|x64
+		{4A016FAD-9F07-4957-8BB2-AE86C88BA342}.Debug|x64.Build.0 = Debug|x64
+		{4A016FAD-9F07-4957-8BB2-AE86C88BA342}.Debug|x86.ActiveCfg = Debug|x86
+		{4A016FAD-9F07-4957-8BB2-AE86C88BA342}.Debug|x86.Build.0 = Debug|x86
+		{4A016FAD-9F07-4957-8BB2-AE86C88BA342}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4A016FAD-9F07-4957-8BB2-AE86C88BA342}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4A016FAD-9F07-4957-8BB2-AE86C88BA342}.Release|x64.ActiveCfg = Release|x64
+		{4A016FAD-9F07-4957-8BB2-AE86C88BA342}.Release|x64.Build.0 = Release|x64
+		{4A016FAD-9F07-4957-8BB2-AE86C88BA342}.Release|x86.ActiveCfg = Release|x86
+		{4A016FAD-9F07-4957-8BB2-AE86C88BA342}.Release|x86.Build.0 = Release|x86
+		{8405896B-2685-4916-BC93-1FB514C323A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8405896B-2685-4916-BC93-1FB514C323A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8405896B-2685-4916-BC93-1FB514C323A9}.Debug|x64.ActiveCfg = Debug|x64
+		{8405896B-2685-4916-BC93-1FB514C323A9}.Debug|x64.Build.0 = Debug|x64
+		{8405896B-2685-4916-BC93-1FB514C323A9}.Debug|x86.ActiveCfg = Debug|x86
+		{8405896B-2685-4916-BC93-1FB514C323A9}.Debug|x86.Build.0 = Debug|x86
+		{8405896B-2685-4916-BC93-1FB514C323A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8405896B-2685-4916-BC93-1FB514C323A9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8405896B-2685-4916-BC93-1FB514C323A9}.Release|x64.ActiveCfg = Release|x64
+		{8405896B-2685-4916-BC93-1FB514C323A9}.Release|x64.Build.0 = Release|x64
+		{8405896B-2685-4916-BC93-1FB514C323A9}.Release|x86.ActiveCfg = Release|x86
+		{8405896B-2685-4916-BC93-1FB514C323A9}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4037B243-B6D7-4DF1-A4CC-4E86F4AD31BB}
+	EndGlobalSection
+EndGlobal

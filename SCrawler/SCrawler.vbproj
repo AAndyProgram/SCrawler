@@ -1,0 +1,307 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{4A016FAD-9F07-4957-8BB2-AE86C88BA342}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <StartupObject>SCrawler.My.MyApplication</StartupObject>
+    <RootNamespace>SCrawler</RootNamespace>
+    <AssemblyName>SCrawler</AssemblyName>
+    <FileAlignment>512</FileAlignment>
+    <MyType>WindowsForms</MyType>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DocumentationFile>
+    </DocumentationFile>
+    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <DefineDebug>false</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DocumentationFile>
+    </DocumentationFile>
+    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionExplicit>On</OptionExplicit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionCompare>Binary</OptionCompare>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionStrict>Off</OptionStrict>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionInfer>On</OptionInfer>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>Content\Icons\Rainbow.ico</ApplicationIcon>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <OutputPath>bin\x86\Debug\</OutputPath>
+    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+    <DefineTrace>true</DefineTrace>
+    <OutputPath>bin\x86\Release\</OutputPath>
+    <Optimize>true</Optimize>
+    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <OutputPath>bin\x64\Debug\</OutputPath>
+    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <DefineTrace>true</DefineTrace>
+    <OutputPath>bin\x64\Release\</OutputPath>
+    <Optimize>true</Optimize>
+    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationManifest>My Project\app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Net.Http" />
+  </ItemGroup>
+  <ItemGroup>
+    <Import Include="Microsoft.VisualBasic" />
+    <Import Include="PersonalUtilities.Functions" />
+    <Import Include="System" />
+    <Import Include="System.Collections" />
+    <Import Include="System.Collections.Generic" />
+    <Import Include="System.Data" />
+    <Import Include="System.Drawing" />
+    <Import Include="System.Diagnostics" />
+    <Import Include="System.Windows.Forms" />
+    <Import Include="System.Linq" />
+    <Import Include="System.Xml.Linq" />
+    <Import Include="System.Threading.Tasks" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="API\Base\SiteSettings.vb" />
+    <Compile Include="API\Base\Structures.vb" />
+    <Compile Include="API\Base\UserDataBase.vb" />
+    <Compile Include="API\Reddit\Channel.vb" />
+    <Compile Include="API\Reddit\ChannelsCollection.vb" />
+    <Compile Include="API\Reddit\Declarations.vb" />
+    <Compile Include="API\Reddit\M3U8.vb" />
+    <Compile Include="API\Reddit\UserData.vb" />
+    <Compile Include="API\Twitter\Declarations.vb" />
+    <Compile Include="API\Twitter\UserData.vb" />
+    <Compile Include="API\UserDataBind.vb" />
+    <Compile Include="Channels\ChannelViewForm.Designer.vb">
+      <DependentUpon>ChannelViewForm.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Channels\ChannelViewForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="DownloadedInfoForm.Designer.vb">
+      <DependentUpon>DownloadedInfoForm.vb</DependentUpon>
+    </Compile>
+    <Compile Include="DownloadedInfoForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Editors\CollectionEditorForm.Designer.vb">
+      <DependentUpon>CollectionEditorForm.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Editors\CollectionEditorForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Editors\GlobalSettingsForm.Designer.vb">
+      <DependentUpon>GlobalSettingsForm.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Editors\GlobalSettingsForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Editors\LabelsForm.Designer.vb">
+      <DependentUpon>LabelsForm.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Editors\LabelsForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Editors\RedditEditorForm.Designer.vb">
+      <DependentUpon>RedditEditorForm.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Editors\RedditEditorForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Editors\TwitterEditorForm.Designer.vb">
+      <DependentUpon>TwitterEditorForm.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Editors\TwitterEditorForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Editors\UserCreatorForm.Designer.vb">
+      <DependentUpon>UserCreatorForm.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Editors\UserCreatorForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Info\InfoMod.vb" />
+    <Compile Include="LabelsKeeper.vb" />
+    <Compile Include="MainFrame.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="MainFrame.Designer.vb">
+      <DependentUpon>MainFrame.vb</DependentUpon>
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="MainMod.vb" />
+    <Compile Include="My Project\AssemblyInfo.vb" />
+    <Compile Include="My Project\Application.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Application.myapp</DependentUpon>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="My Project\Resources.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="My Project\Settings.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <Compile Include="SettingsCLS.vb" />
+    <Compile Include="TDownloader.vb" />
+    <Compile Include="UserImage.vb" />
+    <Compile Include="VideosDownloaderForm.Designer.vb">
+      <DependentUpon>VideosDownloaderForm.vb</DependentUpon>
+    </Compile>
+    <Compile Include="VideosDownloaderForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Channels\ChannelViewForm.resx">
+      <DependentUpon>ChannelViewForm.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="DownloadedInfoForm.resx">
+      <DependentUpon>DownloadedInfoForm.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Editors\CollectionEditorForm.resx">
+      <DependentUpon>CollectionEditorForm.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Editors\GlobalSettingsForm.resx">
+      <DependentUpon>GlobalSettingsForm.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Editors\LabelsForm.resx">
+      <DependentUpon>LabelsForm.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Editors\RedditEditorForm.resx">
+      <DependentUpon>RedditEditorForm.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Editors\TwitterEditorForm.resx">
+      <DependentUpon>TwitterEditorForm.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Editors\UserCreatorForm.resx">
+      <DependentUpon>UserCreatorForm.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MainFrame.resx">
+      <DependentUpon>MainFrame.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="My Project\Resources.resx">
+      <Generator>VbMyResourcesResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.vb</LastGenOutput>
+      <CustomToolNamespace>My.Resources</CustomToolNamespace>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="VideosDownloaderForm.resx">
+      <DependentUpon>VideosDownloaderForm.vb</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="My Project\app.manifest" />
+    <None Include="My Project\Application.myapp">
+      <Generator>MyApplicationCodeGenerator</Generator>
+      <LastGenOutput>Application.Designer.vb</LastGenOutput>
+    </None>
+    <None Include="My Project\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <CustomToolNamespace>My</CustomToolNamespace>
+      <LastGenOutput>Settings.Designer.vb</LastGenOutput>
+    </None>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\MyUtilities\PersonalUtilities\PersonalUtilities.vbproj">
+      <Project>{8405896b-2685-4916-bc93-1fb514c323a9}</Project>
+      <Name>PersonalUtilities</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="ffmpeg.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="RedditIcon.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.6.1">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4.6.1 %28x86 and x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
+</Project>
