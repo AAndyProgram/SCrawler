@@ -33,6 +33,7 @@ The program parsing all user's posts and compare file names with existing for re
 
 - Windows 7, 8, 9, 10, 11 with NET Framework 4.6.1 or higher
 - Authorization cookies and tokens for Twitter (if you want to download data from Twitter)
+- ffmpeg library for download Reddit hosted videos (you can download it from the [official repo](https://github.com/GyanD/codexffmpeg/releases/tag/2021-01-12-git-ca21cb1e36) or [from my first release](https://github.com/AAndyProgram/SCrawler/releases/download/1.0.0.0/ffmpeg.zip))
 - Don't put program in the ```Program Files``` system folder (this is portable program and program settings are stored in the program folder)
 - Just unpack program archive in any folder you want, copy ```ffmpeg.exe``` into and enjoy. :-)
 
