@@ -50,6 +50,8 @@ Users can be added by patterns:
 
 More about users adding [here](https://github.com/AAndyProgram/SCrawler/wiki/Users)
 
+**Full guide you can find [here](https://github.com/AAndyProgram/SCrawler/wiki)**
+
 ## Using program as just video downloader
 
 Create a shortcut for the program. Open shortcut properties. On the ```Shortcut``` tab in ```Target``` field just add ```v``` at the end through the space.
