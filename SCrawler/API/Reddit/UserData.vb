@@ -78,8 +78,8 @@ Namespace API.Reddit
             End If
         End Sub
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
+            _TotalPostsDownloaded = 0
             If IsChannel Then
-                _DownloadedChannelPosts = 0
                 DownloadDataChannel(String.Empty, Token)
             Else
                 DownloadDataUser(String.Empty, Token)
@@ -87,6 +87,7 @@ Namespace API.Reddit
         End Sub
 #End Region
 #Region "Download Functions (User, Channel)"
+        Private _TotalPostsDownloaded As Integer = 0
         Private Sub DownloadDataUser(ByVal POST As String, ByVal Token As CancellationToken)
             Dim URL$ = String.Empty
             Try
@@ -103,7 +104,7 @@ Namespace API.Reddit
                 Dim UPicType As Func(Of String, UTypes) = Function(input) IIf(input = "image", UTypes.Picture, UTypes.GIF)
 
                 URL = $"https://gateway.reddit.com/desktopapi/v1/user/{Name}/posts?rtj=only&allow_quarantined=true&allow_over18=1&include=identity&after={POST}&dist=25&sort=new&t=all&layout=classic"
-                Token.ThrowIfCancellationRequested()
+                ThrowAny(Token)
                 Dim r$ = GetSiteResponse(URL)
                 If Not r.IsEmptyString Then
                     Using w As EContainer = JsonDocument.Parse(r)
@@ -111,7 +112,7 @@ Namespace API.Reddit
                             n = w.GetNode(JsonNodesJson)
                             If Not n Is Nothing AndAlso n.Count > 0 Then
                                 For Each nn In n
-                                    Token.ThrowIfCancellationRequested()
+                                    ThrowAny(Token)
                                     If nn.Count > 0 Then
                                         PostID = nn.Name
                                         If PostID.IsEmptyString AndAlso nn.Contains("id") Then PostID = nn("id").Value
@@ -129,19 +130,24 @@ Namespace API.Reddit
                                             s = nn.ItemF({"source", "url"})
                                             If s.XmlIfNothingValue("/").Contains("redgifs.com") Then
                                                 _TempMediaList.ListAddValue(MediaFromData(UTypes.VideoPre, s.Value, PostID, PostDate,, IsChannel), LNC)
+                                                _TotalPostsDownloaded += 1
                                             Else
                                                 s = nn.ItemF({"media"}).XmlIfNothing
                                                 __ItemType = s("type").XmlIfNothingValue
                                                 Select Case __ItemType
-                                                    Case "gallery" : DownloadGallery(s, PostID, PostDate)
+                                                    Case "gallery" : DownloadGallery(s, PostID, PostDate) : _TotalPostsDownloaded += 1
                                                     Case "image", "gifvideo"
-                                                        If s.Contains("content") Then _
+                                                        If s.Contains("content") Then
                                                             _TempMediaList.ListAddValue(MediaFromData(UPicType(__ItemType), s.Value("content"),
                                                                                                       PostID, PostDate,, IsChannel), LNC)
+                                                            _TotalPostsDownloaded += 1
+                                                        End If
                                                     Case "video"
-                                                        If s("hlsUrl").XmlIfNothingValue("/").ToLower.Contains("m3u8") Then _
+                                                        If Settings.UseM3U8 AndAlso s("hlsUrl").XmlIfNothingValue("/").ToLower.Contains("m3u8") Then
                                                             _TempMediaList.ListAddValue(MediaFromData(UTypes.m3u8, s.Value("hlsUrl"),
                                                                                                       PostID, PostDate,, IsChannel), LNC)
+                                                            _TotalPostsDownloaded += 1
+                                                        End If
                                                     Case Else : added = False
                                                 End Select
                                             End If
@@ -151,14 +157,16 @@ Namespace API.Reddit
                                                     With s.Value.ToLower
                                                         Select Case True
                                                             Case .Contains("redgifs") : tmpType = UTypes.VideoPre
-                                                            Case .Contains("m3u8") : tmpType = UTypes.m3u8
+                                                            Case .Contains("m3u8") : If Settings.UseM3U8 Then tmpType = UTypes.m3u8
                                                             Case .Contains(".gif") And TryFile(s.Value) : tmpType = UTypes.GIF
                                                             Case TryFile(s.Value) : tmpType = UTypes.Picture
                                                             Case Else : tmpType = UTypes.Undefined
                                                         End Select
                                                     End With
-                                                    If Not tmpType = UTypes.Undefined Then _
+                                                    If Not tmpType = UTypes.Undefined Then
                                                         _TempMediaList.ListAddValue(MediaFromData(tmpType, s.Value, PostID, PostDate,, IsChannel), LNC)
+                                                        _TotalPostsDownloaded += 1
+                                                    End If
                                                 End If
                                             End If
                                         End If
@@ -171,12 +179,12 @@ Namespace API.Reddit
                     If Not PostID.IsEmptyString And NewPostDetected Then DownloadDataUser(PostID, Token)
                 End If
             Catch oex As OperationCanceledException When Token.IsCancellationRequested
+            Catch dex As ObjectDisposedException When Disposed
             Catch ex As Exception
                 LogError(ex, $"data downloading error [{URL}]")
                 HasError = True
             End Try
         End Sub
-        Private _DownloadedChannelPosts As Integer = 0
         Private Sub DownloadDataChannel(ByVal POST As String, ByVal Token As CancellationToken)
             Dim URL$ = String.Empty
             Try
@@ -189,7 +197,7 @@ Namespace API.Reddit
                 Dim lDate As Date?
 
                 URL = $"https://reddit.com/r/{Name}/new.json?allow_quarantined=true&allow_over18=1&include=identity&after={POST}&dist=25&sort=new&t=all&layout=classic"
-                Token.ThrowIfCancellationRequested()
+                ThrowAny(Token)
                 Dim r$ = GetSiteResponse(URL)
                 If Not r.IsEmptyString Then
                     Using w As EContainer = JsonDocument.Parse(r).XmlIfNothing
@@ -197,14 +205,14 @@ Namespace API.Reddit
                             n = w.GetNode(ChannelJsonNodes)
                             If Not n Is Nothing AndAlso n.Count > 0 Then
                                 For Each nn In n
-                                    Token.ThrowIfCancellationRequested()
+                                    ThrowAny(Token)
                                     s = nn.ItemF({eCount})
                                     If Not s Is Nothing AndAlso s.Count > 0 Then
                                         PostID = s.Value("name")
                                         If PostID.IsEmptyString AndAlso s.Contains("id") Then PostID = s("id").Value
 
                                         If ChannelPostsNames.Contains(PostID) Then ExistsDetected = True : Continue For 'Exit Sub
-                                        If DownloadLimitCount.HasValue AndAlso _DownloadedChannelPosts >= DownloadLimitCount.Value Then Exit Sub
+                                        If DownloadLimitCount.HasValue AndAlso _TotalPostsDownloaded >= DownloadLimitCount.Value Then Exit Sub
                                         If Not DownloadLimitPost.IsEmptyString AndAlso DownloadLimitPost = PostID Then Exit Sub
                                         If DownloadLimitDate.HasValue AndAlso _TempMediaList.Count > 0 Then
                                             With (From __u In _TempMediaList Where __u.Post.Date.HasValue Select __u.Post.Date.Value)
@@ -226,20 +234,20 @@ Namespace API.Reddit
                                                 tmpUrl = s.Value({"media", "oembed"}, "thumbnail_url")
                                                 If Not tmpUrl.IsEmptyString Then
                                                     _TempMediaList.ListAddValue(MediaFromData(UTypes.Picture, tmpUrl, PostID, PostDate, _UserID, IsChannel), LNC)
-                                                    _DownloadedChannelPosts += 1
+                                                    _TotalPostsDownloaded += 1
                                                 End If
                                             Else
                                                 _TempMediaList.ListAddValue(MediaFromData(UTypes.VideoPre, tmpUrl, PostID, PostDate, _UserID, IsChannel), LNC)
-                                                _DownloadedChannelPosts += 1
+                                                _TotalPostsDownloaded += 1
                                             End If
                                         ElseIf s.Item("media_metadata").XmlIfNothing.Count > 0 Then
                                             DownloadGallery(s, PostID, PostDate, _UserID, SaveToCache)
-                                            _DownloadedChannelPosts += 1
+                                            _TotalPostsDownloaded += 1
                                         ElseIf s.Contains("preview") Then
                                             ss = s.ItemF({"preview", "images", eCount, "source", "url"}).XmlIfNothing
                                             If Not ss.Value.IsEmptyString Then
                                                 _TempMediaList.ListAddValue(MediaFromData(UTypes.Picture, ss.Value, PostID, PostDate, _UserID, IsChannel), LNC)
-                                                _DownloadedChannelPosts += 1
+                                                _TotalPostsDownloaded += 1
                                             End If
                                         End If
                                     End If
@@ -251,6 +259,7 @@ Namespace API.Reddit
                     If Not PostID.IsEmptyString And NewPostDetected Then DownloadDataChannel(PostID, Token)
                 End If
             Catch oex As OperationCanceledException When Token.IsCancellationRequested
+            Catch dex As ObjectDisposedException When Disposed
             Catch ex As Exception
                 LogError(ex, $"channel data downloading error [{URL}]")
                 HasError = True
@@ -279,15 +288,16 @@ Namespace API.Reddit
         End Sub
         Protected Overrides Sub ReparseVideo(ByVal Token As CancellationToken)
             Try
-                Token.ThrowIfCancellationRequested()
+                ThrowAny(Token)
                 If _TempMediaList.Count > 0 AndAlso _TempMediaList.Exists(Function(p) p.Type = UTypes.VideoPre) Then
                     Dim r$, v$
+                    Dim e As New ErrorsDescriber(EDP.ReturnValue)
                     Dim m As UserMedia
                     For i% = _TempMediaList.Count - 1 To 0 Step -1
-                        Token.ThrowIfCancellationRequested()
+                        ThrowAny(Token)
                         If _TempMediaList(i).Type = UTypes.VideoPre Then
                             m = _TempMediaList(i)
-                            r = GetSiteResponse(m.URL)
+                            r = GetSiteResponse(m.URL, e)
                             _TempMediaList(i) = New UserMedia
                             If Not r.IsEmptyString Then
                                 v = RegexReplace(r, VideoRegEx)
@@ -301,6 +311,7 @@ Namespace API.Reddit
                     Next
                 End If
             Catch oex As OperationCanceledException When Token.IsCancellationRequested
+            Catch dex As ObjectDisposedException When Disposed
             Catch ex As Exception
                 LogError(ex, "video reparsing error")
             End Try
@@ -326,7 +337,7 @@ Namespace API.Reddit
             If _URL.IsEmptyString And t = UTypes.Picture Then Return Nothing
             _URL = LinkFormatterSecure(RegexReplace(_URL.Replace("\", String.Empty), LinkPattern))
             Dim m As New UserMedia(_URL, t) With {.Post = New UserPost With {.ID = PostID, .UserID = _UserID}}
-            If t = UTypes.Picture Or t = UTypes.GIF Then m.File = CStr(RegexReplace(m.URL, FilesPattern)) Else m.File = Nothing
+            If t = UTypes.Picture Or t = UTypes.GIF Then m.File = UrlToFile(m.URL) Else m.File = Nothing
             If m.URL.Contains("preview") Then m.URL = $"https://i.redd.it/{m.File.File}"
             If Not PostDate.IsEmptyString Then m.Post.Date = AConvert(Of Date)(PostDate, If(IsChannel, DateProviderChannel, DateProvider), Nothing) Else m.Post.Date = Nothing
             Return m
@@ -342,11 +353,15 @@ Namespace API.Reddit
                 Return False
             End Try
         End Function
+        Private Shared Function UrlToFile(ByVal URL As String) As SFile
+            Return CStr(RegexReplace(URL, FilesPattern))
+        End Function
 #End Region
         Protected Overrides Sub DownloadContent(ByVal Token As CancellationToken)
             Try
                 Dim i%
-                Token.ThrowIfCancellationRequested()
+                Dim dCount% = 0, dTotal% = 0
+                ThrowAny(Token)
                 If _ContentNew.Count > 0 Then
                     _ContentNew.RemoveAll(Function(c) c.URL.IsEmptyString)
                     If _ContentNew.Count > 0 Then
@@ -386,12 +401,11 @@ Namespace API.Reddit
                             If vsf Then SFileShares.SFileExists($"{MyDir}\Video\", SFO.Path)
                             Progress.TotalCount += _ContentNew.Count
                             For i = 0 To _ContentNew.Count - 1
-                                Token.ThrowIfCancellationRequested()
+                                ThrowAny(Token)
                                 v = _ContentNew(i)
                                 v.State = UStates.Tried
-                                If v.Type = UTypes.Picture Then v.File = v.URL
                                 If v.File.IsEmptyString Then
-                                    f = v.URL
+                                    f = UrlToFile(v.URL)
                                 Else
                                     f = v.File
                                 End If
@@ -425,6 +439,7 @@ Namespace API.Reddit
                                             v.File = f
                                             v.Post.CachedFile = f
                                             v.State = UStates.Downloaded
+                                            dCount += 1
                                         End If
                                     Catch wex As Exception
                                         If Not IsChannel Then ErrorDownloading(f, v.URL)
@@ -433,29 +448,40 @@ Namespace API.Reddit
                                     v.State = UStates.Skipped
                                 End If
                                 _ContentNew(i) = v
-                                Progress.Perform()
+                                If (CreatedByChannel And Settings.FromChannelDownloadTopUse And dCount >= Settings.FromChannelDownloadTop) Or
+                                   (DownloadTopCount.HasValue AndAlso dCount >= DownloadTopCount.Value) Then
+                                    Progress.Perform(_ContentNew.Count - dTotal)
+                                    Exit Sub
+                                Else
+                                    dTotal += 1
+                                    Progress.Perform()
+                                End If
                             Next
                         End Using
                     End If
                 End If
             Catch oex As OperationCanceledException When Token.IsCancellationRequested
+            Catch dex As ObjectDisposedException When Disposed
             Catch ex As Exception
                 LogError(ex, "content downloading error")
                 HasError = True
             End Try
         End Sub
-        Protected Function GetSiteResponse(ByVal URL As String) As String
+        Protected Function GetSiteResponse(ByVal URL As String, Optional ByVal e As ErrorsDescriber = Nothing) As String
             Try
                 Return Settings.Site(Sites.Reddit).Responser.GetResponse(URL,, EDP.ThrowException)
             Catch ex As Exception
                 HasError = True
-                Dim e As EDP = EDP.SendInLog
                 Dim OptText$ = String.Empty
-                If Settings.Site(Sites.Reddit).Responser.StatusCode = HttpStatusCode.NotFound Then
-                    e += EDP.ThrowException
-                    OptText = ": USER NOT FOUND"
-                Else
-                    e += EDP.ReturnValue
+                If Not e.Exists Then
+                    Dim ee As EDP = EDP.SendInLog
+                    If Settings.Site(Sites.Reddit).Responser.StatusCode = HttpStatusCode.NotFound Then
+                        ee += EDP.ThrowException
+                        OptText = ": USER NOT FOUND"
+                    Else
+                        ee += EDP.ReturnValue
+                    End If
+                    e = New ErrorsDescriber(ee)
                 End If
                 Return ErrorsDescriber.Execute(e, ex, $"[{Site} - {Name}: GetSiteResponse([{URL}])]{OptText}", String.Empty)
             End Try

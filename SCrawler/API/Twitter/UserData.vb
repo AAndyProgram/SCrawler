@@ -58,13 +58,13 @@ Namespace API.Twitter
                 URL = $"https://api.twitter.com/1.1/statuses/user_timeline.json?screen_name={Name}&count=200&exclude_replies=false&include_rts=1&tweet_mode=extended"
                 If Not POST.IsEmptyString Then URL &= $"&max_id={POST}"
 
-                Token.ThrowIfCancellationRequested()
+                ThrowAny(Token)
                 Dim r$ = Settings.Site(Sites.Twitter).Responser.GetResponse(URL,, EDP.ThrowException)
                 If Not r.IsEmptyString Then
                     Using w As EContainer = JsonDocument.Parse(r)
                         If Not w Is Nothing AndAlso w.Count > 0 Then
                             For Each nn In w
-                                Token.ThrowIfCancellationRequested()
+                                ThrowAny(Token)
                                 If nn.Count > 0 Then
                                     PostID = nn.Value("id")
                                     If ID.IsEmptyString Then
@@ -107,6 +107,7 @@ Namespace API.Twitter
                     If Not PostID.IsEmptyString And NewPostDetected Then DownloadData(PostID, Token)
                 End If
             Catch oex As OperationCanceledException When Token.IsCancellationRequested
+            Catch dex As ObjectDisposedException When Disposed
             Catch ex As Exception
                 LogError(ex, $"data downloading error [{URL}]")
                 HasError = True
@@ -206,7 +207,7 @@ Namespace API.Twitter
         Protected Overrides Sub DownloadContent(ByVal Token As CancellationToken)
             Try
                 Dim i%
-                Token.ThrowIfCancellationRequested()
+                ThrowAny(Token)
                 If _ContentNew.Count > 0 Then
                     _ContentNew.RemoveAll(Function(c) c.URL.IsEmptyString)
                     If _ContentNew.Count > 0 Then
@@ -219,7 +220,7 @@ Namespace API.Twitter
                             If vsf Then SFileShares.SFileExists($"{MyDir}\Video\", SFO.Path)
                             MainProgress.TotalCount += _ContentNew.Count
                             For i = 0 To _ContentNew.Count - 1
-                                Token.ThrowIfCancellationRequested()
+                                ThrowAny(Token)
                                 v = _ContentNew(i)
                                 v.State = UStates.Tried
                                 If v.File.IsEmptyString Then
@@ -255,6 +256,7 @@ Namespace API.Twitter
                     End If
                 End If
             Catch oex As OperationCanceledException When Token.IsCancellationRequested
+            Catch dex As ObjectDisposedException When Disposed
             Catch ex As Exception
                 LogError(ex, "content downloading error")
                 HasError = True

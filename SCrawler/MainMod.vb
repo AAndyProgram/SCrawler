@@ -74,7 +74,7 @@ Friend Module MainMod
                    x.Attribute(Name_Collection).Value, x.Attribute(Name_Merged).Value.FromXML(Of Boolean)(False))
             IsChannel = x.Attribute(Name_IsChannel).Value.FromXML(Of Boolean)(False)
         End Sub
-        Friend Sub New(ByVal c As API.Reddit.Channel)
+        Friend Sub New(ByVal c As Reddit.Channel)
             Name = c.Name
             Site = Sites.Reddit
             File = c.File
@@ -245,23 +245,6 @@ Friend Module MainMod
             Return ErrorsDescriber.Execute(e, ex, "Downloading video by URL error", False)
         End Try
     End Function
-    Friend Sub CheckForReparse()
-        Try
-            Dim p As Func(Of IUserData, Boolean) = Function(u) u.DataForReparseExists
-            With Settings.Users
-                If .Count > 0 AndAlso .Exists(Function(u) p.Invoke(u)) Then
-                    If MsgBox("Some users contain not parsed data" & vbCr &
-                              "Do you want to start trying to download?",
-                              MsgBoxStyle.Question + MsgBoxStyle.YesNo + MsgBoxStyle.DefaultButton1,
-                              "Not parsed data found") = MsgBoxResult.Yes Then
-                        Downloader.AddRange(.Where(p).SelectMany(Function(u) If(u.IsCollection, DirectCast(u, UserDataBind).Collections.Where(p), {u})), True)
-                    End If
-                End If
-            End With
-        Catch ex As Exception
-            ErrorsDescriber.Execute(EDP.SendInLog, ex, "CheckForReparse")
-        End Try
-    End Sub
     Friend Structure UserBan
         Friend ReadOnly Name As String
         Friend ReadOnly Reason As String

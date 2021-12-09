@@ -82,6 +82,7 @@ Partial Class MainFrame
         Me.BTT_CONTEXT_OPEN_PATH = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_CONTEXT_OPEN_SITE = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_CONTEXT_INFO = New System.Windows.Forms.ToolStripMenuItem()
+        Me.BTT_CONTEXT_DOWN_LIMITED = New System.Windows.Forms.ToolStripMenuItem()
         SEP_1 = New System.Windows.Forms.ToolStripSeparator()
         SEP_2 = New System.Windows.Forms.ToolStripSeparator()
         CONTEXT_SEP_1 = New System.Windows.Forms.ToolStripSeparator()
@@ -421,9 +422,9 @@ Partial Class MainFrame
         '
         'USER_CONTEXT
         '
-        Me.USER_CONTEXT.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_CONTEXT_DOWN, Me.BTT_CONTEXT_EDIT, Me.BTT_CONTEXT_DELETE, CONTEXT_SEP_1, Me.BTT_CONTEXT_FAV, Me.BTT_CONTEXT_TEMP, Me.BTT_CONTEXT_GROUPS, Me.BTT_CONTEXT_ADD_TO_COL, Me.BTT_CONTEXT_COL_MERGE, CONTEXT_SEP_2, Me.BTT_CHANGE_IMAGE, CONTEXT_SEP_3, Me.BTT_CONTEXT_OPEN_PATH, CONTEXT_SEP_4, Me.BTT_CONTEXT_OPEN_SITE, CONTEXT_SEP_5, Me.BTT_CONTEXT_INFO})
+        Me.USER_CONTEXT.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_CONTEXT_DOWN, Me.BTT_CONTEXT_DOWN_LIMITED, Me.BTT_CONTEXT_EDIT, Me.BTT_CONTEXT_DELETE, CONTEXT_SEP_1, Me.BTT_CONTEXT_FAV, Me.BTT_CONTEXT_TEMP, Me.BTT_CONTEXT_GROUPS, Me.BTT_CONTEXT_ADD_TO_COL, Me.BTT_CONTEXT_COL_MERGE, CONTEXT_SEP_2, Me.BTT_CHANGE_IMAGE, CONTEXT_SEP_3, Me.BTT_CONTEXT_OPEN_PATH, CONTEXT_SEP_4, Me.BTT_CONTEXT_OPEN_SITE, CONTEXT_SEP_5, Me.BTT_CONTEXT_INFO})
         Me.USER_CONTEXT.Name = "USER_CONTEXT"
-        Me.USER_CONTEXT.Size = New System.Drawing.Size(196, 298)
+        Me.USER_CONTEXT.Size = New System.Drawing.Size(196, 342)
         '
         'BTT_CONTEXT_DOWN
         '
@@ -507,6 +508,15 @@ Partial Class MainFrame
         Me.BTT_CONTEXT_INFO.Size = New System.Drawing.Size(195, 22)
         Me.BTT_CONTEXT_INFO.Text = "Information"
         '
+        'BTT_CONTEXT_DOWN_LIMITED
+        '
+        Me.BTT_CONTEXT_DOWN_LIMITED.AutoToolTip = True
+        Me.BTT_CONTEXT_DOWN_LIMITED.Image = Global.SCrawler.My.Resources.Resources.StartPic_01_Green_16
+        Me.BTT_CONTEXT_DOWN_LIMITED.Name = "BTT_CONTEXT_DOWN_LIMITED"
+        Me.BTT_CONTEXT_DOWN_LIMITED.Size = New System.Drawing.Size(195, 22)
+        Me.BTT_CONTEXT_DOWN_LIMITED.Text = "Download data limited"
+        Me.BTT_CONTEXT_DOWN_LIMITED.ToolTipText = "Download top ... posts"
+        '
         'MainFrame
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
@@ -575,4 +585,5 @@ Partial Class MainFrame
     Private WithEvents BTT_EDIT_USER As ToolStripButton
     Private WithEvents BTT_CONTEXT_GROUPS As ToolStripMenuItem
     Private WithEvents BTT_VERSION_INFO As ToolStripButton
+    Private WithEvents BTT_CONTEXT_DOWN_LIMITED As ToolStripMenuItem
 End Class

@@ -40,6 +40,7 @@ Namespace API.Base
         Private Const Name_ParseUserMediaOnly As String = "ParseUserMediaOnly"
         Private Const Name_Temporary As String = "Temporary"
         Private Const Name_Favorite As String = "Favorite"
+        Private Const Name_CreatedByChannel As String = "CreatedByChannel"
 
         Private Const Name_SeparateVideoFolder As String = "SeparateVideoFolder"
         Private Const Name_CollectionName As String = "Collection"
@@ -103,6 +104,7 @@ Namespace API.Base
                 Return User.IsChannel
             End Get
         End Property
+        Friend Property CreatedByChannel As Boolean = False
         Friend ReadOnly Property Self As IUserData Implements IUserData.Self
             Get
                 Return Me
@@ -235,7 +237,6 @@ BlockNullPicture:
 #Region "Content"
         Protected ReadOnly _ContentList As List(Of UserMedia)
         Protected ReadOnly _ContentNew As List(Of UserMedia)
-        Protected ReadOnly _ContentForReparse As List(Of UserMedia)
         Protected ReadOnly _TempMediaList As List(Of UserMedia)
         Protected ReadOnly _TempPostsList As List(Of String)
 #End Region
@@ -250,8 +251,6 @@ BlockNullPicture:
             End Set
         End Property
         Protected MyFileData As SFile
-        Protected MyFileDataR As SFile
-        Protected MyFileDataRV As SFile
         Protected MyFilePosts As SFile
         Friend Overridable Property FileExists As Boolean = False Implements IUserData.FileExists
         Friend Overridable Property DataMerging As Boolean
@@ -398,7 +397,6 @@ BlockNullPicture:
             _InvokeImageHandler = InvokeImageHandler
             _ContentList = New List(Of UserMedia)
             _ContentNew = New List(Of UserMedia)
-            _ContentForReparse = New List(Of UserMedia)
             _TempMediaList = New List(Of UserMedia)
             _TempPostsList = New List(Of String)
             Labels = New List(Of String)
@@ -430,6 +428,7 @@ BlockNullPicture:
                         ParseUserMediaOnly = x.Value(Name_ParseUserMediaOnly).FromXML(Of Boolean)(False)
                         Temporary = x.Value(Name_Temporary).FromXML(Of Boolean)(False)
                         Favorite = x.Value(Name_Favorite).FromXML(Of Boolean)(False)
+                        CreatedByChannel = x.Value(Name_CreatedByChannel).FromXML(Of Boolean)(False)
                         SeparateVideoFolder = AConvert(Of Boolean)(x.Value(Name_SeparateVideoFolder), Nothing)
                         ReadyForDownload = x.Value(Name_ReadyForDownload).FromXML(Of Boolean)(True)
                         _CountVideo = x.Value(Name_VideoCount).FromXML(Of Integer)(0)
@@ -440,7 +439,6 @@ BlockNullPicture:
                         Labels.ListAddList(x.Value(Name_LabelsName).StringToList(Of String, List(Of String))("|", EDP.ReturnValue), LAP.NotContainsOnly, LAP.ClearBeforeAdd)
                     End Using
                     UpdateDataFiles()
-                    _DataForReparseExists = MyFileDataR.Exists
                 End If
             Catch ex As Exception
                 LogError(ex, "user information loading error")
@@ -458,6 +456,7 @@ BlockNullPicture:
                     x.Add(Name_ParseUserMediaOnly, ParseUserMediaOnly.BoolToInteger)
                     x.Add(Name_Temporary, Temporary.BoolToInteger)
                     x.Add(Name_Favorite, Favorite.BoolToInteger)
+                    x.Add(Name_CreatedByChannel, CreatedByChannel.BoolToInteger)
                     If SeparateVideoFolder.HasValue Then
                         x.Add(Name_SeparateVideoFolder, SeparateVideoFolder.Value.BoolToInteger)
                     Else
@@ -483,9 +482,6 @@ BlockNullPicture:
         Friend Overridable Overloads Sub LoadContentInformation()
             UpdateDataFiles()
             LoadContentInformation(_ContentList, MyFileData)
-            LoadContentInformation(_ContentForReparse, MyFileDataR)
-            LoadContentInformation(_TempMediaList, MyFileDataRV)
-            _DataForReparseExists = False
         End Sub
         Private Overloads Sub LoadContentInformation(ByRef _CLIST As List(Of UserMedia), ByVal f As SFile)
             Try
@@ -570,13 +566,7 @@ BlockNullPicture:
         End Sub
 #End Region
 #Region "Download functions and options"
-        Friend Overridable Property DownloadReparseOnly As Boolean = False Implements IUserData.DownloadReparseOnly
-        Private _DataForReparseExists As Boolean = False
-        Friend Overridable ReadOnly Property DataForReparseExists As Boolean Implements IUserData.DataForReparseExists
-            Get
-                Return _ContentForReparse.Count > 0 Or _DataForReparseExists
-            End Get
-        End Property
+        Friend Overridable Property DownloadTopCount As Integer? = Nothing Implements IUserData.DownloadTopCount
         Friend Overridable Sub DownloadData(ByVal Token As CancellationToken) Implements IContentProvider.DownloadData
             Dim Canceled As Boolean = False
             Try
@@ -586,60 +576,46 @@ BlockNullPicture:
                 _DownloadedVideosSession = 0
                 _TempMediaList.Clear()
                 _TempPostsList.Clear()
+                Dim __SaveData As Boolean = Not CreatedByChannel Or Not Settings.FromChannelDownloadTopUse
 
                 If Not _DataLoaded Then LoadContentInformation()
 
-                If Not DownloadReparseOnly Then
-                    If MyFilePosts.Exists Then _TempPostsList.ListAddList(File.ReadAllLines(MyFilePosts))
-                    If _ContentList.Count > 0 Then _TempPostsList.ListAddList(_ContentList.Select(Function(u) u.Post.ID), LNC)
-                    Token.ThrowIfCancellationRequested()
-                    DownloadDataF(Token)
-                    Token.ThrowIfCancellationRequested()
-                End If
+                If MyFilePosts.Exists Then _TempPostsList.ListAddList(File.ReadAllLines(MyFilePosts))
+                If _ContentList.Count > 0 Then _TempPostsList.ListAddList(_ContentList.Select(Function(u) u.Post.ID), LNC)
+                ThrowAny(Token)
+                DownloadDataF(Token)
+                ThrowAny(Token)
 
                 ReparseVideo(Token)
-                If Token.IsCancellationRequested Then
-                    If Not DownloadReparseOnly Then
-                        If _TempMediaList.Count > 0 AndAlso _TempMediaList.Exists(Function(c) c.Type = UserMedia.Types.VideoPre) Then
-                            TextSaver.SaveTextToFile((From c As UserMedia In _TempMediaList
-                                                      Where c.Type = UserMedia.Types.VideoPre
-                                                      Select c.URL).ListToString(, Environment.NewLine), MyFileDataRV, True,, EDP.SendInLog)
-                        Else
-                            If MyFileDataRV.Exists Then MyFileDataRV.Delete(,,, EDP.SendInLog)
-                        End If
-                    End If
-                Else
-                    If Not DownloadReparseOnly And _TempPostsList.Count > 0 Then TextSaver.SaveTextToFile(_TempPostsList.ListToString(, Environment.NewLine), MyFilePosts, True,, EDP.None)
-                    _ContentNew.ListAddList(_TempMediaList, LAP.ClearBeforeAdd)
-                End If
-
-                Dim r% = 0
-                Do While r <= 2 And (_ContentNew.Count > 0 Or _ContentForReparse.Count > 0) And Not Token.IsCancellationRequested
-                    DownloadContent(Token)
-                    If _ContentNew.Count > 0 Then
-                        _ContentForReparse.ListAddList(_ContentNew.Where(Function(c) c.State = UState.Tried Or c.State = UState.Unknown), LNC)
-                        _ContentList.ListAddList(_ContentNew.Where(Function(c) c.State = UState.Downloaded), LNC)
-                    End If
-                    If _ContentForReparse.Count > 0 Then _ContentForReparse.RemoveAll(Function(c) _ContentList.Contains(c))
-                    _ContentNew.Clear()
-                    If _ContentForReparse.Count > 0 Then _ContentNew.ListAddList(_ContentForReparse, LNC)
-                    r += 1
-                Loop
-
+                ThrowAny(Token)
+                If _TempPostsList.Count > 0 And __SaveData Then TextSaver.SaveTextToFile(_TempPostsList.ListToString(, Environment.NewLine), MyFilePosts, True,, EDP.None)
+                _ContentNew.ListAddList(_TempMediaList, LAP.ClearBeforeAdd)
+                DownloadContent(Token)
+                ThrowIfDisposed()
+                _ContentList.ListAddList(_ContentNew.Where(Function(c) c.State = UState.Downloaded), LNC)
                 _CountPictures = _ContentList.LongCount(Function(c) c.Type = UserMedia.Types.Picture)
                 _CountVideo = _ContentList.LongCount(Function(c) c.Type = UserMedia.Types.Video)
                 If DownloadedPictures + DownloadedVideos > 0 Then
-                    LastUpdated = Now
-                    If Labels.Contains(LabelsKeeper.NoParsedUser) Then Labels.Remove(LabelsKeeper.NoParsedUser)
-                    UpdateContentInformation(_ContentList, MyFileData)
+                    If __SaveData Then
+                        LastUpdated = Now
+                        If Labels.Contains(LabelsKeeper.NoParsedUser) Then Labels.Remove(LabelsKeeper.NoParsedUser)
+                        UpdateContentInformation(_ContentList, MyFileData)
+                    Else
+                        _CountVideo = 0
+                        _CountPictures = 0
+                        _ContentList.Clear()
+                        CreatedByChannel = False
+                    End If
                     UpdateUserInformation()
                 End If
-                If _ContentForReparse.Count > 0 Then UpdateContentInformation(_ContentForReparse, MyFileDataR)
+                ThrowIfDisposed()
                 _DownloadedPicturesTotal += _DownloadedPicturesSession
                 _DownloadedVideosTotal += _DownloadedVideosSession
                 If UpPic Then Raise_OnPictureUpdated()
             Catch oex As OperationCanceledException When Token.IsCancellationRequested
                 MyMainLOG = $"{Site} - {Name}: downloading canceled"
+                Canceled = True
+            Catch dex As ObjectDisposedException When Disposed
                 Canceled = True
             Catch ex As Exception
                 LogError(ex, "downloading data error")
@@ -647,18 +623,13 @@ BlockNullPicture:
             Finally
                 If Not Canceled Then _DataParsed = True ': LastUpdated = Now
                 _ContentNew.Clear()
-                DownloadReparseOnly = False
-                If _ContentForReparse.Count = 0 And MyFileDataR.Exists Then MyFileDataR.Delete(,,, EDP.SendInLog)
+                DownloadTopCount = Nothing
             End Try
         End Sub
         Private Sub UpdateDataFiles()
             If Not User.File.IsEmptyString Then
                 MyFileData = User.File
                 MyFileData.Name &= "_Data"
-                MyFileDataR = MyFileData
-                MyFileDataR.Name &= "_REPARSE"
-                MyFileDataRV = MyFileData
-                MyFileDataRV.Name &= "_RVideo"
                 MyFilePosts = User.File
                 MyFilePosts.Name &= "_Posts"
                 MyFilePosts.Extension = "txt"
@@ -687,9 +658,10 @@ BlockNullPicture:
         End Function
         Friend Overridable Function MoveFiles(ByVal __CollectionName As String, ByVal _MergeData As Boolean) As Boolean Implements IUserData.MoveFiles
             Dim UserBefore As UserInfo = User
+            Dim Removed As Boolean = True
+            Dim _TurnBack As Boolean = False
             Try
                 Dim f As SFile
-                Dim Removed As Boolean
                 If IncludedInCollection Then
                     Settings.Users.Add(Me)
                     Removed = False
@@ -701,6 +673,7 @@ BlockNullPicture:
                     User.CollectionName = __CollectionName
                     User.IncludedInCollection = True
                 End If
+                _TurnBack = True
                 User.UpdateUserFile()
                 f = User.File.CutPath(, EDP.ThrowException)
                 If f.Exists(SFO.Path, False) Then
@@ -711,6 +684,7 @@ BlockNullPicture:
                         MsgBoxE("Operation canceled", MsgBoxStyle.Exclamation)
                         User = UserBefore
                         If Removed Then Settings.Users.Add(Me) Else Settings.Users.Remove(Me)
+                        _TurnBack = False
                         Return False
                     End If
                     f.Delete(SFO.Path, False, False, EDP.ThrowException)
@@ -724,6 +698,9 @@ BlockNullPicture:
             Catch ex As Exception
                 ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Files moving error")
                 User = UserBefore
+                If _TurnBack Then
+                    If Removed Then Settings.Users.Add(Me) Else Settings.Users.Remove(Me)
+                End If
                 Return False
             End Try
         End Function
@@ -788,6 +765,16 @@ BlockNullPicture:
         End Sub
         Protected Sub ErrorDownloading(ByVal f As SFile, ByVal URL As String)
             If Not f.Exists Then MyMainLOG = $"Error downloading from [{URL}] to [{f}]"
+        End Sub
+        ''' <exception cref="ObjectDisposedException"></exception>
+        Protected Sub ThrowIfDisposed()
+            If Disposed Then Throw New ObjectDisposedException(ToString(), "Object disposed")
+        End Sub
+        ''' <exception cref="OperationCanceledException"></exception>
+        ''' <exception cref="ObjectDisposedException"></exception>
+        Protected Sub ThrowAny(ByVal Token As CancellationToken)
+            Token.ThrowIfCancellationRequested()
+            ThrowIfDisposed()
         End Sub
 #End Region
         Public Overrides Function ToString() As String
@@ -861,7 +848,7 @@ BlockNullPicture:
 #End Region
 #Region "IDisposable Support"
         Protected disposedValue As Boolean = False
-        Friend ReadOnly Property Disposed As Boolean
+        Friend ReadOnly Property Disposed As Boolean Implements IUserData.Disposed
             Get
                 Return disposedValue
             End Get
@@ -942,9 +929,9 @@ BlockNullPicture:
         Function Delete() As Integer
         Function MoveFiles(ByVal CollectionName As String, ByVal MergeData As Boolean) As Boolean
         Sub OpenFolder()
-        Property DownloadReparseOnly As Boolean
-        ReadOnly Property DataForReparseExists As Boolean
         ReadOnly Property Self As IUserData
+        Property DownloadTopCount As Integer?
+        ReadOnly Property Disposed As Boolean
     End Interface
     Friend Interface IChannelLimits
         Property AutoGetLimits As Boolean

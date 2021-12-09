@@ -20,6 +20,14 @@ Namespace API
                 ChangeCollectionName(NewName, True)
             End Set
         End Property
+        Friend Overrides Property Name As String
+            Get
+                Return CollectionName
+            End Get
+            Set(ByVal NewCollectionName As String)
+                CollectionName = NewCollectionName
+            End Set
+        End Property
         Friend Overrides Sub ChangeCollectionName(ByVal NewName As String, ByVal UpdateSettings As Boolean)
             _CollectionName = NewName
             If Count > 0 Then Collections.ForEach(Sub(c) c.CollectionName = NewName)
@@ -233,22 +241,17 @@ Namespace API
         Friend Overrides Sub LoadContentInformation()
             If Count > 0 Then Collections.ForEach(Sub(c) DirectCast(c, UserDataBase).LoadContentInformation())
         End Sub
-        Friend Overrides Property DownloadReparseOnly As Boolean
-            Get
-                If Count > 0 Then Return Collections(0).DownloadReparseOnly Else Return False
-            End Get
-            Set(ByVal DRO As Boolean)
-                If Count > 0 Then Collections.ForEach(Sub(u) u.DownloadReparseOnly = DRO)
-            End Set
-        End Property
-        Friend Overrides ReadOnly Property DataForReparseExists As Boolean
+        Friend Overrides Property DownloadTopCount As Integer?
             Get
                 If Count > 0 Then
-                    Return Collections.Exists(Function(u) u.DataForReparseExists)
+                    Return Collections(0).DownloadTopCount
                 Else
-                    Return False
+                    Return Nothing
                 End If
             End Get
+            Set(ByVal NewLimit As Integer?)
+                If Count > 0 Then Collections.ForEach(Sub(c) c.DownloadTopCount = NewLimit)
+            End Set
         End Property
         Friend Overrides Sub DownloadData(ByVal Token As CancellationToken)
             If Count > 0 Then Downloader.AddRange(Collections)
@@ -282,16 +285,24 @@ Namespace API
                 Return False
             End Get
         End Property
+        ''' <exception cref="InvalidOperationException"></exception>
         Friend Overloads Sub Add(ByVal _Item As IUserData) Implements ICollection(Of IUserData).Add
             With _Item
-                .Temporary = Temporary
-                .Favorite = Favorite
-                ImageHandler(_Item, False)
-                AddHandler _Item.OnPictureUpdated, AddressOf User_OnPictureUpdated
                 Dim m As Boolean = DataMerging
                 If .MoveFiles(CollectionName, m) Then
                     Collections.Add(_Item)
-                    DirectCast(_Item, UserDataBase).CreateButtons(Count - 1)
+                    With Collections.Last
+                        If Collections.Count - 1 > 0 Then
+                            .Temporary = Temporary
+                            .Favorite = Favorite
+                            .UpdateUserInformation()
+                        End If
+                        ImageHandler(_Item, False)
+                        AddHandler .OnPictureUpdated, AddressOf User_OnPictureUpdated
+                        DirectCast(.Self, UserDataBase).CreateButtons(Count - 1)
+                    End With
+                Else
+                    Throw New InvalidOperationException("User data doe not move to the collection folder")
                 End If
             End With
         End Sub

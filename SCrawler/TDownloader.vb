@@ -81,11 +81,16 @@ Friend Class TDownloader : Implements IDisposable
                 Const nf As ANumbers.Formats = ANumbers.Formats.Number
                 Dim t As New List(Of Task)
                 Dim i% = -1
+                Dim j% = Settings.MaxUsersJobsCount - 1
+                Dim Keys As New List(Of String)
                 For Each _Item As IUserData In Items
-                    i += 1
-                    If i > 4 Then Exit For
-                    Token.ThrowIfCancellationRequested()
-                    t.Add(Task.Run(Sub() _Item.DownloadData(Token)))
+                    If Not _Item.Disposed Then
+                        Keys.Add(_Item.LVIKey)
+                        Token.ThrowIfCancellationRequested()
+                        t.Add(Task.Run(Sub() _Item.DownloadData(Token)))
+                        i += 1
+                        If i >= j Then Exit For
+                    End If
                 Next
                 If t.Count > 0 Then
                     _CurrentDownloadingTasks = t.Count
@@ -95,19 +100,24 @@ Friend Class TDownloader : Implements IDisposable
                         .InformationTemporary = .Information
                     End With
                     Token.ThrowIfCancellationRequested()
-                    Task.WaitAll(t.ToArray)
+                    Task.WaitAll(t.ToArray, Token)
                     Dim dcc As Boolean = False
-                    If Count > 0 And Count >= t.Count Then
-                        For i = t.Count - 1 To 0 Step -1
-                            With Items(i)
-                                If Not .IsCollection AndAlso .DownloadedTotal(False) > 0 Then
-                                    If Not Downloaded.Contains(.Self) Then Downloaded.Add(GetUserFromMainCollection(.Self))
-                                    dcc = True
-                                End If
+                    If Keys.Count > 0 Then
+                        For Each k$ In Keys
+                            i = Items.FindIndex(Function(ii) ii.LVIKey = k)
+                            If i >= 0 Then
+                                With Items(i)
+                                    If Not .Disposed AndAlso Not .IsCollection AndAlso .DownloadedTotal(False) > 0 Then
+                                        If Not Downloaded.Contains(.Self) Then Downloaded.Add(GetUserFromMainCollection(.Self))
+                                        dcc = True
+                                    End If
+                                End With
                                 Items.RemoveAt(i)
-                            End With
+                            End If
                         Next
                     End If
+                    Keys.Clear()
+                    Items.RemoveAll(Function(ii) ii.Disposed)
                     If dcc Then Downloaded.RemoveAll(Function(u) u Is Nothing)
                     If dcc And Downloaded.Count > 0 Then RaiseEvent OnDownloadCountChange()
                     t.Clear()
@@ -153,11 +163,10 @@ Friend Class TDownloader : Implements IDisposable
             If Not _Working Then Start()
         End If
     End Sub
-    Friend Sub AddRange(ByVal _Items As IEnumerable(Of IUserData), Optional ByVal ReparseOnly As Boolean = False)
+    Friend Sub AddRange(ByVal _Items As IEnumerable(Of IUserData))
         If _Items.ListExists Then
             For i% = 0 To _Items.Count - 1
                 'If i = 5 Then UpdateJobsLabel() : Start()
-                If ReparseOnly Then _Items(i).DownloadReparseOnly = True
                 If _Items(i).IsCollection Then _Items(i).DownloadData(Nothing) Else Items.Add(_Items(i))
             Next
             UpdateJobsLabel()

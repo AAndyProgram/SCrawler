@@ -217,7 +217,7 @@
             Me.CH_READY_FOR_DOWN.Size = New System.Drawing.Size(218, 22)
             Me.CH_READY_FOR_DOWN.TabIndex = 1
             Me.CH_READY_FOR_DOWN.Text = "Ready for download"
-            TT_MAIN.SetToolTip(Me.CH_READY_FOR_DOWN, "If checked then this user can be downloaded by [Download All]")
+            TT_MAIN.SetToolTip(Me.CH_READY_FOR_DOWN, "Can be downloaded by [Download All]")
             Me.CH_READY_FOR_DOWN.UseVisualStyleBackColor = True
             '
             'TXT_DESCR

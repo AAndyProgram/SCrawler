@@ -72,16 +72,18 @@ Namespace API.Reddit
         Friend Sub DownloadData(ByVal Token As CancellationToken, Optional ByVal SkipExists As Boolean = True,
                                 Optional ByVal p As MyProgress = Nothing)
             Try
+                Dim m% = Settings.ChannelsMaxJobsCount
                 If Count > 0 Then
                     Dim t As New List(Of Task)
+                    Dim i% = 0
                     For Each c As Channel In Channels
                         If Not c.Downloading Then t.Add(Task.Run(Sub()
                                                                      c.SetLimit(Me)
                                                                      c.DownloadData(Token, SkipExists, p)
-                                                                 End Sub))
+                                                                 End Sub)) : i += 1
+                        If t.Count > 0 And i >= m Then Task.WaitAll(t.ToArray, Token) : t.Clear() : i = 0
                     Next
-                    If t.Count > 0 Then Task.WaitAll(t.ToArray)
-                    Token.ThrowIfCancellationRequested()
+                    If t.Count > 0 Then Task.WaitAll(t.ToArray, Token) : t.Clear()
                 End If
             Catch oex As OperationCanceledException When Token.IsCancellationRequested
             End Try

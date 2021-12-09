@@ -22,6 +22,8 @@
             Dim ActionButton3 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim TP_IMAGES As System.Windows.Forms.TableLayoutPanel
             Dim TP_CHANNELS_IMGS As System.Windows.Forms.TableLayoutPanel
+            Dim ActionButton4 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton5 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim TT_MAIN As System.Windows.Forms.ToolTip
             Me.TXT_GLOBAL_PATH = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.CH_SEPARATE_VIDEO_FOLDER = New System.Windows.Forms.CheckBox()
@@ -31,6 +33,11 @@
             Me.CH_DEF_TEMP = New System.Windows.Forms.CheckBox()
             Me.TXT_CHANNELS_ROWS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_CHANNELS_COLUMNS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
+            Me.TXT_CHANNEL_USER_POST_LIMIT = New PersonalUtilities.Forms.Controls.TextBoxExtended()
+            Me.CH_COPY_CHANNEL_USER_IMAGE = New System.Windows.Forms.CheckBox()
+            Me.CH_CHECK_VER_START = New System.Windows.Forms.CheckBox()
+            Me.TXT_MAX_JOBS_USERS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
+            Me.TXT_MAX_JOBS_CHANNELS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.CONTAINER_MAIN = New System.Windows.Forms.ToolStripContainer()
             TP_MAIN = New System.Windows.Forms.TableLayoutPanel()
             TP_IMAGES = New System.Windows.Forms.TableLayoutPanel()
@@ -45,6 +52,9 @@
             TP_CHANNELS_IMGS.SuspendLayout()
             CType(Me.TXT_CHANNELS_ROWS, System.ComponentModel.ISupportInitialize).BeginInit()
             CType(Me.TXT_CHANNELS_COLUMNS, System.ComponentModel.ISupportInitialize).BeginInit()
+            CType(Me.TXT_CHANNEL_USER_POST_LIMIT, System.ComponentModel.ISupportInitialize).BeginInit()
+            CType(Me.TXT_MAX_JOBS_USERS, System.ComponentModel.ISupportInitialize).BeginInit()
+            CType(Me.TXT_MAX_JOBS_CHANNELS, System.ComponentModel.ISupportInitialize).BeginInit()
             Me.CONTAINER_MAIN.ContentPanel.SuspendLayout()
             Me.CONTAINER_MAIN.SuspendLayout()
             Me.SuspendLayout()
@@ -60,17 +70,27 @@
             TP_MAIN.Controls.Add(TP_IMAGES, 0, 1)
             TP_MAIN.Controls.Add(Me.CH_DEF_TEMP, 0, 3)
             TP_MAIN.Controls.Add(TP_CHANNELS_IMGS, 0, 5)
+            TP_MAIN.Controls.Add(Me.TXT_CHANNEL_USER_POST_LIMIT, 0, 6)
+            TP_MAIN.Controls.Add(Me.CH_COPY_CHANNEL_USER_IMAGE, 0, 7)
+            TP_MAIN.Controls.Add(Me.CH_CHECK_VER_START, 0, 8)
+            TP_MAIN.Controls.Add(Me.TXT_MAX_JOBS_USERS, 0, 9)
+            TP_MAIN.Controls.Add(Me.TXT_MAX_JOBS_CHANNELS, 0, 10)
             TP_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
             TP_MAIN.Location = New System.Drawing.Point(0, 0)
             TP_MAIN.Name = "TP_MAIN"
-            TP_MAIN.RowCount = 6
-            TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 16.66667!))
-            TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 16.66667!))
-            TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 16.66667!))
-            TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 16.66667!))
-            TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 16.66667!))
-            TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 16.66667!))
-            TP_MAIN.Size = New System.Drawing.Size(584, 191)
+            TP_MAIN.RowCount = 11
+            TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 9.090549!))
+            TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 9.090549!))
+            TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 9.090549!))
+            TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 9.090549!))
+            TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 9.090549!))
+            TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 9.090549!))
+            TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 9.092355!))
+            TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 9.092355!))
+            TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 9.091001!))
+            TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 9.09009!))
+            TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 9.09091!))
+            TP_MAIN.Size = New System.Drawing.Size(584, 337)
             TP_MAIN.TabIndex = 0
             '
             'TXT_GLOBAL_PATH
@@ -96,10 +116,10 @@
             '
             Me.CH_SEPARATE_VIDEO_FOLDER.AutoSize = True
             Me.CH_SEPARATE_VIDEO_FOLDER.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_SEPARATE_VIDEO_FOLDER.Location = New System.Drawing.Point(4, 66)
+            Me.CH_SEPARATE_VIDEO_FOLDER.Location = New System.Drawing.Point(4, 64)
             Me.CH_SEPARATE_VIDEO_FOLDER.Name = "CH_SEPARATE_VIDEO_FOLDER"
             Me.CH_SEPARATE_VIDEO_FOLDER.Padding = New System.Windows.Forms.Padding(100, 0, 0, 0)
-            Me.CH_SEPARATE_VIDEO_FOLDER.Size = New System.Drawing.Size(576, 24)
+            Me.CH_SEPARATE_VIDEO_FOLDER.Size = New System.Drawing.Size(576, 23)
             Me.CH_SEPARATE_VIDEO_FOLDER.TabIndex = 2
             Me.CH_SEPARATE_VIDEO_FOLDER.Text = "Separate video folders"
             TT_MAIN.SetToolTip(Me.CH_SEPARATE_VIDEO_FOLDER, resources.GetString("CH_SEPARATE_VIDEO_FOLDER.ToolTip"))
@@ -115,7 +135,7 @@
             Me.TXT_COLLECTIONS_PATH.CaptionToolTipEnabled = True
             Me.TXT_COLLECTIONS_PATH.CaptionToolTipText = "Set collections folder name (name only)"
             Me.TXT_COLLECTIONS_PATH.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_COLLECTIONS_PATH.Location = New System.Drawing.Point(4, 128)
+            Me.TXT_COLLECTIONS_PATH.Location = New System.Drawing.Point(4, 124)
             Me.TXT_COLLECTIONS_PATH.Name = "TXT_COLLECTIONS_PATH"
             Me.TXT_COLLECTIONS_PATH.Size = New System.Drawing.Size(576, 22)
             Me.TXT_COLLECTIONS_PATH.TabIndex = 4
@@ -128,13 +148,13 @@
             TP_IMAGES.Controls.Add(Me.TXT_IMAGE_LARGE, 0, 0)
             TP_IMAGES.Controls.Add(Me.TXT_IMAGE_SMALL, 1, 0)
             TP_IMAGES.Dock = System.Windows.Forms.DockStyle.Fill
-            TP_IMAGES.Location = New System.Drawing.Point(1, 32)
+            TP_IMAGES.Location = New System.Drawing.Point(1, 31)
             TP_IMAGES.Margin = New System.Windows.Forms.Padding(0)
             TP_IMAGES.Name = "TP_IMAGES"
             TP_IMAGES.RowCount = 1
             TP_IMAGES.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_IMAGES.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 30.0!))
-            TP_IMAGES.Size = New System.Drawing.Size(582, 30)
+            TP_IMAGES.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 29.0!))
+            TP_IMAGES.Size = New System.Drawing.Size(582, 29)
             TP_IMAGES.TabIndex = 1
             '
             'TXT_IMAGE_LARGE
@@ -173,10 +193,10 @@
             '
             Me.CH_DEF_TEMP.AutoSize = True
             Me.CH_DEF_TEMP.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_DEF_TEMP.Location = New System.Drawing.Point(4, 97)
+            Me.CH_DEF_TEMP.Location = New System.Drawing.Point(4, 94)
             Me.CH_DEF_TEMP.Name = "CH_DEF_TEMP"
             Me.CH_DEF_TEMP.Padding = New System.Windows.Forms.Padding(100, 0, 0, 0)
-            Me.CH_DEF_TEMP.Size = New System.Drawing.Size(576, 24)
+            Me.CH_DEF_TEMP.Size = New System.Drawing.Size(576, 23)
             Me.CH_DEF_TEMP.TabIndex = 3
             Me.CH_DEF_TEMP.Text = "Temporary default"
             TT_MAIN.SetToolTip(Me.CH_DEF_TEMP, "Default value on user creating")
@@ -190,13 +210,13 @@
             TP_CHANNELS_IMGS.Controls.Add(Me.TXT_CHANNELS_ROWS, 0, 0)
             TP_CHANNELS_IMGS.Controls.Add(Me.TXT_CHANNELS_COLUMNS, 1, 0)
             TP_CHANNELS_IMGS.Dock = System.Windows.Forms.DockStyle.Fill
-            TP_CHANNELS_IMGS.Location = New System.Drawing.Point(1, 156)
+            TP_CHANNELS_IMGS.Location = New System.Drawing.Point(1, 151)
             TP_CHANNELS_IMGS.Margin = New System.Windows.Forms.Padding(0)
             TP_CHANNELS_IMGS.Name = "TP_CHANNELS_IMGS"
             TP_CHANNELS_IMGS.RowCount = 1
             TP_CHANNELS_IMGS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_CHANNELS_IMGS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 34.0!))
-            TP_CHANNELS_IMGS.Size = New System.Drawing.Size(582, 34)
+            TP_CHANNELS_IMGS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 29.0!))
+            TP_CHANNELS_IMGS.Size = New System.Drawing.Size(582, 29)
             TP_CHANNELS_IMGS.TabIndex = 5
             '
             'TXT_CHANNELS_ROWS
@@ -227,19 +247,103 @@
             Me.TXT_CHANNELS_COLUMNS.Text = "0"
             Me.TXT_CHANNELS_COLUMNS.TextBoxTextAlign = System.Windows.Forms.HorizontalAlignment.Center
             '
+            'TXT_CHANNEL_USER_POST_LIMIT
+            '
+            Me.TXT_CHANNEL_USER_POST_LIMIT.CaptionMode = PersonalUtilities.Forms.Controls.Base.ICaptionControl.Modes.CheckBox
+            Me.TXT_CHANNEL_USER_POST_LIMIT.CaptionSizeType = System.Windows.Forms.SizeType.Percent
+            Me.TXT_CHANNEL_USER_POST_LIMIT.CaptionText = "Download limit for channel user"
+            Me.TXT_CHANNEL_USER_POST_LIMIT.CaptionToolTipText = "Set count of downloading posts limit if user added from channel"
+            Me.TXT_CHANNEL_USER_POST_LIMIT.CaptionWidth = 50.0R
+            Me.TXT_CHANNEL_USER_POST_LIMIT.ControlMode = PersonalUtilities.Forms.Controls.TextBoxExtended.ControlModes.NumericUpDown
+            Me.TXT_CHANNEL_USER_POST_LIMIT.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.TXT_CHANNEL_USER_POST_LIMIT.Location = New System.Drawing.Point(4, 184)
+            Me.TXT_CHANNEL_USER_POST_LIMIT.Name = "TXT_CHANNEL_USER_POST_LIMIT"
+            Me.TXT_CHANNEL_USER_POST_LIMIT.NumberMaximum = New Decimal(New Integer() {1000, 0, 0, 0})
+            Me.TXT_CHANNEL_USER_POST_LIMIT.NumberMinimum = New Decimal(New Integer() {1, 0, 0, 0})
+            Me.TXT_CHANNEL_USER_POST_LIMIT.Size = New System.Drawing.Size(576, 22)
+            Me.TXT_CHANNEL_USER_POST_LIMIT.TabIndex = 6
+            Me.TXT_CHANNEL_USER_POST_LIMIT.Text = "1"
+            Me.TXT_CHANNEL_USER_POST_LIMIT.TextBoxTextAlign = System.Windows.Forms.HorizontalAlignment.Center
+            '
+            'CH_COPY_CHANNEL_USER_IMAGE
+            '
+            Me.CH_COPY_CHANNEL_USER_IMAGE.AutoSize = True
+            Me.CH_COPY_CHANNEL_USER_IMAGE.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_COPY_CHANNEL_USER_IMAGE.Location = New System.Drawing.Point(4, 214)
+            Me.CH_COPY_CHANNEL_USER_IMAGE.Name = "CH_COPY_CHANNEL_USER_IMAGE"
+            Me.CH_COPY_CHANNEL_USER_IMAGE.Padding = New System.Windows.Forms.Padding(100, 0, 0, 0)
+            Me.CH_COPY_CHANNEL_USER_IMAGE.Size = New System.Drawing.Size(576, 23)
+            Me.CH_COPY_CHANNEL_USER_IMAGE.TabIndex = 7
+            Me.CH_COPY_CHANNEL_USER_IMAGE.Text = "Copy channel user image"
+            TT_MAIN.SetToolTip(Me.CH_COPY_CHANNEL_USER_IMAGE, "Copy image posted by user (in the channel you added from) to the user destination" &
+        " folder.")
+            Me.CH_COPY_CHANNEL_USER_IMAGE.UseVisualStyleBackColor = True
+            '
+            'CH_CHECK_VER_START
+            '
+            Me.CH_CHECK_VER_START.AutoSize = True
+            Me.CH_CHECK_VER_START.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_CHECK_VER_START.Location = New System.Drawing.Point(4, 244)
+            Me.CH_CHECK_VER_START.Name = "CH_CHECK_VER_START"
+            Me.CH_CHECK_VER_START.Padding = New System.Windows.Forms.Padding(100, 0, 0, 0)
+            Me.CH_CHECK_VER_START.Size = New System.Drawing.Size(576, 23)
+            Me.CH_CHECK_VER_START.TabIndex = 8
+            Me.CH_CHECK_VER_START.Text = "Check new version at start"
+            Me.CH_CHECK_VER_START.UseVisualStyleBackColor = True
+            '
+            'TXT_MAX_JOBS_USERS
+            '
+            ActionButton4.BackgroundImage = CType(resources.GetObject("ActionButton4.BackgroundImage"), System.Drawing.Image)
+            ActionButton4.Index = 0
+            ActionButton4.Name = "BTT_REFRESH"
+            ActionButton4.ToolTipText = "Set to default"
+            Me.TXT_MAX_JOBS_USERS.Buttons.Add(ActionButton4)
+            Me.TXT_MAX_JOBS_USERS.CaptionSizeType = System.Windows.Forms.SizeType.Percent
+            Me.TXT_MAX_JOBS_USERS.CaptionText = "Maximum downloading tasks of users"
+            Me.TXT_MAX_JOBS_USERS.CaptionWidth = 50.0R
+            Me.TXT_MAX_JOBS_USERS.ControlMode = PersonalUtilities.Forms.Controls.TextBoxExtended.ControlModes.NumericUpDown
+            Me.TXT_MAX_JOBS_USERS.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.TXT_MAX_JOBS_USERS.Location = New System.Drawing.Point(4, 274)
+            Me.TXT_MAX_JOBS_USERS.Name = "TXT_MAX_JOBS_USERS"
+            Me.TXT_MAX_JOBS_USERS.NumberMinimum = New Decimal(New Integer() {1, 0, 0, 0})
+            Me.TXT_MAX_JOBS_USERS.Size = New System.Drawing.Size(576, 22)
+            Me.TXT_MAX_JOBS_USERS.TabIndex = 9
+            Me.TXT_MAX_JOBS_USERS.Text = "1"
+            Me.TXT_MAX_JOBS_USERS.TextBoxTextAlign = System.Windows.Forms.HorizontalAlignment.Center
+            '
+            'TXT_MAX_JOBS_CHANNELS
+            '
+            ActionButton5.BackgroundImage = CType(resources.GetObject("ActionButton5.BackgroundImage"), System.Drawing.Image)
+            ActionButton5.Index = 0
+            ActionButton5.Name = "BTT_REFRESH"
+            ActionButton5.ToolTipText = "Set to default"
+            Me.TXT_MAX_JOBS_CHANNELS.Buttons.Add(ActionButton5)
+            Me.TXT_MAX_JOBS_CHANNELS.CaptionSizeType = System.Windows.Forms.SizeType.Percent
+            Me.TXT_MAX_JOBS_CHANNELS.CaptionText = "Maximum downloading tasks of channels"
+            Me.TXT_MAX_JOBS_CHANNELS.CaptionWidth = 50.0R
+            Me.TXT_MAX_JOBS_CHANNELS.ControlMode = PersonalUtilities.Forms.Controls.TextBoxExtended.ControlModes.NumericUpDown
+            Me.TXT_MAX_JOBS_CHANNELS.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.TXT_MAX_JOBS_CHANNELS.Location = New System.Drawing.Point(4, 304)
+            Me.TXT_MAX_JOBS_CHANNELS.Name = "TXT_MAX_JOBS_CHANNELS"
+            Me.TXT_MAX_JOBS_CHANNELS.NumberMinimum = New Decimal(New Integer() {1, 0, 0, 0})
+            Me.TXT_MAX_JOBS_CHANNELS.Size = New System.Drawing.Size(576, 22)
+            Me.TXT_MAX_JOBS_CHANNELS.TabIndex = 10
+            Me.TXT_MAX_JOBS_CHANNELS.Text = "1"
+            Me.TXT_MAX_JOBS_CHANNELS.TextBoxTextAlign = System.Windows.Forms.HorizontalAlignment.Center
+            '
             'CONTAINER_MAIN
             '
             '
             'CONTAINER_MAIN.ContentPanel
             '
             Me.CONTAINER_MAIN.ContentPanel.Controls.Add(TP_MAIN)
-            Me.CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(584, 191)
+            Me.CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(584, 337)
             Me.CONTAINER_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
             Me.CONTAINER_MAIN.LeftToolStripPanelVisible = False
             Me.CONTAINER_MAIN.Location = New System.Drawing.Point(0, 0)
             Me.CONTAINER_MAIN.Name = "CONTAINER_MAIN"
             Me.CONTAINER_MAIN.RightToolStripPanelVisible = False
-            Me.CONTAINER_MAIN.Size = New System.Drawing.Size(584, 191)
+            Me.CONTAINER_MAIN.Size = New System.Drawing.Size(584, 337)
             Me.CONTAINER_MAIN.TabIndex = 0
             Me.CONTAINER_MAIN.TopToolStripPanelVisible = False
             '
@@ -247,14 +351,14 @@
             '
             Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
             Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-            Me.ClientSize = New System.Drawing.Size(584, 191)
+            Me.ClientSize = New System.Drawing.Size(584, 337)
             Me.Controls.Add(Me.CONTAINER_MAIN)
             Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle
             Me.KeyPreview = True
             Me.MaximizeBox = False
-            Me.MaximumSize = New System.Drawing.Size(600, 230)
+            Me.MaximumSize = New System.Drawing.Size(600, 376)
             Me.MinimizeBox = False
-            Me.MinimumSize = New System.Drawing.Size(600, 230)
+            Me.MinimumSize = New System.Drawing.Size(600, 376)
             Me.Name = "GlobalSettingsForm"
             Me.ShowIcon = False
             Me.ShowInTaskbar = False
@@ -270,6 +374,9 @@
             TP_CHANNELS_IMGS.ResumeLayout(False)
             CType(Me.TXT_CHANNELS_ROWS, System.ComponentModel.ISupportInitialize).EndInit()
             CType(Me.TXT_CHANNELS_COLUMNS, System.ComponentModel.ISupportInitialize).EndInit()
+            CType(Me.TXT_CHANNEL_USER_POST_LIMIT, System.ComponentModel.ISupportInitialize).EndInit()
+            CType(Me.TXT_MAX_JOBS_USERS, System.ComponentModel.ISupportInitialize).EndInit()
+            CType(Me.TXT_MAX_JOBS_CHANNELS, System.ComponentModel.ISupportInitialize).EndInit()
             Me.CONTAINER_MAIN.ContentPanel.ResumeLayout(False)
             Me.CONTAINER_MAIN.ResumeLayout(False)
             Me.CONTAINER_MAIN.PerformLayout()
@@ -283,8 +390,13 @@
         Private WithEvents TXT_COLLECTIONS_PATH As PersonalUtilities.Forms.Controls.TextBoxExtended
         Private WithEvents TXT_IMAGE_LARGE As PersonalUtilities.Forms.Controls.TextBoxExtended
         Private WithEvents TXT_IMAGE_SMALL As PersonalUtilities.Forms.Controls.TextBoxExtended
-        Friend WithEvents CH_DEF_TEMP As CheckBox
         Private WithEvents TXT_CHANNELS_ROWS As PersonalUtilities.Forms.Controls.TextBoxExtended
         Private WithEvents TXT_CHANNELS_COLUMNS As PersonalUtilities.Forms.Controls.TextBoxExtended
+        Private WithEvents TXT_CHANNEL_USER_POST_LIMIT As PersonalUtilities.Forms.Controls.TextBoxExtended
+        Private WithEvents CH_COPY_CHANNEL_USER_IMAGE As CheckBox
+        Private WithEvents CH_DEF_TEMP As CheckBox
+        Private WithEvents CH_CHECK_VER_START As CheckBox
+        Private WithEvents TXT_MAX_JOBS_USERS As PersonalUtilities.Forms.Controls.TextBoxExtended
+        Private WithEvents TXT_MAX_JOBS_CHANNELS As PersonalUtilities.Forms.Controls.TextBoxExtended
     End Class
 End Namespace

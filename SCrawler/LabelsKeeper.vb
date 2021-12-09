@@ -18,6 +18,7 @@ Friend Class LabelsKeeper : Implements ICollection(Of String), IMyEnumerator(Of 
         NewLabels = New List(Of String)
         CurrentSelection = New List(Of String)
         If LabelsFile.Exists Then LabelsList.ListAddList(IO.File.ReadAllLines(LabelsFile), LAP.NotContainsOnly)
+        LabelsList.ListAddList({NoLabeledName, NoParsedUser}, LAP.NotContainsOnly)
     End Sub
     Friend ReadOnly Property ToList As List(Of String)
         Get

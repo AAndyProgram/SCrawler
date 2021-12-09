@@ -222,7 +222,7 @@ Namespace API.Reddit
             End If
         End Function
 #End Region
-#Region "IXMLContainer Support"
+#Region "ILoaderSaver Support"
         Friend Overloads Function LoadData(Optional ByVal f As SFile = Nothing, Optional ByVal e As ErrorsDescriber = Nothing) As Boolean Implements ILoaderSaver.Load
             Return LoadData(File, False, e)
         End Function

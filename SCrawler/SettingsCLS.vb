@@ -3,8 +3,17 @@ Imports PersonalUtilities.Functions.XML.Base
 Imports SCrawler.API
 Imports SCrawler.API.Base
 Friend Class SettingsCLS : Implements IDisposable
+    Friend Const DefaultMaxDownloadingTasks As Integer = 5
     Friend ReadOnly Design As XmlFile
     Private ReadOnly MyXML As XmlFile
+    Friend ReadOnly OS64 As Boolean
+    Friend ReadOnly FfmpegExists As Boolean
+    Friend ReadOnly FfmpegFile As SFile
+    Friend ReadOnly Property UseM3U8 As Boolean
+        Get
+            Return OS64 And FfmpegExists
+        End Get
+    End Property
     Private ReadOnly MySites As Dictionary(Of Sites, SiteSettings)
     Friend ReadOnly Property Users As List(Of IUserData)
     Friend ReadOnly Property UsersList As List(Of UserInfo)
@@ -14,12 +23,17 @@ Friend Class SettingsCLS : Implements IDisposable
     Private ReadOnly BlackListFile As SFile = $"{SettingsFolderName}\BlackList.txt"
     Private ReadOnly UsersSettingsFile As SFile = $"{SettingsFolderName}\Users.xml"
     Friend Sub New()
+        OS64 = Environment.Is64BitOperatingSystem
+        FfmpegFile = "ffmpeg.exe"
+        FfmpegExists = FfmpegFile.Exists
+        If OS64 And Not FfmpegExists Then MsgBoxE("[ffmpeg.exe] is missing", vbExclamation)
         Design = New XmlFile("Settings\Design.xml")
         Design.DefaultsLoading(False)
         MyXML = New XmlFile(Nothing) With {.AutoUpdateFile = True}
         Users = New List(Of IUserData)
         UsersList = New List(Of UserInfo)
         BlackList = New List(Of UserBan)
+
         GlobalPath = New XMLValue(Of SFile)("GlobalPath", New SFile($"{SFile.GetPath(Application.StartupPath).PathWithSeparator}Data\"), MyXML,,
                                             XMLValue(Of SFile).ToFilePath)
         MySites = New Dictionary(Of Sites, SiteSettings) From {
@@ -27,22 +41,29 @@ Friend Class SettingsCLS : Implements IDisposable
             {Sites.Twitter, New SiteSettings(Sites.Twitter, MyXML, GlobalPath.Value)}
         }
         MySites(Sites.Reddit).Responser.Decoders.Add(SymbolsConverter.Converters.Unicode)
-        MaxLargeImageHeigh = New XMLValue(Of Integer)("MaxLargeImageHeigh", 150, MyXML)
-        MaxSmallImageHeigh = New XMLValue(Of Integer)("MaxSmallImageHeigh", 15, MyXML)
-        ViewMode = New XMLValue(Of Integer)("ViewMode", ViewModes.IconLarge, MyXML)
-        ShowingMode = New XMLValue(Of Integer)("ShowingMode", ShowingModes.All, MyXML)
+
         SeparateVideoFolder = New XMLValue(Of Boolean)("SeparateVideoFolder", True, MyXML)
         CollectionsPath = New XMLValue(Of String)("CollectionsPath", "Collections", MyXML)
         DefaultTemporary = New XMLValue(Of Boolean)("DefaultTemporary", False, MyXML)
+        MaxUsersJobsCount = New XMLValue(Of Integer)("MaxUsersJobsCount", DefaultMaxDownloadingTasks, MyXML)
+
+        MaxLargeImageHeigh = New XMLValue(Of Integer)("MaxLargeImageHeigh", 150, MyXML)
+        MaxSmallImageHeigh = New XMLValue(Of Integer)("MaxSmallImageHeigh", 15, MyXML)
+        InfoViewMode = New XMLValue(Of Integer)("InfoViewMode", DownloadedInfoForm.ViewModes.Session, MyXML)
+        ViewMode = New XMLValue(Of Integer)("ViewMode", ViewModes.IconLarge, MyXML)
+        ShowingMode = New XMLValue(Of Integer)("ShowingMode", ShowingModes.All, MyXML)
+
         LatestSavingPath = New XMLValue(Of SFile)("LatestSavingPath", Nothing, MyXML,, XMLValue(Of SFile).ToFilePath)
         LatestSelectedLabels = New XMLValue(Of String)("LatestSelectedLabels",, MyXML)
         LatestSelectedChannel = New XMLValue(Of String)("LatestSelectedChannel",, MyXML)
-        ChannelsHideExistsUser = New XMLValue(Of Boolean)("ChannelsHideExistsUser", True, MyXML)
-
-        InfoViewMode = New XMLValue(Of Integer)("InfoViewMode", DownloadedInfoForm.ViewModes.Session, MyXML)
 
         ChannelsImagesRows = New XMLValue(Of Integer)("ChannelsImagesRows", 2, MyXML)
         ChannelsImagesColumns = New XMLValue(Of Integer)("ChannelsImagesColumns", 5, MyXML)
+        ChannelsHideExistsUser = New XMLValue(Of Boolean)("ChannelsHideExistsUser", True, MyXML)
+        ChannelsMaxJobsCount = New XMLValue(Of Integer)("ChannelsMaxJobsCount", DefaultMaxDownloadingTasks, MyXML)
+        FromChannelDownloadTop = New XMLValue(Of Integer)("FromChannelDownloadTop", 10, MyXML)
+        FromChannelDownloadTopUse = New XMLValue(Of Boolean)("FromChannelDownloadTopUse", False, MyXML)
+        FromChannelCopyImageToUser = New XMLValue(Of Boolean)("FromChannelCopyImageToUser", True, MyXML)
 
         CheckUpdatesAtStart = New XMLValue(Of Boolean)("CheckUpdatesAtStart", True, MyXML)
         ShowNewVersionNotification = New XMLValue(Of Boolean)("ShowNewVersionNotification", True, MyXML)
@@ -171,24 +192,19 @@ Friend Class SettingsCLS : Implements IDisposable
     Friend Overloads Function UserExists(ByVal _User As UserInfo) As Boolean
         Return UserExists(_User.Site, _User.Name)
     End Function
+    Friend Sub BeginUpdate()
+        MyXML.BeginUpdate()
+    End Sub
+    Friend Sub EndUpdate()
+        MyXML.EndUpdate()
+        If MyXML.ChangesDetected Then MyXML.UpdateData()
+    End Sub
     Friend ReadOnly Property Site(ByVal s As Sites) As SiteSettings
         Get
             Return MySites(s)
         End Get
     End Property
     Friend ReadOnly Property GlobalPath As XMLValue(Of SFile)
-    Friend ReadOnly Property MaxLargeImageHeigh As XMLValue(Of Integer)
-    Friend ReadOnly Property MaxSmallImageHeigh As XMLValue(Of Integer)
-    Friend ReadOnly Property ViewMode As XMLValue(Of Integer)
-    Friend ReadOnly Property ViewModeIsPicture As Boolean
-        Get
-            Select Case ViewMode.Value
-                Case View.LargeIcon, View.SmallIcon : Return True
-                Case Else : Return False
-            End Select
-        End Get
-    End Property
-    Friend ReadOnly Property ShowingMode As XMLValue(Of Integer)
     Friend ReadOnly Property SeparateVideoFolder As XMLValue(Of Boolean)
     Friend ReadOnly Property CollectionsPath As XMLValue(Of String)
     Friend ReadOnly Property CollectionsPathF As SFile
@@ -201,16 +217,41 @@ Friend Class SettingsCLS : Implements IDisposable
         End Get
     End Property
     Friend ReadOnly Property DefaultTemporary As XMLValue(Of Boolean)
+    Friend ReadOnly Property MaxUsersJobsCount As XMLValue(Of Integer)
+#Region "View"
+    Friend ReadOnly Property MaxLargeImageHeigh As XMLValue(Of Integer)
+    Friend ReadOnly Property MaxSmallImageHeigh As XMLValue(Of Integer)
+    Friend ReadOnly Property InfoViewMode As XMLValue(Of Integer)
+    Friend ReadOnly Property ViewMode As XMLValue(Of Integer)
+    Friend ReadOnly Property ViewModeIsPicture As Boolean
+        Get
+            Select Case ViewMode.Value
+                Case View.LargeIcon, View.SmallIcon : Return True
+                Case Else : Return False
+            End Select
+        End Get
+    End Property
+    Friend ReadOnly Property ShowingMode As XMLValue(Of Integer)
+#End Region
+#Region "Latest values"
     Friend ReadOnly Property LatestSavingPath As XMLValue(Of SFile)
     Friend ReadOnly Property LatestSelectedLabels As XMLValue(Of String)
     Friend ReadOnly Property LatestSelectedChannel As XMLValue(Of String)
-    Friend ReadOnly Property InfoViewMode As XMLValue(Of Integer)
+#End Region
+#Region "Channels properties"
     Friend ReadOnly Property ChannelsImagesRows As XMLValue(Of Integer)
     Friend ReadOnly Property ChannelsImagesColumns As XMLValue(Of Integer)
     Friend ReadOnly Property ChannelsHideExistsUser As XMLValue(Of Boolean)
+    Friend ReadOnly Property ChannelsMaxJobsCount As XMLValue(Of Integer)
+    Friend ReadOnly Property FromChannelDownloadTop As XMLValue(Of Integer)
+    Friend ReadOnly Property FromChannelDownloadTopUse As XMLValue(Of Boolean)
+    Friend ReadOnly Property FromChannelCopyImageToUser As XMLValue(Of Boolean)
+#End Region
+#Region "New version properties"
     Friend ReadOnly Property CheckUpdatesAtStart As XMLValue(Of Boolean)
     Friend ReadOnly Property ShowNewVersionNotification As XMLValue(Of Boolean)
     Friend ReadOnly Property LatestVersion As XMLValue(Of String)
+#End Region
 #Region "IDisposable Support"
     Private disposedValue As Boolean = False
     Protected Overridable Overloads Sub Dispose(ByVal disposing As Boolean)

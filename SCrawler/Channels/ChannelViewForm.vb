@@ -11,6 +11,28 @@ Imports CmbDefaultButtons = PersonalUtilities.Forms.Controls.Base.ActionButton.D
 Imports RButton = PersonalUtilities.Tools.RangeSwitcherButton.Types
 Friend Class ChannelViewForm : Implements IChannelLimits
     Friend Event OnUsersAdded(ByVal StartIndex As Integer)
+#Region "Appended user structure"
+    Private Structure PendingUser
+        Friend ID As String
+        Friend File As SFile
+        Friend Sub New(ByVal _ID As String, Optional ByVal _File As SFile = Nothing)
+            ID = _ID
+            If Settings.FromChannelCopyImageToUser Then File = _File
+        End Sub
+        Public Shared Widening Operator CType(ByVal _ID As String) As PendingUser
+            Return New PendingUser(_ID, False)
+        End Operator
+        Public Shared Widening Operator CType(ByVal u As PendingUser) As String
+            Return u.ToString
+        End Operator
+        Public Overrides Function ToString() As String
+            Return ID
+        End Function
+        Public Overrides Function Equals(ByVal Obj As Object) As Boolean
+            Return Obj.ToString = ID
+        End Function
+    End Structure
+#End Region
 #Region "Declarations"
     Private ReadOnly MyDefs As DefaultFormProps
 #Region "Controls"
@@ -84,7 +106,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
     Private Sub SetLimit(ByVal Source As IChannelLimits) Implements IChannelLimits.SetLimit
     End Sub
 #End Region
-    Friend ReadOnly PendingUsers As List(Of String)
+    Private ReadOnly PendingUsers As List(Of PendingUser)
     Private ReadOnly LNC As New ListAddParams(LAP.NotContainsOnly)
     Private WithEvents MyRange As RangeSwitcher(Of UserPost)
     Private ReadOnly SelectorExpression As Predicate(Of UserPost) = Function(ByVal Post As UserPost) As Boolean
@@ -106,7 +128,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
         CProgress = New MyProgress(ToolbarBOTTOM, PR_CN, LBL_STATUS, "Downloading data") With {.PerformMod = 10, .DropCurrentProgressOnTotalChange = False}
         CProvider = New ANumbers(ANumbers.Modes.USA) With {.GroupSize = 3, .DecimalDigits = 0}
         LimitProvider = New ADateTime("dd.MM.yyyy HH:mm")
-        PendingUsers = New List(Of String)
+        PendingUsers = New List(Of PendingUser)
 
         CMB_CHANNELS = New ComboBoxExtended With {
             .CaptionMode = ICaptionControl.Modes.CheckBox,
@@ -179,6 +201,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
         End With
         CMB_CHANNELS.Enabled(False) = Not CMB_CHANNELS.Checked
         MyDefs.EndLoaderOperations()
+        SetLimitsByChannel(, False)
     End Sub
     Private Sub ChannelViewForm_Closing(sender As Object, e As CancelEventArgs) Handles Me.Closing
         AppendPendingUsers()
@@ -235,7 +258,9 @@ Friend Class ChannelViewForm : Implements IChannelLimits
 #Region "Images refill methods"
     Private Sub AppendPendingUsers()
         If LIST_POSTS.CheckedIndices.Count > 0 Then
-            PendingUsers.ListAddList((From p As ListViewItem In LIST_POSTS.Items Where p.Checked Select p.Text), LNC)
+            PendingUsers.ListAddList((From p As ListViewItem In LIST_POSTS.Items
+                                      Where p.Checked
+                                      Select New PendingUser(p.Text, GetPostBySelected(CStr(p.Tag)).CachedFile)), LNC)
             Dim a As Action = Sub() BTT_ADD_USERS.Text = $"Add ({PendingUsers.Count.ToString(CProvider)})"
             If ToolbarTOP.InvokeRequired Then ToolbarTOP.Invoke(a) Else a.Invoke
         End If
@@ -352,12 +377,12 @@ Friend Class ChannelViewForm : Implements IChannelLimits
             End If
         End Try
     End Sub
-    Private Function GetCurrentChannel() As Channel
+    Private Function GetCurrentChannel(Optional ByVal ShowExclamation As Boolean = True) As Channel
         If CMB_CHANNELS.SelectedIndex >= 0 Then
             Dim ChannelID$ = CMB_CHANNELS.Value
             If Not ChannelID.IsEmptyString Then Return Settings.Channels.Find(ChannelID)
         Else
-            MsgBoxE("No one channel selected", MsgBoxStyle.Exclamation)
+            If ShowExclamation Then MsgBoxE("No one channel selected", MsgBoxStyle.Exclamation)
         End If
         Return Nothing
     End Function
@@ -380,19 +405,22 @@ Friend Class ChannelViewForm : Implements IChannelLimits
         If PendingUsers.Count > 0 Then
             Dim Added% = 0, Skipped% = 0
             Dim StartIndex% = Settings.Users.Count
+            Dim f As SFile
             Settings.Labels.Add(CannelsLabelName)
             Settings.Labels.Add(LabelsKeeper.NoParsedUser)
-            Dim rUsers$() = UserBanned(PendingUsers.ToArray)
+            Dim rUsers$() = UserBanned(PendingUsers.Select(Function(u) u.ID).ToArray)
             If rUsers.ListExists Then PendingUsers.RemoveAll(Function(u) rUsers.Contains(u))
             If PendingUsers.Count > 0 Then
                 With PendingUsers.Select(Function(u) New UserInfo(u, Sites.Reddit))
                     For i = 0 To .Count - 1
                         If Not Settings.UsersList.Contains(.ElementAt(i)) Then
+                            f = PendingUsers(i).File
                             Settings.UpdateUsersList(.ElementAt(i))
-                            Settings.Users.Add(New UserData(.ElementAt(i), False) With {.Temporary = True})
+                            Settings.Users.Add(New UserData(.ElementAt(i), False) With {.Temporary = True, .CreatedByChannel = True})
                             With Settings.Users.Last
                                 .Labels.Add(CannelsLabelName)
                                 .UpdateUserInformation()
+                                If Settings.FromChannelCopyImageToUser And Not f.IsEmptyString And Not .File.IsEmptyString Then CopyFile(f, .File)
                             End With
                             Added += 1
                         Else
@@ -408,6 +436,17 @@ Friend Class ChannelViewForm : Implements IChannelLimits
         Else
             MsgBoxE("No one users selected for add to collection")
         End If
+    End Sub
+    Private Sub CopyFile(ByVal Source As SFile, ByVal Destination As SFile)
+        Try
+            If Not Source.IsEmptyString And Not Destination.IsEmptyString Then
+                Destination = Destination.CutPath.PathWithSeparator & "ChannelImage\"
+                Destination.Name = Source.Name
+                Destination.Extension = Source.Extension
+                If Source.Exists AndAlso Destination.Exists(SFO.Path) Then IO.File.Copy(Source, Destination)
+            End If
+        Catch ex As Exception
+        End Try
     End Sub
 #Region "Limits changer"
     Private Sub OPT_LIMITS_DEFAULT_CheckedChanged(sender As Object, e As EventArgs) Handles OPT_LIMITS_DEFAULT.CheckedChanged
@@ -444,9 +483,9 @@ Friend Class ChannelViewForm : Implements IChannelLimits
     End Sub
 #End Region
 #Region "CMB_CHANNELS"
-    Private Sub SetLimitsByChannel(Optional ByVal SelectedChannel As Channel = Nothing)
+    Private Sub SetLimitsByChannel(Optional ByVal SelectedChannel As Channel = Nothing, Optional ByVal ShowExclamation As Boolean = True)
         LBL_STATUS.Text = String.Empty
-        Dim c As Channel = If(SelectedChannel, GetCurrentChannel())
+        Dim c As Channel = If(SelectedChannel, GetCurrentChannel(ShowExclamation))
         LBL_LIMIT_TEXT.Text = String.Empty
         If Not c Is Nothing Then
             Settings.LatestSelectedChannel.Value = c.ID
@@ -500,6 +539,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
         Else
             CMB_CHANNELS.Button(ActionButton.BTT_UP_NAME).Enabled = False
             CMB_CHANNELS.Button(ActionButton.BTT_DOWN_NAME).Enabled = False
+            SetLimitsByChannel()
         End If
     End Sub
     Private Sub AddNewChannel()
@@ -642,11 +682,11 @@ Friend Class ChannelViewForm : Implements IChannelLimits
         Dim f As SFile = GetPostBySelected().CachedFile
         If f.Exists Then f.Open() Else MsgBoxE($"Picture file [{f}] does not found", MsgBoxStyle.Critical)
     End Sub
-    Private Function GetPostBySelected() As UserPost
+    Private Function GetPostBySelected(Optional ByVal SpecificTag As String = Nothing) As UserPost
         Dim p As UserPost = Nothing
         Try
-            If LIST_POSTS.SelectedItems.Count > 0 Then
-                Dim t$ = LIST_POSTS.SelectedItems(0).Tag
+            If LIST_POSTS.SelectedItems.Count > 0 Or Not SpecificTag.IsEmptyString Then
+                Dim t$ = If(SpecificTag.IsEmptyString, LIST_POSTS.SelectedItems(0).Tag, SpecificTag)
                 With Settings.Channels.Find(CMB_CHANNELS.Value)
                     If .Count > 0 Then p = .Posts.Find(Function(pp) pp.ID = t)
                 End With

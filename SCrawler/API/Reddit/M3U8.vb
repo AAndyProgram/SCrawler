@@ -80,7 +80,7 @@ Namespace API.Reddit
                                 eFiles.Add(dFile)
                             Next
                         End Using
-                        f = FFMPEG.ConcatenateFiles(eFiles, "ffmpeg.exe", ConcatFile, p, DPED)
+                        f = FFMPEG.ConcatenateFiles(eFiles, Settings.FfmpegFile, ConcatFile, p, DPED)
                         eFiles.Clear()
                         Return f
                     End If

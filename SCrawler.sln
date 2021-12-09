@@ -10,8 +10,10 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{FE5CE5B9-DDBE-4399-A17C-880893635307}"
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
+		Changelog.md = Changelog.md
 		README.md = README.md
 		Info\RedditUrlsInfo.txt = Info\RedditUrlsInfo.txt
+		ToDo.txt = ToDo.txt
 		Info\TwitterNewAlgo.txt = Info\TwitterNewAlgo.txt
 		Info\TwitterUrlsInfo.txt = Info\TwitterUrlsInfo.txt
 	EndProjectSection

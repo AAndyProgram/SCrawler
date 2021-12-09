@@ -63,7 +63,6 @@ Public Class MainFrame
         RefillList()
         UpdateLabelsGroups()
         SetShowButtonsCheckers(Settings.ShowingMode.Value)
-        CheckForReparse()
         CheckVersion(False)
         _UFinit = False
         GoTo EndFunction
@@ -313,7 +312,7 @@ CloseResume:
 #End Region
 #Region "Download"
     Private Sub BTT_DOWN_SELECTED_Click(sender As Object, e As EventArgs) Handles BTT_DOWN_SELECTED.Click
-        DownloadSelectedUser()
+        DownloadSelectedUser(False)
     End Sub
     Private Sub BTT_DOWN_ALL_Click(sender As Object, e As EventArgs) Handles BTT_DOWN_ALL.Click
         Downloader.AddRange(Settings.Users.Where(Function(u) u.ReadyForDownload))
@@ -414,11 +413,20 @@ CloseResume:
             f.ShowDialog()
             If f.DialogResult = DialogResult.OK Then
                 If f.LabelsList.Count > 0 Then
+                    Dim b As Boolean = False
+                    If Settings.Labels.CurrentSelection.Count = 0 Then
+                        b = True
+                    Else
+                        If Settings.Labels.CurrentSelection.Exists(Function(l) Not f.LabelsList.Contains(l)) Then b = True
+                        If Not b AndAlso f.LabelsList.Exists(Function(l) Not Settings.Labels.CurrentSelection.Contains(l)) Then b = True
+                    End If
                     Settings.Labels.CurrentSelection.ListAddList(f.LabelsList, LAP.ClearBeforeAdd, LAP.NotContainsOnly)
                     Settings.LatestSelectedLabels.Value = Settings.Labels.CurrentSelection.ListToString(, "|")
+                    If b Then RefillList()
                 Else
                     Settings.Labels.CurrentSelection.Clear()
                     Settings.LatestSelectedLabels.Value = String.Empty
+                    SetShowButtonsCheckers(ShowingModes.All)
                 End If
             End If
         End Using
@@ -444,7 +452,10 @@ CloseResume:
     End Sub
 #Region "Context"
     Private Sub BTT_CONTEXT_DOWN_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_DOWN.Click
-        DownloadSelectedUser()
+        DownloadSelectedUser(False)
+    End Sub
+    Private Sub BTT_CONTEXT_DOWN_LIMITED_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_DOWN_LIMITED.Click
+        DownloadSelectedUser(True)
     End Sub
     Private Sub BTT_CONTEXT_EDIT_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_EDIT.Click
         EditSelectedUser()
@@ -477,26 +488,26 @@ CloseResume:
             Dim users As List(Of IUserData) = GetSelectedUserArray()
             If users.ListExists Then
                 Dim l As List(Of String) = ListAddList(Nothing, users.SelectMany(Function(u) u.Labels), LAP.NotContainsOnly)
-                If l.ListExists Then
-                    Using f As New LabelsForm(l) With {.MultiUser = True}
-                        f.ShowDialog()
-                        If f.DialogResult = DialogResult.OK Then
-                            Dim _lp As LAP = LAP.NotContainsOnly
-                            If f.MultiUserClearExists Then _lp += LAP.ClearBeforeAdd
-                            Dim lp As New ListAddParams(_lp)
-                            users.ForEach(Sub(ByVal u As IUserData)
-                                              If u.IsCollection Then
-                                                  With DirectCast(u, UserDataBind)
-                                                      If .Count > 0 Then .Collections.ForEach(Sub(uu) uu.Labels.ListAddList(f.LabelsList, lp))
-                                                  End With
-                                              Else
-                                                  u.Labels.ListAddList(f.LabelsList, lp)
-                                              End If
-                                              u.UpdateUserInformation()
-                                          End Sub)
-                        End If
-                    End Using
-                End If
+                Using f As New LabelsForm(l) With {.MultiUser = True}
+                    f.ShowDialog()
+                    If f.DialogResult = DialogResult.OK Then
+                        Dim _lp As LAP = LAP.NotContainsOnly
+                        If f.MultiUserClearExists Then _lp += LAP.ClearBeforeAdd
+                        Dim lp As New ListAddParams(_lp)
+                        users.ForEach(Sub(ByVal u As IUserData)
+                                          If u.IsCollection Then
+                                              With DirectCast(u, UserDataBind)
+                                                  If .Count > 0 Then .Collections.ForEach(Sub(uu) uu.Labels.ListAddList(f.LabelsList, lp))
+                                              End With
+                                          Else
+                                              u.Labels.ListAddList(f.LabelsList, lp)
+                                          End If
+                                          u.UpdateUserInformation()
+                                      End Sub)
+                    End If
+                End Using
+            Else
+                MsgBoxE("No one user does not detected", vbExclamation)
             End If
         Catch ex As Exception
             ErrorsDescriber.Execute(EDP.ShowAllMsg, ex, "[ChangeUserGroups]")
@@ -505,9 +516,9 @@ CloseResume:
     Private Function AskForMassReplace(ByVal users As List(Of IUserData), ByVal param As String) As Boolean
         Dim u$ = users.ListIfNothing.Take(20).Select(Function(uu) uu.Name).ListToString(, vbCr)
         If Not u.IsEmptyString And users.ListExists(21) Then u &= vbCr & "..."
-        Return users.ListExists AndAlso (users.Count = 1 OrElse MsgBox($"Do you really want to change [{param}] for {users.Count} users?{vbCr}{vbCr}{u}",
-                                                                       MsgBoxStyle.Exclamation + MsgBoxStyle.YesNo + MsgBoxStyle.DefaultButton1,
-                                                                       "Users' change parameter") = MsgBoxResult.Yes)
+        Return users.ListExists AndAlso (users.Count = 1 OrElse MsgBoxE({$"Do you really want to change [{param}] for {users.Count} users?{vbCr}{vbCr}{u}",
+                                                                         "Users' parameters change"},
+                                                                        MsgBoxStyle.Exclamation + MsgBoxStyle.YesNo) = MsgBoxResult.Yes)
     End Function
     Private Sub BTT_CHANGE_IMAGE_Click(sender As Object, e As EventArgs) Handles BTT_CHANGE_IMAGE.Click
         Dim user As IUserData = GetSelectedUser()
@@ -539,12 +550,22 @@ CloseResume:
                                     .Users.Add(New UserDataBind(f.Collection))
                                     i = .Users.Count - 1
                                 End If
-                                DirectCast(.Users(i), UserDataBind).Add(user)
-                                RemoveUserFromList(user)
-                                i = .Users.FindIndex(fCol)
-                                If i >= 0 Then UserListUpdate(.Users(i), Added) Else RefillList()
+                                Try
+                                    DirectCast(.Users(i), UserDataBind).Add(user)
+                                    RemoveUserFromList(user)
+                                    i = .Users.FindIndex(fCol)
+                                    If i >= 0 Then UserListUpdate(.Users(i), Added) Else RefillList()
+                                    MsgBoxE($"[{user.Name}] was added to collection [{f.Collection}]")
+                                Catch ex As InvalidOperationException
+                                    i = .Users.FindIndex(fCol)
+                                    If i >= 0 Then
+                                        If DirectCast(.Users(i), UserDataBind).Count = 0 Then
+                                            .Users(i).Dispose()
+                                            .Users.RemoveAt(i)
+                                        End If
+                                    End If
+                                End Try
                             End With
-                            MsgBoxE($"[{user.Name}] was added to collection [{f.Collection}]")
                         End If
                     End Using
                 End If
@@ -667,13 +688,7 @@ CloseResume:
             On Error Resume Next
             If user.IsCollection Then
                 If USER_CONTEXT.Visible Then USER_CONTEXT.Hide()
-                Using f As New CollectionEditorForm(user.CollectionName)
-                    f.ShowDialog()
-                    If f.DialogResult = DialogResult.OK Then
-                        user.CollectionName = f.Collection
-                        UserListUpdate(user, False)
-                    End If
-                End Using
+                MsgBoxE("This is collection!{vbNewLine}Edit collections does not allowed!", vbExclamation)
             Else
                 Using f As New UserCreatorForm(user)
                     f.ShowDialog()
@@ -736,17 +751,43 @@ CloseResume:
             ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Error on trying to delete user / collection")
         End Try
     End Sub
-    Private Sub DownloadSelectedUser()
+    Private Sub DownloadSelectedUser(ByVal UseLimits As Boolean)
         Dim users As List(Of IUserData) = GetSelectedUserArray()
         If users.ListExists Then
+            Dim l%? = Nothing
+            If UseLimits Then
+                Do
+                    l = AConvert(Of Integer)(InputBoxE("Enter top posts limit for downloading:", "Download limit", 10), Nothing)
+                    If l.HasValue Then
+                        Select Case MsgBoxE(New MMessage($"You are set up downloading top [{l.Value}] posts", "Download limit",
+                                            {"Confirm", "Try again", "Disable limit", "Cancel"}) With {.ButtonsPerRow = 2}).Index
+                            Case 0 : Exit Do
+                            Case 2 : l = Nothing
+                            Case 3 : GoTo CancelDownloadingOperation
+                        End Select
+                    Else
+                        Select Case MsgBoxE({"You are not set up downloading limit", "Download limit"},,,, {"Confirm", "Try again", "Cancel"}).Index
+                            Case 0 : Exit Do
+                            Case 2 : GoTo CancelDownloadingOperation
+                        End Select
+                    End If
+                Loop
+            End If
             If USER_CONTEXT.Visible Then USER_CONTEXT.Hide()
+            GoTo ResumeDownloadingOperation
+CancelDownloadingOperation:
+            MsgBoxE("Operation canceled")
+            Exit Sub
+ResumeDownloadingOperation:
             If users.Count = 1 Then
+                users(0).DownloadTopCount = l
                 Downloader.Add(users(0))
             Else
                 Dim uStr$ = users.Select(Function(u) u.ToString()).ListToString(, vbNewLine)
                 If MsgBoxE({$"You are select {users.Count} users' profiles{vbNewLine}Do you want to download all of them?{vbNewLine.StringDup(2)}" &
                             $"Selected users:{vbNewLine}{uStr}", "A few users selected"},
                            MsgBoxStyle.Question + MsgBoxStyle.YesNo) = MsgBoxResult.Yes Then
+                    users.ForEach(Sub(u) u.DownloadTopCount = l)
                     Downloader.AddRange(users)
                 End If
             End If
