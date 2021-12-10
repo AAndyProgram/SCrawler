@@ -18,6 +18,7 @@ Enjoying the tool? Considering adding to my coffee fund :)
 - Add users from parsed channel.
 - Labeling users.
 - Filter exists users by label or group.
+- Selection of media types you want to download (images only, videos only, both)
 
 # How does it works:
 
