@@ -99,8 +99,7 @@ Friend Class TDownloader : Implements IDisposable
                         .Information = $"Downloading {_CurrentDownloadingTasks.NumToString(nf, NProv)}/{Items.Count.NumToString(nf, NProv)} profiles' data"
                         .InformationTemporary = .Information
                     End With
-                    Token.ThrowIfCancellationRequested()
-                    Task.WaitAll(t.ToArray, Token)
+                    Task.WaitAll(t.ToArray)
                     Dim dcc As Boolean = False
                     If Keys.Count > 0 Then
                         For Each k$ In Keys
@@ -160,8 +159,8 @@ Friend Class TDownloader : Implements IDisposable
         If Not Items.Contains(Item) Then
             If Item.IsCollection Then Item.DownloadData(Nothing) Else Items.Add(Item)
             UpdateJobsLabel()
-            If Not _Working Then Start()
         End If
+        If Items.Count > 0 Then Start()
     End Sub
     Friend Sub AddRange(ByVal _Items As IEnumerable(Of IUserData))
         If _Items.ListExists Then
@@ -170,8 +169,8 @@ Friend Class TDownloader : Implements IDisposable
                 If _Items(i).IsCollection Then _Items(i).DownloadData(Nothing) Else Items.Add(_Items(i))
             Next
             UpdateJobsLabel()
-            Start()
         End If
+        If Items.Count > 0 Then Start()
     End Sub
     Friend Sub UserRemove(ByVal _Item As IUserData)
         If Downloaded.Count > 0 AndAlso Downloaded.Contains(_Item) Then Downloaded.Remove(_Item) : RaiseEvent OnDownloadCountChange()

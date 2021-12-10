@@ -1,3 +1,11 @@
+# 1.0.0.2
+
+- Added
+  - Ability to choose what types of media you want to download (images only, videos only, both)
+  - Ability to name files by date
+- Fixed
+  - In some cases, the "Stop" button is not activated after download start
+
 # 1.0.0.1
 
 - Added

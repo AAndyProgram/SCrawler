@@ -47,6 +47,8 @@ Namespace API.Base
         Private Const Name_LabelsName As String = "Labels"
 
         Private Const Name_ReadyForDownload As String = "ReadyForDownload"
+        Private Const Name_DownloadImages As String = "DownloadImages"
+        Private Const Name_DownloadVideos As String = "DownloadVideos"
 
         Private Const Name_VideoCount As String = "VideoCount"
         Private Const Name_PicturesCount As String = "PicturesCount"
@@ -233,6 +235,8 @@ BlockNullPicture:
         Protected _DataLoaded As Boolean = False
         Protected _DataParsed As Boolean = False
         Friend Property ReadyForDownload As Boolean = True Implements IUserData.ReadyForDownload
+        Friend Property DownloadImages As Boolean = True Implements IUserData.DownloadImages
+        Friend Property DownloadVideos As Boolean = True Implements IUserData.DownloadVideos
 #End Region
 #Region "Content"
         Protected ReadOnly _ContentList As List(Of UserMedia)
@@ -431,6 +435,8 @@ BlockNullPicture:
                         CreatedByChannel = x.Value(Name_CreatedByChannel).FromXML(Of Boolean)(False)
                         SeparateVideoFolder = AConvert(Of Boolean)(x.Value(Name_SeparateVideoFolder), Nothing)
                         ReadyForDownload = x.Value(Name_ReadyForDownload).FromXML(Of Boolean)(True)
+                        DownloadImages = x.Value(Name_DownloadImages).FromXML(Of Boolean)(True)
+                        DownloadedVideos = x.Value(Name_DownloadVideos).FromXML(Of Boolean)(True)
                         _CountVideo = x.Value(Name_VideoCount).FromXML(Of Integer)(0)
                         _CountPictures = x.Value(Name_PicturesCount).FromXML(Of Integer)(0)
                         LastUpdated = AConvert(Of Date)(x.Value(Name_LastUpdated), ADateTime.Formats.BaseDateTime, Nothing)
@@ -463,6 +469,8 @@ BlockNullPicture:
                         x.Add(Name_SeparateVideoFolder, String.Empty)
                     End If
                     x.Add(Name_ReadyForDownload, ReadyForDownload.BoolToInteger)
+                    x.Add(Name_DownloadImages, DownloadImages.BoolToInteger)
+                    x.Add(Name_DownloadVideos, DownloadVideos.BoolToInteger)
                     x.Add(Name_VideoCount, _CountVideo)
                     x.Add(Name_PicturesCount, _CountPictures)
                     x.Add(Name_LastUpdated, AConvert(Of String)(LastUpdated, ADateTime.Formats.BaseDateTime, String.Empty))
@@ -586,6 +594,12 @@ BlockNullPicture:
                 DownloadDataF(Token)
                 ThrowAny(Token)
 
+                If _TempMediaList.Count > 0 Then
+                    If Not DownloadImages Then _TempMediaList.RemoveAll(Function(m) m.Type = UserMedia.Types.GIF Or m.Type = UserMedia.Types.Picture)
+                    If Not DownloadVideos Then _TempMediaList.RemoveAll(Function(m) m.Type = UserMedia.Types.Video Or
+                                                                                      m.Type = UserMedia.Types.VideoPre Or m.Type = UserMedia.Types.m3u8)
+                End If
+
                 ReparseVideo(Token)
                 ThrowAny(Token)
                 If _TempPostsList.Count > 0 And __SaveData Then TextSaver.SaveTextToFile(_TempPostsList.ListToString(, Environment.NewLine), MyFilePosts, True,, EDP.None)
@@ -640,6 +654,29 @@ BlockNullPicture:
         Protected MustOverride Sub DownloadDataF(ByVal Token As CancellationToken)
         Protected MustOverride Sub ReparseVideo(ByVal Token As CancellationToken)
         Protected MustOverride Sub DownloadContent(ByVal Token As CancellationToken)
+        Protected Function ChangeFileNameByProvider(ByVal f As SFile, ByVal m As UserMedia) As SFile
+            Dim ff As SFile = Nothing
+            Try
+                If Not f.IsEmptyString AndAlso f.Exists Then
+                    Dim d As Date? = m.Post.Date
+                    If Settings.FileReplaceNameByDate Then
+                        Dim dd$ = AConvert(Of String)(If(d, Now), FileDateAppenderProvider, String.Empty)
+                        ff = f
+                        ff.Name = dd
+                        ff = SFile.Indexed_IndexFile(ff,, New NumberedFile(ff))
+                    ElseIf d.HasValue AndAlso (Settings.FileAddDateToFileName Or Settings.FileAddTimeToFileName) AndAlso
+                                              (Not FileDateAppenderProvider Is Nothing And Not FileDateAppenderPattern.IsEmptyString) Then
+                        ff = f
+                        ff.Name = String.Format(FileDateAppenderPattern, f.Name, CStr(AConvert(Of String)(d.Value, FileDateAppenderProvider, String.Empty)))
+                    End If
+                    If Not ff.Name.IsEmptyString Then My.Computer.FileSystem.RenameFile(f, ff.File) : Return ff
+                End If
+                Return f
+            Catch ex As Exception
+                LogError(ex, $"change file name from [{f}] to [{ff}]")
+                Return f
+            End Try
+        End Function
 #End Region
 #Region "Delete, Move, Merge"
         Friend Overridable Function Delete() As Integer Implements IUserData.Delete
@@ -916,6 +953,8 @@ BlockNullPicture:
         ReadOnly Property FitToAddParams As Boolean
         ReadOnly Property LVIKey As String
         ReadOnly Property LVIIndex As Integer
+        Property DownloadImages As Boolean
+        Property DownloadVideos As Boolean
         Function GetLVI(ByVal Destination As ListView) As ListViewItem
         Function GetLVIGroup(ByVal Destination As ListView) As ListViewGroup
         Sub LoadUserInformation()

@@ -197,4 +197,16 @@ If checked then videos will be stored in separated folder; otherwise, videos wil
         VnR1MIwhwMTCyqEQ37qEmZVDFF0OE/9nAACtFF4Ey6OP+wAAAABJRU5ErkJggg==
 </value>
   </data>
+  <metadata name="TP_DEFAULTS.GenerateMember" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>False</value>
+  </metadata>
+  <metadata name="TP_FILE_NAME.GenerateMember" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>False</value>
+  </metadata>
+  <metadata name="TP_FILE_PATTERNS.GenerateMember" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>False</value>
+  </metadata>
+  <metadata name="LBL_DATE_POS.GenerateMember" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>False</value>
+  </metadata>
 </root>

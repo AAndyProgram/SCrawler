@@ -44,8 +44,16 @@ Friend Class SettingsCLS : Implements IDisposable
 
         SeparateVideoFolder = New XMLValue(Of Boolean)("SeparateVideoFolder", True, MyXML)
         CollectionsPath = New XMLValue(Of String)("CollectionsPath", "Collections", MyXML)
-        DefaultTemporary = New XMLValue(Of Boolean)("DefaultTemporary", False, MyXML)
         MaxUsersJobsCount = New XMLValue(Of Integer)("MaxUsersJobsCount", DefaultMaxDownloadingTasks, MyXML)
+
+        DefaultTemporary = New XMLValue(Of Boolean)("DefaultTemporary", False, MyXML)
+        DefaultDownloadImages = New XMLValue(Of Boolean)("DefaultDownloadImages", True, MyXML)
+        DefaultDownloadVideos = New XMLValue(Of Boolean)("DefaultDownloadVideos", True, MyXML)
+
+        FileAddDateToFileName = New XMLValue(Of Boolean)("FileAddDateToFileName", False, MyXML) With {.OnChangeFunction = AddressOf ChangeDateProvider}
+        FileAddTimeToFileName = New XMLValue(Of Boolean)("FileAddTimeToFileName", False, MyXML) With {.OnChangeFunction = AddressOf ChangeDateProvider}
+        FileDateTimePositionEnd = New XMLValue(Of Boolean)("FileDateTimePositionEnd", True, MyXML) With {.OnChangeFunction = AddressOf ChangeDateProvider}
+        FileReplaceNameByDate = New XMLValue(Of Boolean)("FileReplaceNameByDate", False, MyXML)
 
         MaxLargeImageHeigh = New XMLValue(Of Integer)("MaxLargeImageHeigh", 150, MyXML)
         MaxSmallImageHeigh = New XMLValue(Of Integer)("MaxSmallImageHeigh", 15, MyXML)
@@ -76,6 +84,16 @@ Friend Class SettingsCLS : Implements IDisposable
         If BlackListFile.Exists Then
             BlackList.ListAddList(IO.File.ReadAllLines(BlackListFile), LAP.NotContainsOnly)
             If BlackList.Count > 0 Then BlackList.RemoveAll(Function(b) Not b.Exists)
+        End If
+        ChangeDateProvider(Nothing, Nothing, Nothing)
+    End Sub
+    Private Sub ChangeDateProvider(ByVal Sender As Object, ByVal Name As String, ByVal Value As Object)
+        If Not _UpdatesSuspended Then
+            Dim p$ = String.Empty
+            If FileAddDateToFileName Then p = "yyyyMMdd"
+            If FileAddTimeToFileName Then p.StringAppend("HHmmss", "_")
+            If Not p.IsEmptyString Then FileDateAppenderProvider = New ADateTime(p) Else FileDateAppenderProvider = New ADateTime("yyyyMMdd_HHmmss")
+            If FileDateTimePositionEnd Then FileDateAppenderPattern = "{0}_{1}" Else FileDateAppenderPattern = "{1}_{0}"
         End If
     End Sub
     Friend Sub LoadUsers()
@@ -192,12 +210,16 @@ Friend Class SettingsCLS : Implements IDisposable
     Friend Overloads Function UserExists(ByVal _User As UserInfo) As Boolean
         Return UserExists(_User.Site, _User.Name)
     End Function
+    Private _UpdatesSuspended As Boolean = False
     Friend Sub BeginUpdate()
         MyXML.BeginUpdate()
+        _UpdatesSuspended = True
     End Sub
     Friend Sub EndUpdate()
         MyXML.EndUpdate()
         If MyXML.ChangesDetected Then MyXML.UpdateData()
+        _UpdatesSuspended = False
+        ChangeDateProvider(Nothing, Nothing, Nothing)
     End Sub
     Friend ReadOnly Property Site(ByVal s As Sites) As SiteSettings
         Get
@@ -216,8 +238,18 @@ Friend Class SettingsCLS : Implements IDisposable
             End If
         End Get
     End Property
-    Friend ReadOnly Property DefaultTemporary As XMLValue(Of Boolean)
     Friend ReadOnly Property MaxUsersJobsCount As XMLValue(Of Integer)
+#Region "Defaults"
+    Friend ReadOnly Property DefaultTemporary As XMLValue(Of Boolean)
+    Friend ReadOnly Property DefaultDownloadImages As XMLValue(Of Boolean)
+    Friend ReadOnly Property DefaultDownloadVideos As XMLValue(Of Boolean)
+#End Region
+#Region "Additional info"
+    Friend ReadOnly Property FileAddDateToFileName As XMLValue(Of Boolean)
+    Friend ReadOnly Property FileAddTimeToFileName As XMLValue(Of Boolean)
+    Friend ReadOnly Property FileDateTimePositionEnd As XMLValue(Of Boolean)
+    Friend ReadOnly Property FileReplaceNameByDate As XMLValue(Of Boolean)
+#End Region
 #Region "View"
     Friend ReadOnly Property MaxLargeImageHeigh As XMLValue(Of Integer)
     Friend ReadOnly Property MaxSmallImageHeigh As XMLValue(Of Integer)

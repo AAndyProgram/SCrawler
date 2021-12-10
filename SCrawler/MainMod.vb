@@ -27,6 +27,17 @@ Friend Module MainMod
     Friend InfoForm As DownloadedInfoForm
     Friend VideoDownloader As VideosDownloaderForm
     Friend ReadOnly ParsersDataDateProvider As New ADateTime(ADateTime.Formats.BaseDateTime)
+#Region "File name operations"
+    Friend FileDateAppenderProvider As IFormatProvider
+    ''' <summary>File, Date</summary>
+    Friend FileDateAppenderPattern As String
+    Friend Class NumberedFile : Inherits SFileNumbers
+        Friend Sub New(ByVal f As SFile)
+            FileName = f.Name
+            NumberProvider = New ANumbers With {.FormatMode = ANumbers.Formats.NumberGroup, .GroupSize = 5}
+        End Sub
+    End Class
+#End Region
     Friend Property MainProgress As PersonalUtilities.Forms.Toolbars.MyProgress
     Friend Function GetLviGroupName(ByVal Site As Sites, ByVal Temp As Boolean, ByVal Fav As Boolean, ByVal IsCollection As Boolean) As String
         Dim Opt$ = String.Empty
@@ -144,6 +155,7 @@ Friend Module MainMod
             }
         End Function
     End Structure
+#Region "Image Handlers management"
     Friend Sub ImageHandler(ByVal User As IUserData)
         ImageHandler(User, False)
         ImageHandler(User, True)
@@ -164,6 +176,8 @@ Friend Module MainMod
         Catch ex As Exception
         End Try
     End Sub
+#End Region
+#Region "Standalone video download functions"
     Friend Function GetCurrentBuffer() As String
         Dim b$ = BufferText
         If Not (Not b.IsEmptyString AndAlso b.Length > 4 AndAlso b.StartsWith("http")) Then b = String.Empty
@@ -245,6 +259,8 @@ Friend Module MainMod
             Return ErrorsDescriber.Execute(e, ex, "Downloading video by URL error", False)
         End Try
     End Function
+#End Region
+#Region "Blacklist Support"
     Friend Structure UserBan
         Friend ReadOnly Name As String
         Friend ReadOnly Reason As String
@@ -330,4 +346,5 @@ Friend Module MainMod
     Friend Function UserBanned(ByVal UserName As String) As Boolean
         Return UserBanned({UserName}).ListExists
     End Function
+#End Region
 End Module

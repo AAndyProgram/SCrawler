@@ -246,6 +246,8 @@ CloseResume:
                                 .Temporary = f.UserTemporary
                                 .ParseUserMediaOnly = f.UserMediaOnly
                                 .ReadyForDownload = f.UserReady
+                                .DownloadImages = f.DownloadImages
+                                .DownloadVideos = f.DownloadVideos
                                 .FriendlyName = f.UserFriendly
                                 .Description = f.UserDescr
                                 .Labels.ListAddList(f.UserLabels, LAP.ClearBeforeAdd, LAP.NotContainsOnly)
@@ -812,7 +814,7 @@ ResumeDownloadingOperation:
         End If
     End Sub
     Private Sub Downloader_OnDownloading(ByVal Value As Boolean)
-        Dim a As Action = Sub() BTT_DOWN_STOP.Enabled = Not Value
+        Dim a As Action = Sub() BTT_DOWN_STOP.Enabled = Value
         If Toolbar_TOP.InvokeRequired Then Toolbar_TOP.Invoke(a) Else a.Invoke
     End Sub
 End Class

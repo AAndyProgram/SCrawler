@@ -38,6 +38,16 @@ Namespace Editors
                 Return CH_READY_FOR_DOWN.Checked
             End Get
         End Property
+        Friend ReadOnly Property DownloadImages As Boolean
+            Get
+                Return CH_DOWN_IMAGES.Checked
+            End Get
+        End Property
+        Friend ReadOnly Property DownloadVideos As Boolean
+            Get
+                Return CH_DOWN_VIDEOS.Checked
+            End Get
+        End Property
         Friend ReadOnly Property UserDescr As String
             Get
                 Return TXT_DESCR.Text
@@ -75,7 +85,9 @@ Namespace Editors
                         OPT_TWITTER.Checked = False
                         CH_PARSE_USER_MEDIA.Enabled = False
                         CH_READY_FOR_DOWN.Checked = True
-                        CH_TEMP.Checked = Settings.DefaultTemporary.Value
+                        CH_TEMP.Checked = Settings.DefaultTemporary
+                        CH_DOWN_IMAGES.Checked = Settings.DefaultDownloadImages
+                        CH_DOWN_VIDEOS.Checked = Settings.DefaultDownloadVideos
                     Else
                         TP_ADD_BY_LIST.Enabled = False
                         TXT_USER.Text = User.Name
@@ -93,16 +105,22 @@ Namespace Editors
                                 CH_TEMP.Checked = .Temporary
                                 CH_PARSE_USER_MEDIA.Checked = .ParseUserMediaOnly
                                 CH_READY_FOR_DOWN.Checked = .ReadyForDownload
+                                CH_DOWN_IMAGES.Checked = .DownloadImages
+                                CH_DOWN_VIDEOS.Checked = .DownloadedVideos
                                 TXT_DESCR.Text = .Description
                                 UserLabels.ListAddList(.Labels)
                                 If UserLabels.ListExists Then TXT_LABELS.Text = UserLabels.ListToString
                             End With
+                        Else
+                            CH_READY_FOR_DOWN.Checked = Settings.DefaultTemporary
+                            CH_DOWN_IMAGES.Checked = Settings.DefaultDownloadImages
+                            CH_DOWN_VIDEOS.Checked = Settings.DefaultDownloadVideos
                         End If
                     End If
                     .MyFieldsChecker = New FieldsChecker
                     .MyFieldsChecker.AddControl(Of String)(TXT_USER, TXT_USER.CaptionText)
                     .MyFieldsChecker.EndLoaderOperations()
-                    TextBoxExtended.SetFalseDetector(Me, True, AddressOf .Detector)
+                    .AppendDetectors()
                     .EndLoaderOperations()
                 End With
             Catch ex As Exception
@@ -141,6 +159,8 @@ Namespace Editors
                                 .Favorite = CH_FAV.Checked
                                 .Temporary = CH_TEMP.Checked
                                 .ReadyForDownload = CH_READY_FOR_DOWN.Checked
+                                .DownloadImages = CH_DOWN_IMAGES.Checked
+                                .DownloadVideos = CH_DOWN_VIDEOS.Checked
                                 .UserDescription = TXT_DESCR.Text
                                 Dim l As New ListAddParams(LAP.NotContainsOnly + LAP.ClearBeforeAdd)
                                 If .IsCollection Then
@@ -299,6 +319,8 @@ CloseForm:
                                             .Favorite = CH_FAV.Checked
                                             .Temporary = CH_TEMP.Checked
                                             .ReadyForDownload = CH_READY_FOR_DOWN.Checked
+                                            .DownloadImages = CH_DOWN_IMAGES.Checked
+                                            .DownloadVideos = CH_DOWN_VIDEOS.Checked
                                             .Labels.ListAddList(UserLabels)
                                             If s = Sites.Twitter Then .ParseUserMediaOnly = CH_PARSE_USER_MEDIA.Checked
                                             .UpdateUserInformation()
