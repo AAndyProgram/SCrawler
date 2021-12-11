@@ -405,7 +405,7 @@ CloseResume:
             End If
         End If
         Settings.ShowingMode.Value = m
-        If Not m = ShowingModes.All Then BTT_DOWN_ALL.Enabled = False
+        BTT_DOWN_ALL.Enabled = m = ShowingModes.All
     End Sub
     Private Sub BTT_SELECT_LABELS_Click(sender As Object, e As EventArgs) Handles BTT_SELECT_LABELS.Click
         OpenLabelsForm()

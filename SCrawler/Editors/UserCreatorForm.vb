@@ -106,7 +106,7 @@ Namespace Editors
                                 CH_PARSE_USER_MEDIA.Checked = .ParseUserMediaOnly
                                 CH_READY_FOR_DOWN.Checked = .ReadyForDownload
                                 CH_DOWN_IMAGES.Checked = .DownloadImages
-                                CH_DOWN_VIDEOS.Checked = .DownloadedVideos
+                                CH_DOWN_VIDEOS.Checked = .DownloadVideos
                                 TXT_DESCR.Text = .Description
                                 UserLabels.ListAddList(.Labels)
                                 If UserLabels.ListExists Then TXT_LABELS.Text = UserLabels.ListToString

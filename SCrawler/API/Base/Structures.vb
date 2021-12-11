@@ -49,7 +49,6 @@
             ''' <summary>Post ID</summary>
             Friend ID As String
             Friend [Date] As Date?
-            Friend Title As String
 #Region "Channel compatible fields"
             Friend UserID As String
             Friend CachedFile As SFile

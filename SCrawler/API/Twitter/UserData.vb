@@ -47,7 +47,7 @@ Namespace API.Twitter
             Dim URL$ = String.Empty
             Try
                 Dim PostID$ = String.Empty
-                Dim PostDate$, PostTitle$
+                Dim PostDate$
                 Dim m As EContainer, nn As EContainer, s As EContainer
                 Dim NewPostDetected As Boolean = False
                 Dim ExistsDetected As Boolean = False
@@ -83,18 +83,17 @@ Namespace API.Twitter
                                         ExistsDetected = True
                                         Continue For
                                     End If
-                                    PostTitle = nn.Value("full_text")
 
                                     If Not ParseUserMediaOnly OrElse (Not nn.Contains("retweeted_status") OrElse
                                                                      (Not ID.IsEmptyString AndAlso UID(nn("retweeted_status")) = ID)) Then
-                                        If Not CheckVideoNode(nn, PostID, PostDate, PostTitle) Then
+                                        If Not CheckVideoNode(nn, PostID, PostDate) Then
                                             s = nn.ItemF({"extended_entities", "media"})
                                             If s Is Nothing OrElse s.Count = 0 Then s = nn.ItemF({"retweeted_status", "extended_entities", "media"})
                                             If Not s Is Nothing AndAlso s.Count > 0 Then
                                                 For Each m In s
                                                     If m.Count > 0 AndAlso m.Contains("media_url") Then
                                                         _TempMediaList.ListAddValue(MediaFromData(m("media_url").Value,
-                                                                                                  PostID, PostDate, GetPictureOption(m), PostTitle), LNC)
+                                                                                                  PostID, PostDate, GetPictureOption(m)), LNC)
                                                     End If
                                                 Next
                                             End If
@@ -159,10 +158,10 @@ Namespace API.Twitter
         End Function
 #End Region
 #Region "Video options"
-        Private Function CheckVideoNode(ByVal w As EContainer, ByVal PostID As String, ByVal PostDate As String, ByVal Title As String) As Boolean
+        Private Function CheckVideoNode(ByVal w As EContainer, ByVal PostID As String, ByVal PostDate As String) As Boolean
             Try
                 Dim URL$ = GetVideoNodeURL(w)
-                If Not URL.IsEmptyString Then _TempMediaList.ListAddValue(MediaFromData(URL, PostID, PostDate,, Title), LNC) : Return True
+                If Not URL.IsEmptyString Then _TempMediaList.ListAddValue(MediaFromData(URL, PostID, PostDate), LNC) : Return True
                 Return False
             Catch ex As Exception
                 LogError(ex, "[CheckVideoNode]")
@@ -194,7 +193,7 @@ Namespace API.Twitter
         End Sub
 #End Region
         Private Shared Function MediaFromData(ByVal _URL As String, ByVal PostID As String, ByVal PostDate As String,
-                                              Optional ByVal _PictureOption As String = "", Optional ByVal Title As String = Nothing) As UserMedia
+                                              Optional ByVal _PictureOption As String = "") As UserMedia
             _URL = LinkFormatterSecure(RegexReplace(_URL.Replace("\", String.Empty), LinkPattern))
             Dim m As New UserMedia(_URL) With {.PictureOption = _PictureOption, .Post = New UserPost With {.ID = PostID}}
             If Not m.URL.IsEmptyString Then m.File = CStr(RegexReplace(m.URL, FilesPattern))
@@ -202,7 +201,6 @@ Namespace API.Twitter
                 m.URL_BASE = $"{m.URL.Replace($".{m.File.Extension}", String.Empty)}?format={m.File.Extension}&name={m.PictureOption}"
             End If
             If Not PostDate.IsEmptyString Then m.Post.Date = AConvert(Of Date)(PostDate, Declarations.DateProvider, Nothing) Else m.Post.Date = Nothing
-            If Not Title.IsEmptyString Then m.Post.Title = Title
             Return m
         End Function
 #End Region

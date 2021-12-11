@@ -1,3 +1,9 @@
+# 1.0.0.3
+
+- Fixed
+  - Custom "Download videos" option is not saved
+  - The "Download all" button is not activated after changing modes
+
 # 1.0.0.2
 
 - Added

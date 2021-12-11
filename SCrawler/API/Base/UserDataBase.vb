@@ -436,7 +436,7 @@ BlockNullPicture:
                         SeparateVideoFolder = AConvert(Of Boolean)(x.Value(Name_SeparateVideoFolder), Nothing)
                         ReadyForDownload = x.Value(Name_ReadyForDownload).FromXML(Of Boolean)(True)
                         DownloadImages = x.Value(Name_DownloadImages).FromXML(Of Boolean)(True)
-                        DownloadedVideos = x.Value(Name_DownloadVideos).FromXML(Of Boolean)(True)
+                        DownloadVideos = x.Value(Name_DownloadVideos).FromXML(Of Boolean)(True)
                         _CountVideo = x.Value(Name_VideoCount).FromXML(Of Integer)(0)
                         _CountPictures = x.Value(Name_PicturesCount).FromXML(Of Integer)(0)
                         LastUpdated = AConvert(Of Date)(x.Value(Name_LastUpdated), ADateTime.Formats.BaseDateTime, Nothing)

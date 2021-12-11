@@ -92,7 +92,7 @@ Namespace API.Reddit
             Dim URL$ = String.Empty
             Try
                 Dim PostID$ = String.Empty
-                Dim PostDate$, PostTitle$
+                Dim PostDate$
                 Dim n As EContainer, nn As EContainer, s As EContainer
                 Dim NewPostDetected As Boolean = False
                 Dim ExistsDetected As Boolean = False
@@ -124,30 +124,29 @@ Namespace API.Reddit
                                             ExistsDetected = True
                                             Continue For
                                         End If
-                                        PostTitle = nn.Value("title")
 
                                         If CheckNode(nn) Then
                                             _ItemsBefore = _TempMediaList.Count
                                             added = True
                                             s = nn.ItemF({"source", "url"})
                                             If s.XmlIfNothingValue("/").Contains("redgifs.com") Then
-                                                _TempMediaList.ListAddValue(MediaFromData(UTypes.VideoPre, s.Value, PostID, PostDate,, IsChannel, PostTitle), LNC)
+                                                _TempMediaList.ListAddValue(MediaFromData(UTypes.VideoPre, s.Value, PostID, PostDate,, IsChannel), LNC)
                                             Else
                                                 s = nn.ItemF({"media"}).XmlIfNothing
                                                 __ItemType = s("type").XmlIfNothingValue
                                                 Select Case __ItemType
-                                                    Case "gallery" : If Not DownloadGallery(s, PostID, PostDate,,, PostTitle) Then added = False
+                                                    Case "gallery" : If Not DownloadGallery(s, PostID, PostDate) Then added = False
                                                     Case "image", "gifvideo"
                                                         If s.Contains("content") Then
                                                             _TempMediaList.ListAddValue(MediaFromData(UPicType(__ItemType), s.Value("content"),
-                                                                                                      PostID, PostDate,, IsChannel, PostTitle), LNC)
+                                                                                                      PostID, PostDate,, IsChannel), LNC)
                                                         Else
                                                             added = False
                                                         End If
                                                     Case "video"
                                                         If Settings.UseM3U8 AndAlso s("hlsUrl").XmlIfNothingValue("/").ToLower.Contains("m3u8") Then
                                                             _TempMediaList.ListAddValue(MediaFromData(UTypes.m3u8, s.Value("hlsUrl"),
-                                                                                                      PostID, PostDate,, IsChannel, PostTitle), LNC)
+                                                                                                      PostID, PostDate,, IsChannel), LNC)
                                                         Else
                                                             added = False
                                                         End If
@@ -167,7 +166,7 @@ Namespace API.Reddit
                                                         End Select
                                                     End With
                                                     If Not tmpType = UTypes.Undefined Then
-                                                        _TempMediaList.ListAddValue(MediaFromData(tmpType, s.Value, PostID, PostDate,, IsChannel, PostTitle), LNC)
+                                                        _TempMediaList.ListAddValue(MediaFromData(tmpType, s.Value, PostID, PostDate,, IsChannel), LNC)
                                                     End If
                                                 End If
                                             End If
@@ -270,8 +269,7 @@ Namespace API.Reddit
 #End Region
 #Region "Download Base Functions"
         Private Function DownloadGallery(ByVal w As EContainer, ByVal PostID As String, ByVal PostDate As String,
-                                         Optional ByVal _UserID As String = Nothing, Optional ByVal FirstOnly As Boolean = False,
-                                         Optional ByVal Title As String = Nothing) As Boolean
+                                         Optional ByVal _UserID As String = Nothing, Optional ByVal FirstOnly As Boolean = False) As Boolean
             Try
                 Dim added As Boolean = False
                 Dim cn$ = IIf(IsChannel, "media_metadata", "mediaMetadata")
@@ -280,7 +278,7 @@ Namespace API.Reddit
                     For Each n As EContainer In w(cn)
                         t = n.ItemF({"s", "u"})
                         If Not t Is Nothing AndAlso Not t.Value.IsEmptyString Then
-                            _TempMediaList.ListAddValue(MediaFromData(UTypes.Picture, t.Value, PostID, PostDate, _UserID, IsChannel, Title), LNC)
+                            _TempMediaList.ListAddValue(MediaFromData(UTypes.Picture, t.Value, PostID, PostDate, _UserID, IsChannel), LNC)
                             added = True
                             If FirstOnly Then Exit For
                         End If
@@ -340,15 +338,13 @@ Namespace API.Reddit
 #End Region
 #Region "Structure creator"
         Protected Shared Function MediaFromData(ByVal t As UTypes, ByVal _URL As String, ByVal PostID As String, ByVal PostDate As String,
-                                                Optional ByVal _UserID As String = "", Optional ByVal IsChannel As Boolean = False,
-                                                Optional ByVal Title As String = Nothing) As UserMedia
+                                                Optional ByVal _UserID As String = "", Optional ByVal IsChannel As Boolean = False) As UserMedia
             If _URL.IsEmptyString And t = UTypes.Picture Then Return Nothing
             _URL = LinkFormatterSecure(RegexReplace(_URL.Replace("\", String.Empty), LinkPattern))
             Dim m As New UserMedia(_URL, t) With {.Post = New UserPost With {.ID = PostID, .UserID = _UserID}}
             If t = UTypes.Picture Or t = UTypes.GIF Then m.File = UrlToFile(m.URL) Else m.File = Nothing
             If m.URL.Contains("preview") Then m.URL = $"https://i.redd.it/{m.File.File}"
             If Not PostDate.IsEmptyString Then m.Post.Date = AConvert(Of Date)(PostDate, If(IsChannel, DateProviderChannel, DateProvider), Nothing) Else m.Post.Date = Nothing
-            If Not Title.IsEmptyString Then m.Post.Title = Title
             Return m
         End Function
         Private Function TryFile(ByVal URL As String) As Boolean
