@@ -106,17 +106,26 @@ Friend Class SettingsCLS : Implements IDisposable
                     If x.Count > 0 Then x.ForEach(Sub(xx) UsersList.Add(xx))
                 End Using
                 Dim PNC As Func(Of UserInfo, Boolean) = Function(u) Not u.IncludedInCollection
+                Dim NeedUpdate As Boolean = False
                 If UsersList.Count > 0 Then
                     Dim cUsers As List(Of UserInfo) = UsersList.Where(Function(u) u.IncludedInCollection).ToList
                     If cUsers.ListExists Then
                         Dim d As New Dictionary(Of SFile, List(Of UserInfo))
                         cUsers = cUsers.ListForEachCopy(Of List(Of UserInfo))(Function(ByVal f As UserInfo, ByVal f_indx As Integer) As UserInfo
-                                                                                  If Not d.ContainsKey(f.File.CutPath(2).Path) Then
-                                                                                      d.Add(f.File.CutPath(2).Path, New List(Of UserInfo) From {f})
+                                                                                  Dim m% = IIf(f.Merged, 1, 2)
+                                                                                  If SFile.GetPath(f.File.CutPath(m - 1).Path).Exists(SFO.Path, False) Then
+                                                                                      Dim fp As SFile = SFile.GetPath(f.File.CutPath(m).Path)
+                                                                                      If Not d.ContainsKey(fp) Then
+                                                                                          d.Add(fp, New List(Of UserInfo) From {f})
+                                                                                      Else
+                                                                                          d(f.File.CutPath(m).Path).Add(f)
+                                                                                      End If
+                                                                                      Return f
                                                                                   Else
-                                                                                      d(f.File.CutPath(2).Path).Add(f)
+                                                                                      NeedUpdate = True
+                                                                                      UsersList.Remove(f)
+                                                                                      Return Nothing
                                                                                   End If
-                                                                                  Return f
                                                                               End Function, True)
                         Dim v%
                         If d.Count > 0 Then
@@ -138,8 +147,8 @@ Friend Class SettingsCLS : Implements IDisposable
                     t.Clear()
                     Dim du As List(Of UserInfo) = (From u As IUserData In Users
                                                    Where Not u.IsCollection AndAlso Not u.FileExists
-                                                   Select DirectCast(u, UserDataBase).User).ToList
-                    If Not du Is Nothing AndAlso du.Count > 0 Then du.ForEach(Sub(u) UsersList.Remove(u)) : du.Clear()
+                                                   Select DirectCast(u.Self, UserDataBase).User).ToList
+                    If du.ListExists Then du.ForEach(Sub(u) UsersList.Remove(u)) : du.Clear()
                     Users.ListDisposeRemoveAll(Function(ByVal u As IUserData) As Boolean
                                                    If u.IsCollection Then
                                                        With DirectCast(u, UserDataBind)
@@ -158,6 +167,7 @@ Friend Class SettingsCLS : Implements IDisposable
                                                    End If
                                                End Function)
                 End If
+                If NeedUpdate Then UpdateUsersList()
             End If
             If Users.Count > 0 Then
                 Labels.ToList.ListAddList(Users.SelectMany(Function(u) u.Labels), LAP.NotContainsOnly)

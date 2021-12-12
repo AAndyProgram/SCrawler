@@ -98,7 +98,7 @@ Namespace API
         Friend Overrides Property DataMerging As Boolean
             Get
                 If Count > 0 Then
-                    Return DirectCast(Collections(0), UserDataBase).DataMerging
+                    Return DirectCast(Collections(0).Self, UserDataBase).DataMerging
                 Else
                     Return False
                 End If
@@ -142,6 +142,14 @@ Namespace API
                 UpdateUserInformation()
             End Set
         End Property
+        Friend Overrides Property ReadyForDownload As Boolean
+            Get
+                Return Count > 0 AndAlso Collections(0).ReadyForDownload
+            End Get
+            Set(ByVal IsReady As Boolean)
+                If Count > 0 Then Collections.ForEach(Sub(c) c.ReadyForDownload = IsReady)
+            End Set
+        End Property
         Friend Overrides ReadOnly Property Labels As List(Of String)
             Get
                 If Count > 0 Then
@@ -153,15 +161,15 @@ Namespace API
         End Property
         Friend Overrides Function GetUserInformation() As String
             Dim OutStr$ = String.Empty
-            If Count > 0 Then Collections.ForEach(Sub(c) OutStr.StringAppendLine(DirectCast(c, UserDataBase).GetUserInformation(), $"{vbCrLf}{vbCrLf}"))
+            If Count > 0 Then Collections.ForEach(Sub(c) OutStr.StringAppendLine(DirectCast(c.Self, UserDataBase).GetUserInformation(), $"{vbCrLf}{vbCrLf}"))
             Return OutStr
         End Function
         Friend Overrides Property LastUpdated As Date?
             Get
                 If Count > 0 Then
                     With If((From c In Collections
-                             Where DirectCast(c, UserDataBase).LastUpdated.HasValue
-                             Select DirectCast(c, UserDataBase).LastUpdated.Value).ToList, New List(Of Date))
+                             Where DirectCast(c.Self, UserDataBase).LastUpdated.HasValue
+                             Select DirectCast(c.Self, UserDataBase).LastUpdated.Value).ToList, New List(Of Date))
                         If .Count > 0 Then Return .Max
                     End With
                 End If
@@ -179,7 +187,7 @@ Namespace API
         Friend ReadOnly Property ContextDown As ToolStripMenuItem()
             Get
                 If Count > 0 Then
-                    Return Collections.Select(Function(c) DirectCast(c, UserDataBase).BTT_CONTEXT_DOWN).ToArray
+                    Return Collections.Select(Function(c) DirectCast(c.Self, UserDataBase).BTT_CONTEXT_DOWN).ToArray
                 Else
                     Return New ToolStripMenuItem() {}
                 End If
@@ -188,7 +196,7 @@ Namespace API
         Friend ReadOnly Property ContextEdit As ToolStripMenuItem()
             Get
                 If Count > 0 Then
-                    Return Collections.Select(Function(c) DirectCast(c, UserDataBase).BTT_CONTEXT_EDIT).ToArray
+                    Return Collections.Select(Function(c) DirectCast(c.Self, UserDataBase).BTT_CONTEXT_EDIT).ToArray
                 Else
                     Return New ToolStripMenuItem() {}
                 End If
@@ -197,7 +205,7 @@ Namespace API
         Friend ReadOnly Property ContextDelete As ToolStripMenuItem()
             Get
                 If Count > 0 Then
-                    Return Collections.Select(Function(c) DirectCast(c, UserDataBase).BTT_CONTEXT_DELETE).ToArray
+                    Return Collections.Select(Function(c) DirectCast(c.Self, UserDataBase).BTT_CONTEXT_DELETE).ToArray
                 Else
                     Return New ToolStripMenuItem() {}
                 End If
@@ -206,7 +214,7 @@ Namespace API
         Friend ReadOnly Property ContextPath As ToolStripMenuItem()
             Get
                 If Count > 0 Then
-                    Return Collections.Select(Function(c) DirectCast(c, UserDataBase).BTT_CONTEXT_OPEN_PATH).ToArray
+                    Return Collections.Select(Function(c) DirectCast(c.Self, UserDataBase).BTT_CONTEXT_OPEN_PATH).ToArray
                 Else
                     Return New ToolStripMenuItem() {}
                 End If
@@ -215,7 +223,7 @@ Namespace API
         Friend ReadOnly Property ContextSite As ToolStripMenuItem()
             Get
                 If Count > 0 Then
-                    Return Collections.Select(Function(c) DirectCast(c, UserDataBase).BTT_CONTEXT_OPEN_SITE).ToArray
+                    Return Collections.Select(Function(c) DirectCast(c.Self, UserDataBase).BTT_CONTEXT_OPEN_SITE).ToArray
                 Else
                     Return New ToolStripMenuItem() {}
                 End If
@@ -239,7 +247,7 @@ Namespace API
             If Count > 0 Then Collections.ForEach(Sub(c) c.UpdateUserInformation())
         End Sub
         Friend Overrides Sub LoadContentInformation()
-            If Count > 0 Then Collections.ForEach(Sub(c) DirectCast(c, UserDataBase).LoadContentInformation())
+            If Count > 0 Then Collections.ForEach(Sub(c) DirectCast(c.Self, UserDataBase).LoadContentInformation())
         End Sub
         Friend Overrides Property DownloadTopCount As Integer?
             Get
@@ -288,8 +296,8 @@ Namespace API
         ''' <exception cref="InvalidOperationException"></exception>
         Friend Overloads Sub Add(ByVal _Item As IUserData) Implements ICollection(Of IUserData).Add
             With _Item
-                Dim m As Boolean = DataMerging
-                If .MoveFiles(CollectionName, m) Then
+                If .MoveFiles(CollectionName) Then
+                    If DataMerging Then DirectCast(.Self, UserDataBase).MergeData()
                     Collections.Add(_Item)
                     With Collections.Last
                         If Collections.Count - 1 > 0 Then
@@ -298,7 +306,7 @@ Namespace API
                             .UpdateUserInformation()
                         End If
                         ImageHandler(_Item, False)
-                        AddHandler .OnPictureUpdated, AddressOf User_OnPictureUpdated
+                        AddHandler .Self.OnPictureUpdated, AddressOf User_OnPictureUpdated
                         DirectCast(.Self, UserDataBase).CreateButtons(Count - 1)
                     End With
                 Else
@@ -313,7 +321,7 @@ Namespace API
                 Case Sites.Twitter : Collections.Add(New Twitter.UserData(u, _LoadData))
                 Case Else : Exit Sub
             End Select
-            With DirectCast(Collections(Count - 1), UserDataBase)
+            With DirectCast(Collections.Last.Self, UserDataBase)
                 .CreateButtons(Count - 1)
                 AddHandler .BTT_CONTEXT_DELETE.Click, AddressOf BTT_CONTEXT_DELETE_Click
             End With
@@ -324,7 +332,7 @@ Namespace API
                 For i% = 0 To _Items.Count - 1 : Add(_Items(i)) : Next
             End If
         End Sub
-        Friend Overrides Function MoveFiles(ByVal __CollectionName As String, ByVal _MergeData As Boolean) As Boolean
+        Friend Overrides Function MoveFiles(ByVal __CollectionName As String) As Boolean
             Throw New NotImplementedException("Files moving does not available if collection context")
         End Function
         Friend Overloads Sub MergeData(ByVal Merging As Boolean)
@@ -334,7 +342,7 @@ Namespace API
                         MsgBoxE($"Collection [{CollectionName}] data already merged")
                     Else
                         If Collections.Count > 1 Then
-                            Collections.ForEach(Sub(c) DirectCast(c, UserDataBase).MergeData())
+                            Collections.ForEach(Sub(c) DirectCast(c.Self, UserDataBase).MergeData())
                             MsgBoxE($"Collection [{CollectionName}] data merged")
                         Else
                             MsgBoxE($"Collection [{CollectionName}] contains only one user profile" & vbCr &
@@ -367,21 +375,24 @@ Namespace API
                         "Operation canceled", MsgBoxStyle.Critical)
                 Return False
             Else
-                DirectCast(_Item, UserDataBase).MoveFiles(String.Empty, False)
+                DirectCast(_Item.Self, UserDataBase).MoveFiles(String.Empty)
                 ImageHandler(_Item)
                 Return Collections.Remove(_Item)
             End If
         End Function
         Friend Overrides Function Delete() As Integer
             If Count > 0 Then
+                Dim f As SFile
                 If MsgBoxE({$"Collection may contain data{vbCr}Do you really want to delete collection and all of it files?", "Collection deleting"},
                            MsgBoxStyle.Exclamation + MsgBoxStyle.YesNo) = MsgBoxResult.Yes Then
+                    f = Collections(0).File.CutPath(2).PathWithSeparator
                     Settings.Users.Remove(Me)
                     Collections.ForEach(Sub(c) c.Delete())
                     Downloader.UserRemove(Me)
                     ImageHandler(Me, False)
                     Collections.ListClearDispose
                     Dispose(False)
+                    If f.Exists(SFO.Path, False) Then f.Delete(SFO.Path, True, False, EDP.SendInLog)
                     Return 2
                 Else
                     If DataMerging Then
@@ -390,10 +401,10 @@ Namespace API
                     End If
                     If MsgBoxE({$"Do you want to delete collection only?{vbCr}Users will not be deleted", "Collection deleting"},
                                MsgBoxStyle.Question + MsgBoxStyle.YesNo) = MsgBoxResult.Yes Then
-                        Dim f As SFile = Collections(0).File.CutPath(2)
+                        f = Collections(0).File.CutPath(2)
                         Settings.Users.Remove(Me)
                         Collections.ForEach(Sub(c)
-                                                c.MoveFiles(String.Empty, False)
+                                                c.MoveFiles(String.Empty)
                                                 ImageHandler(c)
                                             End Sub)
                         Collections.Clear()

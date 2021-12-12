@@ -163,9 +163,9 @@ Friend Module MainMod
     Friend Sub ImageHandler(ByVal User As IUserData, ByVal Add As Boolean)
         Try
             If Add Then
-                AddHandler User.OnPictureUpdated, AddressOf MainFrame.User_OnPictureUpdated
+                AddHandler User.Self.OnPictureUpdated, AddressOf MainFrame.User_OnPictureUpdated
             Else
-                RemoveHandler User.OnPictureUpdated, AddressOf MainFrame.User_OnPictureUpdated
+                RemoveHandler User.Self.OnPictureUpdated, AddressOf MainFrame.User_OnPictureUpdated
             End If
         Catch ex As Exception
         End Try

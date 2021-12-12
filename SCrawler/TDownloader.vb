@@ -132,7 +132,7 @@ Friend Class TDownloader : Implements IDisposable
         End Try
     End Sub
     Private Function GetUserFromMainCollection(ByVal User As IUserData) As IUserData
-        Dim uSimple As Predicate(Of IUserData) = Function(u) u.Equals(DirectCast(User, UserDataBase))
+        Dim uSimple As Predicate(Of IUserData) = Function(u) u.Equals(DirectCast(User.Self, UserDataBase))
         Dim uCol As Predicate(Of IUserData) = Function(ByVal u As IUserData) As Boolean
                                                   If u.IsCollection Then
                                                       Return DirectCast(u, UserDataBind).Collections.Exists(uSimple)

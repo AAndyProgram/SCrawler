@@ -250,7 +250,7 @@ CloseResume:
                                 .DownloadVideos = f.DownloadVideos
                                 .FriendlyName = f.UserFriendly
                                 .Description = f.UserDescr
-                                .Labels.ListAddList(f.UserLabels, LAP.ClearBeforeAdd, LAP.NotContainsOnly)
+                                .Self.Labels.ListAddList(f.UserLabels, LAP.ClearBeforeAdd, LAP.NotContainsOnly)
                                 .UpdateUserInformation()
                             End With
                             UserListUpdate(Settings.Users(Settings.Users.Count - 1), True)
@@ -485,6 +485,16 @@ CloseResume:
                           End Sub)
         End If
     End Sub
+    Private Sub BTT_CONTEXT_READY_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_READY.Click
+        Dim users As List(Of IUserData) = GetSelectedUserArray()
+        If AskForMassReplace(users, "Ready for download") Then
+            Dim r As Boolean = MsgBoxE({"What state do you want to set for selected users", "Select ready state"}, vbQuestion,,, {"Not Ready", "Ready"}).Index
+            users.ForEach(Sub(u)
+                              u.ReadyForDownload = r
+                              u.UpdateUserInformation()
+                          End Sub)
+        End If
+    End Sub
     Private Sub BTT_CONTEXT_GROUPS_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_GROUPS.Click
         Try
             Dim users As List(Of IUserData) = GetSelectedUserArray()
@@ -502,7 +512,7 @@ CloseResume:
                                                   If .Count > 0 Then .Collections.ForEach(Sub(uu) uu.Labels.ListAddList(f.LabelsList, lp))
                                               End With
                                           Else
-                                              u.Labels.ListAddList(f.LabelsList, lp)
+                                              u.Self.Labels.ListAddList(f.LabelsList, lp)
                                           End If
                                           u.UpdateUserInformation()
                                       End Sub)
@@ -601,7 +611,7 @@ CloseResume:
     End Sub
     Private Sub BTT_CONTEXT_INFO_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_INFO.Click
         Dim user As IUserData = GetSelectedUser()
-        If Not user Is Nothing Then MsgBoxE(DirectCast(user, UserDataBase).GetUserInformation())
+        If Not user Is Nothing Then MsgBoxE(DirectCast(user.Self, UserDataBase).GetUserInformation())
     End Sub
     Private Sub USER_CONTEXT_VisibleChanged(sender As Object, e As EventArgs) Handles USER_CONTEXT.VisibleChanged
         Try
@@ -690,7 +700,7 @@ CloseResume:
             On Error Resume Next
             If user.IsCollection Then
                 If USER_CONTEXT.Visible Then USER_CONTEXT.Hide()
-                MsgBoxE("This is collection!{vbNewLine}Edit collections does not allowed!", vbExclamation)
+                MsgBoxE($"This is collection!{vbNewLine}Edit collections does not allowed!", vbExclamation)
             Else
                 Using f As New UserCreatorForm(user)
                     f.ShowDialog()

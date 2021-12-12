@@ -33,6 +33,7 @@ Namespace API.Base
 #End Region
 #Region "XML Declarations"
         Private Const Name_Site As String = "Site"
+        Private Const Name_IsChannel As String = "IsChannel"
         Private Const Name_UserName As String = "UserName"
         Private Const Name_FriendlyName As String = "FriendlyName"
         Private Const Name_UserID As String = "UserID"
@@ -131,7 +132,7 @@ Namespace API.Base
         Protected Function GetNullPicture(ByVal MaxHeigh As XML.Base.XMLValue(Of Integer)) As Bitmap
             Return New Bitmap(CInt(DivideWithZeroChecking(MaxHeigh.Value, 100) * 75), MaxHeigh.Value)
         End Function
-        Private Function GetPicture(Optional ByVal ReturnNullImageOnNothing As Boolean = True) As Image
+        Protected Function GetPicture(Optional ByVal ReturnNullImageOnNothing As Boolean = True) As Image
             Dim f As SFile = Nothing
             Dim p As UserImage = Nothing
             Dim DelPath As Boolean = True
@@ -234,7 +235,7 @@ BlockNullPicture:
 #Region "Downloading params"
         Protected _DataLoaded As Boolean = False
         Protected _DataParsed As Boolean = False
-        Friend Property ReadyForDownload As Boolean = True Implements IUserData.ReadyForDownload
+        Friend Overridable Property ReadyForDownload As Boolean = True Implements IUserData.ReadyForDownload
         Friend Property DownloadImages As Boolean = True Implements IUserData.DownloadImages
         Friend Property DownloadVideos As Boolean = True Implements IUserData.DownloadVideos
 #End Region
@@ -409,7 +410,12 @@ BlockNullPicture:
         ''' <exception cref="ArgumentOutOfRangeException"></exception>
         Friend Overloads Shared Function GetInstance(ByVal u As UserInfo, Optional ByVal _LoadUserInformation As Boolean = True) As IUserData
             Select Case u.Site
-                Case Sites.Reddit : Return New Reddit.UserData(u, _LoadUserInformation)
+                Case Sites.Reddit
+                    If u.IsChannel Then
+                        Return New Reddit.Channel(u, _LoadUserInformation)
+                    Else
+                        Return New Reddit.UserData(u, _LoadUserInformation)
+                    End If
                 Case Sites.Twitter : Return New Twitter.UserData(u, _LoadUserInformation)
                 Case Else : Throw New ArgumentOutOfRangeException("Site", $"Site [{u.Site}] information does not recognized by loader")
             End Select
@@ -560,7 +566,7 @@ BlockNullPicture:
             Try
                 Dim URL$ = String.Empty
                 Select Case Site
-                    Case Sites.Reddit : URL = $"https://www.reddit.com/user/{Name}/"
+                    Case Sites.Reddit : URL = $"https://www.reddit.com/{IIf(IsChannel, "r", "user")}/{Name}/"
                     Case Sites.Twitter : URL = $"https://twitter.com/{Name}"
                     Case Else : MsgBoxE($"Site [{Site}] opening does not implemented", MsgBoxStyle.Exclamation)
                 End Select
@@ -597,7 +603,7 @@ BlockNullPicture:
                 If _TempMediaList.Count > 0 Then
                     If Not DownloadImages Then _TempMediaList.RemoveAll(Function(m) m.Type = UserMedia.Types.GIF Or m.Type = UserMedia.Types.Picture)
                     If Not DownloadVideos Then _TempMediaList.RemoveAll(Function(m) m.Type = UserMedia.Types.Video Or
-                                                                                      m.Type = UserMedia.Types.VideoPre Or m.Type = UserMedia.Types.m3u8)
+                                                                                    m.Type = UserMedia.Types.VideoPre Or m.Type = UserMedia.Types.m3u8)
                 End If
 
                 ReparseVideo(Token)
@@ -640,7 +646,7 @@ BlockNullPicture:
                 DownloadTopCount = Nothing
             End Try
         End Sub
-        Private Sub UpdateDataFiles()
+        Protected Sub UpdateDataFiles()
             If Not User.File.IsEmptyString Then
                 MyFileData = User.File
                 MyFileData.Name &= "_Data"
@@ -680,32 +686,38 @@ BlockNullPicture:
 #End Region
 #Region "Delete, Move, Merge"
         Friend Overridable Function Delete() As Integer Implements IUserData.Delete
+            Return DeleteF(Me)
+        End Function
+        Friend Function DeleteF(ByVal Instance As IUserData) As Integer
             Dim f As SFile = SFile.GetPath(MyFile.CutPath.Path)
             If f.Exists(SFO.Path, False) AndAlso f.Delete(SFO.Path, False, False) Then
                 ImageHandler(Me, False)
                 Settings.UsersList.Remove(User)
                 Settings.UpdateUsersList()
-                Settings.Users.Remove(Me)
-                Downloader.UserRemove(Me)
+                Settings.Users.Remove(Instance)
+                Downloader.UserRemove(Instance)
                 Dispose(True)
                 Return 1
             Else
                 Return 0
             End If
         End Function
-        Friend Overridable Function MoveFiles(ByVal __CollectionName As String, ByVal _MergeData As Boolean) As Boolean Implements IUserData.MoveFiles
+        Friend Overridable Function MoveFiles(ByVal __CollectionName As String) As Boolean Implements IUserData.MoveFiles
+            Return MoveFilesF(Me, __CollectionName)
+        End Function
+        Friend Function MoveFilesF(ByRef Instance As IUserData, ByVal __CollectionName As String) As Boolean
             Dim UserBefore As UserInfo = User
             Dim Removed As Boolean = True
             Dim _TurnBack As Boolean = False
             Try
                 Dim f As SFile
                 If IncludedInCollection Then
-                    Settings.Users.Add(Me)
+                    Settings.Users.Add(Instance)
                     Removed = False
                     User.CollectionName = String.Empty
                     User.IncludedInCollection = False
                 Else
-                    Settings.Users.Remove(Me)
+                    Settings.Users.Remove(Instance)
                     Removed = True
                     User.CollectionName = __CollectionName
                     User.IncludedInCollection = True
@@ -720,7 +732,7 @@ BlockNullPicture:
                                 "Destination directory is not empty!"}, MsgBoxStyle.Exclamation,,, {"Delete", "Cancel"}) = 1 Then
                         MsgBoxE("Operation canceled", MsgBoxStyle.Exclamation)
                         User = UserBefore
-                        If Removed Then Settings.Users.Add(Me) Else Settings.Users.Remove(Me)
+                        If Removed Then Settings.Users.Add(Instance) Else Settings.Users.Remove(Instance)
                         _TurnBack = False
                         Return False
                     End If
@@ -736,7 +748,7 @@ BlockNullPicture:
                 ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Files moving error")
                 User = UserBefore
                 If _TurnBack Then
-                    If Removed Then Settings.Users.Add(Me) Else Settings.Users.Remove(Me)
+                    If Removed Then Settings.Users.Add(Instance) Else Settings.Users.Remove(Instance)
                 End If
                 Return False
             End Try
@@ -783,6 +795,8 @@ BlockNullPicture:
                     End If
                     UpdateUserInformation()
                 End If
+            Catch ioex As InvalidOperationException When ioex.HelpLink = 1
+                MsgBoxE(ioex.Message, vbCritical)
             Catch ex As Exception
                 LogError(ex, "[UserDataBase.MergeData]")
             End Try
@@ -872,7 +886,11 @@ BlockNullPicture:
             Return OutValue
         End Function
         Friend Overridable Function CompareTo(ByVal Obj As Object) As Integer Implements IComparable.CompareTo
-            Return CompareTo(DirectCast(Obj, UserDataBase))
+            If TypeOf Obj Is Reddit.Channel Then
+                Return CompareTo(DirectCast(DirectCast(Obj, Reddit.Channel).Instance, UserDataBase))
+            Else
+                Return CompareTo(DirectCast(Obj, UserDataBase))
+            End If
         End Function
 #End Region
 #Region "IEquatable Support"
@@ -880,7 +898,11 @@ BlockNullPicture:
             Return Site = Other.Site And Name = Other.Name
         End Function
         Public Overrides Function Equals(ByVal Obj As Object) As Boolean
-            Return Equals(DirectCast(Obj, UserDataBase))
+            If TypeOf Obj Is Reddit.Channel Then
+                Return Equals(DirectCast(DirectCast(Obj, Reddit.Channel).Instance, UserDataBase))
+            Else
+                Return Equals(DirectCast(Obj, UserDataBase))
+            End If
         End Function
 #End Region
 #Region "IDisposable Support"
@@ -966,7 +988,7 @@ BlockNullPicture:
         ''' 3 - Collection splitted
         ''' </summary>
         Function Delete() As Integer
-        Function MoveFiles(ByVal CollectionName As String, ByVal MergeData As Boolean) As Boolean
+        Function MoveFiles(ByVal CollectionName As String) As Boolean
         Sub OpenFolder()
         ReadOnly Property Self As IUserData
         Property DownloadTopCount As Integer?

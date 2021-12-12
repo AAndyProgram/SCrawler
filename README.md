@@ -7,7 +7,7 @@ Enjoying the tool? Considering adding to my coffee fund :)
 [![ko-fi](https://www.ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/andyprogram)
 
 # What can program do:
-- Download pictures and videos from users' profiles:
+- Download pictures and videos from users' profiles and subreddits:
   - Reddit images;
   - Reddit galleries of images;
   - Redgifs hosted videos (https://www.redgifs.com/);
@@ -47,10 +47,13 @@ Just add user profile and press ```Start downloading``` button.
 Users can be added by patterns:
 - https://twitter.com/SomeUserName
 - https://reddit.com/user/SomeUserName
+- https://reddit.com/r/SomeSubredditName
 - u/SomeUserName
+- r/SomeSubredditName
 - SomeUserName (in this case you must to choose user site)
+- SomeSubredditName
 
-More about users adding [here](https://github.com/AAndyProgram/SCrawler/wiki/Users)
+More about users and subreddits adding [here](https://github.com/AAndyProgram/SCrawler/wiki/Users)
 
 **Full guide you can find [here](https://github.com/AAndyProgram/SCrawler/wiki)**
 

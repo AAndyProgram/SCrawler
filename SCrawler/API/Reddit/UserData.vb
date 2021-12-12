@@ -66,7 +66,7 @@ Namespace API.Reddit
 #End Region
 #Region "Download Overrides"
         Friend Overrides Sub DownloadData(ByVal Token As CancellationToken)
-            If IsChannel Then
+            If IsChannel AndAlso Not ChannelInfo.IsRegularChannel Then
                 ChannelPostsNames.ListAddList(ChannelInfo.PostsAll.Select(Function(p) p.ID), LNC)
                 If SkipExistsUsers Then _ExistsUsersNames.ListAddList(Settings.UsersList.Select(Function(p) p.Name), LNC)
                 DownloadDataF(Token)
@@ -80,7 +80,18 @@ Namespace API.Reddit
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
             _TotalPostsDownloaded = 0
             If IsChannel Then
+                If ChannelInfo.IsRegularChannel Then
+                    ChannelPostsNames.ListAddList(_TempPostsList, LNC)
+                    If ChannelPostsNames.Count > 0 Then
+                        DownloadLimitCount = Nothing
+                        With _ContentList.Where(Function(c) c.Post.Date.HasValue)
+                            If .Count > 0 Then DownloadLimitDate = .Max(Function(p) p.Post.Date.Value).AddMinutes(-10)
+                        End With
+                    End If
+                    If DownloadTopCount.HasValue Then DownloadLimitCount = DownloadTopCount
+                End If
                 DownloadDataChannel(String.Empty, Token)
+                If ChannelInfo.IsRegularChannel Then _TempPostsList.ListAddList(_TempMediaList.Select(Function(m) m.Post.ID), LNC)
             Else
                 DownloadDataUser(String.Empty, Token)
             End If
@@ -131,7 +142,7 @@ Namespace API.Reddit
                                             s = nn.ItemF({"source", "url"})
                                             If s.XmlIfNothingValue("/").Contains("redgifs.com") Then
                                                 _TempMediaList.ListAddValue(MediaFromData(UTypes.VideoPre, s.Value, PostID, PostDate,, IsChannel), LNC)
-                                            Else
+                                            ElseIf Not CreateImgurMedia(s.XmlIfNothingValue, PostID, PostDate,, IsChannel) Then
                                                 s = nn.ItemF({"media"}).XmlIfNothing
                                                 __ItemType = s("type").XmlIfNothingValue
                                                 Select Case __ItemType
@@ -241,6 +252,8 @@ Namespace API.Reddit
                                                 _TempMediaList.ListAddValue(MediaFromData(UTypes.VideoPre, tmpUrl, PostID, PostDate, _UserID, IsChannel), LNC)
                                                 _TotalPostsDownloaded += 1
                                             End If
+                                        ElseIf CreateImgurMedia(tmpUrl, PostID, PostDate, _UserID, IsChannel) Then
+                                            _TotalPostsDownloaded += 1
                                         ElseIf s.Item("media_metadata").XmlIfNothing.Count > 0 Then
                                             DownloadGallery(s, PostID, PostDate, _UserID, SaveToCache)
                                             _TotalPostsDownloaded += 1
@@ -268,6 +281,43 @@ Namespace API.Reddit
         End Sub
 #End Region
 #Region "Download Base Functions"
+        Private Function ImgurPicture(ByVal Source As EContainer, ByVal Value As String) As String
+            Try
+                Dim e As EContainer = Source({"source", "url"}).XmlIfNothing
+                If Not e.IsEmptyString AndAlso e.Value.ToLower.Contains("imgur") Then
+                    Return e.Value
+                Else
+                    Return Value
+                End If
+            Catch ex As Exception
+                LogError(ex, "[ImgurPicture]")
+                Return Value
+            End Try
+        End Function
+        Private Function CreateImgurMedia(ByVal _URL As String, ByVal PostID As String, ByVal PostDate As String,
+                                          Optional ByVal _UserID As String = "", Optional ByVal IsChannel As Boolean = False) As Boolean
+            If Not _URL.IsEmptyString AndAlso _URL.Contains("imgur") Then
+                If _URL.StringContains({".jpg", ".png", ".jpeg"}) Then
+                    _TempMediaList.ListAddValue(MediaFromData(UTypes.Picture, _URL, PostID, PostDate, _UserID, IsChannel), LNC)
+                ElseIf _URL.Contains(".gifv") Then
+                    If SaveToCache Then
+                        _TempMediaList.ListAddValue(MediaFromData(UTypes.Picture, _URL.Replace(".gifv", ".gif"),
+                                                                  PostID, PostDate, _UserID, IsChannel), LNC)
+                    Else
+                        _TempMediaList.ListAddValue(MediaFromData(UTypes.Video, _URL.Replace(".gifv", ".mp4"),
+                                                                  PostID, PostDate, _UserID, IsChannel), LNC)
+                    End If
+                ElseIf _URL.Contains(".gif") Then
+                    _TempMediaList.ListAddValue(MediaFromData(UTypes.GIF, _URL, PostID, PostDate, _UserID, IsChannel), LNC)
+                Else
+                    If Not TryFile(_URL) Then _URL &= ".jpg"
+                    _TempMediaList.ListAddValue(MediaFromData(UTypes.Picture, _URL, PostID, PostDate, _UserID, IsChannel), LNC)
+                End If
+                Return True
+            Else
+                Return False
+            End If
+        End Function
         Private Function DownloadGallery(ByVal w As EContainer, ByVal PostID As String, ByVal PostDate As String,
                                          Optional ByVal _UserID As String = Nothing, Optional ByVal FirstOnly As Boolean = False) As Boolean
             Try
@@ -349,7 +399,7 @@ Namespace API.Reddit
         End Function
         Private Function TryFile(ByVal URL As String) As Boolean
             Try
-                If Not URL.IsEmptyString AndAlso URL.Contains(".jpg") Then
+                If Not URL.IsEmptyString AndAlso URL.StringContains({".jpg", ".png", ".jpeg"}) Then
                     Dim f As SFile = CStr(RegexReplace(URL, FilesPattern))
                     Return Not f.IsEmptyString And Not f.File.IsEmptyString
                 End If

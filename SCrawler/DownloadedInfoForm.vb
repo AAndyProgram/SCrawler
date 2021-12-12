@@ -54,8 +54,8 @@ Friend Class DownloadedInfoForm
     End Sub
     Private Class UsersDateOrder : Implements IComparer(Of IUserData)
         Friend Function Compare(ByVal x As IUserData, ByVal y As IUserData) As Integer Implements IComparer(Of IUserData).Compare
-            Dim xv& = If(DirectCast(x, UserDataBase).LastUpdated.HasValue, DirectCast(x, UserDataBase).LastUpdated.Value.Ticks, 0)
-            Dim yv& = If(DirectCast(y, UserDataBase).LastUpdated.HasValue, DirectCast(y, UserDataBase).LastUpdated.Value.Ticks, 0)
+            Dim xv& = If(DirectCast(x.Self, UserDataBase).LastUpdated.HasValue, DirectCast(x.Self, UserDataBase).LastUpdated.Value.Ticks, 0)
+            Dim yv& = If(DirectCast(y.Self, UserDataBase).LastUpdated.HasValue, DirectCast(y.Self, UserDataBase).LastUpdated.Value.Ticks, 0)
             Return xv.CompareTo(yv) * -1
         End Function
     End Class
@@ -114,7 +114,7 @@ Friend Class DownloadedInfoForm
     Private Sub LIST_DOWN_MouseDoubleClick(sender As Object, e As MouseEventArgs) Handles LIST_DOWN.MouseDoubleClick
         Try
             If _LatestSelected >= 0 AndAlso _LatestSelected <= _TempUsersList.Count - 1 AndAlso
-                Not DirectCast(_TempUsersList(_LatestSelected), UserDataBase).Disposed Then _TempUsersList(_LatestSelected).OpenFolder()
+                Not DirectCast(_TempUsersList(_LatestSelected).Self, UserDataBase).Disposed Then _TempUsersList(_LatestSelected).OpenFolder()
         Catch ex As Exception
         End Try
     End Sub

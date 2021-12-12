@@ -71,6 +71,7 @@ Partial Class MainFrame
         Me.LIST_PROFILES = New System.Windows.Forms.ListView()
         Me.USER_CONTEXT = New System.Windows.Forms.ContextMenuStrip(Me.components)
         Me.BTT_CONTEXT_DOWN = New System.Windows.Forms.ToolStripMenuItem()
+        Me.BTT_CONTEXT_DOWN_LIMITED = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_CONTEXT_EDIT = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_CONTEXT_DELETE = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_CONTEXT_FAV = New System.Windows.Forms.ToolStripMenuItem()
@@ -82,7 +83,7 @@ Partial Class MainFrame
         Me.BTT_CONTEXT_OPEN_PATH = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_CONTEXT_OPEN_SITE = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_CONTEXT_INFO = New System.Windows.Forms.ToolStripMenuItem()
-        Me.BTT_CONTEXT_DOWN_LIMITED = New System.Windows.Forms.ToolStripMenuItem()
+        Me.BTT_CONTEXT_READY = New System.Windows.Forms.ToolStripMenuItem()
         SEP_1 = New System.Windows.Forms.ToolStripSeparator()
         SEP_2 = New System.Windows.Forms.ToolStripSeparator()
         CONTEXT_SEP_1 = New System.Windows.Forms.ToolStripSeparator()
@@ -114,7 +115,7 @@ Partial Class MainFrame
         'CONTEXT_SEP_1
         '
         CONTEXT_SEP_1.Name = "CONTEXT_SEP_1"
-        CONTEXT_SEP_1.Size = New System.Drawing.Size(192, 6)
+        CONTEXT_SEP_1.Size = New System.Drawing.Size(218, 6)
         '
         'MENU_SETTINGS
         '
@@ -158,22 +159,22 @@ Partial Class MainFrame
         'CONTEXT_SEP_2
         '
         CONTEXT_SEP_2.Name = "CONTEXT_SEP_2"
-        CONTEXT_SEP_2.Size = New System.Drawing.Size(192, 6)
+        CONTEXT_SEP_2.Size = New System.Drawing.Size(218, 6)
         '
         'CONTEXT_SEP_3
         '
         CONTEXT_SEP_3.Name = "CONTEXT_SEP_3"
-        CONTEXT_SEP_3.Size = New System.Drawing.Size(192, 6)
+        CONTEXT_SEP_3.Size = New System.Drawing.Size(218, 6)
         '
         'CONTEXT_SEP_4
         '
         CONTEXT_SEP_4.Name = "CONTEXT_SEP_4"
-        CONTEXT_SEP_4.Size = New System.Drawing.Size(192, 6)
+        CONTEXT_SEP_4.Size = New System.Drawing.Size(218, 6)
         '
         'CONTEXT_SEP_5
         '
         CONTEXT_SEP_5.Name = "CONTEXT_SEP_5"
-        CONTEXT_SEP_5.Size = New System.Drawing.Size(192, 6)
+        CONTEXT_SEP_5.Size = New System.Drawing.Size(218, 6)
         '
         'SEP_4
         '
@@ -422,100 +423,106 @@ Partial Class MainFrame
         '
         'USER_CONTEXT
         '
-        Me.USER_CONTEXT.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_CONTEXT_DOWN, Me.BTT_CONTEXT_DOWN_LIMITED, Me.BTT_CONTEXT_EDIT, Me.BTT_CONTEXT_DELETE, CONTEXT_SEP_1, Me.BTT_CONTEXT_FAV, Me.BTT_CONTEXT_TEMP, Me.BTT_CONTEXT_GROUPS, Me.BTT_CONTEXT_ADD_TO_COL, Me.BTT_CONTEXT_COL_MERGE, CONTEXT_SEP_2, Me.BTT_CHANGE_IMAGE, CONTEXT_SEP_3, Me.BTT_CONTEXT_OPEN_PATH, CONTEXT_SEP_4, Me.BTT_CONTEXT_OPEN_SITE, CONTEXT_SEP_5, Me.BTT_CONTEXT_INFO})
+        Me.USER_CONTEXT.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_CONTEXT_DOWN, Me.BTT_CONTEXT_DOWN_LIMITED, Me.BTT_CONTEXT_EDIT, Me.BTT_CONTEXT_DELETE, CONTEXT_SEP_1, Me.BTT_CONTEXT_FAV, Me.BTT_CONTEXT_TEMP, Me.BTT_CONTEXT_READY, Me.BTT_CONTEXT_GROUPS, Me.BTT_CONTEXT_ADD_TO_COL, Me.BTT_CONTEXT_COL_MERGE, CONTEXT_SEP_2, Me.BTT_CHANGE_IMAGE, CONTEXT_SEP_3, Me.BTT_CONTEXT_OPEN_PATH, CONTEXT_SEP_4, Me.BTT_CONTEXT_OPEN_SITE, CONTEXT_SEP_5, Me.BTT_CONTEXT_INFO})
         Me.USER_CONTEXT.Name = "USER_CONTEXT"
-        Me.USER_CONTEXT.Size = New System.Drawing.Size(196, 342)
+        Me.USER_CONTEXT.Size = New System.Drawing.Size(222, 364)
         '
         'BTT_CONTEXT_DOWN
         '
         Me.BTT_CONTEXT_DOWN.Image = Global.SCrawler.My.Resources.Resources.StartPic_01_Green_16
         Me.BTT_CONTEXT_DOWN.Name = "BTT_CONTEXT_DOWN"
-        Me.BTT_CONTEXT_DOWN.Size = New System.Drawing.Size(195, 22)
+        Me.BTT_CONTEXT_DOWN.Size = New System.Drawing.Size(221, 22)
         Me.BTT_CONTEXT_DOWN.Text = "Download data"
-        '
-        'BTT_CONTEXT_EDIT
-        '
-        Me.BTT_CONTEXT_EDIT.Image = Global.SCrawler.My.Resources.Resources.PencilPic_01_16
-        Me.BTT_CONTEXT_EDIT.Name = "BTT_CONTEXT_EDIT"
-        Me.BTT_CONTEXT_EDIT.Size = New System.Drawing.Size(195, 22)
-        Me.BTT_CONTEXT_EDIT.Text = "Edit user information"
-        '
-        'BTT_CONTEXT_DELETE
-        '
-        Me.BTT_CONTEXT_DELETE.Image = Global.SCrawler.My.Resources.Resources.Delete
-        Me.BTT_CONTEXT_DELETE.Name = "BTT_CONTEXT_DELETE"
-        Me.BTT_CONTEXT_DELETE.Size = New System.Drawing.Size(195, 22)
-        Me.BTT_CONTEXT_DELETE.Text = "Delete user / collection"
-        '
-        'BTT_CONTEXT_FAV
-        '
-        Me.BTT_CONTEXT_FAV.Image = Global.SCrawler.My.Resources.Resources.StarPic_24
-        Me.BTT_CONTEXT_FAV.Name = "BTT_CONTEXT_FAV"
-        Me.BTT_CONTEXT_FAV.Size = New System.Drawing.Size(195, 22)
-        Me.BTT_CONTEXT_FAV.Text = "Change favorite"
-        '
-        'BTT_CONTEXT_TEMP
-        '
-        Me.BTT_CONTEXT_TEMP.Image = CType(resources.GetObject("BTT_CONTEXT_TEMP.Image"), System.Drawing.Image)
-        Me.BTT_CONTEXT_TEMP.Name = "BTT_CONTEXT_TEMP"
-        Me.BTT_CONTEXT_TEMP.Size = New System.Drawing.Size(195, 22)
-        Me.BTT_CONTEXT_TEMP.Text = "Change temporary"
-        '
-        'BTT_CONTEXT_GROUPS
-        '
-        Me.BTT_CONTEXT_GROUPS.Name = "BTT_CONTEXT_GROUPS"
-        Me.BTT_CONTEXT_GROUPS.Size = New System.Drawing.Size(195, 22)
-        Me.BTT_CONTEXT_GROUPS.Text = "Change labels"
-        '
-        'BTT_CONTEXT_ADD_TO_COL
-        '
-        Me.BTT_CONTEXT_ADD_TO_COL.Image = Global.SCrawler.My.Resources.Resources.DBPic_32
-        Me.BTT_CONTEXT_ADD_TO_COL.Name = "BTT_CONTEXT_ADD_TO_COL"
-        Me.BTT_CONTEXT_ADD_TO_COL.Size = New System.Drawing.Size(195, 22)
-        Me.BTT_CONTEXT_ADD_TO_COL.Text = "Add to collection"
-        '
-        'BTT_CONTEXT_COL_MERGE
-        '
-        Me.BTT_CONTEXT_COL_MERGE.Name = "BTT_CONTEXT_COL_MERGE"
-        Me.BTT_CONTEXT_COL_MERGE.Size = New System.Drawing.Size(195, 22)
-        Me.BTT_CONTEXT_COL_MERGE.Text = "Merge collection files"
-        '
-        'BTT_CHANGE_IMAGE
-        '
-        Me.BTT_CHANGE_IMAGE.Image = Global.SCrawler.My.Resources.Resources.PicturePic_32
-        Me.BTT_CHANGE_IMAGE.Name = "BTT_CHANGE_IMAGE"
-        Me.BTT_CHANGE_IMAGE.Size = New System.Drawing.Size(195, 22)
-        Me.BTT_CHANGE_IMAGE.Text = "Change image"
-        '
-        'BTT_CONTEXT_OPEN_PATH
-        '
-        Me.BTT_CONTEXT_OPEN_PATH.Image = Global.SCrawler.My.Resources.Resources.Folder_32
-        Me.BTT_CONTEXT_OPEN_PATH.Name = "BTT_CONTEXT_OPEN_PATH"
-        Me.BTT_CONTEXT_OPEN_PATH.Size = New System.Drawing.Size(195, 22)
-        Me.BTT_CONTEXT_OPEN_PATH.Text = "Open contains folder"
-        '
-        'BTT_CONTEXT_OPEN_SITE
-        '
-        Me.BTT_CONTEXT_OPEN_SITE.Image = Global.SCrawler.My.Resources.Resources.GlobeBlue_32
-        Me.BTT_CONTEXT_OPEN_SITE.Name = "BTT_CONTEXT_OPEN_SITE"
-        Me.BTT_CONTEXT_OPEN_SITE.Size = New System.Drawing.Size(195, 22)
-        Me.BTT_CONTEXT_OPEN_SITE.Text = "Open site"
-        '
-        'BTT_CONTEXT_INFO
-        '
-        Me.BTT_CONTEXT_INFO.Image = Global.SCrawler.My.Resources.Resources.InfoPic_32
-        Me.BTT_CONTEXT_INFO.Name = "BTT_CONTEXT_INFO"
-        Me.BTT_CONTEXT_INFO.Size = New System.Drawing.Size(195, 22)
-        Me.BTT_CONTEXT_INFO.Text = "Information"
         '
         'BTT_CONTEXT_DOWN_LIMITED
         '
         Me.BTT_CONTEXT_DOWN_LIMITED.AutoToolTip = True
         Me.BTT_CONTEXT_DOWN_LIMITED.Image = Global.SCrawler.My.Resources.Resources.StartPic_01_Green_16
         Me.BTT_CONTEXT_DOWN_LIMITED.Name = "BTT_CONTEXT_DOWN_LIMITED"
-        Me.BTT_CONTEXT_DOWN_LIMITED.Size = New System.Drawing.Size(195, 22)
+        Me.BTT_CONTEXT_DOWN_LIMITED.Size = New System.Drawing.Size(221, 22)
         Me.BTT_CONTEXT_DOWN_LIMITED.Text = "Download data limited"
         Me.BTT_CONTEXT_DOWN_LIMITED.ToolTipText = "Download top ... posts"
+        '
+        'BTT_CONTEXT_EDIT
+        '
+        Me.BTT_CONTEXT_EDIT.Image = Global.SCrawler.My.Resources.Resources.PencilPic_01_16
+        Me.BTT_CONTEXT_EDIT.Name = "BTT_CONTEXT_EDIT"
+        Me.BTT_CONTEXT_EDIT.Size = New System.Drawing.Size(221, 22)
+        Me.BTT_CONTEXT_EDIT.Text = "Edit user information"
+        '
+        'BTT_CONTEXT_DELETE
+        '
+        Me.BTT_CONTEXT_DELETE.Image = Global.SCrawler.My.Resources.Resources.Delete
+        Me.BTT_CONTEXT_DELETE.Name = "BTT_CONTEXT_DELETE"
+        Me.BTT_CONTEXT_DELETE.Size = New System.Drawing.Size(221, 22)
+        Me.BTT_CONTEXT_DELETE.Text = "Delete user / collection"
+        '
+        'BTT_CONTEXT_FAV
+        '
+        Me.BTT_CONTEXT_FAV.Image = Global.SCrawler.My.Resources.Resources.StarPic_24
+        Me.BTT_CONTEXT_FAV.Name = "BTT_CONTEXT_FAV"
+        Me.BTT_CONTEXT_FAV.Size = New System.Drawing.Size(221, 22)
+        Me.BTT_CONTEXT_FAV.Text = "Change favorite"
+        '
+        'BTT_CONTEXT_TEMP
+        '
+        Me.BTT_CONTEXT_TEMP.Image = CType(resources.GetObject("BTT_CONTEXT_TEMP.Image"), System.Drawing.Image)
+        Me.BTT_CONTEXT_TEMP.Name = "BTT_CONTEXT_TEMP"
+        Me.BTT_CONTEXT_TEMP.Size = New System.Drawing.Size(221, 22)
+        Me.BTT_CONTEXT_TEMP.Text = "Change temporary"
+        '
+        'BTT_CONTEXT_GROUPS
+        '
+        Me.BTT_CONTEXT_GROUPS.Name = "BTT_CONTEXT_GROUPS"
+        Me.BTT_CONTEXT_GROUPS.Size = New System.Drawing.Size(221, 22)
+        Me.BTT_CONTEXT_GROUPS.Text = "Change labels"
+        '
+        'BTT_CONTEXT_ADD_TO_COL
+        '
+        Me.BTT_CONTEXT_ADD_TO_COL.Image = Global.SCrawler.My.Resources.Resources.DBPic_32
+        Me.BTT_CONTEXT_ADD_TO_COL.Name = "BTT_CONTEXT_ADD_TO_COL"
+        Me.BTT_CONTEXT_ADD_TO_COL.Size = New System.Drawing.Size(221, 22)
+        Me.BTT_CONTEXT_ADD_TO_COL.Text = "Add to collection"
+        '
+        'BTT_CONTEXT_COL_MERGE
+        '
+        Me.BTT_CONTEXT_COL_MERGE.Name = "BTT_CONTEXT_COL_MERGE"
+        Me.BTT_CONTEXT_COL_MERGE.Size = New System.Drawing.Size(221, 22)
+        Me.BTT_CONTEXT_COL_MERGE.Text = "Merge collection files"
+        '
+        'BTT_CHANGE_IMAGE
+        '
+        Me.BTT_CHANGE_IMAGE.Image = Global.SCrawler.My.Resources.Resources.PicturePic_32
+        Me.BTT_CHANGE_IMAGE.Name = "BTT_CHANGE_IMAGE"
+        Me.BTT_CHANGE_IMAGE.Size = New System.Drawing.Size(221, 22)
+        Me.BTT_CHANGE_IMAGE.Text = "Change image"
+        '
+        'BTT_CONTEXT_OPEN_PATH
+        '
+        Me.BTT_CONTEXT_OPEN_PATH.Image = Global.SCrawler.My.Resources.Resources.Folder_32
+        Me.BTT_CONTEXT_OPEN_PATH.Name = "BTT_CONTEXT_OPEN_PATH"
+        Me.BTT_CONTEXT_OPEN_PATH.Size = New System.Drawing.Size(221, 22)
+        Me.BTT_CONTEXT_OPEN_PATH.Text = "Open contains folder"
+        '
+        'BTT_CONTEXT_OPEN_SITE
+        '
+        Me.BTT_CONTEXT_OPEN_SITE.Image = Global.SCrawler.My.Resources.Resources.GlobeBlue_32
+        Me.BTT_CONTEXT_OPEN_SITE.Name = "BTT_CONTEXT_OPEN_SITE"
+        Me.BTT_CONTEXT_OPEN_SITE.Size = New System.Drawing.Size(221, 22)
+        Me.BTT_CONTEXT_OPEN_SITE.Text = "Open site"
+        '
+        'BTT_CONTEXT_INFO
+        '
+        Me.BTT_CONTEXT_INFO.Image = Global.SCrawler.My.Resources.Resources.InfoPic_32
+        Me.BTT_CONTEXT_INFO.Name = "BTT_CONTEXT_INFO"
+        Me.BTT_CONTEXT_INFO.Size = New System.Drawing.Size(221, 22)
+        Me.BTT_CONTEXT_INFO.Text = "Information"
+        '
+        'BTT_CONTEXT_READY
+        '
+        Me.BTT_CONTEXT_READY.Name = "BTT_CONTEXT_READY"
+        Me.BTT_CONTEXT_READY.Size = New System.Drawing.Size(221, 22)
+        Me.BTT_CONTEXT_READY.Text = "Change ready for download"
         '
         'MainFrame
         '
@@ -586,4 +593,5 @@ Partial Class MainFrame
     Private WithEvents BTT_CONTEXT_GROUPS As ToolStripMenuItem
     Private WithEvents BTT_VERSION_INFO As ToolStripButton
     Private WithEvents BTT_CONTEXT_DOWN_LIMITED As ToolStripMenuItem
+    Private WithEvents BTT_CONTEXT_READY As ToolStripMenuItem
 End Class

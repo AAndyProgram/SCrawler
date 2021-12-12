@@ -72,7 +72,7 @@ Namespace Editors
             Me.New
             If Not _Instance Is Nothing Then
                 UserInstance = _Instance
-                User = DirectCast(UserInstance, UserDataBase).User
+                User = DirectCast(UserInstance.Self, UserDataBase).User
             End If
         End Sub
         Private Sub UserCreatorForm_Load(sender As Object, e As EventArgs) Handles Me.Load
@@ -80,6 +80,7 @@ Namespace Editors
                 With MyDef
                     .MyViewInitialize(Me, Settings.Design, True)
                     .AddOkCancelToolbar()
+                    CH_AUTO_DETECT_SITE.Enabled = False
                     If User.Name.IsEmptyString Then
                         OPT_REDDIT.Checked = False
                         OPT_TWITTER.Checked = False
@@ -97,6 +98,8 @@ Namespace Editors
                         End Select
                         OPT_REDDIT.Enabled = False
                         OPT_TWITTER.Enabled = False
+                        CH_IS_CHANNEL.Checked = User.IsChannel
+                        CH_IS_CHANNEL.Enabled = False
                         If Not UserInstance Is Nothing Then
                             TXT_USER.Enabled = False
                             With UserInstance
@@ -149,11 +152,12 @@ Namespace Editors
                         With tmpUser
                             .Name = TXT_USER.Text
                             .Site = IIf(OPT_REDDIT.Checked, Sites.Reddit, Sites.Twitter)
+                            .IsChannel = CH_IS_CHANNEL.Checked
                             .UpdateUserFile()
                         End With
                         User = tmpUser
                         If Not UserInstance Is Nothing Then
-                            With DirectCast(UserInstance, UserDataBase)
+                            With DirectCast(UserInstance.Self, UserDataBase)
                                 .User = User
                                 .FriendlyName = TXT_USER_FRIENDLY.Text
                                 .Favorite = CH_FAV.Checked
@@ -192,72 +196,64 @@ CloseForm:
         Private ReadOnly TwitterRegEx As New RegexStructure("[htps:/]{7,8}.*?twitter.com/([^/]+)", 1)
         Private ReadOnly RedditRegEx1 As New RegexStructure("[htps:/]{7,8}.*?reddit.com/user/([^/]+)", 1)
         Private ReadOnly RedditRegEx2 As New RegexStructure(".?u/([^/]+)", 1)
+        Private ReadOnly RedditChannelRegEx1 As New RegexStructure("[htps:/]{7,8}.*?reddit.com/r/([^/]+)", 1)
+        Private ReadOnly RedditChannelRegEx2 As New RegexStructure(".?r/([^/]+)", 1)
         Private _TextChangeInvoked As Boolean = False
         Private Sub TXT_USER_ActionOnTextChange() Handles TXT_USER.ActionOnTextChange
             Try
                 If Not _TextChangeInvoked Then
                     _TextChangeInvoked = True
                     If Not CH_ADD_BY_LIST.Checked Then
-                        Select Case GetSiteByText(TXT_USER.Text)
+                        Dim s() As Object = GetSiteByText(TXT_USER.Text)
+                        Select Case s(0)
                             Case Sites.Twitter : OPT_TWITTER.Checked = True
                             Case Sites.Reddit : OPT_REDDIT.Checked = True
                             Case Else : OPT_TWITTER.Checked = False : OPT_REDDIT.Checked = False
                         End Select
+                        CH_IS_CHANNEL.Checked = CBool(s(1))
                     End If
-                    MyDef.Detector()
                     _TextChangeInvoked = False
                 End If
             Catch ex As Exception
             End Try
         End Sub
-        Private Function GetSiteByText(ByRef TXT As String) As Sites
+        Private Function GetSiteByText(ByRef TXT As String) As Object()
             If Not TXT.IsEmptyString AndAlso TXT.Length > 8 Then
-                Dim s$ = RegexReplace(TXT, TwitterRegEx)
-                If Not s.IsEmptyString Then
-                    TXT = s
-                    Return Sites.Twitter
-                Else
-                    s = RegexReplace(TXT, RedditRegEx1)
-                    If Not s.IsEmptyString Then
-                        TXT = s
-                        Return Sites.Reddit
-                    Else
-                        s = RegexReplace(TXT, RedditRegEx2)
-                        If Not s.IsEmptyString Then
-                            TXT = s
-                            Return Sites.Reddit
-                        End If
-                    End If
+                If CheckRegex(TXT, TwitterRegEx) Then
+                    Return {Sites.Twitter, False}
+                ElseIf CheckRegex(TXT, RedditRegEx1) OrElse CheckRegex(TXT, RedditRegEx2) Then
+                    Return {Sites.Reddit, False}
+                ElseIf CheckRegex(TXT, RedditChannelRegEx1) OrElse CheckRegex(TXT, RedditChannelRegEx2) Then
+                    Return {Sites.Reddit, True}
                 End If
             End If
-            Return Sites.Undefined
+            Return {Sites.Undefined, False}
+        End Function
+        Private Function CheckRegex(ByRef TXT As String, ByVal r As RegexStructure) As Boolean
+            Dim s$ = RegexReplace(TXT, r)
+            If Not s.IsEmptyString Then TXT = s : Return True Else Return False
         End Function
         Private Sub OPT_REDDIT_CheckedChanged(sender As Object, e As EventArgs) Handles OPT_REDDIT.CheckedChanged
-            MyDef.Detector()
+            If OPT_REDDIT.Checked Then CH_IS_CHANNEL.Enabled = True
         End Sub
         Private Sub OPT_TWITTER_CheckedChanged(sender As Object, e As EventArgs) Handles OPT_TWITTER.CheckedChanged
-            MyDef.Detector()
             CH_PARSE_USER_MEDIA.Enabled = OPT_TWITTER.Checked
+            If OPT_TWITTER.Checked Then CH_IS_CHANNEL.Checked = False : CH_IS_CHANNEL.Enabled = False
         End Sub
         Private Sub CH_TEMP_CheckedChanged(sender As Object, e As EventArgs) Handles CH_TEMP.CheckedChanged
             If CH_TEMP.Checked Then CH_FAV.Checked = False
-            MyDef.Detector()
         End Sub
         Private Sub CH_FAV_CheckedChanged(sender As Object, e As EventArgs) Handles CH_FAV.CheckedChanged
             If CH_FAV.Checked Then CH_TEMP.Checked = False
-            MyDef.Detector()
-        End Sub
-        Private Sub CH_READY_FOR_DOWN_CheckedChanged(sender As Object, e As EventArgs) Handles CH_READY_FOR_DOWN.CheckedChanged
-            MyDef.Detector()
-        End Sub
-        Private Sub CH_PARSE_USER_MADIA_CheckedChanged(sender As Object, e As EventArgs) Handles CH_PARSE_USER_MEDIA.CheckedChanged
-            MyDef.Detector()
         End Sub
         Private Sub CH_ADD_BY_LIST_CheckedChanged(sender As Object, e As EventArgs) Handles CH_ADD_BY_LIST.CheckedChanged
             If CH_ADD_BY_LIST.Checked Then
                 TXT_DESCR.GroupBoxText = "Users list"
+                CH_AUTO_DETECT_SITE.Enabled = True
             Else
                 TXT_DESCR.GroupBoxText = "Description"
+                CH_AUTO_DETECT_SITE.Checked = False
+                CH_AUTO_DETECT_SITE.Enabled = False
             End If
             TXT_USER.Enabled = Not CH_ADD_BY_LIST.Checked
             TXT_USER_FRIENDLY.Enabled = Not CH_ADD_BY_LIST.Checked
@@ -265,6 +261,7 @@ CloseForm:
         Private Sub CH_AUTO_DETECT_SITE_CheckedChanged(sender As Object, e As EventArgs) Handles CH_AUTO_DETECT_SITE.CheckedChanged
             OPT_REDDIT.Enabled = Not CH_AUTO_DETECT_SITE.Checked
             OPT_TWITTER.Enabled = Not CH_AUTO_DETECT_SITE.Checked
+            CH_IS_CHANNEL.Enabled = Not CH_AUTO_DETECT_SITE.Checked
         End Sub
         Private Function CreateUsersByList() As Boolean
             Try
@@ -278,6 +275,8 @@ CloseForm:
                             Dim uu$
                             Dim tmpUser As UserInfo
                             Dim s As Sites
+                            Dim sObj() As Object
+                            Dim _IsChannel As Boolean = CH_IS_CHANNEL.Checked
                             Dim Added% = 0
                             Dim Skipped% = 0
                             Dim uid%
@@ -290,10 +289,14 @@ CloseForm:
 
                             For i% = 0 To u.Count - 1
                                 uu = u(i)
-                                If CH_AUTO_DETECT_SITE.Checked Then s = GetSiteByText(uu)
+                                If CH_AUTO_DETECT_SITE.Checked Then
+                                    sObj = GetSiteByText(uu)
+                                    s = sObj(0)
+                                    _IsChannel = CBool(sObj(1))
+                                End If
 
                                 If Not s = Sites.Undefined Then
-                                    tmpUser = New UserInfo(uu, s)
+                                    tmpUser = New UserInfo(uu, s) With {.IsChannel = _IsChannel}
                                     uid = -1
                                     If Settings.UsersList.Count > 0 Then uid = Settings.UsersList.IndexOf(tmpUser)
                                     If uid < 0 And Not UsersForCreate.Contains(tmpUser) Then

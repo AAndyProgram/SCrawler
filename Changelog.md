@@ -1,3 +1,11 @@
+# 1.0.0.4
+
+- Added
+  - Full channels support (you can now add channel (subreddit) for standard download)
+  - ```Ready for download``` now available for collections and can be changed for multiple user
+- Fixed
+  - Images hosted on Imgur won't download
+
 # 1.0.0.3
 
 - Fixed
