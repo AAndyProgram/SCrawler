@@ -1,4 +1,12 @@
-﻿Imports PersonalUtilities.Tools
+﻿' Copyright (C) 2022  Andy
+' This program is free software: you can redistribute it and/or modify
+' it under the terms of the GNU General Public License as published by
+' the Free Software Foundation, either version 3 of the License, or
+' (at your option) any later version.
+'
+' This program is distributed in the hope that it will be useful,
+' but WITHOUT ANY WARRANTY
+Imports PersonalUtilities.Tools
 Friend Class LabelsKeeper : Implements ICollection(Of String), IMyEnumerator(Of String), IDisposable
     Friend Event NewLabelAdded()
     Friend Const NoLabeledName As String = "No Label"
