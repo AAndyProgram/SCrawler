@@ -6,6 +6,7 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
+Imports PersonalUtilities.Tools.WEB
 Imports PersonalUtilities.Tools.WebDocuments.JSON
 Imports PersonalUtilities.Functions.XML
 Imports System.Net
@@ -67,7 +68,7 @@ Namespace API.Twitter
                 If Not POST.IsEmptyString Then URL &= $"&max_id={POST}"
 
                 ThrowAny(Token)
-                Dim r$ = Settings.Site(Sites.Twitter).Responser.GetResponse(URL,, EDP.ThrowException)
+                Dim r$ = Responser.GetResponse(URL,, EDP.ThrowException)
                 If Not r.IsEmptyString Then
                     Using w As EContainer = JsonDocument.Parse(r)
                         If Not w Is Nothing AndAlso w.Count > 0 Then
@@ -117,8 +118,16 @@ Namespace API.Twitter
             Catch oex As OperationCanceledException When Token.IsCancellationRequested
             Catch dex As ObjectDisposedException When Disposed
             Catch ex As Exception
-                LogError(ex, $"data downloading error [{URL}]")
-                HasError = True
+                If Responser.StatusCode = HttpStatusCode.NotFound Then
+                    UserExists = False
+                ElseIf Responser.StatusCode = HttpStatusCode.Unauthorized Then
+                    UserSuspended = True
+                ElseIf Responser.StatusCode = HttpStatusCode.BadRequest Then
+                    MyMainLOG = "Twitter has invalid credentials"
+                Else
+                    LogError(ex, $"data downloading error [{URL}]")
+                    HasError = True
+                End If
             End Try
         End Sub
         Friend Shared Function GetVideoInfo(ByVal URL As String) As UserMedia
@@ -126,8 +135,8 @@ Namespace API.Twitter
                 If URL.Contains("twitter") Then
                     Dim PostID$ = RegexReplace(URL, New RegexStructure("(?<=/)\d+", True, False,,,,, String.Empty))
                     If Not PostID.IsEmptyString Then
-                        Dim r$ = Settings.Site(Sites.Twitter).Responser.GetResponse($"https://api.twitter.com/1.1/statuses/show.json?id={PostID}",,
-                                                                                    EDP.ReturnValue)
+                        Dim r$ = DirectCast(Settings.Site(Sites.Twitter).Responser.Copy(), Response).
+                                            GetResponse($"https://api.twitter.com/1.1/statuses/show.json?id={PostID}",, EDP.ReturnValue)
                         If Not r.IsEmptyString Then
                             Using j As EContainer = JsonDocument.Parse(r)
                                 If j.ListExists Then

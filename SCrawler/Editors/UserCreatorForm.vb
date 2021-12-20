@@ -122,8 +122,10 @@ Namespace Editors
                                 UserLabels.ListAddList(.Labels)
                                 If UserLabels.ListExists Then TXT_LABELS.Text = UserLabels.ListToString
                             End With
+                            CH_ADD_BY_LIST.Enabled = False
                         Else
-                            CH_READY_FOR_DOWN.Checked = Settings.DefaultTemporary
+                            CH_TEMP.Checked = Settings.DefaultTemporary
+                            CH_READY_FOR_DOWN.Checked = Not Settings.DefaultTemporary
                             CH_DOWN_IMAGES.Checked = Settings.DefaultDownloadImages
                             CH_DOWN_VIDEOS.Checked = Settings.DefaultDownloadVideos
                         End If
@@ -131,6 +133,7 @@ Namespace Editors
                     .MyFieldsChecker = New FieldsChecker
                     .MyFieldsChecker.AddControl(Of String)(TXT_USER, TXT_USER.CaptionText)
                     .MyFieldsChecker.EndLoaderOperations()
+                    SetParamsBySite()
                     .AppendDetectors()
                     .EndLoaderOperations()
                 End With
@@ -146,7 +149,6 @@ Namespace Editors
                 e.Cancel = True
             Else
                 MyDef.Dispose()
-                If Not DialogResult = DialogResult.OK And Not DialogResult = DialogResult.Cancel And StartIndex >= 0 Then DialogResult = DialogResult.OK
             End If
         End Sub
         Private Sub UserCreatorForm_Disposed(sender As Object, e As EventArgs) Handles Me.Disposed
@@ -242,26 +244,50 @@ CloseForm:
             If Not s.IsEmptyString Then TXT = s : Return True Else Return False
         End Function
         Private Sub OPT_REDDIT_CheckedChanged(sender As Object, e As EventArgs) Handles OPT_REDDIT.CheckedChanged
-            If OPT_REDDIT.Checked Then CH_IS_CHANNEL.Enabled = True
+            If OPT_REDDIT.Checked Then CH_IS_CHANNEL.Enabled = True : SetParamsBySite()
         End Sub
         Private Sub OPT_TWITTER_CheckedChanged(sender As Object, e As EventArgs) Handles OPT_TWITTER.CheckedChanged
-            CH_PARSE_USER_MEDIA.Enabled = OPT_TWITTER.Checked
-            If OPT_TWITTER.Checked Then CH_IS_CHANNEL.Checked = False : CH_IS_CHANNEL.Enabled = False
+            If OPT_TWITTER.Checked Then CH_IS_CHANNEL.Checked = False : CH_IS_CHANNEL.Enabled = False : SetParamsBySite()
         End Sub
         Private Sub CH_TEMP_CheckedChanged(sender As Object, e As EventArgs) Handles CH_TEMP.CheckedChanged
-            If CH_TEMP.Checked Then CH_FAV.Checked = False
+            If CH_TEMP.Checked Then CH_FAV.Checked = False : CH_READY_FOR_DOWN.Checked = False
         End Sub
         Private Sub CH_FAV_CheckedChanged(sender As Object, e As EventArgs) Handles CH_FAV.CheckedChanged
             If CH_FAV.Checked Then CH_TEMP.Checked = False
+        End Sub
+        Private Sub SetParamsBySite()
+            Dim s As Sites = Sites.Undefined
+            Select Case True
+                Case OPT_REDDIT.Checked : s = Sites.Reddit
+                Case OPT_TWITTER.Checked : s = Sites.Twitter
+            End Select
+            With Settings
+                Select Case s
+                    Case Sites.Reddit
+                        CH_TEMP.Checked = .RedditTemporary
+                        CH_DOWN_IMAGES.Checked = .RedditDownloadImages
+                        CH_DOWN_VIDEOS.Checked = .RedditDownloadVideos
+                        CH_PARSE_USER_MEDIA.Checked = False
+                        CH_PARSE_USER_MEDIA.Enabled = False
+                    Case Sites.Twitter
+                        CH_TEMP.Checked = .TwitterTemporary
+                        CH_DOWN_IMAGES.Checked = .TwitterDownloadImages
+                        CH_DOWN_VIDEOS.Checked = .TwitterDownloadVideos
+                        CH_PARSE_USER_MEDIA.Enabled = True
+                        CH_PARSE_USER_MEDIA.Checked = .TwitterDefaultGetUserMedia
+                End Select
+            End With
         End Sub
         Private Sub CH_ADD_BY_LIST_CheckedChanged(sender As Object, e As EventArgs) Handles CH_ADD_BY_LIST.CheckedChanged
             If CH_ADD_BY_LIST.Checked Then
                 TXT_DESCR.GroupBoxText = "Users list"
                 CH_AUTO_DETECT_SITE.Enabled = True
+                CH_PARSE_USER_MEDIA.Enabled = True
             Else
                 TXT_DESCR.GroupBoxText = "Description"
                 CH_AUTO_DETECT_SITE.Checked = False
                 CH_AUTO_DETECT_SITE.Enabled = False
+                SetParamsBySite()
             End If
             TXT_USER.Enabled = Not CH_ADD_BY_LIST.Checked
             TXT_USER_FRIENDLY.Enabled = Not CH_ADD_BY_LIST.Checked
@@ -355,6 +381,7 @@ CloseForm:
                             End If
 
                             MsgBoxE(m)
+                            If Added > 0 Then MyDef.ChangesDetected = False
                             Return Added > 0 And Not BannedUsers.ListExists And NonIdentified.Count = 0
                         Else
                             MsgBoxE("No one user can not recognized", MsgBoxStyle.Exclamation)

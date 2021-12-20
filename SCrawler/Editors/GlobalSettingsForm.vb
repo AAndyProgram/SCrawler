@@ -23,23 +23,27 @@ Namespace Editors
                     .AddOkCancelToolbar()
                     .DelegateClosingChecker()
                     With Settings
+                        'Basis
                         TXT_GLOBAL_PATH.Text = .GlobalPath.Value
                         TXT_IMAGE_LARGE.Value = .MaxLargeImageHeigh.Value
                         TXT_IMAGE_SMALL.Value = .MaxSmallImageHeigh.Value
                         TXT_COLLECTIONS_PATH.Text = .CollectionsPath
+                        TXT_MAX_JOBS_USERS.Value = .MaxUsersJobsCount.Value
+                        TXT_MAX_JOBS_CHANNELS.Value = .ChannelsMaxJobsCount.Value
+                        CH_CHECK_VER_START.Checked = .CheckUpdatesAtStart
+                        'Defaults
                         CH_SEPARATE_VIDEO_FOLDER.Checked = .SeparateVideoFolder.Value
                         CH_DEF_TEMP.Checked = .DefaultTemporary
                         CH_DOWN_IMAGES.Checked = .DefaultDownloadImages
                         CH_DOWN_VIDEOS.Checked = .DefaultDownloadVideos
-                        TXT_CHANNELS_COLUMNS.Value = .ChannelsImagesColumns.Value
+                        'Channels
                         TXT_CHANNELS_ROWS.Value = .ChannelsImagesRows.Value
+                        TXT_CHANNELS_COLUMNS.Value = .ChannelsImagesColumns.Value
                         TXT_CHANNEL_USER_POST_LIMIT.Value = .FromChannelDownloadTop.Value
                         TXT_CHANNEL_USER_POST_LIMIT.Checked = .FromChannelDownloadTopUse.Value
                         CH_COPY_CHANNEL_USER_IMAGE.Checked = .FromChannelCopyImageToUser
-                        CH_CHECK_VER_START.Checked = .CheckUpdatesAtStart
-                        TXT_MAX_JOBS_USERS.Value = .MaxUsersJobsCount.Value
-                        TXT_MAX_JOBS_CHANNELS.Value = .ChannelsMaxJobsCount.Value
-
+                        CH_CHANNELS_USERS_TEMP.Checked = .ChannelsDefaultTemporary
+                        'Channels filenames
                         CH_FILE_NAME_CHANGE.Checked = .FileReplaceNameByDate Or .FileAddDateToFileName Or .FileAddTimeToFileName
                         OPT_FILE_NAME_REPLACE.Checked = .FileReplaceNameByDate
                         OPT_FILE_NAME_ADD_DATE.Checked = Not .FileReplaceNameByDate
@@ -47,6 +51,15 @@ Namespace Editors
                         CH_FILE_TIME.Checked = .FileAddTimeToFileName
                         OPT_FILE_DATE_START.Checked = Not .FileDateTimePositionEnd
                         OPT_FILE_DATE_END.Checked = .FileDateTimePositionEnd
+                        'Reddit
+                        SetChecker(CH_REDDIT_TEMP, .RedditTemporary)
+                        SetChecker(CH_REDDIT_DOWN_IMG, .RedditDownloadImages)
+                        SetChecker(CH_REDDIT_DOWN_VID, .RedditDownloadVideos)
+                        'Twitter
+                        SetChecker(CH_TWITTER_TEMP, .TwitterTemporary)
+                        SetChecker(CH_TWITTER_DOWN_IMG, .TwitterDownloadImages)
+                        SetChecker(CH_TWITTER_DOWN_VID, .TwitterDownloadVideos)
+                        CH_TWITTER_USER_MEDIA.Checked = .TwitterDefaultGetUserMedia
                     End With
                     .MyFieldsChecker = New FieldsChecker
                     With .MyFieldsChecker
@@ -61,6 +74,20 @@ Namespace Editors
             Catch ex As Exception
                 MyDefs.InvokeLoaderError(ex)
             End Try
+        End Sub
+        Private Sub SetChecker(ByRef CH As CheckBox, ByVal Prop As XML.Base.XMLValue(Of Boolean))
+            If Prop.ValueF.Exists Then
+                CH.Checked = Prop.Value
+            Else
+                CH.CheckState = CheckState.Indeterminate
+            End If
+        End Sub
+        Private Sub SetPropByChecker(ByRef Prop As XML.Base.XMLValue(Of Boolean), ByRef CH As CheckBox)
+            Select Case CH.CheckState
+                Case CheckState.Checked : Prop.Value = True
+                Case CheckState.Unchecked : Prop.Value = False
+                Case CheckState.Indeterminate : Prop.ValueF = Nothing
+            End Select
         End Sub
         Private Sub ToolbarBttOK() Implements IOkCancelToolbar.ToolbarBttOK
             If MyDefs.MyFieldsChecker.AllParamsOK Then
@@ -93,21 +120,26 @@ Namespace Editors
                     End If
 
                     .BeginUpdate()
+                    'Basis
                     .GlobalPath.Value = TXT_GLOBAL_PATH.Text
                     .MaxLargeImageHeigh.Value = CInt(TXT_IMAGE_LARGE.Value)
                     .MaxSmallImageHeigh.Value = CInt(TXT_IMAGE_SMALL.Value)
-                    .SeparateVideoFolder.Value = CH_SEPARATE_VIDEO_FOLDER.Checked
                     .CollectionsPath.Value = TXT_COLLECTIONS_PATH.Text
+                    .MaxUsersJobsCount.Value = CInt(TXT_MAX_JOBS_USERS.Value)
+                    .ChannelsMaxJobsCount.Value = TXT_MAX_JOBS_CHANNELS.Value
+                    .CheckUpdatesAtStart.Value = CH_CHECK_VER_START.Checked
+                    'Defaults
+                    .SeparateVideoFolder.Value = CH_SEPARATE_VIDEO_FOLDER.Checked
                     .DefaultTemporary.Value = CH_DEF_TEMP.Checked
                     .DefaultDownloadImages.Value = CH_DOWN_IMAGES.Checked
                     .DefaultDownloadVideos.Value = CH_DOWN_VIDEOS.Checked
+                    'Channels
                     .ChannelsImagesRows.Value = CInt(TXT_CHANNELS_ROWS.Value)
                     .ChannelsImagesColumns.Value = CInt(TXT_CHANNELS_COLUMNS.Value)
-                    .FromChannelDownloadTopUse.Value = TXT_CHANNEL_USER_POST_LIMIT.Checked
                     .FromChannelDownloadTop.Value = CInt(TXT_CHANNEL_USER_POST_LIMIT.Value)
+                    .FromChannelDownloadTopUse.Value = TXT_CHANNEL_USER_POST_LIMIT.Checked
                     .FromChannelCopyImageToUser.Value = CH_COPY_CHANNEL_USER_IMAGE.Checked
-                    .CheckUpdatesAtStart.Value = CH_CHECK_VER_START.Checked
-                    .MaxUsersJobsCount.Value = CInt(TXT_MAX_JOBS_USERS.Value)
+                    .ChannelsDefaultTemporary.Value = CH_CHANNELS_USERS_TEMP.Checked
 
                     If CH_FILE_NAME_CHANGE.Checked Then
                         .FileReplaceNameByDate.Value = OPT_FILE_NAME_REPLACE.Checked
@@ -119,6 +151,15 @@ Namespace Editors
                         .FileAddTimeToFileName.Value = False
                         .FileReplaceNameByDate.Value = False
                     End If
+                    'Reddit
+                    SetPropByChecker(.RedditTemporary, CH_REDDIT_TEMP)
+                    SetPropByChecker(.RedditDownloadImages, CH_REDDIT_DOWN_IMG)
+                    SetPropByChecker(.RedditDownloadVideos, CH_REDDIT_DOWN_VID)
+                    'Twitter
+                    SetPropByChecker(.TwitterTemporary, CH_TWITTER_TEMP)
+                    SetPropByChecker(.TwitterDownloadImages, CH_TWITTER_DOWN_IMG)
+                    SetPropByChecker(.TwitterDownloadVideos, CH_TWITTER_DOWN_VID)
+                    .TwitterDefaultGetUserMedia.Value = CH_TWITTER_USER_MEDIA.Checked
 
                     .EndUpdate()
                 End With
@@ -140,13 +181,13 @@ Namespace Editors
         Private Sub TXT_MAX_JOBS_CHANNELS_ActionOnButtonClick(ByVal Sender As ActionButton) Handles TXT_MAX_JOBS_CHANNELS.ActionOnButtonClick
             If Sender.DefaultButton = ActionButton.DefaultButtons.Refresh Then TXT_MAX_JOBS_CHANNELS.Value = SettingsCLS.DefaultMaxDownloadingTasks
         End Sub
-        Private Sub CH_FILE_NAME_CHANGE_CheckedChanged(sender As Object, e As EventArgs) Handles CH_FILE_NAME_CHANGE.CheckedChanged
+        Private Sub CH_FILE_NAME_CHANGE_CheckedChanged(sender As Object, e As EventArgs)
             ChangeFileNameChangersEnabling()
         End Sub
-        Private Sub OPT_FILE_NAME_REPLACE_CheckedChanged(sender As Object, e As EventArgs) Handles OPT_FILE_NAME_REPLACE.CheckedChanged
+        Private Sub OPT_FILE_NAME_REPLACE_CheckedChanged(sender As Object, e As EventArgs)
             ChangePositionControlsEnabling()
         End Sub
-        Private Sub OPT_FILE_NAME_ADD_DATE_CheckedChanged(sender As Object, e As EventArgs) Handles OPT_FILE_NAME_ADD_DATE.CheckedChanged
+        Private Sub OPT_FILE_NAME_ADD_DATE_CheckedChanged(sender As Object, e As EventArgs)
             ChangePositionControlsEnabling()
         End Sub
         Private Sub ChangePositionControlsEnabling()

@@ -62,6 +62,8 @@ Namespace API.Reddit
 #Region "Initializers"
         ''' <summary>Video downloader initializer</summary>
         Private Sub New()
+            ChannelPostsNames = New List(Of String)
+            _ExistsUsersNames = New List(Of String)
         End Sub
         ''' <summary>Default initializer</summary>
         Friend Sub New(ByVal u As UserInfo, Optional ByVal _LoadUserInformation As Boolean = True, Optional ByVal InvokeImageHandler As Boolean = True)
@@ -75,6 +77,9 @@ Namespace API.Reddit
 #Region "Download Overrides"
         Friend Overrides Sub DownloadData(ByVal Token As CancellationToken)
             If IsChannel AndAlso Not ChannelInfo.IsRegularChannel Then
+                If Not Responser Is Nothing Then Responser.Dispose()
+                Responser = New PersonalUtilities.Tools.WEB.Response
+                Responser.Copy(Settings.Site(Sites.Reddit).Responser)
                 ChannelPostsNames.ListAddList(ChannelInfo.PostsAll.Select(Function(p) p.ID), LNC)
                 If SkipExistsUsers Then _ExistsUsersNames.ListAddList(Settings.UsersList.Select(Function(p) p.Name), LNC)
                 DownloadDataF(Token)
@@ -201,8 +206,14 @@ Namespace API.Reddit
             Catch oex As OperationCanceledException When Token.IsCancellationRequested
             Catch dex As ObjectDisposedException When Disposed
             Catch ex As Exception
-                LogError(ex, $"data downloading error [{URL}]")
-                HasError = True
+                If ex.HelpLink = NonExistendUserHelp Then
+                    UserExists = False
+                ElseIf ex.HelpLink = SuspendedUserHelp Then
+                    UserSuspended = True
+                Else
+                    LogError(ex, $"data downloading error [{URL}]")
+                    HasError = True
+                End If
             End Try
         End Sub
         Private Sub DownloadDataChannel(ByVal POST As String, ByVal Token As CancellationToken)
@@ -283,8 +294,14 @@ Namespace API.Reddit
             Catch oex As OperationCanceledException When Token.IsCancellationRequested
             Catch dex As ObjectDisposedException When Disposed
             Catch ex As Exception
-                LogError(ex, $"channel data downloading error [{URL}]")
-                HasError = True
+                If ex.HelpLink = NonExistendUserHelp Then
+                    UserExists = False
+                ElseIf ex.HelpLink = SuspendedUserHelp Then
+                    UserSuspended = True
+                Else
+                    LogError(ex, $"channel data downloading error [{URL}]")
+                    HasError = True
+                End If
             End Try
         End Sub
 #End Region
@@ -384,6 +401,8 @@ Namespace API.Reddit
                 If Not URL.IsEmptyString AndAlso URL.Contains("redgifs") Then
                     Using r As New UserData
                         r._TempMediaList.Add(MediaFromData(UTypes.VideoPre, URL, String.Empty, String.Empty,, False))
+                        r.Responser = New PersonalUtilities.Tools.WEB.Response
+                        r.Responser.Copy(Settings.Site(Sites.Reddit).Responser)
                         r.ReparseVideo(Nothing)
                         If r._TempMediaList.ListExists Then Return r._TempMediaList(0)
                     End Using
@@ -442,6 +461,7 @@ Namespace API.Reddit
                         Dim cached As Boolean = IsChannel And SaveToCache
                         Dim vsf As Boolean = SeparateVideoFolderF
                         Dim ImgFormat As Imaging.ImageFormat
+                        Dim UseMD5 As Boolean = Not IsChannel Or (Not cached And Settings.ChannelsRegularCheckMD5)
                         Dim bDP As New ErrorsDescriber(EDP.None)
                         Dim MD5BS As Func(Of String, UTypes,
                                              SFile, Boolean, String) = Function(ByVal __URL As String, ByVal __MT As UTypes,
@@ -474,7 +494,7 @@ Namespace API.Reddit
                                 End If
                                 f.Separator = "\"
                                 m = String.Empty
-                                If (v.Type = UTypes.Picture Or v.Type = UTypes.GIF) And Not cached Then
+                                If (v.Type = UTypes.Picture Or v.Type = UTypes.GIF) And UseMD5 Then
                                     m = MD5BS(v.URL, v.Type, f, False)
                                     If m.IsEmptyString AndAlso Not v.URL_BASE.IsEmptyString AndAlso Not v.URL_BASE = v.URL Then
                                         m = MD5BS(v.URL_BASE, v.Type, f, True)
@@ -483,7 +503,7 @@ Namespace API.Reddit
                                 End If
 
                                 If (Not m.IsEmptyString AndAlso Not HashList.Contains(m)) Or Not (v.Type = UTypes.Picture Or
-                                                                                                  v.Type = UTypes.GIF) Or cached Then
+                                                                                                  v.Type = UTypes.GIF) Or Not UseMD5 Then
                                     If Not cached Then HashList.Add(m)
                                     v.MD5 = m
                                     f.Path = MyDir
@@ -536,15 +556,20 @@ Namespace API.Reddit
         End Sub
         Protected Function GetSiteResponse(ByVal URL As String, Optional ByVal e As ErrorsDescriber = Nothing) As String
             Try
-                Return Settings.Site(Sites.Reddit).Responser.GetResponse(URL,, EDP.ThrowException)
+                Return Responser.GetResponse(URL,, EDP.ThrowException)
             Catch ex As Exception
                 HasError = True
                 Dim OptText$ = String.Empty
                 If Not e.Exists Then
                     Dim ee As EDP = EDP.SendInLog
-                    If Settings.Site(Sites.Reddit).Responser.StatusCode = HttpStatusCode.NotFound Then
-                        ee += EDP.ThrowException
+                    If Responser.StatusCode = HttpStatusCode.NotFound Then
+                        ee = EDP.ThrowException
                         OptText = ": USER NOT FOUND"
+                        ex.HelpLink = NonExistendUserHelp
+                    ElseIf Responser.StatusCode = HttpStatusCode.Forbidden Then
+                        ee = EDP.ThrowException
+                        OptText = ": USER PROFILE SUSPENDED"
+                        ex.HelpLink = SuspendedUserHelp
                     Else
                         ee += EDP.ReturnValue
                     End If

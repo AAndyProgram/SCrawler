@@ -136,6 +136,10 @@ Friend Class TDownloader : Implements IDisposable
         Catch ex As Exception
             ErrorsDescriber.Execute(EDP.SendInLog, ex, "TDownloader.DownloadData")
         Finally
+            If Settings.UserListUpdateRequired Then _
+                Task.WaitAll(Task.Run(Sub()
+                                          While Settings.UserListUpdateRequired : Settings.UpdateUsersList() : End While
+                                      End Sub))
             MainProgress.Enabled(EOptions.ProgressBar) = False
         End Try
     End Sub

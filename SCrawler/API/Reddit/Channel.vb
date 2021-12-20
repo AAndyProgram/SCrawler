@@ -22,9 +22,23 @@ Namespace API.Reddit
 #End Region
         Friend Const DefaultDownloadLimitCount As Integer = 1000
 #Region "IUserData Support"
-        Private Event OnPictureUpdated(User As IUserData) Implements IUserData.OnPictureUpdated
+        Private Event OnUserUpdated As IUserData.OnUserUpdatedEventHandler Implements IUserData.OnUserUpdated
         Friend Property Instance As IUserData
         Private Property IUserData_ParseUserMediaOnly As Boolean = False Implements IUserData.ParseUserMediaOnly
+        Private Property IUserData_Exists As Boolean Implements IUserData.Exists
+            Get
+                Return Instance.Exists
+            End Get
+            Set(ByVal e As Boolean)
+            End Set
+        End Property
+        Private Property IUserData_Suspended As Boolean Implements IUserData.Suspended
+            Get
+                Return Instance.Suspended
+            End Get
+            Set(ByVal s As Boolean)
+            End Set
+        End Property
         Private ReadOnly Property IUserData_IsCollection As Boolean Implements IUserData.IsCollection
             Get
                 Return Instance.IsCollection
@@ -504,9 +518,8 @@ Namespace API.Reddit
         End Function
         Friend Overloads Function LoadData(ByVal f As SFile, ByVal PartialLoad As Boolean, Optional ByVal e As ErrorsDescriber = Nothing) As Boolean
             If f.Exists Then
-                Using x As New XmlFile(f, ProtectionLevels.All, False) With {.XmlReadOnly = True, .AllowSameNames = True}
+                Using x As New XmlFile(f, Protector.Modes.All, False) With {.XmlReadOnly = True, .AllowSameNames = True}
                     x.LoadData()
-                    x.DefaultsLoading(False)
                     If x.Count > 0 Then
                         Dim XMLDateProvider As New ADateTime(ADateTime.Formats.BaseDateTime)
                         Name = x.Value(Name_Name)
@@ -527,7 +540,6 @@ Namespace API.Reddit
         Friend Overloads Function Save(Optional ByVal f As SFile = Nothing, Optional ByVal e As ErrorsDescriber = Nothing) As Boolean Implements ILoaderSaver.Save
             Dim XMLDateProvider As New ADateTime(ADateTime.Formats.BaseDateTime)
             Using x As New XmlFile With {.AllowSameNames = True, .Name = "Channel"}
-                x.DefaultsLoading(False)
                 x.Add(Name_Name, Name)
                 x.Add(Name_ID, ID)
                 If Posts.Count > 0 Or PostsLatest.Count > 0 Then

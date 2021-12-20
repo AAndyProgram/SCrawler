@@ -424,7 +424,11 @@ Friend Class ChannelViewForm : Implements IChannelLimits
                         If Not Settings.UsersList.Contains(.ElementAt(i)) Then
                             f = PendingUsers(i).File
                             Settings.UpdateUsersList(.ElementAt(i))
-                            Settings.Users.Add(New UserData(.ElementAt(i), False) With {.Temporary = True, .CreatedByChannel = True})
+                            Settings.Users.Add(New UserData(.ElementAt(i), False) With {
+                                               .Temporary = Settings.ChannelsDefaultTemporary,
+                                               .CreatedByChannel = True,
+                                               .ReadyForDownload = Settings.ChannelsDefaultReadyForDownload
+                                               })
                             With Settings.Users.Last
                                 .Labels.Add(CannelsLabelName)
                                 .UpdateUserInformation()
@@ -568,6 +572,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
     End Sub
     Private Sub ChangeComboIndex(ByVal Appender As Integer)
         Try
+            AppendPendingUsers()
             Dim _ComboUpEnabled As Boolean = False
             Dim _ComboDownEnabled As Boolean = False
             If CMB_CHANNELS.Count > 0 Then

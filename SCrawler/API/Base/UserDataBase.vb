@@ -13,9 +13,9 @@ Imports UState = SCrawler.API.Base.UserMedia.States
 Namespace API.Base
     Friend MustInherit Class UserDataBase : Implements IUserData
         Friend Const UserFileAppender As String = "User"
-        Friend Event OnPictureUpdated As IUserData.OnPictureUpdatedEventHandler Implements IUserData.OnPictureUpdated
-        Protected Sub Raise_OnPictureUpdated()
-            RaiseEvent OnPictureUpdated(Me)
+        Friend Event OnUserUpdated As IUserData.OnUserUpdatedEventHandler Implements IUserData.OnUserUpdated
+        Protected Sub Raise_OnUserUpdated()
+            RaiseEvent OnUserUpdated(Me)
         End Sub
 #Region "Collection buttons"
         Friend WithEvents BTT_CONTEXT_DOWN As ToolStripMenuItem
@@ -43,6 +43,8 @@ Namespace API.Base
         Private Const Name_Site As String = "Site"
         Private Const Name_IsChannel As String = "IsChannel"
         Private Const Name_UserName As String = "UserName"
+        Private Const Name_UserExists As String = "UserExists"
+        Private Const Name_UserSuspended As String = "UserSuspended"
         Private Const Name_FriendlyName As String = "FriendlyName"
         Private Const Name_UserID As String = "UserID"
         Private Const Name_Description As String = "Description"
@@ -76,6 +78,10 @@ Namespace API.Base
 #Region "Declarations"
         Friend MustOverride Property Site As Sites Implements IContentProvider.Site
         Friend User As UserInfo
+        Protected Const NonExistendUserHelp As String = "404"
+        Protected Const SuspendedUserHelp As String = "403"
+        Friend Overridable Property UserExists As Boolean = True Implements IUserData.Exists
+        Friend Overridable Property UserSuspended As Boolean = False Implements IUserData.Suspended
         Friend Overridable Property Name As String Implements IContentProvider.Name
             Get
                 Return User.Name
@@ -436,10 +442,11 @@ BlockNullPicture:
                 If MyFile.Exists Then
                     FileExists = True
                     Using x As New XmlFile(MyFile) With {.XmlReadOnly = True}
-                        x.DefaultsLoading(False)
                         User.Site = Site
                         Site = x.Value(Name_Site).FromXML(Of Integer)(0)
                         User.Name = x.Value(Name_UserName)
+                        UserExists = x.Value(Name_UserExists).FromXML(Of Boolean)(True)
+                        UserSuspended = x.Value(Name_UserSuspended).FromXML(Of Boolean)(False)
                         ID = x.Value(Name_UserID)
                         FriendlyName = x.Value(Name_FriendlyName)
                         UserDescription = x.Value(Name_Description)
@@ -470,6 +477,8 @@ BlockNullPicture:
                 Using x As New XmlFile With {.Name = "User"}
                     x.Add(Name_Site, CInt(Site))
                     x.Add(Name_UserName, User.Name)
+                    x.Add(Name_UserExists, UserExists.BoolToInteger)
+                    x.Add(Name_UserSuspended, UserSuspended.BoolToInteger)
                     x.Add(Name_UserID, ID)
                     x.Add(Name_FriendlyName, FriendlyName)
                     x.Add(Name_Description, UserDescription)
@@ -508,9 +517,8 @@ BlockNullPicture:
         Private Overloads Sub LoadContentInformation(ByRef _CLIST As List(Of UserMedia), ByVal f As SFile)
             Try
                 If Not f.Exists Then Exit Sub
-                Using x As New XmlFile(f, ProtectionLevels.All, False) With {.XmlReadOnly = True, .AllowSameNames = True}
+                Using x As New XmlFile(f, Protector.Modes.All, False) With {.XmlReadOnly = True, .AllowSameNames = True}
                     x.LoadData()
-                    x.DefaultsLoading(False)
                     If x.Count > 0 Then
                         Dim fs$ = MyFile.CutPath.PathWithSeparator
                         Dim gfn As Func(Of String, String) = Function(ByVal Input As String) As String
@@ -589,11 +597,17 @@ BlockNullPicture:
 #End Region
 #Region "Download functions and options"
         Friend Overridable Property DownloadTopCount As Integer? = Nothing Implements IUserData.DownloadTopCount
+        Protected Responser As PersonalUtilities.Tools.WEB.Response
         Friend Overridable Sub DownloadData(ByVal Token As CancellationToken) Implements IContentProvider.DownloadData
             Dim Canceled As Boolean = False
             Try
                 UpdateDataFiles()
+                If Not Responser Is Nothing Then Responser.Dispose()
+                Responser = New PersonalUtilities.Tools.WEB.Response
+                Responser.Copy(Settings.Site(Site).Responser)
                 Dim UpPic As Boolean = Settings.ViewModeIsPicture AndAlso GetPicture(False) Is Nothing
+                Dim sEnvir() As Boolean = {UserExists, UserSuspended}
+                Dim EnvirChanged As Func(Of Boolean) = Function() Not sEnvir(0) = UserExists Or Not sEnvir(1) = UserSuspended
                 _DownloadedPicturesSession = 0
                 _DownloadedVideosSession = 0
                 _TempMediaList.Clear()
@@ -623,7 +637,7 @@ BlockNullPicture:
                 _ContentList.ListAddList(_ContentNew.Where(Function(c) c.State = UState.Downloaded), LNC)
                 _CountPictures = _ContentList.LongCount(Function(c) c.Type = UserMedia.Types.Picture)
                 _CountVideo = _ContentList.LongCount(Function(c) c.Type = UserMedia.Types.Video)
-                If DownloadedPictures + DownloadedVideos > 0 Then
+                If DownloadedPictures + DownloadedVideos > 0 Or EnvirChanged.Invoke Then
                     If __SaveData Then
                         LastUpdated = Now
                         If Labels.Contains(LabelsKeeper.NoParsedUser) Then Labels.Remove(LabelsKeeper.NoParsedUser)
@@ -634,12 +648,13 @@ BlockNullPicture:
                         _ContentList.Clear()
                         CreatedByChannel = False
                     End If
+                    If Not UserExists Then ReadyForDownload = False
                     UpdateUserInformation()
                 End If
                 ThrowIfDisposed()
                 _DownloadedPicturesTotal += _DownloadedPicturesSession
                 _DownloadedVideosTotal += _DownloadedVideosSession
-                If UpPic Then Raise_OnPictureUpdated()
+                If UpPic Or EnvirChanged.Invoke Then Raise_OnUserUpdated()
             Catch oex As OperationCanceledException When Token.IsCancellationRequested
                 MyMainLOG = $"{Site} - {Name}: downloading canceled"
                 Canceled = True
@@ -649,6 +664,7 @@ BlockNullPicture:
                 LogError(ex, "downloading data error")
                 HasError = True
             Finally
+                If Not Responser Is Nothing Then Responser.Dispose() : Responser = Nothing
                 If Not Canceled Then _DataParsed = True ': LastUpdated = Now
                 _ContentNew.Clear()
                 DownloadTopCount = Nothing
@@ -927,6 +943,7 @@ BlockNullPicture:
                     _ContentNew.Clear()
                     _TempMediaList.Clear()
                     _TempPostsList.Clear()
+                    If Not Responser Is Nothing Then Responser.Dispose()
                     If Not BTT_CONTEXT_DOWN Is Nothing Then BTT_CONTEXT_DOWN.Dispose()
                     If Not BTT_CONTEXT_EDIT Is Nothing Then BTT_CONTEXT_EDIT.Dispose()
                     If Not BTT_CONTEXT_DELETE Is Nothing Then BTT_CONTEXT_DELETE.Dispose()
@@ -959,7 +976,7 @@ BlockNullPicture:
         Sub DownloadData(ByVal Token As CancellationToken)
     End Interface
     Friend Interface IUserData : Inherits IContentProvider, IComparable(Of UserDataBase), IComparable, IEquatable(Of UserDataBase), IDisposable
-        Event OnPictureUpdated(ByVal User As IUserData)
+        Event OnUserUpdated(ByVal User As IUserData)
         Property ParseUserMediaOnly As Boolean
 #Region "Images"
         Function GetPicture() As Image
@@ -972,6 +989,8 @@ BlockNullPicture:
         ReadOnly Property Labels As List(Of String)
 #End Region
         ReadOnly Property IsChannel As Boolean
+        Property Exists As Boolean
+        Property Suspended As Boolean
         Property ReadyForDownload As Boolean
         Property [File] As SFile
         Property FileExists As Boolean

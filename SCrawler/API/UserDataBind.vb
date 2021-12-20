@@ -36,6 +36,20 @@ Namespace API
                 CollectionName = NewCollectionName
             End Set
         End Property
+        Friend Overrides Property UserExists As Boolean
+            Get
+                Return Count > 0 AndAlso Collections.Exists(Function(c) c.Exists)
+            End Get
+            Set(ByVal e As Boolean)
+            End Set
+        End Property
+        Friend Overrides Property UserSuspended As Boolean
+            Get
+                Return Count > 0 AndAlso Collections.LongCount(Function(c) c.Suspended) = Count
+            End Get
+            Set(ByVal s As Boolean)
+            End Set
+        End Property
         Friend Overrides Sub ChangeCollectionName(ByVal NewName As String, ByVal UpdateSettings As Boolean)
             _CollectionName = NewName
             If Count > 0 Then Collections.ForEach(Sub(c) c.CollectionName = NewName)
@@ -278,8 +292,8 @@ Namespace API
         End Sub
         Protected Overrides Sub DownloadContent(ByVal Token As CancellationToken)
         End Sub
-        Private Sub User_OnPictureUpdated(ByVal User As IUserData)
-            Raise_OnPictureUpdated()
+        Private Sub User_OnUserUpdated(ByVal User As IUserData)
+            Raise_OnUserUpdated()
         End Sub
         Friend Overrides Sub OpenSite()
             If Count > 0 Then Collections(0).OpenSite()
@@ -314,7 +328,7 @@ Namespace API
                             .UpdateUserInformation()
                         End If
                         ImageHandler(_Item, False)
-                        AddHandler .Self.OnPictureUpdated, AddressOf User_OnPictureUpdated
+                        AddHandler .Self.OnUserUpdated, AddressOf User_OnUserUpdated
                         DirectCast(.Self, UserDataBase).CreateButtons(Count - 1)
                     End With
                 Else
@@ -333,7 +347,7 @@ Namespace API
                 .CreateButtons(Count - 1)
                 AddHandler .BTT_CONTEXT_DELETE.Click, AddressOf BTT_CONTEXT_DELETE_Click
             End With
-            AddHandler Collections(Count - 1).OnPictureUpdated, AddressOf User_OnPictureUpdated
+            AddHandler Collections.Last.OnUserUpdated, AddressOf User_OnUserUpdated
         End Sub
         Friend Sub AddRange(ByVal _Items As IEnumerable(Of IUserData))
             If Not _Items Is Nothing AndAlso _Items.Count > 0 Then

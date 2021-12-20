@@ -12,6 +12,7 @@ Imports SCrawler.API
 Imports SCrawler.API.Base
 Friend Class SettingsCLS : Implements IDisposable
     Friend Const DefaultMaxDownloadingTasks As Integer = 5
+    Friend Const Name_Node_Sites As String = "Sites"
     Friend ReadOnly Design As XmlFile
     Private ReadOnly MyXML As XmlFile
     Friend ReadOnly OS64 As Boolean
@@ -35,8 +36,7 @@ Friend Class SettingsCLS : Implements IDisposable
         FfmpegFile = "ffmpeg.exe"
         FfmpegExists = FfmpegFile.Exists
         If OS64 And Not FfmpegExists Then MsgBoxE("[ffmpeg.exe] is missing", vbExclamation)
-        Design = New XmlFile("Settings\Design.xml")
-        Design.DefaultsLoading(False)
+        Design = New XmlFile("Settings\Design.xml", Protector.Modes.All)
         MyXML = New XmlFile(Nothing) With {.AutoUpdateFile = True}
         Users = New List(Of IUserData)
         UsersList = New List(Of UserInfo)
@@ -52,16 +52,43 @@ Friend Class SettingsCLS : Implements IDisposable
 
         SeparateVideoFolder = New XMLValue(Of Boolean)("SeparateVideoFolder", True, MyXML)
         CollectionsPath = New XMLValue(Of String)("CollectionsPath", "Collections", MyXML)
-        MaxUsersJobsCount = New XMLValue(Of Integer)("MaxUsersJobsCount", DefaultMaxDownloadingTasks, MyXML)
 
-        DefaultTemporary = New XMLValue(Of Boolean)("DefaultTemporary", False, MyXML)
-        DefaultDownloadImages = New XMLValue(Of Boolean)("DefaultDownloadImages", True, MyXML)
-        DefaultDownloadVideos = New XMLValue(Of Boolean)("DefaultDownloadVideos", True, MyXML)
+        Dim n() As String = {"Defaults"}
+        DefaultTemporary = New XMLValue(Of Boolean)("Temporary", False, MyXML, n)
+        DefaultTemporary.ReplaceByValue("DefaultTemporary")
+        DefaultDownloadImages = New XMLValue(Of Boolean)("DownloadImages", True, MyXML, n)
+        DefaultDownloadImages.ReplaceByValue("DefaultDownloadImages")
+        DefaultDownloadVideos = New XMLValue(Of Boolean)("DownloadVideos", True, MyXML, n)
+        DefaultDownloadVideos.ReplaceByValue("DefaultDownloadVideos")
+        ChangeReadyForDownOnTempChange = New XMLValue(Of Boolean)("ChangeReadyForDownOnTempChange", True, MyXML, n)
 
-        FileAddDateToFileName = New XMLValue(Of Boolean)("FileAddDateToFileName", False, MyXML) With {.OnChangeFunction = AddressOf ChangeDateProvider}
-        FileAddTimeToFileName = New XMLValue(Of Boolean)("FileAddTimeToFileName", False, MyXML) With {.OnChangeFunction = AddressOf ChangeDateProvider}
-        FileDateTimePositionEnd = New XMLValue(Of Boolean)("FileDateTimePositionEnd", True, MyXML) With {.OnChangeFunction = AddressOf ChangeDateProvider}
-        FileReplaceNameByDate = New XMLValue(Of Boolean)("FileReplaceNameByDate", False, MyXML)
+        n = {Name_Node_Sites, Sites.Reddit.ToString}
+        RedditTemporary = New XMLValue(Of Boolean)
+        RedditTemporary.SetExtended("Temporary", False, MyXML, n)
+        RedditTemporary.SetDefault(DefaultTemporary)
+
+        RedditDownloadImages = New XMLValue(Of Boolean)
+        RedditDownloadImages.SetExtended("DownloadImages", True, MyXML, n)
+        RedditDownloadImages.SetDefault(DefaultDownloadImages)
+
+        RedditDownloadVideos = New XMLValue(Of Boolean)
+        RedditDownloadVideos.SetExtended("DownloadVideos", True, MyXML, n)
+        RedditDownloadVideos.SetDefault(DefaultDownloadVideos)
+
+        n = {Name_Node_Sites, Sites.Twitter.ToString}
+        TwitterTemporary = New XMLValue(Of Boolean)
+        TwitterTemporary.SetExtended("Temporary", False, MyXML, n)
+        TwitterTemporary.SetDefault(DefaultTemporary)
+
+        TwitterDownloadImages = New XMLValue(Of Boolean)
+        TwitterDownloadImages.SetExtended("DownloadImages", True, MyXML, n)
+        TwitterDownloadImages.SetDefault(DefaultDownloadImages)
+
+        TwitterDownloadVideos = New XMLValue(Of Boolean)
+        TwitterDownloadVideos.SetExtended("DownloadVideos", True, MyXML, n)
+        TwitterDownloadVideos.SetDefault(DefaultDownloadVideos)
+
+        TwitterDefaultGetUserMedia = New XMLValue(Of Boolean)("TwitterDefaultGetUserMedia", True, MyXML, n)
 
         MaxLargeImageHeigh = New XMLValue(Of Integer)("MaxLargeImageHeigh", 150, MyXML)
         MaxSmallImageHeigh = New XMLValue(Of Integer)("MaxSmallImageHeigh", 15, MyXML)
@@ -73,26 +100,51 @@ Friend Class SettingsCLS : Implements IDisposable
         LatestSelectedLabels = New XMLValue(Of String)("LatestSelectedLabels",, MyXML)
         LatestSelectedChannel = New XMLValue(Of String)("LatestSelectedChannel",, MyXML)
 
-        ChannelsImagesRows = New XMLValue(Of Integer)("ChannelsImagesRows", 2, MyXML)
-        ChannelsImagesColumns = New XMLValue(Of Integer)("ChannelsImagesColumns", 5, MyXML)
-        ChannelsHideExistsUser = New XMLValue(Of Boolean)("ChannelsHideExistsUser", True, MyXML)
-        ChannelsMaxJobsCount = New XMLValue(Of Integer)("ChannelsMaxJobsCount", DefaultMaxDownloadingTasks, MyXML)
-        FromChannelDownloadTop = New XMLValue(Of Integer)("FromChannelDownloadTop", 10, MyXML)
-        FromChannelDownloadTopUse = New XMLValue(Of Boolean)("FromChannelDownloadTopUse", False, MyXML)
-        FromChannelCopyImageToUser = New XMLValue(Of Boolean)("FromChannelCopyImageToUser", True, MyXML)
+        n = {Name_Node_Sites, "Channels"}
+        ChannelsDefaultReadyForDownload = New XMLValue(Of Boolean)("ChannelsDefaultReadyForDownload", False, MyXML, n)
+        ChannelsDefaultTemporary = New XMLValue(Of Boolean)("ChannelsDefaultTemporary", True, MyXML, n)
+        ChannelsRegularCheckMD5 = New XMLValue(Of Boolean)("ChannelsRegularCheckMD5", False, MyXML, n)
+        ChannelsImagesRows = New XMLValue(Of Integer)("ImagesRows", 2, MyXML, n)
+        ChannelsImagesRows.ReplaceByValue("ChannelsImagesRows")
+        ChannelsImagesColumns = New XMLValue(Of Integer)("ImagesColumns", 5, MyXML, n)
+        ChannelsImagesColumns.ReplaceByValue("ChannelsImagesColumns")
+        ChannelsHideExistsUser = New XMLValue(Of Boolean)("HideExistsUser", True, MyXML, n)
+        ChannelsHideExistsUser.ReplaceByValue("ChannelsHideExistsUser")
+        ChannelsMaxJobsCount = New XMLValue(Of Integer)("MaxJobsCount", DefaultMaxDownloadingTasks, MyXML, n)
+        ChannelsMaxJobsCount.ReplaceByValue("ChannelsMaxJobsCount")
+
+        n = {"Users"}
+        FromChannelDownloadTop = New XMLValue(Of Integer)("FromChannelDownloadTop", 10, MyXML, n)
+        FromChannelDownloadTop.ReplaceByValue("FromChannelDownloadTop")
+        FromChannelDownloadTopUse = New XMLValue(Of Boolean)("FromChannelDownloadTopUse", False, MyXML, n)
+        FromChannelDownloadTopUse.ReplaceByValue("FromChannelDownloadTopUse")
+        FromChannelCopyImageToUser = New XMLValue(Of Boolean)("FromChannelCopyImageToUser", True, MyXML, n)
+        FromChannelCopyImageToUser.ReplaceByValue("FromChannelCopyImageToUser")
+
+        n = {"Users", "FileName"}
+        MaxUsersJobsCount = New XMLValue(Of Integer)("MaxJobsCount", DefaultMaxDownloadingTasks, MyXML, n)
+        MaxUsersJobsCount.ReplaceByValue("MaxUsersJobsCount")
+        FileAddDateToFileName = New XMLValue(Of Boolean)("FileAddDateToFileName", False, MyXML, n) With {.OnChangeFunction = AddressOf ChangeDateProvider}
+        FileAddDateToFileName.ReplaceByValue("FileAddDateToFileName")
+        FileAddTimeToFileName = New XMLValue(Of Boolean)("FileAddTimeToFileName", False, MyXML, n) With {.OnChangeFunction = AddressOf ChangeDateProvider}
+        FileAddTimeToFileName.ReplaceByValue("FileAddTimeToFileName")
+        FileDateTimePositionEnd = New XMLValue(Of Boolean)("FileDateTimePositionEnd", True, MyXML, n) With {.OnChangeFunction = AddressOf ChangeDateProvider}
+        FileDateTimePositionEnd.ReplaceByValue("FileDateTimePositionEnd")
+        FileReplaceNameByDate = New XMLValue(Of Boolean)("FileReplaceNameByDate", False, MyXML, n)
+        FileReplaceNameByDate.ReplaceByValue("FileReplaceNameByDate")
 
         CheckUpdatesAtStart = New XMLValue(Of Boolean)("CheckUpdatesAtStart", True, MyXML)
         ShowNewVersionNotification = New XMLValue(Of Boolean)("ShowNewVersionNotification", True, MyXML)
         LatestVersion = New XMLValue(Of String)("LatestVersion", String.Empty, MyXML)
 
-        MyXML.DefaultsLoading(False)
-        If MyXML.ChangesDetected Then MyXML.UpdateData()
+        If MyXML.ChangesDetected Then MyXML.Sort() : MyXML.UpdateData()
         Labels = New LabelsKeeper
         If Not LatestSelectedLabels.IsEmptyString Then Labels.CurrentSelection.ListAddList(LatestSelectedLabels.Value.StringToList(Of String, List(Of String))("|"))
         If BlackListFile.Exists Then
             BlackList.ListAddList(IO.File.ReadAllLines(BlackListFile), LAP.NotContainsOnly)
             If BlackList.Count > 0 Then BlackList.RemoveAll(Function(b) Not b.Exists)
         End If
+        _UpdatesSuspended = False
         ChangeDateProvider(Nothing, Nothing, Nothing)
     End Sub
     Private Sub ChangeDateProvider(ByVal Sender As Object, ByVal Name As String, ByVal Value As Object)
@@ -108,9 +160,8 @@ Friend Class SettingsCLS : Implements IDisposable
         Try
             Users.Clear()
             If UsersSettingsFile.Exists Then
-                Using x As New XmlFile(UsersSettingsFile, ProtectionLevels.All, False) With {.AllowSameNames = True}
+                Using x As New XmlFile(UsersSettingsFile, Protector.Modes.All, False) With {.AllowSameNames = True}
                     x.LoadData()
-                    x.DefaultsLoading(False)
                     If x.Count > 0 Then x.ForEach(Sub(xx) UsersList.Add(xx))
                 End Using
                 Dim PNC As Func(Of UserInfo, Boolean) = Function(u) Not u.IncludedInCollection
@@ -184,6 +235,12 @@ Friend Class SettingsCLS : Implements IDisposable
         Catch ex As Exception
         End Try
     End Sub
+    Private _UserListUpdateRequired As Boolean = False
+    Friend ReadOnly Property UserListUpdateRequired As Boolean
+        Get
+            Return _UserListUpdateRequired
+        End Get
+    End Property
     Friend Overloads Sub UpdateUsersList(ByVal u As UserInfo)
         Dim i% = UsersList.IndexOf(u)
         If i >= 0 Then
@@ -194,13 +251,17 @@ Friend Class SettingsCLS : Implements IDisposable
         UpdateUsersList()
     End Sub
     Friend Overloads Sub UpdateUsersList()
-        If UsersList.Count > 0 Then
-            Using x As New XmlFile With {.AllowSameNames = True, .Name = "Users"}
-                x.DefaultsLoading(False)
-                UsersList.ForEach(Sub(u) x.Add(u.GetContainer()))
-                x.Save(UsersSettingsFile)
-            End Using
-        End If
+        Try
+            If UsersList.Count > 0 Then
+                Using x As New XmlFile With {.AllowSameNames = True, .Name = "Users"}
+                    UsersList.ForEach(Sub(u) x.Add(u.GetContainer()))
+                    x.Save(UsersSettingsFile)
+                End Using
+            End If
+            _UserListUpdateRequired = False
+        Catch ex As Exception
+            _UserListUpdateRequired = True
+        End Try
     End Sub
     Friend Sub UpdateBlackList()
         If BlackList.Count > 0 Then
@@ -228,7 +289,7 @@ Friend Class SettingsCLS : Implements IDisposable
     Friend Overloads Function UserExists(ByVal _User As UserInfo) As Boolean
         Return UserExists(_User.Site, _User.Name)
     End Function
-    Private _UpdatesSuspended As Boolean = False
+    Private _UpdatesSuspended As Boolean = True
     Friend Sub BeginUpdate()
         MyXML.BeginUpdate()
         _UpdatesSuspended = True
@@ -261,12 +322,29 @@ Friend Class SettingsCLS : Implements IDisposable
     Friend ReadOnly Property DefaultTemporary As XMLValue(Of Boolean)
     Friend ReadOnly Property DefaultDownloadImages As XMLValue(Of Boolean)
     Friend ReadOnly Property DefaultDownloadVideos As XMLValue(Of Boolean)
+    Friend ReadOnly Property ChangeReadyForDownOnTempChange As XMLValue(Of Boolean)
+#Region "Reddit"
+    Friend ReadOnly Property RedditTemporary As XMLValue(Of Boolean)
+    Friend ReadOnly Property RedditDownloadImages As XMLValue(Of Boolean)
+    Friend ReadOnly Property RedditDownloadVideos As XMLValue(Of Boolean)
 #End Region
-#Region "Additional info"
+#Region "Twitter"
+    Friend ReadOnly Property TwitterTemporary As XMLValue(Of Boolean)
+    Friend ReadOnly Property TwitterDownloadImages As XMLValue(Of Boolean)
+    Friend ReadOnly Property TwitterDownloadVideos As XMLValue(Of Boolean)
+    Friend ReadOnly Property TwitterDefaultGetUserMedia As XMLValue(Of Boolean)
+#End Region
+#End Region
+#Region "User data"
+    Friend ReadOnly Property FromChannelDownloadTop As XMLValue(Of Integer)
+    Friend ReadOnly Property FromChannelDownloadTopUse As XMLValue(Of Boolean)
+    Friend ReadOnly Property FromChannelCopyImageToUser As XMLValue(Of Boolean)
+#Region "File naming"
     Friend ReadOnly Property FileAddDateToFileName As XMLValue(Of Boolean)
     Friend ReadOnly Property FileAddTimeToFileName As XMLValue(Of Boolean)
     Friend ReadOnly Property FileDateTimePositionEnd As XMLValue(Of Boolean)
     Friend ReadOnly Property FileReplaceNameByDate As XMLValue(Of Boolean)
+#End Region
 #End Region
 #Region "View"
     Friend ReadOnly Property MaxLargeImageHeigh As XMLValue(Of Integer)
@@ -289,13 +367,13 @@ Friend Class SettingsCLS : Implements IDisposable
     Friend ReadOnly Property LatestSelectedChannel As XMLValue(Of String)
 #End Region
 #Region "Channels properties"
+    Friend ReadOnly Property ChannelsDefaultReadyForDownload As XMLValue(Of Boolean)
+    Friend ReadOnly Property ChannelsDefaultTemporary As XMLValue(Of Boolean)
+    Friend ReadOnly Property ChannelsRegularCheckMD5 As XMLValue(Of Boolean)
     Friend ReadOnly Property ChannelsImagesRows As XMLValue(Of Integer)
     Friend ReadOnly Property ChannelsImagesColumns As XMLValue(Of Integer)
     Friend ReadOnly Property ChannelsHideExistsUser As XMLValue(Of Boolean)
     Friend ReadOnly Property ChannelsMaxJobsCount As XMLValue(Of Integer)
-    Friend ReadOnly Property FromChannelDownloadTop As XMLValue(Of Integer)
-    Friend ReadOnly Property FromChannelDownloadTopUse As XMLValue(Of Boolean)
-    Friend ReadOnly Property FromChannelCopyImageToUser As XMLValue(Of Boolean)
 #End Region
 #Region "New version properties"
     Friend ReadOnly Property CheckUpdatesAtStart As XMLValue(Of Boolean)
@@ -307,6 +385,7 @@ Friend Class SettingsCLS : Implements IDisposable
     Protected Overridable Overloads Sub Dispose(ByVal disposing As Boolean)
         If Not disposedValue Then
             If disposing Then
+                If UserListUpdateRequired Then UpdateUsersList()
                 If Not Channels Is Nothing Then
                     Channels.Dispose()
                     If Reddit.ChannelsCollection.ChannelsPathCache.Exists(SFO.Path, False) Then _

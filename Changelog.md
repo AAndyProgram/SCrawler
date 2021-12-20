@@ -1,3 +1,24 @@
+# 1.0.1.0
+
+- Added
+  - Extended site settings
+  - Non-existend users will be marked in red
+  - Suspended users' profiles will be marked in yellow
+  - Automatically disable 'Ready for download' if user does not exist.
+  - Ability to disable MD5 check when downloading regular (added to the main window) channels
+  - Ability to create a user from a channel with the default option 'Ready to download' (setting in the 'Settings')
+  - Ability to change default 'Temporary' parameter on create a user from a channel (setting in the 'Settings')
+  - Advanced defaults for each site (download images, download videos and temporary)
+  - By checking the 'Temporary' checkbox in the user creation form, the 'Ready for download' checkbox became unchecked
+  - Automatically disable 'Ready for download' if profile does not exists or has been deleted
+- Change
+  - Removed extended twitter invalid credentials error and replaced with a simple line in the log
+  - Redesigned settings form
+- Fixed
+  - In some cases, the image of the channel post is not copied to the user's folder
+  - Users in the main window are not refreshed if new users are added by a list that includes banned and/or unrecognized users.
+  - Minor bugs
+
 # 1.0.0.4
 
 - Added

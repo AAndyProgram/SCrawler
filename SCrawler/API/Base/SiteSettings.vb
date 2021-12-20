@@ -60,7 +60,10 @@ Namespace API.Base
                 End If
                 Responser.SaveSettings()
             End If
-            _Path = New XMLValue(Of SFile)("Path", SFile.GetPath($"{GlobalPath.PathWithSeparator}{Site}"), _XML, {Site.ToString}, XMLValue(Of SFile).ToFilePath)
+            _Path = New XMLValue(Of SFile)("Path", SFile.GetPath($"{GlobalPath.PathWithSeparator}{Site}"),
+                                           _XML, {SettingsCLS.Name_Node_Sites, Site.ToString}, XMLValue(Of SFile).ToFilePath)
+            _Path.ReplaceByValue("Path", {Site.ToString})
+            _XML.Remove(Site.ToString)
         End Sub
         Friend Sub Update()
             Responser.SaveSettings()

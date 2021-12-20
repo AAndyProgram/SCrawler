@@ -13,7 +13,7 @@ Friend Module MainMod
     Friend Settings As SettingsCLS
     Friend Const SettingsFolderName As String = "Settings"
     Friend ReadOnly LinkPattern As New RegexStructure("[htps:]{0,6}[/]{0,2}(.+)", 1)
-    Friend ReadOnly FilesPattern As New RegexStructure("[^\./]+?\.\w+", True, False, 1)
+    Friend ReadOnly FilesPattern As New RegexStructure("[^\./]+?\.\w+", True, False, 1,,,, String.Empty, EDP.ReturnValue)
     Friend Const LVI_TempOption As String = "Temp"
     Friend Const LVI_FavOption As String = "Favorite"
     Friend Const CannelsLabelName As String = "Channels"
@@ -171,9 +171,9 @@ Friend Module MainMod
     Friend Sub ImageHandler(ByVal User As IUserData, ByVal Add As Boolean)
         Try
             If Add Then
-                AddHandler User.Self.OnPictureUpdated, AddressOf MainFrame.User_OnPictureUpdated
+                AddHandler User.Self.OnUserUpdated, AddressOf MainFrame.User_OnUserUpdated
             Else
-                RemoveHandler User.Self.OnPictureUpdated, AddressOf MainFrame.User_OnPictureUpdated
+                RemoveHandler User.Self.OnUserUpdated, AddressOf MainFrame.User_OnUserUpdated
             End If
         Catch ex As Exception
         End Try

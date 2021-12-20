@@ -170,6 +170,17 @@ CloseResume:
                                 Case View.SmallIcon : .SmallImageList.Images.Add(User.LVIKey, User.GetPicture())
                             End Select
                             .Items.Add(User.GetLVI(LIST_PROFILES))
+                            If Not User.Exists Then
+                                With .Items(.Items.Count - 1)
+                                    .BackColor = ColorBttDeleteBack
+                                    .ForeColor = ColorBttDeleteFore
+                                End With
+                            ElseIf User.Suspended Then
+                                With .Items(.Items.Count - 1)
+                                    .BackColor = ColorBttEditBack
+                                    .ForeColor = ColorBttEditFore
+                                End With
+                            End If
                         End With
                     End Sub
             Else
@@ -188,6 +199,16 @@ CloseResume:
                                 End Select
                                 .Items(i).Text = User.ToString
                                 .Items(i).Group = User.GetLVIGroup(LIST_PROFILES)
+                                If Not User.Exists Then
+                                    .Items(i).BackColor = ColorBttDeleteBack
+                                    .Items(i).ForeColor = ColorBttDeleteFore
+                                ElseIf User.Suspended Then
+                                    .Items(i).BackColor = ColorBttEditBack
+                                    .Items(i).ForeColor = ColorBttEditFore
+                                Else
+                                    .Items(i).BackColor = SystemColors.Window
+                                    .Items(i).ForeColor = SystemColors.WindowText
+                                End If
                             End If
                         End With
                     End Sub
@@ -239,7 +260,7 @@ CloseResume:
     Private Sub BTT_ADD_USER_Click(sender As Object, e As EventArgs) Handles BTT_ADD_USER.Click
         Using f As New UserCreatorForm
             f.ShowDialog()
-            If f.DialogResult = DialogResult.OK Then
+            If f.DialogResult = DialogResult.OK Or f.StartIndex >= 0 Then
                 Dim i%
                 If f.StartIndex >= 0 Then
                     OnUsersAddedHandler(f.StartIndex)
@@ -818,7 +839,7 @@ ResumeDownloadingOperation:
         If Not user Is Nothing Then user.OpenFolder()
     End Sub
 #End Region
-    Friend Sub User_OnPictureUpdated(ByVal User As IUserData)
+    Friend Sub User_OnUserUpdated(ByVal User As IUserData)
         UserListUpdate(User, False)
     End Sub
     Private _LogVisible As Boolean = False
