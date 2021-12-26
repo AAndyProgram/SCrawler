@@ -66,16 +66,29 @@ Namespace Editors
                 Return TXT_USER_FRIENDLY.Text
             End Get
         End Property
+        Private ReadOnly _SpecPathPattern As New RegexStructure("\w:\\.*", True, False,,,,, String.Empty, EDP.ReturnValue)
+        Private ReadOnly Property SpecialPath(ByVal s As Sites) As SFile
+            Get
+                If TXT_SPEC_FOLDER.IsEmptyString Then
+                    Return Nothing
+                Else
+                    If Not CStr(RegexReplace(TXT_SPEC_FOLDER.Text, _SpecPathPattern)).IsEmptyString Then
+                        Return $"{TXT_SPEC_FOLDER.Text}\"
+                    Else
+                        Return $"{Settings(s).Path.PathWithSeparator}{TXT_SPEC_FOLDER.Text}\"
+                    End If
+
+                End If
+            End Get
+        End Property
         Friend ReadOnly Property UserLabels As List(Of String)
+        ''' <summary>Create new user</summary>
         Friend Sub New()
             InitializeComponent()
             UserLabels = New List(Of String)
             MyDef = New DefaultFormProps(Of FieldsChecker)
         End Sub
-        Friend Sub New(ByVal _User As UserInfo)
-            Me.New
-            User = _User
-        End Sub
+        ''' <summary>Edit exist user</summary>
         Friend Sub New(ByVal _Instance As IUserData)
             Me.New
             If Not _Instance Is Nothing Then
@@ -92,6 +105,7 @@ Namespace Editors
                     If User.Name.IsEmptyString Then
                         OPT_REDDIT.Checked = False
                         OPT_TWITTER.Checked = False
+                        OPT_INSTAGRAM.Checked = False
                         CH_PARSE_USER_MEDIA.Enabled = False
                         CH_READY_FOR_DOWN.Checked = True
                         CH_TEMP.Checked = Settings.DefaultTemporary
@@ -100,16 +114,22 @@ Namespace Editors
                     Else
                         TP_ADD_BY_LIST.Enabled = False
                         TXT_USER.Text = User.Name
+                        TXT_SPEC_FOLDER.Text = User.SpecialPath
                         Select Case User.Site
                             Case Sites.Reddit : OPT_REDDIT.Checked = True : CH_PARSE_USER_MEDIA.Enabled = False
                             Case Sites.Twitter : OPT_TWITTER.Checked = True
+                            Case Sites.Instagram : OPT_INSTAGRAM.Checked = True
                         End Select
                         OPT_REDDIT.Enabled = False
                         OPT_TWITTER.Enabled = False
+                        OPT_INSTAGRAM.Enabled = False
                         CH_IS_CHANNEL.Checked = User.IsChannel
                         CH_IS_CHANNEL.Enabled = False
                         If Not UserInstance Is Nothing Then
                             TXT_USER.Enabled = False
+                            TXT_SPEC_FOLDER.TextBoxReadOnly = True
+                            TXT_SPEC_FOLDER.Buttons.Clear()
+                            TXT_SPEC_FOLDER.Buttons.UpdateButtonsPositions()
                             With UserInstance
                                 TXT_USER_FRIENDLY.Text = .FriendlyName
                                 CH_FAV.Checked = .Favorite
@@ -154,14 +174,24 @@ Namespace Editors
         Private Sub UserCreatorForm_Disposed(sender As Object, e As EventArgs) Handles Me.Disposed
             UserLabels.Clear()
         End Sub
+        Private Function GetSiteByCheckers() As Sites
+            Select Case True
+                Case OPT_REDDIT.Checked : Return Sites.Reddit
+                Case OPT_TWITTER.Checked : Return Sites.Twitter
+                Case OPT_INSTAGRAM.Checked : Return Sites.Instagram
+                Case Else : Return Sites.Undefined
+            End Select
+        End Function
         Private Sub ToolbarBttOK() Implements IOkCancelToolbar.ToolbarBttOK
             If Not CH_ADD_BY_LIST.Checked Then
                 If MyDef.MyFieldsChecker.AllParamsOK Then
-                    If OPT_REDDIT.Checked Or OPT_TWITTER.Checked Then
+                    Dim s As Sites = GetSiteByCheckers()
+                    If Not s = Sites.Undefined Then
                         Dim tmpUser As UserInfo = User.Clone
                         With tmpUser
                             .Name = TXT_USER.Text
-                            .Site = IIf(OPT_REDDIT.Checked, Sites.Reddit, Sites.Twitter)
+                            .SpecialPath = SpecialPath(s)
+                            .Site = s
                             .IsChannel = CH_IS_CHANNEL.Checked
                             .UpdateUserFile()
                         End With
@@ -208,6 +238,7 @@ CloseForm:
         Private ReadOnly RedditRegEx2 As New RegexStructure(".?u/([^/]+)", 1)
         Private ReadOnly RedditChannelRegEx1 As New RegexStructure("[htps:/]{7,8}.*?reddit.com/r/([^/]+)", 1)
         Private ReadOnly RedditChannelRegEx2 As New RegexStructure(".?r/([^/]+)", 1)
+        Private ReadOnly InstagramRegEx As New RegexStructure("[htps:/]{7,8}.*?instagram.com/([^/]+)", 1)
         Private _TextChangeInvoked As Boolean = False
         Private Sub TXT_USER_ActionOnTextChange() Handles TXT_USER.ActionOnTextChange
             Try
@@ -218,7 +249,8 @@ CloseForm:
                         Select Case s(0)
                             Case Sites.Twitter : OPT_TWITTER.Checked = True
                             Case Sites.Reddit : OPT_REDDIT.Checked = True
-                            Case Else : OPT_TWITTER.Checked = False : OPT_REDDIT.Checked = False
+                            Case Sites.Instagram : OPT_INSTAGRAM.Checked = True
+                            Case Else : OPT_TWITTER.Checked = False : OPT_REDDIT.Checked = False : OPT_INSTAGRAM.Checked = False
                         End Select
                         CH_IS_CHANNEL.Checked = CBool(s(1))
                     End If
@@ -235,6 +267,8 @@ CloseForm:
                     Return {Sites.Reddit, False}
                 ElseIf CheckRegex(TXT, RedditChannelRegEx1) OrElse CheckRegex(TXT, RedditChannelRegEx2) Then
                     Return {Sites.Reddit, True}
+                ElseIf CheckRegex(TXT, InstagramRegEx) Then
+                    Return {Sites.Instagram, False}
                 End If
             End If
             Return {Sites.Undefined, False}
@@ -249,6 +283,17 @@ CloseForm:
         Private Sub OPT_TWITTER_CheckedChanged(sender As Object, e As EventArgs) Handles OPT_TWITTER.CheckedChanged
             If OPT_TWITTER.Checked Then CH_IS_CHANNEL.Checked = False : CH_IS_CHANNEL.Enabled = False : SetParamsBySite()
         End Sub
+        Private Sub OPT_INSTAGRAM_CheckedChanged(sender As Object, e As EventArgs) Handles OPT_INSTAGRAM.CheckedChanged
+            If OPT_INSTAGRAM.Checked Then CH_IS_CHANNEL.Checked = False : CH_IS_CHANNEL.Enabled = False : SetParamsBySite()
+        End Sub
+        Private Sub TXT_SPEC_FOLDER_ActionOnButtonClick(ByVal Sender As ActionButton) Handles TXT_SPEC_FOLDER.ActionOnButtonClick
+            If Sender.DefaultButton = ActionButton.DefaultButtons.Open Then
+                Dim f As SFile = Nothing
+                If Not TXT_SPEC_FOLDER.Text.IsEmptyString Then f = $"{TXT_SPEC_FOLDER.Text}\"
+                f = SFile.SelectPath(f, True)
+                If Not f.IsEmptyString Then TXT_SPEC_FOLDER.Text = f.PathWithSeparator
+            End If
+        End Sub
         Private Sub CH_TEMP_CheckedChanged(sender As Object, e As EventArgs) Handles CH_TEMP.CheckedChanged
             If CH_TEMP.Checked Then CH_FAV.Checked = False : CH_READY_FOR_DOWN.Checked = False
         End Sub
@@ -256,27 +301,17 @@ CloseForm:
             If CH_FAV.Checked Then CH_TEMP.Checked = False
         End Sub
         Private Sub SetParamsBySite()
-            Dim s As Sites = Sites.Undefined
-            Select Case True
-                Case OPT_REDDIT.Checked : s = Sites.Reddit
-                Case OPT_TWITTER.Checked : s = Sites.Twitter
-            End Select
-            With Settings
-                Select Case s
-                    Case Sites.Reddit
-                        CH_TEMP.Checked = .RedditTemporary
-                        CH_DOWN_IMAGES.Checked = .RedditDownloadImages
-                        CH_DOWN_VIDEOS.Checked = .RedditDownloadVideos
-                        CH_PARSE_USER_MEDIA.Checked = False
-                        CH_PARSE_USER_MEDIA.Enabled = False
-                    Case Sites.Twitter
-                        CH_TEMP.Checked = .TwitterTemporary
-                        CH_DOWN_IMAGES.Checked = .TwitterDownloadImages
-                        CH_DOWN_VIDEOS.Checked = .TwitterDownloadVideos
-                        CH_PARSE_USER_MEDIA.Enabled = True
-                        CH_PARSE_USER_MEDIA.Checked = .TwitterDefaultGetUserMedia
-                End Select
-            End With
+            Dim s As Sites = GetSiteByCheckers()
+            If Not s = Sites.Undefined Then
+                With Settings(s)
+                    CH_TEMP.Checked = .Temporary
+                    CH_DOWN_IMAGES.Checked = .DownloadImages
+                    CH_DOWN_VIDEOS.Checked = .DownloadVideos
+                    CH_PARSE_USER_MEDIA.Checked = s = Sites.Twitter AndAlso .GetUserMediaOnly.Value
+                    CH_PARSE_USER_MEDIA.Enabled = s = Sites.Twitter
+                    CH_READY_FOR_DOWN.Checked = Not CH_TEMP.Checked
+                End With
+            End If
         End Sub
         Private Sub CH_ADD_BY_LIST_CheckedChanged(sender As Object, e As EventArgs) Handles CH_ADD_BY_LIST.CheckedChanged
             If CH_ADD_BY_LIST.Checked Then
@@ -295,6 +330,7 @@ CloseForm:
         Private Sub CH_AUTO_DETECT_SITE_CheckedChanged(sender As Object, e As EventArgs) Handles CH_AUTO_DETECT_SITE.CheckedChanged
             OPT_REDDIT.Enabled = Not CH_AUTO_DETECT_SITE.Checked
             OPT_TWITTER.Enabled = Not CH_AUTO_DETECT_SITE.Checked
+            OPT_INSTAGRAM.Enabled = Not CH_AUTO_DETECT_SITE.Checked
             CH_IS_CHANNEL.Enabled = Not CH_AUTO_DETECT_SITE.Checked
         End Sub
         Private Function CreateUsersByList() As Boolean
@@ -308,18 +344,14 @@ CloseForm:
                             Dim BannedUsers() As String = Nothing
                             Dim uu$
                             Dim tmpUser As UserInfo
-                            Dim s As Sites
+                            Dim s As Sites = GetSiteByCheckers()
                             Dim sObj() As Object
                             Dim _IsChannel As Boolean = CH_IS_CHANNEL.Checked
                             Dim Added% = 0
                             Dim Skipped% = 0
                             Dim uid%
-
-                            Select Case True
-                                Case OPT_REDDIT.Checked : s = Sites.Reddit
-                                Case OPT_TWITTER.Checked : s = Sites.Twitter
-                                Case Else : s = Sites.Undefined
-                            End Select
+                            Dim sf As Func(Of Sites, String) = Function(__s) SpecialPath(__s).PathWithSeparator
+                            Dim __sf As Func(Of String, Sites, SFile) = Function(Input, __s) IIf(sf(__s).IsEmptyString, Nothing, New SFile($"{sf(__s)}{Input}\"))
 
                             For i% = 0 To u.Count - 1
                                 uu = u(i)
@@ -330,7 +362,7 @@ CloseForm:
                                 End If
 
                                 If Not s = Sites.Undefined Then
-                                    tmpUser = New UserInfo(uu, s) With {.IsChannel = _IsChannel}
+                                    tmpUser = New UserInfo(uu, s,,, __sf(uu, s)) With {.IsChannel = _IsChannel}
                                     uid = -1
                                     If Settings.UsersList.Count > 0 Then uid = Settings.UsersList.IndexOf(tmpUser)
                                     If uid < 0 And Not UsersForCreate.Contains(tmpUser) Then

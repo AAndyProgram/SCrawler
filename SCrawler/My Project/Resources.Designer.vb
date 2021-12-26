@@ -63,6 +63,16 @@ Namespace My.Resources
         '''<summary>
         '''  Looks up a localized resource of type System.Drawing.Bitmap.
         '''</summary>
+        Friend ReadOnly Property BookmarkBlack_16() As System.Drawing.Bitmap
+            Get
+                Dim obj As Object = ResourceManager.GetObject("BookmarkBlack_16", resourceCulture)
+                Return CType(obj,System.Drawing.Bitmap)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized resource of type System.Drawing.Bitmap.
+        '''</summary>
         Friend ReadOnly Property DBPic_32() As System.Drawing.Bitmap
             Get
                 Dim obj As Object = ResourceManager.GetObject("DBPic_32", resourceCulture)
@@ -106,6 +116,26 @@ Namespace My.Resources
         Friend ReadOnly Property InfoPic_32() As System.Drawing.Bitmap
             Get
                 Dim obj As Object = ResourceManager.GetObject("InfoPic_32", resourceCulture)
+                Return CType(obj,System.Drawing.Bitmap)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+        '''</summary>
+        Friend ReadOnly Property InstagramIcon() As System.Drawing.Icon
+            Get
+                Dim obj As Object = ResourceManager.GetObject("InstagramIcon", resourceCulture)
+                Return CType(obj,System.Drawing.Icon)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized resource of type System.Drawing.Bitmap.
+        '''</summary>
+        Friend ReadOnly Property InstagramPic76() As System.Drawing.Bitmap
+            Get
+                Dim obj As Object = ResourceManager.GetObject("InstagramPic76", resourceCulture)
                 Return CType(obj,System.Drawing.Bitmap)
             End Get
         End Property
@@ -213,6 +243,16 @@ Namespace My.Resources
         '''<summary>
         '''  Looks up a localized resource of type System.Drawing.Bitmap.
         '''</summary>
+        Friend ReadOnly Property SettingsPic_16() As System.Drawing.Bitmap
+            Get
+                Dim obj As Object = ResourceManager.GetObject("SettingsPic_16", resourceCulture)
+                Return CType(obj,System.Drawing.Bitmap)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized resource of type System.Drawing.Bitmap.
+        '''</summary>
         Friend ReadOnly Property StarPic_24() As System.Drawing.Bitmap
             Get
                 Dim obj As Object = ResourceManager.GetObject("StarPic_24", resourceCulture)
@@ -237,6 +277,16 @@ Namespace My.Resources
             Get
                 Dim obj As Object = ResourceManager.GetObject("TwitterIcon", resourceCulture)
                 Return CType(obj,System.Drawing.Icon)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized resource of type System.Drawing.Bitmap.
+        '''</summary>
+        Friend ReadOnly Property TwitterPic400() As System.Drawing.Bitmap
+            Get
+                Dim obj As Object = ResourceManager.GetObject("TwitterPic400", resourceCulture)
+                Return CType(obj,System.Drawing.Bitmap)
             End Get
         End Property
     End Module

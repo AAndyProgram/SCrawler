@@ -27,7 +27,6 @@ Partial Class MainFrame
         Dim SEP_2 As System.Windows.Forms.ToolStripSeparator
         Dim CONTEXT_SEP_1 As System.Windows.Forms.ToolStripSeparator
         Dim MENU_SETTINGS As System.Windows.Forms.ToolStripDropDownButton
-        Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(MainFrame))
         Dim MENU_SETTINGS_SEP_1 As System.Windows.Forms.ToolStripSeparator
         Dim SEP_3 As System.Windows.Forms.ToolStripSeparator
         Dim CONTEXT_SEP_2 As System.Windows.Forms.ToolStripSeparator
@@ -36,9 +35,12 @@ Partial Class MainFrame
         Dim CONTEXT_SEP_5 As System.Windows.Forms.ToolStripSeparator
         Dim SEP_4 As System.Windows.Forms.ToolStripSeparator
         Dim MENU_VIEW_SEP_1 As System.Windows.Forms.ToolStripSeparator
+        Dim MENU_VIEW_SEP_3 As System.Windows.Forms.ToolStripSeparator
         Dim MENU_VIEW_SEP_2 As System.Windows.Forms.ToolStripSeparator
+        Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(MainFrame))
         Me.BTT_SETTINGS_REDDIT = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_SETTINGS_TWITTER = New System.Windows.Forms.ToolStripMenuItem()
+        Me.BTT_SETTINGS_INSTAGRAM = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_SETTINGS = New System.Windows.Forms.ToolStripMenuItem()
         Me.Toolbar_TOP = New System.Windows.Forms.ToolStrip()
         Me.BTT_ADD_USER = New System.Windows.Forms.ToolStripButton()
@@ -47,6 +49,7 @@ Partial Class MainFrame
         Me.BTT_REFRESH = New System.Windows.Forms.ToolStripButton()
         Me.BTT_SHOW_INFO = New System.Windows.Forms.ToolStripButton()
         Me.BTT_CHANNELS = New System.Windows.Forms.ToolStripButton()
+        Me.BTT_DOWN_SAVED = New System.Windows.Forms.ToolStripButton()
         Me.BTT_DOWN_SELECTED = New System.Windows.Forms.ToolStripButton()
         Me.BTT_DOWN_ALL = New System.Windows.Forms.ToolStripButton()
         Me.BTT_DOWN_VIDEO = New System.Windows.Forms.ToolStripButton()
@@ -55,6 +58,8 @@ Partial Class MainFrame
         Me.BTT_VIEW_LARGE = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_VIEW_SMALL = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_VIEW_LIST = New System.Windows.Forms.ToolStripMenuItem()
+        Me.BTT_SITE_ALL = New System.Windows.Forms.ToolStripMenuItem()
+        Me.BTT_SITE_SPECIFIC = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_SHOW_ALL = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_SHOW_REGULAR = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_SHOW_TEMP = New System.Windows.Forms.ToolStripMenuItem()
@@ -65,6 +70,7 @@ Partial Class MainFrame
         Me.BTT_LOG = New System.Windows.Forms.ToolStripButton()
         Me.BTT_VERSION_INFO = New System.Windows.Forms.ToolStripButton()
         Me.Toolbar_BOTTOM = New System.Windows.Forms.StatusStrip()
+        Me.PR_SAVED = New System.Windows.Forms.ToolStripProgressBar()
         Me.PR_MAIN = New System.Windows.Forms.ToolStripProgressBar()
         Me.LBL_JOBS_COUNT = New System.Windows.Forms.ToolStripStatusLabel()
         Me.LBL_STATUS = New System.Windows.Forms.ToolStripStatusLabel()
@@ -76,14 +82,15 @@ Partial Class MainFrame
         Me.BTT_CONTEXT_DELETE = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_CONTEXT_FAV = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_CONTEXT_TEMP = New System.Windows.Forms.ToolStripMenuItem()
+        Me.BTT_CONTEXT_READY = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_CONTEXT_GROUPS = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_CONTEXT_ADD_TO_COL = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_CONTEXT_COL_MERGE = New System.Windows.Forms.ToolStripMenuItem()
+        Me.BTT_CONTEXT_CHANGE_FOLDER = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_CHANGE_IMAGE = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_CONTEXT_OPEN_PATH = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_CONTEXT_OPEN_SITE = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_CONTEXT_INFO = New System.Windows.Forms.ToolStripMenuItem()
-        Me.BTT_CONTEXT_READY = New System.Windows.Forms.ToolStripMenuItem()
         SEP_1 = New System.Windows.Forms.ToolStripSeparator()
         SEP_2 = New System.Windows.Forms.ToolStripSeparator()
         CONTEXT_SEP_1 = New System.Windows.Forms.ToolStripSeparator()
@@ -96,6 +103,7 @@ Partial Class MainFrame
         CONTEXT_SEP_5 = New System.Windows.Forms.ToolStripSeparator()
         SEP_4 = New System.Windows.Forms.ToolStripSeparator()
         MENU_VIEW_SEP_1 = New System.Windows.Forms.ToolStripSeparator()
+        MENU_VIEW_SEP_3 = New System.Windows.Forms.ToolStripSeparator()
         MENU_VIEW_SEP_2 = New System.Windows.Forms.ToolStripSeparator()
         Me.Toolbar_TOP.SuspendLayout()
         Me.Toolbar_BOTTOM.SuspendLayout()
@@ -120,9 +128,7 @@ Partial Class MainFrame
         'MENU_SETTINGS
         '
         MENU_SETTINGS.AutoToolTip = False
-        MENU_SETTINGS.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text
-        MENU_SETTINGS.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_SETTINGS_REDDIT, Me.BTT_SETTINGS_TWITTER, MENU_SETTINGS_SEP_1, Me.BTT_SETTINGS})
-        MENU_SETTINGS.Image = CType(resources.GetObject("MENU_SETTINGS.Image"), System.Drawing.Image)
+        MENU_SETTINGS.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_SETTINGS_REDDIT, Me.BTT_SETTINGS_TWITTER, Me.BTT_SETTINGS_INSTAGRAM, MENU_SETTINGS_SEP_1, Me.BTT_SETTINGS})
         MENU_SETTINGS.ImageTransparentColor = System.Drawing.Color.Magenta
         MENU_SETTINGS.Name = "MENU_SETTINGS"
         MENU_SETTINGS.Size = New System.Drawing.Size(62, 22)
@@ -130,25 +136,35 @@ Partial Class MainFrame
         '
         'BTT_SETTINGS_REDDIT
         '
+        Me.BTT_SETTINGS_REDDIT.Image = Global.SCrawler.My.Resources.Resources.RedditPic512
         Me.BTT_SETTINGS_REDDIT.Name = "BTT_SETTINGS_REDDIT"
-        Me.BTT_SETTINGS_REDDIT.Size = New System.Drawing.Size(116, 22)
+        Me.BTT_SETTINGS_REDDIT.Size = New System.Drawing.Size(127, 22)
         Me.BTT_SETTINGS_REDDIT.Text = "Reddit"
         '
         'BTT_SETTINGS_TWITTER
         '
+        Me.BTT_SETTINGS_TWITTER.Image = Global.SCrawler.My.Resources.Resources.TwitterPic400
         Me.BTT_SETTINGS_TWITTER.Name = "BTT_SETTINGS_TWITTER"
-        Me.BTT_SETTINGS_TWITTER.Size = New System.Drawing.Size(116, 22)
+        Me.BTT_SETTINGS_TWITTER.Size = New System.Drawing.Size(127, 22)
         Me.BTT_SETTINGS_TWITTER.Text = "Twitter"
+        '
+        'BTT_SETTINGS_INSTAGRAM
+        '
+        Me.BTT_SETTINGS_INSTAGRAM.Image = Global.SCrawler.My.Resources.Resources.InstagramPic76
+        Me.BTT_SETTINGS_INSTAGRAM.Name = "BTT_SETTINGS_INSTAGRAM"
+        Me.BTT_SETTINGS_INSTAGRAM.Size = New System.Drawing.Size(127, 22)
+        Me.BTT_SETTINGS_INSTAGRAM.Text = "Instagram"
         '
         'MENU_SETTINGS_SEP_1
         '
         MENU_SETTINGS_SEP_1.Name = "MENU_SETTINGS_SEP_1"
-        MENU_SETTINGS_SEP_1.Size = New System.Drawing.Size(113, 6)
+        MENU_SETTINGS_SEP_1.Size = New System.Drawing.Size(124, 6)
         '
         'BTT_SETTINGS
         '
+        Me.BTT_SETTINGS.Image = Global.SCrawler.My.Resources.Resources.SettingsPic_16
         Me.BTT_SETTINGS.Name = "BTT_SETTINGS"
-        Me.BTT_SETTINGS.Size = New System.Drawing.Size(116, 22)
+        Me.BTT_SETTINGS.Size = New System.Drawing.Size(127, 22)
         Me.BTT_SETTINGS.Text = "Settings"
         '
         'SEP_3
@@ -186,6 +202,11 @@ Partial Class MainFrame
         MENU_VIEW_SEP_1.Name = "MENU_VIEW_SEP_1"
         MENU_VIEW_SEP_1.Size = New System.Drawing.Size(141, 6)
         '
+        'MENU_VIEW_SEP_3
+        '
+        MENU_VIEW_SEP_3.Name = "MENU_VIEW_SEP_3"
+        MENU_VIEW_SEP_3.Size = New System.Drawing.Size(141, 6)
+        '
         'MENU_VIEW_SEP_2
         '
         MENU_VIEW_SEP_2.Name = "MENU_VIEW_SEP_2"
@@ -194,7 +215,7 @@ Partial Class MainFrame
         'Toolbar_TOP
         '
         Me.Toolbar_TOP.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden
-        Me.Toolbar_TOP.Items.AddRange(New System.Windows.Forms.ToolStripItem() {MENU_SETTINGS, SEP_1, Me.BTT_ADD_USER, Me.BTT_EDIT_USER, Me.BTT_DELETE_USER, Me.BTT_REFRESH, Me.BTT_SHOW_INFO, Me.BTT_CHANNELS, SEP_2, Me.BTT_DOWN_SELECTED, Me.BTT_DOWN_ALL, Me.BTT_DOWN_VIDEO, Me.BTT_DOWN_STOP, SEP_3, Me.MENU_VIEW, SEP_4, Me.BTT_LOG, Me.BTT_VERSION_INFO})
+        Me.Toolbar_TOP.Items.AddRange(New System.Windows.Forms.ToolStripItem() {MENU_SETTINGS, SEP_1, Me.BTT_ADD_USER, Me.BTT_EDIT_USER, Me.BTT_DELETE_USER, Me.BTT_REFRESH, Me.BTT_SHOW_INFO, Me.BTT_CHANNELS, Me.BTT_DOWN_SAVED, SEP_2, Me.BTT_DOWN_SELECTED, Me.BTT_DOWN_ALL, Me.BTT_DOWN_VIDEO, Me.BTT_DOWN_STOP, SEP_3, Me.MENU_VIEW, SEP_4, Me.BTT_LOG, Me.BTT_VERSION_INFO})
         Me.Toolbar_TOP.Location = New System.Drawing.Point(0, 0)
         Me.Toolbar_TOP.Name = "Toolbar_TOP"
         Me.Toolbar_TOP.Size = New System.Drawing.Size(934, 25)
@@ -247,11 +268,21 @@ Partial Class MainFrame
         '
         'BTT_CHANNELS
         '
+        Me.BTT_CHANNELS.AutoToolTip = False
         Me.BTT_CHANNELS.Image = Global.SCrawler.My.Resources.Resources.RedditPic512
         Me.BTT_CHANNELS.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.BTT_CHANNELS.Name = "BTT_CHANNELS"
         Me.BTT_CHANNELS.Size = New System.Drawing.Size(76, 22)
         Me.BTT_CHANNELS.Text = "Channels"
+        '
+        'BTT_DOWN_SAVED
+        '
+        Me.BTT_DOWN_SAVED.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image
+        Me.BTT_DOWN_SAVED.Image = Global.SCrawler.My.Resources.Resources.BookmarkBlack_16
+        Me.BTT_DOWN_SAVED.ImageTransparentColor = System.Drawing.Color.Magenta
+        Me.BTT_DOWN_SAVED.Name = "BTT_DOWN_SAVED"
+        Me.BTT_DOWN_SAVED.Size = New System.Drawing.Size(23, 22)
+        Me.BTT_DOWN_SAVED.ToolTipText = "Download Reddit saved posts"
         '
         'BTT_DOWN_SELECTED
         '
@@ -295,11 +326,11 @@ Partial Class MainFrame
         '
         Me.MENU_VIEW.AutoToolTip = False
         Me.MENU_VIEW.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text
-        Me.MENU_VIEW.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_VIEW_LARGE, Me.BTT_VIEW_SMALL, Me.BTT_VIEW_LIST, MENU_VIEW_SEP_1, Me.BTT_SHOW_ALL, Me.BTT_SHOW_REGULAR, Me.BTT_SHOW_TEMP, Me.BTT_SHOW_FAV, Me.BTT_SHOW_LABELS, Me.BTT_SHOW_NO_LABELS, MENU_VIEW_SEP_2, Me.BTT_SELECT_LABELS})
+        Me.MENU_VIEW.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_VIEW_LARGE, Me.BTT_VIEW_SMALL, Me.BTT_VIEW_LIST, MENU_VIEW_SEP_1, Me.BTT_SITE_ALL, Me.BTT_SITE_SPECIFIC, MENU_VIEW_SEP_2, Me.BTT_SHOW_ALL, Me.BTT_SHOW_REGULAR, Me.BTT_SHOW_TEMP, Me.BTT_SHOW_FAV, Me.BTT_SHOW_LABELS, Me.BTT_SHOW_NO_LABELS, MENU_VIEW_SEP_3, Me.BTT_SELECT_LABELS})
         Me.MENU_VIEW.Image = CType(resources.GetObject("MENU_VIEW.Image"), System.Drawing.Image)
         Me.MENU_VIEW.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.MENU_VIEW.Name = "MENU_VIEW"
-        Me.MENU_VIEW.Size = New System.Drawing.Size(45, 22)
+        Me.MENU_VIEW.Size = New System.Drawing.Size(45, 19)
         Me.MENU_VIEW.Text = "View"
         '
         'BTT_VIEW_LARGE
@@ -319,6 +350,18 @@ Partial Class MainFrame
         Me.BTT_VIEW_LIST.Name = "BTT_VIEW_LIST"
         Me.BTT_VIEW_LIST.Size = New System.Drawing.Size(144, 22)
         Me.BTT_VIEW_LIST.Text = "List"
+        '
+        'BTT_SITE_ALL
+        '
+        Me.BTT_SITE_ALL.Name = "BTT_SITE_ALL"
+        Me.BTT_SITE_ALL.Size = New System.Drawing.Size(144, 22)
+        Me.BTT_SITE_ALL.Text = "All"
+        '
+        'BTT_SITE_SPECIFIC
+        '
+        Me.BTT_SITE_SPECIFIC.Name = "BTT_SITE_SPECIFIC"
+        Me.BTT_SITE_SPECIFIC.Size = New System.Drawing.Size(144, 22)
+        Me.BTT_SITE_SPECIFIC.Text = "Specific sites"
         '
         'BTT_SHOW_ALL
         '
@@ -385,12 +428,17 @@ Partial Class MainFrame
         '
         'Toolbar_BOTTOM
         '
-        Me.Toolbar_BOTTOM.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.PR_MAIN, Me.LBL_JOBS_COUNT, Me.LBL_STATUS})
+        Me.Toolbar_BOTTOM.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.PR_SAVED, Me.PR_MAIN, Me.LBL_JOBS_COUNT, Me.LBL_STATUS})
         Me.Toolbar_BOTTOM.Location = New System.Drawing.Point(0, 439)
         Me.Toolbar_BOTTOM.Name = "Toolbar_BOTTOM"
         Me.Toolbar_BOTTOM.Size = New System.Drawing.Size(934, 22)
         Me.Toolbar_BOTTOM.TabIndex = 2
-        Me.Toolbar_BOTTOM.Text = "StatusStrip1"
+        '
+        'PR_SAVED
+        '
+        Me.PR_SAVED.Name = "PR_SAVED"
+        Me.PR_SAVED.Size = New System.Drawing.Size(100, 16)
+        Me.PR_SAVED.Visible = False
         '
         'PR_MAIN
         '
@@ -423,7 +471,7 @@ Partial Class MainFrame
         '
         'USER_CONTEXT
         '
-        Me.USER_CONTEXT.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_CONTEXT_DOWN, Me.BTT_CONTEXT_DOWN_LIMITED, Me.BTT_CONTEXT_EDIT, Me.BTT_CONTEXT_DELETE, CONTEXT_SEP_1, Me.BTT_CONTEXT_FAV, Me.BTT_CONTEXT_TEMP, Me.BTT_CONTEXT_READY, Me.BTT_CONTEXT_GROUPS, Me.BTT_CONTEXT_ADD_TO_COL, Me.BTT_CONTEXT_COL_MERGE, CONTEXT_SEP_2, Me.BTT_CHANGE_IMAGE, CONTEXT_SEP_3, Me.BTT_CONTEXT_OPEN_PATH, CONTEXT_SEP_4, Me.BTT_CONTEXT_OPEN_SITE, CONTEXT_SEP_5, Me.BTT_CONTEXT_INFO})
+        Me.USER_CONTEXT.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_CONTEXT_DOWN, Me.BTT_CONTEXT_DOWN_LIMITED, Me.BTT_CONTEXT_EDIT, Me.BTT_CONTEXT_DELETE, CONTEXT_SEP_1, Me.BTT_CONTEXT_FAV, Me.BTT_CONTEXT_TEMP, Me.BTT_CONTEXT_READY, Me.BTT_CONTEXT_GROUPS, Me.BTT_CONTEXT_ADD_TO_COL, Me.BTT_CONTEXT_COL_MERGE, Me.BTT_CONTEXT_CHANGE_FOLDER, CONTEXT_SEP_2, Me.BTT_CHANGE_IMAGE, CONTEXT_SEP_3, Me.BTT_CONTEXT_OPEN_PATH, CONTEXT_SEP_4, Me.BTT_CONTEXT_OPEN_SITE, CONTEXT_SEP_5, Me.BTT_CONTEXT_INFO})
         Me.USER_CONTEXT.Name = "USER_CONTEXT"
         Me.USER_CONTEXT.Size = New System.Drawing.Size(222, 364)
         '
@@ -471,6 +519,12 @@ Partial Class MainFrame
         Me.BTT_CONTEXT_TEMP.Size = New System.Drawing.Size(221, 22)
         Me.BTT_CONTEXT_TEMP.Text = "Change temporary"
         '
+        'BTT_CONTEXT_READY
+        '
+        Me.BTT_CONTEXT_READY.Name = "BTT_CONTEXT_READY"
+        Me.BTT_CONTEXT_READY.Size = New System.Drawing.Size(221, 22)
+        Me.BTT_CONTEXT_READY.Text = "Change ready for download"
+        '
         'BTT_CONTEXT_GROUPS
         '
         Me.BTT_CONTEXT_GROUPS.Name = "BTT_CONTEXT_GROUPS"
@@ -489,6 +543,14 @@ Partial Class MainFrame
         Me.BTT_CONTEXT_COL_MERGE.Name = "BTT_CONTEXT_COL_MERGE"
         Me.BTT_CONTEXT_COL_MERGE.Size = New System.Drawing.Size(221, 22)
         Me.BTT_CONTEXT_COL_MERGE.Text = "Merge collection files"
+        '
+        'BTT_CONTEXT_CHANGE_FOLDER
+        '
+        Me.BTT_CONTEXT_CHANGE_FOLDER.AutoToolTip = True
+        Me.BTT_CONTEXT_CHANGE_FOLDER.Name = "BTT_CONTEXT_CHANGE_FOLDER"
+        Me.BTT_CONTEXT_CHANGE_FOLDER.Size = New System.Drawing.Size(221, 22)
+        Me.BTT_CONTEXT_CHANGE_FOLDER.Text = "Change folder"
+        Me.BTT_CONTEXT_CHANGE_FOLDER.ToolTipText = "Change user data folder"
         '
         'BTT_CHANGE_IMAGE
         '
@@ -517,12 +579,6 @@ Partial Class MainFrame
         Me.BTT_CONTEXT_INFO.Name = "BTT_CONTEXT_INFO"
         Me.BTT_CONTEXT_INFO.Size = New System.Drawing.Size(221, 22)
         Me.BTT_CONTEXT_INFO.Text = "Information"
-        '
-        'BTT_CONTEXT_READY
-        '
-        Me.BTT_CONTEXT_READY.Name = "BTT_CONTEXT_READY"
-        Me.BTT_CONTEXT_READY.Size = New System.Drawing.Size(221, 22)
-        Me.BTT_CONTEXT_READY.Text = "Change ready for download"
         '
         'MainFrame
         '
@@ -594,4 +650,10 @@ Partial Class MainFrame
     Private WithEvents BTT_VERSION_INFO As ToolStripButton
     Private WithEvents BTT_CONTEXT_DOWN_LIMITED As ToolStripMenuItem
     Private WithEvents BTT_CONTEXT_READY As ToolStripMenuItem
+    Private WithEvents BTT_SETTINGS_INSTAGRAM As ToolStripMenuItem
+    Private WithEvents BTT_SITE_ALL As ToolStripMenuItem
+    Private WithEvents BTT_SITE_SPECIFIC As ToolStripMenuItem
+    Private WithEvents BTT_CONTEXT_CHANGE_FOLDER As ToolStripMenuItem
+    Private WithEvents PR_SAVED As ToolStripProgressBar
+    Private WithEvents BTT_DOWN_SAVED As ToolStripButton
 End Class

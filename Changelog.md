@@ -1,3 +1,20 @@
+# 2.0.0.0
+
+- Added
+  - **Instagram**
+  - Filter by site
+  - Group for regular channels in the main window
+  - Ability to change user/collection path
+  - Imgur albums downloading
+  - NSFW Imgur content bypass (requires 'CilentID')
+  - Special user folder
+  - Remove user while keeping data
+  - Disabled overriding user preferences when creating a new user if it already exists in the destination (in case of deleting a user with saving data).
+  - **Saved Reddit posts downloading**
+- Fixed
+  - Suspended profiles do not change status if the profile is no longer suspended
+  - Limited download for Twitter not implemented
+
 # 1.0.1.0
 
 - Added

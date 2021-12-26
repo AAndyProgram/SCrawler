@@ -133,13 +133,18 @@
     <Import Include="System.Threading.Tasks" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="API\Base\Declarations.vb" />
     <Compile Include="API\Base\SiteSettings.vb" />
     <Compile Include="API\Base\Structures.vb" />
     <Compile Include="API\Base\UserDataBase.vb" />
+    <Compile Include="API\Imgur\Envir.vb" />
+    <Compile Include="API\Instagram\Declarations.vb" />
+    <Compile Include="API\Instagram\UserData.vb" />
     <Compile Include="API\Reddit\Channel.vb" />
     <Compile Include="API\Reddit\ChannelsCollection.vb" />
     <Compile Include="API\Reddit\Declarations.vb" />
     <Compile Include="API\Reddit\M3U8.vb" />
+    <Compile Include="API\Reddit\ProfileSaved.vb" />
     <Compile Include="API\Reddit\UserData.vb" />
     <Compile Include="API\Twitter\Declarations.vb" />
     <Compile Include="API\Twitter\UserData.vb" />
@@ -174,16 +179,16 @@
     <Compile Include="Editors\LabelsForm.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Editors\RedditEditorForm.Designer.vb">
-      <DependentUpon>RedditEditorForm.vb</DependentUpon>
+    <Compile Include="Editors\SiteSelectionForm.Designer.vb">
+      <DependentUpon>SiteSelectionForm.vb</DependentUpon>
     </Compile>
-    <Compile Include="Editors\RedditEditorForm.vb">
+    <Compile Include="Editors\SiteSelectionForm.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Editors\TwitterEditorForm.Designer.vb">
-      <DependentUpon>TwitterEditorForm.vb</DependentUpon>
+    <Compile Include="Editors\SiteEditorForm.Designer.vb">
+      <DependentUpon>SiteEditorForm.vb</DependentUpon>
     </Compile>
-    <Compile Include="Editors\TwitterEditorForm.vb">
+    <Compile Include="Editors\SiteEditorForm.vb">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Editors\UserCreatorForm.Designer.vb">
@@ -244,11 +249,11 @@
     <EmbeddedResource Include="Editors\LabelsForm.resx">
       <DependentUpon>LabelsForm.vb</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Editors\RedditEditorForm.resx">
-      <DependentUpon>RedditEditorForm.vb</DependentUpon>
+    <EmbeddedResource Include="Editors\SiteSelectionForm.resx">
+      <DependentUpon>SiteSelectionForm.vb</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Editors\TwitterEditorForm.resx">
-      <DependentUpon>TwitterEditorForm.vb</DependentUpon>
+    <EmbeddedResource Include="Editors\SiteEditorForm.resx">
+      <DependentUpon>SiteEditorForm.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Editors\UserCreatorForm.resx">
       <DependentUpon>UserCreatorForm.vb</DependentUpon>
@@ -287,6 +292,11 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Content\Icons\InstagramIcon.ico" />
+    <None Include="Content\Pictures\SettingsPic_16.bmp" />
+    <None Include="Content\Pictures\TwitterPic400.png" />
+    <None Include="Content\Pictures\InstagramPic76.png" />
+    <None Include="Content\Pictures\BookmarkBlack_16.png" />
     <Content Include="ffmpeg.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

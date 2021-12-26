@@ -118,17 +118,14 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
-  <data name="GlobeBlue_32" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Content\Pictures\GlobeBlue_32.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
   <data name="StarPic_24" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Content\Pictures\StarPic_24.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="PrevPIC2" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Content\Pictures\PrevPIC2.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="PicturePic_32" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Content\Pictures\PicturePic_32.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <data name="PencilPic_01_16" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Content\Pictures\PencilPic_01_16.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="NextPIC2" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Content\Pictures\NextPIC2.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
@@ -136,11 +133,17 @@
   <data name="Folder_32" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Content\Pictures\Folder_32.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="PencilPic_01_16" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Content\Pictures\PencilPic_01_16.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <data name="TwitterPic400" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Content\Pictures\TwitterPic400.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="PlusPIC" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Content\Pictures\PlusPIC.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="TwitterIcon" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Content\Icons\TwitterIcon.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SettingsPic_16" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Content\Pictures\SettingsPic_16.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="Delete" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Content\Pictures\Delete.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
@@ -148,14 +151,23 @@
   <data name="InfoPic_32" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Content\Pictures\InfoPic_32.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="InstagramIcon" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Content\Icons\InstagramIcon.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="GlobeBlue_32" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Content\Pictures\GlobeBlue_32.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="PicturePic_32" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Content\Pictures\PicturePic_32.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="Refresh" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Content\Pictures\Refresh.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="DBPic_32" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Content\Pictures\DBPic_32.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
   <data name="RedditIcon" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Content\Icons\RedditIcon.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="InstagramPic76" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Content\Pictures\InstagramPic76.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="Rainbow" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Content\Icons\Rainbow.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
@@ -163,13 +175,16 @@
   <data name="Pin_32" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Content\Pictures\Pin_32.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="StartPic_01_Green_16" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Content\Pictures\StartPic_01_Green_16.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
   <data name="RedditPic512" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Content\Pictures\RedditPic512.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="TwitterIcon" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Content\Icons\TwitterIcon.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <data name="DBPic_32" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Content\Pictures\DBPic_32.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="StartPic_01_Green_16" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Content\Pictures\StartPic_01_Green_16.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="BookmarkBlack_16" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Content\Pictures\BookmarkBlack_16.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
 </root>

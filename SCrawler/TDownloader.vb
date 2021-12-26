@@ -73,6 +73,7 @@ Friend Class TDownloader : Implements IDisposable
             _Working = False
             TokenSource = Nothing
             UpdateJobsLabel()
+            If Settings(Sites.Instagram).InstaHashUpdateRequired Then MyMainLOG = "Check your Instagram credentials"
             RaiseEvent OnDownloading(False)
         End Try
     End Sub
@@ -91,23 +92,33 @@ Friend Class TDownloader : Implements IDisposable
                 Dim i% = -1
                 Dim j% = Settings.MaxUsersJobsCount - 1
                 Dim Keys As New List(Of String)
+                Dim h As Boolean = False
+                Dim InstaReady As Boolean = Settings(Sites.Instagram).InstagramReadyForDownload
                 For Each _Item As IUserData In Items
                     If Not _Item.Disposed Then
                         Keys.Add(_Item.LVIKey)
-                        Token.ThrowIfCancellationRequested()
-                        t.Add(Task.Run(Sub() _Item.DownloadData(Token)))
-                        i += 1
-                        If i >= j Then Exit For
+                        If Not _Item.Site = Sites.Instagram Or InstaReady Then
+                            If _Item.Site = Sites.Instagram Then h = True : Settings(Sites.Instagram).InstagramTooManyRequestsReadyForCatch = True
+                            Token.ThrowIfCancellationRequested()
+                            t.Add(Task.Run(Sub() _Item.DownloadData(Token)))
+                            i += 1
+                            If i >= j Then Exit For
+                        End If
                     End If
                 Next
-                If t.Count > 0 Then
+                If t.Count > 0 Or Keys.Count > 0 Then
+                    If h Then
+                        With Settings(Sites.Instagram)
+                            If .InstaHash.IsEmptyString Or .InstaHashUpdateRequired Then .GatherInstaHash()
+                        End With
+                    End If
                     _CurrentDownloadingTasks = t.Count
                     With MainProgress
                         .Enabled(EOptions.All) = True
                         .Information = $"Downloading {_CurrentDownloadingTasks.NumToString(nf, NProv)}/{Items.Count.NumToString(nf, NProv)} profiles' data"
                         .InformationTemporary = .Information
                     End With
-                    Task.WaitAll(t.ToArray)
+                    If t.Count > 0 Then Task.WaitAll(t.ToArray)
                     Dim dcc As Boolean = False
                     If Keys.Count > 0 Then
                         For Each k$ In Keys
@@ -167,6 +178,33 @@ Friend Class TDownloader : Implements IDisposable
         End If
         Return Nothing
     End Function
+#Region "Saved posts downloading"
+    Friend ReadOnly Property SavedPostsDownloading As Boolean
+        Get
+            Return If(_SavedPostsThread?.IsAlive, False)
+        End Get
+    End Property
+    Private _SavedPostsThread As Thread
+    Friend Sub DownloadSavedPostsStart(ByVal Toolbar As StatusStrip, ByVal PR As ToolStripProgressBar)
+        If Not SavedPostsDownloading Then
+            If Settings(Sites.Reddit).SavedPostsUserName.IsEmptyString Then
+                MsgBoxE($"Username of saved posts not set{vbNewLine}Operation canceled", MsgBoxStyle.Critical)
+            Else
+                _SavedPostsThread = New Thread(New ThreadStart(Sub() Reddit.ProfileSaved.Download(Toolbar, PR)))
+                _SavedPostsThread.SetApartmentState(ApartmentState.MTA)
+                _SavedPostsThread.Start()
+            End If
+        Else
+            MsgBoxE("Saved posts are already downloading", MsgBoxStyle.Exclamation)
+        End If
+    End Sub
+    Friend Sub DownloadSavedPostsStop()
+        Try
+            If SavedPostsDownloading Then _SavedPostsThread.Abort()
+        Catch ex As Exception
+        End Try
+    End Sub
+#End Region
     Friend Sub Add(ByVal Item As IUserData)
         If Not Items.Contains(Item) Then
             If Item.IsCollection Then Item.DownloadData(Nothing) Else Items.Add(Item)

@@ -130,18 +130,18 @@ Namespace API.Twitter
                 End If
             End Try
         End Sub
-        Friend Shared Function GetVideoInfo(ByVal URL As String) As UserMedia
+        Friend Shared Function GetVideoInfo(ByVal URL As String) As IEnumerable(Of UserMedia)
             Try
                 If URL.Contains("twitter") Then
                     Dim PostID$ = RegexReplace(URL, New RegexStructure("(?<=/)\d+", True, False,,,,, String.Empty))
                     If Not PostID.IsEmptyString Then
-                        Dim r$ = DirectCast(Settings.Site(Sites.Twitter).Responser.Copy(), Response).
+                        Dim r$ = DirectCast(Settings(Sites.Twitter).Responser.Copy(), Response).
                                             GetResponse($"https://api.twitter.com/1.1/statuses/show.json?id={PostID}",, EDP.ReturnValue)
                         If Not r.IsEmptyString Then
                             Using j As EContainer = JsonDocument.Parse(r)
                                 If j.ListExists Then
                                     Dim u$ = GetVideoNodeURL(j)
-                                    If Not u.IsEmptyString Then Return MediaFromData(u, PostID, String.Empty)
+                                    If Not u.IsEmptyString Then Return {MediaFromData(u, PostID, String.Empty)}
                                 End If
                             End Using
                         End If
@@ -224,12 +224,13 @@ Namespace API.Twitter
         Protected Overrides Sub DownloadContent(ByVal Token As CancellationToken)
             Try
                 Dim i%
+                Dim dCount% = 0, dTotal% = 0
                 ThrowAny(Token)
                 If _ContentNew.Count > 0 Then
                     _ContentNew.RemoveAll(Function(c) c.URL.IsEmptyString)
                     If _ContentNew.Count > 0 Then
                         MyFile.Exists(SFO.Path)
-                        Dim MyDir$ = MyFile.CutPath.Path
+                        Dim MyDir$ = MyFile.CutPath.PathNoSeparator
                         Dim vsf As Boolean = SeparateVideoFolderF
                         Dim f As SFile
                         Dim v As UserMedia
@@ -260,6 +261,7 @@ Namespace API.Twitter
                                         End Select
                                         v.File = ChangeFileNameByProvider(f, v)
                                         v.State = UStates.Downloaded
+                                        dCount += 1
                                     Catch wex As Exception
                                         ErrorDownloading(f, v.URL_BASE)
                                     End Try
@@ -267,7 +269,13 @@ Namespace API.Twitter
                                     v.State = UStates.Skipped
                                 End If
                                 _ContentNew(i) = v
-                                MainProgress.Perform()
+                                If DownloadTopCount.HasValue AndAlso dCount >= DownloadTopCount.Value Then
+                                    MainProgress.Perform(_ContentNew.Count - dTotal)
+                                    Exit Sub
+                                Else
+                                    dTotal += 1
+                                    MainProgress.Perform()
+                                End If
                             Next
                         End Using
                     End If

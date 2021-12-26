@@ -25,8 +25,47 @@ Namespace API.Base
                 _Path.Value = NewFile
             End Set
         End Property
+        Friend ReadOnly Property InstaHash As XMLValue(Of String)
+        Friend ReadOnly Property InstaHashUpdateRequired As XMLValue(Of Boolean)
+        Friend ReadOnly Property InstagramDownloadingErrorDate As XMLValue(Of Date)
+        Friend Property InstagramLastApplyingValue As Integer? = Nothing
+        Friend ReadOnly Property InstagramReadyForDownload As Boolean
+            Get
+                With InstagramDownloadingErrorDate
+                    If .ValueF.Exists Then
+                        Return .ValueF.Value.AddMinutes(If(InstagramLastApplyingValue, 10)) < Now
+                    Else
+                        Return True
+                    End If
+                End With
+            End Get
+        End Property
+        Friend Property InstagramTooManyRequestsReadyForCatch As Boolean = True
+        Friend Sub InstagramTooManyRequests(ByVal Catched As Boolean)
+            With InstagramDownloadingErrorDate
+                If Catched Then
+                    If Not .ValueF.Exists Then
+                        .Value = Now
+                        If InstagramTooManyRequestsReadyForCatch Then
+                            InstagramLastApplyingValue = If(InstagramLastApplyingValue, 0) + 10
+                            InstagramTooManyRequestsReadyForCatch = False
+                            MyMainLOG = $"Instagram downloading error: too many requests. Try again after {If(InstagramLastApplyingValue, 10)} minutes..."
+                        End If
+                    End If
+                Else
+                    .ValueF = Nothing
+                    InstagramLastApplyingValue = Nothing
+                End If
+            End With
+        End Sub
+        Friend ReadOnly Property Temporary As XMLValue(Of Boolean)
+        Friend ReadOnly Property DownloadImages As XMLValue(Of Boolean)
+        Friend ReadOnly Property DownloadVideos As XMLValue(Of Boolean)
+        Friend ReadOnly Property GetUserMediaOnly As XMLValue(Of Boolean)
+        Friend ReadOnly Property SavedPostsUserName As XMLValue(Of String)
         Private ReadOnly SettingsFile As SFile
-        Friend Sub New(ByVal s As Sites, ByRef _XML As XmlFile, ByVal GlobalPath As SFile)
+        Friend Sub New(ByVal s As Sites, ByRef _XML As XmlFile, ByVal GlobalPath As SFile,
+                       ByRef _Temp As XMLValue(Of Boolean), ByRef _Imgs As XMLValue(Of Boolean), ByRef _Vids As XMLValue(Of Boolean))
             Site = s
             SettingsFile = $"{SettingsFolderName}\Responser_{s}.xml"
             Responser = New WEB.Response(SettingsFile)
@@ -34,40 +73,112 @@ Namespace API.Base
             If SettingsFile.Exists Then
                 Responser.LoadSettings()
             Else
-                If Site = Sites.Twitter Then
-                    With Responser
-                        .ContentType = "application/json"
-                        .Accept = "*/*"
-                        .CookiesDomain = "twitter.com"
-                        .Decoders.Add(SymbolsConverter.Converters.Unicode)
-                        With .Headers
-                            .Add("sec-ch-ua", " Not;A Brand" & Chr(34) & ";v=" & Chr(34) & "99" & Chr(34) & ", " & Chr(34) &
-                                 "Google Chrome" & Chr(34) & ";v=" & Chr(34) & "91" & Chr(34) & ", " & Chr(34) & "Chromium" &
-                                 Chr(34) & ";v=" & Chr(34) & "91" & Chr(34))
-                            .Add("sec-ch-ua-mobile", "?0")
-                            .Add("sec-fetch-dest", "empty")
-                            .Add("sec-fetch-mode", "cors")
-                            .Add("sec-fetch-site", "same-origin")
-                            .Add(Header_Twitter_Token, String.Empty)
-                            .Add("x-twitter-active-user", "yes")
-                            .Add("x-twitter-auth-type", "OAuth2Session")
-                            .Add(Header_Twitter_Authorization, String.Empty)
+                Select Case Site
+                    Case Sites.Twitter
+                        With Responser
+                            .ContentType = "application/json"
+                            .Accept = "*/*"
+                            .CookiesDomain = "twitter.com"
+                            .Decoders.Add(SymbolsConverter.Converters.Unicode)
+                            With .Headers
+                                .Add("sec-ch-ua", " Not;A Brand" & Chr(34) & ";v=" & Chr(34) & "99" & Chr(34) & ", " & Chr(34) &
+                                     "Google Chrome" & Chr(34) & ";v=" & Chr(34) & "91" & Chr(34) & ", " & Chr(34) & "Chromium" &
+                                     Chr(34) & ";v=" & Chr(34) & "91" & Chr(34))
+                                .Add("sec-ch-ua-mobile", "?0")
+                                .Add("sec-fetch-dest", "empty")
+                                .Add("sec-fetch-mode", "cors")
+                                .Add("sec-fetch-site", "same-origin")
+                                .Add(Header_Twitter_Token, String.Empty)
+                                .Add("x-twitter-active-user", "yes")
+                                .Add("x-twitter-auth-type", "OAuth2Session")
+                                .Add(Header_Twitter_Authorization, String.Empty)
+                            End With
                         End With
-                    End With
-                ElseIf Site = Sites.Reddit Then
-                    Responser.CookiesDomain = "reddit.com"
-                    Responser.Decoders.Add(SymbolsConverter.Converters.Unicode)
-                End If
+                    Case Sites.Reddit
+                        Responser.CookiesDomain = "reddit.com"
+                        Responser.Decoders.Add(SymbolsConverter.Converters.Unicode)
+                    Case Sites.Instagram : Responser.CookiesDomain = "instagram.com"
+                End Select
                 Responser.SaveSettings()
             End If
-            _Path = New XMLValue(Of SFile)("Path", SFile.GetPath($"{GlobalPath.PathWithSeparator}{Site}"),
-                                           _XML, {SettingsCLS.Name_Node_Sites, Site.ToString}, XMLValue(Of SFile).ToFilePath)
+
+            Dim n() As String = {SettingsCLS.Name_Node_Sites, Site.ToString}
+            _Path = New XMLValue(Of SFile)("Path", SFile.GetPath($"{GlobalPath.PathWithSeparator}{Site}"), _XML, n, XMLValue(Of SFile).ToFilePath)
             _Path.ReplaceByValue("Path", {Site.ToString})
             _XML.Remove(Site.ToString)
+
+            Temporary = New XMLValue(Of Boolean)
+            Temporary.SetExtended("Temporary", False, _XML, n)
+            Temporary.SetDefault(_Temp)
+
+            DownloadImages = New XMLValue(Of Boolean)
+            DownloadImages.SetExtended("DownloadImages", True, _XML, n)
+            DownloadImages.SetDefault(_Imgs)
+
+            DownloadVideos = New XMLValue(Of Boolean)
+            DownloadVideos.SetExtended("DownloadVideos", True, _XML, n)
+            DownloadVideos.SetDefault(_Vids)
+
+            If Site = Sites.Twitter Then
+                GetUserMediaOnly = New XMLValue(Of Boolean)("GetUserMediaOnly", True, _XML, n)
+                GetUserMediaOnly.ReplaceByValue("TwitterDefaultGetUserMedia", n)
+            Else
+                GetUserMediaOnly = New XMLValue(Of Boolean)
+            End If
+
+            If Site = Sites.Instagram Then
+                InstaHash = New XMLValue(Of String)("InstaHash", String.Empty, _XML, n)
+                InstaHashUpdateRequired = New XMLValue(Of Boolean)("InstaHashUpdateRequired", True, _XML, n)
+                If (InstaHash.IsEmptyString Or InstaHashUpdateRequired) And Responser.Cookies.ListExists Then GatherInstaHash()
+                InstagramDownloadingErrorDate = New XMLValue(Of Date) With {.ToStringFunction = Function(ss, vv) AConvert(Of String)(vv, Nothing)}
+                InstagramDownloadingErrorDate.SetExtended("InstagramDownloadingErrorDate", Now.AddYears(-10), _XML, n)
+            Else
+                InstaHash = New XMLValue(Of String)
+                InstaHashUpdateRequired = New XMLValue(Of Boolean)
+            End If
+            If Site = Sites.Reddit Then
+                SavedPostsUserName = New XMLValue(Of String)("SavedPostsUserName", String.Empty, _XML, n)
+            Else
+                SavedPostsUserName = New XMLValue(Of String)
+            End If
         End Sub
         Friend Sub Update()
             Responser.SaveSettings()
         End Sub
+        Friend Function GatherInstaHash() As Boolean
+            Try
+                Dim rs As New RegexStructure("=" & Chr(34) & "([^" & Chr(34) & "]+?ConsumerLibCommons[^" & Chr(34) & "]+?.js)" & Chr(34), 1) With {
+                    .UseTimeOut = True,
+                    .MatchTimeOutSeconds = 10
+                }
+                Dim r$ = Responser.GetResponse("https://instagram.com",, EDP.ThrowException)
+                If Not r.IsEmptyString Then
+                    Dim hStr$ = RegexReplace(r, rs)
+                    If Not hStr.IsEmptyString Then
+                        Do While Left(hStr, 1) = "/" : hStr = Right(hStr, hStr.Length - 1) : Loop
+                        hStr = $"https://instagram.com/{hStr}"
+                        r = Responser.GetResponse(hStr,, EDP.ThrowException)
+                        If Not r.IsEmptyString Then
+                            rs = New RegexStructure("generatePaginationActionCreators.+?.profilePosts.byUserId.get.+?queryId:.([\d\w\S]+?)" & Chr(34), 1) With {
+                                .UseTimeOut = True,
+                                .MatchTimeOutSeconds = 10
+                            }
+                            Dim h$ = RegexReplace(r, rs)
+                            If Not h.IsEmptyString Then
+                                InstaHash.Value = h
+                                InstaHashUpdateRequired.Value = False
+                                Return True
+                            End If
+                        End If
+                    End If
+                End If
+                Return False
+            Catch ex As Exception
+                InstaHashUpdateRequired.Value = True
+                InstaHash.Value = String.Empty
+                Return ErrorsDescriber.Execute(EDP.SendInLog + EDP.ReturnValue, ex, "[SiteSettings.GaterInstaHash]", False)
+            End Try
+        End Function
 #Region "IDisposable Support"
         Private disposedValue As Boolean = False
         Protected Overridable Overloads Sub Dispose(ByVal disposing As Boolean)

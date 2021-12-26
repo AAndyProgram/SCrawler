@@ -18,6 +18,7 @@ Friend Module MainMod
     Friend Const LVI_FavOption As String = "Favorite"
     Friend Const CannelsLabelName As String = "Channels"
     Friend Const LVI_CollectionOption As String = "Collection"
+    Friend Const LVI_ChannelOption As String = "Channel"
     Friend Enum ViewModes As Integer
         IconLarge = 0
         IconSmall = 2
@@ -47,7 +48,8 @@ Friend Module MainMod
     End Class
 #End Region
     Friend Property MainProgress As PersonalUtilities.Forms.Toolbars.MyProgress
-    Friend Function GetLviGroupName(ByVal Site As Sites, ByVal Temp As Boolean, ByVal Fav As Boolean, ByVal IsCollection As Boolean) As String
+    Friend Function GetLviGroupName(ByVal Site As Sites, ByVal Temp As Boolean, ByVal Fav As Boolean,
+                                    ByVal IsCollection As Boolean, ByVal IsChannel As Boolean) As String
         Dim Opt$ = String.Empty
         If Temp Then
             Opt = LVI_TempOption
@@ -57,6 +59,8 @@ Friend Module MainMod
         If Not Opt.IsEmptyString Then Opt = $" ({Opt})"
         If IsCollection Then
             Return $"{LVI_CollectionOption}{Opt}"
+        ElseIf IsChannel Then
+            Return $"{LVI_ChannelOption}{Opt}"
         Else
             Return $"{Site}{Opt}"
         End If
@@ -65,32 +69,37 @@ Friend Module MainMod
         Undefined = 0
         Reddit = 1
         Twitter = 2
+        Instagram = 3
     End Enum
     Friend Structure UserInfo : Implements IComparable(Of UserInfo), IEquatable(Of UserInfo), ICloneable
         Friend Const Name_Site As String = "Site"
         Friend Const Name_Collection As String = "Collection"
         Friend Const Name_Merged As String = "Merged"
         Friend Const Name_IsChannel As String = "IsChannel"
+        Friend Const Name_SpecialPath As String = "SpecialPath"
         Friend Name As String
         Friend Site As Sites
         Friend File As SFile
+        Friend SpecialPath As SFile
         Friend Merged As Boolean
         Friend IncludedInCollection As Boolean
         Friend CollectionName As String
         Friend IsChannel As Boolean
         Friend Sub New(ByVal _Name As String, ByVal s As Sites, Optional ByVal Collection As String = Nothing,
-                       Optional ByVal _Merged As Boolean = False)
+                       Optional ByVal _Merged As Boolean = False, Optional ByVal _SpecialPath As SFile = Nothing)
             Name = _Name
             Site = s
             IncludedInCollection = Not Collection.IsEmptyString
             CollectionName = Collection
             Merged = _Merged
+            SpecialPath = _SpecialPath
             UpdateUserFile()
         End Sub
         Friend Sub New(ByVal x As EContainer)
             Me.New(x.Value,
                    x.Attribute(Name_Site).Value.FromXML(Of Integer)(CInt(Sites.Undefined)),
-                   x.Attribute(Name_Collection).Value, x.Attribute(Name_Merged).Value.FromXML(Of Boolean)(False))
+                   x.Attribute(Name_Collection).Value, x.Attribute(Name_Merged).Value.FromXML(Of Boolean)(False),
+                   SFile.GetPath(x.Attribute(Name_SpecialPath).Value))
             IsChannel = x.Attribute(Name_IsChannel).Value.FromXML(Of Boolean)(False)
         End Sub
         Friend Sub New(ByVal c As Reddit.Channel)
@@ -123,13 +132,15 @@ Friend Module MainMod
             }
         End Sub
         Private Function GetFilePathByParams() As String
-            If Merged And IncludedInCollection Then
+            If Not SpecialPath.IsEmptyString Then
+                Return $"{SpecialPath.PathWithSeparator}{SettingsFolderName}"
+            ElseIf Merged And IncludedInCollection Then
                 Return $"{Settings.CollectionsPathF.PathNoSeparator}\{CollectionName}\{SettingsFolderName}"
             Else
                 If IncludedInCollection Then
                     Return $"{Settings.CollectionsPathF.PathNoSeparator}\{CollectionName}\{Site}_{Name}\{SettingsFolderName}"
                 Else
-                    Return $"{Settings.Site(Site).Path.PathNoSeparator}\{Name}\{SettingsFolderName}"
+                    Return $"{Settings(Site).Path.PathNoSeparator}\{Name}\{SettingsFolderName}"
                 End If
             End If
         End Function
@@ -137,7 +148,8 @@ Friend Module MainMod
             Return New EContainer("User", Name, {New EAttribute(Name_Site, CInt(Site)),
                                                  New EAttribute(Name_Collection, CollectionName),
                                                  New EAttribute(Name_Merged, Merged.BoolToInteger),
-                                                 New EAttribute(Name_IsChannel, IsChannel.BoolToInteger)})
+                                                 New EAttribute(Name_IsChannel, IsChannel.BoolToInteger),
+                                                 New EAttribute(Name_SpecialPath, SpecialPath.PathWithSeparator)})
         End Function
         Friend Function CompareTo(ByVal Other As UserInfo) As Integer Implements IComparable(Of UserInfo).CompareTo
             If Site = Other.Site Then
@@ -157,9 +169,11 @@ Friend Module MainMod
                 .Name = Name,
                 .Site = Site,
                 .File = File,
+                .SpecialPath = SpecialPath,
                 .Merged = Merged,
                 .IncludedInCollection = IncludedInCollection,
-                .CollectionName = CollectionName
+                .CollectionName = CollectionName,
+                .IsChannel = IsChannel
             }
         End Function
     End Structure
@@ -207,62 +221,88 @@ Friend Module MainMod
     Friend Function DownloadVideoByURL(ByVal URL As String, ByVal AskForPath As Boolean, ByVal Silent As Boolean) As Boolean
         Dim e As New ErrorsDescriber(Not Silent, Not Silent, True, False)
         Try
+            Dim Result As Boolean = False
             If Not URL.IsEmptyString Then
-                Dim u As UserMedia = Nothing
+                Dim um As IEnumerable(Of UserMedia) = Nothing
+                Dim site As Sites
                 If URL.Contains("twitter") Then
-                    u = Twitter.UserData.GetVideoInfo(URL)
+                    um = Twitter.UserData.GetVideoInfo(URL)
+                    site = Sites.Twitter
                 ElseIf URL.Contains("redgifs") Then
-                    u = Reddit.UserData.GetVideoInfo(URL)
+                    um = Reddit.UserData.GetVideoInfo(URL)
+                    site = Sites.Reddit
+                ElseIf URL.Contains("instagram.com") Then
+                    um = Instagram.UserData.GetVideoInfo(URL)
+                    site = Sites.Instagram
                 Else
                     MsgBoxE("Site of video URL does not recognized" & vbCr & "Operation canceled", MsgBoxStyle.Exclamation, e)
                     Return False
                 End If
 
-                If Not u.URL.IsEmptyString Or Not u.URL_BASE.IsEmptyString Then
-                    Dim f As SFile = u.File
-                    If f.Name.IsEmptyString Then f.Name = $"video_{u.Post.ID}"
-                    If f.Extension.IsEmptyString Then f.Extension = "mp4"
-                    If Not Settings.LatestSavingPath.IsEmptyString And
-                        Settings.LatestSavingPath.Value.Exists(SFO.Path, False) Then f.Path = Settings.LatestSavingPath.Value
-                    If AskForPath OrElse Not f.Exists(SFO.Path, False) Then
+                If um.ListExists Then
+                    Dim f As SFile, ff As SFile
+                    For Each u As UserMedia In um
+                        If Not u.URL.IsEmptyString Or Not u.URL_BASE.IsEmptyString Then
+                            f = u.File
+                            If f.Name.IsEmptyString Then f.Name = $"video_{u.Post.ID}"
+                            If f.Extension.IsEmptyString Then f.Extension = "mp4"
+                            If Not Settings.LatestSavingPath.IsEmptyString And
+                                   Settings.LatestSavingPath.Value.Exists(SFO.Path, False) Then f.Path = Settings.LatestSavingPath.Value
+                            If AskForPath OrElse Not f.Exists(SFO.Path, False) Then
 #Disable Warning BC40000
-                        f = SFile.SaveAs(f, "Video file destination", True, "mp4", "Video|*.mp4|All files|*.*", EDP.ReturnValue)
-#Enable Warning
-                    End If
-                    If Not f.IsEmptyString Then
-                        Settings.LatestSavingPath.Value = f.PathWithSeparator
-                        Dim dURL$
-                        Dim FileDownloaded As Boolean = False
-                        Using w As New Net.WebClient
-                            For i% = 0 To 1
-                                If i = 0 Then dURL = u.URL Else dURL = u.URL_BASE
-                                If Not dURL.IsEmptyString Then
-                                    Try
-                                        w.DownloadFile(dURL, f)
-                                        FileDownloaded = True
-                                        Exit For
-                                    Catch wex As Exception
-                                        ErrorsDescriber.Execute(EDP.SendInLog, wex, "DownloadVideoByURL")
-                                    End Try
+                                If site = Sites.Instagram Then
+                                    ff = SFile.SaveAs(f, "Instagram files destination",,,, EDP.ReturnValue)
+                                    If Not ff.IsEmptyString Then
+                                        f.Path = ff.Path
+                                    Else
+                                        f = Nothing
+                                    End If
+                                Else
+                                    f = SFile.SaveAs(f, "Video file destination", True, "mp4", "Video|*.mp4|All files|*.*", EDP.ReturnValue)
                                 End If
-                            Next
-                        End Using
-                        If FileDownloaded Then
-                            MsgBoxE($"File downloaded to [{f}]",, e)
-                            Return True
+#Enable Warning
+                                AskForPath = False
+                            End If
+                            If Not f.IsEmptyString Then
+                                Settings.LatestSavingPath.Value = f.PathWithSeparator
+                                Dim dURL$
+                                Dim FileDownloaded As Boolean = False
+                                Using w As New Net.WebClient
+                                    For i% = 0 To 1
+                                        If i = 0 Then dURL = u.URL Else dURL = u.URL_BASE
+                                        If Not dURL.IsEmptyString Then
+                                            Try
+                                                w.DownloadFile(dURL, f)
+                                                FileDownloaded = True
+                                                Exit For
+                                            Catch wex As Exception
+                                                ErrorsDescriber.Execute(EDP.SendInLog, wex, "DownloadVideoByURL")
+                                            End Try
+                                        End If
+                                    Next
+                                End Using
+                                If FileDownloaded Then
+                                    If um.Count = 1 Then
+                                        MsgBoxE($"File downloaded to [{f}]",, e)
+                                        Return True
+                                    Else
+                                        Result = True
+                                    End If
+                                Else
+                                    If um.Count = 1 Then MsgBoxE("File does not downloaded", MsgBoxStyle.Critical, e)
+                                End If
+                            Else
+                                If um.Count = 1 Then MsgBoxE("File destination does not pointed" & vbCr & "Operation canceled",, e)
+                            End If
                         Else
-                            MsgBoxE("File does not downloaded", MsgBoxStyle.Critical, e)
+                            If um.Count = 1 Then MsgBoxE("File URL does not found!", MsgBoxStyle.Critical, e)
                         End If
-                    Else
-                        MsgBoxE("File destination does not pointed" & vbCr & "Operation canceled",, e)
-                    End If
-                Else
-                    MsgBoxE("File URL does not found!", MsgBoxStyle.Critical, e)
+                    Next
                 End If
             Else
                 MsgBoxE("URL is empty", MsgBoxStyle.Exclamation, e)
             End If
-            Return False
+            Return Result
         Catch ex As Exception
             Return ErrorsDescriber.Execute(e, ex, "Downloading video by URL error", False)
         End Try

@@ -79,7 +79,7 @@ Namespace API.Reddit
             If IsChannel AndAlso Not ChannelInfo.IsRegularChannel Then
                 If Not Responser Is Nothing Then Responser.Dispose()
                 Responser = New PersonalUtilities.Tools.WEB.Response
-                Responser.Copy(Settings.Site(Sites.Reddit).Responser)
+                Responser.Copy(Settings(Sites.Reddit).Responser)
                 ChannelPostsNames.ListAddList(ChannelInfo.PostsAll.Select(Function(p) p.ID), LNC)
                 If SkipExistsUsers Then _ExistsUsersNames.ListAddList(Settings.UsersList.Select(Function(p) p.Name), LNC)
                 DownloadDataF(Token)
@@ -227,7 +227,12 @@ Namespace API.Reddit
                 Dim eCount As Predicate(Of EContainer) = Function(e) e.Count > 0
                 Dim lDate As Date?
 
-                URL = $"https://reddit.com/r/{Name}/new.json?allow_quarantined=true&allow_over18=1&include=identity&after={POST}&dist=25&sort=new&t=all&layout=classic"
+                If IsSavedPosts Then
+                    URL = $"https://www.reddit.com/user/{Name}/saved.json?after={POST}"
+                Else
+                    URL = $"https://reddit.com/r/{Name}/new.json?allow_quarantined=true&allow_over18=1&include=identity&after={POST}&dist=25&sort=new&t=all&layout=classic"
+                End If
+
                 ThrowAny(Token)
                 Dim r$ = GetSiteResponse(URL)
                 If Not r.IsEmptyString Then
@@ -396,15 +401,15 @@ Namespace API.Reddit
                 LogError(ex, "video reparsing error")
             End Try
         End Sub
-        Friend Shared Function GetVideoInfo(ByVal URL As String) As UserMedia
+        Friend Shared Function GetVideoInfo(ByVal URL As String) As IEnumerable(Of UserMedia)
             Try
                 If Not URL.IsEmptyString AndAlso URL.Contains("redgifs") Then
                     Using r As New UserData
                         r._TempMediaList.Add(MediaFromData(UTypes.VideoPre, URL, String.Empty, String.Empty,, False))
                         r.Responser = New PersonalUtilities.Tools.WEB.Response
-                        r.Responser.Copy(Settings.Site(Sites.Reddit).Responser)
+                        r.Responser.Copy(Settings(Sites.Reddit).Responser)
                         r.ReparseVideo(Nothing)
-                        If r._TempMediaList.ListExists Then Return r._TempMediaList(0)
+                        If r._TempMediaList.ListExists Then Return {r._TempMediaList(0)}
                     End Using
                 End If
                 Return Nothing
@@ -460,13 +465,23 @@ Namespace API.Reddit
                         Dim v As UserMedia
                         Dim cached As Boolean = IsChannel And SaveToCache
                         Dim vsf As Boolean = SeparateVideoFolderF
-                        Dim ImgFormat As Imaging.ImageFormat
                         Dim UseMD5 As Boolean = Not IsChannel Or (Not cached And Settings.ChannelsRegularCheckMD5)
                         Dim bDP As New ErrorsDescriber(EDP.None)
+                        Dim ImgurUrls As New List(Of String)
+                        Dim TryBytes As Func(Of String, Imaging.ImageFormat, String) =
+                            Function(ByVal __URL As String, ByVal ImgFormat As Imaging.ImageFormat) As String
+                                Try
+                                    Return ByteArrayToString(GetMD5(SFile.GetBytesFromNet(__URL, bDP), ImgFormat))
+                                Catch hash_ex As Exception
+                                    Return String.Empty
+                                End Try
+                            End Function
                         Dim MD5BS As Func(Of String, UTypes,
                                              SFile, Boolean, String) = Function(ByVal __URL As String, ByVal __MT As UTypes,
                                                                                 ByVal __File As SFile, ByVal __IsBase As Boolean) As String
                                                                            Try
+                                                                               ImgurUrls.Clear()
+                                                                               Dim ImgFormat As Imaging.ImageFormat
                                                                                If __MT = UTypes.GIF Then
                                                                                    ImgFormat = Imaging.ImageFormat.Gif
                                                                                ElseIf __IsBase Then
@@ -474,7 +489,27 @@ Namespace API.Reddit
                                                                                Else
                                                                                    ImgFormat = GetImageFormat(__File)
                                                                                End If
-                                                                               Return ByteArrayToString(GetMD5(SFile.GetBytesFromNet(__URL, bDP), ImgFormat))
+
+                                                                               Dim tmpBytes$ = TryBytes(__URL, ImgFormat)
+                                                                               If tmpBytes.IsEmptyString And Not __MT = UTypes.GIF Then
+                                                                                   ImgFormat = Imaging.ImageFormat.Png
+                                                                                   tmpBytes = TryBytes(__URL, ImgFormat)
+                                                                                   If Not tmpBytes.IsEmptyString Then Return tmpBytes
+                                                                               Else
+                                                                                   Return tmpBytes
+                                                                               End If
+
+                                                                               If tmpBytes.IsEmptyString And Not __MT = UTypes.GIF And __URL.Contains("imgur.com") Then
+                                                                                   For c% = 0 To 1
+                                                                                       If c = 0 Then
+                                                                                           ImgurUrls.ListAddList(Imgur.Envir.GetGallery(__URL))
+                                                                                       Else
+                                                                                           ImgurUrls.ListAddValue(Imgur.Envir.GetImage(__URL))
+                                                                                       End If
+                                                                                       If ImgurUrls.Count > 0 Then Exit For
+                                                                                   Next
+                                                                               End If
+                                                                               Return tmpBytes
                                                                            Catch hash_ex As Exception
                                                                                Return String.Empty
                                                                            End Try
@@ -496,41 +531,57 @@ Namespace API.Reddit
                                 m = String.Empty
                                 If (v.Type = UTypes.Picture Or v.Type = UTypes.GIF) And UseMD5 Then
                                     m = MD5BS(v.URL, v.Type, f, False)
-                                    If m.IsEmptyString AndAlso Not v.URL_BASE.IsEmptyString AndAlso Not v.URL_BASE = v.URL Then
+                                    If ImgurUrls.Count = 0 AndAlso m.IsEmptyString AndAlso Not v.URL_BASE.IsEmptyString AndAlso Not v.URL_BASE = v.URL Then
                                         m = MD5BS(v.URL_BASE, v.Type, f, True)
                                         If Not m.IsEmptyString Then v.URL = v.URL_BASE
                                     End If
                                 End If
 
                                 If (Not m.IsEmptyString AndAlso Not HashList.Contains(m)) Or Not (v.Type = UTypes.Picture Or
-                                                                                                  v.Type = UTypes.GIF) Or Not UseMD5 Then
-                                    If Not cached Then HashList.Add(m)
-                                    v.MD5 = m
-                                    f.Path = MyDir
-                                    Try
-                                        If (v.Type = UTypes.Video Or v.Type = UTypes.m3u8) And vsf Then f.Path = $"{f.PathWithSeparator}Video"
-                                        If v.Type = UTypes.m3u8 Then
-                                            f = M3U8.Download(v.URL, f)
-                                        Else
-                                            w.DownloadFile(v.URL, f.ToString)
-                                        End If
-                                        If Not v.Type = UTypes.m3u8 Or Not f.IsEmptyString Then
-                                            Select Case v.Type
-                                                Case UTypes.Picture : DownloadedPictures += 1 : _CountPictures += 1
-                                                Case UTypes.Video, UTypes.m3u8 : DownloadedVideos += 1 : _CountVideo += 1
-                                            End Select
-                                            If Not IsChannel Or Not SaveToCache Then
-                                                v.File = ChangeFileNameByProvider(f, v)
-                                            Else
-                                                v.File = f
+                                                                                                  v.Type = UTypes.GIF) Or Not UseMD5 Or ImgurUrls.Count > 0 Then
+                                    Do
+                                        If Not cached And Not m.IsEmptyString Then HashList.Add(m)
+                                        v.MD5 = m
+                                        If ImgurUrls.Count > 0 Then
+                                            If ImgurUrls(0).IsEmptyString Then ImgurUrls.RemoveAt(0) : Continue Do
+                                            f = UrlToFile(ImgurUrls(0))
+                                            If f.Extension.IsEmptyString Then f.Extension = "gif"
+                                            If f.Name.IsEmptyString Then
+                                                f.Path = MyDir
+                                                f.Name = $"ImgurImg_{v.File.Name}"
+                                                f = SFile.Indexed_IndexFile(f,,, EDP.ReturnValue)
                                             End If
-                                            v.Post.CachedFile = f
-                                            v.State = UStates.Downloaded
-                                            dCount += 1
                                         End If
-                                    Catch wex As Exception
-                                        If Not IsChannel Then ErrorDownloading(f, v.URL)
-                                    End Try
+                                        f.Path = MyDir
+                                        Try
+                                            If (v.Type = UTypes.Video Or v.Type = UTypes.m3u8 Or (ImgurUrls.Count > 0 AndAlso f.Extension = "mp4")) And
+                                                vsf Then f.Path = $"{f.PathWithSeparator}Video"
+                                            If v.Type = UTypes.m3u8 Then
+                                                f = M3U8.Download(v.URL, f)
+                                            ElseIf ImgurUrls.Count > 0 Then
+                                                w.DownloadFile(ImgurUrls(0), f.ToString)
+                                            Else
+                                                w.DownloadFile(v.URL, f.ToString)
+                                            End If
+                                            If Not v.Type = UTypes.m3u8 Or Not f.IsEmptyString Then
+                                                Select Case v.Type
+                                                    Case UTypes.Picture : DownloadedPictures += 1 : _CountPictures += 1
+                                                    Case UTypes.Video, UTypes.m3u8 : DownloadedVideos += 1 : _CountVideo += 1
+                                                End Select
+                                                If Not IsChannel Or Not SaveToCache Then
+                                                    v.File = ChangeFileNameByProvider(f, v)
+                                                Else
+                                                    v.File = f
+                                                End If
+                                                v.Post.CachedFile = f
+                                                v.State = UStates.Downloaded
+                                                dCount += 1
+                                            End If
+                                        Catch wex As Exception
+                                            If Not IsChannel Then ErrorDownloading(f, v.URL)
+                                        End Try
+                                        If ImgurUrls.Count > 0 Then ImgurUrls.RemoveAt(0)
+                                    Loop While ImgurUrls.Count > 0
                                 Else
                                     v.State = UStates.Skipped
                                 End If

@@ -24,7 +24,7 @@ Namespace API.Reddit
                 Return ADateTime.ParseUnicodeJS(Value, NothingArg, e)
             End Function
             Private Function GetFormat(ByVal FormatType As Type) As Object Implements IFormatProvider.GetFormat
-                Throw New NotImplementedException("GetFormat does not available in this context")
+                Throw New NotImplementedException("GetFormat is not available in this context")
             End Function
         End Class
         Friend Class JsonDateChannel : Implements ICustomProvider
@@ -34,7 +34,7 @@ Namespace API.Reddit
                 Return ADateTime.ParseUnicode(AConvert(Of Integer)(Value, EUR_PROVIDER, Value), NothingArg, e)
             End Function
             Private Function GetFormat(ByVal FormatType As Type) As Object Implements IFormatProvider.GetFormat
-                Throw New NotImplementedException("GetFormat does not available in this context")
+                Throw New NotImplementedException("GetFormat is not available in this context")
             End Function
         End Class
     End Module

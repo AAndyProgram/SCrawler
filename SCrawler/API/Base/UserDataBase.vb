@@ -78,6 +78,7 @@ Namespace API.Base
 #Region "Declarations"
         Friend MustOverride Property Site As Sites Implements IContentProvider.Site
         Friend User As UserInfo
+        Friend Property IsSavedPosts As Boolean
         Protected Const NonExistendUserHelp As String = "404"
         Protected Const SuspendedUserHelp As String = "403"
         Friend Overridable Property UserExists As Boolean = True Implements IUserData.Exists
@@ -329,17 +330,16 @@ BlockNullPicture:
                 Dim luv$ = String.Empty
                 If LastUpdated.HasValue Then luv = $"{LastUpdated.Value.ToStringDate(ADateTime.Formats.BaseDateTime)}: "
                 Return $"{luv}{Name} [{Site}]{IIf(HasError, " (with errors)", String.Empty)}: P - {_DownloadedPicturesTotal}; V - {_DownloadedVideosTotal}" &
-                    $" (P - {_CountPictures}; V - {_CountVideo})"
+                       $" (P - {_CountPictures}; V - {_CountVideo})"
             End Get
         End Property
 #End Region
-        Protected ReadOnly LNC As New ListAddParams(LAP.NotContainsOnly)
 #End Region
 #Region "LVI"
         Friend ReadOnly Property LVIKey As String Implements IUserData.LVIKey
             Get
                 If Not _IsCollection Then
-                    Return $"{IIf(Site = Sites.Reddit, "R", "T")}_{Name}"
+                    Return $"{Interaction.Switch(Site = Sites.Reddit, "R", Site = Sites.Twitter, "T", Site = Sites.Instagram, "I")}_{Name}"
                 Else
                     Return $"CCCC_{CollectionName}"
                 End If
@@ -361,14 +361,18 @@ BlockNullPicture:
         End Function
         Friend Overridable ReadOnly Property FitToAddParams As Boolean Implements IUserData.FitToAddParams
             Get
-                Select Case Settings.ShowingMode.Value
-                    Case ShowingModes.Regular : Return Not Temporary And Not Favorite
-                    Case ShowingModes.Temporary : Return Temporary
-                    Case ShowingModes.Favorite : Return Favorite
-                    Case ShowingModes.Labels : Return Settings.Labels.CurrentSelection.ListContains(Labels)
-                    Case ShowingModes.NoLabels : Return Labels.Count = 0
-                    Case Else : Return True
-                End Select
+                If Settings.SelectedSites.Count = 0 OrElse Settings.SelectedSites.Contains(Site) Then
+                    Select Case Settings.ShowingMode.Value
+                        Case ShowingModes.Regular : Return Not Temporary And Not Favorite
+                        Case ShowingModes.Temporary : Return Temporary
+                        Case ShowingModes.Favorite : Return Favorite
+                        Case ShowingModes.Labels : Return Settings.Labels.CurrentSelection.ListContains(Labels)
+                        Case ShowingModes.NoLabels : Return Labels.Count = 0
+                        Case Else : Return True
+                    End Select
+                Else
+                    Return False
+                End If
             End Get
         End Property
         Friend Function GetLVIGroup(ByVal Destination As ListView) As ListViewGroup Implements IUserData.GetLVIGroup
@@ -383,7 +387,7 @@ BlockNullPicture:
                         Return Destination.Groups.Item(LabelsKeeper.NoLabeledName)
                     End If
                 Else
-                    Return Destination.Groups.Item(GetLviGroupName(Site, Temporary, Favorite, IsCollection))
+                    Return Destination.Groups.Item(GetLviGroupName(Site, Temporary, Favorite, IsCollection, IsChannel))
                 End If
             Catch ex As Exception
                 Return Destination.Groups.Item(LabelsKeeper.NoLabeledName)
@@ -431,6 +435,7 @@ BlockNullPicture:
                         Return New Reddit.UserData(u, _LoadUserInformation)
                     End If
                 Case Sites.Twitter : Return New Twitter.UserData(u, _LoadUserInformation)
+                Case Sites.Instagram : Return New Instagram.UserData(u, _LoadUserInformation)
                 Case Else : Throw New ArgumentOutOfRangeException("Site", $"Site [{u.Site}] information does not recognized by loader")
             End Select
         End Function
@@ -503,7 +508,7 @@ BlockNullPicture:
 
                     x.Save(MyFile)
                 End Using
-                Settings.UpdateUsersList(User)
+                If Not IsSavedPosts Then Settings.UpdateUsersList(User)
             Catch ex As Exception
                 LogError(ex, "user information saving error")
             End Try
@@ -584,7 +589,8 @@ BlockNullPicture:
                 Select Case Site
                     Case Sites.Reddit : URL = $"https://www.reddit.com/{IIf(IsChannel, "r", "user")}/{Name}/"
                     Case Sites.Twitter : URL = $"https://twitter.com/{Name}"
-                    Case Else : MsgBoxE($"Site [{Site}] opening does not implemented", MsgBoxStyle.Exclamation)
+                    Case Sites.Instagram : URL = $"https://www.instagram.com/{Name}/"
+                    Case Else : MsgBoxE($"Site [{Site}] opening not implemented", MsgBoxStyle.Exclamation)
                 End Select
                 If Not URL.IsEmptyString Then Process.Start(URL)
             Catch ex As Exception
@@ -604,10 +610,12 @@ BlockNullPicture:
                 UpdateDataFiles()
                 If Not Responser Is Nothing Then Responser.Dispose()
                 Responser = New PersonalUtilities.Tools.WEB.Response
-                Responser.Copy(Settings.Site(Site).Responser)
+                Responser.Copy(Settings(Site).Responser)
                 Dim UpPic As Boolean = Settings.ViewModeIsPicture AndAlso GetPicture(False) Is Nothing
                 Dim sEnvir() As Boolean = {UserExists, UserSuspended}
                 Dim EnvirChanged As Func(Of Boolean) = Function() Not sEnvir(0) = UserExists Or Not sEnvir(1) = UserSuspended
+                UserExists = True
+                UserSuspended = False
                 _DownloadedPicturesSession = 0
                 _DownloadedVideosSession = 0
                 _TempMediaList.Clear()
@@ -714,7 +722,7 @@ BlockNullPicture:
         End Function
         Friend Function DeleteF(ByVal Instance As IUserData) As Integer
             Dim f As SFile = SFile.GetPath(MyFile.CutPath.Path)
-            If f.Exists(SFO.Path, False) AndAlso f.Delete(SFO.Path, False, False) Then
+            If f.Exists(SFO.Path, False) AndAlso (User.Merged OrElse f.Delete(SFO.Path, False, False)) Then
                 ImageHandler(Me, False)
                 Settings.UsersList.Remove(User)
                 Settings.UpdateUsersList()
@@ -919,7 +927,7 @@ BlockNullPicture:
 #End Region
 #Region "IEquatable Support"
         Friend Overridable Overloads Function Equals(ByVal Other As UserDataBase) As Boolean Implements IEquatable(Of UserDataBase).Equals
-            Return Site = Other.Site And Name = Other.Name
+            Return Site = Other.Site And Name = Other.Name And IsSavedPosts = Other.IsSavedPosts
         End Function
         Public Overrides Function Equals(ByVal Obj As Object) As Boolean
             If TypeOf Obj Is Reddit.Channel Then

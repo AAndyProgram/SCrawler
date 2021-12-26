@@ -26,7 +26,7 @@ Friend Class VideosDownloaderForm
             MyView = New FormsView(Me)
             MyView.ImportFromXML(Settings.Design)
             MyView.SetMeSize()
-            RefillList()
+            RefillList(False)
         Catch ex As Exception
         End Try
     End Sub
@@ -36,9 +36,7 @@ Friend Class VideosDownloaderForm
     End Sub
     Private Sub VideosDownloaderForm_Disposed(sender As Object, e As EventArgs) Handles Me.Disposed
         If Not MyView Is Nothing Then MyView.Dispose(Settings.Design)
-        If UrlList.Count > 0 Then
-            TextSaver.SaveTextToFile(UrlList.ListToString(, Environment.NewLine), DownloadingUrlsFile, True,, EDP.SendInLog)
-        End If
+        If UrlList.Count > 0 Then UpdateUrlsFile()
         UrlList.Clear()
     End Sub
     Private Sub VideosDownloaderForm_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
@@ -51,16 +49,24 @@ Friend Class VideosDownloaderForm
         End Select
         If b Then e.Handled = True
     End Sub
-    Private Sub RefillList()
+    Private Sub RefillList(Optional ByVal Update As Boolean = True)
         Try
             With LIST_VIDEOS
                 .Items.Clear()
                 If UrlList.Count > 0 Then UrlList.ForEach(Sub(u) .Items.Add(u))
                 If .Items.Count > 0 And _LatestSelected >= 0 And _LatestSelected <= .Items.Count - 1 Then .SelectedIndex = _LatestSelected
+                If Update Then UpdateUrlsFile()
             End With
         Catch ex As Exception
             ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Error on list refill")
         End Try
+    End Sub
+    Private Sub UpdateUrlsFile()
+        If UrlList.Count > 0 Then
+            TextSaver.SaveTextToFile(UrlList.ListToString(, Environment.NewLine), DownloadingUrlsFile, True,, EDP.SendInLog)
+        Else
+            If DownloadingUrlsFile.Exists Then DownloadingUrlsFile.Delete(,,, EDP.SendInLog)
+        End If
     End Sub
     Private Sub BTT_ADD_Click(sender As Object, e As EventArgs) Handles BTT_ADD.Click
         AddVideo()

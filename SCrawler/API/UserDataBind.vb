@@ -407,7 +407,7 @@ Namespace API
                 Dim f As SFile
                 If MsgBoxE({$"Collection may contain data{vbCr}Do you really want to delete collection and all of it files?", "Collection deleting"},
                            MsgBoxStyle.Exclamation + MsgBoxStyle.YesNo) = MsgBoxResult.Yes Then
-                    f = Collections(0).File.CutPath(2).PathWithSeparator
+                    f = Collections(0).File.CutPath(IIf(DataMerging, 1, 2)).PathWithSeparator
                     Settings.Users.Remove(Me)
                     Collections.ForEach(Sub(c) c.Delete())
                     Downloader.UserRemove(Me)

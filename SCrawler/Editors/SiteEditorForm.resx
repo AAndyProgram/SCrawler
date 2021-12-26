@@ -117,9 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <metadata name="TP_MAIN.GenerateMember" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>False</value>
-  </metadata>
   <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
   <data name="ActionButton1.BackgroundImage" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
@@ -220,19 +217,6 @@
         xAAADsQBlSsOGwAAAIZJREFUOE+1j10KwCAMgz2b755xl/IsvnaL2K20UfbDAmEako+ZROSTafjE12Go
         tbbB43rK5xSAQq1VYFtmeQBoqZTSreVZvgTknM8yyyjA/qodsDF9gspD2Bj6B+DH+NqzhQQAG+POMnSX
         AFuc5QFgn6ClHh5iOQVAKNixyucB8NY0vG9JOzzyhrdq5IRgAAAAAElFTkSuQmCC
-</value>
-  </data>
-  <data name="$this.Icon" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
-    <value>
-        AAABAAEAICAAAAEAIADLAQAAFgAAAIlQTkcNChoKAAAADUlIRFIAAAAgAAAAIAgGAAAAc3p69AAAAZJJ
-        REFUeAFiGDZgFMguBPBazwB6BEAUx2PbttHFqmJ2sW1UsbrY6NLFrmL2sW3jbMz9z1rNqvh9wry3QnQ5
-        LMRdRCAez7AVDQ1+3w2lc9+UwXwP4W3wFGIiBhPQANNxDScKDhgDwWIX4XXxCWIjDekQ/EKjgkP2QJCO
-        DcoCRyAKbzAY07Ewd8hRSAHnUMtBeA0kQxQSIXiM6rmD9kKK+I7pKGlRYAzEhQeoX3DQWIiJJ5iFSgYF
-        5kCUHqFy0UHl8QViIQ6nsAjdUBujIUrXzVbncKRCFFIgSheMwtdiClaqh+odNiqwDxKSFWarX0LS16hA
-        SdyHBCwa5c12wk74DwnQMbszW1c8gwRksF2B2uiIdfgL8dETlLQr0CLAw3CM06vblgDCL2kur6VxAuKT
-        CDTT3mSUxDx8hHiQipGqcIMi3XEPopSO6V7DR+ApRCkJU9yElkEvrPVwPniLXprQgbiNLx4PwXjsQGW3
-        9/TTcQfpEIVf2KLa023KtMJSHMMj/IEgFf/xEhexGQNQJmMMQxmMAgBkarVAZoTAyQAAAABJRU5ErkJg
-        gg==
 </value>
   </data>
 </root>

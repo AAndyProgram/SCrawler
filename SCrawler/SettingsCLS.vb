@@ -13,6 +13,7 @@ Imports SCrawler.API.Base
 Friend Class SettingsCLS : Implements IDisposable
     Friend Const DefaultMaxDownloadingTasks As Integer = 5
     Friend Const Name_Node_Sites As String = "Sites"
+    Private Const SitesValuesSeparator As String = ","
     Friend ReadOnly Design As XmlFile
     Private ReadOnly MyXML As XmlFile
     Friend ReadOnly OS64 As Boolean
@@ -44,11 +45,6 @@ Friend Class SettingsCLS : Implements IDisposable
 
         GlobalPath = New XMLValue(Of SFile)("GlobalPath", New SFile($"{SFile.GetPath(Application.StartupPath).PathWithSeparator}Data\"), MyXML,,
                                             XMLValue(Of SFile).ToFilePath)
-        MySites = New Dictionary(Of Sites, SiteSettings) From {
-            {Sites.Reddit, New SiteSettings(Sites.Reddit, MyXML, GlobalPath.Value)},
-            {Sites.Twitter, New SiteSettings(Sites.Twitter, MyXML, GlobalPath.Value)}
-        }
-        MySites(Sites.Reddit).Responser.Decoders.Add(SymbolsConverter.Converters.Unicode)
 
         SeparateVideoFolder = New XMLValue(Of Boolean)("SeparateVideoFolder", True, MyXML)
         CollectionsPath = New XMLValue(Of String)("CollectionsPath", "Collections", MyXML)
@@ -62,33 +58,12 @@ Friend Class SettingsCLS : Implements IDisposable
         DefaultDownloadVideos.ReplaceByValue("DefaultDownloadVideos")
         ChangeReadyForDownOnTempChange = New XMLValue(Of Boolean)("ChangeReadyForDownOnTempChange", True, MyXML, n)
 
-        n = {Name_Node_Sites, Sites.Reddit.ToString}
-        RedditTemporary = New XMLValue(Of Boolean)
-        RedditTemporary.SetExtended("Temporary", False, MyXML, n)
-        RedditTemporary.SetDefault(DefaultTemporary)
-
-        RedditDownloadImages = New XMLValue(Of Boolean)
-        RedditDownloadImages.SetExtended("DownloadImages", True, MyXML, n)
-        RedditDownloadImages.SetDefault(DefaultDownloadImages)
-
-        RedditDownloadVideos = New XMLValue(Of Boolean)
-        RedditDownloadVideos.SetExtended("DownloadVideos", True, MyXML, n)
-        RedditDownloadVideos.SetDefault(DefaultDownloadVideos)
-
-        n = {Name_Node_Sites, Sites.Twitter.ToString}
-        TwitterTemporary = New XMLValue(Of Boolean)
-        TwitterTemporary.SetExtended("Temporary", False, MyXML, n)
-        TwitterTemporary.SetDefault(DefaultTemporary)
-
-        TwitterDownloadImages = New XMLValue(Of Boolean)
-        TwitterDownloadImages.SetExtended("DownloadImages", True, MyXML, n)
-        TwitterDownloadImages.SetDefault(DefaultDownloadImages)
-
-        TwitterDownloadVideos = New XMLValue(Of Boolean)
-        TwitterDownloadVideos.SetExtended("DownloadVideos", True, MyXML, n)
-        TwitterDownloadVideos.SetDefault(DefaultDownloadVideos)
-
-        TwitterDefaultGetUserMedia = New XMLValue(Of Boolean)("TwitterDefaultGetUserMedia", True, MyXML, n)
+        MySites = New Dictionary(Of Sites, SiteSettings) From {
+            {Sites.Reddit, New SiteSettings(Sites.Reddit, MyXML, GlobalPath.Value, DefaultTemporary, DefaultDownloadImages, DefaultDownloadVideos)},
+            {Sites.Twitter, New SiteSettings(Sites.Twitter, MyXML, GlobalPath.Value, DefaultTemporary, DefaultDownloadImages, DefaultDownloadVideos)},
+            {Sites.Instagram, New SiteSettings(Sites.Instagram, MyXML, GlobalPath.Value, DefaultTemporary, DefaultDownloadImages, DefaultDownloadVideos)}
+        }
+        MySites(Sites.Reddit).Responser.Decoders.Add(SymbolsConverter.Converters.Unicode)
 
         MaxLargeImageHeigh = New XMLValue(Of Integer)("MaxLargeImageHeigh", 150, MyXML)
         MaxSmallImageHeigh = New XMLValue(Of Integer)("MaxSmallImageHeigh", 15, MyXML)
@@ -99,6 +74,14 @@ Friend Class SettingsCLS : Implements IDisposable
         LatestSavingPath = New XMLValue(Of SFile)("LatestSavingPath", Nothing, MyXML,, XMLValue(Of SFile).ToFilePath)
         LatestSelectedLabels = New XMLValue(Of String)("LatestSelectedLabels",, MyXML)
         LatestSelectedChannel = New XMLValue(Of String)("LatestSelectedChannel",, MyXML)
+
+        XMLSelectedSites = New XMLValue(Of String)("SelectedSites", String.Empty, MyXML, {Name_Node_Sites})
+        If Not XMLSelectedSites.IsEmptyString Then
+            _SelectedSites = XMLSelectedSites.Value.StringToList(Of Sites)(SitesValuesSeparator)
+        End If
+        If _SelectedSites Is Nothing Then _SelectedSites = New List(Of Sites)
+
+        ImgurClientID = New XMLValue(Of String)("ImgurClientID", String.Empty, MyXML, {Name_Node_Sites})
 
         n = {Name_Node_Sites, "Channels"}
         ChannelsDefaultReadyForDownload = New XMLValue(Of Boolean)("ChannelsDefaultReadyForDownload", False, MyXML, n)
@@ -300,7 +283,7 @@ Friend Class SettingsCLS : Implements IDisposable
         _UpdatesSuspended = False
         ChangeDateProvider(Nothing, Nothing, Nothing)
     End Sub
-    Friend ReadOnly Property Site(ByVal s As Sites) As SiteSettings
+    Default Friend ReadOnly Property Site(ByVal s As Sites) As SiteSettings
         Get
             Return MySites(s)
         End Get
@@ -318,22 +301,12 @@ Friend Class SettingsCLS : Implements IDisposable
         End Get
     End Property
     Friend ReadOnly Property MaxUsersJobsCount As XMLValue(Of Integer)
+    Friend ReadOnly Property ImgurClientID As XMLValue(Of String)
 #Region "Defaults"
     Friend ReadOnly Property DefaultTemporary As XMLValue(Of Boolean)
     Friend ReadOnly Property DefaultDownloadImages As XMLValue(Of Boolean)
     Friend ReadOnly Property DefaultDownloadVideos As XMLValue(Of Boolean)
     Friend ReadOnly Property ChangeReadyForDownOnTempChange As XMLValue(Of Boolean)
-#Region "Reddit"
-    Friend ReadOnly Property RedditTemporary As XMLValue(Of Boolean)
-    Friend ReadOnly Property RedditDownloadImages As XMLValue(Of Boolean)
-    Friend ReadOnly Property RedditDownloadVideos As XMLValue(Of Boolean)
-#End Region
-#Region "Twitter"
-    Friend ReadOnly Property TwitterTemporary As XMLValue(Of Boolean)
-    Friend ReadOnly Property TwitterDownloadImages As XMLValue(Of Boolean)
-    Friend ReadOnly Property TwitterDownloadVideos As XMLValue(Of Boolean)
-    Friend ReadOnly Property TwitterDefaultGetUserMedia As XMLValue(Of Boolean)
-#End Region
 #End Region
 #Region "User data"
     Friend ReadOnly Property FromChannelDownloadTop As XMLValue(Of Integer)
@@ -360,6 +333,22 @@ Friend Class SettingsCLS : Implements IDisposable
         End Get
     End Property
     Friend ReadOnly Property ShowingMode As XMLValue(Of Integer)
+    Private ReadOnly Property XMLSelectedSites As XMLValue(Of String)
+    Private ReadOnly _SelectedSites As List(Of Sites)
+    Friend Property SelectedSites As List(Of Sites)
+        Get
+            Return _SelectedSites
+        End Get
+        Set(ByVal s As List(Of Sites))
+            _SelectedSites.Clear()
+            If s.ListExists Then
+                _SelectedSites.ListAddList(s)
+                XMLSelectedSites.Value = ListAddList(Of Integer, Sites)(Nothing, s).ListToString(, SitesValuesSeparator)
+            Else
+                XMLSelectedSites.Value = String.Empty
+            End If
+        End Set
+    End Property
 #End Region
 #Region "Latest values"
     Friend ReadOnly Property LatestSavingPath As XMLValue(Of SFile)

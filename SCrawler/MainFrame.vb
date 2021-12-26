@@ -46,19 +46,30 @@ Public Class MainFrame
         MainProgress = New Toolbars.MyProgress(Toolbar_BOTTOM, PR_MAIN, LBL_STATUS) With {.DropCurrentProgressOnTotalChange = False}
         Dim gk$
         With LIST_PROFILES.Groups
-            gk = GetLviGroupName(Sites.Undefined, False, False, True)
+            'Collections
+            gk = GetLviGroupName(Sites.Undefined, False, True, True, False)
             .Add(New ListViewGroup(gk, gk))
-            gk = GetLviGroupName(Sites.Undefined, False, True, True)
+            gk = GetLviGroupName(Sites.Undefined, False, False, True, False)
             .Add(New ListViewGroup(gk, gk))
-            gk = GetLviGroupName(Sites.Undefined, True, False, True)
+            gk = GetLviGroupName(Sites.Undefined, True, False, True, False)
             .Add(New ListViewGroup(gk, gk))
-            For Each s In {Sites.Reddit, Sites.Twitter}
-                gk = GetLviGroupName(s, False, True, False)
-                .Add(New ListViewGroup(gk, gk))
-                gk = GetLviGroupName(s, False, False, False)
-                .Add(New ListViewGroup(gk, gk))
-                gk = GetLviGroupName(s, True, False, False)
-                .Add(New ListViewGroup(gk, gk))
+            'Channels
+            gk = GetLviGroupName(Sites.Undefined, False, True, False, True)
+            .Add(New ListViewGroup(gk, gk))
+            gk = GetLviGroupName(Sites.Undefined, False, False, False, True)
+            .Add(New ListViewGroup(gk, gk))
+            gk = GetLviGroupName(Sites.Undefined, True, False, False, True)
+            .Add(New ListViewGroup(gk, gk))
+            'Sites
+            For Each s As Sites In [Enum].GetValues(GetType(Sites))
+                If Not s = Sites.Undefined Then
+                    gk = GetLviGroupName(s, False, True, False, False)
+                    .Add(New ListViewGroup(gk, gk))
+                    gk = GetLviGroupName(s, False, False, False, False)
+                    .Add(New ListViewGroup(gk, gk))
+                    gk = GetLviGroupName(s, True, False, False, False)
+                    .Add(New ListViewGroup(gk, gk))
+                End If
             Next
             If Settings.Labels.Count > 0 Then Settings.Labels.ToList.ForEach(Sub(l) .Add(New ListViewGroup(l, l)))
             .Add(Settings.Labels.NoLabel)
@@ -72,6 +83,8 @@ Public Class MainFrame
         UpdateLabelsGroups()
         SetShowButtonsCheckers(Settings.ShowingMode.Value)
         CheckVersion(False)
+        BTT_SITE_ALL.Checked = Settings.SelectedSites.Count = 0
+        BTT_SITE_SPECIFIC.Checked = Settings.SelectedSites.Count > 0
         _UFinit = False
         GoTo EndFunction
 FormClosingInvoker:
@@ -89,12 +102,13 @@ EndFunction:
                         "Downloading in progress"},
                        MsgBoxStyle.Exclamation,,,
                        {"Stop downloading and close", "Cancel"}) = 0 Then
-                If Downloader.Working Then _CloseInvoked = True : Downloader.Stop()
+                If Downloader.Working Then _CloseInvoked = True : Downloader.Stop() : Downloader.DownloadSavedPostsStop()
+                If Downloader.SavedPostsDownloading Then _CloseInvoked = True : Downloader.DownloadSavedPostsStop()
                 If ChannelsWorking.Invoke Then _CloseInvoked = True : MyChannels.Stop(False)
                 If _CloseInvoked Then
                     e.Cancel = True
                     Await Task.Run(Sub()
-                                       While Downloader.Working Or ChannelsWorking.Invoke : Thread.Sleep(500) : End While
+                                       While Downloader.Working Or ChannelsWorking.Invoke Or Downloader.SavedPostsDownloading : Thread.Sleep(500) : End While
                                    End Sub)
                 End If
                 Downloader.Dispose()
@@ -240,10 +254,13 @@ CloseResume:
 #Region "Toolbar buttons"
 #Region "Settings"
     Private Sub BTT_SETTINGS_REDDIT_Click(sender As Object, e As EventArgs) Handles BTT_SETTINGS_REDDIT.Click
-        Using f As New RedditEditorForm : f.ShowDialog() : End Using
+        Using f As New SiteEditorForm(Sites.Reddit) : f.ShowDialog() : End Using
     End Sub
     Private Sub BTT_SETTINGS_TWITTER_Click(sender As Object, e As EventArgs) Handles BTT_SETTINGS_TWITTER.Click
-        Using f As New TwitterEditorForm : f.ShowDialog() : End Using
+        Using f As New SiteEditorForm(Sites.Twitter) : f.ShowDialog() : End Using
+    End Sub
+    Private Sub BTT_SETTINGS_INSTAGRAM_Click(sender As Object, e As EventArgs) Handles BTT_SETTINGS_INSTAGRAM.Click
+        Using f As New SiteEditorForm(Sites.Instagram) : f.ShowDialog() : End Using
     End Sub
     Private Sub BTT_SETTINGS_Click(sender As Object, e As EventArgs) Handles BTT_SETTINGS.Click
         Dim mhl% = Settings.MaxLargeImageHeigh.Value
@@ -270,19 +287,21 @@ CloseResume:
                         If Not UserBanned(f.User.Name) Then
                             Settings.UpdateUsersList(f.User)
                             Settings.Users.Add(UserDataBase.GetInstance(f.User))
-                            With Settings.Users(Settings.Users.Count - 1)
-                                .Favorite = f.UserFavorite
-                                .Temporary = f.UserTemporary
-                                .ParseUserMediaOnly = f.UserMediaOnly
-                                .ReadyForDownload = f.UserReady
-                                .DownloadImages = f.DownloadImages
-                                .DownloadVideos = f.DownloadVideos
-                                .FriendlyName = f.UserFriendly
-                                .Description = f.UserDescr
-                                .Self.Labels.ListAddList(f.UserLabels, LAP.ClearBeforeAdd, LAP.NotContainsOnly)
-                                .UpdateUserInformation()
+                            With Settings.Users.Last
+                                If Not .FileExists Then
+                                    .Favorite = f.UserFavorite
+                                    .Temporary = f.UserTemporary
+                                    .ParseUserMediaOnly = f.UserMediaOnly
+                                    .ReadyForDownload = f.UserReady
+                                    .DownloadImages = f.DownloadImages
+                                    .DownloadVideos = f.DownloadVideos
+                                    .FriendlyName = f.UserFriendly
+                                    .Description = f.UserDescr
+                                    .Self.Labels.ListAddList(f.UserLabels, LAP.ClearBeforeAdd, LAP.NotContainsOnly)
+                                    .UpdateUserInformation()
+                                End If
                             End With
-                            UserListUpdate(Settings.Users(Settings.Users.Count - 1), True)
+                            UserListUpdate(Settings.Users.Last, True)
                             i = LIST_PROFILES.Items.IndexOfKey(Settings.Users(Settings.Users.Count - 1).LVIKey)
                             If i >= 0 Then
                                 LIST_PROFILES.SelectedIndices.Clear()
@@ -340,6 +359,9 @@ CloseResume:
         End If
         If MyChannels.Visible Then MyChannels.BringToFront() Else MyChannels.Show()
     End Sub
+    Private Sub BTT_DOWN_SAVED_Click(sender As Object, e As EventArgs) Handles BTT_DOWN_SAVED.Click
+        Downloader.DownloadSavedPostsStart(Toolbar_BOTTOM, PR_SAVED)
+    End Sub
 #End Region
 #Region "Download"
     Private Sub BTT_DOWN_SELECTED_Click(sender As Object, e As EventArgs) Handles BTT_DOWN_SELECTED.Click
@@ -386,6 +408,25 @@ CloseResume:
         BTT_VIEW_LARGE.Checked = Large
         BTT_VIEW_SMALL.Checked = Small
         BTT_VIEW_LIST.Checked = List
+    End Sub
+#End Region
+#Region "View Site"
+    Private Sub BTT_SITE_ALL_Click(sender As Object, e As EventArgs) Handles BTT_SITE_ALL.Click
+        Settings.SelectedSites = Nothing
+        If Not BTT_SITE_ALL.Checked Then Settings.SelectedSites = Nothing : RefillList()
+        BTT_SITE_ALL.Checked = True
+        BTT_SITE_SPECIFIC.Checked = False
+    End Sub
+    Private Sub BTT_SITE_SPECIFIC_Click(sender As Object, e As EventArgs) Handles BTT_SITE_SPECIFIC.Click
+        Using f As New SiteSelectionForm(Settings.SelectedSites)
+            f.ShowDialog()
+            If f.DialogResult = DialogResult.OK Then
+                Settings.SelectedSites = f.SelectedSites
+                BTT_SITE_SPECIFIC.Checked = Settings.SelectedSites.Count > 0
+                BTT_SITE_ALL.Checked = Settings.SelectedSites.Count = 0
+                RefillList()
+            End If
+        End Using
     End Sub
 #End Region
 #Region "Labels"
@@ -631,6 +672,86 @@ CloseResume:
             End If
         End If
     End Sub
+    Private Sub BTT_CONTEXT_CHANGE_FOLDER_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_CHANGE_FOLDER.Click
+        Try
+            Dim users As List(Of IUserData) = GetSelectedUserArray()
+            If users.ListExists Then
+                If users.Count = 1 Then
+                    Dim CutOption% = 1
+                    Dim _IsCollection As Boolean = False
+                    With users(0)
+                        If .IsCollection Then
+                            _IsCollection = True
+                            With DirectCast(.Self, UserDataBind)
+                                If .Count = 0 Then
+                                    Throw New ArgumentOutOfRangeException("Collection", "Collection is empty")
+                                Else
+                                    With DirectCast(.Collections(0).Self, UserDataBase)
+                                        If Not .User.Merged Then CutOption = 2
+                                    End With
+                                End If
+                            End With
+                        End If
+                    End With
+
+                    Dim CurrDir As SFile = users(0).File.CutPath(CutOption)
+                    Dim NewDest As SFile = SFile.GetPath(InputBoxE($"Enter a new destination for user [{users(0)}]", "Change user folder", CurrDir.Path))
+                    If Not NewDest.IsEmptyString Then
+                        If MsgBoxE({$"You are changing the user's [{users(0)}] destination" & vbCr &
+                                    $"Current destination: {CurrDir.PathNoSeparator}" & vbCr &
+                                    $"New destination: {NewDest.Path}",
+                                    "Changing user destination"}, MsgBoxStyle.Exclamation,,, {"Confirm", "Cancel"}) = 0 Then
+                            If Not NewDest.IsEmptyString AndAlso
+                               (Not NewDest.Exists(SFO.Path, False) OrElse
+                                    (
+                                        SFile.GetFiles(NewDest,, IO.SearchOption.AllDirectories, EDP.ThrowException).ListIfNothing.Count = 0 AndAlso
+                                        NewDest.Delete(SFO.Path, False, False, EDP.ThrowException) AndAlso
+                                        Not NewDest.Exists(SFO.Path, False)
+                                    )
+                               ) Then
+                                NewDest.CutPath.Exists(SFO.Path)
+                                IO.Directory.Move(CurrDir.Path, NewDest.Path)
+                                Dim ApplyChanges As Action(Of IUserData) = Sub(ByVal __user As IUserData)
+                                                                               With DirectCast(__user.Self, UserDataBase)
+                                                                                   Dim u As UserInfo = .User.Clone
+                                                                                   Settings.UsersList.Remove(u)
+                                                                                   Dim d As SFile = Nothing
+                                                                                   If _IsCollection Then d = SFile.GetPath($"{NewDest.PathWithSeparator}{u.File.PathFolders(1).LastOrDefault}")
+                                                                                   If d.IsEmptyString Then d = NewDest
+                                                                                   u.SpecialPath = d.PathWithSeparator
+                                                                                   u.UpdateUserFile()
+                                                                                   Settings.UpdateUsersList(u)
+                                                                                   .User = u.Clone
+                                                                                   .UpdateUserInformation()
+                                                                               End With
+                                                                           End Sub
+                                If users(0).IsCollection Then
+                                    With DirectCast(users(0), UserDataBind)
+                                        For Each user In .Collections : ApplyChanges(user) : Next
+                                    End With
+                                Else
+                                    ApplyChanges(users(0))
+                                End If
+                                MsgBoxE($"User data has been moved")
+                            Else
+                                MsgBoxE($"Unable to move user data to new destination [{NewDest}]{vbCr}Operation canceled", MsgBoxStyle.Critical)
+                            End If
+                        Else
+                            MsgBoxE("Operation canceled")
+                        End If
+                    Else
+                        MsgBoxE("You have not entered a new destination" & vbCr & "Operation canceled", MsgBoxStyle.Exclamation)
+                    End If
+                Else
+                    MsgBoxE("You have selected multiple users. You can change the folder only for one user!", MsgBoxStyle.Critical)
+                End If
+            Else
+                MsgBoxE("No one user selected", MsgBoxStyle.Exclamation)
+            End If
+        Catch ex As Exception
+            ErrorsDescriber.Execute(EDP.ShowAllMsg, ex, "Error while moving user")
+        End Try
+    End Sub
     Private Sub BTT_CONTEXT_OPEN_PATH_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_OPEN_PATH.Click
         OpenFolder()
     End Sub
@@ -745,26 +866,51 @@ CloseResume:
                 If USER_CONTEXT.Visible Then USER_CONTEXT.Hide()
                 Dim ugn As Func(Of IUserData, String) = Function(u) $"{IIf(u.IsCollection, "Collection", "User")}: {u.Name}"
                 Dim m As New MMessage(users.Select(ugn).ListToString(, vbNewLine), "Users deleting",
-                                      {New Messaging.MsgBoxButton("Delete and ban") With {.ToolTip = "Users will be deleted and added to the blacklist"},
+                                      {New Messaging.MsgBoxButton("Delete and ban") With {.ToolTip = "Users and their data will be deleted and added to the blacklist"},
+                                       New Messaging.MsgBoxButton("Delete user only and ban") With {
+                                            .ToolTip = "Users will be deleted and added to the blacklist (user data will not be deleted)"},
                                        New Messaging.MsgBoxButton("Delete and ban with reason") With {
-                                            .ToolTip = "Users will be deleted and added to the blacklist with set a reason to delete"},
-                                       "Delete", "Cancel"}, MsgBoxStyle.Exclamation) With {.ButtonsPerRow = 2}
+                                            .ToolTip = "Users and their data will be deleted and added to the blacklist with set a reason to delete"},
+                                       New Messaging.MsgBoxButton("Delete user only and ban with reason") With {
+                                            .ToolTip = "Users will be deleted and added to the blacklist with set a reason to delete (user data will not be deleted)"},
+                                       New Messaging.MsgBoxButton("Delete") With {.ToolTip = "Delete users and their data"},
+                                       New Messaging.MsgBoxButton("Delete user only") With {.ToolTip = "Delete users but keep data"}, "Cancel"},
+                                      MsgBoxStyle.Exclamation) With {.ButtonsPerRow = 2, .ButtonsPlacing = MMessage.ButtonsPlacings.StartToEnd}
                 m.Text = $"The following users ({users.Count}) will be deleted:{vbNewLine}{m.Text}"
                 Dim result% = MsgBoxE(m)
-                If result < 3 Then
+                If result < 6 Then
                     Dim removedUsers As New List(Of String)
+                    Dim keepData As Boolean = Not (result Mod 2) = 0
+                    Dim banUser As Boolean = result < 4
+                    Dim setReason As Boolean = banUser And result > 1
                     Dim leftUsers As New List(Of String)
                     Dim l As New ListAddParams(LAP.NotContainsOnly)
                     Dim b As Boolean = False
                     Dim reason$ = String.Empty
-                    If result = 1 Then reason = InputBoxE("Enter a deletion reason:", "Deletion reason")
+                    If setReason Then reason = InputBoxE("Enter a deletion reason:", "Deletion reason")
                     For Each user In users
-                        If user.Delete > 0 Then
-                            If result < 2 Then Settings.BlackList.ListAddValue(New UserBan(user.Name, reason), l) : b = True
+                        If keepData Then
+                            If banUser Then Settings.BlackList.ListAddValue(New UserBan(user.Name, reason), l) : b = True
+                            If user.IsCollection Then
+                                With DirectCast(user, UserDataBind)
+                                    If .Count > 0 Then .Collections.ForEach(Sub(c) Settings.UsersList.Remove(DirectCast(c.Self, UserDataBase).User))
+                                End With
+                            Else
+                                Settings.UsersList.Remove(DirectCast(user.Self, UserDataBase).User)
+                            End If
+                            Settings.Users.Remove(user)
+                            Settings.UpdateUsersList()
                             RemoveUserFromList(user)
                             removedUsers.Add(ugn(user))
+                            user.Dispose()
                         Else
-                            leftUsers.Add(ugn(user))
+                            If user.Delete > 0 Then
+                                If banUser Then Settings.BlackList.ListAddValue(New UserBan(user.Name, reason), l) : b = True
+                                RemoveUserFromList(user)
+                                removedUsers.Add(ugn(user))
+                            Else
+                                leftUsers.Add(ugn(user))
+                            End If
                         End If
                     Next
                     m = New MMessage(String.Empty, "Users deleting")
