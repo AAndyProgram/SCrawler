@@ -39,8 +39,8 @@ You can read about Instagram restrictions [here](https://github.com/AAndyProgram
 - Authorization cookies and tokens for Twitter (if you want to download data from Twitter)
 - Authorization cookies Instagram (if you want to download data from Instagram)
 - ffmpeg library for downloading videos hosted on Reddit (you can download it from the [official repo](https://github.com/GyanD/codexffmpeg/releases/tag/2021-01-12-git-ca21cb1e36) or [from my first release](https://github.com/AAndyProgram/SCrawler/releases/download/1.0.0.0/ffmpeg.zip))
-- Don't put program in the ```Program Files``` system folder (this is portable program and program settings are stored in the program folder)
-- Just unzip the program archive to any folder, copy the file ```ffmpeg.exe``` into it and enjoy. :)
+- **Don't put program in the ```Program Files``` system folder (this is portable program and program settings are stored in the program folder)**
+- **Just unzip the program archive to any folder, copy the file ```ffmpeg.exe``` into it and enjoy. :)**
 
 # Updating
 
