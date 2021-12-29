@@ -7,6 +7,7 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports PersonalUtilities.Functions.XML
+Imports PersonalUtilities.Tools.WEB
 Imports SCrawler.API
 Imports SCrawler.API.Base
 Friend Module MainMod
@@ -225,6 +226,7 @@ Friend Module MainMod
             If Not URL.IsEmptyString Then
                 Dim um As IEnumerable(Of UserMedia) = Nothing
                 Dim site As Sites
+                Dim IsImgur As Boolean = False
                 If URL.Contains("twitter") Then
                     um = Twitter.UserData.GetVideoInfo(URL)
                     site = Sites.Twitter
@@ -234,6 +236,9 @@ Friend Module MainMod
                 ElseIf URL.Contains("instagram.com") Then
                     um = Instagram.UserData.GetVideoInfo(URL)
                     site = Sites.Instagram
+                ElseIf URL.Contains("imgur.com") Then
+                    um = Imgur.Envir.GetVideoInfo(URL)
+                    IsImgur = True
                 Else
                     MsgBoxE("Site of video URL does not recognized" & vbCr & "Operation canceled", MsgBoxStyle.Exclamation, e)
                     Return False
@@ -250,8 +255,8 @@ Friend Module MainMod
                                    Settings.LatestSavingPath.Value.Exists(SFO.Path, False) Then f.Path = Settings.LatestSavingPath.Value
                             If AskForPath OrElse Not f.Exists(SFO.Path, False) Then
 #Disable Warning BC40000
-                                If site = Sites.Instagram Then
-                                    ff = SFile.SaveAs(f, "Instagram files destination",,,, EDP.ReturnValue)
+                                If site = Sites.Instagram Or IsImgur Then
+                                    ff = SFile.SaveAs(f, "Files destination",,,, EDP.ReturnValue)
                                     If Not ff.IsEmptyString Then
                                         f.Path = ff.Path
                                     Else
@@ -395,4 +400,9 @@ Friend Module MainMod
         Return UserBanned({UserName}).ListExists
     End Function
 #End Region
+    Friend Sub CheckVersion(ByVal Force As Boolean)
+        If Settings.CheckUpdatesAtStart Or Force Then _
+            GitHub.DefaultVersionChecker(My.Application.Info.Version, "AAndyProgram", "SCrawler",
+                                         Settings.LatestVersion.Value, Settings.ShowNewVersionNotification.Value, Force)
+    End Sub
 End Module

@@ -1,3 +1,11 @@
+# 2.0.0.1
+
+- Added
+  - Download individual Imgur media files (use the "Download video" form).
+- Fixed
+  - Incorrect filling of user parameters in the user creation form
+  - In some cases, the global settings cannot be saved.
+
 # 2.0.0.0
 
 - Added
@@ -6,7 +14,7 @@
   - Group for regular channels in the main window
   - Ability to change user/collection path
   - Imgur albums downloading
-  - NSFW Imgur content bypass (requires 'CilentID')
+  - NSFW Imgur content bypass (requires 'ClientID')
   - Special user folder
   - Remove user while keeping data
   - Disabled overriding user preferences when creating a new user if it already exists in the destination (in case of deleting a user with saving data).

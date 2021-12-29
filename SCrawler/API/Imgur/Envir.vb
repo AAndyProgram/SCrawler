@@ -10,6 +10,7 @@ Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Tools.WebDocuments.JSON
 Imports System.Net
 Imports SCrawler.API.Imgur.Declarations
+Imports SCrawler.API.Base
 Namespace API.Imgur.Declarations
     Friend Module Imgur_Declarations
         Friend ReadOnly PostRegex As New RegexStructure("/([\w\d]+?)(|\.[\w]{0,4})\Z", 1)
@@ -19,7 +20,7 @@ Namespace API.Imgur
     Friend NotInheritable Class Envir
         Private Sub New()
         End Sub
-        Friend Shared Function GetGallery(ByVal URL As String) As List(Of String)
+        Friend Shared Function GetGallery(ByVal URL As String, Optional ByVal e As ErrorsDescriber = Nothing) As List(Of String)
             Try
                 If Not Settings.ImgurClientID.IsEmptyString And Not URL.IsEmptyString Then
                     Dim __url$ = RegexReplace(URL, PostRegex)
@@ -45,10 +46,11 @@ Namespace API.Imgur
                 End If
                 Return Nothing
             Catch ex As Exception
-                Return ErrorsDescriber.Execute(EDP.ReturnValue + EDP.SendInLog, ex, $"[API.Imgur.Envir.GetGallery({URL})]", Nothing)
+                If Not e.Exists Then e = New ErrorsDescriber(EDP.ReturnValue + EDP.SendInLog)
+                Return ErrorsDescriber.Execute(e, ex, $"[API.Imgur.Envir.GetGallery({URL})]", Nothing)
             End Try
         End Function
-        Friend Shared Function GetImage(ByVal URL As String) As String
+        Friend Shared Function GetImage(ByVal URL As String, Optional ByVal e As ErrorsDescriber = Nothing) As String
             Try
                 If Not Settings.ImgurClientID.IsEmptyString And Not URL.IsEmptyString Then
                     Dim __url$ = RegexReplace(URL, PostRegex)
@@ -62,7 +64,23 @@ Namespace API.Imgur
                 End If
                 Return String.Empty
             Catch ex As Exception
-                Return ErrorsDescriber.Execute(EDP.ReturnValue + EDP.SendInLog, ex, $"[API.Imgur.Envir.GetImage({URL})]", String.Empty)
+                If Not e.Exists Then e = New ErrorsDescriber(EDP.ReturnValue + EDP.SendInLog)
+                Return ErrorsDescriber.Execute(e, ex, $"[API.Imgur.Envir.GetImage({URL})]", String.Empty)
+            End Try
+        End Function
+        Friend Shared Function GetVideoInfo(ByVal URL As String) As IEnumerable(Of UserMedia)
+            Try
+                If Not URL.IsEmptyString AndAlso URL.ToLower.Contains("imgur") AndAlso Not Settings.ImgurClientID.IsEmptyString Then
+                    Dim img$ = GetImage(URL, EDP.ReturnValue)
+                    If Not img.IsEmptyString Then
+                        Return {New UserMedia(img)}
+                    Else
+                        Return GetGallery(URL, EDP.ReturnValue).ListIfNothing.Select(Function(u) New UserMedia(u))
+                    End If
+                End If
+                Return Nothing
+            Catch ex As Exception
+                Return ErrorsDescriber.Execute(EDP.ShowMainMsg + EDP.SendInLog, ex, "Imgur standalone downloader: fetch media error")
             End Try
         End Function
     End Class

@@ -25,9 +25,6 @@
             Dim ActionButton5 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim ActionButton6 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim TT_MAIN As System.Windows.Forms.ToolTip
-            Dim TP_FILE_NAME As System.Windows.Forms.TableLayoutPanel
-            Dim TP_FILE_PATTERNS As System.Windows.Forms.TableLayoutPanel
-            Dim LBL_DATE_POS As System.Windows.Forms.Label
             Dim TP_CHANNELS_IMGS As System.Windows.Forms.TableLayoutPanel
             Dim TAB_MAIN As System.Windows.Forms.TabControl
             Dim TAB_BASIS As System.Windows.Forms.TabPage
@@ -40,6 +37,9 @@
             Dim TAB_DEFS_TWITTER As System.Windows.Forms.TabPage
             Dim TP_TWITTER As System.Windows.Forms.TableLayoutPanel
             Dim TP_INSTAGRAM As System.Windows.Forms.TableLayoutPanel
+            Dim TP_FILE_NAME As System.Windows.Forms.TableLayoutPanel
+            Dim TP_FILE_PATTERNS As System.Windows.Forms.TableLayoutPanel
+            Dim LBL_DATE_POS As System.Windows.Forms.Label
             Me.TXT_GLOBAL_PATH = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_IMAGE_LARGE = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_IMAGE_SMALL = New PersonalUtilities.Forms.Controls.TextBoxExtended()
@@ -54,19 +54,13 @@
             Me.CH_DOWN_VIDEOS = New System.Windows.Forms.CheckBox()
             Me.CH_SEPARATE_VIDEO_FOLDER = New System.Windows.Forms.CheckBox()
             Me.CH_CHANNELS_USERS_TEMP = New System.Windows.Forms.CheckBox()
-            Me.OPT_FILE_NAME_REPLACE = New System.Windows.Forms.RadioButton()
-            Me.OPT_FILE_NAME_ADD_DATE = New System.Windows.Forms.RadioButton()
-            Me.CH_FILE_NAME_CHANGE = New System.Windows.Forms.CheckBox()
-            Me.CH_FILE_DATE = New System.Windows.Forms.CheckBox()
-            Me.CH_FILE_TIME = New System.Windows.Forms.CheckBox()
-            Me.OPT_FILE_DATE_START = New System.Windows.Forms.RadioButton()
-            Me.OPT_FILE_DATE_END = New System.Windows.Forms.RadioButton()
             Me.TXT_CHANNELS_ROWS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_CHANNELS_COLUMNS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_CHANNEL_USER_POST_LIMIT = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.CH_REDDIT_TEMP = New System.Windows.Forms.CheckBox()
             Me.CH_REDDIT_DOWN_IMG = New System.Windows.Forms.CheckBox()
             Me.CH_REDDIT_DOWN_VID = New System.Windows.Forms.CheckBox()
+            Me.TXT_REDDIT_SAVED_POSTS_USER = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.CH_TWITTER_TEMP = New System.Windows.Forms.CheckBox()
             Me.CH_TWITTER_DOWN_IMG = New System.Windows.Forms.CheckBox()
             Me.CH_TWITTER_DOWN_VID = New System.Windows.Forms.CheckBox()
@@ -76,13 +70,16 @@
             Me.CH_INSTA_DOWN_IMG = New System.Windows.Forms.CheckBox()
             Me.CH_INSTA_DOWN_VID = New System.Windows.Forms.CheckBox()
             Me.CONTAINER_MAIN = New System.Windows.Forms.ToolStripContainer()
-            Me.TXT_REDDIT_SAVED_POSTS_USER = New PersonalUtilities.Forms.Controls.TextBoxExtended()
+            Me.OPT_FILE_NAME_REPLACE = New System.Windows.Forms.RadioButton()
+            Me.OPT_FILE_NAME_ADD_DATE = New System.Windows.Forms.RadioButton()
+            Me.CH_FILE_NAME_CHANGE = New System.Windows.Forms.CheckBox()
+            Me.CH_FILE_DATE = New System.Windows.Forms.CheckBox()
+            Me.CH_FILE_TIME = New System.Windows.Forms.CheckBox()
+            Me.OPT_FILE_DATE_START = New System.Windows.Forms.RadioButton()
+            Me.OPT_FILE_DATE_END = New System.Windows.Forms.RadioButton()
             TP_BASIS = New System.Windows.Forms.TableLayoutPanel()
             TP_IMAGES = New System.Windows.Forms.TableLayoutPanel()
             TT_MAIN = New System.Windows.Forms.ToolTip(Me.components)
-            TP_FILE_NAME = New System.Windows.Forms.TableLayoutPanel()
-            TP_FILE_PATTERNS = New System.Windows.Forms.TableLayoutPanel()
-            LBL_DATE_POS = New System.Windows.Forms.Label()
             TP_CHANNELS_IMGS = New System.Windows.Forms.TableLayoutPanel()
             TAB_MAIN = New System.Windows.Forms.TabControl()
             TAB_BASIS = New System.Windows.Forms.TabPage()
@@ -95,6 +92,9 @@
             TAB_DEFS_TWITTER = New System.Windows.Forms.TabPage()
             TP_TWITTER = New System.Windows.Forms.TableLayoutPanel()
             TP_INSTAGRAM = New System.Windows.Forms.TableLayoutPanel()
+            TP_FILE_NAME = New System.Windows.Forms.TableLayoutPanel()
+            TP_FILE_PATTERNS = New System.Windows.Forms.TableLayoutPanel()
+            LBL_DATE_POS = New System.Windows.Forms.Label()
             TP_BASIS.SuspendLayout()
             CType(Me.TXT_GLOBAL_PATH, System.ComponentModel.ISupportInitialize).BeginInit()
             TP_IMAGES.SuspendLayout()
@@ -104,8 +104,6 @@
             CType(Me.TXT_MAX_JOBS_USERS, System.ComponentModel.ISupportInitialize).BeginInit()
             CType(Me.TXT_MAX_JOBS_CHANNELS, System.ComponentModel.ISupportInitialize).BeginInit()
             CType(Me.TXT_IMGUR_CLIENT_ID, System.ComponentModel.ISupportInitialize).BeginInit()
-            TP_FILE_NAME.SuspendLayout()
-            TP_FILE_PATTERNS.SuspendLayout()
             TP_CHANNELS_IMGS.SuspendLayout()
             CType(Me.TXT_CHANNELS_ROWS, System.ComponentModel.ISupportInitialize).BeginInit()
             CType(Me.TXT_CHANNELS_COLUMNS, System.ComponentModel.ISupportInitialize).BeginInit()
@@ -118,13 +116,15 @@
             CType(Me.TXT_CHANNEL_USER_POST_LIMIT, System.ComponentModel.ISupportInitialize).BeginInit()
             TAB_DEFS_REDDIT.SuspendLayout()
             TP_REDDIT.SuspendLayout()
+            CType(Me.TXT_REDDIT_SAVED_POSTS_USER, System.ComponentModel.ISupportInitialize).BeginInit()
             TAB_DEFS_TWITTER.SuspendLayout()
             TP_TWITTER.SuspendLayout()
             Me.TAB_DEFS_INSTAGRAM.SuspendLayout()
             TP_INSTAGRAM.SuspendLayout()
             Me.CONTAINER_MAIN.ContentPanel.SuspendLayout()
             Me.CONTAINER_MAIN.SuspendLayout()
-            CType(Me.TXT_REDDIT_SAVED_POSTS_USER, System.ComponentModel.ISupportInitialize).BeginInit()
+            TP_FILE_NAME.SuspendLayout()
+            TP_FILE_PATTERNS.SuspendLayout()
             Me.SuspendLayout()
             '
             'TP_BASIS
@@ -139,10 +139,12 @@
             TP_BASIS.Controls.Add(Me.TXT_MAX_JOBS_CHANNELS, 0, 4)
             TP_BASIS.Controls.Add(Me.CH_CHECK_VER_START, 0, 5)
             TP_BASIS.Controls.Add(Me.TXT_IMGUR_CLIENT_ID, 0, 6)
+            TP_BASIS.Controls.Add(TP_FILE_NAME, 0, 7)
+            TP_BASIS.Controls.Add(TP_FILE_PATTERNS, 0, 8)
             TP_BASIS.Dock = System.Windows.Forms.DockStyle.Fill
             TP_BASIS.Location = New System.Drawing.Point(3, 3)
             TP_BASIS.Name = "TP_BASIS"
-            TP_BASIS.RowCount = 8
+            TP_BASIS.RowCount = 10
             TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
@@ -150,6 +152,8 @@
             TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
+            TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 30.0!))
+            TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 30.0!))
             TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
             TP_BASIS.Size = New System.Drawing.Size(570, 352)
             TP_BASIS.TabIndex = 0
@@ -374,141 +378,6 @@
             TT_MAIN.SetToolTip(Me.CH_CHANNELS_USERS_TEMP, "Users added from channels will be created with this parameter")
             Me.CH_CHANNELS_USERS_TEMP.UseVisualStyleBackColor = True
             '
-            'TP_FILE_NAME
-            '
-            TP_FILE_NAME.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
-            TP_FILE_NAME.ColumnCount = 3
-            TP_FILE_NAME.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33333!))
-            TP_FILE_NAME.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33333!))
-            TP_FILE_NAME.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33333!))
-            TP_FILE_NAME.Controls.Add(Me.OPT_FILE_NAME_REPLACE, 1, 0)
-            TP_FILE_NAME.Controls.Add(Me.OPT_FILE_NAME_ADD_DATE, 2, 0)
-            TP_FILE_NAME.Controls.Add(Me.CH_FILE_NAME_CHANGE, 0, 0)
-            TP_FILE_NAME.Dock = System.Windows.Forms.DockStyle.Fill
-            TP_FILE_NAME.Location = New System.Drawing.Point(1, 111)
-            TP_FILE_NAME.Margin = New System.Windows.Forms.Padding(0)
-            TP_FILE_NAME.Name = "TP_FILE_NAME"
-            TP_FILE_NAME.RowCount = 1
-            TP_FILE_NAME.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_FILE_NAME.Size = New System.Drawing.Size(568, 30)
-            TP_FILE_NAME.TabIndex = 4
-            '
-            'OPT_FILE_NAME_REPLACE
-            '
-            Me.OPT_FILE_NAME_REPLACE.AutoSize = True
-            Me.OPT_FILE_NAME_REPLACE.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.OPT_FILE_NAME_REPLACE.Location = New System.Drawing.Point(193, 4)
-            Me.OPT_FILE_NAME_REPLACE.Name = "OPT_FILE_NAME_REPLACE"
-            Me.OPT_FILE_NAME_REPLACE.Size = New System.Drawing.Size(182, 22)
-            Me.OPT_FILE_NAME_REPLACE.TabIndex = 1
-            Me.OPT_FILE_NAME_REPLACE.TabStop = True
-            Me.OPT_FILE_NAME_REPLACE.Text = "Replace file name by date"
-            Me.OPT_FILE_NAME_REPLACE.UseVisualStyleBackColor = True
-            '
-            'OPT_FILE_NAME_ADD_DATE
-            '
-            Me.OPT_FILE_NAME_ADD_DATE.AutoSize = True
-            Me.OPT_FILE_NAME_ADD_DATE.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.OPT_FILE_NAME_ADD_DATE.Location = New System.Drawing.Point(382, 4)
-            Me.OPT_FILE_NAME_ADD_DATE.Name = "OPT_FILE_NAME_ADD_DATE"
-            Me.OPT_FILE_NAME_ADD_DATE.Size = New System.Drawing.Size(182, 22)
-            Me.OPT_FILE_NAME_ADD_DATE.TabIndex = 2
-            Me.OPT_FILE_NAME_ADD_DATE.TabStop = True
-            Me.OPT_FILE_NAME_ADD_DATE.Text = "Add date/time to file name"
-            Me.OPT_FILE_NAME_ADD_DATE.UseVisualStyleBackColor = True
-            '
-            'CH_FILE_NAME_CHANGE
-            '
-            Me.CH_FILE_NAME_CHANGE.AutoSize = True
-            Me.CH_FILE_NAME_CHANGE.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_FILE_NAME_CHANGE.Location = New System.Drawing.Point(4, 4)
-            Me.CH_FILE_NAME_CHANGE.Name = "CH_FILE_NAME_CHANGE"
-            Me.CH_FILE_NAME_CHANGE.Size = New System.Drawing.Size(182, 22)
-            Me.CH_FILE_NAME_CHANGE.TabIndex = 0
-            Me.CH_FILE_NAME_CHANGE.Text = "Change file names"
-            Me.CH_FILE_NAME_CHANGE.UseVisualStyleBackColor = True
-            '
-            'TP_FILE_PATTERNS
-            '
-            TP_FILE_PATTERNS.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
-            TP_FILE_PATTERNS.ColumnCount = 5
-            TP_FILE_PATTERNS.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 20.0!))
-            TP_FILE_PATTERNS.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 20.0!))
-            TP_FILE_PATTERNS.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 20.0!))
-            TP_FILE_PATTERNS.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 20.0!))
-            TP_FILE_PATTERNS.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 20.0!))
-            TP_FILE_PATTERNS.Controls.Add(Me.CH_FILE_DATE, 0, 0)
-            TP_FILE_PATTERNS.Controls.Add(Me.CH_FILE_TIME, 1, 0)
-            TP_FILE_PATTERNS.Controls.Add(LBL_DATE_POS, 2, 0)
-            TP_FILE_PATTERNS.Controls.Add(Me.OPT_FILE_DATE_START, 3, 0)
-            TP_FILE_PATTERNS.Controls.Add(Me.OPT_FILE_DATE_END, 4, 0)
-            TP_FILE_PATTERNS.Dock = System.Windows.Forms.DockStyle.Fill
-            TP_FILE_PATTERNS.Location = New System.Drawing.Point(1, 142)
-            TP_FILE_PATTERNS.Margin = New System.Windows.Forms.Padding(0)
-            TP_FILE_PATTERNS.Name = "TP_FILE_PATTERNS"
-            TP_FILE_PATTERNS.RowCount = 1
-            TP_FILE_PATTERNS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_FILE_PATTERNS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 29.0!))
-            TP_FILE_PATTERNS.Size = New System.Drawing.Size(568, 30)
-            TP_FILE_PATTERNS.TabIndex = 5
-            '
-            'CH_FILE_DATE
-            '
-            Me.CH_FILE_DATE.AutoSize = True
-            Me.CH_FILE_DATE.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_FILE_DATE.Location = New System.Drawing.Point(4, 4)
-            Me.CH_FILE_DATE.Name = "CH_FILE_DATE"
-            Me.CH_FILE_DATE.Size = New System.Drawing.Size(106, 22)
-            Me.CH_FILE_DATE.TabIndex = 0
-            Me.CH_FILE_DATE.Text = "Date"
-            Me.CH_FILE_DATE.UseVisualStyleBackColor = True
-            '
-            'CH_FILE_TIME
-            '
-            Me.CH_FILE_TIME.AutoSize = True
-            Me.CH_FILE_TIME.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_FILE_TIME.Location = New System.Drawing.Point(117, 4)
-            Me.CH_FILE_TIME.Name = "CH_FILE_TIME"
-            Me.CH_FILE_TIME.Size = New System.Drawing.Size(106, 22)
-            Me.CH_FILE_TIME.TabIndex = 1
-            Me.CH_FILE_TIME.Text = "Time"
-            Me.CH_FILE_TIME.UseVisualStyleBackColor = True
-            '
-            'LBL_DATE_POS
-            '
-            LBL_DATE_POS.AutoSize = True
-            LBL_DATE_POS.Dock = System.Windows.Forms.DockStyle.Fill
-            LBL_DATE_POS.Location = New System.Drawing.Point(230, 1)
-            LBL_DATE_POS.Name = "LBL_DATE_POS"
-            LBL_DATE_POS.Size = New System.Drawing.Size(106, 28)
-            LBL_DATE_POS.TabIndex = 2
-            LBL_DATE_POS.Text = "Date position:"
-            LBL_DATE_POS.TextAlign = System.Drawing.ContentAlignment.MiddleRight
-            '
-            'OPT_FILE_DATE_START
-            '
-            Me.OPT_FILE_DATE_START.AutoSize = True
-            Me.OPT_FILE_DATE_START.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.OPT_FILE_DATE_START.Location = New System.Drawing.Point(343, 4)
-            Me.OPT_FILE_DATE_START.Name = "OPT_FILE_DATE_START"
-            Me.OPT_FILE_DATE_START.Size = New System.Drawing.Size(106, 22)
-            Me.OPT_FILE_DATE_START.TabIndex = 3
-            Me.OPT_FILE_DATE_START.TabStop = True
-            Me.OPT_FILE_DATE_START.Text = "Start"
-            Me.OPT_FILE_DATE_START.UseVisualStyleBackColor = True
-            '
-            'OPT_FILE_DATE_END
-            '
-            Me.OPT_FILE_DATE_END.AutoSize = True
-            Me.OPT_FILE_DATE_END.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.OPT_FILE_DATE_END.Location = New System.Drawing.Point(456, 4)
-            Me.OPT_FILE_DATE_END.Name = "OPT_FILE_DATE_END"
-            Me.OPT_FILE_DATE_END.Size = New System.Drawing.Size(108, 22)
-            Me.OPT_FILE_DATE_END.TabIndex = 4
-            Me.OPT_FILE_DATE_END.TabStop = True
-            Me.OPT_FILE_DATE_END.Text = "End"
-            Me.OPT_FILE_DATE_END.UseVisualStyleBackColor = True
-            '
             'TP_CHANNELS_IMGS
             '
             TP_CHANNELS_IMGS.ColumnCount = 2
@@ -628,20 +497,18 @@
             TP_CHANNELS.Controls.Add(Me.TXT_CHANNEL_USER_POST_LIMIT, 0, 1)
             TP_CHANNELS.Controls.Add(TP_CHANNELS_IMGS, 0, 0)
             TP_CHANNELS.Controls.Add(Me.CH_COPY_CHANNEL_USER_IMAGE, 0, 2)
-            TP_CHANNELS.Controls.Add(TP_FILE_NAME, 0, 4)
-            TP_CHANNELS.Controls.Add(TP_FILE_PATTERNS, 0, 5)
             TP_CHANNELS.Controls.Add(Me.CH_CHANNELS_USERS_TEMP, 0, 3)
             TP_CHANNELS.Dock = System.Windows.Forms.DockStyle.Fill
             TP_CHANNELS.Location = New System.Drawing.Point(3, 3)
             TP_CHANNELS.Name = "TP_CHANNELS"
-            TP_CHANNELS.RowCount = 7
+            TP_CHANNELS.RowCount = 5
             TP_CHANNELS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_CHANNELS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_CHANNELS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_CHANNELS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
-            TP_CHANNELS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 30.0!))
-            TP_CHANNELS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 30.0!))
             TP_CHANNELS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            TP_CHANNELS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
+            TP_CHANNELS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
             TP_CHANNELS.Size = New System.Drawing.Size(570, 352)
             TP_CHANNELS.TabIndex = 0
             '
@@ -731,6 +598,15 @@
             Me.CH_REDDIT_DOWN_VID.Text = "Download videos"
             Me.CH_REDDIT_DOWN_VID.ThreeState = True
             Me.CH_REDDIT_DOWN_VID.UseVisualStyleBackColor = True
+            '
+            'TXT_REDDIT_SAVED_POSTS_USER
+            '
+            Me.TXT_REDDIT_SAVED_POSTS_USER.CaptionText = "Saved posts user"
+            Me.TXT_REDDIT_SAVED_POSTS_USER.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.TXT_REDDIT_SAVED_POSTS_USER.Location = New System.Drawing.Point(4, 82)
+            Me.TXT_REDDIT_SAVED_POSTS_USER.Name = "TXT_REDDIT_SAVED_POSTS_USER"
+            Me.TXT_REDDIT_SAVED_POSTS_USER.Size = New System.Drawing.Size(562, 22)
+            Me.TXT_REDDIT_SAVED_POSTS_USER.TabIndex = 3
             '
             'TAB_DEFS_TWITTER
             '
@@ -893,14 +769,140 @@
             Me.CONTAINER_MAIN.TabIndex = 0
             Me.CONTAINER_MAIN.TopToolStripPanelVisible = False
             '
-            'TXT_REDDIT_SAVED_POSTS_USER
+            'TP_FILE_NAME
             '
-            Me.TXT_REDDIT_SAVED_POSTS_USER.CaptionText = "Saved posts user"
-            Me.TXT_REDDIT_SAVED_POSTS_USER.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_REDDIT_SAVED_POSTS_USER.Location = New System.Drawing.Point(4, 82)
-            Me.TXT_REDDIT_SAVED_POSTS_USER.Name = "TXT_REDDIT_SAVED_POSTS_USER"
-            Me.TXT_REDDIT_SAVED_POSTS_USER.Size = New System.Drawing.Size(562, 22)
-            Me.TXT_REDDIT_SAVED_POSTS_USER.TabIndex = 3
+            TP_FILE_NAME.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
+            TP_FILE_NAME.ColumnCount = 3
+            TP_FILE_NAME.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33333!))
+            TP_FILE_NAME.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33333!))
+            TP_FILE_NAME.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33333!))
+            TP_FILE_NAME.Controls.Add(Me.OPT_FILE_NAME_REPLACE, 1, 0)
+            TP_FILE_NAME.Controls.Add(Me.OPT_FILE_NAME_ADD_DATE, 2, 0)
+            TP_FILE_NAME.Controls.Add(Me.CH_FILE_NAME_CHANGE, 0, 0)
+            TP_FILE_NAME.Dock = System.Windows.Forms.DockStyle.Fill
+            TP_FILE_NAME.Location = New System.Drawing.Point(1, 201)
+            TP_FILE_NAME.Margin = New System.Windows.Forms.Padding(0)
+            TP_FILE_NAME.Name = "TP_FILE_NAME"
+            TP_FILE_NAME.RowCount = 1
+            TP_FILE_NAME.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            TP_FILE_NAME.Size = New System.Drawing.Size(568, 30)
+            TP_FILE_NAME.TabIndex = 7
+            '
+            'OPT_FILE_NAME_REPLACE
+            '
+            Me.OPT_FILE_NAME_REPLACE.AutoSize = True
+            Me.OPT_FILE_NAME_REPLACE.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.OPT_FILE_NAME_REPLACE.Location = New System.Drawing.Point(193, 4)
+            Me.OPT_FILE_NAME_REPLACE.Name = "OPT_FILE_NAME_REPLACE"
+            Me.OPT_FILE_NAME_REPLACE.Size = New System.Drawing.Size(182, 22)
+            Me.OPT_FILE_NAME_REPLACE.TabIndex = 1
+            Me.OPT_FILE_NAME_REPLACE.TabStop = True
+            Me.OPT_FILE_NAME_REPLACE.Text = "Replace file name by date"
+            Me.OPT_FILE_NAME_REPLACE.UseVisualStyleBackColor = True
+            '
+            'OPT_FILE_NAME_ADD_DATE
+            '
+            Me.OPT_FILE_NAME_ADD_DATE.AutoSize = True
+            Me.OPT_FILE_NAME_ADD_DATE.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.OPT_FILE_NAME_ADD_DATE.Location = New System.Drawing.Point(382, 4)
+            Me.OPT_FILE_NAME_ADD_DATE.Name = "OPT_FILE_NAME_ADD_DATE"
+            Me.OPT_FILE_NAME_ADD_DATE.Size = New System.Drawing.Size(182, 22)
+            Me.OPT_FILE_NAME_ADD_DATE.TabIndex = 2
+            Me.OPT_FILE_NAME_ADD_DATE.TabStop = True
+            Me.OPT_FILE_NAME_ADD_DATE.Text = "Add date/time to file name"
+            Me.OPT_FILE_NAME_ADD_DATE.UseVisualStyleBackColor = True
+            '
+            'CH_FILE_NAME_CHANGE
+            '
+            Me.CH_FILE_NAME_CHANGE.AutoSize = True
+            Me.CH_FILE_NAME_CHANGE.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_FILE_NAME_CHANGE.Location = New System.Drawing.Point(4, 4)
+            Me.CH_FILE_NAME_CHANGE.Name = "CH_FILE_NAME_CHANGE"
+            Me.CH_FILE_NAME_CHANGE.Size = New System.Drawing.Size(182, 22)
+            Me.CH_FILE_NAME_CHANGE.TabIndex = 0
+            Me.CH_FILE_NAME_CHANGE.Text = "Change file names"
+            Me.CH_FILE_NAME_CHANGE.UseVisualStyleBackColor = True
+            '
+            'TP_FILE_PATTERNS
+            '
+            TP_FILE_PATTERNS.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
+            TP_FILE_PATTERNS.ColumnCount = 5
+            TP_FILE_PATTERNS.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 20.0!))
+            TP_FILE_PATTERNS.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 20.0!))
+            TP_FILE_PATTERNS.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 20.0!))
+            TP_FILE_PATTERNS.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 20.0!))
+            TP_FILE_PATTERNS.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 20.0!))
+            TP_FILE_PATTERNS.Controls.Add(Me.CH_FILE_DATE, 0, 0)
+            TP_FILE_PATTERNS.Controls.Add(Me.CH_FILE_TIME, 1, 0)
+            TP_FILE_PATTERNS.Controls.Add(LBL_DATE_POS, 2, 0)
+            TP_FILE_PATTERNS.Controls.Add(Me.OPT_FILE_DATE_START, 3, 0)
+            TP_FILE_PATTERNS.Controls.Add(Me.OPT_FILE_DATE_END, 4, 0)
+            TP_FILE_PATTERNS.Dock = System.Windows.Forms.DockStyle.Fill
+            TP_FILE_PATTERNS.Location = New System.Drawing.Point(1, 232)
+            TP_FILE_PATTERNS.Margin = New System.Windows.Forms.Padding(0)
+            TP_FILE_PATTERNS.Name = "TP_FILE_PATTERNS"
+            TP_FILE_PATTERNS.RowCount = 1
+            TP_FILE_PATTERNS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            TP_FILE_PATTERNS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 29.0!))
+            TP_FILE_PATTERNS.Size = New System.Drawing.Size(568, 30)
+            TP_FILE_PATTERNS.TabIndex = 8
+            '
+            'CH_FILE_DATE
+            '
+            Me.CH_FILE_DATE.AutoSize = True
+            Me.CH_FILE_DATE.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_FILE_DATE.Location = New System.Drawing.Point(4, 4)
+            Me.CH_FILE_DATE.Name = "CH_FILE_DATE"
+            Me.CH_FILE_DATE.Size = New System.Drawing.Size(106, 22)
+            Me.CH_FILE_DATE.TabIndex = 0
+            Me.CH_FILE_DATE.Text = "Date"
+            Me.CH_FILE_DATE.UseVisualStyleBackColor = True
+            '
+            'CH_FILE_TIME
+            '
+            Me.CH_FILE_TIME.AutoSize = True
+            Me.CH_FILE_TIME.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_FILE_TIME.Location = New System.Drawing.Point(117, 4)
+            Me.CH_FILE_TIME.Name = "CH_FILE_TIME"
+            Me.CH_FILE_TIME.Size = New System.Drawing.Size(106, 22)
+            Me.CH_FILE_TIME.TabIndex = 1
+            Me.CH_FILE_TIME.Text = "Time"
+            Me.CH_FILE_TIME.UseVisualStyleBackColor = True
+            '
+            'LBL_DATE_POS
+            '
+            LBL_DATE_POS.AutoSize = True
+            LBL_DATE_POS.Dock = System.Windows.Forms.DockStyle.Fill
+            LBL_DATE_POS.Location = New System.Drawing.Point(230, 1)
+            LBL_DATE_POS.Name = "LBL_DATE_POS"
+            LBL_DATE_POS.Size = New System.Drawing.Size(106, 28)
+            LBL_DATE_POS.TabIndex = 2
+            LBL_DATE_POS.Text = "Date position:"
+            LBL_DATE_POS.TextAlign = System.Drawing.ContentAlignment.MiddleRight
+            '
+            'OPT_FILE_DATE_START
+            '
+            Me.OPT_FILE_DATE_START.AutoSize = True
+            Me.OPT_FILE_DATE_START.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.OPT_FILE_DATE_START.Location = New System.Drawing.Point(343, 4)
+            Me.OPT_FILE_DATE_START.Name = "OPT_FILE_DATE_START"
+            Me.OPT_FILE_DATE_START.Size = New System.Drawing.Size(106, 22)
+            Me.OPT_FILE_DATE_START.TabIndex = 3
+            Me.OPT_FILE_DATE_START.TabStop = True
+            Me.OPT_FILE_DATE_START.Text = "Start"
+            Me.OPT_FILE_DATE_START.UseVisualStyleBackColor = True
+            '
+            'OPT_FILE_DATE_END
+            '
+            Me.OPT_FILE_DATE_END.AutoSize = True
+            Me.OPT_FILE_DATE_END.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.OPT_FILE_DATE_END.Location = New System.Drawing.Point(456, 4)
+            Me.OPT_FILE_DATE_END.Name = "OPT_FILE_DATE_END"
+            Me.OPT_FILE_DATE_END.Size = New System.Drawing.Size(108, 22)
+            Me.OPT_FILE_DATE_END.TabIndex = 4
+            Me.OPT_FILE_DATE_END.TabStop = True
+            Me.OPT_FILE_DATE_END.Text = "End"
+            Me.OPT_FILE_DATE_END.UseVisualStyleBackColor = True
             '
             'GlobalSettingsForm
             '
@@ -929,10 +931,6 @@
             CType(Me.TXT_MAX_JOBS_USERS, System.ComponentModel.ISupportInitialize).EndInit()
             CType(Me.TXT_MAX_JOBS_CHANNELS, System.ComponentModel.ISupportInitialize).EndInit()
             CType(Me.TXT_IMGUR_CLIENT_ID, System.ComponentModel.ISupportInitialize).EndInit()
-            TP_FILE_NAME.ResumeLayout(False)
-            TP_FILE_NAME.PerformLayout()
-            TP_FILE_PATTERNS.ResumeLayout(False)
-            TP_FILE_PATTERNS.PerformLayout()
             TP_CHANNELS_IMGS.ResumeLayout(False)
             CType(Me.TXT_CHANNELS_ROWS, System.ComponentModel.ISupportInitialize).EndInit()
             CType(Me.TXT_CHANNELS_COLUMNS, System.ComponentModel.ISupportInitialize).EndInit()
@@ -948,6 +946,7 @@
             TAB_DEFS_REDDIT.ResumeLayout(False)
             TP_REDDIT.ResumeLayout(False)
             TP_REDDIT.PerformLayout()
+            CType(Me.TXT_REDDIT_SAVED_POSTS_USER, System.ComponentModel.ISupportInitialize).EndInit()
             TAB_DEFS_TWITTER.ResumeLayout(False)
             TP_TWITTER.ResumeLayout(False)
             TP_TWITTER.PerformLayout()
@@ -957,7 +956,10 @@
             Me.CONTAINER_MAIN.ContentPanel.ResumeLayout(False)
             Me.CONTAINER_MAIN.ResumeLayout(False)
             Me.CONTAINER_MAIN.PerformLayout()
-            CType(Me.TXT_REDDIT_SAVED_POSTS_USER, System.ComponentModel.ISupportInitialize).EndInit()
+            TP_FILE_NAME.ResumeLayout(False)
+            TP_FILE_NAME.PerformLayout()
+            TP_FILE_PATTERNS.ResumeLayout(False)
+            TP_FILE_PATTERNS.PerformLayout()
             Me.ResumeLayout(False)
 
         End Sub
@@ -973,13 +975,6 @@
         Private WithEvents TXT_CHANNEL_USER_POST_LIMIT As PersonalUtilities.Forms.Controls.TextBoxExtended
         Private WithEvents TXT_CHANNELS_ROWS As PersonalUtilities.Forms.Controls.TextBoxExtended
         Private WithEvents TXT_CHANNELS_COLUMNS As PersonalUtilities.Forms.Controls.TextBoxExtended
-        Private WithEvents OPT_FILE_NAME_REPLACE As RadioButton
-        Private WithEvents OPT_FILE_NAME_ADD_DATE As RadioButton
-        Private WithEvents CH_FILE_NAME_CHANGE As CheckBox
-        Private WithEvents CH_FILE_DATE As CheckBox
-        Private WithEvents CH_FILE_TIME As CheckBox
-        Private WithEvents OPT_FILE_DATE_START As RadioButton
-        Private WithEvents OPT_FILE_DATE_END As RadioButton
         Private WithEvents CH_COPY_CHANNEL_USER_IMAGE As CheckBox
         Private WithEvents CH_SEPARATE_VIDEO_FOLDER As CheckBox
         Private WithEvents CH_DOWN_VIDEOS As CheckBox
@@ -999,5 +994,12 @@
         Private WithEvents CH_INSTA_DOWN_VID As CheckBox
         Private WithEvents TXT_IMGUR_CLIENT_ID As PersonalUtilities.Forms.Controls.TextBoxExtended
         Private WithEvents TXT_REDDIT_SAVED_POSTS_USER As PersonalUtilities.Forms.Controls.TextBoxExtended
+        Private WithEvents OPT_FILE_NAME_REPLACE As RadioButton
+        Private WithEvents OPT_FILE_NAME_ADD_DATE As RadioButton
+        Private WithEvents CH_FILE_NAME_CHANGE As CheckBox
+        Private WithEvents CH_FILE_DATE As CheckBox
+        Private WithEvents CH_FILE_TIME As CheckBox
+        Private WithEvents OPT_FILE_DATE_START As RadioButton
+        Private WithEvents OPT_FILE_DATE_END As RadioButton
     End Class
 End Namespace

@@ -197,7 +197,6 @@
     <Compile Include="Editors\UserCreatorForm.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Info\InfoMod.vb" />
     <Compile Include="LabelsKeeper.vb" />
     <Compile Include="MainFrame.vb">
       <SubType>Form</SubType>

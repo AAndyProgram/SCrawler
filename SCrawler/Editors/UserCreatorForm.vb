@@ -120,6 +120,7 @@ Namespace Editors
                             Case Sites.Twitter : OPT_TWITTER.Checked = True
                             Case Sites.Instagram : OPT_INSTAGRAM.Checked = True
                         End Select
+                        SetParamsBySite()
                         OPT_REDDIT.Enabled = False
                         OPT_TWITTER.Enabled = False
                         OPT_INSTAGRAM.Enabled = False
@@ -153,7 +154,6 @@ Namespace Editors
                     .MyFieldsChecker = New FieldsChecker
                     .MyFieldsChecker.AddControl(Of String)(TXT_USER, TXT_USER.CaptionText)
                     .MyFieldsChecker.EndLoaderOperations()
-                    SetParamsBySite()
                     .AppendDetectors()
                     .EndLoaderOperations()
                 End With

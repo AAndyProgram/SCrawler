@@ -139,7 +139,7 @@ Namespace Editors
                         End Select
                     End If
 
-                    If CH_FILE_NAME_CHANGE.Checked And (Not CH_FILE_DATE.Checked Or Not CH_FILE_TIME.Checked) Then
+                    If CH_FILE_NAME_CHANGE.Checked And (Not CH_FILE_DATE.Checked And Not CH_FILE_TIME.Checked) Then
                         MsgBoxE({"You must select at least one option (Date and/or Time) if you want to change file names by date or disable file names changes",
                                  "File name options"}, vbCritical)
                         Exit Sub
@@ -219,13 +219,13 @@ Namespace Editors
         Private Sub TXT_MAX_JOBS_CHANNELS_ActionOnButtonClick(ByVal Sender As ActionButton) Handles TXT_MAX_JOBS_CHANNELS.ActionOnButtonClick
             If Sender.DefaultButton = ActionButton.DefaultButtons.Refresh Then TXT_MAX_JOBS_CHANNELS.Value = SettingsCLS.DefaultMaxDownloadingTasks
         End Sub
-        Private Sub CH_FILE_NAME_CHANGE_CheckedChanged(sender As Object, e As EventArgs)
+        Private Sub CH_FILE_NAME_CHANGE_CheckedChanged(sender As Object, e As EventArgs) Handles CH_FILE_NAME_CHANGE.CheckedChanged
             ChangeFileNameChangersEnabling()
         End Sub
-        Private Sub OPT_FILE_NAME_REPLACE_CheckedChanged(sender As Object, e As EventArgs)
+        Private Sub OPT_FILE_NAME_REPLACE_CheckedChanged(sender As Object, e As EventArgs) Handles OPT_FILE_NAME_REPLACE.CheckedChanged
             ChangePositionControlsEnabling()
         End Sub
-        Private Sub OPT_FILE_NAME_ADD_DATE_CheckedChanged(sender As Object, e As EventArgs)
+        Private Sub OPT_FILE_NAME_ADD_DATE_CheckedChanged(sender As Object, e As EventArgs) Handles OPT_FILE_NAME_ADD_DATE.CheckedChanged
             ChangePositionControlsEnabling()
         End Sub
         Private Sub ChangePositionControlsEnabling()
