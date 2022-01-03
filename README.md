@@ -42,6 +42,12 @@ You can read about Instagram restrictions [here](https://github.com/AAndyProgram
 - **Don't put program in the ```Program Files``` system folder (this is portable program and program settings are stored in the program folder)**
 - **Just unzip the program archive to any folder, copy the file ```ffmpeg.exe``` into it and enjoy. :)**
 
+# How to build from source
+
+1. Delete the "PersonalUtilities" project from the solution.
+2. Add the latest version of the "PersonalUtilities.dll" library (from the [latest release](https://github.com/AAndyProgram/SCrawler/releases/latest)).
+3. Import PersonalUtilities.Functions for the whole project.
+
 # Updating
 
 Just download [latest](https://github.com/AAndyProgram/SCrawler/releases/latest) version and unpack it into the program folder. Before starting a new version, I recommend making a backup copy of the program settings folder.
