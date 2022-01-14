@@ -33,6 +33,10 @@ The program parses all user posts and compares file names with existing ones to 
 
 You can read about Instagram restrictions [here](https://github.com/AAndyProgram/SCrawler/wiki/Settings#instagram-limits)
 
+## How to request a new site
+
+Read [here](https://github.com/AAndyProgram/SCrawler/blob/main/CONTRIBUTING.md#how-to-request-a-new-site) about
+
 # Requirements:
 
 - Windows 7, 8, 9, 10, 11 with NET Framework 4.6.1 or higher
@@ -51,6 +55,8 @@ You can read about Instagram restrictions [here](https://github.com/AAndyProgram
 # Updating
 
 Just download [latest](https://github.com/AAndyProgram/SCrawler/releases/latest) version and unpack it into the program folder. Before starting a new version, I recommend making a backup copy of the program settings folder.
+
+
 
 # Settings and usage
 
