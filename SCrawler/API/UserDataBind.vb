@@ -7,6 +7,7 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports PersonalUtilities.Tools
+Imports PersonalUtilities.Functions.XML
 Imports System.Threading
 Imports SCrawler.API.Base
 Namespace API
@@ -271,6 +272,8 @@ Namespace API
         Friend Overrides Sub LoadContentInformation()
             If Count > 0 Then Collections.ForEach(Sub(c) DirectCast(c.Self, UserDataBase).LoadContentInformation())
         End Sub
+        Protected Overrides Sub LoadUserInformation_OptionalFields(ByRef Container As XmlFile, ByVal Loading As Boolean)
+        End Sub
         Friend Overrides Property DownloadTopCount As Integer?
             Get
                 If Count > 0 Then
@@ -292,6 +295,9 @@ Namespace API
         End Sub
         Protected Overrides Sub DownloadContent(ByVal Token As CancellationToken)
         End Sub
+        Protected Overrides Function DownloadingException(ByVal ex As Exception, ByVal Message As String, Optional ByVal FromPE As Boolean = False) As Integer
+            Return 0
+        End Function
         Private Sub User_OnUserUpdated(ByVal User As IUserData)
             Raise_OnUserUpdated()
         End Sub
@@ -338,16 +344,16 @@ Namespace API
         End Sub
         ''' <summary>FOR SETTINGS START LOADING ONLY</summary>
         Friend Overloads Sub Add(ByVal u As UserInfo, Optional ByVal _LoadData As Boolean = True)
-            Select Case u.Site
-                Case Sites.Reddit : Collections.Add(New Reddit.UserData(u, _LoadData))
-                Case Sites.Twitter : Collections.Add(New Twitter.UserData(u, _LoadData))
-                Case Else : Exit Sub
-            End Select
-            With DirectCast(Collections.Last.Self, UserDataBase)
-                .CreateButtons(Count - 1)
-                AddHandler .BTT_CONTEXT_DELETE.Click, AddressOf BTT_CONTEXT_DELETE_Click
-            End With
-            AddHandler Collections.Last.OnUserUpdated, AddressOf User_OnUserUpdated
+            Collections.Add(GetInstance(u, _LoadData))
+            If Not Collections.Last Is Nothing Then
+                With DirectCast(Collections.Last.Self, UserDataBase)
+                    .CreateButtons(Count - 1)
+                    AddHandler .BTT_CONTEXT_DELETE.Click, AddressOf BTT_CONTEXT_DELETE_Click
+                End With
+                AddHandler Collections.Last.OnUserUpdated, AddressOf User_OnUserUpdated
+            Else
+                Collections.RemoveAt(Count - 1)
+            End If
         End Sub
         Friend Sub AddRange(ByVal _Items As IEnumerable(Of IUserData))
             If Not _Items Is Nothing AndAlso _Items.Count > 0 Then

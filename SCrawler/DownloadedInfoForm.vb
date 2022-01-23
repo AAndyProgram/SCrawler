@@ -45,6 +45,7 @@ Friend Class DownloadedInfoForm
                 MyView.ImportFromXML(Settings.Design)
                 MyView.SetMeSize()
             End If
+            BTT_CLEAR.Visible = ViewMode = ViewModes.Session
             RefillList()
         Catch ex As Exception
         End Try
@@ -104,16 +105,24 @@ Friend Class DownloadedInfoForm
         MENU_VIEW_SESSION.Checked = True
         MENU_VIEW_ALL.Checked = False
         ViewMode = ViewModes.Session
+        BTT_CLEAR.Visible = True
         RefillList()
     End Sub
     Private Sub MENU_VIEW_ALL_Click(sender As Object, e As EventArgs) Handles MENU_VIEW_ALL.Click
         MENU_VIEW_SESSION.Checked = False
         MENU_VIEW_ALL.Checked = True
         ViewMode = ViewModes.All
+        BTT_CLEAR.Visible = False
         RefillList()
     End Sub
     Private Sub BTT_REFRESH_Click(sender As Object, e As EventArgs) Handles BTT_REFRESH.Click
         RefillList()
+    End Sub
+    Private Sub BTT_CLEAR_Click(sender As Object, e As EventArgs) Handles BTT_CLEAR.Click
+        If LIST_DOWN.Items.Count > 0 Then
+            Downloader.Downloaded.Clear()
+            RefillList()
+        End If
     End Sub
     Private _LatestSelected As Integer = -1
     Private Sub LIST_DOWN_SelectedIndexChanged(sender As Object, e As EventArgs) Handles LIST_DOWN.SelectedIndexChanged

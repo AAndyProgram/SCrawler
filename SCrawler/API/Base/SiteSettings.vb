@@ -25,7 +25,9 @@ Namespace API.Base
                 _Path.Value = NewFile
             End Set
         End Property
+#Region "Instagram"
         Friend ReadOnly Property InstaHash As XMLValue(Of String)
+        Friend ReadOnly Property InstaHash_SP As XMLValue(Of String)
         Friend ReadOnly Property InstaHashUpdateRequired As XMLValue(Of Boolean)
         Friend ReadOnly Property InstagramDownloadingErrorDate As XMLValue(Of Date)
         Friend Property InstagramLastApplyingValue As Integer? = Nothing
@@ -40,7 +42,18 @@ Namespace API.Base
                 End With
             End Get
         End Property
-        Friend Property InstagramTooManyRequestsReadyForCatch As Boolean = True
+        Friend ReadOnly Property InstagramLastDownloadDate As XMLValue(Of Date)
+        Friend ReadOnly Property InstagramLastRequestsCount As XMLValue(Of Integer)
+        Private InstagramTooManyRequestsReadyForCatch As Boolean = True
+        Friend Function GetInstaWaitDate() As Date
+            With InstagramDownloadingErrorDate
+                If .ValueF.Exists Then
+                    Return .ValueF.Value.AddMinutes(If(InstagramLastApplyingValue, 10))
+                Else
+                    Return Now
+                End If
+            End With
+        End Function
         Friend Sub InstagramTooManyRequests(ByVal Catched As Boolean)
             With InstagramDownloadingErrorDate
                 If Catched Then
@@ -55,9 +68,14 @@ Namespace API.Base
                 Else
                     .ValueF = Nothing
                     InstagramLastApplyingValue = Nothing
+                    InstagramTooManyRequestsReadyForCatch = True
                 End If
             End With
         End Sub
+        Friend ReadOnly Property RequestsWaitTimer As XMLValue(Of Integer)
+        Friend ReadOnly Property RequestsWaitTimerTaskCount As XMLValue(Of Integer)
+        Friend ReadOnly Property SleepTimerOnPostsLimit As XMLValue(Of Integer)
+#End Region
         Friend ReadOnly Property Temporary As XMLValue(Of Boolean)
         Friend ReadOnly Property DownloadImages As XMLValue(Of Boolean)
         Friend ReadOnly Property DownloadVideos As XMLValue(Of Boolean)
@@ -98,6 +116,7 @@ Namespace API.Base
                         Responser.CookiesDomain = "reddit.com"
                         Responser.Decoders.Add(SymbolsConverter.Converters.Unicode)
                     Case Sites.Instagram : Responser.CookiesDomain = "instagram.com"
+                    Case Sites.RedGifs : Responser.CookiesDomain = "redgifs.com"
                 End Select
                 Responser.SaveSettings()
             End If
@@ -126,20 +145,30 @@ Namespace API.Base
                 GetUserMediaOnly = New XMLValue(Of Boolean)
             End If
 
+            CreateProp(InstaHashUpdateRequired, Sites.Instagram, "InstaHashUpdateRequired", True, _XML, n)
+            CreateProp(InstaHash, Sites.Instagram, "InstaHash", String.Empty, _XML, n)
+            If Site = Sites.Instagram AndAlso (InstaHash.IsEmptyString Or InstaHashUpdateRequired) AndAlso Responser.Cookies.ListExists Then GatherInstaHash()
+            CreateProp(InstaHash_SP, Sites.Instagram, "InstaHashSavedPosts", String.Empty, _XML, n)
+            CreateProp(InstagramLastDownloadDate, Sites.Instagram, "LastDownloadDate", Now.AddDays(-1), _XML, n)
+            CreateProp(InstagramLastRequestsCount, Sites.Instagram, "LastRequestsCount", 0, _XML, n)
+            CreateProp(RequestsWaitTimer, Sites.Instagram, "RequestsWaitTimer", 1000, _XML, n)
+            CreateProp(RequestsWaitTimerTaskCount, Sites.Instagram, "RequestsWaitTimerTaskCount", 1, _XML, n)
+            CreateProp(SleepTimerOnPostsLimit, Sites.Instagram, "SleepTimerOnPostsLimit", 60000, _XML, n)
             If Site = Sites.Instagram Then
-                InstaHash = New XMLValue(Of String)("InstaHash", String.Empty, _XML, n)
-                InstaHashUpdateRequired = New XMLValue(Of Boolean)("InstaHashUpdateRequired", True, _XML, n)
-                If (InstaHash.IsEmptyString Or InstaHashUpdateRequired) And Responser.Cookies.ListExists Then GatherInstaHash()
                 InstagramDownloadingErrorDate = New XMLValue(Of Date) With {.ToStringFunction = Function(ss, vv) AConvert(Of String)(vv, Nothing)}
                 InstagramDownloadingErrorDate.SetExtended("InstagramDownloadingErrorDate", Now.AddYears(-10), _XML, n)
             Else
-                InstaHash = New XMLValue(Of String)
-                InstaHashUpdateRequired = New XMLValue(Of Boolean)
+                InstagramDownloadingErrorDate = New XMLValue(Of Date)
             End If
-            If Site = Sites.Reddit Then
-                SavedPostsUserName = New XMLValue(Of String)("SavedPostsUserName", String.Empty, _XML, n)
+
+            SavedPostsUserName = New XMLValue(Of String)("SavedPostsUserName", String.Empty, _XML, n)
+        End Sub
+        Private Sub CreateProp(Of T)(ByRef p As XMLValue(Of T), ByVal s As Sites,
+                                     ByVal p_Name As String, ByVal p_Value As T, ByRef x As XmlFile, ByVal n() As String)
+            If Site = s Then
+                p = New XMLValue(Of T)(p_Name, p_Value, x, n)
             Else
-                SavedPostsUserName = New XMLValue(Of String)
+                p = New XMLValue(Of T)
             End If
         End Sub
         Friend Sub Update()

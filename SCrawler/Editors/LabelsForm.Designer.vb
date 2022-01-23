@@ -13,10 +13,10 @@ Partial Friend Class LabelsForm : Inherits System.Windows.Forms.Form
     Private components As System.ComponentModel.IContainer
     <System.Diagnostics.DebuggerStepThrough()>
     Private Sub InitializeComponent()
-        Dim ActionButton4 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+        Dim ActionButton1 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
         Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(LabelsForm))
-        Dim ActionButton5 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
-        Dim ActionButton6 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+        Dim ActionButton2 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+        Dim ActionButton3 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
         Me.CONTAINER_MAIN = New System.Windows.Forms.ToolStripContainer()
         Me.CMB_LABELS = New PersonalUtilities.Forms.Controls.ComboBoxExtended()
         Me.CONTAINER_MAIN.ContentPanel.SuspendLayout()
@@ -42,21 +42,21 @@ Partial Friend Class LabelsForm : Inherits System.Windows.Forms.Form
         '
         'CMB_LABELS
         '
-        ActionButton4.BackgroundImage = CType(resources.GetObject("ActionButton4.BackgroundImage"), System.Drawing.Image)
-        ActionButton4.Index = 0
-        ActionButton4.Name = "BTT_COMBOBOX_ARROW"
-        ActionButton4.Visible = False
-        ActionButton5.BackgroundImage = CType(resources.GetObject("ActionButton5.BackgroundImage"), System.Drawing.Image)
-        ActionButton5.Index = 1
-        ActionButton5.Name = "BTT_ADD"
-        ActionButton5.ToolTipText = "Add new label (Insert)"
-        ActionButton6.BackgroundImage = CType(resources.GetObject("ActionButton6.BackgroundImage"), System.Drawing.Image)
-        ActionButton6.Index = 2
-        ActionButton6.Name = "BTT_CLEAR"
-        ActionButton6.ToolTipText = "Clear checked labels"
-        Me.CMB_LABELS.Buttons.Add(ActionButton4)
-        Me.CMB_LABELS.Buttons.Add(ActionButton5)
-        Me.CMB_LABELS.Buttons.Add(ActionButton6)
+        ActionButton1.BackgroundImage = CType(resources.GetObject("ActionButton1.BackgroundImage"), System.Drawing.Image)
+        ActionButton1.Index = 0
+        ActionButton1.Name = "BTT_COMBOBOX_ARROW"
+        ActionButton1.Visible = False
+        ActionButton2.BackgroundImage = CType(resources.GetObject("ActionButton2.BackgroundImage"), System.Drawing.Image)
+        ActionButton2.Index = 1
+        ActionButton2.Name = "BTT_ADD"
+        ActionButton2.ToolTipText = "Add new label (Insert)"
+        ActionButton3.BackgroundImage = CType(resources.GetObject("ActionButton3.BackgroundImage"), System.Drawing.Image)
+        ActionButton3.Index = 2
+        ActionButton3.Name = "BTT_CLEAR"
+        ActionButton3.ToolTipText = "Clear checked labels"
+        Me.CMB_LABELS.Buttons.Add(ActionButton1)
+        Me.CMB_LABELS.Buttons.Add(ActionButton2)
+        Me.CMB_LABELS.Buttons.Add(ActionButton3)
         Me.CMB_LABELS.Dock = System.Windows.Forms.DockStyle.Fill
         Me.CMB_LABELS.ListCheckBoxes = True
         Me.CMB_LABELS.ListDropDownStyle = PersonalUtilities.Forms.Controls.ComboBoxExtended.ListMode.Simple

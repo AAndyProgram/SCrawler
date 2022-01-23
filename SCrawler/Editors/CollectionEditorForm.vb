@@ -6,7 +6,6 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
-Imports System.ComponentModel
 Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Forms.Controls.Base
 Imports PersonalUtilities.Forms.Toolbars
@@ -28,49 +27,39 @@ Namespace Editors
             Try
                 With MyDefs
                     .MyViewInitialize(Me, Settings.Design)
-                    .MyOkCancel = New OkCancelToolbar(Me, Me, CONTAINER_MAIN.BottomToolStripPanel)
-                    .MyOkCancel.AddThisToolbar()
+                    .AddOkCancelToolbar()
+                    .DelegateClosingChecker()
                     Collections.ListAddList((From c In Settings.Users Where c.IsCollection Select c.CollectionName), LAP.NotContainsOnly, EDP.ThrowException)
-                    If Collections.ListExists Then CMB_COLLECTIONS.Items.AddRange(From c In Collections Select New Controls.Base.ListItem(c))
+                    If Collections.ListExists Then Collections.Sort() : CMB_COLLECTIONS.Items.AddRange(From c In Collections Select New ListItem(c))
                     If Not Collection.IsEmptyString And Collections.Contains(Collection) Then CMB_COLLECTIONS.SelectedIndex = Collections.IndexOf(Collection)
                 End With
             Catch ex As Exception
                 MyDefs.InvokeLoaderError(ex)
             End Try
         End Sub
-        Private Sub CollectionEditorForm_Closing(sender As Object, e As CancelEventArgs) Handles Me.Closing
-            If Not BeforeCloseChecker(MyDefs.ChangesDetected) Then
-                e.Cancel = True
-            Else
-                Collections.Clear()
-                MyDefs.Dispose()
-            End If
+        Private Sub CollectionEditorForm_Disposed(sender As Object, e As EventArgs) Handles Me.Disposed
+            Collections.Clear()
         End Sub
         Private Sub CollectionEditorForm_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
-            If e.KeyCode = Keys.Insert Then
-                AddNewCollection()
-                e.Handled = True
-            Else
-                e.Handled = False
-            End If
+            If e.KeyCode = Keys.Insert Then AddNewCollection() : e.Handled = True Else e.Handled = False
         End Sub
         Private Sub ToolbarBttOK() Implements IOkCancelToolbar.ToolbarBttOK
             If CMB_COLLECTIONS.SelectedIndex >= 0 Then
                 Collection = CMB_COLLECTIONS.Value.ToString
-                MyDefs.ChangesDetected = False
-                DialogResult = DialogResult.OK
-                Close()
+                MyDefs.CloseForm()
             Else
-                MsgBoxE("Collection does not selected", MsgBoxStyle.Exclamation)
+                MsgBoxE("Collection not selected", MsgBoxStyle.Exclamation)
             End If
         End Sub
         Private Sub ToolbarBttCancel() Implements IOkCancelToolbar.ToolbarBttCancel
-            MyDefs.ChangesDetected = False
-            DialogResult = DialogResult.Cancel
-            Close()
+            MyDefs.CloseForm(DialogResult.Cancel)
         End Sub
         Private Sub CMB_COLLECTIONS_ActionOnButtonClick(ByVal Sender As ActionButton) Handles CMB_COLLECTIONS.ActionOnButtonClick
             If Sender.DefaultButton = ActionButton.DefaultButtons.Add Then AddNewCollection()
+        End Sub
+        Private Sub CMB_COLLECTIONS_ActionOnListDoubleClick(ByVal _Item As ListViewItem) Handles CMB_COLLECTIONS.ActionOnListDoubleClick
+            _Item.Selected = True
+            ToolbarBttOK()
         End Sub
         Private Sub AddNewCollection()
             Dim c$ = InputBoxE("Enter new collection name:", "Collection name")

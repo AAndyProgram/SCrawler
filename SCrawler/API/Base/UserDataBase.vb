@@ -7,9 +7,12 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports PersonalUtilities.Functions.XML
+Imports PersonalUtilities.Forms.Toolbars
 Imports System.IO
+Imports System.Net
 Imports System.Threading
-Imports UState = SCrawler.API.Base.UserMedia.States
+Imports UStates = SCrawler.API.Base.UserMedia.States
+Imports UTypes = SCrawler.API.Base.UserMedia.Types
 Namespace API.Base
     Friend MustInherit Class UserDataBase : Implements IUserData
         Friend Const UserFileAppender As String = "User"
@@ -77,10 +80,17 @@ Namespace API.Base
 #End Region
 #Region "Declarations"
         Friend MustOverride Property Site As Sites Implements IContentProvider.Site
+        Protected _Progress As MyProgress
+        Friend Overridable Property Progress As MyProgress
+            Get
+                If _Progress Is Nothing Then Return MainProgress Else Return _Progress
+            End Get
+            Set(ByVal p As MyProgress)
+                _Progress = p
+            End Set
+        End Property
         Friend User As UserInfo
         Friend Property IsSavedPosts As Boolean
-        Protected Const NonExistendUserHelp As String = "404"
-        Protected Const SuspendedUserHelp As String = "403"
         Friend Overridable Property UserExists As Boolean = True Implements IUserData.Exists
         Friend Overridable Property UserSuspended As Boolean = False Implements IUserData.Suspended
         Friend Overridable Property Name As String Implements IContentProvider.Name
@@ -288,7 +298,7 @@ BlockNullPicture:
 #End Region
 #Region "Information"
         Protected _CountVideo As Integer = 0
-        Protected _CountPictures As Integer = 0
+        Protected Property _CountPictures As Integer = 0
         Friend Overridable Property LastUpdated As Date?
         Friend ReadOnly Property TotalContentCount As Integer
             Get
@@ -339,7 +349,7 @@ BlockNullPicture:
         Friend ReadOnly Property LVIKey As String Implements IUserData.LVIKey
             Get
                 If Not _IsCollection Then
-                    Return $"{Interaction.Switch(Site = Sites.Reddit, "R", Site = Sites.Twitter, "T", Site = Sites.Instagram, "I")}_{Name}"
+                    Return $"{Site.ToString.ToUpper.Substring(0, 1)}_{Name}"
                 Else
                     Return $"CCCC_{CollectionName}"
                 End If
@@ -436,6 +446,7 @@ BlockNullPicture:
                     End If
                 Case Sites.Twitter : Return New Twitter.UserData(u, _LoadUserInformation)
                 Case Sites.Instagram : Return New Instagram.UserData(u, _LoadUserInformation)
+                Case Sites.RedGifs : Return New RedGifs.UserData(u, _LoadUserInformation)
                 Case Else : Throw New ArgumentOutOfRangeException("Site", $"Site [{u.Site}] information does not recognized by loader")
             End Select
         End Function
@@ -469,6 +480,7 @@ BlockNullPicture:
                         DataMerging = x.Value(Name_DataMerging).FromXML(Of Boolean)(False)
                         ChangeCollectionName(x.Value(Name_CollectionName), False)
                         Labels.ListAddList(x.Value(Name_LabelsName).StringToList(Of String, List(Of String))("|", EDP.ReturnValue), LAP.NotContainsOnly, LAP.ClearBeforeAdd)
+                        LoadUserInformation_OptionalFields(x, True)
                     End Using
                     UpdateDataFiles()
                 End If
@@ -506,6 +518,8 @@ BlockNullPicture:
                     x.Add(Name_LabelsName, Labels.ListToString(, "|", EDP.ReturnValue))
                     x.Add(Name_DataMerging, DataMerging.BoolToInteger)
 
+                    LoadUserInformation_OptionalFields(x, False)
+
                     x.Save(MyFile)
                 End Using
                 If Not IsSavedPosts Then Settings.UpdateUsersList(User)
@@ -513,16 +527,15 @@ BlockNullPicture:
                 LogError(ex, "user information saving error")
             End Try
         End Sub
+        ''' <param name="Loading"><see langword="True"/>: Loading; <see langword="False"/>: Saving</param>
+        Protected MustOverride Sub LoadUserInformation_OptionalFields(ByRef Container As XmlFile, ByVal Loading As Boolean)
 #End Region
 #Region "User data"
         Friend Overridable Overloads Sub LoadContentInformation()
-            UpdateDataFiles()
-            LoadContentInformation(_ContentList, MyFileData)
-        End Sub
-        Private Overloads Sub LoadContentInformation(ByRef _CLIST As List(Of UserMedia), ByVal f As SFile)
             Try
-                If Not f.Exists Then Exit Sub
-                Using x As New XmlFile(f, Protector.Modes.All, False) With {.XmlReadOnly = True, .AllowSameNames = True}
+                UpdateDataFiles()
+                If Not MyFileData.Exists Then Exit Sub
+                Using x As New XmlFile(MyFileData, Protector.Modes.All, False) With {.XmlReadOnly = True, .AllowSameNames = True}
                     x.LoadData()
                     If x.Count > 0 Then
                         Dim fs$ = MyFile.CutPath.PathWithSeparator
@@ -538,7 +551,7 @@ BlockNullPicture:
                                                                  End If
                                                              End Function
                         For Each v As EContainer In x
-                            _CLIST.Add(New UserMedia With {
+                            _ContentList.Add(New UserMedia With {
                                            .Type = AConvert(Of Integer)(v.Attribute(Name_MediaType).Value, 0),
                                            .URL = v.Attribute(Name_MediaURL).Value,
                                            .URL_BASE = v.Value,
@@ -556,14 +569,14 @@ BlockNullPicture:
                 LogError(ex, "history loading error")
             End Try
         End Sub
-        Friend Sub UpdateContentInformation(ByRef _CLIST As List(Of UserMedia), ByVal f As SFile)
+        Friend Sub UpdateContentInformation()
             Try
                 UpdateDataFiles()
-                If f.IsEmptyString Then Exit Sub
-                f.Exists(SFO.Path)
+                If MyFileData.IsEmptyString Then Exit Sub
+                MyFileData.Exists(SFO.Path)
                 Using x As New XmlFile With {.AllowSameNames = True, .Name = "Data"}
-                    If _CLIST.Count > 0 Then
-                        For Each i As UserMedia In _CLIST
+                    If _ContentList.Count > 0 Then
+                        For Each i As UserMedia In _ContentList
                             x.Add(New EContainer("MediaData", i.URL_BASE,
                                                  {New EAttribute(Name_MediaType, CInt(i.Type)),
                                                   New EAttribute(Name_MediaURL, i.URL),
@@ -631,9 +644,9 @@ BlockNullPicture:
                 ThrowAny(Token)
 
                 If _TempMediaList.Count > 0 Then
-                    If Not DownloadImages Then _TempMediaList.RemoveAll(Function(m) m.Type = UserMedia.Types.GIF Or m.Type = UserMedia.Types.Picture)
-                    If Not DownloadVideos Then _TempMediaList.RemoveAll(Function(m) m.Type = UserMedia.Types.Video Or
-                                                                                    m.Type = UserMedia.Types.VideoPre Or m.Type = UserMedia.Types.m3u8)
+                    If Not DownloadImages Then _TempMediaList.RemoveAll(Function(m) m.Type = UTypes.GIF Or m.Type = UTypes.Picture)
+                    If Not DownloadVideos Then _TempMediaList.RemoveAll(Function(m) m.Type = UTypes.Video Or
+                                                                                    m.Type = UTypes.VideoPre Or m.Type = UTypes.m3u8)
                 End If
 
                 ReparseVideo(Token)
@@ -642,14 +655,14 @@ BlockNullPicture:
                 _ContentNew.ListAddList(_TempMediaList, LAP.ClearBeforeAdd)
                 DownloadContent(Token)
                 ThrowIfDisposed()
-                _ContentList.ListAddList(_ContentNew.Where(Function(c) c.State = UState.Downloaded), LNC)
-                _CountPictures = _ContentList.LongCount(Function(c) c.Type = UserMedia.Types.Picture)
-                _CountVideo = _ContentList.LongCount(Function(c) c.Type = UserMedia.Types.Video)
+                _ContentList.ListAddList(_ContentNew.Where(Function(c) c.State = UStates.Downloaded), LNC)
+                _CountPictures = _ContentList.LongCount(Function(c) c.Type = UTypes.Picture)
+                _CountVideo = _ContentList.LongCount(Function(c) c.Type = UTypes.Video)
                 If DownloadedPictures + DownloadedVideos > 0 Or EnvirChanged.Invoke Then
                     If __SaveData Then
                         LastUpdated = Now
                         If Labels.Contains(LabelsKeeper.NoParsedUser) Then Labels.Remove(LabelsKeeper.NoParsedUser)
-                        UpdateContentInformation(_ContentList, MyFileData)
+                        UpdateContentInformation()
                     Else
                         _CountVideo = 0
                         _CountPictures = 0
@@ -660,8 +673,10 @@ BlockNullPicture:
                     UpdateUserInformation()
                 End If
                 ThrowIfDisposed()
-                _DownloadedPicturesTotal += _DownloadedPicturesSession
-                _DownloadedVideosTotal += _DownloadedVideosSession
+                If Not CreatedByChannel Then
+                    _DownloadedPicturesTotal += _DownloadedPicturesSession
+                    _DownloadedVideosTotal += _DownloadedVideosSession
+                End If
                 If UpPic Or EnvirChanged.Invoke Then Raise_OnUserUpdated()
             Catch oex As OperationCanceledException When Token.IsCancellationRequested
                 MyMainLOG = $"{Site} - {Name}: downloading canceled"
@@ -692,6 +707,99 @@ BlockNullPicture:
         Protected MustOverride Sub DownloadDataF(ByVal Token As CancellationToken)
         Protected MustOverride Sub ReparseVideo(ByVal Token As CancellationToken)
         Protected MustOverride Sub DownloadContent(ByVal Token As CancellationToken)
+        Protected Sub DownloadContentDefault(ByVal Token As CancellationToken)
+            Try
+                Dim i%
+                Dim dCount% = 0, dTotal% = 0
+                ThrowAny(Token)
+                If _ContentNew.Count > 0 Then
+                    _ContentNew.RemoveAll(Function(c) c.URL.IsEmptyString)
+                    If _ContentNew.Count > 0 Then
+                        MyFile.Exists(SFO.Path)
+                        Dim MyDir$ = MyFile.CutPath.PathNoSeparator
+                        Dim vsf As Boolean = SeparateVideoFolderF
+                        Dim __isVideo As Boolean
+                        Dim f As SFile
+                        Dim v As UserMedia
+                        Using w As New WebClient
+                            If vsf Then SFileShares.SFileExists($"{MyDir}\Video\", SFO.Path)
+                            Progress.TotalCount += _ContentNew.Count
+                            For i = 0 To _ContentNew.Count - 1
+                                ThrowAny(Token)
+                                v = _ContentNew(i)
+                                v.State = UStates.Tried
+                                If v.File.IsEmptyString Then
+                                    f = v.URL
+                                Else
+                                    f = v.File
+                                End If
+                                f.Separator = "\"
+                                f.Path = MyDir
+
+                                If v.URL_BASE.IsEmptyString Then v.URL_BASE = v.URL
+
+                                If Not v.File.IsEmptyString And Not v.URL_BASE.IsEmptyString Then
+                                    Try
+                                        __isVideo = v.Type = UTypes.Video Or f.Extension = "mp4"
+
+                                        If f.Extension.IsEmptyString Then
+                                            Select Case v.Type
+                                                Case UTypes.Picture : f.Extension = "jpg"
+                                                Case UTypes.Video : f.Extension = "mp4"
+                                                Case UTypes.GIF : f.Extension = "gif"
+                                            End Select
+                                        End If
+
+                                        If __isVideo And vsf Then f.Path = $"{f.PathWithSeparator}Video"
+                                        w.DownloadFile(v.URL_BASE, f.ToString)
+
+                                        If __isVideo Then
+                                            v.Type = UTypes.Video
+                                            DownloadedVideos += 1
+                                            _CountVideo += 1
+                                        Else
+                                            v.Type = UTypes.Picture
+                                            DownloadedPictures += 1
+                                            _CountPictures += 1
+                                        End If
+
+                                        v.File = ChangeFileNameByProvider(f, v)
+                                        v.State = UStates.Downloaded
+                                        dCount += 1
+                                    Catch wex As Exception
+                                        ErrorDownloading(f, v.URL_BASE)
+                                    End Try
+                                Else
+                                    v.State = UStates.Skipped
+                                End If
+                                _ContentNew(i) = v
+                                If DownloadTopCount.HasValue AndAlso dCount >= DownloadTopCount.Value Then
+                                    Progress.Perform(_ContentNew.Count - dTotal)
+                                    Exit Sub
+                                Else
+                                    dTotal += 1
+                                    Progress.Perform()
+                                End If
+                            Next
+                        End Using
+                    End If
+                End If
+            Catch oex As OperationCanceledException When Token.IsCancellationRequested
+            Catch dex As ObjectDisposedException When Disposed
+            Catch ex As Exception
+                LogError(ex, "content downloading error")
+                HasError = True
+            End Try
+        End Sub
+        ''' <param name="RDE">Request DownloadingException</param>
+        Protected Sub ProcessException(ByVal ex As Exception, ByVal Token As CancellationToken, ByVal Message As String, Optional ByVal RDE As Boolean = True)
+            If Not ((TypeOf ex Is OperationCanceledException And Token.IsCancellationRequested) Or
+                    (TypeOf ex Is ObjectDisposedException And Disposed)) Then
+                If RDE AndAlso DownloadingException(ex, Message, True) = 0 Then LogError(ex, Message) : HasError = True
+            End If
+        End Sub
+        ''' <summary>0 - Execute LogError and set HasError</summary>
+        Protected MustOverride Function DownloadingException(ByVal ex As Exception, ByVal Message As String, Optional ByVal FromPE As Boolean = False) As Integer
         Protected Function ChangeFileNameByProvider(ByVal f As SFile, ByVal m As UserMedia) As SFile
             Dim ff As SFile = Nothing
             Try
@@ -1020,7 +1128,7 @@ BlockNullPicture:
         ''' 0 - Nothing removed<br/>
         ''' 1 - User removed<br/>
         ''' 2 - Collection removed<br/>
-        ''' 3 - Collection splitted
+        ''' 3 - Collection split
         ''' </summary>
         Function Delete() As Integer
         Function MoveFiles(ByVal CollectionName As String) As Boolean

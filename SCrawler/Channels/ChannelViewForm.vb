@@ -19,20 +19,26 @@ Imports CmbDefaultButtons = PersonalUtilities.Forms.Controls.Base.ActionButton.D
 Imports RButton = PersonalUtilities.Tools.RangeSwitcherButton.Types
 Friend Class ChannelViewForm : Implements IChannelLimits
     Friend Event OnUsersAdded(ByVal StartIndex As Integer)
+    Friend Event OnDownloadDone(ByVal Message As String)
 #Region "Appended user structure"
     Private Structure PendingUser
         Friend ID As String
         Friend File As SFile
-        Friend Sub New(ByVal _ID As String, Optional ByVal _File As SFile = Nothing)
+        Friend Channel As Channel
+        Friend Sub New(ByVal _ID As String, ByRef _Channel As Channel, Optional ByVal _File As SFile = Nothing)
             ID = _ID
+            Channel = _Channel
             If Settings.FromChannelCopyImageToUser Then File = _File
         End Sub
         Public Shared Widening Operator CType(ByVal _ID As String) As PendingUser
-            Return New PendingUser(_ID, False)
+            Return New PendingUser(_ID, Nothing)
         End Operator
         Public Shared Widening Operator CType(ByVal u As PendingUser) As String
             Return u.ToString
         End Operator
+        Friend Sub ChannelUserAdded(Optional ByVal IsAdded As Boolean = True)
+            If Not Channel Is Nothing Then Channel.UserAdded(IsAdded)
+        End Sub
         Public Overrides Function ToString() As String
             Return ID
         End Function
@@ -53,6 +59,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
     Private WithEvents OPT_LIMITS_COUNT As RadioButton
     Private WithEvents OPT_LIMITS_POST As RadioButton
     Private WithEvents OPT_LIMITS_DATE As RadioButton
+    Private WithEvents BTT_SHOW_STATS As ToolStripButton
 #End Region
     Private ReadOnly CProvider As ANumbers
     Private ReadOnly CProgress As MyProgress
@@ -134,7 +141,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
         InitializeComponent()
         MyDefs = New DefaultFormProps
         CProgress = New MyProgress(ToolbarBOTTOM, PR_CN, LBL_STATUS, "Downloading data") With {.PerformMod = 10, .DropCurrentProgressOnTotalChange = False}
-        CProvider = New ANumbers(ANumbers.Modes.USA) With {.GroupSize = 3, .DecimalDigits = 0}
+        CProvider = New ANumbers With {.FormatOptions = ANumbers.Options.GroupIntegral}
         LimitProvider = New ADateTime("dd.MM.yyyy HH:mm")
         PendingUsers = New List(Of PendingUser)
 
@@ -149,7 +156,8 @@ Friend Class ChannelViewForm : Implements IChannelLimits
         }
         CMB_CHANNELS.Buttons.AddRange({CmbDefaultButtons.Refresh, CmbDefaultButtons.Add, CmbDefaultButtons.Delete,
                                        New ActionButton(CmbDefaultButtons.Up) With {.ToolTipText = "Previous item (F1)"},
-                                       New ActionButton(CmbDefaultButtons.Down) With {.ToolTipText = "Next item (F4)"}})
+                                       New ActionButton(CmbDefaultButtons.Down) With {.ToolTipText = "Next item (F4)"},
+                                       CmbDefaultButtons.Info})
         TXT_LIMIT = New TextBoxExtended With {
             .CaptionText = "Limit",
             .Margin = New Padding(2),
@@ -168,6 +176,9 @@ Friend Class ChannelViewForm : Implements IChannelLimits
         OPT_LIMITS_DATE = New RadioButton With {.Text = "Date", .BackColor = Color.Transparent, .Margin = New Padding(2)}
         CH_HIDE_EXISTS_USERS = New CheckBox With {.Text = "Hide exists users", .BackColor = Color.Transparent, .Margin = New Padding(2),
                                                   .Checked = Settings.ChannelsHideExistsUser}
+        BTT_SHOW_STATS = New ToolStripButton With {.Text = "Info", .Image = PersonalUtilities.My.Resources.InfoPic_32,
+                                                   .DisplayStyle = ToolStripItemDisplayStyle.ImageAndText, .Alignment = ToolStripItemAlignment.Right,
+                                                   .AutoToolTip = True, .ToolTipText = "Show channels statistic"}
 
         TT_MAIN.SetToolTip(CH_HIDE_EXISTS_USERS, "Hide users which already exists in collection")
         TT_MAIN.SetToolTip(OPT_LIMITS_COUNT, "Total posts count limit")
@@ -182,8 +193,9 @@ Friend Class ChannelViewForm : Implements IChannelLimits
                                   TXT_LIMIT.GetControlHost,
                                   LBL_LIMIT_TEXT,
                                   New ToolStripSeparator,
-                                  New ToolStripControlHost(CH_HIDE_EXISTS_USERS)})
-        MyRange = New RangeSwitcher(Of UserPost) With {.Selector = Function(p) Not Settings.UserExists(Sites.Reddit, p.UserID)}
+                                  New ToolStripControlHost(CH_HIDE_EXISTS_USERS),
+                                  BTT_SHOW_STATS})
+        MyRange = New RangeSwitcher(Of UserPost) With {.Selector = SelectorExpression}
         With MyRange
             .Limit = ImagesInRow * ImagesRows
             .InsertButtons(ToolbarTOP, {RButton.Previous, RButton.Next}, 5)
@@ -192,7 +204,6 @@ Friend Class ChannelViewForm : Implements IChannelLimits
             .BindForm(Me)
             .LabelNumbersProvider = CProvider
             .UpdateControls()
-            .Selector = SelectorExpression
         End With
         AddHandler Settings.ChannelsImagesColumns.OnValueChanged, AddressOf ImagesCountChanged
         AddHandler Settings.ChannelsImagesRows.OnValueChanged, AddressOf ImagesCountChanged
@@ -225,6 +236,8 @@ Friend Class ChannelViewForm : Implements IChannelLimits
         OPT_LIMITS_COUNT.Dispose()
         OPT_LIMITS_POST.Dispose()
         LBL_LIMIT_TEXT.Dispose()
+        BTT_SHOW_STATS.Dispose()
+        MyRange.Dispose()
         PendingUsers.Clear()
         MyDefs.Dispose()
     End Sub
@@ -266,9 +279,11 @@ Friend Class ChannelViewForm : Implements IChannelLimits
 #Region "Images refill methods"
     Private Sub AppendPendingUsers()
         If LIST_POSTS.CheckedIndices.Count > 0 Then
+            Dim c As Channel = GetCurrentChannel(False)
+            Dim lp As New ListAddParams(LAP.NotContainsOnly) With {.OnAddAction = Sub(ByVal u As PendingUser) u.ChannelUserAdded()}
             PendingUsers.ListAddList((From p As ListViewItem In LIST_POSTS.Items
                                       Where p.Checked
-                                      Select New PendingUser(p.Text, GetPostBySelected(CStr(p.Tag)).CachedFile)), LNC)
+                                      Select New PendingUser(p.Text, c, GetPostBySelected(CStr(p.Tag)).CachedFile)), lp)
             Dim a As Action = Sub() BTT_ADD_USERS.Text = $"Add ({PendingUsers.Count.ToString(CProvider)})"
             If ToolbarTOP.InvokeRequired Then ToolbarTOP.Invoke(a) Else a.Invoke
         End If
@@ -324,6 +339,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
                                                 TXT_LIMIT.Enabled = False
                                                 CH_HIDE_EXISTS_USERS.Enabled = False
                                                 CMB_CHANNELS.Enabled(True) = False
+                                                BTT_SHOW_STATS.Enabled = False
                                                 MyRange.EnableButton(RButton.Previous, False)
                                                 MyRange.EnableButton(RButton.Next, False)
                                             End If
@@ -337,6 +353,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
                     _CollectionDownloading = True
                     Settings.Channels.SetLimit(Me)
                     Await Task.Run(Sub() Settings.Channels.DownloadData(Token, CH_HIDE_EXISTS_USERS.Checked, CProgress))
+                    RaiseEvent OnDownloadDone("All channels downloaded")
                     Token.ThrowIfCancellationRequested()
                     c = GetCurrentChannel()
                 Else
@@ -345,6 +362,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
                         InvokeToken.Invoke()
                         c.SetLimit(Me)
                         Await Task.Run(Sub() c.DownloadData(Token, CH_HIDE_EXISTS_USERS.Checked, CProgress))
+                        RaiseEvent OnDownloadDone($"Channel [{c.Name}] downloaded")
                         Token.ThrowIfCancellationRequested()
                     End If
                 End If
@@ -377,6 +395,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
                 TXT_LIMIT.Enabled = True
                 CH_HIDE_EXISTS_USERS.Enabled = True
                 CMB_CHANNELS.Enabled(True) = True
+                BTT_SHOW_STATS.Enabled = True
                 CMB_CHANNELS_ActionOnCheckedChange(CMB_CHANNELS.Checked)
                 With MyRange
                     .EnableButton(RButton.Previous, .Count > 0 AndAlso .CurrentIndex > 0)
@@ -524,12 +543,13 @@ Friend Class ChannelViewForm : Implements IChannelLimits
         If Not c Is Nothing Then MyRange.ChangeSource(c, EDP.SendInLog)
     End Sub
     Private Sub CMB_CHANNELS_ActionOnButtonClick(ByVal Sender As ActionButton) Handles CMB_CHANNELS.ActionOnButtonClick
+        Dim c As Channel
         Select Case Sender.DefaultButton
             Case CmbDefaultButtons.Refresh : RefillChannels()
             Case CmbDefaultButtons.Add : AddNewChannel()
             Case CmbDefaultButtons.Delete
                 Try
-                    Dim c As Channel = GetCurrentChannel()
+                    c = GetCurrentChannel()
                     If Not c Is Nothing AndAlso MsgBoxE($"Do you really want to delete channel [{c}]?", MsgBoxStyle.Exclamation + MsgBoxStyle.YesNo) = 0 Then
                         Settings.Channels.Remove(c)
                         RefillChannels()
@@ -539,6 +559,13 @@ Friend Class ChannelViewForm : Implements IChannelLimits
                 End Try
             Case CmbDefaultButtons.Up : ChangeComboIndex(-1)
             Case CmbDefaultButtons.Down : ChangeComboIndex(1)
+            Case CmbDefaultButtons.Info
+                Try
+                    c = GetCurrentChannel()
+                    If Not c Is Nothing Then MsgBoxE({c.GetChannelStats(True), "Channel statistics"})
+                Catch info_ex As Exception
+                    ErrorsDescriber.Execute(EDP.LogMessageValue, info_ex, "Error on trying to show channel info")
+                End Try
         End Select
     End Sub
     Private Sub CMB_CHANNELS_ActionOnCheckedChange(ByVal Mode As Boolean) Handles CMB_CHANNELS.ActionOnCheckedChange
@@ -602,6 +629,12 @@ Friend Class ChannelViewForm : Implements IChannelLimits
             MyRange.Update()
         End If
     End Sub
+    Private Sub BTT_SHOW_STATS_Click(sender As Object, e As EventArgs) Handles BTT_SHOW_STATS.Click
+        Using f As New ChannelsStatsForm
+            f.ShowDialog()
+            If f.DeletedChannels > 0 Then RefillChannels()
+        End Using
+    End Sub
 #End Region
 #Region "CONTEXT"
     Private Sub BTT_C_OPEN_USER_Click(sender As Object, e As EventArgs) Handles BTT_C_OPEN_USER.Click
@@ -634,10 +667,14 @@ Friend Class ChannelViewForm : Implements IChannelLimits
             Dim u$ = GetPostBySelected().UserID
             If Not u.IsEmptyString Then
                 Dim uRemoved As Boolean = False
-                If PendingUsers.Contains(u) Then PendingUsers.Remove(u) : uRemoved = True
+                Dim i% = PendingUsers.IndexOf(u)
+                If i >= 0 Then
+                    PendingUsers(i).ChannelUserAdded(False)
+                    PendingUsers.RemoveAt(i)
+                    uRemoved = True
+                End If
                 With LIST_POSTS
                     If .Items.Count > 0 Then
-                        Dim i%
                         Dim a As Action = Sub() .Items(i).Checked = False
                         For i = 0 To .Items.Count - 1
                             If .Items(i).Text = u And .Items(i).Checked Then

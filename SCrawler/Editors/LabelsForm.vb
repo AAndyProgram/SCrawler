@@ -27,21 +27,18 @@ Friend Class LabelsForm : Implements IOkCancelToolbar
         Try
             With MyDefs
                 .MyViewInitialize(Me, Settings.Design)
-                .MyOkCancel = New OkCancelToolbar(Me, Me, CONTAINER_MAIN.BottomToolStripPanel)
-                .MyOkCancel.AddThisToolbar()
+                .AddOkCancelToolbar()
                 .DelegateClosingChecker()
-
                 If Settings.Labels.Count > 0 Then
                     Dim items As New List(Of Integer)
                     CMB_LABELS.BeginUpdate()
                     For i% = 0 To Settings.Labels.Count - 1
                         If LabelsList.Contains(Settings.Labels(i)) Then items.Add(i)
-                        CMB_LABELS.Items.Add(New ListItem(Settings.Labels(i)))
+                        CMB_LABELS.Items.Add(Settings.Labels(i))
                     Next
                     CMB_LABELS.EndUpdate()
                     CMB_LABELS.ListCheckedIndexes = items
                 End If
-
                 .AppendDetectors()
                 .EndLoaderOperations()
             End With
@@ -60,8 +57,8 @@ Friend Class LabelsForm : Implements IOkCancelToolbar
             If MultiUser Then
                 Dim m As New MMessage("You are changing labels for more one user" & vbNewLine & "What do you want to do?",
                                       "MultiUser labels changing",
-                                      {New MsgBoxButton("Replace exists") With {.ToolTip = "For each user: all exists labels will be deleted and replaced to these labels"},
-                                       New MsgBoxButton("Add to exists") With {.ToolTip = "For each user: these labels will be appended to exists labels"},
+                                      {New MsgBoxButton("Replace exists") With {.ToolTip = "Per user: all existing labels will be removed and replaced with these labels"},
+                                       New MsgBoxButton("Add to exists") With {.ToolTip = "Per user: these labels will be add to existing labels"},
                                        New MsgBoxButton("Cancel")},
                                       MsgBoxStyle.Exclamation)
                 Select Case MsgBoxE(m).Index
@@ -70,11 +67,7 @@ Friend Class LabelsForm : Implements IOkCancelToolbar
                     Case 2 : Exit Sub
                 End Select
             End If
-            LabelsList.Clear()
-            Dim s As List(Of Integer) = CMB_LABELS.ListCheckedIndexes.ListIfNothing
-            If s.Count > 0 Then
-                For Each i% In s : LabelsList.Add(Settings.Labels(i)) : Next
-            End If
+            LabelsList.ListAddList(CMB_LABELS.Items.CheckedItems.Select(Function(l) CStr(l.Value(0))), LAP.ClearBeforeAdd, LAP.NotContainsOnly)
             If _AnyLabelAdd Then Settings.Labels.Update()
             MyDefs.CloseForm()
         Catch ex As Exception
@@ -98,7 +91,7 @@ Friend Class LabelsForm : Implements IOkCancelToolbar
             Else
                 Settings.Labels.Add(nl)
                 _AnyLabelAdd = True
-                CMB_LABELS.Items.Add(New ListItem(nl))
+                CMB_LABELS.Items.Add(nl)
             End If
         End If
     End Sub

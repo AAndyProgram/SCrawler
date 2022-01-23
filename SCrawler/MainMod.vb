@@ -8,6 +8,7 @@
 ' but WITHOUT ANY WARRANTY
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Tools.WEB
+Imports PersonalUtilities.Forms.Toolbars
 Imports SCrawler.API
 Imports SCrawler.API.Base
 Friend Module MainMod
@@ -44,11 +45,12 @@ Friend Module MainMod
     Friend Class NumberedFile : Inherits SFileNumbers
         Friend Sub New(ByVal f As SFile)
             FileName = f.Name
-            NumberProvider = New ANumbers With {.FormatMode = ANumbers.Formats.NumberGroup, .GroupSize = 5}
+            NumberProvider = New ANumbers With {.Format = ANumbers.Formats.NumberGroup, .GroupSize = 5}
         End Sub
     End Class
 #End Region
-    Friend Property MainProgress As PersonalUtilities.Forms.Toolbars.MyProgress
+    Friend Property MainProgress As MyProgress
+    Friend Property MainProgressInst As MyProgress
     Friend Function GetLviGroupName(ByVal Site As Sites, ByVal Temp As Boolean, ByVal Fav As Boolean,
                                     ByVal IsCollection As Boolean, ByVal IsChannel As Boolean) As String
         Dim Opt$ = String.Empty
@@ -71,6 +73,7 @@ Friend Module MainMod
         Reddit = 1
         Twitter = 2
         Instagram = 3
+        RedGifs = 4
     End Enum
     Friend Structure UserInfo : Implements IComparable(Of UserInfo), IEquatable(Of UserInfo), ICloneable
         Friend Const Name_Site As String = "Site"
@@ -208,7 +211,7 @@ Friend Module MainMod
     End Function
     Friend Function GetNewVideoURL() As String
         Dim b$ = GetCurrentBuffer()
-        Dim URL$ = InputBox("Enter video URL:", "Download video by URL", b)
+        Dim URL$ = InputBoxE("Enter video URL:", "Download video by URL", b)
         If Not URL.IsEmptyString Then Return URL Else Return String.Empty
     End Function
     Friend Sub DownloadVideoByURL()

@@ -16,7 +16,6 @@
         Private Sub InitializeComponent()
             Me.components = New System.ComponentModel.Container()
             Dim TP_MAIN As System.Windows.Forms.TableLayoutPanel
-            Dim TP_SITE As System.Windows.Forms.TableLayoutPanel
             Dim TP_PARAMS As System.Windows.Forms.TableLayoutPanel
             Dim TP_OTHER As System.Windows.Forms.TableLayoutPanel
             Dim ActionButton1 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
@@ -28,10 +27,12 @@
             Dim ActionButton5 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim TT_MAIN As System.Windows.Forms.ToolTip
             Me.TXT_USER = New PersonalUtilities.Forms.Controls.TextBoxExtended()
+            Me.TP_SITE = New System.Windows.Forms.TableLayoutPanel()
             Me.OPT_REDDIT = New System.Windows.Forms.RadioButton()
             Me.OPT_TWITTER = New System.Windows.Forms.RadioButton()
             Me.CH_IS_CHANNEL = New System.Windows.Forms.CheckBox()
             Me.OPT_INSTAGRAM = New System.Windows.Forms.RadioButton()
+            Me.OPT_REDGIFS = New System.Windows.Forms.RadioButton()
             Me.CH_TEMP = New System.Windows.Forms.CheckBox()
             Me.CH_FAV = New System.Windows.Forms.CheckBox()
             Me.CH_PARSE_USER_MEDIA = New System.Windows.Forms.CheckBox()
@@ -47,14 +48,13 @@
             Me.TXT_SPEC_FOLDER = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.CONTAINER_MAIN = New System.Windows.Forms.ToolStripContainer()
             TP_MAIN = New System.Windows.Forms.TableLayoutPanel()
-            TP_SITE = New System.Windows.Forms.TableLayoutPanel()
             TP_PARAMS = New System.Windows.Forms.TableLayoutPanel()
             TP_OTHER = New System.Windows.Forms.TableLayoutPanel()
             TP_DOWN_OPTIONS = New System.Windows.Forms.TableLayoutPanel()
             TT_MAIN = New System.Windows.Forms.ToolTip(Me.components)
             TP_MAIN.SuspendLayout()
             CType(Me.TXT_USER, System.ComponentModel.ISupportInitialize).BeginInit()
-            TP_SITE.SuspendLayout()
+            Me.TP_SITE.SuspendLayout()
             TP_PARAMS.SuspendLayout()
             TP_OTHER.SuspendLayout()
             CType(Me.TXT_DESCR, System.ComponentModel.ISupportInitialize).BeginInit()
@@ -73,7 +73,7 @@
             TP_MAIN.ColumnCount = 1
             TP_MAIN.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
             TP_MAIN.Controls.Add(Me.TXT_USER, 0, 0)
-            TP_MAIN.Controls.Add(TP_SITE, 0, 3)
+            TP_MAIN.Controls.Add(Me.TP_SITE, 0, 3)
             TP_MAIN.Controls.Add(TP_PARAMS, 0, 4)
             TP_MAIN.Controls.Add(TP_OTHER, 0, 6)
             TP_MAIN.Controls.Add(Me.TXT_DESCR, 0, 9)
@@ -112,24 +112,26 @@
             '
             'TP_SITE
             '
-            TP_SITE.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
-            TP_SITE.ColumnCount = 4
-            TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25.0!))
-            TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25.0!))
-            TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25.0!))
-            TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25.0!))
-            TP_SITE.Controls.Add(Me.OPT_REDDIT, 0, 0)
-            TP_SITE.Controls.Add(Me.OPT_TWITTER, 2, 0)
-            TP_SITE.Controls.Add(Me.CH_IS_CHANNEL, 1, 0)
-            TP_SITE.Controls.Add(Me.OPT_INSTAGRAM, 3, 0)
-            TP_SITE.Dock = System.Windows.Forms.DockStyle.Fill
-            TP_SITE.Location = New System.Drawing.Point(1, 88)
-            TP_SITE.Margin = New System.Windows.Forms.Padding(0)
-            TP_SITE.Name = "TP_SITE"
-            TP_SITE.RowCount = 1
-            TP_SITE.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_SITE.Size = New System.Drawing.Size(452, 31)
-            TP_SITE.TabIndex = 3
+            Me.TP_SITE.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
+            Me.TP_SITE.ColumnCount = 5
+            Me.TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 20.0!))
+            Me.TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 20.0!))
+            Me.TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 20.0!))
+            Me.TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 20.0!))
+            Me.TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 20.0!))
+            Me.TP_SITE.Controls.Add(Me.OPT_REDDIT, 0, 0)
+            Me.TP_SITE.Controls.Add(Me.OPT_TWITTER, 2, 0)
+            Me.TP_SITE.Controls.Add(Me.CH_IS_CHANNEL, 1, 0)
+            Me.TP_SITE.Controls.Add(Me.OPT_INSTAGRAM, 3, 0)
+            Me.TP_SITE.Controls.Add(Me.OPT_REDGIFS, 4, 0)
+            Me.TP_SITE.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.TP_SITE.Location = New System.Drawing.Point(1, 88)
+            Me.TP_SITE.Margin = New System.Windows.Forms.Padding(0)
+            Me.TP_SITE.Name = "TP_SITE"
+            Me.TP_SITE.RowCount = 1
+            Me.TP_SITE.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            Me.TP_SITE.Size = New System.Drawing.Size(452, 31)
+            Me.TP_SITE.TabIndex = 3
             '
             'OPT_REDDIT
             '
@@ -137,7 +139,7 @@
             Me.OPT_REDDIT.Dock = System.Windows.Forms.DockStyle.Fill
             Me.OPT_REDDIT.Location = New System.Drawing.Point(4, 4)
             Me.OPT_REDDIT.Name = "OPT_REDDIT"
-            Me.OPT_REDDIT.Size = New System.Drawing.Size(105, 23)
+            Me.OPT_REDDIT.Size = New System.Drawing.Size(83, 23)
             Me.OPT_REDDIT.TabIndex = 0
             Me.OPT_REDDIT.TabStop = True
             Me.OPT_REDDIT.Text = "Reddit"
@@ -147,9 +149,9 @@
             '
             Me.OPT_TWITTER.AutoSize = True
             Me.OPT_TWITTER.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.OPT_TWITTER.Location = New System.Drawing.Point(228, 4)
+            Me.OPT_TWITTER.Location = New System.Drawing.Point(184, 4)
             Me.OPT_TWITTER.Name = "OPT_TWITTER"
-            Me.OPT_TWITTER.Size = New System.Drawing.Size(105, 23)
+            Me.OPT_TWITTER.Size = New System.Drawing.Size(83, 23)
             Me.OPT_TWITTER.TabIndex = 1
             Me.OPT_TWITTER.TabStop = True
             Me.OPT_TWITTER.Text = "Twitter"
@@ -159,9 +161,9 @@
             '
             Me.CH_IS_CHANNEL.AutoSize = True
             Me.CH_IS_CHANNEL.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_IS_CHANNEL.Location = New System.Drawing.Point(116, 4)
+            Me.CH_IS_CHANNEL.Location = New System.Drawing.Point(94, 4)
             Me.CH_IS_CHANNEL.Name = "CH_IS_CHANNEL"
-            Me.CH_IS_CHANNEL.Size = New System.Drawing.Size(105, 23)
+            Me.CH_IS_CHANNEL.Size = New System.Drawing.Size(83, 23)
             Me.CH_IS_CHANNEL.TabIndex = 2
             Me.CH_IS_CHANNEL.Text = "Channel"
             Me.CH_IS_CHANNEL.UseVisualStyleBackColor = True
@@ -170,13 +172,25 @@
             '
             Me.OPT_INSTAGRAM.AutoSize = True
             Me.OPT_INSTAGRAM.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.OPT_INSTAGRAM.Location = New System.Drawing.Point(340, 4)
+            Me.OPT_INSTAGRAM.Location = New System.Drawing.Point(274, 4)
             Me.OPT_INSTAGRAM.Name = "OPT_INSTAGRAM"
-            Me.OPT_INSTAGRAM.Size = New System.Drawing.Size(108, 23)
+            Me.OPT_INSTAGRAM.Size = New System.Drawing.Size(83, 23)
             Me.OPT_INSTAGRAM.TabIndex = 3
             Me.OPT_INSTAGRAM.TabStop = True
             Me.OPT_INSTAGRAM.Text = "Instagram"
             Me.OPT_INSTAGRAM.UseVisualStyleBackColor = True
+            '
+            'OPT_REDGIFS
+            '
+            Me.OPT_REDGIFS.AutoSize = True
+            Me.OPT_REDGIFS.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.OPT_REDGIFS.Location = New System.Drawing.Point(364, 4)
+            Me.OPT_REDGIFS.Name = "OPT_REDGIFS"
+            Me.OPT_REDGIFS.Size = New System.Drawing.Size(84, 23)
+            Me.OPT_REDGIFS.TabIndex = 4
+            Me.OPT_REDGIFS.TabStop = True
+            Me.OPT_REDGIFS.Text = "RedGifs"
+            Me.OPT_REDGIFS.UseVisualStyleBackColor = True
             '
             'TP_PARAMS
             '
@@ -442,8 +456,8 @@
             Me.Text = "Create User"
             TP_MAIN.ResumeLayout(False)
             CType(Me.TXT_USER, System.ComponentModel.ISupportInitialize).EndInit()
-            TP_SITE.ResumeLayout(False)
-            TP_SITE.PerformLayout()
+            Me.TP_SITE.ResumeLayout(False)
+            Me.TP_SITE.PerformLayout()
             TP_PARAMS.ResumeLayout(False)
             TP_PARAMS.PerformLayout()
             TP_OTHER.ResumeLayout(False)
@@ -482,5 +496,7 @@
         Private WithEvents CH_IS_CHANNEL As CheckBox
         Private WithEvents OPT_INSTAGRAM As RadioButton
         Private WithEvents TXT_SPEC_FOLDER As PersonalUtilities.Forms.Controls.TextBoxExtended
+        Private WithEvents OPT_REDGIFS As RadioButton
+        Private WithEvents TP_SITE As TableLayoutPanel
     End Class
 End Namespace

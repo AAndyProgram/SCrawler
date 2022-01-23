@@ -1,6 +1,6 @@
 # Social networks crawler
 
-Program for downloading photo and video from Reddit, Twitter and Instagram
+A program to download photo and video from Reddit, Twitter, Instagram, [etc](#supported-sites).
 
 Do you like this program? Consider adding to my coffee fund by making a donation to show your support. :)
 
@@ -11,15 +11,22 @@ Do you like this program? Consider adding to my coffee fund by making a donation
   - Reddit images;
   - Reddit galleries of images;
   - Redgifs hosted videos (https://www.redgifs.com/);
-  - Reddit hosted videos (downloading Reddit hosted video is going through ffmpeg);
+  - Reddit hosted videos (downloading Reddit hosted video is going through ffmpeg (**ffmpeg only works with the x64 program**));
   - Twitter images and videos;
   - Instagram images and videos.
 - Parse [channel and view data](https://github.com/AAndyProgram/SCrawler/wiki/Channels).
-- Download [saved Reddit posts](https://github.com/AAndyProgram/SCrawler/wiki/Home#saved-posts).
+- Download [saved Reddit and Instagram posts](https://github.com/AAndyProgram/SCrawler/wiki/Home#saved-posts).
 - Add users from parsed channel.
 - Labeling users.
 - Filter exists users by label or group.
 - Selection of media types you want to download (images only, videos only, both)
+
+# Supported sites
+
+- Reddit
+- Twitter
+- Instagram
+- RedGifs
 
 # How does it works:
 
@@ -27,7 +34,7 @@ Do you like this program? Consider adding to my coffee fund by making a donation
 
 The program parses all user posts, obtain MD5  images hash and compares them with existing ones to remove duplicates. Then the media will be downloaded.
 
-## Twitter and Instagram
+## Other sites
 
 The program parses all user posts and compares file names with existing ones to remove duplicates. Then the media will be downloaded.
 
@@ -42,7 +49,7 @@ Read [here](https://github.com/AAndyProgram/SCrawler/blob/main/CONTRIBUTING.md#h
 - Windows 7, 8, 9, 10, 11 with NET Framework 4.6.1 or higher
 - Authorization cookies and tokens for Twitter (if you want to download data from Twitter)
 - Authorization cookies Instagram (if you want to download data from Instagram)
-- ffmpeg library for downloading videos hosted on Reddit (you can download it from the [official repo](https://github.com/GyanD/codexffmpeg/releases/tag/2021-01-12-git-ca21cb1e36) or [from my first release](https://github.com/AAndyProgram/SCrawler/releases/download/1.0.0.0/ffmpeg.zip))
+- ffmpeg library for downloading videos hosted on Reddit (you can download it from the [official repo](https://github.com/GyanD/codexffmpeg/releases/tag/2021-01-12-git-ca21cb1e36) or [from my first release](https://github.com/AAndyProgram/SCrawler/releases/download/1.0.0.0/ffmpeg.zip)). **ffmpeg only works with the x64 version of the program.**
 - **Don't put program in the ```Program Files``` system folder (this is portable program and program settings are stored in the program folder)**
 - **Just unzip the program archive to any folder, copy the file ```ffmpeg.exe``` into it and enjoy. :)**
 
@@ -69,6 +76,7 @@ You can add users by patterns:
 - https://twitter.com/SomeUserName
 - https://reddit.com/user/SomeUserName
 - https://reddit.com/r/SomeSubredditName
+- https://www.redgifs.com/users/SomeUserName
 - u/SomeUserName
 - r/SomeSubredditName
 - SomeUserName (in this case, you need to select the user's site)
@@ -83,3 +91,8 @@ Read more about adding users and subreddits [here](https://github.com/AAndyProgr
 Create a shortcut for the program. Open shortcut properties. In the ```Shortcut``` tab, in the ```Target``` field, just add the letter ```v``` at the end across the space.
 
 Example: ```D:\Programs\SCrawler\SCrawler.exe v```
+
+# Contact me
+
+[Element messenger](https://element.io/): @andyprogram:matrix.org
+https://matrix.to/#/@andyprogram:matrix.org

@@ -17,6 +17,7 @@ Public Class MainFrame
     Private MyView As FormsView
     Private ReadOnly _VideoDownloadingMode As Boolean = False
     Private MyChannels As ChannelViewForm
+    Private MySavedPosts As DownloadSavedPostsForm
     Private _UFinit As Boolean = True
     Public Sub New()
         InitializeComponent()
@@ -29,21 +30,24 @@ Public Class MainFrame
         If Args.ListExists(2) AndAlso Args(1) = "v" Then
             Using f As New VideosDownloaderForm : f.ShowDialog() : End Using
             _VideoDownloadingMode = True
-        Else
-            Downloader = New TDownloader
         End If
     End Sub
     Private Sub MainFrame_Load(sender As Object, e As EventArgs) Handles Me.Load
         If _VideoDownloadingMode Then GoTo FormClosingInvoker
+        Settings.DeleteCachPath()
+        MainProgress = New Toolbars.MyProgress(Toolbar_BOTTOM, PR_MAIN, LBL_STATUS) With {.DropCurrentProgressOnTotalChange = False, .Enabled = False}
+        MainProgressInst = New Toolbars.MyProgress(Toolbar_BOTTOM, PR_INST, LBL_STATUS_INST) With {.DropCurrentProgressOnTotalChange = False, .Enabled = False}
+        Downloader = New TDownloader
         InfoForm = New DownloadedInfoForm
         AddHandler Downloader.OnJobsChange, AddressOf Downloader_UpdateJobsCount
         AddHandler Downloader.OnDownloading, AddressOf Downloader_OnDownloading
         AddHandler Downloader.OnDownloadCountChange, AddressOf InfoForm.Downloader_OnDownloadCountChange
+        AddHandler Downloader.SendNotification, AddressOf NotificationMessage
         Settings.LoadUsers()
         MyView = New FormsView(Me)
         MyView.ImportFromXML(Settings.Design)
         MyView.SetMeSize()
-        MainProgress = New Toolbars.MyProgress(Toolbar_BOTTOM, PR_MAIN, LBL_STATUS) With {.DropCurrentProgressOnTotalChange = False}
+        If Settings.CloseToTray Then TrayIcon.Visible = True
         Dim gk$
         With LIST_PROFILES.Groups
             'Collections
@@ -92,40 +96,80 @@ FormClosingInvoker:
 EndFunction:
     End Sub
     Private _CloseInvoked As Boolean = False
+    Private _IgnoreTrayOptions As Boolean = False
+    Private _IgnoreCloseConfirm As Boolean = False
     Private Async Sub MainFrame_Closing(sender As Object, e As CancelEventArgs) Handles Me.Closing
-        If Not _VideoDownloadingMode Then
-            If _CloseInvoked Then GoTo CloseResume
-            Dim ChannelsWorking As Func(Of Boolean) = Function() If(MyChannels?.Working, False)
-            If (Not Downloader.Working And Not ChannelsWorking.Invoke) OrElse
-               MsgBoxE({"Program still downloading something..." & vbNewLine &
-                        "Do you really want to stop downloading and exit of program?",
-                        "Downloading in progress"},
-                       MsgBoxStyle.Exclamation,,,
-                       {"Stop downloading and close", "Cancel"}) = 0 Then
-                If Downloader.Working Then _CloseInvoked = True : Downloader.Stop() : Downloader.DownloadSavedPostsStop()
-                If Downloader.SavedPostsDownloading Then _CloseInvoked = True : Downloader.DownloadSavedPostsStop()
-                If ChannelsWorking.Invoke Then _CloseInvoked = True : MyChannels.Stop(False)
-                If _CloseInvoked Then
-                    e.Cancel = True
-                    Await Task.Run(Sub()
-                                       While Downloader.Working Or ChannelsWorking.Invoke Or Downloader.SavedPostsDownloading : Thread.Sleep(500) : End While
-                                   End Sub)
+        If Settings.CloseToTray And Not _IgnoreTrayOptions Then
+            e.Cancel = True
+            Hide()
+        Else
+            If Not _VideoDownloadingMode Then
+                If CheckForClose(_IgnoreCloseConfirm) Then
+                    If _CloseInvoked Then GoTo CloseResume
+                    Dim ChannelsWorking As Func(Of Boolean) = Function() If(MyChannels?.Working, False)
+                    Dim SP_Working As Func(Of Boolean) = Function() If(MySavedPosts?.Working, False)
+                    If (Not Downloader.Working And Not ChannelsWorking.Invoke And Not SP_Working.Invoke) OrElse
+                        MsgBoxE({"Program still downloading something..." & vbNewLine &
+                                 "Do you really want to stop downloading and exit of program?",
+                                 "Downloading in progress"},
+                                MsgBoxStyle.Exclamation,,,
+                                {"Stop downloading and close", "Cancel"}) = 0 Then
+                        If Downloader.Working Then _CloseInvoked = True : Downloader.Stop()
+                        If ChannelsWorking.Invoke Then _CloseInvoked = True : MyChannels.Stop(False)
+                        If SP_Working.Invoke Then _CloseInvoked = True : MySavedPosts.Stop()
+                        If _CloseInvoked Then
+                            e.Cancel = True
+                            Await Task.Run(Sub()
+                                               While Downloader.Working Or ChannelsWorking.Invoke Or SP_Working.Invoke : Thread.Sleep(500) : End While
+                                           End Sub)
+                        End If
+                        Downloader.Dispose()
+                        InfoForm.Dispose()
+                        If Not MyChannels Is Nothing Then MyChannels.Dispose()
+                        If Not VideoDownloader Is Nothing Then VideoDownloader.Dispose()
+                        If Not MySavedPosts Is Nothing Then MySavedPosts.Dispose()
+                        MyView.Dispose(Settings.Design)
+                        Settings.Dispose()
+                    Else
+                        GoTo DropCloseParams
+                    End If
+                Else
+                    GoTo DropCloseParams
                 End If
-                Downloader.Dispose()
-                InfoForm.Dispose()
-                If Not MyChannels Is Nothing Then MyChannels.Dispose()
-                If Not VideoDownloader Is Nothing Then VideoDownloader.Dispose()
-                MyView.Dispose(Settings.Design)
-                Settings.Dispose()
-            Else
-                e.Cancel = True
-                Exit Sub
             End If
-        End If
-        If Not MyMainLOG.IsEmptyString Then SaveLogToFile()
-        If _CloseInvoked Then Close()
+            GoTo CloseContinue
+DropCloseParams:
+            e.Cancel = True
+            _IgnoreTrayOptions = False
+            _IgnoreCloseConfirm = False
+            _CloseInvoked = False
+            Exit Sub
+CloseContinue:
+            If Not MyMainLOG.IsEmptyString Then SaveLogToFile()
+            If _CloseInvoked Then Close()
 CloseResume:
+        End If
     End Sub
+#Region "Tray"
+    Private Sub TrayIcon_MouseClick(sender As Object, e As MouseEventArgs) Handles TrayIcon.MouseClick
+        If e.Button = MouseButtons.Left Then
+            If Visible Then Hide() Else Show()
+        End If
+    End Sub
+    Private Sub BTT_TRAY_SHOW_HIDE_Click(sender As Object, e As EventArgs) Handles BTT_TRAY_SHOW_HIDE.Click
+        If Visible Then Hide() Else Show()
+    End Sub
+    Private Sub BTT_TRAY_CLOSE_Click(sender As Object, e As EventArgs) Handles BTT_TRAY_CLOSE.Click
+        If CheckForClose(False) Then _IgnoreTrayOptions = True : _IgnoreCloseConfirm = True : Close()
+    End Sub
+    Private Function CheckForClose(ByVal _Ignore As Boolean) As Boolean
+        If Settings.ExitConfirm And Not _Ignore Then
+            Return MsgBoxE({"Do you want to close the program?", "Closing the program"}, MsgBoxStyle.YesNo) = MsgBoxResult.Yes
+        Else
+            Return True
+        End If
+    End Function
+#End Region
     Private Sub MainFrame_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
         Dim b As Boolean = True
         Select Case e.KeyCode
@@ -262,6 +306,9 @@ CloseResume:
     Private Sub BTT_SETTINGS_INSTAGRAM_Click(sender As Object, e As EventArgs) Handles BTT_SETTINGS_INSTAGRAM.Click
         Using f As New SiteEditorForm(Sites.Instagram) : f.ShowDialog() : End Using
     End Sub
+    Private Sub BTT_SETTINGS_REDGIFS_Click(sender As Object, e As EventArgs) Handles BTT_SETTINGS_REDGIFS.Click
+        Using f As New SiteEditorForm(Sites.RedGifs) : f.ShowDialog() : End Using
+    End Sub
     Private Sub BTT_SETTINGS_Click(sender As Object, e As EventArgs) Handles BTT_SETTINGS.Click
         Dim mhl% = Settings.MaxLargeImageHeigh.Value
         Dim mhs% = Settings.MaxSmallImageHeigh.Value
@@ -269,6 +316,7 @@ CloseResume:
             f.ShowDialog()
             If f.DialogResult = DialogResult.OK Then
                 If Not Settings.MaxLargeImageHeigh = mhl Or Not Settings.MaxSmallImageHeigh = mhs Then RefillList()
+                TrayIcon.Visible = Settings.CloseToTray
             End If
         End Using
     End Sub
@@ -356,11 +404,18 @@ CloseResume:
         If MyChannels Is Nothing Then
             MyChannels = New ChannelViewForm
             AddHandler MyChannels.OnUsersAdded, AddressOf OnUsersAddedHandler
+            AddHandler MyChannels.OnDownloadDone, AddressOf NotificationMessage
         End If
         If MyChannels.Visible Then MyChannels.BringToFront() Else MyChannels.Show()
     End Sub
     Private Sub BTT_DOWN_SAVED_Click(sender As Object, e As EventArgs) Handles BTT_DOWN_SAVED.Click
-        Downloader.DownloadSavedPostsStart(Toolbar_BOTTOM, PR_SAVED)
+        If MySavedPosts Is Nothing Then
+            MySavedPosts = New DownloadSavedPostsForm
+            AddHandler MySavedPosts.OnDownloadDone, AddressOf NotificationMessage
+        End If
+        With MySavedPosts
+            If .Visible Then .BringToFront() Else .Show()
+        End With
     End Sub
 #End Region
 #Region "Download"
@@ -506,6 +561,9 @@ CloseResume:
 #End Region
     Private Sub BTT_LOG_Click(sender As Object, e As EventArgs) Handles BTT_LOG.Click
         MyMainLOG_ShowForm(Settings.Design)
+    End Sub
+    Private Sub BTT_DONATE_Click(sender As Object, e As EventArgs) Handles BTT_DONATE.Click
+        Try : Process.Start("https://ko-fi.com/andyprogram") : Catch : End Try
     End Sub
 #Region "List functions"
     Private _LatestSelected As Integer = -1
@@ -988,18 +1046,30 @@ ResumeDownloadingOperation:
     Friend Sub User_OnUserUpdated(ByVal User As IUserData)
         UserListUpdate(User, False)
     End Sub
-    Private _LogVisible As Boolean = False
-    Private Sub Downloader_UpdateJobsCount(ByVal TotalCount As Integer)
-        Dim a As Action = Sub() LBL_JOBS_COUNT.Text = IIf(TotalCount = 0, String.Empty, $"[Jobs {TotalCount}]")
+    Private _LogColorChanged As Boolean = False
+    Private Sub Downloader_UpdateJobsCount(ByVal Site As Sites, ByVal TotalCount As Integer)
+        Dim a As Action
+        If Site = Sites.Instagram Then
+            a = Sub() LBL_JOBS_INST_COUNT.Text = IIf(TotalCount = 0, String.Empty, $"[Jobs {TotalCount}]")
+        Else
+            a = Sub() LBL_JOBS_COUNT.Text = IIf(TotalCount = 0, String.Empty, $"[Jobs {TotalCount}]")
+        End If
         If Toolbar_BOTTOM.InvokeRequired Then Toolbar_BOTTOM.Invoke(a) Else a.Invoke
-        If Not _LogVisible AndAlso Not MyMainLOG.IsEmptyString Then
+        If Not _LogColorChanged AndAlso Not MyMainLOG.IsEmptyString Then
             a = Sub() BTT_LOG.ControlChangeColor(False)
             If Toolbar_TOP.InvokeRequired Then Toolbar_TOP.Invoke(a) Else a.Invoke
-            _LogVisible = True
+            _LogColorChanged = True
+        ElseIf _LogColorChanged And MyMainLOG.IsEmptyString Then
+            a = Sub() BTT_LOG.ControlChangeColor(SystemColors.Control, SystemColors.ControlText)
+            If Toolbar_TOP.InvokeRequired Then Toolbar_TOP.Invoke(a) Else a.Invoke
+            _LogColorChanged = False
         End If
     End Sub
     Private Sub Downloader_OnDownloading(ByVal Value As Boolean)
         Dim a As Action = Sub() BTT_DOWN_STOP.Enabled = Value
         If Toolbar_TOP.InvokeRequired Then Toolbar_TOP.Invoke(a) Else a.Invoke
+    End Sub
+    Private Sub NotificationMessage(ByVal Message As String)
+        If Settings.ShowNotifications Then TrayIcon.ShowBalloonTip(2000, TrayIcon.BalloonTipTitle, Message, ToolTipIcon.Info)
     End Sub
 End Class

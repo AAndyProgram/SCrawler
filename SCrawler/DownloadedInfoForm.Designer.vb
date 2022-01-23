@@ -14,6 +14,7 @@ Partial Friend Class DownloadedInfoForm : Inherits System.Windows.Forms.Form
     <System.Diagnostics.DebuggerStepThrough()>
     Private Sub InitializeComponent()
         Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(DownloadedInfoForm))
+        Dim SEP_1 As System.Windows.Forms.ToolStripSeparator
         Me.ToolbarTOP = New System.Windows.Forms.ToolStrip()
         Me.MENU_VIEW = New System.Windows.Forms.ToolStripDropDownButton()
         Me.MENU_VIEW_SESSION = New System.Windows.Forms.ToolStripMenuItem()
@@ -21,13 +22,15 @@ Partial Friend Class DownloadedInfoForm : Inherits System.Windows.Forms.Form
         Me.BTT_REFRESH = New System.Windows.Forms.ToolStripButton()
         Me.ToolbarBOTTOM = New System.Windows.Forms.StatusStrip()
         Me.LIST_DOWN = New System.Windows.Forms.ListBox()
+        Me.BTT_CLEAR = New System.Windows.Forms.ToolStripButton()
+        SEP_1 = New System.Windows.Forms.ToolStripSeparator()
         Me.ToolbarTOP.SuspendLayout()
         Me.SuspendLayout()
         '
         'ToolbarTOP
         '
         Me.ToolbarTOP.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden
-        Me.ToolbarTOP.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.MENU_VIEW, Me.BTT_REFRESH})
+        Me.ToolbarTOP.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.MENU_VIEW, Me.BTT_REFRESH, SEP_1, Me.BTT_CLEAR})
         Me.ToolbarTOP.Location = New System.Drawing.Point(0, 0)
         Me.ToolbarTOP.Name = "ToolbarTOP"
         Me.ToolbarTOP.Size = New System.Drawing.Size(554, 25)
@@ -48,7 +51,7 @@ Partial Friend Class DownloadedInfoForm : Inherits System.Windows.Forms.Form
         '
         Me.MENU_VIEW_SESSION.AutoToolTip = True
         Me.MENU_VIEW_SESSION.Name = "MENU_VIEW_SESSION"
-        Me.MENU_VIEW_SESSION.Size = New System.Drawing.Size(180, 22)
+        Me.MENU_VIEW_SESSION.Size = New System.Drawing.Size(113, 22)
         Me.MENU_VIEW_SESSION.Text = "Session"
         Me.MENU_VIEW_SESSION.ToolTipText = "Show downloaded users by this session"
         '
@@ -56,7 +59,7 @@ Partial Friend Class DownloadedInfoForm : Inherits System.Windows.Forms.Form
         '
         Me.MENU_VIEW_ALL.AutoToolTip = True
         Me.MENU_VIEW_ALL.Name = "MENU_VIEW_ALL"
-        Me.MENU_VIEW_ALL.Size = New System.Drawing.Size(180, 22)
+        Me.MENU_VIEW_ALL.Size = New System.Drawing.Size(113, 22)
         Me.MENU_VIEW_ALL.Text = "All"
         Me.MENU_VIEW_ALL.ToolTipText = "Show all users (sorted by latest download)"
         '
@@ -85,6 +88,21 @@ Partial Friend Class DownloadedInfoForm : Inherits System.Windows.Forms.Form
         Me.LIST_DOWN.Size = New System.Drawing.Size(554, 364)
         Me.LIST_DOWN.TabIndex = 2
         '
+        'SEP_1
+        '
+        SEP_1.Name = "SEP_1"
+        SEP_1.Size = New System.Drawing.Size(6, 25)
+        '
+        'BTT_CLEAR
+        '
+        Me.BTT_CLEAR.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text
+        Me.BTT_CLEAR.Image = CType(resources.GetObject("BTT_CLEAR.Image"), System.Drawing.Image)
+        Me.BTT_CLEAR.ImageTransparentColor = System.Drawing.Color.Magenta
+        Me.BTT_CLEAR.Name = "BTT_CLEAR"
+        Me.BTT_CLEAR.Size = New System.Drawing.Size(38, 22)
+        Me.BTT_CLEAR.Text = "Clear"
+        Me.BTT_CLEAR.ToolTipText = "Clear info list"
+        '
         'DownloadedInfoForm
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
@@ -112,4 +130,5 @@ Partial Friend Class DownloadedInfoForm : Inherits System.Windows.Forms.Form
     Private WithEvents BTT_REFRESH As ToolStripButton
     Private WithEvents ToolbarBOTTOM As StatusStrip
     Private WithEvents LIST_DOWN As ListBox
+    Private WithEvents BTT_CLEAR As ToolStripButton
 End Class

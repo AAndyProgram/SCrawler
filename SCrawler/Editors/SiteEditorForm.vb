@@ -44,24 +44,28 @@ Namespace Editors
                                 TXT_AUTH.Text = .Headers(API.Base.SiteSettings.Header_Twitter_Authorization)
                             End If
                         End With
-                        If MySite = Sites.Instagram Then TXT_TOKEN.Text = .InstaHash
+                        If MySite = Sites.Instagram Then
+                            TXT_TOKEN.Text = .InstaHash
+                            TXT_AUTH.Text = .InstaHash_SP
+                        End If
                     End With
 
-                    If Not MySite = Sites.Twitter Then
-                        Dim p As PaddingE = PaddingE.GetOf({TP_MAIN})
-                        Dim s As New Size(Size.Width, Size.Height - p.Vertical - TXT_AUTH.NeededHeight)
-                        TXT_AUTH.Visible = False
-                        If Not MySite = Sites.Instagram Then
-                            s.Height -= (p.Vertical + TXT_TOKEN.NeededHeight)
-                            TXT_TOKEN.Visible = False
-                        Else
+                    If MySite = Sites.Twitter Or MySite = Sites.Instagram Then
+                        If MySite = Sites.Instagram Then
                             TXT_TOKEN.CaptionText = "Hash"
                             TXT_TOKEN.CaptionToolTipText = "Instagram session hash"
                             TXT_TOKEN.Buttons.Clear()
                             TXT_TOKEN.Buttons.AddRange({ActionButton.DefaultButtons.Refresh, ActionButton.DefaultButtons.Clear})
+                            TXT_AUTH.CaptionText = "Hash 2"
+                            TXT_AUTH.CaptionToolTipText = "Instagram session hash for saved posts"
                         End If
+                    Else
+                        TXT_AUTH.Visible = False
+                        TXT_TOKEN.Visible = False
+                        Dim p As PaddingE = PaddingE.GetOf({TP_MAIN})
+                        Dim s As New Size(Size.Width, Size.Height - p.Vertical(2) - TXT_AUTH.NeededHeight - TXT_TOKEN.NeededHeight)
                         With TP_MAIN
-                            If Not MySite = Sites.Instagram Then .RowStyles(2).Height = 0
+                            .RowStyles(2).Height = 0
                             .RowStyles(3).Height = 0
                         End With
                         MinimumSize = s
@@ -71,9 +75,9 @@ Namespace Editors
 
                     .MyFieldsChecker = New FieldsChecker
                     With .MyFieldsChecker
-                        If MySite = Sites.Twitter Then
+                        If MySite = Sites.Twitter Or MySite = Sites.Instagram Then
                             .AddControl(Of String)(TXT_TOKEN, TXT_TOKEN.CaptionText)
-                            .AddControl(Of String)(TXT_AUTH, TXT_AUTH.CaptionText)
+                            .AddControl(Of String)(TXT_AUTH, TXT_AUTH.CaptionText, MySite = Sites.Instagram)
                         End If
                         .EndLoaderOperations()
                     End With
@@ -86,6 +90,12 @@ Namespace Editors
         End Sub
         Private Sub ToolbarBttOK() Implements IOkCancelToolbar.ToolbarBttOK
             If MyDefs.MyFieldsChecker.AllParamsOK Then
+                If MySite = Sites.Instagram Then
+                    If Not TXT_TOKEN.IsEmptyString AndAlso Not TXT_AUTH.IsEmptyString AndAlso TXT_TOKEN.Text = TXT_AUTH.Text Then
+                        MsgBoxE({"InstaHash for saved posts must be different from InstaHash!", "InstaHash are equal"}, vbCritical)
+                        Exit Sub
+                    End If
+                End If
                 With Settings(MySite)
                     If TXT_PATH.IsEmptyString Then .Path = Nothing Else .Path = TXT_PATH.Text
                     Select Case MySite
@@ -96,6 +106,7 @@ Namespace Editors
                             End With
                         Case Sites.Instagram
                             .InstaHash.Value = TXT_TOKEN.Text
+                            .InstaHash_SP.Value = TXT_AUTH.Text
                     End Select
                     .Update()
                 End With

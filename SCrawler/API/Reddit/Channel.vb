@@ -19,6 +19,8 @@ Namespace API.Reddit
         Private Const Name_ID As String = "ID"
         Private Const Name_Date As String = "Date"
         Private Const Name_PostsNode As String = "Posts"
+        Private Const Name_UsersAdded As String = "UsersAdded"
+        Private Const Name_PostsDownloaded As String = "PostsDownloaded"
 #End Region
         Friend Const DefaultDownloadLimitCount As Integer = 1000
 #Region "IUserData Support"
@@ -311,6 +313,31 @@ Namespace API.Reddit
             End Get
         End Property
         Private ReadOnly Property Range As RangeSwitcher(Of UserPost)
+        Friend ReadOnly Property CountOfAddedUsers As List(Of Integer)
+        Friend ReadOnly Property CountOfLoadedPostsPerSession As List(Of Integer)
+        Private _FirstUserAdded As Boolean = False
+        Friend Sub UserAdded(Optional ByVal IsAdded As Boolean = True)
+            If Not _FirstUserAdded Then CountOfAddedUsers.Add(0) : _FirstUserAdded = True
+            Dim v% = CountOfAddedUsers.Last
+            v += IIf(IsAdded, 1, -1)
+            If v < 0 Then v = 0
+            CountOfAddedUsers(CountOfAddedUsers.Count - 1) = v
+        End Sub
+        Friend Function GetChannelStats(ByVal Extended As Boolean) As String
+            Dim s$ = String.Empty
+            Dim p As New ANumbers With {.FormatOptions = ANumbers.Options.GroupIntegral}
+            If Extended Then
+                s.StringAppendLine($"Users added from this channel: {CountOfAddedUsers.Sum.NumToString(p)}")
+                s.StringAppendLine($"Users added from this channel (avg): {CountOfAddedUsers.DefaultIfEmpty(0).Average.RoundDown.NumToString(p)}")
+                s.StringAppendLine($"Users added from this channel (session): {CountOfAddedUsers.LastOrDefault.NumToString(p)}")
+                s.StringAppendLine($"Posts downloaded (avg): {CountOfLoadedPostsPerSession.DefaultIfEmpty(0).Average.RoundUp.NumToString(p)}")
+                s.StringAppendLine($"Posts downloaded (session): {CountOfLoadedPostsPerSession.LastOrDefault.NumToString(p)}")
+            Else
+                s.StringAppend($"Users: {CountOfAddedUsers.Sum.NumToString(p)} (avg: {CountOfAddedUsers.DefaultIfEmpty(0).Average.RoundDown.NumToString(p)}; s: {CountOfAddedUsers.LastOrDefault.NumToString(p)})")
+                s.StringAppend($"Posts: {CountOfLoadedPostsPerSession.DefaultIfEmpty(0).Average.RoundUp.NumToString(p)} (s: {CountOfLoadedPostsPerSession.LastOrDefault.NumToString(p)})", "; ")
+            End If
+            Return s
+        End Function
 #Region "Limits Support"
         Private _DownloadLimitCount As Integer? = Nothing
         Friend Property DownloadLimitCount As Integer? Implements IChannelLimits.DownloadLimitCount
@@ -379,6 +406,8 @@ Namespace API.Reddit
             Posts = New List(Of UserPost)
             PostsLatest = New List(Of UserPost)
             Range = New RangeSwitcher(Of UserPost)(Me)
+            CountOfAddedUsers = New List(Of Integer)
+            CountOfLoadedPostsPerSession = New List(Of Integer)
         End Sub
         Friend Sub New(ByVal f As SFile)
             Me.New
@@ -422,7 +451,9 @@ Namespace API.Reddit
                     }
                         d.SetLimit(Me)
                         d.DownloadData(Token)
+                        Dim b% = Posts.Count
                         Posts.ListAddList(d.GetNewChannelPosts(), LAP.NotContainsOnly)
+                        If Posts.Count - b > 0 Then CountOfLoadedPostsPerSession.Add(Posts.Count - b)
                         Posts.Sort()
                         LatestParsedDate = If(Posts.FirstOrDefault(Function(pp) pp.Date.HasValue).Date, LatestParsedDate)
                     End Using
@@ -525,6 +556,8 @@ Namespace API.Reddit
                         Name = x.Value(Name_Name)
                         ID = x.Value(Name_ID)
                         LatestParsedDate = AConvert(Of Date)(x.Value(Name_Date), XMLDateProvider, Nothing)
+                        CountOfAddedUsers.ListAddList(x.Value(Name_UsersAdded).StringToList(Of Integer)("|"), LAP.ClearBeforeAdd)
+                        CountOfLoadedPostsPerSession.ListAddList(x.Value(Name_PostsDownloaded).StringToList(Of Integer)("|"), LAP.ClearBeforeAdd)
                         If Not PartialLoad Then
                             With x(Name_PostsNode).XmlIfNothing
                                 If .Count > 0 Then .ForEach(Sub(ee) PostsLatest.Add(New UserPost With {
@@ -549,6 +582,8 @@ Namespace API.Reddit
                     LatestParsedDate = tmpPostList.FirstOrDefault(Function(pd) pd.Date.HasValue).Date
                     x.Add(Name_Date, AConvert(Of String)(LatestParsedDate, XMLDateProvider, String.Empty))
                     x.Add(Name_PostsNode, String.Empty)
+                    x.Add(Name_UsersAdded, CountOfAddedUsers.ListToString(, "|"))
+                    x.Add(Name_PostsDownloaded, CountOfLoadedPostsPerSession.ListToString(, "|"))
                     With x(Name_PostsNode)
                         tmpPostList.Take(200).ToList.ForEach(Sub(p) .Add(New EContainer("Post",
                                                                                   String.Empty,
@@ -578,6 +613,8 @@ Namespace API.Reddit
                 If disposing Then
                     Posts.Clear()
                     PostsLatest.Clear()
+                    CountOfAddedUsers.Clear()
+                    CountOfLoadedPostsPerSession.Clear()
                     Range.Dispose()
                     If Not Instance Is Nothing Then Instance.Dispose()
                     If CachePath.Exists(SFO.Path, False) Then CachePath.Delete(SFO.Path, False, False, EDP.SendInLog)

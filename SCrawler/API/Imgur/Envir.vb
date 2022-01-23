@@ -46,8 +46,7 @@ Namespace API.Imgur
                 End If
                 Return Nothing
             Catch ex As Exception
-                If Not e.Exists Then e = New ErrorsDescriber(EDP.ReturnValue + EDP.SendInLog)
-                Return ErrorsDescriber.Execute(e, ex, $"[API.Imgur.Envir.GetGallery({URL})]", Nothing)
+                Return DownloadingException(ex, $"[API.Imgur.Envir.GetGallery({URL})]", Nothing, e)
             End Try
         End Function
         Friend Shared Function GetImage(ByVal URL As String, Optional ByVal e As ErrorsDescriber = Nothing) As String
@@ -64,8 +63,7 @@ Namespace API.Imgur
                 End If
                 Return String.Empty
             Catch ex As Exception
-                If Not e.Exists Then e = New ErrorsDescriber(EDP.ReturnValue + EDP.SendInLog)
-                Return ErrorsDescriber.Execute(e, ex, $"[API.Imgur.Envir.GetImage({URL})]", String.Empty)
+                Return DownloadingException(ex, $"[API.Imgur.Envir.GetImage({URL})]", String.Empty, e)
             End Try
         End Function
         Friend Shared Function GetVideoInfo(ByVal URL As String) As IEnumerable(Of UserMedia)
@@ -82,6 +80,22 @@ Namespace API.Imgur
             Catch ex As Exception
                 Return ErrorsDescriber.Execute(EDP.ShowMainMsg + EDP.SendInLog, ex, "Imgur standalone downloader: fetch media error")
             End Try
+        End Function
+        Private Shared Function DownloadingException(ByVal ex As Exception, ByVal Message As String,
+                                                     ByVal NullArg As Object, ByVal e As ErrorsDescriber) As Object
+            If TypeOf ex Is WebException Then
+                Dim obj As HttpWebResponse = TryCast(DirectCast(ex, WebException).Response, HttpWebResponse)
+                If Not obj Is Nothing Then
+                    If obj.StatusCode = HttpStatusCode.NotFound Then
+                        Return NullArg
+                    ElseIf obj.StatusCode = HttpStatusCode.Unauthorized Then
+                        MyMainLOG = "Imgur credentials expired"
+                        Return NullArg
+                    End If
+                End If
+            End If
+            If Not e.Exists Then e = New ErrorsDescriber(EDP.ReturnValue + EDP.SendInLog)
+            Return ErrorsDescriber.Execute(e, ex, Message, NullArg)
         End Function
     End Class
 End Namespace

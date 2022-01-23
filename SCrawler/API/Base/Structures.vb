@@ -85,5 +85,21 @@ Namespace API.Base
                 Return v
             End Function
         End Structure
+        Friend Structure Sizes : Implements IComparable(Of Sizes)
+            Friend Value As Integer
+            Friend Data As String
+            Friend ReadOnly HasError As Boolean
+            Friend Sub New(ByVal _Value As String, ByVal _Data As String)
+                Try
+                    Value = _Value
+                    Data = _Data
+                Catch ex As Exception
+                    HasError = True
+                End Try
+            End Sub
+            Friend Function CompareTo(ByVal Other As Sizes) As Integer Implements IComparable(Of Sizes).CompareTo
+                Return Value.CompareTo(Other.Value) * -1
+            End Function
+        End Structure
     End Module
 End Namespace

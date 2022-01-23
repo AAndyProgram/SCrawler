@@ -74,7 +74,6 @@ Namespace API.Reddit
                     Next
                 End If
                 Throw New ArgumentException($"Channel ID [{ChannelID}] does not found in channels collection", "ChannelID") With {.HelpLink = 1}
-                'Return Nothing
             End Get
         End Property
         Friend Sub DownloadData(ByVal Token As CancellationToken, Optional ByVal SkipExists As Boolean = True,
@@ -111,7 +110,7 @@ Namespace API.Reddit
             Return Count > 0 AndAlso Channels.Contains(_Item)
         End Function
         Friend Function Remove(ByVal _Item As Channel) As Boolean Implements ICollection(Of Channel).Remove
-            If Count > 0 Then
+            If Count > 0 And Not _Item Is Nothing Then
                 Dim i% = Channels.IndexOf(_Item)
                 If i >= 0 Then
                     With Channels(i) : .Delete() : .Dispose() : End With

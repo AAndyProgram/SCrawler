@@ -8,7 +8,6 @@
 ' but WITHOUT ANY WARRANTY
 Imports System.ComponentModel
 Imports PersonalUtilities.Forms
-Imports PersonalUtilities.Forms.Controls
 Imports PersonalUtilities.Forms.Controls.Base
 Imports PersonalUtilities.Forms.Toolbars
 Imports SCrawler.API.Base
@@ -119,13 +118,11 @@ Namespace Editors
                             Case Sites.Reddit : OPT_REDDIT.Checked = True : CH_PARSE_USER_MEDIA.Enabled = False
                             Case Sites.Twitter : OPT_TWITTER.Checked = True
                             Case Sites.Instagram : OPT_INSTAGRAM.Checked = True
+                            Case Sites.RedGifs : OPT_REDGIFS.Checked = True
                         End Select
                         SetParamsBySite()
-                        OPT_REDDIT.Enabled = False
-                        OPT_TWITTER.Enabled = False
-                        OPT_INSTAGRAM.Enabled = False
+                        TP_SITE.Enabled = False
                         CH_IS_CHANNEL.Checked = User.IsChannel
-                        CH_IS_CHANNEL.Enabled = False
                         If Not UserInstance Is Nothing Then
                             TXT_USER.Enabled = False
                             TXT_SPEC_FOLDER.TextBoxReadOnly = True
@@ -179,6 +176,7 @@ Namespace Editors
                 Case OPT_REDDIT.Checked : Return Sites.Reddit
                 Case OPT_TWITTER.Checked : Return Sites.Twitter
                 Case OPT_INSTAGRAM.Checked : Return Sites.Instagram
+                Case OPT_REDGIFS.Checked : Return Sites.RedGifs
                 Case Else : Return Sites.Undefined
             End Select
         End Function
@@ -239,6 +237,7 @@ CloseForm:
         Private ReadOnly RedditChannelRegEx1 As New RegexStructure("[htps:/]{7,8}.*?reddit.com/r/([^/]+)", 1)
         Private ReadOnly RedditChannelRegEx2 As New RegexStructure(".?r/([^/]+)", 1)
         Private ReadOnly InstagramRegEx As New RegexStructure("[htps:/]{7,8}.*?instagram.com/([^/]+)", 1)
+        Private ReadOnly RedGifsRegEx As New RegexStructure("[htps:/]{7,8}.*?redgifs.com/users/([^/]+)", 1)
         Private _TextChangeInvoked As Boolean = False
         Private Sub TXT_USER_ActionOnTextChange() Handles TXT_USER.ActionOnTextChange
             Try
@@ -250,6 +249,7 @@ CloseForm:
                             Case Sites.Twitter : OPT_TWITTER.Checked = True
                             Case Sites.Reddit : OPT_REDDIT.Checked = True
                             Case Sites.Instagram : OPT_INSTAGRAM.Checked = True
+                            Case Sites.RedGifs : OPT_REDGIFS.Checked = True
                             Case Else : OPT_TWITTER.Checked = False : OPT_REDDIT.Checked = False : OPT_INSTAGRAM.Checked = False
                         End Select
                         CH_IS_CHANNEL.Checked = CBool(s(1))
@@ -269,6 +269,8 @@ CloseForm:
                     Return {Sites.Reddit, True}
                 ElseIf CheckRegex(TXT, InstagramRegEx) Then
                     Return {Sites.Instagram, False}
+                ElseIf CheckRegex(TXT, RedGifsRegEx) Then
+                    Return {Sites.RedGifs, False}
                 End If
             End If
             Return {Sites.Undefined, False}
@@ -285,6 +287,9 @@ CloseForm:
         End Sub
         Private Sub OPT_INSTAGRAM_CheckedChanged(sender As Object, e As EventArgs) Handles OPT_INSTAGRAM.CheckedChanged
             If OPT_INSTAGRAM.Checked Then CH_IS_CHANNEL.Checked = False : CH_IS_CHANNEL.Enabled = False : SetParamsBySite()
+        End Sub
+        Private Sub OPT_REDGIFS_CheckedChanged(sender As Object, e As EventArgs) Handles OPT_REDGIFS.CheckedChanged
+            If OPT_REDGIFS.Checked Then CH_IS_CHANNEL.Checked = False : CH_IS_CHANNEL.Enabled = False : SetParamsBySite()
         End Sub
         Private Sub TXT_SPEC_FOLDER_ActionOnButtonClick(ByVal Sender As ActionButton) Handles TXT_SPEC_FOLDER.ActionOnButtonClick
             If Sender.DefaultButton = ActionButton.DefaultButtons.Open Then

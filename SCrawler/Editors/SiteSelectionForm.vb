@@ -25,15 +25,11 @@ Namespace Editors
                 .DelegateClosingChecker()
                 .AddOkCancelToolbar()
                 CMB_SITES.BeginUpdate()
-                CMB_SITES.Items.AddRange({New ListItem({Sites.Reddit.ToString, CInt(Sites.Reddit)}),
-                                          New ListItem({Sites.Twitter.ToString, CInt(Sites.Twitter)}),
-                                          New ListItem({Sites.Instagram.ToString, CInt(Sites.Instagram)})})
+                Dim sl As List(Of Sites) = ListAddList(Of Sites)(Nothing, [Enum].GetValues(GetType(Sites))).ListWithRemove(Sites.Undefined)
+                CMB_SITES.Items.AddRange(sl.Select(Function(s) New ListItem({s.ToString, CInt(s)})))
                 Dim l As New List(Of Integer)
-                If SelectedSites.Count > 0 Then
-                    If SelectedSites.Contains(Sites.Reddit) Then l.Add(0)
-                    If SelectedSites.Contains(Sites.Twitter) Then l.Add(1)
-                    If SelectedSites.Contains(Sites.Instagram) Then l.Add(2)
-                End If
+                If SelectedSites.Count > 0 Then sl.ForEach(Sub(s) If SelectedSites.Contains(s) Then l.Add(sl.IndexOf(s)))
+                sl.Clear()
                 CMB_SITES.EndUpdate()
                 If l.Count > 0 Then CMB_SITES.ListCheckedIndexes = l : l.Clear()
                 .EndLoaderOperations()
@@ -45,17 +41,7 @@ Namespace Editors
         End Sub
         Public Sub ToolbarBttOK() Implements IOkCancelToolbar.ToolbarBttOK
             Try
-                SelectedSites.Clear()
-                Dim l As List(Of Integer) = CMB_SITES.ListCheckedIndexes
-                If l.ListExists Then
-                    For Each i% In l
-                        Select Case i
-                            Case 0 : SelectedSites.Add(Sites.Reddit)
-                            Case 1 : SelectedSites.Add(Sites.Twitter)
-                            Case 2 : SelectedSites.Add(Sites.Instagram)
-                        End Select
-                    Next
-                End If
+                SelectedSites.ListAddList(CMB_SITES.Items.CheckedItems.Select(Function(i) DirectCast(i.Value(1), Sites)), LAP.ClearBeforeAdd)
                 MyDefs.CloseForm()
             Catch ex As Exception
                 ErrorsDescriber.Execute(EDP.LogMessageValue, ex)

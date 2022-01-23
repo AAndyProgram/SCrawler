@@ -1,8 +1,5 @@
 ﻿<Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()>
-Partial Class MainFrame
-    Inherits System.Windows.Forms.Form
-
-    'Form overrides dispose to clean up the component list.
+Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
     <System.Diagnostics.DebuggerNonUserCode()>
     Protected Overrides Sub Dispose(ByVal disposing As Boolean)
         Try
@@ -13,13 +10,7 @@ Partial Class MainFrame
             MyBase.Dispose(disposing)
         End Try
     End Sub
-
-    'Required by the Windows Form Designer
     Private components As System.ComponentModel.IContainer
-
-    'NOTE: The following procedure is required by the Windows Form Designer
-    'It can be modified using the Windows Form Designer.  
-    'Do not modify it using the code editor.
     <System.Diagnostics.DebuggerStepThrough()>
     Private Sub InitializeComponent()
         Me.components = New System.ComponentModel.Container()
@@ -37,10 +28,12 @@ Partial Class MainFrame
         Dim MENU_VIEW_SEP_1 As System.Windows.Forms.ToolStripSeparator
         Dim MENU_VIEW_SEP_3 As System.Windows.Forms.ToolStripSeparator
         Dim MENU_VIEW_SEP_2 As System.Windows.Forms.ToolStripSeparator
+        Dim TRAY_SEP_1 As System.Windows.Forms.ToolStripSeparator
         Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(MainFrame))
         Me.BTT_SETTINGS_REDDIT = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_SETTINGS_TWITTER = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_SETTINGS_INSTAGRAM = New System.Windows.Forms.ToolStripMenuItem()
+        Me.BTT_SETTINGS_REDGIFS = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_SETTINGS = New System.Windows.Forms.ToolStripMenuItem()
         Me.Toolbar_TOP = New System.Windows.Forms.ToolStrip()
         Me.BTT_ADD_USER = New System.Windows.Forms.ToolStripButton()
@@ -69,11 +62,14 @@ Partial Class MainFrame
         Me.BTT_SELECT_LABELS = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_LOG = New System.Windows.Forms.ToolStripButton()
         Me.BTT_VERSION_INFO = New System.Windows.Forms.ToolStripButton()
+        Me.BTT_DONATE = New System.Windows.Forms.ToolStripButton()
         Me.Toolbar_BOTTOM = New System.Windows.Forms.StatusStrip()
-        Me.PR_SAVED = New System.Windows.Forms.ToolStripProgressBar()
         Me.PR_MAIN = New System.Windows.Forms.ToolStripProgressBar()
         Me.LBL_JOBS_COUNT = New System.Windows.Forms.ToolStripStatusLabel()
         Me.LBL_STATUS = New System.Windows.Forms.ToolStripStatusLabel()
+        Me.PR_INST = New System.Windows.Forms.ToolStripProgressBar()
+        Me.LBL_JOBS_INST_COUNT = New System.Windows.Forms.ToolStripStatusLabel()
+        Me.LBL_STATUS_INST = New System.Windows.Forms.ToolStripStatusLabel()
         Me.LIST_PROFILES = New System.Windows.Forms.ListView()
         Me.USER_CONTEXT = New System.Windows.Forms.ContextMenuStrip(Me.components)
         Me.BTT_CONTEXT_DOWN = New System.Windows.Forms.ToolStripMenuItem()
@@ -91,6 +87,10 @@ Partial Class MainFrame
         Me.BTT_CONTEXT_OPEN_PATH = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_CONTEXT_OPEN_SITE = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_CONTEXT_INFO = New System.Windows.Forms.ToolStripMenuItem()
+        Me.TrayIcon = New System.Windows.Forms.NotifyIcon(Me.components)
+        Me.TRAY_CONTEXT = New System.Windows.Forms.ContextMenuStrip(Me.components)
+        Me.BTT_TRAY_SHOW_HIDE = New System.Windows.Forms.ToolStripMenuItem()
+        Me.BTT_TRAY_CLOSE = New System.Windows.Forms.ToolStripMenuItem()
         SEP_1 = New System.Windows.Forms.ToolStripSeparator()
         SEP_2 = New System.Windows.Forms.ToolStripSeparator()
         CONTEXT_SEP_1 = New System.Windows.Forms.ToolStripSeparator()
@@ -105,9 +105,11 @@ Partial Class MainFrame
         MENU_VIEW_SEP_1 = New System.Windows.Forms.ToolStripSeparator()
         MENU_VIEW_SEP_3 = New System.Windows.Forms.ToolStripSeparator()
         MENU_VIEW_SEP_2 = New System.Windows.Forms.ToolStripSeparator()
+        TRAY_SEP_1 = New System.Windows.Forms.ToolStripSeparator()
         Me.Toolbar_TOP.SuspendLayout()
         Me.Toolbar_BOTTOM.SuspendLayout()
         Me.USER_CONTEXT.SuspendLayout()
+        Me.TRAY_CONTEXT.SuspendLayout()
         Me.SuspendLayout()
         '
         'SEP_1
@@ -128,7 +130,7 @@ Partial Class MainFrame
         'MENU_SETTINGS
         '
         MENU_SETTINGS.AutoToolTip = False
-        MENU_SETTINGS.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_SETTINGS_REDDIT, Me.BTT_SETTINGS_TWITTER, Me.BTT_SETTINGS_INSTAGRAM, MENU_SETTINGS_SEP_1, Me.BTT_SETTINGS})
+        MENU_SETTINGS.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_SETTINGS_REDDIT, Me.BTT_SETTINGS_TWITTER, Me.BTT_SETTINGS_INSTAGRAM, Me.BTT_SETTINGS_REDGIFS, MENU_SETTINGS_SEP_1, Me.BTT_SETTINGS})
         MENU_SETTINGS.ImageTransparentColor = System.Drawing.Color.Magenta
         MENU_SETTINGS.Name = "MENU_SETTINGS"
         MENU_SETTINGS.Size = New System.Drawing.Size(62, 22)
@@ -154,6 +156,12 @@ Partial Class MainFrame
         Me.BTT_SETTINGS_INSTAGRAM.Name = "BTT_SETTINGS_INSTAGRAM"
         Me.BTT_SETTINGS_INSTAGRAM.Size = New System.Drawing.Size(127, 22)
         Me.BTT_SETTINGS_INSTAGRAM.Text = "Instagram"
+        '
+        'BTT_SETTINGS_REDGIFS
+        '
+        Me.BTT_SETTINGS_REDGIFS.Name = "BTT_SETTINGS_REDGIFS"
+        Me.BTT_SETTINGS_REDGIFS.Size = New System.Drawing.Size(127, 22)
+        Me.BTT_SETTINGS_REDGIFS.Text = "RedGifs"
         '
         'MENU_SETTINGS_SEP_1
         '
@@ -212,10 +220,15 @@ Partial Class MainFrame
         MENU_VIEW_SEP_2.Name = "MENU_VIEW_SEP_2"
         MENU_VIEW_SEP_2.Size = New System.Drawing.Size(141, 6)
         '
+        'TRAY_SEP_1
+        '
+        TRAY_SEP_1.Name = "TRAY_SEP_1"
+        TRAY_SEP_1.Size = New System.Drawing.Size(130, 6)
+        '
         'Toolbar_TOP
         '
         Me.Toolbar_TOP.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden
-        Me.Toolbar_TOP.Items.AddRange(New System.Windows.Forms.ToolStripItem() {MENU_SETTINGS, SEP_1, Me.BTT_ADD_USER, Me.BTT_EDIT_USER, Me.BTT_DELETE_USER, Me.BTT_REFRESH, Me.BTT_SHOW_INFO, Me.BTT_CHANNELS, Me.BTT_DOWN_SAVED, SEP_2, Me.BTT_DOWN_SELECTED, Me.BTT_DOWN_ALL, Me.BTT_DOWN_VIDEO, Me.BTT_DOWN_STOP, SEP_3, Me.MENU_VIEW, SEP_4, Me.BTT_LOG, Me.BTT_VERSION_INFO})
+        Me.Toolbar_TOP.Items.AddRange(New System.Windows.Forms.ToolStripItem() {MENU_SETTINGS, SEP_1, Me.BTT_ADD_USER, Me.BTT_EDIT_USER, Me.BTT_DELETE_USER, Me.BTT_REFRESH, Me.BTT_SHOW_INFO, Me.BTT_CHANNELS, Me.BTT_DOWN_SAVED, SEP_2, Me.BTT_DOWN_SELECTED, Me.BTT_DOWN_ALL, Me.BTT_DOWN_VIDEO, Me.BTT_DOWN_STOP, SEP_3, Me.MENU_VIEW, SEP_4, Me.BTT_LOG, Me.BTT_VERSION_INFO, Me.BTT_DONATE})
         Me.Toolbar_TOP.Location = New System.Drawing.Point(0, 0)
         Me.Toolbar_TOP.Name = "Toolbar_TOP"
         Me.Toolbar_TOP.Size = New System.Drawing.Size(934, 25)
@@ -426,19 +439,24 @@ Partial Class MainFrame
         Me.BTT_VERSION_INFO.Text = "Info"
         Me.BTT_VERSION_INFO.ToolTipText = "Show program information and check for new version"
         '
+        'BTT_DONATE
+        '
+        Me.BTT_DONATE.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right
+        Me.BTT_DONATE.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image
+        Me.BTT_DONATE.Image = Global.SCrawler.My.Resources.Resources.HeartPic_32
+        Me.BTT_DONATE.ImageTransparentColor = System.Drawing.Color.Magenta
+        Me.BTT_DONATE.Name = "BTT_DONATE"
+        Me.BTT_DONATE.Size = New System.Drawing.Size(23, 20)
+        Me.BTT_DONATE.Text = "Donate"
+        Me.BTT_DONATE.ToolTipText = "Donate"
+        '
         'Toolbar_BOTTOM
         '
-        Me.Toolbar_BOTTOM.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.PR_SAVED, Me.PR_MAIN, Me.LBL_JOBS_COUNT, Me.LBL_STATUS})
+        Me.Toolbar_BOTTOM.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.PR_MAIN, Me.LBL_JOBS_COUNT, Me.LBL_STATUS, Me.PR_INST, Me.LBL_JOBS_INST_COUNT, Me.LBL_STATUS_INST})
         Me.Toolbar_BOTTOM.Location = New System.Drawing.Point(0, 439)
         Me.Toolbar_BOTTOM.Name = "Toolbar_BOTTOM"
         Me.Toolbar_BOTTOM.Size = New System.Drawing.Size(934, 22)
         Me.Toolbar_BOTTOM.TabIndex = 2
-        '
-        'PR_SAVED
-        '
-        Me.PR_SAVED.Name = "PR_SAVED"
-        Me.PR_SAVED.Size = New System.Drawing.Size(100, 16)
-        Me.PR_SAVED.Visible = False
         '
         'PR_MAIN
         '
@@ -455,6 +473,22 @@ Partial Class MainFrame
         '
         Me.LBL_STATUS.Name = "LBL_STATUS"
         Me.LBL_STATUS.Size = New System.Drawing.Size(0, 17)
+        '
+        'PR_INST
+        '
+        Me.PR_INST.Name = "PR_INST"
+        Me.PR_INST.Size = New System.Drawing.Size(200, 16)
+        Me.PR_INST.Visible = False
+        '
+        'LBL_JOBS_INST_COUNT
+        '
+        Me.LBL_JOBS_INST_COUNT.Name = "LBL_JOBS_INST_COUNT"
+        Me.LBL_JOBS_INST_COUNT.Size = New System.Drawing.Size(0, 17)
+        '
+        'LBL_STATUS_INST
+        '
+        Me.LBL_STATUS_INST.Name = "LBL_STATUS_INST"
+        Me.LBL_STATUS_INST.Size = New System.Drawing.Size(0, 17)
         '
         'LIST_PROFILES
         '
@@ -580,6 +614,35 @@ Partial Class MainFrame
         Me.BTT_CONTEXT_INFO.Size = New System.Drawing.Size(221, 22)
         Me.BTT_CONTEXT_INFO.Text = "Information"
         '
+        'TrayIcon
+        '
+        Me.TrayIcon.BalloonTipIcon = System.Windows.Forms.ToolTipIcon.Info
+        Me.TrayIcon.BalloonTipTitle = "Social networks crawler"
+        Me.TrayIcon.ContextMenuStrip = Me.TRAY_CONTEXT
+        Me.TrayIcon.Icon = CType(resources.GetObject("TrayIcon.Icon"), System.Drawing.Icon)
+        Me.TrayIcon.Text = "Social networks crawler"
+        '
+        'TRAY_CONTEXT
+        '
+        Me.TRAY_CONTEXT.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_TRAY_SHOW_HIDE, TRAY_SEP_1, Me.BTT_TRAY_CLOSE})
+        Me.TRAY_CONTEXT.Name = "TRAY_CONTEXT"
+        Me.TRAY_CONTEXT.Size = New System.Drawing.Size(134, 54)
+        '
+        'BTT_TRAY_SHOW_HIDE
+        '
+        Me.BTT_TRAY_SHOW_HIDE.Name = "BTT_TRAY_SHOW_HIDE"
+        Me.BTT_TRAY_SHOW_HIDE.Size = New System.Drawing.Size(133, 22)
+        Me.BTT_TRAY_SHOW_HIDE.Text = "Show/Hide"
+        '
+        'BTT_TRAY_CLOSE
+        '
+        Me.BTT_TRAY_CLOSE.BackColor = System.Drawing.Color.FromArgb(CType(CType(255, Byte), Integer), CType(CType(192, Byte), Integer), CType(CType(192, Byte), Integer))
+        Me.BTT_TRAY_CLOSE.ForeColor = System.Drawing.Color.Maroon
+        Me.BTT_TRAY_CLOSE.Image = CType(resources.GetObject("BTT_TRAY_CLOSE.Image"), System.Drawing.Image)
+        Me.BTT_TRAY_CLOSE.Name = "BTT_TRAY_CLOSE"
+        Me.BTT_TRAY_CLOSE.Size = New System.Drawing.Size(133, 22)
+        Me.BTT_TRAY_CLOSE.Text = "Close"
+        '
         'MainFrame
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
@@ -598,6 +661,7 @@ Partial Class MainFrame
         Me.Toolbar_BOTTOM.ResumeLayout(False)
         Me.Toolbar_BOTTOM.PerformLayout()
         Me.USER_CONTEXT.ResumeLayout(False)
+        Me.TRAY_CONTEXT.ResumeLayout(False)
         Me.ResumeLayout(False)
         Me.PerformLayout()
 
@@ -654,6 +718,14 @@ Partial Class MainFrame
     Private WithEvents BTT_SITE_ALL As ToolStripMenuItem
     Private WithEvents BTT_SITE_SPECIFIC As ToolStripMenuItem
     Private WithEvents BTT_CONTEXT_CHANGE_FOLDER As ToolStripMenuItem
-    Private WithEvents PR_SAVED As ToolStripProgressBar
     Private WithEvents BTT_DOWN_SAVED As ToolStripButton
+    Private WithEvents PR_INST As ToolStripProgressBar
+    Private WithEvents LBL_JOBS_INST_COUNT As ToolStripStatusLabel
+    Private WithEvents LBL_STATUS_INST As ToolStripStatusLabel
+    Private WithEvents TrayIcon As NotifyIcon
+    Private WithEvents TRAY_CONTEXT As ContextMenuStrip
+    Private WithEvents BTT_TRAY_SHOW_HIDE As ToolStripMenuItem
+    Private WithEvents BTT_TRAY_CLOSE As ToolStripMenuItem
+    Private WithEvents BTT_SETTINGS_REDGIFS As ToolStripMenuItem
+    Private WithEvents BTT_DONATE As ToolStripButton
 End Class

@@ -74,7 +74,7 @@ Namespace API.Reddit
                     ConcatFile.Extension = "mp4"
                     CachePath = $"{f.PathWithSeparator}_Cache\{SFile.GetDirectories($"{f.PathWithSeparator}_Cache\",,, EDP.ReturnValue).ListIfNothing.Count + 1}\"
                     If CachePath.Exists(SFO.Path) Then
-                        Dim p As New SFileNumbers(ConcatFile.Name,,, New ANumbers(ANumbers.Modes.USA) With {.GroupSeparator = String.Empty, .FormatMode = ANumbers.Formats.General})
+                        Dim p As New SFileNumbers(ConcatFile.Name,,, New ANumbers With {.Format = ANumbers.Formats.General})
                         ConcatFile = SFile.Indexed_IndexFile(ConcatFile,, p, EDP.ReturnValue)
                         Dim i%
                         Dim eFiles As New List(Of SFile)

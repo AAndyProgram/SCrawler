@@ -9,24 +9,35 @@
 Imports SCrawler.API.Base
 Imports System.Threading
 Imports PersonalUtilities.Forms.Toolbars
-Namespace API.Reddit
+Namespace API.Instagram
     Friend NotInheritable Class ProfileSaved
-        Friend Shared ReadOnly Property DataPath As SFile = $"{Settings(Sites.Reddit).Path.PathNoSeparator}\!Saved\"
+        Friend Shared ReadOnly Property DataPath As SFile = $"{Settings(Sites.Instagram).Path.PathNoSeparator}\!Saved\"
         Private Sub New()
         End Sub
         Friend Shared Sub Download(ByRef Bar As MyProgress, ByVal Token As CancellationToken)
             Try
-                Dim u As New UserInfo(Settings(Sites.Reddit).SavedPostsUserName.Value, Sites.Reddit) With {.IsChannel = True, .SpecialPath = DataPath}
+                Dim u As New UserInfo(Settings(Sites.Instagram).SavedPostsUserName.Value, Sites.Instagram) With {.SpecialPath = DataPath}
                 u.UpdateUserFile()
                 Using user As New UserData(u,, False)
                     DirectCast(user.Self, UserDataBase).IsSavedPosts = True
                     user.Progress = Bar
                     If Not user.FileExists Then user.UpdateUserInformation()
+                    If Settings(Sites.Instagram).InstagramLastDownloadDate.Value < Now.AddMinutes(60) Then
+                        user.RequestsCount = Settings(Sites.Instagram).InstagramLastRequestsCount
+                    End If
                     user.DownloadData(Token)
                     Bar.InformationTemporary = $"Images: {user.DownloadedPictures}; Videos: {user.DownloadedVideos}"
+                    With Settings
+                        .BeginUpdate()
+                        With .Site(Sites.Instagram)
+                            .InstagramLastDownloadDate.Value = Now
+                            .InstagramLastRequestsCount.Value = user.RequestsCount
+                        End With
+                        .EndUpdate()
+                    End With
                 End Using
             Catch ex As Exception
-                ErrorsDescriber.Execute(EDP.SendInLog, ex, "[API.Reddit.ProfileSaved.Download]")
+                ErrorsDescriber.Execute(EDP.SendInLog, ex, "[API.Instagram.ProfileSaved.Download]")
             End Try
         End Sub
     End Class

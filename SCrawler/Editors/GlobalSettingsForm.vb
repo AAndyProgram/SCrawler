@@ -12,6 +12,7 @@ Imports PersonalUtilities.Forms.Toolbars
 Namespace Editors
     Friend Class GlobalSettingsForm : Implements IOkCancelToolbar
         Private ReadOnly MyDefs As DefaultFormProps(Of FieldsChecker)
+#Region "Checkers declarations"
         Private Class SavedPostsChecker : Implements ICustomProvider
             Private Function Convert(ByVal Value As Object, ByVal DestinationType As Type, ByVal Provider As IFormatProvider,
                                      Optional ByVal NothingArg As Object = Nothing, Optional ByVal e As ErrorsDescriber = Nothing) As Object Implements ICustomProvider.Convert
@@ -25,6 +26,24 @@ Namespace Editors
                 Throw New NotImplementedException()
             End Function
         End Class
+        Private Class InstaTimersChecker : Implements ICustomProvider
+            Private ReadOnly _LowestValue As Integer
+            Friend Sub New(ByVal LowestValue As Integer)
+                _LowestValue = LowestValue
+            End Sub
+            Private Function Convert(ByVal Value As Object, ByVal DestinationType As Type, ByVal Provider As IFormatProvider,
+                                     Optional ByVal NothingArg As Object = Nothing, Optional ByVal e As ErrorsDescriber = Nothing) As Object Implements ICustomProvider.Convert
+                If ACheck(Of Integer)(Value) AndAlso CInt(Value) >= _LowestValue Then
+                    Return Value
+                Else
+                    Return Nothing
+                End If
+            End Function
+            Private Function GetFormat(ByVal FormatType As Type) As Object Implements IFormatProvider.GetFormat
+                Throw New NotImplementedException()
+            End Function
+        End Class
+#End Region
         Friend Sub New()
             InitializeComponent()
             MyDefs = New DefaultFormProps(Of FieldsChecker)
@@ -65,32 +84,39 @@ Namespace Editors
                         CH_FILE_TIME.Checked = .FileAddTimeToFileName
                         OPT_FILE_DATE_START.Checked = Not .FileDateTimePositionEnd
                         OPT_FILE_DATE_END.Checked = .FileDateTimePositionEnd
+                        'Other program settings
+                        CH_EXIT_CONFIRM.Checked = .ExitConfirm
+                        CH_CLOSE_TO_TRAY.Checked = .CloseToTray
+                        CH_SHOW_NOTIFY.Checked = .ShowNotifications
                         'Reddit
                         With .Site(Sites.Reddit)
-                            SetChecker(CH_REDDIT_TEMP, .Temporary)
-                            SetChecker(CH_REDDIT_DOWN_IMG, .DownloadImages)
-                            SetChecker(CH_REDDIT_DOWN_VID, .DownloadVideos)
+                            SetChecker(DEFS_REDDIT, Sites.Reddit)
                             TXT_REDDIT_SAVED_POSTS_USER.Text = .SavedPostsUserName
                         End With
                         'Twitter
                         With .Site(Sites.Twitter)
-                            SetChecker(CH_TWITTER_TEMP, .Temporary)
-                            SetChecker(CH_TWITTER_DOWN_IMG, .DownloadImages)
-                            SetChecker(CH_TWITTER_DOWN_VID, .DownloadVideos)
+                            SetChecker(DEFS_TWITTER, Sites.Twitter)
                             CH_TWITTER_USER_MEDIA.Checked = .GetUserMediaOnly
                         End With
                         'Instagram
                         With .Site(Sites.Instagram)
-                            SetChecker(CH_INSTA_TEMP, .Temporary)
-                            SetChecker(CH_INSTA_DOWN_IMG, .DownloadImages)
-                            SetChecker(CH_INSTA_DOWN_VID, .DownloadVideos)
+                            SetChecker(DEFS_INST, Sites.Instagram)
+                            TXT_REQ_WAIT_TIMER.Text = .RequestsWaitTimer
+                            TXT_REQ_COUNT.Text = .RequestsWaitTimerTaskCount
+                            TXT_LIMIT_TIMER.Text = .SleepTimerOnPostsLimit
+                            TXT_INST_SAVED_POSTS_USER.Text = .SavedPostsUserName
                         End With
+                        'RedGifs
+                        SetChecker(DEFS_REDGIFS, Sites.RedGifs)
                     End With
                     .MyFieldsChecker = New FieldsChecker
                     With .MyFieldsChecker
                         .AddControl(Of String)(TXT_GLOBAL_PATH, TXT_GLOBAL_PATH.CaptionText)
                         .AddControl(Of String)(TXT_COLLECTIONS_PATH, TXT_COLLECTIONS_PATH.CaptionText)
                         .AddControl(Of String)(TXT_REDDIT_SAVED_POSTS_USER, TXT_REDDIT_SAVED_POSTS_USER.CaptionText, True, New SavedPostsChecker)
+                        .AddControl(Of Integer)(TXT_REQ_WAIT_TIMER, TXT_REQ_WAIT_TIMER.CaptionText,, New InstaTimersChecker(100))
+                        .AddControl(Of Integer)(TXT_REQ_COUNT, TXT_REQ_COUNT.CaptionText,, New InstaTimersChecker(1))
+                        .AddControl(Of Integer)(TXT_LIMIT_TIMER, TXT_LIMIT_TIMER.CaptionText,, New InstaTimersChecker(10000))
                         .EndLoaderOperations()
                     End With
                     .AppendDetectors()
@@ -101,15 +127,30 @@ Namespace Editors
                 MyDefs.InvokeLoaderError(ex)
             End Try
         End Sub
-        Private Sub SetChecker(ByRef CH As CheckBox, ByVal Prop As XML.Base.XMLValue(Of Boolean))
+        Private Overloads Sub SetChecker(ByRef CH As SiteDefaults, ByVal s As Sites)
+            With Settings(s)
+                SetChecker(CH.MyTemporary, .Temporary)
+                SetChecker(CH.MyImagesDown, .DownloadImages)
+                SetChecker(CH.MyVideosDown, .DownloadVideos)
+            End With
+        End Sub
+        Private Overloads Sub SetChecker(ByRef State As CheckState, ByVal Prop As XML.Base.XMLValue(Of Boolean))
             If Prop.ValueF.Exists Then
-                CH.Checked = Prop.Value
+                State = If(Prop.Value, CheckState.Checked, CheckState.Unchecked)
             Else
-                CH.CheckState = CheckState.Indeterminate
+                State = CheckState.Indeterminate
             End If
         End Sub
-        Private Sub SetPropByChecker(ByRef Prop As XML.Base.XMLValue(Of Boolean), ByRef CH As CheckBox)
-            Select Case CH.CheckState
+        Private Overloads Sub SetPropByChecker(ByRef CH As SiteDefaults, ByVal s As Sites)
+            With Settings(s)
+                SetPropByChecker(CH.MyTemporary, .Temporary)
+                SetPropByChecker(CH.MyTemporary, .Temporary)
+                SetPropByChecker(CH.MyImagesDown, .DownloadImages)
+                SetPropByChecker(CH.MyVideosDown, .DownloadVideos)
+            End With
+        End Sub
+        Private Overloads Sub SetPropByChecker(ByVal State As CheckState, ByRef Prop As XML.Base.XMLValue(Of Boolean))
+            Select Case State
                 Case CheckState.Checked : Prop.Value = True
                 Case CheckState.Unchecked : Prop.Value = False
                 Case CheckState.Indeterminate : Prop.ValueF = Nothing
@@ -167,6 +208,10 @@ Namespace Editors
                     .FromChannelDownloadTopUse.Value = TXT_CHANNEL_USER_POST_LIMIT.Checked
                     .FromChannelCopyImageToUser.Value = CH_COPY_CHANNEL_USER_IMAGE.Checked
                     .ChannelsDefaultTemporary.Value = CH_CHANNELS_USERS_TEMP.Checked
+                    'Other program settings
+                    .ExitConfirm.Value = CH_EXIT_CONFIRM.Checked
+                    .CloseToTray.Value = CH_CLOSE_TO_TRAY.Checked
+                    .ShowNotifications.Value = CH_SHOW_NOTIFY.Checked
 
                     If CH_FILE_NAME_CHANGE.Checked Then
                         .FileReplaceNameByDate.Value = OPT_FILE_NAME_REPLACE.Checked
@@ -180,24 +225,24 @@ Namespace Editors
                     End If
                     'Reddit
                     With .Site(Sites.Reddit)
-                        SetPropByChecker(.Temporary, CH_REDDIT_TEMP)
-                        SetPropByChecker(.DownloadImages, CH_REDDIT_DOWN_IMG)
-                        SetPropByChecker(.DownloadVideos, CH_REDDIT_DOWN_VID)
+                        SetPropByChecker(DEFS_REDDIT, Sites.Reddit)
                         .SavedPostsUserName.Value = TXT_REDDIT_SAVED_POSTS_USER.Text
                     End With
                     'Twitter
                     With .Site(Sites.Twitter)
-                        SetPropByChecker(.Temporary, CH_TWITTER_TEMP)
-                        SetPropByChecker(.DownloadImages, CH_TWITTER_DOWN_IMG)
-                        SetPropByChecker(.DownloadVideos, CH_TWITTER_DOWN_VID)
+                        SetPropByChecker(DEFS_TWITTER, Sites.Twitter)
                         .GetUserMediaOnly.Value = CH_TWITTER_USER_MEDIA.Checked
                     End With
                     'Instagram
                     With .Site(Sites.Instagram)
-                        SetPropByChecker(.Temporary, CH_INSTA_TEMP)
-                        SetPropByChecker(.DownloadImages, CH_INSTA_DOWN_IMG)
-                        SetPropByChecker(.DownloadVideos, CH_INSTA_DOWN_VID)
+                        SetPropByChecker(DEFS_INST, Sites.Instagram)
+                        .RequestsWaitTimer.Value = AConvert(Of Integer)(TXT_REQ_WAIT_TIMER.Text)
+                        .RequestsWaitTimerTaskCount.Value = AConvert(Of Integer)(TXT_REQ_COUNT.Text)
+                        .SleepTimerOnPostsLimit.Value = AConvert(Of Integer)(TXT_LIMIT_TIMER.Text)
+                        .SavedPostsUserName.Value = TXT_INST_SAVED_POSTS_USER.Text
                     End With
+                    'RedGifs
+                    SetPropByChecker(DEFS_REDGIFS, Sites.RedGifs)
 
                     .EndUpdate()
                 End With

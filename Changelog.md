@@ -1,3 +1,25 @@
+# 2.0.0.2
+
+**This is the last release that supports program settings of version 1.0.0.4 and lower. Compatibility of program settings with version 1.0.0.4 and lower will be removed in future releases. It is strongly recommended that you upgrade to this release before future releases. Otherwise, you will have to configure the program settings again. If your program version is 1.0.1.0 or higher, you should not pay attention to this message.**
+
+- Added
+  - Tray icon
+  - Close program to tray
+  - Close confirmation dialog
+  - **Separated thread for downloading Instagram profiles**
+  - **Wait timers to bypass Instagram error "Too Many Requests" (429)**
+  - **Downloading saved Instagram posts** *(requires a second InstaHash)*
+  - Downloading saved posts (from Reddit and Instagram) form
+  - Tray notification when download is complete (Instagram notification separate from other)
+  - Downloading not downloaded Instagram posts when a 429 error is encountered and/or the user stops downloading
+  - Separate progress bar for downloading Instagram profiles
+  - Clear information about downloaded profiles of the current session in the "Download info form"
+  - Increased the number of Instagram posts (from 12 to 50) received per request
+  - Channels' statistics
+  - **RedGisf profiles support**
+- Fixed
+  - The program was showing incorrect information about the total numbers of images and videos downloaded when a Reddit user was created from a channel
+
 # 2.0.0.1
 
 - Added

@@ -12,40 +12,19 @@ Imports PersonalUtilities.Functions.XML
 Imports System.Net
 Imports System.Threading
 Imports SCrawler.API.Base
-Imports UStates = SCrawler.API.Base.UserMedia.States
 Namespace API.Twitter
     Friend Class UserData : Inherits UserDataBase
 #Region "Declarations"
         Friend Overrides Property Site As Sites = Sites.Twitter
-        Private Structure Sizes : Implements IComparable(Of Sizes)
-            Friend Value As Integer
-            Friend Name As String
-            Friend ReadOnly HasError As Boolean
-            Friend Sub New(ByVal _Value As String, ByVal _Name As String)
-                Try
-                    Value = _Value
-                    Name = _Name
-                Catch ex As Exception
-                    HasError = True
-                End Try
-            End Sub
-            Friend Function CompareTo(ByVal Other As Sizes) As Integer Implements IComparable(Of Sizes).CompareTo
-                Return Value.CompareTo(Other.Value) * -1
-            End Function
-            Friend Shared Function Reparse(ByRef Current As Sizes, ByVal Other As Sizes, ByVal LargeContained As Boolean) As Sizes
-                If LargeContained And Current.Name.IsEmptyString And Current.Value > Other.Value Then Current.Name = "large"
-                Return Current
-            End Function
-            Friend Shared Function ApplyLarge(ByRef s As Sizes) As Sizes
-                s.Name = "large"
-                Return s
-            End Function
-        End Structure
 #End Region
 #Region "Initializer"
         Friend Sub New(ByVal u As UserInfo, Optional ByVal _LoadUserInformation As Boolean = True)
             User = u
             If _LoadUserInformation Then LoadUserInformation()
+        End Sub
+#End Region
+#Region "Load and Update user info"
+        Protected Overrides Sub LoadUserInformation_OptionalFields(ByRef Container As XmlFile, ByVal Loading As Boolean)
         End Sub
 #End Region
 #Region "Download functions"
@@ -115,19 +94,8 @@ Namespace API.Twitter
                     If POST.IsEmptyString And ExistsDetected Then Exit Sub
                     If Not PostID.IsEmptyString And NewPostDetected Then DownloadData(PostID, Token)
                 End If
-            Catch oex As OperationCanceledException When Token.IsCancellationRequested
-            Catch dex As ObjectDisposedException When Disposed
             Catch ex As Exception
-                If Responser.StatusCode = HttpStatusCode.NotFound Then
-                    UserExists = False
-                ElseIf Responser.StatusCode = HttpStatusCode.Unauthorized Then
-                    UserSuspended = True
-                ElseIf Responser.StatusCode = HttpStatusCode.BadRequest Then
-                    MyMainLOG = "Twitter has invalid credentials"
-                Else
-                    LogError(ex, $"data downloading error [{URL}]")
-                    HasError = True
-                End If
+                ProcessException(ex, Token, $"data downloading error [{URL}]")
             End Try
         End Sub
         Friend Shared Function GetVideoInfo(ByVal URL As String) As IEnumerable(Of UserMedia)
@@ -164,12 +132,12 @@ Namespace API.Twitter
                     Next
                     If l.Count > 0 Then
                         l.Sort()
-                        If l(0).Name.IsEmptyString And LargeContained Then Return "large" Else Return l(0).Name
+                        If l(0).Data.IsEmptyString And LargeContained Then Return "large" Else Return l(0).Data
                     End If
                 End If
                 Return String.Empty
             Catch ex As Exception
-                LogError(ex, "[GetPictureOption]")
+                LogError(ex, "[API.Twitter.UserData.GetPictureOption]")
                 Return String.Empty
             End Try
         End Function
@@ -181,7 +149,7 @@ Namespace API.Twitter
                 If Not URL.IsEmptyString Then _TempMediaList.ListAddValue(MediaFromData(URL, PostID, PostDate), LNC) : Return True
                 Return False
             Catch ex As Exception
-                LogError(ex, "[CheckVideoNode]")
+                LogError(ex, "[API.Twitter.UserData.CheckVideoNode]")
                 Return False
             End Try
         End Function
@@ -202,7 +170,7 @@ Namespace API.Twitter
                     End If
                 Next
                 If l.Count > 0 Then l.RemoveAll(Function(s) s.HasError)
-                If l.Count > 0 Then l.Sort() : Return l(0).Name
+                If l.Count > 0 Then l.Sort() : Return l(0).Data
             End If
             Return String.Empty
         End Function
@@ -222,70 +190,20 @@ Namespace API.Twitter
         End Function
 #End Region
         Protected Overrides Sub DownloadContent(ByVal Token As CancellationToken)
-            Try
-                Dim i%
-                Dim dCount% = 0, dTotal% = 0
-                ThrowAny(Token)
-                If _ContentNew.Count > 0 Then
-                    _ContentNew.RemoveAll(Function(c) c.URL.IsEmptyString)
-                    If _ContentNew.Count > 0 Then
-                        MyFile.Exists(SFO.Path)
-                        Dim MyDir$ = MyFile.CutPath.PathNoSeparator
-                        Dim vsf As Boolean = SeparateVideoFolderF
-                        Dim f As SFile
-                        Dim v As UserMedia
-                        Using w As New WebClient
-                            If vsf Then SFileShares.SFileExists($"{MyDir}\Video\", SFO.Path)
-                            MainProgress.TotalCount += _ContentNew.Count
-                            For i = 0 To _ContentNew.Count - 1
-                                ThrowAny(Token)
-                                v = _ContentNew(i)
-                                v.State = UStates.Tried
-                                If v.File.IsEmptyString Then
-                                    f = v.URL
-                                Else
-                                    f = v.File
-                                End If
-                                f.Separator = "\"
-                                f.Path = MyDir
-
-                                If v.URL_BASE.IsEmptyString Then v.URL_BASE = v.URL
-
-                                If Not v.File.IsEmptyString AndAlso Not v.URL_BASE.IsEmptyString Then
-                                    Try
-                                        If f.Extension = "mp4" And vsf Then f.Path = $"{f.PathWithSeparator}Video"
-                                        w.DownloadFile(v.URL_BASE, f.ToString)
-                                        Select Case f.Extension
-                                            Case "mp4" : v.Type = UserMedia.Types.Video : DownloadedVideos += 1 : _CountVideo += 1
-                                            Case Else : v.Type = UserMedia.Types.Picture : DownloadedPictures += 1 : _CountPictures += 1
-                                        End Select
-                                        v.File = ChangeFileNameByProvider(f, v)
-                                        v.State = UStates.Downloaded
-                                        dCount += 1
-                                    Catch wex As Exception
-                                        ErrorDownloading(f, v.URL_BASE)
-                                    End Try
-                                Else
-                                    v.State = UStates.Skipped
-                                End If
-                                _ContentNew(i) = v
-                                If DownloadTopCount.HasValue AndAlso dCount >= DownloadTopCount.Value Then
-                                    MainProgress.Perform(_ContentNew.Count - dTotal)
-                                    Exit Sub
-                                Else
-                                    dTotal += 1
-                                    MainProgress.Perform()
-                                End If
-                            Next
-                        End Using
-                    End If
-                End If
-            Catch oex As OperationCanceledException When Token.IsCancellationRequested
-            Catch dex As ObjectDisposedException When Disposed
-            Catch ex As Exception
-                LogError(ex, "content downloading error")
-                HasError = True
-            End Try
+            DownloadContentDefault(Token)
         End Sub
+        Protected Overrides Function DownloadingException(ByVal ex As Exception, ByVal Message As String, Optional ByVal FromPE As Boolean = False) As Integer
+            If Responser.StatusCode = HttpStatusCode.NotFound Then
+                UserExists = False
+            ElseIf Responser.StatusCode = HttpStatusCode.Unauthorized Then
+                UserSuspended = True
+            ElseIf Responser.StatusCode = HttpStatusCode.BadRequest Then
+                MyMainLOG = "Twitter has invalid credentials"
+            Else
+                If Not FromPE Then LogError(ex, Message) : HasError = True
+                Return 0
+            End If
+            Return 1
+        End Function
     End Class
 End Namespace

@@ -61,7 +61,8 @@ Friend Class SettingsCLS : Implements IDisposable
         MySites = New Dictionary(Of Sites, SiteSettings) From {
             {Sites.Reddit, New SiteSettings(Sites.Reddit, MyXML, GlobalPath.Value, DefaultTemporary, DefaultDownloadImages, DefaultDownloadVideos)},
             {Sites.Twitter, New SiteSettings(Sites.Twitter, MyXML, GlobalPath.Value, DefaultTemporary, DefaultDownloadImages, DefaultDownloadVideos)},
-            {Sites.Instagram, New SiteSettings(Sites.Instagram, MyXML, GlobalPath.Value, DefaultTemporary, DefaultDownloadImages, DefaultDownloadVideos)}
+            {Sites.Instagram, New SiteSettings(Sites.Instagram, MyXML, GlobalPath.Value, DefaultTemporary, DefaultDownloadImages, DefaultDownloadVideos)},
+            {Sites.RedGifs, New SiteSettings(Sites.RedGifs, MyXML, GlobalPath.Value, DefaultTemporary, DefaultDownloadImages, DefaultDownloadVideos)}
         }
         MySites(Sites.Reddit).Responser.Decoders.Add(SymbolsConverter.Converters.Unicode)
 
@@ -120,7 +121,12 @@ Friend Class SettingsCLS : Implements IDisposable
         ShowNewVersionNotification = New XMLValue(Of Boolean)("ShowNewVersionNotification", True, MyXML)
         LatestVersion = New XMLValue(Of String)("LatestVersion", String.Empty, MyXML)
 
+        ExitConfirm = New XMLValue(Of Boolean)("ExitConfirm", True, MyXML)
+        CloseToTray = New XMLValue(Of Boolean)("CloseToTray", True, MyXML)
+        ShowNotifications = New XMLValue(Of Boolean)("ShowNotifications", True, MyXML)
+
         If MyXML.ChangesDetected Then MyXML.Sort() : MyXML.UpdateData()
+
         Labels = New LabelsKeeper
         If Not LatestSelectedLabels.IsEmptyString Then Labels.CurrentSelection.ListAddList(LatestSelectedLabels.Value.StringToList(Of String, List(Of String))("|"))
         If BlackListFile.Exists Then
@@ -253,6 +259,10 @@ Friend Class SettingsCLS : Implements IDisposable
             If BlackListFile.Exists Then BlackListFile.Delete()
         End If
     End Sub
+    Friend Sub DeleteCachPath()
+        If Reddit.ChannelsCollection.ChannelsPathCache.Exists(SFO.Path, False) Then _
+           Reddit.ChannelsCollection.ChannelsPathCache.Delete(SFO.Path, False, False, EDP.None)
+    End Sub
     Friend Overloads Function UserExists(ByVal s As Sites, ByVal UserID As String) As Boolean
         Dim UserFinderBase As Predicate(Of IUserData) = Function(user) user.Site = s And user.Name = UserID
         Dim UserFinder As Predicate(Of IUserData) = Function(ByVal user As IUserData) As Boolean
@@ -369,6 +379,11 @@ Friend Class SettingsCLS : Implements IDisposable
     Friend ReadOnly Property ShowNewVersionNotification As XMLValue(Of Boolean)
     Friend ReadOnly Property LatestVersion As XMLValue(Of String)
 #End Region
+#Region "Other program properties"
+    Friend ReadOnly Property ExitConfirm As XMLValue(Of Boolean)
+    Friend ReadOnly Property CloseToTray As XMLValue(Of Boolean)
+    Friend ReadOnly Property ShowNotifications As XMLValue(Of Boolean)
+#End Region
 #Region "IDisposable Support"
     Private disposedValue As Boolean = False
     Protected Overridable Overloads Sub Dispose(ByVal disposing As Boolean)
@@ -377,8 +392,7 @@ Friend Class SettingsCLS : Implements IDisposable
                 If UserListUpdateRequired Then UpdateUsersList()
                 If Not Channels Is Nothing Then
                     Channels.Dispose()
-                    If Reddit.ChannelsCollection.ChannelsPathCache.Exists(SFO.Path, False) Then _
-                        Reddit.ChannelsCollection.ChannelsPathCache.Delete(SFO.Path, False, False, EDP.None)
+                    DeleteCachPath()
                 End If
                 For Each kv In MySites : kv.Value.Dispose() : Next
                 MySites.Clear()

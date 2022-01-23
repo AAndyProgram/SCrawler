@@ -7,7 +7,6 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports PersonalUtilities.Functions.XML
-Imports PersonalUtilities.Forms.Toolbars
 Imports PersonalUtilities.Tools.ImageRenderer
 Imports PersonalUtilities.Tools.WebDocuments.JSON
 Imports System.Net
@@ -50,15 +49,6 @@ Namespace API.Reddit
                                                   Select c.Post) Else Return Nothing
         End Function
 #End Region
-        Private _Progress As MyProgress
-        Friend Property Progress As MyProgress
-            Get
-                If _Progress Is Nothing Then Return MainProgress Else Return _Progress
-            End Get
-            Set(ByVal p As MyProgress)
-                _Progress = p
-            End Set
-        End Property
 #Region "Initializers"
         ''' <summary>Video downloader initializer</summary>
         Private Sub New()
@@ -74,9 +64,13 @@ Namespace API.Reddit
             If _LoadUserInformation Then LoadUserInformation()
         End Sub
 #End Region
+#Region "Load and Update user info"
+        Protected Overrides Sub LoadUserInformation_OptionalFields(ByRef Container As XmlFile, ByVal Loading As Boolean)
+        End Sub
+#End Region
 #Region "Download Overrides"
         Friend Overrides Sub DownloadData(ByVal Token As CancellationToken)
-            If IsChannel AndAlso Not ChannelInfo.IsRegularChannel Then
+            If Not IsSavedPosts AndAlso (IsChannel AndAlso Not ChannelInfo.IsRegularChannel) Then
                 If Not Responser Is Nothing Then Responser.Dispose()
                 Responser = New PersonalUtilities.Tools.WEB.Response
                 Responser.Copy(Settings(Sites.Reddit).Responser)
@@ -92,7 +86,9 @@ Namespace API.Reddit
         End Sub
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
             _TotalPostsDownloaded = 0
-            If IsChannel Then
+            If IsSavedPosts Then
+                DownloadDataChannel(String.Empty, Token)
+            ElseIf IsChannel Then
                 If ChannelInfo.IsRegularChannel Then
                     ChannelPostsNames.ListAddList(_TempPostsList, LNC)
                     If ChannelPostsNames.Count > 0 Then
@@ -129,7 +125,7 @@ Namespace API.Reddit
 
                 URL = $"https://gateway.reddit.com/desktopapi/v1/user/{Name}/posts?rtj=only&allow_quarantined=true&allow_over18=1&include=identity&after={POST}&dist=25&sort=new&t=all&layout=classic"
                 ThrowAny(Token)
-                Dim r$ = GetSiteResponse(URL)
+                Dim r$ = Responser.GetResponse(URL,, EDP.ThrowException)
                 If Not r.IsEmptyString Then
                     Using w As EContainer = JsonDocument.Parse(r).XmlIfNothing
                         If w.Count > 0 Then
@@ -203,17 +199,8 @@ Namespace API.Reddit
                     If POST.IsEmptyString And ExistsDetected Then Exit Sub
                     If Not PostID.IsEmptyString And NewPostDetected Then DownloadDataUser(PostID, Token)
                 End If
-            Catch oex As OperationCanceledException When Token.IsCancellationRequested
-            Catch dex As ObjectDisposedException When Disposed
             Catch ex As Exception
-                If ex.HelpLink = NonExistendUserHelp Then
-                    UserExists = False
-                ElseIf ex.HelpLink = SuspendedUserHelp Then
-                    UserSuspended = True
-                Else
-                    LogError(ex, $"data downloading error [{URL}]")
-                    HasError = True
-                End If
+                ProcessException(ex, Token, $"data downloading error [{URL}]")
             End Try
         End Sub
         Private Sub DownloadDataChannel(ByVal POST As String, ByVal Token As CancellationToken)
@@ -234,7 +221,7 @@ Namespace API.Reddit
                 End If
 
                 ThrowAny(Token)
-                Dim r$ = GetSiteResponse(URL)
+                Dim r$ = Responser.GetResponse(URL,, EDP.ThrowException)
                 If Not r.IsEmptyString Then
                     Using w As EContainer = JsonDocument.Parse(r).XmlIfNothing
                         If w.Count > 0 Then
@@ -296,17 +283,8 @@ Namespace API.Reddit
                     If POST.IsEmptyString And ExistsDetected Then Exit Sub
                     If Not PostID.IsEmptyString And NewPostDetected Then DownloadDataChannel(PostID, Token)
                 End If
-            Catch oex As OperationCanceledException When Token.IsCancellationRequested
-            Catch dex As ObjectDisposedException When Disposed
             Catch ex As Exception
-                If ex.HelpLink = NonExistendUserHelp Then
-                    UserExists = False
-                ElseIf ex.HelpLink = SuspendedUserHelp Then
-                    UserSuspended = True
-                Else
-                    LogError(ex, $"channel data downloading error [{URL}]")
-                    HasError = True
-                End If
+                ProcessException(ex, Token, $"channel data downloading error [{URL}]")
             End Try
         End Sub
 #End Region
@@ -366,8 +344,7 @@ Namespace API.Reddit
                 End If
                 Return added
             Catch ex As Exception
-                LogError(ex, "gallery parsing error")
-                HasError = True
+                ProcessException(ex, Nothing, "gallery parsing error", False)
                 Return False
             End Try
         End Function
@@ -382,7 +359,7 @@ Namespace API.Reddit
                         ThrowAny(Token)
                         If _TempMediaList(i).Type = UTypes.VideoPre Then
                             m = _TempMediaList(i)
-                            r = GetSiteResponse(m.URL, e)
+                            r = Responser.GetResponse(m.URL,, e)
                             _TempMediaList(i) = New UserMedia
                             If Not r.IsEmptyString Then
                                 v = RegexReplace(r, VideoRegEx)
@@ -395,10 +372,8 @@ Namespace API.Reddit
                         End If
                     Next
                 End If
-            Catch oex As OperationCanceledException When Token.IsCancellationRequested
-            Catch dex As ObjectDisposedException When Disposed
             Catch ex As Exception
-                LogError(ex, "video reparsing error")
+                ProcessException(ex, Token, "video reparsing error", False)
             End Try
         End Sub
         Friend Shared Function GetVideoInfo(ByVal URL As String) As IEnumerable(Of UserMedia)
@@ -433,7 +408,7 @@ Namespace API.Reddit
             Try
                 If Not URL.IsEmptyString AndAlso URL.StringContains({".jpg", ".png", ".jpeg"}) Then
                     Dim f As SFile = CStr(RegexReplace(URL, FilesPattern))
-                    Return Not f.IsEmptyString And Not f.File.IsEmptyString
+                    Return Not f.File.IsEmptyString
                 End If
                 Return False
             Catch ex As Exception
@@ -454,7 +429,7 @@ Namespace API.Reddit
                     If _ContentNew.Count > 0 Then
                         MyFile.Exists(SFO.Path)
                         Dim MyDir$
-                        If IsChannel And SaveToCache Then
+                        If Not IsSavedPosts AndAlso (IsChannel And SaveToCache) Then
                             MyDir = ChannelInfo.CachePath.PathNoSeparator
                         Else
                             MyDir = MyFile.CutPath.PathNoSeparator
@@ -605,29 +580,20 @@ Namespace API.Reddit
                 HasError = True
             End Try
         End Sub
-        Protected Function GetSiteResponse(ByVal URL As String, Optional ByVal e As ErrorsDescriber = Nothing) As String
-            Try
-                Return Responser.GetResponse(URL,, EDP.ThrowException)
-            Catch ex As Exception
-                HasError = True
-                Dim OptText$ = String.Empty
-                If Not e.Exists Then
-                    Dim ee As EDP = EDP.SendInLog
-                    If Responser.StatusCode = HttpStatusCode.NotFound Then
-                        ee = EDP.ThrowException
-                        OptText = ": USER NOT FOUND"
-                        ex.HelpLink = NonExistendUserHelp
-                    ElseIf Responser.StatusCode = HttpStatusCode.Forbidden Then
-                        ee = EDP.ThrowException
-                        OptText = ": USER PROFILE SUSPENDED"
-                        ex.HelpLink = SuspendedUserHelp
-                    Else
-                        ee += EDP.ReturnValue
-                    End If
-                    e = New ErrorsDescriber(ee)
-                End If
-                Return ErrorsDescriber.Execute(e, ex, $"[{Site} - {Name}: GetSiteResponse([{URL}])]{OptText}", String.Empty)
-            End Try
+        Protected Overrides Function DownloadingException(ByVal ex As Exception, ByVal Message As String, Optional ByVal FromPE As Boolean = False) As Integer
+            If Responser.StatusCode = HttpStatusCode.NotFound Then
+                UserExists = False
+            ElseIf Responser.StatusCode = HttpStatusCode.Forbidden Then
+                UserSuspended = True
+            ElseIf Responser.StatusCode = HttpStatusCode.BadGateway Or
+                   Responser.StatusCode = HttpStatusCode.ServiceUnavailable Or
+                   Responser.StatusCode = HttpStatusCode.GatewayTimeout Then
+                MyMainLOG = "Reddit is currently unavailable"
+            Else
+                If Not FromPE Then LogError(ex, Message) : HasError = True
+                Return 0
+            End If
+            Return 1
         End Function
         Protected Overrides Sub Dispose(ByVal disposing As Boolean)
             If Not disposedValue And disposing Then ChannelPostsNames.Clear() : _ExistsUsersNames.Clear()

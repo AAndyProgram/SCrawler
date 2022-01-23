@@ -10,7 +10,7 @@ Imports System.Runtime.InteropServices
 ' Review the values of the assembly attributes
 
 <Assembly: AssemblyTitle("Socials media data Crawler")>
-<Assembly: AssemblyDescription("Twitter and Reddit media crawler")>
+<Assembly: AssemblyDescription("Social networks media downloader")>
 <Assembly: AssemblyCompany("AndyProgram")>
 <Assembly: AssemblyProduct("SCrawler")>
 <Assembly: AssemblyCopyright("Copyright ©  2022")>
@@ -32,6 +32,6 @@ Imports System.Runtime.InteropServices
 ' by using the '*' as shown below:
 ' <Assembly: AssemblyVersion("1.0.*")>
 
-<Assembly: AssemblyVersion("2.0.0.1")>
-<Assembly: AssemblyFileVersion("2.0.0.1")>
+<Assembly: AssemblyVersion("2.0.0.2")>
+<Assembly: AssemblyFileVersion("2.0.0.2")>
 <Assembly: NeutralResourcesLanguage("en")>

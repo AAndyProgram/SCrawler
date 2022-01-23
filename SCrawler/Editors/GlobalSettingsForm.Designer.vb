@@ -24,22 +24,18 @@
             Dim ActionButton4 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim ActionButton5 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim ActionButton6 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim TP_FILE_NAME As System.Windows.Forms.TableLayoutPanel
+            Dim TP_FILE_PATTERNS As System.Windows.Forms.TableLayoutPanel
+            Dim LBL_DATE_POS As System.Windows.Forms.Label
             Dim TT_MAIN As System.Windows.Forms.ToolTip
             Dim TP_CHANNELS_IMGS As System.Windows.Forms.TableLayoutPanel
-            Dim TAB_MAIN As System.Windows.Forms.TabControl
             Dim TAB_BASIS As System.Windows.Forms.TabPage
             Dim TAB_DEFAULTS As System.Windows.Forms.TabPage
             Dim TP_DEFS As System.Windows.Forms.TableLayoutPanel
             Dim TAB_DEFS_CHANNELS As System.Windows.Forms.TabPage
             Dim TP_CHANNELS As System.Windows.Forms.TableLayoutPanel
             Dim TAB_DEFS_REDDIT As System.Windows.Forms.TabPage
-            Dim TP_REDDIT As System.Windows.Forms.TableLayoutPanel
             Dim TAB_DEFS_TWITTER As System.Windows.Forms.TabPage
-            Dim TP_TWITTER As System.Windows.Forms.TableLayoutPanel
-            Dim TP_INSTAGRAM As System.Windows.Forms.TableLayoutPanel
-            Dim TP_FILE_NAME As System.Windows.Forms.TableLayoutPanel
-            Dim TP_FILE_PATTERNS As System.Windows.Forms.TableLayoutPanel
-            Dim LBL_DATE_POS As System.Windows.Forms.Label
             Me.TXT_GLOBAL_PATH = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_IMAGE_LARGE = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_IMAGE_SMALL = New PersonalUtilities.Forms.Controls.TextBoxExtended()
@@ -48,6 +44,15 @@
             Me.TXT_MAX_JOBS_CHANNELS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.CH_CHECK_VER_START = New System.Windows.Forms.CheckBox()
             Me.TXT_IMGUR_CLIENT_ID = New PersonalUtilities.Forms.Controls.TextBoxExtended()
+            Me.OPT_FILE_NAME_REPLACE = New System.Windows.Forms.RadioButton()
+            Me.OPT_FILE_NAME_ADD_DATE = New System.Windows.Forms.RadioButton()
+            Me.CH_FILE_NAME_CHANGE = New System.Windows.Forms.CheckBox()
+            Me.CH_FILE_DATE = New System.Windows.Forms.CheckBox()
+            Me.CH_FILE_TIME = New System.Windows.Forms.CheckBox()
+            Me.OPT_FILE_DATE_START = New System.Windows.Forms.RadioButton()
+            Me.OPT_FILE_DATE_END = New System.Windows.Forms.RadioButton()
+            Me.CH_EXIT_CONFIRM = New System.Windows.Forms.CheckBox()
+            Me.CH_CLOSE_TO_TRAY = New System.Windows.Forms.CheckBox()
             Me.CH_COPY_CHANNEL_USER_IMAGE = New System.Windows.Forms.CheckBox()
             Me.CH_DEF_TEMP = New System.Windows.Forms.CheckBox()
             Me.CH_DOWN_IMAGES = New System.Windows.Forms.CheckBox()
@@ -57,44 +62,35 @@
             Me.TXT_CHANNELS_ROWS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_CHANNELS_COLUMNS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_CHANNEL_USER_POST_LIMIT = New PersonalUtilities.Forms.Controls.TextBoxExtended()
-            Me.CH_REDDIT_TEMP = New System.Windows.Forms.CheckBox()
-            Me.CH_REDDIT_DOWN_IMG = New System.Windows.Forms.CheckBox()
-            Me.CH_REDDIT_DOWN_VID = New System.Windows.Forms.CheckBox()
+            Me.DEFS_REDDIT = New SCrawler.Editors.SiteDefaults()
             Me.TXT_REDDIT_SAVED_POSTS_USER = New PersonalUtilities.Forms.Controls.TextBoxExtended()
-            Me.CH_TWITTER_TEMP = New System.Windows.Forms.CheckBox()
-            Me.CH_TWITTER_DOWN_IMG = New System.Windows.Forms.CheckBox()
-            Me.CH_TWITTER_DOWN_VID = New System.Windows.Forms.CheckBox()
+            Me.DEFS_TWITTER = New SCrawler.Editors.SiteDefaults()
             Me.CH_TWITTER_USER_MEDIA = New System.Windows.Forms.CheckBox()
+            Me.TXT_REQ_WAIT_TIMER = New PersonalUtilities.Forms.Controls.TextBoxExtended()
+            Me.TXT_REQ_COUNT = New PersonalUtilities.Forms.Controls.TextBoxExtended()
+            Me.TXT_LIMIT_TIMER = New PersonalUtilities.Forms.Controls.TextBoxExtended()
+            Me.TAB_MAIN = New System.Windows.Forms.TabControl()
             Me.TAB_DEFS_INSTAGRAM = New System.Windows.Forms.TabPage()
-            Me.CH_INSTA_TEMP = New System.Windows.Forms.CheckBox()
-            Me.CH_INSTA_DOWN_IMG = New System.Windows.Forms.CheckBox()
-            Me.CH_INSTA_DOWN_VID = New System.Windows.Forms.CheckBox()
+            Me.DEFS_INST = New SCrawler.Editors.SiteDefaults()
+            Me.TXT_INST_SAVED_POSTS_USER = New PersonalUtilities.Forms.Controls.TextBoxExtended()
+            Me.TAB_DEFS_REDGIFS = New System.Windows.Forms.TabPage()
+            Me.DEFS_REDGIFS = New SCrawler.Editors.SiteDefaults()
             Me.CONTAINER_MAIN = New System.Windows.Forms.ToolStripContainer()
-            Me.OPT_FILE_NAME_REPLACE = New System.Windows.Forms.RadioButton()
-            Me.OPT_FILE_NAME_ADD_DATE = New System.Windows.Forms.RadioButton()
-            Me.CH_FILE_NAME_CHANGE = New System.Windows.Forms.CheckBox()
-            Me.CH_FILE_DATE = New System.Windows.Forms.CheckBox()
-            Me.CH_FILE_TIME = New System.Windows.Forms.CheckBox()
-            Me.OPT_FILE_DATE_START = New System.Windows.Forms.RadioButton()
-            Me.OPT_FILE_DATE_END = New System.Windows.Forms.RadioButton()
+            Me.CH_SHOW_NOTIFY = New System.Windows.Forms.CheckBox()
             TP_BASIS = New System.Windows.Forms.TableLayoutPanel()
             TP_IMAGES = New System.Windows.Forms.TableLayoutPanel()
+            TP_FILE_NAME = New System.Windows.Forms.TableLayoutPanel()
+            TP_FILE_PATTERNS = New System.Windows.Forms.TableLayoutPanel()
+            LBL_DATE_POS = New System.Windows.Forms.Label()
             TT_MAIN = New System.Windows.Forms.ToolTip(Me.components)
             TP_CHANNELS_IMGS = New System.Windows.Forms.TableLayoutPanel()
-            TAB_MAIN = New System.Windows.Forms.TabControl()
             TAB_BASIS = New System.Windows.Forms.TabPage()
             TAB_DEFAULTS = New System.Windows.Forms.TabPage()
             TP_DEFS = New System.Windows.Forms.TableLayoutPanel()
             TAB_DEFS_CHANNELS = New System.Windows.Forms.TabPage()
             TP_CHANNELS = New System.Windows.Forms.TableLayoutPanel()
             TAB_DEFS_REDDIT = New System.Windows.Forms.TabPage()
-            TP_REDDIT = New System.Windows.Forms.TableLayoutPanel()
             TAB_DEFS_TWITTER = New System.Windows.Forms.TabPage()
-            TP_TWITTER = New System.Windows.Forms.TableLayoutPanel()
-            TP_INSTAGRAM = New System.Windows.Forms.TableLayoutPanel()
-            TP_FILE_NAME = New System.Windows.Forms.TableLayoutPanel()
-            TP_FILE_PATTERNS = New System.Windows.Forms.TableLayoutPanel()
-            LBL_DATE_POS = New System.Windows.Forms.Label()
             TP_BASIS.SuspendLayout()
             CType(Me.TXT_GLOBAL_PATH, System.ComponentModel.ISupportInitialize).BeginInit()
             TP_IMAGES.SuspendLayout()
@@ -104,10 +100,11 @@
             CType(Me.TXT_MAX_JOBS_USERS, System.ComponentModel.ISupportInitialize).BeginInit()
             CType(Me.TXT_MAX_JOBS_CHANNELS, System.ComponentModel.ISupportInitialize).BeginInit()
             CType(Me.TXT_IMGUR_CLIENT_ID, System.ComponentModel.ISupportInitialize).BeginInit()
+            TP_FILE_NAME.SuspendLayout()
+            TP_FILE_PATTERNS.SuspendLayout()
             TP_CHANNELS_IMGS.SuspendLayout()
             CType(Me.TXT_CHANNELS_ROWS, System.ComponentModel.ISupportInitialize).BeginInit()
             CType(Me.TXT_CHANNELS_COLUMNS, System.ComponentModel.ISupportInitialize).BeginInit()
-            TAB_MAIN.SuspendLayout()
             TAB_BASIS.SuspendLayout()
             TAB_DEFAULTS.SuspendLayout()
             TP_DEFS.SuspendLayout()
@@ -115,16 +112,20 @@
             TP_CHANNELS.SuspendLayout()
             CType(Me.TXT_CHANNEL_USER_POST_LIMIT, System.ComponentModel.ISupportInitialize).BeginInit()
             TAB_DEFS_REDDIT.SuspendLayout()
-            TP_REDDIT.SuspendLayout()
+            Me.DEFS_REDDIT.SuspendLayout()
             CType(Me.TXT_REDDIT_SAVED_POSTS_USER, System.ComponentModel.ISupportInitialize).BeginInit()
             TAB_DEFS_TWITTER.SuspendLayout()
-            TP_TWITTER.SuspendLayout()
+            Me.DEFS_TWITTER.SuspendLayout()
+            CType(Me.TXT_REQ_WAIT_TIMER, System.ComponentModel.ISupportInitialize).BeginInit()
+            CType(Me.TXT_REQ_COUNT, System.ComponentModel.ISupportInitialize).BeginInit()
+            CType(Me.TXT_LIMIT_TIMER, System.ComponentModel.ISupportInitialize).BeginInit()
+            Me.TAB_MAIN.SuspendLayout()
             Me.TAB_DEFS_INSTAGRAM.SuspendLayout()
-            TP_INSTAGRAM.SuspendLayout()
+            Me.DEFS_INST.SuspendLayout()
+            CType(Me.TXT_INST_SAVED_POSTS_USER, System.ComponentModel.ISupportInitialize).BeginInit()
+            Me.TAB_DEFS_REDGIFS.SuspendLayout()
             Me.CONTAINER_MAIN.ContentPanel.SuspendLayout()
             Me.CONTAINER_MAIN.SuspendLayout()
-            TP_FILE_NAME.SuspendLayout()
-            TP_FILE_PATTERNS.SuspendLayout()
             Me.SuspendLayout()
             '
             'TP_BASIS
@@ -141,10 +142,13 @@
             TP_BASIS.Controls.Add(Me.TXT_IMGUR_CLIENT_ID, 0, 6)
             TP_BASIS.Controls.Add(TP_FILE_NAME, 0, 7)
             TP_BASIS.Controls.Add(TP_FILE_PATTERNS, 0, 8)
+            TP_BASIS.Controls.Add(Me.CH_EXIT_CONFIRM, 0, 9)
+            TP_BASIS.Controls.Add(Me.CH_CLOSE_TO_TRAY, 0, 10)
+            TP_BASIS.Controls.Add(Me.CH_SHOW_NOTIFY, 0, 11)
             TP_BASIS.Dock = System.Windows.Forms.DockStyle.Fill
             TP_BASIS.Location = New System.Drawing.Point(3, 3)
             TP_BASIS.Name = "TP_BASIS"
-            TP_BASIS.RowCount = 10
+            TP_BASIS.RowCount = 13
             TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
@@ -154,8 +158,11 @@
             TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 30.0!))
             TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 30.0!))
+            TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_BASIS.Size = New System.Drawing.Size(570, 352)
+            TP_BASIS.Size = New System.Drawing.Size(570, 341)
             TP_BASIS.TabIndex = 0
             '
             'TXT_GLOBAL_PATH
@@ -305,470 +312,6 @@
             Me.TXT_IMGUR_CLIENT_ID.Size = New System.Drawing.Size(562, 22)
             Me.TXT_IMGUR_CLIENT_ID.TabIndex = 6
             '
-            'CH_COPY_CHANNEL_USER_IMAGE
-            '
-            Me.CH_COPY_CHANNEL_USER_IMAGE.AutoSize = True
-            Me.CH_COPY_CHANNEL_USER_IMAGE.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_COPY_CHANNEL_USER_IMAGE.Location = New System.Drawing.Point(4, 62)
-            Me.CH_COPY_CHANNEL_USER_IMAGE.Name = "CH_COPY_CHANNEL_USER_IMAGE"
-            Me.CH_COPY_CHANNEL_USER_IMAGE.Size = New System.Drawing.Size(562, 19)
-            Me.CH_COPY_CHANNEL_USER_IMAGE.TabIndex = 2
-            Me.CH_COPY_CHANNEL_USER_IMAGE.Text = "Copy channel user image"
-            TT_MAIN.SetToolTip(Me.CH_COPY_CHANNEL_USER_IMAGE, "Copy image posted by user (in the channel you added from) to the user's destinati" &
-        "on folder.")
-            Me.CH_COPY_CHANNEL_USER_IMAGE.UseVisualStyleBackColor = True
-            '
-            'CH_DEF_TEMP
-            '
-            Me.CH_DEF_TEMP.AutoSize = True
-            Me.CH_DEF_TEMP.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_DEF_TEMP.Location = New System.Drawing.Point(4, 30)
-            Me.CH_DEF_TEMP.Name = "CH_DEF_TEMP"
-            Me.CH_DEF_TEMP.Size = New System.Drawing.Size(562, 19)
-            Me.CH_DEF_TEMP.TabIndex = 1
-            Me.CH_DEF_TEMP.Text = "Temporary"
-            TT_MAIN.SetToolTip(Me.CH_DEF_TEMP, "Default value when creating a new user (can be changed in the new user form)")
-            Me.CH_DEF_TEMP.UseVisualStyleBackColor = True
-            '
-            'CH_DOWN_IMAGES
-            '
-            Me.CH_DOWN_IMAGES.AutoSize = True
-            Me.CH_DOWN_IMAGES.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_DOWN_IMAGES.Location = New System.Drawing.Point(4, 56)
-            Me.CH_DOWN_IMAGES.Name = "CH_DOWN_IMAGES"
-            Me.CH_DOWN_IMAGES.Size = New System.Drawing.Size(562, 19)
-            Me.CH_DOWN_IMAGES.TabIndex = 2
-            Me.CH_DOWN_IMAGES.Text = "Download images"
-            TT_MAIN.SetToolTip(Me.CH_DOWN_IMAGES, "Default value when creating a new user (can be changed in the new user form)")
-            Me.CH_DOWN_IMAGES.UseVisualStyleBackColor = True
-            '
-            'CH_DOWN_VIDEOS
-            '
-            Me.CH_DOWN_VIDEOS.AutoSize = True
-            Me.CH_DOWN_VIDEOS.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_DOWN_VIDEOS.Location = New System.Drawing.Point(4, 82)
-            Me.CH_DOWN_VIDEOS.Name = "CH_DOWN_VIDEOS"
-            Me.CH_DOWN_VIDEOS.Size = New System.Drawing.Size(562, 19)
-            Me.CH_DOWN_VIDEOS.TabIndex = 3
-            Me.CH_DOWN_VIDEOS.Text = "Download videos"
-            TT_MAIN.SetToolTip(Me.CH_DOWN_VIDEOS, "Default value when creating a new user (can be changed in the new user form)")
-            Me.CH_DOWN_VIDEOS.UseVisualStyleBackColor = True
-            '
-            'CH_SEPARATE_VIDEO_FOLDER
-            '
-            Me.CH_SEPARATE_VIDEO_FOLDER.AutoSize = True
-            Me.CH_SEPARATE_VIDEO_FOLDER.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_SEPARATE_VIDEO_FOLDER.Location = New System.Drawing.Point(4, 4)
-            Me.CH_SEPARATE_VIDEO_FOLDER.Name = "CH_SEPARATE_VIDEO_FOLDER"
-            Me.CH_SEPARATE_VIDEO_FOLDER.Size = New System.Drawing.Size(562, 19)
-            Me.CH_SEPARATE_VIDEO_FOLDER.TabIndex = 0
-            Me.CH_SEPARATE_VIDEO_FOLDER.Text = "Separate video folders"
-            TT_MAIN.SetToolTip(Me.CH_SEPARATE_VIDEO_FOLDER, resources.GetString("CH_SEPARATE_VIDEO_FOLDER.ToolTip"))
-            Me.CH_SEPARATE_VIDEO_FOLDER.UseVisualStyleBackColor = True
-            '
-            'CH_CHANNELS_USERS_TEMP
-            '
-            Me.CH_CHANNELS_USERS_TEMP.AutoSize = True
-            Me.CH_CHANNELS_USERS_TEMP.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_CHANNELS_USERS_TEMP.Location = New System.Drawing.Point(4, 88)
-            Me.CH_CHANNELS_USERS_TEMP.Name = "CH_CHANNELS_USERS_TEMP"
-            Me.CH_CHANNELS_USERS_TEMP.Size = New System.Drawing.Size(562, 19)
-            Me.CH_CHANNELS_USERS_TEMP.TabIndex = 3
-            Me.CH_CHANNELS_USERS_TEMP.Text = "Create temporary users"
-            TT_MAIN.SetToolTip(Me.CH_CHANNELS_USERS_TEMP, "Users added from channels will be created with this parameter")
-            Me.CH_CHANNELS_USERS_TEMP.UseVisualStyleBackColor = True
-            '
-            'TP_CHANNELS_IMGS
-            '
-            TP_CHANNELS_IMGS.ColumnCount = 2
-            TP_CHANNELS_IMGS.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
-            TP_CHANNELS_IMGS.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
-            TP_CHANNELS_IMGS.Controls.Add(Me.TXT_CHANNELS_ROWS, 0, 0)
-            TP_CHANNELS_IMGS.Controls.Add(Me.TXT_CHANNELS_COLUMNS, 1, 0)
-            TP_CHANNELS_IMGS.Dock = System.Windows.Forms.DockStyle.Fill
-            TP_CHANNELS_IMGS.Location = New System.Drawing.Point(1, 1)
-            TP_CHANNELS_IMGS.Margin = New System.Windows.Forms.Padding(0)
-            TP_CHANNELS_IMGS.Name = "TP_CHANNELS_IMGS"
-            TP_CHANNELS_IMGS.RowCount = 1
-            TP_CHANNELS_IMGS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_CHANNELS_IMGS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
-            TP_CHANNELS_IMGS.Size = New System.Drawing.Size(568, 28)
-            TP_CHANNELS_IMGS.TabIndex = 0
-            '
-            'TXT_CHANNELS_ROWS
-            '
-            Me.TXT_CHANNELS_ROWS.CaptionText = "Channels rows"
-            Me.TXT_CHANNELS_ROWS.CaptionToolTipEnabled = True
-            Me.TXT_CHANNELS_ROWS.CaptionToolTipText = "How many lines of images should be shown in the channels form"
-            Me.TXT_CHANNELS_ROWS.ControlMode = PersonalUtilities.Forms.Controls.TextBoxExtended.ControlModes.NumericUpDown
-            Me.TXT_CHANNELS_ROWS.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_CHANNELS_ROWS.Location = New System.Drawing.Point(3, 3)
-            Me.TXT_CHANNELS_ROWS.Name = "TXT_CHANNELS_ROWS"
-            Me.TXT_CHANNELS_ROWS.Size = New System.Drawing.Size(278, 22)
-            Me.TXT_CHANNELS_ROWS.TabIndex = 0
-            Me.TXT_CHANNELS_ROWS.Text = "0"
-            Me.TXT_CHANNELS_ROWS.TextBoxTextAlign = System.Windows.Forms.HorizontalAlignment.Center
-            '
-            'TXT_CHANNELS_COLUMNS
-            '
-            Me.TXT_CHANNELS_COLUMNS.CaptionText = "Channels columns"
-            Me.TXT_CHANNELS_COLUMNS.CaptionToolTipEnabled = True
-            Me.TXT_CHANNELS_COLUMNS.CaptionToolTipText = "How many columns of images should be shown in the channels form"
-            Me.TXT_CHANNELS_COLUMNS.ControlMode = PersonalUtilities.Forms.Controls.TextBoxExtended.ControlModes.NumericUpDown
-            Me.TXT_CHANNELS_COLUMNS.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_CHANNELS_COLUMNS.Location = New System.Drawing.Point(287, 3)
-            Me.TXT_CHANNELS_COLUMNS.Name = "TXT_CHANNELS_COLUMNS"
-            Me.TXT_CHANNELS_COLUMNS.Size = New System.Drawing.Size(278, 22)
-            Me.TXT_CHANNELS_COLUMNS.TabIndex = 1
-            Me.TXT_CHANNELS_COLUMNS.Text = "0"
-            Me.TXT_CHANNELS_COLUMNS.TextBoxTextAlign = System.Windows.Forms.HorizontalAlignment.Center
-            '
-            'TAB_MAIN
-            '
-            TAB_MAIN.Controls.Add(TAB_BASIS)
-            TAB_MAIN.Controls.Add(TAB_DEFAULTS)
-            TAB_MAIN.Controls.Add(TAB_DEFS_CHANNELS)
-            TAB_MAIN.Controls.Add(TAB_DEFS_REDDIT)
-            TAB_MAIN.Controls.Add(TAB_DEFS_TWITTER)
-            TAB_MAIN.Controls.Add(Me.TAB_DEFS_INSTAGRAM)
-            TAB_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
-            TAB_MAIN.Location = New System.Drawing.Point(0, 0)
-            TAB_MAIN.Name = "TAB_MAIN"
-            TAB_MAIN.SelectedIndex = 0
-            TAB_MAIN.Size = New System.Drawing.Size(584, 384)
-            TAB_MAIN.TabIndex = 1
-            '
-            'TAB_BASIS
-            '
-            TAB_BASIS.Controls.Add(TP_BASIS)
-            TAB_BASIS.Location = New System.Drawing.Point(4, 22)
-            TAB_BASIS.Name = "TAB_BASIS"
-            TAB_BASIS.Padding = New System.Windows.Forms.Padding(3)
-            TAB_BASIS.Size = New System.Drawing.Size(576, 358)
-            TAB_BASIS.TabIndex = 0
-            TAB_BASIS.Text = "Basis"
-            '
-            'TAB_DEFAULTS
-            '
-            TAB_DEFAULTS.Controls.Add(TP_DEFS)
-            TAB_DEFAULTS.Location = New System.Drawing.Point(4, 22)
-            TAB_DEFAULTS.Name = "TAB_DEFAULTS"
-            TAB_DEFAULTS.Padding = New System.Windows.Forms.Padding(3)
-            TAB_DEFAULTS.Size = New System.Drawing.Size(576, 358)
-            TAB_DEFAULTS.TabIndex = 1
-            TAB_DEFAULTS.Text = "Defaults"
-            '
-            'TP_DEFS
-            '
-            TP_DEFS.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
-            TP_DEFS.ColumnCount = 1
-            TP_DEFS.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_DEFS.Controls.Add(Me.CH_SEPARATE_VIDEO_FOLDER, 0, 0)
-            TP_DEFS.Controls.Add(Me.CH_DOWN_VIDEOS, 0, 3)
-            TP_DEFS.Controls.Add(Me.CH_DOWN_IMAGES, 0, 2)
-            TP_DEFS.Controls.Add(Me.CH_DEF_TEMP, 0, 1)
-            TP_DEFS.Dock = System.Windows.Forms.DockStyle.Fill
-            TP_DEFS.Location = New System.Drawing.Point(3, 3)
-            TP_DEFS.Name = "TP_DEFS"
-            TP_DEFS.RowCount = 5
-            TP_DEFS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
-            TP_DEFS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
-            TP_DEFS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
-            TP_DEFS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
-            TP_DEFS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_DEFS.Size = New System.Drawing.Size(570, 352)
-            TP_DEFS.TabIndex = 0
-            '
-            'TAB_DEFS_CHANNELS
-            '
-            TAB_DEFS_CHANNELS.Controls.Add(TP_CHANNELS)
-            TAB_DEFS_CHANNELS.Location = New System.Drawing.Point(4, 22)
-            TAB_DEFS_CHANNELS.Name = "TAB_DEFS_CHANNELS"
-            TAB_DEFS_CHANNELS.Padding = New System.Windows.Forms.Padding(3)
-            TAB_DEFS_CHANNELS.Size = New System.Drawing.Size(576, 358)
-            TAB_DEFS_CHANNELS.TabIndex = 4
-            TAB_DEFS_CHANNELS.Text = "Channels"
-            '
-            'TP_CHANNELS
-            '
-            TP_CHANNELS.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
-            TP_CHANNELS.ColumnCount = 1
-            TP_CHANNELS.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_CHANNELS.Controls.Add(Me.TXT_CHANNEL_USER_POST_LIMIT, 0, 1)
-            TP_CHANNELS.Controls.Add(TP_CHANNELS_IMGS, 0, 0)
-            TP_CHANNELS.Controls.Add(Me.CH_COPY_CHANNEL_USER_IMAGE, 0, 2)
-            TP_CHANNELS.Controls.Add(Me.CH_CHANNELS_USERS_TEMP, 0, 3)
-            TP_CHANNELS.Dock = System.Windows.Forms.DockStyle.Fill
-            TP_CHANNELS.Location = New System.Drawing.Point(3, 3)
-            TP_CHANNELS.Name = "TP_CHANNELS"
-            TP_CHANNELS.RowCount = 5
-            TP_CHANNELS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
-            TP_CHANNELS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
-            TP_CHANNELS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
-            TP_CHANNELS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
-            TP_CHANNELS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_CHANNELS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
-            TP_CHANNELS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
-            TP_CHANNELS.Size = New System.Drawing.Size(570, 352)
-            TP_CHANNELS.TabIndex = 0
-            '
-            'TXT_CHANNEL_USER_POST_LIMIT
-            '
-            Me.TXT_CHANNEL_USER_POST_LIMIT.CaptionMode = PersonalUtilities.Forms.Controls.Base.ICaptionControl.Modes.CheckBox
-            Me.TXT_CHANNEL_USER_POST_LIMIT.CaptionSizeType = System.Windows.Forms.SizeType.Percent
-            Me.TXT_CHANNEL_USER_POST_LIMIT.CaptionText = "Download limit for channel user"
-            Me.TXT_CHANNEL_USER_POST_LIMIT.CaptionToolTipEnabled = True
-            Me.TXT_CHANNEL_USER_POST_LIMIT.CaptionToolTipText = "Set a limit on the number of downloads of posts limit if the user is added from t" &
-    "he channel"
-            Me.TXT_CHANNEL_USER_POST_LIMIT.CaptionWidth = 50.0R
-            Me.TXT_CHANNEL_USER_POST_LIMIT.ControlMode = PersonalUtilities.Forms.Controls.TextBoxExtended.ControlModes.NumericUpDown
-            Me.TXT_CHANNEL_USER_POST_LIMIT.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_CHANNEL_USER_POST_LIMIT.Location = New System.Drawing.Point(4, 33)
-            Me.TXT_CHANNEL_USER_POST_LIMIT.Name = "TXT_CHANNEL_USER_POST_LIMIT"
-            Me.TXT_CHANNEL_USER_POST_LIMIT.NumberMaximum = New Decimal(New Integer() {1000, 0, 0, 0})
-            Me.TXT_CHANNEL_USER_POST_LIMIT.NumberMinimum = New Decimal(New Integer() {1, 0, 0, 0})
-            Me.TXT_CHANNEL_USER_POST_LIMIT.Size = New System.Drawing.Size(562, 22)
-            Me.TXT_CHANNEL_USER_POST_LIMIT.TabIndex = 1
-            Me.TXT_CHANNEL_USER_POST_LIMIT.Text = "1"
-            Me.TXT_CHANNEL_USER_POST_LIMIT.TextBoxTextAlign = System.Windows.Forms.HorizontalAlignment.Center
-            '
-            'TAB_DEFS_REDDIT
-            '
-            TAB_DEFS_REDDIT.Controls.Add(TP_REDDIT)
-            TAB_DEFS_REDDIT.Location = New System.Drawing.Point(4, 22)
-            TAB_DEFS_REDDIT.Name = "TAB_DEFS_REDDIT"
-            TAB_DEFS_REDDIT.Padding = New System.Windows.Forms.Padding(3)
-            TAB_DEFS_REDDIT.Size = New System.Drawing.Size(576, 358)
-            TAB_DEFS_REDDIT.TabIndex = 2
-            TAB_DEFS_REDDIT.Text = "Reddit"
-            '
-            'TP_REDDIT
-            '
-            TP_REDDIT.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
-            TP_REDDIT.ColumnCount = 1
-            TP_REDDIT.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_REDDIT.Controls.Add(Me.CH_REDDIT_TEMP, 0, 0)
-            TP_REDDIT.Controls.Add(Me.CH_REDDIT_DOWN_IMG, 0, 1)
-            TP_REDDIT.Controls.Add(Me.CH_REDDIT_DOWN_VID, 0, 2)
-            TP_REDDIT.Controls.Add(Me.TXT_REDDIT_SAVED_POSTS_USER, 0, 3)
-            TP_REDDIT.Dock = System.Windows.Forms.DockStyle.Fill
-            TP_REDDIT.Location = New System.Drawing.Point(3, 3)
-            TP_REDDIT.Name = "TP_REDDIT"
-            TP_REDDIT.RowCount = 5
-            TP_REDDIT.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
-            TP_REDDIT.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
-            TP_REDDIT.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
-            TP_REDDIT.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
-            TP_REDDIT.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_REDDIT.Size = New System.Drawing.Size(570, 352)
-            TP_REDDIT.TabIndex = 0
-            '
-            'CH_REDDIT_TEMP
-            '
-            Me.CH_REDDIT_TEMP.AutoSize = True
-            Me.CH_REDDIT_TEMP.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_REDDIT_TEMP.Location = New System.Drawing.Point(4, 4)
-            Me.CH_REDDIT_TEMP.Name = "CH_REDDIT_TEMP"
-            Me.CH_REDDIT_TEMP.Size = New System.Drawing.Size(562, 19)
-            Me.CH_REDDIT_TEMP.TabIndex = 0
-            Me.CH_REDDIT_TEMP.Text = "Temporary"
-            Me.CH_REDDIT_TEMP.ThreeState = True
-            Me.CH_REDDIT_TEMP.UseVisualStyleBackColor = True
-            '
-            'CH_REDDIT_DOWN_IMG
-            '
-            Me.CH_REDDIT_DOWN_IMG.AutoSize = True
-            Me.CH_REDDIT_DOWN_IMG.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_REDDIT_DOWN_IMG.Location = New System.Drawing.Point(4, 30)
-            Me.CH_REDDIT_DOWN_IMG.Name = "CH_REDDIT_DOWN_IMG"
-            Me.CH_REDDIT_DOWN_IMG.Size = New System.Drawing.Size(562, 19)
-            Me.CH_REDDIT_DOWN_IMG.TabIndex = 1
-            Me.CH_REDDIT_DOWN_IMG.Text = "Download images"
-            Me.CH_REDDIT_DOWN_IMG.ThreeState = True
-            Me.CH_REDDIT_DOWN_IMG.UseVisualStyleBackColor = True
-            '
-            'CH_REDDIT_DOWN_VID
-            '
-            Me.CH_REDDIT_DOWN_VID.AutoSize = True
-            Me.CH_REDDIT_DOWN_VID.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_REDDIT_DOWN_VID.Location = New System.Drawing.Point(4, 56)
-            Me.CH_REDDIT_DOWN_VID.Name = "CH_REDDIT_DOWN_VID"
-            Me.CH_REDDIT_DOWN_VID.Size = New System.Drawing.Size(562, 19)
-            Me.CH_REDDIT_DOWN_VID.TabIndex = 2
-            Me.CH_REDDIT_DOWN_VID.Text = "Download videos"
-            Me.CH_REDDIT_DOWN_VID.ThreeState = True
-            Me.CH_REDDIT_DOWN_VID.UseVisualStyleBackColor = True
-            '
-            'TXT_REDDIT_SAVED_POSTS_USER
-            '
-            Me.TXT_REDDIT_SAVED_POSTS_USER.CaptionText = "Saved posts user"
-            Me.TXT_REDDIT_SAVED_POSTS_USER.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_REDDIT_SAVED_POSTS_USER.Location = New System.Drawing.Point(4, 82)
-            Me.TXT_REDDIT_SAVED_POSTS_USER.Name = "TXT_REDDIT_SAVED_POSTS_USER"
-            Me.TXT_REDDIT_SAVED_POSTS_USER.Size = New System.Drawing.Size(562, 22)
-            Me.TXT_REDDIT_SAVED_POSTS_USER.TabIndex = 3
-            '
-            'TAB_DEFS_TWITTER
-            '
-            TAB_DEFS_TWITTER.Controls.Add(TP_TWITTER)
-            TAB_DEFS_TWITTER.Location = New System.Drawing.Point(4, 22)
-            TAB_DEFS_TWITTER.Name = "TAB_DEFS_TWITTER"
-            TAB_DEFS_TWITTER.Padding = New System.Windows.Forms.Padding(3)
-            TAB_DEFS_TWITTER.Size = New System.Drawing.Size(576, 358)
-            TAB_DEFS_TWITTER.TabIndex = 3
-            TAB_DEFS_TWITTER.Text = "Twitter"
-            '
-            'TP_TWITTER
-            '
-            TP_TWITTER.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
-            TP_TWITTER.ColumnCount = 1
-            TP_TWITTER.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_TWITTER.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
-            TP_TWITTER.Controls.Add(Me.CH_TWITTER_TEMP, 0, 0)
-            TP_TWITTER.Controls.Add(Me.CH_TWITTER_DOWN_IMG, 0, 1)
-            TP_TWITTER.Controls.Add(Me.CH_TWITTER_DOWN_VID, 0, 2)
-            TP_TWITTER.Controls.Add(Me.CH_TWITTER_USER_MEDIA, 0, 3)
-            TP_TWITTER.Dock = System.Windows.Forms.DockStyle.Fill
-            TP_TWITTER.Location = New System.Drawing.Point(3, 3)
-            TP_TWITTER.Name = "TP_TWITTER"
-            TP_TWITTER.RowCount = 5
-            TP_TWITTER.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
-            TP_TWITTER.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
-            TP_TWITTER.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
-            TP_TWITTER.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
-            TP_TWITTER.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_TWITTER.Size = New System.Drawing.Size(570, 352)
-            TP_TWITTER.TabIndex = 0
-            '
-            'CH_TWITTER_TEMP
-            '
-            Me.CH_TWITTER_TEMP.AutoSize = True
-            Me.CH_TWITTER_TEMP.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_TWITTER_TEMP.Location = New System.Drawing.Point(4, 4)
-            Me.CH_TWITTER_TEMP.Name = "CH_TWITTER_TEMP"
-            Me.CH_TWITTER_TEMP.Size = New System.Drawing.Size(562, 19)
-            Me.CH_TWITTER_TEMP.TabIndex = 0
-            Me.CH_TWITTER_TEMP.Text = "Temporary"
-            Me.CH_TWITTER_TEMP.ThreeState = True
-            Me.CH_TWITTER_TEMP.UseVisualStyleBackColor = True
-            '
-            'CH_TWITTER_DOWN_IMG
-            '
-            Me.CH_TWITTER_DOWN_IMG.AutoSize = True
-            Me.CH_TWITTER_DOWN_IMG.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_TWITTER_DOWN_IMG.Location = New System.Drawing.Point(4, 30)
-            Me.CH_TWITTER_DOWN_IMG.Name = "CH_TWITTER_DOWN_IMG"
-            Me.CH_TWITTER_DOWN_IMG.Size = New System.Drawing.Size(562, 19)
-            Me.CH_TWITTER_DOWN_IMG.TabIndex = 1
-            Me.CH_TWITTER_DOWN_IMG.Text = "Download images"
-            Me.CH_TWITTER_DOWN_IMG.ThreeState = True
-            Me.CH_TWITTER_DOWN_IMG.UseVisualStyleBackColor = True
-            '
-            'CH_TWITTER_DOWN_VID
-            '
-            Me.CH_TWITTER_DOWN_VID.AutoSize = True
-            Me.CH_TWITTER_DOWN_VID.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_TWITTER_DOWN_VID.Location = New System.Drawing.Point(4, 56)
-            Me.CH_TWITTER_DOWN_VID.Name = "CH_TWITTER_DOWN_VID"
-            Me.CH_TWITTER_DOWN_VID.Size = New System.Drawing.Size(562, 19)
-            Me.CH_TWITTER_DOWN_VID.TabIndex = 2
-            Me.CH_TWITTER_DOWN_VID.Text = "Download videos"
-            Me.CH_TWITTER_DOWN_VID.ThreeState = True
-            Me.CH_TWITTER_DOWN_VID.UseVisualStyleBackColor = True
-            '
-            'CH_TWITTER_USER_MEDIA
-            '
-            Me.CH_TWITTER_USER_MEDIA.AutoSize = True
-            Me.CH_TWITTER_USER_MEDIA.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_TWITTER_USER_MEDIA.Location = New System.Drawing.Point(4, 82)
-            Me.CH_TWITTER_USER_MEDIA.Name = "CH_TWITTER_USER_MEDIA"
-            Me.CH_TWITTER_USER_MEDIA.Size = New System.Drawing.Size(562, 19)
-            Me.CH_TWITTER_USER_MEDIA.TabIndex = 3
-            Me.CH_TWITTER_USER_MEDIA.Text = "Get user media only"
-            Me.CH_TWITTER_USER_MEDIA.UseVisualStyleBackColor = True
-            '
-            'TAB_DEFS_INSTAGRAM
-            '
-            Me.TAB_DEFS_INSTAGRAM.BackColor = System.Drawing.SystemColors.Control
-            Me.TAB_DEFS_INSTAGRAM.Controls.Add(TP_INSTAGRAM)
-            Me.TAB_DEFS_INSTAGRAM.Location = New System.Drawing.Point(4, 22)
-            Me.TAB_DEFS_INSTAGRAM.Name = "TAB_DEFS_INSTAGRAM"
-            Me.TAB_DEFS_INSTAGRAM.Size = New System.Drawing.Size(576, 358)
-            Me.TAB_DEFS_INSTAGRAM.TabIndex = 5
-            Me.TAB_DEFS_INSTAGRAM.Text = "Instagram"
-            '
-            'TP_INSTAGRAM
-            '
-            TP_INSTAGRAM.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
-            TP_INSTAGRAM.ColumnCount = 1
-            TP_INSTAGRAM.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_INSTAGRAM.Controls.Add(Me.CH_INSTA_TEMP, 0, 0)
-            TP_INSTAGRAM.Controls.Add(Me.CH_INSTA_DOWN_IMG, 0, 1)
-            TP_INSTAGRAM.Controls.Add(Me.CH_INSTA_DOWN_VID, 0, 2)
-            TP_INSTAGRAM.Dock = System.Windows.Forms.DockStyle.Fill
-            TP_INSTAGRAM.Location = New System.Drawing.Point(0, 0)
-            TP_INSTAGRAM.Name = "TP_INSTAGRAM"
-            TP_INSTAGRAM.RowCount = 4
-            TP_INSTAGRAM.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
-            TP_INSTAGRAM.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
-            TP_INSTAGRAM.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
-            TP_INSTAGRAM.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_INSTAGRAM.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
-            TP_INSTAGRAM.Size = New System.Drawing.Size(576, 358)
-            TP_INSTAGRAM.TabIndex = 0
-            '
-            'CH_INSTA_TEMP
-            '
-            Me.CH_INSTA_TEMP.AutoSize = True
-            Me.CH_INSTA_TEMP.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_INSTA_TEMP.Location = New System.Drawing.Point(4, 4)
-            Me.CH_INSTA_TEMP.Name = "CH_INSTA_TEMP"
-            Me.CH_INSTA_TEMP.Size = New System.Drawing.Size(568, 19)
-            Me.CH_INSTA_TEMP.TabIndex = 0
-            Me.CH_INSTA_TEMP.Text = "Temporary"
-            Me.CH_INSTA_TEMP.ThreeState = True
-            Me.CH_INSTA_TEMP.UseVisualStyleBackColor = True
-            '
-            'CH_INSTA_DOWN_IMG
-            '
-            Me.CH_INSTA_DOWN_IMG.AutoSize = True
-            Me.CH_INSTA_DOWN_IMG.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_INSTA_DOWN_IMG.Location = New System.Drawing.Point(4, 30)
-            Me.CH_INSTA_DOWN_IMG.Name = "CH_INSTA_DOWN_IMG"
-            Me.CH_INSTA_DOWN_IMG.Size = New System.Drawing.Size(568, 19)
-            Me.CH_INSTA_DOWN_IMG.TabIndex = 1
-            Me.CH_INSTA_DOWN_IMG.Text = "Download images"
-            Me.CH_INSTA_DOWN_IMG.ThreeState = True
-            Me.CH_INSTA_DOWN_IMG.UseVisualStyleBackColor = True
-            '
-            'CH_INSTA_DOWN_VID
-            '
-            Me.CH_INSTA_DOWN_VID.AutoSize = True
-            Me.CH_INSTA_DOWN_VID.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_INSTA_DOWN_VID.Location = New System.Drawing.Point(4, 56)
-            Me.CH_INSTA_DOWN_VID.Name = "CH_INSTA_DOWN_VID"
-            Me.CH_INSTA_DOWN_VID.Size = New System.Drawing.Size(568, 19)
-            Me.CH_INSTA_DOWN_VID.TabIndex = 2
-            Me.CH_INSTA_DOWN_VID.Text = "Download videos"
-            Me.CH_INSTA_DOWN_VID.ThreeState = True
-            Me.CH_INSTA_DOWN_VID.UseVisualStyleBackColor = True
-            '
-            'CONTAINER_MAIN
-            '
-            '
-            'CONTAINER_MAIN.ContentPanel
-            '
-            Me.CONTAINER_MAIN.ContentPanel.Controls.Add(TAB_MAIN)
-            Me.CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(584, 384)
-            Me.CONTAINER_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CONTAINER_MAIN.LeftToolStripPanelVisible = False
-            Me.CONTAINER_MAIN.Location = New System.Drawing.Point(0, 0)
-            Me.CONTAINER_MAIN.Name = "CONTAINER_MAIN"
-            Me.CONTAINER_MAIN.RightToolStripPanelVisible = False
-            Me.CONTAINER_MAIN.Size = New System.Drawing.Size(584, 384)
-            Me.CONTAINER_MAIN.TabIndex = 0
-            Me.CONTAINER_MAIN.TopToolStripPanelVisible = False
-            '
             'TP_FILE_NAME
             '
             TP_FILE_NAME.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
@@ -904,19 +447,473 @@
             Me.OPT_FILE_DATE_END.Text = "End"
             Me.OPT_FILE_DATE_END.UseVisualStyleBackColor = True
             '
+            'CH_EXIT_CONFIRM
+            '
+            Me.CH_EXIT_CONFIRM.AutoSize = True
+            Me.CH_EXIT_CONFIRM.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_EXIT_CONFIRM.Location = New System.Drawing.Point(4, 266)
+            Me.CH_EXIT_CONFIRM.Name = "CH_EXIT_CONFIRM"
+            Me.CH_EXIT_CONFIRM.Size = New System.Drawing.Size(562, 19)
+            Me.CH_EXIT_CONFIRM.TabIndex = 9
+            Me.CH_EXIT_CONFIRM.Text = "Exit confirm"
+            Me.CH_EXIT_CONFIRM.UseVisualStyleBackColor = True
+            '
+            'CH_CLOSE_TO_TRAY
+            '
+            Me.CH_CLOSE_TO_TRAY.AutoSize = True
+            Me.CH_CLOSE_TO_TRAY.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_CLOSE_TO_TRAY.Location = New System.Drawing.Point(4, 292)
+            Me.CH_CLOSE_TO_TRAY.Name = "CH_CLOSE_TO_TRAY"
+            Me.CH_CLOSE_TO_TRAY.Size = New System.Drawing.Size(562, 19)
+            Me.CH_CLOSE_TO_TRAY.TabIndex = 10
+            Me.CH_CLOSE_TO_TRAY.Text = "Close to tray"
+            Me.CH_CLOSE_TO_TRAY.UseVisualStyleBackColor = True
+            '
+            'CH_COPY_CHANNEL_USER_IMAGE
+            '
+            Me.CH_COPY_CHANNEL_USER_IMAGE.AutoSize = True
+            Me.CH_COPY_CHANNEL_USER_IMAGE.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_COPY_CHANNEL_USER_IMAGE.Location = New System.Drawing.Point(4, 62)
+            Me.CH_COPY_CHANNEL_USER_IMAGE.Name = "CH_COPY_CHANNEL_USER_IMAGE"
+            Me.CH_COPY_CHANNEL_USER_IMAGE.Size = New System.Drawing.Size(562, 19)
+            Me.CH_COPY_CHANNEL_USER_IMAGE.TabIndex = 2
+            Me.CH_COPY_CHANNEL_USER_IMAGE.Text = "Copy channel user image"
+            TT_MAIN.SetToolTip(Me.CH_COPY_CHANNEL_USER_IMAGE, "Copy image posted by user (in the channel you added from) to the user's destinati" &
+        "on folder.")
+            Me.CH_COPY_CHANNEL_USER_IMAGE.UseVisualStyleBackColor = True
+            '
+            'CH_DEF_TEMP
+            '
+            Me.CH_DEF_TEMP.AutoSize = True
+            Me.CH_DEF_TEMP.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_DEF_TEMP.Location = New System.Drawing.Point(4, 30)
+            Me.CH_DEF_TEMP.Name = "CH_DEF_TEMP"
+            Me.CH_DEF_TEMP.Size = New System.Drawing.Size(562, 19)
+            Me.CH_DEF_TEMP.TabIndex = 1
+            Me.CH_DEF_TEMP.Text = "Temporary"
+            TT_MAIN.SetToolTip(Me.CH_DEF_TEMP, "Default value when creating a new user (can be changed in the new user form)")
+            Me.CH_DEF_TEMP.UseVisualStyleBackColor = True
+            '
+            'CH_DOWN_IMAGES
+            '
+            Me.CH_DOWN_IMAGES.AutoSize = True
+            Me.CH_DOWN_IMAGES.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_DOWN_IMAGES.Location = New System.Drawing.Point(4, 56)
+            Me.CH_DOWN_IMAGES.Name = "CH_DOWN_IMAGES"
+            Me.CH_DOWN_IMAGES.Size = New System.Drawing.Size(562, 19)
+            Me.CH_DOWN_IMAGES.TabIndex = 2
+            Me.CH_DOWN_IMAGES.Text = "Download images"
+            TT_MAIN.SetToolTip(Me.CH_DOWN_IMAGES, "Default value when creating a new user (can be changed in the new user form)")
+            Me.CH_DOWN_IMAGES.UseVisualStyleBackColor = True
+            '
+            'CH_DOWN_VIDEOS
+            '
+            Me.CH_DOWN_VIDEOS.AutoSize = True
+            Me.CH_DOWN_VIDEOS.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_DOWN_VIDEOS.Location = New System.Drawing.Point(4, 82)
+            Me.CH_DOWN_VIDEOS.Name = "CH_DOWN_VIDEOS"
+            Me.CH_DOWN_VIDEOS.Size = New System.Drawing.Size(562, 19)
+            Me.CH_DOWN_VIDEOS.TabIndex = 3
+            Me.CH_DOWN_VIDEOS.Text = "Download videos"
+            TT_MAIN.SetToolTip(Me.CH_DOWN_VIDEOS, "Default value when creating a new user (can be changed in the new user form)")
+            Me.CH_DOWN_VIDEOS.UseVisualStyleBackColor = True
+            '
+            'CH_SEPARATE_VIDEO_FOLDER
+            '
+            Me.CH_SEPARATE_VIDEO_FOLDER.AutoSize = True
+            Me.CH_SEPARATE_VIDEO_FOLDER.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_SEPARATE_VIDEO_FOLDER.Location = New System.Drawing.Point(4, 4)
+            Me.CH_SEPARATE_VIDEO_FOLDER.Name = "CH_SEPARATE_VIDEO_FOLDER"
+            Me.CH_SEPARATE_VIDEO_FOLDER.Size = New System.Drawing.Size(562, 19)
+            Me.CH_SEPARATE_VIDEO_FOLDER.TabIndex = 0
+            Me.CH_SEPARATE_VIDEO_FOLDER.Text = "Separate video folders"
+            TT_MAIN.SetToolTip(Me.CH_SEPARATE_VIDEO_FOLDER, resources.GetString("CH_SEPARATE_VIDEO_FOLDER.ToolTip"))
+            Me.CH_SEPARATE_VIDEO_FOLDER.UseVisualStyleBackColor = True
+            '
+            'CH_CHANNELS_USERS_TEMP
+            '
+            Me.CH_CHANNELS_USERS_TEMP.AutoSize = True
+            Me.CH_CHANNELS_USERS_TEMP.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_CHANNELS_USERS_TEMP.Location = New System.Drawing.Point(4, 88)
+            Me.CH_CHANNELS_USERS_TEMP.Name = "CH_CHANNELS_USERS_TEMP"
+            Me.CH_CHANNELS_USERS_TEMP.Size = New System.Drawing.Size(562, 19)
+            Me.CH_CHANNELS_USERS_TEMP.TabIndex = 3
+            Me.CH_CHANNELS_USERS_TEMP.Text = "Create temporary users"
+            TT_MAIN.SetToolTip(Me.CH_CHANNELS_USERS_TEMP, "Users added from channels will be created with this parameter")
+            Me.CH_CHANNELS_USERS_TEMP.UseVisualStyleBackColor = True
+            '
+            'TP_CHANNELS_IMGS
+            '
+            TP_CHANNELS_IMGS.ColumnCount = 2
+            TP_CHANNELS_IMGS.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
+            TP_CHANNELS_IMGS.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
+            TP_CHANNELS_IMGS.Controls.Add(Me.TXT_CHANNELS_ROWS, 0, 0)
+            TP_CHANNELS_IMGS.Controls.Add(Me.TXT_CHANNELS_COLUMNS, 1, 0)
+            TP_CHANNELS_IMGS.Dock = System.Windows.Forms.DockStyle.Fill
+            TP_CHANNELS_IMGS.Location = New System.Drawing.Point(1, 1)
+            TP_CHANNELS_IMGS.Margin = New System.Windows.Forms.Padding(0)
+            TP_CHANNELS_IMGS.Name = "TP_CHANNELS_IMGS"
+            TP_CHANNELS_IMGS.RowCount = 1
+            TP_CHANNELS_IMGS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            TP_CHANNELS_IMGS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
+            TP_CHANNELS_IMGS.Size = New System.Drawing.Size(568, 28)
+            TP_CHANNELS_IMGS.TabIndex = 0
+            '
+            'TXT_CHANNELS_ROWS
+            '
+            Me.TXT_CHANNELS_ROWS.CaptionText = "Channels rows"
+            Me.TXT_CHANNELS_ROWS.CaptionToolTipEnabled = True
+            Me.TXT_CHANNELS_ROWS.CaptionToolTipText = "How many lines of images should be shown in the channels form"
+            Me.TXT_CHANNELS_ROWS.ControlMode = PersonalUtilities.Forms.Controls.TextBoxExtended.ControlModes.NumericUpDown
+            Me.TXT_CHANNELS_ROWS.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.TXT_CHANNELS_ROWS.Location = New System.Drawing.Point(3, 3)
+            Me.TXT_CHANNELS_ROWS.Name = "TXT_CHANNELS_ROWS"
+            Me.TXT_CHANNELS_ROWS.Size = New System.Drawing.Size(278, 22)
+            Me.TXT_CHANNELS_ROWS.TabIndex = 0
+            Me.TXT_CHANNELS_ROWS.Text = "0"
+            Me.TXT_CHANNELS_ROWS.TextBoxTextAlign = System.Windows.Forms.HorizontalAlignment.Center
+            '
+            'TXT_CHANNELS_COLUMNS
+            '
+            Me.TXT_CHANNELS_COLUMNS.CaptionText = "Channels columns"
+            Me.TXT_CHANNELS_COLUMNS.CaptionToolTipEnabled = True
+            Me.TXT_CHANNELS_COLUMNS.CaptionToolTipText = "How many columns of images should be shown in the channels form"
+            Me.TXT_CHANNELS_COLUMNS.ControlMode = PersonalUtilities.Forms.Controls.TextBoxExtended.ControlModes.NumericUpDown
+            Me.TXT_CHANNELS_COLUMNS.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.TXT_CHANNELS_COLUMNS.Location = New System.Drawing.Point(287, 3)
+            Me.TXT_CHANNELS_COLUMNS.Name = "TXT_CHANNELS_COLUMNS"
+            Me.TXT_CHANNELS_COLUMNS.Size = New System.Drawing.Size(278, 22)
+            Me.TXT_CHANNELS_COLUMNS.TabIndex = 1
+            Me.TXT_CHANNELS_COLUMNS.Text = "0"
+            Me.TXT_CHANNELS_COLUMNS.TextBoxTextAlign = System.Windows.Forms.HorizontalAlignment.Center
+            '
+            'TAB_BASIS
+            '
+            TAB_BASIS.Controls.Add(TP_BASIS)
+            TAB_BASIS.Location = New System.Drawing.Point(4, 22)
+            TAB_BASIS.Name = "TAB_BASIS"
+            TAB_BASIS.Padding = New System.Windows.Forms.Padding(3)
+            TAB_BASIS.Size = New System.Drawing.Size(576, 347)
+            TAB_BASIS.TabIndex = 0
+            TAB_BASIS.Text = "Basis"
+            '
+            'TAB_DEFAULTS
+            '
+            TAB_DEFAULTS.Controls.Add(TP_DEFS)
+            TAB_DEFAULTS.Location = New System.Drawing.Point(4, 22)
+            TAB_DEFAULTS.Name = "TAB_DEFAULTS"
+            TAB_DEFAULTS.Padding = New System.Windows.Forms.Padding(3)
+            TAB_DEFAULTS.Size = New System.Drawing.Size(576, 358)
+            TAB_DEFAULTS.TabIndex = 1
+            TAB_DEFAULTS.Text = "Defaults"
+            '
+            'TP_DEFS
+            '
+            TP_DEFS.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
+            TP_DEFS.ColumnCount = 1
+            TP_DEFS.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            TP_DEFS.Controls.Add(Me.CH_SEPARATE_VIDEO_FOLDER, 0, 0)
+            TP_DEFS.Controls.Add(Me.CH_DOWN_VIDEOS, 0, 3)
+            TP_DEFS.Controls.Add(Me.CH_DOWN_IMAGES, 0, 2)
+            TP_DEFS.Controls.Add(Me.CH_DEF_TEMP, 0, 1)
+            TP_DEFS.Dock = System.Windows.Forms.DockStyle.Fill
+            TP_DEFS.Location = New System.Drawing.Point(3, 3)
+            TP_DEFS.Name = "TP_DEFS"
+            TP_DEFS.RowCount = 5
+            TP_DEFS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            TP_DEFS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            TP_DEFS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            TP_DEFS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            TP_DEFS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            TP_DEFS.Size = New System.Drawing.Size(570, 352)
+            TP_DEFS.TabIndex = 0
+            '
+            'TAB_DEFS_CHANNELS
+            '
+            TAB_DEFS_CHANNELS.Controls.Add(TP_CHANNELS)
+            TAB_DEFS_CHANNELS.Location = New System.Drawing.Point(4, 22)
+            TAB_DEFS_CHANNELS.Name = "TAB_DEFS_CHANNELS"
+            TAB_DEFS_CHANNELS.Padding = New System.Windows.Forms.Padding(3)
+            TAB_DEFS_CHANNELS.Size = New System.Drawing.Size(576, 358)
+            TAB_DEFS_CHANNELS.TabIndex = 4
+            TAB_DEFS_CHANNELS.Text = "Channels"
+            '
+            'TP_CHANNELS
+            '
+            TP_CHANNELS.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
+            TP_CHANNELS.ColumnCount = 1
+            TP_CHANNELS.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            TP_CHANNELS.Controls.Add(Me.TXT_CHANNEL_USER_POST_LIMIT, 0, 1)
+            TP_CHANNELS.Controls.Add(TP_CHANNELS_IMGS, 0, 0)
+            TP_CHANNELS.Controls.Add(Me.CH_COPY_CHANNEL_USER_IMAGE, 0, 2)
+            TP_CHANNELS.Controls.Add(Me.CH_CHANNELS_USERS_TEMP, 0, 3)
+            TP_CHANNELS.Dock = System.Windows.Forms.DockStyle.Fill
+            TP_CHANNELS.Location = New System.Drawing.Point(3, 3)
+            TP_CHANNELS.Name = "TP_CHANNELS"
+            TP_CHANNELS.RowCount = 5
+            TP_CHANNELS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
+            TP_CHANNELS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
+            TP_CHANNELS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            TP_CHANNELS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            TP_CHANNELS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            TP_CHANNELS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
+            TP_CHANNELS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
+            TP_CHANNELS.Size = New System.Drawing.Size(570, 352)
+            TP_CHANNELS.TabIndex = 0
+            '
+            'TXT_CHANNEL_USER_POST_LIMIT
+            '
+            Me.TXT_CHANNEL_USER_POST_LIMIT.CaptionMode = PersonalUtilities.Forms.Controls.Base.ICaptionControl.Modes.CheckBox
+            Me.TXT_CHANNEL_USER_POST_LIMIT.CaptionSizeType = System.Windows.Forms.SizeType.Percent
+            Me.TXT_CHANNEL_USER_POST_LIMIT.CaptionText = "Download limit for channel user"
+            Me.TXT_CHANNEL_USER_POST_LIMIT.CaptionToolTipEnabled = True
+            Me.TXT_CHANNEL_USER_POST_LIMIT.CaptionToolTipText = "Set a limit on the number of downloads of posts limit if the user is added from t" &
+    "he channel"
+            Me.TXT_CHANNEL_USER_POST_LIMIT.CaptionWidth = 50.0R
+            Me.TXT_CHANNEL_USER_POST_LIMIT.ControlMode = PersonalUtilities.Forms.Controls.TextBoxExtended.ControlModes.NumericUpDown
+            Me.TXT_CHANNEL_USER_POST_LIMIT.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.TXT_CHANNEL_USER_POST_LIMIT.Location = New System.Drawing.Point(4, 33)
+            Me.TXT_CHANNEL_USER_POST_LIMIT.Name = "TXT_CHANNEL_USER_POST_LIMIT"
+            Me.TXT_CHANNEL_USER_POST_LIMIT.NumberMaximum = New Decimal(New Integer() {1000, 0, 0, 0})
+            Me.TXT_CHANNEL_USER_POST_LIMIT.NumberMinimum = New Decimal(New Integer() {1, 0, 0, 0})
+            Me.TXT_CHANNEL_USER_POST_LIMIT.Size = New System.Drawing.Size(562, 22)
+            Me.TXT_CHANNEL_USER_POST_LIMIT.TabIndex = 1
+            Me.TXT_CHANNEL_USER_POST_LIMIT.Text = "1"
+            Me.TXT_CHANNEL_USER_POST_LIMIT.TextBoxTextAlign = System.Windows.Forms.HorizontalAlignment.Center
+            '
+            'TAB_DEFS_REDDIT
+            '
+            TAB_DEFS_REDDIT.Controls.Add(Me.DEFS_REDDIT)
+            TAB_DEFS_REDDIT.Location = New System.Drawing.Point(4, 22)
+            TAB_DEFS_REDDIT.Name = "TAB_DEFS_REDDIT"
+            TAB_DEFS_REDDIT.Padding = New System.Windows.Forms.Padding(3)
+            TAB_DEFS_REDDIT.Size = New System.Drawing.Size(576, 358)
+            TAB_DEFS_REDDIT.TabIndex = 2
+            TAB_DEFS_REDDIT.Text = "Reddit"
+            '
+            'DEFS_REDDIT
+            '
+            Me.DEFS_REDDIT.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
+            Me.DEFS_REDDIT.ColumnCount = 1
+            Me.DEFS_REDDIT.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            Me.DEFS_REDDIT.Controls.Add(Me.TXT_REDDIT_SAVED_POSTS_USER, 0, 3)
+            Me.DEFS_REDDIT.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.DEFS_REDDIT.Location = New System.Drawing.Point(3, 3)
+            Me.DEFS_REDDIT.Name = "DEFS_REDDIT"
+            Me.DEFS_REDDIT.RowCount = 5
+            Me.DEFS_REDDIT.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            Me.DEFS_REDDIT.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            Me.DEFS_REDDIT.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            Me.DEFS_REDDIT.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
+            Me.DEFS_REDDIT.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            Me.DEFS_REDDIT.Size = New System.Drawing.Size(570, 352)
+            Me.DEFS_REDDIT.TabIndex = 1
+            '
+            'TXT_REDDIT_SAVED_POSTS_USER
+            '
+            Me.TXT_REDDIT_SAVED_POSTS_USER.CaptionText = "Saved posts user"
+            Me.TXT_REDDIT_SAVED_POSTS_USER.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.TXT_REDDIT_SAVED_POSTS_USER.Location = New System.Drawing.Point(4, 82)
+            Me.TXT_REDDIT_SAVED_POSTS_USER.Name = "TXT_REDDIT_SAVED_POSTS_USER"
+            Me.TXT_REDDIT_SAVED_POSTS_USER.Size = New System.Drawing.Size(562, 22)
+            Me.TXT_REDDIT_SAVED_POSTS_USER.TabIndex = 3
+            '
+            'TAB_DEFS_TWITTER
+            '
+            TAB_DEFS_TWITTER.Controls.Add(Me.DEFS_TWITTER)
+            TAB_DEFS_TWITTER.Location = New System.Drawing.Point(4, 22)
+            TAB_DEFS_TWITTER.Name = "TAB_DEFS_TWITTER"
+            TAB_DEFS_TWITTER.Padding = New System.Windows.Forms.Padding(3)
+            TAB_DEFS_TWITTER.Size = New System.Drawing.Size(576, 358)
+            TAB_DEFS_TWITTER.TabIndex = 3
+            TAB_DEFS_TWITTER.Text = "Twitter"
+            '
+            'DEFS_TWITTER
+            '
+            Me.DEFS_TWITTER.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
+            Me.DEFS_TWITTER.ColumnCount = 1
+            Me.DEFS_TWITTER.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            Me.DEFS_TWITTER.Controls.Add(Me.CH_TWITTER_USER_MEDIA, 0, 3)
+            Me.DEFS_TWITTER.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.DEFS_TWITTER.Location = New System.Drawing.Point(3, 3)
+            Me.DEFS_TWITTER.Name = "DEFS_TWITTER"
+            Me.DEFS_TWITTER.RowCount = 5
+            Me.DEFS_TWITTER.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            Me.DEFS_TWITTER.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            Me.DEFS_TWITTER.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            Me.DEFS_TWITTER.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            Me.DEFS_TWITTER.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            Me.DEFS_TWITTER.Size = New System.Drawing.Size(570, 352)
+            Me.DEFS_TWITTER.TabIndex = 1
+            '
+            'CH_TWITTER_USER_MEDIA
+            '
+            Me.CH_TWITTER_USER_MEDIA.AutoSize = True
+            Me.CH_TWITTER_USER_MEDIA.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_TWITTER_USER_MEDIA.Location = New System.Drawing.Point(4, 82)
+            Me.CH_TWITTER_USER_MEDIA.Name = "CH_TWITTER_USER_MEDIA"
+            Me.CH_TWITTER_USER_MEDIA.Size = New System.Drawing.Size(562, 19)
+            Me.CH_TWITTER_USER_MEDIA.TabIndex = 3
+            Me.CH_TWITTER_USER_MEDIA.Text = "Get user media only"
+            Me.CH_TWITTER_USER_MEDIA.UseVisualStyleBackColor = True
+            '
+            'TXT_REQ_WAIT_TIMER
+            '
+            Me.TXT_REQ_WAIT_TIMER.CaptionText = "Request timer"
+            Me.TXT_REQ_WAIT_TIMER.CaptionWidth = 120.0R
+            Me.TXT_REQ_WAIT_TIMER.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.TXT_REQ_WAIT_TIMER.Location = New System.Drawing.Point(4, 82)
+            Me.TXT_REQ_WAIT_TIMER.Name = "TXT_REQ_WAIT_TIMER"
+            Me.TXT_REQ_WAIT_TIMER.Size = New System.Drawing.Size(568, 22)
+            Me.TXT_REQ_WAIT_TIMER.TabIndex = 3
+            '
+            'TXT_REQ_COUNT
+            '
+            Me.TXT_REQ_COUNT.CaptionText = "Request timer counter"
+            Me.TXT_REQ_COUNT.CaptionWidth = 120.0R
+            Me.TXT_REQ_COUNT.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.TXT_REQ_COUNT.Location = New System.Drawing.Point(4, 111)
+            Me.TXT_REQ_COUNT.Name = "TXT_REQ_COUNT"
+            Me.TXT_REQ_COUNT.Size = New System.Drawing.Size(568, 22)
+            Me.TXT_REQ_COUNT.TabIndex = 4
+            '
+            'TXT_LIMIT_TIMER
+            '
+            Me.TXT_LIMIT_TIMER.CaptionText = "Posts limit timer"
+            Me.TXT_LIMIT_TIMER.CaptionWidth = 120.0R
+            Me.TXT_LIMIT_TIMER.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.TXT_LIMIT_TIMER.Location = New System.Drawing.Point(4, 140)
+            Me.TXT_LIMIT_TIMER.Name = "TXT_LIMIT_TIMER"
+            Me.TXT_LIMIT_TIMER.Size = New System.Drawing.Size(568, 22)
+            Me.TXT_LIMIT_TIMER.TabIndex = 5
+            '
+            'TAB_MAIN
+            '
+            Me.TAB_MAIN.Controls.Add(TAB_BASIS)
+            Me.TAB_MAIN.Controls.Add(TAB_DEFAULTS)
+            Me.TAB_MAIN.Controls.Add(TAB_DEFS_CHANNELS)
+            Me.TAB_MAIN.Controls.Add(TAB_DEFS_REDDIT)
+            Me.TAB_MAIN.Controls.Add(TAB_DEFS_TWITTER)
+            Me.TAB_MAIN.Controls.Add(Me.TAB_DEFS_INSTAGRAM)
+            Me.TAB_MAIN.Controls.Add(Me.TAB_DEFS_REDGIFS)
+            Me.TAB_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.TAB_MAIN.Location = New System.Drawing.Point(0, 0)
+            Me.TAB_MAIN.Name = "TAB_MAIN"
+            Me.TAB_MAIN.SelectedIndex = 0
+            Me.TAB_MAIN.Size = New System.Drawing.Size(584, 373)
+            Me.TAB_MAIN.TabIndex = 1
+            '
+            'TAB_DEFS_INSTAGRAM
+            '
+            Me.TAB_DEFS_INSTAGRAM.BackColor = System.Drawing.SystemColors.Control
+            Me.TAB_DEFS_INSTAGRAM.Controls.Add(Me.DEFS_INST)
+            Me.TAB_DEFS_INSTAGRAM.Location = New System.Drawing.Point(4, 22)
+            Me.TAB_DEFS_INSTAGRAM.Name = "TAB_DEFS_INSTAGRAM"
+            Me.TAB_DEFS_INSTAGRAM.Size = New System.Drawing.Size(576, 358)
+            Me.TAB_DEFS_INSTAGRAM.TabIndex = 5
+            Me.TAB_DEFS_INSTAGRAM.Text = "Instagram"
+            '
+            'DEFS_INST
+            '
+            Me.DEFS_INST.BaseControlsPadding = New System.Windows.Forms.Padding(120, 0, 0, 0)
+            Me.DEFS_INST.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
+            Me.DEFS_INST.ColumnCount = 1
+            Me.DEFS_INST.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            Me.DEFS_INST.Controls.Add(Me.TXT_LIMIT_TIMER, 0, 5)
+            Me.DEFS_INST.Controls.Add(Me.TXT_REQ_COUNT, 0, 4)
+            Me.DEFS_INST.Controls.Add(Me.TXT_REQ_WAIT_TIMER, 0, 3)
+            Me.DEFS_INST.Controls.Add(Me.TXT_INST_SAVED_POSTS_USER, 0, 6)
+            Me.DEFS_INST.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.DEFS_INST.Location = New System.Drawing.Point(0, 0)
+            Me.DEFS_INST.Name = "DEFS_INST"
+            Me.DEFS_INST.RowCount = 8
+            Me.DEFS_INST.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            Me.DEFS_INST.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            Me.DEFS_INST.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            Me.DEFS_INST.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
+            Me.DEFS_INST.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
+            Me.DEFS_INST.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
+            Me.DEFS_INST.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
+            Me.DEFS_INST.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            Me.DEFS_INST.Size = New System.Drawing.Size(576, 358)
+            Me.DEFS_INST.TabIndex = 1
+            '
+            'TXT_INST_SAVED_POSTS_USER
+            '
+            Me.TXT_INST_SAVED_POSTS_USER.CaptionText = "Saved posts user"
+            Me.TXT_INST_SAVED_POSTS_USER.CaptionWidth = 120.0R
+            Me.TXT_INST_SAVED_POSTS_USER.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.TXT_INST_SAVED_POSTS_USER.Location = New System.Drawing.Point(4, 169)
+            Me.TXT_INST_SAVED_POSTS_USER.Name = "TXT_INST_SAVED_POSTS_USER"
+            Me.TXT_INST_SAVED_POSTS_USER.Size = New System.Drawing.Size(568, 22)
+            Me.TXT_INST_SAVED_POSTS_USER.TabIndex = 9
+            '
+            'TAB_DEFS_REDGIFS
+            '
+            Me.TAB_DEFS_REDGIFS.BackColor = System.Drawing.SystemColors.Control
+            Me.TAB_DEFS_REDGIFS.Controls.Add(Me.DEFS_REDGIFS)
+            Me.TAB_DEFS_REDGIFS.Location = New System.Drawing.Point(4, 22)
+            Me.TAB_DEFS_REDGIFS.Name = "TAB_DEFS_REDGIFS"
+            Me.TAB_DEFS_REDGIFS.Size = New System.Drawing.Size(576, 358)
+            Me.TAB_DEFS_REDGIFS.TabIndex = 6
+            Me.TAB_DEFS_REDGIFS.Text = "RedGifs"
+            '
+            'DEFS_REDGIFS
+            '
+            Me.DEFS_REDGIFS.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
+            Me.DEFS_REDGIFS.ColumnCount = 1
+            Me.DEFS_REDGIFS.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            Me.DEFS_REDGIFS.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.DEFS_REDGIFS.Location = New System.Drawing.Point(0, 0)
+            Me.DEFS_REDGIFS.Name = "DEFS_REDGIFS"
+            Me.DEFS_REDGIFS.RowCount = 4
+            Me.DEFS_REDGIFS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            Me.DEFS_REDGIFS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            Me.DEFS_REDGIFS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            Me.DEFS_REDGIFS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            Me.DEFS_REDGIFS.Size = New System.Drawing.Size(576, 358)
+            Me.DEFS_REDGIFS.TabIndex = 0
+            '
+            'CONTAINER_MAIN
+            '
+            '
+            'CONTAINER_MAIN.ContentPanel
+            '
+            Me.CONTAINER_MAIN.ContentPanel.Controls.Add(Me.TAB_MAIN)
+            Me.CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(584, 373)
+            Me.CONTAINER_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CONTAINER_MAIN.LeftToolStripPanelVisible = False
+            Me.CONTAINER_MAIN.Location = New System.Drawing.Point(0, 0)
+            Me.CONTAINER_MAIN.Name = "CONTAINER_MAIN"
+            Me.CONTAINER_MAIN.RightToolStripPanelVisible = False
+            Me.CONTAINER_MAIN.Size = New System.Drawing.Size(584, 398)
+            Me.CONTAINER_MAIN.TabIndex = 0
+            Me.CONTAINER_MAIN.TopToolStripPanelVisible = False
+            '
+            'CH_SHOW_NOTIFY
+            '
+            Me.CH_SHOW_NOTIFY.AutoSize = True
+            Me.CH_SHOW_NOTIFY.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_SHOW_NOTIFY.Location = New System.Drawing.Point(4, 318)
+            Me.CH_SHOW_NOTIFY.Name = "CH_SHOW_NOTIFY"
+            Me.CH_SHOW_NOTIFY.Size = New System.Drawing.Size(562, 19)
+            Me.CH_SHOW_NOTIFY.TabIndex = 11
+            Me.CH_SHOW_NOTIFY.Text = "Show notifications"
+            Me.CH_SHOW_NOTIFY.UseVisualStyleBackColor = True
+            '
             'GlobalSettingsForm
             '
             Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
             Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-            Me.ClientSize = New System.Drawing.Size(584, 384)
+            Me.ClientSize = New System.Drawing.Size(584, 398)
             Me.Controls.Add(Me.CONTAINER_MAIN)
             Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle
             Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
             Me.KeyPreview = True
             Me.MaximizeBox = False
-            Me.MaximumSize = New System.Drawing.Size(600, 423)
+            Me.MaximumSize = New System.Drawing.Size(600, 437)
             Me.MinimizeBox = False
-            Me.MinimumSize = New System.Drawing.Size(600, 423)
+            Me.MinimumSize = New System.Drawing.Size(600, 437)
             Me.Name = "GlobalSettingsForm"
             Me.ShowInTaskbar = False
             Me.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide
@@ -931,10 +928,13 @@
             CType(Me.TXT_MAX_JOBS_USERS, System.ComponentModel.ISupportInitialize).EndInit()
             CType(Me.TXT_MAX_JOBS_CHANNELS, System.ComponentModel.ISupportInitialize).EndInit()
             CType(Me.TXT_IMGUR_CLIENT_ID, System.ComponentModel.ISupportInitialize).EndInit()
+            TP_FILE_NAME.ResumeLayout(False)
+            TP_FILE_NAME.PerformLayout()
+            TP_FILE_PATTERNS.ResumeLayout(False)
+            TP_FILE_PATTERNS.PerformLayout()
             TP_CHANNELS_IMGS.ResumeLayout(False)
             CType(Me.TXT_CHANNELS_ROWS, System.ComponentModel.ISupportInitialize).EndInit()
             CType(Me.TXT_CHANNELS_COLUMNS, System.ComponentModel.ISupportInitialize).EndInit()
-            TAB_MAIN.ResumeLayout(False)
             TAB_BASIS.ResumeLayout(False)
             TAB_DEFAULTS.ResumeLayout(False)
             TP_DEFS.ResumeLayout(False)
@@ -944,22 +944,22 @@
             TP_CHANNELS.PerformLayout()
             CType(Me.TXT_CHANNEL_USER_POST_LIMIT, System.ComponentModel.ISupportInitialize).EndInit()
             TAB_DEFS_REDDIT.ResumeLayout(False)
-            TP_REDDIT.ResumeLayout(False)
-            TP_REDDIT.PerformLayout()
+            Me.DEFS_REDDIT.ResumeLayout(False)
             CType(Me.TXT_REDDIT_SAVED_POSTS_USER, System.ComponentModel.ISupportInitialize).EndInit()
             TAB_DEFS_TWITTER.ResumeLayout(False)
-            TP_TWITTER.ResumeLayout(False)
-            TP_TWITTER.PerformLayout()
+            Me.DEFS_TWITTER.ResumeLayout(False)
+            Me.DEFS_TWITTER.PerformLayout()
+            CType(Me.TXT_REQ_WAIT_TIMER, System.ComponentModel.ISupportInitialize).EndInit()
+            CType(Me.TXT_REQ_COUNT, System.ComponentModel.ISupportInitialize).EndInit()
+            CType(Me.TXT_LIMIT_TIMER, System.ComponentModel.ISupportInitialize).EndInit()
+            Me.TAB_MAIN.ResumeLayout(False)
             Me.TAB_DEFS_INSTAGRAM.ResumeLayout(False)
-            TP_INSTAGRAM.ResumeLayout(False)
-            TP_INSTAGRAM.PerformLayout()
+            Me.DEFS_INST.ResumeLayout(False)
+            CType(Me.TXT_INST_SAVED_POSTS_USER, System.ComponentModel.ISupportInitialize).EndInit()
+            Me.TAB_DEFS_REDGIFS.ResumeLayout(False)
             Me.CONTAINER_MAIN.ContentPanel.ResumeLayout(False)
             Me.CONTAINER_MAIN.ResumeLayout(False)
             Me.CONTAINER_MAIN.PerformLayout()
-            TP_FILE_NAME.ResumeLayout(False)
-            TP_FILE_NAME.PerformLayout()
-            TP_FILE_PATTERNS.ResumeLayout(False)
-            TP_FILE_PATTERNS.PerformLayout()
             Me.ResumeLayout(False)
 
         End Sub
@@ -980,18 +980,9 @@
         Private WithEvents CH_DOWN_VIDEOS As CheckBox
         Private WithEvents CH_DOWN_IMAGES As CheckBox
         Private WithEvents CH_DEF_TEMP As CheckBox
-        Private WithEvents CH_TWITTER_TEMP As CheckBox
-        Private WithEvents CH_TWITTER_DOWN_IMG As CheckBox
-        Private WithEvents CH_TWITTER_DOWN_VID As CheckBox
         Private WithEvents CH_TWITTER_USER_MEDIA As CheckBox
-        Private WithEvents CH_REDDIT_TEMP As CheckBox
-        Private WithEvents CH_REDDIT_DOWN_IMG As CheckBox
-        Private WithEvents CH_REDDIT_DOWN_VID As CheckBox
         Private WithEvents CH_CHANNELS_USERS_TEMP As CheckBox
         Private WithEvents TAB_DEFS_INSTAGRAM As TabPage
-        Private WithEvents CH_INSTA_TEMP As CheckBox
-        Private WithEvents CH_INSTA_DOWN_IMG As CheckBox
-        Private WithEvents CH_INSTA_DOWN_VID As CheckBox
         Private WithEvents TXT_IMGUR_CLIENT_ID As PersonalUtilities.Forms.Controls.TextBoxExtended
         Private WithEvents TXT_REDDIT_SAVED_POSTS_USER As PersonalUtilities.Forms.Controls.TextBoxExtended
         Private WithEvents OPT_FILE_NAME_REPLACE As RadioButton
@@ -1001,5 +992,18 @@
         Private WithEvents CH_FILE_TIME As CheckBox
         Private WithEvents OPT_FILE_DATE_START As RadioButton
         Private WithEvents OPT_FILE_DATE_END As RadioButton
+        Private WithEvents CH_EXIT_CONFIRM As CheckBox
+        Private WithEvents CH_CLOSE_TO_TRAY As CheckBox
+        Private WithEvents TXT_REQ_WAIT_TIMER As PersonalUtilities.Forms.Controls.TextBoxExtended
+        Private WithEvents TXT_REQ_COUNT As PersonalUtilities.Forms.Controls.TextBoxExtended
+        Private WithEvents TXT_LIMIT_TIMER As PersonalUtilities.Forms.Controls.TextBoxExtended
+        Private WithEvents TAB_DEFS_REDGIFS As TabPage
+        Friend WithEvents TAB_MAIN As TabControl
+        Private WithEvents DEFS_TWITTER As SiteDefaults
+        Private WithEvents DEFS_REDDIT As SiteDefaults
+        Private WithEvents DEFS_INST As SiteDefaults
+        Private WithEvents DEFS_REDGIFS As SiteDefaults
+        Private WithEvents TXT_INST_SAVED_POSTS_USER As PersonalUtilities.Forms.Controls.TextBoxExtended
+        Private WithEvents CH_SHOW_NOTIFY As CheckBox
     End Class
 End Namespace

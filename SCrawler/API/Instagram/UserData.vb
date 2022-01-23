@@ -7,103 +7,275 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports PersonalUtilities.Functions.XML
+Imports PersonalUtilities.Functions.Messaging
 Imports PersonalUtilities.Tools.WebDocuments.JSON
+Imports PersonalUtilities.Forms.Toolbars
 Imports SCrawler.API.Base
 Imports System.Threading
 Imports System.Net
-Imports UStates = SCrawler.API.Base.UserMedia.States
 Imports UTypes = SCrawler.API.Base.UserMedia.Types
 Namespace API.Instagram
     Friend Class UserData : Inherits UserDataBase
+        Private Const MaxPostsCount As Integer = 200
+        Private Const Name_LastCursor As String = "LastCursor"
+        Private Const Name_FirstLoadingDone As String = "FirstLoadingDone"
         Friend Overrides Property Site As Sites = Sites.Instagram
+        Friend Overrides Property Progress As MyProgress
+            Get
+                If Not _Progress Is Nothing Then Return _Progress Else Return MainProgressInst
+            End Get
+            Set(ByVal p As MyProgress)
+                _Progress = p
+            End Set
+        End Property
+        Private ReadOnly _SavedPostsIDs As New List(Of String)
+        Private LastCursor As String = String.Empty
+        Private FirstLoadingDone As Boolean = True
         ''' <summary>Video downloader initializer</summary>
         Private Sub New()
         End Sub
         ''' <summary>Default initializer</summary>
-        Friend Sub New(ByVal u As UserInfo, Optional ByVal _LoadUserInformation As Boolean = True)
+        Friend Sub New(ByVal u As UserInfo, Optional ByVal _LoadUserInformation As Boolean = True, Optional ByVal InvokeImageHandler As Boolean = True)
+            MyBase.New(InvokeImageHandler)
             User = u
             If _LoadUserInformation Then LoadUserInformation()
         End Sub
+        Protected Overrides Sub LoadUserInformation_OptionalFields(ByRef Container As XmlFile, ByVal Loading As Boolean)
+            If Loading Then
+                LastCursor = Container.Value(Name_LastCursor)
+                FirstLoadingDone = Container.Value(Name_FirstLoadingDone).FromXML(Of Boolean)(False)
+            Else
+                Container.Add(Name_LastCursor, LastCursor)
+                Container.Add(Name_FirstLoadingDone, FirstLoadingDone.BoolToInteger)
+            End If
+        End Sub
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
-            DownloadData(String.Empty, Token)
+            Try
+                _InstaHash = String.Empty
+                HasError = False
+                If Not LastCursor.IsEmptyString Then
+                    DownloadData(LastCursor, Token)
+                    ThrowAny(Token)
+                    If Not HasError Then FirstLoadingDone = True
+                End If
+                If Not HasError Then
+                    DownloadData(String.Empty, Token)
+                    ThrowAny(Token)
+                    If Not HasError Then FirstLoadingDone = True
+                End If
+                If FirstLoadingDone Then LastCursor = String.Empty
+                If IsSavedPosts Then DownloadPosts(Token)
+                If WaitNotificationMode = WNM.SkipTemp Or WaitNotificationMode = WNM.SkipCurrent Then WaitNotificationMode = WNM.Notify
+            Catch ex As Exception
+                ProcessException(ex, Token, "[API.Instagram.UserData.DownloadDataF", False)
+            End Try
         End Sub
         Private _InstaHash As String = String.Empty
+#Region "429 bypass"
+        Friend RequestsCount As Integer = 0
+        Friend Enum WNM As Integer
+            Notify = 0
+            SkipCurrent = 1
+            SkipAll = 2
+            SkipTemp = 3
+        End Enum
+        Friend WaitNotificationMode As WNM = WNM.Notify
+        Private Caught429 As Boolean = False
+        Private ProgressTempSet As Boolean = False
+        Private Const InstAborted As String = "InstAborted"
+        Private Function Ready() As Boolean
+            With Settings(Sites.Instagram)
+                If Not .InstagramReadyForDownload Then
+                    If WaitNotificationMode = WNM.Notify Then
+                        Dim m As New MMessage("Instagram [too many requests] error." & vbCr &
+                                              $"The program suggests waiting {If(Settings(Sites.Instagram).InstagramLastApplyingValue, 0)} minutes." & vbCr &
+                                              "What do you want to do?", "Waiting for Instagram download...",
+                                              {
+                                               New MsgBoxButton("Wait") With {.ToolTip = "Wait and ask again when the error is found."},
+                                               New MsgBoxButton("Wait (disable current") With {.ToolTip = "Wait and skip future prompts while downloading the current profile."},
+                                               New MsgBoxButton("Abort") With {.ToolTip = "Abort operation"},
+                                               New MsgBoxButton("Wait (disable all)") With {.ToolTip = "Wait and skip future prompts while downloading the current session."}
+                                              },
+                                              vbExclamation) With {.ButtonsPerRow = 2, .DefaultButton = 0, .CancelButton = 2}
+                        Select Case MsgBoxE(m).Index
+                            Case 1 : WaitNotificationMode = WNM.SkipCurrent
+                            Case 2 : Throw New OperationCanceledException("Instagram download operation aborted") With {.HelpLink = InstAborted}
+                            Case 3 : WaitNotificationMode = WNM.SkipAll
+                            Case Else : WaitNotificationMode = WNM.SkipTemp
+                        End Select
+                    End If
+                    If Not ProgressTempSet Then Progress.InformationTemporary = $"Waiting until {Settings(Sites.Instagram).GetInstaWaitDate().ToString(ParsersDataDateProvider)}"
+                    ProgressTempSet = True
+                    Return False
+                Else
+                    Return True
+                End If
+            End With
+        End Function
+        Private Sub ReconfigureAwaiter()
+            If WaitNotificationMode = WNM.SkipTemp Then WaitNotificationMode = WNM.Notify
+            If Caught429 Then Caught429 = False : RequestsCount = 0
+            ProgressTempSet = False
+        End Sub
+        Private Sub NextRequest(ByVal StartWait As Boolean)
+            With Settings(Sites.Instagram)
+                If StartWait And (RequestsCount Mod .RequestsWaitTimerTaskCount.Value) = 0 Then Thread.Sleep(.RequestsWaitTimer)
+                If RequestsCount >= MaxPostsCount - 5 Then Thread.Sleep(.SleepTimerOnPostsLimit)
+            End With
+        End Sub
+#End Region
         Private Overloads Sub DownloadData(ByVal Cursor As String, ByVal Token As CancellationToken)
             Dim URL$ = String.Empty
+            Dim _DownloadComplete As Boolean = False
+            LastCursor = Cursor
             Try
-                Dim n As EContainer, nn As EContainer, node As EContainer
-                Dim HasNextPage As Boolean = False
-                Dim EndCursor$ = String.Empty
-                Dim PostID$ = String.Empty, PostDate$ = String.Empty
+                Do While Not _DownloadComplete
+                    If Not Ready() Then Thread.Sleep(10000) : ThrowAny(Token) : Continue Do
+                    ReconfigureAwaiter()
 
-                'Check environment
-                If Cursor.IsEmptyString And _InstaHash.IsEmptyString Then _InstaHash = Settings(Sites.Instagram).InstaHash
-                If _InstaHash.IsEmptyString Then Throw New ArgumentNullException("InstHash", "Query hash is null")
-                If ID.IsEmptyString Then GetUserId()
-                If ID.IsEmptyString Then Throw New ArgumentException("User ID is not detected", "ID")
+                    Try
+                        Dim n As EContainer, nn As EContainer, node As EContainer
+                        Dim HasNextPage As Boolean = False
+                        Dim EndCursor$ = String.Empty
+                        Dim PostID$ = String.Empty, PostDate$ = String.Empty
 
-                'Create query
-                Dim vars$ = "{""id"":" & ID & ",""first"":12,""after"":""" & Cursor & """}"
-                vars = SymbolsConverter.ASCII.EncodeSymbolsOnly(vars)
-                URL = $"https://www.instagram.com/graphql/query/?query_hash={_InstaHash}&variables={vars}"
+                        NextRequest(True)
 
-                'Get response
-                Dim r$ = Responser.GetResponse(URL,, EDP.ThrowException)
-                Settings(Sites.Instagram).InstagramTooManyRequests(False)
-                ThrowAny(Token)
+                        'Check environment
+                        If Cursor.IsEmptyString And _InstaHash.IsEmptyString Then _
+                            _InstaHash = If(IsSavedPosts, Settings(Sites.Instagram).InstaHash_SP, Settings(Sites.Instagram).InstaHash).Value
+                        If _InstaHash.IsEmptyString Then Throw New ArgumentNullException(IIf(IsSavedPosts, "InstaHashSavedPosts", "InstaHash"), "Query hash is null")
+                        If ID.IsEmptyString Then GetUserId()
+                        If ID.IsEmptyString Then Throw New ArgumentException("User ID is not detected", "ID")
 
-                'Data
-                If Not r.IsEmptyString Then
-                    Using j As EContainer = JsonDocument.Parse(r).XmlIfNothing
-                        n = j.ItemF({"data", "user", 0}).XmlIfNothing
-                        If n.Count > 0 Then
-                            If n.Contains("page_info") Then
-                                With n("page_info")
-                                    HasNextPage = .Value("has_next_page").FromXML(Of Boolean)(False)
-                                    EndCursor = .Value("end_cursor")
-                                End With
-                            End If
-                            n = n("edges").XmlIfNothing
-                            If n.Count > 0 Then
-                                For Each nn In n
-                                    ThrowAny(Token)
-                                    node = nn(0).XmlIfNothing
+                        'Create query
+                        Dim vars$ = "{""id"":" & ID & ",""first"":50,""after"":""" & Cursor & """}"
+                        vars = SymbolsConverter.ASCII.EncodeSymbolsOnly(vars)
+                        URL = $"https://www.instagram.com/graphql/query/?query_hash={_InstaHash}&variables={vars}"
 
-                                    PostID = node.Value("id")
-                                    If Not PostID.IsEmptyString And _TempPostsList.Contains(PostID) Then Exit Sub
-                                    _TempPostsList.Add(PostID)
-                                    PostDate = node.Value("taken_at_timestamp")
+                        'Get response
+                        Dim r$ = Responser.GetResponse(URL,, EDP.ThrowException)
+                        Settings(Sites.Instagram).InstagramTooManyRequests(False)
+                        RequestsCount += 1
+                        ThrowAny(Token)
 
-                                    ObtainMedia(node, PostID, PostDate)
-                                Next
-                            End If
+                        'Data
+                        If Not r.IsEmptyString Then
+                            Using j As EContainer = JsonDocument.Parse(r).XmlIfNothing
+                                n = j.ItemF({"data", "user", 0}).XmlIfNothing
+                                If n.Count > 0 Then
+                                    If n.Contains("page_info") Then
+                                        With n("page_info")
+                                            HasNextPage = .Value("has_next_page").FromXML(Of Boolean)(False)
+                                            EndCursor = .Value("end_cursor")
+                                        End With
+                                    End If
+                                    n = n("edges").XmlIfNothing
+                                    If n.Count > 0 Then
+                                        For Each nn In n
+                                            ThrowAny(Token)
+                                            node = nn(0).XmlIfNothing
+                                            If IsSavedPosts Then
+                                                PostID = node.Value("shortcode")
+                                                If Not PostID.IsEmptyString Then
+                                                    If _TempPostsList.Contains(PostID) Then Exit Sub Else _SavedPostsIDs.Add(PostID)
+                                                End If
+                                            Else
+                                                PostID = node.Value("id")
+                                                If Not PostID.IsEmptyString And _TempPostsList.Contains(PostID) Then Exit Sub
+                                                _TempPostsList.Add(PostID)
+                                                PostDate = node.Value("taken_at_timestamp")
+                                                ObtainMedia(node, PostID, PostDate)
+                                            End If
+                                        Next
+                                    End If
+                                Else
+                                    If j.Value("status") = "ok" AndAlso j({"data", "user"}).XmlIfNothing.Count = 0 AndAlso _TempMediaList.Count = 0 Then
+                                        Settings(Sites.Instagram).InstaHashUpdateRequired.Value = True
+                                        UserExists = False
+                                        _DownloadComplete = True
+                                        Exit Sub
+                                    End If
+                                End If
+                            End Using
                         Else
-                            If j.Value("status") = "ok" AndAlso j({"data", "user"}).XmlIfNothing.Count = 0 AndAlso _TempMediaList.Count = 0 Then
-                                Settings(Sites.Instagram).InstaHashUpdateRequired.Value = True
-                                UserExists = False
-                                Exit Sub
-                            End If
+                            _DownloadComplete = True
+                            Exit Sub
                         End If
-                    End Using
-                End If
-                If HasNextPage And Not EndCursor.IsEmptyString Then DownloadData(EndCursor, Token)
-            Catch oex As OperationCanceledException When Token.IsCancellationRequested
-            Catch dex As ObjectDisposedException When Disposed
-            Catch ex As Exception
-                If Responser.StatusCode = HttpStatusCode.NotFound Then
-                    UserExists = False
-                ElseIf Responser.StatusCode = HttpStatusCode.BadRequest Then
-                    MyMainLOG = "Instagram credentials have expired"
-                    Settings(Sites.Instagram).InstaHashUpdateRequired.Value = True
-                ElseIf Responser.StatusCode = 429 Then
-                    Settings(Sites.Instagram).InstagramTooManyRequests(True)
-                Else
-                    Settings(Sites.Instagram).InstaHashUpdateRequired.Value = True
-                    LogError(ex, $"data downloading error [{URL}]")
-                End If
-                HasError = True
-            Finally
-                _InstaHash = String.Empty
+                        _DownloadComplete = True
+                        If HasNextPage And Not EndCursor.IsEmptyString Then DownloadData(EndCursor, Token)
+                    Catch oex As OperationCanceledException When Token.IsCancellationRequested
+                        Exit Do
+                    Catch dex As ObjectDisposedException When Disposed
+                        Exit Do
+                    Catch ex As Exception
+                        If DownloadingException(ex, $"data downloading error [{URL}]") = 1 Then Continue Do Else Exit Do
+                    End Try
+                Loop
+            Catch oex2 As OperationCanceledException When Token.IsCancellationRequested Or oex2.HelpLink = InstAborted
+                If oex2.HelpLink = InstAborted Then HasError = True
+            Catch DoEx As Exception
+                ProcessException(DoEx, Token, $"data downloading error [{URL}]")
+            End Try
+        End Sub
+        Private Sub DownloadPosts(ByVal Token As CancellationToken)
+            Dim URL$ = String.Empty
+            Dim _DownloadComplete As Boolean = False
+            Dim _Index% = 0
+            Try
+                Do While Not _DownloadComplete
+                    If Not Ready() Then Thread.Sleep(10000) : ThrowAny(Token) : Continue Do
+                    ReconfigureAwaiter()
+
+                    Try
+                        Dim r$
+                        Dim j As EContainer, jj As EContainer
+                        Dim _MediaObtained As Boolean
+                        If _SavedPostsIDs.Count > 0 And _Index <= _SavedPostsIDs.Count - 1 Then
+                            Dim e As New ErrorsDescriber(EDP.ThrowException)
+                            For i% = _Index To _SavedPostsIDs.Count - 1
+                                _Index = i
+                                URL = $"https://instagram.com/p/{_SavedPostsIDs(i)}/?__a=1"
+                                ThrowAny(Token)
+                                NextRequest((i + 1 Mod 5) = 0)
+                                ThrowAny(Token)
+                                r = Responser.GetResponse(URL,, e)
+                                Settings(Sites.Instagram).InstagramTooManyRequests(False)
+                                RequestsCount += 1
+                                If Not r.IsEmptyString Then
+                                    j = JsonDocument.Parse(r)
+                                    If Not j Is Nothing Then
+                                        _MediaObtained = False
+                                        If j.Contains({"graphql", "shortcode_media"}) Then
+                                            With j({"graphql", "shortcode_media"}).XmlIfNothing
+                                                If .Count > 0 Then ObtainMedia(.Self, _SavedPostsIDs(i), String.Empty) : _MediaObtained = True
+                                            End With
+                                        End If
+                                        If Not _MediaObtained AndAlso j.Contains("items") Then
+                                            With j("items")
+                                                If .Count > 0 Then
+                                                    For Each jj In .Self : ObtainMedia2(jj, _SavedPostsIDs(i)) : Next
+                                                End If
+                                            End With
+                                        End If
+                                        j.Dispose()
+                                    End If
+                                End If
+                            Next
+                            _DownloadComplete = True
+                        End If
+                    Catch oex As OperationCanceledException When Token.IsCancellationRequested
+                        Exit Do
+                    Catch dex As ObjectDisposedException When Disposed
+                        Exit Do
+                    Catch ex As Exception
+                        If DownloadingException(ex, $"downloading saved posts error [{URL}]") = 1 Then Continue Do Else Exit Do
+                    End Try
+                Loop
+            Catch oex2 As OperationCanceledException When Token.IsCancellationRequested Or oex2.HelpLink = InstAborted
+                If oex2.HelpLink = InstAborted Then HasError = True
+            Catch DoEx As Exception
+                ProcessException(DoEx, Token, $"downloading saved posts error [{URL}]")
             End Try
         End Sub
         Private Sub ObtainMedia(ByVal node As EContainer, ByVal PostID As String, ByVal PostDate As String)
@@ -124,6 +296,66 @@ Namespace API.Instagram
                 CreateMedia(node)
             End If
         End Sub
+        Private Sub ObtainMedia2(ByVal n As EContainer, ByVal PostID As String)
+            Try
+                Dim img As Predicate(Of EContainer) = Function(_img) Not _img.Name.IsEmptyString AndAlso _img.Name.StartsWith("image_versions") AndAlso _img.Count > 0
+                Dim vid As Predicate(Of EContainer) = Function(_vid) Not _vid.Name.IsEmptyString AndAlso _vid.Name.StartsWith("video_versions") AndAlso _vid.Count > 0
+                Dim ss As Func(Of EContainer, Sizes) = Function(_ss) New Sizes(_ss.Value("width"), _ss.Value("url"))
+                If n.Count > 0 Then
+                    Dim l As New List(Of Sizes)
+                    Dim d As EContainer
+                    Dim t%
+                    '8 - gallery
+                    '2 - one video
+                    '1 - one picture
+                    t = n.Value("media_type").FromXML(Of Integer)(-1)
+                    If t >= 0 Then
+                        Select Case t
+                            Case 1
+                                If n.Contains(img) Then
+                                    t = n.Value("media_type").FromXML(Of Integer)(-1)
+                                    If t >= 0 Then
+                                        With n.ItemF({img, "candidates"}).XmlIfNothing
+                                            If .Count > 0 Then
+                                                l.Clear()
+                                                l.ListAddList(.Select(ss), LNC)
+                                                If l.Count > 0 Then
+                                                    l.Sort()
+                                                    _TempMediaList.ListAddValue(MediaFromData(UTypes.Picture, l.First.Data, PostID, Nothing), LNC)
+                                                    l.Clear()
+                                                End If
+                                            End If
+                                        End With
+                                    End If
+                                End If
+                            Case 2
+                                If n.Contains(vid) Then
+                                    With n.ItemF({vid}).XmlIfNothing
+                                        If .Count > 0 Then
+                                            l.Clear()
+                                            l.ListAddList(.Select(ss), LNC)
+                                            If l.Count > 0 Then
+                                                l.Sort()
+                                                _TempMediaList.ListAddValue(MediaFromData(UTypes.Video, l.First.Data, PostID, Nothing), LNC)
+                                                l.Clear()
+                                            End If
+                                        End If
+                                    End With
+                                End If
+                            Case 8
+                                With n("carousel_media").XmlIfNothing
+                                    If .Count > 0 Then
+                                        For Each d In .Self : ObtainMedia2(d, PostID) : Next
+                                    End If
+                                End With
+                        End Select
+                    End If
+                    l.Clear()
+                End If
+            Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.SendInLog, ex, "API.Instagram.GetGallery")
+            End Try
+        End Sub
         Private Sub GetUserId()
             Try
                 Dim r$ = Responser.GetResponse($"https://www.instagram.com/{Name}/?__a=1",, EDP.ThrowException)
@@ -136,106 +368,71 @@ Namespace API.Instagram
                 If Responser.StatusCode = HttpStatusCode.NotFound Or Responser.StatusCode = HttpStatusCode.BadRequest Then
                     Throw ex
                 Else
-                    LogError(ex, "get instagram user id")
+                    LogError(ex, "get Instagram user id")
                 End If
             End Try
         End Sub
         Protected Overrides Sub ReparseVideo(ByVal Token As CancellationToken)
         End Sub
         Protected Overrides Sub DownloadContent(ByVal Token As CancellationToken)
-            Try
-                Dim i%
-                Dim dCount% = 0, dTotal% = 0
-                ThrowAny(Token)
-                If _ContentNew.Count > 0 Then
-                    _ContentNew.RemoveAll(Function(c) c.URL.IsEmptyString)
-                    If _ContentNew.Count > 0 Then
-                        MyFile.Exists(SFO.Path)
-                        Dim MyDir$ = MyFile.CutPath.PathNoSeparator
-                        Dim vsf As Boolean = SeparateVideoFolderF
-                        Dim f As SFile
-                        Dim v As UserMedia
-                        Using w As New WebClient
-                            If vsf Then SFileShares.SFileExists($"{MyDir}\Video\", SFO.Path)
-                            MainProgress.TotalCount += _ContentNew.Count
-                            For i = 0 To _ContentNew.Count - 1
-                                ThrowAny(Token)
-                                v = _ContentNew(i)
-                                v.State = UStates.Tried
-                                If v.File.IsEmptyString Then
-                                    f = v.URL
-                                Else
-                                    f = v.File
-                                End If
-                                f.Separator = "\"
-                                f.Path = MyDir
-
-                                If v.URL_BASE.IsEmptyString Then v.URL_BASE = v.URL
-
-                                If Not v.File.IsEmptyString AndAlso Not v.URL_BASE.IsEmptyString Then
-                                    Try
-                                        If v.Type = UTypes.Video And vsf Then f.Path = $"{f.PathWithSeparator}Video"
-                                        w.DownloadFile(v.URL_BASE, f.ToString)
-                                        Select Case v.Type
-                                            Case UTypes.Video : DownloadedVideos += 1 : _CountVideo += 1
-                                            Case UTypes.Picture : DownloadedPictures += 1 : _CountPictures += 1
-                                        End Select
-                                        v.File = ChangeFileNameByProvider(f, v)
-                                        v.State = UStates.Downloaded
-                                    Catch wex As Exception
-                                        ErrorDownloading(f, v.URL_BASE)
-                                    End Try
-                                Else
-                                    v.State = UStates.Skipped
-                                End If
-                                _ContentNew(i) = v
-                                If DownloadTopCount.HasValue AndAlso dCount >= DownloadTopCount.Value Then
-                                    MainProgress.Perform(_ContentNew.Count - dTotal)
-                                    Exit Sub
-                                Else
-                                    dTotal += 1
-                                    MainProgress.Perform()
-                                End If
-                            Next
-                        End Using
-                    End If
-                End If
-            Catch oex As OperationCanceledException When Token.IsCancellationRequested
-            Catch dex As ObjectDisposedException When Disposed
-            Catch ex As Exception
-                LogError(ex, "content downloading error")
-                HasError = True
-            End Try
+            DownloadContentDefault(Token)
         End Sub
+        ''' <summary>
+        ''' <inheritdoc cref="UserDataBase.DownloadingException(Exception, String)"/><br/>
+        ''' 1 - continue
+        ''' </summary>
+        Protected Overrides Function DownloadingException(ByVal ex As Exception, ByVal Message As String, Optional ByVal FromPE As Boolean = False) As Integer
+            If Responser.StatusCode = HttpStatusCode.NotFound Then
+                UserExists = False
+            ElseIf Responser.StatusCode = HttpStatusCode.BadRequest Then
+                HasError = True
+                MyMainLOG = "Instagram credentials have expired"
+                Settings(Sites.Instagram).InstaHashUpdateRequired.Value = True
+            ElseIf Responser.StatusCode = 429 Then
+                With Settings(Sites.Instagram)
+                    Dim WaiterExists As Boolean = .InstagramLastApplyingValue.HasValue
+                    .InstagramTooManyRequests(True)
+                    If Not WaiterExists Then .InstagramLastApplyingValue = 2
+                End With
+                Caught429 = True
+                MyMainLOG = $"Number of requests before error 429: {RequestsCount}"
+                Return 1
+            Else
+                Settings(Sites.Instagram).InstaHashUpdateRequired.Value = True
+                If Not FromPE Then LogError(ex, Message) : HasError = True
+                Return 0
+            End If
+            Return 2
+        End Function
         Private Shared Function MediaFromData(ByVal t As UTypes, ByVal _URL As String, ByVal PostID As String, ByVal PostDate As String) As UserMedia
             _URL = LinkFormatterSecure(RegexReplace(_URL.Replace("\", String.Empty), LinkPattern))
             Dim m As New UserMedia(_URL, t) With {.Post = New UserPost With {.ID = PostID}}
             If Not m.URL.IsEmptyString Then m.File = CStr(RegexReplace(m.URL, FilesPattern))
-            If Not PostDate.IsEmptyString Then m.Post.Date = AConvert(Of Date)(PostDate, Declarations.DateProvider, Nothing) Else m.Post.Date = Nothing
+            If Not PostDate.IsEmptyString Then m.Post.Date = AConvert(Of Date)(PostDate, DateProvider, Nothing) Else m.Post.Date = Nothing
             Return m
         End Function
         Friend Shared Function GetVideoInfo(ByVal URL As String) As IEnumerable(Of UserMedia)
             Try
                 If Not URL.IsEmptyString AndAlso URL.Contains("instagram.com") Then
-                    Do While Right(URL, 1) = "/" : URL = Left(URL, URL.Length - 1) : Loop
-                    URL = $"{URL}/?__a=1"
-                    Using t As New UserData
-                        t.Responser = New PersonalUtilities.Tools.WEB.Response
-                        t.Responser.Copy(Settings(Sites.Instagram).Responser)
-                        Dim r$ = t.Responser.GetResponse(URL,, EDP.ThrowException)
-                        If Not r.IsEmptyString Then
-                            Using j As EContainer = JsonDocument.Parse(r).XmlIfNothing
-                                Dim node As EContainer = j({"graphql", "shortcode_media"}).XmlIfNothing
-                                If node.Count > 0 Then t.ObtainMedia(node, String.Empty, String.Empty)
-                            End Using
-                        End If
-                        If t._TempMediaList.Count > 0 Then Return ListAddList(Nothing, t._TempMediaList)
-                    End Using
+                    Dim PID$ = RegexReplace(URL, New RegexStructure(".*?instagram.com/p/([_\w\d]+)", 1))
+                    If Not PID.IsEmptyString Then
+                        Using t As New UserData
+                            t.Responser = New PersonalUtilities.Tools.WEB.Response
+                            t.Responser.Copy(Settings(Sites.Instagram).Responser)
+                            t._SavedPostsIDs.Add(PID)
+                            t.DownloadPosts(Nothing)
+                            Return ListAddList(Nothing, t._TempMediaList)
+                        End Using
+                    End If
                 End If
                 Return Nothing
             Catch ex As Exception
                 Return ErrorsDescriber.Execute(EDP.ShowMainMsg + EDP.SendInLog, ex, "Instagram standalone downloader: fetch media error")
             End Try
         End Function
+        Protected Overrides Sub Dispose(ByVal disposing As Boolean)
+            If Not disposedValue And disposing Then _SavedPostsIDs.Clear()
+            MyBase.Dispose(disposing)
+        End Sub
     End Class
 End Namespace
