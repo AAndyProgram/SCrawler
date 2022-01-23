@@ -27,6 +27,7 @@ Do you like this program? Consider adding to my coffee fund by making a donation
 - Twitter
 - Instagram
 - RedGifs
+- Imgur
 
 # How does it works:
 
