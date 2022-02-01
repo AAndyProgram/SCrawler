@@ -1,5 +1,7 @@
 # Social networks crawler
 
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/AAndyProgram/SCrawler)](https://github.com/AAndyProgram/SCrawler/releases/latest)
+
 A program to download photo and video from Reddit, Twitter, Instagram, [etc](#supported-sites).
 
 Do you like this program? Consider adding to my coffee fund by making a donation to show your support. :)
@@ -95,5 +97,4 @@ Example: ```D:\Programs\SCrawler\SCrawler.exe v```
 
 # Contact me
 
-[Element messenger](https://element.io/): @andyprogram:matrix.org
-https://matrix.to/#/@andyprogram:matrix.org
+[![matrix](https://img.shields.io/badge/Matrix-%40andyprogram%3Amatrix.org-informational)](https://matrix.to/#/@andyprogram:matrix.org)
