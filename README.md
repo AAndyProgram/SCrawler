@@ -1,6 +1,7 @@
 # Social networks crawler
 
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/AAndyProgram/SCrawler)](https://github.com/AAndyProgram/SCrawler/releases/latest)
+[![GitHub](https://img.shields.io/github/license/AAndyProgram/SCrawler)](https://github.com/AAndyProgram/SCrawler/)
 
 A program to download photo and video from Reddit, Twitter, Instagram, [etc](#supported-sites).
 
