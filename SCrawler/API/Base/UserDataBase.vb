@@ -349,7 +349,7 @@ BlockNullPicture:
         Friend ReadOnly Property LVIKey As String Implements IUserData.LVIKey
             Get
                 If Not _IsCollection Then
-                    Return $"{Site.ToString.ToUpper.Substring(0, 1)}_{Name}"
+                    Return $"{Site.ToString.ToUpper}_{Name}"
                 Else
                     Return $"CCCC_{CollectionName}"
                 End If
@@ -603,6 +603,7 @@ BlockNullPicture:
                     Case Sites.Reddit : URL = $"https://www.reddit.com/{IIf(IsChannel, "r", "user")}/{Name}/"
                     Case Sites.Twitter : URL = $"https://twitter.com/{Name}"
                     Case Sites.Instagram : URL = $"https://www.instagram.com/{Name}/"
+                    Case Sites.RedGifs : URL = $"https://www.redgifs.com/users/{Name}/"
                     Case Else : MsgBoxE($"Site [{Site}] opening not implemented", MsgBoxStyle.Exclamation)
                 End Select
                 If Not URL.IsEmptyString Then Process.Start(URL)
