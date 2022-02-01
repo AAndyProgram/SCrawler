@@ -38,5 +38,4 @@ I welcome requests! Follow these steps to contribute:
   
 # Contact me
 
-[Element messenger](https://element.io/): @andyprogram:matrix.org
-https://matrix.to/#/@andyprogram:matrix.org
+[![matrix](https://img.shields.io/badge/Matrix-%40andyprogram%3Amatrix.org-informational)](https://matrix.to/#/@andyprogram:matrix.org)
