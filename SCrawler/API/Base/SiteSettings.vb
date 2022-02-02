@@ -123,7 +123,6 @@ Namespace API.Base
 
             Dim n() As String = {SettingsCLS.Name_Node_Sites, Site.ToString}
             _Path = New XMLValue(Of SFile)("Path", SFile.GetPath($"{GlobalPath.PathWithSeparator}{Site}"), _XML, n, XMLValue(Of SFile).ToFilePath)
-            _Path.ReplaceByValue("Path", {Site.ToString})
             _XML.Remove(Site.ToString)
 
             Temporary = New XMLValue(Of Boolean)
@@ -138,12 +137,7 @@ Namespace API.Base
             DownloadVideos.SetExtended("DownloadVideos", True, _XML, n)
             DownloadVideos.SetDefault(_Vids)
 
-            If Site = Sites.Twitter Then
-                GetUserMediaOnly = New XMLValue(Of Boolean)("GetUserMediaOnly", True, _XML, n)
-                GetUserMediaOnly.ReplaceByValue("TwitterDefaultGetUserMedia", n)
-            Else
-                GetUserMediaOnly = New XMLValue(Of Boolean)
-            End If
+            GetUserMediaOnly = New XMLValue(Of Boolean)("GetUserMediaOnly", True, _XML, n)
 
             CreateProp(InstaHashUpdateRequired, Sites.Instagram, "InstaHashUpdateRequired", True, _XML, n)
             CreateProp(InstaHash, Sites.Instagram, "InstaHash", String.Empty, _XML, n)

@@ -54,12 +54,14 @@ Namespace API.Reddit
         Private Sub New()
             ChannelPostsNames = New List(Of String)
             _ExistsUsersNames = New List(Of String)
+            _CrossPosts = New List(Of String)
         End Sub
         ''' <summary>Default initializer</summary>
         Friend Sub New(ByVal u As UserInfo, Optional ByVal _LoadUserInformation As Boolean = True, Optional ByVal InvokeImageHandler As Boolean = True)
             MyBase.New(InvokeImageHandler)
             ChannelPostsNames = New List(Of String)
             _ExistsUsersNames = New List(Of String)
+            _CrossPosts = New List(Of String)
             User = u
             If _LoadUserInformation Then LoadUserInformation()
         End Sub
@@ -108,10 +110,13 @@ Namespace API.Reddit
 #End Region
 #Region "Download Functions (User, Channel)"
         Private _TotalPostsDownloaded As Integer = 0
+        Private ReadOnly _CrossPosts As List(Of String)
         Private Sub DownloadDataUser(ByVal POST As String, ByVal Token As CancellationToken)
+            Const CPRI$ = "crosspostRootId"
+            Const CPPI$ = "crosspostParentId"
             Dim URL$ = String.Empty
             Try
-                Dim PostID$ = String.Empty
+                Dim PostID$ = String.Empty, PostTmp$ = String.Empty
                 Dim PostDate$
                 Dim n As EContainer, nn As EContainer, s As EContainer
                 Dim NewPostDetected As Boolean = False
@@ -120,8 +125,10 @@ Namespace API.Reddit
                 Dim added As Boolean
                 Dim __ItemType$
                 Dim tmpType As UTypes
-                Dim CheckNode As Predicate(Of EContainer) = Function(e) e("author").XmlIfNothingValue("/").ToLower.Equals(Name.ToLower)
+                Dim IsCrossPost As Predicate(Of EContainer) = Function(e) Not (e.Value(CPRI).IsEmptyString And e.Value(CPPI).IsEmptyString)
+                Dim CheckNode As Predicate(Of EContainer) = Function(e) Not ParseUserMediaOnly OrElse e("author").XmlIfNothingValue("/").ToLower.Equals(Name.ToLower)
                 Dim UPicType As Func(Of String, UTypes) = Function(input) IIf(input = "image", UTypes.Picture, UTypes.GIF)
+                Dim _PostID As Func(Of String) = Function() IIf(PostTmp.IsEmptyString, PostID, PostTmp)
 
                 URL = $"https://gateway.reddit.com/desktopapi/v1/user/{Name}/posts?rtj=only&allow_quarantined=true&allow_over18=1&include=identity&after={POST}&dist=25&sort=new&t=all&layout=classic"
                 ThrowAny(Token)
@@ -134,39 +141,51 @@ Namespace API.Reddit
                                 For Each nn In n
                                     ThrowAny(Token)
                                     If nn.Count > 0 Then
-                                        PostID = nn.Name
-                                        If PostID.IsEmptyString AndAlso nn.Contains("id") Then PostID = nn("id").Value
-                                        If nn.Contains("created") Then PostDate = nn("created").Value Else PostDate = String.Empty
-                                        If Not _TempPostsList.Contains(PostID) Then
-                                            NewPostDetected = True
-                                            _TempPostsList.Add(PostID)
-                                        Else
-                                            ExistsDetected = True
-                                            Continue For
-                                        End If
-
                                         If CheckNode(nn) Then
+
+                                            'Obtain post ID
+                                            PostTmp = nn.Name
+                                            If PostTmp.IsEmptyString Then PostTmp = nn.Value("id")
+                                            If PostTmp.IsEmptyString Then Continue For
+                                            'Check for CrossPost
+                                            If IsCrossPost(nn) Then
+                                                _CrossPosts.ListAddList({nn.Value(CPRI), nn.Value(CPPI)}, LNC)
+                                                Continue For
+                                            Else
+                                                If Not _CrossPosts.Contains(PostTmp) Then PostID = PostTmp : PostTmp = String.Empty
+                                            End If
+
+                                            'Download decision
+                                            If Not _TempPostsList.Contains(_PostID()) Then
+                                                NewPostDetected = True
+                                                _TempPostsList.Add(_PostID())
+                                            Else
+                                                If Not _CrossPosts.Contains(_PostID()) Then ExistsDetected = True
+                                                Continue For
+                                            End If
+                                            If nn.Contains("created") Then PostDate = nn("created").Value Else PostDate = String.Empty
+
                                             _ItemsBefore = _TempMediaList.Count
                                             added = True
                                             s = nn.ItemF({"source", "url"})
                                             If s.XmlIfNothingValue("/").Contains("redgifs.com") Then
-                                                _TempMediaList.ListAddValue(MediaFromData(UTypes.VideoPre, s.Value, PostID, PostDate,, IsChannel), LNC)
-                                            ElseIf Not CreateImgurMedia(s.XmlIfNothingValue, PostID, PostDate,, IsChannel) Then
+                                                _TempMediaList.ListAddValue(MediaFromData(UTypes.VideoPre, s.Value, _PostID(), PostDate,, IsChannel), LNC)
+                                            ElseIf Not CreateImgurMedia(s.XmlIfNothingValue, _PostID(), PostDate,, IsChannel) Then
                                                 s = nn.ItemF({"media"}).XmlIfNothing
                                                 __ItemType = s("type").XmlIfNothingValue
                                                 Select Case __ItemType
-                                                    Case "gallery" : If Not DownloadGallery(s, PostID, PostDate) Then added = False
+                                                    Case "gallery" : If Not DownloadGallery(s, _PostID(), PostDate) Then added = False
                                                     Case "image", "gifvideo"
                                                         If s.Contains("content") Then
                                                             _TempMediaList.ListAddValue(MediaFromData(UPicType(__ItemType), s.Value("content"),
-                                                                                                      PostID, PostDate,, IsChannel), LNC)
+                                                                                                      _PostID(), PostDate,, IsChannel), LNC)
                                                         Else
                                                             added = False
                                                         End If
                                                     Case "video"
                                                         If Settings.UseM3U8 AndAlso s("hlsUrl").XmlIfNothingValue("/").ToLower.Contains("m3u8") Then
                                                             _TempMediaList.ListAddValue(MediaFromData(UTypes.m3u8, s.Value("hlsUrl"),
-                                                                                                      PostID, PostDate,, IsChannel), LNC)
+                                                                                                      _PostID(), PostDate,, IsChannel), LNC)
                                                         Else
                                                             added = False
                                                         End If
@@ -186,7 +205,7 @@ Namespace API.Reddit
                                                         End Select
                                                     End With
                                                     If Not tmpType = UTypes.Undefined Then
-                                                        _TempMediaList.ListAddValue(MediaFromData(tmpType, s.Value, PostID, PostDate,, IsChannel), LNC)
+                                                        _TempMediaList.ListAddValue(MediaFromData(tmpType, s.Value, _PostID(), PostDate,, IsChannel), LNC)
                                                     End If
                                                 End If
                                             End If
@@ -596,7 +615,7 @@ Namespace API.Reddit
             Return 1
         End Function
         Protected Overrides Sub Dispose(ByVal disposing As Boolean)
-            If Not disposedValue And disposing Then ChannelPostsNames.Clear() : _ExistsUsersNames.Clear()
+            If Not disposedValue And disposing Then ChannelPostsNames.Clear() : _ExistsUsersNames.Clear() : _CrossPosts.Clear()
             MyBase.Dispose(disposing)
         End Sub
     End Class

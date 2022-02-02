@@ -330,7 +330,8 @@ CloseResume:
                 If f.StartIndex >= 0 Then
                     OnUsersAddedHandler(f.StartIndex)
                 Else
-                    i = Settings.Users.FindIndex(Function(u) u.Site = f.User.Site And u.Name = f.User.Name)
+                    Dim SimpleUser As Predicate(Of IUserData) = Function(u) u.Site = f.User.Site And u.Name = f.User.Name
+                    i = Settings.Users.FindIndex(Function(u) If(u.IsCollection, DirectCast(u, UserDataBind).Collections.Exists(SimpleUser), SimpleUser.Invoke(u)))
                     If i < 0 Then
                         If Not UserBanned(f.User.Name) Then
                             Settings.UpdateUsersList(f.User)

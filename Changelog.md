@@ -1,3 +1,18 @@
+# 2.0.0.3
+
+**Removed compatibility of program settings with version 1.0.0.4 and lower.**
+
+**If your program version is 1.0.0.4 and lower, it is strongly recommended that you upgrade to release 2.0.0.2 to update the program settings (and run the program). Then update to this release. Otherwise, you will have to configure the program settings again**
+
+**If your program version is 1.0.1.0 or higher, you should not pay attention to this message.**
+
+- Added
+  - The "Get User Media Only" setting is now available for Reddit. If checked then "CrossPosts" will be skipped, otherwise "CrossPosts" will be included.
+- Fixed
+  - In some cases, the program did not parse all Reddit posts.
+  - Collection ignored when validated when creating a new user
+  - Incorrect number of Instagram profiles downloads per session
+
 # 2.0.0.2
 
 **This is the last release that supports program settings of version 1.0.0.4 and lower. Compatibility of program settings with version 1.0.0.4 and lower will be removed in future releases. It is strongly recommended that you upgrade to this release before future releases. Otherwise, you will have to configure the program settings again. If your program version is 1.0.1.0 or higher, you should not pay attention to this message.**

@@ -51,11 +51,8 @@ Friend Class SettingsCLS : Implements IDisposable
 
         Dim n() As String = {"Defaults"}
         DefaultTemporary = New XMLValue(Of Boolean)("Temporary", False, MyXML, n)
-        DefaultTemporary.ReplaceByValue("DefaultTemporary")
         DefaultDownloadImages = New XMLValue(Of Boolean)("DownloadImages", True, MyXML, n)
-        DefaultDownloadImages.ReplaceByValue("DefaultDownloadImages")
         DefaultDownloadVideos = New XMLValue(Of Boolean)("DownloadVideos", True, MyXML, n)
-        DefaultDownloadVideos.ReplaceByValue("DefaultDownloadVideos")
         ChangeReadyForDownOnTempChange = New XMLValue(Of Boolean)("ChangeReadyForDownOnTempChange", True, MyXML, n)
 
         MySites = New Dictionary(Of Sites, SiteSettings) From {
@@ -89,33 +86,21 @@ Friend Class SettingsCLS : Implements IDisposable
         ChannelsDefaultTemporary = New XMLValue(Of Boolean)("ChannelsDefaultTemporary", True, MyXML, n)
         ChannelsRegularCheckMD5 = New XMLValue(Of Boolean)("ChannelsRegularCheckMD5", False, MyXML, n)
         ChannelsImagesRows = New XMLValue(Of Integer)("ImagesRows", 2, MyXML, n)
-        ChannelsImagesRows.ReplaceByValue("ChannelsImagesRows")
         ChannelsImagesColumns = New XMLValue(Of Integer)("ImagesColumns", 5, MyXML, n)
-        ChannelsImagesColumns.ReplaceByValue("ChannelsImagesColumns")
         ChannelsHideExistsUser = New XMLValue(Of Boolean)("HideExistsUser", True, MyXML, n)
-        ChannelsHideExistsUser.ReplaceByValue("ChannelsHideExistsUser")
         ChannelsMaxJobsCount = New XMLValue(Of Integer)("MaxJobsCount", DefaultMaxDownloadingTasks, MyXML, n)
-        ChannelsMaxJobsCount.ReplaceByValue("ChannelsMaxJobsCount")
 
         n = {"Users"}
         FromChannelDownloadTop = New XMLValue(Of Integer)("FromChannelDownloadTop", 10, MyXML, n)
-        FromChannelDownloadTop.ReplaceByValue("FromChannelDownloadTop")
         FromChannelDownloadTopUse = New XMLValue(Of Boolean)("FromChannelDownloadTopUse", False, MyXML, n)
-        FromChannelDownloadTopUse.ReplaceByValue("FromChannelDownloadTopUse")
         FromChannelCopyImageToUser = New XMLValue(Of Boolean)("FromChannelCopyImageToUser", True, MyXML, n)
-        FromChannelCopyImageToUser.ReplaceByValue("FromChannelCopyImageToUser")
 
         n = {"Users", "FileName"}
         MaxUsersJobsCount = New XMLValue(Of Integer)("MaxJobsCount", DefaultMaxDownloadingTasks, MyXML, n)
-        MaxUsersJobsCount.ReplaceByValue("MaxUsersJobsCount")
         FileAddDateToFileName = New XMLValue(Of Boolean)("FileAddDateToFileName", False, MyXML, n) With {.OnChangeFunction = AddressOf ChangeDateProvider}
-        FileAddDateToFileName.ReplaceByValue("FileAddDateToFileName")
         FileAddTimeToFileName = New XMLValue(Of Boolean)("FileAddTimeToFileName", False, MyXML, n) With {.OnChangeFunction = AddressOf ChangeDateProvider}
-        FileAddTimeToFileName.ReplaceByValue("FileAddTimeToFileName")
         FileDateTimePositionEnd = New XMLValue(Of Boolean)("FileDateTimePositionEnd", True, MyXML, n) With {.OnChangeFunction = AddressOf ChangeDateProvider}
-        FileDateTimePositionEnd.ReplaceByValue("FileDateTimePositionEnd")
         FileReplaceNameByDate = New XMLValue(Of Boolean)("FileReplaceNameByDate", False, MyXML, n)
-        FileReplaceNameByDate.ReplaceByValue("FileReplaceNameByDate")
 
         CheckUpdatesAtStart = New XMLValue(Of Boolean)("CheckUpdatesAtStart", True, MyXML)
         ShowNewVersionNotification = New XMLValue(Of Boolean)("ShowNewVersionNotification", True, MyXML)

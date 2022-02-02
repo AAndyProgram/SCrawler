@@ -184,8 +184,8 @@ Friend Class TDownloader : Implements IDisposable
             If _Job.Count > 0 Then
                 Const nf As ANumbers.Formats = ANumbers.Formats.Number
                 Dim t As New List(Of Task)
-                Dim i% = -1
-                Dim j% = Settings.MaxUsersJobsCount - 1
+                Dim i% = 0
+                Dim j% = Settings.MaxUsersJobsCount
                 Dim limit% = IIf(_Job.Site = Sites.Instagram, 1, j)
                 Dim Keys As New List(Of String)
                 Dim h As Boolean = False

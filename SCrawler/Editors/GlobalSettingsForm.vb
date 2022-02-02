@@ -91,6 +91,7 @@ Namespace Editors
                         'Reddit
                         With .Site(Sites.Reddit)
                             SetChecker(DEFS_REDDIT, Sites.Reddit)
+                            CH_REDDIT_USER_MEDIA.Checked = .GetUserMediaOnly
                             TXT_REDDIT_SAVED_POSTS_USER.Text = .SavedPostsUserName
                         End With
                         'Twitter
@@ -226,6 +227,7 @@ Namespace Editors
                     'Reddit
                     With .Site(Sites.Reddit)
                         SetPropByChecker(DEFS_REDDIT, Sites.Reddit)
+                        .GetUserMediaOnly.Value = CH_REDDIT_USER_MEDIA.Checked
                         .SavedPostsUserName.Value = TXT_REDDIT_SAVED_POSTS_USER.Text
                     End With
                     'Twitter

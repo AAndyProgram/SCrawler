@@ -33,11 +33,7 @@ Namespace Editors
         End Property
         Friend ReadOnly Property UserMediaOnly As Boolean
             Get
-                If User.Site = Sites.Twitter Then
-                    Return CH_PARSE_USER_MEDIA.Checked
-                Else
-                    Return False
-                End If
+                Return CH_PARSE_USER_MEDIA.Checked
             End Get
         End Property
         Friend ReadOnly Property UserReady As Boolean
@@ -105,7 +101,6 @@ Namespace Editors
                         OPT_REDDIT.Checked = False
                         OPT_TWITTER.Checked = False
                         OPT_INSTAGRAM.Checked = False
-                        CH_PARSE_USER_MEDIA.Enabled = False
                         CH_READY_FOR_DOWN.Checked = True
                         CH_TEMP.Checked = Settings.DefaultTemporary
                         CH_DOWN_IMAGES.Checked = Settings.DefaultDownloadImages
@@ -115,7 +110,7 @@ Namespace Editors
                         TXT_USER.Text = User.Name
                         TXT_SPEC_FOLDER.Text = User.SpecialPath
                         Select Case User.Site
-                            Case Sites.Reddit : OPT_REDDIT.Checked = True : CH_PARSE_USER_MEDIA.Enabled = False
+                            Case Sites.Reddit : OPT_REDDIT.Checked = True
                             Case Sites.Twitter : OPT_TWITTER.Checked = True
                             Case Sites.Instagram : OPT_INSTAGRAM.Checked = True
                             Case Sites.RedGifs : OPT_REDGIFS.Checked = True
@@ -212,7 +207,7 @@ Namespace Editors
                                 Else
                                     .Labels.ListAddList(UserLabels, LAP.NotContainsOnly, LAP.ClearBeforeAdd)
                                 End If
-                                If OPT_TWITTER.Checked Then .ParseUserMediaOnly = CH_PARSE_USER_MEDIA.Checked
+                                .ParseUserMediaOnly = CH_PARSE_USER_MEDIA.Checked
                                 .UpdateUserInformation()
                             End With
                         End If
@@ -312,8 +307,7 @@ CloseForm:
                     CH_TEMP.Checked = .Temporary
                     CH_DOWN_IMAGES.Checked = .DownloadImages
                     CH_DOWN_VIDEOS.Checked = .DownloadVideos
-                    CH_PARSE_USER_MEDIA.Checked = s = Sites.Twitter AndAlso .GetUserMediaOnly.Value
-                    CH_PARSE_USER_MEDIA.Enabled = s = Sites.Twitter
+                    CH_PARSE_USER_MEDIA.Checked = .GetUserMediaOnly.Value
                     CH_READY_FOR_DOWN.Checked = Not CH_TEMP.Checked
                 End With
             End If
@@ -322,7 +316,6 @@ CloseForm:
             If CH_ADD_BY_LIST.Checked Then
                 TXT_DESCR.GroupBoxText = "Users list"
                 CH_AUTO_DETECT_SITE.Enabled = True
-                CH_PARSE_USER_MEDIA.Enabled = True
             Else
                 TXT_DESCR.GroupBoxText = "Description"
                 CH_AUTO_DETECT_SITE.Checked = False
@@ -396,7 +389,7 @@ CloseForm:
                                             .DownloadImages = CH_DOWN_IMAGES.Checked
                                             .DownloadVideos = CH_DOWN_VIDEOS.Checked
                                             .Labels.ListAddList(UserLabels)
-                                            If s = Sites.Twitter Then .ParseUserMediaOnly = CH_PARSE_USER_MEDIA.Checked
+                                            .ParseUserMediaOnly = CH_PARSE_USER_MEDIA.Checked
                                             .UpdateUserInformation()
                                         End With
                                         Added += 1
