@@ -1,8 +1,22 @@
+# 2.0.0.4
+
+**Removed compatibility of program settings with version 1.0.0.4 and lower.**
+
+**If your program version is 1.0.0.4 and lower, it is strongly recommended that you upgrade to release 2.0.0.1 to update the program settings (and run the program). Then update to this release. Otherwise, you will have to configure the program settings again**
+
+**If your program version is 1.0.1.0 or higher, you should not pay attention to this message.**
+
+- Added
+  - Ability to specify the path to store saved posts
+- Fixed
+  - **Error when specifying network paths**
+  - Minor bugs
+
 # 2.0.0.3
 
 **Removed compatibility of program settings with version 1.0.0.4 and lower.**
 
-**If your program version is 1.0.0.4 and lower, it is strongly recommended that you upgrade to release 2.0.0.2 to update the program settings (and run the program). Then update to this release. Otherwise, you will have to configure the program settings again**
+**If your program version is 1.0.0.4 and lower, it is strongly recommended that you upgrade to release 2.0.0.1 to update the program settings (and run the program). Then update to this release. Otherwise, you will have to configure the program settings again**
 
 **If your program version is 1.0.1.0 or higher, you should not pay attention to this message.**
 
@@ -31,7 +45,7 @@
   - Clear information about downloaded profiles of the current session in the "Download info form"
   - Increased the number of Instagram posts (from 12 to 50) received per request
   - Channels' statistics
-  - **RedGisf profiles support**
+  - **RedGifs profiles support**
 - Fixed
   - The program was showing incorrect information about the total numbers of images and videos downloaded when a Reddit user was created from a channel
 

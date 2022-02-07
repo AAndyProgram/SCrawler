@@ -8,6 +8,7 @@
 ' but WITHOUT ANY WARRANTY
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.Messaging
+Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Tools.WebDocuments.JSON
 Imports PersonalUtilities.Forms.Toolbars
 Imports SCrawler.API.Base
@@ -414,7 +415,7 @@ Namespace API.Instagram
         Friend Shared Function GetVideoInfo(ByVal URL As String) As IEnumerable(Of UserMedia)
             Try
                 If Not URL.IsEmptyString AndAlso URL.Contains("instagram.com") Then
-                    Dim PID$ = RegexReplace(URL, New RegexStructure(".*?instagram.com/p/([_\w\d]+)", 1))
+                    Dim PID$ = RegexReplace(URL, RParams.DMS(".*?instagram.com/p/([_\w\d]+)", 1))
                     If Not PID.IsEmptyString Then
                         Using t As New UserData
                             t.Responser = New PersonalUtilities.Tools.WEB.Response

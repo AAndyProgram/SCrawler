@@ -11,7 +11,7 @@ Imports System.Threading
 Imports PersonalUtilities.Forms.Toolbars
 Namespace API.Instagram
     Friend NotInheritable Class ProfileSaved
-        Friend Shared ReadOnly Property DataPath As SFile = $"{Settings(Sites.Instagram).Path.PathNoSeparator}\!Saved\"
+        Friend Shared ReadOnly Property DataPath As SFile = Settings(Sites.Instagram).SavedPostsPath
         Private Sub New()
         End Sub
         Friend Shared Sub Download(ByRef Bar As MyProgress, ByVal Token As CancellationToken)

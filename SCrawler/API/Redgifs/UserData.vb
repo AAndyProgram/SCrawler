@@ -7,6 +7,7 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports PersonalUtilities.Functions.XML
+Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Tools.WebDocuments.JSON
 Imports System.Threading
 Imports System.Net

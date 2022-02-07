@@ -88,6 +88,8 @@ You can add users by patterns:
 
 Read more about adding users and subreddits [here](https://github.com/AAndyProgram/SCrawler/wiki/Users)
 
+# Guide
+
 **Full guide you can find [here](https://github.com/AAndyProgram/SCrawler/wiki)**
 
 ## Using program as just video downloader

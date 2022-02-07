@@ -7,6 +7,7 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports PersonalUtilities.Functions.XML
+Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Tools.ImageRenderer
 Imports PersonalUtilities.Tools.WebDocuments.JSON
 Imports System.Net
@@ -72,6 +73,7 @@ Namespace API.Reddit
 #End Region
 #Region "Download Overrides"
         Friend Overrides Sub DownloadData(ByVal Token As CancellationToken)
+            _CrossPosts.Clear()
             If Not IsSavedPosts AndAlso (IsChannel AndAlso Not ChannelInfo.IsRegularChannel) Then
                 If Not Responser Is Nothing Then Responser.Dispose()
                 Responser = New PersonalUtilities.Tools.WEB.Response
@@ -282,6 +284,18 @@ Namespace API.Reddit
                                                 _TempMediaList.ListAddValue(MediaFromData(UTypes.VideoPre, tmpUrl, PostID, PostDate, _UserID, IsChannel), LNC)
                                                 _TotalPostsDownloaded += 1
                                             End If
+                                        ElseIf Not s.Value({"media", "reddit_video"}, "fallback_url").IsEmptyString Then
+                                            tmpUrl = s.Value({"media", "reddit_video"}, "fallback_url")
+                                            If SaveToCache Then
+                                                tmpUrl = s.Value("thumbnail")
+                                                If Not tmpUrl.IsEmptyString Then
+                                                    _TempMediaList.ListAddValue(MediaFromData(UTypes.Picture, tmpUrl, PostID, PostDate, _UserID, IsChannel), LNC)
+                                                    _TotalPostsDownloaded += 1
+                                                End If
+                                            Else
+                                                _TempMediaList.ListAddValue(MediaFromData(UTypes.VideoPre + UTypes.m3u8, tmpUrl, PostID, PostDate, _UserID, IsChannel), LNC)
+                                                _TotalPostsDownloaded += 1
+                                            End If
                                         ElseIf CreateImgurMedia(tmpUrl, PostID, PostDate, _UserID, IsChannel) Then
                                             _TotalPostsDownloaded += 1
                                         ElseIf s.Item("media_metadata").XmlIfNothing.Count > 0 Then
@@ -370,15 +384,16 @@ Namespace API.Reddit
         Protected Overrides Sub ReparseVideo(ByVal Token As CancellationToken)
             Try
                 ThrowAny(Token)
-                If _TempMediaList.Count > 0 AndAlso _TempMediaList.Exists(Function(p) p.Type = UTypes.VideoPre) Then
+                Const v2 As UTypes = UTypes.VideoPre + UTypes.m3u8
+                If _TempMediaList.Count > 0 AndAlso _TempMediaList.Exists(Function(p) p.Type = UTypes.VideoPre Or p.Type = v2) Then
                     Dim r$, v$
                     Dim e As New ErrorsDescriber(EDP.ReturnValue)
                     Dim m As UserMedia
                     For i% = _TempMediaList.Count - 1 To 0 Step -1
                         ThrowAny(Token)
-                        If _TempMediaList(i).Type = UTypes.VideoPre Then
+                        If _TempMediaList(i).Type = UTypes.VideoPre Or _TempMediaList(i).Type = v2 Then
                             m = _TempMediaList(i)
-                            r = Responser.GetResponse(m.URL,, e)
+                            If _TempMediaList(i).Type = UTypes.VideoPre Then r = Responser.GetResponse(m.URL,, e) Else r = m.URL
                             _TempMediaList(i) = New UserMedia
                             If Not r.IsEmptyString Then
                                 v = RegexReplace(r, VideoRegEx)
@@ -440,6 +455,8 @@ Namespace API.Reddit
 #End Region
         Protected Overrides Sub DownloadContent(ByVal Token As CancellationToken)
             Try
+                Const _RFN$ = "RedditVideo"
+                Const RFN$ = _RFN & "{0}"
                 Dim i%
                 Dim dCount% = 0, dTotal% = 0
                 ThrowAny(Token)
@@ -452,6 +469,10 @@ Namespace API.Reddit
                             MyDir = ChannelInfo.CachePath.PathNoSeparator
                         Else
                             MyDir = MyFile.CutPath.PathNoSeparator
+                        End If
+                        Dim StartRFN% = 0
+                        If _ContentNew.Exists(Function(c) c.Type = UTypes.Video And c.URL.Contains("redd.it")) Then
+                            StartRFN = SFile.Indexed_GetMaxIndex($"{MyDir}\{IIf(SeparateVideoFolderF, "Video\", String.Empty)}{_RFN}.mp4",, New SFileNumbers(_RFN, String.Empty), EDP.ReturnValue)
                         End If
                         Dim HashList As New List(Of String)
                         If _ContentList.Count > 0 Then HashList.ListAddList((From h In _ContentList Where Not h.MD5.IsEmptyString Select h.MD5), LNC)
@@ -550,6 +571,10 @@ Namespace API.Reddit
                                         Try
                                             If (v.Type = UTypes.Video Or v.Type = UTypes.m3u8 Or (ImgurUrls.Count > 0 AndAlso f.Extension = "mp4")) And
                                                 vsf Then f.Path = $"{f.PathWithSeparator}Video"
+                                            If v.Type = UTypes.Video AndAlso v.URL.Contains("redd.it") Then
+                                                StartRFN += 1
+                                                f.Name = String.Format(RFN, StartRFN)
+                                            End If
                                             If v.Type = UTypes.m3u8 Then
                                                 f = M3U8.Download(v.URL, f)
                                             ElseIf ImgurUrls.Count > 0 Then

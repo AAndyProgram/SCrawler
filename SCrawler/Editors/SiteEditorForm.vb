@@ -35,7 +35,7 @@ Namespace Editors
                     Text = MySite.ToString
 
                     With Settings(MySite)
-                        TXT_PATH.Text = .Path
+                        TXT_PATH.Text = .Path(False)
                         With .Responser
                             If .Cookies Is Nothing Then .Cookies = New CookieKeeper(.CookiesDomain)
                             SetCookieText()
@@ -128,7 +128,7 @@ Namespace Editors
         End Sub
         Private Sub TXT_PATH_ActionOnButtonClick(ByVal Sender As ActionButton) Handles TXT_PATH.ActionOnButtonClick
             If Sender.DefaultButton = ActionButton.DefaultButtons.Open Then
-                Dim f As SFile = SFile.SelectPath(Settings(MySite).Path)
+                Dim f As SFile = SFile.SelectPath(Settings(MySite).Path(False))
                 If Not f.IsEmptyString Then TXT_PATH.Text = f
             End If
         End Sub

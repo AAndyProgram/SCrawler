@@ -11,7 +11,7 @@ Imports System.Threading
 Imports PersonalUtilities.Forms.Toolbars
 Namespace API.Reddit
     Friend NotInheritable Class ProfileSaved
-        Friend Shared ReadOnly Property DataPath As SFile = $"{Settings(Sites.Reddit).Path.PathNoSeparator}\!Saved\"
+        Friend Shared ReadOnly Property DataPath As SFile = Settings(Sites.Reddit).SavedPostsPath
         Private Sub New()
         End Sub
         Friend Shared Sub Download(ByRef Bar As MyProgress, ByVal Token As CancellationToken)

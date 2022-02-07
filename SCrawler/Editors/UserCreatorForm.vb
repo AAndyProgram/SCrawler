@@ -10,6 +10,7 @@ Imports System.ComponentModel
 Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Forms.Controls.Base
 Imports PersonalUtilities.Forms.Toolbars
+Imports PersonalUtilities.Functions.RegularExpressions
 Imports SCrawler.API.Base
 Namespace Editors
     Friend Class UserCreatorForm : Implements IOkCancelToolbar
@@ -61,7 +62,7 @@ Namespace Editors
                 Return TXT_USER_FRIENDLY.Text
             End Get
         End Property
-        Private ReadOnly _SpecPathPattern As New RegexStructure("\w:\\.*", True, False,,,,, String.Empty, EDP.ReturnValue)
+        Private ReadOnly _SpecPathPattern As RParams = RParams.DM("\w:\\.*", 0, EDP.ReturnValue)
         Private ReadOnly Property SpecialPath(ByVal s As Sites) As SFile
             Get
                 If TXT_SPEC_FOLDER.IsEmptyString Then
@@ -226,13 +227,13 @@ CloseForm:
         Private Sub ToolbarBttCancel() Implements IOkCancelToolbar.ToolbarBttCancel
             MyDef.CloseForm(IIf(StartIndex >= 0, DialogResult.OK, DialogResult.Cancel))
         End Sub
-        Private ReadOnly TwitterRegEx As New RegexStructure("[htps:/]{7,8}.*?twitter.com/([^/]+)", 1)
-        Private ReadOnly RedditRegEx1 As New RegexStructure("[htps:/]{7,8}.*?reddit.com/user/([^/]+)", 1)
-        Private ReadOnly RedditRegEx2 As New RegexStructure(".?u/([^/]+)", 1)
-        Private ReadOnly RedditChannelRegEx1 As New RegexStructure("[htps:/]{7,8}.*?reddit.com/r/([^/]+)", 1)
-        Private ReadOnly RedditChannelRegEx2 As New RegexStructure(".?r/([^/]+)", 1)
-        Private ReadOnly InstagramRegEx As New RegexStructure("[htps:/]{7,8}.*?instagram.com/([^/]+)", 1)
-        Private ReadOnly RedGifsRegEx As New RegexStructure("[htps:/]{7,8}.*?redgifs.com/users/([^/]+)", 1)
+        Private ReadOnly TwitterRegEx As RParams = RParams.DMS("[htps:/]{7,8}.*?twitter.com/([^/]+)", 1)
+        Private ReadOnly RedditRegEx1 As RParams = RParams.DMS("[htps:/]{7,8}.*?reddit.com/user/([^/]+)", 1)
+        Private ReadOnly RedditRegEx2 As RParams = RParams.DMS(".?u/([^/]+)", 1)
+        Private ReadOnly RedditChannelRegEx1 As RParams = RParams.DMS("[htps:/]{7,8}.*?reddit.com/r/([^/]+)", 1)
+        Private ReadOnly RedditChannelRegEx2 As RParams = RParams.DMS(".?r/([^/]+)", 1)
+        Private ReadOnly InstagramRegEx As RParams = RParams.DMS("[htps:/]{7,8}.*?instagram.com/([^/]+)", 1)
+        Private ReadOnly RedGifsRegEx As RParams = RParams.DMS("[htps:/]{7,8}.*?redgifs.com/users/([^/]+)", 1)
         Private _TextChangeInvoked As Boolean = False
         Private Sub TXT_USER_ActionOnTextChange() Handles TXT_USER.ActionOnTextChange
             Try
@@ -270,7 +271,7 @@ CloseForm:
             End If
             Return {Sites.Undefined, False}
         End Function
-        Private Function CheckRegex(ByRef TXT As String, ByVal r As RegexStructure) As Boolean
+        Private Function CheckRegex(ByRef TXT As String, ByVal r As RParams) As Boolean
             Dim s$ = RegexReplace(TXT, r)
             If Not s.IsEmptyString Then TXT = s : Return True Else Return False
         End Function

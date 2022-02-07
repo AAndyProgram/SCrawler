@@ -6,9 +6,10 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
+Imports PersonalUtilities.Functions.RegularExpressions
 Namespace API.Instagram
     Friend Module Declarations
-        Friend ReadOnly FilesPattern As New RegexStructure(".+?([^/\?]+?\.[\w\d]{3,4})(?=(\?|\Z))",,,, 1,,, String.Empty, EDP.ReturnValue)
+        Friend ReadOnly FilesPattern As RParams = RParams.DMS(".+?([^/\?]+?\.[\w\d]{3,4})(?=(\?|\Z))", 1, EDP.ReturnValue)
         Friend ReadOnly Property DateProvider As New JsonDate
         Friend Class JsonDate : Implements ICustomProvider
             Friend Function Convert(ByVal Value As Object, ByVal DestinationType As Type, ByVal Provider As IFormatProvider,

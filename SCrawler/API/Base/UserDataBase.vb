@@ -7,6 +7,7 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports PersonalUtilities.Functions.XML
+Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Forms.Toolbars
 Imports System.IO
 Imports System.Net
@@ -470,7 +471,7 @@ BlockNullPicture:
                         Temporary = x.Value(Name_Temporary).FromXML(Of Boolean)(False)
                         Favorite = x.Value(Name_Favorite).FromXML(Of Boolean)(False)
                         CreatedByChannel = x.Value(Name_CreatedByChannel).FromXML(Of Boolean)(False)
-                        SeparateVideoFolder = AConvert(Of Boolean)(x.Value(Name_SeparateVideoFolder), Nothing)
+                        SeparateVideoFolder = AConvert(Of Boolean)(x.Value(Name_SeparateVideoFolder), AModes.Var, Nothing)
                         ReadyForDownload = x.Value(Name_ReadyForDownload).FromXML(Of Boolean)(True)
                         DownloadImages = x.Value(Name_DownloadImages).FromXML(Of Boolean)(True)
                         DownloadVideos = x.Value(Name_DownloadVideos).FromXML(Of Boolean)(True)
@@ -944,7 +945,7 @@ BlockNullPicture:
         End Sub
         Private Function CheckFile(ByVal f As SFile, ByRef List As IEnumerable(Of SFile)) As SFile
             If List.ListExists Then
-                Dim p As New RegexStructure(".+?\s{0,1}\((\d+)\)|.+",,,,,,, String.Empty, EDP.ReturnValue)
+                Dim p As RParams = RParams.DMS(".+?\s{0,1}\((\d+)\)|.+", 0, EDP.ReturnValue)
                 Dim i% = List.Where(Function(ff) CStr(RegexReplace(ff.Name, p)).Trim.ToLower = f.Name.Trim.ToLower).Count
                 If i > 0 Then f.Name &= $" ({i + 1})"
             End If

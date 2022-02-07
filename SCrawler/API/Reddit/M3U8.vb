@@ -9,26 +9,25 @@
 Imports System.Net
 Imports SCrawler.API.Reddit.M3U8_Declarations
 Imports PersonalUtilities.Tools.WEB
-Namespace API.Reddit.M3U8_Declarations
-    Friend Module M3U8_Declarations
-        Friend ReadOnly BaseUrlPattern As New RegexStructure("([htps:/]{7,8}.+?/.+?)(?=/)", True, False,,,,,, EDP.ReturnValue)
-        Friend ReadOnly PlayListRegEx_1 As New RegexStructure("(#EXT-X-STREAM-INF)(.+)(RESOLUTION=)(\d+)(.+?[\r\n]{1,2})(.+?)([\r\n]{1,2})", True, False,,,
-                                                              RegexReturn.List,, New List(Of String),
-                                                              New ErrorsDescriber(False, False, True, New List(Of String)))
-        Friend ReadOnly PlayListRegEx_2 As New RegexStructure("(?<=#EXT-X-BYTERANGE.+?[\r\n]{1,2})(.+)(?=[\r\n]{0,2})", True, False,,, RegexReturn.List,,
-                                                              New List(Of String),
-                                                              New ErrorsDescriber(False, False, True, New List(Of String)))
-        Friend ReadOnly DPED As New ErrorsDescriber(EDP.SendInLog + EDP.ReturnValue)
-    End Module
-End Namespace
+Imports PersonalUtilities.Functions.RegularExpressions
 Namespace API.Reddit
+    Namespace M3U8_Declarations
+        Friend Module M3U8_Declarations
+            Friend ReadOnly BaseUrlPattern As RParams = RParams.DM("([htps:/]{7,8}.+?/.+?)(?=/)", 0, EDP.ReturnValue)
+            Friend ReadOnly PlayListRegEx_1 As RParams = RParams.DM("(#EXT-X-STREAM-INF)(.+)(RESOLUTION=)(\d+)(.+?[\r\n]{1,2})(.+?)([\r\n]{1,2})", 0,
+                                                                    RegexReturn.List, EDP.SendInLog, EDP.ReturnValue)
+            Friend ReadOnly PlayListRegEx_2 As RParams = RParams.DM("(?<=#EXT-X-BYTERANGE.+?[\r\n]{1,2})(.+)(?=[\r\n]{0,2})", 0,
+                                                                    RegexReturn.List, EDP.SendInLog, EDP.ReturnValue)
+            Friend ReadOnly DPED As New ErrorsDescriber(EDP.SendInLog + EDP.ReturnValue)
+        End Module
+    End Namespace
     Friend NotInheritable Class M3U8
         Private Sub New()
         End Sub
         Private Structure Resolution : Implements IRegExCreator, IComparable(Of Resolution)
             Friend File As String
             Friend Resolution As Integer
-            Friend Function CreateFromArray(ByVal ParamsArray() As String) As IRegExCreator Implements IRegExCreator.CreateFromArray
+            Friend Function CreateFromArray(ByVal ParamsArray() As String) As Object Implements IRegExCreator.CreateFromArray
                 If ParamsArray.ArrayExists Then
                     File = ParamsArray(0)
                     If ParamsArray.Length > 1 Then Resolution = AConvert(Of Integer)(ParamsArray(1), 0)
@@ -45,7 +44,7 @@ Namespace API.Reddit
                     Using w As New WebClient
                         Dim r$ = w.DownloadString(PlayListURL)
                         If Not r.IsEmptyString Then
-                            Dim l As List(Of Resolution) = RegexFields(Of Resolution)(r, {PlayListRegEx_1}, {6, 4})
+                            Dim l As List(Of Resolution) = FNF.RegexFields(Of Resolution)(r, {PlayListRegEx_1}, {6, 4})
                             If l.ListExists Then
                                 l.Sort()
                                 Dim pls$ = $"{BaseUrl}/{l.First.File}"

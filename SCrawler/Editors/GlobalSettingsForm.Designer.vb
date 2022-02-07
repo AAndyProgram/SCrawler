@@ -35,7 +35,11 @@
             Dim TAB_DEFS_CHANNELS As System.Windows.Forms.TabPage
             Dim TP_CHANNELS As System.Windows.Forms.TableLayoutPanel
             Dim TAB_DEFS_REDDIT As System.Windows.Forms.TabPage
+            Dim ActionButton7 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton8 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim TAB_DEFS_TWITTER As System.Windows.Forms.TabPage
+            Dim ActionButton9 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton10 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Me.TXT_GLOBAL_PATH = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_IMAGE_LARGE = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_IMAGE_SMALL = New PersonalUtilities.Forms.Controls.TextBoxExtended()
@@ -65,6 +69,8 @@
             Me.TXT_CHANNEL_USER_POST_LIMIT = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.DEFS_REDDIT = New SCrawler.Editors.SiteDefaults()
             Me.TXT_REDDIT_SAVED_POSTS_USER = New PersonalUtilities.Forms.Controls.TextBoxExtended()
+            Me.CH_REDDIT_USER_MEDIA = New System.Windows.Forms.CheckBox()
+            Me.TXT_REDDIT_SAVED_POSTS_PATH = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.DEFS_TWITTER = New SCrawler.Editors.SiteDefaults()
             Me.CH_TWITTER_USER_MEDIA = New System.Windows.Forms.CheckBox()
             Me.TXT_REQ_WAIT_TIMER = New PersonalUtilities.Forms.Controls.TextBoxExtended()
@@ -74,10 +80,10 @@
             Me.TAB_DEFS_INSTAGRAM = New System.Windows.Forms.TabPage()
             Me.DEFS_INST = New SCrawler.Editors.SiteDefaults()
             Me.TXT_INST_SAVED_POSTS_USER = New PersonalUtilities.Forms.Controls.TextBoxExtended()
+            Me.TXT_INST_SAVED_POSTS_PATH = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TAB_DEFS_REDGIFS = New System.Windows.Forms.TabPage()
             Me.DEFS_REDGIFS = New SCrawler.Editors.SiteDefaults()
             Me.CONTAINER_MAIN = New System.Windows.Forms.ToolStripContainer()
-            Me.CH_REDDIT_USER_MEDIA = New System.Windows.Forms.CheckBox()
             TP_BASIS = New System.Windows.Forms.TableLayoutPanel()
             TP_IMAGES = New System.Windows.Forms.TableLayoutPanel()
             TP_FILE_NAME = New System.Windows.Forms.TableLayoutPanel()
@@ -115,6 +121,7 @@
             TAB_DEFS_REDDIT.SuspendLayout()
             Me.DEFS_REDDIT.SuspendLayout()
             CType(Me.TXT_REDDIT_SAVED_POSTS_USER, System.ComponentModel.ISupportInitialize).BeginInit()
+            CType(Me.TXT_REDDIT_SAVED_POSTS_PATH, System.ComponentModel.ISupportInitialize).BeginInit()
             TAB_DEFS_TWITTER.SuspendLayout()
             Me.DEFS_TWITTER.SuspendLayout()
             CType(Me.TXT_REQ_WAIT_TIMER, System.ComponentModel.ISupportInitialize).BeginInit()
@@ -124,6 +131,7 @@
             Me.TAB_DEFS_INSTAGRAM.SuspendLayout()
             Me.DEFS_INST.SuspendLayout()
             CType(Me.TXT_INST_SAVED_POSTS_USER, System.ComponentModel.ISupportInitialize).BeginInit()
+            CType(Me.TXT_INST_SAVED_POSTS_PATH, System.ComponentModel.ISupportInitialize).BeginInit()
             Me.TAB_DEFS_REDGIFS.SuspendLayout()
             Me.CONTAINER_MAIN.ContentPanel.SuspendLayout()
             Me.CONTAINER_MAIN.SuspendLayout()
@@ -710,14 +718,16 @@
             Me.DEFS_REDDIT.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
             Me.DEFS_REDDIT.Controls.Add(Me.TXT_REDDIT_SAVED_POSTS_USER, 0, 4)
             Me.DEFS_REDDIT.Controls.Add(Me.CH_REDDIT_USER_MEDIA, 0, 3)
+            Me.DEFS_REDDIT.Controls.Add(Me.TXT_REDDIT_SAVED_POSTS_PATH, 0, 5)
             Me.DEFS_REDDIT.Dock = System.Windows.Forms.DockStyle.Fill
             Me.DEFS_REDDIT.Location = New System.Drawing.Point(3, 3)
             Me.DEFS_REDDIT.Name = "DEFS_REDDIT"
-            Me.DEFS_REDDIT.RowCount = 6
+            Me.DEFS_REDDIT.RowCount = 7
             Me.DEFS_REDDIT.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             Me.DEFS_REDDIT.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             Me.DEFS_REDDIT.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             Me.DEFS_REDDIT.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            Me.DEFS_REDDIT.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             Me.DEFS_REDDIT.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             Me.DEFS_REDDIT.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
             Me.DEFS_REDDIT.Size = New System.Drawing.Size(570, 366)
@@ -731,6 +741,36 @@
             Me.TXT_REDDIT_SAVED_POSTS_USER.Name = "TXT_REDDIT_SAVED_POSTS_USER"
             Me.TXT_REDDIT_SAVED_POSTS_USER.Size = New System.Drawing.Size(562, 22)
             Me.TXT_REDDIT_SAVED_POSTS_USER.TabIndex = 4
+            '
+            'CH_REDDIT_USER_MEDIA
+            '
+            Me.CH_REDDIT_USER_MEDIA.AutoSize = True
+            Me.CH_REDDIT_USER_MEDIA.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_REDDIT_USER_MEDIA.Location = New System.Drawing.Point(4, 82)
+            Me.CH_REDDIT_USER_MEDIA.Name = "CH_REDDIT_USER_MEDIA"
+            Me.CH_REDDIT_USER_MEDIA.Size = New System.Drawing.Size(562, 19)
+            Me.CH_REDDIT_USER_MEDIA.TabIndex = 3
+            Me.CH_REDDIT_USER_MEDIA.Text = "Get user media only"
+            Me.CH_REDDIT_USER_MEDIA.UseVisualStyleBackColor = True
+            '
+            'TXT_REDDIT_SAVED_POSTS_PATH
+            '
+            ActionButton7.BackgroundImage = CType(resources.GetObject("ActionButton7.BackgroundImage"), System.Drawing.Image)
+            ActionButton7.Index = 0
+            ActionButton7.Name = "BTT_OPEN"
+            ActionButton8.BackgroundImage = CType(resources.GetObject("ActionButton8.BackgroundImage"), System.Drawing.Image)
+            ActionButton8.Index = 1
+            ActionButton8.Name = "BTT_CLEAR"
+            Me.TXT_REDDIT_SAVED_POSTS_PATH.Buttons.Add(ActionButton7)
+            Me.TXT_REDDIT_SAVED_POSTS_PATH.Buttons.Add(ActionButton8)
+            Me.TXT_REDDIT_SAVED_POSTS_PATH.CaptionText = "Saved posts path"
+            Me.TXT_REDDIT_SAVED_POSTS_PATH.CaptionToolTipEnabled = True
+            Me.TXT_REDDIT_SAVED_POSTS_PATH.CaptionToolTipText = "Special path (clear to use default)"
+            Me.TXT_REDDIT_SAVED_POSTS_PATH.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.TXT_REDDIT_SAVED_POSTS_PATH.Location = New System.Drawing.Point(4, 137)
+            Me.TXT_REDDIT_SAVED_POSTS_PATH.Name = "TXT_REDDIT_SAVED_POSTS_PATH"
+            Me.TXT_REDDIT_SAVED_POSTS_PATH.Size = New System.Drawing.Size(562, 22)
+            Me.TXT_REDDIT_SAVED_POSTS_PATH.TabIndex = 8
             '
             'TAB_DEFS_TWITTER
             '
@@ -837,13 +877,15 @@
             Me.DEFS_INST.Controls.Add(Me.TXT_REQ_COUNT, 0, 4)
             Me.DEFS_INST.Controls.Add(Me.TXT_REQ_WAIT_TIMER, 0, 3)
             Me.DEFS_INST.Controls.Add(Me.TXT_INST_SAVED_POSTS_USER, 0, 6)
+            Me.DEFS_INST.Controls.Add(Me.TXT_INST_SAVED_POSTS_PATH, 0, 7)
             Me.DEFS_INST.Dock = System.Windows.Forms.DockStyle.Fill
             Me.DEFS_INST.Location = New System.Drawing.Point(0, 0)
             Me.DEFS_INST.Name = "DEFS_INST"
-            Me.DEFS_INST.RowCount = 8
+            Me.DEFS_INST.RowCount = 9
             Me.DEFS_INST.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             Me.DEFS_INST.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             Me.DEFS_INST.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            Me.DEFS_INST.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             Me.DEFS_INST.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             Me.DEFS_INST.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             Me.DEFS_INST.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
@@ -861,6 +903,26 @@
             Me.TXT_INST_SAVED_POSTS_USER.Name = "TXT_INST_SAVED_POSTS_USER"
             Me.TXT_INST_SAVED_POSTS_USER.Size = New System.Drawing.Size(568, 22)
             Me.TXT_INST_SAVED_POSTS_USER.TabIndex = 9
+            '
+            'TXT_INST_SAVED_POSTS_PATH
+            '
+            ActionButton9.BackgroundImage = CType(resources.GetObject("ActionButton9.BackgroundImage"), System.Drawing.Image)
+            ActionButton9.Index = 0
+            ActionButton9.Name = "BTT_OPEN"
+            ActionButton10.BackgroundImage = CType(resources.GetObject("ActionButton10.BackgroundImage"), System.Drawing.Image)
+            ActionButton10.Index = 1
+            ActionButton10.Name = "BTT_CLEAR"
+            Me.TXT_INST_SAVED_POSTS_PATH.Buttons.Add(ActionButton9)
+            Me.TXT_INST_SAVED_POSTS_PATH.Buttons.Add(ActionButton10)
+            Me.TXT_INST_SAVED_POSTS_PATH.CaptionText = "Saved posts path"
+            Me.TXT_INST_SAVED_POSTS_PATH.CaptionToolTipEnabled = True
+            Me.TXT_INST_SAVED_POSTS_PATH.CaptionToolTipText = "Special path (clear to use default)"
+            Me.TXT_INST_SAVED_POSTS_PATH.CaptionWidth = 120.0R
+            Me.TXT_INST_SAVED_POSTS_PATH.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.TXT_INST_SAVED_POSTS_PATH.Location = New System.Drawing.Point(4, 198)
+            Me.TXT_INST_SAVED_POSTS_PATH.Name = "TXT_INST_SAVED_POSTS_PATH"
+            Me.TXT_INST_SAVED_POSTS_PATH.Size = New System.Drawing.Size(568, 22)
+            Me.TXT_INST_SAVED_POSTS_PATH.TabIndex = 13
             '
             'TAB_DEFS_REDGIFS
             '
@@ -903,17 +965,6 @@
             Me.CONTAINER_MAIN.Size = New System.Drawing.Size(584, 398)
             Me.CONTAINER_MAIN.TabIndex = 0
             Me.CONTAINER_MAIN.TopToolStripPanelVisible = False
-            '
-            'CH_REDDIT_USER_MEDIA
-            '
-            Me.CH_REDDIT_USER_MEDIA.AutoSize = True
-            Me.CH_REDDIT_USER_MEDIA.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_REDDIT_USER_MEDIA.Location = New System.Drawing.Point(4, 82)
-            Me.CH_REDDIT_USER_MEDIA.Name = "CH_REDDIT_USER_MEDIA"
-            Me.CH_REDDIT_USER_MEDIA.Size = New System.Drawing.Size(562, 19)
-            Me.CH_REDDIT_USER_MEDIA.TabIndex = 3
-            Me.CH_REDDIT_USER_MEDIA.Text = "Get user media only"
-            Me.CH_REDDIT_USER_MEDIA.UseVisualStyleBackColor = True
             '
             'GlobalSettingsForm
             '
@@ -961,6 +1012,7 @@
             Me.DEFS_REDDIT.ResumeLayout(False)
             Me.DEFS_REDDIT.PerformLayout()
             CType(Me.TXT_REDDIT_SAVED_POSTS_USER, System.ComponentModel.ISupportInitialize).EndInit()
+            CType(Me.TXT_REDDIT_SAVED_POSTS_PATH, System.ComponentModel.ISupportInitialize).EndInit()
             TAB_DEFS_TWITTER.ResumeLayout(False)
             Me.DEFS_TWITTER.ResumeLayout(False)
             Me.DEFS_TWITTER.PerformLayout()
@@ -971,6 +1023,7 @@
             Me.TAB_DEFS_INSTAGRAM.ResumeLayout(False)
             Me.DEFS_INST.ResumeLayout(False)
             CType(Me.TXT_INST_SAVED_POSTS_USER, System.ComponentModel.ISupportInitialize).EndInit()
+            CType(Me.TXT_INST_SAVED_POSTS_PATH, System.ComponentModel.ISupportInitialize).EndInit()
             Me.TAB_DEFS_REDGIFS.ResumeLayout(False)
             Me.CONTAINER_MAIN.ContentPanel.ResumeLayout(False)
             Me.CONTAINER_MAIN.ResumeLayout(False)
@@ -1021,5 +1074,7 @@
         Private WithEvents TXT_INST_SAVED_POSTS_USER As PersonalUtilities.Forms.Controls.TextBoxExtended
         Private WithEvents CH_SHOW_NOTIFY As CheckBox
         Private WithEvents CH_REDDIT_USER_MEDIA As CheckBox
+        Private WithEvents TXT_REDDIT_SAVED_POSTS_PATH As PersonalUtilities.Forms.Controls.TextBoxExtended
+        Private WithEvents TXT_INST_SAVED_POSTS_PATH As PersonalUtilities.Forms.Controls.TextBoxExtended
     End Class
 End Namespace

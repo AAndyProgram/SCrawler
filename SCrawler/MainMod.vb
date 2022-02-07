@@ -7,6 +7,7 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports PersonalUtilities.Functions.XML
+Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Tools.WEB
 Imports PersonalUtilities.Forms.Toolbars
 Imports SCrawler.API
@@ -14,8 +15,8 @@ Imports SCrawler.API.Base
 Friend Module MainMod
     Friend Settings As SettingsCLS
     Friend Const SettingsFolderName As String = "Settings"
-    Friend ReadOnly LinkPattern As New RegexStructure("[htps:]{0,6}[/]{0,2}(.+)", 1)
-    Friend ReadOnly FilesPattern As New RegexStructure("[^\./]+?\.\w+", True, False, 1,,,, String.Empty, EDP.ReturnValue)
+    Friend ReadOnly LinkPattern As RParams = RParams.DMS("[htps:]{0,6}[/]{0,2}(.+)", 1)
+    Friend ReadOnly FilesPattern As RParams = RParams.DM("[^\./]+?\.\w+", 1, EDP.ReturnValue)
     Friend Const LVI_TempOption As String = "Temp"
     Friend Const LVI_FavOption As String = "Favorite"
     Friend Const CannelsLabelName As String = "Channels"

@@ -7,13 +7,14 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports PersonalUtilities.Functions.XML.Base
+Imports PersonalUtilities.Functions.RegularExpressions
 Namespace API.Reddit
     Friend Module Declarations
         Friend ReadOnly JsonNodesJson() As NodeParams = {New NodeParams("posts", True, True, True, True, 3)}
         Friend ReadOnly ChannelJsonNodes() As NodeParams = {New NodeParams("data", True, True, True, True, 1),
                                                             New NodeParams("children", True, True, True)}
-        Friend ReadOnly UrlBasePattern As New RegexStructure("(?<=/)([^/]+?\.[\w]{3,4})(?=(\?|\Z))", True, False)
-        Friend ReadOnly VideoRegEx As New RegexStructure("http.{0,1}://[^" & Chr(34) & "]+?mp4", True, False)
+        Friend ReadOnly UrlBasePattern As RParams = RParams.DM("(?<=/)([^/]+?\.[\w]{3,4})(?=(\?|\Z))", 0)
+        Friend ReadOnly VideoRegEx As RParams = RParams.DM("http.{0,1}://[^" & Chr(34) & "]+?mp4", 0)
         Friend ReadOnly DateProvider As New JsonDate
         Friend ReadOnly DateProviderChannel As New JsonDateChannel
         Private ReadOnly EUR_PROVIDER As New ANumbers(ANumbers.Cultures.EUR)

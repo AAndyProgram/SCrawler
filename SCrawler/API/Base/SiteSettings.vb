@@ -9,6 +9,7 @@
 Imports PersonalUtilities.Tools
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.XML.Base
+Imports PersonalUtilities.Functions.RegularExpressions
 Namespace API.Base
     Friend Class SiteSettings : Implements IDisposable
         Friend Const Header_Twitter_Authorization As String = "authorization"
@@ -16,13 +17,33 @@ Namespace API.Base
         Friend ReadOnly Site As Sites
         Friend ReadOnly Responser As WEB.Response
         Private ReadOnly _Path As XMLValue(Of SFile)
-        Friend Property Path As SFile
+        Friend Property Path(Optional ByVal SetProp As Boolean = True) As SFile
             Get
-                If _Path.IsEmptyString Then _Path.Value = SFile.GetPath($"{Settings.GlobalPath.Value.PathWithSeparator}{Site}")
+                If _Path.IsEmptyString Then
+                    Dim tmpPath As SFile = SFile.GetPath($"{Settings.GlobalPath.Value.PathWithSeparator}{Site}")
+                    If SetProp Then _Path.Value = tmpPath Else Return tmpPath
+                End If
                 Return _Path.Value
             End Get
-            Set(ByVal NewFile As SFile)
-                _Path.Value = NewFile
+            Set(ByVal NewPath As SFile)
+                _Path.Value = NewPath
+            End Set
+        End Property
+        Private ReadOnly _SavedPostsPath As XMLValue(Of SFile)
+        Friend Property SavedPostsPath(Optional ByVal GetAny As Boolean = True) As SFile
+            Get
+                If Not _SavedPostsPath.Value.IsEmptyString Then
+                    Return _SavedPostsPath.Value
+                Else
+                    If GetAny Then
+                        Return $"{Path.PathNoSeparator}\!Saved\"
+                    Else
+                        Return Nothing
+                    End If
+                End If
+            End Get
+            Set(ByVal NewPath As SFile)
+                _SavedPostsPath.Value = NewPath
             End Set
         End Property
 #Region "Instagram"
@@ -122,7 +143,7 @@ Namespace API.Base
             End If
 
             Dim n() As String = {SettingsCLS.Name_Node_Sites, Site.ToString}
-            _Path = New XMLValue(Of SFile)("Path", SFile.GetPath($"{GlobalPath.PathWithSeparator}{Site}"), _XML, n, XMLValue(Of SFile).ToFilePath)
+            _Path = New XMLValue(Of SFile)("Path",, _XML, n, XMLValue(Of SFile).ToFilePath)
             _XML.Remove(Site.ToString)
 
             Temporary = New XMLValue(Of Boolean)
@@ -138,6 +159,7 @@ Namespace API.Base
             DownloadVideos.SetDefault(_Vids)
 
             GetUserMediaOnly = New XMLValue(Of Boolean)("GetUserMediaOnly", True, _XML, n)
+            _SavedPostsPath = New XMLValue(Of SFile)("SavedPostsPath",, _XML, n, XMLValue(Of SFile).ToFilePath)
 
             CreateProp(InstaHashUpdateRequired, Sites.Instagram, "InstaHashUpdateRequired", True, _XML, n)
             CreateProp(InstaHash, Sites.Instagram, "InstaHash", String.Empty, _XML, n)
@@ -149,7 +171,7 @@ Namespace API.Base
             CreateProp(RequestsWaitTimerTaskCount, Sites.Instagram, "RequestsWaitTimerTaskCount", 1, _XML, n)
             CreateProp(SleepTimerOnPostsLimit, Sites.Instagram, "SleepTimerOnPostsLimit", 60000, _XML, n)
             If Site = Sites.Instagram Then
-                InstagramDownloadingErrorDate = New XMLValue(Of Date) With {.ToStringFunction = Function(ss, vv) AConvert(Of String)(vv, Nothing)}
+                InstagramDownloadingErrorDate = New XMLValue(Of Date) With {.ToStringFunction = Function(ss, vv) AConvert(Of String)(vv, AModes.Var, Nothing)}
                 InstagramDownloadingErrorDate.SetExtended("InstagramDownloadingErrorDate", Now.AddYears(-10), _XML, n)
             Else
                 InstagramDownloadingErrorDate = New XMLValue(Of Date)
@@ -170,10 +192,7 @@ Namespace API.Base
         End Sub
         Friend Function GatherInstaHash() As Boolean
             Try
-                Dim rs As New RegexStructure("=" & Chr(34) & "([^" & Chr(34) & "]+?ConsumerLibCommons[^" & Chr(34) & "]+?.js)" & Chr(34), 1) With {
-                    .UseTimeOut = True,
-                    .MatchTimeOutSeconds = 10
-                }
+                Dim rs As New RParams("=""([^""]+?ConsumerLibCommons[^""]+?.js)""", Nothing, 1) With {.MatchTimeOut = 10}
                 Dim r$ = Responser.GetResponse("https://instagram.com",, EDP.ThrowException)
                 If Not r.IsEmptyString Then
                     Dim hStr$ = RegexReplace(r, rs)
@@ -182,10 +201,7 @@ Namespace API.Base
                         hStr = $"https://instagram.com/{hStr}"
                         r = Responser.GetResponse(hStr,, EDP.ThrowException)
                         If Not r.IsEmptyString Then
-                            rs = New RegexStructure("generatePaginationActionCreators.+?.profilePosts.byUserId.get.+?queryId:.([\d\w\S]+?)" & Chr(34), 1) With {
-                                .UseTimeOut = True,
-                                .MatchTimeOutSeconds = 10
-                            }
+                            rs = New RParams("generatePaginationActionCreators.+?.profilePosts.byUserId.get.+?queryId:.([\d\w\S]+?)""", Nothing, 1) With {.MatchTimeOut = 10}
                             Dim h$ = RegexReplace(r, rs)
                             If Not h.IsEmptyString Then
                                 InstaHash.Value = h

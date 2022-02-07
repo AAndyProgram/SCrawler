@@ -85,7 +85,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
     Private Property DownloadLimitCount As Integer? Implements IChannelLimits.DownloadLimitCount
         Get
             If OPT_LIMITS_COUNT.Checked Then
-                Return AConvert(Of Integer)(TXT_LIMIT.Text, Nothing)
+                Return AConvert(Of Integer)(TXT_LIMIT.Text, AModes.Var, Nothing)
             Else
                 Return Nothing
             End If
@@ -107,7 +107,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
     Private Property DownloadLimitDate As Date? Implements IChannelLimits.DownloadLimitDate
         Get
             If OPT_LIMITS_DATE.Checked Then
-                Return AConvert(Of Date)(TXT_LIMIT.Value, Nothing)
+                Return AConvert(Of Date)(TXT_LIMIT.Value, AModes.Var, Nothing)
             Else
                 Return Nothing
             End If

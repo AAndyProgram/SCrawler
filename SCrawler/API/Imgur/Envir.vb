@@ -7,16 +7,17 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports PersonalUtilities.Functions.XML
+Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Tools.WebDocuments.JSON
 Imports System.Net
 Imports SCrawler.API.Imgur.Declarations
 Imports SCrawler.API.Base
-Namespace API.Imgur.Declarations
-    Friend Module Imgur_Declarations
-        Friend ReadOnly PostRegex As New RegexStructure("/([\w\d]+?)(|\.[\w]{0,4})\Z", 1)
-    End Module
-End Namespace
 Namespace API.Imgur
+    Namespace Declarations
+        Friend Module Imgur_Declarations
+            Friend ReadOnly PostRegex As RParams = RParams.DMS("/([\w\d]+?)(|\.[\w]{0,4})\Z", 1)
+        End Module
+    End Namespace
     Friend NotInheritable Class Envir
         Private Sub New()
         End Sub

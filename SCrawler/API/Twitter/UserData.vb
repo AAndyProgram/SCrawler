@@ -9,6 +9,7 @@
 Imports PersonalUtilities.Tools.WEB
 Imports PersonalUtilities.Tools.WebDocuments.JSON
 Imports PersonalUtilities.Functions.XML
+Imports PersonalUtilities.Functions.RegularExpressions
 Imports System.Net
 Imports System.Threading
 Imports SCrawler.API.Base
@@ -101,7 +102,7 @@ Namespace API.Twitter
         Friend Shared Function GetVideoInfo(ByVal URL As String) As IEnumerable(Of UserMedia)
             Try
                 If URL.Contains("twitter") Then
-                    Dim PostID$ = RegexReplace(URL, New RegexStructure("(?<=/)\d+", True, False,,,,, String.Empty))
+                    Dim PostID$ = RegexReplace(URL, RParams.DM("(?<=/)\d+", 0))
                     If Not PostID.IsEmptyString Then
                         Dim r$ = DirectCast(Settings(Sites.Twitter).Responser.Copy(), Response).
                                             GetResponse($"https://api.twitter.com/1.1/statuses/show.json?id={PostID}",, EDP.ReturnValue)

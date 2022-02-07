@@ -1003,7 +1003,7 @@ CloseResume:
             Dim l%? = Nothing
             If UseLimits Then
                 Do
-                    l = AConvert(Of Integer)(InputBoxE("Enter top posts limit for downloading:", "Download limit", 10), Nothing)
+                    l = AConvert(Of Integer)(InputBoxE("Enter top posts limit for downloading:", "Download limit", 10), AModes.Var, Nothing)
                     If l.HasValue Then
                         Select Case MsgBoxE(New MMessage($"You are set up downloading top [{l.Value}] posts", "Download limit",
                                             {"Confirm", "Try again", "Disable limit", "Cancel"}) With {.ButtonsPerRow = 2}).Index

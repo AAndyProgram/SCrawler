@@ -93,6 +93,7 @@ Namespace Editors
                             SetChecker(DEFS_REDDIT, Sites.Reddit)
                             CH_REDDIT_USER_MEDIA.Checked = .GetUserMediaOnly
                             TXT_REDDIT_SAVED_POSTS_USER.Text = .SavedPostsUserName
+                            TXT_REDDIT_SAVED_POSTS_PATH.Text = .SavedPostsPath(False)
                         End With
                         'Twitter
                         With .Site(Sites.Twitter)
@@ -106,6 +107,7 @@ Namespace Editors
                             TXT_REQ_COUNT.Text = .RequestsWaitTimerTaskCount
                             TXT_LIMIT_TIMER.Text = .SleepTimerOnPostsLimit
                             TXT_INST_SAVED_POSTS_USER.Text = .SavedPostsUserName
+                            TXT_INST_SAVED_POSTS_PATH.Text = .SavedPostsPath(False)
                         End With
                         'RedGifs
                         SetChecker(DEFS_REDGIFS, Sites.RedGifs)
@@ -229,6 +231,7 @@ Namespace Editors
                         SetPropByChecker(DEFS_REDDIT, Sites.Reddit)
                         .GetUserMediaOnly.Value = CH_REDDIT_USER_MEDIA.Checked
                         .SavedPostsUserName.Value = TXT_REDDIT_SAVED_POSTS_USER.Text
+                        .SavedPostsPath = TXT_REDDIT_SAVED_POSTS_PATH.Text
                     End With
                     'Twitter
                     With .Site(Sites.Twitter)
@@ -242,6 +245,7 @@ Namespace Editors
                         .RequestsWaitTimerTaskCount.Value = AConvert(Of Integer)(TXT_REQ_COUNT.Text)
                         .SleepTimerOnPostsLimit.Value = AConvert(Of Integer)(TXT_LIMIT_TIMER.Text)
                         .SavedPostsUserName.Value = TXT_INST_SAVED_POSTS_USER.Text
+                        .SavedPostsPath = TXT_INST_SAVED_POSTS_PATH.Text
                     End With
                     'RedGifs
                     SetPropByChecker(DEFS_REDGIFS, Sites.RedGifs)
@@ -287,6 +291,18 @@ Namespace Editors
             CH_FILE_DATE.Enabled = b
             CH_FILE_TIME.Enabled = b
             ChangePositionControlsEnabling()
+        End Sub
+        Private Sub TXT_REDDIT_SAVED_POSTS_PATH_ActionOnButtonClick(ByVal Sender As ActionButton) Handles TXT_REDDIT_SAVED_POSTS_PATH.ActionOnButtonClick
+            If Sender.DefaultButton = ActionButton.DefaultButtons.Open Then
+                Dim f As SFile = SFile.SelectPath
+                If Not f.IsEmptyString Then TXT_REDDIT_SAVED_POSTS_PATH.Text = f
+            End If
+        End Sub
+        Private Sub TXT_INST_SAVED_POSTS_PATH_ActionOnButtonClick(ByVal Sender As ActionButton) Handles TXT_INST_SAVED_POSTS_PATH.ActionOnButtonClick
+            If Sender.DefaultButton = ActionButton.DefaultButtons.Open Then
+                Dim f As SFile = SFile.SelectPath
+                If Not f.IsEmptyString Then TXT_INST_SAVED_POSTS_PATH.Text = f
+            End If
         End Sub
     End Class
 End Namespace
