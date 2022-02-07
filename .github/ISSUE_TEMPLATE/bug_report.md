@@ -12,8 +12,9 @@ A clear and concise description of what the bug is.
 
 **To Reproduce**
 Steps to reproduce the behavior:
-1. Do something
-2. See error
+1. Profile URL: 
+2. Do something
+3. See error
 
 **Log data**
 If the program log contains any data.
