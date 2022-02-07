@@ -34,6 +34,8 @@ Do you like this program? Consider adding to my coffee fund by making a donation
 
 # How does it works:
 
+First, the program downloads the full profile. After the program downloads only new posts. The program remembers downloaded posts.
+
 ## Reddit
 
 The program parses all user posts, obtain MD5  images hash and compares them with existing ones to remove duplicates. Then the media will be downloaded.
