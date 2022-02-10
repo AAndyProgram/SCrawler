@@ -2,6 +2,8 @@
 
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/AAndyProgram/SCrawler)](https://github.com/AAndyProgram/SCrawler/releases/latest)
 [![GitHub](https://img.shields.io/github/license/AAndyProgram/SCrawler)](https://github.com/AAndyProgram/SCrawler/)
+[![FAQ](https://img.shields.io/badge/FAQ-green)](FAQ.md)
+[![GUIDE](https://img.shields.io/badge/GUIDE-green)](https://github.com/AAndyProgram/SCrawler/wiki)
 
 A program to download photo and video from Reddit, Twitter, Instagram, [etc](#supported-sites).
 
