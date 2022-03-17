@@ -52,7 +52,7 @@ Friend Class LabelsKeeper : Implements ICollection(Of String), IMyEnumerator(Of 
             LabelsList.Sort()
             TextSaver.SaveTextToFile(LabelsList.ListToString(, vbNewLine), LabelsFile, True, False, EDP.SendInLog)
         Else
-            If LabelsFile.Exists Then LabelsFile.Delete(,,, EDP.SendInLog)
+            LabelsFile.Delete(, Settings.DeleteMode, EDP.SendInLog)
         End If
     End Sub
     Friend Overloads Sub Add(ByVal _Item As String) Implements ICollection(Of String).Add
@@ -65,10 +65,10 @@ Friend Class LabelsKeeper : Implements ICollection(Of String), IMyEnumerator(Of 
             If UpdateMainFrame Then RaiseEvent NewLabelAdded()
         End If
     End Sub
-    Friend Sub AddRange(ByVal _Items As IEnumerable(Of String))
+    Friend Sub AddRange(ByVal _Items As IEnumerable(Of String), ByVal UpdateMainFrame As Boolean)
         If _Items.ListExists Then
             For Each i$ In _Items : Add(i, False) : Next
-            RaiseEvent NewLabelAdded()
+            If UpdateMainFrame Then RaiseEvent NewLabelAdded()
         End If
     End Sub
     Friend Function Contains(ByVal _Item As String) As Boolean Implements ICollection(Of String).Contains
@@ -93,10 +93,7 @@ Friend Class LabelsKeeper : Implements ICollection(Of String), IMyEnumerator(Of 
     Private disposedValue As Boolean = False
     Protected Overridable Overloads Sub Dispose(ByVal disposing As Boolean)
         If Not disposedValue Then
-            If disposing Then
-                Clear()
-                CurrentSelection.Clear()
-            End If
+            If disposing Then Clear() : CurrentSelection.Clear()
             disposedValue = True
         End If
     End Sub

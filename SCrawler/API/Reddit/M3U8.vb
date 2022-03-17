@@ -96,7 +96,7 @@ Namespace API.Reddit
             Catch ex As Exception
                 Return ErrorsDescriber.Execute(DPED, ex, "[M3U8.Save]", New SFile)
             Finally
-                If Not CachePath.IsEmptyString AndAlso CachePath.Exists(SFO.Path, False) Then CachePath.Delete(SFO.Path, False, False, DPED)
+                CachePath.Delete(SFO.Path, SFODelete.None, DPED)
             End Try
         End Function
         Friend Shared Function Download(ByVal URL As String, ByVal f As SFile) As SFile

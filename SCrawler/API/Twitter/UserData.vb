@@ -16,27 +16,25 @@ Imports SCrawler.API.Base
 Namespace API.Twitter
     Friend Class UserData : Inherits UserDataBase
 #Region "Declarations"
-        Friend Overrides Property Site As Sites = Sites.Twitter
+        Private ReadOnly _DataNames As List(Of String)
 #End Region
 #Region "Initializer"
-        Friend Sub New(ByVal u As UserInfo, Optional ByVal _LoadUserInformation As Boolean = True)
-            User = u
-            If _LoadUserInformation Then LoadUserInformation()
+        Friend Sub New()
+            _DataNames = New List(Of String)
         End Sub
 #End Region
-#Region "Load and Update user info"
         Protected Overrides Sub LoadUserInformation_OptionalFields(ByRef Container As XmlFile, ByVal Loading As Boolean)
         End Sub
-#End Region
 #Region "Download functions"
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
+            If _ContentList.Count > 0 Then _DataNames.ListAddList(_ContentList.Select(Function(c) c.File.File), LAP.ClearBeforeAdd, LAP.NotContainsOnly)
             DownloadData(String.Empty, Token)
         End Sub
         Private Overloads Sub DownloadData(ByVal POST As String, ByVal Token As CancellationToken)
             Dim URL$ = String.Empty
             Try
                 Dim PostID$ = String.Empty
-                Dim PostDate$
+                Dim PostDate$, dName$
                 Dim m As EContainer, nn As EContainer, s As EContainer
                 Dim NewPostDetected As Boolean = False
                 Dim ExistsDetected As Boolean = False
@@ -61,6 +59,8 @@ Namespace API.Twitter
                                         If Not ID.IsEmptyString Then UpdateUserInformation()
                                     End If
 
+                                    If UserDescriptionNeedToUpdate() AndAlso nn.Value({"user"}, "screen_name") = Name Then UserDescriptionUpdate(nn.Value({"user"}, "description"))
+
                                     'Date Pattern:
                                     'Sat Jan 01 01:10:15 +0000 2000
                                     If nn.Contains("created_at") Then PostDate = nn("created_at").Value Else PostDate = String.Empty
@@ -81,8 +81,12 @@ Namespace API.Twitter
                                             If Not s Is Nothing AndAlso s.Count > 0 Then
                                                 For Each m In s
                                                     If m.Count > 0 AndAlso m.Contains("media_url") Then
-                                                        _TempMediaList.ListAddValue(MediaFromData(m("media_url").Value,
-                                                                                                  PostID, PostDate, GetPictureOption(m)), LNC)
+                                                        dName = UrlFile(m("media_url").Value)
+                                                        If Not dName.IsEmptyString AndAlso Not _DataNames.Contains(dName) Then
+                                                            _DataNames.Add(dName)
+                                                            _TempMediaList.ListAddValue(MediaFromData(m("media_url").Value,
+                                                                                                      PostID, PostDate, GetPictureOption(m)), LNC)
+                                                        End If
                                                     End If
                                                 Next
                                             End If
@@ -99,12 +103,12 @@ Namespace API.Twitter
                 ProcessException(ex, Token, $"data downloading error [{URL}]")
             End Try
         End Sub
-        Friend Shared Function GetVideoInfo(ByVal URL As String) As IEnumerable(Of UserMedia)
+        Friend Shared Function GetVideoInfo(ByVal URL As String, ByVal resp As Response) As IEnumerable(Of UserMedia)
             Try
                 If URL.Contains("twitter") Then
                     Dim PostID$ = RegexReplace(URL, RParams.DM("(?<=/)\d+", 0))
                     If Not PostID.IsEmptyString Then
-                        Dim r$ = DirectCast(Settings(Sites.Twitter).Responser.Copy(), Response).
+                        Dim r$ = DirectCast(resp.Copy(), Response).
                                             GetResponse($"https://api.twitter.com/1.1/statuses/show.json?id={PostID}",, EDP.ReturnValue)
                         If Not r.IsEmptyString Then
                             Using j As EContainer = JsonDocument.Parse(r)
@@ -147,7 +151,14 @@ Namespace API.Twitter
         Private Function CheckVideoNode(ByVal w As EContainer, ByVal PostID As String, ByVal PostDate As String) As Boolean
             Try
                 Dim URL$ = GetVideoNodeURL(w)
-                If Not URL.IsEmptyString Then _TempMediaList.ListAddValue(MediaFromData(URL, PostID, PostDate), LNC) : Return True
+                If Not URL.IsEmptyString Then
+                    Dim f$ = UrlFile(URL)
+                    If Not f.IsEmptyString AndAlso Not _DataNames.Contains(f) Then
+                        _DataNames.Add(f)
+                        _TempMediaList.ListAddValue(MediaFromData(URL, PostID, PostDate), LNC)
+                    End If
+                    Return True
+                End If
                 Return False
             Catch ex As Exception
                 LogError(ex, "[API.Twitter.UserData.CheckVideoNode]")
@@ -177,6 +188,14 @@ Namespace API.Twitter
         End Function
         Protected Overrides Sub ReparseVideo(ByVal Token As CancellationToken)
         End Sub
+        Private Function UrlFile(ByVal URL As String) As String
+            Try
+                Dim f As SFile = CStr(RegexReplace(LinkFormatterSecure(RegexReplace(URL.Replace("\", String.Empty), LinkPattern)), FilesPattern))
+                If Not f.IsEmptyString Then Return f.File Else Return String.Empty
+            Catch ex As Exception
+                Return String.Empty
+            End Try
+        End Function
 #End Region
         Private Shared Function MediaFromData(ByVal _URL As String, ByVal PostID As String, ByVal PostDate As String,
                                               Optional ByVal _PictureOption As String = "") As UserMedia
@@ -206,5 +225,9 @@ Namespace API.Twitter
             End If
             Return 1
         End Function
+        Protected Overrides Sub Dispose(ByVal disposing As Boolean)
+            If Not disposedValue And disposing Then _DataNames.Clear()
+            MyBase.Dispose(disposing)
+        End Sub
     End Class
 End Namespace

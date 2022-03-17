@@ -12,11 +12,11 @@ Imports PersonalUtilities.Forms.Controls.Base
 Namespace Editors
     Friend Class SiteSelectionForm : Implements IOkCancelToolbar
         Private ReadOnly MyDefs As DefaultFormProps
-        Friend ReadOnly Property SelectedSites As List(Of Sites)
-        Friend Sub New(ByVal s As List(Of Sites))
+        Friend ReadOnly Property SelectedSites As List(Of String)
+        Friend Sub New(ByVal s As List(Of String))
             InitializeComponent()
             SelectedSites.ListAddList(s)
-            If SelectedSites Is Nothing Then SelectedSites = New List(Of Sites)
+            If SelectedSites Is Nothing Then SelectedSites = New List(Of String)
             MyDefs = New DefaultFormProps
         End Sub
         Private Sub SiteSelectionForm_Load(sender As Object, e As EventArgs) Handles Me.Load
@@ -25,8 +25,8 @@ Namespace Editors
                 .DelegateClosingChecker()
                 .AddOkCancelToolbar()
                 CMB_SITES.BeginUpdate()
-                Dim sl As List(Of Sites) = ListAddList(Of Sites)(Nothing, [Enum].GetValues(GetType(Sites))).ListWithRemove(Sites.Undefined)
-                CMB_SITES.Items.AddRange(sl.Select(Function(s) New ListItem({s.ToString, CInt(s)})))
+                Dim sl As List(Of String) = ListAddList(Nothing, Settings.Plugins.Select(Function(p) p.Name))
+                CMB_SITES.Items.AddRange(sl.Select(Function(s) New ListItem(s)))
                 Dim l As New List(Of Integer)
                 If SelectedSites.Count > 0 Then sl.ForEach(Sub(s) If SelectedSites.Contains(s) Then l.Add(sl.IndexOf(s)))
                 sl.Clear()
@@ -41,7 +41,7 @@ Namespace Editors
         End Sub
         Public Sub ToolbarBttOK() Implements IOkCancelToolbar.ToolbarBttOK
             Try
-                SelectedSites.ListAddList(CMB_SITES.Items.CheckedItems.Select(Function(i) DirectCast(i.Value(1), Sites)), LAP.ClearBeforeAdd)
+                SelectedSites.ListAddList(CMB_SITES.Items.CheckedItems.Select(Function(i) CStr(i.Value(0))), LAP.ClearBeforeAdd)
                 MyDefs.CloseForm()
             Catch ex As Exception
                 ErrorsDescriber.Execute(EDP.LogMessageValue, ex)

@@ -15,10 +15,7 @@ Imports SCrawler.API.Base
 Imports UTypes = SCrawler.API.Base.UserMedia.Types
 Namespace API.RedGifs
     Friend Class UserData : Inherits UserDataBase
-        Friend Overrides Property Site As Sites = Sites.RedGifs
-        Friend Sub New(ByVal u As UserInfo, Optional ByVal _LoadUserInformation As Boolean = True)
-            User = u
-            If _LoadUserInformation Then LoadUserInformation()
+        Friend Sub New()
         End Sub
         Protected Overrides Sub LoadUserInformation_OptionalFields(ByRef Container As XmlFile, ByVal Loading As Boolean)
         End Sub

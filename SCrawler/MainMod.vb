@@ -7,11 +7,16 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports PersonalUtilities.Functions.XML
+Imports PersonalUtilities.Functions.XML.Base
 Imports PersonalUtilities.Functions.RegularExpressions
+Imports PersonalUtilities.Tools
 Imports PersonalUtilities.Tools.WEB
 Imports PersonalUtilities.Forms.Toolbars
 Imports SCrawler.API
 Imports SCrawler.API.Base
+Imports SCrawler.Plugin.Hosts
+Imports SCrawler.DownloadObjects
+Imports DownOptions = SCrawler.Plugin.ISiteSettings.Download
 Friend Module MainMod
     Friend Settings As SettingsCLS
     Friend Const SettingsFolderName As String = "Settings"
@@ -22,10 +27,38 @@ Friend Module MainMod
     Friend Const CannelsLabelName As String = "Channels"
     Friend Const LVI_CollectionOption As String = "Collection"
     Friend Const LVI_ChannelOption As String = "Channel"
+    Friend Property BATCH As BatchExecutor
+    Private _BatchLogSent As Boolean = False
+    ''' <param name="e"><see cref="EDP.None"/></param>
+    Friend Sub GlobalOpenPath(ByVal f As SFile, Optional ByVal e As ErrorsDescriber = Nothing)
+        Dim b As Boolean = False
+        If Not e.Exists Then e = EDP.None
+        Try
+            If f.Exists(SFO.Path, False) Then
+                If Settings.OpenFolderInOtherProgram.Attribute.Value AndAlso Not Settings.OpenFolderInOtherProgram.IsEmptyString Then
+                    If BATCH Is Nothing Then BATCH = New BatchExecutor With {.RedirectStandardError = True}
+                    b = True
+                    With BATCH
+                        .Reset()
+                        .Execute({String.Format(Settings.OpenFolderInOtherProgram.Value, f.PathWithSeparator)}, EDP.SendInLog + EDP.ThrowException)
+                        If .HasError Or Not .ErrorOutput.IsEmptyString Then Throw New Exception(.ErrorOutput, .ErrorException)
+                    End With
+                Else
+                    f.Open(SFO.Path, e)
+                End If
+            End If
+        Catch ex As Exception
+            If b Then
+                If Not _BatchLogSent Then ErrorsDescriber.Execute(EDP.SendInLog, ex, $"GlobalOpenPath({f.Path})") : _BatchLogSent = True
+                f.Open(SFO.Path, e)
+            End If
+        End Try
+    End Sub
     Friend Enum ViewModes As Integer
-        IconLarge = 0
-        IconSmall = 2
-        List = 3
+        IconLarge = View.LargeIcon
+        IconSmall = View.SmallIcon
+        List = View.Tile
+        Details = View.Details
     End Enum
     Friend Enum ShowingModes As Integer
         All = 0
@@ -34,11 +67,17 @@ Friend Module MainMod
         Favorite = 100
         Labels = 500
         NoLabels = 1000
+        Deleted = 10000
+        Suspended = 12000
     End Enum
     Friend Downloader As TDownloader
     Friend InfoForm As DownloadedInfoForm
     Friend VideoDownloader As VideosDownloaderForm
+    Friend UserListLoader As ListImagesLoader
+    Friend MyProgressForm As ActiveDownloadingProgress
+    Friend MainFrameObj As MainFrameObjects
     Friend ReadOnly ParsersDataDateProvider As New ADateTime(ADateTime.Formats.BaseDateTime)
+    Friend ReadOnly LogConnector As New LogHost
 #Region "File name operations"
     Friend FileDateAppenderProvider As IFormatProvider
     ''' <summary>File, Date</summary>
@@ -51,8 +90,18 @@ Friend Module MainMod
     End Class
 #End Region
     Friend Property MainProgress As MyProgress
-    Friend Property MainProgressInst As MyProgress
-    Friend Function GetLviGroupName(ByVal Site As Sites, ByVal Temp As Boolean, ByVal Fav As Boolean,
+    Friend Function GetLviGroupName(ByVal Host As SettingsHost, ByVal IsCollection As Boolean, ByVal IsChannel As Boolean) As ListViewGroup()
+        Dim l As New List(Of ListViewGroup)
+        Dim t$
+        t = GetLviGroupName(Host, False, True, IsCollection, IsChannel)
+        l.Add(New ListViewGroup(t, t))
+        t = GetLviGroupName(Host, False, False, IsCollection, IsChannel)
+        l.Add(New ListViewGroup(t, t))
+        t = GetLviGroupName(Host, True, False, IsCollection, IsChannel)
+        l.Add(New ListViewGroup(t, t))
+        Return l.ToArray
+    End Function
+    Friend Function GetLviGroupName(ByVal Host As SettingsHost, ByVal Temp As Boolean, ByVal Fav As Boolean,
                                     ByVal IsCollection As Boolean, ByVal IsChannel As Boolean) As String
         Dim Opt$ = String.Empty
         If Temp Then
@@ -66,50 +115,61 @@ Friend Module MainMod
         ElseIf IsChannel Then
             Return $"{LVI_ChannelOption}{Opt}"
         Else
-            Return $"{Site}{Opt}"
+            Return $"{If(Host?.Name, String.Empty)}{Opt}"
         End If
     End Function
-    Friend Enum Sites As Integer
-        Undefined = 0
-        Reddit = 1
-        Twitter = 2
-        Instagram = 3
-        RedGifs = 4
-    End Enum
-    Friend Structure UserInfo : Implements IComparable(Of UserInfo), IEquatable(Of UserInfo), ICloneable
+    Friend Structure UserInfo : Implements IComparable(Of UserInfo), IEquatable(Of UserInfo), ICloneable, IEContainerProvider
         Friend Const Name_Site As String = "Site"
+        Friend Const Name_Plugin As String = "Plugin"
         Friend Const Name_Collection As String = "Collection"
         Friend Const Name_Merged As String = "Merged"
         Friend Const Name_IsChannel As String = "IsChannel"
         Friend Const Name_SpecialPath As String = "SpecialPath"
         Friend Name As String
-        Friend Site As Sites
+        Friend Site As String
+        Friend Plugin As String
         Friend File As SFile
         Friend SpecialPath As SFile
         Friend Merged As Boolean
         Friend IncludedInCollection As Boolean
         Friend CollectionName As String
         Friend IsChannel As Boolean
-        Friend Sub New(ByVal _Name As String, ByVal s As Sites, Optional ByVal Collection As String = Nothing,
+        Friend [Protected] As Boolean
+        Friend ReadOnly Property DownloadOption As DownOptions
+            Get
+                If IsChannel Then
+                    Return DownOptions.Channel
+                Else
+                    Return DownOptions.Main
+                End If
+            End Get
+        End Property
+        Friend Sub New(ByVal _Name As String, ByVal Host As SettingsHost, Optional ByVal Collection As String = Nothing,
                        Optional ByVal _Merged As Boolean = False, Optional ByVal _SpecialPath As SFile = Nothing)
             Name = _Name
-            Site = s
+            Site = Host.Name
+            Plugin = Host.Key
             IncludedInCollection = Not Collection.IsEmptyString
             CollectionName = Collection
             Merged = _Merged
             SpecialPath = _SpecialPath
             UpdateUserFile()
         End Sub
-        Friend Sub New(ByVal x As EContainer)
-            Me.New(x.Value,
-                   x.Attribute(Name_Site).Value.FromXML(Of Integer)(CInt(Sites.Undefined)),
-                   x.Attribute(Name_Collection).Value, x.Attribute(Name_Merged).Value.FromXML(Of Boolean)(False),
-                   SFile.GetPath(x.Attribute(Name_SpecialPath).Value))
+        Private Sub New(ByVal x As EContainer)
+            Name = x.Value
+            Site = x.Attribute(Name_Site).Value
+            Plugin = x.Attribute(Name_Plugin).Value
+            CollectionName = x.Attribute(Name_Collection).Value
+            IncludedInCollection = Not CollectionName.IsEmptyString
+            Merged = x.Attribute(Name_Merged).Value.FromXML(Of Boolean)(False)
+            SpecialPath = SFile.GetPath(x.Attribute(Name_SpecialPath).Value)
             IsChannel = x.Attribute(Name_IsChannel).Value.FromXML(Of Boolean)(False)
+            'UpdateUserFile()
         End Sub
         Friend Sub New(ByVal c As Reddit.Channel)
             Name = c.Name
-            Site = Sites.Reddit
+            Site = Reddit.RedditSite
+            Plugin = Reddit.RedditSiteKey
             File = c.File
             IsChannel = True
         End Sub
@@ -137,6 +197,7 @@ Friend Module MainMod
             }
         End Sub
         Private Function GetFilePathByParams() As String
+            If [Protected] Then Return String.Empty
             If Not SpecialPath.IsEmptyString Then
                 Return $"{SpecialPath.PathWithSeparator}{SettingsFolderName}"
             ElseIf Merged And IncludedInCollection Then
@@ -144,13 +205,18 @@ Friend Module MainMod
             Else
                 If IncludedInCollection Then
                     Return $"{Settings.CollectionsPathF.PathNoSeparator}\{CollectionName}\{Site}_{Name}\{SettingsFolderName}"
+                ElseIf Not Settings(Plugin) Is Nothing Then
+                    Return $"{Settings(Plugin).Path.PathNoSeparator}\{Name}\{SettingsFolderName}"
                 Else
-                    Return $"{Settings(Site).Path.PathNoSeparator}\{Name}\{SettingsFolderName}"
+                    Dim s$ = Site.ToLower
+                    Dim i% = Settings.Plugins.FindIndex(Function(p) p.Name.ToLower = s)
+                    If i >= 0 Then Return $"{Settings.Plugins(i).Settings.Path.PathNoSeparator}\{Name}\{SettingsFolderName}" Else Return String.Empty
                 End If
             End If
         End Function
-        Friend Function GetContainer() As EContainer
-            Return New EContainer("User", Name, {New EAttribute(Name_Site, CInt(Site)),
+        Friend Function GetContainer(Optional ByVal e As ErrorsDescriber = Nothing) As EContainer Implements IEContainerProvider.ToEContainer
+            Return New EContainer("User", Name, {New EAttribute(Name_Site, Site),
+                                                 New EAttribute(Name_Plugin, Plugin),
                                                  New EAttribute(Name_Collection, CollectionName),
                                                  New EAttribute(Name_Merged, Merged.BoolToInteger),
                                                  New EAttribute(Name_IsChannel, IsChannel.BoolToInteger),
@@ -160,7 +226,7 @@ Friend Module MainMod
             If Site = Other.Site Then
                 Return Name.CompareTo(Other.Name)
             Else
-                Return CInt(Site).CompareTo(CInt(Other.Site))
+                Return Site.CompareTo(Other.Site)
             End If
         End Function
         Friend Overloads Function Equals(ByVal Other As UserInfo) As Boolean Implements IEquatable(Of UserInfo).Equals
@@ -173,12 +239,14 @@ Friend Module MainMod
             Return New UserInfo With {
                 .Name = Name,
                 .Site = Site,
+                .Plugin = Plugin,
                 .File = File,
                 .SpecialPath = SpecialPath,
                 .Merged = Merged,
                 .IncludedInCollection = IncludedInCollection,
                 .CollectionName = CollectionName,
-                .IsChannel = IsChannel
+                .IsChannel = IsChannel,
+                .[Protected] = [Protected]
             }
         End Function
     End Structure
@@ -188,20 +256,10 @@ Friend Module MainMod
         ImageHandler(User, True)
     End Sub
     Friend Sub ImageHandler(ByVal User As IUserData, ByVal Add As Boolean)
-        Try
-            If Add Then
-                AddHandler User.Self.OnUserUpdated, AddressOf MainFrame.User_OnUserUpdated
-            Else
-                RemoveHandler User.Self.OnUserUpdated, AddressOf MainFrame.User_OnUserUpdated
-            End If
-        Catch ex As Exception
-        End Try
+        MainFrameObj.ImageHandler(User, Add)
     End Sub
     Friend Sub CollectionHandler(ByVal [Collection] As UserDataBind)
-        Try
-            AddHandler Collection.OnCollectionSelfRemoved, AddressOf MainFrame.RefillList
-        Catch ex As Exception
-        End Try
+        MainFrameObj.CollectionHandler(Collection)
     End Sub
 #End Region
 #Region "Standalone video download functions"
@@ -211,8 +269,7 @@ Friend Module MainMod
         Return b
     End Function
     Friend Function GetNewVideoURL() As String
-        Dim b$ = GetCurrentBuffer()
-        Dim URL$ = InputBoxE("Enter video URL:", "Download video by URL", b)
+        Dim URL$ = InputBoxE("Enter video URL:", "Download video by URL", GetCurrentBuffer())
         If Not URL.IsEmptyString Then Return URL Else Return String.Empty
     End Function
     Friend Sub DownloadVideoByURL()
@@ -229,27 +286,34 @@ Friend Module MainMod
             Dim Result As Boolean = False
             If Not URL.IsEmptyString Then
                 Dim um As IEnumerable(Of UserMedia) = Nothing
-                Dim site As Sites
-                Dim IsImgur As Boolean = False
-                If URL.Contains("twitter") Then
-                    um = Twitter.UserData.GetVideoInfo(URL)
-                    site = Sites.Twitter
-                ElseIf URL.Contains("redgifs") Then
-                    um = Reddit.UserData.GetVideoInfo(URL)
-                    site = Sites.Reddit
-                ElseIf URL.Contains("instagram.com") Then
-                    um = Instagram.UserData.GetVideoInfo(URL)
-                    site = Sites.Instagram
-                ElseIf URL.Contains("imgur.com") Then
-                    um = Imgur.Envir.GetVideoInfo(URL)
-                    IsImgur = True
-                Else
-                    MsgBoxE("Site of video URL does not recognized" & vbCr & "Operation canceled", MsgBoxStyle.Exclamation, e)
-                    Return False
+                Dim found As Boolean = False
+                Dim d As Plugin.ExchangeOptions
+                If Settings.Plugins.Count > 0 Then
+                    For Each p As PluginHost In Settings.Plugins
+                        d = p.Settings.IsMyImageVideo(URL)
+                        If d.Exists Then
+                            um = Settings(d.HostKey).GetSpecialData(URL)
+                            found = True
+                            Exit For
+                        End If
+                    Next
+                End If
+                If Not found Then
+                    If URL.Contains("gfycat") Then
+                        um = Gfycat.Envir.GetVideoInfo(URL)
+                    ElseIf URL.Contains("imgur.com") Then
+                        um = Imgur.Envir.GetVideoInfo(URL)
+                    Else
+                        MsgBoxE("Site of video URL does not recognized" & vbCr & "Operation canceled", MsgBoxStyle.Exclamation, e)
+                        Return False
+                    End If
                 End If
 
                 If um.ListExists Then
                     Dim f As SFile, ff As SFile
+                    Dim dURL$
+                    Dim FileDownloaded As Boolean = False
+
                     For Each u As UserMedia In um
                         If Not u.URL.IsEmptyString Or Not u.URL_BASE.IsEmptyString Then
                             f = u.File
@@ -259,23 +323,18 @@ Friend Module MainMod
                                    Settings.LatestSavingPath.Value.Exists(SFO.Path, False) Then f.Path = Settings.LatestSavingPath.Value
                             If AskForPath OrElse Not f.Exists(SFO.Path, False) Then
 #Disable Warning BC40000
-                                If site = Sites.Instagram Or IsImgur Then
-                                    ff = SFile.SaveAs(f, "Files destination",,,, EDP.ReturnValue)
-                                    If Not ff.IsEmptyString Then
-                                        f.Path = ff.Path
-                                    Else
-                                        f = Nothing
-                                    End If
+                                ff = SFile.SaveAs(f, "Files destination",,,, EDP.ReturnValue)
+                                If Not ff.IsEmptyString Then
+                                    f.Path = ff.Path
                                 Else
-                                    f = SFile.SaveAs(f, "Video file destination", True, "mp4", "Video|*.mp4|All files|*.*", EDP.ReturnValue)
+                                    f = Nothing
                                 End If
 #Enable Warning
                                 AskForPath = False
                             End If
                             If Not f.IsEmptyString Then
                                 Settings.LatestSavingPath.Value = f.PathWithSeparator
-                                Dim dURL$
-                                Dim FileDownloaded As Boolean = False
+                                FileDownloaded = False
                                 Using w As New Net.WebClient
                                     For i% = 0 To 1
                                         If i = 0 Then dURL = u.URL Else dURL = u.URL_BASE

@@ -10,21 +10,23 @@ Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.XML.Base
 Imports SCrawler.API
 Imports SCrawler.API.Base
+Imports SCrawler.Plugin.Hosts
+Imports SCrawler.DownloadObjects
 Friend Class SettingsCLS : Implements IDisposable
     Friend Const DefaultMaxDownloadingTasks As Integer = 5
     Friend Const Name_Node_Sites As String = "Sites"
     Private Const SitesValuesSeparator As String = ","
     Friend ReadOnly Design As XmlFile
     Private ReadOnly MyXML As XmlFile
-    Friend ReadOnly OS64 As Boolean
-    Friend ReadOnly FfmpegExists As Boolean
+    Private ReadOnly OS64 As Boolean
+    Private ReadOnly FfmpegExists As Boolean
     Friend ReadOnly FfmpegFile As SFile
     Friend ReadOnly Property UseM3U8 As Boolean
         Get
             Return OS64 And FfmpegExists
         End Get
     End Property
-    Private ReadOnly MySites As Dictionary(Of Sites, SiteSettings)
+    Friend ReadOnly Plugins As List(Of PluginHost)
     Friend ReadOnly Property Users As List(Of IUserData)
     Friend ReadOnly Property UsersList As List(Of UserInfo)
     Friend Property Channels As Reddit.ChannelsCollection
@@ -39,12 +41,14 @@ Friend Class SettingsCLS : Implements IDisposable
         If OS64 And Not FfmpegExists Then MsgBoxE("[ffmpeg.exe] is missing", vbExclamation)
         Design = New XmlFile("Settings\Design.xml", Protector.Modes.All)
         MyXML = New XmlFile(Nothing) With {.AutoUpdateFile = True}
+        MyXML.BeginUpdate()
         Users = New List(Of IUserData)
         UsersList = New List(Of UserInfo)
         BlackList = New List(Of UserBan)
+        Plugins = New List(Of PluginHost)
 
         GlobalPath = New XMLValue(Of SFile)("GlobalPath", New SFile($"{SFile.GetPath(Application.StartupPath).PathWithSeparator}Data\"), MyXML,,
-                                            XMLValue(Of SFile).ToFilePath)
+                                            New XMLValueBase.ToFilePath)
 
         SeparateVideoFolder = New XMLValue(Of Boolean)("SeparateVideoFolder", True, MyXML)
         CollectionsPath = New XMLValue(Of String)("CollectionsPath", "Collections", MyXML)
@@ -55,29 +59,25 @@ Friend Class SettingsCLS : Implements IDisposable
         DefaultDownloadVideos = New XMLValue(Of Boolean)("DownloadVideos", True, MyXML, n)
         ChangeReadyForDownOnTempChange = New XMLValue(Of Boolean)("ChangeReadyForDownOnTempChange", True, MyXML, n)
 
-        MySites = New Dictionary(Of Sites, SiteSettings) From {
-            {Sites.Reddit, New SiteSettings(Sites.Reddit, MyXML, GlobalPath.Value, DefaultTemporary, DefaultDownloadImages, DefaultDownloadVideos)},
-            {Sites.Twitter, New SiteSettings(Sites.Twitter, MyXML, GlobalPath.Value, DefaultTemporary, DefaultDownloadImages, DefaultDownloadVideos)},
-            {Sites.Instagram, New SiteSettings(Sites.Instagram, MyXML, GlobalPath.Value, DefaultTemporary, DefaultDownloadImages, DefaultDownloadVideos)},
-            {Sites.RedGifs, New SiteSettings(Sites.RedGifs, MyXML, GlobalPath.Value, DefaultTemporary, DefaultDownloadImages, DefaultDownloadVideos)}
-        }
-        MySites(Sites.Reddit).Responser.Decoders.Add(SymbolsConverter.Converters.Unicode)
+        Plugins.AddRange(PluginHost.GetMyHosts(MyXML, GlobalPath.Value, DefaultTemporary, DefaultDownloadImages, DefaultDownloadVideos))
+        Dim tmpPluginList As IEnumerable(Of PluginHost) = PluginHost.GetPluginsHosts(MyXML, GlobalPath.Value, DefaultTemporary,
+                                                                                     DefaultDownloadImages, DefaultDownloadVideos)
+        If tmpPluginList.ListExists Then Plugins.AddRange(tmpPluginList)
 
+        FastProfilesLoading = New XMLValue(Of Boolean)("FastProfilesLoading", False, MyXML)
         MaxLargeImageHeigh = New XMLValue(Of Integer)("MaxLargeImageHeigh", 150, MyXML)
         MaxSmallImageHeigh = New XMLValue(Of Integer)("MaxSmallImageHeigh", 15, MyXML)
         InfoViewMode = New XMLValue(Of Integer)("InfoViewMode", DownloadedInfoForm.ViewModes.Session, MyXML)
         ViewMode = New XMLValue(Of Integer)("ViewMode", ViewModes.IconLarge, MyXML)
         ShowingMode = New XMLValue(Of Integer)("ShowingMode", ShowingModes.All, MyXML)
 
-        LatestSavingPath = New XMLValue(Of SFile)("LatestSavingPath", Nothing, MyXML,, XMLValue(Of SFile).ToFilePath)
+        LatestSavingPath = New XMLValue(Of SFile)("LatestSavingPath", Nothing, MyXML,, New XMLValueBase.ToFilePath)
         LatestSelectedLabels = New XMLValue(Of String)("LatestSelectedLabels",, MyXML)
         LatestSelectedChannel = New XMLValue(Of String)("LatestSelectedChannel",, MyXML)
+        LastUpdatedLimit = New XMLValue(Of Date)
+        LastUpdatedLimit.SetExtended("LastUpdatedLimit",, MyXML)
 
-        XMLSelectedSites = New XMLValue(Of String)("SelectedSites", String.Empty, MyXML, {Name_Node_Sites})
-        If Not XMLSelectedSites.IsEmptyString Then
-            _SelectedSites = XMLSelectedSites.Value.StringToList(Of Sites)(SitesValuesSeparator)
-        End If
-        If _SelectedSites Is Nothing Then _SelectedSites = New List(Of Sites)
+        SelectedSites = New XMLValuesCollection(Of String)(XMLValueBase.ListModes.String, "SelectedSites", MyXML, {Name_Node_Sites})
 
         ImgurClientID = New XMLValue(Of String)("ImgurClientID", String.Empty, MyXML, {Name_Node_Sites})
 
@@ -89,17 +89,22 @@ Friend Class SettingsCLS : Implements IDisposable
         ChannelsImagesColumns = New XMLValue(Of Integer)("ImagesColumns", 5, MyXML, n)
         ChannelsHideExistsUser = New XMLValue(Of Boolean)("HideExistsUser", True, MyXML, n)
         ChannelsMaxJobsCount = New XMLValue(Of Integer)("MaxJobsCount", DefaultMaxDownloadingTasks, MyXML, n)
+        ChannelsAddUserImagesFromAllChannels = New XMLValue(Of Boolean)("AddUserImagesFromAllChannels", True, MyXML, n)
 
         n = {"Users"}
         FromChannelDownloadTop = New XMLValue(Of Integer)("FromChannelDownloadTop", 10, MyXML, n)
         FromChannelDownloadTopUse = New XMLValue(Of Boolean)("FromChannelDownloadTopUse", False, MyXML, n)
         FromChannelCopyImageToUser = New XMLValue(Of Boolean)("FromChannelCopyImageToUser", True, MyXML, n)
+        UpdateUserDescriptionEveryTime = New XMLValue(Of Boolean)("UpdateUserDescriptionEveryTime", True, MyXML, n)
 
         n = {"Users", "FileName"}
         MaxUsersJobsCount = New XMLValue(Of Integer)("MaxJobsCount", DefaultMaxDownloadingTasks, MyXML, n)
-        FileAddDateToFileName = New XMLValue(Of Boolean)("FileAddDateToFileName", False, MyXML, n) With {.OnChangeFunction = AddressOf ChangeDateProvider}
-        FileAddTimeToFileName = New XMLValue(Of Boolean)("FileAddTimeToFileName", False, MyXML, n) With {.OnChangeFunction = AddressOf ChangeDateProvider}
-        FileDateTimePositionEnd = New XMLValue(Of Boolean)("FileDateTimePositionEnd", True, MyXML, n) With {.OnChangeFunction = AddressOf ChangeDateProvider}
+        FileAddDateToFileName = New XMLValue(Of Boolean)("FileAddDateToFileName", False, MyXML, n)
+        AddHandler FileAddDateToFileName.OnValueChanged, AddressOf ChangeDateProvider
+        FileAddTimeToFileName = New XMLValue(Of Boolean)("FileAddTimeToFileName", False, MyXML, n)
+        AddHandler FileAddTimeToFileName.OnValueChanged, AddressOf ChangeDateProvider
+        FileDateTimePositionEnd = New XMLValue(Of Boolean)("FileDateTimePositionEnd", True, MyXML, n)
+        AddHandler FileDateTimePositionEnd.OnValueChanged, AddressOf ChangeDateProvider
         FileReplaceNameByDate = New XMLValue(Of Boolean)("FileReplaceNameByDate", False, MyXML, n)
 
         CheckUpdatesAtStart = New XMLValue(Of Boolean)("CheckUpdatesAtStart", True, MyXML)
@@ -109,7 +114,10 @@ Friend Class SettingsCLS : Implements IDisposable
         ExitConfirm = New XMLValue(Of Boolean)("ExitConfirm", True, MyXML)
         CloseToTray = New XMLValue(Of Boolean)("CloseToTray", True, MyXML)
         ShowNotifications = New XMLValue(Of Boolean)("ShowNotifications", True, MyXML)
+        OpenFolderInOtherProgram = New XMLValueAttribute(Of String, Boolean)("OpenFolderInOtherProgram", "Use",,, MyXML)
+        DeleteToRecycleBin = New XMLValue(Of Boolean)("DeleteToRecycleBin", True, MyXML)
 
+        MyXML.EndUpdate()
         If MyXML.ChangesDetected Then MyXML.Sort() : MyXML.UpdateData()
 
         Labels = New LabelsKeeper
@@ -130,6 +138,7 @@ Friend Class SettingsCLS : Implements IDisposable
             If FileDateTimePositionEnd Then FileDateAppenderPattern = "{0}_{1}" Else FileDateAppenderPattern = "{1}_{0}"
         End If
     End Sub
+#Region "USERS"
     Friend Sub LoadUsers()
         Try
             Users.Clear()
@@ -138,15 +147,16 @@ Friend Class SettingsCLS : Implements IDisposable
                     x.LoadData()
                     If x.Count > 0 Then x.ForEach(Sub(xx) UsersList.Add(xx))
                 End Using
-                Dim PNC As Func(Of UserInfo, Boolean) = Function(u) Not u.IncludedInCollection
+                UsersCompatibilityCheck()
+                Dim PNC As Func(Of UserInfo, Boolean) = Function(u) Not u.IncludedInCollection And Not u.Protected
                 Dim NeedUpdate As Boolean = False
                 If UsersList.Count > 0 Then
-                    Dim cUsers As List(Of UserInfo) = UsersList.Where(Function(u) u.IncludedInCollection).ToList
+                    Dim cUsers As List(Of UserInfo) = UsersList.Where(Function(u) u.IncludedInCollection And Not u.Protected).ToList
                     If cUsers.ListExists Then
                         Dim d As New Dictionary(Of SFile, List(Of UserInfo))
                         cUsers = cUsers.ListForEachCopy(Of List(Of UserInfo))(Function(ByVal f As UserInfo, ByVal f_indx As Integer) As UserInfo
                                                                                   Dim m% = IIf(f.Merged, 1, 2)
-                                                                                  If SFile.GetPath(f.File.CutPath(m - 1).Path).Exists(SFO.Path, False) Then
+                                                                                  If Not f.Protected AndAlso SFile.GetPath(f.File.CutPath(m - 1).Path).Exists(SFO.Path, False) Then
                                                                                       Dim fp As SFile = SFile.GetPath(f.File.CutPath(m).Path)
                                                                                       If Not d.ContainsKey(fp) Then
                                                                                           d.Add(fp, New List(Of UserInfo) From {f})
@@ -155,8 +165,7 @@ Friend Class SettingsCLS : Implements IDisposable
                                                                                       End If
                                                                                       Return f
                                                                                   Else
-                                                                                      NeedUpdate = True
-                                                                                      UsersList.Remove(f)
+                                                                                      If Not f.Protected Then NeedUpdate = True : UsersList.Remove(f)
                                                                                       Return Nothing
                                                                                   End If
                                                                               End Function, True)
@@ -179,35 +188,88 @@ Friend Class SettingsCLS : Implements IDisposable
                     Task.WaitAll(t.ToArray)
                     t.Clear()
                     Dim du As List(Of UserInfo) = (From u As IUserData In Users
-                                                   Where Not u.IsCollection AndAlso Not u.FileExists
-                                                   Select DirectCast(u.Self, UserDataBase).User).ToList
+                                                   Where Not u.IsCollection AndAlso Not u.FileExists AndAlso Not DirectCast(u, UserDataBase).User.Protected
+                                                   Select DirectCast(u, UserDataBase).User).ToList
                     If du.ListExists Then du.ForEach(Sub(u) UsersList.Remove(u)) : du.Clear()
                     Users.ListDisposeRemoveAll(Function(ByVal u As IUserData) As Boolean
-                                                   If u.IsCollection Then
-                                                       With DirectCast(u, UserDataBind)
-                                                           If .Count > 0 Then
-                                                               For i% = .Count - 1 To 0 Step -1
-                                                                   If Not .Item(i).FileExists Then
-                                                                       .Item(i).Delete()
-                                                                       .Collections.RemoveAt(i)
-                                                                   End If
-                                                               Next
-                                                           End If
-                                                           Return Not .FileExists
-                                                       End With
+                                                   If Not DirectCast(u, UserDataBase).User.Protected Then
+                                                       If u.IsCollection Then
+                                                           With DirectCast(u, UserDataBind)
+                                                               If .Count > 0 Then
+                                                                   For i% = .Count - 1 To 0 Step -1
+                                                                       If Not .Item(i).FileExists Then
+                                                                           .Item(i).Delete()
+                                                                           .Collections.RemoveAt(i)
+                                                                       End If
+                                                                   Next
+                                                               End If
+                                                               Return Not .FileExists
+                                                           End With
+                                                       Else
+                                                           Return Not u.FileExists
+                                                       End If
                                                    Else
-                                                       Return Not u.FileExists
+                                                       Return False
                                                    End If
                                                End Function)
                 End If
                 If NeedUpdate Then UpdateUsersList()
             End If
             If Users.Count > 0 Then
-                Labels.ToList.ListAddList(Users.SelectMany(Function(u) u.Labels), LAP.NotContainsOnly)
+                Labels.AddRange(Users.SelectMany(Function(u) u.Labels), False)
                 If Labels.NewLabelsExists Then Labels.Update() : Labels.NewLabels.Clear()
             End If
         Catch ex As Exception
         End Try
+    End Sub
+    Private Sub UsersCompatibilityCheck()
+        With UsersList
+            Dim user As UserInfo
+            Dim uKeysList As List(Of String) = Nothing
+            If Plugins.Count > 0 Then uKeysList = Plugins.Select(Function(p) p.Key).ListIfNothing
+            If uKeysList Is Nothing Then uKeysList = New List(Of String)
+            Dim i%
+            If .Count > 0 AndAlso (uKeysList.Count = 0 OrElse
+                                   .Exists(Function(u) u.Site.Length = 1 Or u.Plugin.IsEmptyString Or Not uKeysList.Contains(u.Plugin))) Then
+                Dim indx%
+                Dim c As Boolean = False
+                For i = 0 To .Count - 1
+                    user = .Item(i)
+                    With user
+                        If .Site.Length = 1 Then
+                            Select Case .Site
+                                Case "1" : .Site = Reddit.RedditSite : c = True
+                                Case "2" : .Site = Twitter.TwitterSite : c = True
+                                Case "3" : .Site = Instagram.InstagramSite : c = True
+                                Case "4" : .Site = RedGifs.RedGifsSite : c = True
+                            End Select
+                        End If
+                        If Not .Site.IsEmptyString Then
+                            If .Plugin.IsEmptyString Then
+                                indx = Plugins.FindIndex(Function(p) p.Settings.Name.ToLower = .Site.ToLower)
+                                If indx >= 0 Then .Plugin = Plugins(indx).Settings.Key : c = True Else .Protected = True
+                            Else
+                                indx = Plugins.FindIndex(Function(p) p.Key = .Plugin)
+                                If indx < 0 Then .Protected = True
+                            End If
+                        End If
+                    End With
+                    .Item(i) = user
+                Next
+                If c Then UpdateUsersList()
+            End If
+            .Clear()
+            Using x As New XmlFile(UsersSettingsFile, Protector.Modes.All, False) With {.AllowSameNames = True}
+                x.LoadData()
+                If x.Count > 0 Then
+                    For i = 0 To x.Count - 1
+                        user = x(i)
+                        user.UpdateUserFile()
+                        .Add(user)
+                    Next
+                End If
+            End Using
+        End With
     End Sub
     Private _UserListUpdateRequired As Boolean = False
     Friend ReadOnly Property UserListUpdateRequired As Boolean
@@ -228,7 +290,7 @@ Friend Class SettingsCLS : Implements IDisposable
         Try
             If UsersList.Count > 0 Then
                 Using x As New XmlFile With {.AllowSameNames = True, .Name = "Users"}
-                    UsersList.ForEach(Sub(u) x.Add(u.GetContainer()))
+                    x.AddRange(UsersList)
                     x.Save(UsersSettingsFile)
                 End Using
             End If
@@ -237,18 +299,18 @@ Friend Class SettingsCLS : Implements IDisposable
             _UserListUpdateRequired = True
         End Try
     End Sub
+#End Region
     Friend Sub UpdateBlackList()
         If BlackList.Count > 0 Then
             TextSaver.SaveTextToFile(BlackList.ListToString(, vbNewLine), BlackListFile, True, False, EDP.None)
         Else
-            If BlackListFile.Exists Then BlackListFile.Delete()
+            BlackListFile.Delete(, Settings.DeleteMode)
         End If
     End Sub
-    Friend Sub DeleteCachPath()
-        If Reddit.ChannelsCollection.ChannelsPathCache.Exists(SFO.Path, False) Then _
-           Reddit.ChannelsCollection.ChannelsPathCache.Delete(SFO.Path, False, False, EDP.None)
+    Friend Sub DeleteCachePath()
+        Reddit.ChannelsCollection.ChannelsPathCache.Delete(SFO.Path, SFODelete.None, EDP.None)
     End Sub
-    Friend Overloads Function UserExists(ByVal s As Sites, ByVal UserID As String) As Boolean
+    Friend Overloads Function UserExists(ByVal s As String, ByVal UserID As String) As Boolean
         Dim UserFinderBase As Predicate(Of IUserData) = Function(user) user.Site = s And user.Name = UserID
         Dim UserFinder As Predicate(Of IUserData) = Function(ByVal user As IUserData) As Boolean
                                                         If user.IsCollection Then
@@ -271,16 +333,19 @@ Friend Class SettingsCLS : Implements IDisposable
     Friend Sub BeginUpdate()
         MyXML.BeginUpdate()
         _UpdatesSuspended = True
+        If Plugins.Count > 0 Then Plugins.ForEach(Sub(p) p.Settings.Source.BeginUpdate())
     End Sub
     Friend Sub EndUpdate()
+        If Plugins.Count > 0 Then Plugins.ForEach(Sub(p) p.Settings.Source.EndUpdate())
         MyXML.EndUpdate()
         If MyXML.ChangesDetected Then MyXML.UpdateData()
         _UpdatesSuspended = False
         ChangeDateProvider(Nothing, Nothing, Nothing)
     End Sub
-    Default Friend ReadOnly Property Site(ByVal s As Sites) As SiteSettings
+    Default Friend ReadOnly Property Site(ByVal PluginKey As String) As SettingsHost
         Get
-            Return MySites(s)
+            Dim i% = Plugins.FindIndex(Function(p) p.Key = PluginKey)
+            If i >= 0 Then Return Plugins(i).Settings Else Return Nothing
         End Get
     End Property
     Friend ReadOnly Property GlobalPath As XMLValue(Of SFile)
@@ -307,6 +372,7 @@ Friend Class SettingsCLS : Implements IDisposable
     Friend ReadOnly Property FromChannelDownloadTop As XMLValue(Of Integer)
     Friend ReadOnly Property FromChannelDownloadTopUse As XMLValue(Of Boolean)
     Friend ReadOnly Property FromChannelCopyImageToUser As XMLValue(Of Boolean)
+    Friend ReadOnly Property UpdateUserDescriptionEveryTime As XMLValue(Of Boolean)
 #Region "File naming"
     Friend ReadOnly Property FileAddDateToFileName As XMLValue(Of Boolean)
     Friend ReadOnly Property FileAddTimeToFileName As XMLValue(Of Boolean)
@@ -315,6 +381,7 @@ Friend Class SettingsCLS : Implements IDisposable
 #End Region
 #End Region
 #Region "View"
+    Friend ReadOnly Property FastProfilesLoading As XMLValue(Of Boolean)
     Friend ReadOnly Property MaxLargeImageHeigh As XMLValue(Of Integer)
     Friend ReadOnly Property MaxSmallImageHeigh As XMLValue(Of Integer)
     Friend ReadOnly Property InfoViewMode As XMLValue(Of Integer)
@@ -328,20 +395,14 @@ Friend Class SettingsCLS : Implements IDisposable
         End Get
     End Property
     Friend ReadOnly Property ShowingMode As XMLValue(Of Integer)
-    Private ReadOnly Property XMLSelectedSites As XMLValue(Of String)
-    Private ReadOnly _SelectedSites As List(Of Sites)
-    Friend Property SelectedSites As List(Of Sites)
+    Friend ReadOnly Property SelectedSites As XMLValuesCollection(Of String)
+    Private ReadOnly LastUpdatedLimit As XMLValue(Of Date)
+    Friend Property LastUpdatedDate As Date?
         Get
-            Return _SelectedSites
+            If LastUpdatedLimit.ValueF.Exists Then Return LastUpdatedLimit.Value Else Return Nothing
         End Get
-        Set(ByVal s As List(Of Sites))
-            _SelectedSites.Clear()
-            If s.ListExists Then
-                _SelectedSites.ListAddList(s)
-                XMLSelectedSites.Value = ListAddList(Of Integer, Sites)(Nothing, s).ListToString(, SitesValuesSeparator)
-            Else
-                XMLSelectedSites.Value = String.Empty
-            End If
+        Set(ByVal NewDate As Date?)
+            If Not NewDate.HasValue Then LastUpdatedLimit.ValueF = Nothing Else LastUpdatedLimit.Value = NewDate.Value
         End Set
     End Property
 #End Region
@@ -358,6 +419,7 @@ Friend Class SettingsCLS : Implements IDisposable
     Friend ReadOnly Property ChannelsImagesColumns As XMLValue(Of Integer)
     Friend ReadOnly Property ChannelsHideExistsUser As XMLValue(Of Boolean)
     Friend ReadOnly Property ChannelsMaxJobsCount As XMLValue(Of Integer)
+    Friend ReadOnly Property ChannelsAddUserImagesFromAllChannels As XMLValue(Of Boolean)
 #End Region
 #Region "New version properties"
     Friend ReadOnly Property CheckUpdatesAtStart As XMLValue(Of Boolean)
@@ -368,6 +430,13 @@ Friend Class SettingsCLS : Implements IDisposable
     Friend ReadOnly Property ExitConfirm As XMLValue(Of Boolean)
     Friend ReadOnly Property CloseToTray As XMLValue(Of Boolean)
     Friend ReadOnly Property ShowNotifications As XMLValue(Of Boolean)
+    Friend ReadOnly Property OpenFolderInOtherProgram As XMLValueAttribute(Of String, Boolean)
+    Friend ReadOnly Property DeleteToRecycleBin As XMLValue(Of Boolean)
+    Friend ReadOnly Property DeleteMode As SFODelete
+        Get
+            Return If(DeleteToRecycleBin, SFODelete.DeleteToRecycleBin, SFODelete.None)
+        End Get
+    End Property
 #End Region
 #Region "IDisposable Support"
     Private disposedValue As Boolean = False
@@ -377,12 +446,12 @@ Friend Class SettingsCLS : Implements IDisposable
                 If UserListUpdateRequired Then UpdateUsersList()
                 If Not Channels Is Nothing Then
                     Channels.Dispose()
-                    DeleteCachPath()
+                    DeleteCachePath()
                 End If
-                For Each kv In MySites : kv.Value.Dispose() : Next
-                MySites.Clear()
+                Plugins.Clear()
                 Users.ListClearDispose
                 UsersList.Clear()
+                SelectedSites.Dispose()
                 Design.Dispose()
                 MyXML.Dispose()
             End If

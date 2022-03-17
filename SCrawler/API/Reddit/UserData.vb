@@ -9,6 +9,7 @@
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Tools.ImageRenderer
+Imports PersonalUtilities.Tools.WEB
 Imports PersonalUtilities.Tools.WebDocuments.JSON
 Imports System.Net
 Imports System.Threading
@@ -17,7 +18,11 @@ Imports UStates = SCrawler.API.Base.UserMedia.States
 Imports UTypes = SCrawler.API.Base.UserMedia.Types
 Namespace API.Reddit
     Friend Class UserData : Inherits UserDataBase : Implements IChannelData
-        Friend Overrides Property Site As Sites = Sites.Reddit
+        Private ReadOnly Property MySiteSettings As SiteSettings
+            Get
+                Return DirectCast(HOST.Source, SiteSettings)
+            End Get
+        End Property
 #Region "Channels Support"
 #Region "IChannelLimits Support"
         Friend Property DownloadLimitCount As Integer? Implements IChannelLimits.DownloadLimitCount
@@ -50,21 +55,11 @@ Namespace API.Reddit
                                                   Select c.Post) Else Return Nothing
         End Function
 #End Region
-#Region "Initializers"
-        ''' <summary>Video downloader initializer</summary>
-        Private Sub New()
+#Region "Initializer"
+        Friend Sub New()
             ChannelPostsNames = New List(Of String)
             _ExistsUsersNames = New List(Of String)
             _CrossPosts = New List(Of String)
-        End Sub
-        ''' <summary>Default initializer</summary>
-        Friend Sub New(ByVal u As UserInfo, Optional ByVal _LoadUserInformation As Boolean = True, Optional ByVal InvokeImageHandler As Boolean = True)
-            MyBase.New(InvokeImageHandler)
-            ChannelPostsNames = New List(Of String)
-            _ExistsUsersNames = New List(Of String)
-            _CrossPosts = New List(Of String)
-            User = u
-            If _LoadUserInformation Then LoadUserInformation()
         End Sub
 #End Region
 #Region "Load and Update user info"
@@ -73,11 +68,12 @@ Namespace API.Reddit
 #End Region
 #Region "Download Overrides"
         Friend Overrides Sub DownloadData(ByVal Token As CancellationToken)
+            UserDescriptionReset()
             _CrossPosts.Clear()
-            If Not IsSavedPosts AndAlso (IsChannel AndAlso Not ChannelInfo.IsRegularChannel) Then
+            If Not IsSavedPosts AndAlso (IsChannel AndAlso Not ChannelInfo Is Nothing) Then
                 If Not Responser Is Nothing Then Responser.Dispose()
-                Responser = New PersonalUtilities.Tools.WEB.Response
-                Responser.Copy(Settings(Sites.Reddit).Responser)
+                Responser = New Response
+                Responser.Copy(MySiteSettings.Responser)
                 ChannelPostsNames.ListAddList(ChannelInfo.PostsAll.Select(Function(p) p.ID), LNC)
                 If SkipExistsUsers Then _ExistsUsersNames.ListAddList(Settings.UsersList.Select(Function(p) p.Name), LNC)
                 DownloadDataF(Token)
@@ -93,7 +89,7 @@ Namespace API.Reddit
             If IsSavedPosts Then
                 DownloadDataChannel(String.Empty, Token)
             ElseIf IsChannel Then
-                If ChannelInfo.IsRegularChannel Then
+                If ChannelInfo Is Nothing Then
                     ChannelPostsNames.ListAddList(_TempPostsList, LNC)
                     If ChannelPostsNames.Count > 0 Then
                         DownloadLimitCount = Nothing
@@ -104,7 +100,7 @@ Namespace API.Reddit
                     If DownloadTopCount.HasValue Then DownloadLimitCount = DownloadTopCount
                 End If
                 DownloadDataChannel(String.Empty, Token)
-                If ChannelInfo.IsRegularChannel Then _TempPostsList.ListAddList(_TempMediaList.Select(Function(m) m.Post.ID), LNC)
+                If ChannelInfo Is Nothing Then _TempPostsList.ListAddList(_TempMediaList.Select(Function(m) m.Post.ID), LNC)
             Else
                 DownloadDataUser(String.Empty, Token)
             End If
@@ -138,6 +134,7 @@ Namespace API.Reddit
                 If Not r.IsEmptyString Then
                     Using w As EContainer = JsonDocument.Parse(r).XmlIfNothing
                         If w.Count > 0 Then
+                            If UserDescriptionNeedToUpdate() Then UserDescriptionUpdate(w.ItemF({"subredditAboutInfo", 0, "publicDescription"}).XmlIfNothingValue)
                             n = w.GetNode(JsonNodesJson)
                             If Not n Is Nothing AndAlso n.Count > 0 Then
                                 For Each nn In n
@@ -170,7 +167,7 @@ Namespace API.Reddit
                                             _ItemsBefore = _TempMediaList.Count
                                             added = True
                                             s = nn.ItemF({"source", "url"})
-                                            If s.XmlIfNothingValue("/").Contains("redgifs.com") Then
+                                            If s.XmlIfNothingValue("/").StringContains({"redgifs.com", "gfycat.com"}) Then
                                                 _TempMediaList.ListAddValue(MediaFromData(UTypes.VideoPre, s.Value, _PostID(), PostDate,, IsChannel), LNC)
                                             ElseIf Not CreateImgurMedia(s.XmlIfNothingValue, _PostID(), PostDate,, IsChannel) Then
                                                 s = nn.ItemF({"media"}).XmlIfNothing
@@ -199,7 +196,7 @@ Namespace API.Reddit
                                                 If Not s.IsEmptyString AndAlso TryFile(s.Value) Then
                                                     With s.Value.ToLower
                                                         Select Case True
-                                                            Case .Contains("redgifs") : tmpType = UTypes.VideoPre
+                                                            Case .Contains("redgifs"), .Contains("gfycat") : tmpType = UTypes.VideoPre
                                                             Case .Contains("m3u8") : If Settings.UseM3U8 Then tmpType = UTypes.m3u8
                                                             Case .Contains(".gif") And TryFile(s.Value) : tmpType = UTypes.GIF
                                                             Case TryFile(s.Value) : tmpType = UTypes.Picture
@@ -264,13 +261,28 @@ Namespace API.Reddit
                                             End With
                                             If lDate.HasValue AndAlso lDate.Value <= DownloadLimitDate.Value Then Exit Sub
                                         End If
-                                        NewPostDetected = True
+
+                                        If IsSavedPosts Then
+                                            If Not _TempPostsList.Contains(PostID) Then
+                                                NewPostDetected = True
+                                                _TempPostsList.Add(PostID)
+                                            Else
+                                                ExistsDetected = True
+                                                Continue For
+                                            End If
+                                        Else
+                                            NewPostDetected = True
+                                        End If
 
                                         If s.Contains("created") Then PostDate = s("created").Value Else PostDate = String.Empty
                                         _UserID = s.Value("author")
 
                                         If SkipExistsUsers AndAlso _ExistsUsersNames.Count > 0 AndAlso
-                                           Not _UserID.IsEmptyString AndAlso _ExistsUsersNames.Contains(_UserID) Then Continue For
+                                           Not _UserID.IsEmptyString AndAlso _ExistsUsersNames.Contains(_UserID) Then
+                                            If Not IsSavedPosts AndAlso Not ChannelInfo Is Nothing Then _
+                                               ChannelInfo.ChannelExistentUserNames.ListAddValue(_UserID, LNC)
+                                            Continue For
+                                        End If
 
                                         tmpUrl = s.Value("url")
                                         If Not tmpUrl.IsEmptyString AndAlso tmpUrl.Contains("redgifs.com") Then
@@ -393,7 +405,15 @@ Namespace API.Reddit
                         ThrowAny(Token)
                         If _TempMediaList(i).Type = UTypes.VideoPre Or _TempMediaList(i).Type = v2 Then
                             m = _TempMediaList(i)
-                            If _TempMediaList(i).Type = UTypes.VideoPre Then r = Responser.GetResponse(m.URL,, e) Else r = m.URL
+                            If _TempMediaList(i).Type = UTypes.VideoPre Then
+                                If m.URL.Contains("gfycat.com") Then
+                                    r = Gfycat.Envir.GetVideo(m.URL)
+                                Else
+                                    r = Responser.GetResponse(m.URL,, e)
+                                End If
+                            Else
+                                r = m.URL
+                            End If
                             _TempMediaList(i) = New UserMedia
                             If Not r.IsEmptyString Then
                                 v = RegexReplace(r, VideoRegEx)
@@ -410,13 +430,13 @@ Namespace API.Reddit
                 ProcessException(ex, Token, "video reparsing error", False)
             End Try
         End Sub
-        Friend Shared Function GetVideoInfo(ByVal URL As String) As IEnumerable(Of UserMedia)
+        Friend Shared Function GetVideoInfo(ByVal URL As String, ByVal resp As Response) As IEnumerable(Of UserMedia)
             Try
                 If Not URL.IsEmptyString AndAlso URL.Contains("redgifs") Then
                     Using r As New UserData
                         r._TempMediaList.Add(MediaFromData(UTypes.VideoPre, URL, String.Empty, String.Empty,, False))
-                        r.Responser = New PersonalUtilities.Tools.WEB.Response
-                        r.Responser.Copy(Settings(Sites.Reddit).Responser)
+                        r.Responser = New Response
+                        r.Responser.Copy(resp)
                         r.ReparseVideo(Nothing)
                         If r._TempMediaList.ListExists Then Return {r._TempMediaList(0)}
                     End Using
@@ -465,7 +485,7 @@ Namespace API.Reddit
                     If _ContentNew.Count > 0 Then
                         MyFile.Exists(SFO.Path)
                         Dim MyDir$
-                        If Not IsSavedPosts AndAlso (IsChannel And SaveToCache) Then
+                        If Not IsSavedPosts AndAlso (IsChannel And SaveToCache And Not ChannelInfo Is Nothing) Then
                             MyDir = ChannelInfo.CachePath.PathNoSeparator
                         Else
                             MyDir = MyFile.CutPath.PathNoSeparator
@@ -584,8 +604,8 @@ Namespace API.Reddit
                                             End If
                                             If Not v.Type = UTypes.m3u8 Or Not f.IsEmptyString Then
                                                 Select Case v.Type
-                                                    Case UTypes.Picture : DownloadedPictures += 1 : _CountPictures += 1
-                                                    Case UTypes.Video, UTypes.m3u8 : DownloadedVideos += 1 : _CountVideo += 1
+                                                    Case UTypes.Picture : DownloadedPictures(False) += 1
+                                                    Case UTypes.Video, UTypes.m3u8 : DownloadedVideos(False) += 1
                                                 End Select
                                                 If Not IsChannel Or Not SaveToCache Then
                                                     v.File = ChangeFileNameByProvider(f, v)

@@ -81,7 +81,7 @@ Friend Class LabelsForm : Implements IOkCancelToolbar
         If Sender.DefaultButton = ActionButton.DefaultButtons.Add Then AddNewLabel()
     End Sub
     Private Sub CMB_LABELS_ActionOnButtonClearClick() Handles CMB_LABELS.ActionOnButtonClearClick
-        CMB_LABELS.Clear(ComboBoxExtended.ClearMode.CheckedInexes)
+        CMB_LABELS.Clear(ComboBoxExtended.ClearMode.CheckedIndexes)
     End Sub
     Private Sub AddNewLabel()
         Dim nl$ = InputBoxE("Enter new label name:", "New label")

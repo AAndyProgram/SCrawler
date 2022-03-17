@@ -8,13 +8,14 @@
 ' but WITHOUT ANY WARRANTY
 Imports PersonalUtilities.Tools
 Imports PersonalUtilities.Functions.XML
+Imports PersonalUtilities.Functions.Messaging
 Imports System.Threading
 Imports SCrawler.API.Base
 Namespace API
     Friend Class UserDataBind : Inherits UserDataBase : Implements ICollection(Of IUserData), IMyEnumerator(Of IUserData)
-        Friend Event OnCollectionSelfRemoved()
+        Friend Event OnCollectionSelfRemoved(ByVal Collection As IUserData)
+        Friend Event OnUserRemoved(ByVal User As IUserData)
 #Region "Declarations"
-        Friend Overrides Property Site As Sites = Sites.Undefined
         Friend ReadOnly Property Collections As List(Of IUserData)
         Private _CollectionName As String = String.Empty
         Friend Overrides Property CollectionName As String
@@ -121,7 +122,7 @@ Namespace API
         Friend Overrides Property DataMerging As Boolean
             Get
                 If Count > 0 Then
-                    Return DirectCast(Collections(0).Self, UserDataBase).DataMerging
+                    Return DirectCast(Collections(0), UserDataBase).DataMerging
                 Else
                     Return False
                 End If
@@ -184,15 +185,15 @@ Namespace API
         End Property
         Friend Overrides Function GetUserInformation() As String
             Dim OutStr$ = String.Empty
-            If Count > 0 Then Collections.ForEach(Sub(c) OutStr.StringAppendLine(DirectCast(c.Self, UserDataBase).GetUserInformation(), $"{vbCrLf}{vbCrLf}"))
+            If Count > 0 Then Collections.ForEach(Sub(c) OutStr.StringAppendLine(DirectCast(c, UserDataBase).GetUserInformation(), $"{vbCrLf}{vbCrLf}"))
             Return OutStr
         End Function
         Friend Overrides Property LastUpdated As Date?
             Get
                 If Count > 0 Then
-                    With If((From c In Collections
-                             Where DirectCast(c.Self, UserDataBase).LastUpdated.HasValue
-                             Select DirectCast(c.Self, UserDataBase).LastUpdated.Value).ToList, New List(Of Date))
+                    With If((From c As IUserData In Collections
+                             Where DirectCast(c, UserDataBase).LastUpdated.HasValue
+                             Select DirectCast(c, UserDataBase).LastUpdated.Value).ToList, New List(Of Date))
                         If .Count > 0 Then Return .Max
                     End With
                 End If
@@ -210,7 +211,7 @@ Namespace API
         Friend ReadOnly Property ContextDown As ToolStripMenuItem()
             Get
                 If Count > 0 Then
-                    Return Collections.Select(Function(c) DirectCast(c.Self, UserDataBase).BTT_CONTEXT_DOWN).ToArray
+                    Return Collections.Select(Function(c) DirectCast(c, UserDataBase).BTT_CONTEXT_DOWN).ToArray
                 Else
                     Return New ToolStripMenuItem() {}
                 End If
@@ -219,7 +220,7 @@ Namespace API
         Friend ReadOnly Property ContextEdit As ToolStripMenuItem()
             Get
                 If Count > 0 Then
-                    Return Collections.Select(Function(c) DirectCast(c.Self, UserDataBase).BTT_CONTEXT_EDIT).ToArray
+                    Return Collections.Select(Function(c) DirectCast(c, UserDataBase).BTT_CONTEXT_EDIT).ToArray
                 Else
                     Return New ToolStripMenuItem() {}
                 End If
@@ -228,7 +229,7 @@ Namespace API
         Friend ReadOnly Property ContextDelete As ToolStripMenuItem()
             Get
                 If Count > 0 Then
-                    Return Collections.Select(Function(c) DirectCast(c.Self, UserDataBase).BTT_CONTEXT_DELETE).ToArray
+                    Return Collections.Select(Function(c) DirectCast(c, UserDataBase).BTT_CONTEXT_DELETE).ToArray
                 Else
                     Return New ToolStripMenuItem() {}
                 End If
@@ -237,7 +238,7 @@ Namespace API
         Friend ReadOnly Property ContextPath As ToolStripMenuItem()
             Get
                 If Count > 0 Then
-                    Return Collections.Select(Function(c) DirectCast(c.Self, UserDataBase).BTT_CONTEXT_OPEN_PATH).ToArray
+                    Return Collections.Select(Function(c) DirectCast(c, UserDataBase).BTT_CONTEXT_OPEN_PATH).ToArray
                 Else
                     Return New ToolStripMenuItem() {}
                 End If
@@ -246,7 +247,7 @@ Namespace API
         Friend ReadOnly Property ContextSite As ToolStripMenuItem()
             Get
                 If Count > 0 Then
-                    Return Collections.Select(Function(c) DirectCast(c.Self, UserDataBase).BTT_CONTEXT_OPEN_SITE).ToArray
+                    Return Collections.Select(Function(c) DirectCast(c, UserDataBase).BTT_CONTEXT_OPEN_SITE).ToArray
                 Else
                     Return New ToolStripMenuItem() {}
                 End If
@@ -270,7 +271,7 @@ Namespace API
             If Count > 0 Then Collections.ForEach(Sub(c) c.UpdateUserInformation())
         End Sub
         Friend Overrides Sub LoadContentInformation()
-            If Count > 0 Then Collections.ForEach(Sub(c) DirectCast(c.Self, UserDataBase).LoadContentInformation())
+            If Count > 0 Then Collections.ForEach(Sub(c) DirectCast(c, UserDataBase).LoadContentInformation())
         End Sub
         Protected Overrides Sub LoadUserInformation_OptionalFields(ByRef Container As XmlFile, ByVal Loading As Boolean)
         End Sub
@@ -299,14 +300,15 @@ Namespace API
             Return 0
         End Function
         Private Sub User_OnUserUpdated(ByVal User As IUserData)
-            Raise_OnUserUpdated()
+            RaiseEvent_OnUserUpdated()
         End Sub
-        Friend Overrides Sub OpenSite()
-            If Count > 0 Then Collections(0).OpenSite()
+        Friend Overrides Sub OpenSite(Optional ByVal e As ErrorsDescriber = Nothing)
+            If Not e.Exists Then e = New ErrorsDescriber(EDP.SendInLog)
+            If Count > 0 Then Collections.ForEach(Sub(c) c.OpenSite(e))
         End Sub
         Friend Overrides Sub OpenFolder()
             Try
-                If Count > 0 Then Collections(0).File.CutPath(2).Open(SFO.Path, EDP.None)
+                If Count > 0 Then GlobalOpenPath(Collections(0).File.CutPath(2))
             Catch ex As Exception
             End Try
         End Sub
@@ -328,17 +330,20 @@ Namespace API
                     If DataMerging Then DirectCast(.Self, UserDataBase).MergeData()
                     Collections.Add(_Item)
                     With Collections.Last
-                        If Collections.Count - 1 > 0 Then
+                        If Count > 1 Then
+                            If _CollectionName.IsEmptyString Then _CollectionName = .CollectionName
                             .Temporary = Temporary
                             .Favorite = Favorite
+                            .ReadyForDownload = ReadyForDownload
+                            ConsolidateLabels()
                             .UpdateUserInformation()
                         End If
                         ImageHandler(_Item, False)
+                        AddRemoveBttDeleteHandler(.Self, True)
                         AddHandler .Self.OnUserUpdated, AddressOf User_OnUserUpdated
-                        DirectCast(.Self, UserDataBase).CreateButtons(Count - 1)
                     End With
                 Else
-                    Throw New InvalidOperationException("User data doe not move to the collection folder")
+                    Throw New InvalidOperationException("User data was not moved to the collection folder")
                 End If
             End With
         End Sub
@@ -346,13 +351,34 @@ Namespace API
         Friend Overloads Sub Add(ByVal u As UserInfo, Optional ByVal _LoadData As Boolean = True)
             Collections.Add(GetInstance(u, _LoadData))
             If Not Collections.Last Is Nothing Then
-                With DirectCast(Collections.Last.Self, UserDataBase)
-                    .CreateButtons(Count - 1)
-                    AddHandler .BTT_CONTEXT_DELETE.Click, AddressOf BTT_CONTEXT_DELETE_Click
+                With Collections.Last
+                    If _CollectionName.IsEmptyString Then _CollectionName = .CollectionName
+                    AddRemoveBttDeleteHandler(.Self, True)
+                    AddHandler .OnUserUpdated, AddressOf User_OnUserUpdated
                 End With
-                AddHandler Collections.Last.OnUserUpdated, AddressOf User_OnUserUpdated
             Else
                 Collections.RemoveAt(Count - 1)
+            End If
+        End Sub
+        Private Sub AddRemoveBttDeleteHandler(ByRef User As IUserData, ByVal IsAdd As Boolean)
+            Try
+                With DirectCast(User, UserDataBase)
+                    If IsAdd Then
+                        .CreateButtons(Count - 1)
+                        AddHandler .BTT_CONTEXT_DELETE.Click, AddressOf DeleteRemoveUserFromCollection
+                    Else
+                        RemoveHandler .BTT_CONTEXT_DELETE.Click, AddressOf DeleteRemoveUserFromCollection
+                    End If
+                End With
+            Catch ex As Exception
+            End Try
+        End Sub
+        Private Sub ConsolidateLabels()
+            If Count > 1 Then
+                Dim l As New List(Of String)
+                Dim lp As New ListAddParams(LAP.ClearBeforeAdd)
+                l.ListAddList(Collections.SelectMany(Function(c) c.Labels), LNC)
+                Collections.ForEach(Sub(c) c.Labels.ListAddList(l, lp))
             End If
         End Sub
         Friend Sub AddRange(ByVal _Items As IEnumerable(Of IUserData))
@@ -361,7 +387,7 @@ Namespace API
             End If
         End Sub
         Friend Overrides Function MoveFiles(ByVal __CollectionName As String) As Boolean
-            Throw New NotImplementedException("Files moving does not available if collection context")
+            Throw New NotImplementedException("Move files is not available in the collection context")
         End Function
         Friend Overloads Sub MergeData(ByVal Merging As Boolean)
             If Count > 0 Then
@@ -370,7 +396,7 @@ Namespace API
                         MsgBoxE($"Collection [{CollectionName}] data already merged")
                     Else
                         If Collections.Count > 1 Then
-                            Collections.ForEach(Sub(c) DirectCast(c.Self, UserDataBase).MergeData())
+                            Collections.ForEach(Sub(c) DirectCast(c, UserDataBase).MergeData())
                             MsgBoxE($"Collection [{CollectionName}] data merged")
                         Else
                             MsgBoxE($"Collection [{CollectionName}] contains only one user profile" & vbCr &
@@ -403,8 +429,10 @@ Namespace API
                         "Operation canceled", MsgBoxStyle.Critical)
                 Return False
             Else
-                DirectCast(_Item.Self, UserDataBase).MoveFiles(String.Empty)
+                DirectCast(_Item, UserDataBase).MoveFiles(String.Empty)
                 ImageHandler(_Item)
+                AddRemoveBttDeleteHandler(_Item, False)
+                RaiseEvent OnUserRemoved(_Item)
                 Return Collections.Remove(_Item)
             End If
         End Function
@@ -420,14 +448,16 @@ Namespace API
                     ImageHandler(Me, False)
                     Collections.ListClearDispose
                     Dispose(False)
-                    If f.Exists(SFO.Path, False) Then f.Delete(SFO.Path, True, False, EDP.SendInLog)
+                    f.Delete(SFO.Path, SFODelete.EmptyOnly + Settings.DeleteMode, EDP.SendInLog)
                     Return 2
                 Else
                     If DataMerging Then
                         MsgBoxE($"Collection [{CollectionName}] data are already merged{vbCr}Cannot split merged collection{vbCr}Operation canceled", MsgBoxStyle.Exclamation)
                         Return 0
                     End If
-                    If MsgBoxE({$"Do you want to delete collection only?{vbCr}Users will not be deleted", "Collection deleting"},
+                    If MsgBoxE({"Do you want to delete only the collection and split users' profiles??" & vbCr &
+                                "Users will be removed from the collection and split by sites." & vbCr &
+                                "All user data will remain.", "Collection deleting"},
                                MsgBoxStyle.Question + MsgBoxStyle.YesNo) = MsgBoxResult.Yes Then
                         f = Collections(0).File.CutPath(2)
                         Settings.Users.Remove(Me)
@@ -436,7 +466,7 @@ Namespace API
                                                 ImageHandler(c)
                                             End Sub)
                         Collections.Clear()
-                        f.Delete(SFO.Path,,, EDP.SendInLog)
+                        f.Delete(SFO.Path, SFODelete.Default + Settings.DeleteMode, EDP.SendInLog)
                         Downloader.UserRemove(Me)
                         ImageHandler(Me, False)
                         Dispose(False)
@@ -448,28 +478,45 @@ Namespace API
             End If
             Return 0
         End Function
-        Private Sub BTT_CONTEXT_DELETE_Click(sender As Object, e As EventArgs)
+        Private Sub DeleteRemoveUserFromCollection(sender As Object, e As EventArgs)
             With DirectCast(sender, ToolStripMenuItem)
                 Dim i% = AConvert(Of Integer)(.Tag, -1)
                 If i >= 0 Then
                     Dim n$ = Collections(i).Name
                     Dim s$ = Collections(i).Site.ToString
-                    If MsgBoxE({$"Do you really want to delete user profile [{n}] of site [{s}]?" & vbCr &
-                                "This profile will be removed from collection and all data will be erased",
-                                "Profile removing"}, MsgBoxStyle.Exclamation,,, {"Process", "Cancel"}) = 0 Then
-                        Collections(i).Delete()
-                        Collections(i).Dispose()
-                        Collections.RemoveAt(i)
-                        MsgBoxE($"User profile [{n}] of site [{s}] has been removed")
-                        If Count = 0 Then
-                            Settings.Users.Remove(Me)
-                            ImageHandler(Me, False)
-                            RaiseEvent OnCollectionSelfRemoved()
-                            Dispose(False)
-                        End If
-                    Else
-                        MsgBoxE("Operation canceled")
-                    End If
+                    Dim RemoveMeIfNull As Action = Sub()
+                                                       If Count = 0 Then
+                                                           Settings.Users.Remove(Me)
+                                                           ImageHandler(Me, False)
+                                                           RaiseEvent OnCollectionSelfRemoved(Me)
+                                                           Dispose(False)
+                                                       End If
+                                                   End Sub
+                    Select Case MsgBoxE({$"Are you sure you want to remove user profile [{n}] of site [{s}] from collection [{Name}]?" & vbCr &
+                                         "You can remove a user from the collection while keeping data (Remove) or deleting the data (Delete)" & vbCr &
+                                         "Deleting this profile will remove it from the collection and all its data will be erased." & vbCr &
+                                         "Removing this profile will remove it from the collection and all its data will remain." &
+                                         "This user will still appear in the program, but not in the collection.",
+                                         "Deleting a user"}, vbExclamation,,,
+                                         {
+                                          New MsgBoxButton("Remove") With {
+                                            .ToolTip = "Remove a user from the collection only. All its data will remain. The user will appear in the program."},
+                                          New MsgBoxButton("Delete") With {
+                                            .ToolTip = "Delete a user from the collection and erase their data."},
+                                          "Cancel"
+                                         }).Index
+                        Case 0
+                            Remove(Collections(i))
+                            MsgBoxE($"User [{s} - {n}] has been removed from the collection. Now it should be displayed in the program.")
+                            RemoveMeIfNull.Invoke
+                        Case 1
+                            Collections(i).Delete()
+                            Collections(i).Dispose()
+                            Collections.RemoveAt(i)
+                            MsgBoxE($"User profile [{n}] of site [{s}] has been deleted")
+                            RemoveMeIfNull.Invoke
+                        Case Else : MsgBoxE("Operation canceled")
+                    End Select
                 End If
             End With
         End Sub
@@ -482,26 +529,6 @@ Namespace API
         End Function
 #End Region
 #End Region
-        Friend Overrides Function CompareTo(ByVal Other As UserDataBase) As Integer
-            If TypeOf Other Is UserDataBind Then
-                Dim x% = CompareValue(Me)
-                Dim y% = CompareValue(Other)
-                If x.CompareTo(y) = 0 Then
-                    Return CollectionName.CompareTo(Other.CollectionName)
-                Else
-                    Return x.CompareTo(y)
-                End If
-            Else
-                Return -1
-            End If
-        End Function
-        Friend Overrides Function CompareTo(ByVal Obj As Object) As Integer
-            If TypeOf Obj Is UserDataBind Then
-                Return CompareTo(DirectCast(Obj, UserDataBind))
-            Else
-                Return -1
-            End If
-        End Function
         Friend Overrides Function Equals(ByVal Other As UserDataBase) As Boolean
             If Other.IsCollection Then
                 Return CollectionName = Other.CollectionName

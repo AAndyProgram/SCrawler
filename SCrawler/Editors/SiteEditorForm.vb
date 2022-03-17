@@ -11,142 +11,221 @@ Imports PersonalUtilities.Forms.Controls
 Imports PersonalUtilities.Forms.Controls.Base
 Imports PersonalUtilities.Forms.Toolbars
 Imports PersonalUtilities.Tools.WEB
+Imports SCrawler.Plugin
+Imports SCrawler.Plugin.Hosts
 Namespace Editors
     Friend Class SiteEditorForm : Implements IOkCancelToolbar
+        Private ReadOnly LBL_AUTH As Label
+        Private ReadOnly LBL_OTHER As Label
         Private ReadOnly MyDefs As DefaultFormProps(Of FieldsChecker)
-        Private ReadOnly MySite As Sites
-        Friend Sub New(ByVal s As Sites)
+        Private SpecialButton As Button
+#Region "Providers"
+        Private Class SavedPostsChecker : Implements ICustomProvider
+            Private Function Convert(ByVal Value As Object, ByVal DestinationType As Type, ByVal Provider As IFormatProvider,
+                                     Optional ByVal NothingArg As Object = Nothing, Optional ByVal e As ErrorsDescriber = Nothing) As Object Implements ICustomProvider.Convert
+                If Not ACheck(Value) OrElse CStr(Value).Contains("/") Then
+                    Return Nothing
+                Else
+                    Return Value
+                End If
+            End Function
+            Private Function GetFormat(ByVal FormatType As Type) As Object Implements IFormatProvider.GetFormat
+                Throw New NotImplementedException()
+            End Function
+        End Class
+#End Region
+        Private ReadOnly Property Host As SettingsHost
+        Friend Sub New(ByVal h As SettingsHost)
             InitializeComponent()
-            MySite = s
             MyDefs = New DefaultFormProps(Of FieldsChecker)
+            Host = h
+            LBL_AUTH = New Label With {.Text = "Authorization", .TextAlign = ContentAlignment.MiddleCenter, .Dock = DockStyle.Fill}
+            LBL_OTHER = New Label With {.Text = "Other Parameters", .TextAlign = ContentAlignment.MiddleCenter, .Dock = DockStyle.Fill}
         End Sub
         Private Sub SiteEditorForm_Load(sender As Object, e As EventArgs) Handles Me.Load
+            Const LBorder% = 3
+            Const DOffset% = 100
             Try
                 With MyDefs
                     .MyViewInitialize(Me, Settings.Design, True)
                     .AddOkCancelToolbar()
                     .DelegateClosingChecker()
-                    Select Case MySite
-                        Case Sites.Reddit : Icon = My.Resources.RedditIcon
-                        Case Sites.Twitter : Icon = My.Resources.TwitterIcon
-                        Case Sites.Instagram : Icon = My.Resources.InstagramIcon
-                        Case Else : ShowIcon = False
-                    End Select
-                    Text = MySite.ToString
-
-                    With Settings(MySite)
-                        TXT_PATH.Text = .Path(False)
-                        With .Responser
-                            If .Cookies Is Nothing Then .Cookies = New CookieKeeper(.CookiesDomain)
-                            SetCookieText()
-                            If MySite = Sites.Twitter Then
-                                TXT_TOKEN.Text = .Headers(API.Base.SiteSettings.Header_Twitter_Token)
-                                TXT_AUTH.Text = .Headers(API.Base.SiteSettings.Header_Twitter_Authorization)
-                            End If
-                        End With
-                        If MySite = Sites.Instagram Then
-                            TXT_TOKEN.Text = .InstaHash
-                            TXT_AUTH.Text = .InstaHash_SP
-                        End If
-                    End With
-
-                    If MySite = Sites.Twitter Or MySite = Sites.Instagram Then
-                        If MySite = Sites.Instagram Then
-                            TXT_TOKEN.CaptionText = "Hash"
-                            TXT_TOKEN.CaptionToolTipText = "Instagram session hash"
-                            TXT_TOKEN.Buttons.Clear()
-                            TXT_TOKEN.Buttons.AddRange({ActionButton.DefaultButtons.Refresh, ActionButton.DefaultButtons.Clear})
-                            TXT_AUTH.CaptionText = "Hash 2"
-                            TXT_AUTH.CaptionToolTipText = "Instagram session hash for saved posts"
-                        End If
-                    Else
-                        TXT_AUTH.Visible = False
-                        TXT_TOKEN.Visible = False
-                        Dim p As PaddingE = PaddingE.GetOf({TP_MAIN})
-                        Dim s As New Size(Size.Width, Size.Height - p.Vertical(2) - TXT_AUTH.NeededHeight - TXT_TOKEN.NeededHeight)
-                        With TP_MAIN
-                            .RowStyles(2).Height = 0
-                            .RowStyles(3).Height = 0
-                        End With
-                        MinimumSize = s
-                        Size = s
-                        MaximumSize = s
-                    End If
 
                     .MyFieldsChecker = New FieldsChecker
-                    With .MyFieldsChecker
-                        If MySite = Sites.Twitter Or MySite = Sites.Instagram Then
-                            .AddControl(Of String)(TXT_TOKEN, TXT_TOKEN.CaptionText)
-                            .AddControl(Of String)(TXT_AUTH, TXT_AUTH.CaptionText, MySite = Sites.Instagram)
+                    With Host
+                        With .Source
+                            Text = .Site
+                            If Not .Icon Is Nothing Then Icon = .Icon Else ShowIcon = False
+                        End With
+
+                        SetCookieText()
+
+                        TXT_PATH.Text = .Path(False)
+                        TXT_PATH_SAVED_POSTS.Text = .SavedPostsPath(False)
+                        CH_GET_USER_MEDIA_ONLY.Checked = .GetUserMediaOnly.Value
+
+                        SiteDefaultsFunctions.SetChecker(TP_SITE_PROPS, Host)
+
+                        With MyDefs.MyFieldsChecker
+                            .AddControl(Of String)(TXT_PATH, TXT_PATH.CaptionText, True, New SavedPostsChecker)
+                            .AddControl(Of String)(TXT_PATH_SAVED_POSTS, TXT_PATH_SAVED_POSTS.CaptionText, True, New SavedPostsChecker)
+                        End With
+
+                        If .PropList.Count > 0 Then
+                            Dim offset% = DOffset
+                            Dim h% = 0, c% = 0
+                            Dim laAdded As Boolean = False
+                            Dim loAdded As Boolean = False
+                            If Not Host.IsMyClass Then
+                                h -= 28
+                                TXT_COOKIES.Enabled = False
+                                TXT_COOKIES.Visible = False
+                                TP_MAIN.RowStyles(2).Height = 0
+                            End If
+                            Dim AddTpControl As Action(Of Control, Integer) = Sub(ByVal cnt As Control, ByVal _height As Integer)
+                                                                                  TP_SITE_PROPS.RowStyles.Add(New RowStyle(SizeType.Absolute, _height))
+                                                                                  TP_SITE_PROPS.RowCount += 1
+                                                                                  TP_SITE_PROPS.Controls.Add(cnt, 0, TP_SITE_PROPS.RowStyles.Count - 1)
+                                                                                  h += _height
+                                                                                  c += 1
+                                                                              End Sub
+                            Dim pArr() As Boolean
+                            If .PropList.Exists(Function(p) If(p.Options?.IsAuth, False)) Then pArr = {True, False} Else pArr = {False}
+                            .PropList.Sort()
+                            For Each pAuth As Boolean In pArr
+                                For Each prop As PropertyValueHost In .PropList
+                                    If Not prop.Options Is Nothing Then
+                                        With prop
+                                            If .Options.IsAuth = pAuth Then
+
+                                                If pArr.Length = 2 Then
+                                                    Select Case pAuth
+                                                        Case True
+                                                            If Not laAdded Then AddTpControl(LBL_AUTH, 25) : laAdded = True
+                                                        Case False
+                                                            If Not loAdded Then AddTpControl(LBL_OTHER, 25) : loAdded = True
+                                                    End Select
+                                                End If
+
+                                                .CreateControl()
+                                                AddTpControl(.Control, .ControlHeight)
+                                                If .Options.LeftOffset > offset Then offset = .Options.LeftOffset
+                                                If Not .Options.AllowNull Or Not .ProviderFieldsChecker Is Nothing Then
+                                                    MyDefs.MyFieldsChecker.AddControl(.Control, .Options.ControlText, .Type, .Options.AllowNull, .ProviderFieldsChecker)
+                                                End If
+                                            End If
+                                        End With
+                                    End If
+                                Next
+                            Next
+                            SpecialButton = .GetSettingsButtonInternal
+                            If Not SpecialButton Is Nothing Then AddTpControl(SpecialButton, 28)
+                            offset -= LBorder
+                            TP_SITE_PROPS.BaseControlsPadding = New Padding(offset, 0, 0, 0)
+                            If offset > DOffset - LBorder Then
+                                TXT_PATH.CaptionWidth = offset
+                                TXT_PATH_SAVED_POSTS.CaptionWidth = offset
+                                TXT_COOKIES.CaptionWidth = offset
+                            End If
+                            If c > 0 Or Not Host.IsMyClass Then
+                                Dim ss As New Size(Size.Width, Size.Height + h + c)
+                                MinimumSize = ss
+                                Size = ss
+                                MaximumSize = ss
+                            End If
                         End If
-                        .EndLoaderOperations()
                     End With
-                    TextBoxExtended.SetFalseDetector(Me, True, AddressOf .Detector)
+
+                    .MyFieldsChecker.EndLoaderOperations()
+                    .AppendDetectors()
                     .EndLoaderOperations()
                 End With
             Catch ex As Exception
                 MyDefs.InvokeLoaderError(ex)
             End Try
         End Sub
+        Private Sub SiteEditorForm_Disposed(sender As Object, e As EventArgs) Handles Me.Disposed
+            If Host.PropList.Count > 0 Then Host.PropList.ForEach(Sub(p) p.DisposeControl())
+            If Not SpecialButton Is Nothing Then SpecialButton.Dispose()
+            LBL_AUTH.Dispose()
+            LBL_OTHER.Dispose()
+        End Sub
         Private Sub ToolbarBttOK() Implements IOkCancelToolbar.ToolbarBttOK
             If MyDefs.MyFieldsChecker.AllParamsOK Then
-                If MySite = Sites.Instagram Then
-                    If Not TXT_TOKEN.IsEmptyString AndAlso Not TXT_AUTH.IsEmptyString AndAlso TXT_TOKEN.Text = TXT_AUTH.Text Then
-                        MsgBoxE({"InstaHash for saved posts must be different from InstaHash!", "InstaHash are equal"}, vbCritical)
-                        Exit Sub
+                Dim i%, ii%
+                With Host
+                    Dim indxList As New List(Of Integer)
+                    For i = 0 To .PropList.Count - 1
+                        If .PropList(i).PropertiesChecking.ListExists And Not .PropList(i).PropertiesCheckingMethod Is Nothing Then indxList.Add(i)
+                    Next
+                    If indxList.Count > 0 Then
+                        Dim pList As New List(Of PropertyData)
+                        Dim n$()
+                        For i = 0 To indxList.Count - 1
+                            n = .PropList(indxList(i)).PropertiesChecking
+                            For ii = 0 To .PropList.Count - 1
+                                With .PropList(ii)
+                                    If n.Contains(.Name) Then pList.Add(New PropertyData(.Name, .GetControlValue))
+                                End With
+                            Next
+                            If pList.Count > 0 AndAlso Not CBool(.PropList(indxList(i)).PropertiesCheckingMethod.Invoke(.Source, {pList})) Then Exit Sub
+                        Next
                     End If
-                End If
-                With Settings(MySite)
-                    If TXT_PATH.IsEmptyString Then .Path = Nothing Else .Path = TXT_PATH.Text
-                    Select Case MySite
-                        Case Sites.Twitter
-                            With .Responser
-                                .Headers(API.Base.SiteSettings.Header_Twitter_Token) = TXT_TOKEN.Text
-                                .Headers(API.Base.SiteSettings.Header_Twitter_Authorization) = TXT_AUTH.Text
-                            End With
-                        Case Sites.Instagram
-                            .InstaHash.Value = TXT_TOKEN.Text
-                            .InstaHash_SP.Value = TXT_AUTH.Text
-                    End Select
-                    .Update()
                 End With
+
+                Settings.BeginUpdate()
+
+                If Not Host Is Nothing Then
+                    With Host
+                        SiteDefaultsFunctions.SetPropByChecker(TP_SITE_PROPS, Host)
+                        If TXT_PATH.IsEmptyString Then .Path = Nothing Else .Path = TXT_PATH.Text
+                        .SavedPostsPath = TXT_PATH_SAVED_POSTS.Text
+                        .GetUserMediaOnly.Value = CH_GET_USER_MEDIA_ONLY.Checked
+
+                        If .PropList.Count > 0 Then .PropList.ForEach(Sub(p) If Not p.Options Is Nothing Then p.UpdateValueByControl())
+                    End With
+                End If
+
+                Settings.EndUpdate()
+
                 MyDefs.CloseForm()
             End If
         End Sub
         Private Sub ToolbarBttCancel() Implements IOkCancelToolbar.ToolbarBttCancel
             MyDefs.CloseForm(DialogResult.Cancel)
         End Sub
-        Private Sub TXT_TOKEN_ActionOnButtonClick(ByVal Sender As ActionButton) Handles TXT_TOKEN.ActionOnButtonClick
-            If Sender.DefaultButton = ActionButton.DefaultButtons.Refresh Then
-                With Settings(Sites.Instagram)
-                    If .GatherInstaHash() Then
-                        .InstaHashUpdateRequired.Value = Not .InstaHash.IsEmptyString
-                        TXT_TOKEN.Text = .InstaHash
-                    End If
-                End With
-            End If
-        End Sub
         Private Sub TXT_PATH_ActionOnButtonClick(ByVal Sender As ActionButton) Handles TXT_PATH.ActionOnButtonClick
+            ChangePath(Sender, Host.Path(False), TXT_PATH)
+        End Sub
+        Private Sub TXT_PATH_SAVED_POSTS_ActionOnButtonClick(Sender As ActionButton) Handles TXT_PATH_SAVED_POSTS.ActionOnButtonClick
+            ChangePath(Sender, Host.SavedPostsPath(False), TXT_PATH_SAVED_POSTS)
+        End Sub
+        Private Sub ChangePath(ByVal Sender As ActionButton, ByVal PathValue As SFile, ByRef CNT As TextBoxExtended)
             If Sender.DefaultButton = ActionButton.DefaultButtons.Open Then
-                Dim f As SFile = SFile.SelectPath(Settings(MySite).Path(False))
-                If Not f.IsEmptyString Then TXT_PATH.Text = f
+                Dim f As SFile = SFile.SelectPath(PathValue)
+                If Not f.IsEmptyString Then CNT.Text = f
             End If
         End Sub
         Private Sub TXT_COOKIES_ActionOnButtonClick(ByVal Sender As ActionButton) Handles TXT_COOKIES.ActionOnButtonClick
             If Sender.DefaultButton = ActionButton.DefaultButtons.Edit Then
-                Using f As New CookieListForm(Settings(MySite).Responser.Cookies) With {.MyDesignXML = Settings.Design} : f.ShowDialog() : End Using
-                SetCookieText()
+                If TypeOf Host.Source Is IResponserContainer Then
+                    Using f As New CookieListForm(DirectCast(Host.Source, IResponserContainer).Responser.Cookies) With {.MyDesignXML = Settings.Design} : f.ShowDialog() : End Using
+                    SetCookieText()
+                End If
             End If
         End Sub
         Private Sub TXT_COOKIES_ActionOnButtonClearClick() Handles TXT_COOKIES.ActionOnButtonClearClick
-            With Settings(MySite).Responser
-                If Not .Cookies Is Nothing Then .Cookies.Dispose()
-                .Cookies = New CookieKeeper(.CookiesDomain)
-            End With
-            SetCookieText()
+            If TypeOf Host.Source Is IResponserContainer Then
+                With DirectCast(Host.Source, IResponserContainer).Responser
+                    If Not .Cookies Is Nothing Then .Cookies.Dispose()
+                    .Cookies = New CookieKeeper(.CookiesDomain)
+                End With
+                SetCookieText()
+            End If
         End Sub
         Private Sub SetCookieText()
-            TXT_COOKIES.Text = $"{If(Settings(MySite).Responser.Cookies?.Count, 0)} cookies"
+            If TypeOf Host.Source Is IResponserContainer Then _
+               TXT_COOKIES.Text = $"{If(DirectCast(Host.Source, IResponserContainer).Responser.Cookies?.Count, 0)} cookies"
         End Sub
     End Class
 End Namespace

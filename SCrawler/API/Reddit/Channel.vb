@@ -10,264 +10,24 @@ Imports PersonalUtilities.Tools
 Imports PersonalUtilities.Forms.Toolbars
 Imports PersonalUtilities.Functions.XML
 Imports SCrawler.API.Base
+Imports SCrawler.Plugin.Hosts
 Imports System.Threading
 Namespace API.Reddit
     Friend Class Channel : Implements ICollection(Of UserPost), IEquatable(Of Channel), IComparable(Of Channel),
-            IRangeSwitcherContainer(Of UserPost), ILoaderSaver, IMyEnumerator(Of UserPost), IChannelLimits, IUserData, IDisposable
+            IRangeSwitcherContainer(Of UserPost), ILoaderSaver, IMyEnumerator(Of UserPost), IChannelLimits, IDisposable
 #Region "XML Nodes' Names"
         Private Const Name_Name As String = "Name"
         Private Const Name_ID As String = "ID"
         Private Const Name_Date As String = "Date"
         Private Const Name_PostsNode As String = "Posts"
         Private Const Name_UsersAdded As String = "UsersAdded"
+        Private Const Name_UsersExistent As String = "UsersExistent"
         Private Const Name_PostsDownloaded As String = "PostsDownloaded"
 #End Region
         Friend Const DefaultDownloadLimitCount As Integer = 1000
-#Region "IUserData Support"
-        Private Event OnUserUpdated As IUserData.OnUserUpdatedEventHandler Implements IUserData.OnUserUpdated
-        Friend Property Instance As IUserData
-        Private Property IUserData_ParseUserMediaOnly As Boolean = False Implements IUserData.ParseUserMediaOnly
-        Private Property IUserData_Exists As Boolean Implements IUserData.Exists
-            Get
-                Return Instance.Exists
-            End Get
-            Set(ByVal e As Boolean)
-            End Set
-        End Property
-        Private Property IUserData_Suspended As Boolean Implements IUserData.Suspended
-            Get
-                Return Instance.Suspended
-            End Get
-            Set(ByVal s As Boolean)
-            End Set
-        End Property
-        Private ReadOnly Property IUserData_IsCollection As Boolean Implements IUserData.IsCollection
-            Get
-                Return Instance.IsCollection
-            End Get
-        End Property
-        Private Property IUserData_CollectionName As String Implements IUserData.CollectionName
-            Get
-                Return Instance.CollectionName
-            End Get
-            Set(ByVal NewName As String)
-                Instance.CollectionName = NewName
-            End Set
-        End Property
-        Private ReadOnly Property IUserData_IncludedInCollection As Boolean Implements IUserData.IncludedInCollection
-            Get
-                Return Instance.IncludedInCollection
-            End Get
-        End Property
-        Private ReadOnly Property IUserData_Labels As List(Of String) Implements IUserData.Labels
-            Get
-                Return Instance.Labels
-            End Get
-        End Property
-        Private ReadOnly Property IUserData_IsChannel As Boolean = True Implements IUserData.IsChannel
-        Private Property IUserData_ReadyForDownload As Boolean Implements IUserData.ReadyForDownload
-            Get
-                Return Instance.ReadyForDownload
-            End Get
-            Set(ByVal IsReady As Boolean)
-                Instance.ReadyForDownload = IsReady
-            End Set
-        End Property
-        Private Property IUserData_File As SFile Implements IUserData.File
-            Get
-                Return Instance.File
-            End Get
-            Set(ByVal NewFile As SFile)
-                Instance.File = NewFile
-            End Set
-        End Property
-        Private Property IUserData_FileExists As Boolean Implements IUserData.FileExists
-            Get
-                Return Instance.FileExists
-            End Get
-            Set(ByVal IsExists As Boolean)
-                Instance.FileExists = IsExists
-            End Set
-        End Property
-        Private Property IUserData_DownloadedPictures As Integer Implements IUserData.DownloadedPictures
-            Get
-                Return Instance.DownloadedPictures
-            End Get
-            Set(ByVal c As Integer)
-                Instance.DownloadedPictures = c
-            End Set
-        End Property
-        Private Property IUserData_DownloadedVideos As Integer Implements IUserData.DownloadedVideos
-            Get
-                Return Instance.DownloadedVideos
-            End Get
-            Set(ByVal c As Integer)
-                Instance.DownloadedVideos = c
-            End Set
-        End Property
-        Private ReadOnly Property IUserData_DownloadedTotal(Optional Total As Boolean = True) As Integer Implements IUserData.DownloadedTotal
-            Get
-                Return Instance.DownloadedTotal
-            End Get
-        End Property
-        Private ReadOnly Property IUserData_DownloadedInformation As String Implements IUserData.DownloadedInformation
-            Get
-                Return Instance.DownloadedInformation
-            End Get
-        End Property
-        Private Property IUserData_HasError As Boolean Implements IUserData.HasError
-            Get
-                Return Instance.HasError
-            End Get
-            Set(ByVal e As Boolean)
-                Instance.HasError = e
-            End Set
-        End Property
-        Private ReadOnly Property IUserData_FitToAddParams As Boolean Implements IUserData.FitToAddParams
-            Get
-                Return Instance.FitToAddParams
-            End Get
-        End Property
-        Private ReadOnly Property IUserData_LVIKey As String Implements IUserData.LVIKey
-            Get
-                Return Instance.LVIKey
-            End Get
-        End Property
-        Private ReadOnly Property IUserData_LVIIndex As Integer Implements IUserData.LVIIndex
-            Get
-                Return Instance.LVIIndex
-            End Get
-        End Property
-        Private Property IUserData_DownloadImages As Boolean Implements IUserData.DownloadImages
-            Get
-                Return Instance.DownloadImages
-            End Get
-            Set(ByVal d As Boolean)
-                Instance.DownloadImages = d
-            End Set
-        End Property
-        Private Property IUserData_DownloadVideos As Boolean Implements IUserData.DownloadVideos
-            Get
-                Return Instance.DownloadVideos
-            End Get
-            Set(ByVal d As Boolean)
-                Instance.DownloadVideos = d
-            End Set
-        End Property
-        Private ReadOnly Property IUserData_Self As IUserData Implements IUserData.Self
-            Get
-                Return Instance
-            End Get
-        End Property
-        Private Property IUserData_DownloadTopCount As Integer? Implements IUserData.DownloadTopCount
-            Get
-                Return Instance.DownloadTopCount
-            End Get
-            Set(ByVal c As Integer?)
-                Instance.DownloadTopCount = c
-            End Set
-        End Property
-        Friend Property Site As Sites = Sites.Reddit Implements IContentProvider.Site
-        Private Property IUserData_FriendlyName As String Implements IContentProvider.FriendlyName
-            Get
-                Return Instance.FriendlyName
-            End Get
-            Set(ByVal NewName As String)
-                Instance.FriendlyName = NewName
-            End Set
-        End Property
-        Private Property IUserData_Description As String Implements IContentProvider.Description
-            Get
-                Return Instance.Description
-            End Get
-            Set(ByVal d As String)
-                Instance.Description = d
-            End Set
-        End Property
-        Private Property IUserData_Favorite As Boolean Implements IContentProvider.Favorite
-            Get
-                Return Instance.Favorite
-            End Get
-            Set(ByVal f As Boolean)
-                Instance.Favorite = f
-            End Set
-        End Property
-        Private Property IUserData_Temporary As Boolean Implements IContentProvider.Temporary
-            Get
-                Return Instance.Temporary
-            End Get
-            Set(ByVal t As Boolean)
-                Instance.Temporary = t
-            End Set
-        End Property
-        Private Sub IUserData_SetPicture(ByVal f As SFile) Implements IUserData.SetPicture
-            Instance.SetPicture(f)
-        End Sub
-        Private Sub IUserData_LoadUserInformation() Implements IUserData.LoadUserInformation
-            Instance.LoadUserInformation()
-        End Sub
-        Private Sub IUserData_UpdateUserInformation() Implements IUserData.UpdateUserInformation
-            Instance.UpdateUserInformation()
-        End Sub
-        Private Sub IUserData_OpenFolder() Implements IUserData.OpenFolder
-            Instance.OpenFolder()
-        End Sub
-        Private Sub IUserData_OpenSite() Implements IContentProvider.OpenSite
-            Instance.OpenSite()
-        End Sub
-        Private Sub IUserData_DownloadData(ByVal Token As CancellationToken) Implements IContentProvider.DownloadData
-            DownloadData(Token, False, Nothing)
-        End Sub
-        Private Function IUserData_GetPicture() As Image Implements IUserData.GetPicture
-            Return Instance.GetPicture()
-        End Function
-        Private Function IUserData_GetLVI(ByVal Destination As ListView) As ListViewItem Implements IUserData.GetLVI
-            Return Instance.GetLVI(Destination)
-        End Function
-        Private Function IUserData_GetLVIGroup(ByVal Destination As ListView) As ListViewGroup Implements IUserData.GetLVIGroup
-            Return Instance.GetLVIGroup(Destination)
-        End Function
-        Private Function IUserData_Delete() As Integer Implements IUserData.Delete
-            Return DirectCast(Instance, UserDataBase).DeleteF(Me)
-        End Function
-        Private Function IUserData_MoveFiles(ByVal CollectionName As String) As Boolean Implements IUserData.MoveFiles
-            Return DirectCast(Instance, UserDataBase).MoveFilesF(Me, CollectionName)
-        End Function
-#End Region
-        Private _Name As String = String.Empty
-        Friend Property Name As String Implements IUserData.Name
-            Get
-                If IsRegularChannel Then
-                    Return Instance.Name
-                Else
-                    Return _Name
-                End If
-            End Get
-            Set(ByVal NewName As String)
-                If IsRegularChannel Then
-                    Instance.Name = NewName
-                Else
-                    _Name = NewName
-                End If
-            End Set
-        End Property
-        Private _ID As String = String.Empty
-        Friend Property ID As String Implements IUserData.ID
-            Get
-                If IsRegularChannel Then
-                    Return Instance.ID
-                Else
-                    Return _ID
-                End If
-            End Get
-            Set(ByVal NewID As String)
-                If IsRegularChannel Then
-                    Instance.ID = NewID
-                Else
-                    _ID = NewID
-                End If
-            End Set
-        End Property
+        Friend ReadOnly Property Site As String = RedditSite
+        Friend Property Name As String
+        Friend Property ID As String
         Friend ReadOnly Property CUser As UserInfo
             Get
                 Return New UserInfo(Me)
@@ -313,17 +73,30 @@ Namespace API.Reddit
             End Get
         End Property
         Private ReadOnly Property Range As RangeSwitcher(Of UserPost)
-        Friend ReadOnly Property CountOfAddedUsers As List(Of Integer)
-        Friend ReadOnly Property CountOfLoadedPostsPerSession As List(Of Integer)
+#Region "Statistics support"
+        Private ReadOnly CountOfAddedUsers As List(Of Integer)
+        Private ReadOnly CountOfLoadedPostsPerSession As List(Of Integer)
+        Friend ReadOnly Property ChannelExistentUserNames As List(Of String)
         Private _FirstUserAdded As Boolean = False
-        Friend Sub UserAdded(Optional ByVal IsAdded As Boolean = True)
+        Friend Sub UserAdded(ByVal UserName As String, Optional ByVal IsAdded As Boolean = True)
             If Not _FirstUserAdded Then CountOfAddedUsers.Add(0) : _FirstUserAdded = True
             Dim v% = CountOfAddedUsers.Last
             v += IIf(IsAdded, 1, -1)
             If v < 0 Then v = 0
             CountOfAddedUsers(CountOfAddedUsers.Count - 1) = v
+            If Not ChannelExistentUserNames.Contains(UserName) Then ChannelExistentUserNames.Add(UserName)
+        End Sub
+        Friend Sub UpdateUsersStats()
+            If Posts.Count > 0 Or PostsLatest.Count > 0 Then
+                ChannelExistentUserNames.ListAddList((From p As UserPost In PostsAll
+                                                      Where Not p.UserID.IsEmptyString AndAlso
+                                                            Settings.UsersList.Exists(Function(u) u.Site = Site And u.Name = p.UserID)
+                                                      Select p.UserID), LAP.NotContainsOnly)
+                ChannelExistentUserNames.RemoveAll(Function(u) Not Settings.UsersList.Exists(Function(uu) uu.Site = Site And uu.Name = u))
+            End If
         End Sub
         Friend Function GetChannelStats(ByVal Extended As Boolean) As String
+            UpdateUsersStats()
             Dim s$ = String.Empty
             Dim p As New ANumbers With {.FormatOptions = ANumbers.Options.GroupIntegral}
             If Extended Then
@@ -332,12 +105,15 @@ Namespace API.Reddit
                 s.StringAppendLine($"Users added from this channel (session): {CountOfAddedUsers.LastOrDefault.NumToString(p)}")
                 s.StringAppendLine($"Posts downloaded (avg): {CountOfLoadedPostsPerSession.DefaultIfEmpty(0).Average.RoundUp.NumToString(p)}")
                 s.StringAppendLine($"Posts downloaded (session): {CountOfLoadedPostsPerSession.LastOrDefault.NumToString(p)}")
+                s.StringAppendLine($"My users in this channel: {ChannelExistentUserNames.Count.NumToString(p)}")
             Else
                 s.StringAppend($"Users: {CountOfAddedUsers.Sum.NumToString(p)} (avg: {CountOfAddedUsers.DefaultIfEmpty(0).Average.RoundDown.NumToString(p)}; s: {CountOfAddedUsers.LastOrDefault.NumToString(p)})")
                 s.StringAppend($"Posts: {CountOfLoadedPostsPerSession.DefaultIfEmpty(0).Average.RoundUp.NumToString(p)} (s: {CountOfLoadedPostsPerSession.LastOrDefault.NumToString(p)})", "; ")
+                s.StringAppend($"My users: {ChannelExistentUserNames.Count.NumToString(p)}", "; ")
             End If
             Return s
         End Function
+#End Region
 #Region "Limits Support"
         Private _DownloadLimitCount As Integer? = Nothing
         Friend Property DownloadLimitCount As Integer? Implements IChannelLimits.DownloadLimitCount
@@ -401,30 +177,22 @@ Namespace API.Reddit
         End Sub
         Friend Property AutoGetLimits As Boolean = True Implements IChannelLimits.AutoGetLimits
 #End Region
-        Friend ReadOnly IsRegularChannel As Boolean = False
+        Friend ReadOnly Property HOST As SettingsHost
         Friend Sub New()
             Posts = New List(Of UserPost)
             PostsLatest = New List(Of UserPost)
             Range = New RangeSwitcher(Of UserPost)(Me)
             CountOfAddedUsers = New List(Of Integer)
             CountOfLoadedPostsPerSession = New List(Of Integer)
+            ChannelExistentUserNames = New List(Of String)
+            HOST = Settings(RedditSiteKey)
         End Sub
         Friend Sub New(ByVal f As SFile)
             Me.New
             LoadData(f, False)
         End Sub
-        Friend Sub New(ByVal u As UserInfo, Optional ByVal _LoadUserInformation As Boolean = True)
-            Me.New
-            Instance = New UserData(u, _LoadUserInformation) With {.SaveToCache = False, .SkipExistsUsers = False, .ChannelInfo = Me}
-            AutoGetLimits = True
-            DirectCast(Instance, UserData).SetLimit(Me)
-            IsRegularChannel = True
-        End Sub
         Public Shared Widening Operator CType(ByVal f As SFile) As Channel
             Return New Channel(f)
-        End Operator
-        Public Shared Widening Operator CType(ByVal c As Channel) As UserDataBase
-            Return DirectCast(c.Instance, UserDataBase)
         End Operator
         Public Overrides Function ToString() As String
             If Not Name.IsEmptyString Then
@@ -434,30 +202,29 @@ Namespace API.Reddit
             End If
         End Function
         Friend Sub Delete()
-            If File.Exists Then File.Delete()
+            File.Delete(, SFODelete.DeleteToRecycleBin)
         End Sub
         Friend Sub DownloadData(ByVal Token As CancellationToken, Optional ByVal SkipExists As Boolean = True,
                                 Optional ByVal p As MyProgress = Nothing)
             Try
                 _Downloading = True
-                If Not Instance Is Nothing Then
-                    Instance.DownloadData(Token)
-                Else
-                    Using d As New UserData(CUser, False, False) With {
-                        .Progress = p,
-                        .SaveToCache = True,
-                        .SkipExistsUsers = SkipExists,
-                        .ChannelInfo = Me
-                    }
-                        d.SetLimit(Me)
-                        d.DownloadData(Token)
-                        Dim b% = Posts.Count
-                        Posts.ListAddList(d.GetNewChannelPosts(), LAP.NotContainsOnly)
-                        If Posts.Count - b > 0 Then CountOfLoadedPostsPerSession.Add(Posts.Count - b)
-                        Posts.Sort()
-                        LatestParsedDate = If(Posts.FirstOrDefault(Function(pp) pp.Date.HasValue).Date, LatestParsedDate)
-                    End Using
-                End If
+                Using d As New UserData With {
+                    .Progress = p,
+                    .SaveToCache = True,
+                    .SkipExistsUsers = SkipExists,
+                    .ChannelInfo = Me
+                }
+                    d.SetEnvironment(HOST, CUser, False)
+                    d.RemoveUpdateHandlers()
+                    d.SetLimit(Me)
+                    d.DownloadData(Token)
+                    Dim b% = Posts.Count
+                    Posts.ListAddList(d.GetNewChannelPosts(), LAP.NotContainsOnly)
+                    If Posts.Count - b > 0 Then CountOfLoadedPostsPerSession.Add(Posts.Count - b)
+                    Posts.Sort()
+                    LatestParsedDate = If(Posts.FirstOrDefault(Function(pp) pp.Date.HasValue).Date, LatestParsedDate)
+                    UpdateUsersStats()
+                End Using
             Catch oex As OperationCanceledException When Token.IsCancellationRequested
             Finally
                 _Downloading = False
@@ -498,21 +265,12 @@ Namespace API.Reddit
         Friend Overloads Function Equals(ByVal Other As Channel) As Boolean Implements IEquatable(Of Channel).Equals
             Return ID = Other.ID
         End Function
-        Private Overloads Function Equals(ByVal Other As UserDataBase) As Boolean Implements IEquatable(Of UserDataBase).Equals
-            If Not Instance Is Nothing Then
-                Return Instance.Equals(Other)
-            Else
-                Return False
-            End If
-        End Function
         Public Overloads Overrides Function Equals(ByVal Obj As Object) As Boolean
             If Not Obj Is Nothing Then
                 If TypeOf Obj Is String Then
                     Return ID = CStr(Obj)
                 ElseIf TypeOf Obj Is Channel Then
                     Return Equals(DirectCast(Obj, Channel))
-                ElseIf TypeOf Obj Is UserDataBase Then
-                    Return Equals(DirectCast(Obj, UserDataBase))
                 End If
             End If
             Return False
@@ -526,22 +284,6 @@ Namespace API.Reddit
                 Return ID.CompareTo(Other.ID)
             End If
         End Function
-        Private Overloads Function CompareTo(ByVal Other As UserDataBase) As Integer Implements IComparable(Of UserDataBase).CompareTo
-            If Not Instance Is Nothing Then
-                Return Instance.CompareTo(Other)
-            Else
-                Return 0
-            End If
-        End Function
-        Private Overloads Function CompareTo(ByVal Obj As Object) As Integer Implements IComparable.CompareTo
-            If TypeOf Obj Is Channel Then
-                Return CompareTo(DirectCast(Obj, Channel))
-            ElseIf TypeOf Obj Is UserDataBase And Not Instance Is Nothing Then
-                Return Instance.CompareTo(Obj)
-            Else
-                Return 0
-            End If
-        End Function
 #End Region
 #Region "ILoaderSaver Support"
         Friend Overloads Function LoadData(Optional ByVal f As SFile = Nothing, Optional ByVal e As ErrorsDescriber = Nothing) As Boolean Implements ILoaderSaver.Load
@@ -553,11 +295,13 @@ Namespace API.Reddit
                     x.LoadData()
                     If x.Count > 0 Then
                         Dim XMLDateProvider As New ADateTime(ADateTime.Formats.BaseDateTime)
+                        Dim lc As New ListAddParams(LAP.ClearBeforeAdd)
                         Name = x.Value(Name_Name)
                         ID = x.Value(Name_ID)
                         LatestParsedDate = AConvert(Of Date)(x.Value(Name_Date), XMLDateProvider, Nothing)
-                        CountOfAddedUsers.ListAddList(x.Value(Name_UsersAdded).StringToList(Of Integer)("|"), LAP.ClearBeforeAdd)
-                        CountOfLoadedPostsPerSession.ListAddList(x.Value(Name_PostsDownloaded).StringToList(Of Integer)("|"), LAP.ClearBeforeAdd)
+                        CountOfAddedUsers.ListAddList(x.Value(Name_UsersAdded).StringToList(Of Integer)("|"), lc)
+                        CountOfLoadedPostsPerSession.ListAddList(x.Value(Name_PostsDownloaded).StringToList(Of Integer)("|"), lc)
+                        ChannelExistentUserNames.ListAddList(x.Value(Name_UsersExistent).StringToList(Of String)("|"), LNC)
                         If Not PartialLoad Then
                             With x(Name_PostsNode).XmlIfNothing
                                 If .Count > 0 Then .ForEach(Sub(ee) PostsLatest.Add(New UserPost With {
@@ -572,6 +316,7 @@ Namespace API.Reddit
         End Function
         Friend Overloads Function Save(Optional ByVal f As SFile = Nothing, Optional ByVal e As ErrorsDescriber = Nothing) As Boolean Implements ILoaderSaver.Save
             Dim XMLDateProvider As New ADateTime(ADateTime.Formats.BaseDateTime)
+            UpdateUsersStats()
             Using x As New XmlFile With {.AllowSameNames = True, .Name = "Channel"}
                 x.Add(Name_Name, Name)
                 x.Add(Name_ID, ID)
@@ -584,6 +329,7 @@ Namespace API.Reddit
                     x.Add(Name_PostsNode, String.Empty)
                     x.Add(Name_UsersAdded, CountOfAddedUsers.ListToString(, "|"))
                     x.Add(Name_PostsDownloaded, CountOfLoadedPostsPerSession.ListToString(, "|"))
+                    x.Add(Name_UsersExistent, ChannelExistentUserNames.ListToString(, "|"))
                     With x(Name_PostsNode)
                         tmpPostList.Take(200).ToList.ForEach(Sub(p) .Add(New EContainer("Post",
                                                                                   String.Empty,
@@ -603,11 +349,6 @@ Namespace API.Reddit
 #End Region
 #Region "IDisposable Support"
         Private disposedValue As Boolean = False
-        Friend ReadOnly Property Disposed As Boolean Implements IUserData.Disposed
-            Get
-                Return disposedValue
-            End Get
-        End Property
         Protected Overridable Overloads Sub Dispose(ByVal disposing As Boolean)
             If Not disposedValue Then
                 If disposing Then
@@ -616,8 +357,8 @@ Namespace API.Reddit
                     CountOfAddedUsers.Clear()
                     CountOfLoadedPostsPerSession.Clear()
                     Range.Dispose()
-                    If Not Instance Is Nothing Then Instance.Dispose()
-                    If CachePath.Exists(SFO.Path, False) Then CachePath.Delete(SFO.Path, False, False, EDP.SendInLog)
+                    ChannelExistentUserNames.Clear()
+                    CachePath.Delete(SFO.Path, SFODelete.None, EDP.SendInLog)
                 End If
                 disposedValue = True
             End If

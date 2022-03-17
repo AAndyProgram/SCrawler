@@ -7,6 +7,7 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports System.ComponentModel
+Imports SCrawler.Plugin.Hosts
 Namespace Editors
     Public Class SiteDefaults : Inherits TableLayoutPanel
         Private ReadOnly CH_TEMP As CheckBox
@@ -98,5 +99,33 @@ Namespace Editors
                 CH_VID.CheckState = s
             End Set
         End Property
+    End Class
+    Friend NotInheritable Class SiteDefaultsFunctions
+        Private Sub New()
+        End Sub
+        Friend Overloads Shared Sub SetChecker(ByRef CH As SiteDefaults, ByRef h As SettingsHost)
+            SetChecker(CH.MyTemporary, h.Temporary)
+            SetChecker(CH.MyImagesDown, h.DownloadImages)
+            SetChecker(CH.MyVideosDown, h.DownloadVideos)
+        End Sub
+        Private Overloads Shared Sub SetChecker(ByRef State As CheckState, ByVal Prop As XML.Base.XMLValue(Of Boolean))
+            If Prop.ValueF.Exists Then
+                State = If(Prop.Value, CheckState.Checked, CheckState.Unchecked)
+            Else
+                State = CheckState.Indeterminate
+            End If
+        End Sub
+        Friend Overloads Shared Sub SetPropByChecker(ByRef CH As SiteDefaults, ByRef h As SettingsHost)
+            SetPropByChecker(CH.MyTemporary, h.Temporary)
+            SetPropByChecker(CH.MyImagesDown, h.DownloadImages)
+            SetPropByChecker(CH.MyVideosDown, h.DownloadVideos)
+        End Sub
+        Private Overloads Shared Sub SetPropByChecker(ByVal State As CheckState, ByRef Prop As XML.Base.XMLValue(Of Boolean))
+            Select Case State
+                Case CheckState.Checked : Prop.Value = True
+                Case CheckState.Unchecked : Prop.Value = False
+                Case CheckState.Indeterminate : Prop.ValueF = Nothing
+            End Select
+        End Sub
     End Class
 End Namespace

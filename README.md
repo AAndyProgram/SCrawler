@@ -4,12 +4,18 @@
 [![GitHub](https://img.shields.io/github/license/AAndyProgram/SCrawler)](https://github.com/AAndyProgram/SCrawler/)
 [![FAQ](https://img.shields.io/badge/FAQ-green)](FAQ.md)
 [![GUIDE](https://img.shields.io/badge/GUIDE-green)](https://github.com/AAndyProgram/SCrawler/wiki)
+[![How to support](https://img.shields.io/badge/HowToSupport-green)](HowToSupport.md)
 
-A program to download photo and video from Reddit, Twitter, Instagram, [etc](#supported-sites).
+A program to download photo and video from [any site](#supported-sites) (e.g. Reddit, Twitter, Instagram).
 
-Do you like this program? Consider adding to my coffee fund by making a donation to show your support. :)
+Do you like this program? Consider adding to my coffee fund by making a donation to show your support. :blush:
 
 [![ko-fi](https://www.ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/andyprogram)
+
+**Bitcoin**: bitcoin:BC1Q0NH839FT5TA44DD7L7RLR97XDQAG9V8D6N7XET
+
+![Main window](ProgramScreenshots/MainWindow.png)
+![Channels window](ProgramScreenshots/Channels.png)
 
 # What can program do:
 - Download pictures and videos from users' profiles and subreddits:
@@ -19,20 +25,33 @@ Do you like this program? Consider adding to my coffee fund by making a donation
   - Reddit hosted videos (downloading Reddit hosted video is going through ffmpeg (**ffmpeg only works with the x64 program**));
   - Twitter images and videos;
   - Instagram images and videos.
+  - Imgur images, galleries and videos
+  - Gfycat videos
+  - [Other](#supported-sites) supported sites
 - Parse [channel and view data](https://github.com/AAndyProgram/SCrawler/wiki/Channels).
 - Download [saved Reddit and Instagram posts](https://github.com/AAndyProgram/SCrawler/wiki/Home#saved-posts).
 - Add users from parsed channel.
+- **Advanced user management.**
 - Labeling users.
+- Adding users to favorites and temporary.
 - Filter exists users by label or group.
 - Selection of media types you want to download (images only, videos only, both)
+- Download a special video, image or gallery
+- Making collections (grouping users into collections)
+- Specifying a user folder (for downloading data to another location)
+- Changing user icons
+- Changing view modes
+- ...and many others...
 
 # Supported sites
 
-- Reddit
-- Twitter
-- Instagram
+- **Reddit**
+- **Twitter**
+- **Instagram**
 - RedGifs
 - Imgur
+- Gfycat
+- [Other sites](Plugins.md)
 
 # How does it works:
 
@@ -50,28 +69,42 @@ You can read about Instagram restrictions [here](https://github.com/AAndyProgram
 
 ## How to request a new site
 
-Read [here](https://github.com/AAndyProgram/SCrawler/blob/main/CONTRIBUTING.md#how-to-request-a-new-site) about
+Read [here](CONTRIBUTING.md#how-to-request-a-new-site) about
 
-# Requirements:
+# Requirements
 
 - Windows 7, 8, 9, 10, 11 with NET Framework 4.6.1 or higher
 - Authorization cookies and tokens for Twitter (if you want to download data from Twitter)
 - Authorization cookies Instagram (if you want to download data from Instagram)
 - ffmpeg library for downloading videos hosted on Reddit (you can download it from the [official repo](https://github.com/GyanD/codexffmpeg/releases/tag/2021-01-12-git-ca21cb1e36) or [from my first release](https://github.com/AAndyProgram/SCrawler/releases/download/1.0.0.0/ffmpeg.zip)). **ffmpeg only works with the x64 version of the program.**
-- **Don't put program in the ```Program Files``` system folder (this is portable program and program settings are stored in the program folder)**
-- **Just unzip the program archive to any folder, copy the file ```ffmpeg.exe``` into it and enjoy. :)**
+
+# Guide
+
+**Full guide you can find [here](https://github.com/AAndyProgram/SCrawler/wiki)**
+
+# Installation
+
+**Just unzip the program archive to any folder, copy the file ```ffmpeg.exe``` into it and enjoy.** :blush:
+
+**Don't put program in the ```Program Files``` system folder (this is portable program and program settings are stored in the program folder)**
+
+# Updating
+
+Just download [latest](https://github.com/AAndyProgram/SCrawler/releases/latest) version and unpack it into the program folder. **Before starting a new version, I recommend making a backup copy of the program settings folder.**
 
 # How to build from source
 
 1. Delete the "PersonalUtilities" project from the solution.
-2. Add the latest version of the "PersonalUtilities.dll" library (from the [latest release](https://github.com/AAndyProgram/SCrawler/releases/latest)).
-3. Import PersonalUtilities.Functions for the whole project.
+1. Add the latest version of the "PersonalUtilities.dll" library (from the [latest release](https://github.com/AAndyProgram/SCrawler/releases/latest)).
+1. Import PersonalUtilities.Functions for the whole project.
 
-# Updating
+# How to make a plugin
 
-Just download [latest](https://github.com/AAndyProgram/SCrawler/releases/latest) version and unpack it into the program folder. Before starting a new version, I recommend making a backup copy of the program settings folder.
+Read about how to make plugin [here](https://github.com/AAndyProgram/SCrawler/wiki/Plugins).
 
+# How to support
 
+Read more about how to support the program [here](HowToSupport.md).
 
 # Settings and usage
 
@@ -92,15 +125,15 @@ You can add users by patterns:
 
 Read more about adding users and subreddits [here](https://github.com/AAndyProgram/SCrawler/wiki/Users)
 
-# Guide
+![Add user](ProgramScreenshots/CreateUserClear.png)
 
-**Full guide you can find [here](https://github.com/AAndyProgram/SCrawler/wiki)**
-
-## Using program as just video downloader
+# Using program as just video downloader
 
 Create a shortcut for the program. Open shortcut properties. In the ```Shortcut``` tab, in the ```Target``` field, just add the letter ```v``` at the end across the space.
 
 Example: ```D:\Programs\SCrawler\SCrawler.exe v```
+
+![Separate video downloader](ProgramScreenshots/SeparateVideoDownloader.png)
 
 # Contact me
 

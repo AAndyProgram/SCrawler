@@ -13,6 +13,8 @@ Imports PersonalUtilities.Forms
 Imports SCrawler.API
 Imports SCrawler.API.Base
 Imports SCrawler.Editors
+Imports SCrawler.DownloadObjects
+Imports SCrawler.Plugin.Hosts
 Public Class MainFrame
     Private MyView As FormsView
     Private ReadOnly _VideoDownloadingMode As Boolean = False
@@ -26,6 +28,13 @@ Public Class MainFrame
         n.TimeSeparator = String.Empty
         Twitter.DateProvider = New ADateTime(DirectCast(n.Clone, DateTimeFormatInfo)) With {.DateTimeStyle = DateTimeStyles.AssumeUniversal}
         Settings = New SettingsCLS
+        With Settings.Plugins
+            If .Count > 0 Then
+                For i% = 0 To .Count - 1
+                    MENU_SETTINGS.DropDownItems.Insert(MENU_SETTINGS.DropDownItems.Count - 2, .Item(i).Settings.GetSettingsButton)
+                Next
+            End If
+        End With
         Dim Args() As String = Environment.GetCommandLineArgs
         If Args.ListExists(2) AndAlso Args(1) = "v" Then
             Using f As New VideosDownloaderForm : f.ShowDialog() : End Using
@@ -34,61 +43,46 @@ Public Class MainFrame
     End Sub
     Private Sub MainFrame_Load(sender As Object, e As EventArgs) Handles Me.Load
         If _VideoDownloadingMode Then GoTo FormClosingInvoker
-        Settings.DeleteCachPath()
-        MainProgress = New Toolbars.MyProgress(Toolbar_BOTTOM, PR_MAIN, LBL_STATUS) With {.DropCurrentProgressOnTotalChange = False, .Enabled = False}
-        MainProgressInst = New Toolbars.MyProgress(Toolbar_BOTTOM, PR_INST, LBL_STATUS_INST) With {.DropCurrentProgressOnTotalChange = False, .Enabled = False}
+        Settings.DeleteCachePath()
+        MainFrameObj = New MainFrameObjects(Me)
+        MainProgress = New Toolbars.MyProgress(Toolbar_BOTTOM, PR_MAIN, LBL_STATUS, "Downloading profiles' data") With {
+            .DropCurrentProgressOnTotalChange = False, .Enabled = False}
         Downloader = New TDownloader
         InfoForm = New DownloadedInfoForm
+        MyProgressForm = New ActiveDownloadingProgress
+        Downloader.ReconfPool()
         AddHandler Downloader.OnJobsChange, AddressOf Downloader_UpdateJobsCount
         AddHandler Downloader.OnDownloading, AddressOf Downloader_OnDownloading
         AddHandler Downloader.OnDownloadCountChange, AddressOf InfoForm.Downloader_OnDownloadCountChange
         AddHandler Downloader.SendNotification, AddressOf NotificationMessage
+        AddHandler InfoForm.OnUserLooking, AddressOf Info_OnUserLooking
         Settings.LoadUsers()
         MyView = New FormsView(Me)
         MyView.ImportFromXML(Settings.Design)
         MyView.SetMeSize()
         If Settings.CloseToTray Then TrayIcon.Visible = True
-        Dim gk$
         With LIST_PROFILES.Groups
-            'Collections
-            gk = GetLviGroupName(Sites.Undefined, False, True, True, False)
-            .Add(New ListViewGroup(gk, gk))
-            gk = GetLviGroupName(Sites.Undefined, False, False, True, False)
-            .Add(New ListViewGroup(gk, gk))
-            gk = GetLviGroupName(Sites.Undefined, True, False, True, False)
-            .Add(New ListViewGroup(gk, gk))
-            'Channels
-            gk = GetLviGroupName(Sites.Undefined, False, True, False, True)
-            .Add(New ListViewGroup(gk, gk))
-            gk = GetLviGroupName(Sites.Undefined, False, False, False, True)
-            .Add(New ListViewGroup(gk, gk))
-            gk = GetLviGroupName(Sites.Undefined, True, False, False, True)
-            .Add(New ListViewGroup(gk, gk))
-            'Sites
-            For Each s As Sites In [Enum].GetValues(GetType(Sites))
-                If Not s = Sites.Undefined Then
-                    gk = GetLviGroupName(s, False, True, False, False)
-                    .Add(New ListViewGroup(gk, gk))
-                    gk = GetLviGroupName(s, False, False, False, False)
-                    .Add(New ListViewGroup(gk, gk))
-                    gk = GetLviGroupName(s, True, False, False, False)
-                    .Add(New ListViewGroup(gk, gk))
-                End If
-            Next
+            .AddRange(GetLviGroupName(Nothing, True, False)) 'collections
+            .AddRange(GetLviGroupName(Nothing, False, True)) 'channels
+            If Settings.Plugins.Count > 0 Then
+                For Each h As SettingsHost In Settings.Plugins.Select(Function(hh) hh.Settings) : .AddRange(GetLviGroupName(h, False, False)) : Next
+            End If
             If Settings.Labels.Count > 0 Then Settings.Labels.ToList.ForEach(Sub(l) .Add(New ListViewGroup(l, l)))
             .Add(Settings.Labels.NoLabel)
         End With
         With Settings
             LIST_PROFILES.View = .ViewMode
-            SetViewButtonsCheckers(.ViewMode.Value = View.LargeIcon, .ViewMode.Value = View.SmallIcon, .ViewMode.Value = View.List)
+            ApplyViewPattern(.ViewMode.Value)
             AddHandler .Labels.NewLabelAdded, AddressOf UpdateLabelsGroups
         End With
+        UserListLoader = New ListImagesLoader(LIST_PROFILES)
         RefillList()
         UpdateLabelsGroups()
         SetShowButtonsCheckers(Settings.ShowingMode.Value)
         CheckVersion(False)
         BTT_SITE_ALL.Checked = Settings.SelectedSites.Count = 0
         BTT_SITE_SPECIFIC.Checked = Settings.SelectedSites.Count > 0
+        BTT_SHOW_LIMIT_DATES.Checked = Settings.LastUpdatedDate.HasValue
         _UFinit = False
         GoTo EndFunction
 FormClosingInvoker:
@@ -145,6 +139,7 @@ DropCloseParams:
             _CloseInvoked = False
             Exit Sub
 CloseContinue:
+            If Not BATCH Is Nothing Then BATCH.Dispose() : BATCH = Nothing
             If Not MyMainLOG.IsEmptyString Then SaveLogToFile()
             If _CloseInvoked Then Close()
 CloseResume:
@@ -175,6 +170,7 @@ CloseResume:
         Select Case e.KeyCode
             Case Keys.Insert : BTT_ADD_USER.PerformClick()
             Case Keys.Delete : DeleteSelectedUser()
+            Case Keys.Enter : OpenFolder()
             Case Keys.F1 : BTT_VERSION_INFO.PerformClick()
             Case Keys.F2 : DownloadVideoByURL()
             Case Keys.F3 : EditSelectedUser()
@@ -188,92 +184,11 @@ CloseResume:
         CheckVersion(True)
     End Sub
     Friend Sub RefillList()
-        Dim a As Action = Sub()
-                              With LIST_PROFILES
-                                  .Items.Clear()
-                                  If Not .LargeImageList Is Nothing Then .LargeImageList.Images.Clear()
-                                  .LargeImageList = New ImageList
-                                  If Not .SmallImageList Is Nothing Then .SmallImageList.Images.Clear()
-                                  .SmallImageList = New ImageList
-                                  .LargeImageList.ColorDepth = ColorDepth.Depth32Bit
-                                  .SmallImageList.ColorDepth = ColorDepth.Depth32Bit
-                                  .LargeImageList.ImageSize = New Size(DivideWithZeroChecking(Settings.MaxLargeImageHeigh.Value, 100) * 75, Settings.MaxLargeImageHeigh.Value)
-                                  .SmallImageList.ImageSize = New Size(DivideWithZeroChecking(Settings.MaxSmallImageHeigh.Value, 100) * 75, Settings.MaxSmallImageHeigh.Value)
-                              End With
-                          End Sub
-        If LIST_PROFILES.InvokeRequired Then LIST_PROFILES.Invoke(a) Else a.Invoke
-        If Settings.Users.Count > 0 Then
-            Settings.Users.Sort()
-            Dim t As New List(Of Task)
-            For Each User As IUserData In Settings.Users
-                If User.FitToAddParams Then
-                    If Settings.ViewModeIsPicture Then
-                        t.Add(Task.Run(Sub() UserListUpdate(User, True)))
-                    Else
-                        UserListUpdate(User, True)
-                    End If
-                End If
-            Next
-            If t.Count > 0 Then Task.WhenAll(t.ToArray) : t.Clear()
-        End If
+        UserListLoader.Update()
+        GC.Collect()
     End Sub
     Private Sub UserListUpdate(ByVal User As IUserData, ByVal Add As Boolean)
-        Try
-            Dim a As Action
-            If Add Then
-                a = Sub()
-                        With LIST_PROFILES
-                            Select Case Settings.ViewMode.Value
-                                Case View.LargeIcon : .LargeImageList.Images.Add(User.LVIKey, User.GetPicture())
-                                Case View.SmallIcon : .SmallImageList.Images.Add(User.LVIKey, User.GetPicture())
-                            End Select
-                            .Items.Add(User.GetLVI(LIST_PROFILES))
-                            If Not User.Exists Then
-                                With .Items(.Items.Count - 1)
-                                    .BackColor = ColorBttDeleteBack
-                                    .ForeColor = ColorBttDeleteFore
-                                End With
-                            ElseIf User.Suspended Then
-                                With .Items(.Items.Count - 1)
-                                    .BackColor = ColorBttEditBack
-                                    .ForeColor = ColorBttEditFore
-                                End With
-                            End If
-                        End With
-                    End Sub
-            Else
-                a = Sub()
-                        With LIST_PROFILES
-                            Dim i% = .Items.IndexOfKey(User.LVIKey)
-                            Dim ImgIndx%
-                            If i >= 0 Then
-                                Select Case Settings.ViewMode.Value
-                                    Case View.LargeIcon
-                                        ImgIndx = .LargeImageList.Images.IndexOfKey(User.LVIKey)
-                                        If ImgIndx >= 0 Then .LargeImageList.Images(ImgIndx) = User.GetPicture()
-                                    Case View.SmallIcon
-                                        ImgIndx = .SmallImageList.Images.IndexOfKey(User.LVIKey)
-                                        If ImgIndx >= 0 Then .SmallImageList.Images(ImgIndx) = User.GetPicture()
-                                End Select
-                                .Items(i).Text = User.ToString
-                                .Items(i).Group = User.GetLVIGroup(LIST_PROFILES)
-                                If Not User.Exists Then
-                                    .Items(i).BackColor = ColorBttDeleteBack
-                                    .Items(i).ForeColor = ColorBttDeleteFore
-                                ElseIf User.Suspended Then
-                                    .Items(i).BackColor = ColorBttEditBack
-                                    .Items(i).ForeColor = ColorBttEditFore
-                                Else
-                                    .Items(i).BackColor = SystemColors.Window
-                                    .Items(i).ForeColor = SystemColors.WindowText
-                                End If
-                            End If
-                        End With
-                    End Sub
-            End If
-            If LIST_PROFILES.InvokeRequired Then LIST_PROFILES.Invoke(a) Else a.Invoke
-        Catch ex As Exception
-        End Try
+        UserListLoader.UpdateUser(User, Add)
     End Sub
     Private Sub UpdateLabelsGroups()
         If Settings.Labels.NewLabelsExists Then
@@ -297,18 +212,6 @@ CloseResume:
     End Sub
 #Region "Toolbar buttons"
 #Region "Settings"
-    Private Sub BTT_SETTINGS_REDDIT_Click(sender As Object, e As EventArgs) Handles BTT_SETTINGS_REDDIT.Click
-        Using f As New SiteEditorForm(Sites.Reddit) : f.ShowDialog() : End Using
-    End Sub
-    Private Sub BTT_SETTINGS_TWITTER_Click(sender As Object, e As EventArgs) Handles BTT_SETTINGS_TWITTER.Click
-        Using f As New SiteEditorForm(Sites.Twitter) : f.ShowDialog() : End Using
-    End Sub
-    Private Sub BTT_SETTINGS_INSTAGRAM_Click(sender As Object, e As EventArgs) Handles BTT_SETTINGS_INSTAGRAM.Click
-        Using f As New SiteEditorForm(Sites.Instagram) : f.ShowDialog() : End Using
-    End Sub
-    Private Sub BTT_SETTINGS_REDGIFS_Click(sender As Object, e As EventArgs) Handles BTT_SETTINGS_REDGIFS.Click
-        Using f As New SiteEditorForm(Sites.RedGifs) : f.ShowDialog() : End Using
-    End Sub
     Private Sub BTT_SETTINGS_Click(sender As Object, e As EventArgs) Handles BTT_SETTINGS.Click
         Dim mhl% = Settings.MaxLargeImageHeigh.Value
         Dim mhs% = Settings.MaxSmallImageHeigh.Value
@@ -346,33 +249,18 @@ CloseResume:
                                     .DownloadVideos = f.DownloadVideos
                                     .FriendlyName = f.UserFriendly
                                     .Description = f.UserDescr
+                                    If Not f.MyExchangeOptions Is Nothing Then DirectCast(.Self, UserDataBase).ExchangeOptionsSet(f.MyExchangeOptions)
                                     .Self.Labels.ListAddList(f.UserLabels, LAP.ClearBeforeAdd, LAP.NotContainsOnly)
                                     .UpdateUserInformation()
                                 End If
                             End With
                             UserListUpdate(Settings.Users.Last, True)
-                            i = LIST_PROFILES.Items.IndexOfKey(Settings.Users(Settings.Users.Count - 1).LVIKey)
-                            If i >= 0 Then
-                                LIST_PROFILES.SelectedIndices.Clear()
-                                With LIST_PROFILES.Items(i)
-                                    .Selected = True
-                                    .Focused = True
-                                End With
-                                LIST_PROFILES.EnsureVisible(i)
-                            End If
+                            FocusUser(Settings.Users(Settings.Users.Count - 1).Key)
                         Else
                             MsgBoxE($"User [{f.User.Name}] was not added")
                         End If
                     Else
-                        i = LIST_PROFILES.Items.IndexOfKey(Settings.Users(i).LVIKey)
-                        If i >= 0 Then
-                            LIST_PROFILES.SelectedIndices.Clear()
-                            With LIST_PROFILES.Items(i)
-                                .Selected = True
-                                .Focused = True
-                            End With
-                            LIST_PROFILES.EnsureVisible(i)
-                        End If
+                        FocusUser(Settings.Users(i).Key)
                         MsgBoxE($"User [{f.User.Name}] already exists", MsgBoxStyle.Exclamation)
                     End If
                 End If
@@ -435,49 +323,54 @@ CloseResume:
 #End Region
 #Region "View"
     Private Sub BTT_VIEW_LARGE_Click(sender As Object, e As EventArgs) Handles BTT_VIEW_LARGE.Click
-        LIST_PROFILES.View = View.LargeIcon
-        Dim b As Boolean = Not (Settings.ViewMode.Value = View.LargeIcon)
-        Settings.ViewMode.Value = View.LargeIcon
-        SetViewButtonsCheckers(True, False, False)
-        If b Then RefillList()
+        ApplyViewPattern(ViewModes.IconLarge)
     End Sub
     Private Sub BTT_VIEW_SMALL_Click(sender As Object, e As EventArgs) Handles BTT_VIEW_SMALL.Click
-        LIST_PROFILES.View = View.SmallIcon
-        Dim b As Boolean = Not (Settings.ViewMode.Value = View.SmallIcon)
-        Settings.ViewMode.Value = View.SmallIcon
-        SetViewButtonsCheckers(False, True, False)
-        If b Then RefillList()
+        ApplyViewPattern(ViewModes.IconSmall)
     End Sub
     Private Sub BTT_VIEW_LIST_Click(sender As Object, e As EventArgs) Handles BTT_VIEW_LIST.Click
-        LIST_PROFILES.View = View.List
-        Dim b As Boolean = Not (Settings.ViewMode.Value = View.List)
-        Settings.ViewMode.Value = View.List
-        SetViewButtonsCheckers(False, False, True)
-        If b Then
-            With LIST_PROFILES
-                .LargeImageList.Images.Clear()
-                .SmallImageList.Images.Clear()
-            End With
-        End If
+        ApplyViewPattern(ViewModes.List)
     End Sub
-    Private Sub SetViewButtonsCheckers(ByVal Large As Boolean, ByVal Small As Boolean, ByVal List As Boolean)
-        BTT_VIEW_LARGE.Checked = Large
-        BTT_VIEW_SMALL.Checked = Small
-        BTT_VIEW_LIST.Checked = List
+    Private Sub BTT_VIEW_DETAILS_Click(sender As Object, e As EventArgs) Handles BTT_VIEW_DETAILS.Click
+        ApplyViewPattern(ViewModes.Details)
+    End Sub
+    Private Sub ApplyViewPattern(ByVal v As ViewModes)
+        LIST_PROFILES.View = v
+        Dim b As Boolean = Not (Settings.ViewMode.Value = v)
+        Settings.ViewMode.Value = v
+
+        BTT_VIEW_LARGE.Checked = v = ViewModes.IconLarge
+        BTT_VIEW_SMALL.Checked = v = ViewModes.IconSmall
+        BTT_VIEW_LIST.Checked = v = ViewModes.List
+        BTT_VIEW_DETAILS.Checked = v = ViewModes.Details
+
+        If v = View.Details Then
+            LIST_PROFILES.Columns(0).Width = -2
+            LIST_PROFILES.FullRowSelect = True
+            LIST_PROFILES.GridLines = True
+        End If
+
+        If b Then
+            If Settings.ViewModeIsPicture Then
+                With LIST_PROFILES : .LargeImageList.Images.Clear() : .SmallImageList.Images.Clear() : End With
+            End If
+            RefillList()
+        End If
     End Sub
 #End Region
 #Region "View Site"
     Private Sub BTT_SITE_ALL_Click(sender As Object, e As EventArgs) Handles BTT_SITE_ALL.Click
-        Settings.SelectedSites = Nothing
-        If Not BTT_SITE_ALL.Checked Then Settings.SelectedSites = Nothing : RefillList()
+        Settings.SelectedSites.Clear()
+        If Not BTT_SITE_ALL.Checked Then RefillList()
         BTT_SITE_ALL.Checked = True
         BTT_SITE_SPECIFIC.Checked = False
     End Sub
     Private Sub BTT_SITE_SPECIFIC_Click(sender As Object, e As EventArgs) Handles BTT_SITE_SPECIFIC.Click
-        Using f As New SiteSelectionForm(Settings.SelectedSites)
+        Using f As New SiteSelectionForm(Settings.SelectedSites.ValuesList)
             f.ShowDialog()
             If f.DialogResult = DialogResult.OK Then
-                Settings.SelectedSites = f.SelectedSites
+                Settings.SelectedSites.Clear()
+                Settings.SelectedSites.AddRange(f.SelectedSites)
                 BTT_SITE_SPECIFIC.Checked = Settings.SelectedSites.Count > 0
                 BTT_SITE_ALL.Checked = Settings.SelectedSites.Count = 0
                 RefillList()
@@ -498,6 +391,12 @@ CloseResume:
     Private Sub BTT_SHOW_FAV_Click(sender As Object, e As EventArgs) Handles BTT_SHOW_FAV.Click
         SetShowButtonsCheckers(ShowingModes.Favorite)
     End Sub
+    Private Sub BTT_SHOW_DELETED_Click(sender As Object, e As EventArgs) Handles BTT_SHOW_DELETED.Click
+        SetShowButtonsCheckers(ShowingModes.Deleted)
+    End Sub
+    Private Sub BTT_SHOW_SUSPENDED_Click(sender As Object, e As EventArgs) Handles BTT_SHOW_SUSPENDED.Click
+        SetShowButtonsCheckers(ShowingModes.Suspended)
+    End Sub
     Private Sub BTT_SHOW_LABELS_Click(sender As Object, e As EventArgs) Handles BTT_SHOW_LABELS.Click
         SetShowButtonsCheckers(ShowingModes.Labels)
     End Sub
@@ -509,6 +408,8 @@ CloseResume:
         BTT_SHOW_REGULAR.Checked = m = ShowingModes.Regular
         BTT_SHOW_TEMP.Checked = m = ShowingModes.Temporary
         BTT_SHOW_FAV.Checked = m = ShowingModes.Favorite
+        BTT_SHOW_DELETED.Checked = m = ShowingModes.Deleted
+        BTT_SHOW_SUSPENDED.Checked = m = ShowingModes.Suspended
         BTT_SHOW_LABELS.Checked = m = ShowingModes.Labels
         BTT_SHOW_NO_LABELS.Checked = m = ShowingModes.NoLabels
         BTT_SELECT_LABELS.Enabled = BTT_SHOW_LABELS.Checked
@@ -559,12 +460,34 @@ CloseResume:
             End If
         End Using
     End Sub
+    Private Sub BTT_SHOW_LIMIT_DATES_Click(sender As Object, e As EventArgs) Handles BTT_SHOW_LIMIT_DATES.Click
+        Dim r As Boolean = False
+        Dim snd As Action(Of Date?) = Sub(ByVal d As Date?)
+                                          With Settings.LastUpdatedDate
+                                              If .HasValue And d.HasValue Then
+                                                  r = Not .Value.Date = d.Value.Date
+                                              Else
+                                                  r = True
+                                              End If
+                                          End With
+                                          Settings.LastUpdatedDate = d
+                                      End Sub
+        Using f As New FDatePickerForm
+            f.ShowDialog()
+            Select Case f.DialogResult
+                Case DialogResult.Abort : snd(Nothing)
+                Case DialogResult.OK : snd(f.SelectedDate)
+            End Select
+        End Using
+        BTT_SHOW_LIMIT_DATES.Checked = Settings.LastUpdatedDate.HasValue
+        If r Then RefillList()
+    End Sub
 #End Region
     Private Sub BTT_LOG_Click(sender As Object, e As EventArgs) Handles BTT_LOG.Click
         MyMainLOG_ShowForm(Settings.Design)
     End Sub
     Private Sub BTT_DONATE_Click(sender As Object, e As EventArgs) Handles BTT_DONATE.Click
-        Try : Process.Start("https://ko-fi.com/andyprogram") : Catch : End Try
+        Try : Process.Start("https://github.com/AAndyProgram/SCrawler/HowToSupport.md") : Catch : End Try
     End Sub
 #Region "List functions"
     Private _LatestSelected As Integer = -1
@@ -641,7 +564,7 @@ CloseResume:
                                                   If .Count > 0 Then .Collections.ForEach(Sub(uu) uu.Labels.ListAddList(f.LabelsList, lp))
                                               End With
                                           Else
-                                              u.Self.Labels.ListAddList(f.LabelsList, lp)
+                                              u.Labels.ListAddList(f.LabelsList, lp)
                                           End If
                                           u.UpdateUserInformation()
                                       End Sub)
@@ -664,7 +587,8 @@ CloseResume:
     Private Sub BTT_CHANGE_IMAGE_Click(sender As Object, e As EventArgs) Handles BTT_CHANGE_IMAGE.Click
         Dim user As IUserData = GetSelectedUser()
         If Not user Is Nothing Then
-            Dim f As SFile = SFile.SelectFiles(user.File, False, "Select new user picture", "Pictures|*.jpeg;*.jpg;*.png").FirstOrDefault
+            Dim f As SFile = SFile.SelectFiles(user.File.CutPath(IIf(user.IsCollection, 2, 1)), False, "Select new user picture",
+                                               "Pictures|*.jpeg;*.jpg;*.png|GIF|*.gif|All Files|*.*").FirstOrDefault
             If Not f.IsEmptyString Then
                 user.SetPicture(f)
                 UserListUpdate(user, False)
@@ -689,22 +613,18 @@ CloseResume:
                                 Dim Added As Boolean = i < 0
                                 If i < 0 Then
                                     .Users.Add(New UserDataBind(f.Collection))
+                                    CollectionHandler(DirectCast(.Users.Last, UserDataBind))
                                     i = .Users.Count - 1
                                 End If
                                 Try
                                     DirectCast(.Users(i), UserDataBind).Add(user)
                                     RemoveUserFromList(user)
                                     i = .Users.FindIndex(fCol)
-                                    If i >= 0 Then UserListUpdate(.Users(i), Added) Else RefillList()
+                                    If i >= 0 Then UserListUpdate(.Users(i), Added)
                                     MsgBoxE($"[{user.Name}] was added to collection [{f.Collection}]")
                                 Catch ex As InvalidOperationException
                                     i = .Users.FindIndex(fCol)
-                                    If i >= 0 Then
-                                        If DirectCast(.Users(i), UserDataBind).Count = 0 Then
-                                            .Users(i).Dispose()
-                                            .Users.RemoveAt(i)
-                                        End If
-                                    End If
+                                    If i >= 0 AndAlso DirectCast(.Users(i), UserDataBind).Count = 0 Then .Users(i).Dispose() : .Users.RemoveAt(i)
                                 End Try
                             End With
                         End If
@@ -745,7 +665,7 @@ CloseResume:
                                 If .Count = 0 Then
                                     Throw New ArgumentOutOfRangeException("Collection", "Collection is empty")
                                 Else
-                                    With DirectCast(.Collections(0).Self, UserDataBase)
+                                    With DirectCast(.Collections(0), UserDataBase)
                                         If Not .User.Merged Then CutOption = 2
                                     End With
                                 End If
@@ -764,14 +684,14 @@ CloseResume:
                                (Not NewDest.Exists(SFO.Path, False) OrElse
                                     (
                                         SFile.GetFiles(NewDest,, IO.SearchOption.AllDirectories, EDP.ThrowException).ListIfNothing.Count = 0 AndAlso
-                                        NewDest.Delete(SFO.Path, False, False, EDP.ThrowException) AndAlso
+                                        NewDest.Delete(SFO.Path, Settings.DeleteMode, EDP.ThrowException) AndAlso
                                         Not NewDest.Exists(SFO.Path, False)
                                     )
                                ) Then
                                 NewDest.CutPath.Exists(SFO.Path)
                                 IO.Directory.Move(CurrDir.Path, NewDest.Path)
                                 Dim ApplyChanges As Action(Of IUserData) = Sub(ByVal __user As IUserData)
-                                                                               With DirectCast(__user.Self, UserDataBase)
+                                                                               With DirectCast(__user, UserDataBase)
                                                                                    Dim u As UserInfo = .User.Clone
                                                                                    Settings.UsersList.Remove(u)
                                                                                    Dim d As SFile = Nothing
@@ -820,7 +740,7 @@ CloseResume:
     End Sub
     Private Sub BTT_CONTEXT_INFO_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_INFO.Click
         Dim user As IUserData = GetSelectedUser()
-        If Not user Is Nothing Then MsgBoxE(DirectCast(user.Self, UserDataBase).GetUserInformation())
+        If Not user Is Nothing Then MsgBoxE(DirectCast(user, UserDataBase).GetUserInformation())
     End Sub
     Private Sub USER_CONTEXT_VisibleChanged(sender As Object, e As EventArgs) Handles USER_CONTEXT.VisibleChanged
         Try
@@ -850,7 +770,7 @@ CloseResume:
     Private Function GetSelectedUser() As IUserData
         If _LatestSelected >= 0 And _LatestSelected <= LIST_PROFILES.Items.Count - 1 Then
             Dim k$ = LIST_PROFILES.Items(_LatestSelected).Name
-            Dim i% = Settings.Users.FindIndex(Function(u) u.LVIKey = k)
+            Dim i% = Settings.Users.FindIndex(Function(u) u.Key = k)
             If i >= 0 Then
                 Return Settings.Users(i)
             Else
@@ -868,7 +788,7 @@ CloseResume:
                     Dim indx%
                     For i% = 0 To .SelectedIndices.Count - 1
                         k = .Items(.SelectedIndices(i)).Name
-                        indx = Settings.Users.FindIndex(Function(u) u.LVIKey = k)
+                        indx = Settings.Users.FindIndex(Function(u) u.Key = k)
                         If i >= 0 Then l.Add(Settings.Users(indx))
                     Next
                     Return l
@@ -880,7 +800,7 @@ CloseResume:
         End Try
     End Function
     Private Overloads Sub RemoveUserFromList(ByVal _User As IUserData)
-        RemoveUserFromList(LIST_PROFILES.Items.IndexOfKey(_User.LVIKey), _User.LVIKey)
+        RemoveUserFromList(LIST_PROFILES.Items.IndexOfKey(_User.Key), _User.Key)
     End Sub
     Private Overloads Sub RemoveUserFromList(ByVal _Index As Integer, ByVal Key As String)
         Dim a As Action = Sub()
@@ -952,10 +872,10 @@ CloseResume:
                             If banUser Then Settings.BlackList.ListAddValue(New UserBan(user.Name, reason), l) : b = True
                             If user.IsCollection Then
                                 With DirectCast(user, UserDataBind)
-                                    If .Count > 0 Then .Collections.ForEach(Sub(c) Settings.UsersList.Remove(DirectCast(c.Self, UserDataBase).User))
+                                    If .Count > 0 Then .Collections.ForEach(Sub(c) Settings.UsersList.Remove(DirectCast(c, UserDataBase).User))
                                 End With
                             Else
-                                Settings.UsersList.Remove(DirectCast(user.Self, UserDataBase).User)
+                                Settings.UsersList.Remove(DirectCast(user, UserDataBase).User)
                             End If
                             Settings.Users.Remove(user)
                             Settings.UpdateUsersList()
@@ -996,6 +916,14 @@ CloseResume:
         Catch ex As Exception
             ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Error on trying to delete user / collection")
         End Try
+    End Sub
+    Friend Sub UserRemovedFromCollection(ByVal User As IUserData)
+        If LIST_PROFILES.Items.Count = 0 OrElse Not LIST_PROFILES.Items.ContainsKey(User.Key) Then UserListUpdate(User, True)
+    End Sub
+    Friend Sub CollectionRemoved(ByVal User As IUserData)
+        With LIST_PROFILES.Items
+            If .Count > 0 AndAlso .ContainsKey(User.Key) Then .RemoveByKey(User.Key)
+        End With
     End Sub
     Private Sub DownloadSelectedUser(ByVal UseLimits As Boolean)
         Dim users As List(Of IUserData) = GetSelectedUserArray()
@@ -1044,17 +972,27 @@ ResumeDownloadingOperation:
         If Not user Is Nothing Then user.OpenFolder()
     End Sub
 #End Region
+    Private Sub Info_OnUserLooking(ByVal Key As String)
+        FocusUser(Key, True)
+    End Sub
+    Private Sub FocusUser(ByVal Key As String, Optional ByVal ActivateMe As Boolean = False)
+        Dim i% = LIST_PROFILES.Items.IndexOfKey(Key)
+        If i >= 0 Then
+            LIST_PROFILES.Select()
+            LIST_PROFILES.SelectedIndices.Clear()
+            With LIST_PROFILES.Items(i) : .Selected = True : .Focused = True : End With
+            LIST_PROFILES.EnsureVisible(i)
+            If ActivateMe Then
+                If Visible Then BringToFront() Else Visible = True
+            End If
+        End If
+    End Sub
     Friend Sub User_OnUserUpdated(ByVal User As IUserData)
         UserListUpdate(User, False)
     End Sub
     Private _LogColorChanged As Boolean = False
-    Private Sub Downloader_UpdateJobsCount(ByVal Site As Sites, ByVal TotalCount As Integer)
-        Dim a As Action
-        If Site = Sites.Instagram Then
-            a = Sub() LBL_JOBS_INST_COUNT.Text = IIf(TotalCount = 0, String.Empty, $"[Jobs {TotalCount}]")
-        Else
-            a = Sub() LBL_JOBS_COUNT.Text = IIf(TotalCount = 0, String.Empty, $"[Jobs {TotalCount}]")
-        End If
+    Private Sub Downloader_UpdateJobsCount(ByVal TotalCount As Integer)
+        Dim a As Action = Sub() LBL_JOBS_COUNT.Text = IIf(TotalCount = 0, String.Empty, $"[Jobs {TotalCount}]")
         If Toolbar_BOTTOM.InvokeRequired Then Toolbar_BOTTOM.Invoke(a) Else a.Invoke
         If Not _LogColorChanged AndAlso Not MyMainLOG.IsEmptyString Then
             a = Sub() BTT_LOG.ControlChangeColor(False)
@@ -1072,5 +1010,8 @@ ResumeDownloadingOperation:
     End Sub
     Private Sub NotificationMessage(ByVal Message As String)
         If Settings.ShowNotifications Then TrayIcon.ShowBalloonTip(2000, TrayIcon.BalloonTipTitle, Message, ToolTipIcon.Info)
+    End Sub
+    Private Sub BTT_PR_INFO_Click(sender As Object, e As EventArgs) Handles BTT_PR_INFO.Click
+        If MyProgressForm.Visible Then MyProgressForm.BringToFront() Else MyProgressForm.Show()
     End Sub
 End Class

@@ -18,8 +18,8 @@ Namespace API.Base
                 GIF = 50
                 m3u8 = 100
             End Enum
-            Friend Enum States : Unknown : Tried : Downloaded : Skipped : End Enum
-            Friend Type As Types
+            Friend Enum States As Integer : Unknown = 0 : Tried = 1 : Downloaded = 2 : Skipped = 3 : End Enum
+            Friend [Type] As Types
             Friend URL_BASE As String
             Friend URL As String
             Friend MD5 As String
@@ -27,6 +27,11 @@ Namespace API.Base
             Friend Post As UserPost
             Friend PictureOption As String
             Friend State As States
+            ''' <summary>
+            ''' SomeFolder<br/>
+            ''' SomeFolder\SomeFolder2
+            ''' </summary>
+            Friend SpecialFolder As String
             Friend Sub New(ByVal _URL As String)
                 URL = _URL
                 URL_BASE = _URL
@@ -35,7 +40,18 @@ Namespace API.Base
             End Sub
             Friend Sub New(ByVal _URL As String, ByVal _Type As Types)
                 Me.New(_URL)
-                Type = _Type
+                [Type] = _Type
+            End Sub
+            Friend Sub New(ByVal m As Plugin.IPluginUserMedia)
+                If Not IsNothing(m) Then
+                    [Type] = m.ContentType
+                    URL = m.URL
+                    MD5 = m.MD5
+                    File = m.File
+                    Post = New UserPost With {.ID = m.PostID, .[Date] = m.PostDate}
+                    State = m.DownloadState
+                    SpecialFolder = m.SpecialFolder
+                End If
             End Sub
             Public Shared Widening Operator CType(ByVal _URL As String) As UserMedia
                 Return New UserMedia(_URL)
@@ -45,6 +61,18 @@ Namespace API.Base
             End Operator
             Public Overrides Function ToString() As String
                 Return URL
+            End Function
+            Friend Function PluginUserMedia() As Plugin.PluginUserMedia
+                Return New Plugin.PluginUserMedia With {
+                    .ContentType = Type,
+                    .DownloadState = State,
+                    .File = File,
+                    .MD5 = MD5,
+                    .URL = URL,
+                    .SpecialFolder = SpecialFolder,
+                    .PostID = Post.ID,
+                    .PostDate = Post.Date
+                }
             End Function
             Friend Overloads Function Equals(ByVal Other As UserMedia) As Boolean Implements IEquatable(Of UserMedia).Equals
                 Return URL = Other.URL

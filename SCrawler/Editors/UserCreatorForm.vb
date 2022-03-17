@@ -8,10 +8,13 @@
 ' but WITHOUT ANY WARRANTY
 Imports System.ComponentModel
 Imports PersonalUtilities.Forms
+Imports PersonalUtilities.Forms.Controls
 Imports PersonalUtilities.Forms.Controls.Base
 Imports PersonalUtilities.Forms.Toolbars
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports SCrawler.API.Base
+Imports SCrawler.Plugin
+Imports SCrawler.Plugin.Hosts
 Namespace Editors
     Friend Class UserCreatorForm : Implements IOkCancelToolbar
         Private ReadOnly MyDef As DefaultFormProps(Of FieldsChecker)
@@ -62,8 +65,9 @@ Namespace Editors
                 Return TXT_USER_FRIENDLY.Text
             End Get
         End Property
+        Friend Property MyExchangeOptions As Object = Nothing
         Private ReadOnly _SpecPathPattern As RParams = RParams.DM("\w:\\.*", 0, EDP.ReturnValue)
-        Private ReadOnly Property SpecialPath(ByVal s As Sites) As SFile
+        Private ReadOnly Property SpecialPath(ByVal s As SettingsHost) As SFile
             Get
                 If TXT_SPEC_FOLDER.IsEmptyString Then
                     Return Nothing
@@ -71,9 +75,8 @@ Namespace Editors
                     If Not CStr(RegexReplace(TXT_SPEC_FOLDER.Text, _SpecPathPattern)).IsEmptyString Then
                         Return $"{TXT_SPEC_FOLDER.Text}\"
                     Else
-                        Return $"{Settings(s).Path.PathWithSeparator}{TXT_SPEC_FOLDER.Text}\"
+                        Return $"{s.Path.PathWithSeparator}{TXT_SPEC_FOLDER.Text}\"
                     End If
-
                 End If
             End Get
         End Property
@@ -89,7 +92,7 @@ Namespace Editors
             Me.New
             If Not _Instance Is Nothing Then
                 UserInstance = _Instance
-                User = DirectCast(UserInstance.Self, UserDataBase).User
+                User = DirectCast(UserInstance, UserDataBase).User
             End If
         End Sub
         Private Sub UserCreatorForm_Load(sender As Object, e As EventArgs) Handles Me.Load
@@ -98,26 +101,26 @@ Namespace Editors
                     .MyViewInitialize(Me, Settings.Design, True)
                     .AddOkCancelToolbar()
                     CH_AUTO_DETECT_SITE.Enabled = False
+                    With CMB_SITE
+                        .BeginUpdate()
+                        .Items.AddRange(Settings.Plugins.Select(Function(p) New ListItem({p.Key, p.Name})))
+                        .EndUpdate(True)
+                    End With
                     If User.Name.IsEmptyString Then
-                        OPT_REDDIT.Checked = False
-                        OPT_TWITTER.Checked = False
-                        OPT_INSTAGRAM.Checked = False
                         CH_READY_FOR_DOWN.Checked = True
                         CH_TEMP.Checked = Settings.DefaultTemporary
                         CH_DOWN_IMAGES.Checked = Settings.DefaultDownloadImages
                         CH_DOWN_VIDEOS.Checked = Settings.DefaultDownloadVideos
+                        SetParamsBySite()
                     Else
                         TP_ADD_BY_LIST.Enabled = False
                         TXT_USER.Text = User.Name
                         TXT_SPEC_FOLDER.Text = User.SpecialPath
-                        Select Case User.Site
-                            Case Sites.Reddit : OPT_REDDIT.Checked = True
-                            Case Sites.Twitter : OPT_TWITTER.Checked = True
-                            Case Sites.Instagram : OPT_INSTAGRAM.Checked = True
-                            Case Sites.RedGifs : OPT_REDGIFS.Checked = True
-                        End Select
+                        Dim i% = Settings.Plugins.FindIndex(Function(p) p.Key = User.Plugin)
+                        If i >= 0 Then CMB_SITE.SelectedIndex = i
                         SetParamsBySite()
-                        TP_SITE.Enabled = False
+                        CH_IS_CHANNEL.Enabled = False
+                        CMB_SITE.Enabled = False
                         CH_IS_CHANNEL.Checked = User.IsChannel
                         If Not UserInstance Is Nothing Then
                             TXT_USER.Enabled = False
@@ -167,31 +170,26 @@ Namespace Editors
         Private Sub UserCreatorForm_Disposed(sender As Object, e As EventArgs) Handles Me.Disposed
             UserLabels.Clear()
         End Sub
-        Private Function GetSiteByCheckers() As Sites
-            Select Case True
-                Case OPT_REDDIT.Checked : Return Sites.Reddit
-                Case OPT_TWITTER.Checked : Return Sites.Twitter
-                Case OPT_INSTAGRAM.Checked : Return Sites.Instagram
-                Case OPT_REDGIFS.Checked : Return Sites.RedGifs
-                Case Else : Return Sites.Undefined
-            End Select
+        Private Function GetSiteByCheckers() As SettingsHost
+            Return If(CMB_SITE.SelectedIndex >= 0, Settings(CStr(CMB_SITE.Items(CMB_SITE.SelectedIndex).Value(0))), Nothing)
         End Function
         Private Sub ToolbarBttOK() Implements IOkCancelToolbar.ToolbarBttOK
             If Not CH_ADD_BY_LIST.Checked Then
                 If MyDef.MyFieldsChecker.AllParamsOK Then
-                    Dim s As Sites = GetSiteByCheckers()
-                    If Not s = Sites.Undefined Then
+                    Dim s As SettingsHost = GetSiteByCheckers()
+                    If Not s Is Nothing Then
                         Dim tmpUser As UserInfo = User.Clone
                         With tmpUser
                             .Name = TXT_USER.Text
                             .SpecialPath = SpecialPath(s)
-                            .Site = s
+                            .Site = s.Name
+                            .Plugin = s.Key
                             .IsChannel = CH_IS_CHANNEL.Checked
                             .UpdateUserFile()
                         End With
                         User = tmpUser
                         If Not UserInstance Is Nothing Then
-                            With DirectCast(UserInstance.Self, UserDataBase)
+                            With DirectCast(UserInstance, UserDataBase)
                                 .User = User
                                 .FriendlyName = TXT_USER_FRIENDLY.Text
                                 .Favorite = CH_FAV.Checked
@@ -200,6 +198,7 @@ Namespace Editors
                                 .DownloadImages = CH_DOWN_IMAGES.Checked
                                 .DownloadVideos = CH_DOWN_VIDEOS.Checked
                                 .UserDescription = TXT_DESCR.Text
+                                If Not MyExchangeOptions Is Nothing Then .ExchangeOptionsSet(MyExchangeOptions)
                                 Dim l As New ListAddParams(LAP.NotContainsOnly + LAP.ClearBeforeAdd)
                                 If .IsCollection Then
                                     With DirectCast(UserInstance, API.UserDataBind)
@@ -227,65 +226,54 @@ CloseForm:
         Private Sub ToolbarBttCancel() Implements IOkCancelToolbar.ToolbarBttCancel
             MyDef.CloseForm(IIf(StartIndex >= 0, DialogResult.OK, DialogResult.Cancel))
         End Sub
-        Private ReadOnly TwitterRegEx As RParams = RParams.DMS("[htps:/]{7,8}.*?twitter.com/([^/]+)", 1)
-        Private ReadOnly RedditRegEx1 As RParams = RParams.DMS("[htps:/]{7,8}.*?reddit.com/user/([^/]+)", 1)
-        Private ReadOnly RedditRegEx2 As RParams = RParams.DMS(".?u/([^/]+)", 1)
-        Private ReadOnly RedditChannelRegEx1 As RParams = RParams.DMS("[htps:/]{7,8}.*?reddit.com/r/([^/]+)", 1)
-        Private ReadOnly RedditChannelRegEx2 As RParams = RParams.DMS(".?r/([^/]+)", 1)
-        Private ReadOnly InstagramRegEx As RParams = RParams.DMS("[htps:/]{7,8}.*?instagram.com/([^/]+)", 1)
-        Private ReadOnly RedGifsRegEx As RParams = RParams.DMS("[htps:/]{7,8}.*?redgifs.com/users/([^/]+)", 1)
         Private _TextChangeInvoked As Boolean = False
         Private Sub TXT_USER_ActionOnTextChange() Handles TXT_USER.ActionOnTextChange
             Try
                 If Not _TextChangeInvoked Then
                     _TextChangeInvoked = True
                     If Not CH_ADD_BY_LIST.Checked Then
-                        Dim s() As Object = GetSiteByText(TXT_USER.Text)
-                        Select Case s(0)
-                            Case Sites.Twitter : OPT_TWITTER.Checked = True
-                            Case Sites.Reddit : OPT_REDDIT.Checked = True
-                            Case Sites.Instagram : OPT_INSTAGRAM.Checked = True
-                            Case Sites.RedGifs : OPT_REDGIFS.Checked = True
-                            Case Else : OPT_TWITTER.Checked = False : OPT_REDDIT.Checked = False : OPT_INSTAGRAM.Checked = False
-                        End Select
-                        CH_IS_CHANNEL.Checked = CBool(s(1))
+                        Dim s As ExchangeOptions = GetSiteByText(TXT_USER.Text)
+                        Dim found As Boolean = False
+                        If Not s.UserName.IsEmptyString Then
+                            Dim i% = Settings.Plugins.FindIndex(Function(p) p.Key = s.HostKey)
+                            If i >= 0 Then
+                                CMB_SITE.SelectedIndex = i
+                                CH_IS_CHANNEL.Checked = s.IsChannel
+                                TXT_USER.Text = s.UserName
+                                found = True
+                            End If
+                        End If
+                        If Not found Then
+                            CMB_SITE.SelectedIndex = -1
+                            CMB_SITE.Clear(ComboBoxExtended.ClearMode.Text)
+                            CH_IS_CHANNEL.Checked = False
+                        End If
                     End If
                     _TextChangeInvoked = False
                 End If
             Catch ex As Exception
             End Try
         End Sub
-        Private Function GetSiteByText(ByRef TXT As String) As Object()
-            If Not TXT.IsEmptyString AndAlso TXT.Length > 8 Then
-                If CheckRegex(TXT, TwitterRegEx) Then
-                    Return {Sites.Twitter, False}
-                ElseIf CheckRegex(TXT, RedditRegEx1) OrElse CheckRegex(TXT, RedditRegEx2) Then
-                    Return {Sites.Reddit, False}
-                ElseIf CheckRegex(TXT, RedditChannelRegEx1) OrElse CheckRegex(TXT, RedditChannelRegEx2) Then
-                    Return {Sites.Reddit, True}
-                ElseIf CheckRegex(TXT, InstagramRegEx) Then
-                    Return {Sites.Instagram, False}
-                ElseIf CheckRegex(TXT, RedGifsRegEx) Then
-                    Return {Sites.RedGifs, False}
-                End If
+        Private Function GetSiteByText(ByRef TXT As String) As ExchangeOptions
+            Dim s As ExchangeOptions
+            For Each p As PluginHost In Settings.Plugins
+                s = p.Settings.IsMyUser(TXT)
+                If Not s.UserName.IsEmptyString Then Return s
+            Next
+            Return Nothing
+        End Function
+        Private Sub CMB_SITE_ActionSelectedItemChanged(ByVal _Item As ListViewItem) Handles CMB_SITE.ActionSelectedItemChanged
+            CH_IS_CHANNEL.Checked = False
+            MyExchangeOptions = Nothing
+            SetParamsBySite()
+        End Sub
+        Private Sub BTT_OTHER_SETTINGS_Click(sender As Object, e As EventArgs) Handles BTT_OTHER_SETTINGS.Click
+            Dim s As SettingsHost = GetSiteByCheckers()
+            If Not s Is Nothing Then
+                s.Source.UserOptions(MyExchangeOptions, True)
+                MyDef.ChangesDetected = True
+                MyDef.MyOkCancel.EnableOK = True
             End If
-            Return {Sites.Undefined, False}
-        End Function
-        Private Function CheckRegex(ByRef TXT As String, ByVal r As RParams) As Boolean
-            Dim s$ = RegexReplace(TXT, r)
-            If Not s.IsEmptyString Then TXT = s : Return True Else Return False
-        End Function
-        Private Sub OPT_REDDIT_CheckedChanged(sender As Object, e As EventArgs) Handles OPT_REDDIT.CheckedChanged
-            If OPT_REDDIT.Checked Then CH_IS_CHANNEL.Enabled = True : SetParamsBySite()
-        End Sub
-        Private Sub OPT_TWITTER_CheckedChanged(sender As Object, e As EventArgs) Handles OPT_TWITTER.CheckedChanged
-            If OPT_TWITTER.Checked Then CH_IS_CHANNEL.Checked = False : CH_IS_CHANNEL.Enabled = False : SetParamsBySite()
-        End Sub
-        Private Sub OPT_INSTAGRAM_CheckedChanged(sender As Object, e As EventArgs) Handles OPT_INSTAGRAM.CheckedChanged
-            If OPT_INSTAGRAM.Checked Then CH_IS_CHANNEL.Checked = False : CH_IS_CHANNEL.Enabled = False : SetParamsBySite()
-        End Sub
-        Private Sub OPT_REDGIFS_CheckedChanged(sender As Object, e As EventArgs) Handles OPT_REDGIFS.CheckedChanged
-            If OPT_REDGIFS.Checked Then CH_IS_CHANNEL.Checked = False : CH_IS_CHANNEL.Enabled = False : SetParamsBySite()
         End Sub
         Private Sub TXT_SPEC_FOLDER_ActionOnButtonClick(ByVal Sender As ActionButton) Handles TXT_SPEC_FOLDER.ActionOnButtonClick
             If Sender.DefaultButton = ActionButton.DefaultButtons.Open Then
@@ -302,15 +290,27 @@ CloseForm:
             If CH_FAV.Checked Then CH_TEMP.Checked = False
         End Sub
         Private Sub SetParamsBySite()
-            Dim s As Sites = GetSiteByCheckers()
-            If Not s = Sites.Undefined Then
-                With Settings(s)
+            Dim s As SettingsHost = GetSiteByCheckers()
+            If Not s Is Nothing Then
+                With s
                     CH_TEMP.Checked = .Temporary
                     CH_DOWN_IMAGES.Checked = .DownloadImages
                     CH_DOWN_VIDEOS.Checked = .DownloadVideos
                     CH_PARSE_USER_MEDIA.Checked = .GetUserMediaOnly.Value
                     CH_READY_FOR_DOWN.Checked = Not CH_TEMP.Checked
+                    If s.HasSpecialOptions Then
+                        BTT_OTHER_SETTINGS.Enabled = True
+                        If UserInstance Is Nothing Then
+                            s.Source.UserOptions(MyExchangeOptions, False)
+                        Else
+                            MyExchangeOptions = DirectCast(UserInstance, UserDataBase).ExchangeOptionsGet
+                        End If
+                    Else
+                        BTT_OTHER_SETTINGS.Enabled = False
+                    End If
                 End With
+            Else
+                BTT_OTHER_SETTINGS.Enabled = False
             End If
         End Sub
         Private Sub CH_ADD_BY_LIST_CheckedChanged(sender As Object, e As EventArgs) Handles CH_ADD_BY_LIST.CheckedChanged
@@ -327,10 +327,14 @@ CloseForm:
             TXT_USER_FRIENDLY.Enabled = Not CH_ADD_BY_LIST.Checked
         End Sub
         Private Sub CH_AUTO_DETECT_SITE_CheckedChanged(sender As Object, e As EventArgs) Handles CH_AUTO_DETECT_SITE.CheckedChanged
-            OPT_REDDIT.Enabled = Not CH_AUTO_DETECT_SITE.Checked
-            OPT_TWITTER.Enabled = Not CH_AUTO_DETECT_SITE.Checked
-            OPT_INSTAGRAM.Enabled = Not CH_AUTO_DETECT_SITE.Checked
             CH_IS_CHANNEL.Enabled = Not CH_AUTO_DETECT_SITE.Checked
+            CMB_SITE.Enabled = Not CH_AUTO_DETECT_SITE.Checked
+            If CH_AUTO_DETECT_SITE.Checked Then
+                BTT_OTHER_SETTINGS.Enabled = False
+                MyExchangeOptions = Nothing
+            Else
+                BTT_OTHER_SETTINGS.Enabled = True
+            End If
         End Sub
         Private Function CreateUsersByList() As Boolean
             Try
@@ -343,24 +347,28 @@ CloseForm:
                             Dim BannedUsers() As String = Nothing
                             Dim uu$
                             Dim tmpUser As UserInfo
-                            Dim s As Sites = GetSiteByCheckers()
-                            Dim sObj() As Object
+                            Dim s As SettingsHost = GetSiteByCheckers()
+                            Dim sObj As ExchangeOptions
                             Dim _IsChannel As Boolean = CH_IS_CHANNEL.Checked
                             Dim Added% = 0
                             Dim Skipped% = 0
                             Dim uid%
-                            Dim sf As Func(Of Sites, String) = Function(__s) SpecialPath(__s).PathWithSeparator
-                            Dim __sf As Func(Of String, Sites, SFile) = Function(Input, __s) IIf(sf(__s).IsEmptyString, Nothing, New SFile($"{sf(__s)}{Input}\"))
+                            Dim sf As Func(Of SettingsHost, String) = Function(__s) SpecialPath(__s).PathWithSeparator
+                            Dim __sf As Func(Of String, SettingsHost, SFile) = Function(Input, __s) IIf(sf(__s).IsEmptyString, Nothing, New SFile($"{sf(__s)}{Input}\"))
 
                             For i% = 0 To u.Count - 1
                                 uu = u(i)
                                 If CH_AUTO_DETECT_SITE.Checked Then
                                     sObj = GetSiteByText(uu)
-                                    s = sObj(0)
-                                    _IsChannel = CBool(sObj(1))
+                                    If Not sObj.UserName.IsEmptyString Then
+                                        s = Settings(sObj.HostKey)
+                                        uu = sObj.UserName
+                                    Else
+                                        s = Nothing
+                                    End If
                                 End If
 
-                                If Not s = Sites.Undefined Then
+                                If Not s Is Nothing Then
                                     tmpUser = New UserInfo(uu, s,,, __sf(uu, s)) With {.IsChannel = _IsChannel}
                                     uid = -1
                                     If Settings.UsersList.Count > 0 Then uid = Settings.UsersList.IndexOf(tmpUser)
@@ -391,6 +399,9 @@ CloseForm:
                                             .DownloadVideos = CH_DOWN_VIDEOS.Checked
                                             .Labels.ListAddList(UserLabels)
                                             .ParseUserMediaOnly = CH_PARSE_USER_MEDIA.Checked
+                                            If Not CH_AUTO_DETECT_SITE.Checked Then _
+                                               DirectCast(.Self, UserDataBase).HOST.Source.UserOptions(MyExchangeOptions, False)
+                                            DirectCast(.Self, UserDataBase).ExchangeOptionsSet(MyExchangeOptions)
                                             .UpdateUserInformation()
                                         End With
                                         Added += 1

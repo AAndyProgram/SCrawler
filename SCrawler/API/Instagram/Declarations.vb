@@ -9,6 +9,7 @@
 Imports PersonalUtilities.Functions.RegularExpressions
 Namespace API.Instagram
     Friend Module Declarations
+        Friend Const InstagramSite As String = "Instagram"
         Friend ReadOnly FilesPattern As RParams = RParams.DMS(".+?([^/\?]+?\.[\w\d]{3,4})(?=(\?|\Z))", 1, EDP.ReturnValue)
         Friend ReadOnly Property DateProvider As New JsonDate
         Friend Class JsonDate : Implements ICustomProvider

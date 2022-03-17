@@ -134,22 +134,45 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="API\Base\Declarations.vb" />
-    <Compile Include="API\Base\SiteSettings.vb" />
+    <Compile Include="API\Base\DownDetector.vb" />
+    <Compile Include="API\Base\ProfileSaved.vb" />
+    <Compile Include="API\Base\SiteSettingsBase.vb" />
     <Compile Include="API\Base\Structures.vb" />
+    <Compile Include="API\Instagram\AuthNullException.vb" />
+    <Compile Include="API\Instagram\EditorExchangeOptions.vb" />
+    <Compile Include="API\Instagram\ExitException.vb" />
+    <Compile Include="API\Instagram\OptionsForm.Designer.vb">
+      <DependentUpon>OptionsForm.vb</DependentUpon>
+    </Compile>
+    <Compile Include="API\Instagram\OptionsForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Download\ActiveDownloadingProgress.Designer.vb">
+      <DependentUpon>ActiveDownloadingProgress.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Download\ActiveDownloadingProgress.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Download\DownloadProgress.vb" />
+    <Compile Include="MainFrameObjects.vb" />
+    <Compile Include="PluginsEnvironment\Hosts\UserDataHost.vb" />
     <Compile Include="API\Base\UserDataBase.vb" />
+    <Compile Include="API\Gfycat\Envir.vb" />
     <Compile Include="API\Imgur\Envir.vb" />
     <Compile Include="API\Instagram\Declarations.vb" />
-    <Compile Include="API\Instagram\ProfileSaved.vb" />
+    <Compile Include="API\Instagram\SiteSettings.vb" />
     <Compile Include="API\Instagram\UserData.vb" />
     <Compile Include="API\Reddit\Channel.vb" />
     <Compile Include="API\Reddit\ChannelsCollection.vb" />
     <Compile Include="API\Reddit\Declarations.vb" />
     <Compile Include="API\Reddit\M3U8.vb" />
-    <Compile Include="API\Reddit\ProfileSaved.vb" />
+    <Compile Include="API\Reddit\SiteSettings.vb" />
     <Compile Include="API\Reddit\UserData.vb" />
     <Compile Include="API\Redgifs\Declarations.vb" />
+    <Compile Include="API\Redgifs\SiteSettings.vb" />
     <Compile Include="API\Redgifs\UserData.vb" />
     <Compile Include="API\Twitter\Declarations.vb" />
+    <Compile Include="API\Twitter\SiteSettings.vb" />
     <Compile Include="API\Twitter\UserData.vb" />
     <Compile Include="API\UserDataBind.vb" />
     <Compile Include="Channels\ChannelsStatsForm.Designer.vb">
@@ -164,16 +187,16 @@
     <Compile Include="Channels\ChannelViewForm.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="DownloadedInfoForm.Designer.vb">
+    <Compile Include="Download\DownloadedInfoForm.Designer.vb">
       <DependentUpon>DownloadedInfoForm.vb</DependentUpon>
     </Compile>
-    <Compile Include="DownloadedInfoForm.vb">
+    <Compile Include="Download\DownloadedInfoForm.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="DownloadSavedPostsForm.Designer.vb">
+    <Compile Include="Download\DownloadSavedPostsForm.Designer.vb">
       <DependentUpon>DownloadSavedPostsForm.vb</DependentUpon>
     </Compile>
-    <Compile Include="DownloadSavedPostsForm.vb">
+    <Compile Include="Download\DownloadSavedPostsForm.vb">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Editors\CollectionEditorForm.Designer.vb">
@@ -215,7 +238,14 @@
     <Compile Include="Editors\UserCreatorForm.vb">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="FDatePickerForm.Designer.vb">
+      <DependentUpon>FDatePickerForm.vb</DependentUpon>
+    </Compile>
+    <Compile Include="FDatePickerForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="LabelsKeeper.vb" />
+    <Compile Include="ListImagesLoader.vb" />
     <Compile Include="MainFrame.vb">
       <SubType>Form</SubType>
     </Compile>
@@ -240,27 +270,39 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <Compile Include="PluginsEnvironment\Attributes\AttributesInternal.vb" />
+    <Compile Include="PluginsEnvironment\Hosts\IResponserContainer.vb" />
+    <Compile Include="PluginsEnvironment\Hosts\LogHost.vb" />
+    <Compile Include="PluginsEnvironment\Hosts\PropertyValueHost.vb" />
+    <Compile Include="PluginsEnvironment\Hosts\PluginHost.vb" />
+    <Compile Include="PluginsEnvironment\Hosts\SettingsHost.vb" />
     <Compile Include="SettingsCLS.vb" />
-    <Compile Include="TDownloader.vb" />
+    <Compile Include="Download\TDownloader.vb" />
     <Compile Include="UserImage.vb" />
-    <Compile Include="VideosDownloaderForm.Designer.vb">
+    <Compile Include="Download\VideosDownloaderForm.Designer.vb">
       <DependentUpon>VideosDownloaderForm.vb</DependentUpon>
     </Compile>
-    <Compile Include="VideosDownloaderForm.vb">
+    <Compile Include="Download\VideosDownloaderForm.vb">
       <SubType>Form</SubType>
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="API\Instagram\OptionsForm.resx">
+      <DependentUpon>OptionsForm.vb</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Channels\ChannelsStatsForm.resx">
       <DependentUpon>ChannelsStatsForm.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Channels\ChannelViewForm.resx">
       <DependentUpon>ChannelViewForm.vb</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="DownloadedInfoForm.resx">
+    <EmbeddedResource Include="Download\DownloadedInfoForm.resx">
       <DependentUpon>DownloadedInfoForm.vb</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="DownloadSavedPostsForm.resx">
+    <EmbeddedResource Include="Download\ActiveDownloadingProgress.resx">
+      <DependentUpon>ActiveDownloadingProgress.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Download\DownloadSavedPostsForm.resx">
       <DependentUpon>DownloadSavedPostsForm.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Editors\CollectionEditorForm.resx">
@@ -281,6 +323,9 @@
     <EmbeddedResource Include="Editors\UserCreatorForm.resx">
       <DependentUpon>UserCreatorForm.vb</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="FDatePickerForm.resx">
+      <DependentUpon>FDatePickerForm.vb</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="MainFrame.resx">
       <DependentUpon>MainFrame.vb</DependentUpon>
     </EmbeddedResource>
@@ -290,7 +335,7 @@
       <CustomToolNamespace>My.Resources</CustomToolNamespace>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="VideosDownloaderForm.resx">
+    <EmbeddedResource Include="Download\VideosDownloaderForm.resx">
       <DependentUpon>VideosDownloaderForm.vb</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
@@ -312,6 +357,10 @@
     <ProjectReference Include="..\..\..\MyUtilities\PersonalUtilities\PersonalUtilities.vbproj">
       <Project>{8405896b-2685-4916-bc93-1fb514c323a9}</Project>
       <Name>PersonalUtilities</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SCrawler.PluginProvider\SCrawler.PluginProvider.vbproj">
+      <Project>{d4650f6b-5a54-44b6-999b-6c675b7116b1}</Project>
+      <Name>SCrawler.PluginProvider</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
@@ -338,5 +387,6 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
 </Project>

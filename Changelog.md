@@ -1,3 +1,43 @@
+# 3.0.0.0
+
+**Attention! This version of the program makes changes user data file (Users.xml). Once you start using this version, you will not be able to use previous versions of the program. Therefore, it is highly recommended to archive the program settings folder and archive the users' data files (you can use the [```ArchiveSCrawlerUsersDataFiles.bat```](Tools/ArchiveSCrawlerUsersDataFiles.bat) tool to archive the data files of all users).**
+
+- Added
+  - **PLUGINS SUPPORT**
+  - **Gfycat** site support
+  - Description of Twitter and Reddit user profiles
+  - Filter users by profile status "Suspended"
+  - Filter users by profile status "Deleted"
+  - Filter profiles that haven't downloaded new data since specific date
+  - Collections that contain non-existent profiles will be marked in blue
+  - Ability to find and activate a user in the main window from the Info form
+  - Ability to copy user images from all channels you have when adding a user from a channel
+  - Reddit default option "Get user media only" if now also used when creating new users from channels
+  - Ability to update user description every time
+  - ```Enter``` hotkey in the download info form to open the user's folder
+  - ```Enter``` hotkey in the main window to open the user's folder
+  - Channel statistics are supplemented by "existing users"
+  - ```Up``` and ```Down``` navigation buttons in the Info form
+  - ```Find``` button on the Info form to find the user in the main window
+  - "Details" view mode
+  - Fast loading of profiles in the main window. **Be careful with this setting. Fast loading leads to the highest CPU usage.**
+  - Reddit availability check with DownDetector
+  - Ability to [open folders with a specific program](https://github.com/AAndyProgram/SCrawler/wiki/Settings#folder-command)
+  - (Request #16) Ability to remove a user from the collection without deletion
+  - (Request #17) **Instagram Tagged** photos downloading
+  - (Request #17) **Instagram Stories** downloading
+  - Deleting data to recycle bin
+- Updated
+  - "List" view mode
+- Fixed
+  - Twitter reloads existing media
+  - Reddit saved posts downloader downloads all posts every time
+  - Minor bug that caused Instagram tasks timers to run longer
+  - A library error that in some cases leads to a fatal program error
+  - (Issue #16) Cannot delete a user that is in the collection.
+
+At the requests of some users, I added [screenshots](ProgramScreenshots) of the program and added screenshots to [ReadMe](README.md) and the [guide](https://github.com/AAndyProgram/SCrawler/wiki).
+
 # 2.0.0.4
 
 **Removed compatibility of program settings with version 1.0.0.4 and lower.**

@@ -15,15 +15,39 @@ Namespace API.Reddit
         Friend Shared ReadOnly Property ChannelsPath As SFile = $"{SettingsFolderName}\Channels\"
         Friend Shared ReadOnly Property ChannelsPathCache As SFile = $"{Settings.GlobalPath.Value.PathWithSeparator}_CachedData\"
         Private ReadOnly Channels As List(Of Channel)
+        Friend Structure ChannelImage : Implements IEquatable(Of ChannelImage)
+            Friend File As SFile
+            Friend Channel As String
+            Friend Sub New(ByVal ChannelName As String, ByVal f As SFile)
+                Channel = ChannelName
+                File = f
+            End Sub
+            Friend Overloads Function Equals(ByVal Other As ChannelImage) As Boolean Implements IEquatable(Of ChannelImage).Equals
+                Return Channel = Other.Channel And File.File = Other.File.File
+            End Function
+            Public Overloads Overrides Function Equals(ByVal Obj As Object) As Boolean
+                Return Equals(DirectCast(Obj, ChannelImage))
+            End Function
+        End Structure
         Friend ReadOnly Property Downloading As Boolean
             Get
-                If Count > 0 Then
-                    Return Channels.Exists(Function(c) c.Downloading)
-                Else
-                    Return False
-                End If
+                Return Count > 0 AndAlso Channels.Exists(Function(c) c.Downloading)
             End Get
         End Property
+        Friend Function GetUserFiles(ByVal UserName As String) As IEnumerable(Of ChannelImage)
+            Try
+                If Settings.ChannelsAddUserImagesFromAllChannels.Value And Count > 0 Then
+                    Return Channels.SelectMany(Function(c) From p As UserPost In c.Posts Where p.UserID = UserName Select New ChannelImage(c.Name, p.CachedFile))
+                Else
+                    Return Nothing
+                End If
+            Catch ex As Exception
+                Return ErrorsDescriber.Execute(EDP.SendInLog + EDP.ReturnValue, ex)
+            End Try
+        End Function
+        Friend Sub UpdateUsersStats()
+            If Channels.Count > 0 Then Channels.ForEach(Sub(c) c.UpdateUsersStats())
+        End Sub
 #Region "Limits Support"
         Friend Property DownloadLimitCount As Integer? Implements IChannelLimits.DownloadLimitCount
         <Obsolete("This property cannot be used in collections", True)> Private Property DownloadLimitPost As String Implements IChannelLimits.DownloadLimitPost

@@ -12,38 +12,6 @@ Imports PersonalUtilities.Forms.Toolbars
 Namespace Editors
     Friend Class GlobalSettingsForm : Implements IOkCancelToolbar
         Private ReadOnly MyDefs As DefaultFormProps(Of FieldsChecker)
-#Region "Checkers declarations"
-        Private Class SavedPostsChecker : Implements ICustomProvider
-            Private Function Convert(ByVal Value As Object, ByVal DestinationType As Type, ByVal Provider As IFormatProvider,
-                                     Optional ByVal NothingArg As Object = Nothing, Optional ByVal e As ErrorsDescriber = Nothing) As Object Implements ICustomProvider.Convert
-                If Not ACheck(Value) OrElse CStr(Value).Contains("/") Then
-                    Return Nothing
-                Else
-                    Return Value
-                End If
-            End Function
-            Private Function GetFormat(ByVal FormatType As Type) As Object Implements IFormatProvider.GetFormat
-                Throw New NotImplementedException()
-            End Function
-        End Class
-        Private Class InstaTimersChecker : Implements ICustomProvider
-            Private ReadOnly _LowestValue As Integer
-            Friend Sub New(ByVal LowestValue As Integer)
-                _LowestValue = LowestValue
-            End Sub
-            Private Function Convert(ByVal Value As Object, ByVal DestinationType As Type, ByVal Provider As IFormatProvider,
-                                     Optional ByVal NothingArg As Object = Nothing, Optional ByVal e As ErrorsDescriber = Nothing) As Object Implements ICustomProvider.Convert
-                If ACheck(Of Integer)(Value) AndAlso CInt(Value) >= _LowestValue Then
-                    Return Value
-                Else
-                    Return Nothing
-                End If
-            End Function
-            Private Function GetFormat(ByVal FormatType As Type) As Object Implements IFormatProvider.GetFormat
-                Throw New NotImplementedException()
-            End Function
-        End Class
-#End Region
         Friend Sub New()
             InitializeComponent()
             MyDefs = New DefaultFormProps(Of FieldsChecker)
@@ -64,17 +32,24 @@ Namespace Editors
                         TXT_MAX_JOBS_CHANNELS.Value = .ChannelsMaxJobsCount.Value
                         CH_CHECK_VER_START.Checked = .CheckUpdatesAtStart
                         TXT_IMGUR_CLIENT_ID.Text = .ImgurClientID
+                        CH_FAST_LOAD.Checked = .FastProfilesLoading
+                        TXT_FOLDER_CMD.Text = .OpenFolderInOtherProgram
+                        TXT_FOLDER_CMD.Checked = .OpenFolderInOtherProgram.Attribute
+                        CH_RECYCLE_DEL.Checked = .DeleteToRecycleBin
                         'Defaults
                         CH_SEPARATE_VIDEO_FOLDER.Checked = .SeparateVideoFolder.Value
                         CH_DEF_TEMP.Checked = .DefaultTemporary
                         CH_DOWN_IMAGES.Checked = .DefaultDownloadImages
                         CH_DOWN_VIDEOS.Checked = .DefaultDownloadVideos
+                        CH_UDESCR_UP.Checked = .UpdateUserDescriptionEveryTime
                         'Channels
                         TXT_CHANNELS_ROWS.Value = .ChannelsImagesRows.Value
                         TXT_CHANNELS_COLUMNS.Value = .ChannelsImagesColumns.Value
                         TXT_CHANNEL_USER_POST_LIMIT.Value = .FromChannelDownloadTop.Value
                         TXT_CHANNEL_USER_POST_LIMIT.Checked = .FromChannelDownloadTopUse.Value
                         CH_COPY_CHANNEL_USER_IMAGE.Checked = .FromChannelCopyImageToUser
+                        CH_COPY_CHANNEL_USER_IMAGE_ALL.Checked = .ChannelsAddUserImagesFromAllChannels
+                        CH_COPY_CHANNEL_USER_IMAGE_ALL.Enabled = CH_COPY_CHANNEL_USER_IMAGE.Checked
                         CH_CHANNELS_USERS_TEMP.Checked = .ChannelsDefaultTemporary
                         'Channels filenames
                         CH_FILE_NAME_CHANGE.Checked = .FileReplaceNameByDate Or .FileAddDateToFileName Or .FileAddTimeToFileName
@@ -88,38 +63,11 @@ Namespace Editors
                         CH_EXIT_CONFIRM.Checked = .ExitConfirm
                         CH_CLOSE_TO_TRAY.Checked = .CloseToTray
                         CH_SHOW_NOTIFY.Checked = .ShowNotifications
-                        'Reddit
-                        With .Site(Sites.Reddit)
-                            SetChecker(DEFS_REDDIT, Sites.Reddit)
-                            CH_REDDIT_USER_MEDIA.Checked = .GetUserMediaOnly
-                            TXT_REDDIT_SAVED_POSTS_USER.Text = .SavedPostsUserName
-                            TXT_REDDIT_SAVED_POSTS_PATH.Text = .SavedPostsPath(False)
-                        End With
-                        'Twitter
-                        With .Site(Sites.Twitter)
-                            SetChecker(DEFS_TWITTER, Sites.Twitter)
-                            CH_TWITTER_USER_MEDIA.Checked = .GetUserMediaOnly
-                        End With
-                        'Instagram
-                        With .Site(Sites.Instagram)
-                            SetChecker(DEFS_INST, Sites.Instagram)
-                            TXT_REQ_WAIT_TIMER.Text = .RequestsWaitTimer
-                            TXT_REQ_COUNT.Text = .RequestsWaitTimerTaskCount
-                            TXT_LIMIT_TIMER.Text = .SleepTimerOnPostsLimit
-                            TXT_INST_SAVED_POSTS_USER.Text = .SavedPostsUserName
-                            TXT_INST_SAVED_POSTS_PATH.Text = .SavedPostsPath(False)
-                        End With
-                        'RedGifs
-                        SetChecker(DEFS_REDGIFS, Sites.RedGifs)
                     End With
                     .MyFieldsChecker = New FieldsChecker
                     With .MyFieldsChecker
                         .AddControl(Of String)(TXT_GLOBAL_PATH, TXT_GLOBAL_PATH.CaptionText)
                         .AddControl(Of String)(TXT_COLLECTIONS_PATH, TXT_COLLECTIONS_PATH.CaptionText)
-                        .AddControl(Of String)(TXT_REDDIT_SAVED_POSTS_USER, TXT_REDDIT_SAVED_POSTS_USER.CaptionText, True, New SavedPostsChecker)
-                        .AddControl(Of Integer)(TXT_REQ_WAIT_TIMER, TXT_REQ_WAIT_TIMER.CaptionText,, New InstaTimersChecker(100))
-                        .AddControl(Of Integer)(TXT_REQ_COUNT, TXT_REQ_COUNT.CaptionText,, New InstaTimersChecker(1))
-                        .AddControl(Of Integer)(TXT_LIMIT_TIMER, TXT_LIMIT_TIMER.CaptionText,, New InstaTimersChecker(10000))
                         .EndLoaderOperations()
                     End With
                     .AppendDetectors()
@@ -129,35 +77,6 @@ Namespace Editors
             Catch ex As Exception
                 MyDefs.InvokeLoaderError(ex)
             End Try
-        End Sub
-        Private Overloads Sub SetChecker(ByRef CH As SiteDefaults, ByVal s As Sites)
-            With Settings(s)
-                SetChecker(CH.MyTemporary, .Temporary)
-                SetChecker(CH.MyImagesDown, .DownloadImages)
-                SetChecker(CH.MyVideosDown, .DownloadVideos)
-            End With
-        End Sub
-        Private Overloads Sub SetChecker(ByRef State As CheckState, ByVal Prop As XML.Base.XMLValue(Of Boolean))
-            If Prop.ValueF.Exists Then
-                State = If(Prop.Value, CheckState.Checked, CheckState.Unchecked)
-            Else
-                State = CheckState.Indeterminate
-            End If
-        End Sub
-        Private Overloads Sub SetPropByChecker(ByRef CH As SiteDefaults, ByVal s As Sites)
-            With Settings(s)
-                SetPropByChecker(CH.MyTemporary, .Temporary)
-                SetPropByChecker(CH.MyTemporary, .Temporary)
-                SetPropByChecker(CH.MyImagesDown, .DownloadImages)
-                SetPropByChecker(CH.MyVideosDown, .DownloadVideos)
-            End With
-        End Sub
-        Private Overloads Sub SetPropByChecker(ByVal State As CheckState, ByRef Prop As XML.Base.XMLValue(Of Boolean))
-            Select Case State
-                Case CheckState.Checked : Prop.Value = True
-                Case CheckState.Unchecked : Prop.Value = False
-                Case CheckState.Indeterminate : Prop.ValueF = Nothing
-            End Select
         End Sub
         Private Sub ToolbarBttOK() Implements IOkCancelToolbar.ToolbarBttOK
             If MyDefs.MyFieldsChecker.AllParamsOK Then
@@ -190,6 +109,7 @@ Namespace Editors
                     End If
 
                     .BeginUpdate()
+
                     'Basis
                     .GlobalPath.Value = TXT_GLOBAL_PATH.Text
                     .MaxLargeImageHeigh.Value = CInt(TXT_IMAGE_LARGE.Value)
@@ -199,17 +119,23 @@ Namespace Editors
                     .ChannelsMaxJobsCount.Value = TXT_MAX_JOBS_CHANNELS.Value
                     .CheckUpdatesAtStart.Value = CH_CHECK_VER_START.Checked
                     .ImgurClientID.Value = TXT_IMGUR_CLIENT_ID.Text
+                    .FastProfilesLoading.Value = CH_FAST_LOAD.Checked
+                    .OpenFolderInOtherProgram.Value = TXT_FOLDER_CMD.Text
+                    .OpenFolderInOtherProgram.Attribute.Value = TXT_FOLDER_CMD.Checked
+                    .DeleteToRecycleBin.Value = CH_RECYCLE_DEL.Checked
                     'Defaults
                     .SeparateVideoFolder.Value = CH_SEPARATE_VIDEO_FOLDER.Checked
                     .DefaultTemporary.Value = CH_DEF_TEMP.Checked
                     .DefaultDownloadImages.Value = CH_DOWN_IMAGES.Checked
                     .DefaultDownloadVideos.Value = CH_DOWN_VIDEOS.Checked
+                    .UpdateUserDescriptionEveryTime.Value = CH_UDESCR_UP.Checked
                     'Channels
                     .ChannelsImagesRows.Value = CInt(TXT_CHANNELS_ROWS.Value)
                     .ChannelsImagesColumns.Value = CInt(TXT_CHANNELS_COLUMNS.Value)
                     .FromChannelDownloadTop.Value = CInt(TXT_CHANNEL_USER_POST_LIMIT.Value)
                     .FromChannelDownloadTopUse.Value = TXT_CHANNEL_USER_POST_LIMIT.Checked
                     .FromChannelCopyImageToUser.Value = CH_COPY_CHANNEL_USER_IMAGE.Checked
+                    .ChannelsAddUserImagesFromAllChannels.Value = CH_COPY_CHANNEL_USER_IMAGE_ALL.Checked
                     .ChannelsDefaultTemporary.Value = CH_CHANNELS_USERS_TEMP.Checked
                     'Other program settings
                     .ExitConfirm.Value = CH_EXIT_CONFIRM.Checked
@@ -226,29 +152,6 @@ Namespace Editors
                         .FileAddTimeToFileName.Value = False
                         .FileReplaceNameByDate.Value = False
                     End If
-                    'Reddit
-                    With .Site(Sites.Reddit)
-                        SetPropByChecker(DEFS_REDDIT, Sites.Reddit)
-                        .GetUserMediaOnly.Value = CH_REDDIT_USER_MEDIA.Checked
-                        .SavedPostsUserName.Value = TXT_REDDIT_SAVED_POSTS_USER.Text
-                        .SavedPostsPath = TXT_REDDIT_SAVED_POSTS_PATH.Text
-                    End With
-                    'Twitter
-                    With .Site(Sites.Twitter)
-                        SetPropByChecker(DEFS_TWITTER, Sites.Twitter)
-                        .GetUserMediaOnly.Value = CH_TWITTER_USER_MEDIA.Checked
-                    End With
-                    'Instagram
-                    With .Site(Sites.Instagram)
-                        SetPropByChecker(DEFS_INST, Sites.Instagram)
-                        .RequestsWaitTimer.Value = AConvert(Of Integer)(TXT_REQ_WAIT_TIMER.Text)
-                        .RequestsWaitTimerTaskCount.Value = AConvert(Of Integer)(TXT_REQ_COUNT.Text)
-                        .SleepTimerOnPostsLimit.Value = AConvert(Of Integer)(TXT_LIMIT_TIMER.Text)
-                        .SavedPostsUserName.Value = TXT_INST_SAVED_POSTS_USER.Text
-                        .SavedPostsPath = TXT_INST_SAVED_POSTS_PATH.Text
-                    End With
-                    'RedGifs
-                    SetPropByChecker(DEFS_REDGIFS, Sites.RedGifs)
 
                     .EndUpdate()
                 End With
@@ -292,17 +195,8 @@ Namespace Editors
             CH_FILE_TIME.Enabled = b
             ChangePositionControlsEnabling()
         End Sub
-        Private Sub TXT_REDDIT_SAVED_POSTS_PATH_ActionOnButtonClick(ByVal Sender As ActionButton) Handles TXT_REDDIT_SAVED_POSTS_PATH.ActionOnButtonClick
-            If Sender.DefaultButton = ActionButton.DefaultButtons.Open Then
-                Dim f As SFile = SFile.SelectPath
-                If Not f.IsEmptyString Then TXT_REDDIT_SAVED_POSTS_PATH.Text = f
-            End If
-        End Sub
-        Private Sub TXT_INST_SAVED_POSTS_PATH_ActionOnButtonClick(ByVal Sender As ActionButton) Handles TXT_INST_SAVED_POSTS_PATH.ActionOnButtonClick
-            If Sender.DefaultButton = ActionButton.DefaultButtons.Open Then
-                Dim f As SFile = SFile.SelectPath
-                If Not f.IsEmptyString Then TXT_INST_SAVED_POSTS_PATH.Text = f
-            End If
+        Private Sub CH_COPY_CHANNEL_USER_IMAGE_CheckedChanged(sender As Object, e As EventArgs) Handles CH_COPY_CHANNEL_USER_IMAGE.CheckedChanged
+            CH_COPY_CHANNEL_USER_IMAGE_ALL.Enabled = CH_COPY_CHANNEL_USER_IMAGE.Checked
         End Sub
     End Class
 End Namespace

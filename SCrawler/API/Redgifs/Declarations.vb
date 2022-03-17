@@ -8,6 +8,7 @@
 ' but WITHOUT ANY WARRANTY
 Namespace API.RedGifs
     Friend Module Declarations
+        Friend Const RedGifsSite As String = "RedGifs"
         Friend ReadOnly DateProvider As New JsonDate
         Friend Class JsonDate : Implements ICustomProvider
             Friend Function Convert(ByVal Value As Object, ByVal DestinationType As Type, ByVal Provider As IFormatProvider,

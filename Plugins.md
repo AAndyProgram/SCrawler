@@ -1,0 +1,1 @@
+List of available plugins

@@ -10,6 +10,8 @@ Imports PersonalUtilities.Functions.XML.Base
 Imports PersonalUtilities.Functions.RegularExpressions
 Namespace API.Reddit
     Friend Module Declarations
+        Friend Const RedditSite As String = "Reddit"
+        Friend Const RedditSiteKey As String = "AndyProgram_Reddit"
         Friend ReadOnly JsonNodesJson() As NodeParams = {New NodeParams("posts", True, True, True, True, 3)}
         Friend ReadOnly ChannelJsonNodes() As NodeParams = {New NodeParams("data", True, True, True, True, 1),
                                                             New NodeParams("children", True, True, True)}

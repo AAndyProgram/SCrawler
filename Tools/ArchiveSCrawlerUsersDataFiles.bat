@@ -1,0 +1,1 @@
+"C:\Program Files\WinRAR\WinRAR.exe" a -r -ep1 -o+ -ag_YYYYMMDD_HHMMSS -m5 -tl -n*.txt -n*.xml "d:\Downloads\SocialNetworks\SCrawlerBackup.rar" "d:\Downloads\SocialNetworks\"

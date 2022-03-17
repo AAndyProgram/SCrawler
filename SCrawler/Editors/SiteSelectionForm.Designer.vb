@@ -26,7 +26,6 @@ Namespace Editors
             Dim ActionButton1 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(SiteSelectionForm))
             Dim ListColumn1 As PersonalUtilities.Forms.Controls.Base.ListColumn = New PersonalUtilities.Forms.Controls.Base.ListColumn()
-            Dim ListColumn2 As PersonalUtilities.Forms.Controls.Base.ListColumn = New PersonalUtilities.Forms.Controls.Base.ListColumn()
             Me.CMB_SITES = New PersonalUtilities.Forms.Controls.ComboBoxExtended()
             CONTAINER_MAIN = New System.Windows.Forms.ToolStripContainer()
             CONTAINER_MAIN.ContentPanel.SuspendLayout()
@@ -60,13 +59,9 @@ Namespace Editors
             ListColumn1.DisplayMember = True
             ListColumn1.Name = "COL_DISPLAY"
             ListColumn1.Text = "Site"
+            ListColumn1.ValueMember = True
             ListColumn1.Width = -1
-            ListColumn2.Name = "COL_VALUE"
-            ListColumn2.Text = "Value"
-            ListColumn2.ValueMember = True
-            ListColumn2.Visible = False
             Me.CMB_SITES.Columns.Add(ListColumn1)
-            Me.CMB_SITES.Columns.Add(ListColumn2)
             Me.CMB_SITES.Dock = System.Windows.Forms.DockStyle.Fill
             Me.CMB_SITES.ListCheckBoxes = True
             Me.CMB_SITES.ListDropDownStyle = PersonalUtilities.Forms.Controls.ComboBoxExtended.ListMode.Simple

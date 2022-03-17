@@ -16,23 +16,24 @@
         Private Sub InitializeComponent()
             Me.components = New System.ComponentModel.Container()
             Dim TP_MAIN As System.Windows.Forms.TableLayoutPanel
-            Dim TP_PARAMS As System.Windows.Forms.TableLayoutPanel
-            Dim TP_OTHER As System.Windows.Forms.TableLayoutPanel
+            Dim TP_SITE As System.Windows.Forms.TableLayoutPanel
             Dim ActionButton1 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(UserCreatorForm))
+            Dim ListColumn1 As PersonalUtilities.Forms.Controls.Base.ListColumn = New PersonalUtilities.Forms.Controls.Base.ListColumn()
+            Dim ListColumn2 As PersonalUtilities.Forms.Controls.Base.ListColumn = New PersonalUtilities.Forms.Controls.Base.ListColumn()
+            Dim TP_PARAMS As System.Windows.Forms.TableLayoutPanel
+            Dim TP_OTHER As System.Windows.Forms.TableLayoutPanel
             Dim ActionButton2 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim ActionButton3 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
-            Dim TP_DOWN_OPTIONS As System.Windows.Forms.TableLayoutPanel
             Dim ActionButton4 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim TP_DOWN_OPTIONS As System.Windows.Forms.TableLayoutPanel
             Dim ActionButton5 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton6 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim TT_MAIN As System.Windows.Forms.ToolTip
             Me.TXT_USER = New PersonalUtilities.Forms.Controls.TextBoxExtended()
-            Me.TP_SITE = New System.Windows.Forms.TableLayoutPanel()
-            Me.OPT_REDDIT = New System.Windows.Forms.RadioButton()
-            Me.OPT_TWITTER = New System.Windows.Forms.RadioButton()
             Me.CH_IS_CHANNEL = New System.Windows.Forms.CheckBox()
-            Me.OPT_INSTAGRAM = New System.Windows.Forms.RadioButton()
-            Me.OPT_REDGIFS = New System.Windows.Forms.RadioButton()
+            Me.CMB_SITE = New PersonalUtilities.Forms.Controls.ComboBoxExtended()
+            Me.BTT_OTHER_SETTINGS = New System.Windows.Forms.Button()
             Me.CH_TEMP = New System.Windows.Forms.CheckBox()
             Me.CH_FAV = New System.Windows.Forms.CheckBox()
             Me.CH_PARSE_USER_MEDIA = New System.Windows.Forms.CheckBox()
@@ -48,13 +49,15 @@
             Me.TXT_SPEC_FOLDER = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.CONTAINER_MAIN = New System.Windows.Forms.ToolStripContainer()
             TP_MAIN = New System.Windows.Forms.TableLayoutPanel()
+            TP_SITE = New System.Windows.Forms.TableLayoutPanel()
             TP_PARAMS = New System.Windows.Forms.TableLayoutPanel()
             TP_OTHER = New System.Windows.Forms.TableLayoutPanel()
             TP_DOWN_OPTIONS = New System.Windows.Forms.TableLayoutPanel()
             TT_MAIN = New System.Windows.Forms.ToolTip(Me.components)
             TP_MAIN.SuspendLayout()
             CType(Me.TXT_USER, System.ComponentModel.ISupportInitialize).BeginInit()
-            Me.TP_SITE.SuspendLayout()
+            TP_SITE.SuspendLayout()
+            CType(Me.CMB_SITE, System.ComponentModel.ISupportInitialize).BeginInit()
             TP_PARAMS.SuspendLayout()
             TP_OTHER.SuspendLayout()
             CType(Me.TXT_DESCR, System.ComponentModel.ISupportInitialize).BeginInit()
@@ -73,7 +76,7 @@
             TP_MAIN.ColumnCount = 1
             TP_MAIN.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
             TP_MAIN.Controls.Add(Me.TXT_USER, 0, 0)
-            TP_MAIN.Controls.Add(Me.TP_SITE, 0, 3)
+            TP_MAIN.Controls.Add(TP_SITE, 0, 3)
             TP_MAIN.Controls.Add(TP_PARAMS, 0, 4)
             TP_MAIN.Controls.Add(TP_OTHER, 0, 6)
             TP_MAIN.Controls.Add(Me.TXT_DESCR, 0, 9)
@@ -112,85 +115,69 @@
             '
             'TP_SITE
             '
-            Me.TP_SITE.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
-            Me.TP_SITE.ColumnCount = 5
-            Me.TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 20.0!))
-            Me.TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 20.0!))
-            Me.TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 20.0!))
-            Me.TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 20.0!))
-            Me.TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 20.0!))
-            Me.TP_SITE.Controls.Add(Me.OPT_REDDIT, 0, 0)
-            Me.TP_SITE.Controls.Add(Me.OPT_TWITTER, 2, 0)
-            Me.TP_SITE.Controls.Add(Me.CH_IS_CHANNEL, 1, 0)
-            Me.TP_SITE.Controls.Add(Me.OPT_INSTAGRAM, 3, 0)
-            Me.TP_SITE.Controls.Add(Me.OPT_REDGIFS, 4, 0)
-            Me.TP_SITE.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TP_SITE.Location = New System.Drawing.Point(1, 88)
-            Me.TP_SITE.Margin = New System.Windows.Forms.Padding(0)
-            Me.TP_SITE.Name = "TP_SITE"
-            Me.TP_SITE.RowCount = 1
-            Me.TP_SITE.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            Me.TP_SITE.Size = New System.Drawing.Size(452, 31)
-            Me.TP_SITE.TabIndex = 3
-            '
-            'OPT_REDDIT
-            '
-            Me.OPT_REDDIT.AutoSize = True
-            Me.OPT_REDDIT.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.OPT_REDDIT.Location = New System.Drawing.Point(4, 4)
-            Me.OPT_REDDIT.Name = "OPT_REDDIT"
-            Me.OPT_REDDIT.Size = New System.Drawing.Size(83, 23)
-            Me.OPT_REDDIT.TabIndex = 0
-            Me.OPT_REDDIT.TabStop = True
-            Me.OPT_REDDIT.Text = "Reddit"
-            Me.OPT_REDDIT.UseVisualStyleBackColor = True
-            '
-            'OPT_TWITTER
-            '
-            Me.OPT_TWITTER.AutoSize = True
-            Me.OPT_TWITTER.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.OPT_TWITTER.Location = New System.Drawing.Point(184, 4)
-            Me.OPT_TWITTER.Name = "OPT_TWITTER"
-            Me.OPT_TWITTER.Size = New System.Drawing.Size(83, 23)
-            Me.OPT_TWITTER.TabIndex = 1
-            Me.OPT_TWITTER.TabStop = True
-            Me.OPT_TWITTER.Text = "Twitter"
-            Me.OPT_TWITTER.UseVisualStyleBackColor = True
+            TP_SITE.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
+            TP_SITE.ColumnCount = 3
+            TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 79.0!))
+            TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 88.0!))
+            TP_SITE.Controls.Add(Me.CH_IS_CHANNEL, 0, 0)
+            TP_SITE.Controls.Add(Me.CMB_SITE, 1, 0)
+            TP_SITE.Controls.Add(Me.BTT_OTHER_SETTINGS, 2, 0)
+            TP_SITE.Dock = System.Windows.Forms.DockStyle.Fill
+            TP_SITE.Location = New System.Drawing.Point(1, 88)
+            TP_SITE.Margin = New System.Windows.Forms.Padding(0)
+            TP_SITE.Name = "TP_SITE"
+            TP_SITE.RowCount = 1
+            TP_SITE.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            TP_SITE.Size = New System.Drawing.Size(452, 31)
+            TP_SITE.TabIndex = 3
             '
             'CH_IS_CHANNEL
             '
             Me.CH_IS_CHANNEL.AutoSize = True
             Me.CH_IS_CHANNEL.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_IS_CHANNEL.Location = New System.Drawing.Point(94, 4)
+            Me.CH_IS_CHANNEL.Location = New System.Drawing.Point(4, 4)
             Me.CH_IS_CHANNEL.Name = "CH_IS_CHANNEL"
-            Me.CH_IS_CHANNEL.Size = New System.Drawing.Size(83, 23)
-            Me.CH_IS_CHANNEL.TabIndex = 2
+            Me.CH_IS_CHANNEL.Size = New System.Drawing.Size(73, 23)
+            Me.CH_IS_CHANNEL.TabIndex = 0
             Me.CH_IS_CHANNEL.Text = "Channel"
             Me.CH_IS_CHANNEL.UseVisualStyleBackColor = True
             '
-            'OPT_INSTAGRAM
+            'CMB_SITE
             '
-            Me.OPT_INSTAGRAM.AutoSize = True
-            Me.OPT_INSTAGRAM.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.OPT_INSTAGRAM.Location = New System.Drawing.Point(274, 4)
-            Me.OPT_INSTAGRAM.Name = "OPT_INSTAGRAM"
-            Me.OPT_INSTAGRAM.Size = New System.Drawing.Size(83, 23)
-            Me.OPT_INSTAGRAM.TabIndex = 3
-            Me.OPT_INSTAGRAM.TabStop = True
-            Me.OPT_INSTAGRAM.Text = "Instagram"
-            Me.OPT_INSTAGRAM.UseVisualStyleBackColor = True
+            ActionButton1.BackgroundImage = CType(resources.GetObject("ActionButton1.BackgroundImage"), System.Drawing.Image)
+            ActionButton1.Index = 0
+            ActionButton1.Name = "BTT_COMBOBOX_ARROW"
+            Me.CMB_SITE.Buttons.Add(ActionButton1)
+            ListColumn1.Name = "_COL_KEY"
+            ListColumn1.Text = "Key"
+            ListColumn1.ValueMember = True
+            ListColumn1.Visible = False
+            ListColumn2.DisplayMember = True
+            ListColumn2.Name = "_COL_VALUE"
+            ListColumn2.Text = "Value"
+            ListColumn2.Width = -1
+            Me.CMB_SITE.Columns.Add(ListColumn1)
+            Me.CMB_SITE.Columns.Add(ListColumn2)
+            Me.CMB_SITE.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CMB_SITE.Location = New System.Drawing.Point(84, 2)
+            Me.CMB_SITE.Margin = New System.Windows.Forms.Padding(3, 1, 3, 3)
+            Me.CMB_SITE.Name = "CMB_SITE"
+            Me.CMB_SITE.Size = New System.Drawing.Size(275, 22)
+            Me.CMB_SITE.TabIndex = 1
+            Me.CMB_SITE.TextBoxBorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
             '
-            'OPT_REDGIFS
+            'BTT_OTHER_SETTINGS
             '
-            Me.OPT_REDGIFS.AutoSize = True
-            Me.OPT_REDGIFS.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.OPT_REDGIFS.Location = New System.Drawing.Point(364, 4)
-            Me.OPT_REDGIFS.Name = "OPT_REDGIFS"
-            Me.OPT_REDGIFS.Size = New System.Drawing.Size(84, 23)
-            Me.OPT_REDGIFS.TabIndex = 4
-            Me.OPT_REDGIFS.TabStop = True
-            Me.OPT_REDGIFS.Text = "RedGifs"
-            Me.OPT_REDGIFS.UseVisualStyleBackColor = True
+            Me.BTT_OTHER_SETTINGS.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.BTT_OTHER_SETTINGS.Location = New System.Drawing.Point(364, 2)
+            Me.BTT_OTHER_SETTINGS.Margin = New System.Windows.Forms.Padding(1)
+            Me.BTT_OTHER_SETTINGS.Name = "BTT_OTHER_SETTINGS"
+            Me.BTT_OTHER_SETTINGS.Size = New System.Drawing.Size(86, 27)
+            Me.BTT_OTHER_SETTINGS.TabIndex = 2
+            Me.BTT_OTHER_SETTINGS.Text = "Options"
+            TT_MAIN.SetToolTip(Me.BTT_OTHER_SETTINGS, "Other settings")
+            Me.BTT_OTHER_SETTINGS.UseVisualStyleBackColor = True
             '
             'TP_PARAMS
             '
@@ -277,11 +264,11 @@
             '
             'TXT_DESCR
             '
-            ActionButton1.BackgroundImage = CType(resources.GetObject("ActionButton1.BackgroundImage"), System.Drawing.Image)
-            ActionButton1.Dock = System.Windows.Forms.DockStyle.Top
-            ActionButton1.Index = 0
-            ActionButton1.Name = "BTT_CLEAR"
-            Me.TXT_DESCR.Buttons.Add(ActionButton1)
+            ActionButton2.BackgroundImage = CType(resources.GetObject("ActionButton2.BackgroundImage"), System.Drawing.Image)
+            ActionButton2.Dock = System.Windows.Forms.DockStyle.Top
+            ActionButton2.Index = 0
+            ActionButton2.Name = "BTT_CLEAR"
+            Me.TXT_DESCR.Buttons.Add(ActionButton2)
             Me.TXT_DESCR.CaptionDock = System.Windows.Forms.DockStyle.Top
             Me.TXT_DESCR.CaptionMode = PersonalUtilities.Forms.Controls.Base.ICaptionControl.Modes.None
             Me.TXT_DESCR.CaptionVisible = False
@@ -345,14 +332,14 @@
             '
             'TXT_LABELS
             '
-            ActionButton2.BackgroundImage = CType(resources.GetObject("ActionButton2.BackgroundImage"), System.Drawing.Image)
-            ActionButton2.Index = 0
-            ActionButton2.Name = "BTT_OPEN"
             ActionButton3.BackgroundImage = CType(resources.GetObject("ActionButton3.BackgroundImage"), System.Drawing.Image)
-            ActionButton3.Index = 1
-            ActionButton3.Name = "BTT_CLEAR"
-            Me.TXT_LABELS.Buttons.Add(ActionButton2)
+            ActionButton3.Index = 0
+            ActionButton3.Name = "BTT_OPEN"
+            ActionButton4.BackgroundImage = CType(resources.GetObject("ActionButton4.BackgroundImage"), System.Drawing.Image)
+            ActionButton4.Index = 1
+            ActionButton4.Name = "BTT_CLEAR"
             Me.TXT_LABELS.Buttons.Add(ActionButton3)
+            Me.TXT_LABELS.Buttons.Add(ActionButton4)
             Me.TXT_LABELS.CaptionText = "Labels"
             Me.TXT_LABELS.CaptionWidth = 50.0R
             Me.TXT_LABELS.Dock = System.Windows.Forms.DockStyle.Fill
@@ -404,16 +391,16 @@
             '
             'TXT_SPEC_FOLDER
             '
-            ActionButton4.BackgroundImage = CType(resources.GetObject("ActionButton4.BackgroundImage"), System.Drawing.Image)
-            ActionButton4.Index = 0
-            ActionButton4.Name = "BTT_OPEN"
-            ActionButton4.ToolTipText = "Select a new path in the folder selection dialog"
             ActionButton5.BackgroundImage = CType(resources.GetObject("ActionButton5.BackgroundImage"), System.Drawing.Image)
-            ActionButton5.Index = 1
-            ActionButton5.Name = "BTT_CLEAR"
-            ActionButton5.ToolTipText = "Clear"
-            Me.TXT_SPEC_FOLDER.Buttons.Add(ActionButton4)
+            ActionButton5.Index = 0
+            ActionButton5.Name = "BTT_OPEN"
+            ActionButton5.ToolTipText = "Select a new path in the folder selection dialog"
+            ActionButton6.BackgroundImage = CType(resources.GetObject("ActionButton6.BackgroundImage"), System.Drawing.Image)
+            ActionButton6.Index = 1
+            ActionButton6.Name = "BTT_CLEAR"
+            ActionButton6.ToolTipText = "Clear"
             Me.TXT_SPEC_FOLDER.Buttons.Add(ActionButton5)
+            Me.TXT_SPEC_FOLDER.Buttons.Add(ActionButton6)
             Me.TXT_SPEC_FOLDER.CaptionText = "Special path"
             Me.TXT_SPEC_FOLDER.Dock = System.Windows.Forms.DockStyle.Fill
             Me.TXT_SPEC_FOLDER.Location = New System.Drawing.Point(4, 62)
@@ -456,8 +443,9 @@
             Me.Text = "Create User"
             TP_MAIN.ResumeLayout(False)
             CType(Me.TXT_USER, System.ComponentModel.ISupportInitialize).EndInit()
-            Me.TP_SITE.ResumeLayout(False)
-            Me.TP_SITE.PerformLayout()
+            TP_SITE.ResumeLayout(False)
+            TP_SITE.PerformLayout()
+            CType(Me.CMB_SITE, System.ComponentModel.ISupportInitialize).EndInit()
             TP_PARAMS.ResumeLayout(False)
             TP_PARAMS.PerformLayout()
             TP_OTHER.ResumeLayout(False)
@@ -479,8 +467,6 @@
 
         Private WithEvents CONTAINER_MAIN As ToolStripContainer
         Private WithEvents TXT_USER As PersonalUtilities.Forms.Controls.TextBoxExtended
-        Private WithEvents OPT_REDDIT As RadioButton
-        Private WithEvents OPT_TWITTER As RadioButton
         Private WithEvents CH_TEMP As CheckBox
         Private WithEvents CH_FAV As CheckBox
         Private WithEvents CH_PARSE_USER_MEDIA As CheckBox
@@ -494,9 +480,8 @@
         Private WithEvents CH_DOWN_IMAGES As CheckBox
         Private WithEvents CH_DOWN_VIDEOS As CheckBox
         Private WithEvents CH_IS_CHANNEL As CheckBox
-        Private WithEvents OPT_INSTAGRAM As RadioButton
         Private WithEvents TXT_SPEC_FOLDER As PersonalUtilities.Forms.Controls.TextBoxExtended
-        Private WithEvents OPT_REDGIFS As RadioButton
-        Private WithEvents TP_SITE As TableLayoutPanel
+        Private WithEvents CMB_SITE As PersonalUtilities.Forms.Controls.ComboBoxExtended
+        Private WithEvents BTT_OTHER_SETTINGS As Button
     End Class
 End Namespace
