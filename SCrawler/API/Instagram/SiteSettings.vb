@@ -261,6 +261,7 @@ Namespace API.Instagram
             With DirectCast(User, UserData)
                 _NextWNM = .WaitNotificationMode
                 If _NextWNM = UserData.WNM.SkipTemp Or _NextWNM = UserData.WNM.SkipCurrent Then _NextWNM = UserData.WNM.Notify
+                LastDownloadDate.Value = Now
                 LastRequestsCount.Value = .RequestsCount
             End With
         End Sub

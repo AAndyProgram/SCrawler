@@ -41,7 +41,7 @@ https://www.4kdownload.com/products/product-stogram
 
 https://github.com/RipMeApp/ripme
 
-| Option | SCrawler | 4K Stogram |
+| Option | SCrawler | RipMeApp |
 | ---- | ---- | ---- |
 | User managament | **Advanced** | No |
 | Labeling users | **Yes** | No |
@@ -67,3 +67,12 @@ https://github.com/RipMeApp/ripme
 | Suported sites | 3 internal and any site using plugins | 86+ sites (declared) |
 | Other sites support | **Yes** | No |
 | Still supported | **Yes** | **No (last release date May 4, 2021)** |
+
+# gallery-dl
+
+https://github.com/mikf/gallery-dl
+
+
+**CLI tool**! Configured with JSON files only. Users need to learn complex configuration options, JSON, commands to use that tool. Very difficult to configure.
+
+SCrawler has advanced user management, collections, labels, groups, a beautiful view, GUI, the ability to add plugins for other sites and much more. Just try it and compare.
