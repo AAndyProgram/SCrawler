@@ -65,6 +65,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_VERSION_INFO = New System.Windows.Forms.ToolStripButton()
         Me.BTT_DONATE = New System.Windows.Forms.ToolStripButton()
         Me.Toolbar_BOTTOM = New System.Windows.Forms.StatusStrip()
+        Me.BTT_PR_INFO = New System.Windows.Forms.ToolStripStatusLabel()
         Me.PR_MAIN = New System.Windows.Forms.ToolStripProgressBar()
         Me.LBL_JOBS_COUNT = New System.Windows.Forms.ToolStripStatusLabel()
         Me.LBL_STATUS = New System.Windows.Forms.ToolStripStatusLabel()
@@ -90,7 +91,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.TRAY_CONTEXT = New System.Windows.Forms.ContextMenuStrip(Me.components)
         Me.BTT_TRAY_SHOW_HIDE = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_TRAY_CLOSE = New System.Windows.Forms.ToolStripMenuItem()
-        Me.BTT_PR_INFO = New System.Windows.Forms.ToolStripStatusLabel()
+        Me.BTT_CONTEXT_DOWN_DATE_LIMIT = New System.Windows.Forms.ToolStripMenuItem()
         SEP_1 = New System.Windows.Forms.ToolStripSeparator()
         SEP_2 = New System.Windows.Forms.ToolStripSeparator()
         CONTEXT_SEP_1 = New System.Windows.Forms.ToolStripSeparator()
@@ -466,6 +467,14 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.Toolbar_BOTTOM.Size = New System.Drawing.Size(934, 22)
         Me.Toolbar_BOTTOM.TabIndex = 2
         '
+        'BTT_PR_INFO
+        '
+        Me.BTT_PR_INFO.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image
+        Me.BTT_PR_INFO.Image = Global.SCrawler.My.Resources.Resources.InfoPic_32
+        Me.BTT_PR_INFO.Name = "BTT_PR_INFO"
+        Me.BTT_PR_INFO.Padding = New System.Windows.Forms.Padding(0, 0, 3, 0)
+        Me.BTT_PR_INFO.Size = New System.Drawing.Size(19, 17)
+        '
         'PR_MAIN
         '
         Me.PR_MAIN.Name = "PR_MAIN"
@@ -503,9 +512,9 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         '
         'USER_CONTEXT
         '
-        Me.USER_CONTEXT.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_CONTEXT_DOWN, Me.BTT_CONTEXT_DOWN_LIMITED, Me.BTT_CONTEXT_EDIT, Me.BTT_CONTEXT_DELETE, CONTEXT_SEP_1, Me.BTT_CONTEXT_FAV, Me.BTT_CONTEXT_TEMP, Me.BTT_CONTEXT_READY, Me.BTT_CONTEXT_GROUPS, Me.BTT_CONTEXT_ADD_TO_COL, Me.BTT_CONTEXT_COL_MERGE, Me.BTT_CONTEXT_CHANGE_FOLDER, CONTEXT_SEP_2, Me.BTT_CHANGE_IMAGE, CONTEXT_SEP_3, Me.BTT_CONTEXT_OPEN_PATH, CONTEXT_SEP_4, Me.BTT_CONTEXT_OPEN_SITE, CONTEXT_SEP_5, Me.BTT_CONTEXT_INFO})
+        Me.USER_CONTEXT.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_CONTEXT_DOWN, Me.BTT_CONTEXT_DOWN_LIMITED, Me.BTT_CONTEXT_DOWN_DATE_LIMIT, Me.BTT_CONTEXT_EDIT, Me.BTT_CONTEXT_DELETE, CONTEXT_SEP_1, Me.BTT_CONTEXT_FAV, Me.BTT_CONTEXT_TEMP, Me.BTT_CONTEXT_READY, Me.BTT_CONTEXT_GROUPS, Me.BTT_CONTEXT_ADD_TO_COL, Me.BTT_CONTEXT_COL_MERGE, Me.BTT_CONTEXT_CHANGE_FOLDER, CONTEXT_SEP_2, Me.BTT_CHANGE_IMAGE, CONTEXT_SEP_3, Me.BTT_CONTEXT_OPEN_PATH, CONTEXT_SEP_4, Me.BTT_CONTEXT_OPEN_SITE, CONTEXT_SEP_5, Me.BTT_CONTEXT_INFO})
         Me.USER_CONTEXT.Name = "USER_CONTEXT"
-        Me.USER_CONTEXT.Size = New System.Drawing.Size(222, 364)
+        Me.USER_CONTEXT.Size = New System.Drawing.Size(222, 408)
         '
         'BTT_CONTEXT_DOWN
         '
@@ -641,13 +650,12 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_TRAY_CLOSE.Size = New System.Drawing.Size(133, 22)
         Me.BTT_TRAY_CLOSE.Text = "Close"
         '
-        'BTT_PR_INFO
+        'BTT_CONTEXT_DOWN_DATE_LIMIT
         '
-        Me.BTT_PR_INFO.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image
-        Me.BTT_PR_INFO.Image = Global.SCrawler.My.Resources.Resources.InfoPic_32
-        Me.BTT_PR_INFO.Name = "BTT_PR_INFO"
-        Me.BTT_PR_INFO.Padding = New System.Windows.Forms.Padding(0, 0, 3, 0)
-        Me.BTT_PR_INFO.Size = New System.Drawing.Size(19, 17)
+        Me.BTT_CONTEXT_DOWN_DATE_LIMIT.Image = Global.SCrawler.My.Resources.Resources.StartPic_01_Green_16
+        Me.BTT_CONTEXT_DOWN_DATE_LIMIT.Name = "BTT_CONTEXT_DOWN_DATE_LIMIT"
+        Me.BTT_CONTEXT_DOWN_DATE_LIMIT.Size = New System.Drawing.Size(221, 22)
+        Me.BTT_CONTEXT_DOWN_DATE_LIMIT.Text = "Download data to the date"
         '
         'MainFrame
         '
@@ -733,4 +741,5 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
     Private WithEvents COL_DEF As ColumnHeader
     Private WithEvents MENU_SETTINGS As ToolStripDropDownButton
     Private WithEvents BTT_PR_INFO As ToolStripStatusLabel
+    Private WithEvents BTT_CONTEXT_DOWN_DATE_LIMIT As ToolStripMenuItem
 End Class

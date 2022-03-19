@@ -11,6 +11,7 @@ Imports PersonalUtilities.Forms.Controls
 Imports PersonalUtilities.Forms.Controls.Base
 Imports PersonalUtilities.Forms.Toolbars
 Imports PersonalUtilities.Tools.WEB
+Imports CookieControl = PersonalUtilities.Tools.WEB.CookieListForm.CookieControl
 Imports SCrawler.Plugin
 Imports SCrawler.Plugin.Hosts
 Namespace Editors
@@ -43,8 +44,6 @@ Namespace Editors
             LBL_OTHER = New Label With {.Text = "Other Parameters", .TextAlign = ContentAlignment.MiddleCenter, .Dock = DockStyle.Fill}
         End Sub
         Private Sub SiteEditorForm_Load(sender As Object, e As EventArgs) Handles Me.Load
-            Const LBorder% = 3
-            Const DOffset% = 100
             Try
                 With MyDefs
                     .MyViewInitialize(Me, Settings.Design, True)
@@ -72,7 +71,7 @@ Namespace Editors
                         End With
 
                         If .PropList.Count > 0 Then
-                            Dim offset% = DOffset
+                            Dim offset% = PropertyValueHost.LeftOffsetDefault
                             Dim h% = 0, c% = 0
                             Dim laAdded As Boolean = False
                             Dim loAdded As Boolean = False
@@ -109,7 +108,7 @@ Namespace Editors
 
                                                 .CreateControl()
                                                 AddTpControl(.Control, .ControlHeight)
-                                                If .Options.LeftOffset > offset Then offset = .Options.LeftOffset
+                                                If .LeftOffset > offset Then offset = .LeftOffset
                                                 If Not .Options.AllowNull Or Not .ProviderFieldsChecker Is Nothing Then
                                                     MyDefs.MyFieldsChecker.AddControl(.Control, .Options.ControlText, .Type, .Options.AllowNull, .ProviderFieldsChecker)
                                                 End If
@@ -120,13 +119,12 @@ Namespace Editors
                             Next
                             SpecialButton = .GetSettingsButtonInternal
                             If Not SpecialButton Is Nothing Then AddTpControl(SpecialButton, 28)
-                            offset -= LBorder
                             TP_SITE_PROPS.BaseControlsPadding = New Padding(offset, 0, 0, 0)
-                            If offset > DOffset - LBorder Then
-                                TXT_PATH.CaptionWidth = offset
-                                TXT_PATH_SAVED_POSTS.CaptionWidth = offset
-                                TXT_COOKIES.CaptionWidth = offset
-                            End If
+                            offset += PaddingE.GetOf({TP_SITE_PROPS}).Left
+                            TXT_PATH.CaptionWidth = offset
+                            TXT_PATH_SAVED_POSTS.CaptionWidth = offset
+                            TXT_COOKIES.CaptionWidth = offset
+                            CH_GET_USER_MEDIA_ONLY.Padding = New PaddingE(CH_GET_USER_MEDIA_ONLY.Padding) With {.Left = offset}
                             If c > 0 Or Not Host.IsMyClass Then
                                 Dim ss As New Size(Size.Width, Size.Height + h + c)
                                 MinimumSize = ss
@@ -183,6 +181,8 @@ Namespace Editors
                         .GetUserMediaOnly.Value = CH_GET_USER_MEDIA_ONLY.Checked
 
                         If .PropList.Count > 0 Then .PropList.ForEach(Sub(p) If Not p.Options Is Nothing Then p.UpdateValueByControl())
+
+                        .Source.Update()
                     End With
                 End If
 
@@ -209,7 +209,12 @@ Namespace Editors
         Private Sub TXT_COOKIES_ActionOnButtonClick(ByVal Sender As ActionButton) Handles TXT_COOKIES.ActionOnButtonClick
             If Sender.DefaultButton = ActionButton.DefaultButtons.Edit Then
                 If TypeOf Host.Source Is IResponserContainer Then
-                    Using f As New CookieListForm(DirectCast(Host.Source, IResponserContainer).Responser.Cookies) With {.MyDesignXML = Settings.Design} : f.ShowDialog() : End Using
+                    Using f As New CookieListForm(DirectCast(Host.Source, IResponserContainer).Responser) With {
+                        .MyDesignXML = Settings.Design,
+                        .DisableControls = CookieControl.AddFromInternal + CookieControl.AuthorizeProgram + CookieControl.OpenBrowser
+                    }
+                        f.ShowDialog()
+                    End Using
                     SetCookieText()
                 End If
             End If

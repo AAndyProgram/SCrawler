@@ -243,6 +243,7 @@ Namespace API.Instagram
                                                         If Not PostID.IsEmptyString And _TempPostsList.Contains(PostID) Then Throw New ExitException(_DownloadComplete)
                                                         _TempPostsList.Add(PostID)
                                                         PostDate = node.Value("taken_at_timestamp")
+                                                        If Not CheckDatesLimit(PostDate, DateProvider) Then Throw New ExitException(_DownloadComplete)
                                                         ObtainMedia(node, PostID, PostDate, SpecFolder)
                                                     End If
                                                 Next

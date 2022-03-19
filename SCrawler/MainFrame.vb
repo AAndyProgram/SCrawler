@@ -218,7 +218,7 @@ CloseResume:
         Using f As New GlobalSettingsForm
             f.ShowDialog()
             If f.DialogResult = DialogResult.OK Then
-                If Not Settings.MaxLargeImageHeigh = mhl Or Not Settings.MaxSmallImageHeigh = mhs Then RefillList()
+                If (Not Settings.MaxLargeImageHeigh = mhl Or Not Settings.MaxSmallImageHeigh = mhs) And Settings.ViewModeIsPicture Then RefillList()
                 TrayIcon.Visible = Settings.CloseToTray
             End If
         End Using
@@ -309,7 +309,7 @@ CloseResume:
 #End Region
 #Region "Download"
     Private Sub BTT_DOWN_SELECTED_Click(sender As Object, e As EventArgs) Handles BTT_DOWN_SELECTED.Click
-        DownloadSelectedUser(False)
+        DownloadSelectedUser(DownUserLimits.None)
     End Sub
     Private Sub BTT_DOWN_ALL_Click(sender As Object, e As EventArgs) Handles BTT_DOWN_ALL.Click
         Downloader.AddRange(Settings.Users.Where(Function(u) u.ReadyForDownload))
@@ -472,7 +472,7 @@ CloseResume:
                                           End With
                                           Settings.LastUpdatedDate = d
                                       End Sub
-        Using f As New FDatePickerForm
+        Using f As New FDatePickerForm(Settings.LastUpdatedDate)
             f.ShowDialog()
             Select Case f.DialogResult
                 Case DialogResult.Abort : snd(Nothing)
@@ -487,7 +487,7 @@ CloseResume:
         MyMainLOG_ShowForm(Settings.Design)
     End Sub
     Private Sub BTT_DONATE_Click(sender As Object, e As EventArgs) Handles BTT_DONATE.Click
-        Try : Process.Start("https://github.com/AAndyProgram/SCrawler/HowToSupport.md") : Catch : End Try
+        Try : Process.Start("https://github.com/AAndyProgram/SCrawler/blob/main/HowToSupport.md") : Catch : End Try
     End Sub
 #Region "List functions"
     Private _LatestSelected As Integer = -1
@@ -506,10 +506,13 @@ CloseResume:
     End Sub
 #Region "Context"
     Private Sub BTT_CONTEXT_DOWN_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_DOWN.Click
-        DownloadSelectedUser(False)
+        DownloadSelectedUser(DownUserLimits.None)
     End Sub
     Private Sub BTT_CONTEXT_DOWN_LIMITED_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_DOWN_LIMITED.Click
-        DownloadSelectedUser(True)
+        DownloadSelectedUser(DownUserLimits.Number)
+    End Sub
+    Private Sub BTT_CONTEXT_DOWN_DATE_LIMIT_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_DOWN_DATE_LIMIT.Click
+        DownloadSelectedUser(DownUserLimits.Date)
     End Sub
     Private Sub BTT_CONTEXT_EDIT_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_EDIT.Click
         EditSelectedUser()
@@ -925,18 +928,20 @@ CloseResume:
             If .Count > 0 AndAlso .ContainsKey(User.Key) Then .RemoveByKey(User.Key)
         End With
     End Sub
-    Private Sub DownloadSelectedUser(ByVal UseLimits As Boolean)
+    Private Enum DownUserLimits : None : Number : [Date] : End Enum
+    Private Sub DownloadSelectedUser(ByVal UseLimits As DownUserLimits)
         Dim users As List(Of IUserData) = GetSelectedUserArray()
         If users.ListExists Then
             Dim l%? = Nothing
-            If UseLimits Then
+            Dim d As Date? = Nothing
+            If UseLimits = DownUserLimits.Number Then
                 Do
                     l = AConvert(Of Integer)(InputBoxE("Enter top posts limit for downloading:", "Download limit", 10), AModes.Var, Nothing)
                     If l.HasValue Then
                         Select Case MsgBoxE(New MMessage($"You are set up downloading top [{l.Value}] posts", "Download limit",
                                             {"Confirm", "Try again", "Disable limit", "Cancel"}) With {.ButtonsPerRow = 2}).Index
                             Case 0 : Exit Do
-                            Case 2 : l = Nothing
+                            Case 2 : l = Nothing : Exit Do
                             Case 3 : GoTo CancelDownloadingOperation
                         End Select
                     Else
@@ -945,6 +950,32 @@ CloseResume:
                             Case 2 : GoTo CancelDownloadingOperation
                         End Select
                     End If
+                Loop
+            ElseIf UseLimits = DownUserLimits.Date Then
+                Do
+                    Using fd As New FDatePickerForm(Nothing)
+                        fd.ShowDialog()
+                        If fd.DialogResult = DialogResult.OK Then
+                            d = fd.SelectedDate
+                        ElseIf fd.DialogResult = DialogResult.Abort Then
+                            d = Nothing
+                        End If
+                    End Using
+                    If d.HasValue Then
+                        Select Case MsgBoxE(New MMessage($"You are set up downloading posts until [{d.Value.Date.ToStringDate(ADateTime.Formats.BaseDate)}]",
+                                                         "Download limit",
+                                            {"Confirm", "Try again", "Disable limit", "Cancel"}) With {.ButtonsPerRow = 2}).Index
+                            Case 0 : Exit Do
+                            Case 2 : d = Nothing : Exit Do
+                            Case 3 : GoTo CancelDownloadingOperation
+                        End Select
+                    Else
+                        Select Case MsgBoxE({"You are not set up a date limit", "Download limit"},,,, {"Confirm", "Try again", "Cancel"}).Index
+                            Case 0 : Exit Do
+                            Case 2 : GoTo CancelDownloadingOperation
+                        End Select
+                    End If
+
                 Loop
             End If
             If USER_CONTEXT.Visible Then USER_CONTEXT.Hide()
@@ -955,6 +986,7 @@ CancelDownloadingOperation:
 ResumeDownloadingOperation:
             If users.Count = 1 Then
                 users(0).DownloadTopCount = l
+                users(0).DownloadToDate = d
                 Downloader.Add(users(0))
             Else
                 Dim uStr$ = users.Select(Function(u) u.ToString()).ListToString(, vbNewLine)

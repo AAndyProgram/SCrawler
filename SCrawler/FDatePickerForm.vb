@@ -15,8 +15,10 @@ Friend Class FDatePickerForm : Implements IOkCancelDeleteToolbar
             If DT.Checked Then Return DT.Value.Date Else Return Nothing
         End Get
     End Property
-    Friend Sub New()
+    Private ReadOnly _InitialValue As Date?
+    Friend Sub New(ByVal d As Date?)
         InitializeComponent()
+        _InitialValue = d
     End Sub
     Private Sub FDatePickerForm_Load(sender As Object, e As EventArgs) Handles Me.Load
         Try
@@ -25,9 +27,9 @@ Friend Class FDatePickerForm : Implements IOkCancelDeleteToolbar
                 .MyViewInitialize(Me, Settings.Design, True)
                 .AddOkCancelToolbar()
                 .DelegateClosingChecker()
-                If Settings.LastUpdatedDate.HasValue Then
+                If _InitialValue.HasValue Then
                     DT.Checked = True
-                    DT.Value = Settings.LastUpdatedDate.Value.Date
+                    DT.Value = _InitialValue.Value.Date
                 Else
                     DT.Checked = False
                 End If

@@ -41,6 +41,8 @@ Namespace Plugin
         Sub AfterDownload(ByVal User As Object, ByVal What As Download)
         Sub DownloadDone(ByVal What As Download)
 #End Region
+        Sub Update()
+        Sub Reset()
         Sub OpenSettingsForm()
         Sub UserOptions(ByRef Options As Object, ByVal OpenForm As Boolean)
     End Interface

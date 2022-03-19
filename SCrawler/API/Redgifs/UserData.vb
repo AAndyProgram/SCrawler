@@ -37,6 +37,7 @@ Namespace API.RedGifs
                             pTotal = j.Value("pages").FromXML(Of Integer)(0)
                             For Each g As EContainer In j("gifs")
                                 postDate = g.Value("createDate")
+                                If Not CheckDatesLimit(postDate, DateProvider) Then Exit Sub
                                 postID = g.Value("id")
                                 If Not _TempPostsList.Contains(postID) Then _TempPostsList.Add(postID) Else Exit For
                                 With g("urls")

@@ -217,7 +217,9 @@ Namespace DownloadObjects
         Private Sub JobsChecker()
             Try
                 MainProgress.TotalCount = 0
-                Do While Pool.Exists(Function(p) p.Count > 0)
+                MainProgress.CurrentCounter = 0
+                MyProgressForm.DisableProgressChange = False
+                Do While Pool.Exists(Function(p) p.Count > 0 Or p.Working)
                     For Each j As Job In Pool
                         If j.Count > 0 And Not j.Working Then j.Start(New ThreadStart(Sub() StartDownloading(j)))
                     Next
@@ -231,6 +233,7 @@ Namespace DownloadObjects
                     .InformationTemporary = "All data downloaded"
                     .Enabled(EOptions.ProgressBar) = False
                 End With
+                MyProgressForm.DisableProgressChange = True
                 If Pool.Count > 0 Then Pool.ForEach(Sub(p) If Not p.Progress Is Nothing Then p.Progress.TotalCount = 0)
             End Try
         End Sub

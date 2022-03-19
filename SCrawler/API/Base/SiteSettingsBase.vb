@@ -97,6 +97,11 @@ Namespace API.Base
             Return True
         End Function
 #End Region
+        Friend Overridable Sub Update() Implements ISiteSettings.Update
+            If Not Responser Is Nothing Then Responser.SaveSettings()
+        End Sub
+        Friend Overridable Sub Reset() Implements ISiteSettings.Reset
+        End Sub
         Friend Overridable Sub UserOptions(ByRef Options As Object, ByVal OpenForm As Boolean) Implements ISiteSettings.UserOptions
             Options = Nothing
         End Sub

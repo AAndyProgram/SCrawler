@@ -171,17 +171,24 @@ Friend Class ListImagesLoader
         End If
     End Function
     Private Function GetUsersWithImages() As List(Of UserOption)
-        Dim t As New List(Of Task)
-        Dim l As New List(Of UserOption)
-        For Each u As IUserData In Settings.Users
-            If u.FitToAddParams Then t.Add(Task.Run(Sub() l.Add(New UserOption(u, MyList, True))))
-        Next
-        If t.Count > 0 Then Task.WaitAll(t.ToArray) : t.Clear()
-        If l.Count > 0 Then
-            For i% = 0 To l.Count - 1
-                If l(i).Image Is Nothing Then l(i).UpdateImage()
+        Try
+            Dim t As New List(Of Task)
+            Dim l As New List(Of UserOption)
+            For Each u As IUserData In Settings.Users
+                If u.FitToAddParams Then t.Add(Task.Run(Sub() l.Add(New UserOption(u, MyList, True))))
             Next
-        End If
-        Return l
+            If t.Count > 0 Then Task.WaitAll(t.ToArray) : t.Clear()
+            If l.Count > 0 Then
+                For i% = 0 To l.Count - 1
+                    If l(i).Image Is Nothing Then l(i).UpdateImage()
+                Next
+            End If
+            Return l
+        Catch ex As Exception
+            Return ErrorsDescriber.Execute(EDP.LogMessageValue, ex,
+                                           "Image fast loading error." & vbCr &
+                                           "Click the ""Refresh"" button to manually refresh the user list." & vbCr &
+                                           "[ListImagesLoader.GetUsersWithImages]")
+        End Try
     End Function
 End Class

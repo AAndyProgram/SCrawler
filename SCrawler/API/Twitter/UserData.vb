@@ -64,6 +64,7 @@ Namespace API.Twitter
                                     'Date Pattern:
                                     'Sat Jan 01 01:10:15 +0000 2000
                                     If nn.Contains("created_at") Then PostDate = nn("created_at").Value Else PostDate = String.Empty
+                                    If Not CheckDatesLimit(PostDate, Declarations.DateProvider) Then Exit Sub
 
                                     If Not _TempPostsList.Contains(PostID) Then
                                         NewPostDetected = True

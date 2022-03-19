@@ -1,3 +1,16 @@
+# 3.0.0.1
+
+- Added
+  - Download data up to a specific date
+  - Update and Reset functions in the plugin (ISiteSettings)
+  - PostsDateLimit propperty in the plugin (IPluginContentProvider)
+- Fixed
+  - The donation button redirects to a broken link
+  - In some cases, an error occurs when fast loading images
+  - In some cases, cookies are not saved
+  - Some design fixes
+  - Minor bugs
+
 # 3.0.0.0
 
 **Attention! This version of the program makes changes user data file (Users.xml). Once you start using this version, you will not be able to use previous versions of the program. Therefore, it is highly recommended to archive the program settings folder and archive the users' data files (you can use the [```ArchiveSCrawlerUsersDataFiles.bat```](Tools/ArchiveSCrawlerUsersDataFiles.bat) tool to archive the data files of all users).**

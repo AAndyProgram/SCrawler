@@ -711,6 +711,7 @@ BlockNullPicture:
 #End Region
 #Region "Download functions and options"
         Friend Overridable Property DownloadTopCount As Integer? = Nothing Implements IUserData.DownloadTopCount, IPluginContentProvider.PostsNumberLimit
+        Friend Overridable Property DownloadToDate As Date? = Nothing Implements IUserData.DownloadToDate, IPluginContentProvider.PostsDateLimit
         Protected Responser As PersonalUtilities.Tools.WEB.Response
         Friend Overridable Sub DownloadData(ByVal Token As CancellationToken) Implements IContentProvider.DownloadData
             Dim Canceled As Boolean = False
@@ -791,8 +792,20 @@ BlockNullPicture:
                 If Not Canceled Then _DataParsed = True ': LastUpdated = Now
                 _ContentNew.Clear()
                 DownloadTopCount = Nothing
+                DownloadToDate = Nothing
             End Try
         End Sub
+        Protected Function CheckDatesLimit(ByVal DateString As String, ByVal DateProvider As IFormatProvider) As Boolean
+            Try
+                If DownloadToDate.HasValue And Not DateString.IsEmptyString Then
+                    Dim td As Date? = AConvert(Of Date)(DateString, DateProvider, Nothing)
+                    If td.HasValue Then Return td.Value < DownloadToDate.Value
+                End If
+                Return True
+            Catch ex As Exception
+                Return ErrorsDescriber.Execute(EDP.SendInLog, ex, $"[UserDataBase.CheckDatesLimit({DateString})]", True)
+            End Try
+        End Function
         Protected Sub UpdateDataFiles()
             If Not User.File.IsEmptyString Then
                 MyFileData = User.File
@@ -1236,6 +1249,7 @@ BlockNullPicture:
         Sub OpenFolder()
         ReadOnly Property Self As IUserData
         Property DownloadTopCount As Integer?
+        Property DownloadToDate As Date?
         Sub SetEnvironment(ByRef h As SettingsHost, ByVal u As UserInfo, ByVal _LoadUserInformation As Boolean,
                            Optional ByVal AttachUserInfo As Boolean = True)
         ReadOnly Property Disposed As Boolean

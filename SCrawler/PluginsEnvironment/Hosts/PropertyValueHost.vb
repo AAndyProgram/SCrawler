@@ -15,6 +15,7 @@ Imports SCrawler.Plugin.Attributes
 Imports System.Reflection
 Namespace Plugin.Hosts
     Friend Class PropertyValueHost : Implements IPropertyValue, IComparable(Of PropertyValueHost)
+        Friend Const LeftOffsetDefault As Integer = 100
         Friend Event OnPropertyUpdateRequested(ByVal Sender As PropertyValueHost)
         Private Event ValueChanged As IPropertyValue.ValueChangedEventHandler Implements IPropertyValue.ValueChanged
         Private _Type As Type
@@ -50,13 +51,13 @@ Namespace Plugin.Hosts
                     Else
                         DirectCast(Control, CheckBox).Checked = CBool(AConvert(Of Boolean)(Value, False))
                     End If
-                    If .LeftOffset > 0 Then Control.Padding = New PaddingE(Control.Padding) With {.Left = Options.LeftOffset}
+                    Control.Padding = New PaddingE(Control.Padding) With {.Left = LeftOffset}
                 Else
                     Control = New TextBoxExtended
                     With DirectCast(Control, TextBoxExtended)
                         .CaptionText = Options.ControlText
                         .CaptionToolTipEnabled = Not Options.ControlToolTip.IsEmptyString
-                        If Options.LeftOffset > 0 Then .CaptionWidth = Options.LeftOffset
+                        .CaptionWidth = LeftOffset
                         If Not Options.ControlToolTip.IsEmptyString Then .CaptionToolTipText = Options.ControlToolTip : .CaptionToolTipEnabled = True
                         .Text = CStr(AConvert(Of String)(Value, String.Empty))
                         With .Buttons
@@ -117,6 +118,19 @@ Namespace Plugin.Hosts
         Friend ReadOnly Name As String
         Private ReadOnly _XmlName As String
         Friend ReadOnly Options As PropertyOption
+        Private _LeftOffset As Integer? = Nothing
+        Friend Property LeftOffset As Integer
+            Get
+                If _LeftOffset.HasValue Then
+                    Return _LeftOffset
+                Else
+                    Return If(Options?.LeftOffset, LeftOffsetDefault)
+                End If
+            End Get
+            Set(ByVal NewOffset As Integer)
+                _LeftOffset = NewOffset
+            End Set
+        End Property
 #Region "Providers"
         Friend Property ProviderFieldsChecker As IFormatProvider
         Friend Property ProviderValue As IFormatProvider

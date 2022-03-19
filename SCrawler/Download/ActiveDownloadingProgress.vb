@@ -14,6 +14,7 @@ Namespace DownloadObjects
         Private MyView As FormsView
         Friend Property Opened As Boolean = False
         Private ReadOnly JobsList As List(Of DownloadProgress)
+        Friend Property DisableProgressChange As Boolean = False
         Friend Sub New()
             InitializeComponent()
             JobsList = New List(Of DownloadProgress)
@@ -66,7 +67,11 @@ Namespace DownloadObjects
             TP_MAIN.Refresh()
         End Sub
         Private Sub Jobs_OnTotalCountChange()
-            If JobsList.Count > 0 Then MainProgress.TotalCount = JobsList.Sum(Function(j) CLng(j.Job.Progress.TotalCount))
+            If JobsList.Count > 0 And Not DisableProgressChange Then
+                MainProgress.TotalCount = JobsList.Sum(Function(j) CLng(j.Job.Progress.TotalCount))
+                MainProgress.CurrentCounter = Math.Max(JobsList.Sum(Function(j) CLng(j.Job.Progress.CurrentCounter)) - 1, 0)
+                If MainProgress.CurrentCounter > 0 Then MainProgress.Perform()
+            End If
         End Sub
     End Class
 End Namespace

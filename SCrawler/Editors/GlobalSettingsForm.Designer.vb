@@ -55,6 +55,7 @@
             Me.CH_SHOW_NOTIFY = New System.Windows.Forms.CheckBox()
             Me.CH_FAST_LOAD = New System.Windows.Forms.CheckBox()
             Me.TXT_FOLDER_CMD = New PersonalUtilities.Forms.Controls.TextBoxExtended()
+            Me.CH_RECYCLE_DEL = New System.Windows.Forms.CheckBox()
             Me.CH_COPY_CHANNEL_USER_IMAGE = New System.Windows.Forms.CheckBox()
             Me.CH_DEF_TEMP = New System.Windows.Forms.CheckBox()
             Me.CH_DOWN_IMAGES = New System.Windows.Forms.CheckBox()
@@ -68,7 +69,6 @@
             Me.TXT_CHANNEL_USER_POST_LIMIT = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TAB_MAIN = New System.Windows.Forms.TabControl()
             Me.CONTAINER_MAIN = New System.Windows.Forms.ToolStripContainer()
-            Me.CH_RECYCLE_DEL = New System.Windows.Forms.CheckBox()
             TP_BASIS = New System.Windows.Forms.TableLayoutPanel()
             TP_IMAGES = New System.Windows.Forms.TableLayoutPanel()
             TP_FILE_NAME = New System.Windows.Forms.TableLayoutPanel()
@@ -147,7 +147,7 @@
             TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_BASIS.Size = New System.Drawing.Size(570, 422)
+            TP_BASIS.Size = New System.Drawing.Size(570, 447)
             TP_BASIS.TabIndex = 0
             '
             'TXT_GLOBAL_PATH
@@ -499,6 +499,17 @@
             Me.TXT_FOLDER_CMD.Size = New System.Drawing.Size(562, 22)
             Me.TXT_FOLDER_CMD.TabIndex = 13
             '
+            'CH_RECYCLE_DEL
+            '
+            Me.CH_RECYCLE_DEL.AutoSize = True
+            Me.CH_RECYCLE_DEL.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_RECYCLE_DEL.Location = New System.Drawing.Point(4, 399)
+            Me.CH_RECYCLE_DEL.Name = "CH_RECYCLE_DEL"
+            Me.CH_RECYCLE_DEL.Size = New System.Drawing.Size(562, 19)
+            Me.CH_RECYCLE_DEL.TabIndex = 14
+            Me.CH_RECYCLE_DEL.Text = "Delete data to recycle bin"
+            Me.CH_RECYCLE_DEL.UseVisualStyleBackColor = True
+            '
             'CH_COPY_CHANNEL_USER_IMAGE
             '
             Me.CH_COPY_CHANNEL_USER_IMAGE.AutoSize = True
@@ -648,7 +659,7 @@
             TAB_BASIS.Location = New System.Drawing.Point(4, 22)
             TAB_BASIS.Name = "TAB_BASIS"
             TAB_BASIS.Padding = New System.Windows.Forms.Padding(3)
-            TAB_BASIS.Size = New System.Drawing.Size(576, 428)
+            TAB_BASIS.Size = New System.Drawing.Size(576, 453)
             TAB_BASIS.TabIndex = 0
             TAB_BASIS.Text = "Basis"
             '
@@ -658,7 +669,7 @@
             TAB_DEFAULTS.Location = New System.Drawing.Point(4, 22)
             TAB_DEFAULTS.Name = "TAB_DEFAULTS"
             TAB_DEFAULTS.Padding = New System.Windows.Forms.Padding(3)
-            TAB_DEFAULTS.Size = New System.Drawing.Size(576, 426)
+            TAB_DEFAULTS.Size = New System.Drawing.Size(576, 453)
             TAB_DEFAULTS.TabIndex = 1
             TAB_DEFAULTS.Text = "Defaults"
             '
@@ -682,7 +693,7 @@
             TP_DEFS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_DEFS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_DEFS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_DEFS.Size = New System.Drawing.Size(570, 420)
+            TP_DEFS.Size = New System.Drawing.Size(570, 447)
             TP_DEFS.TabIndex = 0
             '
             'TAB_DEFS_CHANNELS
@@ -691,7 +702,7 @@
             TAB_DEFS_CHANNELS.Location = New System.Drawing.Point(4, 22)
             TAB_DEFS_CHANNELS.Name = "TAB_DEFS_CHANNELS"
             TAB_DEFS_CHANNELS.Padding = New System.Windows.Forms.Padding(3)
-            TAB_DEFS_CHANNELS.Size = New System.Drawing.Size(576, 426)
+            TAB_DEFS_CHANNELS.Size = New System.Drawing.Size(576, 453)
             TAB_DEFS_CHANNELS.TabIndex = 4
             TAB_DEFS_CHANNELS.Text = "Channels"
             '
@@ -715,7 +726,7 @@
             TP_CHANNELS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_CHANNELS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_CHANNELS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_CHANNELS.Size = New System.Drawing.Size(570, 420)
+            TP_CHANNELS.Size = New System.Drawing.Size(570, 447)
             TP_CHANNELS.TabIndex = 0
             '
             'TXT_CHANNEL_USER_POST_LIMIT
@@ -747,7 +758,7 @@
             Me.TAB_MAIN.Location = New System.Drawing.Point(0, 0)
             Me.TAB_MAIN.Name = "TAB_MAIN"
             Me.TAB_MAIN.SelectedIndex = 0
-            Me.TAB_MAIN.Size = New System.Drawing.Size(584, 454)
+            Me.TAB_MAIN.Size = New System.Drawing.Size(584, 479)
             Me.TAB_MAIN.TabIndex = 1
             '
             'CONTAINER_MAIN
@@ -756,7 +767,7 @@
             'CONTAINER_MAIN.ContentPanel
             '
             Me.CONTAINER_MAIN.ContentPanel.Controls.Add(Me.TAB_MAIN)
-            Me.CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(584, 454)
+            Me.CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(584, 479)
             Me.CONTAINER_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
             Me.CONTAINER_MAIN.LeftToolStripPanelVisible = False
             Me.CONTAINER_MAIN.Location = New System.Drawing.Point(0, 0)
@@ -765,17 +776,6 @@
             Me.CONTAINER_MAIN.Size = New System.Drawing.Size(584, 479)
             Me.CONTAINER_MAIN.TabIndex = 0
             Me.CONTAINER_MAIN.TopToolStripPanelVisible = False
-            '
-            'CH_RECYCLE_DEL
-            '
-            Me.CH_RECYCLE_DEL.AutoSize = True
-            Me.CH_RECYCLE_DEL.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_RECYCLE_DEL.Location = New System.Drawing.Point(4, 399)
-            Me.CH_RECYCLE_DEL.Name = "CH_RECYCLE_DEL"
-            Me.CH_RECYCLE_DEL.Size = New System.Drawing.Size(562, 19)
-            Me.CH_RECYCLE_DEL.TabIndex = 14
-            Me.CH_RECYCLE_DEL.Text = "Delete data to recycle bin"
-            Me.CH_RECYCLE_DEL.UseVisualStyleBackColor = True
             '
             'GlobalSettingsForm
             '

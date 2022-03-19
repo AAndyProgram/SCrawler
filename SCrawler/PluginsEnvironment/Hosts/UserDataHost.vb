@@ -51,6 +51,7 @@ Namespace Plugin.Hosts
                 .SeparateVideoFolder = SeparateVideoFolderF
                 .DataPath = MyFile.CutPath.PathNoSeparator
                 .PostsNumberLimit = DownloadTopCount
+                .PostsDateLimit = DownloadToDate
 
                 If _ContentList.Count > 0 Then ExternalPlugin.ExistingContentList = _ContentList.Select(Function(u) u.PluginUserMedia).ToList
                 ExternalPlugin.TempPostsList = ListAddList(Nothing, _TempPostsList)

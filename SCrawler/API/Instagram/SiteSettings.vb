@@ -71,7 +71,7 @@ Namespace API.Instagram
         Friend ReadOnly Property RequestsWaitTimer As PropertyValue
         <Provider(NameOf(RequestsWaitTimer), FieldsChecker:=True)>
         Private ReadOnly Property RequestsWaitTimerProvider As IFormatProvider
-        <PropertyOption(ControlText:="Request timer counter", AllowNull:=False), PXML("RequestsWaitTimerTaskCount"), ControlNumber(6)>
+        <PropertyOption(ControlText:="Request timer counter", AllowNull:=False, LeftOffset:=120), PXML("RequestsWaitTimerTaskCount"), ControlNumber(6)>
         Friend ReadOnly Property RequestsWaitTimerTaskCount As PropertyValue
         <Provider(NameOf(RequestsWaitTimerTaskCount), FieldsChecker:=True)>
         Private ReadOnly Property RequestsWaitTimerTaskCountProvider As IFormatProvider

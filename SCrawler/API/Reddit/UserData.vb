@@ -23,6 +23,11 @@ Namespace API.Reddit
                 Return DirectCast(HOST.Source, SiteSettings)
             End Get
         End Property
+        Private Shared ReadOnly Property DateTrueProvider(ByVal IsChannel As Boolean) As IFormatProvider
+            Get
+                Return If(IsChannel, DateProviderChannel, DateProvider)
+            End Get
+        End Property
 #Region "Channels Support"
 #Region "IChannelLimits Support"
         Friend Property DownloadLimitCount As Integer? Implements IChannelLimits.DownloadLimitCount
@@ -163,6 +168,7 @@ Namespace API.Reddit
                                                 Continue For
                                             End If
                                             If nn.Contains("created") Then PostDate = nn("created").Value Else PostDate = String.Empty
+                                            If DownloadToDate.HasValue AndAlso Not CheckDatesLimit(PostDate, DateTrueProvider(IsChannel)) Then Exit Sub
 
                                             _ItemsBefore = _TempMediaList.Count
                                             added = True
@@ -455,7 +461,7 @@ Namespace API.Reddit
             Dim m As New UserMedia(_URL, t) With {.Post = New UserPost With {.ID = PostID, .UserID = _UserID}}
             If t = UTypes.Picture Or t = UTypes.GIF Then m.File = UrlToFile(m.URL) Else m.File = Nothing
             If m.URL.Contains("preview") Then m.URL = $"https://i.redd.it/{m.File.File}"
-            If Not PostDate.IsEmptyString Then m.Post.Date = AConvert(Of Date)(PostDate, If(IsChannel, DateProviderChannel, DateProvider), Nothing) Else m.Post.Date = Nothing
+            If Not PostDate.IsEmptyString Then m.Post.Date = AConvert(Of Date)(PostDate, DateTrueProvider(IsChannel), Nothing) Else m.Post.Date = Nothing
             Return m
         End Function
         Private Function TryFile(ByVal URL As String) As Boolean

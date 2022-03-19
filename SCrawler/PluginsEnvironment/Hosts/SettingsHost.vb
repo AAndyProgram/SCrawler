@@ -244,8 +244,10 @@ Namespace Plugin.Hosts
 
             GetUserMediaOnly = New XMLValue(Of Boolean)("GetUserMediaOnly", True, _XML, n)
             If PropList.Count > 0 Then
+                Dim MaxOffset% = Math.Max(PropList.Max(Function(pp) pp.LeftOffset), PropertyValueHost.LeftOffsetDefault)
                 For Each p As PropertyValueHost In PropList
                     p.SetXmlEnvironment(_XML, n)
+                    p.LeftOffset = MaxOffset
                     AddHandler p.OnPropertyUpdateRequested, AddressOf PropHost_OnPropertyUpdateRequested
                 Next
             End If
