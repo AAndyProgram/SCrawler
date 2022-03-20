@@ -74,8 +74,8 @@ Read [here](CONTRIBUTING.md#how-to-request-a-new-site) about
 # Requirements
 
 - Windows 7, 8, 9, 10, 11 with NET Framework 4.6.1 or higher
-- Authorization cookies and tokens for Twitter (if you want to download data from Twitter)
-- Authorization cookies Instagram (if you want to download data from Instagram)
+- Authorization [cookies](https://github.com/AAndyProgram/SCrawler/wiki/Settings#how-to-set-up-cookies) and [tokens](https://github.com/AAndyProgram/SCrawler/wiki/Settings#how-to-find-twitter-tokens) for Twitter (if you want to download data from Twitter)
+- Authorization [cookies](https://github.com/AAndyProgram/SCrawler/wiki/Settings#how-to-set-up-cookies) and [Hash](https://github.com/AAndyProgram/SCrawler/wiki/Settings#instagram) for Instagram (if you want to download data from Instagram), [Hash 2](https://github.com/AAndyProgram/SCrawler/wiki/Settings#how-to-find-instagram-hash-2) for saved Instagram posts, Instagram [stories authorization headers](https://github.com/AAndyProgram/SCrawler/wiki/Settings#how-to-find-instagram-stories-authorization-headers) for Stories and Tagged data
 - ffmpeg library for downloading videos hosted on Reddit (you can download it from the [official repo](https://github.com/GyanD/codexffmpeg/releases/tag/2021-01-12-git-ca21cb1e36) or [from my first release](https://github.com/AAndyProgram/SCrawler/releases/download/1.0.0.0/ffmpeg.zip)). **ffmpeg only works with the x64 version of the program.**
 
 # Guide
@@ -109,6 +109,10 @@ Read more about how to support the program [here](HowToSupport.md).
 # Settings and usage
 
 The program has an intuitive interface.
+
+You need to set up authorization for Twitter and Instagram:
+- Authorization [cookies](https://github.com/AAndyProgram/SCrawler/wiki/Settings#how-to-set-up-cookies) and [tokens](https://github.com/AAndyProgram/SCrawler/wiki/Settings#how-to-find-twitter-tokens) for **Twitter** (if you want to download data from Twitter)
+- Authorization [cookies](https://github.com/AAndyProgram/SCrawler/wiki/Settings#how-to-set-up-cookies) and [Hash](https://github.com/AAndyProgram/SCrawler/wiki/Settings#instagram) for **Instagram** (if you want to download data from Instagram), [Hash 2](https://github.com/AAndyProgram/SCrawler/wiki/Settings#how-to-find-instagram-hash-2) for **saved Instagram posts**, Instagram [stories authorization headers](https://github.com/AAndyProgram/SCrawler/wiki/Settings#how-to-find-instagram-stories-authorization-headers) for **Stories** and **Tagged data**
 
 Just add a user profile and click the ```Start downloading``` button.
 
