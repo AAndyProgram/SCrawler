@@ -2,7 +2,7 @@ Your support is very valuable to me. Any support is greatly appreciated. Your su
 
 You can support the program by:
   - **Bitcoin**: bitcoin:BC1Q0NH839FT5TA44DD7L7RLR97XDQAG9V8D6N7XET
-  - :heavy_dollar_sign: making donaion making donations on this site: https://ko-fi.com/andyprogram
+  - :heavy_dollar_sign: make a donation on this site: https://ko-fi.com/andyprogram
   - :repeat: make a post about my program on your profile (Reddit, Twitter, Instagram and any other social networks)
   - :speech_balloon: tell your friends about the program
   - :heart: like the program on this site: https://alternativeto.net/software/scrawler/about/
