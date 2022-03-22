@@ -17,10 +17,11 @@ Namespace Plugin
         ReadOnly Property Icon As Icon
         ReadOnly Property Image As Image
         ReadOnly Property Site As String
+        Property Logger As ILogProvider
         Function GetUserUrl(ByVal UserName As String, ByVal Channel As Boolean) As String
         Function IsMyUser(ByVal UserURL As String) As ExchangeOptions
         Function IsMyImageVideo(ByVal URL As String) As ExchangeOptions
-        Function GetSpecialData(ByVal URL As String) As IEnumerable(Of IPluginUserMedia)
+        Function GetSpecialData(ByVal URL As String, ByVal Path As String, ByVal AskForPath As Boolean) As IEnumerable(Of PluginUserMedia)
         Function GetInstance(ByVal What As Download) As IPluginContentProvider
 #Region "XML Support"
         Sub Load(ByVal XMLValues As IEnumerable(Of KeyValuePair(Of String, String)))

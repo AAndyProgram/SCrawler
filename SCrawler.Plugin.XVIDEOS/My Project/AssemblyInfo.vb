@@ -9,17 +9,17 @@ Imports System.Runtime.InteropServices
 
 ' Review the values of the assembly attributes
 
-<Assembly: AssemblyTitle("SCrawler plugin provider")>
-<Assembly: AssemblyDescription("Plugin provider for SCrawler")>
+<Assembly: AssemblyTitle("XVIDEOS")>
+<Assembly: AssemblyDescription("XVIDEOS plugin for SCrawler")>
 <Assembly: AssemblyCompany("AndyProgram")>
-<Assembly: AssemblyProduct("SCrawler.PluginProvider")>
+<Assembly: AssemblyProduct("XVIDEOS")>
 <Assembly: AssemblyCopyright("Copyright ©  2022")>
 <Assembly: AssemblyTrademark("AndyProgram")>
 
 <Assembly: ComVisible(False)>
 
 'The following GUID is for the ID of the typelib if this project is exposed to COM
-<Assembly: Guid("1f6c9516-360e-4a2b-80d4-ae0d9a4e5cfd")>
+<Assembly: Guid("d31a0e3b-081d-4155-9a41-4c0a641c87b6")>
 
 ' Version information for an assembly consists of the following four values:
 '
@@ -32,6 +32,6 @@ Imports System.Runtime.InteropServices
 ' by using the '*' as shown below:
 ' <Assembly: AssemblyVersion("1.0.*")>
 
-<Assembly: AssemblyVersion("3.0.0.2")>
-<Assembly: AssemblyFileVersion("3.0.0.2")>
+<Assembly: AssemblyVersion("1.0.0.0")>
+<Assembly: AssemblyFileVersion("1.0.0.0")>
 <Assembly: NeutralResourcesLanguage("en")>

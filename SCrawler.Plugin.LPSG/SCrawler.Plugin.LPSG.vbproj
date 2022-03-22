@@ -4,10 +4,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{D4650F6B-5A54-44B6-999B-6C675B7116B1}</ProjectGuid>
+    <ProjectGuid>{22A130B2-DDF4-4FB5-BA38-E5DB4CF1B8A2}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>SCrawler</RootNamespace>
-    <AssemblyName>SCrawler.PluginProvider</AssemblyName>
+    <RootNamespace>LPSG</RootNamespace>
+    <AssemblyName>SCrawler.Plugin.LPSG</AssemblyName>
     <FileAlignment>512</FileAlignment>
     <MyType>Windows</MyType>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
@@ -83,6 +83,7 @@
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -91,6 +92,10 @@
   </ItemGroup>
   <ItemGroup>
     <Import Include="Microsoft.VisualBasic" />
+    <Import Include="PersonalUtilities.Functions" />
+    <Import Include="PersonalUtilities.Tools.WEB" />
+    <Import Include="SCrawler.Plugin" />
+    <Import Include="SCrawler.Plugin.Attributes" />
     <Import Include="System" />
     <Import Include="System.Collections" />
     <Import Include="System.Collections.Generic" />
@@ -101,13 +106,7 @@
     <Import Include="System.Threading.Tasks" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Attributes\Attributes.vb" />
-    <Compile Include="Objects\ExchangeOptions.vb" />
-    <Compile Include="ObjectInterfaces\ILogProvider.vb" />
-    <Compile Include="Interfaces\IPluginContentProvider.vb" />
-    <Compile Include="Objects\PluginUserMedia.vb" />
-    <Compile Include="Interfaces\ISiteSettings.vb" />
-    <Compile Include="ObjectInterfaces\IThrower.vb" />
+    <Compile Include="Declarations.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">
       <AutoGen>True</AutoGen>
@@ -124,8 +123,8 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <Compile Include="Objects\PropertyData.vb" />
-    <Compile Include="Objects\PropertyValue.vb" />
+    <Compile Include="SiteSettings.vb" />
+    <Compile Include="UserData.vb" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="My Project\Resources.resx">
@@ -146,6 +145,22 @@
       <CustomToolNamespace>My</CustomToolNamespace>
       <LastGenOutput>Settings.Designer.vb</LastGenOutput>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\MyUtilities\PersonalUtilities\PersonalUtilities.vbproj">
+      <Project>{8405896b-2685-4916-bc93-1fb514c323a9}</Project>
+      <Name>PersonalUtilities</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SCrawler.PluginProvider\SCrawler.PluginProvider.vbproj">
+      <Project>{d4650f6b-5a54-44b6-999b-6c675b7116b1}</Project>
+      <Name>SCrawler.PluginProvider</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Content\Icons\Icon32.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Content\Pictures\IconPic_32.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
 </Project>

@@ -292,8 +292,13 @@ Friend Module MainMod
                     For Each p As PluginHost In Settings.Plugins
                         d = p.Settings.IsMyImageVideo(URL)
                         If d.Exists Then
-                            um = Settings(d.HostKey).GetSpecialData(URL)
+                            um = Settings(d.HostKey).GetSpecialData(URL, Settings.LatestSavingPath.Value, AskForPath)
                             found = True
+                            If um.ListExists Then
+                                If AskForPath And Not um(0).SpecialFolder.IsEmptyString And Not p.Settings.IsMyClass Then _
+                                   Settings.LatestSavingPath.Value = um(0).SpecialFolder
+                                If um(0).State = UserMedia.States.Downloaded Then Return True
+                            End If
                             Exit For
                         End If
                     Next

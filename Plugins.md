@@ -1,1 +1,3 @@
-List of available plugins
+List of available plugins:
+- LPSG
+- XVIDEOS

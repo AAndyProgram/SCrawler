@@ -271,7 +271,6 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <Compile Include="PluginsEnvironment\Attributes\AttributesInternal.vb" />
-    <Compile Include="PluginsEnvironment\Hosts\IResponserContainer.vb" />
     <Compile Include="PluginsEnvironment\Hosts\LogHost.vb" />
     <Compile Include="PluginsEnvironment\Hosts\PropertyValueHost.vb" />
     <Compile Include="PluginsEnvironment\Hosts\PluginHost.vb" />

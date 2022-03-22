@@ -19,7 +19,7 @@ Namespace Editors
         Private ReadOnly LBL_AUTH As Label
         Private ReadOnly LBL_OTHER As Label
         Private ReadOnly MyDefs As DefaultFormProps(Of FieldsChecker)
-        Private SpecialButton As Button
+        Private WithEvents SpecialButton As Button
 #Region "Providers"
         Private Class SavedPostsChecker : Implements ICustomProvider
             Private Function Convert(ByVal Value As Object, ByVal DestinationType As Type, ByVal Provider As IFormatProvider,
@@ -70,24 +70,27 @@ Namespace Editors
                             .AddControl(Of String)(TXT_PATH_SAVED_POSTS, TXT_PATH_SAVED_POSTS.CaptionText, True, New SavedPostsChecker)
                         End With
 
+                        Dim offset% = PropertyValueHost.LeftOffsetDefault
+                        Dim h% = 0, c% = 0
+                        Dim AddTpControl As Action(Of Control, Integer) = Sub(ByVal cnt As Control, ByVal _height As Integer)
+                                                                              TP_SITE_PROPS.RowStyles.Add(New RowStyle(SizeType.Absolute, _height))
+                                                                              TP_SITE_PROPS.RowCount += 1
+                                                                              TP_SITE_PROPS.Controls.Add(cnt, 0, TP_SITE_PROPS.RowStyles.Count - 1)
+                                                                              h += _height
+                                                                              c += 1
+                                                                          End Sub
+
+                        If Host.Responser Is Nothing Then
+                            h -= 28
+                            TXT_COOKIES.Enabled = False
+                            TXT_COOKIES.Visible = False
+                            TP_MAIN.RowStyles(2).Height = 0
+                        End If
+
+
                         If .PropList.Count > 0 Then
-                            Dim offset% = PropertyValueHost.LeftOffsetDefault
-                            Dim h% = 0, c% = 0
                             Dim laAdded As Boolean = False
                             Dim loAdded As Boolean = False
-                            If Not Host.IsMyClass Then
-                                h -= 28
-                                TXT_COOKIES.Enabled = False
-                                TXT_COOKIES.Visible = False
-                                TP_MAIN.RowStyles(2).Height = 0
-                            End If
-                            Dim AddTpControl As Action(Of Control, Integer) = Sub(ByVal cnt As Control, ByVal _height As Integer)
-                                                                                  TP_SITE_PROPS.RowStyles.Add(New RowStyle(SizeType.Absolute, _height))
-                                                                                  TP_SITE_PROPS.RowCount += 1
-                                                                                  TP_SITE_PROPS.Controls.Add(cnt, 0, TP_SITE_PROPS.RowStyles.Count - 1)
-                                                                                  h += _height
-                                                                                  c += 1
-                                                                              End Sub
                             Dim pArr() As Boolean
                             If .PropList.Exists(Function(p) If(p.Options?.IsAuth, False)) Then pArr = {True, False} Else pArr = {False}
                             .PropList.Sort()
@@ -117,20 +120,21 @@ Namespace Editors
                                     End If
                                 Next
                             Next
-                            SpecialButton = .GetSettingsButtonInternal
-                            If Not SpecialButton Is Nothing Then AddTpControl(SpecialButton, 28)
-                            TP_SITE_PROPS.BaseControlsPadding = New Padding(offset, 0, 0, 0)
-                            offset += PaddingE.GetOf({TP_SITE_PROPS}).Left
-                            TXT_PATH.CaptionWidth = offset
-                            TXT_PATH_SAVED_POSTS.CaptionWidth = offset
-                            TXT_COOKIES.CaptionWidth = offset
-                            CH_GET_USER_MEDIA_ONLY.Padding = New PaddingE(CH_GET_USER_MEDIA_ONLY.Padding) With {.Left = offset}
-                            If c > 0 Or Not Host.IsMyClass Then
-                                Dim ss As New Size(Size.Width, Size.Height + h + c)
-                                MinimumSize = ss
-                                Size = ss
-                                MaximumSize = ss
-                            End If
+                        End If
+
+                        SpecialButton = .GetSettingsButtonInternal
+                        If Not SpecialButton Is Nothing Then AddTpControl(SpecialButton, 28)
+                        TP_SITE_PROPS.BaseControlsPadding = New Padding(offset, 0, 0, 0)
+                        offset += PaddingE.GetOf({TP_SITE_PROPS}).Left
+                        TXT_PATH.CaptionWidth = offset
+                        TXT_PATH_SAVED_POSTS.CaptionWidth = offset
+                        TXT_COOKIES.CaptionWidth = offset
+                        CH_GET_USER_MEDIA_ONLY.Padding = New PaddingE(CH_GET_USER_MEDIA_ONLY.Padding) With {.Left = offset}
+                        If c > 0 Or Not Host.IsMyClass Then
+                            Dim ss As New Size(Size.Width, Size.Height + h + c)
+                            MinimumSize = ss
+                            Size = ss
+                            MaximumSize = ss
                         End If
                     End With
 
@@ -208,8 +212,8 @@ Namespace Editors
         End Sub
         Private Sub TXT_COOKIES_ActionOnButtonClick(ByVal Sender As ActionButton) Handles TXT_COOKIES.ActionOnButtonClick
             If Sender.DefaultButton = ActionButton.DefaultButtons.Edit Then
-                If TypeOf Host.Source Is IResponserContainer Then
-                    Using f As New CookieListForm(DirectCast(Host.Source, IResponserContainer).Responser) With {
+                If Not Host.Responser Is Nothing Then
+                    Using f As New CookieListForm(Host.Responser) With {
                         .MyDesignXML = Settings.Design,
                         .DisableControls = CookieControl.AddFromInternal + CookieControl.AuthorizeProgram + CookieControl.OpenBrowser
                     }
@@ -220,8 +224,8 @@ Namespace Editors
             End If
         End Sub
         Private Sub TXT_COOKIES_ActionOnButtonClearClick() Handles TXT_COOKIES.ActionOnButtonClearClick
-            If TypeOf Host.Source Is IResponserContainer Then
-                With DirectCast(Host.Source, IResponserContainer).Responser
+            If Not Host.Responser Is Nothing Then
+                With Host.Responser
                     If Not .Cookies Is Nothing Then .Cookies.Dispose()
                     .Cookies = New CookieKeeper(.CookiesDomain)
                 End With
@@ -229,8 +233,10 @@ Namespace Editors
             End If
         End Sub
         Private Sub SetCookieText()
-            If TypeOf Host.Source Is IResponserContainer Then _
-               TXT_COOKIES.Text = $"{If(DirectCast(Host.Source, IResponserContainer).Responser.Cookies?.Count, 0)} cookies"
+            If Not Host.Responser Is Nothing Then TXT_COOKIES.Text = $"{If(Host.Responser.Cookies?.Count, 0)} cookies"
+        End Sub
+        Private Sub SpecialButton_Click(sender As Object, e As EventArgs) Handles SpecialButton.Click
+            MyDefs.Detector()
         End Sub
     End Class
 End Namespace

@@ -27,7 +27,7 @@ Namespace Plugin.Hosts
         End Sub
         Protected Overrides Sub LoadUserInformation_OptionalFields(ByRef Container As XmlFile, ByVal Loading As Boolean)
             If Loading Then
-                ExternalPlugin.XmlFieldsSet(Container.ToKeyValuePair)
+                ExternalPlugin.XmlFieldsSet(ToKeyValuePair(Of String, EContainer)(Container))
             Else
                 Dim fl As List(Of KeyValuePair(Of String, String)) = ExternalPlugin.XmlFieldsGet
                 If fl.ListExists Then
@@ -53,11 +53,16 @@ Namespace Plugin.Hosts
                 .PostsNumberLimit = DownloadTopCount
                 .PostsDateLimit = DownloadToDate
 
+                .ExistingContentList = New List(Of PluginUserMedia)
+                .TempMediaList = New List(Of PluginUserMedia)
+                .TempPostsList = New List(Of String)
+
                 If _ContentList.Count > 0 Then ExternalPlugin.ExistingContentList = _ContentList.Select(Function(u) u.PluginUserMedia).ToList
                 ExternalPlugin.TempPostsList = ListAddList(Nothing, _TempPostsList)
 
                 .GetMedia()
 
+                _TempPostsList.ListAddList(.TempPostsList, LNC)
                 If .TempMediaList.ListExists Then _TempMediaList.ListAddList(.TempMediaList.Select(Function(tm) New UserMedia(tm)), LNC)
 
                 If Not .Name = Name Then Name = .Name
@@ -70,7 +75,18 @@ Namespace Plugin.Hosts
         Protected Overrides Sub ReparseVideo(ByVal Token As CancellationToken)
         End Sub
         Protected Overrides Sub DownloadContent(ByVal Token As CancellationToken)
-            If UseInternalDownloader Then DownloadContentDefault(Token) Else ExternalPlugin.Download()
+            If UseInternalDownloader Then
+                DownloadContentDefault(Token)
+            Else
+                With ExternalPlugin
+                    If .TempMediaList.ListExists Then .TempMediaList.Clear()
+                    .TempMediaList = New List(Of PluginUserMedia)
+                    .TempMediaList.ListAddList(_ContentNew.Select(Function(c) c.PluginUserMedia()))
+                    .Download()
+                    _ContentNew.Clear()
+                    If .TempMediaList.ListExists Then _ContentNew.ListAddList(.TempMediaList.Select(Function(c) New UserMedia(c)))
+                End With
+            End If
         End Sub
         Protected Overrides Function DownloadingException(ByVal ex As Exception, ByVal Message As String, Optional ByVal FromPE As Boolean = False) As Integer
             LogError(ex, Message)
@@ -82,6 +98,17 @@ Namespace Plugin.Hosts
         End Sub
         Private Sub ExternalPlugin_TotalCountChanged(ByVal Count As Integer)
             Progress.TotalCount += Count
+        End Sub
+        Protected Overrides Sub Dispose(ByVal disposing As Boolean)
+            If disposing And Not disposedValue Then
+                With ExternalPlugin
+                    If .ExistingContentList.ListExists Then .ExistingContentList.Clear()
+                    If .TempMediaList.ListExists Then .TempMediaList.Clear()
+                    If .TempPostsList.ListExists Then .TempPostsList.Clear()
+                    .Dispose()
+                End With
+            End If
+            MyBase.Dispose(disposing)
         End Sub
     End Class
 End Namespace

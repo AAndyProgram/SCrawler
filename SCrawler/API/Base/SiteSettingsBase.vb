@@ -11,11 +11,12 @@ Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Tools.WEB
 Imports Download = SCrawler.Plugin.ISiteSettings.Download
 Namespace API.Base
-    Friend MustInherit Class SiteSettingsBase : Implements ISiteSettings, IResponserContainer
+    Friend MustInherit Class SiteSettingsBase : Implements ISiteSettings
         Friend ReadOnly Property Site As String Implements ISiteSettings.Site
         Friend Overridable ReadOnly Property Icon As Icon = Nothing Implements ISiteSettings.Icon
         Friend Overridable ReadOnly Property Image As Image = Nothing Implements ISiteSettings.Image
-        Friend Overridable ReadOnly Property Responser As Response Implements IResponserContainer.Responser
+        Private Property Logger As ILogProvider = LogConnector Implements ISiteSettings.Logger
+        Friend Overridable ReadOnly Property Responser As Response
         Friend MustOverride Function GetInstance(ByVal What As Download) As IPluginContentProvider Implements ISiteSettings.GetInstance
         Friend Sub New(ByVal SiteName As String)
             Site = SiteName
@@ -82,7 +83,7 @@ Namespace API.Base
                 Return Nothing
             End If
         End Function
-        Friend Overridable Function GetSpecialData(ByVal URL As String) As IEnumerable(Of IPluginUserMedia) Implements ISiteSettings.GetSpecialData
+        Friend Overridable Function GetSpecialData(ByVal URL As String, ByVal Path As String, ByVal AskForPath As Boolean) As IEnumerable(Of PluginUserMedia) Implements ISiteSettings.GetSpecialData
             Return Nothing
         End Function
         Friend Overridable Function GetSpecialDataF(ByVal URL As String) As IEnumerable(Of UserMedia)

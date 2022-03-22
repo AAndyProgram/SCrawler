@@ -9,6 +9,7 @@
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Forms.Toolbars
+Imports PersonalUtilities.Tools.WEB
 Imports System.IO
 Imports System.Net
 Imports System.Threading
@@ -421,7 +422,7 @@ BlockNullPicture:
         Friend Property ExternalPlugin As IPluginContentProvider
         Private Property IPluginContentProvider_ExistingContentList As List(Of PluginUserMedia) Implements IPluginContentProvider.ExistingContentList
         Private Property IPluginContentProvider_TempPostsList As List(Of String) Implements IPluginContentProvider.TempPostsList
-        Private Property IPluginContentProvider_TempMediaList As List(Of IPluginUserMedia) Implements IPluginContentProvider.TempMediaList
+        Private Property IPluginContentProvider_TempMediaList As List(Of PluginUserMedia) Implements IPluginContentProvider.TempMediaList
         Private Property IPluginContentProvider_SeparateVideoFolder As Boolean Implements IPluginContentProvider.SeparateVideoFolder
         Private Property IPluginContentProvider_DataPath As String Implements IPluginContentProvider.DataPath
         Private Sub IPluginContentProvider_XmlFieldsSet(ByVal Fields As List(Of KeyValuePair(Of String, String))) Implements IPluginContentProvider.XmlFieldsSet
@@ -712,7 +713,7 @@ BlockNullPicture:
 #Region "Download functions and options"
         Friend Overridable Property DownloadTopCount As Integer? = Nothing Implements IUserData.DownloadTopCount, IPluginContentProvider.PostsNumberLimit
         Friend Overridable Property DownloadToDate As Date? = Nothing Implements IUserData.DownloadToDate, IPluginContentProvider.PostsDateLimit
-        Protected Responser As PersonalUtilities.Tools.WEB.Response
+        Protected Responser As Response
         Friend Overridable Sub DownloadData(ByVal Token As CancellationToken) Implements IContentProvider.DownloadData
             Dim Canceled As Boolean = False
             _ExternalCompatibilityToken = Token
@@ -720,12 +721,8 @@ BlockNullPicture:
                 UpdateDataFiles()
                 UserDescriptionReset()
                 If Not Responser Is Nothing Then Responser.Dispose()
-                Responser = New PersonalUtilities.Tools.WEB.Response
-                If TypeOf HOST.Source Is IResponserContainer Then
-                    With DirectCast(HOST.Source, IResponserContainer)
-                        If Not .Responser Is Nothing Then Responser.Copy(.Responser)
-                    End With
-                End If
+                Responser = New Response
+                If Not HOST.Responser Is Nothing Then Responser.Copy(HOST.Responser)
 
                 Dim UpPic As Boolean = Settings.ViewModeIsPicture AndAlso GetPicture(False) Is Nothing
                 Dim sEnvir() As Boolean = {UserExists, UserSuspended}

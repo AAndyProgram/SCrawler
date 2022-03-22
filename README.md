@@ -51,6 +51,8 @@ Do you like this program? Consider adding to my coffee fund by making a donation
 - RedGifs
 - Imgur
 - Gfycat
+- LPSG
+- XVIDEOS
 - [Other sites](Plugins.md)
 
 # How does it works:

@@ -11,6 +11,7 @@ Imports SCrawler.API.Base
 Imports SCrawler.Plugin.Attributes
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.XML.Base
+Imports PersonalUtilities.Tools.WEB
 Imports Download = SCrawler.Plugin.ISiteSettings.Download
 Namespace Plugin.Hosts
     Friend Class SettingsHost
@@ -25,7 +26,7 @@ Namespace Plugin.Hosts
         End Function
         Friend Function GetSettingsButtonInternal() As Button
             If Not SpecialFormAttribute Is Nothing AndAlso SpecialFormAttribute.SettingsForm Then
-                BTT_SETTINGS_INTERNAL = New Button With {.Text = "Other settings", .Dock = DockStyle.Right}
+                BTT_SETTINGS_INTERNAL = New Button With {.Text = "Other settings", .Dock = DockStyle.Right, .Width = 150}
                 Return BTT_SETTINGS_INTERNAL
             Else
                 Return Nothing
@@ -77,6 +78,16 @@ Namespace Plugin.Hosts
             End Get
         End Property
         Friend ReadOnly Property HasSpecialOptions As Boolean = False
+        Private ReadOnly _ResponserGetMethod As MethodInfo
+        Friend ReadOnly Property Responser As Response
+            Get
+                If Not _ResponserGetMethod Is Nothing Then
+                    Return _ResponserGetMethod.Invoke(Source, Nothing)
+                Else
+                    Return Nothing
+                End If
+            End Get
+        End Property
 #End Region
 #Region "Base properties compatibility"
         Friend ReadOnly Property Temporary As XMLValue(Of Boolean)
@@ -128,6 +139,7 @@ Namespace Plugin.Hosts
         Friend Sub New(ByVal Plugin As ISiteSettings, ByRef _XML As XmlFile, ByVal GlobalPath As SFile,
                        ByRef _Temp As XMLValue(Of Boolean), ByRef _Imgs As XMLValue(Of Boolean), ByRef _Vids As XMLValue(Of Boolean))
             Source = Plugin
+            Source.Logger = LogConnector
 
             PropList = New List(Of PropertyValueHost)
 
@@ -162,7 +174,7 @@ Namespace Plugin.Hosts
             Source.BeginInit()
 
             Dim n() As String = {SettingsCLS.Name_Node_Sites, Name}
-            If If(_XML(n)?.Count, 0) > 0 Then Source.Load(_XML(n).ToKeyValuePair)
+            If If(_XML(n)?.Count, 0) > 0 Then Source.Load(ToKeyValuePair(Of String, EContainer)(_XML(n)))
             Dim Members As IEnumerable(Of MemberInfo) = Plugin.GetType.GetTypeInfo.DeclaredMembers
             If Members.ListExists Then
                 Dim Updaters As New List(Of MemberInfo)
@@ -170,7 +182,12 @@ Namespace Plugin.Hosts
                 Dim PropCheckers As New List(Of MemberInfo)
                 Dim m As MemberInfo
                 For Each m In Members
-                    If m.MemberType = MemberTypes.Property Then PropList.Add(New PropertyValueHost(Source, m))
+                    If m.MemberType = MemberTypes.Property Then
+                        PropList.Add(New PropertyValueHost(Source, m))
+                        With DirectCast(m, PropertyInfo)
+                            If .PropertyType Is GetType(Response) Then _ResponserGetMethod = .GetMethod
+                        End With
+                    End If
                     With m.GetCustomAttributes()
                         If .ListExists Then
                             If m.MemberType = MemberTypes.Method Then
@@ -265,14 +282,14 @@ Namespace Plugin.Hosts
             If s.Exists Then s.SiteName = Name : s.HostKey = Key
             Return s
         End Function
-        Friend Function GetSpecialData(ByVal URL As String) As IEnumerable(Of UserMedia)
+        Friend Function GetSpecialData(ByVal URL As String, ByVal Path As SFile, ByVal AskForPath As Boolean) As IEnumerable(Of UserMedia)
             If IsMyClass Then
                 Return DirectCast(Source, SiteSettingsBase).GetSpecialDataF(URL)
             Else
-                Dim um As IEnumerable(Of IPluginUserMedia) = Source.GetSpecialData(URL)
+                Dim um As IEnumerable(Of PluginUserMedia) = Source.GetSpecialData(URL, Path, AskForPath)
                 If um.ListExists Then
                     Dim u As New List(Of UserMedia)
-                    For Each d As IPluginUserMedia In um : u.Add(New UserMedia(d)) : Next
+                    For Each d As PluginUserMedia In um : u.Add(New UserMedia(d)) : Next
                     Return u
                 End If
                 Return Nothing

@@ -1,3 +1,13 @@
+# 3.0.0.2
+
+- Added
+  - **LPSG** site plugin
+  - **XVIDEOS** site plugin
+- Updated
+  - Plugin provider
+- Fixed
+  - Minor bugs
+
 # 3.0.0.1
 
 - Added

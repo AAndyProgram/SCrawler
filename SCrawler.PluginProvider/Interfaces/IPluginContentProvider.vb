@@ -7,7 +7,7 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Namespace Plugin
-    Public Interface IPluginContentProvider
+    Public Interface IPluginContentProvider : Inherits IDisposable
         Event ProgressChanged(ByVal Count As Integer)
         Event TotalCountChanged(ByVal Count As Integer)
         Property Thrower As IThrower
@@ -19,7 +19,7 @@ Namespace Plugin
         Property UserDescription As String
         Property ExistingContentList As List(Of PluginUserMedia)
         Property TempPostsList As List(Of String)
-        Property TempMediaList As List(Of IPluginUserMedia)
+        Property TempMediaList As List(Of PluginUserMedia)
         Property UserExists As Boolean
         Property UserSuspended As Boolean
         Property IsSavedPosts As Boolean

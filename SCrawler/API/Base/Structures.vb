@@ -42,7 +42,7 @@ Namespace API.Base
                 Me.New(_URL)
                 [Type] = _Type
             End Sub
-            Friend Sub New(ByVal m As Plugin.IPluginUserMedia)
+            Friend Sub New(ByVal m As Plugin.PluginUserMedia)
                 If Not IsNothing(m) Then
                     [Type] = m.ContentType
                     URL = m.URL

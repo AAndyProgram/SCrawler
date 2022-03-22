@@ -260,7 +260,7 @@ Namespace API.Instagram
                                             If Not TaggedChecked Then
                                                 TaggedCount = j.Value("total_count").FromXML(Of Integer)(0)
                                                 TaggedChecked = True
-                                                If TaggedChecked > 200 Then
+                                                If TaggedCount > 200 Then
                                                     Dim a% = MsgBoxE({$"The number of tagged posts is {TaggedCount.NumToString(New ANumbers With {
                                                                                                        .FormatOptions = ANumbers.Options.GroupIntegral})}" & vbCr &
                                                                       "The tagged data download operation can take a long time.", "Too much tagged data"}, vbExclamation,,,
