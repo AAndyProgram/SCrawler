@@ -94,10 +94,12 @@ Friend Class ListImagesLoader
                 Else
                     Dim t As New List(Of Task)
                     For Each User As IUserData In Settings.Users
-                        If Settings.ViewModeIsPicture Then
-                            t.Add(Task.Run(Sub() UpdateUser(User, True)))
-                        Else
-                            UpdateUser(User, True)
+                        If User.FitToAddParams Then
+                            If Settings.ViewModeIsPicture Then
+                                t.Add(Task.Run(Sub() UpdateUser(User, True)))
+                            Else
+                                UpdateUser(User, True)
+                            End If
                         End If
                     Next
                     If t.Count > 0 Then Task.WhenAll(t.ToArray) : t.Clear()

@@ -90,6 +90,7 @@ Public Class UserData : Implements IPluginContentProvider
                                 End If
                             End With
                         Else
+                            .Dispose()
                             Exit Do
                         End If
                         .Dispose()
@@ -147,7 +148,7 @@ Public Class UserData : Implements IPluginContentProvider
                         r = resp.GetResponse(m,, EDP.ThrowException)
                         If Not r.IsEmptyString Then
                             Dim ls As List(Of VSize) = FNF.RegexFields(Of VSize)(r, {M3U8Reparse}, {1, 2})
-                            If ls.ListExists And DownloadUHD Then ls.RemoveAll(Function(v) v.Size > 1080)
+                            If ls.ListExists And Not DownloadUHD Then ls.RemoveAll(Function(v) v.Size > 1080)
                             If ls.ListExists Then
                                 ls.Sort()
                                 m = $"{appender}/{ls(0).Value}"

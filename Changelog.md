@@ -1,3 +1,14 @@
+# 3.0.0.3
+
+- Added
+  - Download all by specific sites
+  - Download all, ignoring the ```Ready for download``` option
+  - Download all by specific sites, ignoring the ```Ready for download``` option
+- Fixed
+  - (Issue #19) Typo in default Instagram settings (Post limit timer)
+  - Typo when applying "Download UHD" in XVIDEOS plugin
+  - The sites filter does not work unless the "Fast profiles loading" option is enabled.
+
 # 3.0.0.2
 
 - Added

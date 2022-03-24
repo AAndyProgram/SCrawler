@@ -164,7 +164,7 @@ Namespace API.Instagram
             RequestsWaitTimerProvider = New TimersChecker(100)
             RequestsWaitTimerTaskCount = New PropertyValue(1)
             RequestsWaitTimerTaskCountProvider = New TimersChecker(1)
-            SleepTimerOnPostsLimit = New PropertyValue(6000)
+            SleepTimerOnPostsLimit = New PropertyValue(60000)
             SleepTimerOnPostsLimitProvider = New TimersChecker(10000)
 
             GetStories = New PropertyValue(False)

@@ -76,6 +76,7 @@ Friend Class SettingsCLS : Implements IDisposable
         LatestSelectedChannel = New XMLValue(Of String)("LatestSelectedChannel",, MyXML)
         LastUpdatedLimit = New XMLValue(Of Date)
         LastUpdatedLimit.SetExtended("LastUpdatedLimit",, MyXML)
+        LatestDownloadedSites = New XMLValuesCollection(Of String)(XMLValueBase.ListModes.String, "LatestDownloadedSites", MyXML)
 
         SelectedSites = New XMLValuesCollection(Of String)(XMLValueBase.ListModes.String, "SelectedSites", MyXML, {Name_Node_Sites})
 
@@ -410,6 +411,7 @@ Friend Class SettingsCLS : Implements IDisposable
     Friend ReadOnly Property LatestSavingPath As XMLValue(Of SFile)
     Friend ReadOnly Property LatestSelectedLabels As XMLValue(Of String)
     Friend ReadOnly Property LatestSelectedChannel As XMLValue(Of String)
+    Friend ReadOnly Property LatestDownloadedSites As XMLValuesCollection(Of String)
 #End Region
 #Region "Channels properties"
     Friend ReadOnly Property ChannelsDefaultReadyForDownload As XMLValue(Of Boolean)

@@ -311,9 +311,44 @@ CloseResume:
     Private Sub BTT_DOWN_SELECTED_Click(sender As Object, e As EventArgs) Handles BTT_DOWN_SELECTED.Click
         DownloadSelectedUser(DownUserLimits.None)
     End Sub
+#Region "Download all"
     Private Sub BTT_DOWN_ALL_Click(sender As Object, e As EventArgs) Handles BTT_DOWN_ALL.Click
         Downloader.AddRange(Settings.Users.Where(Function(u) u.ReadyForDownload))
     End Sub
+    Private Sub BTT_DOWN_SITE_Click(sender As Object, e As EventArgs) Handles BTT_DOWN_SITE.Click
+        DownloadSiteFull(True)
+    End Sub
+    Private Sub BTT_DOWN_ALL_FULL_Click(sender As Object, e As EventArgs) Handles BTT_DOWN_ALL_FULL.Click
+        Downloader.AddRange(Settings.Users)
+    End Sub
+    Private Sub BTT_DOWN_SITE_FULL_Click(sender As Object, e As EventArgs) Handles BTT_DOWN_SITE_FULL.Click
+        DownloadSiteFull(False)
+    End Sub
+    Private Sub DownloadSiteFull(ByVal ReadyForDownloadOnly As Boolean)
+        Using f As New SiteSelectionForm(Settings.LatestDownloadedSites.ValuesList)
+            f.ShowDialog()
+            If f.DialogResult = DialogResult.OK Then
+                Settings.LatestDownloadedSites.Clear()
+                Settings.LatestDownloadedSites.AddRange(f.SelectedSites)
+                Settings.LatestDownloadedSites.Update()
+                If f.SelectedSites.Count > 0 Then
+                    Downloader.AddRange(Settings.Users.SelectMany(Function(ByVal u As IUserData) As IEnumerable(Of IUserData)
+                                                                      If u.IsCollection Then
+                                                                          Return DirectCast(u, UserDataBind).Collections.
+                                                                                 Where(Function(uu) f.SelectedSites.Contains(uu.Site) And
+                                                                                                    (Not ReadyForDownloadOnly Or uu.ReadyForDownload))
+                                                                      ElseIf f.SelectedSites.Contains(u.Site) And
+                                                                             (Not ReadyForDownloadOnly Or u.ReadyForDownload) Then
+                                                                          Return {u}
+                                                                      Else
+                                                                          Return New IUserData() {}
+                                                                      End If
+                                                                  End Function))
+                End If
+            End If
+        End Using
+    End Sub
+#End Region
     Private Sub BTT_DOWN_VIDEO_Click(sender As Object, e As EventArgs) Handles BTT_DOWN_VIDEO.Click
         DownloadVideoByURL()
     End Sub
@@ -361,6 +396,7 @@ CloseResume:
 #Region "View Site"
     Private Sub BTT_SITE_ALL_Click(sender As Object, e As EventArgs) Handles BTT_SITE_ALL.Click
         Settings.SelectedSites.Clear()
+        Settings.SelectedSites.Update()
         If Not BTT_SITE_ALL.Checked Then RefillList()
         BTT_SITE_ALL.Checked = True
         BTT_SITE_SPECIFIC.Checked = False
@@ -371,6 +407,7 @@ CloseResume:
             If f.DialogResult = DialogResult.OK Then
                 Settings.SelectedSites.Clear()
                 Settings.SelectedSites.AddRange(f.SelectedSites)
+                Settings.SelectedSites.Update()
                 BTT_SITE_SPECIFIC.Checked = Settings.SelectedSites.Count > 0
                 BTT_SITE_ALL.Checked = Settings.SelectedSites.Count = 0
                 RefillList()
