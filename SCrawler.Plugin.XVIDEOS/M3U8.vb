@@ -41,7 +41,8 @@ Friend NotInheritable Class M3U8
             Return Nothing
         Catch ex As Exception
             Logger.Add(ex, "[M3U8.Save]")
-            Return Nothing
+            ex.HelpLink = 1
+            Throw ex
         Finally
             CachePath.Delete(SFO.Path, SFODelete.None, EDP.None)
         End Try
@@ -61,8 +62,8 @@ Friend NotInheritable Class M3U8
             End If
             Return Nothing
         Catch ex As Exception
-            Logger.Add(ex, "[M3U8.Download]")
-            Return Nothing
+            If Not ex.HelpLink = 1 Then Logger.Add(ex, "[M3U8.Download]")
+            Throw ex
         End Try
     End Function
 End Class

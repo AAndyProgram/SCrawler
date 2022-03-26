@@ -6,10 +6,12 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
-Imports SCrawler.API.Base
 Imports PersonalUtilities.Functions.XML
+Imports SCrawler.API.Base
 Imports System.Threading
 Imports System.Reflection
+Imports UStates = SCrawler.Plugin.PluginUserMedia.States
+Imports UTypes = SCrawler.Plugin.PluginUserMedia.Types
 Namespace Plugin.Hosts
     Friend Class UserDataHost : Inherits UserDataBase
         Private ReadOnly UseInternalDownloader As Boolean
@@ -67,7 +69,7 @@ Namespace Plugin.Hosts
 
                 If Not .Name = Name Then Name = .Name
                 ID = .ID
-                UserDescription = .UserDescription
+                UserDescriptionUpdate(.UserDescription)
                 UserExists = .UserExists
                 UserSuspended = .UserSuspended
             End With
@@ -84,7 +86,13 @@ Namespace Plugin.Hosts
                     .TempMediaList.ListAddList(_ContentNew.Select(Function(c) c.PluginUserMedia()))
                     .Download()
                     _ContentNew.Clear()
-                    If .TempMediaList.ListExists Then _ContentNew.ListAddList(.TempMediaList.Select(Function(c) New UserMedia(c)))
+                    If .TempMediaList.ListExists Then
+                        _ContentNew.ListAddList(.TempMediaList.Select(Function(c) New UserMedia(c)))
+                        DownloadedPictures(False) = .TempMediaList.LongCount(Function(m) m.DownloadState = UStates.Downloaded And
+                                                                                         (m.ContentType = UTypes.Picture Or m.ContentType = UTypes.GIF))
+                        DownloadedVideos(False) = .TempMediaList.LongCount(Function(m) m.DownloadState = UStates.Downloaded And
+                                                                                       (m.ContentType = UTypes.Video Or m.ContentType = UTypes.m3u8))
+                    End If
                 End With
             End If
         End Sub

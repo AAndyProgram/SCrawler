@@ -941,16 +941,13 @@ BlockNullPicture:
 #End Region
 #Region "Delete, Move, Merge"
         Friend Overridable Function Delete() As Integer Implements IUserData.Delete
-            Return DeleteF(Me)
-        End Function
-        Friend Function DeleteF(ByVal Instance As IUserData) As Integer
             Dim f As SFile = SFile.GetPath(MyFile.CutPath.Path)
             If f.Exists(SFO.Path, False) AndAlso (User.Merged OrElse f.Delete(SFO.Path, Settings.DeleteMode)) Then
                 ImageHandler(Me, False)
                 Settings.UsersList.Remove(User)
                 Settings.UpdateUsersList()
-                Settings.Users.Remove(Instance)
-                Downloader.UserRemove(Instance)
+                Settings.Users.Remove(Me)
+                Downloader.UserRemove(Me)
                 Dispose(True)
                 Return 1
             Else
@@ -958,24 +955,22 @@ BlockNullPicture:
             End If
         End Function
         Friend Overridable Function MoveFiles(ByVal __CollectionName As String) As Boolean Implements IUserData.MoveFiles
-            Return MoveFilesF(Me, __CollectionName)
-        End Function
-        Friend Function MoveFilesF(ByRef Instance As IUserData, ByVal __CollectionName As String) As Boolean
             Dim UserBefore As UserInfo = User
             Dim Removed As Boolean = True
             Dim _TurnBack As Boolean = False
             Try
                 Dim f As SFile
                 If IncludedInCollection Then
-                    Settings.Users.Add(Instance)
+                    Settings.Users.Add(Me)
                     Removed = False
                     User.CollectionName = String.Empty
                     User.IncludedInCollection = False
                 Else
-                    Settings.Users.Remove(Instance)
+                    Settings.Users.Remove(Me)
                     Removed = True
                     User.CollectionName = __CollectionName
                     User.IncludedInCollection = True
+                    User.SpecialPath = Nothing
                 End If
                 _TurnBack = True
                 User.UpdateUserFile()
@@ -987,7 +982,7 @@ BlockNullPicture:
                                 "Destination directory is not empty!"}, MsgBoxStyle.Exclamation,,, {"Delete", "Cancel"}) = 1 Then
                         MsgBoxE("Operation canceled", MsgBoxStyle.Exclamation)
                         User = UserBefore
-                        If Removed Then Settings.Users.Add(Instance) Else Settings.Users.Remove(Instance)
+                        If Removed Then Settings.Users.Add(Me) Else Settings.Users.Remove(Me)
                         _TurnBack = False
                         Return False
                     End If
@@ -1003,7 +998,7 @@ BlockNullPicture:
                 ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Files moving error")
                 User = UserBefore
                 If _TurnBack Then
-                    If Removed Then Settings.Users.Add(Instance) Else Settings.Users.Remove(Instance)
+                    If Removed Then Settings.Users.Add(Me) Else Settings.Users.Remove(Me)
                 End If
                 Return False
             End Try

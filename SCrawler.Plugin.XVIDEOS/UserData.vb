@@ -10,6 +10,8 @@ Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Tools.WEB
 Imports PersonalUtilities.Tools.WebDocuments.JSON
+Imports UStates = SCrawler.Plugin.PluginUserMedia.States
+Imports UTypes = SCrawler.Plugin.PluginUserMedia.Types
 Public Class UserData : Implements IPluginContentProvider
 #Region "Interface declarations"
     Public Event ProgressChanged(Count As Integer) Implements IPluginContentProvider.ProgressChanged
@@ -71,7 +73,7 @@ Public Class UserData : Implements IPluginContentProvider
                 Thrower.ThrowAny()
                 r = Responser.GetResponse($"https://www.xvideos.com/{user}/videos/new/{If(NextPage = 0, String.Empty, NextPage)}",, e)
                 If Not r.IsEmptyString Then
-                    If Not EnvirSet Then UserExists = True : UserSuspended = False
+                    If Not EnvirSet Then UserExists = True : UserSuspended = False : EnvirSet = True
                     j = JsonDocument.Parse(r).XmlIfNothing
                     With j
                         If .Contains("videos") Then
@@ -165,7 +167,7 @@ Public Class UserData : Implements IPluginContentProvider
                                 End If
                                 If Not m.IsEmptyString Then
                                     Return New PluginUserMedia With {
-                                        .ContentType = PluginUserMedia.Types.m3u8,
+                                        .ContentType = UTypes.m3u8,
                                         .PostID = pID,
                                         .URL = m,
                                         .File = $"{t}.mp4",
@@ -195,9 +197,14 @@ Public Class UserData : Implements IPluginContentProvider
                     m = TempMediaList(i)
                     f = m.File
                     f.Path = DefPath
-                    f = M3U8.Download(m.URL, m.SpecialFolder, Settings.FfmpegFile, f, LogProvider)
-                    m.File = f
-                    If Not f.IsEmptyString Then m.DownloadState = PluginUserMedia.States.Downloaded
+                    m.DownloadState = UStates.Tried
+                    Try
+                        f = M3U8.Download(m.URL, m.SpecialFolder, Settings.FfmpegFile, f, LogProvider)
+                        m.File = f
+                        m.DownloadState = UStates.Downloaded
+                    Catch ex As Exception
+                        m.DownloadState = UStates.Skipped
+                    End Try
                     TempMediaList(i) = m
                     RaiseEvent ProgressChanged(1)
                 Next

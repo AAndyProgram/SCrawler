@@ -7,6 +7,8 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports PersonalUtilities.Functions.RegularExpressions
+Imports UStates = SCrawler.Plugin.PluginUserMedia.States
+Imports UTypes = SCrawler.Plugin.PluginUserMedia.Types
 Public Class UserData : Implements IPluginContentProvider
 #Region "XML names"
     Private Const Name_LatestPage As String = "LatestPage"
@@ -65,7 +67,7 @@ Public Class UserData : Implements IPluginContentProvider
             With Responser : .Copy(Settings.Responser) : .Error = EDP.ThrowException : End With
 
             Dim l As List(Of String) = Nothing
-            Dim NextPage$ = String.Empty
+            Dim NextPage$
             Dim r$
             Dim _LPage As Func(Of String) = Function() If(LatestPage.IsEmptyString, String.Empty, $"page-{LatestPage}")
 
@@ -90,11 +92,11 @@ Public Class UserData : Implements IPluginContentProvider
                         f = CStr(RegexReplace(u, FileRegEx))
                         f.Path = DataPath.CSFilePSN
                         f.Separator = "\"
-                        TempMediaList.Add(New PluginUserMedia With {.ContentType = PluginUserMedia.Types.Picture, .URL = u, .File = f})
+                        TempMediaList.Add(New PluginUserMedia With {.ContentType = UTypes.Picture, .URL = u, .File = f})
                     End If
                 Next
                 If TempMediaList.ListExists And ExistingContentList.ListExists Then _
-                       TempMediaList.RemoveAll(Function(m) ExistingContentList.Exists(Function(mm) mm.URL = m.URL))
+                   TempMediaList.RemoveAll(Function(m) ExistingContentList.Exists(Function(mm) mm.URL = m.URL))
             End If
         Catch oex As OperationCanceledException
         Catch dex As ObjectDisposedException
@@ -112,15 +114,16 @@ Public Class UserData : Implements IPluginContentProvider
                 For i% = 0 To TempMediaList.Count - 1
                     Thrower.ThrowAny()
                     m = TempMediaList(i)
-                    m.DownloadState = PluginUserMedia.States.Tried
+                    m.DownloadState = UStates.Tried
                     Try
                         If Not m.URL.IsEmptyString And Not m.File.IsEmptyString Then
                             Responser.DownloadFile(m.URL, m.File, eweb)
-                            m.DownloadState = PluginUserMedia.States.Downloaded
+                            m.DownloadState = UStates.Downloaded
                         Else
-                            m.DownloadState = PluginUserMedia.States.Skipped
+                            m.DownloadState = UStates.Skipped
                         End If
                     Catch ex As Exception
+                        m.DownloadState = UStates.Skipped
                     End Try
                     RaiseEvent ProgressChanged(1)
                     TempMediaList(i) = m

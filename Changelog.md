@@ -1,3 +1,9 @@
+# 3.0.0.4
+
+- Fixed
+  - External plugins do not save information about downloaded files
+  - The user cannot be added to the collection if a special path has been specified.
+
 # 3.0.0.3
 
 - Added
