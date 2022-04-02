@@ -12,9 +12,12 @@ Imports PersonalUtilities.Functions.XML
 Imports SCrawler.API.Base
 Imports SCrawler.Plugin.Hosts
 Imports System.Threading
+Imports SCrawler.API.Reddit.RedditViewExchange
+Imports View = SCrawler.API.Reddit.IRedditView.View
+Imports Period = SCrawler.API.Reddit.IRedditView.Period
 Namespace API.Reddit
     Friend Class Channel : Implements ICollection(Of UserPost), IEquatable(Of Channel), IComparable(Of Channel),
-            IRangeSwitcherContainer(Of UserPost), ILoaderSaver, IMyEnumerator(Of UserPost), IChannelLimits, IDisposable
+            IRangeSwitcherContainer(Of UserPost), ILoaderSaver, IMyEnumerator(Of UserPost), IChannelLimits, IRedditView, IDisposable
 #Region "XML Nodes' Names"
         Private Const Name_Name As String = "Name"
         Private Const Name_ID As String = "ID"
@@ -35,6 +38,7 @@ Namespace API.Reddit
         End Property
         Friend ReadOnly Property PostsLatest As List(Of UserPost)
         Friend ReadOnly Property Posts As List(Of UserPost)
+        Friend ReadOnly Property PostsNames As List(Of String)
         Friend ReadOnly Property PostsAll As List(Of UserPost)
             Get
                 Return ListAddList(Nothing, Posts).ListAddList(PostsLatest).ListSort
@@ -57,6 +61,14 @@ Namespace API.Reddit
                 Return $"{ChannelsCollection.ChannelsPath.PathWithSeparator}{ID}.xml"
             End Get
         End Property
+        Private ReadOnly Property FilePosts As SFile
+            Get
+                Dim f As SFile = File
+                f.Name &= "_Posts"
+                f.Extension = "txt"
+                Return f
+            End Get
+        End Property
         Friend ReadOnly Property CachePath As SFile
             Get
                 Return $"{ChannelsCollection.ChannelsPathCache.PathWithSeparator}{ID}\"
@@ -73,6 +85,14 @@ Namespace API.Reddit
             End Get
         End Property
         Private ReadOnly Property Range As RangeSwitcher(Of UserPost)
+        Friend Property ViewMode As View = View.New Implements IRedditView.ViewMode
+        Friend Property ViewPeriod As Period = Period.All Implements IRedditView.ViewPeriod
+        Friend Sub SetView(ByVal Options As IRedditView) Implements IRedditView.SetView
+            If Not Options Is Nothing Then
+                ViewMode = Options.ViewMode
+                ViewPeriod = Options.ViewPeriod
+            End If
+        End Sub
 #Region "Statistics support"
         Private ReadOnly CountOfAddedUsers As List(Of Integer)
         Private ReadOnly CountOfLoadedPostsPerSession As List(Of Integer)
@@ -118,16 +138,20 @@ Namespace API.Reddit
         Private _DownloadLimitCount As Integer? = Nothing
         Friend Property DownloadLimitCount As Integer? Implements IChannelLimits.DownloadLimitCount
             Get
-                If AutoGetLimits Then
-                    If LatestParsedDate.HasValue OrElse Not DownloadLimitPost.IsEmptyString Then
-                        Return Nothing
-                    ElseIf _DownloadLimitCount.HasValue Then
-                        Return _DownloadLimitCount
-                    Else
-                        Return DefaultDownloadLimitCount
-                    End If
-                Else
+                If Not ViewMode = View.New And AutoGetLimits Then
                     Return _DownloadLimitCount
+                Else
+                    If AutoGetLimits Then
+                        If LatestParsedDate.HasValue OrElse Not DownloadLimitPost.IsEmptyString Then
+                            Return Nothing
+                        ElseIf _DownloadLimitCount.HasValue Then
+                            Return _DownloadLimitCount
+                        Else
+                            Return DefaultDownloadLimitCount
+                        End If
+                    Else
+                        Return _DownloadLimitCount
+                    End If
                 End If
             End Get
             Set(ByVal NewLimit As Integer?)
@@ -137,11 +161,15 @@ Namespace API.Reddit
         Private _DownloadLimitPost As String = String.Empty
         Friend Property DownloadLimitPost As String Implements IChannelLimits.DownloadLimitPost
             Get
-                Dim PID$ = ListAddList(Nothing, Posts, LAP.NotContainsOnly).ListAddList(PostsLatest, LAP.NotContainsOnly).ListSort.FirstOrDefault.ID
-                If AutoGetLimits And Not PID.IsEmptyString Then
-                    Return PID
-                Else
+                If Not ViewMode = View.New And AutoGetLimits Then
                     Return _DownloadLimitPost
+                Else
+                    Dim PID$ = ListAddList(Nothing, Posts, LAP.NotContainsOnly).ListAddList(PostsLatest, LAP.NotContainsOnly).ListSort.FirstOrDefault.ID
+                    If AutoGetLimits And Not PID.IsEmptyString Then
+                        Return PID
+                    Else
+                        Return _DownloadLimitPost
+                    End If
                 End If
             End Get
             Set(ByVal NewLimit As String)
@@ -151,10 +179,14 @@ Namespace API.Reddit
         Private _DownloadLimitDate As Date? = Nothing
         Friend Property DownloadLimitDate As Date? Implements IChannelLimits.DownloadLimitDate
             Get
-                If AutoGetLimits And LatestParsedDate.HasValue Then
-                    Return LatestParsedDate
-                Else
+                If Not ViewMode = View.New And AutoGetLimits Then
                     Return _DownloadLimitDate
+                Else
+                    If AutoGetLimits And LatestParsedDate.HasValue Then
+                        Return LatestParsedDate
+                    Else
+                        Return _DownloadLimitDate
+                    End If
                 End If
             End Get
             Set(ByVal NewLimit As Date?)
@@ -174,6 +206,11 @@ Namespace API.Reddit
                 DownloadLimitDate = .DownloadLimitDate
                 AutoGetLimits = .AutoGetLimits
             End With
+            If Not ViewMode = View.New And AutoGetLimits Then
+                DownloadLimitDate = Nothing
+                DownloadLimitCount = Nothing
+                DownloadLimitPost = String.Empty
+            End If
         End Sub
         Friend Property AutoGetLimits As Boolean = True Implements IChannelLimits.AutoGetLimits
 #End Region
@@ -181,6 +218,7 @@ Namespace API.Reddit
         Friend Sub New()
             Posts = New List(Of UserPost)
             PostsLatest = New List(Of UserPost)
+            PostsNames = New List(Of String)
             Range = New RangeSwitcher(Of UserPost)(Me)
             CountOfAddedUsers = New List(Of Integer)
             CountOfLoadedPostsPerSession = New List(Of Integer)
@@ -203,6 +241,7 @@ Namespace API.Reddit
         End Function
         Friend Sub Delete()
             File.Delete(, SFODelete.DeleteToRecycleBin)
+            FilePosts.Delete(, SFODelete.DeleteToRecycleBin)
         End Sub
         Friend Sub DownloadData(ByVal Token As CancellationToken, Optional ByVal SkipExists As Boolean = True,
                                 Optional ByVal p As MyProgress = Nothing)
@@ -214,10 +253,13 @@ Namespace API.Reddit
                     .SkipExistsUsers = SkipExists,
                     .ChannelInfo = Me
                 }
-                    d.SetEnvironment(HOST, CUser, False)
-                    d.RemoveUpdateHandlers()
-                    d.SetLimit(Me)
-                    d.DownloadData(Token)
+                    With d
+                        .SetEnvironment(HOST, CUser, False)
+                        .RemoveUpdateHandlers()
+                        .SetLimit(Me)
+                        .SetView(Me)
+                        .DownloadData(Token)
+                    End With
                     Dim b% = Posts.Count
                     Posts.ListAddList(d.GetNewChannelPosts(), LAP.NotContainsOnly)
                     If Posts.Count - b > 0 Then CountOfLoadedPostsPerSession.Add(Posts.Count - b)
@@ -298,6 +340,9 @@ Namespace API.Reddit
                         Dim lc As New ListAddParams(LAP.ClearBeforeAdd)
                         Name = x.Value(Name_Name)
                         ID = x.Value(Name_ID)
+                        ViewMode = x.Value(Name_ViewMode).FromXML(Of Integer)(CInt(View.[New]))
+                        ViewPeriod = x.Value(Name_ViewPeriod).FromXML(Of Integer)(CInt(Period.All))
+                        If FilePosts.Exists Then PostsNames.ListAddList(FilePosts.GetText.StringToList(Of String)("|"), LNC)
                         LatestParsedDate = AConvert(Of Date)(x.Value(Name_Date), XMLDateProvider, Nothing)
                         CountOfAddedUsers.ListAddList(x.Value(Name_UsersAdded).StringToList(Of Integer)("|"), lc)
                         CountOfLoadedPostsPerSession.ListAddList(x.Value(Name_PostsDownloaded).StringToList(Of Integer)("|"), lc)
@@ -317,9 +362,20 @@ Namespace API.Reddit
         Friend Overloads Function Save(Optional ByVal f As SFile = Nothing, Optional ByVal e As ErrorsDescriber = Nothing) As Boolean Implements ILoaderSaver.Save
             Dim XMLDateProvider As New ADateTime(ADateTime.Formats.BaseDateTime)
             UpdateUsersStats()
+            If Not ViewMode = View.New Then
+                Dim l As New List(Of String)
+                If Posts.Count > 0 Or PostsLatest.Count > 0 Then l.ListAddList((From p In PostsAll Where Not p.ID.IsEmptyString Select p.ID), LAP.NotContainsOnly)
+                l.ListAddList(PostsNames, LAP.NotContainsOnly)
+                If l.Count > 0 Then TextSaver.SaveTextToFile(l.ListToString(, "|"), FilePosts, True,, EDP.SendInLog)
+            End If
             Using x As New XmlFile With {.AllowSameNames = True, .Name = "Channel"}
                 x.Add(Name_Name, Name)
                 x.Add(Name_ID, ID)
+                x.Add(Name_ViewMode, CInt(ViewMode))
+                x.Add(Name_ViewPeriod, CInt(ViewPeriod))
+                x.Add(Name_UsersAdded, CountOfAddedUsers.ListToString(, "|"))
+                x.Add(Name_PostsDownloaded, CountOfLoadedPostsPerSession.ListToString(, "|"))
+                x.Add(Name_UsersExistent, ChannelExistentUserNames.ListToString(, "|"))
                 If Posts.Count > 0 Or PostsLatest.Count > 0 Then
                     Dim tmpPostList As List(Of UserPost) = Nothing
                     tmpPostList.ListAddList(Posts).ListAddList(PostsLatest)
@@ -327,9 +383,6 @@ Namespace API.Reddit
                     LatestParsedDate = tmpPostList.FirstOrDefault(Function(pd) pd.Date.HasValue).Date
                     x.Add(Name_Date, AConvert(Of String)(LatestParsedDate, XMLDateProvider, String.Empty))
                     x.Add(Name_PostsNode, String.Empty)
-                    x.Add(Name_UsersAdded, CountOfAddedUsers.ListToString(, "|"))
-                    x.Add(Name_PostsDownloaded, CountOfLoadedPostsPerSession.ListToString(, "|"))
-                    x.Add(Name_UsersExistent, ChannelExistentUserNames.ListToString(, "|"))
                     With x(Name_PostsNode)
                         tmpPostList.Take(200).ToList.ForEach(Sub(p) .Add(New EContainer("Post",
                                                                                   String.Empty,
@@ -354,6 +407,7 @@ Namespace API.Reddit
                 If disposing Then
                     Posts.Clear()
                     PostsLatest.Clear()
+                    PostsNames.Clear()
                     CountOfAddedUsers.Clear()
                     CountOfLoadedPostsPerSession.Clear()
                     Range.Dispose()

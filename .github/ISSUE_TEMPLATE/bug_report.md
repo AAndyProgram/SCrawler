@@ -26,8 +26,10 @@ A clear and concise description of what you expected to happen.
 If applicable, add screenshots to help explain your problem.
 
 **Release information (please complete the following information):**
+ - OS [e.g. Windows 10, Windows 11]
  - Architecture [e.g. x86, x64]
  - Version [e.g. 2.0.0.0]
+ - NET.Framework version
 
 **Additional context**
 Add any other context about the problem here.

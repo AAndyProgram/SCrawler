@@ -1,3 +1,8 @@
+# 3.0.0.5
+
+- Added
+  - ```New```, ```Hot```, ```Top``` Reddit channel and user download modes
+
 # 3.0.0.4
 
 - Fixed

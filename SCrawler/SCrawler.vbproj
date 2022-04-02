@@ -147,6 +147,13 @@
     <Compile Include="API\Instagram\OptionsForm.vb">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="API\Reddit\RedditViewSettingsForm.Designer.vb">
+      <DependentUpon>RedditViewSettingsForm.vb</DependentUpon>
+    </Compile>
+    <Compile Include="API\Reddit\RedditViewSettingsForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="API\Reddit\IRedditView.vb" />
     <Compile Include="Download\ActiveDownloadingProgress.Designer.vb">
       <DependentUpon>ActiveDownloadingProgress.vb</DependentUpon>
     </Compile>
@@ -288,6 +295,9 @@
   <ItemGroup>
     <EmbeddedResource Include="API\Instagram\OptionsForm.resx">
       <DependentUpon>OptionsForm.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="API\Reddit\RedditViewSettingsForm.resx">
+      <DependentUpon>RedditViewSettingsForm.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Channels\ChannelsStatsForm.resx">
       <DependentUpon>ChannelsStatsForm.vb</DependentUpon>

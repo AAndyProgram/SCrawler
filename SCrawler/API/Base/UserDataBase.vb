@@ -248,7 +248,7 @@ BlockPictureFolder:
             End If
 BlockPictureScan:
             On Error GoTo BlockDeletePictureFolder
-            Dim NewPicFile As SFile = SFile.GetFiles(MyFile.CutPath, "*.jpg|*.png",,
+            Dim NewPicFile As SFile = SFile.GetFiles(MyFile.CutPath, "*.jpg|*.jpeg|*.png",,
                                                      New ErrorsDescriber(EDP.ReturnValue) With {
                                                          .ReturnValue = New List(Of SFile),
                                                          .ReturnValueExists = True}).FirstOrDefault
@@ -1088,25 +1088,6 @@ BlockNullPicture:
             Else
                 Return IIf(FriendlyName.IsEmptyString, Name, FriendlyName)
             End If
-            'If Settings.ViewModeIsPicture Then
-            '    If IsCollection Then
-            '        Return CollectionName
-            '    Else
-            '        Return IIf(FriendlyName.IsEmptyString, Name, FriendlyName)
-            '    End If
-            'Else
-            '    Dim t$ = String.Empty
-            '    If Temporary Then
-            '        t = " (T)"
-            '    ElseIf Favorite Then
-            '        t = " (F)"
-            '    End If
-            '    If IsCollection Then
-            '        Return $"Collection [{CollectionName}]{t}"
-            '    Else
-            '        Return $"[{Site}]{t} {IIf(FriendlyName.IsEmptyString, Name, FriendlyName)}"
-            '    End If
-            'End If
         End Function
 #Region "Buttons actions"
         Private Sub BTT_CONTEXT_DOWN_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_DOWN.Click

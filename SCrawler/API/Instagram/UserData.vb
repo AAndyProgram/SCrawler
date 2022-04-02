@@ -138,7 +138,7 @@ Namespace API.Instagram
         End Function
         Private Sub ReconfigureAwaiter()
             If WaitNotificationMode = WNM.SkipTemp Then WaitNotificationMode = WNM.Notify
-            If Caught429 Then Caught429 = False ': RequestsCount = 0
+            If Caught429 Then Caught429 = False
             ProgressTempSet = False
         End Sub
         Private Sub NextRequest(ByVal StartWait As Boolean)

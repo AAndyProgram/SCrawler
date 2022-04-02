@@ -2,6 +2,8 @@
 
 **Please read the [GUIDE](https://github.com/AAndyProgram/SCrawler/wiki/) Before asking a question!**
 
+**Also read [here](README.md) for basic information.**
+
 Most of your questions are already answered. All settings, functions, buttons and everything else described in the guide.
 
 Any other questions I will keep in this file.
@@ -44,6 +46,30 @@ A: Check your credentials. Both of these sites require cookies. Check your [Twit
 
 ----
 
+#### Q: **I have set credentials but still nothing is downloading**
+
+A: Click the ```Start downloading``` button
+
+----
+
+#### Q: **Where can I find the release?**
+
+A: https://github.com/AAndyProgram/SCrawler/releases/latest
+
+----
+
+#### Q: **How to run the program?**
+
+A: Double-click ```SCrawler.exe```
+
+----
+
+#### Q: **Where to find binaries?**
+
+A: https://github.com/AAndyProgram/SCrawler/releases/latest
+
+----
+
 #### Q: **Does the program remember the last download and check for new posts, downloading only new posts? Or does the program download the entire profile every time?**
 
 A: The program stored posts IDs in users' folders. For the first time, the program downloads the entire profile. All subsequent times the program will check for new posts and download **only new posts**!
@@ -64,4 +90,10 @@ A: There is no functionality to remove an individual label. You can open the ```
 
 #### Q: **How to remove a user from the blacklist**
 
-A: Just add that user back to the program. In the dialog box that opens, click on the ```Add and remove from blacklist```` button.
+A: Just add that user back to the program. In the dialog box that opens, click on the ```Add and remove from blacklist``` button.
+
+----
+
+#### Q: **Can you add a step-by-step guide or video on how to use the program?**
+
+A: **NO**! I will not do it. If you want, you can create a video tutorial and send it to me. Then I add it. All options and what each option does described on the wiki. The wiki also contains a description of all settings and how-to configure them. For complex settings, there is a steep-by-steep guide. Read the [main](README.md) information and [GUIDE](https://github.com/AAndyProgram/SCrawler/wiki/) and you won't have any problems. I have developed a program with an intuitive interface. There is a Settings button, download buttons, a context menu that drops down when a user is clicked, and other controls. Anyone can use it.

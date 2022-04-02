@@ -160,7 +160,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
         CMB_CHANNELS.Buttons.AddRange({CmbDefaultButtons.Refresh, CmbDefaultButtons.Add, CmbDefaultButtons.Delete,
                                        New ActionButton(CmbDefaultButtons.Up) With {.ToolTipText = "Previous item (F1)"},
                                        New ActionButton(CmbDefaultButtons.Down) With {.ToolTipText = "Next item (F4)"},
-                                       CmbDefaultButtons.Info})
+                                       CmbDefaultButtons.Edit, CmbDefaultButtons.Info})
         TXT_LIMIT = New TextBoxExtended With {
             .CaptionText = "Limit",
             .Margin = New Padding(2),
@@ -279,7 +279,6 @@ Friend Class ChannelViewForm : Implements IChannelLimits
         End With
         CMB_CHANNELS.EndUpdate()
     End Sub
-#Region "Images refill methods"
     Private Sub AppendPendingUsers()
         If LIST_POSTS.CheckedIndices.Count > 0 Then
             Dim c As Channel = GetCurrentChannel(False)
@@ -311,7 +310,6 @@ Friend Class ChannelViewForm : Implements IChannelLimits
         End With
         Return s
     End Function
-#End Region
 #Region "Toolbar controls"
 #Region "Downloader"
     Private TokenSource As CancellationTokenSource
@@ -543,21 +541,30 @@ Friend Class ChannelViewForm : Implements IChannelLimits
         LBL_LIMIT_TEXT.Text = String.Empty
         If Not c Is Nothing Then
             Settings.LatestSelectedChannel.Value = c.ID
-            With c.PostsAll
-                If .Count > 0 Then
-                    OPT_LIMITS_DEFAULT.Checked = True
-                    Dim d As Date? = .FirstOrDefault(Function(p) p.Date.HasValue).Date
-                    If d.HasValue Then
-                        LBL_LIMIT_TEXT.Text = $"to date {AConvert(Of String)(d, ADateTime.Formats.BaseDateTime, String.Empty)}"
+            Dim d As Date?
+            If c.ViewMode = IRedditView.View.New Then
+                With c.PostsAll
+                    If .Count > 0 Then
+                        OPT_LIMITS_DEFAULT.Checked = True
+                        d = .FirstOrDefault(Function(p) p.Date.HasValue).Date
+                        If d.HasValue Then
+                            LBL_LIMIT_TEXT.Text = $"to date {AConvert(Of String)(d, ADateTime.Formats.BaseDateTime, String.Empty)}"
+                        Else
+                            LBL_LIMIT_TEXT.Text = $"to post [{c.First(Function(p) Not p.ID.IsEmptyString).ID}]"
+                        End If
                     Else
-                        LBL_LIMIT_TEXT.Text = $"to post [{c.First(Function(p) Not p.ID.IsEmptyString).ID}]"
+                        OPT_LIMITS_COUNT.Checked = True
+                        If TXT_LIMIT.Text.IsEmptyString Then TXT_LIMIT.Value = Channel.DefaultDownloadLimitCount
+                        LBL_LIMIT_TEXT.Text = $"first {TXT_LIMIT.Text} posts"
                     End If
-                Else
-                    OPT_LIMITS_COUNT.Checked = True
-                    If TXT_LIMIT.Text.IsEmptyString Then TXT_LIMIT.Value = Channel.DefaultDownloadLimitCount
-                    LBL_LIMIT_TEXT.Text = $"first {TXT_LIMIT.Text} posts"
-                End If
-            End With
+                End With
+            Else
+                OPT_LIMITS_DEFAULT.Checked = True
+                d = c.LatestParsedDate
+                Dim per$ = IIf(c.ViewMode = IRedditView.View.Top, c.ViewPeriod.ToString, String.Empty)
+                If Not per.IsEmptyString Then per = $" ({per})"
+                LBL_LIMIT_TEXT.Text = $"[{c.ViewMode}{per}] to date {AConvert(Of String)(d, ADateTime.Formats.BaseDateTime, String.Empty)}"
+            End If
         End If
     End Sub
     Private Sub CMB_CHANNELS_ActionSelectedItemChanged(ByVal _Item As ListViewItem) Handles CMB_CHANNELS.ActionSelectedItemChanged
@@ -582,6 +589,18 @@ Friend Class ChannelViewForm : Implements IChannelLimits
                 End Try
             Case CmbDefaultButtons.Up : ChangeComboIndex(-1)
             Case CmbDefaultButtons.Down : ChangeComboIndex(1)
+            Case CmbDefaultButtons.Edit
+                Try
+                    c = GetCurrentChannel()
+                    If Not c Is Nothing Then
+                        Using f As New RedditViewSettingsForm(c)
+                            f.ShowDialog()
+                            If f.DialogResult = DialogResult.OK Then c.Save()
+                        End Using
+                    End If
+                Catch ex As Exception
+                    ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Error on trying to edit channel")
+                End Try
             Case CmbDefaultButtons.Info
                 Try
                     c = GetCurrentChannel()

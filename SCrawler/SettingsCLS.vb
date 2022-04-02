@@ -254,22 +254,18 @@ Friend Class SettingsCLS : Implements IDisposable
                                 If indx < 0 Then .Protected = True
                             End If
                         End If
+                        .UpdateUserFile()
                     End With
                     .Item(i) = user
                 Next
                 If c Then UpdateUsersList()
+            Else
+                For i = 0 To .Count - 1
+                    user = .Item(i)
+                    user.UpdateUserFile()
+                    .Item(i) = user
+                Next
             End If
-            .Clear()
-            Using x As New XmlFile(UsersSettingsFile, Protector.Modes.All, False) With {.AllowSameNames = True}
-                x.LoadData()
-                If x.Count > 0 Then
-                    For i = 0 To x.Count - 1
-                        user = x(i)
-                        user.UpdateUserFile()
-                        .Add(user)
-                    Next
-                End If
-            End Using
         End With
     End Sub
     Private _UserListUpdateRequired As Boolean = False

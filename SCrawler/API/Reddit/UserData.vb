@@ -14,10 +14,13 @@ Imports PersonalUtilities.Tools.WebDocuments.JSON
 Imports System.Net
 Imports System.Threading
 Imports SCrawler.API.Base
+Imports SCrawler.API.Reddit.RedditViewExchange
 Imports UStates = SCrawler.API.Base.UserMedia.States
 Imports UTypes = SCrawler.API.Base.UserMedia.Types
+Imports CView = SCrawler.API.Reddit.IRedditView.View
+Imports CPeriod = SCrawler.API.Reddit.IRedditView.Period
 Namespace API.Reddit
-    Friend Class UserData : Inherits UserDataBase : Implements IChannelData
+    Friend Class UserData : Inherits UserDataBase : Implements IChannelData, IRedditView
         Private ReadOnly Property MySiteSettings As SiteSettings
             Get
                 Return DirectCast(HOST.Source, SiteSettings)
@@ -60,6 +63,41 @@ Namespace API.Reddit
                                                   Select c.Post) Else Return Nothing
         End Function
 #End Region
+#Region "IRedditView Support"
+        Friend Property ViewMode As CView Implements IRedditView.ViewMode
+        Friend Property ViewPeriod As CPeriod Implements IRedditView.ViewPeriod
+        Friend Sub SetView(ByVal Options As IRedditView) Implements IRedditView.SetView
+            If Not Options Is Nothing Then
+                ViewMode = Options.ViewMode
+                ViewPeriod = Options.ViewPeriod
+            End If
+        End Sub
+        Private ReadOnly Property View As String
+            Get
+                Select Case ViewMode
+                    Case CView.Hot : Return "hot"
+                    Case CView.Top : Return "top"
+                    Case Else : Return "new"
+                End Select
+            End Get
+        End Property
+        Private ReadOnly Property Period As String
+            Get
+                If ViewMode = CView.Top Then
+                    Select Case ViewPeriod
+                        Case CPeriod.Hour : Return "hour"
+                        Case CPeriod.Day : Return "day"
+                        Case CPeriod.Week : Return "week"
+                        Case CPeriod.Month : Return "month"
+                        Case CPeriod.Year : Return "year"
+                        Case Else : Return "all"
+                    End Select
+                Else
+                    Return "all"
+                End If
+            End Get
+        End Property
+#End Region
 #Region "Initializer"
         Friend Sub New()
             ChannelPostsNames = New List(Of String)
@@ -69,6 +107,21 @@ Namespace API.Reddit
 #End Region
 #Region "Load and Update user info"
         Protected Overrides Sub LoadUserInformation_OptionalFields(ByRef Container As XmlFile, ByVal Loading As Boolean)
+            With Container
+                If Loading Then
+                    ViewMode = .Value(Name_ViewMode).FromXML(Of Integer)(CInt(CView.New))
+                    ViewPeriod = .Value(Name_ViewPeriod).FromXML(Of Integer)(CInt(CPeriod.All))
+                Else
+                    .Add(Name_ViewMode, CInt(ViewMode))
+                    .Add(Name_ViewPeriod, CInt(ViewPeriod))
+                End If
+            End With
+        End Sub
+        Friend Overrides Function ExchangeOptionsGet() As Object
+            Return New RedditViewExchange With {.ViewMode = ViewMode, .ViewPeriod = ViewPeriod}
+        End Function
+        Friend Overrides Sub ExchangeOptionsSet(ByVal Obj As Object)
+            If Not Obj Is Nothing AndAlso TypeOf Obj Is IRedditView Then SetView(DirectCast(Obj, IRedditView))
         End Sub
 #End Region
 #Region "Download Overrides"
@@ -80,6 +133,7 @@ Namespace API.Reddit
                 Responser = New Response
                 Responser.Copy(MySiteSettings.Responser)
                 ChannelPostsNames.ListAddList(ChannelInfo.PostsAll.Select(Function(p) p.ID), LNC)
+                If Not ViewMode = CView.New Then ChannelPostsNames.ListAddList(ChannelInfo.PostsNames, LNC)
                 If SkipExistsUsers Then _ExistsUsersNames.ListAddList(Settings.UsersList.Select(Function(p) p.Name), LNC)
                 DownloadDataF(Token)
                 ReparseVideo(Token)
@@ -133,7 +187,7 @@ Namespace API.Reddit
                 Dim UPicType As Func(Of String, UTypes) = Function(input) IIf(input = "image", UTypes.Picture, UTypes.GIF)
                 Dim _PostID As Func(Of String) = Function() IIf(PostTmp.IsEmptyString, PostID, PostTmp)
 
-                URL = $"https://gateway.reddit.com/desktopapi/v1/user/{Name}/posts?rtj=only&allow_quarantined=true&allow_over18=1&include=identity&after={POST}&dist=25&sort=new&t=all&layout=classic"
+                URL = $"https://gateway.reddit.com/desktopapi/v1/user/{Name}/posts?rtj=only&allow_quarantined=true&allow_over18=1&include=identity&after={POST}&dist=25&sort={View}&t={Period}&layout=classic"
                 ThrowAny(Token)
                 Dim r$ = Responser.GetResponse(URL,, EDP.ThrowException)
                 If Not r.IsEmptyString Then
@@ -241,7 +295,7 @@ Namespace API.Reddit
                 If IsSavedPosts Then
                     URL = $"https://www.reddit.com/user/{Name}/saved.json?after={POST}"
                 Else
-                    URL = $"https://reddit.com/r/{Name}/new.json?allow_quarantined=true&allow_over18=1&include=identity&after={POST}&dist=25&sort=new&t=all&layout=classic"
+                    URL = $"https://reddit.com/r/{Name}/{View}.json?allow_quarantined=true&allow_over18=1&include=identity&after={POST}&dist=25&sort={View}&t={Period}&layout=classic"
                 End If
 
                 ThrowAny(Token)
@@ -258,10 +312,13 @@ Namespace API.Reddit
                                         PostID = s.Value("name")
                                         If PostID.IsEmptyString AndAlso s.Contains("id") Then PostID = s("id").Value
 
-                                        If ChannelPostsNames.Contains(PostID) Then ExistsDetected = True : Continue For 'Exit Sub
+                                        If ChannelPostsNames.Contains(PostID) Then
+                                            If ViewMode = CView.New Then ExistsDetected = True Else NewPostDetected = True 'bypass
+                                            Continue For 'Exit Sub
+                                        End If
                                         If DownloadLimitCount.HasValue AndAlso _TotalPostsDownloaded >= DownloadLimitCount.Value Then Exit Sub
                                         If Not DownloadLimitPost.IsEmptyString AndAlso DownloadLimitPost = PostID Then Exit Sub
-                                        If DownloadLimitDate.HasValue AndAlso _TempMediaList.Count > 0 Then
+                                        If ViewMode = CView.New AndAlso DownloadLimitDate.HasValue AndAlso _TempMediaList.Count > 0 Then
                                             With (From __u In _TempMediaList Where __u.Post.Date.HasValue Select __u.Post.Date.Value)
                                                 If .Count > 0 Then lDate = .Min Else lDate = Nothing
                                             End With

@@ -179,9 +179,10 @@ Friend Class ListImagesLoader
             For Each u As IUserData In Settings.Users
                 If u.FitToAddParams Then t.Add(Task.Run(Sub() l.Add(New UserOption(u, MyList, True))))
             Next
-            If t.Count > 0 Then Task.WaitAll(t.ToArray) : t.Clear()
+            If t.Count > 0 Then Task.WaitAll(t.ToArray)
             If l.Count > 0 Then
                 For i% = 0 To l.Count - 1
+                    If l(i) Is Nothing Then Throw New ArgumentNullException("UserOption", $"One of the UserOptions [{i} / {l.Count - 1}] is null.")
                     If l(i).Image Is Nothing Then l(i).UpdateImage()
                 Next
             End If

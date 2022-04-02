@@ -14,7 +14,7 @@ Imports PersonalUtilities.Functions.RegularExpressions
 Imports DownDetector = SCrawler.API.Base.DownDetector
 Imports Download = SCrawler.Plugin.ISiteSettings.Download
 Namespace API.Reddit
-    <Manifest(RedditSiteKey), UseClassAsIs, SavedPosts>
+    <Manifest(RedditSiteKey), UseClassAsIs, SavedPosts, SpecialForm(False)>
     Friend Class SiteSettings : Inherits SiteSettingsBase
         Friend Overrides ReadOnly Property Icon As Icon
             Get
@@ -93,5 +93,11 @@ Namespace API.Reddit
         Friend Overrides Function GetSpecialDataF(ByVal URL As String) As IEnumerable(Of UserMedia)
             Return UserData.GetVideoInfo(URL, Responser)
         End Function
+        Friend Overrides Sub UserOptions(ByRef Options As Object, ByVal OpenForm As Boolean)
+            If Options Is Nothing OrElse Not TypeOf Options Is RedditViewExchange Then Options = New RedditViewExchange
+            If OpenForm Then
+                Using f As New RedditViewSettingsForm(Options) : f.ShowDialog() : End Using
+            End If
+        End Sub
     End Class
 End Namespace
