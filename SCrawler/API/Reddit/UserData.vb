@@ -340,7 +340,7 @@ Namespace API.Reddit
                                         If s.Contains("created") Then PostDate = s("created").Value Else PostDate = String.Empty
                                         _UserID = s.Value("author")
 
-                                        If SkipExistsUsers AndAlso _ExistsUsersNames.Count > 0 AndAlso
+                                        If Not IsSavedPosts AndAlso SkipExistsUsers AndAlso _ExistsUsersNames.Count > 0 AndAlso
                                            Not _UserID.IsEmptyString AndAlso _ExistsUsersNames.Contains(_UserID) Then
                                             If Not IsSavedPosts AndAlso Not ChannelInfo Is Nothing Then _
                                                ChannelInfo.ChannelExistentUserNames.ListAddValue(_UserID, LNC)

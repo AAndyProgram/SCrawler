@@ -1,3 +1,14 @@
+# 3.0.0.6
+
+- Added
+  - ```GoTo Start``` channels button
+  - ```GoTo End``` channels button
+- Fixed
+  - In some cases, saved Reddit posts didn't fully download
+  - Incorrect Reddit accessibility check algorithm
+  - Incorrect behavior of the main progress bar when downloading saved posts
+  - (Issue #25) Date and Time not added for Stories and Tagged Photos
+
 # 3.0.0.5
 
 - Added

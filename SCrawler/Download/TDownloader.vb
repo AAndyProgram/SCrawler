@@ -254,9 +254,7 @@ Namespace DownloadObjects
                 Dim SiteChecked As Boolean = False
                 Do While _Job.Count > 0
                     _Job.ThrowIfCancellationRequested()
-                    If Not SiteChecked Then
-                        If Not _Job.Available Then Exit Sub Else SiteChecked = True : Continue Do
-                    End If
+                    If Not SiteChecked Then _Job.Available() : SiteChecked = True : Continue Do
                     UpdateJobsLabel()
                     DownloadData(_Job, _Job.Token)
                     _Job.ThrowIfCancellationRequested()

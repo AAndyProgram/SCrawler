@@ -156,7 +156,7 @@ Namespace DownloadObjects
             RaiseEvent OnTotalCountChange()
         End Sub
         Private Sub JobProgress_OnProgressChange(ByVal Source As IMyProgress, ByVal Index As Integer)
-            MainProgress.Perform()
+            If Not Job.Type = Download.SavedPosts Then MainProgress.Perform()
         End Sub
 #End Region
 #Region "IDisposable Support"

@@ -201,11 +201,12 @@ Friend Class ChannelViewForm : Implements IChannelLimits
         MyRange = New RangeSwitcher(Of UserPost) With {.Selector = SelectorExpression}
         With MyRange
             .Limit = ImagesInRow * ImagesRows
-            .InsertButtons(ToolbarTOP, {RButton.Previous, RButton.Next}, 5)
+            .InsertButtons(ToolbarTOP,, 5)
             .SetButtonKey(RButton.Previous, Keys.F2)
             .SetButtonKey(RButton.Next, Keys.F3)
             .BindForm(Me)
             .LabelNumbersProvider = CProvider
+            .LabelShowAbsolutIndexes = False
             .UpdateControls()
         End With
         AddHandler Settings.ChannelsImagesColumns.OnValueChanged, AddressOf ImagesCountChanged
@@ -215,6 +216,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
         MyDefs.MyViewInitialize(Me, Settings.Design)
         RefillChannels(Settings.LatestSelectedChannel.Value)
         ChangeComboIndex(0)
+        MyRange.LabelText = String.Empty
         CMB_CHANNELS_ActionOnCheckedChange(CMB_CHANNELS.Checked)
         With LIST_POSTS
             Dim s As Size = GetImageSize()

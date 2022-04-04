@@ -33,25 +33,32 @@ Namespace API.Base
         Friend Shared Function GetData(ByVal Site As String) As List(Of Data)
             Try
                 Dim l As List(Of Data) = Nothing
+                Dim l2 As List(Of Data) = Nothing
                 Using w As New WebClient
                     Dim r$ = w.DownloadString($"https://downdetector.co.uk/status/{Site}/")
                     If Not r.IsEmptyString Then
                         l = FNF.RegexFields(Of Data)(r, {Params}, {1, 2})
                         If l.ListExists(2) Then
-                            Dim lDate As Date = l(0).Date
-                            Dim i%
-                            Dim indx% = -1
-                            For i = 1 To l.Count - 1
-                                If l(i).Date < lDate Then indx = i : Exit For Else lDate = l(i).Date
-                            Next
-                            If indx >= 0 Then
-                                For i = indx To 0 Step -1 : l.RemoveAt(i) : Next
-                            End If
                             l.Sort()
+                            l2 = New List(Of Data)
+                            Dim d As Data
+                            Dim eDates As New List(Of Date)
+                            Dim MaxValue As Func(Of Date, Integer) = Function(dd) (From ddd In l Where ddd.Date = dd Select ddd.Value).DefaultIfEmpty(0).Max
+                            For i% = 0 To l.Count - 1
+                                If Not eDates.Contains(l(i).Date) Then
+                                    d = l(i)
+                                    d.Value = MaxValue(d.Date)
+                                    l2.Add(d)
+                                    eDates.Add(d.Date)
+                                End If
+                            Next
+                            eDates.Clear()
+                            l.Clear()
+                            l2.Sort()
                         End If
                     End If
                 End Using
-                Return l
+                Return l2
             Catch ex As Exception
                 Return ErrorsDescriber.Execute(EDP.SendInLog + EDP.ReturnValue, ex, $"[DownDetector.GetData({Site})]")
             End Try

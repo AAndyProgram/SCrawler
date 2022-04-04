@@ -53,7 +53,10 @@ Namespace API.Reddit
                 Case Download.Channel : Return New UserData With {.SaveToCache = False, .SkipExistsUsers = False, .AutoGetLimits = True}
                 Case Download.SavedPosts
                     Dim u As New UserData With {.IsSavedPosts = True}
-                    DirectCast(u, UserDataBase).User = New UserInfo With {.Name = CStr(AConvert(Of String)(SavedPostsUserName.Value, String.Empty))}
+                    DirectCast(u, UserDataBase).User = New UserInfo With {
+                        .Name = CStr(AConvert(Of String)(SavedPostsUserName.Value, String.Empty)),
+                        .IsChannel = True
+                    }
                     Return u
             End Select
             Return Nothing

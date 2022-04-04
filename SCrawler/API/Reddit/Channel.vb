@@ -84,7 +84,6 @@ Namespace API.Reddit
                 Return Posts(Index)
             End Get
         End Property
-        Private ReadOnly Property Range As RangeSwitcher(Of UserPost)
         Friend Property ViewMode As View = View.New Implements IRedditView.ViewMode
         Friend Property ViewPeriod As Period = Period.All Implements IRedditView.ViewPeriod
         Friend Sub SetView(ByVal Options As IRedditView) Implements IRedditView.SetView
@@ -219,7 +218,6 @@ Namespace API.Reddit
             Posts = New List(Of UserPost)
             PostsLatest = New List(Of UserPost)
             PostsNames = New List(Of String)
-            Range = New RangeSwitcher(Of UserPost)(Me)
             CountOfAddedUsers = New List(Of Integer)
             CountOfLoadedPostsPerSession = New List(Of Integer)
             ChannelExistentUserNames = New List(Of String)
@@ -410,7 +408,6 @@ Namespace API.Reddit
                     PostsNames.Clear()
                     CountOfAddedUsers.Clear()
                     CountOfLoadedPostsPerSession.Clear()
-                    Range.Dispose()
                     ChannelExistentUserNames.Clear()
                     CachePath.Delete(SFO.Path, SFODelete.None, EDP.SendInLog)
                 End If

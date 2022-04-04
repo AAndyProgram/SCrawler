@@ -390,11 +390,30 @@ Namespace API.Instagram
                 CreateMedia(node)
             End If
         End Sub
-        Private Sub ObtainMedia2(ByVal n As EContainer, ByVal PostID As String, Optional ByVal SpecialFolder As String = Nothing)
+        Private Sub ObtainMedia2(ByVal n As EContainer, ByVal PostID As String, Optional ByVal SpecialFolder As String = Nothing,
+                                 Optional ByVal DateObj As String = Nothing)
             Try
                 Dim img As Predicate(Of EContainer) = Function(_img) Not _img.Name.IsEmptyString AndAlso _img.Name.StartsWith("image_versions") AndAlso _img.Count > 0
                 Dim vid As Predicate(Of EContainer) = Function(_vid) Not _vid.Name.IsEmptyString AndAlso _vid.Name.StartsWith("video_versions") AndAlso _vid.Count > 0
                 Dim ss As Func(Of EContainer, Sizes) = Function(_ss) New Sizes(_ss.Value("width"), _ss.Value("url"))
+                Dim mDate As Func(Of EContainer, String) = Function(ByVal elem As EContainer) As String
+                                                               If elem.Contains("taken_at") Then
+                                                                   Return elem.Value("taken_at")
+                                                               ElseIf elem.Contains("imported_taken_at") Then
+                                                                   Return elem.Value("imported_taken_at")
+                                                               Else
+                                                                   Dim ev$ = elem.Value("device_timestamp")
+                                                                   If Not ev.IsEmptyString Then
+                                                                       If ev.Length > 10 Then
+                                                                           Return elem.Value("device_timestamp").Substring(0, 10)
+                                                                       Else
+                                                                           Return ev
+                                                                       End If
+                                                                   Else
+                                                                       Return String.Empty
+                                                                   End If
+                                                               End If
+                                                           End Function
                 If n.Count > 0 Then
                     Dim l As New List(Of Sizes)
                     Dim d As EContainer
@@ -408,6 +427,7 @@ Namespace API.Instagram
                             Case 1
                                 If n.Contains(img) Then
                                     t = n.Value("media_type").FromXML(Of Integer)(-1)
+                                    DateObj = mDate(n)
                                     If t >= 0 Then
                                         With n.ItemF({img, "candidates"}).XmlIfNothing
                                             If .Count > 0 Then
@@ -415,7 +435,7 @@ Namespace API.Instagram
                                                 l.ListAddList(.Select(ss), LNC)
                                                 If l.Count > 0 Then
                                                     l.Sort()
-                                                    _TempMediaList.ListAddValue(MediaFromData(UTypes.Picture, l.First.Data, PostID, Nothing, SpecialFolder), LNC)
+                                                    _TempMediaList.ListAddValue(MediaFromData(UTypes.Picture, l.First.Data, PostID, DateObj, SpecialFolder), LNC)
                                                     l.Clear()
                                                 End If
                                             End If
@@ -424,22 +444,24 @@ Namespace API.Instagram
                                 End If
                             Case 2
                                 If n.Contains(vid) Then
+                                    DateObj = mDate(n)
                                     With n.ItemF({vid}).XmlIfNothing
                                         If .Count > 0 Then
                                             l.Clear()
                                             l.ListAddList(.Select(ss), LNC)
                                             If l.Count > 0 Then
                                                 l.Sort()
-                                                _TempMediaList.ListAddValue(MediaFromData(UTypes.Video, l.First.Data, PostID, Nothing, SpecialFolder), LNC)
+                                                _TempMediaList.ListAddValue(MediaFromData(UTypes.Video, l.First.Data, PostID, DateObj, SpecialFolder), LNC)
                                                 l.Clear()
                                             End If
                                         End If
                                     End With
                                 End If
                             Case 8
+                                DateObj = mDate(n)
                                 With n("carousel_media").XmlIfNothing
                                     If .Count > 0 Then
-                                        For Each d In .Self : ObtainMedia2(d, PostID, SpecialFolder) : Next
+                                        For Each d In .Self : ObtainMedia2(d, PostID, SpecialFolder, DateObj) : Next
                                     End If
                                 End With
                         End Select
