@@ -1,3 +1,13 @@
+# 3.0.0.7
+
+- Added
+  - Ability to run a script after the user download if complete
+  - Hotkey ```F2``` for additional options in the user creation form
+- Fixed
+  - (Issue #32) In some cases, Date and Time are still not added for Stories and Tagged Photos
+  - (Issue #33) Instagram Stories downloading error
+  - LPSG downloader does not download all content
+
 # 3.0.0.6
 
 - Added

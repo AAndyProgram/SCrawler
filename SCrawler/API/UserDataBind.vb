@@ -207,6 +207,18 @@ Namespace API
                 Return Count > 0 AndAlso Collections.Exists(Function(c) c.FitToAddParams)
             End Get
         End Property
+        Friend Overrides Property ScriptUse As Boolean
+            Get
+                Return Count > 0 AndAlso Collections.Exists(Function(c) c.ScriptUse)
+            End Get
+            Set(ByVal u As Boolean)
+                If Count > 0 Then Collections.ForEach(Sub(ByVal c As IUserData)
+                                                          Dim b As Boolean = c.ScriptUse = u
+                                                          c.ScriptUse = u
+                                                          If Not b Then c.UpdateUserInformation()
+                                                      End Sub)
+            End Set
+        End Property
 #Region "Context buttons"
         Friend ReadOnly Property ContextDown As ToolStripMenuItem()
             Get
@@ -336,6 +348,7 @@ Namespace API
                             .Favorite = Favorite
                             .ReadyForDownload = ReadyForDownload
                             ConsolidateLabels()
+                            ConsolidateScripts()
                             .UpdateUserInformation()
                         End If
                         ImageHandler(_Item, False)
@@ -380,6 +393,9 @@ Namespace API
                 l.ListAddList(Collections.SelectMany(Function(c) c.Labels), LNC)
                 Collections.ForEach(Sub(c) c.Labels.ListAddList(l, lp))
             End If
+        End Sub
+        Private Sub ConsolidateScripts()
+            If Count > 1 AndAlso ScriptUse Then Collections.ForEach(Sub(c) c.ScriptUse = True)
         End Sub
         Friend Sub AddRange(ByVal _Items As IEnumerable(Of IUserData))
             If Not _Items Is Nothing AndAlso _Items.Count > 0 Then

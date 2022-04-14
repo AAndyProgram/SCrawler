@@ -249,6 +249,8 @@ CloseResume:
                                     .DownloadVideos = f.DownloadVideos
                                     .FriendlyName = f.UserFriendly
                                     .Description = f.UserDescr
+                                    .ScriptUse = f.ScriptUse
+                                    .ScriptFile = f.ScriptFile
                                     If Not f.MyExchangeOptions Is Nothing Then DirectCast(.Self, UserDataBase).ExchangeOptionsSet(f.MyExchangeOptions)
                                     .Self.Labels.ListAddList(f.UserLabels, LAP.ClearBeforeAdd, LAP.NotContainsOnly)
                                     .UpdateUserInformation()
@@ -615,6 +617,31 @@ CloseResume:
             End If
         Catch ex As Exception
             ErrorsDescriber.Execute(EDP.ShowAllMsg, ex, "[ChangeUserGroups]")
+        End Try
+    End Sub
+    Private Sub BTT_CONTEXT_SCRIPT_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_SCRIPT.Click
+        Try
+            Dim users As List(Of IUserData) = GetSelectedUserArray()
+            If users.ListExists Then
+                Dim ans% = MsgBoxE({"You want to change the script usage for selected users." & vbCr &
+                                    "Which script usage mode do you want to set?",
+                                    "Change script usage"}, vbExclamation,,, {"Use", "Do not use", "Cancel"})
+                If ans < 2 Then
+                    Dim s As Boolean = IIf(ans = 0, True, False)
+                    users.ForEach(Sub(ByVal u As IUserData)
+                                      Dim b As Boolean = u.ScriptUse = s
+                                      u.ScriptUse = s
+                                      If Not b Then u.UpdateUserInformation()
+                                  End Sub)
+                    MsgBoxE($"Script mode was set to [{IIf(s, "Use", "Do not use")}] for all selected users")
+                Else
+                    MsgBoxE("Operation canceled")
+                End If
+            Else
+                MsgBoxE("Users not selected", vbExclamation)
+            End If
+        Catch ex As Exception
+            ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Change script usage")
         End Try
     End Sub
     Private Function AskForMassReplace(ByVal users As List(Of IUserData), ByVal param As String) As Boolean

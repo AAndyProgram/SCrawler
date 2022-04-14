@@ -97,6 +97,7 @@ Friend Class SettingsCLS : Implements IDisposable
         FromChannelDownloadTopUse = New XMLValue(Of Boolean)("FromChannelDownloadTopUse", False, MyXML, n)
         FromChannelCopyImageToUser = New XMLValue(Of Boolean)("FromChannelCopyImageToUser", True, MyXML, n)
         UpdateUserDescriptionEveryTime = New XMLValue(Of Boolean)("UpdateUserDescriptionEveryTime", True, MyXML, n)
+        ScriptFile = New XMLValueAttribute(Of SFile, Boolean)("ScriptFile", "Use",,, MyXML, n)
 
         n = {"Users", "FileName"}
         MaxUsersJobsCount = New XMLValue(Of Integer)("MaxJobsCount", DefaultMaxDownloadingTasks, MyXML, n)
@@ -359,6 +360,7 @@ Friend Class SettingsCLS : Implements IDisposable
     End Property
     Friend ReadOnly Property MaxUsersJobsCount As XMLValue(Of Integer)
     Friend ReadOnly Property ImgurClientID As XMLValue(Of String)
+    Friend ReadOnly Property ScriptFile As XMLValueAttribute(Of SFile, Boolean)
 #Region "Defaults"
     Friend ReadOnly Property DefaultTemporary As XMLValue(Of Boolean)
     Friend ReadOnly Property DefaultDownloadImages As XMLValue(Of Boolean)

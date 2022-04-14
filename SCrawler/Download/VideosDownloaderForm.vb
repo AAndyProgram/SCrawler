@@ -129,7 +129,7 @@ Namespace DownloadObjects
             With Settings.LatestSavingPath
                 If Not .Value.IsEmptyString Then
                     If .Value.Exists(SFO.Path, False) Then
-                        .Value.Open(SFO.Path, EDP.ShowMainMsg)
+                        GlobalOpenPath(.Value, EDP.ShowMainMsg)
                     Else
                         MsgBoxE($"Path [{ .Value}] does not exists!", MsgBoxStyle.Exclamation)
                     End If

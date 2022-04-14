@@ -9,6 +9,7 @@
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports UStates = SCrawler.Plugin.PluginUserMedia.States
 Imports UTypes = SCrawler.Plugin.PluginUserMedia.Types
+Imports Converters = PersonalUtilities.Functions.SymbolsConverter.Converters
 Public Class UserData : Implements IPluginContentProvider
 #Region "XML names"
     Private Const Name_LatestPage As String = "LatestPage"
@@ -60,13 +61,13 @@ Public Class UserData : Implements IPluginContentProvider
 #End Region
     Private Property LatestPage As String = String.Empty
     Private Property Responser As Response = Nothing
+    Private Enum Mode : Internal : External : End Enum
     Public Sub GetMedia() Implements IPluginContentProvider.GetMedia
         Try
             If Not Responser Is Nothing Then Responser.Dispose()
             Responser = New Response
             With Responser : .Copy(Settings.Responser) : .Error = EDP.ThrowException : End With
 
-            Dim l As List(Of String) = Nothing
             Dim NextPage$
             Dim r$
             Dim _LPage As Func(Of String) = Function() If(LatestPage.IsEmptyString, String.Empty, $"page-{LatestPage}")
@@ -78,35 +79,60 @@ Public Class UserData : Implements IPluginContentProvider
                 Thrower.ThrowAny()
                 If Not r.IsEmptyString Then
                     NextPage = RegexReplace(r, NextPageRegex)
-                    l.ListAddList(RegexReplace(r, PhotoRegEx), LAP.NotContainsOnly)
+                    UpdateMediaList(RegexReplace(r, PhotoRegEx), Mode.Internal)
+                    UpdateMediaList(RegexReplace(r, PhotoRegExExt), Mode.External)
                     If NextPage = LatestPage Or NextPage.IsEmptyString Then Exit Do Else LatestPage = NextPage
                 Else
                     Exit Do
                 End If
             Loop
 
-            If l.ListExists Then
-                Dim f As SFile
-                For Each u$ In l
-                    If Not IsEmptyString(RegexReplace(u, FileExistsRegEx)) Then
-                        f = CStr(RegexReplace(u, FileRegEx))
-                        f.Path = DataPath.CSFilePSN
-                        f.Separator = "\"
-                        TempMediaList.Add(New PluginUserMedia With {.ContentType = UTypes.Picture, .URL = u, .File = f})
-                    End If
-                Next
-                If TempMediaList.ListExists And ExistingContentList.ListExists Then _
-                   TempMediaList.RemoveAll(Function(m) ExistingContentList.Exists(Function(mm) mm.URL = m.URL))
-            End If
+            If TempMediaList.ListExists And ExistingContentList.ListExists Then _
+               TempMediaList.RemoveAll(Function(m) ExistingContentList.Exists(Function(mm) mm.URL = m.URL))
         Catch oex As OperationCanceledException
         Catch dex As ObjectDisposedException
         Catch ex As Exception
-            LogProvider.Add(ex, "[LPSG.UserData.GetMedia]")
+            If Responser.StatusCode = Net.HttpStatusCode.ServiceUnavailable Then
+                LogProvider.Add("LPSG not available")
+            Else
+                LogProvider.Add(ex, "[LPSG.UserData.GetMedia]")
+            End If
         End Try
+    End Sub
+    Private Sub UpdateMediaList(ByVal l As List(Of String), ByVal m As Mode)
+        If l.ListExists Then
+            Dim f As SFile
+            Dim u$
+            Dim exists As Boolean
+            Dim r As RParams
+            Dim ude As New ErrorsDescriber(EDP.ReturnValue)
+            For Each url$ In l
+                If Not url.IsEmptyString Then u = SymbolsConverter.Decode(url, {Converters.HTML, Converters.ASCII}, ude) Else u = String.Empty
+                If Not u.IsEmptyString Then
+                    exists = Not IsEmptyString(RegexReplace(u, FileExistsRegEx))
+                    If m = Mode.Internal Then
+                        r = FileRegEx
+                    Else
+                        r = FileRegExExt
+                        If Not exists Then
+                            r = FileRegExExt2
+                            exists = Not IsEmptyString(RegexReplace(u, FileRegExExt2))
+                        End If
+                    End If
+                    If exists Then
+                        f = CStr(RegexReplace(u, r))
+                        f.Path = DataPath.CSFilePSN
+                        f.Separator = "\"
+                        If f.Extension.IsEmptyString Then f.Extension = "jpg"
+                        TempMediaList.ListAddValue(New PluginUserMedia With {.ContentType = UTypes.Picture, .URL = url, .File = f}, TempListAddParams)
+                    End If
+                End If
+            Next
+        End If
     End Sub
     Public Sub Download() Implements IPluginContentProvider.Download
         Try
-            With Responser : .UseWebClient = True : .UseWebClientCookies = True : End With
+            With Responser : .UseWebClient = True : .UseWebClientCookies = True : .ResetError() : End With
             If TempMediaList.ListExists Then
                 Dim m As PluginUserMedia
                 Dim eweb As ErrorsDescriber = EDP.ThrowException
@@ -122,8 +148,12 @@ Public Class UserData : Implements IPluginContentProvider
                         Else
                             m.DownloadState = UStates.Skipped
                         End If
-                    Catch ex As Exception
-                        m.DownloadState = UStates.Skipped
+                    Catch wex As Exception
+                        If Responser.Client.StatusCode = Net.HttpStatusCode.ServiceUnavailable Then
+                            LogProvider.Add("LPSG not available")
+                        Else
+                            m.DownloadState = UStates.Skipped
+                        End If
                     End Try
                     RaiseEvent ProgressChanged(1)
                     TempMediaList(i) = m

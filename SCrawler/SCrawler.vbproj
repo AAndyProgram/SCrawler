@@ -379,6 +379,7 @@
     <None Include="Content\Pictures\InstagramPic76.png" />
     <None Include="Content\Pictures\BookmarkBlack_16.png" />
     <None Include="Content\Pictures\HeartPic_32.png" />
+    <None Include="Content\Pictures\ScriptPic32.png" />
     <Content Include="ffmpeg.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

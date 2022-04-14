@@ -193,6 +193,7 @@ Namespace API.Instagram
                             Case Sections.Stories
                                 If Not StoriesRequested Then
                                     StoriesList = GetStoriesList()
+                                    StoriesRequested = True
                                     MySiteSettings.TooManyRequests(False)
                                     RequestsCount += 1
                                     ThrowAny(Token)

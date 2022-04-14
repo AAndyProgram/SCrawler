@@ -15,6 +15,7 @@ Imports PersonalUtilities.Functions.RegularExpressions
 Imports SCrawler.API.Base
 Imports SCrawler.Plugin
 Imports SCrawler.Plugin.Hosts
+Imports ADB = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons
 Namespace Editors
     Friend Class UserCreatorForm : Implements IOkCancelToolbar
         Private ReadOnly MyDef As DefaultFormProps(Of FieldsChecker)
@@ -65,6 +66,16 @@ Namespace Editors
                 Return TXT_USER_FRIENDLY.Text
             End Get
         End Property
+        Friend ReadOnly Property ScriptUse As Boolean
+            Get
+                Return TXT_SCRIPT.Checked
+            End Get
+        End Property
+        Friend ReadOnly Property ScriptFile As SFile
+            Get
+                Return TXT_SCRIPT.Text
+            End Get
+        End Property
         Friend Property MyExchangeOptions As Object = Nothing
         Private ReadOnly _SpecPathPattern As RParams = RParams.DM("\w:\\.*", 0, EDP.ReturnValue)
         Private ReadOnly Property SpecialPath(ByVal s As SettingsHost) As SFile
@@ -111,6 +122,7 @@ Namespace Editors
                         CH_TEMP.Checked = Settings.DefaultTemporary
                         CH_DOWN_IMAGES.Checked = Settings.DefaultDownloadImages
                         CH_DOWN_VIDEOS.Checked = Settings.DefaultDownloadVideos
+                        TXT_SCRIPT.Checked = Settings.ScriptFile.Attribute
                         SetParamsBySite()
                     Else
                         TP_ADD_BY_LIST.Enabled = False
@@ -135,6 +147,8 @@ Namespace Editors
                                 CH_READY_FOR_DOWN.Checked = .ReadyForDownload
                                 CH_DOWN_IMAGES.Checked = .DownloadImages
                                 CH_DOWN_VIDEOS.Checked = .DownloadVideos
+                                TXT_SCRIPT.Checked = .ScriptUse
+                                TXT_SCRIPT.Text = .ScriptFile
                                 TXT_DESCR.Text = .Description
                                 UserLabels.ListAddList(.Labels)
                                 If UserLabels.ListExists Then TXT_LABELS.Text = UserLabels.ListToString
@@ -158,7 +172,13 @@ Namespace Editors
             End Try
         End Sub
         Private Sub UserCreatorForm_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
-            If e.KeyCode = Keys.F4 Then ChangeLabels() : e.Handled = True
+            Dim b As Boolean = True
+            Select Case e.KeyCode
+                Case Keys.F4 : ChangeLabels()
+                Case Keys.F2 : If BTT_OTHER_SETTINGS.Enabled Then BTT_OTHER_SETTINGS.PerformClick()
+                Case Else : b = False
+            End Select
+            If b Then e.Handled = True
         End Sub
         Private Sub UserCreatorForm_Closing(sender As Object, e As CancelEventArgs) Handles Me.Closing
             If Not BeforeCloseChecker(MyDef.ChangesDetected) Then
@@ -188,6 +208,14 @@ Namespace Editors
                             .UpdateUserFile()
                         End With
                         User = tmpUser
+                        Dim ScriptText$ = TXT_SCRIPT.Text
+                        If Not ScriptText.IsEmptyString Then
+                            Dim f As SFile = ScriptText
+                            If Not SFile.IsDirectory(ScriptText) And Not UserInstance Is Nothing Then
+                                With DirectCast(UserInstance, UserDataBase) : f.Path = .MyFile.Path : End With
+                            End If
+                            TXT_SCRIPT.Text = f
+                        End If
                         If Not UserInstance Is Nothing Then
                             With DirectCast(UserInstance, UserDataBase)
                                 .User = User
@@ -208,12 +236,14 @@ Namespace Editors
                                     .Labels.ListAddList(UserLabels, LAP.NotContainsOnly, LAP.ClearBeforeAdd)
                                 End If
                                 .ParseUserMediaOnly = CH_PARSE_USER_MEDIA.Checked
+                                .ScriptUse = TXT_SCRIPT.Checked
+                                .ScriptFile = TXT_SCRIPT.Text
                                 .UpdateUserInformation()
                             End With
                         End If
                         GoTo CloseForm
                     Else
-                        MsgBoxE("User site does not selected", MsgBoxStyle.Exclamation)
+                        MsgBoxE("User site not selected", MsgBoxStyle.Exclamation)
                     End If
                 End If
             Else
@@ -397,6 +427,7 @@ CloseForm:
                                             .ReadyForDownload = CH_READY_FOR_DOWN.Checked
                                             .DownloadImages = CH_DOWN_IMAGES.Checked
                                             .DownloadVideos = CH_DOWN_VIDEOS.Checked
+                                            .ScriptUse = TXT_SCRIPT.Checked
                                             .Labels.ListAddList(UserLabels)
                                             .ParseUserMediaOnly = CH_PARSE_USER_MEDIA.Checked
                                             If Not CH_AUTO_DETECT_SITE.Checked Then _
@@ -439,8 +470,8 @@ CloseForm:
         End Function
         Private Sub TXT_LABELS_ActionOnButtonClick(ByVal Sender As ActionButton) Handles TXT_LABELS.ActionOnButtonClick
             Select Case Sender.DefaultButton
-                Case ActionButton.DefaultButtons.Open : ChangeLabels()
-                Case ActionButton.DefaultButtons.Clear : UserLabels.Clear()
+                Case ADB.Open : ChangeLabels()
+                Case ADB.Clear : UserLabels.Clear()
             End Select
         End Sub
         Private Sub ChangeLabels()
@@ -455,6 +486,12 @@ CloseForm:
                     End If
                 End If
             End Using
+        End Sub
+        Private Sub TXT_SCRIPT_ActionOnButtonClick(ByVal Sender As ActionButton) Handles TXT_SCRIPT.ActionOnButtonClick
+            If Sender.DefaultButton = ADB.Open Then
+                Dim f As SFile = SFile.SelectFiles(TXT_SCRIPT.Text, False, "Select script file").FirstOrDefault
+                If Not f.IsEmptyString Then TXT_SCRIPT.Text = f
+            End If
         End Sub
     End Class
 End Namespace

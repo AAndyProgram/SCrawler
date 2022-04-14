@@ -86,6 +86,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_CONTEXT_TEMP = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_CONTEXT_READY = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_CONTEXT_GROUPS = New System.Windows.Forms.ToolStripMenuItem()
+        Me.BTT_CONTEXT_SCRIPT = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_CONTEXT_ADD_TO_COL = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_CONTEXT_COL_MERGE = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_CONTEXT_CHANGE_FOLDER = New System.Windows.Forms.ToolStripMenuItem()
@@ -562,9 +563,9 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         '
         'USER_CONTEXT
         '
-        Me.USER_CONTEXT.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_CONTEXT_DOWN, Me.BTT_CONTEXT_DOWN_LIMITED, Me.BTT_CONTEXT_DOWN_DATE_LIMIT, Me.BTT_CONTEXT_EDIT, Me.BTT_CONTEXT_DELETE, CONTEXT_SEP_1, Me.BTT_CONTEXT_FAV, Me.BTT_CONTEXT_TEMP, Me.BTT_CONTEXT_READY, Me.BTT_CONTEXT_GROUPS, Me.BTT_CONTEXT_ADD_TO_COL, Me.BTT_CONTEXT_COL_MERGE, Me.BTT_CONTEXT_CHANGE_FOLDER, CONTEXT_SEP_2, Me.BTT_CHANGE_IMAGE, CONTEXT_SEP_3, Me.BTT_CONTEXT_OPEN_PATH, CONTEXT_SEP_4, Me.BTT_CONTEXT_OPEN_SITE, CONTEXT_SEP_5, Me.BTT_CONTEXT_INFO})
+        Me.USER_CONTEXT.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_CONTEXT_DOWN, Me.BTT_CONTEXT_DOWN_LIMITED, Me.BTT_CONTEXT_DOWN_DATE_LIMIT, Me.BTT_CONTEXT_EDIT, Me.BTT_CONTEXT_DELETE, CONTEXT_SEP_1, Me.BTT_CONTEXT_FAV, Me.BTT_CONTEXT_TEMP, Me.BTT_CONTEXT_READY, Me.BTT_CONTEXT_GROUPS, Me.BTT_CONTEXT_SCRIPT, Me.BTT_CONTEXT_ADD_TO_COL, Me.BTT_CONTEXT_COL_MERGE, Me.BTT_CONTEXT_CHANGE_FOLDER, CONTEXT_SEP_2, Me.BTT_CHANGE_IMAGE, CONTEXT_SEP_3, Me.BTT_CONTEXT_OPEN_PATH, CONTEXT_SEP_4, Me.BTT_CONTEXT_OPEN_SITE, CONTEXT_SEP_5, Me.BTT_CONTEXT_INFO})
         Me.USER_CONTEXT.Name = "USER_CONTEXT"
-        Me.USER_CONTEXT.Size = New System.Drawing.Size(222, 386)
+        Me.USER_CONTEXT.Size = New System.Drawing.Size(222, 430)
         '
         'BTT_CONTEXT_DOWN
         '
@@ -628,6 +629,13 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_CONTEXT_GROUPS.Name = "BTT_CONTEXT_GROUPS"
         Me.BTT_CONTEXT_GROUPS.Size = New System.Drawing.Size(221, 22)
         Me.BTT_CONTEXT_GROUPS.Text = "Change labels"
+        '
+        'BTT_CONTEXT_SCRIPT
+        '
+        Me.BTT_CONTEXT_SCRIPT.Image = Global.SCrawler.My.Resources.Resources.ScriptPic32
+        Me.BTT_CONTEXT_SCRIPT.Name = "BTT_CONTEXT_SCRIPT"
+        Me.BTT_CONTEXT_SCRIPT.Size = New System.Drawing.Size(221, 22)
+        Me.BTT_CONTEXT_SCRIPT.Text = "Change script usage"
         '
         'BTT_CONTEXT_ADD_TO_COL
         '
@@ -796,4 +804,5 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
     Private WithEvents BTT_DOWN_SITE As ToolStripMenuItem
     Private WithEvents BTT_DOWN_ALL_FULL As ToolStripMenuItem
     Private WithEvents BTT_DOWN_SITE_FULL As ToolStripMenuItem
+    Private WithEvents BTT_CONTEXT_SCRIPT As ToolStripMenuItem
 End Class

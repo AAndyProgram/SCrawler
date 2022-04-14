@@ -36,6 +36,8 @@ Namespace Editors
                         TXT_FOLDER_CMD.Text = .OpenFolderInOtherProgram
                         TXT_FOLDER_CMD.Checked = .OpenFolderInOtherProgram.Attribute
                         CH_RECYCLE_DEL.Checked = .DeleteToRecycleBin
+                        TXT_SCRIPT.Checked = .ScriptFile.Attribute
+                        TXT_SCRIPT.Text = .ScriptFile.Value
                         'Defaults
                         CH_SEPARATE_VIDEO_FOLDER.Checked = .SeparateVideoFolder.Value
                         CH_DEF_TEMP.Checked = .DefaultTemporary
@@ -123,6 +125,8 @@ Namespace Editors
                     .OpenFolderInOtherProgram.Value = TXT_FOLDER_CMD.Text
                     .OpenFolderInOtherProgram.Attribute.Value = TXT_FOLDER_CMD.Checked
                     .DeleteToRecycleBin.Value = CH_RECYCLE_DEL.Checked
+                    .ScriptFile.Value = TXT_SCRIPT.Text
+                    .ScriptFile.Attribute.Value = TXT_SCRIPT.Checked
                     'Defaults
                     .SeparateVideoFolder.Value = CH_SEPARATE_VIDEO_FOLDER.Checked
                     .DefaultTemporary.Value = CH_DEF_TEMP.Checked
@@ -194,6 +198,12 @@ Namespace Editors
             CH_FILE_DATE.Enabled = b
             CH_FILE_TIME.Enabled = b
             ChangePositionControlsEnabling()
+        End Sub
+        Private Sub TXT_SCRIPT_ActionOnButtonClick(ByVal Sender As ActionButton) Handles TXT_SCRIPT.ActionOnButtonClick
+            If Sender.DefaultButton = ActionButton.DefaultButtons.Open Then
+                Dim f As SFile = SFile.SelectFiles(TXT_SCRIPT.Text, False, "Select script file",, EDP.None).FirstOrDefault
+                If Not f.IsEmptyString Then TXT_SCRIPT.Text = f
+            End If
         End Sub
         Private Sub CH_COPY_CHANNEL_USER_IMAGE_CheckedChanged(sender As Object, e As EventArgs) Handles CH_COPY_CHANNEL_USER_IMAGE.CheckedChanged
             CH_COPY_CHANNEL_USER_IMAGE_ALL.Enabled = CH_COPY_CHANNEL_USER_IMAGE.Checked

@@ -10,6 +10,7 @@ Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Forms.Toolbars
 Imports PersonalUtilities.Tools.WEB
+Imports PersonalUtilities.Tools
 Imports System.IO
 Imports System.Net
 Imports System.Threading
@@ -114,6 +115,9 @@ Namespace API.Base
         Private Const Name_VideoCount As String = "VideoCount"
         Private Const Name_PicturesCount As String = "PicturesCount"
         Private Const Name_LastUpdated As String = "LastUpdated"
+
+        Private Const Name_ScriptUse As String = "ScriptUse"
+        Private Const Name_ScriptFile As String = "ScriptFile"
 
         Private Const Name_DataMerging As String = "DataMerging"
 #Region "Downloaded data"
@@ -405,6 +409,10 @@ BlockNullPicture:
             End Get
         End Property
 #End Region
+#Region "Script"
+        Friend Overridable Property ScriptUse As Boolean = False Implements IUserData.ScriptUse
+        Friend Overridable Property ScriptFile As SFile Implements IUserData.ScriptFile
+#End Region
 #End Region
 #Region "Plugins Support"
         Protected Event ProgressChanged As IPluginContentProvider.ProgressChangedEventHandler Implements IPluginContentProvider.ProgressChanged
@@ -576,6 +584,17 @@ BlockNullPicture:
                         DownloadedVideos(True) = x.Value(Name_VideoCount).FromXML(Of Integer)(0)
                         DownloadedPictures(True) = x.Value(Name_PicturesCount).FromXML(Of Integer)(0)
                         LastUpdated = AConvert(Of Date)(x.Value(Name_LastUpdated), ADateTime.Formats.BaseDateTime, Nothing)
+                        ScriptUse = x.Value(Name_ScriptUse).FromXML(Of Boolean)(False)
+                        Dim s$ = x.Value(Name_ScriptFile)
+                        If Not s.IsEmptyString Then
+                            If SFile.IsDirectory(s) Then
+                                ScriptFile = s
+                            Else
+                                ScriptFile = New SFile(s) With {.Path = MyFile.Path}
+                            End If
+                        Else
+                            ScriptFile = Nothing
+                        End If
                         DataMerging = x.Value(Name_DataMerging).FromXML(Of Boolean)(False)
                         ChangeCollectionName(x.Value(Name_CollectionName), False)
                         Labels.ListAddList(x.Value(Name_LabelsName).StringToList(Of String, List(Of String))("|", EDP.ReturnValue), LAP.NotContainsOnly, LAP.ClearBeforeAdd)
@@ -615,6 +634,16 @@ BlockNullPicture:
                     x.Add(Name_VideoCount, DownloadedVideos(True))
                     x.Add(Name_PicturesCount, DownloadedPictures(True))
                     x.Add(Name_LastUpdated, AConvert(Of String)(LastUpdated, ADateTime.Formats.BaseDateTime, String.Empty))
+                    x.Add(Name_ScriptUse, ScriptUse.BoolToInteger)
+                    If Not ScriptFile.IsEmptyString Then
+                        If ScriptFile.Path = MyFile.Path Then
+                            x.Add(Name_ScriptFile, ScriptFile.File)
+                        Else
+                            x.Add(Name_ScriptFile, ScriptFile)
+                        End If
+                    Else
+                        x.Add(Name_ScriptFile, String.Empty)
+                    End If
                     x.Add(Name_CollectionName, CollectionName)
                     x.Add(Name_LabelsName, Labels.ListToString(, "|", EDP.ReturnValue))
                     x.Add(Name_DataMerging, DataMerging.BoolToInteger)
@@ -760,6 +789,7 @@ BlockNullPicture:
                 If DownloadedTotal(False) > 0 Or EnvirChanged.Invoke Then
                     If __SaveData Then
                         LastUpdated = Now
+                        RunScript()
                         DownloadedPictures(True) = SFile.GetFiles(User.File.CutPath, "*.jpg|*.jpeg|*.png|*.gif|*.webm",, EDP.ReturnValue).Count
                         DownloadedVideos(True) = SFile.GetFiles(User.File.CutPath, "*.mp4|*.mkv|*.mov", SearchOption.AllDirectories, EDP.ReturnValue).Count
                         If Labels.Contains(LabelsKeeper.NoParsedUser) Then Labels.Remove(LabelsKeeper.NoParsedUser)
@@ -919,16 +949,10 @@ BlockNullPicture:
             Dim ff As SFile = Nothing
             Try
                 If Not f.IsEmptyString AndAlso f.Exists Then
-                    Dim d As Date? = m.Post.Date
                     If Settings.FileReplaceNameByDate Then
-                        Dim dd$ = AConvert(Of String)(If(d, Now), FileDateAppenderProvider, String.Empty)
                         ff = f
-                        ff.Name = dd
+                        ff.Name = String.Format(FileDateAppenderPattern, f.Name, CStr(AConvert(Of String)(If(m.Post.Date, Now), FileDateAppenderProvider, String.Empty)))
                         ff = SFile.Indexed_IndexFile(ff,, New NumberedFile(ff))
-                    ElseIf d.HasValue AndAlso (Settings.FileAddDateToFileName Or Settings.FileAddTimeToFileName) AndAlso
-                                              (Not FileDateAppenderProvider Is Nothing And Not FileDateAppenderPattern.IsEmptyString) Then
-                        ff = f
-                        ff.Name = String.Format(FileDateAppenderPattern, f.Name, CStr(AConvert(Of String)(d.Value, FileDateAppenderProvider, String.Empty)))
                     End If
                     If Not ff.Name.IsEmptyString Then My.Computer.FileSystem.RenameFile(f, ff.File) : Return ff
                 End If
@@ -938,6 +962,27 @@ BlockNullPicture:
                 Return f
             End Try
         End Function
+        Private Sub RunScript()
+            Try
+                If ScriptUse Then
+                    Dim ScriptPattern$
+                    If Not ScriptFile.IsEmptyString Then
+                        ScriptPattern = ScriptFile
+                    Else
+                        ScriptPattern = Settings.ScriptFile.Value
+                    End If
+                    If Not ScriptPattern.IsEmptyString Then
+                        ScriptPattern &= " {0}"
+                        Using b As New BatchExecutor With {.RedirectStandardError = True}
+                            b.Execute({String.Format(ScriptPattern, MyFile.CutPath(1).ToString)}, EDP.SendInLog + EDP.ThrowException)
+                            If b.HasError Or Not b.ErrorOutput.IsEmptyString Then Throw New Exception(b.ErrorOutput, b.ErrorException)
+                        End Using
+                    End If
+                End If
+            Catch ex As Exception
+                LogError(ex, "script execution error")
+            End Try
+        End Sub
 #End Region
 #Region "Delete, Move, Merge"
         Friend Overridable Function Delete() As Integer Implements IUserData.Delete
@@ -990,6 +1035,11 @@ BlockNullPicture:
                 End If
                 f.CutPath.Exists(SFO.Path)
                 Directory.Move(UserBefore.File.CutPath(, EDP.ThrowException).Path, f.Path)
+                If Not ScriptFile.IsEmptyString AndAlso ScriptFile.Path = UserBefore.File.Path Then
+                    Dim ff As SFile = ScriptFile
+                    f.Path = MyFile.Path
+                    ScriptFile = ff
+                End If
                 Settings.UsersList.Remove(UserBefore)
                 Settings.UpdateUsersList(User)
                 UpdateUserInformation()
@@ -1042,6 +1092,11 @@ BlockNullPicture:
                     If SFile.GetFiles(UserBefore.File.CutPath,, SearchOption.AllDirectories,
                                       New ErrorsDescriber(False, False, False, New List(Of SFile))).Count = 0 Then
                         UserBefore.File.CutPath.Delete(SFO.Path, Settings.DeleteMode, EDP.SendInLog)
+                    End If
+                    If Not ScriptFile.IsEmptyString AndAlso ScriptFile.Path = UserBefore.File.Path Then
+                        Dim f As SFile = ScriptFile
+                        f.Path = MyFile.Path
+                        ScriptFile = f
                     End If
                     UpdateUserInformation()
                 End If
@@ -1207,6 +1262,8 @@ BlockNullPicture:
         ReadOnly Property Key As String
         Property DownloadImages As Boolean
         Property DownloadVideos As Boolean
+        Property ScriptUse As Boolean
+        Property ScriptFile As SFile
         Function GetLVI(ByVal Destination As ListView) As ListViewItem
         Function GetLVIGroup(ByVal Destination As ListView) As ListViewGroup
         Sub LoadUserInformation()
