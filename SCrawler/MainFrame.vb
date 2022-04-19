@@ -250,7 +250,7 @@ CloseResume:
                                     .FriendlyName = f.UserFriendly
                                     .Description = f.UserDescr
                                     .ScriptUse = f.ScriptUse
-                                    .ScriptFile = f.ScriptFile
+                                    .ScriptData = f.ScriptData
                                     If Not f.MyExchangeOptions Is Nothing Then DirectCast(.Self, UserDataBase).ExchangeOptionsSet(f.MyExchangeOptions)
                                     .Self.Labels.ListAddList(f.UserLabels, LAP.ClearBeforeAdd, LAP.NotContainsOnly)
                                     .UpdateUserInformation()

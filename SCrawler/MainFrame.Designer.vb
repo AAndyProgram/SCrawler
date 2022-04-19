@@ -286,7 +286,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_DOWN_SAVED.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.BTT_DOWN_SAVED.Name = "BTT_DOWN_SAVED"
         Me.BTT_DOWN_SAVED.Size = New System.Drawing.Size(23, 22)
-        Me.BTT_DOWN_SAVED.ToolTipText = "Download Reddit saved posts"
+        Me.BTT_DOWN_SAVED.ToolTipText = "Download saved posts"
         '
         'BTT_DOWN_SELECTED
         '
@@ -565,7 +565,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         '
         Me.USER_CONTEXT.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_CONTEXT_DOWN, Me.BTT_CONTEXT_DOWN_LIMITED, Me.BTT_CONTEXT_DOWN_DATE_LIMIT, Me.BTT_CONTEXT_EDIT, Me.BTT_CONTEXT_DELETE, CONTEXT_SEP_1, Me.BTT_CONTEXT_FAV, Me.BTT_CONTEXT_TEMP, Me.BTT_CONTEXT_READY, Me.BTT_CONTEXT_GROUPS, Me.BTT_CONTEXT_SCRIPT, Me.BTT_CONTEXT_ADD_TO_COL, Me.BTT_CONTEXT_COL_MERGE, Me.BTT_CONTEXT_CHANGE_FOLDER, CONTEXT_SEP_2, Me.BTT_CHANGE_IMAGE, CONTEXT_SEP_3, Me.BTT_CONTEXT_OPEN_PATH, CONTEXT_SEP_4, Me.BTT_CONTEXT_OPEN_SITE, CONTEXT_SEP_5, Me.BTT_CONTEXT_INFO})
         Me.USER_CONTEXT.Name = "USER_CONTEXT"
-        Me.USER_CONTEXT.Size = New System.Drawing.Size(222, 430)
+        Me.USER_CONTEXT.Size = New System.Drawing.Size(222, 408)
         '
         'BTT_CONTEXT_DOWN
         '

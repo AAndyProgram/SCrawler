@@ -1,7 +1,7 @@
 # Social networks crawler
 
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/AAndyProgram/SCrawler)](https://github.com/AAndyProgram/SCrawler/releases/latest)
-[![GitHub](https://img.shields.io/github/license/AAndyProgram/SCrawler)](https://github.com/AAndyProgram/SCrawler/)
+[![GitHub license](https://img.shields.io/github/license/AAndyProgram/SCrawler)](https://github.com/AAndyProgram/SCrawler/blob/main/LICENSE)
 [![FAQ](https://img.shields.io/badge/FAQ-green)](FAQ.md)
 [![GUIDE](https://img.shields.io/badge/GUIDE-green)](https://github.com/AAndyProgram/SCrawler/wiki)
 [![How to support](https://img.shields.io/badge/HowToSupport-green)](HowToSupport.md)

@@ -18,6 +18,7 @@ Imports SCrawler.Plugin.Hosts
 Imports ADB = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons
 Namespace Editors
     Friend Class UserCreatorForm : Implements IOkCancelToolbar
+
         Private ReadOnly MyDef As DefaultFormProps(Of FieldsChecker)
         Friend Property User As UserInfo
         Friend Property UserInstance As IUserData
@@ -71,7 +72,7 @@ Namespace Editors
                 Return TXT_SCRIPT.Checked
             End Get
         End Property
-        Friend ReadOnly Property ScriptFile As SFile
+        Friend ReadOnly Property ScriptData As String
             Get
                 Return TXT_SCRIPT.Text
             End Get
@@ -122,7 +123,7 @@ Namespace Editors
                         CH_TEMP.Checked = Settings.DefaultTemporary
                         CH_DOWN_IMAGES.Checked = Settings.DefaultDownloadImages
                         CH_DOWN_VIDEOS.Checked = Settings.DefaultDownloadVideos
-                        TXT_SCRIPT.Checked = Settings.ScriptFile.Attribute
+                        TXT_SCRIPT.Checked = Settings.ScriptData.Attribute
                         SetParamsBySite()
                     Else
                         TP_ADD_BY_LIST.Enabled = False
@@ -148,7 +149,7 @@ Namespace Editors
                                 CH_DOWN_IMAGES.Checked = .DownloadImages
                                 CH_DOWN_VIDEOS.Checked = .DownloadVideos
                                 TXT_SCRIPT.Checked = .ScriptUse
-                                TXT_SCRIPT.Text = .ScriptFile
+                                TXT_SCRIPT.Text = .ScriptData
                                 TXT_DESCR.Text = .Description
                                 UserLabels.ListAddList(.Labels)
                                 If UserLabels.ListExists Then TXT_LABELS.Text = UserLabels.ListToString
@@ -237,7 +238,7 @@ Namespace Editors
                                 End If
                                 .ParseUserMediaOnly = CH_PARSE_USER_MEDIA.Checked
                                 .ScriptUse = TXT_SCRIPT.Checked
-                                .ScriptFile = TXT_SCRIPT.Text
+                                .ScriptData = TXT_SCRIPT.Text
                                 .UpdateUserInformation()
                             End With
                         End If
@@ -488,10 +489,7 @@ CloseForm:
             End Using
         End Sub
         Private Sub TXT_SCRIPT_ActionOnButtonClick(ByVal Sender As ActionButton) Handles TXT_SCRIPT.ActionOnButtonClick
-            If Sender.DefaultButton = ADB.Open Then
-                Dim f As SFile = SFile.SelectFiles(TXT_SCRIPT.Text, False, "Select script file").FirstOrDefault
-                If Not f.IsEmptyString Then TXT_SCRIPT.Text = f
-            End If
+            SettingsCLS.ScriptTextBoxButtonClick(TXT_SCRIPT, Sender)
         End Sub
     End Class
 End Namespace

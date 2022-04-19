@@ -299,7 +299,7 @@ Namespace API.Instagram
                     Catch dex As ObjectDisposedException When Disposed
                         Exit Do
                     Catch ex As Exception
-                        If DownloadingException(ex, $"data downloading error [{URL}]") = 1 Then Continue Do Else Exit Do
+                        If DownloadingException(ex, $"data downloading error [{URL}]", Section, False) = 1 Then Continue Do Else Exit Do
                     End Try
                 Loop
             Catch eex2 As ExitException
@@ -538,7 +538,7 @@ Namespace API.Instagram
                 End If
                 Return Nothing
             Catch ex As Exception
-                DownloadingException(ex, "API.Instagram.GetStoriesList")
+                DownloadingException(ex, "API.Instagram.GetStoriesList", Sections.Stories, False)
                 Return Nothing
             End Try
         End Function
@@ -552,13 +552,18 @@ Namespace API.Instagram
         ''' <inheritdoc cref="UserDataBase.DownloadingException(Exception, String)"/><br/>
         ''' 1 - continue
         ''' </summary>
-        Protected Overrides Function DownloadingException(ByVal ex As Exception, ByVal Message As String, Optional ByVal FromPE As Boolean = False) As Integer
+        Protected Overloads Overrides Function DownloadingException(ByVal ex As Exception, ByVal Message As String, Optional ByVal FromPE As Boolean = False) As Integer
+            Return DownloadingException(ex, Message, Sections.Timeline, FromPE)
+        End Function
+        Private Overloads Function DownloadingException(ByVal ex As Exception, ByVal Message As String, ByVal s As Sections, ByVal FromPE As Boolean) As Integer
             If Responser.StatusCode = HttpStatusCode.NotFound Then
                 UserExists = False
             ElseIf Responser.StatusCode = HttpStatusCode.BadRequest Then
                 HasError = True
                 MyMainLOG = "Instagram credentials have expired"
                 MySiteSettings.HashUpdateRequired.Value = True
+            ElseIf Responser.StatusCode = HttpStatusCode.Forbidden And s = Sections.Tagged Then
+                Return 3
             ElseIf Responser.StatusCode = 429 Then
                 With MySiteSettings
                     Dim WaiterExists As Boolean = .LastApplyingValue.HasValue

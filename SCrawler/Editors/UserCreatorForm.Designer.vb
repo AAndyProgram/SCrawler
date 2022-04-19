@@ -125,7 +125,7 @@
             TP_SITE.ColumnCount = 3
             TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 79.0!))
             TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 92.0!))
+            TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 96.0!))
             TP_SITE.Controls.Add(Me.CH_IS_CHANNEL, 0, 0)
             TP_SITE.Controls.Add(Me.CMB_SITE, 1, 0)
             TP_SITE.Controls.Add(Me.BTT_OTHER_SETTINGS, 2, 0)
@@ -169,17 +169,17 @@
             Me.CMB_SITE.Location = New System.Drawing.Point(84, 3)
             Me.CMB_SITE.Margin = New System.Windows.Forms.Padding(3, 2, 3, 3)
             Me.CMB_SITE.Name = "CMB_SITE"
-            Me.CMB_SITE.Size = New System.Drawing.Size(271, 22)
+            Me.CMB_SITE.Size = New System.Drawing.Size(267, 22)
             Me.CMB_SITE.TabIndex = 1
             Me.CMB_SITE.TextBoxBorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
             '
             'BTT_OTHER_SETTINGS
             '
             Me.BTT_OTHER_SETTINGS.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.BTT_OTHER_SETTINGS.Location = New System.Drawing.Point(360, 2)
+            Me.BTT_OTHER_SETTINGS.Location = New System.Drawing.Point(356, 2)
             Me.BTT_OTHER_SETTINGS.Margin = New System.Windows.Forms.Padding(1)
             Me.BTT_OTHER_SETTINGS.Name = "BTT_OTHER_SETTINGS"
-            Me.BTT_OTHER_SETTINGS.Size = New System.Drawing.Size(90, 24)
+            Me.BTT_OTHER_SETTINGS.Size = New System.Drawing.Size(94, 24)
             Me.BTT_OTHER_SETTINGS.TabIndex = 2
             Me.BTT_OTHER_SETTINGS.Text = "Options (F2)"
             TT_MAIN.SetToolTip(Me.BTT_OTHER_SETTINGS, "Other settings")

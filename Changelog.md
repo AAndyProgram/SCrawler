@@ -1,7 +1,15 @@
+# 3.0.0.8
+
+- Added
+  - Script mode ```command```
+  - Disabled Instagram error 403 (Forbidden) logging for downloading tagged data
+- Fixed
+  - The script does not run after the user download is complete
+
 # 3.0.0.7
 
 - Added
-  - Ability to run a script after the user download if complete
+  - Ability to run a script after the user download is complete
   - Hotkey ```F2``` for additional options in the user creation form
 - Fixed
   - (Issue #32) In some cases, Date and Time are still not added for Stories and Tagged Photos

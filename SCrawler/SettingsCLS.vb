@@ -8,6 +8,8 @@
 ' but WITHOUT ANY WARRANTY
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.XML.Base
+Imports PersonalUtilities.Forms.Controls
+Imports PersonalUtilities.Forms.Controls.Base
 Imports SCrawler.API
 Imports SCrawler.API.Base
 Imports SCrawler.Plugin.Hosts
@@ -97,7 +99,7 @@ Friend Class SettingsCLS : Implements IDisposable
         FromChannelDownloadTopUse = New XMLValue(Of Boolean)("FromChannelDownloadTopUse", False, MyXML, n)
         FromChannelCopyImageToUser = New XMLValue(Of Boolean)("FromChannelCopyImageToUser", True, MyXML, n)
         UpdateUserDescriptionEveryTime = New XMLValue(Of Boolean)("UpdateUserDescriptionEveryTime", True, MyXML, n)
-        ScriptFile = New XMLValueAttribute(Of SFile, Boolean)("ScriptFile", "Use",,, MyXML, n)
+        ScriptData = New XMLValueAttribute(Of String, Boolean)("ScriptData", "Use",,, MyXML, n)
 
         n = {"Users", "FileName"}
         MaxUsersJobsCount = New XMLValue(Of Integer)("MaxJobsCount", DefaultMaxDownloadingTasks, MyXML, n)
@@ -140,6 +142,15 @@ Friend Class SettingsCLS : Implements IDisposable
             If FileDateTimePositionEnd Then FileDateAppenderPattern = "{0}_{1}" Else FileDateAppenderPattern = "{1}_{0}"
         End If
     End Sub
+#Region "Script"
+    Friend Shared Sub ScriptTextBoxButtonClick(ByRef TXT As TextBoxExtended, ByVal Sender As ActionButton)
+        If Sender.DefaultButton = ActionButton.DefaultButtons.Open Then
+            Dim f As SFile = SFile.SelectFiles(TXT.Text, False, "Select script file").FirstOrDefault
+            If Not f.IsEmptyString Then TXT.Text = f.ToString & " ""{0}"""
+        End If
+    End Sub
+    Friend ReadOnly Property ScriptData As XMLValueAttribute(Of String, Boolean)
+#End Region
 #Region "USERS"
     Friend Sub LoadUsers()
         Try
@@ -360,7 +371,6 @@ Friend Class SettingsCLS : Implements IDisposable
     End Property
     Friend ReadOnly Property MaxUsersJobsCount As XMLValue(Of Integer)
     Friend ReadOnly Property ImgurClientID As XMLValue(Of String)
-    Friend ReadOnly Property ScriptFile As XMLValueAttribute(Of SFile, Boolean)
 #Region "Defaults"
     Friend ReadOnly Property DefaultTemporary As XMLValue(Of Boolean)
     Friend ReadOnly Property DefaultDownloadImages As XMLValue(Of Boolean)

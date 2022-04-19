@@ -117,7 +117,7 @@ Namespace API.Base
         Private Const Name_LastUpdated As String = "LastUpdated"
 
         Private Const Name_ScriptUse As String = "ScriptUse"
-        Private Const Name_ScriptFile As String = "ScriptFile"
+        Private Const Name_ScriptData As String = "ScriptData"
 
         Private Const Name_DataMerging As String = "DataMerging"
 #Region "Downloaded data"
@@ -411,7 +411,7 @@ BlockNullPicture:
 #End Region
 #Region "Script"
         Friend Overridable Property ScriptUse As Boolean = False Implements IUserData.ScriptUse
-        Friend Overridable Property ScriptFile As SFile Implements IUserData.ScriptFile
+        Friend Overridable Property ScriptData As String Implements IUserData.ScriptData
 #End Region
 #End Region
 #Region "Plugins Support"
@@ -585,16 +585,7 @@ BlockNullPicture:
                         DownloadedPictures(True) = x.Value(Name_PicturesCount).FromXML(Of Integer)(0)
                         LastUpdated = AConvert(Of Date)(x.Value(Name_LastUpdated), ADateTime.Formats.BaseDateTime, Nothing)
                         ScriptUse = x.Value(Name_ScriptUse).FromXML(Of Boolean)(False)
-                        Dim s$ = x.Value(Name_ScriptFile)
-                        If Not s.IsEmptyString Then
-                            If SFile.IsDirectory(s) Then
-                                ScriptFile = s
-                            Else
-                                ScriptFile = New SFile(s) With {.Path = MyFile.Path}
-                            End If
-                        Else
-                            ScriptFile = Nothing
-                        End If
+                        ScriptData = x.Value(Name_ScriptData)
                         DataMerging = x.Value(Name_DataMerging).FromXML(Of Boolean)(False)
                         ChangeCollectionName(x.Value(Name_CollectionName), False)
                         Labels.ListAddList(x.Value(Name_LabelsName).StringToList(Of String, List(Of String))("|", EDP.ReturnValue), LAP.NotContainsOnly, LAP.ClearBeforeAdd)
@@ -635,15 +626,7 @@ BlockNullPicture:
                     x.Add(Name_PicturesCount, DownloadedPictures(True))
                     x.Add(Name_LastUpdated, AConvert(Of String)(LastUpdated, ADateTime.Formats.BaseDateTime, String.Empty))
                     x.Add(Name_ScriptUse, ScriptUse.BoolToInteger)
-                    If Not ScriptFile.IsEmptyString Then
-                        If ScriptFile.Path = MyFile.Path Then
-                            x.Add(Name_ScriptFile, ScriptFile.File)
-                        Else
-                            x.Add(Name_ScriptFile, ScriptFile)
-                        End If
-                    Else
-                        x.Add(Name_ScriptFile, String.Empty)
-                    End If
+                    x.Add(Name_ScriptData, ScriptData)
                     x.Add(Name_CollectionName, CollectionName)
                     x.Add(Name_LabelsName, Labels.ListToString(, "|", EDP.ReturnValue))
                     x.Add(Name_DataMerging, DataMerging.BoolToInteger)
@@ -964,17 +947,18 @@ BlockNullPicture:
         End Function
         Private Sub RunScript()
             Try
+                Const spa$ = "{0}"
                 If ScriptUse Then
                     Dim ScriptPattern$
-                    If Not ScriptFile.IsEmptyString Then
-                        ScriptPattern = ScriptFile
+                    If Not ScriptData.IsEmptyString Then
+                        ScriptPattern = ScriptData
                     Else
-                        ScriptPattern = Settings.ScriptFile.Value
+                        ScriptPattern = Settings.ScriptData.Value
                     End If
                     If Not ScriptPattern.IsEmptyString Then
-                        ScriptPattern &= " {0}"
+                        If Not ScriptPattern.Contains(spa) Then ScriptPattern &= $" ""{spa}"""
                         Using b As New BatchExecutor With {.RedirectStandardError = True}
-                            b.Execute({String.Format(ScriptPattern, MyFile.CutPath(1).ToString)}, EDP.SendInLog + EDP.ThrowException)
+                            b.Execute({String.Format(ScriptPattern, MyFile.CutPath(1).PathNoSeparator)}, EDP.SendInLog + EDP.ThrowException)
                             If b.HasError Or Not b.ErrorOutput.IsEmptyString Then Throw New Exception(b.ErrorOutput, b.ErrorException)
                         End Using
                     End If
@@ -1035,11 +1019,8 @@ BlockNullPicture:
                 End If
                 f.CutPath.Exists(SFO.Path)
                 Directory.Move(UserBefore.File.CutPath(, EDP.ThrowException).Path, f.Path)
-                If Not ScriptFile.IsEmptyString AndAlso ScriptFile.Path = UserBefore.File.Path Then
-                    Dim ff As SFile = ScriptFile
-                    f.Path = MyFile.Path
-                    ScriptFile = ff
-                End If
+                If Not ScriptData.IsEmptyString AndAlso ScriptData.Contains(UserBefore.File.PathNoSeparator) Then _
+                   ScriptData = ScriptData.Replace(UserBefore.File.PathNoSeparator, MyFile.PathNoSeparator)
                 Settings.UsersList.Remove(UserBefore)
                 Settings.UpdateUsersList(User)
                 UpdateUserInformation()
@@ -1093,11 +1074,8 @@ BlockNullPicture:
                                       New ErrorsDescriber(False, False, False, New List(Of SFile))).Count = 0 Then
                         UserBefore.File.CutPath.Delete(SFO.Path, Settings.DeleteMode, EDP.SendInLog)
                     End If
-                    If Not ScriptFile.IsEmptyString AndAlso ScriptFile.Path = UserBefore.File.Path Then
-                        Dim f As SFile = ScriptFile
-                        f.Path = MyFile.Path
-                        ScriptFile = f
-                    End If
+                    If Not ScriptData.IsEmptyString AndAlso ScriptData.Contains(UserBefore.File.PathNoSeparator) Then _
+                       ScriptData = ScriptData.Replace(UserBefore.File.PathNoSeparator, MyFile.PathNoSeparator)
                     UpdateUserInformation()
                 End If
             Catch ioex As InvalidOperationException When ioex.HelpLink = 1
@@ -1263,7 +1241,7 @@ BlockNullPicture:
         Property DownloadImages As Boolean
         Property DownloadVideos As Boolean
         Property ScriptUse As Boolean
-        Property ScriptFile As SFile
+        Property ScriptData As String
         Function GetLVI(ByVal Destination As ListView) As ListViewItem
         Function GetLVIGroup(ByVal Destination As ListView) As ListViewGroup
         Sub LoadUserInformation()

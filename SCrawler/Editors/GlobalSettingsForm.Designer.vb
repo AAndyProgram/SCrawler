@@ -153,7 +153,7 @@
             TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_BASIS.Size = New System.Drawing.Size(570, 450)
+            TP_BASIS.Size = New System.Drawing.Size(570, 475)
             TP_BASIS.TabIndex = 0
             '
             'TXT_GLOBAL_PATH
@@ -689,7 +689,7 @@
             TAB_BASIS.Location = New System.Drawing.Point(4, 22)
             TAB_BASIS.Name = "TAB_BASIS"
             TAB_BASIS.Padding = New System.Windows.Forms.Padding(3)
-            TAB_BASIS.Size = New System.Drawing.Size(576, 456)
+            TAB_BASIS.Size = New System.Drawing.Size(576, 481)
             TAB_BASIS.TabIndex = 0
             TAB_BASIS.Text = "Basis"
             '
@@ -788,7 +788,7 @@
             Me.TAB_MAIN.Location = New System.Drawing.Point(0, 0)
             Me.TAB_MAIN.Name = "TAB_MAIN"
             Me.TAB_MAIN.SelectedIndex = 0
-            Me.TAB_MAIN.Size = New System.Drawing.Size(584, 482)
+            Me.TAB_MAIN.Size = New System.Drawing.Size(584, 507)
             Me.TAB_MAIN.TabIndex = 1
             '
             'CONTAINER_MAIN
@@ -797,7 +797,7 @@
             'CONTAINER_MAIN.ContentPanel
             '
             Me.CONTAINER_MAIN.ContentPanel.Controls.Add(Me.TAB_MAIN)
-            Me.CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(584, 482)
+            Me.CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(584, 507)
             Me.CONTAINER_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
             Me.CONTAINER_MAIN.LeftToolStripPanelVisible = False
             Me.CONTAINER_MAIN.Location = New System.Drawing.Point(0, 0)
