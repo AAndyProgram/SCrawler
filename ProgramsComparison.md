@@ -19,7 +19,7 @@ https://www.4kdownload.com/products/product-stogram
 | See Others Instagram Feed As Your Own | No | **Yes** |
 | Download Instagram Video Posts | Yes | Yes |
 | Backup Your Instagram Account | Yes | Yes |
-| Save Instagram Posts by Date | No (only limited download) | **Yes** |
+| Save Instagram Posts by Date | Yes | Yes |
 | Download Instagram Saved Posts | Yes | Yes |
 | Download Instagram Tagged Posts | Yes | Yes |
 | Export and import subscriptions | No | **Yes** |
