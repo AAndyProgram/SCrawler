@@ -494,7 +494,7 @@ Namespace API.Instagram
         Private Sub GetStoriesData(ByRef StoriesList As List(Of String), ByVal Token As CancellationToken)
             Const ReqUrl$ = "https://i.instagram.com/api/v1/feed/reels_media/?{0}"
             Dim tmpList As IEnumerable(Of String)
-            Dim qStr$, r$, sFolder$, storyID$
+            Dim qStr$, r$, sFolder$, storyID$, pid$
             Dim i% = -1
             Dim jj As EContainer, s As EContainer
             ThrowAny(Token)
@@ -517,7 +517,14 @@ Namespace API.Instagram
                                     If Not storyID.IsEmptyString Then storyID &= ":"
                                     With jj("items").XmlIfNothing
                                         If .Count > 0 Then
-                                            For Each s In .Self : ThrowAny(Token) : ObtainMedia2(s, storyID & s.Value("id"), sFolder) : Next
+                                            For Each s In .Self
+                                                pid = storyID & s.Value("id")
+                                                If Not _TempPostsList.Contains(pid) Then
+                                                    ThrowAny(Token)
+                                                    ObtainMedia2(s, pid, sFolder)
+                                                    _TempPostsList.Add(pid)
+                                                End If
+                                            Next
                                         End If
                                     End With
                                 Next

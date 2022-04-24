@@ -1,3 +1,13 @@
+# 3.0.0.9
+
+- Added
+  - Excluded labels
+  - Ability to disable user grouping
+  - Ability to show groups of user sites when filtering by labels
+- Fixed
+  - Removed adding "No Parsed" internal label when not needed
+  - Redownloading Instagram Stories
+
 # 3.0.0.8
 
 - Added

@@ -32,18 +32,33 @@ Namespace Editors
                         TXT_MAX_JOBS_CHANNELS.Value = .ChannelsMaxJobsCount.Value
                         CH_CHECK_VER_START.Checked = .CheckUpdatesAtStart
                         TXT_IMGUR_CLIENT_ID.Text = .ImgurClientID
+                        CH_SHOW_GROUPS.Checked = .ShowGroups
+                        CH_USERS_GROUPING.Checked = .UseGrouping
+                        'Behavior
+                        CH_EXIT_CONFIRM.Checked = .ExitConfirm
+                        CH_CLOSE_TO_TRAY.Checked = .CloseToTray
+                        CH_SHOW_NOTIFY.Checked = .ShowNotifications
                         CH_FAST_LOAD.Checked = .FastProfilesLoading
+                        CH_RECYCLE_DEL.Checked = .DeleteToRecycleBin
                         TXT_FOLDER_CMD.Text = .OpenFolderInOtherProgram
                         TXT_FOLDER_CMD.Checked = .OpenFolderInOtherProgram.Attribute
-                        CH_RECYCLE_DEL.Checked = .DeleteToRecycleBin
-                        TXT_SCRIPT.Checked = .ScriptData.Attribute
-                        TXT_SCRIPT.Text = .ScriptData.Value
                         'Defaults
                         CH_SEPARATE_VIDEO_FOLDER.Checked = .SeparateVideoFolder.Value
                         CH_DEF_TEMP.Checked = .DefaultTemporary
                         CH_DOWN_IMAGES.Checked = .DefaultDownloadImages
                         CH_DOWN_VIDEOS.Checked = .DefaultDownloadVideos
+                        'Downloading
                         CH_UDESCR_UP.Checked = .UpdateUserDescriptionEveryTime
+                        TXT_SCRIPT.Checked = .ScriptData.Attribute
+                        TXT_SCRIPT.Text = .ScriptData.Value
+                        'Downloading: file names
+                        CH_FILE_NAME_CHANGE.Checked = .FileReplaceNameByDate Or .FileAddDateToFileName Or .FileAddTimeToFileName
+                        OPT_FILE_NAME_REPLACE.Checked = .FileReplaceNameByDate
+                        OPT_FILE_NAME_ADD_DATE.Checked = Not .FileReplaceNameByDate
+                        CH_FILE_DATE.Checked = .FileAddDateToFileName
+                        CH_FILE_TIME.Checked = .FileAddTimeToFileName
+                        OPT_FILE_DATE_START.Checked = Not .FileDateTimePositionEnd
+                        OPT_FILE_DATE_END.Checked = .FileDateTimePositionEnd
                         'Channels
                         TXT_CHANNELS_ROWS.Value = .ChannelsImagesRows.Value
                         TXT_CHANNELS_COLUMNS.Value = .ChannelsImagesColumns.Value
@@ -53,18 +68,6 @@ Namespace Editors
                         CH_COPY_CHANNEL_USER_IMAGE_ALL.Checked = .ChannelsAddUserImagesFromAllChannels
                         CH_COPY_CHANNEL_USER_IMAGE_ALL.Enabled = CH_COPY_CHANNEL_USER_IMAGE.Checked
                         CH_CHANNELS_USERS_TEMP.Checked = .ChannelsDefaultTemporary
-                        'Channels filenames
-                        CH_FILE_NAME_CHANGE.Checked = .FileReplaceNameByDate Or .FileAddDateToFileName Or .FileAddTimeToFileName
-                        OPT_FILE_NAME_REPLACE.Checked = .FileReplaceNameByDate
-                        OPT_FILE_NAME_ADD_DATE.Checked = Not .FileReplaceNameByDate
-                        CH_FILE_DATE.Checked = .FileAddDateToFileName
-                        CH_FILE_TIME.Checked = .FileAddTimeToFileName
-                        OPT_FILE_DATE_START.Checked = Not .FileDateTimePositionEnd
-                        OPT_FILE_DATE_END.Checked = .FileDateTimePositionEnd
-                        'Other program settings
-                        CH_EXIT_CONFIRM.Checked = .ExitConfirm
-                        CH_CLOSE_TO_TRAY.Checked = .CloseToTray
-                        CH_SHOW_NOTIFY.Checked = .ShowNotifications
                     End With
                     .MyFieldsChecker = New FieldsChecker
                     With .MyFieldsChecker
@@ -121,31 +124,26 @@ Namespace Editors
                     .ChannelsMaxJobsCount.Value = TXT_MAX_JOBS_CHANNELS.Value
                     .CheckUpdatesAtStart.Value = CH_CHECK_VER_START.Checked
                     .ImgurClientID.Value = TXT_IMGUR_CLIENT_ID.Text
+                    .ShowGroups.Value = CH_SHOW_GROUPS.Checked
+                    .UseGrouping.Value = CH_USERS_GROUPING.Checked
+                    'Behavior
+                    .ExitConfirm.Value = CH_EXIT_CONFIRM.Checked
+                    .CloseToTray.Value = CH_CLOSE_TO_TRAY.Checked
+                    .ShowNotifications.Value = CH_SHOW_NOTIFY.Checked
                     .FastProfilesLoading.Value = CH_FAST_LOAD.Checked
+                    .DeleteToRecycleBin.Value = CH_RECYCLE_DEL.Checked
                     .OpenFolderInOtherProgram.Value = TXT_FOLDER_CMD.Text
                     .OpenFolderInOtherProgram.Attribute.Value = TXT_FOLDER_CMD.Checked
-                    .DeleteToRecycleBin.Value = CH_RECYCLE_DEL.Checked
-                    .ScriptData.Value = TXT_SCRIPT.Text
-                    .ScriptData.Attribute.Value = TXT_SCRIPT.Checked
                     'Defaults
                     .SeparateVideoFolder.Value = CH_SEPARATE_VIDEO_FOLDER.Checked
                     .DefaultTemporary.Value = CH_DEF_TEMP.Checked
                     .DefaultDownloadImages.Value = CH_DOWN_IMAGES.Checked
                     .DefaultDownloadVideos.Value = CH_DOWN_VIDEOS.Checked
+                    'Downloading
                     .UpdateUserDescriptionEveryTime.Value = CH_UDESCR_UP.Checked
-                    'Channels
-                    .ChannelsImagesRows.Value = CInt(TXT_CHANNELS_ROWS.Value)
-                    .ChannelsImagesColumns.Value = CInt(TXT_CHANNELS_COLUMNS.Value)
-                    .FromChannelDownloadTop.Value = CInt(TXT_CHANNEL_USER_POST_LIMIT.Value)
-                    .FromChannelDownloadTopUse.Value = TXT_CHANNEL_USER_POST_LIMIT.Checked
-                    .FromChannelCopyImageToUser.Value = CH_COPY_CHANNEL_USER_IMAGE.Checked
-                    .ChannelsAddUserImagesFromAllChannels.Value = CH_COPY_CHANNEL_USER_IMAGE_ALL.Checked
-                    .ChannelsDefaultTemporary.Value = CH_CHANNELS_USERS_TEMP.Checked
-                    'Other program settings
-                    .ExitConfirm.Value = CH_EXIT_CONFIRM.Checked
-                    .CloseToTray.Value = CH_CLOSE_TO_TRAY.Checked
-                    .ShowNotifications.Value = CH_SHOW_NOTIFY.Checked
-
+                    .ScriptData.Value = TXT_SCRIPT.Text
+                    .ScriptData.Attribute.Value = TXT_SCRIPT.Checked
+                    'Downloading: file names
                     If CH_FILE_NAME_CHANGE.Checked Then
                         .FileReplaceNameByDate.Value = OPT_FILE_NAME_REPLACE.Checked
                         .FileAddDateToFileName.Value = CH_FILE_DATE.Checked
@@ -156,6 +154,14 @@ Namespace Editors
                         .FileAddTimeToFileName.Value = False
                         .FileReplaceNameByDate.Value = False
                     End If
+                    'Channels
+                    .ChannelsImagesRows.Value = CInt(TXT_CHANNELS_ROWS.Value)
+                    .ChannelsImagesColumns.Value = CInt(TXT_CHANNELS_COLUMNS.Value)
+                    .FromChannelDownloadTop.Value = CInt(TXT_CHANNEL_USER_POST_LIMIT.Value)
+                    .FromChannelDownloadTopUse.Value = TXT_CHANNEL_USER_POST_LIMIT.Checked
+                    .FromChannelCopyImageToUser.Value = CH_COPY_CHANNEL_USER_IMAGE.Checked
+                    .ChannelsAddUserImagesFromAllChannels.Value = CH_COPY_CHANNEL_USER_IMAGE_ALL.Checked
+                    .ChannelsDefaultTemporary.Value = CH_CHANNELS_USERS_TEMP.Checked
 
                     .EndUpdate()
                 End With

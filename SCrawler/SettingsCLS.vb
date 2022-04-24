@@ -72,9 +72,11 @@ Friend Class SettingsCLS : Implements IDisposable
         InfoViewMode = New XMLValue(Of Integer)("InfoViewMode", DownloadedInfoForm.ViewModes.Session, MyXML)
         ViewMode = New XMLValue(Of Integer)("ViewMode", ViewModes.IconLarge, MyXML)
         ShowingMode = New XMLValue(Of Integer)("ShowingMode", ShowingModes.All, MyXML)
+        ShowGroupsInsteadLabels = New XMLValue(Of Boolean)("ShowGroupsInsteadLabels", False, MyXML)
+        ShowGroups = New XMLValue(Of Boolean)("ShowGroups", True, MyXML)
+        UseGrouping = New XMLValue(Of Boolean)("UseGrouping", True, MyXML)
 
         LatestSavingPath = New XMLValue(Of SFile)("LatestSavingPath", Nothing, MyXML,, New XMLValueBase.ToFilePath)
-        LatestSelectedLabels = New XMLValue(Of String)("LatestSelectedLabels",, MyXML)
         LatestSelectedChannel = New XMLValue(Of String)("LatestSelectedChannel",, MyXML)
         LastUpdatedLimit = New XMLValue(Of Date)
         LastUpdatedLimit.SetExtended("LastUpdatedLimit",, MyXML)
@@ -121,11 +123,11 @@ Friend Class SettingsCLS : Implements IDisposable
         OpenFolderInOtherProgram = New XMLValueAttribute(Of String, Boolean)("OpenFolderInOtherProgram", "Use",,, MyXML)
         DeleteToRecycleBin = New XMLValue(Of Boolean)("DeleteToRecycleBin", True, MyXML)
 
+        Labels = New LabelsKeeper(MyXML)
+
         MyXML.EndUpdate()
         If MyXML.ChangesDetected Then MyXML.Sort() : MyXML.UpdateData()
 
-        Labels = New LabelsKeeper
-        If Not LatestSelectedLabels.IsEmptyString Then Labels.CurrentSelection.ListAddList(LatestSelectedLabels.Value.StringToList(Of String, List(Of String))("|"))
         If BlackListFile.Exists Then
             BlackList.ListAddList(IO.File.ReadAllLines(BlackListFile), LAP.NotContainsOnly)
             If BlackList.Count > 0 Then BlackList.RemoveAll(Function(b) Not b.Exists)
@@ -229,8 +231,11 @@ Friend Class SettingsCLS : Implements IDisposable
                 If NeedUpdate Then UpdateUsersList()
             End If
             If Users.Count > 0 Then
-                Labels.AddRange(Users.SelectMany(Function(u) u.Labels), False)
-                If Labels.NewLabelsExists Then Labels.Update() : Labels.NewLabels.Clear()
+                Dim tul As IEnumerable(Of String) = Users.SelectMany(Function(u) u.Labels)
+                Labels.AddRange(tul, False)
+                If Labels.NewLabelsExists Or
+                   (tul.ListExists AndAlso Not tul.Contains(LabelsKeeper.NoParsedUser) AndAlso Labels.Remove(LabelsKeeper.NoParsedUser)) Then _
+                   Labels.Update() : Labels.NewLabels.Clear() : Labels.Verify()
             End If
         Catch ex As Exception
         End Try
@@ -404,6 +409,9 @@ Friend Class SettingsCLS : Implements IDisposable
         End Get
     End Property
     Friend ReadOnly Property ShowingMode As XMLValue(Of Integer)
+    Friend ReadOnly Property ShowGroups As XMLValue(Of Boolean)
+    Friend ReadOnly Property UseGrouping As XMLValue(Of Boolean)
+    Friend ReadOnly Property ShowGroupsInsteadLabels As XMLValue(Of Boolean)
     Friend ReadOnly Property SelectedSites As XMLValuesCollection(Of String)
     Private ReadOnly LastUpdatedLimit As XMLValue(Of Date)
     Friend Property LastUpdatedDate As Date?
@@ -417,7 +425,6 @@ Friend Class SettingsCLS : Implements IDisposable
 #End Region
 #Region "Latest values"
     Friend ReadOnly Property LatestSavingPath As XMLValue(Of SFile)
-    Friend ReadOnly Property LatestSelectedLabels As XMLValue(Of String)
     Friend ReadOnly Property LatestSelectedChannel As XMLValue(Of String)
     Friend ReadOnly Property LatestDownloadedSites As XMLValuesCollection(Of String)
 #End Region

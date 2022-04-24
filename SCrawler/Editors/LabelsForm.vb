@@ -11,12 +11,13 @@ Imports PersonalUtilities.Forms.Toolbars
 Imports PersonalUtilities.Forms.Controls
 Imports PersonalUtilities.Forms.Controls.Base
 Imports PersonalUtilities.Functions.Messaging
-Friend Class LabelsForm : Implements IOkCancelToolbar
+Friend Class LabelsForm : Implements IOkCancelDeleteToolbar
     Private ReadOnly MyDefs As DefaultFormProps
     Friend ReadOnly Property LabelsList As List(Of String)
     Private _AnyLabelAdd As Boolean = False
     Friend Property MultiUser As Boolean = False
-    Public Property MultiUserClearExists As Boolean = False
+    Friend Property MultiUserClearExists As Boolean = False
+    Friend Property WithDeleteButton As Boolean = False
     Friend Sub New(ByVal LabelsArr As IEnumerable(Of String))
         InitializeComponent()
         LabelsList = New List(Of String)
@@ -27,7 +28,7 @@ Friend Class LabelsForm : Implements IOkCancelToolbar
         Try
             With MyDefs
                 .MyViewInitialize(Me, Settings.Design)
-                .AddOkCancelToolbar()
+                .AddOkCancelToolbar(, WithDeleteButton)
                 .DelegateClosingChecker()
                 If Settings.Labels.Count > 0 Then
                     Dim items As New List(Of Integer)
@@ -76,6 +77,10 @@ Friend Class LabelsForm : Implements IOkCancelToolbar
     End Sub
     Private Sub ToolbarBttCancel() Implements IOkCancelToolbar.ToolbarBttCancel
         MyDefs.CloseForm(DialogResult.Cancel)
+    End Sub
+    Private Sub ToolbarBttDelete() Implements IOkCancelDeleteToolbar.ToolbarBttDelete
+        LabelsList.Clear()
+        MyDefs.CloseForm()
     End Sub
     Private Sub CMB_LABELS_ActionOnButtonClick(ByVal Sender As ActionButton) Handles CMB_LABELS.ActionOnButtonClick
         If Sender.DefaultButton = ActionButton.DefaultButtons.Add Then AddNewLabel()

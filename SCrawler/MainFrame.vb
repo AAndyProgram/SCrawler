@@ -72,6 +72,7 @@ Public Class MainFrame
         End With
         With Settings
             LIST_PROFILES.View = .ViewMode
+            LIST_PROFILES.ShowGroups = .UseGrouping
             ApplyViewPattern(.ViewMode.Value)
             AddHandler .Labels.NewLabelAdded, AddressOf UpdateLabelsGroups
         End With
@@ -213,15 +214,20 @@ CloseResume:
 #Region "Toolbar buttons"
 #Region "Settings"
     Private Sub BTT_SETTINGS_Click(sender As Object, e As EventArgs) Handles BTT_SETTINGS.Click
-        Dim mhl% = Settings.MaxLargeImageHeigh.Value
-        Dim mhs% = Settings.MaxSmallImageHeigh.Value
-        Using f As New GlobalSettingsForm
-            f.ShowDialog()
-            If f.DialogResult = DialogResult.OK Then
-                If (Not Settings.MaxLargeImageHeigh = mhl Or Not Settings.MaxSmallImageHeigh = mhs) And Settings.ViewModeIsPicture Then RefillList()
-                TrayIcon.Visible = Settings.CloseToTray
-            End If
-        End Using
+        With Settings
+            Dim mhl% = .MaxLargeImageHeigh.Value
+            Dim mhs% = .MaxSmallImageHeigh.Value
+            Dim sg As Boolean = .ShowGroups
+            Using f As New GlobalSettingsForm
+                f.ShowDialog()
+                If f.DialogResult = DialogResult.OK Then
+                    If ((Not .MaxLargeImageHeigh = mhl Or Not .MaxSmallImageHeigh = mhs) And .ViewModeIsPicture) Or
+                        (Not sg = Settings.ShowGroups And .UseGrouping) Then RefillList()
+                    TrayIcon.Visible = .CloseToTray
+                    LIST_PROFILES.ShowGroups = .UseGrouping
+                End If
+            End Using
+        End With
     End Sub
 #End Region
 #Region "User"
@@ -252,7 +258,8 @@ CloseResume:
                                     .ScriptUse = f.ScriptUse
                                     .ScriptData = f.ScriptData
                                     If Not f.MyExchangeOptions Is Nothing Then DirectCast(.Self, UserDataBase).ExchangeOptionsSet(f.MyExchangeOptions)
-                                    .Self.Labels.ListAddList(f.UserLabels, LAP.ClearBeforeAdd, LAP.NotContainsOnly)
+                                    Settings.Labels.Add(LabelsKeeper.NoParsedUser)
+                                    .Self.Labels.ListAddList(f.UserLabels.ListAddValue(LabelsKeeper.NoParsedUser), LAP.ClearBeforeAdd, LAP.NotContainsOnly)
                                     .UpdateUserInformation()
                                 End If
                             End With
@@ -417,7 +424,7 @@ CloseResume:
         End Using
     End Sub
 #End Region
-#Region "Labels"
+#Region "View menu"
     Private Sub BTT_SHOW_ALL_Click(sender As Object, e As EventArgs) Handles BTT_SHOW_ALL.Click
         SetShowButtonsCheckers(ShowingModes.All)
     End Sub
@@ -437,12 +444,35 @@ CloseResume:
         SetShowButtonsCheckers(ShowingModes.Suspended)
     End Sub
     Private Sub BTT_SHOW_LABELS_Click(sender As Object, e As EventArgs) Handles BTT_SHOW_LABELS.Click
-        SetShowButtonsCheckers(ShowingModes.Labels)
+        Dim b As Boolean = OpenLabelsForm(Settings.Labels.Current)
+        Dim m As ShowingModes
+        If Settings.Labels.Current.Count = 0 Then
+            m = Settings.ShowingMode.Value
+            If m = ShowingModes.Labels Then m = ShowingModes.All
+        Else
+            m = ShowingModes.Labels
+        End If
+        SetShowButtonsCheckers(m, Settings.ShowingMode.Value = ShowingModes.Labels And m = ShowingModes.Labels And b)
     End Sub
     Private Sub BTT_SHOW_NO_LABELS_Click(sender As Object, e As EventArgs) Handles BTT_SHOW_NO_LABELS.Click
         SetShowButtonsCheckers(ShowingModes.NoLabels)
     End Sub
-    Private Sub SetShowButtonsCheckers(ByVal m As ShowingModes)
+    Private Sub BTT_SHOW_EXCLUDED_LABELS_Click(sender As Object, e As EventArgs) Handles BTT_SHOW_EXCLUDED_LABELS.Click
+        Dim b As Boolean = OpenLabelsForm(Settings.Labels.Excluded)
+        SetExcludedButtonChecker()
+        If b Then RefillList()
+    End Sub
+    Private Sub BTT_SHOW_EXCLUDED_LABELS_IGNORE_Click(sender As Object, e As EventArgs) Handles BTT_SHOW_EXCLUDED_LABELS_IGNORE.Click
+        Settings.Labels.ExcludedIgnore.Value = Not Settings.Labels.ExcludedIgnore.Value
+        If Settings.Labels.Excluded.Count > 0 Then RefillList()
+        SetExcludedButtonChecker()
+    End Sub
+    Private Sub BTT_SHOW_SHOW_GROUPS_Click(sender As Object, e As EventArgs) Handles BTT_SHOW_SHOW_GROUPS.Click
+        Settings.ShowGroupsInsteadLabels.Value = Not Settings.ShowGroupsInsteadLabels.Value
+        If Settings.ShowingMode.Value = ShowingModes.Labels Then RefillList()
+        SetShowButtonsCheckers(Settings.ShowingMode.Value)
+    End Sub
+    Private Sub SetShowButtonsCheckers(ByVal m As ShowingModes, Optional ByVal ForceRefill As Boolean = False)
         BTT_SHOW_ALL.Checked = m = ShowingModes.All
         BTT_SHOW_REGULAR.Checked = m = ShowingModes.Regular
         BTT_SHOW_TEMP.Checked = m = ShowingModes.Temporary
@@ -451,54 +481,34 @@ CloseResume:
         BTT_SHOW_SUSPENDED.Checked = m = ShowingModes.Suspended
         BTT_SHOW_LABELS.Checked = m = ShowingModes.Labels
         BTT_SHOW_NO_LABELS.Checked = m = ShowingModes.NoLabels
-        BTT_SELECT_LABELS.Enabled = BTT_SHOW_LABELS.Checked
-        If Not Settings.ShowingMode.Value = m Then
-            If Not m = ShowingModes.Labels Or Settings.Labels.CurrentSelection.Count > 0 Then
-                Settings.ShowingMode.Value = m
+        BTT_SHOW_SHOW_GROUPS.Checked = Settings.ShowGroupsInsteadLabels
+        SetExcludedButtonChecker()
+        With Settings
+            If Not m = ShowingModes.Labels Then .Labels.Current.Clear() : .Labels.Current.Update()
+            If Not .ShowingMode.Value = m Or ForceRefill Then
+                .ShowingMode.Value = m
                 RefillList()
-            ElseIf m = ShowingModes.Labels And Settings.Labels.CurrentSelection.Count = 0 Then
-                OpenLabelsForm()
-                If Settings.Labels.CurrentSelection.Count > 0 Then
-                    Settings.ShowingMode.Value = m
-                    RefillList()
-                Else
-                    SetShowButtonsCheckers(Settings.ShowingMode.Value)
-                    Exit Sub
-                End If
-            ElseIf m = ShowingModes.NoLabels Then
-                Settings.ShowingMode.Value = m
-                RefillList()
+            Else
+                .ShowingMode.Value = m
             End If
-        End If
-        Settings.ShowingMode.Value = m
+        End With
         BTT_DOWN_ALL.Enabled = m = ShowingModes.All
     End Sub
-    Private Sub BTT_SELECT_LABELS_Click(sender As Object, e As EventArgs) Handles BTT_SELECT_LABELS.Click
-        OpenLabelsForm()
+    Private Sub SetExcludedButtonChecker()
+        BTT_SHOW_EXCLUDED_LABELS.Checked = Settings.Labels.Excluded.Count > 0
+        BTT_SHOW_EXCLUDED_LABELS_IGNORE.Checked = Settings.Labels.ExcludedIgnore
     End Sub
-    Private Sub OpenLabelsForm()
-        Using f As New LabelsForm(Settings.Labels.CurrentSelection)
+    Private Function OpenLabelsForm(ByRef ll As XML.Base.XMLValuesCollection(Of String)) As Boolean
+        Using f As New LabelsForm(ll) With {.WithDeleteButton = True}
             f.ShowDialog()
             If f.DialogResult = DialogResult.OK Then
-                If f.LabelsList.Count > 0 Then
-                    Dim b As Boolean = False
-                    If Settings.Labels.CurrentSelection.Count = 0 Then
-                        b = True
-                    Else
-                        If Settings.Labels.CurrentSelection.Exists(Function(l) Not f.LabelsList.Contains(l)) Then b = True
-                        If Not b AndAlso f.LabelsList.Exists(Function(l) Not Settings.Labels.CurrentSelection.Contains(l)) Then b = True
-                    End If
-                    Settings.Labels.CurrentSelection.ListAddList(f.LabelsList, LAP.ClearBeforeAdd, LAP.NotContainsOnly)
-                    Settings.LatestSelectedLabels.Value = Settings.Labels.CurrentSelection.ListToString(, "|")
-                    If b Then RefillList()
-                Else
-                    Settings.Labels.CurrentSelection.Clear()
-                    Settings.LatestSelectedLabels.Value = String.Empty
-                    SetShowButtonsCheckers(ShowingModes.All)
-                End If
+                With ll : .Clear() : .AddRange(f.LabelsList) : .Update() : End With
+                Return True
+            Else
+                Return False
             End If
         End Using
-    End Sub
+    End Function
     Private Sub BTT_SHOW_LIMIT_DATES_Click(sender As Object, e As EventArgs) Handles BTT_SHOW_LIMIT_DATES.Click
         Dim r As Boolean = False
         Dim snd As Action(Of Date?) = Sub(ByVal d As Date?)
@@ -1073,6 +1083,13 @@ ResumeDownloadingOperation:
     End Sub
     Private Sub FocusUser(ByVal Key As String, Optional ByVal ActivateMe As Boolean = False)
         Dim i% = LIST_PROFILES.Items.IndexOfKey(Key)
+        If i < 0 Then
+            i = Settings.Users.FindIndex(Function(u) u.Key = Key)
+            If i >= 0 Then
+                UserListUpdate(Settings.Users(i), True)
+                i = LIST_PROFILES.Items.IndexOfKey(Key)
+            End If
+        End If
         If i >= 0 Then
             LIST_PROFILES.Select()
             LIST_PROFILES.SelectedIndices.Clear()

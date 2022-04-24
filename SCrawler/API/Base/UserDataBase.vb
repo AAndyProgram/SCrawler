@@ -477,6 +477,7 @@ BlockNullPicture:
             Get
                 If Settings.LastUpdatedDate.HasValue AndAlso LastUpdated.HasValue AndAlso
                    LastUpdated.Value.Date > Settings.LastUpdatedDate.Value.Date Then Return False
+                If Not Settings.Labels.ExcludedIgnore AndAlso Settings.Labels.Excluded.ValuesList.ListContains(Labels) Then Return False
                 If Settings.SelectedSites.Count = 0 OrElse Settings.SelectedSites.Contains(Site) Then
                     Select Case Settings.ShowingMode.Value
                         Case ShowingModes.Regular : Return Not Temporary And Not Favorite
@@ -484,7 +485,7 @@ BlockNullPicture:
                         Case ShowingModes.Favorite : Return Favorite
                         Case ShowingModes.Deleted : Return Not UserExists
                         Case ShowingModes.Suspended : Return UserSuspended
-                        Case ShowingModes.Labels : Return Settings.Labels.CurrentSelection.ListContains(Labels)
+                        Case ShowingModes.Labels : Return Settings.Labels.Current.ValuesList.ListContains(Labels)
                         Case ShowingModes.NoLabels : Return Labels.Count = 0
                         Case Else : Return True
                     End Select
@@ -495,16 +496,16 @@ BlockNullPicture:
         End Property
         Friend Function GetLVIGroup(ByVal Destination As ListView) As ListViewGroup Implements IUserData.GetLVIGroup
             Try
-                If Settings.ShowingMode.Value = ShowingModes.Labels Then
-                    If Labels.Count > 0 And Settings.Labels.CurrentSelection.Count > 0 Then
+                If Settings.ShowingMode.Value = ShowingModes.Labels And Not Settings.ShowGroupsInsteadLabels Then
+                    If Labels.Count > 0 And Settings.Labels.Current.Count > 0 Then
                         For i% = 0 To Labels.Count - 1
-                            If Settings.Labels.CurrentSelection.Contains(Labels(i)) Then Return Destination.Groups.Item(Labels(i))
+                            If Settings.Labels.Current.Contains(Labels(i)) Then Return Destination.Groups.Item(Labels(i))
                         Next
                     End If
-                    Return Destination.Groups.Item(LabelsKeeper.NoLabeledName)
-                Else
+                ElseIf Settings.ShowGroups Then
                     Return Destination.Groups.Item(GetLviGroupName(HOST, Temporary, Favorite, IsCollection, IsChannel))
                 End If
+                Return Destination.Groups.Item(LabelsKeeper.NoLabeledName)
             Catch ex As Exception
                 Return Destination.Groups.Item(LabelsKeeper.NoLabeledName)
             End Try
@@ -567,7 +568,7 @@ BlockNullPicture:
                 If MyFile.Exists Then
                     FileExists = True
                     Using x As New XmlFile(MyFile) With {.XmlReadOnly = True}
-                        User.Name = x.Value(Name_UserName)
+                        If User.Name.IsEmptyString Then User.Name = x.Value(Name_UserName)
                         UserExists = x.Value(Name_UserExists).FromXML(Of Boolean)(True)
                         UserSuspended = x.Value(Name_UserSuspended).FromXML(Of Boolean)(False)
                         ID = x.Value(Name_UserID)

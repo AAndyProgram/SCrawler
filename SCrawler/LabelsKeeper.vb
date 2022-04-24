@@ -6,6 +6,8 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
+Imports PersonalUtilities.Functions.XML
+Imports PersonalUtilities.Functions.XML.Base
 Imports PersonalUtilities.Tools
 Friend Class LabelsKeeper : Implements ICollection(Of String), IMyEnumerator(Of String), IDisposable
     Friend Event NewLabelAdded()
@@ -20,13 +22,33 @@ Friend Class LabelsKeeper : Implements ICollection(Of String), IMyEnumerator(Of 
             Return NewLabels.Count > 0
         End Get
     End Property
-    Friend ReadOnly Property CurrentSelection As List(Of String)
-    Friend Sub New()
+    Friend ReadOnly Property Current As XMLValuesCollection(Of String)
+    Friend ReadOnly Property Excluded As XMLValuesCollection(Of String)
+    Friend ReadOnly Property ExcludedIgnore As XMLValue(Of Boolean)
+    Private ReadOnly Property SourceXML As XmlFile
+    Friend Sub New(ByRef x As XmlFile)
+        SourceXML = x
         LabelsList = New List(Of String)
         NewLabels = New List(Of String)
-        CurrentSelection = New List(Of String)
         If LabelsFile.Exists Then LabelsList.ListAddList(IO.File.ReadAllLines(LabelsFile), LAP.NotContainsOnly)
-        LabelsList.ListAddList({NoLabeledName, NoParsedUser}, LAP.NotContainsOnly)
+        Current = New XMLValuesCollection(Of String)(XMLValueBase.ListModes.String, "LatestSelectedLabels", x) With {.ListAddParameters = LAP.NotContainsOnly}
+        Excluded = New XMLValuesCollection(Of String)(XMLValueBase.ListModes.String, "LatestExcludedLabels", x) With {.ListAddParameters = LAP.NotContainsOnly}
+        ExcludedIgnore = New XMLValue(Of Boolean)("LatestExcludedLabelsIgnore", False, x)
+    End Sub
+    Friend Sub Verify()
+        SourceXML.BeginUpdate()
+        Dim r As Predicate(Of String) = Function(l) Not LabelsList.Contains(l)
+        Dim c% = Current.Count
+        If c > 0 Then
+            Current.ValuesList.RemoveAll(r)
+            If Not Current.Count = c Then Current.Update()
+        End If
+        c = Excluded.Count
+        If c > 0 Then
+            Excluded.ValuesList.RemoveAll(r)
+            If Not c = Excluded.Count Then Excluded.Update()
+        End If
+        SourceXML.EndUpdate()
     End Sub
     Friend ReadOnly Property ToList As List(Of String)
         Get
@@ -93,7 +115,7 @@ Friend Class LabelsKeeper : Implements ICollection(Of String), IMyEnumerator(Of 
     Private disposedValue As Boolean = False
     Protected Overridable Overloads Sub Dispose(ByVal disposing As Boolean)
         If Not disposedValue Then
-            If disposing Then Clear() : CurrentSelection.Clear()
+            If disposing Then Clear() : Current.Dispose() : Excluded.Dispose()
             disposedValue = True
         End If
     End Sub

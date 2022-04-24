@@ -27,9 +27,6 @@
             Dim TP_FILE_NAME As System.Windows.Forms.TableLayoutPanel
             Dim TP_FILE_PATTERNS As System.Windows.Forms.TableLayoutPanel
             Dim LBL_DATE_POS As System.Windows.Forms.Label
-            Dim ActionButton7 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
-            Dim ActionButton8 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
-            Dim ActionButton9 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim TT_MAIN As System.Windows.Forms.ToolTip
             Dim TP_CHANNELS_IMGS As System.Windows.Forms.TableLayoutPanel
             Dim TAB_BASIS As System.Windows.Forms.TabPage
@@ -37,6 +34,13 @@
             Dim TP_DEFS As System.Windows.Forms.TableLayoutPanel
             Dim TAB_DEFS_CHANNELS As System.Windows.Forms.TabPage
             Dim TP_CHANNELS As System.Windows.Forms.TableLayoutPanel
+            Dim TAB_BEHAVIOR As System.Windows.Forms.TabPage
+            Dim TP_BEHAVIOR As System.Windows.Forms.TableLayoutPanel
+            Dim ActionButton7 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim TAB_DOWN As System.Windows.Forms.TabPage
+            Dim TP_DOWNLOADING As System.Windows.Forms.TableLayoutPanel
+            Dim ActionButton8 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton9 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Me.TXT_GLOBAL_PATH = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_IMAGE_LARGE = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_IMAGE_SMALL = New PersonalUtilities.Forms.Controls.TextBoxExtended()
@@ -45,6 +49,8 @@
             Me.TXT_MAX_JOBS_CHANNELS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.CH_CHECK_VER_START = New System.Windows.Forms.CheckBox()
             Me.TXT_IMGUR_CLIENT_ID = New PersonalUtilities.Forms.Controls.TextBoxExtended()
+            Me.CH_SHOW_GROUPS = New System.Windows.Forms.CheckBox()
+            Me.CH_USERS_GROUPING = New System.Windows.Forms.CheckBox()
             Me.OPT_FILE_NAME_REPLACE = New System.Windows.Forms.RadioButton()
             Me.OPT_FILE_NAME_ADD_DATE = New System.Windows.Forms.RadioButton()
             Me.CH_FILE_NAME_CHANGE = New System.Windows.Forms.CheckBox()
@@ -52,13 +58,7 @@
             Me.CH_FILE_TIME = New System.Windows.Forms.CheckBox()
             Me.OPT_FILE_DATE_START = New System.Windows.Forms.RadioButton()
             Me.OPT_FILE_DATE_END = New System.Windows.Forms.RadioButton()
-            Me.CH_EXIT_CONFIRM = New System.Windows.Forms.CheckBox()
-            Me.CH_CLOSE_TO_TRAY = New System.Windows.Forms.CheckBox()
-            Me.CH_SHOW_NOTIFY = New System.Windows.Forms.CheckBox()
             Me.CH_FAST_LOAD = New System.Windows.Forms.CheckBox()
-            Me.TXT_FOLDER_CMD = New PersonalUtilities.Forms.Controls.TextBoxExtended()
-            Me.CH_RECYCLE_DEL = New System.Windows.Forms.CheckBox()
-            Me.TXT_SCRIPT = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.CH_COPY_CHANNEL_USER_IMAGE = New System.Windows.Forms.CheckBox()
             Me.CH_DEF_TEMP = New System.Windows.Forms.CheckBox()
             Me.CH_DOWN_IMAGES = New System.Windows.Forms.CheckBox()
@@ -70,6 +70,12 @@
             Me.TXT_CHANNELS_ROWS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_CHANNELS_COLUMNS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_CHANNEL_USER_POST_LIMIT = New PersonalUtilities.Forms.Controls.TextBoxExtended()
+            Me.TXT_FOLDER_CMD = New PersonalUtilities.Forms.Controls.TextBoxExtended()
+            Me.CH_EXIT_CONFIRM = New System.Windows.Forms.CheckBox()
+            Me.CH_CLOSE_TO_TRAY = New System.Windows.Forms.CheckBox()
+            Me.CH_SHOW_NOTIFY = New System.Windows.Forms.CheckBox()
+            Me.CH_RECYCLE_DEL = New System.Windows.Forms.CheckBox()
+            Me.TXT_SCRIPT = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TAB_MAIN = New System.Windows.Forms.TabControl()
             Me.CONTAINER_MAIN = New System.Windows.Forms.ToolStripContainer()
             TP_BASIS = New System.Windows.Forms.TableLayoutPanel()
@@ -84,6 +90,10 @@
             TP_DEFS = New System.Windows.Forms.TableLayoutPanel()
             TAB_DEFS_CHANNELS = New System.Windows.Forms.TabPage()
             TP_CHANNELS = New System.Windows.Forms.TableLayoutPanel()
+            TAB_BEHAVIOR = New System.Windows.Forms.TabPage()
+            TP_BEHAVIOR = New System.Windows.Forms.TableLayoutPanel()
+            TAB_DOWN = New System.Windows.Forms.TabPage()
+            TP_DOWNLOADING = New System.Windows.Forms.TableLayoutPanel()
             TP_BASIS.SuspendLayout()
             CType(Me.TXT_GLOBAL_PATH, System.ComponentModel.ISupportInitialize).BeginInit()
             TP_IMAGES.SuspendLayout()
@@ -95,8 +105,6 @@
             CType(Me.TXT_IMGUR_CLIENT_ID, System.ComponentModel.ISupportInitialize).BeginInit()
             TP_FILE_NAME.SuspendLayout()
             TP_FILE_PATTERNS.SuspendLayout()
-            CType(Me.TXT_FOLDER_CMD, System.ComponentModel.ISupportInitialize).BeginInit()
-            CType(Me.TXT_SCRIPT, System.ComponentModel.ISupportInitialize).BeginInit()
             TP_CHANNELS_IMGS.SuspendLayout()
             CType(Me.TXT_CHANNELS_ROWS, System.ComponentModel.ISupportInitialize).BeginInit()
             CType(Me.TXT_CHANNELS_COLUMNS, System.ComponentModel.ISupportInitialize).BeginInit()
@@ -106,6 +114,12 @@
             TAB_DEFS_CHANNELS.SuspendLayout()
             TP_CHANNELS.SuspendLayout()
             CType(Me.TXT_CHANNEL_USER_POST_LIMIT, System.ComponentModel.ISupportInitialize).BeginInit()
+            TAB_BEHAVIOR.SuspendLayout()
+            TP_BEHAVIOR.SuspendLayout()
+            CType(Me.TXT_FOLDER_CMD, System.ComponentModel.ISupportInitialize).BeginInit()
+            TAB_DOWN.SuspendLayout()
+            TP_DOWNLOADING.SuspendLayout()
+            CType(Me.TXT_SCRIPT, System.ComponentModel.ISupportInitialize).BeginInit()
             Me.TAB_MAIN.SuspendLayout()
             Me.CONTAINER_MAIN.ContentPanel.SuspendLayout()
             Me.CONTAINER_MAIN.SuspendLayout()
@@ -123,19 +137,12 @@
             TP_BASIS.Controls.Add(Me.TXT_MAX_JOBS_CHANNELS, 0, 4)
             TP_BASIS.Controls.Add(Me.CH_CHECK_VER_START, 0, 5)
             TP_BASIS.Controls.Add(Me.TXT_IMGUR_CLIENT_ID, 0, 6)
-            TP_BASIS.Controls.Add(TP_FILE_NAME, 0, 7)
-            TP_BASIS.Controls.Add(TP_FILE_PATTERNS, 0, 8)
-            TP_BASIS.Controls.Add(Me.CH_EXIT_CONFIRM, 0, 9)
-            TP_BASIS.Controls.Add(Me.CH_CLOSE_TO_TRAY, 0, 10)
-            TP_BASIS.Controls.Add(Me.CH_SHOW_NOTIFY, 0, 11)
-            TP_BASIS.Controls.Add(Me.CH_FAST_LOAD, 0, 12)
-            TP_BASIS.Controls.Add(Me.TXT_FOLDER_CMD, 0, 13)
-            TP_BASIS.Controls.Add(Me.CH_RECYCLE_DEL, 0, 14)
-            TP_BASIS.Controls.Add(Me.TXT_SCRIPT, 0, 15)
+            TP_BASIS.Controls.Add(Me.CH_SHOW_GROUPS, 0, 7)
+            TP_BASIS.Controls.Add(Me.CH_USERS_GROUPING, 0, 8)
             TP_BASIS.Dock = System.Windows.Forms.DockStyle.Fill
             TP_BASIS.Location = New System.Drawing.Point(3, 3)
             TP_BASIS.Name = "TP_BASIS"
-            TP_BASIS.RowCount = 17
+            TP_BASIS.RowCount = 10
             TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
@@ -143,17 +150,10 @@
             TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
-            TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 30.0!))
-            TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 30.0!))
             TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
-            TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
-            TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
-            TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
-            TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
-            TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_BASIS.Size = New System.Drawing.Size(570, 475)
+            TP_BASIS.Size = New System.Drawing.Size(570, 253)
             TP_BASIS.TabIndex = 0
             '
             'TXT_GLOBAL_PATH
@@ -303,6 +303,30 @@
             Me.TXT_IMGUR_CLIENT_ID.Size = New System.Drawing.Size(562, 22)
             Me.TXT_IMGUR_CLIENT_ID.TabIndex = 6
             '
+            'CH_SHOW_GROUPS
+            '
+            Me.CH_SHOW_GROUPS.AutoSize = True
+            Me.CH_SHOW_GROUPS.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_SHOW_GROUPS.Location = New System.Drawing.Point(4, 204)
+            Me.CH_SHOW_GROUPS.Name = "CH_SHOW_GROUPS"
+            Me.CH_SHOW_GROUPS.Size = New System.Drawing.Size(562, 19)
+            Me.CH_SHOW_GROUPS.TabIndex = 7
+            Me.CH_SHOW_GROUPS.Text = "Show groups"
+            TT_MAIN.SetToolTip(Me.CH_SHOW_GROUPS, "Grouping users by site")
+            Me.CH_SHOW_GROUPS.UseVisualStyleBackColor = True
+            '
+            'CH_USERS_GROUPING
+            '
+            Me.CH_USERS_GROUPING.AutoSize = True
+            Me.CH_USERS_GROUPING.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_USERS_GROUPING.Location = New System.Drawing.Point(4, 230)
+            Me.CH_USERS_GROUPING.Name = "CH_USERS_GROUPING"
+            Me.CH_USERS_GROUPING.Size = New System.Drawing.Size(562, 19)
+            Me.CH_USERS_GROUPING.TabIndex = 8
+            Me.CH_USERS_GROUPING.Text = "Use user grouping"
+            TT_MAIN.SetToolTip(Me.CH_USERS_GROUPING, "Group users by groups and/or labels")
+            Me.CH_USERS_GROUPING.UseVisualStyleBackColor = True
+            '
             'TP_FILE_NAME
             '
             TP_FILE_NAME.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
@@ -314,21 +338,21 @@
             TP_FILE_NAME.Controls.Add(Me.OPT_FILE_NAME_ADD_DATE, 2, 0)
             TP_FILE_NAME.Controls.Add(Me.CH_FILE_NAME_CHANGE, 0, 0)
             TP_FILE_NAME.Dock = System.Windows.Forms.DockStyle.Fill
-            TP_FILE_NAME.Location = New System.Drawing.Point(1, 201)
+            TP_FILE_NAME.Location = New System.Drawing.Point(1, 27)
             TP_FILE_NAME.Margin = New System.Windows.Forms.Padding(0)
             TP_FILE_NAME.Name = "TP_FILE_NAME"
             TP_FILE_NAME.RowCount = 1
             TP_FILE_NAME.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_FILE_NAME.Size = New System.Drawing.Size(568, 30)
-            TP_FILE_NAME.TabIndex = 7
+            TP_FILE_NAME.Size = New System.Drawing.Size(574, 30)
+            TP_FILE_NAME.TabIndex = 1
             '
             'OPT_FILE_NAME_REPLACE
             '
             Me.OPT_FILE_NAME_REPLACE.AutoSize = True
             Me.OPT_FILE_NAME_REPLACE.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.OPT_FILE_NAME_REPLACE.Location = New System.Drawing.Point(193, 4)
+            Me.OPT_FILE_NAME_REPLACE.Location = New System.Drawing.Point(195, 4)
             Me.OPT_FILE_NAME_REPLACE.Name = "OPT_FILE_NAME_REPLACE"
-            Me.OPT_FILE_NAME_REPLACE.Size = New System.Drawing.Size(182, 22)
+            Me.OPT_FILE_NAME_REPLACE.Size = New System.Drawing.Size(184, 22)
             Me.OPT_FILE_NAME_REPLACE.TabIndex = 1
             Me.OPT_FILE_NAME_REPLACE.TabStop = True
             Me.OPT_FILE_NAME_REPLACE.Text = "Replace file name by date"
@@ -338,9 +362,9 @@
             '
             Me.OPT_FILE_NAME_ADD_DATE.AutoSize = True
             Me.OPT_FILE_NAME_ADD_DATE.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.OPT_FILE_NAME_ADD_DATE.Location = New System.Drawing.Point(382, 4)
+            Me.OPT_FILE_NAME_ADD_DATE.Location = New System.Drawing.Point(386, 4)
             Me.OPT_FILE_NAME_ADD_DATE.Name = "OPT_FILE_NAME_ADD_DATE"
-            Me.OPT_FILE_NAME_ADD_DATE.Size = New System.Drawing.Size(182, 22)
+            Me.OPT_FILE_NAME_ADD_DATE.Size = New System.Drawing.Size(184, 22)
             Me.OPT_FILE_NAME_ADD_DATE.TabIndex = 2
             Me.OPT_FILE_NAME_ADD_DATE.TabStop = True
             Me.OPT_FILE_NAME_ADD_DATE.Text = "Add date/time to file name"
@@ -352,7 +376,7 @@
             Me.CH_FILE_NAME_CHANGE.Dock = System.Windows.Forms.DockStyle.Fill
             Me.CH_FILE_NAME_CHANGE.Location = New System.Drawing.Point(4, 4)
             Me.CH_FILE_NAME_CHANGE.Name = "CH_FILE_NAME_CHANGE"
-            Me.CH_FILE_NAME_CHANGE.Size = New System.Drawing.Size(182, 22)
+            Me.CH_FILE_NAME_CHANGE.Size = New System.Drawing.Size(184, 22)
             Me.CH_FILE_NAME_CHANGE.TabIndex = 0
             Me.CH_FILE_NAME_CHANGE.Text = "Change file names"
             Me.CH_FILE_NAME_CHANGE.UseVisualStyleBackColor = True
@@ -372,14 +396,14 @@
             TP_FILE_PATTERNS.Controls.Add(Me.OPT_FILE_DATE_START, 3, 0)
             TP_FILE_PATTERNS.Controls.Add(Me.OPT_FILE_DATE_END, 4, 0)
             TP_FILE_PATTERNS.Dock = System.Windows.Forms.DockStyle.Fill
-            TP_FILE_PATTERNS.Location = New System.Drawing.Point(1, 232)
+            TP_FILE_PATTERNS.Location = New System.Drawing.Point(1, 58)
             TP_FILE_PATTERNS.Margin = New System.Windows.Forms.Padding(0)
             TP_FILE_PATTERNS.Name = "TP_FILE_PATTERNS"
             TP_FILE_PATTERNS.RowCount = 1
             TP_FILE_PATTERNS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
             TP_FILE_PATTERNS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 29.0!))
-            TP_FILE_PATTERNS.Size = New System.Drawing.Size(568, 30)
-            TP_FILE_PATTERNS.TabIndex = 8
+            TP_FILE_PATTERNS.Size = New System.Drawing.Size(574, 30)
+            TP_FILE_PATTERNS.TabIndex = 2
             '
             'CH_FILE_DATE
             '
@@ -387,7 +411,7 @@
             Me.CH_FILE_DATE.Dock = System.Windows.Forms.DockStyle.Fill
             Me.CH_FILE_DATE.Location = New System.Drawing.Point(4, 4)
             Me.CH_FILE_DATE.Name = "CH_FILE_DATE"
-            Me.CH_FILE_DATE.Size = New System.Drawing.Size(106, 22)
+            Me.CH_FILE_DATE.Size = New System.Drawing.Size(107, 22)
             Me.CH_FILE_DATE.TabIndex = 0
             Me.CH_FILE_DATE.Text = "Date"
             Me.CH_FILE_DATE.UseVisualStyleBackColor = True
@@ -396,9 +420,9 @@
             '
             Me.CH_FILE_TIME.AutoSize = True
             Me.CH_FILE_TIME.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_FILE_TIME.Location = New System.Drawing.Point(117, 4)
+            Me.CH_FILE_TIME.Location = New System.Drawing.Point(118, 4)
             Me.CH_FILE_TIME.Name = "CH_FILE_TIME"
-            Me.CH_FILE_TIME.Size = New System.Drawing.Size(106, 22)
+            Me.CH_FILE_TIME.Size = New System.Drawing.Size(107, 22)
             Me.CH_FILE_TIME.TabIndex = 1
             Me.CH_FILE_TIME.Text = "Time"
             Me.CH_FILE_TIME.UseVisualStyleBackColor = True
@@ -407,9 +431,9 @@
             '
             LBL_DATE_POS.AutoSize = True
             LBL_DATE_POS.Dock = System.Windows.Forms.DockStyle.Fill
-            LBL_DATE_POS.Location = New System.Drawing.Point(230, 1)
+            LBL_DATE_POS.Location = New System.Drawing.Point(232, 1)
             LBL_DATE_POS.Name = "LBL_DATE_POS"
-            LBL_DATE_POS.Size = New System.Drawing.Size(106, 28)
+            LBL_DATE_POS.Size = New System.Drawing.Size(107, 28)
             LBL_DATE_POS.TabIndex = 2
             LBL_DATE_POS.Text = "Date position:"
             LBL_DATE_POS.TextAlign = System.Drawing.ContentAlignment.MiddleRight
@@ -418,9 +442,9 @@
             '
             Me.OPT_FILE_DATE_START.AutoSize = True
             Me.OPT_FILE_DATE_START.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.OPT_FILE_DATE_START.Location = New System.Drawing.Point(343, 4)
+            Me.OPT_FILE_DATE_START.Location = New System.Drawing.Point(346, 4)
             Me.OPT_FILE_DATE_START.Name = "OPT_FILE_DATE_START"
-            Me.OPT_FILE_DATE_START.Size = New System.Drawing.Size(106, 22)
+            Me.OPT_FILE_DATE_START.Size = New System.Drawing.Size(107, 22)
             Me.OPT_FILE_DATE_START.TabIndex = 3
             Me.OPT_FILE_DATE_START.TabStop = True
             Me.OPT_FILE_DATE_START.Text = "Start"
@@ -430,115 +454,25 @@
             '
             Me.OPT_FILE_DATE_END.AutoSize = True
             Me.OPT_FILE_DATE_END.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.OPT_FILE_DATE_END.Location = New System.Drawing.Point(456, 4)
+            Me.OPT_FILE_DATE_END.Location = New System.Drawing.Point(460, 4)
             Me.OPT_FILE_DATE_END.Name = "OPT_FILE_DATE_END"
-            Me.OPT_FILE_DATE_END.Size = New System.Drawing.Size(108, 22)
+            Me.OPT_FILE_DATE_END.Size = New System.Drawing.Size(110, 22)
             Me.OPT_FILE_DATE_END.TabIndex = 4
             Me.OPT_FILE_DATE_END.TabStop = True
             Me.OPT_FILE_DATE_END.Text = "End"
             Me.OPT_FILE_DATE_END.UseVisualStyleBackColor = True
             '
-            'CH_EXIT_CONFIRM
-            '
-            Me.CH_EXIT_CONFIRM.AutoSize = True
-            Me.CH_EXIT_CONFIRM.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_EXIT_CONFIRM.Location = New System.Drawing.Point(4, 266)
-            Me.CH_EXIT_CONFIRM.Name = "CH_EXIT_CONFIRM"
-            Me.CH_EXIT_CONFIRM.Size = New System.Drawing.Size(562, 19)
-            Me.CH_EXIT_CONFIRM.TabIndex = 9
-            Me.CH_EXIT_CONFIRM.Text = "Exit confirm"
-            Me.CH_EXIT_CONFIRM.UseVisualStyleBackColor = True
-            '
-            'CH_CLOSE_TO_TRAY
-            '
-            Me.CH_CLOSE_TO_TRAY.AutoSize = True
-            Me.CH_CLOSE_TO_TRAY.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_CLOSE_TO_TRAY.Location = New System.Drawing.Point(4, 292)
-            Me.CH_CLOSE_TO_TRAY.Name = "CH_CLOSE_TO_TRAY"
-            Me.CH_CLOSE_TO_TRAY.Size = New System.Drawing.Size(562, 19)
-            Me.CH_CLOSE_TO_TRAY.TabIndex = 10
-            Me.CH_CLOSE_TO_TRAY.Text = "Close to tray"
-            Me.CH_CLOSE_TO_TRAY.UseVisualStyleBackColor = True
-            '
-            'CH_SHOW_NOTIFY
-            '
-            Me.CH_SHOW_NOTIFY.AutoSize = True
-            Me.CH_SHOW_NOTIFY.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_SHOW_NOTIFY.Location = New System.Drawing.Point(4, 318)
-            Me.CH_SHOW_NOTIFY.Name = "CH_SHOW_NOTIFY"
-            Me.CH_SHOW_NOTIFY.Size = New System.Drawing.Size(562, 19)
-            Me.CH_SHOW_NOTIFY.TabIndex = 11
-            Me.CH_SHOW_NOTIFY.Text = "Show notifications"
-            Me.CH_SHOW_NOTIFY.UseVisualStyleBackColor = True
-            '
             'CH_FAST_LOAD
             '
             Me.CH_FAST_LOAD.AutoSize = True
             Me.CH_FAST_LOAD.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_FAST_LOAD.Location = New System.Drawing.Point(4, 344)
+            Me.CH_FAST_LOAD.Location = New System.Drawing.Point(4, 82)
             Me.CH_FAST_LOAD.Name = "CH_FAST_LOAD"
-            Me.CH_FAST_LOAD.Size = New System.Drawing.Size(562, 19)
-            Me.CH_FAST_LOAD.TabIndex = 12
+            Me.CH_FAST_LOAD.Size = New System.Drawing.Size(568, 19)
+            Me.CH_FAST_LOAD.TabIndex = 3
             Me.CH_FAST_LOAD.Text = "Fast profiles loading"
             TT_MAIN.SetToolTip(Me.CH_FAST_LOAD, "Fast loading of profiles in the main window")
             Me.CH_FAST_LOAD.UseVisualStyleBackColor = True
-            '
-            'TXT_FOLDER_CMD
-            '
-            Me.TXT_FOLDER_CMD.AutoShowClearButton = True
-            ActionButton7.BackgroundImage = CType(resources.GetObject("ActionButton7.BackgroundImage"), System.Drawing.Image)
-            ActionButton7.Enabled = False
-            ActionButton7.Index = 0
-            ActionButton7.Name = "BTT_CLEAR"
-            ActionButton7.Visible = False
-            Me.TXT_FOLDER_CMD.Buttons.Add(ActionButton7)
-            Me.TXT_FOLDER_CMD.CaptionMode = PersonalUtilities.Forms.Controls.Base.ICaptionControl.Modes.CheckBox
-            Me.TXT_FOLDER_CMD.CaptionText = "Folder cmd"
-            Me.TXT_FOLDER_CMD.CaptionToolTipEnabled = True
-            Me.TXT_FOLDER_CMD.CaptionToolTipText = "The command to open a folder."
-            Me.TXT_FOLDER_CMD.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_FOLDER_CMD.LeaveDefaultButtons = True
-            Me.TXT_FOLDER_CMD.Location = New System.Drawing.Point(4, 370)
-            Me.TXT_FOLDER_CMD.Name = "TXT_FOLDER_CMD"
-            Me.TXT_FOLDER_CMD.PlaceholderEnabled = True
-            Me.TXT_FOLDER_CMD.PlaceholderText = "MyCommand /arg {0}"
-            Me.TXT_FOLDER_CMD.Size = New System.Drawing.Size(562, 22)
-            Me.TXT_FOLDER_CMD.TabIndex = 13
-            '
-            'CH_RECYCLE_DEL
-            '
-            Me.CH_RECYCLE_DEL.AutoSize = True
-            Me.CH_RECYCLE_DEL.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_RECYCLE_DEL.Location = New System.Drawing.Point(4, 399)
-            Me.CH_RECYCLE_DEL.Name = "CH_RECYCLE_DEL"
-            Me.CH_RECYCLE_DEL.Size = New System.Drawing.Size(562, 19)
-            Me.CH_RECYCLE_DEL.TabIndex = 14
-            Me.CH_RECYCLE_DEL.Text = "Delete data to recycle bin"
-            Me.CH_RECYCLE_DEL.UseVisualStyleBackColor = True
-            '
-            'TXT_SCRIPT
-            '
-            ActionButton8.BackgroundImage = CType(resources.GetObject("ActionButton8.BackgroundImage"), System.Drawing.Image)
-            ActionButton8.Index = 0
-            ActionButton8.Name = "BTT_OPEN"
-            ActionButton9.BackgroundImage = CType(resources.GetObject("ActionButton9.BackgroundImage"), System.Drawing.Image)
-            ActionButton9.Index = 1
-            ActionButton9.Name = "BTT_CLEAR"
-            Me.TXT_SCRIPT.Buttons.Add(ActionButton8)
-            Me.TXT_SCRIPT.Buttons.Add(ActionButton9)
-            Me.TXT_SCRIPT.CaptionMode = PersonalUtilities.Forms.Controls.Base.ICaptionControl.Modes.CheckBox
-            Me.TXT_SCRIPT.CaptionText = "Script"
-            Me.TXT_SCRIPT.CaptionToolTipEnabled = True
-            Me.TXT_SCRIPT.CaptionToolTipText = "Default script. If the checkbox is checked, newly created users will be created u" &
-    "sing the script option."
-            Me.TXT_SCRIPT.ChangeControlsEnableOnCheckedChange = False
-            Me.TXT_SCRIPT.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_SCRIPT.Location = New System.Drawing.Point(4, 425)
-            Me.TXT_SCRIPT.Name = "TXT_SCRIPT"
-            Me.TXT_SCRIPT.PlaceholderEnabled = True
-            Me.TXT_SCRIPT.PlaceholderText = "Enter script path here..."
-            Me.TXT_SCRIPT.Size = New System.Drawing.Size(562, 22)
-            Me.TXT_SCRIPT.TabIndex = 15
             '
             'CH_COPY_CHANNEL_USER_IMAGE
             '
@@ -629,10 +563,10 @@
             '
             Me.CH_UDESCR_UP.AutoSize = True
             Me.CH_UDESCR_UP.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_UDESCR_UP.Location = New System.Drawing.Point(4, 108)
+            Me.CH_UDESCR_UP.Location = New System.Drawing.Point(4, 4)
             Me.CH_UDESCR_UP.Name = "CH_UDESCR_UP"
-            Me.CH_UDESCR_UP.Size = New System.Drawing.Size(562, 19)
-            Me.CH_UDESCR_UP.TabIndex = 4
+            Me.CH_UDESCR_UP.Size = New System.Drawing.Size(568, 19)
+            Me.CH_UDESCR_UP.TabIndex = 0
             Me.CH_UDESCR_UP.Text = "Update user description every time"
             TT_MAIN.SetToolTip(Me.CH_UDESCR_UP, "If the user description does not contain a new user description, then the new one" &
         " will be added via a new line")
@@ -689,7 +623,7 @@
             TAB_BASIS.Location = New System.Drawing.Point(4, 22)
             TAB_BASIS.Name = "TAB_BASIS"
             TAB_BASIS.Padding = New System.Windows.Forms.Padding(3)
-            TAB_BASIS.Size = New System.Drawing.Size(576, 481)
+            TAB_BASIS.Size = New System.Drawing.Size(576, 259)
             TAB_BASIS.TabIndex = 0
             TAB_BASIS.Text = "Basis"
             '
@@ -699,7 +633,7 @@
             TAB_DEFAULTS.Location = New System.Drawing.Point(4, 22)
             TAB_DEFAULTS.Name = "TAB_DEFAULTS"
             TAB_DEFAULTS.Padding = New System.Windows.Forms.Padding(3)
-            TAB_DEFAULTS.Size = New System.Drawing.Size(576, 481)
+            TAB_DEFAULTS.Size = New System.Drawing.Size(576, 335)
             TAB_DEFAULTS.TabIndex = 1
             TAB_DEFAULTS.Text = "Defaults"
             '
@@ -712,18 +646,17 @@
             TP_DEFS.Controls.Add(Me.CH_DOWN_VIDEOS, 0, 3)
             TP_DEFS.Controls.Add(Me.CH_DOWN_IMAGES, 0, 2)
             TP_DEFS.Controls.Add(Me.CH_DEF_TEMP, 0, 1)
-            TP_DEFS.Controls.Add(Me.CH_UDESCR_UP, 0, 4)
             TP_DEFS.Dock = System.Windows.Forms.DockStyle.Fill
             TP_DEFS.Location = New System.Drawing.Point(3, 3)
             TP_DEFS.Name = "TP_DEFS"
-            TP_DEFS.RowCount = 6
-            TP_DEFS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            TP_DEFS.RowCount = 5
             TP_DEFS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_DEFS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_DEFS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_DEFS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_DEFS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_DEFS.Size = New System.Drawing.Size(570, 475)
+            TP_DEFS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
+            TP_DEFS.Size = New System.Drawing.Size(570, 329)
             TP_DEFS.TabIndex = 0
             '
             'TAB_DEFS_CHANNELS
@@ -732,7 +665,7 @@
             TAB_DEFS_CHANNELS.Location = New System.Drawing.Point(4, 22)
             TAB_DEFS_CHANNELS.Name = "TAB_DEFS_CHANNELS"
             TAB_DEFS_CHANNELS.Padding = New System.Windows.Forms.Padding(3)
-            TAB_DEFS_CHANNELS.Size = New System.Drawing.Size(576, 481)
+            TAB_DEFS_CHANNELS.Size = New System.Drawing.Size(576, 335)
             TAB_DEFS_CHANNELS.TabIndex = 4
             TAB_DEFS_CHANNELS.Text = "Channels"
             '
@@ -756,7 +689,7 @@
             TP_CHANNELS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_CHANNELS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_CHANNELS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_CHANNELS.Size = New System.Drawing.Size(570, 475)
+            TP_CHANNELS.Size = New System.Drawing.Size(570, 329)
             TP_CHANNELS.TabIndex = 0
             '
             'TXT_CHANNEL_USER_POST_LIMIT
@@ -779,16 +712,173 @@
             Me.TXT_CHANNEL_USER_POST_LIMIT.Text = "1"
             Me.TXT_CHANNEL_USER_POST_LIMIT.TextBoxTextAlign = System.Windows.Forms.HorizontalAlignment.Center
             '
+            'TAB_BEHAVIOR
+            '
+            TAB_BEHAVIOR.Controls.Add(TP_BEHAVIOR)
+            TAB_BEHAVIOR.Location = New System.Drawing.Point(4, 22)
+            TAB_BEHAVIOR.Name = "TAB_BEHAVIOR"
+            TAB_BEHAVIOR.Size = New System.Drawing.Size(576, 335)
+            TAB_BEHAVIOR.TabIndex = 5
+            TAB_BEHAVIOR.Text = "Behavior"
+            '
+            'TP_BEHAVIOR
+            '
+            TP_BEHAVIOR.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
+            TP_BEHAVIOR.ColumnCount = 1
+            TP_BEHAVIOR.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            TP_BEHAVIOR.Controls.Add(Me.TXT_FOLDER_CMD, 0, 5)
+            TP_BEHAVIOR.Controls.Add(Me.CH_EXIT_CONFIRM, 0, 0)
+            TP_BEHAVIOR.Controls.Add(Me.CH_CLOSE_TO_TRAY, 0, 1)
+            TP_BEHAVIOR.Controls.Add(Me.CH_SHOW_NOTIFY, 0, 2)
+            TP_BEHAVIOR.Controls.Add(Me.CH_FAST_LOAD, 0, 3)
+            TP_BEHAVIOR.Controls.Add(Me.CH_RECYCLE_DEL, 0, 4)
+            TP_BEHAVIOR.Dock = System.Windows.Forms.DockStyle.Fill
+            TP_BEHAVIOR.Location = New System.Drawing.Point(0, 0)
+            TP_BEHAVIOR.Name = "TP_BEHAVIOR"
+            TP_BEHAVIOR.RowCount = 7
+            TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
+            TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
+            TP_BEHAVIOR.Size = New System.Drawing.Size(576, 335)
+            TP_BEHAVIOR.TabIndex = 0
+            '
+            'TXT_FOLDER_CMD
+            '
+            Me.TXT_FOLDER_CMD.AutoShowClearButton = True
+            ActionButton7.BackgroundImage = CType(resources.GetObject("ActionButton7.BackgroundImage"), System.Drawing.Image)
+            ActionButton7.Enabled = False
+            ActionButton7.Index = 0
+            ActionButton7.Name = "BTT_CLEAR"
+            ActionButton7.Visible = False
+            Me.TXT_FOLDER_CMD.Buttons.Add(ActionButton7)
+            Me.TXT_FOLDER_CMD.CaptionMode = PersonalUtilities.Forms.Controls.Base.ICaptionControl.Modes.CheckBox
+            Me.TXT_FOLDER_CMD.CaptionText = "Folder cmd"
+            Me.TXT_FOLDER_CMD.CaptionToolTipEnabled = True
+            Me.TXT_FOLDER_CMD.CaptionToolTipText = "The command to open a folder."
+            Me.TXT_FOLDER_CMD.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.TXT_FOLDER_CMD.LeaveDefaultButtons = True
+            Me.TXT_FOLDER_CMD.Location = New System.Drawing.Point(4, 134)
+            Me.TXT_FOLDER_CMD.Name = "TXT_FOLDER_CMD"
+            Me.TXT_FOLDER_CMD.PlaceholderEnabled = True
+            Me.TXT_FOLDER_CMD.PlaceholderText = "MyCommand /arg {0}"
+            Me.TXT_FOLDER_CMD.Size = New System.Drawing.Size(568, 22)
+            Me.TXT_FOLDER_CMD.TabIndex = 5
+            '
+            'CH_EXIT_CONFIRM
+            '
+            Me.CH_EXIT_CONFIRM.AutoSize = True
+            Me.CH_EXIT_CONFIRM.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_EXIT_CONFIRM.Location = New System.Drawing.Point(4, 4)
+            Me.CH_EXIT_CONFIRM.Name = "CH_EXIT_CONFIRM"
+            Me.CH_EXIT_CONFIRM.Size = New System.Drawing.Size(568, 19)
+            Me.CH_EXIT_CONFIRM.TabIndex = 0
+            Me.CH_EXIT_CONFIRM.Text = "Exit confirm"
+            Me.CH_EXIT_CONFIRM.UseVisualStyleBackColor = True
+            '
+            'CH_CLOSE_TO_TRAY
+            '
+            Me.CH_CLOSE_TO_TRAY.AutoSize = True
+            Me.CH_CLOSE_TO_TRAY.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_CLOSE_TO_TRAY.Location = New System.Drawing.Point(4, 30)
+            Me.CH_CLOSE_TO_TRAY.Name = "CH_CLOSE_TO_TRAY"
+            Me.CH_CLOSE_TO_TRAY.Size = New System.Drawing.Size(568, 19)
+            Me.CH_CLOSE_TO_TRAY.TabIndex = 1
+            Me.CH_CLOSE_TO_TRAY.Text = "Close to tray"
+            Me.CH_CLOSE_TO_TRAY.UseVisualStyleBackColor = True
+            '
+            'CH_SHOW_NOTIFY
+            '
+            Me.CH_SHOW_NOTIFY.AutoSize = True
+            Me.CH_SHOW_NOTIFY.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_SHOW_NOTIFY.Location = New System.Drawing.Point(4, 56)
+            Me.CH_SHOW_NOTIFY.Name = "CH_SHOW_NOTIFY"
+            Me.CH_SHOW_NOTIFY.Size = New System.Drawing.Size(568, 19)
+            Me.CH_SHOW_NOTIFY.TabIndex = 2
+            Me.CH_SHOW_NOTIFY.Text = "Show notifications"
+            Me.CH_SHOW_NOTIFY.UseVisualStyleBackColor = True
+            '
+            'CH_RECYCLE_DEL
+            '
+            Me.CH_RECYCLE_DEL.AutoSize = True
+            Me.CH_RECYCLE_DEL.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_RECYCLE_DEL.Location = New System.Drawing.Point(4, 108)
+            Me.CH_RECYCLE_DEL.Name = "CH_RECYCLE_DEL"
+            Me.CH_RECYCLE_DEL.Size = New System.Drawing.Size(568, 19)
+            Me.CH_RECYCLE_DEL.TabIndex = 4
+            Me.CH_RECYCLE_DEL.Text = "Delete data to recycle bin"
+            Me.CH_RECYCLE_DEL.UseVisualStyleBackColor = True
+            '
+            'TAB_DOWN
+            '
+            TAB_DOWN.Controls.Add(TP_DOWNLOADING)
+            TAB_DOWN.Location = New System.Drawing.Point(4, 22)
+            TAB_DOWN.Name = "TAB_DOWN"
+            TAB_DOWN.Size = New System.Drawing.Size(576, 335)
+            TAB_DOWN.TabIndex = 6
+            TAB_DOWN.Text = "Downloading"
+            '
+            'TP_DOWNLOADING
+            '
+            TP_DOWNLOADING.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
+            TP_DOWNLOADING.ColumnCount = 1
+            TP_DOWNLOADING.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            TP_DOWNLOADING.Controls.Add(TP_FILE_NAME, 0, 1)
+            TP_DOWNLOADING.Controls.Add(TP_FILE_PATTERNS, 0, 2)
+            TP_DOWNLOADING.Controls.Add(Me.TXT_SCRIPT, 0, 3)
+            TP_DOWNLOADING.Controls.Add(Me.CH_UDESCR_UP, 0, 0)
+            TP_DOWNLOADING.Dock = System.Windows.Forms.DockStyle.Fill
+            TP_DOWNLOADING.Location = New System.Drawing.Point(0, 0)
+            TP_DOWNLOADING.Name = "TP_DOWNLOADING"
+            TP_DOWNLOADING.RowCount = 5
+            TP_DOWNLOADING.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            TP_DOWNLOADING.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 30.0!))
+            TP_DOWNLOADING.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 30.0!))
+            TP_DOWNLOADING.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
+            TP_DOWNLOADING.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            TP_DOWNLOADING.Size = New System.Drawing.Size(576, 335)
+            TP_DOWNLOADING.TabIndex = 0
+            '
+            'TXT_SCRIPT
+            '
+            ActionButton8.BackgroundImage = CType(resources.GetObject("ActionButton8.BackgroundImage"), System.Drawing.Image)
+            ActionButton8.Index = 0
+            ActionButton8.Name = "BTT_OPEN"
+            ActionButton9.BackgroundImage = CType(resources.GetObject("ActionButton9.BackgroundImage"), System.Drawing.Image)
+            ActionButton9.Index = 1
+            ActionButton9.Name = "BTT_CLEAR"
+            Me.TXT_SCRIPT.Buttons.Add(ActionButton8)
+            Me.TXT_SCRIPT.Buttons.Add(ActionButton9)
+            Me.TXT_SCRIPT.CaptionMode = PersonalUtilities.Forms.Controls.Base.ICaptionControl.Modes.CheckBox
+            Me.TXT_SCRIPT.CaptionText = "Script"
+            Me.TXT_SCRIPT.CaptionToolTipEnabled = True
+            Me.TXT_SCRIPT.CaptionToolTipText = "Default script. If the checkbox is checked, newly created users will be created u" &
+    "sing the script option."
+            Me.TXT_SCRIPT.ChangeControlsEnableOnCheckedChange = False
+            Me.TXT_SCRIPT.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.TXT_SCRIPT.Location = New System.Drawing.Point(4, 92)
+            Me.TXT_SCRIPT.Name = "TXT_SCRIPT"
+            Me.TXT_SCRIPT.PlaceholderEnabled = True
+            Me.TXT_SCRIPT.PlaceholderText = "Enter script path here..."
+            Me.TXT_SCRIPT.Size = New System.Drawing.Size(568, 22)
+            Me.TXT_SCRIPT.TabIndex = 3
+            '
             'TAB_MAIN
             '
             Me.TAB_MAIN.Controls.Add(TAB_BASIS)
+            Me.TAB_MAIN.Controls.Add(TAB_BEHAVIOR)
             Me.TAB_MAIN.Controls.Add(TAB_DEFAULTS)
+            Me.TAB_MAIN.Controls.Add(TAB_DOWN)
             Me.TAB_MAIN.Controls.Add(TAB_DEFS_CHANNELS)
             Me.TAB_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
             Me.TAB_MAIN.Location = New System.Drawing.Point(0, 0)
             Me.TAB_MAIN.Name = "TAB_MAIN"
             Me.TAB_MAIN.SelectedIndex = 0
-            Me.TAB_MAIN.Size = New System.Drawing.Size(584, 507)
+            Me.TAB_MAIN.Size = New System.Drawing.Size(584, 285)
             Me.TAB_MAIN.TabIndex = 1
             '
             'CONTAINER_MAIN
@@ -797,13 +887,13 @@
             'CONTAINER_MAIN.ContentPanel
             '
             Me.CONTAINER_MAIN.ContentPanel.Controls.Add(Me.TAB_MAIN)
-            Me.CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(584, 507)
+            Me.CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(584, 285)
             Me.CONTAINER_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
             Me.CONTAINER_MAIN.LeftToolStripPanelVisible = False
             Me.CONTAINER_MAIN.Location = New System.Drawing.Point(0, 0)
             Me.CONTAINER_MAIN.Name = "CONTAINER_MAIN"
             Me.CONTAINER_MAIN.RightToolStripPanelVisible = False
-            Me.CONTAINER_MAIN.Size = New System.Drawing.Size(584, 507)
+            Me.CONTAINER_MAIN.Size = New System.Drawing.Size(584, 310)
             Me.CONTAINER_MAIN.TabIndex = 0
             Me.CONTAINER_MAIN.TopToolStripPanelVisible = False
             '
@@ -811,15 +901,15 @@
             '
             Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
             Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-            Me.ClientSize = New System.Drawing.Size(584, 507)
+            Me.ClientSize = New System.Drawing.Size(584, 310)
             Me.Controls.Add(Me.CONTAINER_MAIN)
             Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle
             Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
             Me.KeyPreview = True
             Me.MaximizeBox = False
-            Me.MaximumSize = New System.Drawing.Size(600, 546)
+            Me.MaximumSize = New System.Drawing.Size(600, 349)
             Me.MinimizeBox = False
-            Me.MinimumSize = New System.Drawing.Size(600, 546)
+            Me.MinimumSize = New System.Drawing.Size(600, 349)
             Me.Name = "GlobalSettingsForm"
             Me.ShowInTaskbar = False
             Me.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide
@@ -838,8 +928,6 @@
             TP_FILE_NAME.PerformLayout()
             TP_FILE_PATTERNS.ResumeLayout(False)
             TP_FILE_PATTERNS.PerformLayout()
-            CType(Me.TXT_FOLDER_CMD, System.ComponentModel.ISupportInitialize).EndInit()
-            CType(Me.TXT_SCRIPT, System.ComponentModel.ISupportInitialize).EndInit()
             TP_CHANNELS_IMGS.ResumeLayout(False)
             CType(Me.TXT_CHANNELS_ROWS, System.ComponentModel.ISupportInitialize).EndInit()
             CType(Me.TXT_CHANNELS_COLUMNS, System.ComponentModel.ISupportInitialize).EndInit()
@@ -851,6 +939,14 @@
             TP_CHANNELS.ResumeLayout(False)
             TP_CHANNELS.PerformLayout()
             CType(Me.TXT_CHANNEL_USER_POST_LIMIT, System.ComponentModel.ISupportInitialize).EndInit()
+            TAB_BEHAVIOR.ResumeLayout(False)
+            TP_BEHAVIOR.ResumeLayout(False)
+            TP_BEHAVIOR.PerformLayout()
+            CType(Me.TXT_FOLDER_CMD, System.ComponentModel.ISupportInitialize).EndInit()
+            TAB_DOWN.ResumeLayout(False)
+            TP_DOWNLOADING.ResumeLayout(False)
+            TP_DOWNLOADING.PerformLayout()
+            CType(Me.TXT_SCRIPT, System.ComponentModel.ISupportInitialize).EndInit()
             Me.TAB_MAIN.ResumeLayout(False)
             Me.CONTAINER_MAIN.ContentPanel.ResumeLayout(False)
             Me.CONTAINER_MAIN.ResumeLayout(False)
@@ -894,5 +990,7 @@
         Private WithEvents TXT_FOLDER_CMD As PersonalUtilities.Forms.Controls.TextBoxExtended
         Private WithEvents CH_RECYCLE_DEL As CheckBox
         Private WithEvents TXT_SCRIPT As PersonalUtilities.Forms.Controls.TextBoxExtended
+        Private WithEvents CH_SHOW_GROUPS As CheckBox
+        Private WithEvents CH_USERS_GROUPING As CheckBox
     End Class
 End Namespace

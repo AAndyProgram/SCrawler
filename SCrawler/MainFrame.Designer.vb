@@ -28,7 +28,6 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Dim MENU_VIEW_SEP_3 As System.Windows.Forms.ToolStripSeparator
         Dim MENU_VIEW_SEP_2 As System.Windows.Forms.ToolStripSeparator
         Dim TRAY_SEP_1 As System.Windows.Forms.ToolStripSeparator
-        Dim MENU_VIEW_SEP_4 As System.Windows.Forms.ToolStripSeparator
         Dim MENU_DOWN_ALL_SEP_1 As System.Windows.Forms.ToolStripSeparator
         Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(MainFrame))
         Me.MENU_SETTINGS = New System.Windows.Forms.ToolStripDropDownButton()
@@ -64,7 +63,8 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_SHOW_SUSPENDED = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_SHOW_LABELS = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_SHOW_NO_LABELS = New System.Windows.Forms.ToolStripMenuItem()
-        Me.BTT_SELECT_LABELS = New System.Windows.Forms.ToolStripMenuItem()
+        Me.BTT_SHOW_EXCLUDED_LABELS = New System.Windows.Forms.ToolStripMenuItem()
+        Me.BTT_SHOW_EXCLUDED_LABELS_IGNORE = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_SHOW_LIMIT_DATES = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_LOG = New System.Windows.Forms.ToolStripButton()
         Me.BTT_VERSION_INFO = New System.Windows.Forms.ToolStripButton()
@@ -98,6 +98,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.TRAY_CONTEXT = New System.Windows.Forms.ContextMenuStrip(Me.components)
         Me.BTT_TRAY_SHOW_HIDE = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_TRAY_CLOSE = New System.Windows.Forms.ToolStripMenuItem()
+        Me.BTT_SHOW_SHOW_GROUPS = New System.Windows.Forms.ToolStripMenuItem()
         SEP_1 = New System.Windows.Forms.ToolStripSeparator()
         SEP_2 = New System.Windows.Forms.ToolStripSeparator()
         CONTEXT_SEP_1 = New System.Windows.Forms.ToolStripSeparator()
@@ -112,7 +113,6 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         MENU_VIEW_SEP_3 = New System.Windows.Forms.ToolStripSeparator()
         MENU_VIEW_SEP_2 = New System.Windows.Forms.ToolStripSeparator()
         TRAY_SEP_1 = New System.Windows.Forms.ToolStripSeparator()
-        MENU_VIEW_SEP_4 = New System.Windows.Forms.ToolStripSeparator()
         MENU_DOWN_ALL_SEP_1 = New System.Windows.Forms.ToolStripSeparator()
         Me.Toolbar_TOP.SuspendLayout()
         Me.Toolbar_BOTTOM.SuspendLayout()
@@ -173,27 +173,22 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         'MENU_VIEW_SEP_1
         '
         MENU_VIEW_SEP_1.Name = "MENU_VIEW_SEP_1"
-        MENU_VIEW_SEP_1.Size = New System.Drawing.Size(141, 6)
+        MENU_VIEW_SEP_1.Size = New System.Drawing.Size(228, 6)
         '
         'MENU_VIEW_SEP_3
         '
         MENU_VIEW_SEP_3.Name = "MENU_VIEW_SEP_3"
-        MENU_VIEW_SEP_3.Size = New System.Drawing.Size(141, 6)
+        MENU_VIEW_SEP_3.Size = New System.Drawing.Size(228, 6)
         '
         'MENU_VIEW_SEP_2
         '
         MENU_VIEW_SEP_2.Name = "MENU_VIEW_SEP_2"
-        MENU_VIEW_SEP_2.Size = New System.Drawing.Size(141, 6)
+        MENU_VIEW_SEP_2.Size = New System.Drawing.Size(228, 6)
         '
         'TRAY_SEP_1
         '
         TRAY_SEP_1.Name = "TRAY_SEP_1"
         TRAY_SEP_1.Size = New System.Drawing.Size(130, 6)
-        '
-        'MENU_VIEW_SEP_4
-        '
-        MENU_VIEW_SEP_4.Name = "MENU_VIEW_SEP_4"
-        MENU_VIEW_SEP_4.Size = New System.Drawing.Size(141, 6)
         '
         'MENU_DOWN_ALL_SEP_1
         '
@@ -369,7 +364,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         '
         Me.MENU_VIEW.AutoToolTip = False
         Me.MENU_VIEW.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text
-        Me.MENU_VIEW.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_VIEW_LARGE, Me.BTT_VIEW_SMALL, Me.BTT_VIEW_LIST, Me.BTT_VIEW_DETAILS, MENU_VIEW_SEP_1, Me.BTT_SITE_ALL, Me.BTT_SITE_SPECIFIC, MENU_VIEW_SEP_2, Me.BTT_SHOW_ALL, Me.BTT_SHOW_REGULAR, Me.BTT_SHOW_TEMP, Me.BTT_SHOW_FAV, Me.BTT_SHOW_DELETED, Me.BTT_SHOW_SUSPENDED, Me.BTT_SHOW_LABELS, Me.BTT_SHOW_NO_LABELS, MENU_VIEW_SEP_3, Me.BTT_SELECT_LABELS, MENU_VIEW_SEP_4, Me.BTT_SHOW_LIMIT_DATES})
+        Me.MENU_VIEW.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_VIEW_LARGE, Me.BTT_VIEW_SMALL, Me.BTT_VIEW_LIST, Me.BTT_VIEW_DETAILS, MENU_VIEW_SEP_1, Me.BTT_SITE_ALL, Me.BTT_SITE_SPECIFIC, MENU_VIEW_SEP_2, Me.BTT_SHOW_ALL, Me.BTT_SHOW_REGULAR, Me.BTT_SHOW_TEMP, Me.BTT_SHOW_FAV, Me.BTT_SHOW_DELETED, Me.BTT_SHOW_SUSPENDED, Me.BTT_SHOW_LABELS, Me.BTT_SHOW_NO_LABELS, Me.BTT_SHOW_EXCLUDED_LABELS, Me.BTT_SHOW_EXCLUDED_LABELS_IGNORE, Me.BTT_SHOW_SHOW_GROUPS, MENU_VIEW_SEP_3, Me.BTT_SHOW_LIMIT_DATES})
         Me.MENU_VIEW.Image = CType(resources.GetObject("MENU_VIEW.Image"), System.Drawing.Image)
         Me.MENU_VIEW.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.MENU_VIEW.Name = "MENU_VIEW"
@@ -379,61 +374,61 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         'BTT_VIEW_LARGE
         '
         Me.BTT_VIEW_LARGE.Name = "BTT_VIEW_LARGE"
-        Me.BTT_VIEW_LARGE.Size = New System.Drawing.Size(144, 22)
+        Me.BTT_VIEW_LARGE.Size = New System.Drawing.Size(231, 22)
         Me.BTT_VIEW_LARGE.Text = "Large images"
         '
         'BTT_VIEW_SMALL
         '
         Me.BTT_VIEW_SMALL.Name = "BTT_VIEW_SMALL"
-        Me.BTT_VIEW_SMALL.Size = New System.Drawing.Size(144, 22)
+        Me.BTT_VIEW_SMALL.Size = New System.Drawing.Size(231, 22)
         Me.BTT_VIEW_SMALL.Text = "Small images"
         '
         'BTT_VIEW_LIST
         '
         Me.BTT_VIEW_LIST.Name = "BTT_VIEW_LIST"
-        Me.BTT_VIEW_LIST.Size = New System.Drawing.Size(144, 22)
+        Me.BTT_VIEW_LIST.Size = New System.Drawing.Size(231, 22)
         Me.BTT_VIEW_LIST.Text = "List"
         '
         'BTT_VIEW_DETAILS
         '
         Me.BTT_VIEW_DETAILS.Name = "BTT_VIEW_DETAILS"
-        Me.BTT_VIEW_DETAILS.Size = New System.Drawing.Size(144, 22)
+        Me.BTT_VIEW_DETAILS.Size = New System.Drawing.Size(231, 22)
         Me.BTT_VIEW_DETAILS.Text = "Details"
         '
         'BTT_SITE_ALL
         '
         Me.BTT_SITE_ALL.Name = "BTT_SITE_ALL"
-        Me.BTT_SITE_ALL.Size = New System.Drawing.Size(144, 22)
+        Me.BTT_SITE_ALL.Size = New System.Drawing.Size(231, 22)
         Me.BTT_SITE_ALL.Text = "All"
         '
         'BTT_SITE_SPECIFIC
         '
         Me.BTT_SITE_SPECIFIC.Name = "BTT_SITE_SPECIFIC"
-        Me.BTT_SITE_SPECIFIC.Size = New System.Drawing.Size(144, 22)
+        Me.BTT_SITE_SPECIFIC.Size = New System.Drawing.Size(231, 22)
         Me.BTT_SITE_SPECIFIC.Text = "Specific sites"
         '
         'BTT_SHOW_ALL
         '
         Me.BTT_SHOW_ALL.Name = "BTT_SHOW_ALL"
-        Me.BTT_SHOW_ALL.Size = New System.Drawing.Size(144, 22)
+        Me.BTT_SHOW_ALL.Size = New System.Drawing.Size(231, 22)
         Me.BTT_SHOW_ALL.Text = "All"
         '
         'BTT_SHOW_REGULAR
         '
         Me.BTT_SHOW_REGULAR.Name = "BTT_SHOW_REGULAR"
-        Me.BTT_SHOW_REGULAR.Size = New System.Drawing.Size(144, 22)
+        Me.BTT_SHOW_REGULAR.Size = New System.Drawing.Size(231, 22)
         Me.BTT_SHOW_REGULAR.Text = "Regular"
         '
         'BTT_SHOW_TEMP
         '
         Me.BTT_SHOW_TEMP.Name = "BTT_SHOW_TEMP"
-        Me.BTT_SHOW_TEMP.Size = New System.Drawing.Size(144, 22)
+        Me.BTT_SHOW_TEMP.Size = New System.Drawing.Size(231, 22)
         Me.BTT_SHOW_TEMP.Text = "Temporary"
         '
         'BTT_SHOW_FAV
         '
         Me.BTT_SHOW_FAV.Name = "BTT_SHOW_FAV"
-        Me.BTT_SHOW_FAV.Size = New System.Drawing.Size(144, 22)
+        Me.BTT_SHOW_FAV.Size = New System.Drawing.Size(231, 22)
         Me.BTT_SHOW_FAV.Text = "Favorites"
         '
         'BTT_SHOW_DELETED
@@ -441,7 +436,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_SHOW_DELETED.BackColor = System.Drawing.Color.FromArgb(CType(CType(255, Byte), Integer), CType(CType(192, Byte), Integer), CType(CType(192, Byte), Integer))
         Me.BTT_SHOW_DELETED.ForeColor = System.Drawing.Color.Maroon
         Me.BTT_SHOW_DELETED.Name = "BTT_SHOW_DELETED"
-        Me.BTT_SHOW_DELETED.Size = New System.Drawing.Size(144, 22)
+        Me.BTT_SHOW_DELETED.Size = New System.Drawing.Size(231, 22)
         Me.BTT_SHOW_DELETED.Text = "Deleted"
         '
         'BTT_SHOW_SUSPENDED
@@ -449,32 +444,38 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_SHOW_SUSPENDED.BackColor = System.Drawing.Color.PapayaWhip
         Me.BTT_SHOW_SUSPENDED.ForeColor = System.Drawing.Color.SaddleBrown
         Me.BTT_SHOW_SUSPENDED.Name = "BTT_SHOW_SUSPENDED"
-        Me.BTT_SHOW_SUSPENDED.Size = New System.Drawing.Size(144, 22)
+        Me.BTT_SHOW_SUSPENDED.Size = New System.Drawing.Size(231, 22)
         Me.BTT_SHOW_SUSPENDED.Text = "Suspended"
         '
         'BTT_SHOW_LABELS
         '
         Me.BTT_SHOW_LABELS.Name = "BTT_SHOW_LABELS"
-        Me.BTT_SHOW_LABELS.Size = New System.Drawing.Size(144, 22)
+        Me.BTT_SHOW_LABELS.Size = New System.Drawing.Size(231, 22)
         Me.BTT_SHOW_LABELS.Text = "Labels"
         '
         'BTT_SHOW_NO_LABELS
         '
         Me.BTT_SHOW_NO_LABELS.Name = "BTT_SHOW_NO_LABELS"
-        Me.BTT_SHOW_NO_LABELS.Size = New System.Drawing.Size(144, 22)
+        Me.BTT_SHOW_NO_LABELS.Size = New System.Drawing.Size(231, 22)
         Me.BTT_SHOW_NO_LABELS.Text = "No labels"
         '
-        'BTT_SELECT_LABELS
+        'BTT_SHOW_EXCLUDED_LABELS
         '
-        Me.BTT_SELECT_LABELS.Name = "BTT_SELECT_LABELS"
-        Me.BTT_SELECT_LABELS.Size = New System.Drawing.Size(144, 22)
-        Me.BTT_SELECT_LABELS.Text = "Select labels"
+        Me.BTT_SHOW_EXCLUDED_LABELS.Name = "BTT_SHOW_EXCLUDED_LABELS"
+        Me.BTT_SHOW_EXCLUDED_LABELS.Size = New System.Drawing.Size(231, 22)
+        Me.BTT_SHOW_EXCLUDED_LABELS.Text = "Excluded labels"
+        '
+        'BTT_SHOW_EXCLUDED_LABELS_IGNORE
+        '
+        Me.BTT_SHOW_EXCLUDED_LABELS_IGNORE.Name = "BTT_SHOW_EXCLUDED_LABELS_IGNORE"
+        Me.BTT_SHOW_EXCLUDED_LABELS_IGNORE.Size = New System.Drawing.Size(231, 22)
+        Me.BTT_SHOW_EXCLUDED_LABELS_IGNORE.Text = "Ignore excluded labels"
         '
         'BTT_SHOW_LIMIT_DATES
         '
         Me.BTT_SHOW_LIMIT_DATES.AutoToolTip = True
         Me.BTT_SHOW_LIMIT_DATES.Name = "BTT_SHOW_LIMIT_DATES"
-        Me.BTT_SHOW_LIMIT_DATES.Size = New System.Drawing.Size(144, 22)
+        Me.BTT_SHOW_LIMIT_DATES.Size = New System.Drawing.Size(231, 22)
         Me.BTT_SHOW_LIMIT_DATES.Text = "Limit dates"
         Me.BTT_SHOW_LIMIT_DATES.ToolTipText = "Show profiles that haven't downloaded new data since date..."
         '
@@ -715,6 +716,12 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_TRAY_CLOSE.Size = New System.Drawing.Size(133, 22)
         Me.BTT_TRAY_CLOSE.Text = "Close"
         '
+        'BTT_SHOW_SHOW_GROUPS
+        '
+        Me.BTT_SHOW_SHOW_GROUPS.Name = "BTT_SHOW_SHOW_GROUPS"
+        Me.BTT_SHOW_SHOW_GROUPS.Size = New System.Drawing.Size(231, 22)
+        Me.BTT_SHOW_SHOW_GROUPS.Text = "Show groups instead of labels"
+        '
         'MainFrame
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
@@ -776,7 +783,6 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
     Private WithEvents BTT_SHOW_TEMP As ToolStripMenuItem
     Private WithEvents BTT_SHOW_FAV As ToolStripMenuItem
     Private WithEvents BTT_SHOW_LABELS As ToolStripMenuItem
-    Private WithEvents BTT_SELECT_LABELS As ToolStripMenuItem
     Private WithEvents BTT_SHOW_NO_LABELS As ToolStripMenuItem
     Private WithEvents BTT_EDIT_USER As ToolStripButton
     Private WithEvents BTT_CONTEXT_GROUPS As ToolStripMenuItem
@@ -805,4 +811,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
     Private WithEvents BTT_DOWN_ALL_FULL As ToolStripMenuItem
     Private WithEvents BTT_DOWN_SITE_FULL As ToolStripMenuItem
     Private WithEvents BTT_CONTEXT_SCRIPT As ToolStripMenuItem
+    Private WithEvents BTT_SHOW_EXCLUDED_LABELS As ToolStripMenuItem
+    Private WithEvents BTT_SHOW_EXCLUDED_LABELS_IGNORE As ToolStripMenuItem
+    Private WithEvents BTT_SHOW_SHOW_GROUPS As ToolStripMenuItem
 End Class

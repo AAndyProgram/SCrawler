@@ -150,7 +150,7 @@ Namespace Editors
                                 CH_DOWN_VIDEOS.Checked = .DownloadVideos
                                 TXT_SCRIPT.Checked = .ScriptUse
                                 TXT_SCRIPT.Text = .ScriptData
-                                TXT_DESCR.Text = .Description
+                                TXT_DESCR.Text = .Description.StringFormatLines
                                 UserLabels.ListAddList(.Labels)
                                 If UserLabels.ListExists Then TXT_LABELS.Text = UserLabels.ListToString
                             End With
@@ -377,6 +377,7 @@ CloseForm:
                             Dim UsersForCreate As New List(Of UserInfo)
                             Dim BannedUsers() As String = Nothing
                             Dim uu$
+                            Dim ulabels As List(Of String) = ListAddList(Nothing, UserLabels).ListAddValue(LabelsKeeper.NoParsedUser, LAP.NotContainsOnly)
                             Dim tmpUser As UserInfo
                             Dim s As SettingsHost = GetSiteByCheckers()
                             Dim sObj As ExchangeOptions
@@ -386,6 +387,8 @@ CloseForm:
                             Dim uid%
                             Dim sf As Func(Of SettingsHost, String) = Function(__s) SpecialPath(__s).PathWithSeparator
                             Dim __sf As Func(Of String, SettingsHost, SFile) = Function(Input, __s) IIf(sf(__s).IsEmptyString, Nothing, New SFile($"{sf(__s)}{Input}\"))
+
+                            Settings.Labels.Add(LabelsKeeper.NoParsedUser)
 
                             For i% = 0 To u.Count - 1
                                 uu = u(i)
@@ -429,7 +432,7 @@ CloseForm:
                                             .DownloadImages = CH_DOWN_IMAGES.Checked
                                             .DownloadVideos = CH_DOWN_VIDEOS.Checked
                                             .ScriptUse = TXT_SCRIPT.Checked
-                                            .Labels.ListAddList(UserLabels)
+                                            .Labels.ListAddList(ulabels)
                                             .ParseUserMediaOnly = CH_PARSE_USER_MEDIA.Checked
                                             If Not CH_AUTO_DETECT_SITE.Checked Then _
                                                DirectCast(.Self, UserDataBase).HOST.Source.UserOptions(MyExchangeOptions, False)
