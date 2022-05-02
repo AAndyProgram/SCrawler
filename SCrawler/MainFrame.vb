@@ -1,4 +1,4 @@
-﻿' Copyright (C) 2022  Andy
+' Copyright (C) 2022  Andy
 ' This program is free software: you can redistribute it and/or modify
 ' it under the terms of the GNU General Public License as published by
 ' the Free Software Foundation, either version 3 of the License, or
@@ -665,7 +665,7 @@ CloseResume:
         Dim user As IUserData = GetSelectedUser()
         If Not user Is Nothing Then
             Dim f As SFile = SFile.SelectFiles(user.File.CutPath(IIf(user.IsCollection, 2, 1)), False, "Select new user picture",
-                                               "Pictures|*.jpeg;*.jpg;*.png|GIF|*.gif|All Files|*.*").FirstOrDefault
+                                               "Pictures|*.jpeg;*.jpg;*.png;*.webp|GIF|*.gif|All Files|*.*").FirstOrDefault
             If Not f.IsEmptyString Then
                 user.SetPicture(f)
                 UserListUpdate(user, False)
