@@ -27,12 +27,19 @@ Namespace API.Twitter
         End Sub
 #Region "Download functions"
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
-            If _ContentList.Count > 0 Then _DataNames.ListAddList(_ContentList.Select(Function(c) c.File.File), LAP.ClearBeforeAdd, LAP.NotContainsOnly)
-            DownloadData(String.Empty, Token)
+            If IsSavedPosts Then
+                If _ContentList.Count > 0 Then _DataNames.ListAddList(_ContentList.Select(Function(c) c.Post.ID), LAP.ClearBeforeAdd, LAP.NotContainsOnly)
+                DownloadData(String.Empty, Token)
+            Else
+                If _ContentList.Count > 0 Then _DataNames.ListAddList(_ContentList.Select(Function(c) c.File.File), LAP.ClearBeforeAdd, LAP.NotContainsOnly)
+                DownloadData(String.Empty, Token)
+            End If
         End Sub
         Private Overloads Sub DownloadData(ByVal POST As String, ByVal Token As CancellationToken)
             Dim URL$ = String.Empty
             Try
+                Dim NextCursor$ = String.Empty
+                Dim __NextCursor As Predicate(Of EContainer) = Function(e) e.Value({"content", "operation", "cursor"}, "cursorType") = "Bottom"
                 Dim PostID$ = String.Empty
                 Dim PostDate$, dName$
                 Dim m As EContainer, nn As EContainer, s As EContainer
@@ -42,24 +49,37 @@ Namespace API.Twitter
                 Dim PicNode As Predicate(Of EContainer) = Function(e) e.Count > 0 AndAlso e.Contains("media_url")
                 Dim UID As Func(Of EContainer, String) = Function(e) e.XmlIfNothing.Item({"user", "id"}).XmlIfNothingValue
 
-                URL = $"https://api.twitter.com/1.1/statuses/user_timeline.json?screen_name={Name}&count=200&exclude_replies=false&include_rts=1&tweet_mode=extended"
-                If Not POST.IsEmptyString Then URL &= $"&max_id={POST}"
+                If IsSavedPosts Then
+                    If Name.IsEmptyString Then Throw New ArgumentNullException With {.HelpLink = 1}
+                    URL = $"https://api.twitter.com/2/timeline/bookmark.json?screen_name={Name}&count=200" &
+                           "&tweet_mode=extended&include_entities=true&include_user_entities=true&include_ext_media_availability=true"
+                    If Not POST.IsEmptyString Then URL &= $"&cursor={SymbolsConverter.ASCII.EncodeSymbolsOnly(POST)}"
+                Else
+                    URL = $"https://api.twitter.com/1.1/statuses/user_timeline.json?screen_name={Name}&count=200&exclude_replies=false&include_rts=1&tweet_mode=extended"
+                    If Not POST.IsEmptyString Then URL &= $"&max_id={POST}"
+                End If
 
                 ThrowAny(Token)
                 Dim r$ = Responser.GetResponse(URL,, EDP.ThrowException)
                 If Not r.IsEmptyString Then
                     Using w As EContainer = JsonDocument.Parse(r)
                         If Not w Is Nothing AndAlso w.Count > 0 Then
-                            For Each nn In w
+                            For Each nn In If(IsSavedPosts, w({"globalObjects", "tweets"}).XmlIfNothing, w)
                                 ThrowAny(Token)
                                 If nn.Count > 0 Then
-                                    PostID = nn.Value("id")
-                                    If ID.IsEmptyString Then
-                                        ID = UID(nn)
-                                        If Not ID.IsEmptyString Then UpdateUserInformation()
+                                    If IsSavedPosts Then
+                                        PostID = nn.Value
+                                        If PostID.IsEmptyString Then PostID = nn.Value("id_str")
+                                    Else
+                                        PostID = nn.Value("id")
+                                        If ID.IsEmptyString Then
+                                            ID = UID(nn)
+                                            If Not ID.IsEmptyString Then UpdateUserInformation()
+                                        End If
                                     End If
 
-                                    If UserDescriptionNeedToUpdate() AndAlso nn.Value({"user"}, "screen_name") = Name Then UserDescriptionUpdate(nn.Value({"user"}, "description"))
+                                    If Not IsSavedPosts AndAlso UserDescriptionNeedToUpdate() AndAlso nn.Value({"user"}, "screen_name") = Name Then _
+                                       UserDescriptionUpdate(nn.Value({"user"}, "description"))
 
                                     'Date Pattern:
                                     'Sat Jan 01 01:10:15 +0000 2000
@@ -74,8 +94,8 @@ Namespace API.Twitter
                                         Continue For
                                     End If
 
-                                    If Not ParseUserMediaOnly OrElse (Not nn.Contains("retweeted_status") OrElse
-                                                                     (Not ID.IsEmptyString AndAlso UID(nn("retweeted_status")) = ID)) Then
+                                    If IsSavedPosts OrElse Not ParseUserMediaOnly OrElse (Not nn.Contains("retweeted_status") OrElse
+                                                                                         (Not ID.IsEmptyString AndAlso UID(nn("retweeted_status")) = ID)) Then
                                         If Not CheckVideoNode(nn, PostID, PostDate) Then
                                             s = nn.ItemF({"extended_entities", "media"})
                                             If s Is Nothing OrElse s.Count = 0 Then s = nn.ItemF({"retweeted_status", "extended_entities", "media"})
@@ -95,13 +115,25 @@ Namespace API.Twitter
                                     End If
                                 End If
                             Next
+
+                            If IsSavedPosts Then
+                                s = w.ItemF({"timeline", "instructions", 0, "addEntries", "entries"}).XmlIfNothing
+                                If s.Count > 0 Then NextCursor = If(s.ItemF({__NextCursor})?.Value({"content", "operation", "cursor"}, "value"), String.Empty)
+                            End If
                         End If
                     End Using
-                    If POST.IsEmptyString And ExistsDetected Then Exit Sub
-                    If Not PostID.IsEmptyString And NewPostDetected Then DownloadData(PostID, Token)
+
+                    If IsSavedPosts Then
+                        If Not NextCursor.IsEmptyString And Not NextCursor = POST Then DownloadData(NextCursor, Token)
+                    Else
+                        If POST.IsEmptyString And ExistsDetected Then Exit Sub
+                        If Not PostID.IsEmptyString And NewPostDetected Then DownloadData(PostID, Token)
+                    End If
                 End If
+            Catch ane As ArgumentNullException When ane.HelpLink = 1
+                MyMainLOG = "Username not set for saved Twitter posts"
             Catch ex As Exception
-                ProcessException(ex, Token, $"data downloading error [{URL}]")
+                ProcessException(ex, Token, $"data downloading error{IIf(IsSavedPosts, " (Saved Posts)", String.Empty)} [{URL}]")
             End Try
         End Sub
         Friend Shared Function GetVideoInfo(ByVal URL As String, ByVal resp As Response) As IEnumerable(Of UserMedia)
@@ -128,20 +160,34 @@ Namespace API.Twitter
         End Function
 #Region "Picture options"
         Private Function GetPictureOption(ByVal w As EContainer) As String
+            Const P4K As String = "4096x4096"
             Try
                 Dim ww As EContainer = w("sizes")
                 If Not ww Is Nothing AndAlso ww.Count > 0 Then
                     Dim l As New List(Of Sizes)
+                    Dim Orig As Sizes? = New Sizes(w.Value({"original_info"}, "height").FromXML(Of Integer)(-1), P4K)
+                    If Orig.Value.Value = -1 Then Orig = Nothing
                     Dim LargeContained As Boolean = ww.Contains("large")
                     For Each v As EContainer In ww
                         If v.Count > 0 AndAlso v.Contains("h") Then l.Add(New Sizes(v.Value("h"), v.Name))
                     Next
                     If l.Count > 0 Then
                         l.Sort()
-                        If l(0).Data.IsEmptyString And LargeContained Then Return "large" Else Return l(0).Data
+                        If Orig.HasValue AndAlso l(0).Value < Orig.Value.Value Then
+                            Return P4K
+                        ElseIf l(0).Data.IsEmptyString Then
+                            If LargeContained Then Return "large" Else Return P4K
+                        Else
+                            Return l(0).Data
+                        End If
+                    Else
+                        Return P4K
                     End If
+                ElseIf Not w.Value({"original_info"}, "height").IsEmptyString Then
+                    Return P4K
+                Else
+                    Return String.Empty
                 End If
-                Return String.Empty
             Catch ex As Exception
                 LogError(ex, "[API.Twitter.UserData.GetPictureOption]")
                 Return String.Empty

@@ -63,7 +63,7 @@ Namespace DownloadObjects
         End Sub
         Private Sub UpdateUrlsFile()
             If UrlList.Count > 0 Then
-                TextSaver.SaveTextToFile(UrlList.ListToString(, Environment.NewLine), DownloadingUrlsFile, True,, EDP.SendInLog)
+                TextSaver.SaveTextToFile(UrlList.ListToString(Environment.NewLine), DownloadingUrlsFile, True,, EDP.SendInLog)
             Else
                 DownloadingUrlsFile.Delete(, Settings.DeleteMode, EDP.SendInLog)
             End If

@@ -84,7 +84,7 @@ Namespace API.Reddit
                     If avg > 100 Then
                         Return MsgBoxE({"Over the past hour, Reddit has received an average of " &
                                         avg.NumToString(New ANumbers With {.FormatOptions = ANumbers.Options.GroupIntegral}) & " outage reports:" & vbCr &
-                                        dl.ListToString(, vbCr) & vbCr & vbCr &
+                                        dl.ListToString(vbCr) & vbCr & vbCr &
                                         "Do you want to continue parsing Reddit data?", "There are outage reports on Reddit"}, vbYesNo) = vbYes
                     End If
                 End If

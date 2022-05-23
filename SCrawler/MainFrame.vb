@@ -1,4 +1,4 @@
-' Copyright (C) 2022  Andy
+﻿' Copyright (C) 2022  Andy
 ' This program is free software: you can redistribute it and/or modify
 ' it under the terms of the GNU General Public License as published by
 ' the Free Software Foundation, either version 3 of the License, or
@@ -45,6 +45,7 @@ Public Class MainFrame
         If _VideoDownloadingMode Then GoTo FormClosingInvoker
         Settings.DeleteCachePath()
         MainFrameObj = New MainFrameObjects(Me)
+        MainFrameObj.ChangeCloseVisible()
         MainProgress = New Toolbars.MyProgress(Toolbar_BOTTOM, PR_MAIN, LBL_STATUS, "Downloading profiles' data") With {
             .DropCurrentProgressOnTotalChange = False, .Enabled = False}
         Downloader = New TDownloader
@@ -84,6 +85,14 @@ Public Class MainFrame
         BTT_SITE_ALL.Checked = Settings.SelectedSites.Count = 0
         BTT_SITE_SPECIFIC.Checked = Settings.SelectedSites.Count > 0
         BTT_SHOW_LIMIT_DATES.Checked = Settings.LastUpdatedDate.HasValue
+        With Settings.Groups
+            AddHandler .Added, AddressOf GROUPS_Added
+            AddHandler .Deleted, AddressOf GROUPS_Deleted
+            AddHandler .Updated, AddressOf GROUPS_Updated
+            If .Count > 0 Then
+                For Each ugroup As Groups.DownloadGroup In Settings.Groups : GROUPS_Added(ugroup) : Next
+            End If
+        End With
         _UFinit = False
         GoTo EndFunction
 FormClosingInvoker:
@@ -94,6 +103,7 @@ EndFunction:
     Private _IgnoreTrayOptions As Boolean = False
     Private _IgnoreCloseConfirm As Boolean = False
     Private Async Sub MainFrame_Closing(sender As Object, e As CancelEventArgs) Handles Me.Closing
+        If _VideoDownloadingMode Then Exit Sub
         If Settings.CloseToTray And Not _IgnoreTrayOptions Then
             e.Cancel = True
             Hide()
@@ -119,6 +129,7 @@ EndFunction:
                                            End Sub)
                         End If
                         Downloader.Dispose()
+                        MyProgressForm.Dispose()
                         InfoForm.Dispose()
                         If Not MyChannels Is Nothing Then MyChannels.Dispose()
                         If Not VideoDownloader Is Nothing Then VideoDownloader.Dispose()
@@ -141,10 +152,14 @@ DropCloseParams:
             Exit Sub
 CloseContinue:
             If Not BATCH Is Nothing Then BATCH.Dispose() : BATCH = Nothing
-            If Not MyMainLOG.IsEmptyString Then SaveLogToFile()
             If _CloseInvoked Then Close()
 CloseResume:
         End If
+    End Sub
+    Private _DisableClosingScript As Boolean = False
+    Private Sub MainFrame_Disposed(sender As Object, e As EventArgs) Handles Me.Disposed
+        If Not _DisableClosingScript And Not _VideoDownloadingMode Then ExecuteCommand(Settings.ClosingCommand)
+        If Not MyMainLOG.IsEmptyString Then SaveLogToFile()
     End Sub
 #Region "Tray"
     Private Sub TrayIcon_MouseClick(sender As Object, e As MouseEventArgs) Handles TrayIcon.MouseClick
@@ -156,6 +171,13 @@ CloseResume:
         If Visible Then Hide() Else Show()
     End Sub
     Private Sub BTT_TRAY_CLOSE_Click(sender As Object, e As EventArgs) Handles BTT_TRAY_CLOSE.Click
+        ClosePressed(False)
+    End Sub
+    Private Sub BTT_TRAY_CLOSE_NO_SCRIPT_Click(sender As Object, e As EventArgs) Handles BTT_TRAY_CLOSE_NO_SCRIPT.Click
+        ClosePressed(True)
+    End Sub
+    Private Sub ClosePressed(ByVal DisableScript As Boolean)
+        _DisableClosingScript = DisableScript
         If CheckForClose(False) Then _IgnoreTrayOptions = True : _IgnoreCloseConfirm = True : Close()
     End Sub
     Private Function CheckForClose(ByVal _Ignore As Boolean) As Boolean
@@ -177,10 +199,27 @@ CloseResume:
             Case Keys.F3 : EditSelectedUser()
             Case Keys.F5 : BTT_DOWN_SELECTED.PerformClick()
             Case Keys.F6 : If Settings.ShowingMode.Value = ShowingModes.All Then BTT_DOWN_ALL.PerformClick()
-            Case Else : b = False
+            Case Else : b = NumGroup(e)
         End Select
         If b Then e.Handled = True
     End Sub
+    Private Function NumGroup(ByVal e As KeyEventArgs) As Boolean
+        Dim GroupExists As Func(Of Integer, Boolean) = Function(i) Settings.Groups.DownloadGroupIfExists(i - 1)
+        If e.Control And Settings.Groups.Count > 0 Then
+            Select Case e.KeyCode
+                Case Keys.D1, Keys.NumPad1 : Return GroupExists(1)
+                Case Keys.D2, Keys.NumPad2 : Return GroupExists(2)
+                Case Keys.D3, Keys.NumPad3 : Return GroupExists(3)
+                Case Keys.D4, Keys.NumPad4 : Return GroupExists(4)
+                Case Keys.D5, Keys.NumPad5 : Return GroupExists(5)
+                Case Keys.D6, Keys.NumPad6 : Return GroupExists(6)
+                Case Keys.D7, Keys.NumPad7 : Return GroupExists(7)
+                Case Keys.D8, Keys.NumPad8 : Return GroupExists(8)
+                Case Keys.D9, Keys.NumPad9 : Return GroupExists(9)
+            End Select
+        End If
+        Return False
+    End Function
     Private Sub BTT_VERSION_INFO_Click(sender As Object, e As EventArgs) Handles BTT_VERSION_INFO.Click
         CheckVersion(True)
     End Sub
@@ -356,6 +395,24 @@ CloseResume:
                 End If
             End If
         End Using
+    End Sub
+#End Region
+#Region "Download groups"
+    Private Sub BTT_ADD_NEW_GROUP_Click(sender As Object, e As EventArgs) Handles BTT_ADD_NEW_GROUP.Click
+        Settings.Groups.Add()
+    End Sub
+    Private Sub GROUPS_Added(ByVal Sender As Groups.DownloadGroup)
+        Dim i% = MENU_DOWN_ALL.DropDownItems.IndexOf(BTT_ADD_NEW_GROUP)
+        Dim a As Action = Sub() MENU_DOWN_ALL.DropDownItems.Insert(i, Sender.GetControl)
+        If Toolbar_TOP.InvokeRequired Then Toolbar_TOP.Invoke(a) Else a.Invoke
+    End Sub
+    Private Sub GROUPS_Updated(ByVal Sender As Groups.DownloadGroup)
+        Dim i% = MENU_DOWN_ALL.DropDownItems.IndexOf(Sender.GetControl)
+        Dim a As Action = Sub() MENU_DOWN_ALL.DropDownItems(i).Text = Sender.ToString
+        If Toolbar_TOP.InvokeRequired Then Toolbar_TOP.Invoke(a) Else a.Invoke
+    End Sub
+    Private Sub GROUPS_Deleted(ByVal Sender As Groups.DownloadGroup)
+        MENU_DOWN_ALL.DropDownItems.Remove(Sender.GetControl)
     End Sub
 #End Region
     Private Sub BTT_DOWN_VIDEO_Click(sender As Object, e As EventArgs) Handles BTT_DOWN_VIDEO.Click
@@ -655,7 +712,7 @@ CloseResume:
         End Try
     End Sub
     Private Function AskForMassReplace(ByVal users As List(Of IUserData), ByVal param As String) As Boolean
-        Dim u$ = users.ListIfNothing.Take(20).Select(Function(uu) uu.Name).ListToString(, vbCr)
+        Dim u$ = users.ListIfNothing.Take(20).Select(Function(uu) uu.Name).ListToString(vbCr)
         If Not u.IsEmptyString And users.ListExists(21) Then u &= vbCr & "..."
         Return users.ListExists AndAlso (users.Count = 1 OrElse MsgBoxE({$"Do you really want to change [{param}] for {users.Count} users?{vbCr}{vbCr}{u}",
                                                                          "Users' parameters change"},
@@ -921,7 +978,7 @@ CloseResume:
             If users.ListExists Then
                 If USER_CONTEXT.Visible Then USER_CONTEXT.Hide()
                 Dim ugn As Func(Of IUserData, String) = Function(u) $"{IIf(u.IsCollection, "Collection", "User")}: {u.Name}"
-                Dim m As New MMessage(users.Select(ugn).ListToString(, vbNewLine), "Users deleting",
+                Dim m As New MMessage(users.Select(ugn).ListToString(vbNewLine), "Users deleting",
                                       {New Messaging.MsgBoxButton("Delete and ban") With {.ToolTip = "Users and their data will be deleted and added to the blacklist"},
                                        New Messaging.MsgBoxButton("Delete user only and ban") With {
                                             .ToolTip = "Users will be deleted and added to the blacklist (user data will not be deleted)"},
@@ -980,8 +1037,8 @@ CloseResume:
                         m.Text = "No one user deleted!"
                         m.Style = MsgBoxStyle.Critical
                     Else
-                        m.Text = $"The following users were deleted:{vbNewLine}{removedUsers.ListToString(, vbNewLine)}{vbNewLine.StringDup(2)}"
-                        m.Text &= $"The following users were NOT deleted:{vbNewLine}{leftUsers.ListToString(, vbNewLine)}"
+                        m.Text = $"The following users were deleted:{vbNewLine}{removedUsers.ListToString(vbNewLine)}{vbNewLine.StringDup(2)}"
+                        m.Text &= $"The following users were NOT deleted:{vbNewLine}{leftUsers.ListToString(vbNewLine)}"
                         m.Style = MsgBoxStyle.Exclamation
                     End If
                     If b Then Settings.UpdateBlackList()
@@ -1063,7 +1120,7 @@ ResumeDownloadingOperation:
                 users(0).DownloadToDate = d
                 Downloader.Add(users(0))
             Else
-                Dim uStr$ = users.Select(Function(u) u.ToString()).ListToString(, vbNewLine)
+                Dim uStr$ = users.Select(Function(u) u.ToString()).ListToString(vbNewLine)
                 If MsgBoxE({$"You are select {users.Count} users' profiles{vbNewLine}Do you want to download all of them?{vbNewLine.StringDup(2)}" &
                             $"Selected users:{vbNewLine}{uStr}", "A few users selected"},
                            MsgBoxStyle.Question + MsgBoxStyle.YesNo) = MsgBoxResult.Yes Then

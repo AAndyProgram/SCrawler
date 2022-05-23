@@ -12,7 +12,12 @@ Namespace DownloadObjects
     Friend Class ActiveDownloadingProgress
         Private Const MinWidth As Integer = 450
         Private MyView As FormsView
-        Friend Property Opened As Boolean = False
+        Private Opened As Boolean = False
+        Friend ReadOnly Property ReadyToOpen As Boolean
+            Get
+                Return Settings.DownloadOpenProgress And (Not Opened Or Settings.DownloadOpenProgress.Attribute) And Not Visible
+            End Get
+        End Property
         Private ReadOnly JobsList As List(Of DownloadProgress)
         Friend Property DisableProgressChange As Boolean = False
         Friend Sub New()

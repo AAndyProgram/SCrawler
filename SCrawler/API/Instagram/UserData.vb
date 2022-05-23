@@ -14,6 +14,7 @@ Imports PersonalUtilities.Tools.WebDocuments.JSON
 Imports SCrawler.API.Base
 Imports System.Threading
 Imports System.Net
+Imports System.Reflection
 Imports UTypes = SCrawler.API.Base.UserMedia.Types
 Namespace API.Instagram
     Friend Class UserData : Inherits UserDataBase
@@ -262,8 +263,8 @@ Namespace API.Instagram
                                                 TaggedCount = j.Value("total_count").FromXML(Of Integer)(0)
                                                 TaggedChecked = True
                                                 If TaggedCount > 200 Then
-                                                    Dim a% = MsgBoxE({$"The number of tagged posts is {TaggedCount.NumToString(New ANumbers With {
-                                                                                                       .FormatOptions = ANumbers.Options.GroupIntegral})}" & vbCr &
+                                                    Dim a% = MsgBoxE({$"The number of tagged posts by user [{ToString()}] is { _
+                                                                        TaggedCount.NumToString(New ANumbers With {.FormatOptions = ANumbers.Options.GroupIntegral})}" & vbCr &
                                                                       "The tagged data download operation can take a long time.", "Too much tagged data"}, vbExclamation,,,
                                                                       {"Continue",
                                                                        New MsgBoxButton("Disable and cancel") With {
@@ -277,11 +278,9 @@ Namespace API.Instagram
                                             End If
                                     End Select
                                 Else
-                                    If j.Value("status") = "ok" AndAlso j({"data", "user"}).XmlIfNothing.Count = 0 AndAlso _TempMediaList.Count = 0 Then
-                                        MySiteSettings.HashUpdateRequired.Value = True
-                                        UserExists = False
-                                        Throw New ExitException(_DownloadComplete)
-                                    End If
+                                    If j.Value("status") = "ok" AndAlso j({"data", "user"}).XmlIfNothing.Count = 0 AndAlso
+                                       _TempMediaList.Count = 0 AndAlso Section = Sections.Timeline Then _
+                                       UserExists = False : Throw New ExitException(_DownloadComplete)
                                 End If
                             End Using
                         Else
@@ -501,7 +500,7 @@ Namespace API.Instagram
             If StoriesList.ListExists Then
                 tmpList = StoriesList.Take(5)
                 If tmpList.ListExists Then
-                    qStr = String.Format(ReqUrl, tmpList.Select(Function(q) $"reel_ids=highlight:{q}").ListToString(, "&"))
+                    qStr = String.Format(ReqUrl, tmpList.Select(Function(q) $"reel_ids=highlight:{q}").ListToString("&"))
                     r = Responser.GetResponse(qStr,, EDP.ThrowException)
                     ThrowAny(Token)
                     If Not r.IsEmptyString Then
@@ -509,7 +508,7 @@ Namespace API.Instagram
                             If j.Contains("reels") Then
                                 For Each jj In j("reels")
                                     i += 1
-                                    sFolder = jj.Value("title")
+                                    sFolder = jj.Value("title").StringRemoveWinForbiddenSymbols
                                     storyID = jj.Value("id").Replace("highlight:", String.Empty)
                                     If sFolder.IsEmptyString Then sFolder = $"Story_{storyID}"
                                     If sFolder.IsEmptyString Then sFolder = $"Story_{i}"
@@ -567,7 +566,7 @@ Namespace API.Instagram
                 UserExists = False
             ElseIf Responser.StatusCode = HttpStatusCode.BadRequest Then
                 HasError = True
-                MyMainLOG = "Instagram credentials have expired"
+                MyMainLOG = $"Instagram credentials have expired: {ToString()} [{s}]"
                 MySiteSettings.HashUpdateRequired.Value = True
             ElseIf Responser.StatusCode = HttpStatusCode.Forbidden And s = Sections.Tagged Then
                 Return 3
@@ -582,6 +581,7 @@ Namespace API.Instagram
                 Return 1
             Else
                 MySiteSettings.HashUpdateRequired.Value = True
+                MyMainLOG = $"Instagram hash requested: {ToString()} [{s}]"
                 If Not FromPE Then LogError(ex, Message) : HasError = True
                 Return 0
             End If
@@ -596,12 +596,13 @@ Namespace API.Instagram
             m.SpecialFolder = SpecialFolder
             Return m
         End Function
-        Friend Shared Function GetVideoInfo(ByVal URL As String, ByVal r As Response) As IEnumerable(Of UserMedia)
+        Friend Shared Function GetVideoInfo(ByVal URL As String, ByVal r As Response, ByVal _Settings As SiteSettings) As IEnumerable(Of UserMedia)
             Try
                 If Not URL.IsEmptyString AndAlso URL.Contains("instagram.com") Then
                     Dim PID$ = RegexReplace(URL, RParams.DMS(".*?instagram.com/p/([_\w\d]+)", 1))
                     If Not PID.IsEmptyString Then
                         Using t As New UserData
+                            t.SetEnvironment(Settings(_Settings.GetType.GetCustomAttribute(Of Plugin.Attributes.Manifest)().GUID), Nothing, False, False)
                             t.Responser = New Response
                             t.Responser.Copy(r)
                             t._SavedPostsIDs.Add(PID)

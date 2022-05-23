@@ -364,16 +364,16 @@ Namespace API.Reddit
                 Dim l As New List(Of String)
                 If Posts.Count > 0 Or PostsLatest.Count > 0 Then l.ListAddList((From p In PostsAll Where Not p.ID.IsEmptyString Select p.ID), LAP.NotContainsOnly)
                 l.ListAddList(PostsNames, LAP.NotContainsOnly)
-                If l.Count > 0 Then TextSaver.SaveTextToFile(l.ListToString(, "|"), FilePosts, True,, EDP.SendInLog)
+                If l.Count > 0 Then TextSaver.SaveTextToFile(l.ListToString("|"), FilePosts, True,, EDP.SendInLog)
             End If
             Using x As New XmlFile With {.AllowSameNames = True, .Name = "Channel"}
                 x.Add(Name_Name, Name)
                 x.Add(Name_ID, ID)
                 x.Add(Name_ViewMode, CInt(ViewMode))
                 x.Add(Name_ViewPeriod, CInt(ViewPeriod))
-                x.Add(Name_UsersAdded, CountOfAddedUsers.ListToString(, "|"))
-                x.Add(Name_PostsDownloaded, CountOfLoadedPostsPerSession.ListToString(, "|"))
-                x.Add(Name_UsersExistent, ChannelExistentUserNames.ListToString(, "|"))
+                x.Add(Name_UsersAdded, CountOfAddedUsers.ListToString("|"))
+                x.Add(Name_PostsDownloaded, CountOfLoadedPostsPerSession.ListToString("|"))
+                x.Add(Name_UsersExistent, ChannelExistentUserNames.ListToString("|"))
                 If Posts.Count > 0 Or PostsLatest.Count > 0 Then
                     Dim tmpPostList As List(Of UserPost) = Nothing
                     tmpPostList.ListAddList(Posts).ListAddList(PostsLatest)

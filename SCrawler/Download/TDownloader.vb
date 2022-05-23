@@ -206,14 +206,15 @@ Namespace DownloadObjects
         End Sub
         Private CheckerThread As Thread
         Private Sub [Start]()
-            If Not MyProgressForm.Opened AndAlso Pool.LongCount(Function(p) p.Count > 0) > 1 Then MyProgressForm.Show()
+            If MyProgressForm.ReadyToOpen AndAlso Pool.LongCount(Function(p) p.Count > 0) > 1 Then MyProgressForm.Show() : MainFrameObj.Focus()
             If Not If(CheckerThread?.IsAlive, False) Then
                 MainProgress.Enabled = True
+                If InfoForm.ReadyToOpen Then InfoForm.Show() : MainFrameObj.Focus()
                 CheckerThread = New Thread(New ThreadStart(AddressOf JobsChecker))
                 CheckerThread.SetApartmentState(ApartmentState.MTA)
                 CheckerThread.Start()
             End If
-        End Sub
+            End Sub
         Private Sub JobsChecker()
             Try
                 MainProgress.TotalCount = 0
@@ -235,6 +236,7 @@ Namespace DownloadObjects
                 End With
                 MyProgressForm.DisableProgressChange = True
                 If Pool.Count > 0 Then Pool.ForEach(Sub(p) If Not p.Progress Is Nothing Then p.Progress.TotalCount = 0)
+                ExecuteCommand(Settings.DownloadsCompleteCommand)
             End Try
         End Sub
         Private Sub StartDownloading(ByRef _Job As Job)

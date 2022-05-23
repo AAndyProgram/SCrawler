@@ -33,6 +33,7 @@ Friend Class SettingsCLS : Implements IDisposable
     Friend ReadOnly Property UsersList As List(Of UserInfo)
     Friend Property Channels As Reddit.ChannelsCollection
     Friend ReadOnly Property Labels As LabelsKeeper
+    Friend ReadOnly Property Groups As Groups.DownloadGroupCollection
     Friend ReadOnly Property BlackList As List(Of UserBan)
     Private ReadOnly BlackListFile As SFile = $"{SettingsFolderName}\BlackList.txt"
     Private ReadOnly UsersSettingsFile As SFile = $"{SettingsFolderName}\Users.xml"
@@ -69,6 +70,11 @@ Friend Class SettingsCLS : Implements IDisposable
         FastProfilesLoading = New XMLValue(Of Boolean)("FastProfilesLoading", False, MyXML)
         MaxLargeImageHeigh = New XMLValue(Of Integer)("MaxLargeImageHeigh", 150, MyXML)
         MaxSmallImageHeigh = New XMLValue(Of Integer)("MaxSmallImageHeigh", 15, MyXML)
+        DownloadOpenInfo = New XMLValueAttribute(Of Boolean, Boolean)("DownloadOpenInfo", "OpenAgain", False, False, MyXML)
+        DownloadOpenProgress = New XMLValueAttribute(Of Boolean, Boolean)("DownloadOpenProgress", "OpenAgain", False, False, MyXML)
+        DownloadsCompleteCommand = New XMLValueAttribute(Of String, Boolean)("DownloadsCompleteCommand", "Use",,, MyXML)
+        ClosingCommand = New XMLValueAttribute(Of String, Boolean)("ClosingCommand", "Use",,, MyXML)
+        AddHandler ClosingCommand.OnValueChanged, Sub(s, __n, v) MainFrameObj?.ChangeCloseVisible()
         InfoViewMode = New XMLValue(Of Integer)("InfoViewMode", DownloadedInfoForm.ViewModes.Session, MyXML)
         ViewMode = New XMLValue(Of Integer)("ViewMode", ViewModes.IconLarge, MyXML)
         ShowingMode = New XMLValue(Of Integer)("ShowingMode", ShowingModes.All, MyXML)
@@ -124,6 +130,8 @@ Friend Class SettingsCLS : Implements IDisposable
         DeleteToRecycleBin = New XMLValue(Of Boolean)("DeleteToRecycleBin", True, MyXML)
 
         Labels = New LabelsKeeper(MyXML)
+        Groups = New Groups.DownloadGroupCollection
+        Labels.AddRange(Groups.GetLabels, False)
 
         MyXML.EndUpdate()
         If MyXML.ChangesDetected Then MyXML.Sort() : MyXML.UpdateData()
@@ -316,7 +324,7 @@ Friend Class SettingsCLS : Implements IDisposable
 #End Region
     Friend Sub UpdateBlackList()
         If BlackList.Count > 0 Then
-            TextSaver.SaveTextToFile(BlackList.ListToString(, vbNewLine), BlackListFile, True, False, EDP.None)
+            TextSaver.SaveTextToFile(BlackList.ListToString(vbNewLine), BlackListFile, True, False, EDP.None)
         Else
             BlackListFile.Delete(, Settings.DeleteMode)
         End If
@@ -398,6 +406,10 @@ Friend Class SettingsCLS : Implements IDisposable
     Friend ReadOnly Property FastProfilesLoading As XMLValue(Of Boolean)
     Friend ReadOnly Property MaxLargeImageHeigh As XMLValue(Of Integer)
     Friend ReadOnly Property MaxSmallImageHeigh As XMLValue(Of Integer)
+    Friend ReadOnly Property DownloadOpenInfo As XMLValueAttribute(Of Boolean, Boolean)
+    Friend ReadOnly Property DownloadOpenProgress As XMLValueAttribute(Of Boolean, Boolean)
+    Friend ReadOnly Property DownloadsCompleteCommand As XMLValueAttribute(Of String, Boolean)
+    Friend ReadOnly Property ClosingCommand As XMLValueAttribute(Of String, Boolean)
     Friend ReadOnly Property InfoViewMode As XMLValue(Of Integer)
     Friend ReadOnly Property ViewMode As XMLValue(Of Integer)
     Friend ReadOnly Property ViewModeIsPicture As Boolean

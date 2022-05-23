@@ -19,7 +19,7 @@ Imports ADB = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons
 Namespace Editors
     Friend Class UserCreatorForm : Implements IOkCancelToolbar
 
-        Private ReadOnly MyDef As DefaultFormProps(Of FieldsChecker)
+        Private ReadOnly MyDef As DefaultFormProps
         Friend Property User As UserInfo
         Friend Property UserInstance As IUserData
         Friend Property StartIndex As Integer = -1
@@ -97,7 +97,7 @@ Namespace Editors
         Friend Sub New()
             InitializeComponent()
             UserLabels = New List(Of String)
-            MyDef = New DefaultFormProps(Of FieldsChecker)
+            MyDef = New DefaultFormProps
         End Sub
         ''' <summary>Edit exist user</summary>
         Friend Sub New(ByVal _Instance As IUserData)
@@ -163,7 +163,7 @@ Namespace Editors
                         End If
                     End If
                     .MyFieldsChecker = New FieldsChecker
-                    .MyFieldsChecker.AddControl(Of String)(TXT_USER, TXT_USER.CaptionText)
+                    DirectCast(.MyFieldsChecker, FieldsChecker).AddControl(Of String)(TXT_USER, TXT_USER.CaptionText)
                     .MyFieldsChecker.EndLoaderOperations()
                     .AppendDetectors()
                     .EndLoaderOperations()
@@ -447,8 +447,8 @@ CloseForm:
                             Dim m As New MMessage($"Added {Added} users (skipped (already exists and/or duplicated) {Skipped})")
                             If BannedUsers.ListExists Or NonIdentified.Count > 0 Then
                                 Dim t$ = String.Empty
-                                If BannedUsers.ListExists Then t.StringAppendLine($"Banned users:{vbNewLine}{BannedUsers.ListToString(, vbNewLine)}")
-                                If NonIdentified.Count > 0 Then t.StringAppendLine($"Non-Identified users:{vbNewLine}{NonIdentified.ListToString(, vbNewLine)}", vbNewLine.StringDup(2))
+                                If BannedUsers.ListExists Then t.StringAppendLine($"Banned users:{vbNewLine}{BannedUsers.ListToString(vbNewLine)}")
+                                If NonIdentified.Count > 0 Then t.StringAppendLine($"Non-Identified users:{vbNewLine}{NonIdentified.ListToString(vbNewLine)}", vbNewLine.StringDup(2))
                                 m.Style = MsgBoxStyle.Exclamation
                                 m.Text.StringAppendLine("Some of users does not recognized and/or banned")
                                 m.Text.StringAppendLine(t, vbNewLine.StringDup(2))

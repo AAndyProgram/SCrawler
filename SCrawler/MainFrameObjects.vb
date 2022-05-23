@@ -34,4 +34,11 @@ Friend Class MainFrameObjects
         Catch ex As Exception
         End Try
     End Sub
+    Friend Sub Focus()
+        If MF.Visible Then MF.BringToFront() : MF.Activate()
+    End Sub
+    Friend Sub ChangeCloseVisible()
+        Dim a As Action = Sub() MF.BTT_TRAY_CLOSE_NO_SCRIPT.Visible = Settings.ClosingCommand.Attribute And Not Settings.ClosingCommand.IsEmptyString
+        If MF.TRAY_CONTEXT.InvokeRequired Then MF.TRAY_CONTEXT.Invoke(a) Else a.Invoke
+    End Sub
 End Class

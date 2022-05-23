@@ -57,9 +57,9 @@ Friend Class ChannelsStatsForm : Implements IOkCancelDeleteToolbar
         Try
             Dim c As List(Of String) = CMB_CHANNELS.Items.CheckedItems.Select(Function(cc) CStr(cc.Value(1))).ListIfNothing
             If c.ListExists Then
-                If MsgBoxE({$"The following channels will be deleted:{vbCr}{c.ListToString(, vbCr)}", "Deleting channels"}, vbExclamation,,, {"Confirm", "Cancel"}) = 0 Then
+                If MsgBoxE({$"The following channels will be deleted:{vbCr}{c.ListToString(vbCr)}", "Deleting channels"}, vbExclamation,,, {"Confirm", "Cancel"}) = 0 Then
                     For Each CID$ In c : Settings.Channels.Remove(Settings.Channels.Find(CID)) : Next
-                    MyMainLOG = $"Deleted channels:{vbNewLine}{c.ListToString(, vbNewLine)}"
+                    MyMainLOG = $"Deleted channels:{vbNewLine}{c.ListToString(vbNewLine)}"
                     MsgBoxE("Channels deleted")
                     DeletedChannels += c.Count
                     c.Clear()

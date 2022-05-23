@@ -78,7 +78,7 @@ Public Class SiteSettings : Implements ISiteSettings
             If Not ACheck(SiteDomains.Value) Then SiteDomains.Value = DomainsDefault
             Domains.ListAddList(CStr(SiteDomains.Value).Split("|"), LAP.NotContainsOnly, LAP.ClearBeforeAdd)
             Domains.ListAddList(DomainsDefault.Split("|"), LAP.NotContainsOnly)
-            SiteDomains.Value = Domains.ListToString(, "|")
+            SiteDomains.Value = Domains.ListToString("|")
             _DomainsUpdateInProgress = False
         End If
     End Sub

@@ -13,7 +13,13 @@ Namespace DownloadObjects
     Friend Class DownloadedInfoForm
         Friend Event OnUserLooking(ByVal Key As String)
         Private MyView As FormsView
-        Private ReadOnly LParams As New ListAddParams(LAP.IgnoreICopier) With {.e = EDP.None}
+        Private ReadOnly LParams As New ListAddParams(LAP.IgnoreICopier) With {.Error = EDP.None}
+        Private Opened As Boolean = False
+        Friend ReadOnly Property ReadyToOpen As Boolean
+            Get
+                Return Settings.DownloadOpenInfo And (Not Opened Or Settings.DownloadOpenInfo.Attribute) And Not Visible
+            End Get
+        End Property
         Friend Enum ViewModes As Integer
             Session = 0
             All = 1
@@ -50,6 +56,8 @@ Namespace DownloadObjects
                 BTT_CLEAR.Visible = ViewMode = ViewModes.Session
                 RefillList()
             Catch ex As Exception
+            Finally
+                Opened = True
             End Try
         End Sub
         Private Sub DownloadedInfoForm_Closing(sender As Object, e As CancelEventArgs) Handles Me.Closing

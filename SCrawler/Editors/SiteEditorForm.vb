@@ -18,13 +18,17 @@ Namespace Editors
     Friend Class SiteEditorForm : Implements IOkCancelToolbar
         Private ReadOnly LBL_AUTH As Label
         Private ReadOnly LBL_OTHER As Label
-        Private ReadOnly MyDefs As DefaultFormProps(Of FieldsChecker)
+        Private ReadOnly MyDefs As DefaultFormProps
         Private WithEvents SpecialButton As Button
 #Region "Providers"
-        Private Class SavedPostsChecker : Implements ICustomProvider
+        Private Class SavedPostsChecker : Implements IFieldsCheckerProvider
+            Private Property ErrorMessage As String Implements IFieldsCheckerProvider.ErrorMessage
+            Private Property Name As String Implements IFieldsCheckerProvider.Name
+            Private Property TypeError As Boolean Implements IFieldsCheckerProvider.TypeError
             Private Function Convert(ByVal Value As Object, ByVal DestinationType As Type, ByVal Provider As IFormatProvider,
                                      Optional ByVal NothingArg As Object = Nothing, Optional ByVal e As ErrorsDescriber = Nothing) As Object Implements ICustomProvider.Convert
-                If Not ACheck(Value) OrElse CStr(Value).Contains("/") Then
+                If ACheck(Value) AndAlso CStr(Value).Contains("/") Then
+                    ErrorMessage = $"Path [{Name}] contains forbidden character ""/"""
                     Return Nothing
                 Else
                     Return Value
@@ -38,7 +42,7 @@ Namespace Editors
         Private ReadOnly Property Host As SettingsHost
         Friend Sub New(ByVal h As SettingsHost)
             InitializeComponent()
-            MyDefs = New DefaultFormProps(Of FieldsChecker)
+            MyDefs = New DefaultFormProps
             Host = h
             LBL_AUTH = New Label With {.Text = "Authorization", .TextAlign = ContentAlignment.MiddleCenter, .Dock = DockStyle.Fill}
             LBL_OTHER = New Label With {.Text = "Other Parameters", .TextAlign = ContentAlignment.MiddleCenter, .Dock = DockStyle.Fill}
@@ -65,7 +69,7 @@ Namespace Editors
 
                         SiteDefaultsFunctions.SetChecker(TP_SITE_PROPS, Host)
 
-                        With MyDefs.MyFieldsChecker
+                        With DirectCast(MyDefs.MyFieldsChecker, FieldsChecker)
                             .AddControl(Of String)(TXT_PATH, TXT_PATH.CaptionText, True, New SavedPostsChecker)
                             .AddControl(Of String)(TXT_PATH_SAVED_POSTS, TXT_PATH_SAVED_POSTS.CaptionText, True, New SavedPostsChecker)
                         End With
@@ -113,7 +117,8 @@ Namespace Editors
                                                 AddTpControl(.Control, .ControlHeight)
                                                 If .LeftOffset > offset Then offset = .LeftOffset
                                                 If Not .Options.AllowNull Or Not .ProviderFieldsChecker Is Nothing Then
-                                                    MyDefs.MyFieldsChecker.AddControl(.Control, .Options.ControlText, .Type, .Options.AllowNull, .ProviderFieldsChecker)
+                                                    DirectCast(MyDefs.MyFieldsChecker, FieldsChecker).
+                                                        AddControl(.Control, .Options.ControlText, .Type, .Options.AllowNull, .ProviderFieldsChecker)
                                                 End If
                                             End If
                                         End With

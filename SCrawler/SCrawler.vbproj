@@ -160,7 +160,15 @@
     <Compile Include="Download\ActiveDownloadingProgress.vb">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="Download\Groups\DownloadGroup.vb" />
     <Compile Include="Download\DownloadProgress.vb" />
+    <Compile Include="Download\Groups\DownloadGroupCollection.vb" />
+    <Compile Include="Download\Groups\GroupEditorForm.Designer.vb">
+      <DependentUpon>GroupEditorForm.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Download\Groups\GroupEditorForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="MainFrameObjects.vb" />
     <Compile Include="PluginsEnvironment\Hosts\UserDataHost.vb" />
     <Compile Include="API\Base\UserDataBase.vb" />
@@ -314,6 +322,9 @@
     <EmbeddedResource Include="Download\DownloadSavedPostsForm.resx">
       <DependentUpon>DownloadSavedPostsForm.vb</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Download\Groups\GroupEditorForm.resx">
+      <DependentUpon>GroupEditorForm.vb</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Editors\CollectionEditorForm.resx">
       <DependentUpon>CollectionEditorForm.vb</DependentUpon>
     </EmbeddedResource>
@@ -380,6 +391,7 @@
     <None Include="Content\Pictures\BookmarkBlack_16.png" />
     <None Include="Content\Pictures\HeartPic_32.png" />
     <None Include="Content\Pictures\ScriptPic32.png" />
+    <None Include="Content\Icons\GroupBy_284.ico" />
     <Content Include="ffmpeg.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

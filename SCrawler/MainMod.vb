@@ -54,6 +54,20 @@ Friend Module MainMod
             End If
         End Try
     End Sub
+    Friend Sub ExecuteCommand(ByVal Obj As XMLValueAttribute(Of String, Boolean))
+        Try
+            If Obj.Attribute And Not Obj.IsEmptyString Then
+                Using b As New BatchExecutor With {.RedirectStandardError = True}
+                    With b
+                        .Execute({Obj.Value}, EDP.SendInLog + EDP.ThrowException)
+                        If .HasError Or Not .ErrorOutput.IsEmptyString Then Throw New Exception(.ErrorOutput, .ErrorException)
+                    End With
+                End Using
+            End If
+        Catch ex As Exception
+            ErrorsDescriber.Execute(EDP.SendInLog, ex, $"[{Obj.Name}] command: [{Obj.Value}]")
+        End Try
+    End Sub
     Friend Enum ViewModes As Integer
         IconLarge = View.LargeIcon
         IconSmall = View.SmallIcon
@@ -449,14 +463,14 @@ Friend Module MainMod
                     m.Text = $"This user is banned:{vbNewLine}User: {Found(0).Name}"
                     If Not Found(0).Reason.IsEmptyString Then m.Text.StringAppendLine($"Reason: {Found(0).Reason}")
                 Else
-                    m.Text = $"These users was banned:{vbNewLine.StringDup(2)}{Found.Select(Function(u) u.Info).ListToString(, vbNewLine)}"
+                    m.Text = $"These users was banned:{vbNewLine.StringDup(2)}{Found.Select(Function(u) u.Info).ListToString(vbNewLine)}"
                 End If
                 Dim r% = MsgBoxE(m)
                 If r = 2 Then
                     Return Found.Select(Function(u) u.Name).ToArray
                 Else
                     If r = 0 Then
-                        Settings.BlackList.ListDisposeRemove(Found, False)
+                        Settings.BlackList.ListDisposeRemove(Found)
                         Settings.UpdateBlackList()
                     End If
                 End If

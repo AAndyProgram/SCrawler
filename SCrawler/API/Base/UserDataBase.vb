@@ -629,7 +629,7 @@ BlockNullPicture:
                     x.Add(Name_ScriptUse, ScriptUse.BoolToInteger)
                     x.Add(Name_ScriptData, ScriptData)
                     x.Add(Name_CollectionName, CollectionName)
-                    x.Add(Name_LabelsName, Labels.ListToString(, "|", EDP.ReturnValue))
+                    x.Add(Name_LabelsName, Labels.ListToString("|", EDP.ReturnValue))
                     x.Add(Name_DataMerging, DataMerging.BoolToInteger)
 
                     LoadUserInformation_OptionalFields(x, False)
@@ -765,7 +765,7 @@ BlockNullPicture:
 
                 ReparseVideo(Token)
                 ThrowAny(Token)
-                If _TempPostsList.Count > 0 And __SaveData Then TextSaver.SaveTextToFile(_TempPostsList.ListToString(, Environment.NewLine), MyFilePosts, True,, EDP.None)
+                If _TempPostsList.Count > 0 And __SaveData Then TextSaver.SaveTextToFile(_TempPostsList.ListToString(Environment.NewLine), MyFilePosts, True,, EDP.None)
                 _ContentNew.ListAddList(_TempMediaList, LAP.ClearBeforeAdd)
                 DownloadContent(Token)
                 ThrowIfDisposed()
@@ -913,6 +913,7 @@ BlockNullPicture:
                         End Using
                     End If
                 End If
+            Catch iex As IndexOutOfRangeException When Disposed
             Catch oex As OperationCanceledException When Token.IsCancellationRequested
             Catch dex As ObjectDisposedException When Disposed
             Catch ex As Exception
@@ -933,7 +934,7 @@ BlockNullPicture:
             Dim ff As SFile = Nothing
             Try
                 If Not f.IsEmptyString AndAlso f.Exists Then
-                    If Settings.FileReplaceNameByDate Then
+                    If Settings.FileReplaceNameByDate Or Settings.FileAddTimeToFileName Then
                         ff = f
                         ff.Name = String.Format(FileDateAppenderPattern, f.Name, CStr(AConvert(Of String)(If(m.Post.Date, Now), FileDateAppenderProvider, String.Empty)))
                         ff = SFile.Indexed_IndexFile(ff,, New NumberedFile(ff))

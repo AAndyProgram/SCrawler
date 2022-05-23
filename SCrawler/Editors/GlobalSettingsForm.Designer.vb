@@ -41,6 +41,8 @@
             Dim TP_DOWNLOADING As System.Windows.Forms.TableLayoutPanel
             Dim ActionButton8 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim ActionButton9 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim TP_OPEN_INFO As System.Windows.Forms.TableLayoutPanel
+            Dim TP_OPEN_PROGRESS As System.Windows.Forms.TableLayoutPanel
             Me.TXT_GLOBAL_PATH = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_IMAGE_LARGE = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_IMAGE_SMALL = New PersonalUtilities.Forms.Controls.TextBoxExtended()
@@ -75,9 +77,15 @@
             Me.CH_CLOSE_TO_TRAY = New System.Windows.Forms.CheckBox()
             Me.CH_SHOW_NOTIFY = New System.Windows.Forms.CheckBox()
             Me.CH_RECYCLE_DEL = New System.Windows.Forms.CheckBox()
+            Me.CH_DOWN_OPEN_INFO = New System.Windows.Forms.CheckBox()
+            Me.CH_DOWN_OPEN_PROGRESS = New System.Windows.Forms.CheckBox()
+            Me.TXT_CLOSE_SCRIPT = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_SCRIPT = New PersonalUtilities.Forms.Controls.TextBoxExtended()
+            Me.TXT_DOWN_COMPLETE_SCRIPT = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TAB_MAIN = New System.Windows.Forms.TabControl()
             Me.CONTAINER_MAIN = New System.Windows.Forms.ToolStripContainer()
+            Me.CH_DOWN_OPEN_INFO_SUSPEND = New System.Windows.Forms.CheckBox()
+            Me.CH_DOWN_OPEN_PROGRESS_SUSPEND = New System.Windows.Forms.CheckBox()
             TP_BASIS = New System.Windows.Forms.TableLayoutPanel()
             TP_IMAGES = New System.Windows.Forms.TableLayoutPanel()
             TP_FILE_NAME = New System.Windows.Forms.TableLayoutPanel()
@@ -94,6 +102,8 @@
             TP_BEHAVIOR = New System.Windows.Forms.TableLayoutPanel()
             TAB_DOWN = New System.Windows.Forms.TabPage()
             TP_DOWNLOADING = New System.Windows.Forms.TableLayoutPanel()
+            TP_OPEN_INFO = New System.Windows.Forms.TableLayoutPanel()
+            TP_OPEN_PROGRESS = New System.Windows.Forms.TableLayoutPanel()
             TP_BASIS.SuspendLayout()
             CType(Me.TXT_GLOBAL_PATH, System.ComponentModel.ISupportInitialize).BeginInit()
             TP_IMAGES.SuspendLayout()
@@ -117,12 +127,16 @@
             TAB_BEHAVIOR.SuspendLayout()
             TP_BEHAVIOR.SuspendLayout()
             CType(Me.TXT_FOLDER_CMD, System.ComponentModel.ISupportInitialize).BeginInit()
+            CType(Me.TXT_CLOSE_SCRIPT, System.ComponentModel.ISupportInitialize).BeginInit()
             TAB_DOWN.SuspendLayout()
             TP_DOWNLOADING.SuspendLayout()
             CType(Me.TXT_SCRIPT, System.ComponentModel.ISupportInitialize).BeginInit()
+            CType(Me.TXT_DOWN_COMPLETE_SCRIPT, System.ComponentModel.ISupportInitialize).BeginInit()
             Me.TAB_MAIN.SuspendLayout()
             Me.CONTAINER_MAIN.ContentPanel.SuspendLayout()
             Me.CONTAINER_MAIN.SuspendLayout()
+            TP_OPEN_INFO.SuspendLayout()
+            TP_OPEN_PROGRESS.SuspendLayout()
             Me.SuspendLayout()
             '
             'TP_BASIS
@@ -633,7 +647,7 @@
             TAB_DEFAULTS.Location = New System.Drawing.Point(4, 22)
             TAB_DEFAULTS.Name = "TAB_DEFAULTS"
             TAB_DEFAULTS.Padding = New System.Windows.Forms.Padding(3)
-            TAB_DEFAULTS.Size = New System.Drawing.Size(576, 335)
+            TAB_DEFAULTS.Size = New System.Drawing.Size(576, 284)
             TAB_DEFAULTS.TabIndex = 1
             TAB_DEFAULTS.Text = "Defaults"
             '
@@ -656,7 +670,7 @@
             TP_DEFS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_DEFS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
             TP_DEFS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
-            TP_DEFS.Size = New System.Drawing.Size(570, 329)
+            TP_DEFS.Size = New System.Drawing.Size(570, 278)
             TP_DEFS.TabIndex = 0
             '
             'TAB_DEFS_CHANNELS
@@ -665,7 +679,7 @@
             TAB_DEFS_CHANNELS.Location = New System.Drawing.Point(4, 22)
             TAB_DEFS_CHANNELS.Name = "TAB_DEFS_CHANNELS"
             TAB_DEFS_CHANNELS.Padding = New System.Windows.Forms.Padding(3)
-            TAB_DEFS_CHANNELS.Size = New System.Drawing.Size(576, 335)
+            TAB_DEFS_CHANNELS.Size = New System.Drawing.Size(576, 284)
             TAB_DEFS_CHANNELS.TabIndex = 4
             TAB_DEFS_CHANNELS.Text = "Channels"
             '
@@ -689,7 +703,7 @@
             TP_CHANNELS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_CHANNELS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_CHANNELS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_CHANNELS.Size = New System.Drawing.Size(570, 329)
+            TP_CHANNELS.Size = New System.Drawing.Size(570, 278)
             TP_CHANNELS.TabIndex = 0
             '
             'TXT_CHANNEL_USER_POST_LIMIT
@@ -717,7 +731,7 @@
             TAB_BEHAVIOR.Controls.Add(TP_BEHAVIOR)
             TAB_BEHAVIOR.Location = New System.Drawing.Point(4, 22)
             TAB_BEHAVIOR.Name = "TAB_BEHAVIOR"
-            TAB_BEHAVIOR.Size = New System.Drawing.Size(576, 335)
+            TAB_BEHAVIOR.Size = New System.Drawing.Size(576, 284)
             TAB_BEHAVIOR.TabIndex = 5
             TAB_BEHAVIOR.Text = "Behavior"
             '
@@ -726,25 +740,31 @@
             TP_BEHAVIOR.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
             TP_BEHAVIOR.ColumnCount = 1
             TP_BEHAVIOR.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_BEHAVIOR.Controls.Add(Me.TXT_FOLDER_CMD, 0, 5)
+            TP_BEHAVIOR.Controls.Add(Me.TXT_FOLDER_CMD, 0, 7)
             TP_BEHAVIOR.Controls.Add(Me.CH_EXIT_CONFIRM, 0, 0)
             TP_BEHAVIOR.Controls.Add(Me.CH_CLOSE_TO_TRAY, 0, 1)
             TP_BEHAVIOR.Controls.Add(Me.CH_SHOW_NOTIFY, 0, 2)
             TP_BEHAVIOR.Controls.Add(Me.CH_FAST_LOAD, 0, 3)
+            TP_BEHAVIOR.Controls.Add(Me.TXT_CLOSE_SCRIPT, 0, 8)
+            TP_BEHAVIOR.Controls.Add(TP_OPEN_INFO, 0, 5)
             TP_BEHAVIOR.Controls.Add(Me.CH_RECYCLE_DEL, 0, 4)
+            TP_BEHAVIOR.Controls.Add(TP_OPEN_PROGRESS, 0, 6)
             TP_BEHAVIOR.Dock = System.Windows.Forms.DockStyle.Fill
             TP_BEHAVIOR.Location = New System.Drawing.Point(0, 0)
             TP_BEHAVIOR.Name = "TP_BEHAVIOR"
-            TP_BEHAVIOR.RowCount = 7
+            TP_BEHAVIOR.RowCount = 11
+            TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
+            TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
+            TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
-            TP_BEHAVIOR.Size = New System.Drawing.Size(576, 335)
+            TP_BEHAVIOR.Size = New System.Drawing.Size(576, 284)
             TP_BEHAVIOR.TabIndex = 0
             '
             'TXT_FOLDER_CMD
@@ -762,12 +782,12 @@
             Me.TXT_FOLDER_CMD.CaptionToolTipText = "The command to open a folder."
             Me.TXT_FOLDER_CMD.Dock = System.Windows.Forms.DockStyle.Fill
             Me.TXT_FOLDER_CMD.LeaveDefaultButtons = True
-            Me.TXT_FOLDER_CMD.Location = New System.Drawing.Point(4, 134)
+            Me.TXT_FOLDER_CMD.Location = New System.Drawing.Point(4, 186)
             Me.TXT_FOLDER_CMD.Name = "TXT_FOLDER_CMD"
             Me.TXT_FOLDER_CMD.PlaceholderEnabled = True
             Me.TXT_FOLDER_CMD.PlaceholderText = "MyCommand /arg {0}"
             Me.TXT_FOLDER_CMD.Size = New System.Drawing.Size(568, 22)
-            Me.TXT_FOLDER_CMD.TabIndex = 5
+            Me.TXT_FOLDER_CMD.TabIndex = 7
             '
             'CH_EXIT_CONFIRM
             '
@@ -813,12 +833,48 @@
             Me.CH_RECYCLE_DEL.Text = "Delete data to recycle bin"
             Me.CH_RECYCLE_DEL.UseVisualStyleBackColor = True
             '
+            'CH_DOWN_OPEN_INFO
+            '
+            Me.CH_DOWN_OPEN_INFO.AutoSize = True
+            Me.CH_DOWN_OPEN_INFO.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_DOWN_OPEN_INFO.Location = New System.Drawing.Point(4, 4)
+            Me.CH_DOWN_OPEN_INFO.Name = "CH_DOWN_OPEN_INFO"
+            Me.CH_DOWN_OPEN_INFO.Size = New System.Drawing.Size(279, 17)
+            Me.CH_DOWN_OPEN_INFO.TabIndex = 0
+            Me.CH_DOWN_OPEN_INFO.Text = "Open the 'Info' form when the download starts"
+            Me.CH_DOWN_OPEN_INFO.UseVisualStyleBackColor = True
+            '
+            'CH_DOWN_OPEN_PROGRESS
+            '
+            Me.CH_DOWN_OPEN_PROGRESS.AutoSize = True
+            Me.CH_DOWN_OPEN_PROGRESS.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_DOWN_OPEN_PROGRESS.Location = New System.Drawing.Point(4, 4)
+            Me.CH_DOWN_OPEN_PROGRESS.Name = "CH_DOWN_OPEN_PROGRESS"
+            Me.CH_DOWN_OPEN_PROGRESS.Size = New System.Drawing.Size(279, 17)
+            Me.CH_DOWN_OPEN_PROGRESS.TabIndex = 0
+            Me.CH_DOWN_OPEN_PROGRESS.Text = "Open the 'Progress' form when the download starts"
+            Me.CH_DOWN_OPEN_PROGRESS.UseVisualStyleBackColor = True
+            '
+            'TXT_CLOSE_SCRIPT
+            '
+            Me.TXT_CLOSE_SCRIPT.CaptionMode = PersonalUtilities.Forms.Controls.Base.ICaptionControl.Modes.CheckBox
+            Me.TXT_CLOSE_SCRIPT.CaptionText = "Close cmd"
+            Me.TXT_CLOSE_SCRIPT.CaptionToolTipEnabled = True
+            Me.TXT_CLOSE_SCRIPT.CaptionToolTipText = "This command will be executed when SCrawler is closed"
+            Me.TXT_CLOSE_SCRIPT.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.TXT_CLOSE_SCRIPT.Location = New System.Drawing.Point(4, 215)
+            Me.TXT_CLOSE_SCRIPT.Name = "TXT_CLOSE_SCRIPT"
+            Me.TXT_CLOSE_SCRIPT.PlaceholderEnabled = True
+            Me.TXT_CLOSE_SCRIPT.PlaceholderText = "Enter command here..."
+            Me.TXT_CLOSE_SCRIPT.Size = New System.Drawing.Size(568, 22)
+            Me.TXT_CLOSE_SCRIPT.TabIndex = 8
+            '
             'TAB_DOWN
             '
             TAB_DOWN.Controls.Add(TP_DOWNLOADING)
             TAB_DOWN.Location = New System.Drawing.Point(4, 22)
             TAB_DOWN.Name = "TAB_DOWN"
-            TAB_DOWN.Size = New System.Drawing.Size(576, 335)
+            TAB_DOWN.Size = New System.Drawing.Size(576, 284)
             TAB_DOWN.TabIndex = 6
             TAB_DOWN.Text = "Downloading"
             '
@@ -831,16 +887,18 @@
             TP_DOWNLOADING.Controls.Add(TP_FILE_PATTERNS, 0, 2)
             TP_DOWNLOADING.Controls.Add(Me.TXT_SCRIPT, 0, 3)
             TP_DOWNLOADING.Controls.Add(Me.CH_UDESCR_UP, 0, 0)
+            TP_DOWNLOADING.Controls.Add(Me.TXT_DOWN_COMPLETE_SCRIPT, 0, 4)
             TP_DOWNLOADING.Dock = System.Windows.Forms.DockStyle.Fill
             TP_DOWNLOADING.Location = New System.Drawing.Point(0, 0)
             TP_DOWNLOADING.Name = "TP_DOWNLOADING"
-            TP_DOWNLOADING.RowCount = 5
+            TP_DOWNLOADING.RowCount = 6
             TP_DOWNLOADING.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_DOWNLOADING.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 30.0!))
             TP_DOWNLOADING.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 30.0!))
             TP_DOWNLOADING.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
+            TP_DOWNLOADING.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_DOWNLOADING.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_DOWNLOADING.Size = New System.Drawing.Size(576, 335)
+            TP_DOWNLOADING.Size = New System.Drawing.Size(576, 284)
             TP_DOWNLOADING.TabIndex = 0
             '
             'TXT_SCRIPT
@@ -867,6 +925,21 @@
             Me.TXT_SCRIPT.Size = New System.Drawing.Size(568, 22)
             Me.TXT_SCRIPT.TabIndex = 3
             '
+            'TXT_DOWN_COMPLETE_SCRIPT
+            '
+            Me.TXT_DOWN_COMPLETE_SCRIPT.CaptionMode = PersonalUtilities.Forms.Controls.Base.ICaptionControl.Modes.CheckBox
+            Me.TXT_DOWN_COMPLETE_SCRIPT.CaptionText = "After download cmd"
+            Me.TXT_DOWN_COMPLETE_SCRIPT.CaptionToolTipEnabled = True
+            Me.TXT_DOWN_COMPLETE_SCRIPT.CaptionToolTipText = "This command will be executed after all downloads are completed"
+            Me.TXT_DOWN_COMPLETE_SCRIPT.CaptionWidth = 120.0R
+            Me.TXT_DOWN_COMPLETE_SCRIPT.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.TXT_DOWN_COMPLETE_SCRIPT.Location = New System.Drawing.Point(4, 121)
+            Me.TXT_DOWN_COMPLETE_SCRIPT.Name = "TXT_DOWN_COMPLETE_SCRIPT"
+            Me.TXT_DOWN_COMPLETE_SCRIPT.PlaceholderEnabled = True
+            Me.TXT_DOWN_COMPLETE_SCRIPT.PlaceholderText = "Enter command here..."
+            Me.TXT_DOWN_COMPLETE_SCRIPT.Size = New System.Drawing.Size(568, 22)
+            Me.TXT_DOWN_COMPLETE_SCRIPT.TabIndex = 4
+            '
             'TAB_MAIN
             '
             Me.TAB_MAIN.Controls.Add(TAB_BASIS)
@@ -878,7 +951,7 @@
             Me.TAB_MAIN.Location = New System.Drawing.Point(0, 0)
             Me.TAB_MAIN.Name = "TAB_MAIN"
             Me.TAB_MAIN.SelectedIndex = 0
-            Me.TAB_MAIN.Size = New System.Drawing.Size(584, 285)
+            Me.TAB_MAIN.Size = New System.Drawing.Size(584, 310)
             Me.TAB_MAIN.TabIndex = 1
             '
             'CONTAINER_MAIN
@@ -887,7 +960,7 @@
             'CONTAINER_MAIN.ContentPanel
             '
             Me.CONTAINER_MAIN.ContentPanel.Controls.Add(Me.TAB_MAIN)
-            Me.CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(584, 285)
+            Me.CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(584, 310)
             Me.CONTAINER_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
             Me.CONTAINER_MAIN.LeftToolStripPanelVisible = False
             Me.CONTAINER_MAIN.Location = New System.Drawing.Point(0, 0)
@@ -896,6 +969,66 @@
             Me.CONTAINER_MAIN.Size = New System.Drawing.Size(584, 310)
             Me.CONTAINER_MAIN.TabIndex = 0
             Me.CONTAINER_MAIN.TopToolStripPanelVisible = False
+            '
+            'TP_OPEN_INFO
+            '
+            TP_OPEN_INFO.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
+            TP_OPEN_INFO.ColumnCount = 2
+            TP_OPEN_INFO.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
+            TP_OPEN_INFO.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
+            TP_OPEN_INFO.Controls.Add(Me.CH_DOWN_OPEN_INFO, 0, 0)
+            TP_OPEN_INFO.Controls.Add(Me.CH_DOWN_OPEN_INFO_SUSPEND, 1, 0)
+            TP_OPEN_INFO.Dock = System.Windows.Forms.DockStyle.Fill
+            TP_OPEN_INFO.Location = New System.Drawing.Point(1, 131)
+            TP_OPEN_INFO.Margin = New System.Windows.Forms.Padding(0)
+            TP_OPEN_INFO.Name = "TP_OPEN_INFO"
+            TP_OPEN_INFO.RowCount = 1
+            TP_OPEN_INFO.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            TP_OPEN_INFO.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
+            TP_OPEN_INFO.Size = New System.Drawing.Size(574, 25)
+            TP_OPEN_INFO.TabIndex = 5
+            '
+            'TP_OPEN_PROGRESS
+            '
+            TP_OPEN_PROGRESS.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
+            TP_OPEN_PROGRESS.ColumnCount = 2
+            TP_OPEN_PROGRESS.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
+            TP_OPEN_PROGRESS.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
+            TP_OPEN_PROGRESS.Controls.Add(Me.CH_DOWN_OPEN_PROGRESS, 0, 0)
+            TP_OPEN_PROGRESS.Controls.Add(Me.CH_DOWN_OPEN_PROGRESS_SUSPEND, 1, 0)
+            TP_OPEN_PROGRESS.Dock = System.Windows.Forms.DockStyle.Fill
+            TP_OPEN_PROGRESS.Location = New System.Drawing.Point(1, 157)
+            TP_OPEN_PROGRESS.Margin = New System.Windows.Forms.Padding(0)
+            TP_OPEN_PROGRESS.Name = "TP_OPEN_PROGRESS"
+            TP_OPEN_PROGRESS.RowCount = 1
+            TP_OPEN_PROGRESS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            TP_OPEN_PROGRESS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
+            TP_OPEN_PROGRESS.Size = New System.Drawing.Size(574, 25)
+            TP_OPEN_PROGRESS.TabIndex = 6
+            '
+            'CH_DOWN_OPEN_INFO_SUSPEND
+            '
+            Me.CH_DOWN_OPEN_INFO_SUSPEND.AutoSize = True
+            Me.CH_DOWN_OPEN_INFO_SUSPEND.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_DOWN_OPEN_INFO_SUSPEND.Location = New System.Drawing.Point(290, 4)
+            Me.CH_DOWN_OPEN_INFO_SUSPEND.Name = "CH_DOWN_OPEN_INFO_SUSPEND"
+            Me.CH_DOWN_OPEN_INFO_SUSPEND.Size = New System.Drawing.Size(280, 17)
+            Me.CH_DOWN_OPEN_INFO_SUSPEND.TabIndex = 1
+            Me.CH_DOWN_OPEN_INFO_SUSPEND.Text = "Don't open again"
+            TT_MAIN.SetToolTip(Me.CH_DOWN_OPEN_INFO_SUSPEND, "Do not open the form automatically if it was once closed")
+            Me.CH_DOWN_OPEN_INFO_SUSPEND.UseVisualStyleBackColor = True
+            '
+            'CH_DOWN_OPEN_PROGRESS_SUSPEND
+            '
+            Me.CH_DOWN_OPEN_PROGRESS_SUSPEND.AutoSize = True
+            Me.CH_DOWN_OPEN_PROGRESS_SUSPEND.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_DOWN_OPEN_PROGRESS_SUSPEND.Location = New System.Drawing.Point(290, 4)
+            Me.CH_DOWN_OPEN_PROGRESS_SUSPEND.Name = "CH_DOWN_OPEN_PROGRESS_SUSPEND"
+            Me.CH_DOWN_OPEN_PROGRESS_SUSPEND.Size = New System.Drawing.Size(280, 17)
+            Me.CH_DOWN_OPEN_PROGRESS_SUSPEND.TabIndex = 1
+            Me.CH_DOWN_OPEN_PROGRESS_SUSPEND.Text = "Don't open again"
+            TT_MAIN.SetToolTip(Me.CH_DOWN_OPEN_PROGRESS_SUSPEND, "Do not open the form automatically if it was once closed")
+            Me.CH_DOWN_OPEN_PROGRESS_SUSPEND.UseVisualStyleBackColor = True
             '
             'GlobalSettingsForm
             '
@@ -943,14 +1076,20 @@
             TP_BEHAVIOR.ResumeLayout(False)
             TP_BEHAVIOR.PerformLayout()
             CType(Me.TXT_FOLDER_CMD, System.ComponentModel.ISupportInitialize).EndInit()
+            CType(Me.TXT_CLOSE_SCRIPT, System.ComponentModel.ISupportInitialize).EndInit()
             TAB_DOWN.ResumeLayout(False)
             TP_DOWNLOADING.ResumeLayout(False)
             TP_DOWNLOADING.PerformLayout()
             CType(Me.TXT_SCRIPT, System.ComponentModel.ISupportInitialize).EndInit()
+            CType(Me.TXT_DOWN_COMPLETE_SCRIPT, System.ComponentModel.ISupportInitialize).EndInit()
             Me.TAB_MAIN.ResumeLayout(False)
             Me.CONTAINER_MAIN.ContentPanel.ResumeLayout(False)
             Me.CONTAINER_MAIN.ResumeLayout(False)
             Me.CONTAINER_MAIN.PerformLayout()
+            TP_OPEN_INFO.ResumeLayout(False)
+            TP_OPEN_INFO.PerformLayout()
+            TP_OPEN_PROGRESS.ResumeLayout(False)
+            TP_OPEN_PROGRESS.PerformLayout()
             Me.ResumeLayout(False)
 
         End Sub
@@ -992,5 +1131,11 @@
         Private WithEvents TXT_SCRIPT As PersonalUtilities.Forms.Controls.TextBoxExtended
         Private WithEvents CH_SHOW_GROUPS As CheckBox
         Private WithEvents CH_USERS_GROUPING As CheckBox
+        Private WithEvents CH_DOWN_OPEN_INFO As CheckBox
+        Private WithEvents CH_DOWN_OPEN_PROGRESS As CheckBox
+        Private WithEvents TXT_CLOSE_SCRIPT As PersonalUtilities.Forms.Controls.TextBoxExtended
+        Private WithEvents TXT_DOWN_COMPLETE_SCRIPT As PersonalUtilities.Forms.Controls.TextBoxExtended
+        Private WithEvents CH_DOWN_OPEN_INFO_SUSPEND As CheckBox
+        Private WithEvents CH_DOWN_OPEN_PROGRESS_SUSPEND As CheckBox
     End Class
 End Namespace

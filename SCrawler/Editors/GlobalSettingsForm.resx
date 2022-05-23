@@ -243,6 +243,12 @@ If checked, videos will be stored in separate folder; otherwise, videos will be 
         AFuc5QFgn6ClHh5iOQVAKNixyucB8NY0vG9JOzzyhrdq5IRgAAAAAElFTkSuQmCC
 </value>
   </data>
+  <metadata name="TP_OPEN_INFO.GenerateMember" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>False</value>
+  </metadata>
+  <metadata name="TP_OPEN_PROGRESS.GenerateMember" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>False</value>
+  </metadata>
   <metadata name="TAB_DOWN.GenerateMember" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>False</value>
   </metadata>

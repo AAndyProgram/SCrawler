@@ -348,7 +348,7 @@ Namespace API.Reddit
                                         End If
 
                                         tmpUrl = s.Value("url")
-                                        If Not tmpUrl.IsEmptyString AndAlso tmpUrl.Contains("redgifs.com") Then
+                                        If Not tmpUrl.IsEmptyString AndAlso tmpUrl.StringContains({"redgifs.com", "gfycat.com"}) Then
                                             If SaveToCache Then
                                                 tmpUrl = s.Value({"media", "oembed"}, "thumbnail_url")
                                                 If Not tmpUrl.IsEmptyString Then
@@ -423,6 +423,8 @@ Namespace API.Reddit
                         _TempMediaList.ListAddValue(MediaFromData(UTypes.Video, _URL.Replace(".gifv", ".mp4"),
                                                                   PostID, PostDate, _UserID, IsChannel), LNC)
                     End If
+                ElseIf _URL.Contains(".mp4") Then
+                    _TempMediaList.ListAddValue(MediaFromData(UTypes.Video, _URL, PostID, PostDate, _UserID, IsChannel), LNC)
                 ElseIf _URL.Contains(".gif") Then
                     _TempMediaList.ListAddValue(MediaFromData(UTypes.GIF, _URL, PostID, PostDate, _UserID, IsChannel), LNC)
                 Else
@@ -700,6 +702,7 @@ Namespace API.Reddit
                         End Using
                     End If
                 End If
+            Catch iex As IndexOutOfRangeException When Disposed
             Catch oex As OperationCanceledException When Token.IsCancellationRequested
             Catch dex As ObjectDisposedException When Disposed
             Catch ex As Exception

@@ -72,7 +72,7 @@ Friend Class LabelsKeeper : Implements ICollection(Of String), IMyEnumerator(Of 
     Friend Sub Update()
         If LabelsList.Count > 0 Then
             LabelsList.Sort()
-            TextSaver.SaveTextToFile(LabelsList.ListToString(, vbNewLine), LabelsFile, True, False, EDP.SendInLog)
+            TextSaver.SaveTextToFile(LabelsList.ListToString(vbNewLine), LabelsFile, True, False, EDP.SendInLog)
         Else
             LabelsFile.Delete(, Settings.DeleteMode, EDP.SendInLog)
         End If

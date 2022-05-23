@@ -284,7 +284,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
     Private Sub AppendPendingUsers()
         If LIST_POSTS.CheckedIndices.Count > 0 Then
             Dim c As Channel = GetCurrentChannel(False)
-            Dim lp As New ListAddParams(LAP.NotContainsOnly) With {.OnAddAction = Sub(ByVal u As PendingUser) u.ChannelUserAdded()}
+            Dim lp As New ListAddParams(LAP.NotContainsOnly) With {.OnProcessAction = Sub(ByVal u As PendingUser) u.ChannelUserAdded()}
             PendingUsers.ListAddList((From p As ListViewItem In LIST_POSTS.Items
                                       Where p.Checked
                                       Select New PendingUser(p.Text, c, GetPostBySelected(CStr(p.Tag)).CachedFile)), lp)

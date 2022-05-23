@@ -52,7 +52,7 @@ Namespace API.Reddit
                                 If Not r.IsEmptyString Then
                                     Dim lp As New ListAddParams(LAP.NotContainsOnly) With {
                                         .Converter = Function(input) $"{BaseUrl}/{input}",
-                                        .e = New ErrorsDescriber(False, False, True, New List(Of String))}
+                                        .Error = New ErrorsDescriber(False, False, True, New List(Of String))}
                                     Return ListAddList(Of String, List(Of String))(Nothing, DirectCast(RegexReplace(r, PlayListRegEx_2), List(Of String)), lp).ListIfNothing
                                 End If
                             End If

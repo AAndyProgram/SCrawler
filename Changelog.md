@@ -1,3 +1,24 @@
+# 3.0.0.10
+
+- Added
+  - **Downloading groups**
+  - **Download saved Twitter posts** (bookmarks)
+  - Ability to enable/disable progress form opening at the start of downloading
+  - Ability to enable/disable Info form opening at the start of downloading
+  - The ability to disable the opening of forms Info and Progress at the start of downloads if it was once closed
+  - Focusing the main window when opening Info or Progress forms
+  - Ability to execute a script/command when closing SCrawler
+  - Ability to execute a script/command after all downloads are completed
+  - Minor improvements
+- Fixed
+  - Instagram tagged data not downloading (now requires one more parameter **x-csrftoken** to download tagged data)
+  - In some cases, Instagram Stories cannot be downloaded due to forbidden Windows characters
+  - Separate Instagram posts were not downloading via the Video Downloader form.
+  - In some cases, an Imgur video hosted on Reddit won't download
+  - Gfycat data not downloading from saved Reddit posts
+  - In some cases, the date and time are not added to the filename
+  - Unable to download photos from Twitter in full resolution (4K)
+
 # 3.0.0.9
 
 - Added

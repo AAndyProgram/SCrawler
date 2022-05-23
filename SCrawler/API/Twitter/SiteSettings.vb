@@ -12,7 +12,7 @@ Imports PersonalUtilities.Tools
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports SCrawler.API.Base
 Namespace API.Twitter
-    <Manifest("AndyProgram_Twitter"), UseClassAsIs>
+    <Manifest("AndyProgram_Twitter"), SavedPosts, UseClassAsIs>
     Friend Class SiteSettings : Inherits SiteSettingsBase
         Friend Const Header_Authorization As String = "authorization"
         Friend Const Header_Token As String = "x-csrf-token"
@@ -31,6 +31,8 @@ Namespace API.Twitter
         Private ReadOnly Property Auth As PropertyValue
         <PropertyOption(AllowNull:=False, ControlText:="Token", ControlToolTip:="Set token from [x-csrf-token] response header")>
         Private ReadOnly Property Token As PropertyValue
+        <PropertyOption(ControlText:="Saved posts user name", ControlToolTip:="Personal profile username", LeftOffset:=120), PXML>
+        Friend ReadOnly Property SavedPostsUserName As PropertyValue
         Friend Overrides ReadOnly Property Responser As WEB.Response
         Friend Sub New()
             MyBase.New(TwitterSite)
@@ -70,6 +72,7 @@ Namespace API.Twitter
 
             Auth = New PropertyValue(a, GetType(String), Sub(v) ChangeResponserFields(NameOf(Auth), v))
             Token = New PropertyValue(t, GetType(String), Sub(v) ChangeResponserFields(NameOf(Token), v))
+            SavedPostsUserName = New PropertyValue(String.Empty, GetType(String))
 
             UserRegex = RParams.DMS("[htps:/]{7,8}.*?twitter.com/([^/]+)", 1)
             UrlPatternUser = "https://twitter.com/{0}"
@@ -90,7 +93,11 @@ Namespace API.Twitter
             End If
         End Sub
         Friend Overrides Function GetInstance(ByVal What As ISiteSettings.Download) As IPluginContentProvider
-            Return New UserData
+            If What = ISiteSettings.Download.SavedPosts Then
+                Return New UserData With {.IsSavedPosts = True, .User = New UserInfo With {.Name = CStr(AConvert(Of String)(SavedPostsUserName.Value, String.Empty))}}
+            Else
+                Return New UserData
+            End If
         End Function
         Friend Overrides Function GetSpecialDataF(ByVal URL As String) As IEnumerable(Of UserMedia)
             Return UserData.GetVideoInfo(URL, Responser)

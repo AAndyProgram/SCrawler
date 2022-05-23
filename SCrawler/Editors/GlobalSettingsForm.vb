@@ -11,10 +11,10 @@ Imports PersonalUtilities.Forms.Controls.Base
 Imports PersonalUtilities.Forms.Toolbars
 Namespace Editors
     Friend Class GlobalSettingsForm : Implements IOkCancelToolbar
-        Private ReadOnly MyDefs As DefaultFormProps(Of FieldsChecker)
+        Private ReadOnly MyDefs As DefaultFormProps
         Friend Sub New()
             InitializeComponent()
-            MyDefs = New DefaultFormProps(Of FieldsChecker)
+            MyDefs = New DefaultFormProps
         End Sub
         Private Sub GlobalSettingsForm_Load(sender As Object, e As EventArgs) Handles Me.Load
             Try
@@ -40,8 +40,14 @@ Namespace Editors
                         CH_SHOW_NOTIFY.Checked = .ShowNotifications
                         CH_FAST_LOAD.Checked = .FastProfilesLoading
                         CH_RECYCLE_DEL.Checked = .DeleteToRecycleBin
+                        CH_DOWN_OPEN_INFO.Checked = .DownloadOpenInfo
+                        CH_DOWN_OPEN_INFO_SUSPEND.Checked = Not .DownloadOpenInfo.Attribute
+                        CH_DOWN_OPEN_PROGRESS.Checked = .DownloadOpenProgress
+                        CH_DOWN_OPEN_PROGRESS_SUSPEND.Checked = Not .DownloadOpenProgress.Attribute
                         TXT_FOLDER_CMD.Text = .OpenFolderInOtherProgram
                         TXT_FOLDER_CMD.Checked = .OpenFolderInOtherProgram.Attribute
+                        TXT_CLOSE_SCRIPT.Text = .ClosingCommand
+                        TXT_CLOSE_SCRIPT.Checked = .ClosingCommand.Attribute
                         'Defaults
                         CH_SEPARATE_VIDEO_FOLDER.Checked = .SeparateVideoFolder.Value
                         CH_DEF_TEMP.Checked = .DefaultTemporary
@@ -51,6 +57,8 @@ Namespace Editors
                         CH_UDESCR_UP.Checked = .UpdateUserDescriptionEveryTime
                         TXT_SCRIPT.Checked = .ScriptData.Attribute
                         TXT_SCRIPT.Text = .ScriptData.Value
+                        TXT_DOWN_COMPLETE_SCRIPT.Text = .DownloadsCompleteCommand
+                        TXT_DOWN_COMPLETE_SCRIPT.Checked = .DownloadsCompleteCommand.Attribute
                         'Downloading: file names
                         CH_FILE_NAME_CHANGE.Checked = .FileReplaceNameByDate Or .FileAddDateToFileName Or .FileAddTimeToFileName
                         OPT_FILE_NAME_REPLACE.Checked = .FileReplaceNameByDate
@@ -70,7 +78,7 @@ Namespace Editors
                         CH_CHANNELS_USERS_TEMP.Checked = .ChannelsDefaultTemporary
                     End With
                     .MyFieldsChecker = New FieldsChecker
-                    With .MyFieldsChecker
+                    With DirectCast(.MyFieldsChecker, FieldsChecker)
                         .AddControl(Of String)(TXT_GLOBAL_PATH, TXT_GLOBAL_PATH.CaptionText)
                         .AddControl(Of String)(TXT_COLLECTIONS_PATH, TXT_COLLECTIONS_PATH.CaptionText)
                         .EndLoaderOperations()
@@ -132,8 +140,14 @@ Namespace Editors
                     .ShowNotifications.Value = CH_SHOW_NOTIFY.Checked
                     .FastProfilesLoading.Value = CH_FAST_LOAD.Checked
                     .DeleteToRecycleBin.Value = CH_RECYCLE_DEL.Checked
+                    .DownloadOpenInfo.Value = CH_DOWN_OPEN_INFO.Checked
+                    .DownloadOpenInfo.Attribute.Value = Not CH_DOWN_OPEN_INFO_SUSPEND.Checked
+                    .DownloadOpenProgress.Value = CH_DOWN_OPEN_PROGRESS.Checked
+                    .DownloadOpenProgress.Attribute.Value = Not CH_DOWN_OPEN_PROGRESS_SUSPEND.Checked
                     .OpenFolderInOtherProgram.Value = TXT_FOLDER_CMD.Text
                     .OpenFolderInOtherProgram.Attribute.Value = TXT_FOLDER_CMD.Checked
+                    .ClosingCommand.Value = TXT_CLOSE_SCRIPT.Text
+                    .ClosingCommand.Attribute.Value = TXT_CLOSE_SCRIPT.Checked
                     'Defaults
                     .SeparateVideoFolder.Value = CH_SEPARATE_VIDEO_FOLDER.Checked
                     .DefaultTemporary.Value = CH_DEF_TEMP.Checked
@@ -143,6 +157,8 @@ Namespace Editors
                     .UpdateUserDescriptionEveryTime.Value = CH_UDESCR_UP.Checked
                     .ScriptData.Value = TXT_SCRIPT.Text
                     .ScriptData.Attribute.Value = TXT_SCRIPT.Checked
+                    .DownloadsCompleteCommand.Value = TXT_DOWN_COMPLETE_SCRIPT.Text
+                    .DownloadsCompleteCommand.Attribute.Value = TXT_DOWN_COMPLETE_SCRIPT.Checked
                     'Downloading: file names
                     If CH_FILE_NAME_CHANGE.Checked Then
                         .FileReplaceNameByDate.Value = OPT_FILE_NAME_REPLACE.Checked

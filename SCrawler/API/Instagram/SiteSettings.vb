@@ -9,6 +9,7 @@
 Imports SCrawler.API.Base
 Imports SCrawler.Plugin
 Imports SCrawler.Plugin.Attributes
+Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Tools
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.XML.Base
@@ -30,18 +31,27 @@ Namespace API.Instagram
         End Property
 #End Region
 #Region "Providers"
-        Private Class TimersChecker : Implements ICustomProvider
+        Private Class TimersChecker : Implements IFieldsCheckerProvider
+            Private Property ErrorMessage As String Implements IFieldsCheckerProvider.ErrorMessage
+            Private Property Name As String Implements IFieldsCheckerProvider.Name
+            Private Property TypeError As Boolean Implements IFieldsCheckerProvider.TypeError
+            Private ReadOnly LVProvider As New ANumbers With {.FormatOptions = ANumbers.Options.GroupIntegral}
             Private ReadOnly _LowestValue As Integer
             Friend Sub New(ByVal LowestValue As Integer)
                 _LowestValue = LowestValue
             End Sub
             Private Function Convert(ByVal Value As Object, ByVal DestinationType As Type, ByVal Provider As IFormatProvider,
                                      Optional ByVal NothingArg As Object = Nothing, Optional ByVal e As ErrorsDescriber = Nothing) As Object Implements ICustomProvider.Convert
-                If ACheck(Of Integer)(Value) AndAlso CInt(Value) >= _LowestValue Then
-                    Return Value
+                TypeError = False
+                ErrorMessage = String.Empty
+                If Not ACheck(Of Integer)(Value) Then
+                    TypeError = True
+                ElseIf CInt(Value) < _LowestValue Then
+                    ErrorMessage = $"The value of [{Name}] field must be greater than or equal to {_LowestValue.NumToString(LVProvider)}"
                 Else
-                    Return Nothing
+                    Return Value
                 End If
+                Return Nothing
             End Function
             Private Function GetFormat(ByVal FormatType As Type) As Object Implements IFormatProvider.GetFormat
                 Throw New NotImplementedException()
@@ -53,35 +63,37 @@ Namespace API.Instagram
         Friend ReadOnly Property Hash As PropertyValue
         <PropertyOption(ControlText:="Hash 2", ControlToolTip:="Instagram session hash for saved posts", IsAuth:=True), PXML("InstaHashSavedPosts"), ControlNumber(1)>
         Friend ReadOnly Property HashSavedPosts As PropertyValue
-        <PropertyOption(ControlText:="x-ig-app-id", IsAuth:=True), ControlNumber(2)>
+        <PropertyOption(ControlText:="x-csrftoken", ControlToolTip:="Instagram token for tagged data", IsAuth:=True), ControlNumber(2)>
+        Friend ReadOnly Property CSRF_TOKEN As PropertyValue
+        <PropertyOption(ControlText:="x-ig-app-id", IsAuth:=True), ControlNumber(3)>
         Friend Property IG_APP_ID As PropertyValue
-        <PropertyOption(ControlText:="x-ig-www-claim", IsAuth:=True), ControlNumber(3)>
+        <PropertyOption(ControlText:="x-ig-www-claim", IsAuth:=True), ControlNumber(4)>
         Friend Property IG_WWW_CLAIM As PropertyValue
-        <PropertyOption(ControlText:="Saved posts user", IsAuth:=True), PXML("SavedPostsUserName"), ControlNumber(4)>
+        <PropertyOption(ControlText:="Saved posts user", IsAuth:=True), PXML("SavedPostsUserName"), ControlNumber(5)>
         Friend ReadOnly Property SavedPostsUserName As PropertyValue
         Friend ReadOnly Property StoriesAndTaggedReady As Boolean
             Get
-                Return ACheck(IG_APP_ID.Value) And ACheck(IG_WWW_CLAIM.Value)
+                Return ACheck(IG_APP_ID.Value) And ACheck(IG_WWW_CLAIM.Value) And ACheck(CSRF_TOKEN.Value)
             End Get
         End Property
 #End Region
 #Region "Download properties"
         Friend ReadOnly Property HashUpdateRequired As XMLValue(Of Boolean)
-        <PropertyOption(ControlText:="Request timer", AllowNull:=False), PXML("RequestsWaitTimer"), ControlNumber(5)>
+        <PropertyOption(ControlText:="Request timer", AllowNull:=False), PXML("RequestsWaitTimer"), ControlNumber(6)>
         Friend ReadOnly Property RequestsWaitTimer As PropertyValue
         <Provider(NameOf(RequestsWaitTimer), FieldsChecker:=True)>
         Private ReadOnly Property RequestsWaitTimerProvider As IFormatProvider
-        <PropertyOption(ControlText:="Request timer counter", AllowNull:=False, LeftOffset:=120), PXML("RequestsWaitTimerTaskCount"), ControlNumber(6)>
+        <PropertyOption(ControlText:="Request timer counter", AllowNull:=False, LeftOffset:=120), PXML("RequestsWaitTimerTaskCount"), ControlNumber(7)>
         Friend ReadOnly Property RequestsWaitTimerTaskCount As PropertyValue
         <Provider(NameOf(RequestsWaitTimerTaskCount), FieldsChecker:=True)>
         Private ReadOnly Property RequestsWaitTimerTaskCountProvider As IFormatProvider
-        <PropertyOption(ControlText:="Posts limit timer", AllowNull:=False), PXML("SleepTimerOnPostsLimit"), ControlNumber(7)>
+        <PropertyOption(ControlText:="Posts limit timer", AllowNull:=False), PXML("SleepTimerOnPostsLimit"), ControlNumber(8)>
         Friend ReadOnly Property SleepTimerOnPostsLimit As PropertyValue
         <Provider(NameOf(SleepTimerOnPostsLimit), FieldsChecker:=True)>
         Private ReadOnly Property SleepTimerOnPostsLimitProvider As IFormatProvider
-        <PropertyOption(ControlText:="Get stories"), PXML, ControlNumber(8)>
+        <PropertyOption(ControlText:="Get stories"), PXML, ControlNumber(9)>
         Friend ReadOnly Property GetStories As PropertyValue
-        <PropertyOption(ControlText:="Get tagged photos"), PXML, ControlNumber(9)>
+        <PropertyOption(ControlText:="Get tagged photos"), PXML, ControlNumber(10)>
         Friend ReadOnly Property GetTagged As PropertyValue
 #End Region
 #Region "429 bypass"
@@ -119,7 +131,7 @@ Namespace API.Instagram
                             LastApplyingValue = If(LastApplyingValue, 0) + 10
                             TooManyRequestsReadyForCatch = False
                             MyMainLOG = $"Instagram downloading error: too many requests. Try again after {If(LastApplyingValue, 10)} minutes..."
-                        End If
+                End If
                     End If
                 Else
                     .ValueF = Nothing
@@ -136,11 +148,13 @@ Namespace API.Instagram
 
             Dim app_id$ = String.Empty
             Dim www_claim$ = String.Empty
+            Dim token$ = String.Empty
 
             With Responser
                 If .File.Exists Then
                     .LoadSettings()
                     With .Headers
+                        If .ContainsKey(Header_CSRF_TOKEN) Then token = .Item(Header_CSRF_TOKEN)
                         If .ContainsKey(Header_IG_APP_ID) Then app_id = .Item(Header_IG_APP_ID)
                         If .ContainsKey(Header_IG_WWW_CLAIM) Then www_claim = .Item(Header_IG_WWW_CLAIM)
                     End With
@@ -157,6 +171,7 @@ Namespace API.Instagram
             HashUpdateRequired = New XMLValue(Of Boolean)("InstaHashUpdateRequired", True, _XML, n)
             Hash = New PropertyValue(String.Empty, GetType(String))
             HashSavedPosts = New PropertyValue(String.Empty, GetType(String))
+            CSRF_TOKEN = New PropertyValue(token, GetType(String), Sub(v) ChangeResponserFields(NameOf(CSRF_TOKEN), v))
             IG_APP_ID = New PropertyValue(app_id, GetType(String), Sub(v) ChangeResponserFields(NameOf(IG_APP_ID), v))
             IG_WWW_CLAIM = New PropertyValue(www_claim, GetType(String), Sub(v) ChangeResponserFields(NameOf(IG_WWW_CLAIM), v))
 
@@ -192,12 +207,14 @@ Namespace API.Instagram
         End Function
         Private Const Header_IG_APP_ID As String = "x-ig-app-id"
         Private Const Header_IG_WWW_CLAIM As String = "x-ig-www-claim"
+        Private Const Header_CSRF_TOKEN As String = "x-csrftoken"
         Private Sub ChangeResponserFields(ByVal PropName As String, ByVal Value As Object)
             If Not PropName.IsEmptyString Then
                 Dim f$ = String.Empty
                 Select Case PropName
                     Case NameOf(IG_APP_ID) : f = Header_IG_APP_ID
                     Case NameOf(IG_WWW_CLAIM) : f = Header_IG_WWW_CLAIM
+                    Case NameOf(CSRF_TOKEN) : f = Header_CSRF_TOKEN
                 End Select
                 If Not f.IsEmptyString Then
                     If Responser.Headers.Count > 0 AndAlso Responser.Headers.ContainsKey(f) Then Responser.Headers.Remove(f)
@@ -303,7 +320,7 @@ Namespace API.Instagram
             End Try
         End Function
         Friend Overrides Function GetSpecialDataF(ByVal URL As String) As IEnumerable(Of UserMedia)
-            Return UserData.GetVideoInfo(URL, Responser)
+            Return UserData.GetVideoInfo(URL, Responser, Me)
         End Function
         Friend Overrides Sub UserOptions(ByRef Options As Object, ByVal OpenForm As Boolean)
             If Options Is Nothing OrElse Not TypeOf Options Is EditorExchangeOptions Then Options = New EditorExchangeOptions(Me)
