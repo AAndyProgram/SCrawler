@@ -29,7 +29,7 @@ Do you like this program? Consider adding to my coffee fund by making a donation
   - Gfycat videos
   - [Other](#supported-sites) supported sites
 - Parse [channel and view data](https://github.com/AAndyProgram/SCrawler/wiki/Channels).
-- Download [saved Reddit and Instagram posts](https://github.com/AAndyProgram/SCrawler/wiki/Home#saved-posts).
+- Download [saved Reddit, Twitter and Instagram posts](https://github.com/AAndyProgram/SCrawler/wiki/Home#saved-posts).
 - Add users from parsed channel.
 - **Advanced user management.**
 - Labeling users.
