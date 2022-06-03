@@ -14,6 +14,16 @@ Imports PersonalUtilities.Functions.Messaging
 Friend Class LabelsForm : Implements IOkCancelDeleteToolbar
     Private ReadOnly MyDefs As DefaultFormProps
     Friend ReadOnly Property LabelsList As List(Of String)
+    Private ReadOnly _Source As IEnumerable(Of String) = Nothing
+    Private ReadOnly Property Source As IEnumerable(Of String)
+        Get
+            If Not _Source Is Nothing Then
+                Return _Source
+            Else
+                Return Settings.Labels
+            End If
+        End Get
+    End Property
     Private _AnyLabelAdd As Boolean = False
     Friend Property MultiUser As Boolean = False
     Friend Property MultiUserClearExists As Boolean = False
@@ -24,19 +34,24 @@ Friend Class LabelsForm : Implements IOkCancelDeleteToolbar
         LabelsList.ListAddList(LabelsArr)
         MyDefs = New DefaultFormProps
     End Sub
+    Friend Sub New(ByVal Current As IEnumerable(Of String), ByVal Source As IEnumerable(Of String))
+        Me.New(Current)
+        _Source = Source
+    End Sub
     Private Sub LabelsForm_Load(sender As Object, e As EventArgs) Handles Me.Load
         Try
             With MyDefs
                 .MyViewInitialize(Me, Settings.Design)
                 .AddOkCancelToolbar(, WithDeleteButton)
                 .DelegateClosingChecker()
-                If Settings.Labels.Count > 0 Then
+                If Source.Count > 0 Then
                     Dim items As New List(Of Integer)
                     CMB_LABELS.BeginUpdate()
-                    For i% = 0 To Settings.Labels.Count - 1
-                        If LabelsList.Contains(Settings.Labels(i)) Then items.Add(i)
-                        CMB_LABELS.Items.Add(Settings.Labels(i))
+                    For i% = 0 To Source.Count - 1
+                        If LabelsList.Contains(Source(i)) Then items.Add(i)
+                        CMB_LABELS.Items.Add(Source(i))
                     Next
+                    If Not _Source Is Nothing Then CMB_LABELS.Buttons.Clear()
                     CMB_LABELS.EndUpdate()
                     CMB_LABELS.ListCheckedIndexes = items
                 End If
@@ -48,7 +63,7 @@ Friend Class LabelsForm : Implements IOkCancelDeleteToolbar
         End Try
     End Sub
     Private Sub LabelsForm_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
-        If e.KeyCode = Keys.Insert Then AddNewLabel() : e.Handled = True
+        If e.KeyCode = Keys.Insert And _Source Is Nothing Then AddNewLabel() : e.Handled = True
     End Sub
     Private Sub LabelsForm_Disposed(sender As Object, e As EventArgs) Handles Me.Disposed
         LabelsList.Clear()
@@ -69,7 +84,7 @@ Friend Class LabelsForm : Implements IOkCancelDeleteToolbar
                 End Select
             End If
             LabelsList.ListAddList(CMB_LABELS.Items.CheckedItems.Select(Function(l) CStr(l.Value(0))), LAP.ClearBeforeAdd, LAP.NotContainsOnly)
-            If _AnyLabelAdd Then Settings.Labels.Update()
+            If _AnyLabelAdd And _Source Is Nothing Then Settings.Labels.Update()
             MyDefs.CloseForm()
         Catch ex As Exception
             ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Choosing labels")

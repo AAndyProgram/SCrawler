@@ -83,7 +83,7 @@ Public Class SiteSettings : Implements ISiteSettings
         End If
     End Sub
 #Region "Downloading"
-    Public Function Available(ByVal What As ISiteSettings.Download) As Boolean Implements ISiteSettings.Available
+    Public Function Available(ByVal What As ISiteSettings.Download, ByVal Silent As Boolean) As Boolean Implements ISiteSettings.Available
         Return UseM3U8
     End Function
     Public Function ReadyToDownload(ByVal What As ISiteSettings.Download) As Boolean Implements ISiteSettings.ReadyToDownload

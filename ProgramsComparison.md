@@ -5,6 +5,8 @@ https://www.4kdownload.com/products/product-stogram
 | Option | SCrawler | 4K Stogram |
 | ---- | ---- | ---- |
 | User managament | **Advanced** | Primitive |
+| Automatic downloads | **Yes** | No |
+| Downloading groups | **Yes** | No |
 | Labeling users | **Yes** | No |
 | Filtering | **Yes** | No |
 | Collections | **Yes** | No |
@@ -44,6 +46,8 @@ https://github.com/RipMeApp/ripme
 | Option | SCrawler | RipMeApp |
 | ---- | ---- | ---- |
 | User managament | **Advanced** | No |
+| Automatic downloads | **Yes** | No |
+| Downloading groups | **Yes** | No |
 | Labeling users | **Yes** | No |
 | Filtering | **Yes** | No |
 | Collections | **Yes** | No |
@@ -75,4 +79,4 @@ https://github.com/mikf/gallery-dl
 
 **CLI tool**! Configured with JSON files only. Users need to learn complex configuration options, JSON, commands to use that tool. Very difficult to configure.
 
-SCrawler has advanced user management, collections, labels, groups, a beautiful view, GUI, the ability to add plugins for other sites and much more. Just try it and compare.
+SCrawler has advanced user management, collections, labels, groups, automatic downloads, a beautiful view, GUI, the ability to add plugins for other sites and much more. Just try it and compare.

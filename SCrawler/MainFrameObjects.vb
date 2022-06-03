@@ -8,10 +8,13 @@
 ' but WITHOUT ANY WARRANTY
 Imports SCrawler.API
 Imports SCrawler.API.Base
+Imports PersonalUtilities.Tools.Notifications
 Friend Class MainFrameObjects
     Private ReadOnly Property MF As MainFrame
+    Private WithEvents Notificator As NotificationsManager
     Friend Sub New(ByRef f As MainFrame)
         MF = f
+        Notificator = New NotificationsManager
     End Sub
     Friend Sub ImageHandler(ByVal User As IUserData)
         ImageHandler(User, False)
@@ -34,11 +37,30 @@ Friend Class MainFrameObjects
         Catch ex As Exception
         End Try
     End Sub
-    Friend Sub Focus()
+    Friend Sub Focus(Optional ByVal Show As Boolean = False)
+        If Not MF.Visible And Show Then MF.Show()
         If MF.Visible Then MF.BringToFront() : MF.Activate()
     End Sub
     Friend Sub ChangeCloseVisible()
         Dim a As Action = Sub() MF.BTT_TRAY_CLOSE_NO_SCRIPT.Visible = Settings.ClosingCommand.Attribute And Not Settings.ClosingCommand.IsEmptyString
         If MF.TRAY_CONTEXT.InvokeRequired Then MF.TRAY_CONTEXT.Invoke(a) Else a.Invoke
+    End Sub
+    Friend Overloads Sub ShowNotification(ByVal Message As String)
+        MF.TrayIcon.ShowBalloonTip(2000, MF.TrayIcon.BalloonTipTitle, Message, ToolTipIcon.Info)
+    End Sub
+    Friend Overloads Sub ShowNotification(ByVal Message As String, ByVal Title As String)
+        MF.TrayIcon.ShowBalloonTip(2000, Title, Message, ToolTipIcon.Info)
+    End Sub
+    Friend Overloads Sub ShowNotification(ByVal Message As String, ByVal Title As String, ByVal Icon As ToolTipIcon)
+        MF.TrayIcon.ShowBalloonTip(2000, Title, Message, Icon)
+    End Sub
+    Friend Sub CLearNotifications()
+        Notificator.Clear()
+    End Sub
+    Private Sub Notificator_OnClicked(ByVal Key As String) Handles Notificator.OnClicked
+        If Settings.Automation Is Nothing OrElse Not Settings.Automation.NotificationClicked(Key) Then
+            If Not MF.Visible Then MF.Show()
+            Focus()
+        End If
     End Sub
 End Class

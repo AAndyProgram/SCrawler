@@ -28,6 +28,8 @@ Namespace API.Reddit
         End Property
         <PropertyOption(ControlText:="Saved posts user"), PXML("SavedPostsUserName")>
         Friend ReadOnly Property SavedPostsUserName As PropertyValue
+        <PropertyOption(ControlText:="Use M3U8", ControlToolTip:="Use M3U8 or mp4 for Reddit videos"), PXML>
+        Friend ReadOnly Property UseM3U8 As PropertyValue
         Friend Overrides ReadOnly Property Responser As WEB.Response
         Friend Sub New()
             MyBase.New(RedditSite)
@@ -43,6 +45,7 @@ Namespace API.Reddit
                 End If
             End With
             SavedPostsUserName = New PropertyValue(String.Empty, GetType(String))
+            UseM3U8 = New PropertyValue(True)
             UrlPatternUser = "https://www.reddit.com/user/{0}/"
             UrlPatternChannel = "https://www.reddit.com/r/{0}/"
             ImageVideoContains = "redgifs"
@@ -75,17 +78,21 @@ Namespace API.Reddit
             Next
             Return Nothing
         End Function
-        Friend Overrides Function Available(ByVal What As Download) As Boolean
+        Friend Overrides Function Available(ByVal What As Download, ByVal Silent As Boolean) As Boolean
             Try
                 Dim dl As List(Of DownDetector.Data) = DownDetector.GetData("reddit")
                 If dl.ListExists Then
                     dl = dl.Take(4).ToList
                     Dim avg% = dl.Average(Function(d) d.Value)
                     If avg > 100 Then
-                        Return MsgBoxE({"Over the past hour, Reddit has received an average of " &
-                                        avg.NumToString(New ANumbers With {.FormatOptions = ANumbers.Options.GroupIntegral}) & " outage reports:" & vbCr &
-                                        dl.ListToString(vbCr) & vbCr & vbCr &
-                                        "Do you want to continue parsing Reddit data?", "There are outage reports on Reddit"}, vbYesNo) = vbYes
+                        If Silent Then
+                            Return False
+                        Else
+                            Return MsgBoxE({"Over the past hour, Reddit has received an average of " &
+                                            avg.NumToString(New ANumbers With {.FormatOptions = ANumbers.Options.GroupIntegral}) & " outage reports:" & vbCr &
+                                            dl.ListToString(vbCr) & vbCr & vbCr &
+                                            "Do you want to continue parsing Reddit data?", "There are outage reports on Reddit"}, vbYesNo) = vbYes
+                        End If
                     End If
                 End If
                 Return True

@@ -113,7 +113,7 @@ Namespace Editors
                                                     End Select
                                                 End If
 
-                                                .CreateControl()
+                                                .CreateControl(TT_MAIN)
                                                 AddTpControl(.Control, .ControlHeight)
                                                 If .LeftOffset > offset Then offset = .LeftOffset
                                                 If Not .Options.AllowNull Or Not .ProviderFieldsChecker Is Nothing Then

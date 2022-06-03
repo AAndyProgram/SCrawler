@@ -7,18 +7,14 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports PersonalUtilities.Forms
-Imports PersonalUtilities.Forms.Controls.Base
 Imports PersonalUtilities.Forms.Toolbars
 Namespace DownloadObjects.Groups
     Friend Class GroupEditorForm : Implements IOkCancelToolbar
         Private ReadOnly MyDefs As DefaultFormProps
         Friend Property MyGroup As DownloadGroup
-        Private ReadOnly MyLabels As List(Of String)
         Friend Sub New(ByRef g As DownloadGroup)
             InitializeComponent()
             MyGroup = g
-            MyLabels = New List(Of String)
-            If Not MyGroup Is Nothing Then MyLabels.ListAddList(MyGroup.Labels)
             MyDefs = New DefaultFormProps
         End Sub
         Private Class NameChecker : Implements IFieldsCheckerProvider
@@ -54,11 +50,7 @@ Namespace DownloadObjects.Groups
                 If Not MyGroup Is Nothing Then
                     With MyGroup
                         TXT_NAME.Text = .Name
-                        CH_TEMPORARY.CheckState = .Temporary
-                        CH_FAV.CheckState = .Favorite
-                        CH_READY_FOR_DOWN.Checked = .ReadyForDownload
-                        CH_READY_FOR_DOWN_IGNORE.Checked = .ReadyForDownloadIgnore
-                        TXT_LABELS.Text = MyLabels.ListToString
+                        DEFS_GROUP.Set(MyGroup)
                         Text &= $" { .Name}"
                     End With
                 Else
@@ -71,41 +63,19 @@ Namespace DownloadObjects.Groups
                 .EndLoaderOperations()
             End With
         End Sub
-        Private Sub GroupEditorForm_Disposed(sender As Object, e As EventArgs) Handles Me.Disposed
-            MyLabels.Clear()
-        End Sub
         Private Sub ToolbarBttOK() Implements IOkCancelToolbar.ToolbarBttOK
             If MyDefs.MyFieldsChecker.AllParamsOK Then
                 If MyGroup Is Nothing Then MyGroup = New DownloadGroup
                 With MyGroup
+                    .NameBefore = .Name
                     .Name = TXT_NAME.Text
-                    .Temporary = CH_TEMPORARY.CheckState
-                    .Favorite = CH_FAV.CheckState
-                    .ReadyForDownload = CH_READY_FOR_DOWN.Checked
-                    .ReadyForDownloadIgnore = CH_READY_FOR_DOWN_IGNORE.Checked
-                    .Labels.ListAddList(MyLabels, LAP.ClearBeforeAdd, LAP.NotContainsOnly)
+                    DEFS_GROUP.Get(MyGroup)
                 End With
                 MyDefs.CloseForm()
             End If
         End Sub
         Private Sub ToolbarBttCancel() Implements IOkCancelToolbar.ToolbarBttCancel
             MyDefs.CloseForm(DialogResult.Cancel)
-        End Sub
-        Private Sub TXT_LABELS_ActionOnButtonClick(ByVal Sender As ActionButton) Handles TXT_LABELS.ActionOnButtonClick
-            Select Case Sender.DefaultButton
-                Case ActionButton.DefaultButtons.Edit
-                    Using f As New LabelsForm(MyLabels)
-                        f.ShowDialog()
-                        If f.DialogResult = DialogResult.OK Then
-                            MyLabels.ListAddList(f.LabelsList, LAP.NotContainsOnly, LAP.ClearBeforeAdd)
-                            TXT_LABELS.Clear()
-                            TXT_LABELS.Text = MyLabels.ListToString
-                        End If
-                    End Using
-                Case ActionButton.DefaultButtons.Clear
-                    MyLabels.Clear()
-                    TXT_LABELS.Clear()
-            End Select
         End Sub
     End Class
 End Namespace

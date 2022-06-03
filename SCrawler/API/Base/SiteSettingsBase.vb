@@ -91,7 +91,7 @@ Namespace API.Base
         End Function
 #End Region
 #Region "Ready, Available"
-        Friend Overridable Function Available(ByVal What As Download) As Boolean Implements ISiteSettings.Available
+        Friend Overridable Function Available(ByVal What As Download, ByVal Silent As Boolean) As Boolean Implements ISiteSettings.Available
             Return True
         End Function
         Friend Overridable Function ReadyToDownload(ByVal What As Download) As Boolean Implements ISiteSettings.ReadyToDownload

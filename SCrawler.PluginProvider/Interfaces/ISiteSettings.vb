@@ -33,7 +33,7 @@ Namespace Plugin
         Sub EndUpdate()
 #End Region
 #Region "Site availability"
-        Function Available(ByVal What As Download) As Boolean
+        Function Available(ByVal What As Download, ByVal Silent As Boolean) As Boolean
         Function ReadyToDownload(ByVal What As Download) As Boolean
 #End Region
 #Region "Downloading"

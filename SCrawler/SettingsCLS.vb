@@ -34,6 +34,7 @@ Friend Class SettingsCLS : Implements IDisposable
     Friend Property Channels As Reddit.ChannelsCollection
     Friend ReadOnly Property Labels As LabelsKeeper
     Friend ReadOnly Property Groups As Groups.DownloadGroupCollection
+    Friend Property Automation As AutoDownloader
     Friend ReadOnly Property BlackList As List(Of UserBan)
     Private ReadOnly BlackListFile As SFile = $"{SettingsFolderName}\BlackList.txt"
     Private ReadOnly UsersSettingsFile As SFile = $"{SettingsFolderName}\Users.xml"
@@ -477,6 +478,7 @@ Friend Class SettingsCLS : Implements IDisposable
                     Channels.Dispose()
                     DeleteCachePath()
                 End If
+                If Not Automation Is Nothing Then Automation.Dispose()
                 Plugins.Clear()
                 Users.ListClearDispose
                 UsersList.Clear()

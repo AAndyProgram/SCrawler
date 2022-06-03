@@ -39,37 +39,41 @@ Namespace DownloadObjects
         End Sub
         Private Sub Downloader_OnReconfigured()
             Const RowHeight% = 30
-            With TP_MAIN
-                If .Controls.Count > 0 Then
-                    For Each c As Control In .Controls
-                        If Not c Is Nothing Then c.Dispose()
-                    Next
-                    .Controls.Clear()
-                End If
-                .RowStyles.Clear()
-                .RowCount = 0
-            End With
-            JobsList.ListClearDispose
-            With Downloader
-                If .Pool.Count > 0 Then
-                    For Each j As TDownloader.Job In .Pool
-                        With TP_MAIN
-                            .RowStyles.Add(New RowStyle(SizeType.Absolute, RowHeight))
-                            .RowCount += 1
-                            JobsList.Add(New DownloadProgress(j))
-                            AddHandler JobsList.Last.OnTotalCountChange, AddressOf Jobs_OnTotalCountChange
-                            .Controls.Add(JobsList.Last.Get, 0, .RowStyles.Count - 1)
-                        End With
-                    Next
-                    TP_MAIN.RowStyles.Add(New RowStyle(SizeType.Percent, 100))
-                    TP_MAIN.RowCount += 1
-                End If
-                Dim s As Size = Size
-                s.Height = TP_MAIN.RowStyles.Count * RowHeight + PaddingE.GetOf({TP_MAIN}).Vertical(TP_MAIN.RowStyles.Count) - TP_MAIN.RowStyles.Count * 2
-                MinimumSize = New Size(MinWidth, s.Height)
-                Size = s
-            End With
-            TP_MAIN.Refresh()
+            Dim a As Action = Sub()
+                                  With TP_MAIN
+                                      If .Controls.Count > 0 Then
+                                          For Each c As Control In .Controls
+                                              If Not c Is Nothing Then c.Dispose()
+
+                                          Next
+                                          .Controls.Clear()
+                                      End If
+                                      .RowStyles.Clear()
+                                      .RowCount = 0
+                                  End With
+                                  JobsList.ListClearDispose
+                                  With Downloader
+                                      If .Pool.Count > 0 Then
+                                          For Each j As TDownloader.Job In .Pool
+                                              With TP_MAIN
+                                                  .RowStyles.Add(New RowStyle(SizeType.Absolute, RowHeight))
+                                                  .RowCount += 1
+                                                  JobsList.Add(New DownloadProgress(j))
+                                                  AddHandler JobsList.Last.OnTotalCountChange, AddressOf Jobs_OnTotalCountChange
+                                                  .Controls.Add(JobsList.Last.Get, 0, .RowStyles.Count - 1)
+                                              End With
+                                          Next
+                                          TP_MAIN.RowStyles.Add(New RowStyle(SizeType.Percent, 100))
+                                          TP_MAIN.RowCount += 1
+                                      End If
+                                      Dim s As Size = Size
+                                      s.Height = TP_MAIN.RowStyles.Count * RowHeight + PaddingE.GetOf({TP_MAIN}).Vertical(TP_MAIN.RowStyles.Count) - TP_MAIN.RowStyles.Count * 2
+                                      MinimumSize = New Size(MinWidth, s.Height)
+                                      Size = s
+                                  End With
+                                  TP_MAIN.Refresh()
+                              End Sub
+            If TP_MAIN.InvokeRequired Then TP_MAIN.Invoke(a) Else a.Invoke
         End Sub
         Private Sub Jobs_OnTotalCountChange()
             If JobsList.Count > 0 And Not DisableProgressChange Then

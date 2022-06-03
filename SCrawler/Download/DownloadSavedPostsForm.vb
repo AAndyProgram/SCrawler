@@ -11,7 +11,7 @@ Imports PersonalUtilities.Forms
 Imports SCrawler.DownloadObjects
 Imports SCrawler.Plugin.Hosts
 Friend Class DownloadSavedPostsForm
-    Friend Event OnDownloadDone(ByVal Message As String)
+    Friend Event OnDownloadDone As NotificationEventHandler
     Private MyView As FormsView
     Private ReadOnly JobsList As List(Of DownloadProgress)
     Friend ReadOnly Property Working As Boolean

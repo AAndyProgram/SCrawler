@@ -81,6 +81,7 @@ Namespace API.Instagram
                 If IsSavedPosts Then
                     DownloadPosts(Token)
                 ElseIf MySiteSettings.StoriesAndTaggedReady Then
+                    DownloadedTags = 0
                     If GetStories Then DownloadData(String.Empty, Sections.Stories, Token)
                     If GetTaggedData Then DownloadData(String.Empty, Sections.Tagged, Token)
                 End If
@@ -96,6 +97,8 @@ Namespace API.Instagram
             Tagged
             Stories
         End Enum
+        Private Const StoriesFolder As String = "Stories"
+        Private Const TaggedFolder As String = "Tagged"
 #Region "429 bypass"
         Friend Property RequestsCount As Integer = 0
         Friend Enum WNM As Integer
@@ -149,9 +152,77 @@ Namespace API.Instagram
             End With
         End Sub
 #End Region
-        Private Const StoriesFolder As String = "Stories"
-        Private Const TaggedFolder As String = "Tagged"
+#Region "Tags"
         Private TaggedChecked As Boolean = False
+        Friend TaggedCheckSession As Boolean = True
+        Private DownloadedTags As Integer = 0
+        Private DownloadTagsLimit As Integer? = Nothing
+        Private ReadOnly Property TaggedLimitsNotifications(Optional ByVal v As Integer? = Nothing) As Boolean
+            Get
+                Return Not TaggedChecked AndAlso TaggedCheckSession AndAlso
+                       CInt(MySiteSettings.TaggedNotifyLimit.Value) > 0 AndAlso
+                       (Not v.HasValue OrElse v.Value > CInt(MySiteSettings.TaggedNotifyLimit.Value))
+            End Get
+        End Property
+        Private Function SetTagsLimit(ByVal Max As Integer, ByVal p As ANumbers) As DialogResult
+            Dim v%?
+            Dim aStr$ = $"Enter the number of posts from user {ToString()} that you want to download{vbCr}" &
+                        $"(Max: {Max.NumToString(p)}; Requests: {(Max / 12).RoundUp.NumToString(p)})"
+            Dim tryBtt As New MsgBoxButton("Try again") With {.ToolTip = "You will be asked again about the limit"}
+            Dim cancelBtt As New MsgBoxButton("Cancel") With {.ToolTip = "Cancel tagged posts download operation"}
+            Dim selectBtt As New MsgBoxButton("Other options") With {.ToolTip = "The main message with options will be displayed again"}
+            Dim m As New MMessage("You have not entered a valid posts limit", "Tagged posts download limit", {tryBtt, selectBtt, cancelBtt})
+            Dim mh As New MMessage("", "Tagged posts download limit", {"Confirm", tryBtt, selectBtt, cancelBtt}) With {.ButtonsPerRow = 2}
+            Do
+                v = AConvert(Of Integer)(InputBoxE(aStr, "Tagged posts download limit", CInt(MySiteSettings.TaggedNotifyLimit.Value)), Nothing)
+                If v.HasValue Then
+                    mh.Text = $"You have entered a limit of {v.Value.NumToString(p)} posts"
+                    Select Case MsgBoxE(mh).Index
+                        Case 0 : DownloadTagsLimit = v : Return DialogResult.OK
+                        Case 1 : v = Nothing
+                        Case 2 : Return DialogResult.Retry
+                        Case 3 : Return DialogResult.Cancel
+                    End Select
+                Else
+                    Select Case MsgBoxE(m).Index
+                        Case 1 : Return DialogResult.Retry
+                        Case 2 : Return DialogResult.Cancel
+                    End Select
+                End If
+            Loop While Not v.HasValue
+            Return DialogResult.Retry
+        End Function
+        Private Function TaggedContinue(ByVal TaggedCount As Integer) As DialogResult
+            Dim agi As New ANumbers With {.FormatOptions = ANumbers.Options.GroupIntegral}
+            Dim msg As New MMessage($"The number of tagged posts by user [{ToString()}] is {TaggedCount.NumToString(agi)}" & vbCr &
+                                    $"This is about {(TaggedCount / 12).RoundUp.NumToString(agi)} requests." & vbCr &
+                                    "The tagged data download operation can take a long time.",
+                                    "Too much tagged data",
+                                    {
+                                        "Continue",
+                                        New MsgBoxButton("Continue unnotified") With {
+                                            .ToolTip = "Continue downloading and cancel further notifications in the current downloading session."},
+                                        New MsgBoxButton("Limit") With {
+                                            .ToolTip = "Enter the limit of posts you want to download."},
+                                        New MsgBoxButton("Disable and cancel") With {
+                                            .ToolTip = "Disable downloading tagged data and cancel downloading tagged data."},
+                                        "Cancel"
+                                    }, MsgBoxStyle.Exclamation) With {.DefaultButton = 0, .CancelButton = 4, .ButtonsPerRow = 2}
+            Do
+                Select Case MsgBoxE(msg).Index
+                    Case 0 : Return DialogResult.OK
+                    Case 1 : TaggedCheckSession = False : Return DialogResult.OK
+                    Case 2
+                        Select Case SetTagsLimit(TaggedCount, agi)
+                            Case DialogResult.OK : Return DialogResult.OK
+                            Case DialogResult.Cancel : Return DialogResult.Cancel
+                        End Select
+                    Case 3 : GetTaggedData = False : Return DialogResult.Cancel
+                    Case 4 : Return DialogResult.Cancel
+                End Select
+            Loop
+        End Function
+#End Region
         Private Overloads Sub DownloadData(ByVal Cursor As String, ByVal Section As Sections, ByVal Token As CancellationToken)
             Dim URL$ = String.Empty
             Dim StoriesList As List(Of String) = Nothing
@@ -258,23 +329,15 @@ Namespace API.Instagram
                                                 If Not PostID.IsEmptyString And _TempPostsList.Contains(PostID) Then Throw New ExitException(_DownloadComplete)
                                                 _TempPostsList.Add(PostID)
                                                 ObtainMedia2(nn, PostID, SpecFolder)
+                                                DownloadedTags += 1
+                                                If DownloadTagsLimit.HasValue AndAlso DownloadedTags >= DownloadTagsLimit.Value Then _
+                                                   Throw New ExitException(_DownloadComplete)
                                             Next
-                                            If Not TaggedChecked Then
+                                            If TaggedLimitsNotifications Then
                                                 TaggedCount = j.Value("total_count").FromXML(Of Integer)(0)
                                                 TaggedChecked = True
-                                                If TaggedCount > 200 Then
-                                                    Dim a% = MsgBoxE({$"The number of tagged posts by user [{ToString()}] is { _
-                                                                        TaggedCount.NumToString(New ANumbers With {.FormatOptions = ANumbers.Options.GroupIntegral})}" & vbCr &
-                                                                      "The tagged data download operation can take a long time.", "Too much tagged data"}, vbExclamation,,,
-                                                                      {"Continue",
-                                                                       New MsgBoxButton("Disable and cancel") With {
-                                                                        .ToolTip = "Disable downloading tagged data and cancel downloading tagged data."},
-                                                                       "Cancel"})
-                                                    If a > 0 Then
-                                                        If a = 1 Then GetTaggedData = False
-                                                        Throw New ExitException(_DownloadComplete)
-                                                    End If
-                                                End If
+                                                If TaggedLimitsNotifications(TaggedCount) AndAlso
+                                                   TaggedContinue(TaggedCount) = DialogResult.Cancel Then Throw New ExitException(_DownloadComplete)
                                             End If
                                     End Select
                                 Else

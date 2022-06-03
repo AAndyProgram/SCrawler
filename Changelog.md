@@ -1,3 +1,16 @@
+# 2022.6.3.0
+
+Changed version numbering method. From now on, new versions will be numbered by release date (YYYY.M.D)
+
+**Attention! Starting with this release, SCrawler may not work on windows 7 and 8 or may not work correctly. All future releases will only be guaranteed to work on windows 10 and 11.**
+
+- Added
+  - **Automation** (downloading data automatically every ```X``` minutes)
+  - Expanded settings for Instagram tagged posts that are downloaded for the first time.
+- Fixed
+  - Videos hosted on Reddit that are downloaded via m3u8 playlists are missing an audio track.
+  - Instagram hash not able to be auto-filled from cookies
+
 # 3.0.0.10
 
 - Added

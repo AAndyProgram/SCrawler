@@ -31,6 +31,11 @@ Namespace API.Reddit
                 Return If(IsChannel, DateProviderChannel, DateProvider)
             End Get
         End Property
+        Private ReadOnly Property UseM3U8 As Boolean
+            Get
+                Return Settings.UseM3U8 And CBool(DirectCast(HOST.Source, SiteSettings).UseM3U8.Value)
+            End Get
+        End Property
 #Region "Channels Support"
 #Region "IChannelLimits Support"
         Friend Property DownloadLimitCount As Integer? Implements IChannelLimits.DownloadLimitCount
@@ -242,8 +247,11 @@ Namespace API.Reddit
                                                             added = False
                                                         End If
                                                     Case "video"
-                                                        If Settings.UseM3U8 AndAlso s("hlsUrl").XmlIfNothingValue("/").ToLower.Contains("m3u8") Then
+                                                        If UseM3U8 AndAlso s("hlsUrl").XmlIfNothingValue("/").ToLower.Contains("m3u8") Then
                                                             _TempMediaList.ListAddValue(MediaFromData(UTypes.m3u8, s.Value("hlsUrl"),
+                                                                                                      _PostID(), PostDate,, IsChannel), LNC)
+                                                        ElseIf Not UseM3U8 AndAlso s("fallback_url").XmlIfNothingValue("/").ToLower.Contains("mp4") Then
+                                                            _TempMediaList.ListAddValue(MediaFromData(UTypes.Video, s.Value("fallback_url"),
                                                                                                       _PostID(), PostDate,, IsChannel), LNC)
                                                         Else
                                                             added = False
@@ -367,8 +375,12 @@ Namespace API.Reddit
                                                     _TempMediaList.ListAddValue(MediaFromData(UTypes.Picture, tmpUrl, PostID, PostDate, _UserID, IsChannel), LNC)
                                                     _TotalPostsDownloaded += 1
                                                 End If
+                                            ElseIf UseM3U8 AndAlso Not s.Value({"media", "reddit_video"}, "hls_url").IsEmptyString Then
+                                                _TempMediaList.ListAddValue(MediaFromData(UTypes.m3u8, s.Value({"media", "reddit_video"}, "hls_url"),
+                                                                                          PostID, PostDate, _UserID, IsChannel), LNC)
                                             Else
-                                                _TempMediaList.ListAddValue(MediaFromData(UTypes.VideoPre + UTypes.m3u8, tmpUrl, PostID, PostDate, _UserID, IsChannel), LNC)
+                                                '_TempMediaList.ListAddValue(MediaFromData(UTypes.VideoPre + UTypes.m3u8, tmpUrl, PostID, PostDate, _UserID, IsChannel), LNC)
+                                                _TempMediaList.ListAddValue(MediaFromData(UTypes.Video, tmpUrl, PostID, PostDate, _UserID, IsChannel), LNC)
                                                 _TotalPostsDownloaded += 1
                                             End If
                                         ElseIf CreateImgurMedia(tmpUrl, PostID, PostDate, _UserID, IsChannel) Then
@@ -718,7 +730,7 @@ Namespace API.Reddit
             ElseIf Responser.StatusCode = HttpStatusCode.BadGateway Or
                    Responser.StatusCode = HttpStatusCode.ServiceUnavailable Or
                    Responser.StatusCode = HttpStatusCode.GatewayTimeout Then
-                MyMainLOG = "Reddit is currently unavailable"
+                MyMainLOG = $"Reddit is currently unavailable ({ToString()})"
             Else
                 If Not FromPE Then LogError(ex, Message) : HasError = True
                 Return 0

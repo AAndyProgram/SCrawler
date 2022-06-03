@@ -209,10 +209,13 @@ Namespace API.Base
 #Region "Images"
         Friend Overridable Function GetUserPicture() As Image Implements IUserData.GetPicture
             If Settings.ViewModeIsPicture Then
-                Return GetPicture()
+                Return GetPicture(Of Image)()
             Else
                 Return Nothing
             End If
+        End Function
+        Friend Function GetUserPictureAddress() As SFile
+            Return GetPicture(Of SFile)(False)
         End Function
         Friend Overridable Sub SetPicture(ByVal f As SFile) Implements IUserData.SetPicture
             Try
@@ -225,7 +228,8 @@ Namespace API.Base
         Protected Function GetNullPicture(ByVal MaxHeigh As XML.Base.XMLValue(Of Integer)) As Bitmap
             Return New Bitmap(CInt(DivideWithZeroChecking(MaxHeigh.Value, 100) * 75), MaxHeigh.Value)
         End Function
-        Protected Function GetPicture(Optional ByVal ReturnNullImageOnNothing As Boolean = True) As Image
+        Protected Function GetPicture(Of T)(Optional ByVal ReturnNullImageOnNothing As Boolean = True) As T
+            Dim rsfile As Boolean = GetType(T) Is GetType(SFile)
             Dim f As SFile = Nothing
             Dim p As UserImage = Nothing
             Dim DelPath As Boolean = True
@@ -271,18 +275,21 @@ BlockReturn:
             On Error GoTo BlockNullPicture
             If Not p Is Nothing Then
                 Dim i As Image = Nothing
-                Select Case Settings.ViewMode.Value
-                    Case View.LargeIcon : i = p.Large.OriginalImage.Clone
-                    Case View.SmallIcon : i = p.Small.OriginalImage.Clone
-                End Select
+                Dim a As SFile = p.Address
+                If Not rsfile Then
+                    Select Case Settings.ViewMode.Value
+                        Case View.LargeIcon : i = p.Large.OriginalImage.Clone
+                        Case View.SmallIcon : i = p.Small.OriginalImage.Clone
+                    End Select
+                End If
                 p.Dispose()
-                Return i
+                If rsfile Then Return CObj(a) Else Return CObj(i)
             End If
 BlockNullPicture:
             If ReturnNullImageOnNothing Then
                 Select Case Settings.ViewMode.Value
-                    Case View.LargeIcon : Return GetNullPicture(Settings.MaxLargeImageHeigh)
-                    Case View.SmallIcon : Return GetNullPicture(Settings.MaxSmallImageHeigh)
+                    Case View.LargeIcon : Return CObj(GetNullPicture(Settings.MaxLargeImageHeigh))
+                    Case View.SmallIcon : Return CObj(GetNullPicture(Settings.MaxSmallImageHeigh))
                 End Select
             End If
             Return Nothing
@@ -337,6 +344,13 @@ BlockNullPicture:
         Protected ReadOnly _ContentNew As List(Of UserMedia)
         Protected ReadOnly _TempMediaList As List(Of UserMedia)
         Protected ReadOnly _TempPostsList As List(Of String)
+        Friend Function GetLastImageAddress() As SFile
+            If _ContentList.Count > 0 Then
+                Return _ContentList.LastOrDefault(Function(c) c.Type = UTypes.Picture And Not c.File.IsEmptyString And Not c.File.Extension = "gif").File
+            Else
+                Return Nothing
+            End If
+        End Function
 #End Region
 #Region "Files"
         Friend Overridable Property MyFile As SFile Implements IUserData.File
@@ -737,7 +751,7 @@ BlockNullPicture:
                 Responser = New Response
                 If Not HOST.Responser Is Nothing Then Responser.Copy(HOST.Responser)
 
-                Dim UpPic As Boolean = Settings.ViewModeIsPicture AndAlso GetPicture(False) Is Nothing
+                Dim UpPic As Boolean = Settings.ViewModeIsPicture AndAlso GetPicture(Of Image)(False) Is Nothing
                 Dim sEnvir() As Boolean = {UserExists, UserSuspended}
                 Dim EnvirChanged As Func(Of Boolean) = Function() Not sEnvir(0) = UserExists Or Not sEnvir(1) = UserSuspended
                 UserExists = True

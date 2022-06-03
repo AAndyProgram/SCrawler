@@ -11,16 +11,12 @@ Imports PersonalUtilities.Functions.XML.Base
 Imports SCrawler.API
 Imports SCrawler.API.Base
 Namespace DownloadObjects.Groups
-    Friend Class DownloadGroup : Implements IIndexable, IEContainerProvider, IDisposable
+    Friend Class DownloadGroup : Inherits GroupParameters : Implements IIndexable, IEContainerProvider
         Friend Delegate Sub GroupEventHandler(ByVal Sender As DownloadGroup)
         Friend Event Deleted As GroupEventHandler
         Friend Event Updated As GroupEventHandler
 #Region "XML Names"
         Private Const Name_Name As String = "Name"
-        Private Const Name_Temporary As String = "Temporary"
-        Private Const Name_Favorite As String = "Favorite"
-        Private Const Name_ReadyForDownload As String = "RFD"
-        Private Const Name_ReadyForDownloadIgnore As String = "RFDI"
 #End Region
         Private WithEvents BTT_EDIT As ToolStripMenuItem
         Private WithEvents BTT_DELETE As ToolStripMenuItem
@@ -28,10 +24,7 @@ Namespace DownloadObjects.Groups
         Private WithEvents BTT_DOWNLOAD_FULL As ToolStripMenuItem
         Private ReadOnly SEP_1 As ToolStripSeparator
         Private WithEvents BTT_MENU As ToolStripMenuItem
-        Friend Property Temporary As CheckState = CheckState.Indeterminate
-        Friend Property Favorite As CheckState = CheckState.Indeterminate
-        Friend Property ReadyForDownload As Boolean = True
-        Friend Property ReadyForDownloadIgnore As Boolean = False
+        Friend Property NameBefore As String = String.Empty
         Friend Property Name As String
         Private _Key As String = String.Empty
         Friend ReadOnly Property Key As String
@@ -51,14 +44,7 @@ Namespace DownloadObjects.Groups
                 If b Then RaiseEvent Updated(Me)
             End Set
         End Property
-        Friend ReadOnly Property Labels As List(Of String)
-        Friend ReadOnly Property Count As Integer
-            Get
-                Return Labels.Count
-            End Get
-        End Property
         Friend Sub New()
-            Labels = New List(Of String)
             BTT_MENU = New ToolStripMenuItem With {
                 .ToolTipText = "Download users of this group",
                 .AutoToolTip = True,
@@ -142,26 +128,42 @@ Namespace DownloadObjects.Groups
         Private Sub BTT_DOWNLOAD_FULL_Click(sender As Object, e As EventArgs) Handles BTT_DOWNLOAD_FULL.Click
             DownloadUsers(False)
         End Sub
+        Friend Overloads Function GetUsers() As IEnumerable(Of IUserData)
+            Return GetUsers(Me, True)
+        End Function
+        Friend Overloads Shared Function GetUsers(ByVal Instance As IGroup, ByVal UseReadyOption As Boolean) As IEnumerable(Of IUserData)
+            Try
+                If Settings.Users.Count > 0 Then
+                    With Instance
+                        Dim CheckParams As Predicate(Of IUserData) = Function(user) _
+                            (.Temporary = CheckState.Indeterminate Or user.Temporary = CBool(.Temporary)) And
+                            (.Favorite = CheckState.Indeterminate Or (user.Favorite = CBool(.Favorite))) And
+                            (Not UseReadyOption Or .ReadyForDownloadIgnore Or user.ReadyForDownload = .ReadyForDownload)
+                        Dim f As Func(Of IUserData, IEnumerable(Of IUserData)) = Function(ByVal user As IUserData) As IEnumerable(Of IUserData)
+                                                                                     If user.IsCollection Then
+                                                                                         With DirectCast(user, UserDataBind)
+                                                                                             If .Count > 0 Then Return .Collections.SelectMany(f)
+                                                                                         End With
+                                                                                     Else
+                                                                                         If .Labels.Count = 0 OrElse user.Labels.ListContains(.Labels) Then
+                                                                                             If CheckParams.Invoke(user) Then Return {user}
+                                                                                         End If
+                                                                                     End If
+                                                                                     Return New IUserData() {}
+                                                                                 End Function
+                        Return Settings.Users.SelectMany(f)
+                    End With
+                Else
+                    Return Nothing
+                End If
+            Catch ex As Exception
+                Return ErrorsDescriber.Execute(EDP.SendInLog, ex, "[DownloadGroup.GetUsers]")
+            End Try
+        End Function
         Friend Sub DownloadUsers(ByVal UseReadyOption As Boolean)
             Try
                 If Settings.Users.Count > 0 Then
-                    Dim CheckParams As Predicate(Of IUserData) = Function(user) _
-                        (Temporary = CheckState.Indeterminate Or user.Temporary = CBool(Temporary)) And
-                        (Favorite = CheckState.Indeterminate Or (user.Favorite = CBool(Favorite))) And
-                        (Not UseReadyOption Or ReadyForDownloadIgnore Or user.ReadyForDownload = ReadyForDownload)
-                    Dim f As Func(Of IUserData, IEnumerable(Of IUserData)) = Function(ByVal user As IUserData) As IEnumerable(Of IUserData)
-                                                                                 If user.IsCollection Then
-                                                                                     With DirectCast(user, UserDataBind)
-                                                                                         If Count > 0 Then Return .Collections.SelectMany(f)
-                                                                                     End With
-                                                                                 Else
-                                                                                     If Labels.Count = 0 OrElse user.Labels.ListContains(Labels) Then
-                                                                                         If CheckParams.Invoke(user) Then Return {user}
-                                                                                     End If
-                                                                                 End If
-                                                                                 Return New IUserData() {}
-                                                                             End Function
-                    Dim u As IEnumerable(Of IUserData) = Settings.Users.SelectMany(f)
+                    Dim u As IEnumerable(Of IUserData) = GetUsers(Me, UseReadyOption)
                     If u.ListExists Then
                         Downloader.AddRange(u)
                     Else
@@ -174,7 +176,7 @@ Namespace DownloadObjects.Groups
         End Sub
 #End Region
 #Region "IEContainerProvider Support"
-        Public Function ToEContainer(Optional ByVal e As ErrorsDescriber = Nothing) As EContainer Implements IEContainerProvider.ToEContainer
+        Private Function ToEContainer(Optional ByVal e As ErrorsDescriber = Nothing) As EContainer Implements IEContainerProvider.ToEContainer
             Return New EContainer("Group", Labels.ListToString("|"), {New EAttribute(Name_Name, Name),
                                                                       New EAttribute(Name_Temporary, CInt(Temporary)),
                                                                       New EAttribute(Name_Favorite, CInt(Favorite)),
@@ -183,28 +185,16 @@ Namespace DownloadObjects.Groups
         End Function
 #End Region
 #Region "IDisposable Support"
-        Private disposedValue As Boolean = False
-        Protected Overridable Overloads Sub Dispose(ByVal disposing As Boolean)
-            If Not disposedValue Then
-                If disposing Then
-                    Labels.Clear()
-                    BTT_DELETE.Dispose()
-                    BTT_EDIT.Dispose()
-                    BTT_MENU.Dispose()
-                    SEP_1.Dispose()
-                    BTT_DOWNLOAD.Dispose()
-                    BTT_DOWNLOAD_FULL.Dispose()
-                End If
-                disposedValue = True
+        Protected Overrides Sub Dispose(ByVal disposing As Boolean)
+            If Not disposedValue And disposing Then
+                BTT_DELETE.Dispose()
+                BTT_EDIT.Dispose()
+                BTT_MENU.Dispose()
+                SEP_1.Dispose()
+                BTT_DOWNLOAD.Dispose()
+                BTT_DOWNLOAD_FULL.Dispose()
             End If
-        End Sub
-        Protected Overrides Sub Finalize()
-            Dispose(False)
-            MyBase.Finalize()
-        End Sub
-        Friend Overloads Sub Dispose() Implements IDisposable.Dispose
-            Dispose(True)
-            GC.SuppressFinalize(Me)
+            MyBase.Dispose(disposing)
         End Sub
 #End Region
     End Class

@@ -12,9 +12,18 @@ Imports PersonalUtilities.Forms.Toolbars
 Namespace Editors
     Friend Class GlobalSettingsForm : Implements IOkCancelToolbar
         Private ReadOnly MyDefs As DefaultFormProps
+        Private ReadOnly Automation As DownloadObjects.AutoDownloaderEditorForm
         Friend Sub New()
             InitializeComponent()
             MyDefs = New DefaultFormProps
+            Automation = New DownloadObjects.AutoDownloaderEditorForm With {
+                .MaximumSize = New Size(0, 0),
+                .MinimumSize = New Size(0, 0),
+                .Dock = DockStyle.Fill,
+                .FormBorderStyle = FormBorderStyle.None,
+                .TopLevel = False,
+                .IsControlForm = True
+            }
         End Sub
         Private Sub GlobalSettingsForm_Load(sender As Object, e As EventArgs) Handles Me.Load
             Try
@@ -77,10 +86,14 @@ Namespace Editors
                         CH_COPY_CHANNEL_USER_IMAGE_ALL.Enabled = CH_COPY_CHANNEL_USER_IMAGE.Checked
                         CH_CHANNELS_USERS_TEMP.Checked = .ChannelsDefaultTemporary
                     End With
+                    PANEL_AUTO.Controls.Add(Automation)
+                    Automation.Show()
                     .MyFieldsChecker = New FieldsChecker
                     With DirectCast(.MyFieldsChecker, FieldsChecker)
                         .AddControl(Of String)(TXT_GLOBAL_PATH, TXT_GLOBAL_PATH.CaptionText)
                         .AddControl(Of String)(TXT_COLLECTIONS_PATH, TXT_COLLECTIONS_PATH.CaptionText)
+                        .AddControl(Of Integer)(Automation.TXT_TIMER, Automation.TXT_TIMER.CaptionText,,
+                                                New DownloadObjects.AutoDownloaderEditorForm.AutomationTimerChecker)
                         .EndLoaderOperations()
                     End With
                     .AppendDetectors()
@@ -90,6 +103,9 @@ Namespace Editors
             Catch ex As Exception
                 MyDefs.InvokeLoaderError(ex)
             End Try
+        End Sub
+        Private Sub GlobalSettingsForm_Disposed(sender As Object, e As EventArgs) Handles Me.Disposed
+            Automation.Dispose()
         End Sub
         Private Sub ToolbarBttOK() Implements IOkCancelToolbar.ToolbarBttOK
             If MyDefs.MyFieldsChecker.AllParamsOK Then
@@ -178,6 +194,8 @@ Namespace Editors
                     .FromChannelCopyImageToUser.Value = CH_COPY_CHANNEL_USER_IMAGE.Checked
                     .ChannelsAddUserImagesFromAllChannels.Value = CH_COPY_CHANNEL_USER_IMAGE_ALL.Checked
                     .ChannelsDefaultTemporary.Value = CH_CHANNELS_USERS_TEMP.Checked
+
+                    Automation.SaveSetiings()
 
                     .EndUpdate()
                 End With

@@ -21,20 +21,24 @@ Do you like this program? Consider adding to my coffee fund by making a donation
 - Download pictures and videos from users' profiles and subreddits:
   - Reddit images;
   - Reddit galleries of images;
-  - Redgifs hosted videos (https://www.redgifs.com/);
-  - Reddit hosted videos (downloading Reddit hosted video is going through ffmpeg (**ffmpeg only works with the x64 program**));
+  - Reddit videos (downloading Reddit hosted video is going through ffmpeg (**ffmpeg only works with the x64 program**));
+  - Redgifs videos (https://www.redgifs.com/);
   - Twitter images and videos;
-  - Instagram images and videos.
-  - Imgur images, galleries and videos
-  - Gfycat videos
+  - Instagram images and videos;
+  - Instagram tagged posts;
+  - Instagram stories;
+  - Imgur images, galleries and videos;
+  - Gfycat videos;
   - [Other](#supported-sites) supported sites
-- Parse [channel and view data](https://github.com/AAndyProgram/SCrawler/wiki/Channels).
-- Download [saved Reddit, Twitter and Instagram posts](https://github.com/AAndyProgram/SCrawler/wiki/Home#saved-posts).
-- Add users from parsed channel.
-- **Advanced user management.**
-- Labeling users.
-- Adding users to favorites and temporary.
-- Filter exists users by label or group.
+- Parse [channel and view data](https://github.com/AAndyProgram/SCrawler/wiki/Channels)
+- Download [saved Reddit, Twitter and Instagram posts](https://github.com/AAndyProgram/SCrawler/wiki/Home#saved-posts)
+- Add users from parsed channel
+- **Advanced user management**
+- **Automation** (downloading data automatically every ```X``` minutes)
+- Labeling users
+- Create download groups
+- Adding users to favorites and temporary
+- Filter exists users by label or group
 - Selection of media types you want to download (images only, videos only, both)
 - Download a special video, image or gallery
 - Making collections (grouping users into collections)
@@ -75,7 +79,7 @@ Read [here](CONTRIBUTING.md#how-to-request-a-new-site) about
 
 # Requirements
 
-- Windows 7, 8, 9, 10, 11 with NET Framework 4.6.1 or higher (v4.6.1 must be installed). You can check version compatibility with this [tool](Tools/NET.FrameworkVersion.ps1).
+- Windows 10, 11 with NET Framework 4.6.1 or higher (v4.6.1 must be installed). You can check version compatibility with this [tool](Tools/NET.FrameworkVersion.ps1).
 - Authorization [cookies](https://github.com/AAndyProgram/SCrawler/wiki/Settings#how-to-set-up-cookies) and [tokens](https://github.com/AAndyProgram/SCrawler/wiki/Settings#how-to-find-twitter-tokens) for Twitter (if you want to download data from Twitter)
 - Authorization [cookies](https://github.com/AAndyProgram/SCrawler/wiki/Settings#how-to-set-up-cookies) and [Hash](https://github.com/AAndyProgram/SCrawler/wiki/Settings#instagram) for Instagram (if you want to download data from Instagram), [Hash 2](https://github.com/AAndyProgram/SCrawler/wiki/Settings#how-to-find-instagram-hash-2) for saved Instagram posts, Instagram [stories authorization headers](https://github.com/AAndyProgram/SCrawler/wiki/Settings#how-to-find-instagram-stories-authorization-headers) for Stories and Tagged data
 - ffmpeg library for downloading videos hosted on Reddit (you can download it from the [official repo](https://github.com/GyanD/codexffmpeg/releases/tag/2021-01-12-git-ca21cb1e36) or [from my first release](https://github.com/AAndyProgram/SCrawler/releases/download/1.0.0.0/ffmpeg.zip)). **ffmpeg only works with the x64 version of the program.**
@@ -86,7 +90,7 @@ Read [here](CONTRIBUTING.md#how-to-request-a-new-site) about
 
 # Installation
 
-**Just unzip the program archive to any folder, copy the file ```ffmpeg.exe``` into it and enjoy.** :blush:
+**Just download the [latest release](https://github.com/AAndyProgram/SCrawler/releases/latest), unzip the program archive to any folder, copy the file ```ffmpeg.exe``` into it and enjoy.** :blush:
 
 **Don't put program in the ```Program Files``` system folder (this is portable program and program settings are stored in the program folder)**
 

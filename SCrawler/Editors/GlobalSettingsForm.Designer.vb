@@ -37,12 +37,12 @@
             Dim TAB_BEHAVIOR As System.Windows.Forms.TabPage
             Dim TP_BEHAVIOR As System.Windows.Forms.TableLayoutPanel
             Dim ActionButton7 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim TP_OPEN_INFO As System.Windows.Forms.TableLayoutPanel
+            Dim TP_OPEN_PROGRESS As System.Windows.Forms.TableLayoutPanel
             Dim TAB_DOWN As System.Windows.Forms.TabPage
             Dim TP_DOWNLOADING As System.Windows.Forms.TableLayoutPanel
             Dim ActionButton8 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim ActionButton9 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
-            Dim TP_OPEN_INFO As System.Windows.Forms.TableLayoutPanel
-            Dim TP_OPEN_PROGRESS As System.Windows.Forms.TableLayoutPanel
             Me.TXT_GLOBAL_PATH = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_IMAGE_LARGE = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_IMAGE_SMALL = New PersonalUtilities.Forms.Controls.TextBoxExtended()
@@ -69,6 +69,8 @@
             Me.CH_CHANNELS_USERS_TEMP = New System.Windows.Forms.CheckBox()
             Me.CH_COPY_CHANNEL_USER_IMAGE_ALL = New System.Windows.Forms.CheckBox()
             Me.CH_UDESCR_UP = New System.Windows.Forms.CheckBox()
+            Me.CH_DOWN_OPEN_INFO_SUSPEND = New System.Windows.Forms.CheckBox()
+            Me.CH_DOWN_OPEN_PROGRESS_SUSPEND = New System.Windows.Forms.CheckBox()
             Me.TXT_CHANNELS_ROWS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_CHANNELS_COLUMNS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_CHANNEL_USER_POST_LIMIT = New PersonalUtilities.Forms.Controls.TextBoxExtended()
@@ -76,16 +78,16 @@
             Me.CH_EXIT_CONFIRM = New System.Windows.Forms.CheckBox()
             Me.CH_CLOSE_TO_TRAY = New System.Windows.Forms.CheckBox()
             Me.CH_SHOW_NOTIFY = New System.Windows.Forms.CheckBox()
-            Me.CH_RECYCLE_DEL = New System.Windows.Forms.CheckBox()
-            Me.CH_DOWN_OPEN_INFO = New System.Windows.Forms.CheckBox()
-            Me.CH_DOWN_OPEN_PROGRESS = New System.Windows.Forms.CheckBox()
             Me.TXT_CLOSE_SCRIPT = New PersonalUtilities.Forms.Controls.TextBoxExtended()
+            Me.CH_DOWN_OPEN_INFO = New System.Windows.Forms.CheckBox()
+            Me.CH_RECYCLE_DEL = New System.Windows.Forms.CheckBox()
+            Me.CH_DOWN_OPEN_PROGRESS = New System.Windows.Forms.CheckBox()
             Me.TXT_SCRIPT = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_DOWN_COMPLETE_SCRIPT = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TAB_MAIN = New System.Windows.Forms.TabControl()
+            Me.TAB_AUTO = New System.Windows.Forms.TabPage()
+            Me.PANEL_AUTO = New System.Windows.Forms.Panel()
             Me.CONTAINER_MAIN = New System.Windows.Forms.ToolStripContainer()
-            Me.CH_DOWN_OPEN_INFO_SUSPEND = New System.Windows.Forms.CheckBox()
-            Me.CH_DOWN_OPEN_PROGRESS_SUSPEND = New System.Windows.Forms.CheckBox()
             TP_BASIS = New System.Windows.Forms.TableLayoutPanel()
             TP_IMAGES = New System.Windows.Forms.TableLayoutPanel()
             TP_FILE_NAME = New System.Windows.Forms.TableLayoutPanel()
@@ -100,10 +102,10 @@
             TP_CHANNELS = New System.Windows.Forms.TableLayoutPanel()
             TAB_BEHAVIOR = New System.Windows.Forms.TabPage()
             TP_BEHAVIOR = New System.Windows.Forms.TableLayoutPanel()
-            TAB_DOWN = New System.Windows.Forms.TabPage()
-            TP_DOWNLOADING = New System.Windows.Forms.TableLayoutPanel()
             TP_OPEN_INFO = New System.Windows.Forms.TableLayoutPanel()
             TP_OPEN_PROGRESS = New System.Windows.Forms.TableLayoutPanel()
+            TAB_DOWN = New System.Windows.Forms.TabPage()
+            TP_DOWNLOADING = New System.Windows.Forms.TableLayoutPanel()
             TP_BASIS.SuspendLayout()
             CType(Me.TXT_GLOBAL_PATH, System.ComponentModel.ISupportInitialize).BeginInit()
             TP_IMAGES.SuspendLayout()
@@ -128,15 +130,16 @@
             TP_BEHAVIOR.SuspendLayout()
             CType(Me.TXT_FOLDER_CMD, System.ComponentModel.ISupportInitialize).BeginInit()
             CType(Me.TXT_CLOSE_SCRIPT, System.ComponentModel.ISupportInitialize).BeginInit()
+            TP_OPEN_INFO.SuspendLayout()
+            TP_OPEN_PROGRESS.SuspendLayout()
             TAB_DOWN.SuspendLayout()
             TP_DOWNLOADING.SuspendLayout()
             CType(Me.TXT_SCRIPT, System.ComponentModel.ISupportInitialize).BeginInit()
             CType(Me.TXT_DOWN_COMPLETE_SCRIPT, System.ComponentModel.ISupportInitialize).BeginInit()
             Me.TAB_MAIN.SuspendLayout()
+            Me.TAB_AUTO.SuspendLayout()
             Me.CONTAINER_MAIN.ContentPanel.SuspendLayout()
             Me.CONTAINER_MAIN.SuspendLayout()
-            TP_OPEN_INFO.SuspendLayout()
-            TP_OPEN_PROGRESS.SuspendLayout()
             Me.SuspendLayout()
             '
             'TP_BASIS
@@ -167,7 +170,7 @@
             TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_BASIS.Size = New System.Drawing.Size(570, 253)
+            TP_BASIS.Size = New System.Drawing.Size(570, 278)
             TP_BASIS.TabIndex = 0
             '
             'TXT_GLOBAL_PATH
@@ -586,6 +589,30 @@
         " will be added via a new line")
             Me.CH_UDESCR_UP.UseVisualStyleBackColor = True
             '
+            'CH_DOWN_OPEN_INFO_SUSPEND
+            '
+            Me.CH_DOWN_OPEN_INFO_SUSPEND.AutoSize = True
+            Me.CH_DOWN_OPEN_INFO_SUSPEND.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_DOWN_OPEN_INFO_SUSPEND.Location = New System.Drawing.Point(290, 4)
+            Me.CH_DOWN_OPEN_INFO_SUSPEND.Name = "CH_DOWN_OPEN_INFO_SUSPEND"
+            Me.CH_DOWN_OPEN_INFO_SUSPEND.Size = New System.Drawing.Size(280, 17)
+            Me.CH_DOWN_OPEN_INFO_SUSPEND.TabIndex = 1
+            Me.CH_DOWN_OPEN_INFO_SUSPEND.Text = "Don't open again"
+            TT_MAIN.SetToolTip(Me.CH_DOWN_OPEN_INFO_SUSPEND, "Do not open the form automatically if it was once closed")
+            Me.CH_DOWN_OPEN_INFO_SUSPEND.UseVisualStyleBackColor = True
+            '
+            'CH_DOWN_OPEN_PROGRESS_SUSPEND
+            '
+            Me.CH_DOWN_OPEN_PROGRESS_SUSPEND.AutoSize = True
+            Me.CH_DOWN_OPEN_PROGRESS_SUSPEND.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_DOWN_OPEN_PROGRESS_SUSPEND.Location = New System.Drawing.Point(290, 4)
+            Me.CH_DOWN_OPEN_PROGRESS_SUSPEND.Name = "CH_DOWN_OPEN_PROGRESS_SUSPEND"
+            Me.CH_DOWN_OPEN_PROGRESS_SUSPEND.Size = New System.Drawing.Size(280, 17)
+            Me.CH_DOWN_OPEN_PROGRESS_SUSPEND.TabIndex = 1
+            Me.CH_DOWN_OPEN_PROGRESS_SUSPEND.Text = "Don't open again"
+            TT_MAIN.SetToolTip(Me.CH_DOWN_OPEN_PROGRESS_SUSPEND, "Do not open the form automatically if it was once closed")
+            Me.CH_DOWN_OPEN_PROGRESS_SUSPEND.UseVisualStyleBackColor = True
+            '
             'TP_CHANNELS_IMGS
             '
             TP_CHANNELS_IMGS.ColumnCount = 2
@@ -637,7 +664,7 @@
             TAB_BASIS.Location = New System.Drawing.Point(4, 22)
             TAB_BASIS.Name = "TAB_BASIS"
             TAB_BASIS.Padding = New System.Windows.Forms.Padding(3)
-            TAB_BASIS.Size = New System.Drawing.Size(576, 259)
+            TAB_BASIS.Size = New System.Drawing.Size(576, 284)
             TAB_BASIS.TabIndex = 0
             TAB_BASIS.Text = "Basis"
             '
@@ -822,39 +849,6 @@
             Me.CH_SHOW_NOTIFY.Text = "Show notifications"
             Me.CH_SHOW_NOTIFY.UseVisualStyleBackColor = True
             '
-            'CH_RECYCLE_DEL
-            '
-            Me.CH_RECYCLE_DEL.AutoSize = True
-            Me.CH_RECYCLE_DEL.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_RECYCLE_DEL.Location = New System.Drawing.Point(4, 108)
-            Me.CH_RECYCLE_DEL.Name = "CH_RECYCLE_DEL"
-            Me.CH_RECYCLE_DEL.Size = New System.Drawing.Size(568, 19)
-            Me.CH_RECYCLE_DEL.TabIndex = 4
-            Me.CH_RECYCLE_DEL.Text = "Delete data to recycle bin"
-            Me.CH_RECYCLE_DEL.UseVisualStyleBackColor = True
-            '
-            'CH_DOWN_OPEN_INFO
-            '
-            Me.CH_DOWN_OPEN_INFO.AutoSize = True
-            Me.CH_DOWN_OPEN_INFO.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_DOWN_OPEN_INFO.Location = New System.Drawing.Point(4, 4)
-            Me.CH_DOWN_OPEN_INFO.Name = "CH_DOWN_OPEN_INFO"
-            Me.CH_DOWN_OPEN_INFO.Size = New System.Drawing.Size(279, 17)
-            Me.CH_DOWN_OPEN_INFO.TabIndex = 0
-            Me.CH_DOWN_OPEN_INFO.Text = "Open the 'Info' form when the download starts"
-            Me.CH_DOWN_OPEN_INFO.UseVisualStyleBackColor = True
-            '
-            'CH_DOWN_OPEN_PROGRESS
-            '
-            Me.CH_DOWN_OPEN_PROGRESS.AutoSize = True
-            Me.CH_DOWN_OPEN_PROGRESS.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_DOWN_OPEN_PROGRESS.Location = New System.Drawing.Point(4, 4)
-            Me.CH_DOWN_OPEN_PROGRESS.Name = "CH_DOWN_OPEN_PROGRESS"
-            Me.CH_DOWN_OPEN_PROGRESS.Size = New System.Drawing.Size(279, 17)
-            Me.CH_DOWN_OPEN_PROGRESS.TabIndex = 0
-            Me.CH_DOWN_OPEN_PROGRESS.Text = "Open the 'Progress' form when the download starts"
-            Me.CH_DOWN_OPEN_PROGRESS.UseVisualStyleBackColor = True
-            '
             'TXT_CLOSE_SCRIPT
             '
             Me.TXT_CLOSE_SCRIPT.CaptionMode = PersonalUtilities.Forms.Controls.Base.ICaptionControl.Modes.CheckBox
@@ -868,6 +862,75 @@
             Me.TXT_CLOSE_SCRIPT.PlaceholderText = "Enter command here..."
             Me.TXT_CLOSE_SCRIPT.Size = New System.Drawing.Size(568, 22)
             Me.TXT_CLOSE_SCRIPT.TabIndex = 8
+            '
+            'TP_OPEN_INFO
+            '
+            TP_OPEN_INFO.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
+            TP_OPEN_INFO.ColumnCount = 2
+            TP_OPEN_INFO.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
+            TP_OPEN_INFO.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
+            TP_OPEN_INFO.Controls.Add(Me.CH_DOWN_OPEN_INFO, 0, 0)
+            TP_OPEN_INFO.Controls.Add(Me.CH_DOWN_OPEN_INFO_SUSPEND, 1, 0)
+            TP_OPEN_INFO.Dock = System.Windows.Forms.DockStyle.Fill
+            TP_OPEN_INFO.Location = New System.Drawing.Point(1, 131)
+            TP_OPEN_INFO.Margin = New System.Windows.Forms.Padding(0)
+            TP_OPEN_INFO.Name = "TP_OPEN_INFO"
+            TP_OPEN_INFO.RowCount = 1
+            TP_OPEN_INFO.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            TP_OPEN_INFO.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 24.0!))
+            TP_OPEN_INFO.Size = New System.Drawing.Size(574, 25)
+            TP_OPEN_INFO.TabIndex = 5
+            '
+            'CH_DOWN_OPEN_INFO
+            '
+            Me.CH_DOWN_OPEN_INFO.AutoSize = True
+            Me.CH_DOWN_OPEN_INFO.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_DOWN_OPEN_INFO.Location = New System.Drawing.Point(4, 4)
+            Me.CH_DOWN_OPEN_INFO.Name = "CH_DOWN_OPEN_INFO"
+            Me.CH_DOWN_OPEN_INFO.Size = New System.Drawing.Size(279, 17)
+            Me.CH_DOWN_OPEN_INFO.TabIndex = 0
+            Me.CH_DOWN_OPEN_INFO.Text = "Open the 'Info' form when the download starts"
+            Me.CH_DOWN_OPEN_INFO.UseVisualStyleBackColor = True
+            '
+            'CH_RECYCLE_DEL
+            '
+            Me.CH_RECYCLE_DEL.AutoSize = True
+            Me.CH_RECYCLE_DEL.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_RECYCLE_DEL.Location = New System.Drawing.Point(4, 108)
+            Me.CH_RECYCLE_DEL.Name = "CH_RECYCLE_DEL"
+            Me.CH_RECYCLE_DEL.Size = New System.Drawing.Size(568, 19)
+            Me.CH_RECYCLE_DEL.TabIndex = 4
+            Me.CH_RECYCLE_DEL.Text = "Delete data to recycle bin"
+            Me.CH_RECYCLE_DEL.UseVisualStyleBackColor = True
+            '
+            'TP_OPEN_PROGRESS
+            '
+            TP_OPEN_PROGRESS.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
+            TP_OPEN_PROGRESS.ColumnCount = 2
+            TP_OPEN_PROGRESS.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
+            TP_OPEN_PROGRESS.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
+            TP_OPEN_PROGRESS.Controls.Add(Me.CH_DOWN_OPEN_PROGRESS, 0, 0)
+            TP_OPEN_PROGRESS.Controls.Add(Me.CH_DOWN_OPEN_PROGRESS_SUSPEND, 1, 0)
+            TP_OPEN_PROGRESS.Dock = System.Windows.Forms.DockStyle.Fill
+            TP_OPEN_PROGRESS.Location = New System.Drawing.Point(1, 157)
+            TP_OPEN_PROGRESS.Margin = New System.Windows.Forms.Padding(0)
+            TP_OPEN_PROGRESS.Name = "TP_OPEN_PROGRESS"
+            TP_OPEN_PROGRESS.RowCount = 1
+            TP_OPEN_PROGRESS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            TP_OPEN_PROGRESS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 24.0!))
+            TP_OPEN_PROGRESS.Size = New System.Drawing.Size(574, 25)
+            TP_OPEN_PROGRESS.TabIndex = 6
+            '
+            'CH_DOWN_OPEN_PROGRESS
+            '
+            Me.CH_DOWN_OPEN_PROGRESS.AutoSize = True
+            Me.CH_DOWN_OPEN_PROGRESS.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_DOWN_OPEN_PROGRESS.Location = New System.Drawing.Point(4, 4)
+            Me.CH_DOWN_OPEN_PROGRESS.Name = "CH_DOWN_OPEN_PROGRESS"
+            Me.CH_DOWN_OPEN_PROGRESS.Size = New System.Drawing.Size(279, 17)
+            Me.CH_DOWN_OPEN_PROGRESS.TabIndex = 0
+            Me.CH_DOWN_OPEN_PROGRESS.Text = "Open the 'Progress' form when the download starts"
+            Me.CH_DOWN_OPEN_PROGRESS.UseVisualStyleBackColor = True
             '
             'TAB_DOWN
             '
@@ -946,6 +1009,7 @@
             Me.TAB_MAIN.Controls.Add(TAB_BEHAVIOR)
             Me.TAB_MAIN.Controls.Add(TAB_DEFAULTS)
             Me.TAB_MAIN.Controls.Add(TAB_DOWN)
+            Me.TAB_MAIN.Controls.Add(Me.TAB_AUTO)
             Me.TAB_MAIN.Controls.Add(TAB_DEFS_CHANNELS)
             Me.TAB_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
             Me.TAB_MAIN.Location = New System.Drawing.Point(0, 0)
@@ -953,6 +1017,24 @@
             Me.TAB_MAIN.SelectedIndex = 0
             Me.TAB_MAIN.Size = New System.Drawing.Size(584, 310)
             Me.TAB_MAIN.TabIndex = 1
+            '
+            'TAB_AUTO
+            '
+            Me.TAB_AUTO.Controls.Add(Me.PANEL_AUTO)
+            Me.TAB_AUTO.Location = New System.Drawing.Point(4, 22)
+            Me.TAB_AUTO.Name = "TAB_AUTO"
+            Me.TAB_AUTO.Size = New System.Drawing.Size(576, 284)
+            Me.TAB_AUTO.TabIndex = 7
+            Me.TAB_AUTO.Text = "Automation"
+            '
+            'PANEL_AUTO
+            '
+            Me.PANEL_AUTO.AutoSize = True
+            Me.PANEL_AUTO.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.PANEL_AUTO.Location = New System.Drawing.Point(0, 0)
+            Me.PANEL_AUTO.Name = "PANEL_AUTO"
+            Me.PANEL_AUTO.Size = New System.Drawing.Size(576, 284)
+            Me.PANEL_AUTO.TabIndex = 0
             '
             'CONTAINER_MAIN
             '
@@ -969,66 +1051,6 @@
             Me.CONTAINER_MAIN.Size = New System.Drawing.Size(584, 310)
             Me.CONTAINER_MAIN.TabIndex = 0
             Me.CONTAINER_MAIN.TopToolStripPanelVisible = False
-            '
-            'TP_OPEN_INFO
-            '
-            TP_OPEN_INFO.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
-            TP_OPEN_INFO.ColumnCount = 2
-            TP_OPEN_INFO.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
-            TP_OPEN_INFO.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
-            TP_OPEN_INFO.Controls.Add(Me.CH_DOWN_OPEN_INFO, 0, 0)
-            TP_OPEN_INFO.Controls.Add(Me.CH_DOWN_OPEN_INFO_SUSPEND, 1, 0)
-            TP_OPEN_INFO.Dock = System.Windows.Forms.DockStyle.Fill
-            TP_OPEN_INFO.Location = New System.Drawing.Point(1, 131)
-            TP_OPEN_INFO.Margin = New System.Windows.Forms.Padding(0)
-            TP_OPEN_INFO.Name = "TP_OPEN_INFO"
-            TP_OPEN_INFO.RowCount = 1
-            TP_OPEN_INFO.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_OPEN_INFO.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
-            TP_OPEN_INFO.Size = New System.Drawing.Size(574, 25)
-            TP_OPEN_INFO.TabIndex = 5
-            '
-            'TP_OPEN_PROGRESS
-            '
-            TP_OPEN_PROGRESS.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
-            TP_OPEN_PROGRESS.ColumnCount = 2
-            TP_OPEN_PROGRESS.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
-            TP_OPEN_PROGRESS.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
-            TP_OPEN_PROGRESS.Controls.Add(Me.CH_DOWN_OPEN_PROGRESS, 0, 0)
-            TP_OPEN_PROGRESS.Controls.Add(Me.CH_DOWN_OPEN_PROGRESS_SUSPEND, 1, 0)
-            TP_OPEN_PROGRESS.Dock = System.Windows.Forms.DockStyle.Fill
-            TP_OPEN_PROGRESS.Location = New System.Drawing.Point(1, 157)
-            TP_OPEN_PROGRESS.Margin = New System.Windows.Forms.Padding(0)
-            TP_OPEN_PROGRESS.Name = "TP_OPEN_PROGRESS"
-            TP_OPEN_PROGRESS.RowCount = 1
-            TP_OPEN_PROGRESS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_OPEN_PROGRESS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
-            TP_OPEN_PROGRESS.Size = New System.Drawing.Size(574, 25)
-            TP_OPEN_PROGRESS.TabIndex = 6
-            '
-            'CH_DOWN_OPEN_INFO_SUSPEND
-            '
-            Me.CH_DOWN_OPEN_INFO_SUSPEND.AutoSize = True
-            Me.CH_DOWN_OPEN_INFO_SUSPEND.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_DOWN_OPEN_INFO_SUSPEND.Location = New System.Drawing.Point(290, 4)
-            Me.CH_DOWN_OPEN_INFO_SUSPEND.Name = "CH_DOWN_OPEN_INFO_SUSPEND"
-            Me.CH_DOWN_OPEN_INFO_SUSPEND.Size = New System.Drawing.Size(280, 17)
-            Me.CH_DOWN_OPEN_INFO_SUSPEND.TabIndex = 1
-            Me.CH_DOWN_OPEN_INFO_SUSPEND.Text = "Don't open again"
-            TT_MAIN.SetToolTip(Me.CH_DOWN_OPEN_INFO_SUSPEND, "Do not open the form automatically if it was once closed")
-            Me.CH_DOWN_OPEN_INFO_SUSPEND.UseVisualStyleBackColor = True
-            '
-            'CH_DOWN_OPEN_PROGRESS_SUSPEND
-            '
-            Me.CH_DOWN_OPEN_PROGRESS_SUSPEND.AutoSize = True
-            Me.CH_DOWN_OPEN_PROGRESS_SUSPEND.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_DOWN_OPEN_PROGRESS_SUSPEND.Location = New System.Drawing.Point(290, 4)
-            Me.CH_DOWN_OPEN_PROGRESS_SUSPEND.Name = "CH_DOWN_OPEN_PROGRESS_SUSPEND"
-            Me.CH_DOWN_OPEN_PROGRESS_SUSPEND.Size = New System.Drawing.Size(280, 17)
-            Me.CH_DOWN_OPEN_PROGRESS_SUSPEND.TabIndex = 1
-            Me.CH_DOWN_OPEN_PROGRESS_SUSPEND.Text = "Don't open again"
-            TT_MAIN.SetToolTip(Me.CH_DOWN_OPEN_PROGRESS_SUSPEND, "Do not open the form automatically if it was once closed")
-            Me.CH_DOWN_OPEN_PROGRESS_SUSPEND.UseVisualStyleBackColor = True
             '
             'GlobalSettingsForm
             '
@@ -1077,19 +1099,21 @@
             TP_BEHAVIOR.PerformLayout()
             CType(Me.TXT_FOLDER_CMD, System.ComponentModel.ISupportInitialize).EndInit()
             CType(Me.TXT_CLOSE_SCRIPT, System.ComponentModel.ISupportInitialize).EndInit()
+            TP_OPEN_INFO.ResumeLayout(False)
+            TP_OPEN_INFO.PerformLayout()
+            TP_OPEN_PROGRESS.ResumeLayout(False)
+            TP_OPEN_PROGRESS.PerformLayout()
             TAB_DOWN.ResumeLayout(False)
             TP_DOWNLOADING.ResumeLayout(False)
             TP_DOWNLOADING.PerformLayout()
             CType(Me.TXT_SCRIPT, System.ComponentModel.ISupportInitialize).EndInit()
             CType(Me.TXT_DOWN_COMPLETE_SCRIPT, System.ComponentModel.ISupportInitialize).EndInit()
             Me.TAB_MAIN.ResumeLayout(False)
+            Me.TAB_AUTO.ResumeLayout(False)
+            Me.TAB_AUTO.PerformLayout()
             Me.CONTAINER_MAIN.ContentPanel.ResumeLayout(False)
             Me.CONTAINER_MAIN.ResumeLayout(False)
             Me.CONTAINER_MAIN.PerformLayout()
-            TP_OPEN_INFO.ResumeLayout(False)
-            TP_OPEN_INFO.PerformLayout()
-            TP_OPEN_PROGRESS.ResumeLayout(False)
-            TP_OPEN_PROGRESS.PerformLayout()
             Me.ResumeLayout(False)
 
         End Sub
@@ -1137,5 +1161,7 @@
         Private WithEvents TXT_DOWN_COMPLETE_SCRIPT As PersonalUtilities.Forms.Controls.TextBoxExtended
         Private WithEvents CH_DOWN_OPEN_INFO_SUSPEND As CheckBox
         Private WithEvents CH_DOWN_OPEN_PROGRESS_SUSPEND As CheckBox
+        Private WithEvents TAB_AUTO As TabPage
+        Private WithEvents PANEL_AUTO As Panel
     End Class
 End Namespace

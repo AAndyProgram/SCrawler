@@ -11,7 +11,7 @@ Imports PersonalUtilities.Forms
 Imports SCrawler.API.Base
 Namespace DownloadObjects
     Friend Class DownloadedInfoForm
-        Friend Event OnUserLooking(ByVal Key As String)
+        Friend Event UserFind(ByVal Key As String)
         Private MyView As FormsView
         Private ReadOnly LParams As New ListAddParams(LAP.IgnoreICopier) With {.Error = EDP.None}
         Private Opened As Boolean = False
@@ -143,7 +143,7 @@ Namespace DownloadObjects
             Try
                 If _LatestSelected.ValueBetween(0, LIST_DOWN.Items.Count - 1) AndAlso _LatestSelected.ValueBetween(0, Downloader.Downloaded.Count - 1) Then
                     Dim i% = Settings.Users.IndexOf(_TempUsersList(_LatestSelected))
-                    If i >= 0 Then RaiseEvent OnUserLooking(Settings.Users(i).Key)
+                    If i >= 0 Then RaiseEvent UserFind(Settings.Users(i).Key)
                 End If
             Catch ex As Exception
             End Try

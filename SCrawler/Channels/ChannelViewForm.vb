@@ -20,7 +20,7 @@ Imports CmbDefaultButtons = PersonalUtilities.Forms.Controls.Base.ActionButton.D
 Imports RButton = PersonalUtilities.Tools.RangeSwitcherButton.Types
 Friend Class ChannelViewForm : Implements IChannelLimits
     Friend Event OnUsersAdded(ByVal StartIndex As Integer)
-    Friend Event OnDownloadDone(ByVal Message As String)
+    Friend Event OnDownloadDone As NotificationEventHandler
 #Region "Appended user structure"
     Private Structure PendingUser
         Friend ID As String
@@ -326,7 +326,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
     Private Async Sub BTT_DOWNLOAD_Click(sender As Object, e As EventArgs) Handles BTT_DOWNLOAD.Click
         Try
             AppendPendingUsers()
-            If Not TokenSource Is Nothing OrElse Not HOST.Source.Available(Plugin.ISiteSettings.Download.Channel) Then Exit Sub
+            If Not TokenSource Is Nothing OrElse Not HOST.Source.Available(Plugin.ISiteSettings.Download.Channel, False) Then Exit Sub
             Dim InvokeToken As Action = Sub()
                                             If TokenSource Is Nothing Then
                                                 CProgress.TotalCount = 0

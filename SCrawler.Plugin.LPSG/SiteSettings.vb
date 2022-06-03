@@ -91,7 +91,7 @@ Public Class SiteSettings : Implements ISiteSettings
     Public Function GetSpecialData(ByVal URL As String, ByVal Path As String, ByVal AskForPath As Boolean) As IEnumerable(Of PluginUserMedia) Implements ISiteSettings.GetSpecialData
         Return Nothing
     End Function
-    Public Function Available(ByVal What As ISiteSettings.Download) As Boolean Implements ISiteSettings.Available
+    Public Function Available(ByVal What As ISiteSettings.Download, ByVal Silent As Boolean) As Boolean Implements ISiteSettings.Available
         Return True
     End Function
     Public Function ReadyToDownload(ByVal What As ISiteSettings.Download) As Boolean Implements ISiteSettings.ReadyToDownload

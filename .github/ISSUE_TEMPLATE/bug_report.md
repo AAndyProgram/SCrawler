@@ -12,7 +12,7 @@ A clear and concise description of what the bug is.
 
 **To Reproduce**
 Steps to reproduce the behavior:
-1. Profile URL: 
+1. **Profile URL**: 
 2. Do something
 3. See error
 

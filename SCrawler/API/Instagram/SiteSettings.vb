@@ -57,6 +57,24 @@ Namespace API.Instagram
                 Throw New NotImplementedException()
             End Function
         End Class
+        Private Class TaggedNotifyLimitChecker : Implements IFieldsCheckerProvider
+            Private Property ErrorMessage As String Implements IFieldsCheckerProvider.ErrorMessage
+            Private Property Name As String Implements IFieldsCheckerProvider.Name
+            Private Property TypeError As Boolean Implements IFieldsCheckerProvider.TypeError
+            Private Function Convert(ByVal Value As Object, ByVal DestinationType As Type, ByVal Provider As IFormatProvider,
+                                     Optional ByVal NothingArg As Object = Nothing, Optional ByVal e As ErrorsDescriber = Nothing) As Object Implements ICustomProvider.Convert
+                Dim v% = AConvert(Of Integer)(Value, -10)
+                If v > 0 Or v = -1 Then
+                    Return Value
+                Else
+                    ErrorMessage = $"The value of [{Name}] field must be greater than 0 or equal to -1"
+                    Return Nothing
+                End If
+            End Function
+            Private Function GetFormat(ByVal FormatType As Type) As Object Implements IFormatProvider.GetFormat
+                Throw New NotImplementedException()
+            End Function
+        End Class
 #End Region
 #Region "Authorization properties"
         <PropertyOption(ControlText:="Hash", ControlToolTip:="Instagram session hash", IsAuth:=True), PXML("InstaHash"), ControlNumber(0)>
@@ -95,6 +113,12 @@ Namespace API.Instagram
         Friend ReadOnly Property GetStories As PropertyValue
         <PropertyOption(ControlText:="Get tagged photos"), PXML, ControlNumber(10)>
         Friend ReadOnly Property GetTagged As PropertyValue
+        <PropertyOption(ControlText:="Tagged notify limit",
+                        ControlToolTip:="If the number of tagged posts exceeds this number you will be notified." & vbCr &
+                        "-1 to disable"), PXML, ControlNumber(11)>
+        Friend ReadOnly Property TaggedNotifyLimit As PropertyValue
+        <Provider(NameOf(TaggedNotifyLimit), FieldsChecker:=True)>
+        Private ReadOnly Property TaggedNotifyLimitProvider As IFormatProvider
 #End Region
 #Region "429 bypass"
         Friend ReadOnly Property DownloadingErrorDate As XMLValue(Of Date)
@@ -184,6 +208,8 @@ Namespace API.Instagram
 
             GetStories = New PropertyValue(False)
             GetTagged = New PropertyValue(False)
+            TaggedNotifyLimit = New PropertyValue(200)
+            TaggedNotifyLimitProvider = New TaggedNotifyLimitChecker
 
             DownloadingErrorDate = New XMLValue(Of Date) With {
                 .Provider = New XMLValueConversionProvider(Function(ss, vv) AConvert(Of String)(vv, AModes.Var, Nothing))}
@@ -248,6 +274,24 @@ Namespace API.Instagram
                 Return False
             End If
         End Function
+        <PropertiesDataChecker({NameOf(TaggedNotifyLimit)})>
+        Private Function CheckNotifyLimit(ByVal p As IEnumerable(Of PropertyData)) As Boolean
+            If p.ListExists Then
+                Dim pi% = p.ListIndexOf(Function(pp) pp.Name = NameOf(TaggedNotifyLimit))
+                If pi >= 0 Then
+                    Dim v% = AConvert(Of Integer)(p(pi).Value, -10)
+                    If v > 0 Then
+                        Return True
+                    ElseIf v = -1 Then
+                        Return MsgBoxE({"You turn off notifications for tagged posts. This is highly undesirable. Do you still want to do it?",
+                                        "Disabling tagged notification limits "}, MsgBoxStyle.YesNo) = MsgBoxResult.Yes
+                    Else
+                        Return False
+                    End If
+                End If
+            End If
+            Return False
+        End Function
         Friend Overrides Sub BeginInit()
         End Sub
         Friend Overrides Sub EndInit()
@@ -259,13 +303,17 @@ Namespace API.Instagram
 #Region "Downloading"
         Private ActiveJobs As Integer = 0
         Private _NextWNM As UserData.WNM = UserData.WNM.Notify
+        Private _NextTagged As Boolean = True
         Friend Overrides Sub DownloadStarted(ByVal What As Download)
             If CStr(Hash.Value).IsEmptyString Or HashUpdateRequired Then GatherInstaHash()
             ActiveJobs += 1
         End Sub
         Friend Overrides Sub BeforeStartDownload(ByVal User As Object, ByVal What As Download)
             With DirectCast(User, UserData)
-                If What = Download.Main Then .WaitNotificationMode = _NextWNM
+                If What = Download.Main Then
+                    .WaitNotificationMode = _NextWNM
+                    .TaggedCheckSession = _NextTagged
+                End If
                 If LastDownloadDate.Value.AddMinutes(60) > Now Then
                     .RequestsCount = LastRequestsCount
                 Else
@@ -278,12 +326,14 @@ Namespace API.Instagram
             With DirectCast(User, UserData)
                 _NextWNM = .WaitNotificationMode
                 If _NextWNM = UserData.WNM.SkipTemp Or _NextWNM = UserData.WNM.SkipCurrent Then _NextWNM = UserData.WNM.Notify
+                _NextTagged = .TaggedCheckSession
                 LastDownloadDate.Value = Now
                 LastRequestsCount.Value = .RequestsCount
             End With
         End Sub
         Friend Overrides Sub DownloadDone(ByVal What As Download)
             _NextWNM = UserData.WNM.Notify
+            _NextTagged = True
             LastDownloadDate.Value = Now
             ActiveJobs -= 1
             If HashUpdateRequired Then MyMainLOG = "Check your Instagram credentials"
@@ -293,23 +343,24 @@ Namespace API.Instagram
         Friend Function GatherInstaHash() As Boolean
             Try
                 If Not Responser.Cookies.ListExists Then Throw New Exception("Instagram cookies does not set")
-                Dim rs As New RParams("=""([^""]+?ConsumerLibCommons[^""]+?.js)""", Nothing, 1) With {.MatchTimeOut = 10}
-                Dim r$ = Responser.GetResponse("https://instagram.com",, EDP.ThrowException)
+                Dim rs As New RParams("preload"" href=""(https://static.cdninstagram.com/rsrc.php/[^""]+?.js[^""]*)""", Nothing, 1, RegexReturn.List) With {.MatchTimeOut = 10}
+                Dim h$
+                Dim r$ = Responser.GetResponse("https://www.instagram.com",, EDP.ThrowException)
                 If Not r.IsEmptyString Then
-                    Dim hStr$ = RegexReplace(r, rs)
-                    If Not hStr.IsEmptyString Then
-                        Do While Left(hStr, 1) = "/" : hStr = Right(hStr, hStr.Length - 1) : Loop
-                        hStr = $"https://instagram.com/{hStr}"
-                        r = Responser.GetResponse(hStr,, EDP.ThrowException)
-                        If Not r.IsEmptyString Then
-                            rs = New RParams("generatePaginationActionCreators.+?.profilePosts.byUserId.get.+?queryId:.([\d\w\S]+?)""", Nothing, 1) With {.MatchTimeOut = 10}
-                            Dim h$ = RegexReplace(r, rs)
-                            If Not h.IsEmptyString Then
-                                Hash.Value = h
-                                HashUpdateRequired.Value = False
-                                Return True
+                    Dim JsUrls As List(Of String) = RegexReplace(r, rs)
+                    If JsUrls.ListExists Then
+                        rs = New RParams("\{.+?var h=""([\w\d\S]+?)"".+?\)\.generatePaginationActionCreators", Nothing, 1) With {.MatchTimeOut = 10}
+                        For Each url$ In JsUrls
+                            r = Responser.GetResponse(url,, EDP.ReturnValue)
+                            If Not r.IsEmptyString Then
+                                h = RegexReplace(r, rs)
+                                If Not h.IsEmptyString AndAlso h.Length > 30 Then
+                                    Hash.Value = h
+                                    HashUpdateRequired.Value = False
+                                    Return True
+                                End If
                             End If
-                        End If
+                        Next
                     End If
                 End If
                 Return False

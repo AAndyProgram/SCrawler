@@ -30,6 +30,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Dim TRAY_SEP_1 As System.Windows.Forms.ToolStripSeparator
         Dim MENU_DOWN_ALL_SEP_1 As System.Windows.Forms.ToolStripSeparator
         Dim MENU_DOWN_ALL_SEP_2 As System.Windows.Forms.ToolStripSeparator
+        Dim MENU_DOWN_ALL_SEP_3 As System.Windows.Forms.ToolStripSeparator
         Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(MainFrame))
         Me.MENU_SETTINGS = New System.Windows.Forms.ToolStripDropDownButton()
         Me.BTT_SETTINGS = New System.Windows.Forms.ToolStripMenuItem()
@@ -48,6 +49,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_DOWN_ALL_FULL = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_DOWN_SITE_FULL = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_ADD_NEW_GROUP = New System.Windows.Forms.ToolStripMenuItem()
+        Me.BTT_DOWN_AUTOMATION = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_DOWN_VIDEO = New System.Windows.Forms.ToolStripButton()
         Me.BTT_DOWN_STOP = New System.Windows.Forms.ToolStripButton()
         Me.MENU_VIEW = New System.Windows.Forms.ToolStripDropDownButton()
@@ -118,6 +120,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         TRAY_SEP_1 = New System.Windows.Forms.ToolStripSeparator()
         MENU_DOWN_ALL_SEP_1 = New System.Windows.Forms.ToolStripSeparator()
         MENU_DOWN_ALL_SEP_2 = New System.Windows.Forms.ToolStripSeparator()
+        MENU_DOWN_ALL_SEP_3 = New System.Windows.Forms.ToolStripSeparator()
         Me.Toolbar_TOP.SuspendLayout()
         Me.Toolbar_BOTTOM.SuspendLayout()
         Me.USER_CONTEXT.SuspendLayout()
@@ -192,7 +195,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         'TRAY_SEP_1
         '
         TRAY_SEP_1.Name = "TRAY_SEP_1"
-        TRAY_SEP_1.Size = New System.Drawing.Size(177, 6)
+        TRAY_SEP_1.Size = New System.Drawing.Size(157, 6)
         '
         'MENU_DOWN_ALL_SEP_1
         '
@@ -203,6 +206,11 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         '
         MENU_DOWN_ALL_SEP_2.Name = "MENU_DOWN_ALL_SEP_2"
         MENU_DOWN_ALL_SEP_2.Size = New System.Drawing.Size(228, 6)
+        '
+        'MENU_DOWN_ALL_SEP_3
+        '
+        MENU_DOWN_ALL_SEP_3.Name = "MENU_DOWN_ALL_SEP_3"
+        MENU_DOWN_ALL_SEP_3.Size = New System.Drawing.Size(228, 6)
         '
         'MENU_SETTINGS
         '
@@ -304,7 +312,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         'MENU_DOWN_ALL
         '
         Me.MENU_DOWN_ALL.AutoToolTip = False
-        Me.MENU_DOWN_ALL.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_DOWN_ALL, Me.BTT_DOWN_SITE, MENU_DOWN_ALL_SEP_1, Me.BTT_DOWN_ALL_FULL, Me.BTT_DOWN_SITE_FULL, MENU_DOWN_ALL_SEP_2, Me.BTT_ADD_NEW_GROUP})
+        Me.MENU_DOWN_ALL.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_DOWN_ALL, Me.BTT_DOWN_SITE, MENU_DOWN_ALL_SEP_1, Me.BTT_DOWN_ALL_FULL, Me.BTT_DOWN_SITE_FULL, MENU_DOWN_ALL_SEP_2, Me.BTT_ADD_NEW_GROUP, MENU_DOWN_ALL_SEP_3, Me.BTT_DOWN_AUTOMATION})
         Me.MENU_DOWN_ALL.Image = Global.SCrawler.My.Resources.Resources.StartPic_01_Green_16
         Me.MENU_DOWN_ALL.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.MENU_DOWN_ALL.Name = "MENU_DOWN_ALL"
@@ -355,6 +363,13 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_ADD_NEW_GROUP.Name = "BTT_ADD_NEW_GROUP"
         Me.BTT_ADD_NEW_GROUP.Size = New System.Drawing.Size(231, 22)
         Me.BTT_ADD_NEW_GROUP.Text = "Add a new download group"
+        '
+        'BTT_DOWN_AUTOMATION
+        '
+        Me.BTT_DOWN_AUTOMATION.Image = Global.SCrawler.My.Resources.Resources.ScriptPic32
+        Me.BTT_DOWN_AUTOMATION.Name = "BTT_DOWN_AUTOMATION"
+        Me.BTT_DOWN_AUTOMATION.Size = New System.Drawing.Size(231, 22)
+        Me.BTT_DOWN_AUTOMATION.Text = "Automation"
         '
         'BTT_DOWN_VIDEO
         '
@@ -721,12 +736,12 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         '
         Me.TRAY_CONTEXT.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_TRAY_SHOW_HIDE, TRAY_SEP_1, Me.BTT_TRAY_CLOSE, Me.BTT_TRAY_CLOSE_NO_SCRIPT})
         Me.TRAY_CONTEXT.Name = "TRAY_CONTEXT"
-        Me.TRAY_CONTEXT.Size = New System.Drawing.Size(181, 98)
+        Me.TRAY_CONTEXT.Size = New System.Drawing.Size(161, 76)
         '
         'BTT_TRAY_SHOW_HIDE
         '
         Me.BTT_TRAY_SHOW_HIDE.Name = "BTT_TRAY_SHOW_HIDE"
-        Me.BTT_TRAY_SHOW_HIDE.Size = New System.Drawing.Size(180, 22)
+        Me.BTT_TRAY_SHOW_HIDE.Size = New System.Drawing.Size(160, 22)
         Me.BTT_TRAY_SHOW_HIDE.Text = "Show/Hide"
         '
         'BTT_TRAY_CLOSE
@@ -735,17 +750,19 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_TRAY_CLOSE.ForeColor = System.Drawing.Color.Maroon
         Me.BTT_TRAY_CLOSE.Image = CType(resources.GetObject("BTT_TRAY_CLOSE.Image"), System.Drawing.Image)
         Me.BTT_TRAY_CLOSE.Name = "BTT_TRAY_CLOSE"
-        Me.BTT_TRAY_CLOSE.Size = New System.Drawing.Size(180, 22)
+        Me.BTT_TRAY_CLOSE.Size = New System.Drawing.Size(160, 22)
         Me.BTT_TRAY_CLOSE.Text = "Close"
         '
         'BTT_TRAY_CLOSE_NO_SCRIPT
         '
+        Me.BTT_TRAY_CLOSE_NO_SCRIPT.AutoToolTip = True
         Me.BTT_TRAY_CLOSE_NO_SCRIPT.BackColor = System.Drawing.Color.FromArgb(CType(CType(255, Byte), Integer), CType(CType(192, Byte), Integer), CType(CType(192, Byte), Integer))
         Me.BTT_TRAY_CLOSE_NO_SCRIPT.ForeColor = System.Drawing.Color.Maroon
         Me.BTT_TRAY_CLOSE_NO_SCRIPT.Image = Global.SCrawler.My.Resources.Resources.Delete
         Me.BTT_TRAY_CLOSE_NO_SCRIPT.Name = "BTT_TRAY_CLOSE_NO_SCRIPT"
         Me.BTT_TRAY_CLOSE_NO_SCRIPT.Size = New System.Drawing.Size(160, 22)
         Me.BTT_TRAY_CLOSE_NO_SCRIPT.Text = "Close (no script)"
+        Me.BTT_TRAY_CLOSE_NO_SCRIPT.ToolTipText = "Close the program without executing the script"
         Me.BTT_TRAY_CLOSE_NO_SCRIPT.Visible = False
         '
         'MainFrame
@@ -819,7 +836,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
     Private WithEvents BTT_SITE_SPECIFIC As ToolStripMenuItem
     Private WithEvents BTT_CONTEXT_CHANGE_FOLDER As ToolStripMenuItem
     Private WithEvents BTT_DOWN_SAVED As ToolStripButton
-    Private WithEvents TrayIcon As NotifyIcon
+    Friend WithEvents TrayIcon As NotifyIcon
     Private WithEvents BTT_TRAY_SHOW_HIDE As ToolStripMenuItem
     Private WithEvents BTT_TRAY_CLOSE As ToolStripMenuItem
     Private WithEvents BTT_DONATE As ToolStripButton
@@ -842,4 +859,5 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
     Private WithEvents BTT_ADD_NEW_GROUP As ToolStripMenuItem
     Friend WithEvents BTT_TRAY_CLOSE_NO_SCRIPT As ToolStripMenuItem
     Friend WithEvents TRAY_CONTEXT As ContextMenuStrip
+    Private WithEvents BTT_DOWN_AUTOMATION As ToolStripMenuItem
 End Class

@@ -15,6 +15,7 @@ Imports SCrawler.API.Base
 Imports SCrawler.Editors
 Imports SCrawler.DownloadObjects
 Imports SCrawler.Plugin.Hosts
+Imports PersonalUtilities.Functions.Messaging
 Public Class MainFrame
     Private MyView As FormsView
     Private ReadOnly _VideoDownloadingMode As Boolean = False
@@ -56,7 +57,7 @@ Public Class MainFrame
         AddHandler Downloader.OnDownloading, AddressOf Downloader_OnDownloading
         AddHandler Downloader.OnDownloadCountChange, AddressOf InfoForm.Downloader_OnDownloadCountChange
         AddHandler Downloader.SendNotification, AddressOf NotificationMessage
-        AddHandler InfoForm.OnUserLooking, AddressOf Info_OnUserLooking
+        AddHandler InfoForm.UserFind, AddressOf FocusUser
         Settings.LoadUsers()
         MyView = New FormsView(Me)
         MyView.ImportFromXML(Settings.Design)
@@ -93,7 +94,12 @@ Public Class MainFrame
                 For Each ugroup As Groups.DownloadGroup In Settings.Groups : GROUPS_Added(ugroup) : Next
             End If
         End With
+        Settings.Automation = New AutoDownloader
+        AddHandler Settings.Groups.Updated, AddressOf Settings.Automation.GROUPS_Updated
+        AddHandler Settings.Groups.Deleted, AddressOf Settings.Automation.GROUPS_Deleted
+        AddHandler Settings.Automation.UserFind, AddressOf FocusUser
         _UFinit = False
+        Settings.Automation.Start()
         GoTo EndFunction
 FormClosingInvoker:
         Close()
@@ -122,6 +128,7 @@ EndFunction:
                         If Downloader.Working Then _CloseInvoked = True : Downloader.Stop()
                         If ChannelsWorking.Invoke Then _CloseInvoked = True : MyChannels.Stop(False)
                         If SP_Working.Invoke Then _CloseInvoked = True : MySavedPosts.Stop()
+                        Settings.Automation.Stop()
                         If _CloseInvoked Then
                             e.Cancel = True
                             Await Task.Run(Sub()
@@ -131,6 +138,7 @@ EndFunction:
                         Downloader.Dispose()
                         MyProgressForm.Dispose()
                         InfoForm.Dispose()
+                        MainFrameObj.CLearNotifications()
                         If Not MyChannels Is Nothing Then MyChannels.Dispose()
                         If Not VideoDownloader Is Nothing Then VideoDownloader.Dispose()
                         If Not MySavedPosts Is Nothing Then MySavedPosts.Dispose()
@@ -264,6 +272,7 @@ CloseResume:
                         (Not sg = Settings.ShowGroups And .UseGrouping) Then RefillList()
                     TrayIcon.Visible = .CloseToTray
                     LIST_PROFILES.ShowGroups = .UseGrouping
+                    If Not Settings.Automation.Mode = AutoDownloader.Modes.None Then Settings.Automation.Start()
                 End If
             End Using
         End With
@@ -415,6 +424,12 @@ CloseResume:
         MENU_DOWN_ALL.DropDownItems.Remove(Sender.GetControl)
     End Sub
 #End Region
+    Private Sub BTT_DOWN_AUTOMATION_Click(sender As Object, e As EventArgs) Handles BTT_DOWN_AUTOMATION.Click
+        Using f As New AutoDownloaderEditorForm
+            f.ShowDialog()
+            If f.DialogResult = DialogResult.OK AndAlso Not Settings.Automation.Mode = AutoDownloader.Modes.None Then Settings.Automation.Start()
+        End Using
+    End Sub
     Private Sub BTT_DOWN_VIDEO_Click(sender As Object, e As EventArgs) Handles BTT_DOWN_VIDEO.Click
         DownloadVideoByURL()
     End Sub
@@ -1135,27 +1150,30 @@ ResumeDownloadingOperation:
         If Not user Is Nothing Then user.OpenFolder()
     End Sub
 #End Region
-    Private Sub Info_OnUserLooking(ByVal Key As String)
+    Private Overloads Sub FocusUser(ByVal Key As String)
         FocusUser(Key, True)
     End Sub
-    Private Sub FocusUser(ByVal Key As String, Optional ByVal ActivateMe As Boolean = False)
-        Dim i% = LIST_PROFILES.Items.IndexOfKey(Key)
-        If i < 0 Then
-            i = Settings.Users.FindIndex(Function(u) u.Key = Key)
-            If i >= 0 Then
-                UserListUpdate(Settings.Users(i), True)
-                i = LIST_PROFILES.Items.IndexOfKey(Key)
-            End If
-        End If
-        If i >= 0 Then
-            LIST_PROFILES.Select()
-            LIST_PROFILES.SelectedIndices.Clear()
-            With LIST_PROFILES.Items(i) : .Selected = True : .Focused = True : End With
-            LIST_PROFILES.EnsureVisible(i)
-            If ActivateMe Then
-                If Visible Then BringToFront() Else Visible = True
-            End If
-        End If
+    Private Overloads Sub FocusUser(ByVal Key As String, Optional ByVal ActivateMe As Boolean = False)
+        Dim a As Action = Sub()
+                              Dim i% = LIST_PROFILES.Items.IndexOfKey(Key)
+                              If i < 0 Then
+                                  i = Settings.Users.FindIndex(Function(u) u.Key = Key)
+                                  If i >= 0 Then
+                                      UserListUpdate(Settings.Users(i), True)
+                                      i = LIST_PROFILES.Items.IndexOfKey(Key)
+                                  End If
+                              End If
+                              If i >= 0 Then
+                                  LIST_PROFILES.Select()
+                                  LIST_PROFILES.SelectedIndices.Clear()
+                                  With LIST_PROFILES.Items(i) : .Selected = True : .Focused = True : End With
+                                  LIST_PROFILES.EnsureVisible(i)
+                                  If ActivateMe Then
+                                      If Visible Then BringToFront() Else Visible = True
+                                  End If
+                              End If
+                          End Sub
+        If LIST_PROFILES.InvokeRequired Then LIST_PROFILES.Invoke(a) Else a.Invoke
     End Sub
     Friend Sub User_OnUserUpdated(ByVal User As IUserData)
         UserListUpdate(User, False)
@@ -1179,7 +1197,7 @@ ResumeDownloadingOperation:
         If Toolbar_TOP.InvokeRequired Then Toolbar_TOP.Invoke(a) Else a.Invoke
     End Sub
     Private Sub NotificationMessage(ByVal Message As String)
-        If Settings.ShowNotifications Then TrayIcon.ShowBalloonTip(2000, TrayIcon.BalloonTipTitle, Message, ToolTipIcon.Info)
+        If Settings.ShowNotifications Then MainFrameObj.ShowNotification(Message)
     End Sub
     Private Sub BTT_PR_INFO_Click(sender As Object, e As EventArgs) Handles BTT_PR_INFO.Click
         If MyProgressForm.Visible Then MyProgressForm.BringToFront() Else MyProgressForm.Show()

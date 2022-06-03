@@ -80,6 +80,13 @@ Namespace DownloadObjects.Groups
         Friend Function DownloadGroupIfExists(ByVal Index As Integer) As Boolean
             If Index.ValueBetween(0, Count - 1) Then Item(Index).DownloadUsers(True) : Return True Else Return False
         End Function
+        Friend Function IndexOf(ByVal Name As String) As Integer
+            If Count > 0 Then
+                Return GroupsList.FindIndex(Function(g) g.Name = Name)
+            Else
+                Return -1
+            End If
+        End Function
         Private Function GetEnumerator() As IEnumerator(Of DownloadGroup) Implements IEnumerable(Of DownloadGroup).GetEnumerator
             Return New MyEnumerator(Of DownloadGroup)(Me)
         End Function

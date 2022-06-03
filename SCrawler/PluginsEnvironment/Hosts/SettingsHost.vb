@@ -310,9 +310,9 @@ Namespace Plugin.Hosts
         Private _AvailableValue As Boolean = True
         Private _AvailableAsked As Boolean = False
         Private _ActiveTaskCount As Integer = 0
-        Friend Function Available(ByVal What As Download) As Boolean
+        Friend Function Available(ByVal What As Download, ByVal Silent As Boolean) As Boolean
             If Not _AvailableAsked Then
-                _AvailableValue = Source.Available(What)
+                _AvailableValue = Source.Available(What, Silent)
                 _AvailableAsked = True
             End If
             Return _AvailableValue

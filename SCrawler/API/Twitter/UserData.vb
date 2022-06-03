@@ -266,6 +266,8 @@ Namespace API.Twitter
                 UserSuspended = True
             ElseIf Responser.StatusCode = HttpStatusCode.BadRequest Then
                 MyMainLOG = "Twitter has invalid credentials"
+            ElseIf Responser.StatusCode = HttpStatusCode.ServiceUnavailable Then
+                MyMainLOG = $"Twitter is currently unavailable ({ToString()})"
             Else
                 If Not FromPE Then LogError(ex, Message) : HasError = True
                 Return 0

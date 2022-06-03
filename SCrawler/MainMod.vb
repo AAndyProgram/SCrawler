@@ -22,6 +22,7 @@ Friend Module MainMod
     Friend Const SettingsFolderName As String = "Settings"
     Friend ReadOnly LinkPattern As RParams = RParams.DMS("[htps:]{0,6}[/]{0,2}(.+)", 1)
     Friend ReadOnly FilesPattern As RParams = RParams.DM("[^\./]+?\.\w+", 1, EDP.ReturnValue)
+    Friend Delegate Sub NotificationEventHandler(ByVal Message As String)
     Friend Const LVI_TempOption As String = "Temp"
     Friend Const LVI_FavOption As String = "Favorite"
     Friend Const CannelsLabelName As String = "Channels"

@@ -15,18 +15,44 @@ Imports SCrawler.Plugin.Hosts
 Imports Download = SCrawler.Plugin.ISiteSettings.Download
 Namespace DownloadObjects
     Friend Class TDownloader : Implements IDisposable
+#Region "Events"
         Friend Event OnJobsChange(ByVal JobsCount As Integer)
         Friend Event OnDownloadCountChange()
         Friend Event OnDownloading(ByVal Value As Boolean)
-        Friend Event SendNotification(ByVal Message As String)
+        Friend Event SendNotification As NotificationEventHandler
         Friend Event OnReconfigured()
+#End Region
+#Region "Declarations"
         Friend ReadOnly Property Downloaded As List(Of IUserData)
         Private ReadOnly NProv As IFormatProvider
+#End Region
+#Region "Working, Count"
         Friend ReadOnly Property Working As Boolean
             Get
                 Return Pool.Count > 0 AndAlso Pool.Exists(Function(j) j.Working)
             End Get
         End Property
+        Friend ReadOnly Property Count As Integer
+            Get
+                If Pool.Count = 0 Then Return 0 Else Return Pool.Sum(Function(j) j.Count)
+            End Get
+        End Property
+#End Region
+#Region "Automation Support"
+        Friend Property DisableOpenForms As Boolean = False
+        Private _DisableCompleteNotification As Boolean = False
+        Private _AutoDownloaderWorking As Boolean = False
+        Friend WriteOnly Property AutoDownloaderWorking As Boolean
+            Set(ByVal adw As Boolean)
+                _AutoDownloaderWorking = adw
+                DisableOpenForms = adw
+                _DisableCompleteNotification = adw
+            End Set
+        End Property
+        Friend Sub InvokeDownloadsChangeEvent()
+            RaiseEvent OnDownloadCountChange()
+        End Sub
+#End Region
 #Region "Jobs"
         Friend Class Job : Implements IDisposable
             Friend Event OnItemsCountChange(ByVal Sender As Job, ByVal Count As Integer)
@@ -105,11 +131,11 @@ Namespace DownloadObjects
                 Dim i% = Keys.IndexOf(DirectCast(User, UserDataBase).User.Plugin)
                 If i >= 0 Then Return Hosts(i) Else Throw New KeyNotFoundException($"Plugin key [{DirectCast(User, UserDataBase).User.Plugin}] not found")
             End Function
-            Friend Function Available() As Boolean
+            Friend Function Available(ByVal Silent As Boolean) As Boolean
                 If Hosts.Count > 0 Then
                     Dim k$
                     For i% = Hosts.Count - 1 To 0 Step -1
-                        If Not Hosts(i).Available(Type) Then
+                        If Not Hosts(i).Available(Type, Silent) Then
                             k = Hosts(i).Key
                             If Not RemovingKeys.Contains(k) Then RemovingKeys.Add(k)
                             Hosts(i).DownloadDone(Type)
@@ -182,11 +208,14 @@ Namespace DownloadObjects
         End Class
         Friend ReadOnly Pool As List(Of Job)
 #End Region
+#Region "Initializer"
         Friend Sub New()
             Downloaded = New List(Of IUserData)
             NProv = New ANumbers With {.FormatOptions = ANumbers.Options.GroupIntegral}
             Pool = New List(Of Job)
         End Sub
+#End Region
+#Region "Pool"
         Friend Sub ReconfPool()
             If Pool.Count = 0 OrElse Not Pool.Exists(Function(j) j.Working Or j.Count > 0) Then
                 Pool.ListClearDispose
@@ -204,12 +233,14 @@ Namespace DownloadObjects
                 RaiseEvent OnReconfigured()
             End If
         End Sub
+#End Region
+#Region "Thread"
         Private CheckerThread As Thread
         Private Sub [Start]()
-            If MyProgressForm.ReadyToOpen AndAlso Pool.LongCount(Function(p) p.Count > 0) > 1 Then MyProgressForm.Show() : MainFrameObj.Focus()
+            If Not DisableOpenForms AndAlso MyProgressForm.ReadyToOpen AndAlso Pool.LongCount(Function(p) p.Count > 0) > 1 Then MyProgressForm.Show() : MainFrameObj.Focus()
             If Not If(CheckerThread?.IsAlive, False) Then
                 MainProgress.Enabled = True
-                If InfoForm.ReadyToOpen Then InfoForm.Show() : MainFrameObj.Focus()
+                If Not DisableOpenForms AndAlso InfoForm.ReadyToOpen Then InfoForm.Show() : MainFrameObj.Focus()
                 CheckerThread = New Thread(New ThreadStart(AddressOf JobsChecker))
                 CheckerThread.SetApartmentState(ApartmentState.MTA)
                 CheckerThread.Start()
@@ -245,7 +276,7 @@ Namespace DownloadObjects
             Dim n$ = _Job.Name
             Dim pt As Func(Of String, String) = Function(ByVal t As String) As String
                                                     Dim _t$ = If(isSeparated, $"{n} {Left(t, 1).ToLower}{Right(t, t.Length - 1)}", t)
-                                                    RaiseEvent SendNotification(_t)
+                                                    If Not _DisableCompleteNotification Then RaiseEvent SendNotification(_t)
                                                     Return _t
                                                 End Function
             Try
@@ -256,7 +287,7 @@ Namespace DownloadObjects
                 Dim SiteChecked As Boolean = False
                 Do While _Job.Count > 0
                     _Job.ThrowIfCancellationRequested()
-                    If Not SiteChecked Then _Job.Available() : SiteChecked = True : Continue Do
+                    If Not SiteChecked Then _Job.Available(_AutoDownloaderWorking) : SiteChecked = True : Continue Do
                     UpdateJobsLabel()
                     DownloadData(_Job, _Job.Token)
                     _Job.ThrowIfCancellationRequested()
@@ -282,7 +313,7 @@ Namespace DownloadObjects
             End If
         End Sub
         Private Sub UpdateJobsLabel()
-            RaiseEvent OnJobsChange(Pool.Sum(Function(j) j.Count))
+            RaiseEvent OnJobsChange(Count)
         End Sub
         Private Sub DownloadData(ByRef _Job As Job, ByVal Token As CancellationToken)
             Try
@@ -351,7 +382,7 @@ Namespace DownloadObjects
                                       End Sub))
             End Try
         End Sub
-        Private Function GetUserFromMainCollection(ByVal User As IUserData) As IUserData
+        Friend Shared Function GetUserFromMainCollection(ByVal User As IUserData) As IUserData
             Dim uSimple As Predicate(Of IUserData) = Function(u) u.Equals(DirectCast(User, UserDataBase))
             Dim uCol As Predicate(Of IUserData) = Function(ByVal u As IUserData) As Boolean
                                                       If u.IsCollection Then
@@ -375,6 +406,8 @@ Namespace DownloadObjects
             End If
             Return Nothing
         End Function
+#End Region
+#Region "Add"
         Private Sub AddItem(ByVal Item As IUserData, ByVal _UpdateJobsLabel As Boolean)
             ReconfPool()
             If Item.IsCollection Then
@@ -401,6 +434,8 @@ Namespace DownloadObjects
             End If
             Start()
         End Sub
+#End Region
+#Region "Contains, Remove"
         Private Function Contains(ByVal _Item As IUserData)
             If Pool.Count > 0 Then
                 For Each j As Job In Pool
@@ -412,6 +447,7 @@ Namespace DownloadObjects
         Friend Sub UserRemove(ByVal _Item As IUserData)
             If Downloaded.Count > 0 AndAlso Downloaded.Contains(_Item) Then Downloaded.Remove(_Item) : RaiseEvent OnDownloadCountChange()
         End Sub
+#End Region
 #Region "IDisposable Support"
         Private disposedValue As Boolean = False
         Protected Overridable Overloads Sub Dispose(ByVal disposing As Boolean)
