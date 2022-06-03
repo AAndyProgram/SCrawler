@@ -61,7 +61,7 @@ Namespace DownloadObjects
                     If Settings.Groups.Count = 0 Then TXT_GROUPS.Clear() : TXT_GROUPS.Enabled = False
                     CH_NOTIFY.Checked = .ShowNotifications
                     TXT_TIMER.Text = .Timer
-                    LBL_LAST_TIME_UP.Text &= .LastDownloadDate.ToStringDate(ADateTime.Formats.BaseDateTime)
+                    LBL_LAST_TIME_UP.Text = .Information
                 End With
                 If Not IsControlForm Then
                     .MyFieldsChecker = New FieldsChecker

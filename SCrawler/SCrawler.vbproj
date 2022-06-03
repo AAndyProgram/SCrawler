@@ -410,6 +410,7 @@
     <None Include="Content\Pictures\HeartPic_32.png" />
     <None Include="Content\Pictures\ScriptPic32.png" />
     <None Include="Content\Icons\GroupBy_284.ico" />
+    <None Include="Content\Pictures\Pause_Blue_16.png" />
     <Content Include="ffmpeg.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

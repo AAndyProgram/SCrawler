@@ -142,12 +142,27 @@ Namespace DownloadObjects
         Private Const Name_ShowNotifications As String = "Notify"
 #End Region
 #Region "Declarations"
-        Friend Property Mode As Modes = Modes.None
+        Private _Mode As Modes = Modes.None
+        Friend Property Mode As Modes
+            Get
+                Return _Mode
+            End Get
+            Set(ByVal m As Modes)
+                _Mode = m
+                If _Mode = Modes.None Then [Stop]()
+            End Set
+        End Property
         Friend ReadOnly Property Groups As List(Of String)
         Friend Property Timer As Integer = DefaultTimer
         Friend Property ShowNotifications As Boolean = True
         Friend Property LastDownloadDate As Date = Now.AddYears(-1)
         Private ReadOnly DateProvider As New ADateTime(ADateTime.Formats.BaseDateTime)
+        Friend ReadOnly Property Information As String
+            Get
+                Return $"Last download date: {LastDownloadDate.ToStringDate(ADateTime.Formats.BaseDateTime)} " &
+                       $"({IIf(Working, "working", "stopped")}{IIf(Working And Pause, ", paused", String.Empty)})"
+            End Get
+        End Property
         Private File As SFile = $"Settings\AutoDownload.xml"
         Private AThread As Thread
 #End Region
@@ -207,6 +222,11 @@ Namespace DownloadObjects
         End Sub
 #End Region
 #Region "Execution"
+        Private ReadOnly Property Working As Boolean
+            Get
+                Return If(AThread?.IsAlive, False)
+            End Get
+        End Property
         Friend Sub Start()
             If Not If(AThread?.IsAlive, False) And Not Mode = Modes.None Then
                 AThread = New Thread(New ThreadStart(AddressOf Checker))
@@ -215,13 +235,14 @@ Namespace DownloadObjects
             End If
         End Sub
         Private _StopRequested As Boolean = False
+        Friend Property Pause As Boolean = False
         Friend Sub [Stop]()
-            If If(AThread?.IsAlive, False) Then _StopRequested = True
+            If Working Then _StopRequested = True
         End Sub
         Private Sub Checker()
             Try
-                While Not _StopRequested
-                    If LastDownloadDate.AddMinutes(Timer) < Now And Not Downloader.Working Then Download()
+                While Not _StopRequested Or Downloader.Working
+                    If LastDownloadDate.AddMinutes(Timer) < Now And Not Downloader.Working And Not Pause And Not _StopRequested Then Download()
                     Thread.Sleep(500)
                 End While
             Catch ex As Exception

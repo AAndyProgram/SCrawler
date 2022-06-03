@@ -104,6 +104,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_TRAY_SHOW_HIDE = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_TRAY_CLOSE = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_TRAY_CLOSE_NO_SCRIPT = New System.Windows.Forms.ToolStripMenuItem()
+        Me.BTT_DOWN_AUTOMATION_PAUSE = New System.Windows.Forms.ToolStripMenuItem()
         SEP_1 = New System.Windows.Forms.ToolStripSeparator()
         SEP_2 = New System.Windows.Forms.ToolStripSeparator()
         CONTEXT_SEP_1 = New System.Windows.Forms.ToolStripSeparator()
@@ -312,7 +313,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         'MENU_DOWN_ALL
         '
         Me.MENU_DOWN_ALL.AutoToolTip = False
-        Me.MENU_DOWN_ALL.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_DOWN_ALL, Me.BTT_DOWN_SITE, MENU_DOWN_ALL_SEP_1, Me.BTT_DOWN_ALL_FULL, Me.BTT_DOWN_SITE_FULL, MENU_DOWN_ALL_SEP_2, Me.BTT_ADD_NEW_GROUP, MENU_DOWN_ALL_SEP_3, Me.BTT_DOWN_AUTOMATION})
+        Me.MENU_DOWN_ALL.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_DOWN_ALL, Me.BTT_DOWN_SITE, MENU_DOWN_ALL_SEP_1, Me.BTT_DOWN_ALL_FULL, Me.BTT_DOWN_SITE_FULL, MENU_DOWN_ALL_SEP_2, Me.BTT_ADD_NEW_GROUP, MENU_DOWN_ALL_SEP_3, Me.BTT_DOWN_AUTOMATION, Me.BTT_DOWN_AUTOMATION_PAUSE})
         Me.MENU_DOWN_ALL.Image = Global.SCrawler.My.Resources.Resources.StartPic_01_Green_16
         Me.MENU_DOWN_ALL.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.MENU_DOWN_ALL.Name = "MENU_DOWN_ALL"
@@ -765,6 +766,13 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_TRAY_CLOSE_NO_SCRIPT.ToolTipText = "Close the program without executing the script"
         Me.BTT_TRAY_CLOSE_NO_SCRIPT.Visible = False
         '
+        'BTT_DOWN_AUTOMATION_PAUSE
+        '
+        Me.BTT_DOWN_AUTOMATION_PAUSE.Image = Global.SCrawler.My.Resources.Resources.Pause_Blue_16
+        Me.BTT_DOWN_AUTOMATION_PAUSE.Name = "BTT_DOWN_AUTOMATION_PAUSE"
+        Me.BTT_DOWN_AUTOMATION_PAUSE.Size = New System.Drawing.Size(231, 22)
+        Me.BTT_DOWN_AUTOMATION_PAUSE.Text = "Pause automation"
+        '
         'MainFrame
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
@@ -860,4 +868,5 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
     Friend WithEvents BTT_TRAY_CLOSE_NO_SCRIPT As ToolStripMenuItem
     Friend WithEvents TRAY_CONTEXT As ContextMenuStrip
     Private WithEvents BTT_DOWN_AUTOMATION As ToolStripMenuItem
+    Private WithEvents BTT_DOWN_AUTOMATION_PAUSE As ToolStripMenuItem
 End Class

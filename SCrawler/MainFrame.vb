@@ -430,6 +430,10 @@ CloseResume:
             If f.DialogResult = DialogResult.OK AndAlso Not Settings.Automation.Mode = AutoDownloader.Modes.None Then Settings.Automation.Start()
         End Using
     End Sub
+    Private Sub BTT_DOWN_AUTOMATION_PAUSE_Click(sender As Object, e As EventArgs) Handles BTT_DOWN_AUTOMATION_PAUSE.Click
+        Settings.Automation.Pause = Not Settings.Automation.Pause
+        BTT_DOWN_AUTOMATION_PAUSE.Checked = Settings.Automation.Pause
+    End Sub
     Private Sub BTT_DOWN_VIDEO_Click(sender As Object, e As EventArgs) Handles BTT_DOWN_VIDEO.Click
         DownloadVideoByURL()
     End Sub

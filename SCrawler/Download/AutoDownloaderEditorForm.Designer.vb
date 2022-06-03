@@ -57,7 +57,7 @@ Namespace DownloadObjects
             'CONTAINER_MAIN.ContentPanel
             '
             CONTAINER_MAIN.ContentPanel.Controls.Add(Me.DEF_GROUP)
-            CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(476, 217)
+            CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(476, 242)
             CONTAINER_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
             CONTAINER_MAIN.LeftToolStripPanelVisible = False
             CONTAINER_MAIN.Location = New System.Drawing.Point(0, 0)
@@ -90,7 +90,7 @@ Namespace DownloadObjects
             Me.DEF_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             Me.DEF_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             Me.DEF_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            Me.DEF_GROUP.Size = New System.Drawing.Size(476, 217)
+            Me.DEF_GROUP.Size = New System.Drawing.Size(476, 242)
             Me.DEF_GROUP.TabIndex = 0
             '
             'TXT_GROUPS
@@ -244,6 +244,7 @@ Namespace DownloadObjects
             Me.Controls.Add(CONTAINER_MAIN)
             Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle
             Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
+            Me.KeyPreview = True
             Me.MaximizeBox = False
             Me.MaximumSize = New System.Drawing.Size(492, 281)
             Me.MinimizeBox = False
