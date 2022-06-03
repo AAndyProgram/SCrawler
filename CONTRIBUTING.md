@@ -22,7 +22,7 @@ I welcome requests! Follow these steps to contribute:
 
 # Requirements for new site requests
 
-**Attention! I'll add a new site only if I'm interested. I also have a life, and any development takes time. **
+**Attention! I'll add a new site only if I'm interested. I also have a life, and any development takes time.**
 
 - Post a link to the site's API
 - Post request URLs **without OAuth** authentication
