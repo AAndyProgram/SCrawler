@@ -101,7 +101,8 @@ Just download [latest](https://github.com/AAndyProgram/SCrawler/releases/latest)
 # How to build from source
 
 1. Delete the "PersonalUtilities" project from the solution.
-1. Add the latest version of the "PersonalUtilities.dll" library (from the [latest release](https://github.com/AAndyProgram/SCrawler/releases/latest)).
+1. Delete the "PersonalUtilities.Notifications" project from the solution.
+1. Add the latest versions of the ```PersonalUtilities.dll``` and ```PersonalUtilities.Notifications.dll``` libraries (from the [latest release](https://github.com/AAndyProgram/SCrawler/releases/latest)).
 1. Import PersonalUtilities.Functions for the whole project.
 
 # How to make a plugin
