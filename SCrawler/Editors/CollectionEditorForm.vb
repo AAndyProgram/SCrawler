@@ -43,7 +43,7 @@ Namespace Editors
         Private Sub CollectionEditorForm_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
             If e.KeyCode = Keys.Insert Then AddNewCollection() : e.Handled = True Else e.Handled = False
         End Sub
-        Private Sub ToolbarBttOK() Implements IOkCancelToolbar.ToolbarBttOK
+        Private Sub OK() Implements IOkCancelToolbar.OK
             If CMB_COLLECTIONS.SelectedIndex >= 0 Then
                 Collection = CMB_COLLECTIONS.Value.ToString
                 MyDefs.CloseForm()
@@ -51,7 +51,7 @@ Namespace Editors
                 MsgBoxE("Collection not selected", MsgBoxStyle.Exclamation)
             End If
         End Sub
-        Private Sub ToolbarBttCancel() Implements IOkCancelToolbar.ToolbarBttCancel
+        Private Sub Cancel() Implements IOkCancelToolbar.Cancel
             MyDefs.CloseForm(DialogResult.Cancel)
         End Sub
         Private Sub CMB_COLLECTIONS_ActionOnButtonClick(ByVal Sender As ActionButton) Handles CMB_COLLECTIONS.ActionOnButtonClick
@@ -59,7 +59,7 @@ Namespace Editors
         End Sub
         Private Sub CMB_COLLECTIONS_ActionOnListDoubleClick(ByVal _Item As ListViewItem) Handles CMB_COLLECTIONS.ActionOnListDoubleClick
             _Item.Selected = True
-            ToolbarBttOK()
+            OK()
         End Sub
         Private Sub AddNewCollection()
             Dim c$ = InputBoxE("Enter new collection name:", "Collection name")

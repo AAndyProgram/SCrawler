@@ -44,6 +44,7 @@ Public Class MainFrame
     End Sub
     Private Sub MainFrame_Load(sender As Object, e As EventArgs) Handles Me.Load
         If _VideoDownloadingMode Then GoTo FormClosingInvoker
+        If Now.Month = 6 Then Text = "SCrawler: Happy LGBT Pride Month! :-)"
         Settings.DeleteCachePath()
         MainFrameObj = New MainFrameObjects(Me)
         MainFrameObj.ChangeCloseVisible()

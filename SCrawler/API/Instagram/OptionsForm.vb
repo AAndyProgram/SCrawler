@@ -30,14 +30,14 @@ Namespace API.Instagram
                 .EndLoaderOperations()
             End With
         End Sub
-        Private Sub ToolbarBttOK() Implements IOkCancelToolbar.ToolbarBttOK
+        Private Sub OK() Implements IOkCancelToolbar.OK
             With MyExchangeOptions
                 .GetStories = CH_GET_STORIES.Checked
                 .GetTagged = CH_GET_TAGGED.Checked
             End With
             MyDefs.CloseForm()
         End Sub
-        Private Sub ToolbarBttCancel() Implements IOkCancelToolbar.ToolbarBttCancel
+        Private Sub Cancel() Implements IOkCancelToolbar.Cancel
             MyDefs.CloseForm(DialogResult.Cancel)
         End Sub
     End Class

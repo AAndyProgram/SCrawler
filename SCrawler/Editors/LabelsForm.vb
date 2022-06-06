@@ -68,7 +68,7 @@ Friend Class LabelsForm : Implements IOkCancelDeleteToolbar
     Private Sub LabelsForm_Disposed(sender As Object, e As EventArgs) Handles Me.Disposed
         LabelsList.Clear()
     End Sub
-    Private Sub ToolbarBttOK() Implements IOkCancelToolbar.ToolbarBttOK
+    Private Sub OK() Implements IOkCancelToolbar.OK
         Try
             If MultiUser Then
                 Dim m As New MMessage("You are changing labels for more one user" & vbNewLine & "What do you want to do?",
@@ -90,10 +90,10 @@ Friend Class LabelsForm : Implements IOkCancelDeleteToolbar
             ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Choosing labels")
         End Try
     End Sub
-    Private Sub ToolbarBttCancel() Implements IOkCancelToolbar.ToolbarBttCancel
+    Private Sub Cancel() Implements IOkCancelToolbar.Cancel
         MyDefs.CloseForm(DialogResult.Cancel)
     End Sub
-    Private Sub ToolbarBttDelete() Implements IOkCancelDeleteToolbar.ToolbarBttDelete
+    Private Sub Delete() Implements IOkCancelDeleteToolbar.Delete
         LabelsList.Clear()
         MyDefs.CloseForm()
     End Sub

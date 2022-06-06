@@ -40,13 +40,13 @@ Friend Class FDatePickerForm : Implements IOkCancelDeleteToolbar
             MyDefs.InvokeLoaderError(ex)
         End Try
     End Sub
-    Private Sub ToolbarBttOK() Implements IOkCancelToolbar.ToolbarBttOK
+    Private Sub OK() Implements IOkCancelToolbar.OK
         MyDefs.CloseForm()
     End Sub
-    Private Sub ToolbarBttCancel() Implements IOkCancelToolbar.ToolbarBttCancel
+    Private Sub Cancel() Implements IOkCancelToolbar.Cancel
         MyDefs.CloseForm(DialogResult.Cancel)
     End Sub
-    Private Sub ToolbarBttDelete() Implements IOkCancelDeleteToolbar.ToolbarBttDelete
+    Private Sub Delete() Implements IOkCancelDeleteToolbar.Delete
         MyDefs.CloseForm(DialogResult.Abort)
     End Sub
 End Class

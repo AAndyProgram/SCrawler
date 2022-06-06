@@ -63,7 +63,7 @@ Namespace DownloadObjects.Groups
                 .EndLoaderOperations()
             End With
         End Sub
-        Private Sub ToolbarBttOK() Implements IOkCancelToolbar.ToolbarBttOK
+        Private Sub OK() Implements IOkCancelToolbar.OK
             If MyDefs.MyFieldsChecker.AllParamsOK Then
                 If MyGroup Is Nothing Then MyGroup = New DownloadGroup
                 With MyGroup
@@ -74,7 +74,7 @@ Namespace DownloadObjects.Groups
                 MyDefs.CloseForm()
             End If
         End Sub
-        Private Sub ToolbarBttCancel() Implements IOkCancelToolbar.ToolbarBttCancel
+        Private Sub Cancel() Implements IOkCancelToolbar.Cancel
             MyDefs.CloseForm(DialogResult.Cancel)
         End Sub
     End Class

@@ -197,6 +197,7 @@ Namespace API.Twitter
 #Region "Video options"
         Private Function CheckVideoNode(ByVal w As EContainer, ByVal PostID As String, ByVal PostDate As String) As Boolean
             Try
+                If CheckForGif(w, PostID, PostDate) Then Return True
                 Dim URL$ = GetVideoNodeURL(w)
                 If Not URL.IsEmptyString Then
                     Dim f$ = UrlFile(URL)
@@ -209,6 +210,41 @@ Namespace API.Twitter
                 Return False
             Catch ex As Exception
                 LogError(ex, "[API.Twitter.UserData.CheckVideoNode]")
+                Return False
+            End Try
+        End Function
+        Private Function CheckForGif(ByVal w As EContainer, ByVal PostID As String, ByVal PostDate As String) As Boolean
+            Try
+                Dim gifUrl As Predicate(Of EContainer) = Function(e) Not e.Value("content_type").IsEmptyString AndAlso
+                                                                     e.Value("content_type").Contains("mp4") AndAlso
+                                                                     Not e.Value("url").IsEmptyString
+                Dim url$, ff$
+                Dim f As SFile
+                Dim m As UserMedia
+                With w({"extended_entities", "media"}).XmlIfNothing
+                    If .Count > 0 Then
+                        For Each n As EContainer In .Self
+                            If n.Value("type") = "animated_gif" Then
+                                With n({"video_info", "variants"}).XmlIfNothing.ItemF({gifUrl}).XmlIfNothing
+                                    url = .Value("url")
+                                    ff = UrlFile(url)
+                                    If Not ff.IsEmptyString Then
+                                        If Not _DataNames.Contains(ff) Then
+                                            m = MediaFromData(url, PostID, PostDate)
+                                            f = m.File
+                                            If Not f.IsEmptyString Then f.Name = $"GIF_{f.Name}" : m.File = f
+                                            _TempMediaList.ListAddValue(m, LNC)
+                                        End If
+                                        Return True
+                                    End If
+                                End With
+                            End If
+                        Next
+                    End If
+                End With
+                Return False
+            Catch ex As Exception
+                LogError(ex, "[API.Twitter.UserData.CheckForGif]")
                 Return False
             End Try
         End Function

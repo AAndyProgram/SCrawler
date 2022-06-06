@@ -39,7 +39,7 @@ Namespace Editors
         Private Sub SiteSelectionForm_Disposed(sender As Object, e As EventArgs) Handles Me.Disposed
             SelectedSites.Clear()
         End Sub
-        Public Sub ToolbarBttOK() Implements IOkCancelToolbar.ToolbarBttOK
+        Public Sub OK() Implements IOkCancelToolbar.OK
             Try
                 SelectedSites.ListAddList(CMB_SITES.Items.CheckedItems.Select(Function(i) CStr(i.Value(0))), LAP.ClearBeforeAdd)
                 MyDefs.CloseForm()
@@ -47,7 +47,7 @@ Namespace Editors
                 ErrorsDescriber.Execute(EDP.LogMessageValue, ex)
             End Try
         End Sub
-        Public Sub ToolbarBttCancel() Implements IOkCancelToolbar.ToolbarBttCancel
+        Public Sub Cancel() Implements IOkCancelToolbar.Cancel
             MyDefs.CloseForm(DialogResult.Cancel)
         End Sub
     End Class

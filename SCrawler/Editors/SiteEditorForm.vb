@@ -157,7 +157,7 @@ Namespace Editors
             LBL_AUTH.Dispose()
             LBL_OTHER.Dispose()
         End Sub
-        Private Sub ToolbarBttOK() Implements IOkCancelToolbar.ToolbarBttOK
+        Private Sub OK() Implements IOkCancelToolbar.OK
             If MyDefs.MyFieldsChecker.AllParamsOK Then
                 Dim i%, ii%
                 With Host
@@ -200,7 +200,7 @@ Namespace Editors
                 MyDefs.CloseForm()
             End If
         End Sub
-        Private Sub ToolbarBttCancel() Implements IOkCancelToolbar.ToolbarBttCancel
+        Private Sub Cancel() Implements IOkCancelToolbar.Cancel
             MyDefs.CloseForm(DialogResult.Cancel)
         End Sub
         Private Sub TXT_PATH_ActionOnButtonClick(ByVal Sender As ActionButton) Handles TXT_PATH.ActionOnButtonClick

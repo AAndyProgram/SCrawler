@@ -1,3 +1,11 @@
+# 2022.6.6.0
+
+- Added
+  - Ability to pause automation
+- Fixed
+  - GIFs from Twitter not downloading
+  - Not quite correct algorithm for stopping automation
+
 # 2022.6.3.0
 
 Changed version numbering method. From now on, new versions will be numbered by release date (YYYY.M.D)

@@ -107,7 +107,7 @@ Namespace Editors
         Private Sub GlobalSettingsForm_Disposed(sender As Object, e As EventArgs) Handles Me.Disposed
             Automation.Dispose()
         End Sub
-        Private Sub ToolbarBttOK() Implements IOkCancelToolbar.ToolbarBttOK
+        Private Sub OK() Implements IOkCancelToolbar.OK
             If MyDefs.MyFieldsChecker.AllParamsOK Then
                 With Settings
                     Dim a As Func(Of String, Object, Integer) =
@@ -195,14 +195,14 @@ Namespace Editors
                     .ChannelsAddUserImagesFromAllChannels.Value = CH_COPY_CHANNEL_USER_IMAGE_ALL.Checked
                     .ChannelsDefaultTemporary.Value = CH_CHANNELS_USERS_TEMP.Checked
 
-                    Automation.SaveSetiings()
+                    Automation.SaveSettings()
 
                     .EndUpdate()
                 End With
                 MyDefs.CloseForm()
             End If
         End Sub
-        Private Sub ToolbarBttCancel() Implements IOkCancelToolbar.ToolbarBttCancel
+        Private Sub Cancel() Implements IOkCancelToolbar.Cancel
             MyDefs.CloseForm(DialogResult.Cancel)
         End Sub
         Private Sub TXT_GLOBAL_PATH_ActionOnButtonClick(ByVal Sender As ActionButton) Handles TXT_GLOBAL_PATH.ActionOnButtonClick

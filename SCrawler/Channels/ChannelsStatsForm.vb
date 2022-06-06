@@ -47,13 +47,13 @@ Friend Class ChannelsStatsForm : Implements IOkCancelDeleteToolbar
             CMB_CHANNELS.EndUpdate()
         End If
     End Sub
-    Private Sub ToolbarBttOK() Implements IOkCancelToolbar.ToolbarBttOK
+    Private Sub OK() Implements IOkCancelToolbar.OK
         MyDefs.CloseForm()
     End Sub
-    Private Sub ToolbarBttCancel() Implements IOkCancelToolbar.ToolbarBttCancel
+    Private Sub Cancel() Implements IOkCancelToolbar.Cancel
         MyDefs.CloseForm(DialogResult.Cancel)
     End Sub
-    Private Sub ToolbarBttDelete() Implements IOkCancelDeleteToolbar.ToolbarBttDelete
+    Private Sub Delete() Implements IOkCancelDeleteToolbar.Delete
         Try
             Dim c As List(Of String) = CMB_CHANNELS.Items.CheckedItems.Select(Function(cc) CStr(cc.Value(1))).ListIfNothing
             If c.ListExists Then

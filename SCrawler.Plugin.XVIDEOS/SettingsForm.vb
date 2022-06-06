@@ -29,7 +29,7 @@ Public Class SettingsForm : Implements IOkCancelToolbar
             MyDefs.InvokeLoaderError(ex)
         End Try
     End Sub
-    Private Sub ToolbarBttOK() Implements IOkCancelToolbar.ToolbarBttOK
+    Private Sub OK() Implements IOkCancelToolbar.OK
         Settings.Domains.Clear()
         With LIST_DOMAINS
             If .Items.Count > 0 Then
@@ -39,7 +39,7 @@ Public Class SettingsForm : Implements IOkCancelToolbar
         Settings.UpdateDomains()
         MyDefs.CloseForm()
     End Sub
-    Private Sub ToolbarBttCancel() Implements IOkCancelToolbar.ToolbarBttCancel
+    Private Sub Cancel() Implements IOkCancelToolbar.Cancel
         MyDefs.CloseForm(Windows.Forms.DialogResult.Cancel)
     End Sub
     Private Sub BTT_ADD_Click(sender As Object, e As EventArgs) Handles BTT_ADD.Click

@@ -79,7 +79,7 @@ Namespace DownloadObjects
         Private Sub AutoDownloaderEditorForm_Disposed(sender As Object, e As EventArgs) Handles Me.Disposed
             MyGroups.Clear()
         End Sub
-        Friend Sub SaveSetiings() Implements IOkCancelToolbar.ToolbarBttOK
+        Friend Sub SaveSettings() Implements IOkCancelToolbar.OK
             If If(MyDefs.MyFieldsChecker?.AllParamsOK, True) Then
                 With Settings.Automation
                     Select Case True
@@ -98,7 +98,7 @@ Namespace DownloadObjects
                 If Not IsControlForm Then MyDefs.CloseForm()
             End If
         End Sub
-        Private Sub ToolbarBttCancel() Implements IOkCancelToolbar.ToolbarBttCancel
+        Private Sub Cancel() Implements IOkCancelToolbar.Cancel
             MyDefs.CloseForm(DialogResult.Cancel)
         End Sub
         Private Sub TXT_GROUPS_ActionOnButtonClick(ByVal Sender As ActionButton) Handles TXT_GROUPS.ActionOnButtonClick

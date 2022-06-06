@@ -194,7 +194,7 @@ Namespace Editors
         Private Function GetSiteByCheckers() As SettingsHost
             Return If(CMB_SITE.SelectedIndex >= 0, Settings(CStr(CMB_SITE.Items(CMB_SITE.SelectedIndex).Value(0))), Nothing)
         End Function
-        Private Sub ToolbarBttOK() Implements IOkCancelToolbar.ToolbarBttOK
+        Private Sub OK() Implements IOkCancelToolbar.OK
             If Not CH_ADD_BY_LIST.Checked Then
                 If MyDef.MyFieldsChecker.AllParamsOK Then
                     Dim s As SettingsHost = GetSiteByCheckers()
@@ -254,7 +254,7 @@ Namespace Editors
 CloseForm:
             MyDef.CloseForm()
         End Sub
-        Private Sub ToolbarBttCancel() Implements IOkCancelToolbar.ToolbarBttCancel
+        Private Sub Cancel() Implements IOkCancelToolbar.Cancel
             MyDef.CloseForm(IIf(StartIndex >= 0, DialogResult.OK, DialogResult.Cancel))
         End Sub
         Private _TextChangeInvoked As Boolean = False

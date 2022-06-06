@@ -53,7 +53,7 @@ Namespace API.Reddit
                 MyDefs.InvokeLoaderError(ex)
             End Try
         End Sub
-        Private Sub ToolbarBttOK() Implements IOkCancelToolbar.ToolbarBttOK
+        Private Sub OK() Implements IOkCancelToolbar.OK
             With MyOptions
                 Select Case True
                     Case OPT_VIEW_MODE_HOT.Checked : .ViewMode = CView.Hot
@@ -71,7 +71,7 @@ Namespace API.Reddit
             End With
             MyDefs.CloseForm()
         End Sub
-        Private Sub ToolbarBttCancel() Implements IOkCancelToolbar.ToolbarBttCancel
+        Private Sub Cancel() Implements IOkCancelToolbar.Cancel
             MyDefs.CloseForm(DialogResult.Cancel)
         End Sub
         Private Sub OPT_VIEW_MODE_NEW_CheckedChanged(sender As Object, e As EventArgs) Handles OPT_VIEW_MODE_NEW.CheckedChanged
