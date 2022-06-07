@@ -224,7 +224,8 @@ Friend Class ChannelViewForm : Implements IChannelLimits
             .SmallImageList = New ImageList With {.ColorDepth = ColorDepth.Depth32Bit, .ImageSize = s}
         End With
         CMB_CHANNELS.Enabled(False) = Not CMB_CHANNELS.Checked
-        MyDefs.EndLoaderOperations()
+        MyDefs.DelegateClosingChecker = False
+        MyDefs.EndLoaderOperations(False)
         SetLimitsByChannel(, False)
     End Sub
     Private Sub ChannelViewForm_Closing(sender As Object, e As CancelEventArgs) Handles Me.Closing

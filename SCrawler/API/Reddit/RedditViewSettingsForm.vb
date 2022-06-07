@@ -31,8 +31,6 @@ Namespace API.Reddit
                 With MyDefs
                     .MyViewInitialize(Me, Settings.Design, True)
                     .AddOkCancelToolbar()
-                    .AppendDetectors()
-                    .DelegateClosingChecker()
                     Select Case MyOptions.ViewMode
                         Case CView.Hot : OPT_VIEW_MODE_HOT.Checked = True
                         Case CView.Top : OPT_VIEW_MODE_TOP.Checked = True

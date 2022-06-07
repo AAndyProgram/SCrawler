@@ -21,7 +21,6 @@ Public Class SettingsForm : Implements IOkCancelToolbar
             With MyDefs
                 .MyViewInitialize(Me, Settings.Design, True)
                 .AddOkCancelToolbar()
-                .DelegateClosingChecker()
                 If Settings.Domains.Count > 0 Then Settings.Domains.ForEach(Sub(d) LIST_DOMAINS.Items.Add(d))
                 .EndLoaderOperations()
             End With

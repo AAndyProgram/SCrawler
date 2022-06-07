@@ -46,7 +46,6 @@ Namespace DownloadObjects.Groups
             With MyDefs
                 .MyViewInitialize(Me, Settings.Design, True)
                 .AddOkCancelToolbar()
-                .DelegateClosingChecker()
                 If Not MyGroup Is Nothing Then
                     With MyGroup
                         TXT_NAME.Text = .Name
@@ -59,7 +58,6 @@ Namespace DownloadObjects.Groups
                 .MyFieldsChecker = New FieldsChecker
                 DirectCast(.MyFieldsChecker, FieldsChecker).AddControl(Of String)(TXT_NAME, TXT_NAME.CaptionText,, New NameChecker(If(MyGroup?.Name, String.Empty)))
                 .MyFieldsChecker.EndLoaderOperations()
-                .AppendDetectors()
                 .EndLoaderOperations()
             End With
         End Sub

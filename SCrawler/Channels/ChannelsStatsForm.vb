@@ -22,14 +22,12 @@ Friend Class ChannelsStatsForm : Implements IOkCancelDeleteToolbar
             With MyDefs
                 .MyViewInitialize(Me, Settings.Design)
                 .AddOkCancelToolbar()
-                .DelegateClosingChecker()
                 .MyOkCancel.EnableDelete = False
                 If Settings.Channels.Count > 0 Then
                     RefillList()
                 Else
                     MsgBoxE("Channels not found", vbExclamation)
                 End If
-                .AppendDetectors()
                 .EndLoaderOperations()
             End With
         Catch ex As Exception

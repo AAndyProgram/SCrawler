@@ -26,13 +26,13 @@ Friend Class FDatePickerForm : Implements IOkCancelDeleteToolbar
             With MyDefs
                 .MyViewInitialize(Me, Settings.Design, True)
                 .AddOkCancelToolbar()
-                .DelegateClosingChecker()
                 If _InitialValue.HasValue Then
                     DT.Checked = True
                     DT.Value = _InitialValue.Value.Date
                 Else
                     DT.Checked = False
                 End If
+                .DelegateClosingChecker = False
                 .EndLoaderOperations()
                 MyDefs.MyOkCancel.EnableOK = True
             End With

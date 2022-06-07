@@ -28,10 +28,11 @@ Namespace Editors
                 With MyDefs
                     .MyViewInitialize(Me, Settings.Design)
                     .AddOkCancelToolbar()
-                    .DelegateClosingChecker()
                     Collections.ListAddList((From c In Settings.Users Where c.IsCollection Select c.CollectionName), LAP.NotContainsOnly, EDP.ThrowException)
                     If Collections.ListExists Then Collections.Sort() : CMB_COLLECTIONS.Items.AddRange(From c In Collections Select New ListItem(c))
                     If Not Collection.IsEmptyString And Collections.Contains(Collection) Then CMB_COLLECTIONS.SelectedIndex = Collections.IndexOf(Collection)
+                    .DelegateClosingChecker = False
+                    .EndLoaderOperations(False)
                 End With
             Catch ex As Exception
                 MyDefs.InvokeLoaderError(ex)

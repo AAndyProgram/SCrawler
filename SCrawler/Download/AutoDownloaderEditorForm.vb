@@ -69,8 +69,6 @@ Namespace DownloadObjects
                         .AddControl(Of Integer)(TXT_TIMER, TXT_TIMER.CaptionText,, New AutomationTimerChecker)
                         .EndLoaderOperations()
                     End With
-                    .DelegateClosingChecker()
-                    .AppendDetectors()
                     .EndLoaderOperations()
                 End If
             End With

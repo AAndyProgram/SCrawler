@@ -52,7 +52,6 @@ Namespace Editors
                 With MyDefs
                     .MyViewInitialize(Me, Settings.Design, True)
                     .AddOkCancelToolbar()
-                    .DelegateClosingChecker()
 
                     .MyFieldsChecker = New FieldsChecker
                     With Host
@@ -144,7 +143,6 @@ Namespace Editors
                     End With
 
                     .MyFieldsChecker.EndLoaderOperations()
-                    .AppendDetectors()
                     .EndLoaderOperations()
                 End With
             Catch ex As Exception

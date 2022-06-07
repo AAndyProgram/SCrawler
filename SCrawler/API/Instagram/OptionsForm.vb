@@ -21,8 +21,6 @@ Namespace API.Instagram
             With MyDefs
                 .MyViewInitialize(Me, Settings.Design, True)
                 .AddOkCancelToolbar()
-                .DelegateClosingChecker()
-                .AppendDetectors()
                 With MyExchangeOptions
                     CH_GET_STORIES.Checked = .GetStories
                     CH_GET_TAGGED.Checked = .GetTagged

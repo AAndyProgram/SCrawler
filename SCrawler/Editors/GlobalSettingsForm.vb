@@ -30,7 +30,6 @@ Namespace Editors
                 With MyDefs
                     .MyViewInitialize(Me, Settings.Design, True)
                     .AddOkCancelToolbar()
-                    .DelegateClosingChecker()
                     With Settings
                         'Basis
                         TXT_GLOBAL_PATH.Text = .GlobalPath.Value
@@ -96,7 +95,6 @@ Namespace Editors
                                                 New DownloadObjects.AutoDownloaderEditorForm.AutomationTimerChecker)
                         .EndLoaderOperations()
                     End With
-                    .AppendDetectors()
                     .EndLoaderOperations()
                     ChangeFileNameChangersEnabling()
                 End With

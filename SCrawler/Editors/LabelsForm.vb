@@ -43,7 +43,6 @@ Friend Class LabelsForm : Implements IOkCancelDeleteToolbar
             With MyDefs
                 .MyViewInitialize(Me, Settings.Design)
                 .AddOkCancelToolbar(, WithDeleteButton)
-                .DelegateClosingChecker()
                 If Source.Count > 0 Then
                     Dim items As New List(Of Integer)
                     CMB_LABELS.BeginUpdate()
@@ -55,7 +54,6 @@ Friend Class LabelsForm : Implements IOkCancelDeleteToolbar
                     CMB_LABELS.EndUpdate()
                     CMB_LABELS.ListCheckedIndexes = items
                 End If
-                .AppendDetectors()
                 .EndLoaderOperations()
             End With
         Catch ex As Exception

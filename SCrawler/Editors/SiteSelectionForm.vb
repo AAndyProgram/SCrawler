@@ -22,7 +22,6 @@ Namespace Editors
         Private Sub SiteSelectionForm_Load(sender As Object, e As EventArgs) Handles Me.Load
             With MyDefs
                 .MyViewInitialize(Me, Settings.Design, True)
-                .DelegateClosingChecker()
                 .AddOkCancelToolbar()
                 CMB_SITES.BeginUpdate()
                 Dim sl As List(Of String) = ListAddList(Nothing, Settings.Plugins.Select(Function(p) p.Name))
@@ -32,7 +31,8 @@ Namespace Editors
                 sl.Clear()
                 CMB_SITES.EndUpdate()
                 If l.Count > 0 Then CMB_SITES.ListCheckedIndexes = l : l.Clear()
-                .EndLoaderOperations()
+                .DelegateClosingChecker = False
+                .EndLoaderOperations(False)
                 .MyOkCancel.EnableOK = True
             End With
         End Sub

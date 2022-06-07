@@ -165,7 +165,6 @@ Namespace Editors
                     .MyFieldsChecker = New FieldsChecker
                     DirectCast(.MyFieldsChecker, FieldsChecker).AddControl(Of String)(TXT_USER, TXT_USER.CaptionText)
                     .MyFieldsChecker.EndLoaderOperations()
-                    .AppendDetectors()
                     .EndLoaderOperations()
                 End With
             Catch ex As Exception
