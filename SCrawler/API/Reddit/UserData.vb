@@ -730,7 +730,7 @@ Namespace API.Reddit
             ElseIf Responser.StatusCode = HttpStatusCode.BadGateway Or
                    Responser.StatusCode = HttpStatusCode.ServiceUnavailable Or
                    Responser.StatusCode = HttpStatusCode.GatewayTimeout Then
-                MyMainLOG = $"Reddit is currently unavailable ({ToString()})"
+                MyMainLOG = $"[{CInt(Responser.StatusCode)}] Reddit is currently unavailable ({ToString()})"
             Else
                 If Not FromPE Then LogError(ex, Message) : HasError = True
                 Return 0

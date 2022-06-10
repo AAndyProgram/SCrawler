@@ -121,7 +121,7 @@ The program has an intuitive interface.
 
 You need to set up authorization for Twitter and Instagram:
 - Authorization [cookies](https://github.com/AAndyProgram/SCrawler/wiki/Settings#how-to-set-up-cookies) and [tokens](https://github.com/AAndyProgram/SCrawler/wiki/Settings#how-to-find-twitter-tokens) for **Twitter** (if you want to download data from Twitter)
-- Authorization [cookies](https://github.com/AAndyProgram/SCrawler/wiki/Settings#how-to-set-up-cookies) and [Hash](https://github.com/AAndyProgram/SCrawler/wiki/Settings#instagram) for **Instagram** (if you want to download data from Instagram), [Hash 2](https://github.com/AAndyProgram/SCrawler/wiki/Settings#how-to-find-instagram-hash-2) for **saved Instagram posts**, Instagram [stories authorization headers](https://github.com/AAndyProgram/SCrawler/wiki/Settings#how-to-find-instagram-stories-authorization-headers) for **Stories** and **Tagged data**
+- Authorization [cookies](https://github.com/AAndyProgram/SCrawler/wiki/Settings#how-to-set-up-cookies), [Hash](https://github.com/AAndyProgram/SCrawler/wiki/Settings#instagram) and [authorization headers](https://github.com/AAndyProgram/SCrawler/wiki/Settings#how-to-find-instagram-authorization-headers) for **Instagram** (if you want to download data from Instagram), [Hash 2](https://github.com/AAndyProgram/SCrawler/wiki/Settings#how-to-find-instagram-hash-2) for **saved Instagram posts**
 
 Just add a user profile and **click the ```Start downloading``` button**.
 

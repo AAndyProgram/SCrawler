@@ -536,7 +536,8 @@ Namespace API.Instagram
             End Try
         End Sub
 #End Region
-        Private Sub GetUserId()
+#Region "GetUserId"
+        <Obsolete> Private Sub GetUserId_Old()
             Try
                 Dim r$ = Responser.GetResponse($"https://www.instagram.com/{Name}/?__a=1",, EDP.ThrowException)
                 If Not r.IsEmptyString Then
@@ -552,6 +553,23 @@ Namespace API.Instagram
                 End If
             End Try
         End Sub
+        Private Sub GetUserId()
+            Try
+                Dim r$ = Responser.GetResponse($"https://i.instagram.com/api/v1/users/web_profile_info/?username={Name}",, EDP.ThrowException)
+                If Not r.IsEmptyString Then
+                    Using j As EContainer = JsonDocument.Parse(r).XmlIfNothing
+                        ID = j({"data", "user"}, "id").XmlIfNothingValue
+                    End Using
+                End If
+            Catch ex As Exception
+                If Responser.StatusCode = HttpStatusCode.NotFound Or Responser.StatusCode = HttpStatusCode.BadRequest Then
+                    Throw ex
+                Else
+                    LogError(ex, "get Instagram user id")
+                End If
+            End Try
+        End Sub
+#End Region
 #Region "Pinned stories"
         Private Sub GetStoriesData(ByRef StoriesList As List(Of String), ByVal Token As CancellationToken)
             Const ReqUrl$ = "https://i.instagram.com/api/v1/feed/reels_media/?{0}"

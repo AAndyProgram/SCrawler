@@ -1,3 +1,10 @@
+# 2022.6.10.0
+
+**Attention! From now on, Instagram requires Cookies, Hash and authorization headers!**
+
+- Fixed
+  - Can't get Instagram user ID
+
 # 2022.6.6.0
 
 - Added
