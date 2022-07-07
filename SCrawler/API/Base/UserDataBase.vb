@@ -9,8 +9,8 @@
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Forms.Toolbars
-Imports PersonalUtilities.Tools.WEB
 Imports PersonalUtilities.Tools
+Imports PersonalUtilities.Tools.WEB
 Imports System.IO
 Imports System.Net
 Imports System.Threading
@@ -21,28 +21,33 @@ Imports UTypes = SCrawler.API.Base.UserMedia.Types
 Namespace API.Base
     Friend MustInherit Class UserDataBase : Implements IUserData, IPluginContentProvider, IThrower
         Friend Const UserFileAppender As String = "User"
-        Private ReadOnly _OnUserUpdatedHandlers As List(Of IUserData.OnUserUpdatedEventHandler)
-        Friend Custom Event OnUserUpdated As IUserData.OnUserUpdatedEventHandler Implements IUserData.OnUserUpdated
-            AddHandler(ByVal e As IUserData.OnUserUpdatedEventHandler)
-                If Not _OnUserUpdatedHandlers.Contains(e) Then _OnUserUpdatedHandlers.Add(e)
+#Region "Events"
+        Private ReadOnly UserUpdatedEventHandlers As List(Of IUserData.UserUpdatedEventHandler)
+        Friend Custom Event UserUpdated As IUserData.UserUpdatedEventHandler Implements IUserData.UserUpdated
+            AddHandler(ByVal e As IUserData.UserUpdatedEventHandler)
+                If Not UserUpdatedEventHandlers.Contains(e) Then UserUpdatedEventHandlers.Add(e)
             End AddHandler
-            RemoveHandler(ByVal e As IUserData.OnUserUpdatedEventHandler)
-                If _OnUserUpdatedHandlers.Contains(e) Then _OnUserUpdatedHandlers.Remove(e)
+            RemoveHandler(ByVal e As IUserData.UserUpdatedEventHandler)
+                If UserUpdatedEventHandlers.Contains(e) Then UserUpdatedEventHandlers.Remove(e)
             End RemoveHandler
             RaiseEvent(ByVal User As IUserData)
-                If _OnUserUpdatedHandlers.Count > 0 Then
-                    For Each e As IUserData.OnUserUpdatedEventHandler In _OnUserUpdatedHandlers
-                        Try : e.Invoke(User) : Catch : End Try
-                    Next
-                End If
+                Try
+                    If UserUpdatedEventHandlers.Count > 0 Then
+                        For i% = 0 To UserUpdatedEventHandlers.Count - 1
+                            Try : UserUpdatedEventHandlers(i).Invoke(User) : Catch : End Try
+                        Next
+                    End If
+                Catch
+                End Try
             End RaiseEvent
         End Event
-        Protected Sub RaiseEvent_OnUserUpdated()
-            RaiseEvent OnUserUpdated(Me)
+        Protected Sub OnUserUpdated()
+            RaiseEvent UserUpdated(Me)
         End Sub
         Friend Sub RemoveUpdateHandlers()
-            _OnUserUpdatedHandlers.Clear()
+            UserUpdatedEventHandlers.Clear()
         End Sub
+#End Region
 #Region "Collection buttons"
         Private _CollectionButtonsExists As Boolean = False
         Private _CollectionButtonsColorsSet As Boolean = False
@@ -130,12 +135,21 @@ Namespace API.Base
 #End Region
 #End Region
 #Region "Declarations"
+#Region "Host, Site, Progress, Self"
+        Friend Property HOST As SettingsHost Implements IUserData.HOST
         Friend ReadOnly Property Site As String Implements IContentProvider.Site
             Get
                 Return HOST.Name
             End Get
         End Property
         Friend Property Progress As MyProgress
+        Friend ReadOnly Property Self As IUserData Implements IUserData.Self
+            Get
+                Return Me
+            End Get
+        End Property
+#End Region
+#Region "User name, ID, exist, suspend"
         Friend User As UserInfo
         Friend Property IsSavedPosts As Boolean Implements IPluginContentProvider.IsSavedPosts
         Friend Overridable Property UserExists As Boolean = True Implements IUserData.Exists, IPluginContentProvider.UserExists
@@ -152,7 +166,8 @@ Namespace API.Base
         End Property
         Friend Overridable Property ID As String = String.Empty Implements IContentProvider.ID, IPluginContentProvider.ID
         Friend Overridable Property FriendlyName As String = String.Empty Implements IContentProvider.FriendlyName
-#Region "UserDescription"
+#End Region
+#Region "Description"
         Friend Property UserDescription As String = String.Empty Implements IContentProvider.Description, IPluginContentProvider.UserDescription
         Protected _DescriptionEveryTime As Boolean = False
         Protected _DescriptionChecked As Boolean = False
@@ -174,7 +189,7 @@ Namespace API.Base
             _DescriptionEveryTime = Settings.UpdateUserDescriptionEveryTime
         End Sub
 #End Region
-        Friend Property ParseUserMediaOnly As Boolean = False Implements IUserData.ParseUserMediaOnly, IPluginContentProvider.ParseUserMediaOnly
+#Region "Favorite, Temporary"
         Protected _Favorite As Boolean = False
         Friend Overridable Property Favorite As Boolean Implements IContentProvider.Favorite
             Get
@@ -195,17 +210,15 @@ Namespace API.Base
                 If _Temporary Then _Favorite = False
             End Set
         End Property
+#End Region
+#Region "Channel"
         Friend Overridable ReadOnly Property IsChannel As Boolean Implements IUserData.IsChannel
             Get
                 Return User.IsChannel
             End Get
         End Property
         Friend Property CreatedByChannel As Boolean = False
-        Friend ReadOnly Property Self As IUserData Implements IUserData.Self
-            Get
-                Return Me
-            End Get
-        End Property
+#End Region
 #Region "Images"
         Friend Overridable Function GetUserPicture() As Image Implements IUserData.GetPicture
             If Settings.ViewModeIsPicture Then
@@ -303,7 +316,7 @@ BlockNullPicture:
             End Get
         End Property
 #End Region
-#Region "Collections support"
+#Region "Collections"
         Protected _IsCollection As Boolean = False
         Protected Friend ReadOnly Property IsCollection As Boolean Implements IUserData.IsCollection
             Get
@@ -332,9 +345,10 @@ BlockNullPicture:
         End Sub
         Friend Overridable ReadOnly Property Labels As List(Of String) Implements IUserData.Labels
 #End Region
-#Region "Downloading params"
+#Region "Downloading"
         Protected _DataLoaded As Boolean = False
         Protected _DataParsed As Boolean = False
+        Friend Property ParseUserMediaOnly As Boolean = False Implements IUserData.ParseUserMediaOnly, IPluginContentProvider.ParseUserMediaOnly
         Friend Overridable Property ReadyForDownload As Boolean = True Implements IUserData.ReadyForDownload
         Friend Property DownloadImages As Boolean = True Implements IUserData.DownloadImages
         Friend Property DownloadVideos As Boolean = True Implements IUserData.DownloadVideos
@@ -378,7 +392,7 @@ BlockNullPicture:
             End Set
         End Property
 #End Region
-#Region "Information"
+#Region "Information, counters, error, update date"
         Friend Overridable Property LastUpdated As Date?
         Friend Overridable Property HasError As Boolean = False Implements IUserData.HasError
         Private _DownloadedPicturesTotal As Integer = 0
@@ -422,6 +436,25 @@ BlockNullPicture:
                        $" (P - {DownloadedPictures(True)}; V - {DownloadedVideos(True)})"
             End Get
         End Property
+        Friend Overridable Function GetUserInformation() As String
+            Dim OutStr$ = $"User: {Name}"
+            OutStr.StringAppendLine($"Path: {MyFile.CutPath.Path}")
+            OutStr.StringAppendLine($"Total downloaded ({DownloadedTotal(True).NumToString(ANumbers.Formats.Number, 3)}):")
+            OutStr.StringAppendLine($"Pictures: {DownloadedPictures(True).NumToString(ANumbers.Formats.Number, 3)}")
+            OutStr.StringAppendLine($"Videos: {DownloadedVideos(True).NumToString(ANumbers.Formats.Number, 3)}")
+            If Not UserDescription.IsEmptyString Then
+                OutStr.StringAppendLine(String.Empty)
+                OutStr.StringAppendLine(UserDescription)
+            End If
+            OutStr.StringAppendLine(String.Empty)
+            OutStr.StringAppendLine($"Last updated at: {AConvert(Of String)(LastUpdated, ADateTime.Formats.BaseDateTime, "not yet")}")
+            If _DataParsed Then
+                OutStr.StringAppendLine("Downloaded now:")
+                OutStr.StringAppendLine($"Pictures: {DownloadedTotal(False).NumToString(ANumbers.Formats.Number, 3)}")
+                OutStr.StringAppendLine($"Videos: {DownloadedVideos(False).NumToString(ANumbers.Formats.Number, 3)}")
+            End If
+            Return OutStr
+        End Function
 #End Region
 #Region "Script"
         Friend Overridable Property ScriptUse As Boolean = False Implements IUserData.ScriptUse
@@ -431,7 +464,6 @@ BlockNullPicture:
 #Region "Plugins Support"
         Protected Event ProgressChanged As IPluginContentProvider.ProgressChangedEventHandler Implements IPluginContentProvider.ProgressChanged
         Protected Event TotalCountChanged As IPluginContentProvider.TotalCountChangedEventHandler Implements IPluginContentProvider.TotalCountChanged
-        Friend Property HOST As SettingsHost Implements IUserData.HOST
         Private Property IPluginContentProvider_Settings As ISiteSettings Implements IPluginContentProvider.Settings
             Get
                 Return HOST.Source
@@ -524,37 +556,16 @@ BlockNullPicture:
                 Return Destination.Groups.Item(LabelsKeeper.NoLabeledName)
             End Try
         End Function
-        Friend Overridable Function GetUserInformation() As String
-            Dim OutStr$ = $"User: {Name}"
-            OutStr.StringAppendLine($"Path: {MyFile.CutPath.Path}")
-            OutStr.StringAppendLine($"Total downloaded ({DownloadedTotal(True).NumToString(ANumbers.Formats.Number, 3)}):")
-            OutStr.StringAppendLine($"Pictures: {DownloadedPictures(True).NumToString(ANumbers.Formats.Number, 3)}")
-            OutStr.StringAppendLine($"Videos: {DownloadedVideos(True).NumToString(ANumbers.Formats.Number, 3)}")
-            If Not UserDescription.IsEmptyString Then
-                OutStr.StringAppendLine(String.Empty)
-                OutStr.StringAppendLine(UserDescription)
-            End If
-            OutStr.StringAppendLine(String.Empty)
-            OutStr.StringAppendLine($"Last updated at: {AConvert(Of String)(LastUpdated, ADateTime.Formats.BaseDateTime, "not yet")}")
-            If _DataParsed Then
-                OutStr.StringAppendLine("Downloaded now:")
-                OutStr.StringAppendLine($"Pictures: {DownloadedTotal(False).NumToString(ANumbers.Formats.Number, 3)}")
-                OutStr.StringAppendLine($"Videos: {DownloadedVideos(False).NumToString(ANumbers.Formats.Number, 3)}")
-            End If
-            Return OutStr
-        End Function
 #End Region
 #Region "Initializer"
-        Private ReadOnly _InvokeImageHandler As Boolean
         ''' <summary>By using this constructor you must set UserName and MyFile manually</summary>
         Friend Sub New(Optional ByVal InvokeImageHandler As Boolean = True)
-            _InvokeImageHandler = InvokeImageHandler
             _ContentList = New List(Of UserMedia)
             _ContentNew = New List(Of UserMedia)
             _TempMediaList = New List(Of UserMedia)
             _TempPostsList = New List(Of String)
             Labels = New List(Of String)
-            _OnUserUpdatedHandlers = New List(Of IUserData.OnUserUpdatedEventHandler)
+            UserUpdatedEventHandlers = New List(Of IUserData.UserUpdatedEventHandler)
             If InvokeImageHandler Then ImageHandler(Me)
         End Sub
         Friend Sub SetEnvironment(ByRef h As SettingsHost, ByVal u As UserInfo, ByVal _LoadUserInformation As Boolean,
@@ -680,15 +691,16 @@ BlockNullPicture:
                                                              End Function
                         For Each v As EContainer In x
                             _ContentList.Add(New UserMedia With {
-                                           .Type = AConvert(Of Integer)(v.Attribute(Name_MediaType).Value, 0),
-                                           .URL = v.Attribute(Name_MediaURL).Value,
-                                           .URL_BASE = v.Value,
-                                           .MD5 = v.Attribute(Name_MediaHash).Value,
-                                           .File = fs & gfn.Invoke(v.Attribute(Name_MediaFile).Value),
-                                           .Post = New UserPost With {
-                                                       .ID = v.Attribute(Name_MediaPostID).Value,
-                                                       .[Date] = AConvert(Of Date)(v.Attribute(Name_MediaPostDate).Value, ParsersDataDateProvider, Nothing)}
-                                       })
+                                                .Type = AConvert(Of Integer)(v.Attribute(Name_MediaType).Value, 0),
+                                                .URL = v.Attribute(Name_MediaURL).Value,
+                                                .URL_BASE = v.Value,
+                                                .MD5 = v.Attribute(Name_MediaHash).Value,
+                                                .File = fs & gfn.Invoke(v.Attribute(Name_MediaFile).Value),
+                                                .Post = New UserPost With {
+                                                    .ID = v.Attribute(Name_MediaPostID).Value,
+                                                    .[Date] = AConvert(Of Date)(v.Attribute(Name_MediaPostDate).Value, ParsersDataDateProvider, Nothing)
+                                                }
+                                             })
                         Next
                     End If
                     _DataLoaded = True
@@ -705,14 +717,15 @@ BlockNullPicture:
                 Using x As New XmlFile With {.AllowSameNames = True, .Name = "Data"}
                     If _ContentList.Count > 0 Then
                         For Each i As UserMedia In _ContentList
-                            x.Add(New EContainer("MediaData", i.URL_BASE,
-                                                 {New EAttribute(Name_MediaType, CInt(i.Type)),
-                                                  New EAttribute(Name_MediaURL, i.URL),
-                                                  New EAttribute(Name_MediaHash, i.MD5),
-                                                  New EAttribute(Name_MediaFile, i.File.File),
-                                                  New EAttribute(Name_MediaPostID, i.Post.ID),
-                                                  New EAttribute(Name_MediaPostDate, AConvert(Of String)(i.Post.Date, ParsersDataDateProvider, String.Empty))
-                                                 }))
+                            x.Add(New EContainer("MediaData", i.URL_BASE, {New EAttribute(Name_MediaType, CInt(i.Type)),
+                                                                           New EAttribute(Name_MediaURL, i.URL),
+                                                                           New EAttribute(Name_MediaHash, i.MD5),
+                                                                           New EAttribute(Name_MediaFile, i.File.File),
+                                                                           New EAttribute(Name_MediaPostID, i.Post.ID),
+                                                                           New EAttribute(Name_MediaPostDate, AConvert(Of String)(i.Post.Date, ParsersDataDateProvider, String.Empty))
+                                                                          }
+                                                )
+                                 )
                         Next
                     End If
                     x.Save(MyFileData)
@@ -730,7 +743,7 @@ BlockNullPicture:
                 If Not URL.IsEmptyString Then Process.Start(URL)
             Catch ex As Exception
                 If Not e.Exists Then e = New ErrorsDescriber(EDP.ShowAllMsg)
-                MsgBoxE($"Error on trying to open [{Site}] page of user [{Name}]", MsgBoxStyle.Critical, e)
+                MsgBoxE({$"Error on trying to open [{Site}] page of user [{Name}]", $"User [{ToString()}]"}, MsgBoxStyle.Critical, e, ex)
             End Try
         End Sub
         Friend Overridable Sub OpenFolder() Implements IUserData.OpenFolder
@@ -803,7 +816,7 @@ BlockNullPicture:
                     If _CollectionButtonsExists AndAlso EnvirChanged.Invoke Then UpdateButtonsColor()
                 End If
                 ThrowIfDisposed()
-                If UpPic Or EnvirChanged.Invoke Then RaiseEvent_OnUserUpdated()
+                If UpPic Or EnvirChanged.Invoke Then OnUserUpdated()
             Catch oex As OperationCanceledException When Token.IsCancellationRequested
                 MyMainLOG = $"{Site} - {Name}: downloading canceled"
                 Canceled = True
@@ -814,7 +827,7 @@ BlockNullPicture:
                 HasError = True
             Finally
                 If Not Responser Is Nothing Then Responser.Dispose() : Responser = Nothing
-                If Not Canceled Then _DataParsed = True ': LastUpdated = Now
+                If Not Canceled Then _DataParsed = True
                 _ContentNew.Clear()
                 DownloadTopCount = Nothing
                 DownloadToDate = Nothing
@@ -886,6 +899,8 @@ BlockNullPicture:
                                                 Case UTypes.Video : f.Extension = "mp4"
                                                 Case UTypes.GIF : f.Extension = "gif"
                                             End Select
+                                        ElseIf f.Extension = "webp" And Settings.DownloadNativeImageFormat Then
+                                            f.Extension = "jpg"
                                         End If
 
                                         If Not v.SpecialFolder.IsEmptyString Then
@@ -1201,7 +1216,7 @@ BlockNullPicture:
                     If Not BTT_CONTEXT_DELETE Is Nothing Then BTT_CONTEXT_DELETE.Dispose()
                     If Not BTT_CONTEXT_OPEN_PATH Is Nothing Then BTT_CONTEXT_OPEN_PATH.Dispose()
                     If Not BTT_CONTEXT_OPEN_SITE Is Nothing Then BTT_CONTEXT_OPEN_SITE.Dispose()
-                    _OnUserUpdatedHandlers.Clear()
+                    UserUpdatedEventHandlers.Clear()
                 End If
                 disposedValue = True
             End If
@@ -1228,7 +1243,7 @@ BlockNullPicture:
         Sub DownloadData(ByVal Token As CancellationToken)
     End Interface
     Friend Interface IUserData : Inherits IContentProvider, IComparable(Of UserDataBase), IComparable, IEquatable(Of UserDataBase), IIndexable, IDisposable
-        Event OnUserUpdated(ByVal User As IUserData)
+        Event UserUpdated(ByVal User As IUserData)
         Property ParseUserMediaOnly As Boolean
 #Region "Images"
         Function GetPicture() As Image

@@ -12,18 +12,20 @@ Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Tools.WEB
 Imports PersonalUtilities.Tools.WebDocuments.JSON
 Imports SCrawler.API.Base
-Imports System.Threading
 Imports System.Net
+Imports System.Threading
 Imports System.Reflection
 Imports UTypes = SCrawler.API.Base.UserMedia.Types
 Namespace API.Instagram
     Friend Class UserData : Inherits UserDataBase
-        Private Const MaxPostsCount As Integer = 200
+#Region "XML Names"
         Private Const Name_LastCursor As String = "LastCursor"
         Private Const Name_FirstLoadingDone As String = "FirstLoadingDone"
         Private Const Name_GetStories As String = "GetStories"
         Private Const Name_GetTagged As String = "GetTaggedData"
         Private Const Name_TaggedChecked As String = "TaggedChecked"
+#End Region
+#Region "Declarations"
         Private ReadOnly Property MySiteSettings As SiteSettings
             Get
                 Return DirectCast(HOST.Source, SiteSettings)
@@ -34,6 +36,8 @@ Namespace API.Instagram
         Private FirstLoadingDone As Boolean = False
         Friend Property GetStories As Boolean
         Friend Property GetTaggedData As Boolean
+#End Region
+#Region "Exchange options"
         Friend Overrides Function ExchangeOptionsGet() As Object
             Return New EditorExchangeOptions(HOST.Source) With {.GetStories = GetStories, .GetTagged = GetTaggedData}
         End Function
@@ -45,6 +49,8 @@ Namespace API.Instagram
                 End With
             End If
         End Sub
+#End Region
+#Region "Initializer, loader"
         Friend Sub New()
         End Sub
         Protected Overrides Sub LoadUserInformation_OptionalFields(ByRef Container As XmlFile, ByVal Loading As Boolean)
@@ -62,7 +68,13 @@ Namespace API.Instagram
                 Container.Add(Name_TaggedChecked, TaggedChecked.BoolToInteger)
             End If
         End Sub
+#End Region
 #Region "Download data"
+        Private Class ExitException : Inherits Exception
+            Friend Sub New(ByRef CompleteArg As Boolean)
+                CompleteArg = True
+            End Sub
+        End Class
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
             Try
                 _InstaHash = String.Empty
@@ -80,7 +92,7 @@ Namespace API.Instagram
                 If FirstLoadingDone Then LastCursor = String.Empty
                 If IsSavedPosts Then
                     DownloadPosts(Token)
-                ElseIf MySiteSettings.StoriesAndTaggedReady Then
+                ElseIf MySiteSettings.BaseAuthExists Then
                     DownloadedTags = 0
                     If GetStories Then DownloadData(String.Empty, Sections.Stories, Token)
                     If GetTaggedData Then DownloadData(String.Empty, Sections.Tagged, Token)
@@ -100,6 +112,7 @@ Namespace API.Instagram
         Private Const StoriesFolder As String = "Stories"
         Private Const TaggedFolder As String = "Tagged"
 #Region "429 bypass"
+        Private Const MaxPostsCount As Integer = 200
         Friend Property RequestsCount As Integer = 0
         Friend Enum WNM As Integer
             Notify = 0
@@ -247,7 +260,6 @@ Namespace API.Instagram
                         'Check environment
                         If Cursor.IsEmptyString And _InstaHash.IsEmptyString Then _
                             _InstaHash = CStr(If(IsSavedPosts, MySiteSettings.HashSavedPosts, MySiteSettings.Hash).Value)
-                        AuthNullException.ThrowIfNull(Section, IsSavedPosts, MySiteSettings)
                         If ID.IsEmptyString Then GetUserId()
                         If ID.IsEmptyString Then Throw New ArgumentException("User ID is not detected", "ID")
 
@@ -351,9 +363,6 @@ Namespace API.Instagram
                         End If
                         _DownloadComplete = True
                         If HasNextPage And Not EndCursor.IsEmptyString Then DownloadData(EndCursor, Section, Token)
-                    Catch iane As AuthNullException
-                        ErrorsDescriber.Execute(EDP.SendInLog, iane)
-                        Throw New ExitException(_DownloadComplete)
                     Catch eex As ExitException
                         Throw eex
                     Catch oex As OperationCanceledException When Token.IsCancellationRequested
@@ -433,6 +442,9 @@ Namespace API.Instagram
                 ProcessException(DoEx, Token, $"downloading saved posts error [{URL}]")
             End Try
         End Sub
+        Protected Overrides Sub ReparseVideo(ByVal Token As CancellationToken)
+        End Sub
+
 #End Region
 #Region "Obtain Media"
         Private Sub ObtainMedia(ByVal node As EContainer, ByVal PostID As String, ByVal PostDate As String, ByVal SpecFolder As String)
@@ -630,11 +642,12 @@ Namespace API.Instagram
             End Try
         End Function
 #End Region
-        Protected Overrides Sub ReparseVideo(ByVal Token As CancellationToken)
-        End Sub
+#Region "Download content"
         Protected Overrides Sub DownloadContent(ByVal Token As CancellationToken)
             DownloadContentDefault(Token)
         End Sub
+#End Region
+#Region "Exceptions"
         ''' <summary>
         ''' <inheritdoc cref="UserDataBase.DownloadingException(Exception, String)"/><br/>
         ''' 1 - continue
@@ -647,8 +660,7 @@ Namespace API.Instagram
                 UserExists = False
             ElseIf Responser.StatusCode = HttpStatusCode.BadRequest Then
                 HasError = True
-                MyMainLOG = $"Instagram credentials have expired: {ToString()} [{s}]"
-                MySiteSettings.HashUpdateRequired.Value = True
+                MyMainLOG = $"Instagram credentials have expired [{CInt(Responser.StatusCode)}]: {ToString()} [{s}]"
             ElseIf Responser.StatusCode = HttpStatusCode.Forbidden And s = Sections.Tagged Then
                 Return 3
             ElseIf Responser.StatusCode = 429 Then
@@ -661,13 +673,14 @@ Namespace API.Instagram
                 MyMainLOG = $"Number of requests before error 429: {RequestsCount}"
                 Return 1
             Else
-                MySiteSettings.HashUpdateRequired.Value = True
-                MyMainLOG = $"Instagram hash requested: {ToString()} [{s}]"
+                MyMainLOG = $"Instagram hash requested [{CInt(Responser.StatusCode)}]: {ToString()} [{s}]"
                 If Not FromPE Then LogError(ex, Message) : HasError = True
                 Return 0
             End If
             Return 2
         End Function
+#End Region
+#Region "Create media"
         Private Shared Function MediaFromData(ByVal t As UTypes, ByVal _URL As String, ByVal PostID As String, ByVal PostDate As String,
                                               Optional ByVal SpecialFolder As String = Nothing) As UserMedia
             _URL = LinkFormatterSecure(RegexReplace(_URL.Replace("\", String.Empty), LinkPattern))
@@ -677,6 +690,8 @@ Namespace API.Instagram
             m.SpecialFolder = SpecialFolder
             Return m
         End Function
+#End Region
+#Region "Standalone downloader"
         Friend Shared Function GetVideoInfo(ByVal URL As String, ByVal r As Response, ByVal _Settings As SiteSettings) As IEnumerable(Of UserMedia)
             Try
                 If Not URL.IsEmptyString AndAlso URL.Contains("instagram.com") Then
@@ -697,9 +712,12 @@ Namespace API.Instagram
                 Return ErrorsDescriber.Execute(EDP.ShowMainMsg + EDP.SendInLog, ex, "Instagram standalone downloader: fetch media error")
             End Try
         End Function
+#End Region
+#Region "IDisposable Support"
         Protected Overrides Sub Dispose(ByVal disposing As Boolean)
             If Not disposedValue And disposing Then _SavedPostsIDs.Clear()
             MyBase.Dispose(disposing)
         End Sub
+#End Region
     End Class
 End Namespace

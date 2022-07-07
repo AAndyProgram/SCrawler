@@ -6,15 +6,15 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
-Imports SCrawler.Plugin
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Tools.WEB
+Imports SCrawler.Plugin
 Imports Download = SCrawler.Plugin.ISiteSettings.Download
 Namespace API.Base
     Friend MustInherit Class SiteSettingsBase : Implements ISiteSettings
         Friend ReadOnly Property Site As String Implements ISiteSettings.Site
-        Friend Overridable ReadOnly Property Icon As Icon = Nothing Implements ISiteSettings.Icon
-        Friend Overridable ReadOnly Property Image As Image = Nothing Implements ISiteSettings.Image
+        Friend Overridable ReadOnly Property Icon As Icon Implements ISiteSettings.Icon
+        Friend Overridable ReadOnly Property Image As Image Implements ISiteSettings.Image
         Private Property Logger As ILogProvider = LogConnector Implements ISiteSettings.Logger
         Friend Overridable ReadOnly Property Responser As Response
         Friend MustOverride Function GetInstance(ByVal What As Download) As IPluginContentProvider Implements ISiteSettings.GetInstance

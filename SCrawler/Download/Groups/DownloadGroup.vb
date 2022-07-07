@@ -15,9 +15,6 @@ Namespace DownloadObjects.Groups
         Friend Delegate Sub GroupEventHandler(ByVal Sender As DownloadGroup)
         Friend Event Deleted As GroupEventHandler
         Friend Event Updated As GroupEventHandler
-#Region "XML Names"
-        Private Const Name_Name As String = "Name"
-#End Region
         Private WithEvents BTT_EDIT As ToolStripMenuItem
         Private WithEvents BTT_DELETE As ToolStripMenuItem
         Private WithEvents BTT_DOWNLOAD As ToolStripMenuItem
@@ -25,7 +22,6 @@ Namespace DownloadObjects.Groups
         Private ReadOnly SEP_1 As ToolStripSeparator
         Private WithEvents BTT_MENU As ToolStripMenuItem
         Friend Property NameBefore As String = String.Empty
-        Friend Property Name As String
         Private _Key As String = String.Empty
         Friend ReadOnly Property Key As String
             Get

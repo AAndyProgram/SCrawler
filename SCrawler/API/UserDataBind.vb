@@ -267,6 +267,7 @@ Namespace API
         End Property
 #End Region
 #End Region
+#Region "Initializers"
         Friend Sub New()
             _IsCollection = True
             Collections = New List(Of IUserData)
@@ -276,6 +277,8 @@ Namespace API
             Me.New
             CollectionName = _Name
         End Sub
+#End Region
+#Region "Load, Update"
         Friend Overrides Sub LoadUserInformation()
             If Count > 0 Then Collections.ForEach(Sub(c) c.LoadUserInformation())
         End Sub
@@ -287,6 +290,8 @@ Namespace API
         End Sub
         Protected Overrides Sub LoadUserInformation_OptionalFields(ByRef Container As XmlFile, ByVal Loading As Boolean)
         End Sub
+#End Region
+#Region "Download"
         Friend Overrides Property DownloadTopCount As Integer?
             Get
                 If Count > 0 Then
@@ -312,8 +317,10 @@ Namespace API
             Return 0
         End Function
         Private Sub User_OnUserUpdated(ByVal User As IUserData)
-            RaiseEvent_OnUserUpdated()
+            OnUserUpdated()
         End Sub
+#End Region
+#Region "Open site, folder"
         Friend Overrides Sub OpenSite(Optional ByVal e As ErrorsDescriber = Nothing)
             If Not e.Exists Then e = New ErrorsDescriber(EDP.SendInLog)
             If Count > 0 Then Collections.ForEach(Sub(c) c.OpenSite(e))
@@ -324,6 +331,7 @@ Namespace API
             Catch ex As Exception
             End Try
         End Sub
+#End Region
 #Region "ICollection Support"
         Default Friend ReadOnly Property Item(ByVal Index As Integer) As IUserData Implements IMyEnumerator(Of IUserData).MyEnumeratorObject
             Get
@@ -353,7 +361,7 @@ Namespace API
                         End If
                         ImageHandler(_Item, False)
                         AddRemoveBttDeleteHandler(.Self, True)
-                        AddHandler .Self.OnUserUpdated, AddressOf User_OnUserUpdated
+                        AddHandler .Self.UserUpdated, AddressOf User_OnUserUpdated
                     End With
                 Else
                     Throw New InvalidOperationException("User data was not moved to the collection folder")
@@ -367,7 +375,7 @@ Namespace API
                 With Collections.Last
                     If _CollectionName.IsEmptyString Then _CollectionName = .CollectionName
                     AddRemoveBttDeleteHandler(.Self, True)
-                    AddHandler .OnUserUpdated, AddressOf User_OnUserUpdated
+                    AddHandler .UserUpdated, AddressOf User_OnUserUpdated
                 End With
             Else
                 Collections.RemoveAt(Count - 1)

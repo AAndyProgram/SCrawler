@@ -106,12 +106,12 @@ Namespace API.Base
             Friend Function CompareTo(ByVal Other As UserPost) As Integer Implements IComparable(Of UserPost).CompareTo
                 Return GetCompareValue(Me).CompareTo(GetCompareValue(Other))
             End Function
-#End Region
             Private Function GetCompareValue(ByVal Post As UserPost) As Long
                 Dim v& = 0
                 If Post.Date.HasValue Then v = Post.Date.Value.Ticks * -1
                 Return v
             End Function
+#End Region
         End Structure
         Friend Structure Sizes : Implements IComparable(Of Sizes)
             Friend Value As Integer

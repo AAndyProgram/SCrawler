@@ -13,8 +13,8 @@ Namespace API.Instagram
         Friend ReadOnly FilesPattern As RParams = RParams.DMS(".+?([^/\?]+?\.[\w\d]{3,4})(?=(\?|\Z))", 1, EDP.ReturnValue)
         Friend ReadOnly Property DateProvider As New JsonDate
         Friend Class JsonDate : Implements ICustomProvider
-            Friend Function Convert(ByVal Value As Object, ByVal DestinationType As Type, ByVal Provider As IFormatProvider,
-                                    Optional ByVal NothingArg As Object = Nothing, Optional ByVal e As ErrorsDescriber = Nothing) As Object Implements ICustomProvider.Convert
+            Private Function Convert(ByVal Value As Object, ByVal DestinationType As Type, ByVal Provider As IFormatProvider,
+                                     Optional ByVal NothingArg As Object = Nothing, Optional ByVal e As ErrorsDescriber = Nothing) As Object Implements ICustomProvider.Convert
                 Return ADateTime.ParseUnicode(Value)
             End Function
             Private Function GetFormat(ByVal FormatType As Type) As Object Implements IFormatProvider.GetFormat

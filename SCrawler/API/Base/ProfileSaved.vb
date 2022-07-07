@@ -40,7 +40,7 @@ Namespace API.Base
                                 End With
                                 HOST.BeforeStartDownload(user, PDownload.SavedPosts)
                                 user.DownloadData(Token)
-                                Progress.InformationTemporary = $"Images: {user.DownloadedPictures(False)}; Videos: {user.DownloadedVideos(False)}"
+                                Progress.InformationTemporary = $"{HOST.Name} Images: {user.DownloadedPictures(False)}; Videos: {user.DownloadedVideos(False)}"
                                 HOST.AfterDownload(user, PDownload.SavedPosts)
                             End If
                         End Using

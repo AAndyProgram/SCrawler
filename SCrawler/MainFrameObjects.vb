@@ -23,9 +23,9 @@ Friend Class MainFrameObjects
     Friend Sub ImageHandler(ByVal User As IUserData, ByVal Add As Boolean)
         Try
             If Add Then
-                AddHandler User.OnUserUpdated, AddressOf MF.User_OnUserUpdated
+                AddHandler User.UserUpdated, AddressOf MF.User_OnUserUpdated
             Else
-                RemoveHandler User.OnUserUpdated, AddressOf MF.User_OnUserUpdated
+                RemoveHandler User.UserUpdated, AddressOf MF.User_OnUserUpdated
             End If
         Catch ex As Exception
         End Try

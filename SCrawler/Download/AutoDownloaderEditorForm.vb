@@ -12,15 +12,16 @@ Imports PersonalUtilities.Forms.Toolbars
 Imports DModes = SCrawler.DownloadObjects.AutoDownloader.Modes
 Namespace DownloadObjects
     Friend Class AutoDownloaderEditorForm : Implements IOkCancelToolbar
-        Private ReadOnly MyDefs As DefaultFormProps
+        Private ReadOnly MyDefs As DefaultFormOptions
         Private ReadOnly MyGroups As List(Of String)
-        Friend Property IsControlForm As Boolean = False
-        Friend Sub New()
+        Private ReadOnly Property Plan As AutoDownloader
+        Friend Sub New(ByRef _Plan As AutoDownloader)
             InitializeComponent()
-            MyDefs = New DefaultFormProps
-            MyGroups.ListAddList(Settings.Automation.Groups, LAP.NotContainsOnly)
+            Plan = _Plan
+            MyDefs = New DefaultFormOptions
+            MyGroups.ListAddList(Plan.Groups, LAP.NotContainsOnly)
         End Sub
-        Friend Class AutomationTimerChecker : Implements IFieldsCheckerProvider
+        Private Class AutomationTimerChecker : Implements IFieldsCheckerProvider
             Private Property ErrorMessage As String = "The timer value must be greater than 0" Implements IFieldsCheckerProvider.ErrorMessage
             Private Property Name As String Implements IFieldsCheckerProvider.Name
             Private Property TypeError As Boolean Implements IFieldsCheckerProvider.TypeError
@@ -36,18 +37,11 @@ Namespace DownloadObjects
                 Throw New NotImplementedException()
             End Function
         End Class
-        Private _Loaded As Boolean = False
-        Friend Shadows Sub Show()
-            MyBase.Show()
-            If Not _Loaded And IsControlForm Then AutoDownloaderEditorForm_Load(Nothing, EventArgs.Empty)
-        End Sub
         Private Sub AutoDownloaderEditorForm_Load(sender As Object, e As EventArgs) Handles Me.Load
             With MyDefs
-                If Not IsControlForm Then
-                    .MyViewInitialize(Me, Settings.Design, True)
-                    .AddOkCancelToolbar()
-                End If
-                With Settings.Automation
+                .MyViewInitialize(Me, Settings.Design, True)
+                .AddOkCancelToolbar()
+                With Plan
                     Select Case .Mode
                         Case DModes.None : OPT_DISABLED.Checked = True
                         Case DModes.All : OPT_ALL.Checked = True
@@ -56,30 +50,30 @@ Namespace DownloadObjects
                         Case DModes.Groups : OPT_GROUP.Checked = True
                     End Select
                     ChangeEnabled()
-                    DEF_GROUP.Set(Settings.Automation)
+                    DEF_GROUP.Set(Plan)
                     If MyGroups.Count > 0 Then TXT_GROUPS.Text = MyGroups.ListToString
                     If Settings.Groups.Count = 0 Then TXT_GROUPS.Clear() : TXT_GROUPS.Enabled = False
                     CH_NOTIFY.Checked = .ShowNotifications
                     TXT_TIMER.Text = .Timer
+                    NUM_DELAY.Value = .StartupDelay
                     LBL_LAST_TIME_UP.Text = .Information
                 End With
-                If Not IsControlForm Then
-                    .MyFieldsChecker = New FieldsChecker
-                    With DirectCast(.MyFieldsChecker, FieldsChecker)
-                        .AddControl(Of Integer)(TXT_TIMER, TXT_TIMER.CaptionText,, New AutomationTimerChecker)
-                        .EndLoaderOperations()
-                    End With
+                .MyFieldsChecker = New FieldsChecker
+                With .MyFieldsCheckerE
+                    .AddControl(Of String)(DEF_GROUP.TXT_NAME, DEF_GROUP.TXT_NAME.CaptionText,,
+                                           New Groups.GroupEditorForm.NameChecker(Plan.Name, Settings.Automation, "Plan"))
+                    .AddControl(Of Integer)(TXT_TIMER, TXT_TIMER.CaptionText,, New AutomationTimerChecker)
                     .EndLoaderOperations()
-                End If
+                End With
+                .EndLoaderOperations()
             End With
-            _Loaded = True
         End Sub
         Private Sub AutoDownloaderEditorForm_Disposed(sender As Object, e As EventArgs) Handles Me.Disposed
             MyGroups.Clear()
         End Sub
-        Friend Sub SaveSettings() Implements IOkCancelToolbar.OK
+        Private Sub OK() Implements IOkCancelToolbar.OK
             If If(MyDefs.MyFieldsChecker?.AllParamsOK, True) Then
-                With Settings.Automation
+                With Plan
                     Select Case True
                         Case OPT_DISABLED.Checked : .Mode = DModes.None
                         Case OPT_ALL.Checked : .Mode = DModes.All
@@ -87,13 +81,14 @@ Namespace DownloadObjects
                         Case OPT_SPEC.Checked : .Mode = DModes.Specified
                         Case OPT_GROUP.Checked : .Mode = DModes.Groups
                     End Select
-                    DEF_GROUP.Get(Settings.Automation)
+                    DEF_GROUP.Get(Plan)
                     .Groups.Clear()
                     .Groups.ListAddList(MyGroups)
                     .Timer = AConvert(Of Integer)(TXT_TIMER.Text, AutoDownloader.DefaultTimer)
+                    .StartupDelay = NUM_DELAY.Value
                     .Update()
                 End With
-                If Not IsControlForm Then MyDefs.CloseForm()
+                MyDefs.CloseForm()
             End If
         End Sub
         Private Sub Cancel() Implements IOkCancelToolbar.Cancel
@@ -128,7 +123,11 @@ Namespace DownloadObjects
             DEF_GROUP.Enabled = OPT_SPEC.Checked
             TXT_GROUPS.Enabled = OPT_GROUP.Checked
             TXT_TIMER.Enabled = Not OPT_DISABLED.Checked
+            NUM_DELAY.Enabled = Not OPT_DISABLED.Checked
             CH_NOTIFY.Enabled = Not OPT_DISABLED.Checked
+        End Sub
+        Private Sub NUM_DELAY_ActionOnButtonClick(ByVal Sender As ActionButton) Handles NUM_DELAY.ActionOnButtonClick
+            If Sender.DefaultButton = ActionButton.DefaultButtons.Clear Then NUM_DELAY.Value = 0
         End Sub
     End Class
 End Namespace

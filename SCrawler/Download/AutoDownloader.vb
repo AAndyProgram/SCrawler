@@ -8,12 +8,13 @@
 ' but WITHOUT ANY WARRANTY
 Imports System.Threading
 Imports PersonalUtilities.Functions.XML
+Imports PersonalUtilities.Functions.XML.Base
 Imports PersonalUtilities.Tools.Notifications
 Imports SCrawler.DownloadObjects.Groups
 Imports SCrawler.API
 Imports SCrawler.API.Base
 Namespace DownloadObjects
-    Friend Class AutoDownloader : Inherits GroupParameters
+    Friend Class AutoDownloader : Inherits GroupParameters : Implements IEContainerProvider
         Friend Event UserFind(ByVal Key As String, ByVal Activate As Boolean)
         Friend Enum Modes As Integer
             None = 0
@@ -31,6 +32,7 @@ Namespace DownloadObjects
         Private ReadOnly UserKeys As List(Of NotifiedUser)
         Private Class NotifiedUser : Implements IDisposable
             Private ReadOnly Property User As IUserData
+            Friend ReadOnly Property IUserDataKey As String
             Private ReadOnly Property Key As String
             Private ReadOnly Property KeyFolder As String
             Private ReadOnly Property KeySite As String
@@ -49,6 +51,7 @@ Namespace DownloadObjects
             Friend Sub New(ByVal _Key As String, ByRef _User As IUserData)
                 Me.New(_Key)
                 User = _User
+                IUserDataKey = _User.Key
             End Sub
             Public Shared Widening Operator CType(ByVal Key As String) As NotifiedUser
                 Return New NotifiedUser(Key)
@@ -138,10 +141,12 @@ Namespace DownloadObjects
         Private Const Name_Groups As String = "Groups"
         Private Const Name_Labels As String = "Labels"
         Private Const Name_Timer As String = "Timer"
+        Private Const Name_StartupDelay As String = "StartupDelay"
         Private Const Name_LastDownloadDate As String = "LastDownloadDate"
         Private Const Name_ShowNotifications As String = "Notify"
 #End Region
 #Region "Declarations"
+        Friend Property Source As Scheduler
         Private _Mode As Modes = Modes.None
         Friend Property Mode As Modes
             Get
@@ -154,36 +159,99 @@ Namespace DownloadObjects
         End Property
         Friend ReadOnly Property Groups As List(Of String)
         Friend Property Timer As Integer = DefaultTimer
+        Friend Property StartupDelay As Integer = 0
         Friend Property ShowNotifications As Boolean = True
-        Friend Property LastDownloadDate As Date = Now.AddYears(-1)
+#Region "Date"
+        Private ReadOnly LastDownloadDateXML As Date? = Nothing
+        Private _LastDownloadDate As Date = Now.AddYears(-1)
+        Private _LastDownloadDateChanged As Boolean = False
+        Friend Property LastDownloadDate As Date
+            Get
+                Return _LastDownloadDate
+            End Get
+            Set(ByVal d As Date)
+                _LastDownloadDate = d
+                If Not Initialization Then _LastDownloadDateChanged = True
+            End Set
+        End Property
         Private ReadOnly DateProvider As New ADateTime(ADateTime.Formats.BaseDateTime)
+        Private Function GetLastDateString() As String
+            If LastDownloadDateXML.HasValue Or _LastDownloadDateChanged Then
+                Return LastDownloadDate.ToStringDate(ADateTime.Formats.BaseDateTime)
+            Else
+                Return "never"
+            End If
+        End Function
+        Private Function GetNextDateString() As String
+            If _LastDownloadDateChanged Then
+                Return LastDownloadDate.AddMinutes(Timer).ToStringDate(ADateTime.Formats.BaseDateTime)
+            Else
+                Return _StartTime.AddMinutes(StartupDelay).ToStringDate(ADateTime.Formats.BaseDateTime)
+            End If
+        End Function
+#End Region
         Friend ReadOnly Property Information As String
             Get
-                Return $"Last download date: {LastDownloadDate.ToStringDate(ADateTime.Formats.BaseDateTime)} " &
-                       $"({IIf(Working, "working", "stopped")}{IIf(Working And Pause, ", paused", String.Empty)})"
+                Return $"Last download date: {GetLastDateString()} ({GetWorkingState()})"
             End Get
         End Property
+        Private Function GetWorkingState() As String
+            Dim OutStr$
+            If Working Then
+                If StartupDelay > 0 And _StartTime.AddMinutes(StartupDelay) > Now Then
+                    OutStr = $"delayed until {_StartTime.AddMinutes(StartupDelay).ToStringDate(ADateTime.Formats.BaseDateTime)}"
+                ElseIf _StopRequested Then
+                    OutStr = "stopping"
+                Else
+                    OutStr = "working"
+                End If
+                If Pause Then OutStr &= ", paused"
+            Else
+                OutStr = "stopped"
+            End If
+            Return OutStr
+        End Function
+        Public Overrides Function ToString() As String
+            Return $"{Name} ({GetWorkingState()}): last download date: {GetLastDateString()}; next run: {GetNextDateString()}"
+        End Function
         Private File As SFile = $"Settings\AutoDownload.xml"
         Private AThread As Thread
 #End Region
 #Region "Initializer"
-        Friend Sub New()
+        Private ReadOnly Initialization As Boolean = True
+        Private _IsNewPlan As Boolean = False
+        Friend ReadOnly Property IsNewPlan As Boolean
+            Get
+                Return _IsNewPlan
+            End Get
+        End Property
+        Friend Sub New(Optional ByVal IsNewPlan As Boolean = False)
             Groups = New List(Of String)
             UserKeys = New List(Of NotifiedUser)
-            If File.Exists Then
-                Using x As New XmlFile(File)
-                    Mode = x.Value(Name_Mode).FromXML(Of Integer)(Modes.None)
-                    Groups.ListAddList(x.Value(Name_Groups).StringToList(Of String)("|"), LAP.NotContainsOnly)
-                    Labels.ListAddList(x.Value(Name_Labels).StringToList(Of String)("|"), LAP.NotContainsOnly)
-                    Temporary = x.Value(Name_Temporary).FromXML(Of Integer)(CheckState.Indeterminate)
-                    Favorite = x.Value(Name_Favorite).FromXML(Of Integer)(CheckState.Indeterminate)
-                    ReadyForDownload = x.Value(Name_ReadyForDownload).FromXML(Of Boolean)(True)
-                    ReadyForDownloadIgnore = x.Value(Name_ReadyForDownloadIgnore).FromXML(Of Boolean)(False)
-                    Timer = x.Value(Name_Timer).FromXML(Of Integer)(DefaultTimer)
-                    ShowNotifications = x.Value(Name_ShowNotifications).FromXML(Of Boolean)(True)
-                    LastDownloadDate = AConvert(Of Date)(x.Value(Name_LastDownloadDate), DateProvider, Now.AddYears(-1))
-                End Using
+            _IsNewPlan = IsNewPlan
+        End Sub
+        Friend Sub New(ByVal x As EContainer)
+            Me.New
+            Name = x.Value(Name_Name).FromXML(Of String)("Default")
+            Mode = x.Value(Name_Mode).FromXML(Of Integer)(Modes.None)
+            Groups.ListAddList(x.Value(Name_Groups).StringToList(Of String)("|"), LAP.NotContainsOnly)
+            Labels.ListAddList(x.Value(Name_Labels).StringToList(Of String)("|"), LAP.NotContainsOnly)
+            Temporary = x.Value(Name_Temporary).FromXML(Of Integer)(CheckState.Indeterminate)
+            Favorite = x.Value(Name_Favorite).FromXML(Of Integer)(CheckState.Indeterminate)
+            ReadyForDownload = x.Value(Name_ReadyForDownload).FromXML(Of Boolean)(True)
+            ReadyForDownloadIgnore = x.Value(Name_ReadyForDownloadIgnore).FromXML(Of Boolean)(False)
+            Timer = x.Value(Name_Timer).FromXML(Of Integer)(DefaultTimer)
+            If Timer <= 0 Then Timer = DefaultTimer
+            StartupDelay = x.Value(Name_StartupDelay).FromXML(Of Integer)(0)
+            If StartupDelay < 0 Then StartupDelay = 0
+            ShowNotifications = x.Value(Name_ShowNotifications).FromXML(Of Boolean)(True)
+            LastDownloadDateXML = AConvert(Of Date)(x.Value(Name_LastDownloadDate), DateProvider, Nothing)
+            If LastDownloadDateXML.HasValue Then
+                LastDownloadDate = LastDownloadDateXML.Value
+            Else
+                LastDownloadDate = Now.AddYears(-1)
             End If
+            Initialization = False
         End Sub
 #End Region
 #Region "Groups Support"
@@ -202,33 +270,37 @@ Namespace DownloadObjects
 #End Region
 #Region "Update"
         Friend Sub Update()
-            Try
-                Using x As New XmlFile With {.Name = "Settings"}
-                    x.Add(Name_Mode, CInt(Mode))
-                    x.Add(Name_Groups, Groups.ListToString("|"))
-                    x.Add(Name_Labels, Labels.ListToString("|"))
-                    x.Add(Name_Temporary, CInt(Temporary))
-                    x.Add(Name_Favorite, CInt(Favorite))
-                    x.Add(Name_ReadyForDownload, ReadyForDownload.BoolToInteger)
-                    x.Add(Name_ReadyForDownloadIgnore, ReadyForDownloadIgnore.BoolToInteger)
-                    x.Add(Name_Timer, Timer)
-                    x.Add(Name_ShowNotifications, ShowNotifications.BoolToInteger)
-                    x.Add(Name_LastDownloadDate, CStr(AConvert(Of String)(LastDownloadDate, DateProvider, String.Empty)))
-                    x.Save(File)
-                End Using
-            Catch ex As Exception
-                ErrorsDescriber.Execute(EDP.SendInLog, ex, "[AutoDownloader.Update]")
-            End Try
+            If Not Source Is Nothing Then Source.Update()
         End Sub
+        Private Function ToEContainer(Optional ByVal e As ErrorsDescriber = Nothing) As EContainer Implements IEContainerProvider.ToEContainer
+            Return New EContainer(Scheduler.Name_Plan, String.Empty) From {
+                                  New EContainer(Name_Name, Name),
+                                  New EContainer(Name_Mode, CInt(Mode)),
+                                  New EContainer(Name_Groups, Groups.ListToString("|")),
+                                  New EContainer(Name_Labels, Labels.ListToString("|")),
+                                  New EContainer(Name_Temporary, CInt(Temporary)),
+                                  New EContainer(Name_Favorite, CInt(Favorite)),
+                                  New EContainer(Name_ReadyForDownload, ReadyForDownload.BoolToInteger),
+                                  New EContainer(Name_ReadyForDownloadIgnore, ReadyForDownloadIgnore.BoolToInteger),
+                                  New EContainer(Name_Timer, Timer),
+                                  New EContainer(Name_StartupDelay, StartupDelay),
+                                  New EContainer(Name_ShowNotifications, ShowNotifications.BoolToInteger),
+                                  New EContainer(Name_LastDownloadDate, CStr(AConvert(Of String)(If(LastDownloadDateXML.HasValue Or _LastDownloadDateChanged,
+                                                                                                    CObj(LastDownloadDate), Nothing), DateProvider, String.Empty)))
+            }
+        End Function
 #End Region
 #Region "Execution"
-        Private ReadOnly Property Working As Boolean
+        Friend ReadOnly Property Working As Boolean
             Get
                 Return If(AThread?.IsAlive, False)
             End Get
         End Property
-        Friend Sub Start()
-            If Not If(AThread?.IsAlive, False) And Not Mode = Modes.None Then
+        Private _StartTime As Date = Now
+        Friend Sub Start(ByVal Init As Boolean)
+            If Init Then _StartTime = Now
+            _IsNewPlan = False
+            If Not Working And Not Mode = Modes.None Then
                 AThread = New Thread(New ThreadStart(AddressOf Checker))
                 AThread.SetApartmentState(ApartmentState.MTA)
                 AThread.Start()
@@ -239,10 +311,18 @@ Namespace DownloadObjects
         Friend Sub [Stop]()
             If Working Then _StopRequested = True
         End Sub
+        Friend Sub Skip()
+            If LastDownloadDate.AddMinutes(Timer) <= Now Then
+                LastDownloadDate = Now.AddMinutes(Timer)
+            Else
+                LastDownloadDate = LastDownloadDate.AddMinutes(Timer)
+            End If
+        End Sub
         Private Sub Checker()
             Try
-                While Not _StopRequested Or Downloader.Working
-                    If LastDownloadDate.AddMinutes(Timer) < Now And Not Downloader.Working And Not Pause And Not _StopRequested Then Download()
+                While (Not _StopRequested Or Downloader.Working) And Not Mode = Modes.None
+                    If LastDownloadDate.AddMinutes(Timer) < Now And _StartTime.AddMinutes(StartupDelay) < Now And
+                       Not Downloader.Working And Not Pause And Not _StopRequested And Not Mode = Modes.None Then Download()
                     Thread.Sleep(500)
                 End While
             Catch ex As Exception
@@ -251,7 +331,14 @@ Namespace DownloadObjects
                 _StopRequested = False
             End Try
         End Sub
+        Private _Downloading As Boolean = False
+        Friend ReadOnly Property Downloading As Boolean
+            Get
+                Return _Downloading
+            End Get
+        End Property
         Private Sub Download()
+            _Downloading = True
             Dim Keys As New List(Of String)
             Try
                 Dim users As New List(Of IUserData)
@@ -299,7 +386,6 @@ Namespace DownloadObjects
                         .AutoDownloaderWorking = True
                         If .Downloaded.Count > 0 Then .Downloaded.RemoveAll(Function(u) Keys.Contains(u.Key)) : .InvokeDownloadsChangeEvent()
                         .AddRange(users)
-                        .DisableOpenForms = False
                         While .Working Or .Count > 0 : notify.Invoke() : Thread.Sleep(200) : End While
                         .AutoDownloaderWorking = False
                         notify.Invoke
@@ -311,21 +397,23 @@ Namespace DownloadObjects
                 Keys.Clear()
                 LastDownloadDate = Now
                 Update()
+                _Downloading = False
             End Try
         End Sub
         Private Sub ShowNotification(ByVal u As IUserData)
-            Dim i% = UserKeys.IndexOf(u.Key)
+            Dim k$ = $"{Name}_{u.Key}"
+            Dim i% = UserKeys.IndexOf(k)
             If i >= 0 Then
                 UserKeys(i).ShowNotification()
             Else
-                UserKeys.Add(New NotifiedUser(u.Key, TDownloader.GetUserFromMainCollection(u)))
+                UserKeys.Add(New NotifiedUser(k, TDownloader.GetUserFromMainCollection(u)))
                 UserKeys.Last.ShowNotification()
             End If
         End Sub
         Friend Function NotificationClicked(ByVal Key As String) As Boolean
             Dim i% = UserKeys.IndexOf(Key)
             If i >= 0 Then
-                RaiseEvent UserFind(Key, UserKeys(i).Open(Key))
+                RaiseEvent UserFind(UserKeys(i).IUserDataKey, UserKeys(i).Open(Key))
                 Return True
             Else
                 Return False

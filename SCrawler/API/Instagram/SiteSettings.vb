@@ -18,7 +18,8 @@ Imports Download = SCrawler.Plugin.ISiteSettings.Download
 Namespace API.Instagram
     <Manifest("AndyProgram_Instagram"), UseClassAsIs, SeparatedTasks(1), SavedPosts, SpecialForm(False)>
     Friend Class SiteSettings : Inherits SiteSettingsBase
-#Region "Interface Declarations"
+#Region "Declarations"
+#Region "Images"
         Friend Overrides ReadOnly Property Icon As Icon
             Get
                 Return My.Resources.InstagramIcon
@@ -89,14 +90,31 @@ Namespace API.Instagram
         Friend Property IG_WWW_CLAIM As PropertyValue
         <PropertyOption(ControlText:="Saved posts user", IsAuth:=True), PXML("SavedPostsUserName"), ControlNumber(5)>
         Friend ReadOnly Property SavedPostsUserName As PropertyValue
-        Friend ReadOnly Property StoriesAndTaggedReady As Boolean
+        Friend ReadOnly Property BaseAuthExists As Boolean
             Get
-                Return ACheck(IG_APP_ID.Value) And ACheck(IG_WWW_CLAIM.Value) And ACheck(CSRF_TOKEN.Value)
+                Return Responser.Cookies.Count > 0 And ACheck(IG_APP_ID.Value) And ACheck(IG_WWW_CLAIM.Value) And ACheck(CSRF_TOKEN.Value)
             End Get
         End Property
+        Private Const Header_IG_APP_ID As String = "x-ig-app-id"
+        Private Const Header_IG_WWW_CLAIM As String = "x-ig-www-claim"
+        Private Const Header_CSRF_TOKEN As String = "x-csrftoken"
+        Private Sub ChangeResponserFields(ByVal PropName As String, ByVal Value As Object)
+            If Not PropName.IsEmptyString Then
+                Dim f$ = String.Empty
+                Select Case PropName
+                    Case NameOf(IG_APP_ID) : f = Header_IG_APP_ID
+                    Case NameOf(IG_WWW_CLAIM) : f = Header_IG_WWW_CLAIM
+                    Case NameOf(CSRF_TOKEN) : f = Header_CSRF_TOKEN
+                End Select
+                If Not f.IsEmptyString Then
+                    If Responser.Headers.Count > 0 AndAlso Responser.Headers.ContainsKey(f) Then Responser.Headers.Remove(f)
+                    If Not CStr(Value).IsEmptyString Then Responser.Headers.Add(f, CStr(Value))
+                    Responser.SaveSettings()
+                End If
+            End If
+        End Sub
 #End Region
 #Region "Download properties"
-        Friend ReadOnly Property HashUpdateRequired As XMLValue(Of Boolean)
         <PropertyOption(ControlText:="Request timer", AllowNull:=False), PXML("RequestsWaitTimer"), ControlNumber(6)>
         Friend ReadOnly Property RequestsWaitTimer As PropertyValue
         <Provider(NameOf(RequestsWaitTimer), FieldsChecker:=True)>
@@ -121,7 +139,7 @@ Namespace API.Instagram
         Private ReadOnly Property TaggedNotifyLimitProvider As IFormatProvider
 #End Region
 #Region "429 bypass"
-        Friend ReadOnly Property DownloadingErrorDate As XMLValue(Of Date)
+        Private ReadOnly Property DownloadingErrorDate As XMLValue(Of Date)
         Friend Property LastApplyingValue As Integer? = Nothing
         Friend ReadOnly Property ReadyForDownload As Boolean
             Get
@@ -134,8 +152,11 @@ Namespace API.Instagram
                 End With
             End Get
         End Property
-        Friend ReadOnly Property LastDownloadDate As XMLValue(Of Date)
-        Friend ReadOnly Property LastRequestsCount As XMLValue(Of Integer)
+        Private ReadOnly Property LastDownloadDate As XMLValue(Of Date)
+        Private ReadOnly Property LastRequestsCount As XMLValue(Of Integer)
+        <PropertyOption(IsInformationLabel:=True), ControlNumber(100)>
+        Private Property LastRequestsCountLabel As PropertyValue
+        Private ReadOnly LastRequestsCountLabelStr As Func(Of Integer, String) = Function(r) $"Number of spent requests: {r.NumToGroupIntegral}"
         Private TooManyRequestsReadyForCatch As Boolean = True
         Friend Function GetWaitDate() As Date
             With DownloadingErrorDate
@@ -155,7 +176,7 @@ Namespace API.Instagram
                             LastApplyingValue = If(LastApplyingValue, 0) + 10
                             TooManyRequestsReadyForCatch = False
                             MyMainLOG = $"Instagram downloading error: too many requests. Try again after {If(LastApplyingValue, 10)} minutes..."
-                End If
+                        End If
                     End If
                 Else
                     .ValueF = Nothing
@@ -166,6 +187,9 @@ Namespace API.Instagram
         End Sub
 #End Region
         Friend Overrides ReadOnly Property Responser As WEB.Response
+        Private Initialized As Boolean = False
+#End Region
+#Region "Initializer"
         Friend Sub New(ByRef _XML As XmlFile, ByVal GlobalPath As SFile)
             MyBase.New(InstagramSite)
             Responser = New WEB.Response($"{SettingsFolderName}\Responser_{Site}.xml")
@@ -192,7 +216,6 @@ Namespace API.Instagram
 
             SavedPostsUserName = New PropertyValue(String.Empty, GetType(String))
 
-            HashUpdateRequired = New XMLValue(Of Boolean)("InstaHashUpdateRequired", True, _XML, n)
             Hash = New PropertyValue(String.Empty, GetType(String))
             HashSavedPosts = New PropertyValue(String.Empty, GetType(String))
             CSRF_TOKEN = New PropertyValue(token, GetType(String), Sub(v) ChangeResponserFields(NameOf(CSRF_TOKEN), v))
@@ -216,39 +239,20 @@ Namespace API.Instagram
             DownloadingErrorDate.SetExtended("InstagramDownloadingErrorDate", Now.AddYears(-10), _XML, n)
             LastDownloadDate = New XMLValue(Of Date)("LastDownloadDate", Now.AddDays(-1), _XML, n)
             LastRequestsCount = New XMLValue(Of Integer)("LastRequestsCount", 0, _XML, n)
+            LastRequestsCountLabel = New PropertyValue(LastRequestsCountLabelStr.Invoke(LastRequestsCount.Value))
+            AddHandler LastRequestsCount.OnValueChanged, Sub(sender, __name, __value) LastRequestsCountLabel.Value = LastRequestsCountLabelStr.Invoke(__value)
 
             UrlPatternUser = "https://www.instagram.com/{0}/"
             UserRegex = RParams.DMS("[htps:/]{7,8}.*?instagram.com/([^/]+)", 1)
             ImageVideoContains = "instagram.com"
         End Sub
-        Friend Overrides Function GetInstance(ByVal What As Download) As IPluginContentProvider
-            Select Case What
-                Case Download.Main : Return New UserData
-                Case Download.SavedPosts
-                    Dim u As New UserData
-                    DirectCast(u, UserDataBase).User = New UserInfo With {.Name = CStr(AConvert(Of String)(SavedPostsUserName.Value, String.Empty))}
-                    Return u
-            End Select
-            Return Nothing
-        End Function
-        Private Const Header_IG_APP_ID As String = "x-ig-app-id"
-        Private Const Header_IG_WWW_CLAIM As String = "x-ig-www-claim"
-        Private Const Header_CSRF_TOKEN As String = "x-csrftoken"
-        Private Sub ChangeResponserFields(ByVal PropName As String, ByVal Value As Object)
-            If Not PropName.IsEmptyString Then
-                Dim f$ = String.Empty
-                Select Case PropName
-                    Case NameOf(IG_APP_ID) : f = Header_IG_APP_ID
-                    Case NameOf(IG_WWW_CLAIM) : f = Header_IG_WWW_CLAIM
-                    Case NameOf(CSRF_TOKEN) : f = Header_CSRF_TOKEN
-                End Select
-                If Not f.IsEmptyString Then
-                    If Responser.Headers.Count > 0 AndAlso Responser.Headers.ContainsKey(f) Then Responser.Headers.Remove(f)
-                    If Not CStr(Value).IsEmptyString Then Responser.Headers.Add(f, CStr(Value))
-                    Responser.SaveSettings()
-                End If
-            End If
+        Friend Overrides Sub BeginInit()
         End Sub
+        Friend Overrides Sub EndInit()
+            Initialized = True
+        End Sub
+#End Region
+#Region "PropertiesDataChecker"
         <PropertiesDataChecker({NameOf(Hash), NameOf(HashSavedPosts)})>
         Private Function CheckHashControls(ByVal p As IEnumerable(Of PropertyData)) As Boolean
             If p.ListExists(2) Then
@@ -292,20 +296,32 @@ Namespace API.Instagram
             End If
             Return False
         End Function
-        Friend Overrides Sub BeginInit()
-        End Sub
-        Friend Overrides Sub EndInit()
-            If (CStr(Hash.Value).IsEmptyString Or HashUpdateRequired) AndAlso Responser.Cookies.ListExists Then GatherInstaHash()
-        End Sub
-        Friend Overrides Function ReadyToDownload(ByVal What As Download) As Boolean
-            Return ActiveJobs < 2 AndAlso ReadyForDownload
+#End Region
+#Region "Plugin functions"
+        Friend Overrides Function GetInstance(ByVal What As Download) As IPluginContentProvider
+            Select Case What
+                Case Download.Main : Return New UserData
+                Case Download.SavedPosts
+                    Dim u As New UserData
+                    DirectCast(u, UserDataBase).User = New UserInfo With {.Name = CStr(AConvert(Of String)(SavedPostsUserName.Value, String.Empty))}
+                    Return u
+            End Select
+            Return Nothing
         End Function
 #Region "Downloading"
+        Friend Overrides Function ReadyToDownload(ByVal What As Download) As Boolean
+            If ActiveJobs < 2 AndAlso ReadyForDownload AndAlso BaseAuthExists Then
+                Select Case What
+                    Case Download.Main : Return ACheck(Hash.Value)
+                    Case Download.SavedPosts : Return ACheck(HashSavedPosts.Value)
+                End Select
+            End If
+            Return False
+        End Function
         Private ActiveJobs As Integer = 0
         Private _NextWNM As UserData.WNM = UserData.WNM.Notify
         Private _NextTagged As Boolean = True
         Friend Overrides Sub DownloadStarted(ByVal What As Download)
-            If CStr(Hash.Value).IsEmptyString Or HashUpdateRequired Then GatherInstaHash()
             ActiveJobs += 1
         End Sub
         Friend Overrides Sub BeforeStartDownload(ByVal User As Object, ByVal What As Download)
@@ -336,40 +352,8 @@ Namespace API.Instagram
             _NextTagged = True
             LastDownloadDate.Value = Now
             ActiveJobs -= 1
-            If HashUpdateRequired Then MyMainLOG = "Check your Instagram credentials"
         End Sub
 #End Region
-        <PropertyUpdater(NameOf(Hash))>
-        Friend Function GatherInstaHash() As Boolean
-            Try
-                If Not Responser.Cookies.ListExists Then Throw New Exception("Instagram cookies does not set")
-                Dim rs As New RParams("preload"" href=""(https://static.cdninstagram.com/rsrc.php/[^""]+?.js[^""]*)""", Nothing, 1, RegexReturn.List) With {.MatchTimeOut = 10}
-                Dim h$
-                Dim r$ = Responser.GetResponse("https://www.instagram.com",, EDP.ThrowException)
-                If Not r.IsEmptyString Then
-                    Dim JsUrls As List(Of String) = RegexReplace(r, rs)
-                    If JsUrls.ListExists Then
-                        rs = New RParams("\{.+?var h=""([\w\d\S]+?)"".+?\)\.generatePaginationActionCreators", Nothing, 1) With {.MatchTimeOut = 10}
-                        For Each url$ In JsUrls
-                            r = Responser.GetResponse(url,, EDP.ReturnValue)
-                            If Not r.IsEmptyString Then
-                                h = RegexReplace(r, rs)
-                                If Not h.IsEmptyString AndAlso h.Length > 30 Then
-                                    Hash.Value = h
-                                    HashUpdateRequired.Value = False
-                                    Return True
-                                End If
-                            End If
-                        Next
-                    End If
-                End If
-                Return False
-            Catch ex As Exception
-                HashUpdateRequired.Value = True
-                Hash.Value = String.Empty
-                Return ErrorsDescriber.Execute(EDP.SendInLog + EDP.ReturnValue, ex, "[SiteSettings.GaterInstaHash]", False)
-            End Try
-        End Function
         Friend Overrides Function GetSpecialDataF(ByVal URL As String) As IEnumerable(Of UserMedia)
             Return UserData.GetVideoInfo(URL, Responser, Me)
         End Function
@@ -379,5 +363,6 @@ Namespace API.Instagram
                 Using f As New OptionsForm(Options) : f.ShowDialog() : End Using
             End If
         End Sub
+#End Region
     End Class
 End Namespace

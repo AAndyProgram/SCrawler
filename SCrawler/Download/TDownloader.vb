@@ -39,14 +39,13 @@ Namespace DownloadObjects
         End Property
 #End Region
 #Region "Automation Support"
-        Friend Property DisableOpenForms As Boolean = False
-        Private _DisableCompleteNotification As Boolean = False
-        Private _AutoDownloaderWorking As Boolean = False
-        Friend WriteOnly Property AutoDownloaderWorking As Boolean
+        Private _AutoDownloaderTasks As Integer = 0
+        Friend Property AutoDownloaderWorking As Boolean
+            Private Get
+                Return _AutoDownloaderTasks > 0
+            End Get
             Set(ByVal adw As Boolean)
-                _AutoDownloaderWorking = adw
-                DisableOpenForms = adw
-                _DisableCompleteNotification = adw
+                _AutoDownloaderTasks += IIf(adw, 1, -1)
             End Set
         End Property
         Friend Sub InvokeDownloadsChangeEvent()
@@ -70,6 +69,9 @@ Namespace DownloadObjects
                     Return Items.Count
                 End Get
             End Property
+            Friend Sub Clear()
+                Items.Clear()
+            End Sub
             Friend ReadOnly Property Working As Boolean
                 Get
                     Return _Working OrElse If(Thread?.IsAlive, False)
@@ -237,16 +239,17 @@ Namespace DownloadObjects
 #Region "Thread"
         Private CheckerThread As Thread
         Private Sub [Start]()
-            If Not DisableOpenForms AndAlso MyProgressForm.ReadyToOpen AndAlso Pool.LongCount(Function(p) p.Count > 0) > 1 Then MyProgressForm.Show() : MainFrameObj.Focus()
+            If Not AutoDownloaderWorking AndAlso MyProgressForm.ReadyToOpen AndAlso Pool.LongCount(Function(p) p.Count > 0) > 1 Then MyProgressForm.Show() : MainFrameObj.Focus()
             If Not If(CheckerThread?.IsAlive, False) Then
                 MainProgress.Enabled = True
-                If Not DisableOpenForms AndAlso InfoForm.ReadyToOpen Then InfoForm.Show() : MainFrameObj.Focus()
+                If Not AutoDownloaderWorking AndAlso InfoForm.ReadyToOpen Then InfoForm.Show() : MainFrameObj.Focus()
                 CheckerThread = New Thread(New ThreadStart(AddressOf JobsChecker))
                 CheckerThread.SetApartmentState(ApartmentState.MTA)
                 CheckerThread.Start()
             End If
             End Sub
         Private Sub JobsChecker()
+            RaiseEvent OnDownloading(True)
             Try
                 MainProgress.TotalCount = 0
                 MainProgress.CurrentCounter = 0
@@ -257,7 +260,7 @@ Namespace DownloadObjects
                     Next
                     Thread.Sleep(200)
                 Loop
-            Catch ex As Exception
+            Catch
             Finally
                 With MainProgress
                     .TotalCount = 0
@@ -268,15 +271,16 @@ Namespace DownloadObjects
                 MyProgressForm.DisableProgressChange = True
                 If Pool.Count > 0 Then Pool.ForEach(Sub(p) If Not p.Progress Is Nothing Then p.Progress.TotalCount = 0)
                 ExecuteCommand(Settings.DownloadsCompleteCommand)
+                UpdateJobsLabel()
+                RaiseEvent OnDownloading(False)
             End Try
         End Sub
         Private Sub StartDownloading(ByRef _Job As Job)
-            RaiseEvent OnDownloading(True)
             Dim isSeparated As Boolean = _Job.IsSeparated
             Dim n$ = _Job.Name
             Dim pt As Func(Of String, String) = Function(ByVal t As String) As String
                                                     Dim _t$ = If(isSeparated, $"{n} {Left(t, 1).ToLower}{Right(t, t.Length - 1)}", t)
-                                                    If Not _DisableCompleteNotification Then RaiseEvent SendNotification(_t)
+                                                    If Not AutoDownloaderWorking Then RaiseEvent SendNotification(_t)
                                                     Return _t
                                                 End Function
             Try
@@ -287,7 +291,7 @@ Namespace DownloadObjects
                 Dim SiteChecked As Boolean = False
                 Do While _Job.Count > 0
                     _Job.ThrowIfCancellationRequested()
-                    If Not SiteChecked Then _Job.Available(_AutoDownloaderWorking) : SiteChecked = True : Continue Do
+                    If Not SiteChecked Then _Job.Available(AutoDownloaderWorking) : SiteChecked = True : Continue Do
                     UpdateJobsLabel()
                     DownloadData(_Job, _Job.Token)
                     _Job.ThrowIfCancellationRequested()
@@ -300,17 +304,12 @@ Namespace DownloadObjects
                 _Job.Progress.InformationTemporary = pt("Downloading error")
                 ErrorsDescriber.Execute(EDP.SendInLog, ex, "TDownloader.Start")
             Finally
+                If _Job.Count > 0 Then _Job.Clear()
                 _Job.Stopped()
-                UpdateJobsLabel()
-                RaiseEvent OnDownloading(False)
             End Try
         End Sub
         Friend Sub [Stop]()
-            If Pool.Count > 0 Then
-                For Each j As Job In Pool
-                    If j.Working Then j.Stop()
-                Next
-            End If
+            If Pool.Count > 0 Then Pool.ForEach(Sub(j) If j.Working Then j.Stop())
         End Sub
         Private Sub UpdateJobsLabel()
             RaiseEvent OnJobsChange(Count)

@@ -32,6 +32,10 @@ Namespace Plugin.Attributes
         Public Property AllowNull As Boolean = True
         ''' <summary>Offset the control from the left border of the form.<br/>Default: 100</summary>
         Public Property LeftOffset As Integer = 100
+        ''' <summary>This control is an information label.<br/>Default: <see langword="False"/></summary>
+        Public Property IsInformationLabel As Boolean = False
+        ''' <summary>Label text alignment.<br/>Default: <see cref="Drawing.ContentAlignment.TopCenter"/></summary>
+        Public Property LabelTextAlign As Drawing.ContentAlignment = Drawing.ContentAlignment.TopCenter
         ''' <summary>This is an authorization property</summary>
         Public Property IsAuth As Boolean = False
         ''' <summary>Initialize a new property option attribute</summary>

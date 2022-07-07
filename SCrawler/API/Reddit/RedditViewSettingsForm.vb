@@ -12,12 +12,12 @@ Imports CView = SCrawler.API.Reddit.IRedditView.View
 Imports CPeriod = SCrawler.API.Reddit.IRedditView.Period
 Namespace API.Reddit
     Friend Class RedditViewSettingsForm : Implements IOkCancelToolbar
-        Private ReadOnly MyDefs As DefaultFormProps
+        Private ReadOnly MyDefs As DefaultFormOptions
         Private ReadOnly Property MyOptions As IRedditView
         Friend Sub New(ByRef opt As IRedditView)
             InitializeComponent()
             MyOptions = opt
-            MyDefs = New DefaultFormProps
+            MyDefs = New DefaultFormOptions
         End Sub
         Private Sub ChannelSettingsForm_Load(sender As Object, e As EventArgs) Handles Me.Load
             Try

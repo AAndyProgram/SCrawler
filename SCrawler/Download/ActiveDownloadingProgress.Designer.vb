@@ -36,8 +36,8 @@ Namespace DownloadObjects
             Me.TP_MAIN.Location = New System.Drawing.Point(0, 0)
             Me.TP_MAIN.Name = "TP_MAIN"
             Me.TP_MAIN.RowCount = 1
-            Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 62.0!))
-            Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 62.0!))
+            Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 64.0!))
+            Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 64.0!))
             Me.TP_MAIN.Size = New System.Drawing.Size(434, 61)
             Me.TP_MAIN.TabIndex = 0
             '

@@ -34,7 +34,7 @@ Friend Class SettingsCLS : Implements IDisposable
     Friend Property Channels As Reddit.ChannelsCollection
     Friend ReadOnly Property Labels As LabelsKeeper
     Friend ReadOnly Property Groups As Groups.DownloadGroupCollection
-    Friend Property Automation As AutoDownloader
+    Friend Property Automation As Scheduler
     Friend ReadOnly Property BlackList As List(Of UserBan)
     Private ReadOnly BlackListFile As SFile = $"{SettingsFolderName}\BlackList.txt"
     Private ReadOnly UsersSettingsFile As SFile = $"{SettingsFolderName}\Users.xml"
@@ -62,6 +62,7 @@ Friend Class SettingsCLS : Implements IDisposable
         DefaultDownloadImages = New XMLValue(Of Boolean)("DownloadImages", True, MyXML, n)
         DefaultDownloadVideos = New XMLValue(Of Boolean)("DownloadVideos", True, MyXML, n)
         ChangeReadyForDownOnTempChange = New XMLValue(Of Boolean)("ChangeReadyForDownOnTempChange", True, MyXML, n)
+        DownloadNativeImageFormat = New XMLValue(Of Boolean)("DownloadNativeImageFormat", True, MyXML, n)
 
         Plugins.AddRange(PluginHost.GetMyHosts(MyXML, GlobalPath.Value, DefaultTemporary, DefaultDownloadImages, DefaultDownloadVideos))
         Dim tmpPluginList As IEnumerable(Of PluginHost) = PluginHost.GetPluginsHosts(MyXML, GlobalPath.Value, DefaultTemporary,
@@ -390,6 +391,7 @@ Friend Class SettingsCLS : Implements IDisposable
     Friend ReadOnly Property DefaultDownloadImages As XMLValue(Of Boolean)
     Friend ReadOnly Property DefaultDownloadVideos As XMLValue(Of Boolean)
     Friend ReadOnly Property ChangeReadyForDownOnTempChange As XMLValue(Of Boolean)
+    Friend ReadOnly Property DownloadNativeImageFormat As XMLValue(Of Boolean)
 #End Region
 #Region "User data"
     Friend ReadOnly Property FromChannelDownloadTop As XMLValue(Of Integer)

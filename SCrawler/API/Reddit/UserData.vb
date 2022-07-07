@@ -664,6 +664,7 @@ Namespace API.Reddit
                                                 f = SFile.Indexed_IndexFile(f,,, EDP.ReturnValue)
                                             End If
                                         End If
+                                        If f.Extension = "webp" And Settings.DownloadNativeImageFormat Then f.Extension = "jpg"
                                         f.Path = MyDir
                                         Try
                                             If (v.Type = UTypes.Video Or v.Type = UTypes.m3u8 Or (ImgurUrls.Count > 0 AndAlso f.Extension = "mp4")) And
@@ -728,9 +729,10 @@ Namespace API.Reddit
             ElseIf Responser.StatusCode = HttpStatusCode.Forbidden Then
                 UserSuspended = True
             ElseIf Responser.StatusCode = HttpStatusCode.BadGateway Or
-                   Responser.StatusCode = HttpStatusCode.ServiceUnavailable Or
-                   Responser.StatusCode = HttpStatusCode.GatewayTimeout Then
+                   Responser.StatusCode = HttpStatusCode.ServiceUnavailable Then
                 MyMainLOG = $"[{CInt(Responser.StatusCode)}] Reddit is currently unavailable ({ToString()})"
+            ElseIf Responser.StatusCode = HttpStatusCode.GatewayTimeout Then
+                Return 1
             Else
                 If Not FromPE Then LogError(ex, Message) : HasError = True
                 Return 0

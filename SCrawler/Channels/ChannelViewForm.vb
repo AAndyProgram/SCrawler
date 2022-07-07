@@ -16,8 +16,8 @@ Imports System.Threading
 Imports SCrawler.API.Base
 Imports SCrawler.API.Reddit
 Imports SCrawler.Plugin.Hosts
-Imports CmbDefaultButtons = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons
-Imports RButton = PersonalUtilities.Tools.RangeSwitcherButton.Types
+Imports ADB = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons
+Imports RButton = PersonalUtilities.Forms.Toolbars.RangeSwitcherToolbar.ControlItem
 Friend Class ChannelViewForm : Implements IChannelLimits
     Friend Event OnUsersAdded(ByVal StartIndex As Integer)
     Friend Event OnDownloadDone As NotificationEventHandler
@@ -49,7 +49,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
     End Structure
 #End Region
 #Region "Declarations"
-    Private ReadOnly MyDefs As DefaultFormProps
+    Private ReadOnly MyDefs As DefaultFormOptions
 #Region "Controls"
     Private WithEvents CMB_CHANNELS As ComboBoxExtended
     Private WithEvents CH_HIDE_EXISTS_USERS As CheckBox
@@ -125,7 +125,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
     Private ReadOnly HOST As SettingsHost
     Private ReadOnly PendingUsers As List(Of PendingUser)
     Private ReadOnly LNC As New ListAddParams(LAP.NotContainsOnly)
-    Private WithEvents MyRange As RangeSwitcher(Of UserPost)
+    Private WithEvents MyRange As RangeSwitcherToolbar(Of UserPost)
     Private ReadOnly SelectorExpression As Predicate(Of UserPost) = Function(ByVal Post As UserPost) As Boolean
                                                                         If Post.UserID.ToLower = "[deleted]" Or Settings.BlackList.Contains(Post.UserID) Then
                                                                             Return False
@@ -141,7 +141,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
 #Region "Initializer and form methods"
     Friend Sub New()
         InitializeComponent()
-        MyDefs = New DefaultFormProps
+        MyDefs = New DefaultFormOptions
         CProgress = New MyProgress(ToolbarBOTTOM, PR_CN, LBL_STATUS, "Downloading data") With {.PerformMod = 10, .DropCurrentProgressOnTotalChange = False}
         CProvider = New ANumbers With {.FormatOptions = ANumbers.Options.GroupIntegral}
         LimitProvider = New ADateTime("dd.MM.yyyy HH:mm")
@@ -157,10 +157,10 @@ Friend Class ChannelViewForm : Implements IChannelLimits
             .ListMaxDropDownItems = 15,
             .CaptionPadding = New Padding(0, 3, 0, 0)
         }
-        CMB_CHANNELS.Buttons.AddRange({CmbDefaultButtons.Refresh, CmbDefaultButtons.Add, CmbDefaultButtons.Delete,
-                                       New ActionButton(CmbDefaultButtons.Up) With {.ToolTipText = "Previous item (F1)"},
-                                       New ActionButton(CmbDefaultButtons.Down) With {.ToolTipText = "Next item (F4)"},
-                                       CmbDefaultButtons.Edit, CmbDefaultButtons.Info})
+        CMB_CHANNELS.Buttons.AddRange({ADB.Refresh, ADB.Add, ADB.Delete,
+                                       New ActionButton(ADB.Up) With {.ToolTipText = "Previous item (F1)"},
+                                       New ActionButton(ADB.Down) With {.ToolTipText = "Next item (F4)"},
+                                       ADB.Edit, ADB.Info})
         TXT_LIMIT = New TextBoxExtended With {
             .CaptionText = "Limit",
             .Margin = New Padding(2),
@@ -186,6 +186,16 @@ Friend Class ChannelViewForm : Implements IChannelLimits
         TT_MAIN.SetToolTip(CH_HIDE_EXISTS_USERS, "Hide users which already exists in collection")
         TT_MAIN.SetToolTip(OPT_LIMITS_COUNT, "Total posts count limit")
         TT_MAIN.SetToolTip(OPT_LIMITS_POST, "Looking limit till post(-s) (comma separated)")
+        MyRange = New RangeSwitcherToolbar(Of UserPost)(ToolbarTOP)
+        With MyRange
+            .Switcher = New RangeSwitcher(Of UserPost) With {.Selector = SelectorExpression}
+            .Buttons = {RButton.First, RButton.Previous, RButton.Label, RButton.Next, RButton.Last, RButton.Separator}
+            .AutoToolTip = True
+            .ButtonKey(RButton.Previous) = Keys.F2
+            .ButtonKey(RButton.Next) = Keys.F3
+            .LabelNumbersProvider = CProvider
+            .AddThisToolbar()
+        End With
         ToolbarTOP.Items.AddRange({CMB_CHANNELS.GetControlHost,
                                   New ToolStripSeparator,
                                   LBL_LIMITS,
@@ -198,17 +208,6 @@ Friend Class ChannelViewForm : Implements IChannelLimits
                                   New ToolStripSeparator,
                                   New ToolStripControlHost(CH_HIDE_EXISTS_USERS),
                                   BTT_SHOW_STATS})
-        MyRange = New RangeSwitcher(Of UserPost) With {.Selector = SelectorExpression}
-        With MyRange
-            .Limit = ImagesInRow * ImagesRows
-            .InsertButtons(ToolbarTOP,, 5)
-            .SetButtonKey(RButton.Previous, Keys.F2)
-            .SetButtonKey(RButton.Next, Keys.F3)
-            .BindForm(Me)
-            .LabelNumbersProvider = CProvider
-            .LabelShowAbsolutIndexes = False
-            .UpdateControls()
-        End With
         AddHandler Settings.ChannelsImagesColumns.OnValueChanged, AddressOf ImagesCountChanged
         AddHandler Settings.ChannelsImagesRows.OnValueChanged, AddressOf ImagesCountChanged
     End Sub
@@ -344,8 +343,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
                                                 CH_HIDE_EXISTS_USERS.Enabled = False
                                                 CMB_CHANNELS.Enabled(True) = False
                                                 BTT_SHOW_STATS.Enabled = False
-                                                MyRange.EnableButton(RButton.Previous, False)
-                                                MyRange.EnableButton(RButton.Next, False)
+                                                MyRange.Enabled = False
                                             End If
                                         End Sub
             Dim c As Channel
@@ -374,7 +372,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
                 End If
                 If Not c Is Nothing Then
                     SetLimitsByChannel(c)
-                    MyRange.ChangeSource(c)
+                    MyRange.Source = c
                 End If
             Else
                 MsgBoxE("No one channels detected", MsgBoxStyle.Exclamation)
@@ -403,10 +401,8 @@ Friend Class ChannelViewForm : Implements IChannelLimits
                 CMB_CHANNELS.Enabled(True) = True
                 BTT_SHOW_STATS.Enabled = True
                 CMB_CHANNELS_ActionOnCheckedChange(CMB_CHANNELS.Checked)
-                With MyRange
-                    .EnableButton(RButton.Previous, .Count > 0 AndAlso .CurrentIndex > 0)
-                    .EnableButton(RButton.Next, .Count > 0 AndAlso .CurrentIndex < .Max)
-                End With
+                MyRange.Enabled = True
+                MyRange.UpdateControls()
             End If
         End Try
     End Sub
@@ -573,14 +569,14 @@ Friend Class ChannelViewForm : Implements IChannelLimits
     Private Sub CMB_CHANNELS_ActionSelectedItemChanged(ByVal _Item As ListViewItem) Handles CMB_CHANNELS.ActionSelectedItemChanged
         SetLimitsByChannel()
         Dim c As Channel = GetCurrentChannel()
-        If Not c Is Nothing Then MyRange.ChangeSource(c, EDP.SendInLog)
+        If Not c Is Nothing Then MyRange.Source = c
     End Sub
     Private Sub CMB_CHANNELS_ActionOnButtonClick(ByVal Sender As ActionButton) Handles CMB_CHANNELS.ActionOnButtonClick
         Dim c As Channel
         Select Case Sender.DefaultButton
-            Case CmbDefaultButtons.Refresh : RefillChannels()
-            Case CmbDefaultButtons.Add : AddNewChannel()
-            Case CmbDefaultButtons.Delete
+            Case ADB.Refresh : RefillChannels()
+            Case ADB.Add : AddNewChannel()
+            Case ADB.Delete
                 Try
                     c = GetCurrentChannel()
                     If Not c Is Nothing AndAlso MsgBoxE($"Do you really want to delete channel [{c}]?", MsgBoxStyle.Exclamation + MsgBoxStyle.YesNo) = 0 Then
@@ -590,9 +586,9 @@ Friend Class ChannelViewForm : Implements IChannelLimits
                 Catch ex As Exception
                     ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Error on trying to delete channel")
                 End Try
-            Case CmbDefaultButtons.Up : ChangeComboIndex(-1)
-            Case CmbDefaultButtons.Down : ChangeComboIndex(1)
-            Case CmbDefaultButtons.Edit
+            Case ADB.Up : ChangeComboIndex(-1)
+            Case ADB.Down : ChangeComboIndex(1)
+            Case ADB.Edit
                 Try
                     c = GetCurrentChannel()
                     If Not c Is Nothing Then
@@ -604,7 +600,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
                 Catch ex As Exception
                     ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Error on trying to edit channel")
                 End Try
-            Case CmbDefaultButtons.Info
+            Case ADB.Info
                 Try
                     c = GetCurrentChannel()
                     If Not c Is Nothing Then MsgBoxE({c.GetChannelStats(True), "Channel statistics"})
@@ -621,8 +617,8 @@ Friend Class ChannelViewForm : Implements IChannelLimits
             LBL_LIMIT_TEXT.Text = String.Empty
             ChangeComboIndex(0)
         Else
-            CMB_CHANNELS.Button(ActionButton.BTT_UP_NAME).Enabled = False
-            CMB_CHANNELS.Button(ActionButton.BTT_DOWN_NAME).Enabled = False
+            CMB_CHANNELS.Button(ADB.Up).Enabled = False
+            CMB_CHANNELS.Button(ADB.Down).Enabled = False
             SetLimitsByChannel()
         End If
     End Sub
@@ -661,8 +657,8 @@ Friend Class ChannelViewForm : Implements IChannelLimits
                 _ComboUpEnabled = i > 0 And c > 0
                 _ComboDownEnabled = i < c And c > 0
             End If
-            CMB_CHANNELS.Button(ActionButton.BTT_UP_NAME).Enabled = _ComboUpEnabled
-            CMB_CHANNELS.Button(ActionButton.BTT_DOWN_NAME).Enabled = _ComboDownEnabled
+            CMB_CHANNELS.Button(ADB.Up).Enabled = _ComboUpEnabled
+            CMB_CHANNELS.Button(ADB.Down).Enabled = _ComboDownEnabled
         Catch ex As Exception
             ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "ComboBox index changing")
         End Try
@@ -799,10 +795,10 @@ Friend Class ChannelViewForm : Implements IChannelLimits
 #Region "MyRange"
     Private Sub ImagesCountChanged(ByVal Sender As Object, ByVal _Name As String, ByVal _Value As Object)
         AppendPendingUsers()
-        MyRange.Update(ImagesInRow * ImagesRows)
-        MyRange.GoTo(0, EDP.SendInLog)
+        MyRange.Limit = ImagesInRow * ImagesRows
+        MyRange.GoTo(0)
     End Sub
-    Private Sub MyRange_IndexChanged(ByVal Index As Integer) Handles MyRange.IndexChanged
+    Private Sub MyRange_IndexChanged(ByVal Sender As IRangeSwitcherProvider, ByVal Index As Integer) Handles MyRange.IndexChanged
         Try
             If MyDefs.Initializing Then Exit Sub
             AppendPendingUsers()
@@ -832,8 +828,8 @@ Friend Class ChannelViewForm : Implements IChannelLimits
             ErrorsDescriber.Execute(EDP.LogMessageValue, ex)
         End Try
     End Sub
-    Private Sub MyRange_RangesChanged(ByVal Sender As RangeSwitcher(Of UserPost)) Handles MyRange.RangesChanged
-        If Sender.Count > 0 Then MyRange_IndexChanged(0)
+    Private Sub MyRange_RangesChanged(ByVal Sender As IRangeSwitcherProvider, ByVal Index As Integer) Handles MyRange.RangesChanged
+        If Sender.Count > 0 Then MyRange_IndexChanged(Nothing, 0)
     End Sub
 #End Region
 End Class

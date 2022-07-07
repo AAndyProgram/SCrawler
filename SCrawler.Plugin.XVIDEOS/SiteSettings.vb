@@ -41,7 +41,6 @@ Public Class SiteSettings : Implements ISiteSettings
     Public ReadOnly Property Responser As Response
     Private Const DomainsDefault As String = "xvideos.com|xnxx.com"
     Private _Initialized As Boolean = False
-    Friend Design As XmlFile
     Public Sub New()
         Responser = New Response($"Settings\Responser_{Site}.xml")
         With Responser
@@ -109,10 +108,8 @@ Public Class SiteSettings : Implements ISiteSettings
     Public Sub Reset() Implements ISiteSettings.Reset
     End Sub
     Public Sub OpenSettingsForm() Implements ISiteSettings.OpenSettingsForm
-        Using f As New SettingsForm(Me)
-            Design = New XmlFile("Settings\Design_XVIDEOS.xml")
-            f.ShowDialog()
-            Design.Dispose()
+        Using Design As New XmlFile("Settings\Design_XVIDEOS.xml")
+            Using f As New SettingsForm(Me, Design) : f.ShowDialog() : End Using
         End Using
     End Sub
     Public Sub UserOptions(ByRef Options As Object, ByVal OpenForm As Boolean) Implements ISiteSettings.UserOptions

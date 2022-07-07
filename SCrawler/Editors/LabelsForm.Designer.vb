@@ -43,17 +43,14 @@ Partial Friend Class LabelsForm : Inherits System.Windows.Forms.Form
         'CMB_LABELS
         '
         ActionButton1.BackgroundImage = CType(resources.GetObject("ActionButton1.BackgroundImage"), System.Drawing.Image)
-        ActionButton1.Index = 0
-        ActionButton1.Name = "BTT_COMBOBOX_ARROW"
-        ActionButton1.Visible = False
+        ActionButton1.Name = "Add"
+        ActionButton1.ToolTipText = "Add new label (Insert)"
         ActionButton2.BackgroundImage = CType(resources.GetObject("ActionButton2.BackgroundImage"), System.Drawing.Image)
-        ActionButton2.Index = 1
-        ActionButton2.Name = "BTT_ADD"
-        ActionButton2.ToolTipText = "Add new label (Insert)"
+        ActionButton2.Name = "Clear"
+        ActionButton2.ToolTipText = "Clear checked labels"
         ActionButton3.BackgroundImage = CType(resources.GetObject("ActionButton3.BackgroundImage"), System.Drawing.Image)
-        ActionButton3.Index = 2
-        ActionButton3.Name = "BTT_CLEAR"
-        ActionButton3.ToolTipText = "Clear checked labels"
+        ActionButton3.Name = "ArrowDown"
+        ActionButton3.Visible = False
         Me.CMB_LABELS.Buttons.Add(ActionButton1)
         Me.CMB_LABELS.Buttons.Add(ActionButton2)
         Me.CMB_LABELS.Buttons.Add(ActionButton3)

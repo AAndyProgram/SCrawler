@@ -6,7 +6,6 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
-Imports System.ComponentModel
 Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Forms.Controls
 Imports PersonalUtilities.Forms.Controls.Base
@@ -18,10 +17,10 @@ Imports SCrawler.Plugin.Hosts
 Imports ADB = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons
 Namespace Editors
     Friend Class UserCreatorForm : Implements IOkCancelToolbar
-
-        Private ReadOnly MyDef As DefaultFormProps
+        Private ReadOnly MyDef As DefaultFormOptions
         Friend Property User As UserInfo
-        Friend Property UserInstance As IUserData
+        Private Property UserInstance As IUserData
+#Region "User options"
         Friend Property StartIndex As Integer = -1
         Friend ReadOnly Property UserTemporary As Boolean
             Get
@@ -77,6 +76,8 @@ Namespace Editors
                 Return TXT_SCRIPT.Text
             End Get
         End Property
+#End Region
+#Region "Exchange, Path, Labels"
         Friend Property MyExchangeOptions As Object = Nothing
         Private ReadOnly _SpecPathPattern As RParams = RParams.DM("\w:\\.*", 0, EDP.ReturnValue)
         Private ReadOnly Property SpecialPath(ByVal s As SettingsHost) As SFile
@@ -93,11 +94,13 @@ Namespace Editors
             End Get
         End Property
         Friend ReadOnly Property UserLabels As List(Of String)
+#End Region
+#Region "Initializers"
         ''' <summary>Create new user</summary>
         Friend Sub New()
             InitializeComponent()
             UserLabels = New List(Of String)
-            MyDef = New DefaultFormProps
+            MyDef = New DefaultFormOptions
         End Sub
         ''' <summary>Edit exist user</summary>
         Friend Sub New(ByVal _Instance As IUserData)
@@ -107,6 +110,8 @@ Namespace Editors
                 User = DirectCast(UserInstance, UserDataBase).User
             End If
         End Sub
+#End Region
+#Region "Form handlers"
         Private Sub UserCreatorForm_Load(sender As Object, e As EventArgs) Handles Me.Load
             Try
                 With MyDef
@@ -180,19 +185,11 @@ Namespace Editors
             End Select
             If b Then e.Handled = True
         End Sub
-        Private Sub UserCreatorForm_Closing(sender As Object, e As CancelEventArgs) Handles Me.Closing
-            If Not BeforeCloseChecker(MyDef.ChangesDetected) Then
-                e.Cancel = True
-            Else
-                MyDef.Dispose()
-            End If
-        End Sub
         Private Sub UserCreatorForm_Disposed(sender As Object, e As EventArgs) Handles Me.Disposed
             UserLabels.Clear()
         End Sub
-        Private Function GetSiteByCheckers() As SettingsHost
-            Return If(CMB_SITE.SelectedIndex >= 0, Settings(CStr(CMB_SITE.Items(CMB_SITE.SelectedIndex).Value(0))), Nothing)
-        End Function
+#End Region
+#Region "Ok, Cancel"
         Private Sub OK() Implements IOkCancelToolbar.OK
             If Not CH_ADD_BY_LIST.Checked Then
                 If MyDef.MyFieldsChecker.AllParamsOK Then
@@ -256,6 +253,8 @@ CloseForm:
         Private Sub Cancel() Implements IOkCancelToolbar.Cancel
             MyDef.CloseForm(IIf(StartIndex >= 0, DialogResult.OK, DialogResult.Cancel))
         End Sub
+#End Region
+#Region "Controls handlers"
         Private _TextChangeInvoked As Boolean = False
         Private Sub TXT_USER_ActionOnTextChange() Handles TXT_USER.ActionOnTextChange
             Try
@@ -284,14 +283,6 @@ CloseForm:
             Catch ex As Exception
             End Try
         End Sub
-        Private Function GetSiteByText(ByRef TXT As String) As ExchangeOptions
-            Dim s As ExchangeOptions
-            For Each p As PluginHost In Settings.Plugins
-                s = p.Settings.IsMyUser(TXT)
-                If Not s.UserName.IsEmptyString Then Return s
-            Next
-            Return Nothing
-        End Function
         Private Sub CMB_SITE_ActionSelectedItemChanged(ByVal _Item As ListViewItem) Handles CMB_SITE.ActionSelectedItemChanged
             CH_IS_CHANNEL.Checked = False
             MyExchangeOptions = Nothing
@@ -319,30 +310,6 @@ CloseForm:
         Private Sub CH_FAV_CheckedChanged(sender As Object, e As EventArgs) Handles CH_FAV.CheckedChanged
             If CH_FAV.Checked Then CH_TEMP.Checked = False
         End Sub
-        Private Sub SetParamsBySite()
-            Dim s As SettingsHost = GetSiteByCheckers()
-            If Not s Is Nothing Then
-                With s
-                    CH_TEMP.Checked = .Temporary
-                    CH_DOWN_IMAGES.Checked = .DownloadImages
-                    CH_DOWN_VIDEOS.Checked = .DownloadVideos
-                    CH_PARSE_USER_MEDIA.Checked = .GetUserMediaOnly.Value
-                    CH_READY_FOR_DOWN.Checked = Not CH_TEMP.Checked
-                    If s.HasSpecialOptions Then
-                        BTT_OTHER_SETTINGS.Enabled = True
-                        If UserInstance Is Nothing Then
-                            s.Source.UserOptions(MyExchangeOptions, False)
-                        Else
-                            MyExchangeOptions = DirectCast(UserInstance, UserDataBase).ExchangeOptionsGet
-                        End If
-                    Else
-                        BTT_OTHER_SETTINGS.Enabled = False
-                    End If
-                End With
-            Else
-                BTT_OTHER_SETTINGS.Enabled = False
-            End If
-        End Sub
         Private Sub CH_ADD_BY_LIST_CheckedChanged(sender As Object, e As EventArgs) Handles CH_ADD_BY_LIST.CheckedChanged
             If CH_ADD_BY_LIST.Checked Then
                 TXT_DESCR.GroupBoxText = "Users list"
@@ -366,6 +333,20 @@ CloseForm:
                 BTT_OTHER_SETTINGS.Enabled = True
             End If
         End Sub
+        Private Sub TXT_LABELS_ActionOnButtonClick(ByVal Sender As ActionButton) Handles TXT_LABELS.ActionOnButtonClick
+            Select Case Sender.DefaultButton
+                Case ADB.Open : ChangeLabels()
+                Case ADB.Clear : UserLabels.Clear()
+            End Select
+        End Sub
+        Private Sub TXT_SCRIPT_ActionOnButtonClick(ByVal Sender As ActionButton) Handles TXT_SCRIPT.ActionOnButtonClick
+            SettingsCLS.ScriptTextBoxButtonClick(TXT_SCRIPT, Sender)
+        End Sub
+#End Region
+#Region "Functions"
+        Private Function GetSiteByCheckers() As SettingsHost
+            Return If(CMB_SITE.SelectedIndex >= 0, Settings(CStr(CMB_SITE.Items(CMB_SITE.SelectedIndex).Value(0))), Nothing)
+        End Function
         Private Function CreateUsersByList() As Boolean
             Try
                 If CH_ADD_BY_LIST.Checked Then
@@ -471,11 +452,37 @@ CloseForm:
                 Return ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Error on adding users by list", False)
             End Try
         End Function
-        Private Sub TXT_LABELS_ActionOnButtonClick(ByVal Sender As ActionButton) Handles TXT_LABELS.ActionOnButtonClick
-            Select Case Sender.DefaultButton
-                Case ADB.Open : ChangeLabels()
-                Case ADB.Clear : UserLabels.Clear()
-            End Select
+        Private Function GetSiteByText(ByRef TXT As String) As ExchangeOptions
+            Dim s As ExchangeOptions
+            For Each p As PluginHost In Settings.Plugins
+                s = p.Settings.IsMyUser(TXT)
+                If Not s.UserName.IsEmptyString Then Return s
+            Next
+            Return Nothing
+        End Function
+        Private Sub SetParamsBySite()
+            Dim s As SettingsHost = GetSiteByCheckers()
+            If Not s Is Nothing Then
+                With s
+                    CH_TEMP.Checked = .Temporary
+                    CH_DOWN_IMAGES.Checked = .DownloadImages
+                    CH_DOWN_VIDEOS.Checked = .DownloadVideos
+                    CH_PARSE_USER_MEDIA.Checked = .GetUserMediaOnly.Value
+                    CH_READY_FOR_DOWN.Checked = Not CH_TEMP.Checked
+                    If s.HasSpecialOptions Then
+                        BTT_OTHER_SETTINGS.Enabled = True
+                        If UserInstance Is Nothing Then
+                            s.Source.UserOptions(MyExchangeOptions, False)
+                        Else
+                            MyExchangeOptions = DirectCast(UserInstance, UserDataBase).ExchangeOptionsGet
+                        End If
+                    Else
+                        BTT_OTHER_SETTINGS.Enabled = False
+                    End If
+                End With
+            Else
+                BTT_OTHER_SETTINGS.Enabled = False
+            End If
         End Sub
         Private Sub ChangeLabels()
             Using fl As New LabelsForm(UserLabels)
@@ -490,8 +497,6 @@ CloseForm:
                 End If
             End Using
         End Sub
-        Private Sub TXT_SCRIPT_ActionOnButtonClick(ByVal Sender As ActionButton) Handles TXT_SCRIPT.ActionOnButtonClick
-            SettingsCLS.ScriptTextBoxButtonClick(TXT_SCRIPT, Sender)
-        End Sub
+#End Region
     End Class
 End Namespace

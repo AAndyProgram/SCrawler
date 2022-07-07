@@ -11,12 +11,12 @@ Imports PersonalUtilities.Forms.Controls.Base
 Imports PersonalUtilities.Forms.Toolbars
 Namespace Editors
     Friend Class CollectionEditorForm : Implements IOkCancelToolbar
-        Private ReadOnly MyDefs As DefaultFormProps
+        Private ReadOnly MyDefs As DefaultFormOptions
         Private ReadOnly Collections As List(Of String)
         Friend Property [Collection] As String = String.Empty
         Friend Sub New()
             InitializeComponent()
-            MyDefs = New DefaultFormProps
+            MyDefs = New DefaultFormOptions
             Collections = New List(Of String)
         End Sub
         Friend Sub New(ByVal CollectionName As String)
@@ -32,7 +32,7 @@ Namespace Editors
                     If Collections.ListExists Then Collections.Sort() : CMB_COLLECTIONS.Items.AddRange(From c In Collections Select New ListItem(c))
                     If Not Collection.IsEmptyString And Collections.Contains(Collection) Then CMB_COLLECTIONS.SelectedIndex = Collections.IndexOf(Collection)
                     .DelegateClosingChecker = False
-                    .EndLoaderOperations(False)
+                    .EndLoaderOperations()
                 End With
             Catch ex As Exception
                 MyDefs.InvokeLoaderError(ex)

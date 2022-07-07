@@ -11,10 +11,8 @@ Namespace API.Instagram
     Friend Class EditorExchangeOptions
         Friend Property GetStories As Boolean
         Friend Property GetTagged As Boolean
-        Private ReadOnly Property MySiteSettings As SiteSettings
         Friend Sub New(ByVal h As ISiteSettings)
-            MySiteSettings = DirectCast(h, SiteSettings)
-            With MySiteSettings
+            With DirectCast(h, SiteSettings)
                 GetStories = CBool(.GetStories.Value)
                 GetTagged = CBool(.GetTagged.Value)
             End With

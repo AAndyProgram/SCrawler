@@ -11,11 +11,11 @@ Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Forms.Controls.Base
 Imports PersonalUtilities.Forms.Toolbars
 Friend Class ChannelsStatsForm : Implements IOkCancelDeleteToolbar
-    Private ReadOnly MyDefs As DefaultFormProps
+    Private ReadOnly MyDefs As DefaultFormOptions
     Friend Property DeletedChannels As Integer = 0
     Friend Sub New()
         InitializeComponent()
-        MyDefs = New DefaultFormProps
+        MyDefs = New DefaultFormOptions
     End Sub
     Private Sub ChannelsStatsForm_Load(sender As Object, e As EventArgs) Handles Me.Load
         Try

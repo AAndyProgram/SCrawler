@@ -44,13 +44,11 @@
             'CMB_COLLECTIONS
             '
             ActionButton1.BackgroundImage = CType(resources.GetObject("ActionButton1.BackgroundImage"), System.Drawing.Image)
-            ActionButton1.Index = 0
-            ActionButton1.Name = "BTT_COMBOBOX_ARROW"
-            ActionButton1.Visible = False
+            ActionButton1.Name = "Add"
+            ActionButton1.ToolTipText = "Add new collection"
             ActionButton2.BackgroundImage = CType(resources.GetObject("ActionButton2.BackgroundImage"), System.Drawing.Image)
-            ActionButton2.Index = 1
-            ActionButton2.Name = "BTT_ADD"
-            ActionButton2.ToolTipText = "Add new collection"
+            ActionButton2.Name = "ArrowDown"
+            ActionButton2.Visible = False
             Me.CMB_COLLECTIONS.Buttons.Add(ActionButton1)
             Me.CMB_COLLECTIONS.Buttons.Add(ActionButton2)
             Me.CMB_COLLECTIONS.Dock = System.Windows.Forms.DockStyle.Fill

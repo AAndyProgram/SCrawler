@@ -6,13 +6,13 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
+Imports System.Reflection
+Imports SCrawler.Plugin.Attributes
 Imports PersonalUtilities.Functions.XML.Base
 Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Forms.Controls
 Imports PersonalUtilities.Forms.Controls.Base
 Imports ADB = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons
-Imports SCrawler.Plugin.Attributes
-Imports System.Reflection
 Namespace Plugin.Hosts
     Friend Class PropertyValueHost : Implements IPropertyValue, IComparable(Of PropertyValueHost)
         Friend Const LeftOffsetDefault As Integer = 100
@@ -41,33 +41,43 @@ Namespace Plugin.Hosts
         End Property
         Friend Sub CreateControl(Optional ByVal TT As ToolTip = Nothing)
             With Options
-                If Type Is GetType(Boolean) Then
-                    Control = New CheckBox
-                    If Not .ControlToolTip.IsEmptyString And Not TT Is Nothing Then TT.SetToolTip(Control, .ControlToolTip)
-                    DirectCast(Control, CheckBox).ThreeState = .ThreeStates
-                    DirectCast(Control, CheckBox).Text = .ControlText
-                    If .ThreeStates Then
-                        DirectCast(Control, CheckBox).CheckState = CInt(AConvert(Of Integer)(Value, CInt(CheckState.Indeterminate)))
-                    Else
-                        DirectCast(Control, CheckBox).Checked = CBool(AConvert(Of Boolean)(Value, False))
-                    End If
-                    Control.Padding = New PaddingE(Control.Padding) With {.Left = LeftOffset}
-                Else
-                    Control = New TextBoxExtended
-                    With DirectCast(Control, TextBoxExtended)
-                        .CaptionText = Options.ControlText
-                        .CaptionToolTipEnabled = Not Options.ControlToolTip.IsEmptyString
-                        .CaptionWidth = LeftOffset
-                        If Not Options.ControlToolTip.IsEmptyString Then .CaptionToolTipText = Options.ControlToolTip : .CaptionToolTipEnabled = True
+                If .IsInformationLabel Then
+                    Control = New Label
+                    With DirectCast(Control, Label)
+                        .Padding = New PaddingE(Control.Padding) With {.Left = LeftOffset}
                         .Text = CStr(AConvert(Of String)(Value, String.Empty))
-                        With .Buttons
-                            .BeginInit()
-                            If Not Source Is Nothing And Not UpdateMethod Is Nothing Then .Add(New ActionButton(ADB.Refresh))
-                            .Add(ADB.Clear)
-                            .EndInit(True)
-                        End With
-                        AddHandler .ActionOnButtonClick, AddressOf TextBoxClick
+                        .TextAlign = Options.LabelTextAlign
                     End With
+                    If Not .ControlToolTip.IsEmptyString And Not TT Is Nothing Then TT.SetToolTip(Control, .ControlToolTip)
+                Else
+                    If Type Is GetType(Boolean) Then
+                        Control = New CheckBox
+                        If Not .ControlToolTip.IsEmptyString And Not TT Is Nothing Then TT.SetToolTip(Control, .ControlToolTip)
+                        DirectCast(Control, CheckBox).ThreeState = .ThreeStates
+                        DirectCast(Control, CheckBox).Text = .ControlText
+                        If .ThreeStates Then
+                            DirectCast(Control, CheckBox).CheckState = CInt(AConvert(Of Integer)(Value, CInt(CheckState.Indeterminate)))
+                        Else
+                            DirectCast(Control, CheckBox).Checked = CBool(AConvert(Of Boolean)(Value, False))
+                        End If
+                        Control.Padding = New PaddingE(Control.Padding) With {.Left = LeftOffset}
+                    Else
+                        Control = New TextBoxExtended
+                        With DirectCast(Control, TextBoxExtended)
+                            .CaptionText = Options.ControlText
+                            .CaptionToolTipEnabled = Not Options.ControlToolTip.IsEmptyString
+                            .CaptionWidth = LeftOffset
+                            If Not Options.ControlToolTip.IsEmptyString Then .CaptionToolTipText = Options.ControlToolTip : .CaptionToolTipEnabled = True
+                            .Text = CStr(AConvert(Of String)(Value, String.Empty))
+                            With .Buttons
+                                .BeginInit()
+                                If Not Source Is Nothing And Not UpdateMethod Is Nothing Then .Add(New ActionButton(ADB.Refresh))
+                                .Add(ADB.Clear)
+                                .EndInit(True)
+                            End With
+                            AddHandler .ActionOnButtonClick, AddressOf TextBoxClick
+                        End With
+                    End If
                 End If
                 Control.Tag = Name
                 Control.Dock = DockStyle.Fill
@@ -89,7 +99,7 @@ Namespace Plugin.Hosts
             End Try
         End Sub
         Friend Sub UpdateValueByControl()
-            If Not Control Is Nothing Then
+            If Not Control Is Nothing AndAlso Not TypeOf Control Is Label Then
                 If TypeOf Control Is CheckBox Then
                     With DirectCast(Control, CheckBox)
                         If Options.ThreeStates Then Value = CInt(.CheckState) Else Value = .Checked

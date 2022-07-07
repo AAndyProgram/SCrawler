@@ -8,6 +8,7 @@
 ' but WITHOUT ANY WARRANTY
 Namespace DownloadObjects.Groups
     Friend Interface IGroup
+        Property Name As String
         ReadOnly Property Labels As List(Of String)
         Property Temporary As CheckState
         Property Favorite As CheckState
@@ -15,10 +16,12 @@ Namespace DownloadObjects.Groups
         Property ReadyForDownloadIgnore As Boolean
     End Interface
     Friend Class GroupParameters : Implements IGroup, IDisposable
+        Protected Const Name_Name As String = "Name"
         Protected Const Name_Temporary As String = "Temporary"
         Protected Const Name_Favorite As String = "Favorite"
         Protected Const Name_ReadyForDownload As String = "RFD"
         Protected Const Name_ReadyForDownloadIgnore As String = "RFDI"
+        Friend Property Name As String Implements IGroup.Name
         Friend ReadOnly Property Labels As List(Of String) Implements IGroup.Labels
         Friend Property Temporary As CheckState = CheckState.Indeterminate Implements IGroup.Temporary
         Friend Property Favorite As CheckState = CheckState.Indeterminate Implements IGroup.Favorite

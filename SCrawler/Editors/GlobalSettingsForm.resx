@@ -243,6 +243,14 @@ If checked, videos will be stored in separate folder; otherwise, videos will be 
         AFuc5QFgn6ClHh5iOQVAKNixyucB8NY0vG9JOzzyhrdq5IRgAAAAAElFTkSuQmCC
 </value>
   </data>
+  <data name="ActionButton8.BackgroundImage" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAO
+        xAAADsQBlSsOGwAAAIZJREFUOE+1j10KwCAMgz2b755xl/IsvnaL2K20UfbDAmEako+ZROSTafjE12Go
+        tbbB43rK5xSAQq1VYFtmeQBoqZTSreVZvgTknM8yyyjA/qodsDF9gspD2Bj6B+DH+NqzhQQAG+POMnSX
+        AFuc5QFgn6ClHh5iOQVAKNixyucB8NY0vG9JOzzyhrdq5IRgAAAAAElFTkSuQmCC
+</value>
+  </data>
   <metadata name="TP_OPEN_INFO.GenerateMember" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>False</value>
   </metadata>
@@ -255,7 +263,7 @@ If checked, videos will be stored in separate folder; otherwise, videos will be 
   <metadata name="TP_DOWNLOADING.GenerateMember" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>False</value>
   </metadata>
-  <data name="ActionButton8.BackgroundImage" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+  <data name="ActionButton9.BackgroundImage" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAO
         wwAADsMBx2+oZAAAAR5JREFUOE+VkjFqwzAUhn2D9iShRyi+QhYbGujg3ZATZPKYdC6FQhPwlAMkg3dP
@@ -266,7 +274,7 @@ If checked, videos will be stored in separate folder; otherwise, videos will be 
         cMaRN0UdBBkAAAAASUVORK5CYII=
 </value>
   </data>
-  <data name="ActionButton9.BackgroundImage" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+  <data name="ActionButton10.BackgroundImage" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAO
         xAAADsQBlSsOGwAAAIZJREFUOE+1j10KwCAMgz2b755xl/IsvnaL2K20UfbDAmEako+ZROSTafjE12Go

@@ -18,6 +18,7 @@ Namespace DownloadObjects.Groups
         Private ReadOnly CH_READY_FOR_DOWN As CheckBox
         Private ReadOnly CH_READY_FOR_DOWN_IGNORE As CheckBox
         Private WithEvents TXT_LABELS As TextBoxExtended
+        Friend WithEvents TXT_NAME As TextBoxExtended
         Private ReadOnly Labels As List(Of String)
         Public Sub New()
             Labels = New List(Of String)
@@ -26,6 +27,15 @@ Namespace DownloadObjects.Groups
                 .BeginInit()
                 .Buttons.AddRange({ADB.Edit, ADB.Clear})
                 .CaptionText = "Labels"
+                .CaptionWidth = 50
+                .Dock = DockStyle.Fill
+                .EndInit()
+            End With
+            TXT_NAME = New TextBoxExtended
+            With TXT_NAME
+                .BeginInit()
+                .Buttons.Add(ADB.Clear)
+                .CaptionText = "Name"
                 .CaptionWidth = 50
                 .Dock = DockStyle.Fill
                 .EndInit()
@@ -77,16 +87,18 @@ Namespace DownloadObjects.Groups
                 CellBorderStyle = TableLayoutPanelCellBorderStyle.Single
                 ColumnCount = 1
                 ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 100))
-                RowCount = 5
+                RowCount = 6
                 RowStyles.Add(New RowStyle(SizeType.Absolute, 25))
+                RowStyles.Add(New RowStyle(SizeType.Absolute, 28))
                 RowStyles.Add(New RowStyle(SizeType.Absolute, 25))
                 RowStyles.Add(New RowStyle(SizeType.Absolute, 25))
                 RowStyles.Add(New RowStyle(SizeType.Absolute, 28))
                 RowStyles.Add(New RowStyle(SizeType.Percent, 100))
             End If
-            Controls.Add(TP_1, 0, 1)
-            Controls.Add(TP_2, 0, 2)
-            Controls.Add(TXT_LABELS, 0, 3)
+            Controls.Add(TXT_NAME, 0, 1)
+            Controls.Add(TP_1, 0, 2)
+            Controls.Add(TP_2, 0, 3)
+            Controls.Add(TXT_LABELS, 0, 4)
         End Sub
         Private Sub TXT_LABELS_ActionOnButtonClick(ByVal Sender As ActionButton) Handles TXT_LABELS.ActionOnButtonClick
             Select Case Sender.DefaultButton
@@ -105,6 +117,7 @@ Namespace DownloadObjects.Groups
         Friend Sub [Get](ByRef Instance As IGroup)
             If Not Instance Is Nothing Then
                 With Instance
+                    .Name = TXT_NAME.Text
                     .Temporary = CH_TEMPORARY.CheckState
                     .Favorite = CH_FAV.CheckState
                     .ReadyForDownload = CH_READY_FOR_DOWN.Checked
@@ -117,6 +130,7 @@ Namespace DownloadObjects.Groups
         Friend Sub [Set](ByVal Instance As IGroup)
             If Not Instance Is Nothing Then
                 With Instance
+                    TXT_NAME.Text = .Name
                     CH_TEMPORARY.CheckState = .Temporary
                     CH_FAV.CheckState = .Favorite
                     CH_READY_FOR_DOWN.Checked = .ReadyForDownload

@@ -176,7 +176,8 @@ Namespace API.Twitter
                         If Orig.HasValue AndAlso l(0).Value < Orig.Value.Value Then
                             Return P4K
                         ElseIf l(0).Data.IsEmptyString Then
-                            If LargeContained Then Return "large" Else Return P4K
+                            Return P4K
+                            'If LargeContained Then Return "large" Else Return P4K
                         Else
                             Return l(0).Data
                         End If

@@ -52,8 +52,7 @@ Namespace Editors
             'CMB_SITES
             '
             ActionButton1.BackgroundImage = CType(resources.GetObject("ActionButton1.BackgroundImage"), System.Drawing.Image)
-            ActionButton1.Index = 0
-            ActionButton1.Name = "BTT_COMBOBOX_ARROW"
+            ActionButton1.Name = "ArrowDown"
             ActionButton1.Visible = False
             Me.CMB_SITES.Buttons.Add(ActionButton1)
             ListColumn1.DisplayMember = True

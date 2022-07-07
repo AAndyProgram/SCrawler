@@ -37,12 +37,13 @@
             Dim TAB_BEHAVIOR As System.Windows.Forms.TabPage
             Dim TP_BEHAVIOR As System.Windows.Forms.TableLayoutPanel
             Dim ActionButton7 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton8 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim TP_OPEN_INFO As System.Windows.Forms.TableLayoutPanel
             Dim TP_OPEN_PROGRESS As System.Windows.Forms.TableLayoutPanel
             Dim TAB_DOWN As System.Windows.Forms.TabPage
             Dim TP_DOWNLOADING As System.Windows.Forms.TableLayoutPanel
-            Dim ActionButton8 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim ActionButton9 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton10 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Me.TXT_GLOBAL_PATH = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_IMAGE_LARGE = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_IMAGE_SMALL = New PersonalUtilities.Forms.Controls.TextBoxExtended()
@@ -73,6 +74,7 @@
             Me.CH_DOWN_OPEN_PROGRESS_SUSPEND = New System.Windows.Forms.CheckBox()
             Me.TXT_CHANNELS_ROWS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_CHANNELS_COLUMNS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
+            Me.CH_DOWN_IMAGES_NATIVE = New System.Windows.Forms.CheckBox()
             Me.TXT_CHANNEL_USER_POST_LIMIT = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_FOLDER_CMD = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.CH_EXIT_CONFIRM = New System.Windows.Forms.CheckBox()
@@ -85,8 +87,6 @@
             Me.TXT_SCRIPT = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_DOWN_COMPLETE_SCRIPT = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TAB_MAIN = New System.Windows.Forms.TabControl()
-            Me.TAB_AUTO = New System.Windows.Forms.TabPage()
-            Me.PANEL_AUTO = New System.Windows.Forms.Panel()
             Me.CONTAINER_MAIN = New System.Windows.Forms.ToolStripContainer()
             TP_BASIS = New System.Windows.Forms.TableLayoutPanel()
             TP_IMAGES = New System.Windows.Forms.TableLayoutPanel()
@@ -137,7 +137,6 @@
             CType(Me.TXT_SCRIPT, System.ComponentModel.ISupportInitialize).BeginInit()
             CType(Me.TXT_DOWN_COMPLETE_SCRIPT, System.ComponentModel.ISupportInitialize).BeginInit()
             Me.TAB_MAIN.SuspendLayout()
-            Me.TAB_AUTO.SuspendLayout()
             Me.CONTAINER_MAIN.ContentPanel.SuspendLayout()
             Me.CONTAINER_MAIN.SuspendLayout()
             Me.SuspendLayout()
@@ -176,11 +175,9 @@
             'TXT_GLOBAL_PATH
             '
             ActionButton1.BackgroundImage = CType(resources.GetObject("ActionButton1.BackgroundImage"), System.Drawing.Image)
-            ActionButton1.Index = 0
-            ActionButton1.Name = "BTT_OPEN"
+            ActionButton1.Name = "Open"
             ActionButton2.BackgroundImage = CType(resources.GetObject("ActionButton2.BackgroundImage"), System.Drawing.Image)
-            ActionButton2.Index = 1
-            ActionButton2.Name = "BTT_CLEAR"
+            ActionButton2.Name = "Clear"
             Me.TXT_GLOBAL_PATH.Buttons.Add(ActionButton1)
             Me.TXT_GLOBAL_PATH.Buttons.Add(ActionButton2)
             Me.TXT_GLOBAL_PATH.CaptionText = "Data Path"
@@ -244,8 +241,7 @@
             'TXT_COLLECTIONS_PATH
             '
             ActionButton3.BackgroundImage = CType(resources.GetObject("ActionButton3.BackgroundImage"), System.Drawing.Image)
-            ActionButton3.Index = 0
-            ActionButton3.Name = "BTT_CLEAR"
+            ActionButton3.Name = "Clear"
             Me.TXT_COLLECTIONS_PATH.Buttons.Add(ActionButton3)
             Me.TXT_COLLECTIONS_PATH.CaptionText = "Collections folder"
             Me.TXT_COLLECTIONS_PATH.CaptionToolTipEnabled = True
@@ -259,8 +255,7 @@
             'TXT_MAX_JOBS_USERS
             '
             ActionButton4.BackgroundImage = CType(resources.GetObject("ActionButton4.BackgroundImage"), System.Drawing.Image)
-            ActionButton4.Index = 0
-            ActionButton4.Name = "BTT_REFRESH"
+            ActionButton4.Name = "Refresh"
             ActionButton4.ToolTipText = "Set to default"
             Me.TXT_MAX_JOBS_USERS.Buttons.Add(ActionButton4)
             Me.TXT_MAX_JOBS_USERS.CaptionSizeType = System.Windows.Forms.SizeType.Percent
@@ -279,8 +274,7 @@
             'TXT_MAX_JOBS_CHANNELS
             '
             ActionButton5.BackgroundImage = CType(resources.GetObject("ActionButton5.BackgroundImage"), System.Drawing.Image)
-            ActionButton5.Index = 0
-            ActionButton5.Name = "BTT_REFRESH"
+            ActionButton5.Name = "Refresh"
             ActionButton5.ToolTipText = "Set to default"
             Me.TXT_MAX_JOBS_CHANNELS.Buttons.Add(ActionButton5)
             Me.TXT_MAX_JOBS_CHANNELS.CaptionSizeType = System.Windows.Forms.SizeType.Percent
@@ -310,8 +304,7 @@
             'TXT_IMGUR_CLIENT_ID
             '
             ActionButton6.BackgroundImage = CType(resources.GetObject("ActionButton6.BackgroundImage"), System.Drawing.Image)
-            ActionButton6.Index = 0
-            ActionButton6.Name = "BTT_CLEAR"
+            ActionButton6.Name = "Clear"
             Me.TXT_IMGUR_CLIENT_ID.Buttons.Add(ActionButton6)
             Me.TXT_IMGUR_CLIENT_ID.CaptionText = "Imgur Client ID"
             Me.TXT_IMGUR_CLIENT_ID.Dock = System.Windows.Forms.DockStyle.Fill
@@ -687,18 +680,30 @@
             TP_DEFS.Controls.Add(Me.CH_DOWN_VIDEOS, 0, 3)
             TP_DEFS.Controls.Add(Me.CH_DOWN_IMAGES, 0, 2)
             TP_DEFS.Controls.Add(Me.CH_DEF_TEMP, 0, 1)
+            TP_DEFS.Controls.Add(Me.CH_DOWN_IMAGES_NATIVE, 0, 4)
             TP_DEFS.Dock = System.Windows.Forms.DockStyle.Fill
             TP_DEFS.Location = New System.Drawing.Point(3, 3)
             TP_DEFS.Name = "TP_DEFS"
-            TP_DEFS.RowCount = 5
+            TP_DEFS.RowCount = 6
+            TP_DEFS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_DEFS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_DEFS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_DEFS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_DEFS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_DEFS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_DEFS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
             TP_DEFS.Size = New System.Drawing.Size(570, 278)
             TP_DEFS.TabIndex = 0
+            '
+            'CH_DOWN_IMAGES_NATIVE
+            '
+            Me.CH_DOWN_IMAGES_NATIVE.AutoSize = True
+            Me.CH_DOWN_IMAGES_NATIVE.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_DOWN_IMAGES_NATIVE.Location = New System.Drawing.Point(4, 108)
+            Me.CH_DOWN_IMAGES_NATIVE.Name = "CH_DOWN_IMAGES_NATIVE"
+            Me.CH_DOWN_IMAGES_NATIVE.Size = New System.Drawing.Size(562, 19)
+            Me.CH_DOWN_IMAGES_NATIVE.TabIndex = 4
+            Me.CH_DOWN_IMAGES_NATIVE.Text = "Download 'jpg' instead of 'webp'"
+            Me.CH_DOWN_IMAGES_NATIVE.UseVisualStyleBackColor = True
             '
             'TAB_DEFS_CHANNELS
             '
@@ -799,8 +804,7 @@
             Me.TXT_FOLDER_CMD.AutoShowClearButton = True
             ActionButton7.BackgroundImage = CType(resources.GetObject("ActionButton7.BackgroundImage"), System.Drawing.Image)
             ActionButton7.Enabled = False
-            ActionButton7.Index = 0
-            ActionButton7.Name = "BTT_CLEAR"
+            ActionButton7.Name = "Clear"
             ActionButton7.Visible = False
             Me.TXT_FOLDER_CMD.Buttons.Add(ActionButton7)
             Me.TXT_FOLDER_CMD.CaptionMode = PersonalUtilities.Forms.Controls.Base.ICaptionControl.Modes.CheckBox
@@ -851,11 +855,18 @@
             '
             'TXT_CLOSE_SCRIPT
             '
+            Me.TXT_CLOSE_SCRIPT.AutoShowClearButton = True
+            ActionButton8.BackgroundImage = CType(resources.GetObject("ActionButton8.BackgroundImage"), System.Drawing.Image)
+            ActionButton8.Enabled = False
+            ActionButton8.Name = "Clear"
+            ActionButton8.Visible = False
+            Me.TXT_CLOSE_SCRIPT.Buttons.Add(ActionButton8)
             Me.TXT_CLOSE_SCRIPT.CaptionMode = PersonalUtilities.Forms.Controls.Base.ICaptionControl.Modes.CheckBox
             Me.TXT_CLOSE_SCRIPT.CaptionText = "Close cmd"
             Me.TXT_CLOSE_SCRIPT.CaptionToolTipEnabled = True
             Me.TXT_CLOSE_SCRIPT.CaptionToolTipText = "This command will be executed when SCrawler is closed"
             Me.TXT_CLOSE_SCRIPT.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.TXT_CLOSE_SCRIPT.LeaveDefaultButtons = True
             Me.TXT_CLOSE_SCRIPT.Location = New System.Drawing.Point(4, 215)
             Me.TXT_CLOSE_SCRIPT.Name = "TXT_CLOSE_SCRIPT"
             Me.TXT_CLOSE_SCRIPT.PlaceholderEnabled = True
@@ -966,14 +977,12 @@
             '
             'TXT_SCRIPT
             '
-            ActionButton8.BackgroundImage = CType(resources.GetObject("ActionButton8.BackgroundImage"), System.Drawing.Image)
-            ActionButton8.Index = 0
-            ActionButton8.Name = "BTT_OPEN"
             ActionButton9.BackgroundImage = CType(resources.GetObject("ActionButton9.BackgroundImage"), System.Drawing.Image)
-            ActionButton9.Index = 1
-            ActionButton9.Name = "BTT_CLEAR"
-            Me.TXT_SCRIPT.Buttons.Add(ActionButton8)
+            ActionButton9.Name = "Open"
+            ActionButton10.BackgroundImage = CType(resources.GetObject("ActionButton10.BackgroundImage"), System.Drawing.Image)
+            ActionButton10.Name = "Clear"
             Me.TXT_SCRIPT.Buttons.Add(ActionButton9)
+            Me.TXT_SCRIPT.Buttons.Add(ActionButton10)
             Me.TXT_SCRIPT.CaptionMode = PersonalUtilities.Forms.Controls.Base.ICaptionControl.Modes.CheckBox
             Me.TXT_SCRIPT.CaptionText = "Script"
             Me.TXT_SCRIPT.CaptionToolTipEnabled = True
@@ -1009,7 +1018,6 @@
             Me.TAB_MAIN.Controls.Add(TAB_BEHAVIOR)
             Me.TAB_MAIN.Controls.Add(TAB_DEFAULTS)
             Me.TAB_MAIN.Controls.Add(TAB_DOWN)
-            Me.TAB_MAIN.Controls.Add(Me.TAB_AUTO)
             Me.TAB_MAIN.Controls.Add(TAB_DEFS_CHANNELS)
             Me.TAB_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
             Me.TAB_MAIN.Location = New System.Drawing.Point(0, 0)
@@ -1017,24 +1025,6 @@
             Me.TAB_MAIN.SelectedIndex = 0
             Me.TAB_MAIN.Size = New System.Drawing.Size(584, 310)
             Me.TAB_MAIN.TabIndex = 1
-            '
-            'TAB_AUTO
-            '
-            Me.TAB_AUTO.Controls.Add(Me.PANEL_AUTO)
-            Me.TAB_AUTO.Location = New System.Drawing.Point(4, 22)
-            Me.TAB_AUTO.Name = "TAB_AUTO"
-            Me.TAB_AUTO.Size = New System.Drawing.Size(576, 284)
-            Me.TAB_AUTO.TabIndex = 7
-            Me.TAB_AUTO.Text = "Automation"
-            '
-            'PANEL_AUTO
-            '
-            Me.PANEL_AUTO.AutoSize = True
-            Me.PANEL_AUTO.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.PANEL_AUTO.Location = New System.Drawing.Point(0, 0)
-            Me.PANEL_AUTO.Name = "PANEL_AUTO"
-            Me.PANEL_AUTO.Size = New System.Drawing.Size(576, 284)
-            Me.PANEL_AUTO.TabIndex = 0
             '
             'CONTAINER_MAIN
             '
@@ -1109,8 +1099,6 @@
             CType(Me.TXT_SCRIPT, System.ComponentModel.ISupportInitialize).EndInit()
             CType(Me.TXT_DOWN_COMPLETE_SCRIPT, System.ComponentModel.ISupportInitialize).EndInit()
             Me.TAB_MAIN.ResumeLayout(False)
-            Me.TAB_AUTO.ResumeLayout(False)
-            Me.TAB_AUTO.PerformLayout()
             Me.CONTAINER_MAIN.ContentPanel.ResumeLayout(False)
             Me.CONTAINER_MAIN.ResumeLayout(False)
             Me.CONTAINER_MAIN.PerformLayout()
@@ -1161,7 +1149,6 @@
         Private WithEvents TXT_DOWN_COMPLETE_SCRIPT As PersonalUtilities.Forms.Controls.TextBoxExtended
         Private WithEvents CH_DOWN_OPEN_INFO_SUSPEND As CheckBox
         Private WithEvents CH_DOWN_OPEN_PROGRESS_SUSPEND As CheckBox
-        Private WithEvents TAB_AUTO As TabPage
-        Private WithEvents PANEL_AUTO As Panel
+        Private WithEvents CH_DOWN_IMAGES_NATIVE As CheckBox
     End Class
 End Namespace

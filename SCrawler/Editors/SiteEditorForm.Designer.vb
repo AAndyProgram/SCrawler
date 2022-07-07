@@ -62,11 +62,9 @@
             'TXT_PATH
             '
             ActionButton1.BackgroundImage = CType(resources.GetObject("ActionButton1.BackgroundImage"), System.Drawing.Image)
-            ActionButton1.Index = 0
-            ActionButton1.Name = "BTT_OPEN"
+            ActionButton1.Name = "Open"
             ActionButton2.BackgroundImage = CType(resources.GetObject("ActionButton2.BackgroundImage"), System.Drawing.Image)
-            ActionButton2.Index = 1
-            ActionButton2.Name = "BTT_CLEAR"
+            ActionButton2.Name = "Clear"
             Me.TXT_PATH.Buttons.Add(ActionButton1)
             Me.TXT_PATH.Buttons.Add(ActionButton2)
             Me.TXT_PATH.CaptionText = "Path"
@@ -81,11 +79,9 @@
             'TXT_COOKIES
             '
             ActionButton3.BackgroundImage = CType(resources.GetObject("ActionButton3.BackgroundImage"), System.Drawing.Image)
-            ActionButton3.Index = 0
-            ActionButton3.Name = "BTT_EDIT"
+            ActionButton3.Name = "Edit"
             ActionButton4.BackgroundImage = CType(resources.GetObject("ActionButton4.BackgroundImage"), System.Drawing.Image)
-            ActionButton4.Index = 1
-            ActionButton4.Name = "BTT_CLEAR"
+            ActionButton4.Name = "Clear"
             Me.TXT_COOKIES.Buttons.Add(ActionButton3)
             Me.TXT_COOKIES.Buttons.Add(ActionButton4)
             Me.TXT_COOKIES.CaptionText = "Cookies"
@@ -117,11 +113,9 @@
             'TXT_PATH_SAVED_POSTS
             '
             ActionButton5.BackgroundImage = CType(resources.GetObject("ActionButton5.BackgroundImage"), System.Drawing.Image)
-            ActionButton5.Index = 0
-            ActionButton5.Name = "BTT_OPEN"
+            ActionButton5.Name = "Open"
             ActionButton6.BackgroundImage = CType(resources.GetObject("ActionButton6.BackgroundImage"), System.Drawing.Image)
-            ActionButton6.Index = 1
-            ActionButton6.Name = "BTT_CLEAR"
+            ActionButton6.Name = "Clear"
             Me.TXT_PATH_SAVED_POSTS.Buttons.Add(ActionButton5)
             Me.TXT_PATH_SAVED_POSTS.Buttons.Add(ActionButton6)
             Me.TXT_PATH_SAVED_POSTS.CaptionText = "Saved posts path"

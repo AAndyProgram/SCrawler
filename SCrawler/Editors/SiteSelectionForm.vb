@@ -11,13 +11,13 @@ Imports PersonalUtilities.Forms.Toolbars
 Imports PersonalUtilities.Forms.Controls.Base
 Namespace Editors
     Friend Class SiteSelectionForm : Implements IOkCancelToolbar
-        Private ReadOnly MyDefs As DefaultFormProps
+        Private ReadOnly MyDefs As DefaultFormOptions
         Friend ReadOnly Property SelectedSites As List(Of String)
         Friend Sub New(ByVal s As List(Of String))
             InitializeComponent()
             SelectedSites.ListAddList(s)
             If SelectedSites Is Nothing Then SelectedSites = New List(Of String)
-            MyDefs = New DefaultFormProps
+            MyDefs = New DefaultFormOptions
         End Sub
         Private Sub SiteSelectionForm_Load(sender As Object, e As EventArgs) Handles Me.Load
             With MyDefs
@@ -32,7 +32,7 @@ Namespace Editors
                 CMB_SITES.EndUpdate()
                 If l.Count > 0 Then CMB_SITES.ListCheckedIndexes = l : l.Clear()
                 .DelegateClosingChecker = False
-                .EndLoaderOperations(False)
+                .EndLoaderOperations()
                 .MyOkCancel.EnableOK = True
             End With
         End Sub

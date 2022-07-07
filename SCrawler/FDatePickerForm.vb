@@ -9,7 +9,7 @@
 Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Forms.Toolbars
 Friend Class FDatePickerForm : Implements IOkCancelDeleteToolbar
-    Private MyDefs As DefaultFormProps
+    Private MyDefs As DefaultFormOptions
     Friend ReadOnly Property SelectedDate As Date?
         Get
             If DT.Checked Then Return DT.Value.Date Else Return Nothing
@@ -21,24 +21,20 @@ Friend Class FDatePickerForm : Implements IOkCancelDeleteToolbar
         _InitialValue = d
     End Sub
     Private Sub FDatePickerForm_Load(sender As Object, e As EventArgs) Handles Me.Load
-        Try
-            MyDefs = New DefaultFormProps
-            With MyDefs
-                .MyViewInitialize(Me, Settings.Design, True)
-                .AddOkCancelToolbar()
-                If _InitialValue.HasValue Then
-                    DT.Checked = True
-                    DT.Value = _InitialValue.Value.Date
-                Else
-                    DT.Checked = False
-                End If
-                .DelegateClosingChecker = False
-                .EndLoaderOperations()
-                MyDefs.MyOkCancel.EnableOK = True
-            End With
-        Catch ex As Exception
-            MyDefs.InvokeLoaderError(ex)
-        End Try
+        MyDefs = New DefaultFormOptions
+        With MyDefs
+            .MyViewInitialize(Me, Settings.Design, True)
+            .AddOkCancelToolbar()
+            If _InitialValue.HasValue Then
+                DT.Checked = True
+                DT.Value = _InitialValue.Value.Date
+            Else
+                DT.Checked = False
+            End If
+            .DelegateClosingChecker = False
+            .EndLoaderOperations()
+            MyDefs.MyOkCancel.EnableOK = True
+        End With
     End Sub
     Private Sub OK() Implements IOkCancelToolbar.OK
         MyDefs.CloseForm()

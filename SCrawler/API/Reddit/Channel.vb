@@ -44,10 +44,12 @@ Namespace API.Reddit
                 Return ListAddList(Nothing, Posts).ListAddList(PostsLatest).ListSort
             End Get
         End Property
-        Private ReadOnly Property Source As IEnumerable(Of UserPost) Implements IRangeSwitcherContainer(Of UserPost).Source
+        Private Property Source As IEnumerable(Of UserPost) Implements IRangeSwitcherContainer(Of UserPost).Source
             Get
                 Return Posts
             End Get
+            Set(ByVal s As IEnumerable(Of UserPost))
+            End Set
         End Property
         Friend Property LatestParsedDate As Date? = Nothing
         Private _Downloading As Boolean = False

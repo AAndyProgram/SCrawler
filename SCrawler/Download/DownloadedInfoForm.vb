@@ -161,7 +161,7 @@ Namespace DownloadObjects
         End Sub
         Private Sub LIST_DOWN_MouseDoubleClick(sender As Object, e As MouseEventArgs) Handles LIST_DOWN.MouseDoubleClick
             Try
-                If _LatestSelected >= 0 AndAlso _LatestSelected <= _TempUsersList.Count - 1 AndAlso
+                If _LatestSelected.ValueBetween(0, _TempUsersList.Count - 1) AndAlso
                    Not DirectCast(_TempUsersList(_LatestSelected), UserDataBase).Disposed Then _TempUsersList(_LatestSelected).OpenFolder()
             Catch ex As Exception
             End Try

@@ -18,7 +18,7 @@ Namespace Editors
     Friend Class SiteEditorForm : Implements IOkCancelToolbar
         Private ReadOnly LBL_AUTH As Label
         Private ReadOnly LBL_OTHER As Label
-        Private ReadOnly MyDefs As DefaultFormProps
+        Private ReadOnly MyDefs As DefaultFormOptions
         Private WithEvents SpecialButton As Button
 #Region "Providers"
         Private Class SavedPostsChecker : Implements IFieldsCheckerProvider
@@ -42,7 +42,7 @@ Namespace Editors
         Private ReadOnly Property Host As SettingsHost
         Friend Sub New(ByVal h As SettingsHost)
             InitializeComponent()
-            MyDefs = New DefaultFormProps
+            MyDefs = New DefaultFormOptions
             Host = h
             LBL_AUTH = New Label With {.Text = "Authorization", .TextAlign = ContentAlignment.MiddleCenter, .Dock = DockStyle.Fill}
             LBL_OTHER = New Label With {.Text = "Other Parameters", .TextAlign = ContentAlignment.MiddleCenter, .Dock = DockStyle.Fill}

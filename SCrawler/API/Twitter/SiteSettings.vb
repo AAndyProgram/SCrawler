@@ -6,11 +6,11 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
+Imports SCrawler.API.Base
 Imports SCrawler.Plugin
 Imports SCrawler.Plugin.Attributes
 Imports PersonalUtilities.Tools
 Imports PersonalUtilities.Functions.RegularExpressions
-Imports SCrawler.API.Base
 Namespace API.Twitter
     <Manifest("AndyProgram_Twitter"), SavedPosts, UseClassAsIs>
     Friend Class SiteSettings : Inherits SiteSettingsBase

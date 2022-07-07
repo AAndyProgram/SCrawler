@@ -8,18 +8,19 @@
 ' but WITHOUT ANY WARRANTY
 Imports PersonalUtilities.Forms.Toolbars
 Imports PersonalUtilities.Forms
-Public Class SettingsForm : Implements IOkCancelToolbar
-    Private ReadOnly MyDefs As DefaultFormProps
+Public Class SettingsForm
+    Private WithEvents MyDefs As DefaultFormOptions
     Private ReadOnly Property Settings As SiteSettings
-    Friend Sub New(ByRef s As SiteSettings)
+    Friend Sub New(ByRef s As SiteSettings, ByRef Design As XML.XmlFile)
         InitializeComponent()
-        MyDefs = New DefaultFormProps
         Settings = s
+        MyDefs = New DefaultFormOptions(Me, Design)
     End Sub
     Private Sub SettingsForm_Load(sender As Object, e As EventArgs) Handles Me.Load
         Try
             With MyDefs
-                .MyViewInitialize(Me, Settings.Design, True)
+                .MyViewInitialize(True)
+                .AddEditToolbar({EditToolbar.ControlItem.Add, EditToolbar.ControlItem.Delete})
                 .AddOkCancelToolbar()
                 If Settings.Domains.Count > 0 Then Settings.Domains.ForEach(Sub(d) LIST_DOMAINS.Items.Add(d))
                 .EndLoaderOperations()
@@ -28,7 +29,7 @@ Public Class SettingsForm : Implements IOkCancelToolbar
             MyDefs.InvokeLoaderError(ex)
         End Try
     End Sub
-    Private Sub OK() Implements IOkCancelToolbar.OK
+    Private Sub MyDefs_ButtonOkClick() Handles MyDefs.ButtonOkClick
         Settings.Domains.Clear()
         With LIST_DOMAINS
             If .Items.Count > 0 Then
@@ -38,10 +39,7 @@ Public Class SettingsForm : Implements IOkCancelToolbar
         Settings.UpdateDomains()
         MyDefs.CloseForm()
     End Sub
-    Private Sub Cancel() Implements IOkCancelToolbar.Cancel
-        MyDefs.CloseForm(Windows.Forms.DialogResult.Cancel)
-    End Sub
-    Private Sub BTT_ADD_Click(sender As Object, e As EventArgs) Handles BTT_ADD.Click
+    Private Sub MyDefs_ButtonAddClick() Handles MyDefs.ButtonAddClick
         Dim nd$ = InputBoxE("Enter a new domain using the pattern [xvideos.com]:", "New domain")
         If Not nd.IsEmptyString Then
             If Not LIST_DOMAINS.Items.Contains(nd) Then
@@ -51,7 +49,7 @@ Public Class SettingsForm : Implements IOkCancelToolbar
             End If
         End If
     End Sub
-    Private Sub BTT_DELETE_Click(sender As Object, e As EventArgs) Handles BTT_DELETE.Click
+    Private Sub MyDefs_ButtonDeleteClick() Handles MyDefs.ButtonDeleteClickE
         If _LatestSelected.ValueBetween(0, LIST_DOMAINS.Items.Count - 1) Then
             Dim n$ = LIST_DOMAINS.Items(_LatestSelected)
             If MsgBoxE({$"Are you sure you want to delete the [{n}] domain?",

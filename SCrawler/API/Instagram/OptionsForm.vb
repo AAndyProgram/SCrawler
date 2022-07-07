@@ -10,12 +10,12 @@ Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Forms.Toolbars
 Namespace API.Instagram
     Friend Class OptionsForm : Implements IOkCancelToolbar
-        Private ReadOnly MyDefs As DefaultFormProps
+        Private ReadOnly MyDefs As DefaultFormOptions
         Private ReadOnly Property MyExchangeOptions As EditorExchangeOptions
         Friend Sub New(ByRef ExchangeOptions As EditorExchangeOptions)
             InitializeComponent()
             MyExchangeOptions = ExchangeOptions
-            MyDefs = New DefaultFormProps
+            MyDefs = New DefaultFormOptions
         End Sub
         Private Sub OptionsForm_Load(sender As Object, e As EventArgs) Handles Me.Load
             With MyDefs

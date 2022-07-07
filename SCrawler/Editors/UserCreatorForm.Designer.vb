@@ -125,7 +125,7 @@
             TP_SITE.ColumnCount = 3
             TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 79.0!))
             TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 96.0!))
+            TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 98.0!))
             TP_SITE.Controls.Add(Me.CH_IS_CHANNEL, 0, 0)
             TP_SITE.Controls.Add(Me.CMB_SITE, 1, 0)
             TP_SITE.Controls.Add(Me.BTT_OTHER_SETTINGS, 2, 0)
@@ -152,8 +152,7 @@
             'CMB_SITE
             '
             ActionButton1.BackgroundImage = CType(resources.GetObject("ActionButton1.BackgroundImage"), System.Drawing.Image)
-            ActionButton1.Index = 0
-            ActionButton1.Name = "BTT_COMBOBOX_ARROW"
+            ActionButton1.Name = "ArrowDown"
             Me.CMB_SITE.Buttons.Add(ActionButton1)
             ListColumn1.Name = "_COL_KEY"
             ListColumn1.Text = "Key"
@@ -169,17 +168,17 @@
             Me.CMB_SITE.Location = New System.Drawing.Point(84, 3)
             Me.CMB_SITE.Margin = New System.Windows.Forms.Padding(3, 2, 3, 3)
             Me.CMB_SITE.Name = "CMB_SITE"
-            Me.CMB_SITE.Size = New System.Drawing.Size(267, 22)
+            Me.CMB_SITE.Size = New System.Drawing.Size(265, 22)
             Me.CMB_SITE.TabIndex = 1
             Me.CMB_SITE.TextBoxBorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
             '
             'BTT_OTHER_SETTINGS
             '
             Me.BTT_OTHER_SETTINGS.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.BTT_OTHER_SETTINGS.Location = New System.Drawing.Point(356, 2)
+            Me.BTT_OTHER_SETTINGS.Location = New System.Drawing.Point(354, 2)
             Me.BTT_OTHER_SETTINGS.Margin = New System.Windows.Forms.Padding(1)
             Me.BTT_OTHER_SETTINGS.Name = "BTT_OTHER_SETTINGS"
-            Me.BTT_OTHER_SETTINGS.Size = New System.Drawing.Size(94, 24)
+            Me.BTT_OTHER_SETTINGS.Size = New System.Drawing.Size(96, 24)
             Me.BTT_OTHER_SETTINGS.TabIndex = 2
             Me.BTT_OTHER_SETTINGS.Text = "Options (F2)"
             TT_MAIN.SetToolTip(Me.BTT_OTHER_SETTINGS, "Other settings")
@@ -272,8 +271,7 @@
             '
             ActionButton2.BackgroundImage = CType(resources.GetObject("ActionButton2.BackgroundImage"), System.Drawing.Image)
             ActionButton2.Dock = System.Windows.Forms.DockStyle.Top
-            ActionButton2.Index = 0
-            ActionButton2.Name = "BTT_CLEAR"
+            ActionButton2.Name = "Clear"
             Me.TXT_DESCR.Buttons.Add(ActionButton2)
             Me.TXT_DESCR.CaptionDock = System.Windows.Forms.DockStyle.Top
             Me.TXT_DESCR.CaptionMode = PersonalUtilities.Forms.Controls.Base.ICaptionControl.Modes.None
@@ -339,11 +337,9 @@
             'TXT_LABELS
             '
             ActionButton3.BackgroundImage = CType(resources.GetObject("ActionButton3.BackgroundImage"), System.Drawing.Image)
-            ActionButton3.Index = 0
-            ActionButton3.Name = "BTT_OPEN"
+            ActionButton3.Name = "Open"
             ActionButton4.BackgroundImage = CType(resources.GetObject("ActionButton4.BackgroundImage"), System.Drawing.Image)
-            ActionButton4.Index = 1
-            ActionButton4.Name = "BTT_CLEAR"
+            ActionButton4.Name = "Clear"
             Me.TXT_LABELS.Buttons.Add(ActionButton3)
             Me.TXT_LABELS.Buttons.Add(ActionButton4)
             Me.TXT_LABELS.CaptionText = "Labels"
@@ -399,12 +395,10 @@
             'TXT_SPEC_FOLDER
             '
             ActionButton5.BackgroundImage = CType(resources.GetObject("ActionButton5.BackgroundImage"), System.Drawing.Image)
-            ActionButton5.Index = 0
-            ActionButton5.Name = "BTT_OPEN"
+            ActionButton5.Name = "Open"
             ActionButton5.ToolTipText = "Select a new path in the folder selection dialog"
             ActionButton6.BackgroundImage = CType(resources.GetObject("ActionButton6.BackgroundImage"), System.Drawing.Image)
-            ActionButton6.Index = 1
-            ActionButton6.Name = "BTT_CLEAR"
+            ActionButton6.Name = "Clear"
             ActionButton6.ToolTipText = "Clear"
             Me.TXT_SPEC_FOLDER.Buttons.Add(ActionButton5)
             Me.TXT_SPEC_FOLDER.Buttons.Add(ActionButton6)
@@ -419,12 +413,10 @@
             '
             ActionButton7.BackgroundImage = CType(resources.GetObject("ActionButton7.BackgroundImage"), System.Drawing.Image)
             ActionButton7.Enabled = False
-            ActionButton7.Index = 0
-            ActionButton7.Name = "BTT_OPEN"
+            ActionButton7.Name = "Open"
             ActionButton8.BackgroundImage = CType(resources.GetObject("ActionButton8.BackgroundImage"), System.Drawing.Image)
             ActionButton8.Enabled = False
-            ActionButton8.Index = 1
-            ActionButton8.Name = "BTT_CLEAR"
+            ActionButton8.Name = "Clear"
             Me.TXT_SCRIPT.Buttons.Add(ActionButton7)
             Me.TXT_SCRIPT.Buttons.Add(ActionButton8)
             Me.TXT_SCRIPT.CaptionMode = PersonalUtilities.Forms.Controls.Base.ICaptionControl.Modes.CheckBox

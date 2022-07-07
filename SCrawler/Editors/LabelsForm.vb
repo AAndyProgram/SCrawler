@@ -12,7 +12,7 @@ Imports PersonalUtilities.Forms.Controls
 Imports PersonalUtilities.Forms.Controls.Base
 Imports PersonalUtilities.Functions.Messaging
 Friend Class LabelsForm : Implements IOkCancelDeleteToolbar
-    Private ReadOnly MyDefs As DefaultFormProps
+    Private ReadOnly MyDefs As DefaultFormOptions
     Friend ReadOnly Property LabelsList As List(Of String)
     Private ReadOnly _Source As IEnumerable(Of String) = Nothing
     Private ReadOnly Property Source As IEnumerable(Of String)
@@ -32,7 +32,7 @@ Friend Class LabelsForm : Implements IOkCancelDeleteToolbar
         InitializeComponent()
         LabelsList = New List(Of String)
         LabelsList.ListAddList(LabelsArr)
-        MyDefs = New DefaultFormProps
+        MyDefs = New DefaultFormOptions
     End Sub
     Friend Sub New(ByVal Current As IEnumerable(Of String), ByVal Source As IEnumerable(Of String))
         Me.New(Current)

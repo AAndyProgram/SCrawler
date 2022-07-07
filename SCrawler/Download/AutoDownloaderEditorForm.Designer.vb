@@ -29,6 +29,7 @@ Namespace DownloadObjects
             Dim ActionButton2 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim TP_MODE As System.Windows.Forms.TableLayoutPanel
             Dim ActionButton3 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton4 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim TT_MAIN As System.Windows.Forms.ToolTip
             Me.DEF_GROUP = New SCrawler.DownloadObjects.Groups.GroupDefaults()
             Me.TXT_GROUPS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
@@ -40,6 +41,7 @@ Namespace DownloadObjects
             Me.CH_NOTIFY = New System.Windows.Forms.CheckBox()
             Me.TXT_TIMER = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.LBL_LAST_TIME_UP = New System.Windows.Forms.Label()
+            Me.NUM_DELAY = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             CONTAINER_MAIN = New System.Windows.Forms.ToolStripContainer()
             TP_MODE = New System.Windows.Forms.TableLayoutPanel()
             TT_MAIN = New System.Windows.Forms.ToolTip(Me.components)
@@ -49,6 +51,7 @@ Namespace DownloadObjects
             CType(Me.TXT_GROUPS, System.ComponentModel.ISupportInitialize).BeginInit()
             TP_MODE.SuspendLayout()
             CType(Me.TXT_TIMER, System.ComponentModel.ISupportInitialize).BeginInit()
+            CType(Me.NUM_DELAY, System.ComponentModel.ISupportInitialize).BeginInit()
             Me.SuspendLayout()
             '
             'CONTAINER_MAIN
@@ -57,13 +60,13 @@ Namespace DownloadObjects
             'CONTAINER_MAIN.ContentPanel
             '
             CONTAINER_MAIN.ContentPanel.Controls.Add(Me.DEF_GROUP)
-            CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(476, 242)
+            CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(476, 301)
             CONTAINER_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
             CONTAINER_MAIN.LeftToolStripPanelVisible = False
             CONTAINER_MAIN.Location = New System.Drawing.Point(0, 0)
             CONTAINER_MAIN.Name = "CONTAINER_MAIN"
             CONTAINER_MAIN.RightToolStripPanelVisible = False
-            CONTAINER_MAIN.Size = New System.Drawing.Size(476, 242)
+            CONTAINER_MAIN.Size = New System.Drawing.Size(476, 301)
             CONTAINER_MAIN.TabIndex = 0
             CONTAINER_MAIN.TopToolStripPanelVisible = False
             '
@@ -72,44 +75,45 @@ Namespace DownloadObjects
             Me.DEF_GROUP.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
             Me.DEF_GROUP.ColumnCount = 1
             Me.DEF_GROUP.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            Me.DEF_GROUP.Controls.Add(Me.TXT_GROUPS, 0, 4)
+            Me.DEF_GROUP.Controls.Add(Me.TXT_GROUPS, 0, 5)
             Me.DEF_GROUP.Controls.Add(TP_MODE, 0, 0)
-            Me.DEF_GROUP.Controls.Add(Me.CH_NOTIFY, 0, 5)
-            Me.DEF_GROUP.Controls.Add(Me.TXT_TIMER, 0, 6)
-            Me.DEF_GROUP.Controls.Add(Me.LBL_LAST_TIME_UP, 0, 7)
+            Me.DEF_GROUP.Controls.Add(Me.CH_NOTIFY, 0, 6)
+            Me.DEF_GROUP.Controls.Add(Me.TXT_TIMER, 0, 7)
+            Me.DEF_GROUP.Controls.Add(Me.LBL_LAST_TIME_UP, 0, 9)
+            Me.DEF_GROUP.Controls.Add(Me.NUM_DELAY, 0, 8)
             Me.DEF_GROUP.Dock = System.Windows.Forms.DockStyle.Fill
             Me.DEF_GROUP.Location = New System.Drawing.Point(0, 0)
             Me.DEF_GROUP.Name = "DEF_GROUP"
-            Me.DEF_GROUP.RowCount = 9
+            Me.DEF_GROUP.RowCount = 11
             Me.DEF_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            Me.DEF_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             Me.DEF_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             Me.DEF_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             Me.DEF_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             Me.DEF_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             Me.DEF_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            Me.DEF_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             Me.DEF_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             Me.DEF_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             Me.DEF_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            Me.DEF_GROUP.Size = New System.Drawing.Size(476, 242)
+            Me.DEF_GROUP.Size = New System.Drawing.Size(476, 301)
             Me.DEF_GROUP.TabIndex = 0
             '
             'TXT_GROUPS
             '
             ActionButton1.BackgroundImage = CType(resources.GetObject("ActionButton1.BackgroundImage"), System.Drawing.Image)
-            ActionButton1.Index = 0
-            ActionButton1.Name = "BTT_EDIT"
+            ActionButton1.Name = "Edit"
             ActionButton2.BackgroundImage = CType(resources.GetObject("ActionButton2.BackgroundImage"), System.Drawing.Image)
-            ActionButton2.Index = 1
-            ActionButton2.Name = "BTT_CLEAR"
+            ActionButton2.Name = "Clear"
             Me.TXT_GROUPS.Buttons.Add(ActionButton1)
             Me.TXT_GROUPS.Buttons.Add(ActionButton2)
             Me.TXT_GROUPS.CaptionText = "Groups"
             Me.TXT_GROUPS.CaptionWidth = 50.0R
             Me.TXT_GROUPS.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_GROUPS.Location = New System.Drawing.Point(4, 111)
+            Me.TXT_GROUPS.Location = New System.Drawing.Point(4, 140)
             Me.TXT_GROUPS.Name = "TXT_GROUPS"
             Me.TXT_GROUPS.Size = New System.Drawing.Size(468, 22)
-            Me.TXT_GROUPS.TabIndex = 4
+            Me.TXT_GROUPS.TabIndex = 2
             '
             'TP_MODE
             '
@@ -132,7 +136,7 @@ Namespace DownloadObjects
             TP_MODE.RowCount = 1
             TP_MODE.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
             TP_MODE.Size = New System.Drawing.Size(474, 25)
-            TP_MODE.TabIndex = 8
+            TP_MODE.TabIndex = 1
             '
             'OPT_ALL
             '
@@ -203,52 +207,71 @@ Namespace DownloadObjects
             '
             Me.CH_NOTIFY.AutoSize = True
             Me.CH_NOTIFY.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_NOTIFY.Location = New System.Drawing.Point(4, 140)
+            Me.CH_NOTIFY.Location = New System.Drawing.Point(4, 169)
             Me.CH_NOTIFY.Name = "CH_NOTIFY"
             Me.CH_NOTIFY.Size = New System.Drawing.Size(468, 19)
-            Me.CH_NOTIFY.TabIndex = 12
+            Me.CH_NOTIFY.TabIndex = 3
             Me.CH_NOTIFY.Text = "Show notifications"
             Me.CH_NOTIFY.UseVisualStyleBackColor = True
             '
             'TXT_TIMER
             '
             ActionButton3.BackgroundImage = CType(resources.GetObject("ActionButton3.BackgroundImage"), System.Drawing.Image)
-            ActionButton3.Index = 0
-            ActionButton3.Name = "BTT_REFRESH"
+            ActionButton3.Name = "Refresh"
             Me.TXT_TIMER.Buttons.Add(ActionButton3)
             Me.TXT_TIMER.CaptionText = "Timer"
             Me.TXT_TIMER.CaptionWidth = 50.0R
             Me.TXT_TIMER.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_TIMER.Location = New System.Drawing.Point(4, 166)
+            Me.TXT_TIMER.Location = New System.Drawing.Point(4, 195)
             Me.TXT_TIMER.Name = "TXT_TIMER"
             Me.TXT_TIMER.Size = New System.Drawing.Size(468, 22)
-            Me.TXT_TIMER.TabIndex = 16
+            Me.TXT_TIMER.TabIndex = 4
             '
             'LBL_LAST_TIME_UP
             '
             Me.LBL_LAST_TIME_UP.AutoSize = True
             Me.LBL_LAST_TIME_UP.Dock = System.Windows.Forms.DockStyle.Fill
             Me.LBL_LAST_TIME_UP.Font = New System.Drawing.Font("Microsoft Sans Serif", 8.25!, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, CType(204, Byte))
-            Me.LBL_LAST_TIME_UP.Location = New System.Drawing.Point(4, 192)
+            Me.LBL_LAST_TIME_UP.Location = New System.Drawing.Point(4, 250)
             Me.LBL_LAST_TIME_UP.Name = "LBL_LAST_TIME_UP"
             Me.LBL_LAST_TIME_UP.Size = New System.Drawing.Size(468, 25)
-            Me.LBL_LAST_TIME_UP.TabIndex = 20
+            Me.LBL_LAST_TIME_UP.TabIndex = 6
             Me.LBL_LAST_TIME_UP.Text = "Last download date: "
             Me.LBL_LAST_TIME_UP.TextAlign = System.Drawing.ContentAlignment.TopCenter
+            '
+            'NUM_DELAY
+            '
+            ActionButton4.BackgroundImage = CType(resources.GetObject("ActionButton4.BackgroundImage"), System.Drawing.Image)
+            ActionButton4.Name = "Refresh"
+            Me.NUM_DELAY.Buttons.Add(ActionButton4)
+            Me.NUM_DELAY.CaptionText = "Delay"
+            Me.NUM_DELAY.CaptionToolTipEnabled = True
+            Me.NUM_DELAY.CaptionToolTipText = "Startup delay"
+            Me.NUM_DELAY.CaptionWidth = 50.0R
+            Me.NUM_DELAY.ClearTextByButtonClear = False
+            Me.NUM_DELAY.ControlMode = PersonalUtilities.Forms.Controls.TextBoxExtended.ControlModes.NumericUpDown
+            Me.NUM_DELAY.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.NUM_DELAY.Location = New System.Drawing.Point(4, 224)
+            Me.NUM_DELAY.Name = "NUM_DELAY"
+            Me.NUM_DELAY.NumberMaximum = New Decimal(New Integer() {1440, 0, 0, 0})
+            Me.NUM_DELAY.NumberUpDownAlign = System.Windows.Forms.LeftRightAlignment.Left
+            Me.NUM_DELAY.Size = New System.Drawing.Size(468, 22)
+            Me.NUM_DELAY.TabIndex = 5
+            Me.NUM_DELAY.Text = "0"
             '
             'AutoDownloaderEditorForm
             '
             Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
             Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-            Me.ClientSize = New System.Drawing.Size(476, 242)
+            Me.ClientSize = New System.Drawing.Size(476, 301)
             Me.Controls.Add(CONTAINER_MAIN)
             Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle
             Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
             Me.KeyPreview = True
             Me.MaximizeBox = False
-            Me.MaximumSize = New System.Drawing.Size(492, 281)
+            Me.MaximumSize = New System.Drawing.Size(492, 340)
             Me.MinimizeBox = False
-            Me.MinimumSize = New System.Drawing.Size(492, 281)
+            Me.MinimumSize = New System.Drawing.Size(492, 340)
             Me.Name = "AutoDownloaderEditorForm"
             Me.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide
             Me.Text = "AutoDownloader settings"
@@ -261,6 +284,7 @@ Namespace DownloadObjects
             TP_MODE.ResumeLayout(False)
             TP_MODE.PerformLayout()
             CType(Me.TXT_TIMER, System.ComponentModel.ISupportInitialize).EndInit()
+            CType(Me.NUM_DELAY, System.ComponentModel.ISupportInitialize).EndInit()
             Me.ResumeLayout(False)
 
         End Sub
@@ -274,5 +298,6 @@ Namespace DownloadObjects
         Friend WithEvents TXT_TIMER As PersonalUtilities.Forms.Controls.TextBoxExtended
         Private WithEvents OPT_GROUP As RadioButton
         Private WithEvents LBL_LAST_TIME_UP As Label
+        Private WithEvents NUM_DELAY As PersonalUtilities.Forms.Controls.TextBoxExtended
     End Class
 End Namespace

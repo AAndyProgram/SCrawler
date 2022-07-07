@@ -11,19 +11,10 @@ Imports PersonalUtilities.Forms.Controls.Base
 Imports PersonalUtilities.Forms.Toolbars
 Namespace Editors
     Friend Class GlobalSettingsForm : Implements IOkCancelToolbar
-        Private ReadOnly MyDefs As DefaultFormProps
-        Private ReadOnly Automation As DownloadObjects.AutoDownloaderEditorForm
+        Private ReadOnly MyDefs As DefaultFormOptions
         Friend Sub New()
             InitializeComponent()
-            MyDefs = New DefaultFormProps
-            Automation = New DownloadObjects.AutoDownloaderEditorForm With {
-                .MaximumSize = New Size(0, 0),
-                .MinimumSize = New Size(0, 0),
-                .Dock = DockStyle.Fill,
-                .FormBorderStyle = FormBorderStyle.None,
-                .TopLevel = False,
-                .IsControlForm = True
-            }
+            MyDefs = New DefaultFormOptions
         End Sub
         Private Sub GlobalSettingsForm_Load(sender As Object, e As EventArgs) Handles Me.Load
             Try
@@ -61,6 +52,7 @@ Namespace Editors
                         CH_DEF_TEMP.Checked = .DefaultTemporary
                         CH_DOWN_IMAGES.Checked = .DefaultDownloadImages
                         CH_DOWN_VIDEOS.Checked = .DefaultDownloadVideos
+                        CH_DOWN_IMAGES_NATIVE.Checked = .DownloadNativeImageFormat
                         'Downloading
                         CH_UDESCR_UP.Checked = .UpdateUserDescriptionEveryTime
                         TXT_SCRIPT.Checked = .ScriptData.Attribute
@@ -85,14 +77,10 @@ Namespace Editors
                         CH_COPY_CHANNEL_USER_IMAGE_ALL.Enabled = CH_COPY_CHANNEL_USER_IMAGE.Checked
                         CH_CHANNELS_USERS_TEMP.Checked = .ChannelsDefaultTemporary
                     End With
-                    PANEL_AUTO.Controls.Add(Automation)
-                    Automation.Show()
                     .MyFieldsChecker = New FieldsChecker
                     With DirectCast(.MyFieldsChecker, FieldsChecker)
                         .AddControl(Of String)(TXT_GLOBAL_PATH, TXT_GLOBAL_PATH.CaptionText)
                         .AddControl(Of String)(TXT_COLLECTIONS_PATH, TXT_COLLECTIONS_PATH.CaptionText)
-                        .AddControl(Of Integer)(Automation.TXT_TIMER, Automation.TXT_TIMER.CaptionText,,
-                                                New DownloadObjects.AutoDownloaderEditorForm.AutomationTimerChecker)
                         .EndLoaderOperations()
                     End With
                     .EndLoaderOperations()
@@ -101,9 +89,6 @@ Namespace Editors
             Catch ex As Exception
                 MyDefs.InvokeLoaderError(ex)
             End Try
-        End Sub
-        Private Sub GlobalSettingsForm_Disposed(sender As Object, e As EventArgs) Handles Me.Disposed
-            Automation.Dispose()
         End Sub
         Private Sub OK() Implements IOkCancelToolbar.OK
             If MyDefs.MyFieldsChecker.AllParamsOK Then
@@ -167,6 +152,7 @@ Namespace Editors
                     .DefaultTemporary.Value = CH_DEF_TEMP.Checked
                     .DefaultDownloadImages.Value = CH_DOWN_IMAGES.Checked
                     .DefaultDownloadVideos.Value = CH_DOWN_VIDEOS.Checked
+                    .DownloadNativeImageFormat.Value = CH_DOWN_IMAGES_NATIVE.Checked
                     'Downloading
                     .UpdateUserDescriptionEveryTime.Value = CH_UDESCR_UP.Checked
                     .ScriptData.Value = TXT_SCRIPT.Text
@@ -192,8 +178,6 @@ Namespace Editors
                     .FromChannelCopyImageToUser.Value = CH_COPY_CHANNEL_USER_IMAGE.Checked
                     .ChannelsAddUserImagesFromAllChannels.Value = CH_COPY_CHANNEL_USER_IMAGE_ALL.Checked
                     .ChannelsDefaultTemporary.Value = CH_CHANNELS_USERS_TEMP.Checked
-
-                    Automation.SaveSettings()
 
                     .EndUpdate()
                 End With

@@ -1,3 +1,19 @@
+# 2022.7.7.0
+
+- Added
+  - **Scheduler** (creating multiple automation tasks)
+  - Automation startup delay
+  - Download ```webp``` in ```jpg``` format
+  - Development: the ability to create a label control, that provides some information
+- Removed
+  - Instagram auto-fill hash from cookies
+- Updated
+  - Plugins
+- Fixed
+  - ```Stop``` option not working properly
+  - In some cases, Twitter image is not downloading
+  - Minor bugs
+
 # 2022.6.10.0
 
 **Attention! From now on, Instagram requires Cookies, Hash and authorization headers!**

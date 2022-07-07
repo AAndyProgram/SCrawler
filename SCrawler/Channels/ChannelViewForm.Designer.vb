@@ -15,8 +15,6 @@ Partial Friend Class ChannelViewForm : Inherits System.Windows.Forms.Form
     Private Sub InitializeComponent()
         Me.components = New System.ComponentModel.Container()
         Dim SEP_1 As System.Windows.Forms.ToolStripSeparator
-        Dim SEP_2 As System.Windows.Forms.ToolStripSeparator
-        Dim SEP_3 As System.Windows.Forms.ToolStripSeparator
         Dim CONTEXT_SEP_1 As System.Windows.Forms.ToolStripSeparator
         Dim CONTEXT_SEP_2 As System.Windows.Forms.ToolStripSeparator
         Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(ChannelViewForm))
@@ -34,11 +32,9 @@ Partial Friend Class ChannelViewForm : Inherits System.Windows.Forms.Form
         Me.BTT_C_OPEN_POST = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_C_OPEN_PICTURE = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_C_OPEN_FOLDER = New System.Windows.Forms.ToolStripMenuItem()
-        Me.BTT_C_ADD_TO_BLACKLIST = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_C_REMOVE_FROM_SELECTED = New System.Windows.Forms.ToolStripMenuItem()
+        Me.BTT_C_ADD_TO_BLACKLIST = New System.Windows.Forms.ToolStripMenuItem()
         SEP_1 = New System.Windows.Forms.ToolStripSeparator()
-        SEP_2 = New System.Windows.Forms.ToolStripSeparator()
-        SEP_3 = New System.Windows.Forms.ToolStripSeparator()
         CONTEXT_SEP_1 = New System.Windows.Forms.ToolStripSeparator()
         CONTEXT_SEP_2 = New System.Windows.Forms.ToolStripSeparator()
         Me.ToolbarTOP.SuspendLayout()
@@ -51,25 +47,20 @@ Partial Friend Class ChannelViewForm : Inherits System.Windows.Forms.Form
         SEP_1.Name = "SEP_1"
         SEP_1.Size = New System.Drawing.Size(6, 25)
         '
-        'SEP_2
-        '
-        SEP_2.Name = "SEP_2"
-        SEP_2.Size = New System.Drawing.Size(6, 25)
-        '
-        'SEP_3
-        '
-        SEP_3.Name = "SEP_3"
-        SEP_3.Size = New System.Drawing.Size(6, 25)
-        '
         'CONTEXT_SEP_1
         '
         CONTEXT_SEP_1.Name = "CONTEXT_SEP_1"
         CONTEXT_SEP_1.Size = New System.Drawing.Size(302, 6)
         '
+        'CONTEXT_SEP_2
+        '
+        CONTEXT_SEP_2.Name = "CONTEXT_SEP_2"
+        CONTEXT_SEP_2.Size = New System.Drawing.Size(302, 6)
+        '
         'ToolbarTOP
         '
         Me.ToolbarTOP.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden
-        Me.ToolbarTOP.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_DOWNLOAD, Me.BTT_STOP, SEP_1, Me.BTT_ADD_USERS, SEP_2, SEP_3})
+        Me.ToolbarTOP.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_DOWNLOAD, Me.BTT_STOP, SEP_1, Me.BTT_ADD_USERS})
         Me.ToolbarTOP.Location = New System.Drawing.Point(0, 0)
         Me.ToolbarTOP.Name = "ToolbarTOP"
         Me.ToolbarTOP.Size = New System.Drawing.Size(744, 25)
@@ -138,7 +129,7 @@ Partial Friend Class ChannelViewForm : Inherits System.Windows.Forms.Form
         '
         Me.LCONTEXT.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_C_OPEN_USER, Me.BTT_C_OPEN_POST, Me.BTT_C_OPEN_PICTURE, Me.BTT_C_OPEN_FOLDER, CONTEXT_SEP_1, Me.BTT_C_REMOVE_FROM_SELECTED, CONTEXT_SEP_2, Me.BTT_C_ADD_TO_BLACKLIST})
         Me.LCONTEXT.Name = "LCONTEXT"
-        Me.LCONTEXT.Size = New System.Drawing.Size(306, 170)
+        Me.LCONTEXT.Size = New System.Drawing.Size(306, 148)
         '
         'BTT_C_OPEN_USER
         '
@@ -164,17 +155,6 @@ Partial Friend Class ChannelViewForm : Inherits System.Windows.Forms.Form
         Me.BTT_C_OPEN_FOLDER.Size = New System.Drawing.Size(305, 22)
         Me.BTT_C_OPEN_FOLDER.Text = "Open folder"
         '
-        'BTT_C_ADD_TO_BLACKLIST
-        '
-        Me.BTT_C_ADD_TO_BLACKLIST.Name = "BTT_C_ADD_TO_BLACKLIST"
-        Me.BTT_C_ADD_TO_BLACKLIST.Size = New System.Drawing.Size(305, 22)
-        Me.BTT_C_ADD_TO_BLACKLIST.Text = "Add/Remove this user to/from the BlackList"
-        '
-        'CONTEXT_SEP_2
-        '
-        CONTEXT_SEP_2.Name = "CONTEXT_SEP_2"
-        CONTEXT_SEP_2.Size = New System.Drawing.Size(302, 6)
-        '
         'BTT_C_REMOVE_FROM_SELECTED
         '
         Me.BTT_C_REMOVE_FROM_SELECTED.AutoToolTip = True
@@ -182,6 +162,12 @@ Partial Friend Class ChannelViewForm : Inherits System.Windows.Forms.Form
         Me.BTT_C_REMOVE_FROM_SELECTED.Size = New System.Drawing.Size(305, 22)
         Me.BTT_C_REMOVE_FROM_SELECTED.Text = "Remove user from selected"
         Me.BTT_C_REMOVE_FROM_SELECTED.ToolTipText = "Remove this user from selected users if user was added to"
+        '
+        'BTT_C_ADD_TO_BLACKLIST
+        '
+        Me.BTT_C_ADD_TO_BLACKLIST.Name = "BTT_C_ADD_TO_BLACKLIST"
+        Me.BTT_C_ADD_TO_BLACKLIST.Size = New System.Drawing.Size(305, 22)
+        Me.BTT_C_ADD_TO_BLACKLIST.Text = "Add/Remove this user to/from the BlackList"
         '
         'ChannelViewForm
         '

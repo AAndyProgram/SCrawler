@@ -15,7 +15,6 @@ Imports SCrawler.API.Base
 Imports SCrawler.Editors
 Imports SCrawler.DownloadObjects
 Imports SCrawler.Plugin.Hosts
-Imports PersonalUtilities.Functions.Messaging
 Public Class MainFrame
     Private MyView As FormsView
     Private ReadOnly _VideoDownloadingMode As Boolean = False
@@ -95,12 +94,12 @@ Public Class MainFrame
                 For Each ugroup As Groups.DownloadGroup In Settings.Groups : GROUPS_Added(ugroup) : Next
             End If
         End With
-        Settings.Automation = New AutoDownloader
+        Settings.Automation = New Scheduler
         AddHandler Settings.Groups.Updated, AddressOf Settings.Automation.GROUPS_Updated
         AddHandler Settings.Groups.Deleted, AddressOf Settings.Automation.GROUPS_Deleted
         AddHandler Settings.Automation.UserFind, AddressOf FocusUser
         _UFinit = False
-        Settings.Automation.Start()
+        Settings.Automation.Start(True)
         GoTo EndFunction
 FormClosingInvoker:
         Close()
@@ -273,7 +272,6 @@ CloseResume:
                         (Not sg = Settings.ShowGroups And .UseGrouping) Then RefillList()
                     TrayIcon.Visible = .CloseToTray
                     LIST_PROFILES.ShowGroups = .UseGrouping
-                    If Not Settings.Automation.Mode = AutoDownloader.Modes.None Then Settings.Automation.Start()
                 End If
             End Using
         End With
@@ -426,10 +424,8 @@ CloseResume:
     End Sub
 #End Region
     Private Sub BTT_DOWN_AUTOMATION_Click(sender As Object, e As EventArgs) Handles BTT_DOWN_AUTOMATION.Click
-        Using f As New AutoDownloaderEditorForm
-            f.ShowDialog()
-            If f.DialogResult = DialogResult.OK AndAlso Not Settings.Automation.Mode = AutoDownloader.Modes.None Then Settings.Automation.Start()
-        End Using
+        Using f As New SchedulerEditorForm : f.ShowDialog() : End Using
+        Settings.Automation.Start(False)
     End Sub
     Private Sub BTT_DOWN_AUTOMATION_PAUSE_Click(sender As Object, e As EventArgs) Handles BTT_DOWN_AUTOMATION_PAUSE.Click
         Settings.Automation.Pause = Not Settings.Automation.Pause
@@ -1198,7 +1194,7 @@ ResumeDownloadingOperation:
         End If
     End Sub
     Private Sub Downloader_OnDownloading(ByVal Value As Boolean)
-        Dim a As Action = Sub() BTT_DOWN_STOP.Enabled = Value
+        Dim a As Action = Sub() BTT_DOWN_STOP.Enabled = Value Or Downloader.Working
         If Toolbar_TOP.InvokeRequired Then Toolbar_TOP.Invoke(a) Else a.Invoke
     End Sub
     Private Sub NotificationMessage(ByVal Message As String)

@@ -152,10 +152,10 @@
             Me.Controls.Add(Me.LIST_DOWN)
             Me.Controls.Add(Me.ToolbarBOTTOM)
             Me.Controls.Add(Me.ToolbarTOP)
+            Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
             Me.KeyPreview = True
             Me.MinimumSize = New System.Drawing.Size(570, 450)
             Me.Name = "DownloadedInfoForm"
-            Me.ShowIcon = False
             Me.Text = "Downloaded items"
             Me.ToolbarTOP.ResumeLayout(False)
             Me.ToolbarTOP.PerformLayout()

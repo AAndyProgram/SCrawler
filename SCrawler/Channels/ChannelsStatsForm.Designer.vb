@@ -55,15 +55,12 @@ Partial Friend Class ChannelsStatsForm : Inherits System.Windows.Forms.Form
         'CMB_CHANNELS
         '
         ActionButton1.BackgroundImage = CType(resources.GetObject("ActionButton1.BackgroundImage"), System.Drawing.Image)
-        ActionButton1.Index = 0
-        ActionButton1.Name = "BTT_COMBOBOX_ARROW"
-        ActionButton1.Visible = False
+        ActionButton1.Name = "Clear"
         ActionButton2.BackgroundImage = CType(resources.GetObject("ActionButton2.BackgroundImage"), System.Drawing.Image)
-        ActionButton2.Index = 1
-        ActionButton2.Name = "BTT_CLEAR"
+        ActionButton2.Name = "Delete"
         ActionButton3.BackgroundImage = CType(resources.GetObject("ActionButton3.BackgroundImage"), System.Drawing.Image)
-        ActionButton3.Index = 2
-        ActionButton3.Name = "BTT_DELETE"
+        ActionButton3.Name = "ArrowDown"
+        ActionButton3.Visible = False
         Me.CMB_CHANNELS.Buttons.Add(ActionButton1)
         Me.CMB_CHANNELS.Buttons.Add(ActionButton2)
         Me.CMB_CHANNELS.Buttons.Add(ActionButton3)

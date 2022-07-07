@@ -10,29 +10,33 @@ Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Forms.Toolbars
 Namespace DownloadObjects.Groups
     Friend Class GroupEditorForm : Implements IOkCancelToolbar
-        Private ReadOnly MyDefs As DefaultFormProps
+        Private ReadOnly MyDefs As DefaultFormOptions
         Friend Property MyGroup As DownloadGroup
         Friend Sub New(ByRef g As DownloadGroup)
             InitializeComponent()
             MyGroup = g
-            MyDefs = New DefaultFormProps
+            MyDefs = New DefaultFormOptions
         End Sub
-        Private Class NameChecker : Implements IFieldsCheckerProvider
+        Friend Class NameChecker : Implements IFieldsCheckerProvider
             Private Property ErrorMessage As String Implements IFieldsCheckerProvider.ErrorMessage
             Private Property Name As String Implements IFieldsCheckerProvider.Name
             Private Property TypeError As Boolean Implements IFieldsCheckerProvider.TypeError
             Private ReadOnly ExistingGroupName As String
-            Friend Sub New(ByVal _ExistingGroupName As String)
+            Private ReadOnly Property Source As IEnumerable(Of IGroup)
+            Private ReadOnly ParamName As String
+            Friend Sub New(ByVal _ExistingGroupName As String, ByRef _Source As IEnumerable(Of IGroup), ByVal Param As String)
                 ExistingGroupName = _ExistingGroupName
+                Source = _Source
+                ParamName = Param
             End Sub
             Private Function Convert(ByVal Value As Object, ByVal DestinationType As Type, ByVal Provider As IFormatProvider,
                                      Optional ByVal NothingArg As Object = Nothing, Optional ByVal e As ErrorsDescriber = Nothing) As Object Implements ICustomProvider.Convert
                 If Not ACheck(Value) Then
-                    ErrorMessage = "Group name cannot be empty"
+                    ErrorMessage = $"{ParamName} name cannot be empty"
                 ElseIf Not ExistingGroupName.IsEmptyString AndAlso CStr(Value) = ExistingGroupName Then
                     Return Value
-                ElseIf Settings.Groups.Count > 0 AndAlso Settings.Groups.LongCount(Function(g) g.Name = CStr(Value)) > 0 Then
-                    ErrorMessage = "A group with the same name already exists"
+                ElseIf Source.Count > 0 AndAlso Source.LongCount(Function(g) g.Name = CStr(Value)) > 0 Then
+                    ErrorMessage = $"A {ParamName.ToLower} with the same name already exists"
                 Else
                     Return Value
                 End If
@@ -48,7 +52,6 @@ Namespace DownloadObjects.Groups
                 .AddOkCancelToolbar()
                 If Not MyGroup Is Nothing Then
                     With MyGroup
-                        TXT_NAME.Text = .Name
                         DEFS_GROUP.Set(MyGroup)
                         Text &= $" { .Name}"
                     End With
@@ -56,7 +59,8 @@ Namespace DownloadObjects.Groups
                     Text = "New Group"
                 End If
                 .MyFieldsChecker = New FieldsChecker
-                DirectCast(.MyFieldsChecker, FieldsChecker).AddControl(Of String)(TXT_NAME, TXT_NAME.CaptionText,, New NameChecker(If(MyGroup?.Name, String.Empty)))
+                DirectCast(.MyFieldsChecker, FieldsChecker).AddControl(Of String)(DEFS_GROUP.TXT_NAME, DEFS_GROUP.TXT_NAME.CaptionText,,
+                                                                                  New NameChecker(If(MyGroup?.Name, String.Empty), Settings.Groups, "Group"))
                 .MyFieldsChecker.EndLoaderOperations()
                 .EndLoaderOperations()
             End With
@@ -66,7 +70,6 @@ Namespace DownloadObjects.Groups
                 If MyGroup Is Nothing Then MyGroup = New DownloadGroup
                 With MyGroup
                     .NameBefore = .Name
-                    .Name = TXT_NAME.Text
                     DEFS_GROUP.Get(MyGroup)
                 End With
                 MyDefs.CloseForm()
