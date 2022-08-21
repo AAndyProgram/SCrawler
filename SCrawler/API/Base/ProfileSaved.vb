@@ -6,9 +6,9 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
-Imports SCrawler.Plugin.Hosts
 Imports System.Threading
 Imports PersonalUtilities.Forms.Toolbars
+Imports SCrawler.Plugin.Hosts
 Imports PDownload = SCrawler.Plugin.ISiteSettings.Download
 Namespace API.Base
     Friend NotInheritable Class ProfileSaved
@@ -27,11 +27,8 @@ Namespace API.Base
                         Using user As IUserData = HOST.GetInstance(PDownload.SavedPosts, Nothing, False, False)
                             If Not user Is Nothing AndAlso (Not user.Name.IsEmptyString Or Not HOST.IsMyClass) Then
                                 u.Name = user.Name
-                                With DirectCast(user, UserDataBase).User
-                                    u.IsChannel = .IsChannel
-                                    u.UpdateUserFile()
-                                End With
                                 With DirectCast(user, UserDataBase)
+                                    With .User : u.IsChannel = .IsChannel : u.UpdateUserFile() : End With
                                     .User = u
                                     .LoadUserInformation()
                                     .IsSavedPosts = True

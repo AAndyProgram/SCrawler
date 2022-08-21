@@ -22,27 +22,28 @@ Namespace DownloadObjects
         Private components As System.ComponentModel.IContainer
         <System.Diagnostics.DebuggerStepThrough()>
         Private Sub InitializeComponent()
-            Me.CONTAINER_MAIN = New System.Windows.Forms.ToolStripContainer()
+            Dim CONTAINER_MAIN As System.Windows.Forms.ToolStripContainer
             Me.LIST_PLANS = New System.Windows.Forms.ListBox()
-            Me.CONTAINER_MAIN.ContentPanel.SuspendLayout()
-            Me.CONTAINER_MAIN.SuspendLayout()
+            CONTAINER_MAIN = New System.Windows.Forms.ToolStripContainer()
+            CONTAINER_MAIN.ContentPanel.SuspendLayout()
+            CONTAINER_MAIN.SuspendLayout()
             Me.SuspendLayout()
             '
             'CONTAINER_MAIN
             '
-            Me.CONTAINER_MAIN.BottomToolStripPanelVisible = False
+            CONTAINER_MAIN.BottomToolStripPanelVisible = False
             '
             'CONTAINER_MAIN.ContentPanel
             '
-            Me.CONTAINER_MAIN.ContentPanel.Controls.Add(Me.LIST_PLANS)
-            Me.CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(414, 316)
-            Me.CONTAINER_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CONTAINER_MAIN.LeftToolStripPanelVisible = False
-            Me.CONTAINER_MAIN.Location = New System.Drawing.Point(0, 0)
-            Me.CONTAINER_MAIN.Name = "CONTAINER_MAIN"
-            Me.CONTAINER_MAIN.RightToolStripPanelVisible = False
-            Me.CONTAINER_MAIN.Size = New System.Drawing.Size(414, 341)
-            Me.CONTAINER_MAIN.TabIndex = 0
+            CONTAINER_MAIN.ContentPanel.Controls.Add(Me.LIST_PLANS)
+            CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(414, 316)
+            CONTAINER_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
+            CONTAINER_MAIN.LeftToolStripPanelVisible = False
+            CONTAINER_MAIN.Location = New System.Drawing.Point(0, 0)
+            CONTAINER_MAIN.Name = "CONTAINER_MAIN"
+            CONTAINER_MAIN.RightToolStripPanelVisible = False
+            CONTAINER_MAIN.Size = New System.Drawing.Size(414, 341)
+            CONTAINER_MAIN.TabIndex = 0
             '
             'LIST_PLANS
             '
@@ -58,20 +59,18 @@ Namespace DownloadObjects
             Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
             Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
             Me.ClientSize = New System.Drawing.Size(414, 341)
-            Me.Controls.Add(Me.CONTAINER_MAIN)
+            Me.Controls.Add(CONTAINER_MAIN)
             Me.KeyPreview = True
             Me.MinimumSize = New System.Drawing.Size(430, 380)
             Me.Name = "SchedulerEditorForm"
             Me.ShowIcon = False
             Me.Text = "Scheduler"
-            Me.CONTAINER_MAIN.ContentPanel.ResumeLayout(False)
-            Me.CONTAINER_MAIN.ResumeLayout(False)
-            Me.CONTAINER_MAIN.PerformLayout()
+            CONTAINER_MAIN.ContentPanel.ResumeLayout(False)
+            CONTAINER_MAIN.ResumeLayout(False)
+            CONTAINER_MAIN.PerformLayout()
             Me.ResumeLayout(False)
 
         End Sub
-
-        Private WithEvents CONTAINER_MAIN As ToolStripContainer
         Private WithEvents LIST_PLANS As ListBox
     End Class
 End Namespace

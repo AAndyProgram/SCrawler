@@ -30,7 +30,7 @@ Public Class SiteSettings : Implements ISiteSettings
                 .LoadSettings()
             Else
                 .CookiesDomain = "www.lpsg.com"
-                .Cookies = New CookieKeeper("www.lpsg.com")
+                .Cookies = New CookieKeeper(.CookiesDomain)
             End If
         End With
     End Sub
@@ -81,7 +81,7 @@ Public Class SiteSettings : Implements ISiteSettings
             Else
                 Return Nothing
             End If
-        Catch ex As Exception
+        Catch
             Return Nothing
         End Try
     End Function

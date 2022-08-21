@@ -8,27 +8,26 @@
 ' but WITHOUT ANY WARRANTY
 Imports System.ComponentModel
 Imports PersonalUtilities.Forms
+Imports PersonalUtilities.Tools
 Namespace DownloadObjects
     Friend Class VideosDownloaderForm
+#Region "Declarations"
         Private MyView As FormsView
-        Private ReadOnly MyPR As Toolbars.MyProgress
-        Private ReadOnly UrlList As List(Of String)
         Private ReadOnly DownloadingUrlsFile As SFile = $"{SettingsFolderName}\VideosUrls.txt"
+        Private ReadOnly MyJob As JobThread(Of String)
+#End Region
+#Region "Initializer"
         Friend Sub New()
             InitializeComponent()
-            UrlList = New List(Of String)
-            MyPR = New Toolbars.MyProgress(ToolbarBOTTOM, PR_V, LBL_STATUS, "Downloading video")
+            MyJob = New JobThread(Of String) With {.Progress = New Toolbars.MyProgress(ToolbarBOTTOM, PR_V, LBL_STATUS, "Downloading video")}
             If DownloadingUrlsFile.Exists Then _
-               UrlList.ListAddList(DownloadingUrlsFile.GetText.StringToList(Of String, List(Of String))(Environment.NewLine), LAP.NotContainsOnly)
+               MyJob.Items.ListAddList(DownloadingUrlsFile.GetText.StringToList(Of String, List(Of String))(Environment.NewLine), LAP.NotContainsOnly)
         End Sub
         Private Sub VideosDownloaderForm_Load(sender As Object, e As EventArgs) Handles Me.Load
-            Try
-                MyView = New FormsView(Me)
-                MyView.ImportFromXML(Settings.Design)
-                MyView.SetMeSize()
-                RefillList(False)
-            Catch ex As Exception
-            End Try
+            MyView = New FormsView(Me)
+            MyView.ImportFromXML(Settings.Design)
+            MyView.SetMeSize()
+            RefillList(False)
         End Sub
         Private Sub VideosDownloaderForm_Closing(sender As Object, e As CancelEventArgs) Handles Me.Closing
             e.Cancel = True
@@ -36,95 +35,120 @@ Namespace DownloadObjects
         End Sub
         Private Sub VideosDownloaderForm_Disposed(sender As Object, e As EventArgs) Handles Me.Disposed
             If Not MyView Is Nothing Then MyView.Dispose(Settings.Design)
-            If UrlList.Count > 0 Then UpdateUrlsFile()
-            UrlList.Clear()
+            If MyJob.Count > 0 Then UpdateUrlsFile()
+            MyJob.Dispose()
         End Sub
         Private Sub VideosDownloaderForm_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
             Dim b As Boolean = True
             Select Case e.KeyCode
-                Case Keys.Insert : AddVideo()
-                Case Keys.F5 : DownloadVideos()
-                Case Keys.F8 : BTT_DELETE_Click(Nothing, EventArgs.Empty)
+                Case Keys.Insert : AddItem()
+                Case Keys.F5 : StartDownloading()
+                Case Keys.F8 : DeleteItem()
                 Case Else : b = False
             End Select
             If b Then e.Handled = True
         End Sub
+#End Region
+#Region "Refill, Update file"
         Private Sub RefillList(Optional ByVal Update As Boolean = True)
             Try
-                With LIST_VIDEOS
-                    .Items.Clear()
-                    If UrlList.Count > 0 Then UrlList.ForEach(Sub(u) .Items.Add(u))
-                    If .Items.Count > 0 And _LatestSelected >= 0 And _LatestSelected <= .Items.Count - 1 Then .SelectedIndex = _LatestSelected
-                    If Update Then UpdateUrlsFile()
-                End With
+                Dim a As Action = Sub()
+                                      With LIST_VIDEOS
+                                          .Items.Clear()
+                                          If MyJob.Count > 0 Then MyJob.Items.ForEach(Sub(u) .Items.Add(u))
+                                          If _LatestSelected.ValueBetween(0, .Items.Count - 1) Then .SelectedIndex = _LatestSelected
+                                          If Update Then UpdateUrlsFile()
+                                      End With
+                                  End Sub
+                If LIST_VIDEOS.InvokeRequired Then LIST_VIDEOS.Invoke(a) Else a.Invoke
             Catch ex As Exception
-                ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Error on list refill")
+                ErrorsDescriber.Execute(EDP.SendInLog, ex, "Error on list refill")
             End Try
         End Sub
         Private Sub UpdateUrlsFile()
-            If UrlList.Count > 0 Then
-                TextSaver.SaveTextToFile(UrlList.ListToString(Environment.NewLine), DownloadingUrlsFile, True,, EDP.SendInLog)
+            If MyJob.Count > 0 Then
+                TextSaver.SaveTextToFile(MyJob.ListToString(Environment.NewLine), DownloadingUrlsFile, True,, EDP.SendInLog)
             Else
                 DownloadingUrlsFile.Delete(, Settings.DeleteMode, EDP.SendInLog)
             End If
         End Sub
-        Private Sub BTT_ADD_Click(sender As Object, e As EventArgs) Handles BTT_ADD.Click
-            AddVideo()
-        End Sub
-        Private Sub AddVideo()
+#End Region
+#Region "Add, Delete"
+        Private Sub AddItem() Handles BTT_ADD.Click
             Dim URL$ = GetNewVideoURL()
             If Not URL.IsEmptyString Then
-                If Not UrlList.Contains(URL) Then
-                    UrlList.Add(URL)
+                If Not MyJob.Contains(URL) Then
+                    MyJob.Add(URL)
                     RefillList()
                 Else
-                    MsgBoxE("This URL already added to list")
+                    MsgBoxE("This URL has already been added to the list")
                 End If
             End If
         End Sub
-        Private Sub BTT_ADD_LIST_Click(sender As Object, e As EventArgs) Handles BTT_ADD_LIST.Click
+        Private Sub AddItemsRange() Handles BTT_ADD_LIST.Click
             Dim l$ = InputBoxE("Enter URLs (new line as delimiter):", "URLs list", GetCurrentBuffer(),,,,,, True)
             If Not l.IsEmptyString Then
-                Dim ub% = UrlList.Count
-                UrlList.ListAddList(l.StringFormatLines.StringToList(Of String, List(Of String))(vbCrLf).ListForEach(Function(u, i) u.Trim,, False))
-                If Not UrlList.Count = ub Then RefillList()
+                Dim ub% = MyJob.Count
+                MyJob.Items.ListAddList(l.StringFormatLines.StringToList(Of String, List(Of String))(vbCrLf).ListForEach(Function(u, i) u.Trim,, False))
+                If Not MyJob.Count = ub Then RefillList()
             End If
         End Sub
-        Private Sub BTT_DELETE_Click(sender As Object, e As EventArgs) Handles BTT_DELETE.Click
-            If _LatestSelected >= 0 And _LatestSelected <= UrlList.Count - 1 Then
-                If MsgBoxE({$"Do you really want to delete video URL:{vbCr}{UrlList(_LatestSelected)}", "Deleting URL..."},
-                           MsgBoxStyle.Exclamation + MsgBoxStyle.YesNo) = MsgBoxResult.Yes Then
-                    UrlList.RemoveAt(_LatestSelected)
+        Private Sub DeleteItem() Handles BTT_DELETE.Click
+            If _LatestSelected.ValueBetween(0, MyJob.Count - 1) Then
+                If MsgBoxE({$"Are you sure you want to delete the video URL:{vbCr}{MyJob(_LatestSelected)}", "Deleting URL..."}, vbExclamation + vbYesNo) = vbYes Then
+                    MyJob.Items.RemoveAt(_LatestSelected)
                     RefillList()
                 End If
             Else
-                MsgBoxE("URL does not selected", MsgBoxStyle.Exclamation)
+                MsgBoxE("URL not selected", MsgBoxStyle.Exclamation)
             End If
         End Sub
+#End Region
+#Region "Start, Stop"
         Private Sub BTT_DOWN_Click(sender As Object, e As EventArgs) Handles BTT_DOWN.Click
-            DownloadVideos()
+            StartDownloading()
+        End Sub
+        Private Sub BTT_STOP_Click(sender As Object, e As EventArgs) Handles BTT_STOP.Click
+            SetControlValueInvoke(ToolbarTOP, BTT_STOP, Sub() BTT_STOP.Enabled = False)
+            MyJob.Stop()
+        End Sub
+#End Region
+#Region "Downloading"
+        Private Sub StartDownloading()
+            If Not MyJob.Working And MyJob.Count > 0 Then
+                SetControlValueInvoke(ToolbarTOP, BTT_DOWN, Sub() BTT_DOWN.Enabled = False)
+                SetControlValueInvoke(ToolbarTOP, BTT_STOP, Sub() BTT_STOP.Enabled = True)
+                MyJob.Start(AddressOf DownloadVideos, Threading.ApartmentState.STA)
+            End If
         End Sub
         Private Sub DownloadVideos()
-            If UrlList.Count > 0 Then
-                MyPR.TotalCount = UrlList.Count
-                MyPR.Enabled = True
+            MyJob.Start()
+            If MyJob.Count > 0 Then
+                MyJob.Progress.TotalCount = MyJob.Count
+                MyJob.Progress.Enabled = True
                 Dim IsFirst As Boolean = True
-                For i% = UrlList.Count - 1 To 0 Step -1
-                    If DownloadVideoByURL(UrlList(i), IsFirst, True) Then UrlList.RemoveAt(i)
-                    MyPR.Perform()
+                For i% = MyJob.Count - 1 To 0 Step -1
+                    If MyJob.IsCancellationRequested Then Exit For
+                    If DownloadVideoByURL(MyJob(i), IsFirst, True) Then MyJob.Items.RemoveAt(i)
+                    MyJob.Progress.Perform()
                     IsFirst = False
                 Next
-                MyPR.Done()
+                MyJob.Progress.Done()
                 RefillList()
-                MyPR.Enabled = False
-            Else
-                MsgBoxE("No one video added", MsgBoxStyle.Exclamation)
+                MyJob.Progress.Enabled = False
             End If
+            SetControlValueInvoke(ToolbarTOP, BTT_DOWN, Sub() BTT_DOWN.Enabled = True)
+            SetControlValueInvoke(ToolbarTOP, BTT_STOP, Sub() BTT_STOP.Enabled = False)
+            MyJob.Stopped()
         End Sub
+#End Region
+#Region "List handlers"
         Private _LatestSelected As Integer = -1
         Private Sub LIST_VIDEOS_SelectedIndexChanged(sender As Object, e As EventArgs) Handles LIST_VIDEOS.SelectedIndexChanged
             _LatestSelected = LIST_VIDEOS.SelectedIndex
         End Sub
+#End Region
+#Region "Open path"
         Private Sub BTT_OPEN_PATH_Click(sender As Object, e As EventArgs) Handles BTT_OPEN_PATH.Click
             With Settings.LatestSavingPath
                 If Not .Value.IsEmptyString Then
@@ -134,9 +158,10 @@ Namespace DownloadObjects
                         MsgBoxE($"Path [{ .Value}] does not exists!", MsgBoxStyle.Exclamation)
                     End If
                 Else
-                    MsgBoxE("Saving path does not set!", MsgBoxStyle.Exclamation)
+                    MsgBoxE("Save path not specified!", MsgBoxStyle.Exclamation)
                 End If
             End With
         End Sub
+#End Region
     End Class
 End Namespace

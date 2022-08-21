@@ -6,7 +6,6 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
-Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.XML.Base
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Tools
@@ -16,7 +15,6 @@ Imports SCrawler.API
 Imports SCrawler.API.Base
 Imports SCrawler.Plugin.Hosts
 Imports SCrawler.DownloadObjects
-Imports DownOptions = SCrawler.Plugin.ISiteSettings.Download
 Friend Module MainMod
     Friend Settings As SettingsCLS
     Friend Const SettingsFolderName As String = "Settings"
@@ -85,6 +83,11 @@ Friend Module MainMod
         Deleted = 10000
         Suspended = 12000
     End Enum
+    Friend Enum FileNameReplaceMode As Integer
+        None = 0
+        Replace = 1
+        Add = 2
+    End Enum
     Friend Downloader As TDownloader
     Friend InfoForm As DownloadedInfoForm
     Friend VideoDownloader As VideosDownloaderForm
@@ -133,138 +136,6 @@ Friend Module MainMod
             Return $"{If(Host?.Name, String.Empty)}{Opt}"
         End If
     End Function
-    Friend Structure UserInfo : Implements IComparable(Of UserInfo), IEquatable(Of UserInfo), ICloneable, IEContainerProvider
-        Friend Const Name_Site As String = "Site"
-        Friend Const Name_Plugin As String = "Plugin"
-        Friend Const Name_Collection As String = "Collection"
-        Friend Const Name_Merged As String = "Merged"
-        Friend Const Name_IsChannel As String = "IsChannel"
-        Friend Const Name_SpecialPath As String = "SpecialPath"
-        Friend Name As String
-        Friend Site As String
-        Friend Plugin As String
-        Friend File As SFile
-        Friend SpecialPath As SFile
-        Friend Merged As Boolean
-        Friend IncludedInCollection As Boolean
-        Friend CollectionName As String
-        Friend IsChannel As Boolean
-        Friend [Protected] As Boolean
-        Friend ReadOnly Property DownloadOption As DownOptions
-            Get
-                If IsChannel Then
-                    Return DownOptions.Channel
-                Else
-                    Return DownOptions.Main
-                End If
-            End Get
-        End Property
-        Friend Sub New(ByVal _Name As String, ByVal Host As SettingsHost, Optional ByVal Collection As String = Nothing,
-                       Optional ByVal _Merged As Boolean = False, Optional ByVal _SpecialPath As SFile = Nothing)
-            Name = _Name
-            Site = Host.Name
-            Plugin = Host.Key
-            IncludedInCollection = Not Collection.IsEmptyString
-            CollectionName = Collection
-            Merged = _Merged
-            SpecialPath = _SpecialPath
-            UpdateUserFile()
-        End Sub
-        Private Sub New(ByVal x As EContainer)
-            Name = x.Value
-            Site = x.Attribute(Name_Site).Value
-            Plugin = x.Attribute(Name_Plugin).Value
-            CollectionName = x.Attribute(Name_Collection).Value
-            IncludedInCollection = Not CollectionName.IsEmptyString
-            Merged = x.Attribute(Name_Merged).Value.FromXML(Of Boolean)(False)
-            SpecialPath = SFile.GetPath(x.Attribute(Name_SpecialPath).Value)
-            IsChannel = x.Attribute(Name_IsChannel).Value.FromXML(Of Boolean)(False)
-            'UpdateUserFile()
-        End Sub
-        Friend Sub New(ByVal c As Reddit.Channel)
-            Name = c.Name
-            Site = Reddit.RedditSite
-            Plugin = Reddit.RedditSiteKey
-            File = c.File
-            IsChannel = True
-        End Sub
-        Public Shared Widening Operator CType(ByVal x As EContainer) As UserInfo
-            Return New UserInfo(x)
-        End Operator
-        Public Shared Widening Operator CType(ByVal u As UserInfo) As String
-            Return u.Name
-        End Operator
-        Public Shared Operator =(ByVal x As UserInfo, ByVal y As UserInfo)
-            Return x.Equals(y)
-        End Operator
-        Public Shared Operator <>(ByVal x As UserInfo, ByVal y As UserInfo)
-            Return Not x.Equals(y)
-        End Operator
-        Public Overrides Function ToString() As String
-            Return Name
-        End Function
-        Friend Sub UpdateUserFile()
-            File = New SFile With {
-                .Separator = "\",
-                .Path = GetFilePathByParams(),
-                .Extension = "xml",
-                .Name = $"{UserDataBase.UserFileAppender}_{Site}_{Name}"
-            }
-        End Sub
-        Private Function GetFilePathByParams() As String
-            If [Protected] Then Return String.Empty
-            If Not SpecialPath.IsEmptyString Then
-                Return $"{SpecialPath.PathWithSeparator}{SettingsFolderName}"
-            ElseIf Merged And IncludedInCollection Then
-                Return $"{Settings.CollectionsPathF.PathNoSeparator}\{CollectionName}\{SettingsFolderName}"
-            Else
-                If IncludedInCollection Then
-                    Return $"{Settings.CollectionsPathF.PathNoSeparator}\{CollectionName}\{Site}_{Name}\{SettingsFolderName}"
-                ElseIf Not Settings(Plugin) Is Nothing Then
-                    Return $"{Settings(Plugin).Path.PathNoSeparator}\{Name}\{SettingsFolderName}"
-                Else
-                    Dim s$ = Site.ToLower
-                    Dim i% = Settings.Plugins.FindIndex(Function(p) p.Name.ToLower = s)
-                    If i >= 0 Then Return $"{Settings.Plugins(i).Settings.Path.PathNoSeparator}\{Name}\{SettingsFolderName}" Else Return String.Empty
-                End If
-            End If
-        End Function
-        Friend Function GetContainer(Optional ByVal e As ErrorsDescriber = Nothing) As EContainer Implements IEContainerProvider.ToEContainer
-            Return New EContainer("User", Name, {New EAttribute(Name_Site, Site),
-                                                 New EAttribute(Name_Plugin, Plugin),
-                                                 New EAttribute(Name_Collection, CollectionName),
-                                                 New EAttribute(Name_Merged, Merged.BoolToInteger),
-                                                 New EAttribute(Name_IsChannel, IsChannel.BoolToInteger),
-                                                 New EAttribute(Name_SpecialPath, SpecialPath.PathWithSeparator)})
-        End Function
-        Friend Function CompareTo(ByVal Other As UserInfo) As Integer Implements IComparable(Of UserInfo).CompareTo
-            If Site = Other.Site Then
-                Return Name.CompareTo(Other.Name)
-            Else
-                Return Site.CompareTo(Other.Site)
-            End If
-        End Function
-        Friend Overloads Function Equals(ByVal Other As UserInfo) As Boolean Implements IEquatable(Of UserInfo).Equals
-            Return Site = Other.Site And Name = Other.Name
-        End Function
-        Public Overloads Overrides Function Equals(ByVal Obj As Object) As Boolean
-            Return Equals(DirectCast(Obj, UserInfo))
-        End Function
-        Friend Function Clone() As Object Implements ICloneable.Clone
-            Return New UserInfo With {
-                .Name = Name,
-                .Site = Site,
-                .Plugin = Plugin,
-                .File = File,
-                .SpecialPath = SpecialPath,
-                .Merged = Merged,
-                .IncludedInCollection = IncludedInCollection,
-                .CollectionName = CollectionName,
-                .IsChannel = IsChannel,
-                .[Protected] = [Protected]
-            }
-        End Function
-    End Structure
 #Region "Image Handlers management"
     Friend Sub ImageHandler(ByVal User As IUserData)
         ImageHandler(User, False)
@@ -324,7 +195,7 @@ Friend Module MainMod
                     ElseIf URL.Contains("imgur.com") Then
                         um = Imgur.Envir.GetVideoInfo(URL)
                     Else
-                        MsgBoxE("Site of video URL does not recognized" & vbCr & "Operation canceled", MsgBoxStyle.Exclamation, e)
+                        MsgBoxE("Site of video URL not recognized" & vbCr & "Operation canceled", MsgBoxStyle.Exclamation, e)
                         Return False
                     End If
                 End If
@@ -377,13 +248,13 @@ Friend Module MainMod
                                         Result = True
                                     End If
                                 Else
-                                    If um.Count = 1 Then MsgBoxE("File does not downloaded", MsgBoxStyle.Critical, e)
+                                    If um.Count = 1 Then MsgBoxE("File not downloaded", MsgBoxStyle.Critical, e)
                                 End If
                             Else
-                                If um.Count = 1 Then MsgBoxE("File destination does not pointed" & vbCr & "Operation canceled",, e)
+                                If um.Count = 1 Then MsgBoxE("File destination not specified" & vbCr & "Operation canceled",, e)
                             End If
                         Else
-                            If um.Count = 1 Then MsgBoxE("File URL does not found!", MsgBoxStyle.Critical, e)
+                            If um.Count = 1 Then MsgBoxE("File URL not found!", MsgBoxStyle.Critical, e)
                         End If
                     Next
                 End If
@@ -392,100 +263,13 @@ Friend Module MainMod
             End If
             Return Result
         Catch ex As Exception
-            Return ErrorsDescriber.Execute(e, ex, "Downloading video by URL error", False)
+            Return ErrorsDescriber.Execute(e, ex, $"Error when trying to download video from URL: [{URL}]", False)
         End Try
-    End Function
-#End Region
-#Region "Blacklist Support"
-    Friend Structure UserBan
-        Friend ReadOnly Name As String
-        Friend ReadOnly Reason As String
-        Friend ReadOnly Exists As Boolean
-        Friend Sub New(ByVal Value As String)
-            If Not Value.IsEmptyString Then
-                Dim v$() = Value.Split("|")
-                If v.ListExists Then
-                    Name = v(0)
-                    If v.Length > 1 Then Reason = v(1)
-                    Exists = True
-                End If
-            End If
-        End Sub
-        Friend Sub New(ByVal _Name As String, ByVal _Reason As String)
-            Name = _Name
-            Reason = _Reason
-            Exists = True
-        End Sub
-        Public Shared Widening Operator CType(ByVal Value As String) As UserBan
-            Return New UserBan(Value)
-        End Operator
-        Public Shared Widening Operator CType(ByVal b As UserBan) As String
-            Return b.ToString
-        End Operator
-        Public Overrides Function ToString() As String
-            Return $"{Name}|{Reason}"
-        End Function
-        Friend Function Info() As String
-            If Not Reason.IsEmptyString Then
-                Return $"[{Name}] ({Reason})"
-            Else
-                Return Name
-            End If
-        End Function
-        Public Overrides Function Equals(ByVal Obj As Object) As Boolean
-            If Not IsNothing(Obj) Then
-                If TypeOf Obj Is UserBan Then
-                    Return Name = DirectCast(Obj, UserBan).Name
-                Else
-                    Return Name = New UserBan(CStr(Obj)).Name
-                End If
-            End If
-            Return False
-        End Function
-    End Structure
-    Friend Function UserBanned(ByVal UserNames() As String) As String()
-        If UserNames.ListExists Then
-            Dim i%
-            Dim Found As New List(Of UserBan)
-            For Each user In UserNames
-                i = Settings.BlackList.FindIndex(Function(u) u.Name = user)
-                If i >= 0 Then Found.Add(Settings.BlackList(i))
-            Next
-            If Found.Count = 0 Then
-                Return New String() {}
-            Else
-                Dim m As New MMessage With {
-                    .Title = "Banned user found",
-                    .Buttons = {"Remove from ban and add", "Leave in ban and add", "Skip"},
-                    .Style = MsgBoxStyle.Exclamation,
-                    .Exists = True
-                }
-                If Found.Count = 1 Then
-                    m.Text = $"This user is banned:{vbNewLine}User: {Found(0).Name}"
-                    If Not Found(0).Reason.IsEmptyString Then m.Text.StringAppendLine($"Reason: {Found(0).Reason}")
-                Else
-                    m.Text = $"These users was banned:{vbNewLine.StringDup(2)}{Found.Select(Function(u) u.Info).ListToString(vbNewLine)}"
-                End If
-                Dim r% = MsgBoxE(m)
-                If r = 2 Then
-                    Return Found.Select(Function(u) u.Name).ToArray
-                Else
-                    If r = 0 Then
-                        Settings.BlackList.ListDisposeRemove(Found)
-                        Settings.UpdateBlackList()
-                    End If
-                End If
-            End If
-        End If
-        Return New String() {}
-    End Function
-    Friend Function UserBanned(ByVal UserName As String) As Boolean
-        Return UserBanned({UserName}).ListExists
     End Function
 #End Region
     Friend Sub CheckVersion(ByVal Force As Boolean)
         If Settings.CheckUpdatesAtStart Or Force Then _
-            GitHub.DefaultVersionChecker(My.Application.Info.Version, "AAndyProgram", "SCrawler",
-                                         Settings.LatestVersion.Value, Settings.ShowNewVersionNotification.Value, Force)
+           GitHub.DefaultVersionChecker(My.Application.Info.Version, "AAndyProgram", "SCrawler",
+                                        Settings.LatestVersion.Value, Settings.ShowNewVersionNotification.Value, Force)
     End Sub
 End Module

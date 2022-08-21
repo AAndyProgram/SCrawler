@@ -6,36 +6,22 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
-Imports System.ComponentModel
 Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Forms.Controls.Base
-Imports PersonalUtilities.Forms.Toolbars
-Friend Class ChannelsStatsForm : Implements IOkCancelDeleteToolbar
-    Private ReadOnly MyDefs As DefaultFormOptions
+Friend Class ChannelsStatsForm
+    Private WithEvents MyDefs As DefaultFormOptions
     Friend Property DeletedChannels As Integer = 0
     Friend Sub New()
         InitializeComponent()
-        MyDefs = New DefaultFormOptions
+        MyDefs = New DefaultFormOptions(Me, Settings.Design)
     End Sub
     Private Sub ChannelsStatsForm_Load(sender As Object, e As EventArgs) Handles Me.Load
-        Try
-            With MyDefs
-                .MyViewInitialize(Me, Settings.Design)
-                .AddOkCancelToolbar()
-                .MyOkCancel.EnableDelete = False
-                If Settings.Channels.Count > 0 Then
-                    RefillList()
-                Else
-                    MsgBoxE("Channels not found", vbExclamation)
-                End If
-                .EndLoaderOperations()
-            End With
-        Catch ex As Exception
-            MyDefs.InvokeLoaderError(ex)
-        End Try
-    End Sub
-    Private Sub ChannelsStatsForm_Closing(sender As Object, e As CancelEventArgs) Handles Me.Closing
-        MyDefs.Dispose()
+        With MyDefs
+            .MyViewInitialize()
+            .AddOkCancelToolbar()
+            If Settings.Channels.Count > 0 Then RefillList() Else MsgBoxE("Channels not found", vbExclamation)
+            .EndLoaderOperations()
+        End With
     End Sub
     Private Sub RefillList()
         CMB_CHANNELS.Items.Clear()
@@ -45,13 +31,7 @@ Friend Class ChannelsStatsForm : Implements IOkCancelDeleteToolbar
             CMB_CHANNELS.EndUpdate()
         End If
     End Sub
-    Private Sub OK() Implements IOkCancelToolbar.OK
-        MyDefs.CloseForm()
-    End Sub
-    Private Sub Cancel() Implements IOkCancelToolbar.Cancel
-        MyDefs.CloseForm(DialogResult.Cancel)
-    End Sub
-    Private Sub Delete() Implements IOkCancelDeleteToolbar.Delete
+    Private Sub MyDefs_ButtonDeleteClickOC(ByVal Sender As Object, ByVal e As KeyHandleEventArgs) Handles MyDefs.ButtonDeleteClickOC
         Try
             Dim c As List(Of String) = CMB_CHANNELS.Items.CheckedItems.Select(Function(cc) CStr(cc.Value(1))).ListIfNothing
             If c.ListExists Then
@@ -76,7 +56,7 @@ Friend Class ChannelsStatsForm : Implements IOkCancelDeleteToolbar
     Private Sub CMB_CHANNELS_ActionOnChangeDetected(ByVal c As Boolean) Handles CMB_CHANNELS.ActionOnChangeDetected
         If Not MyDefs.Initializing Then MyDefs.MyOkCancel.EnableDelete = CMB_CHANNELS.ListCheckedIndexes.Count > 0
     End Sub
-    Private Sub CMB_CHANNELS_ActionOnButtonClearClick() Handles CMB_CHANNELS.ActionOnButtonClearClick
-        CMB_CHANNELS.ListCheckedIndexes = Nothing
+    Private Sub CMB_CHANNELS_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As EventArgs) Handles CMB_CHANNELS.ActionOnButtonClick
+        If Sender.DefaultButton = ActionButton.DefaultButtons.Clear Then CMB_CHANNELS.ListCheckedIndexes = Nothing
     End Sub
 End Class

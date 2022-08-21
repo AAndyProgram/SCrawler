@@ -8,24 +8,23 @@
 ' but WITHOUT ANY WARRANTY
 Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Forms.Controls.Base
-Imports PersonalUtilities.Forms.Toolbars
 Namespace Editors
-    Friend Class GlobalSettingsForm : Implements IOkCancelToolbar
-        Private ReadOnly MyDefs As DefaultFormOptions
+    Friend Class GlobalSettingsForm
+        Private WithEvents MyDefs As DefaultFormOptions
         Friend Sub New()
             InitializeComponent()
-            MyDefs = New DefaultFormOptions
+            MyDefs = New DefaultFormOptions(Me, Settings.Design)
         End Sub
         Private Sub GlobalSettingsForm_Load(sender As Object, e As EventArgs) Handles Me.Load
             Try
                 With MyDefs
-                    .MyViewInitialize(Me, Settings.Design, True)
+                    .MyViewInitialize(True)
                     .AddOkCancelToolbar()
                     With Settings
                         'Basis
                         TXT_GLOBAL_PATH.Text = .GlobalPath.Value
-                        TXT_IMAGE_LARGE.Value = .MaxLargeImageHeigh.Value
-                        TXT_IMAGE_SMALL.Value = .MaxSmallImageHeigh.Value
+                        TXT_IMAGE_LARGE.Value = .MaxLargeImageHeight.Value
+                        TXT_IMAGE_SMALL.Value = .MaxSmallImageHeight.Value
                         TXT_COLLECTIONS_PATH.Text = .CollectionsPath
                         TXT_MAX_JOBS_USERS.Value = .MaxUsersJobsCount.Value
                         TXT_MAX_JOBS_CHANNELS.Value = .ChannelsMaxJobsCount.Value
@@ -60,9 +59,9 @@ Namespace Editors
                         TXT_DOWN_COMPLETE_SCRIPT.Text = .DownloadsCompleteCommand
                         TXT_DOWN_COMPLETE_SCRIPT.Checked = .DownloadsCompleteCommand.Attribute
                         'Downloading: file names
-                        CH_FILE_NAME_CHANGE.Checked = .FileReplaceNameByDate Or .FileAddDateToFileName Or .FileAddTimeToFileName
-                        OPT_FILE_NAME_REPLACE.Checked = .FileReplaceNameByDate
-                        OPT_FILE_NAME_ADD_DATE.Checked = Not .FileReplaceNameByDate
+                        CH_FILE_NAME_CHANGE.Checked = Not .FileReplaceNameByDate.Value = FileNameReplaceMode.None
+                        OPT_FILE_NAME_REPLACE.Checked = .FileReplaceNameByDate.Value = FileNameReplaceMode.Replace
+                        OPT_FILE_NAME_ADD_DATE.Checked = .FileReplaceNameByDate.Value = FileNameReplaceMode.Add
                         CH_FILE_DATE.Checked = .FileAddDateToFileName
                         CH_FILE_TIME.Checked = .FileAddTimeToFileName
                         OPT_FILE_DATE_START.Checked = Not .FileDateTimePositionEnd
@@ -78,19 +77,19 @@ Namespace Editors
                         CH_CHANNELS_USERS_TEMP.Checked = .ChannelsDefaultTemporary
                     End With
                     .MyFieldsChecker = New FieldsChecker
-                    With DirectCast(.MyFieldsChecker, FieldsChecker)
+                    With .MyFieldsCheckerE
                         .AddControl(Of String)(TXT_GLOBAL_PATH, TXT_GLOBAL_PATH.CaptionText)
                         .AddControl(Of String)(TXT_COLLECTIONS_PATH, TXT_COLLECTIONS_PATH.CaptionText)
                         .EndLoaderOperations()
                     End With
-                    .EndLoaderOperations()
                     ChangeFileNameChangersEnabling()
+                    .EndLoaderOperations()
                 End With
             Catch ex As Exception
                 MyDefs.InvokeLoaderError(ex)
             End Try
         End Sub
-        Private Sub OK() Implements IOkCancelToolbar.OK
+        Private Sub MyDefs_ButtonOkClick(ByVal Sender As Object, ByVal e As KeyHandleEventArgs) Handles MyDefs.ButtonOkClick
             If MyDefs.MyFieldsChecker.AllParamsOK Then
                 With Settings
                     Dim a As Func(Of String, Object, Integer) =
@@ -124,8 +123,8 @@ Namespace Editors
 
                     'Basis
                     .GlobalPath.Value = TXT_GLOBAL_PATH.Text
-                    .MaxLargeImageHeigh.Value = CInt(TXT_IMAGE_LARGE.Value)
-                    .MaxSmallImageHeigh.Value = CInt(TXT_IMAGE_SMALL.Value)
+                    .MaxLargeImageHeight.Value = CInt(TXT_IMAGE_LARGE.Value)
+                    .MaxSmallImageHeight.Value = CInt(TXT_IMAGE_SMALL.Value)
                     .CollectionsPath.Value = TXT_COLLECTIONS_PATH.Text
                     .MaxUsersJobsCount.Value = CInt(TXT_MAX_JOBS_USERS.Value)
                     .ChannelsMaxJobsCount.Value = TXT_MAX_JOBS_CHANNELS.Value
@@ -161,14 +160,14 @@ Namespace Editors
                     .DownloadsCompleteCommand.Attribute.Value = TXT_DOWN_COMPLETE_SCRIPT.Checked
                     'Downloading: file names
                     If CH_FILE_NAME_CHANGE.Checked Then
-                        .FileReplaceNameByDate.Value = OPT_FILE_NAME_REPLACE.Checked
+                        .FileReplaceNameByDate.Value = If(OPT_FILE_NAME_REPLACE.Checked, FileNameReplaceMode.Replace, FileNameReplaceMode.Add)
                         .FileAddDateToFileName.Value = CH_FILE_DATE.Checked
                         .FileAddTimeToFileName.Value = CH_FILE_TIME.Checked
                         .FileDateTimePositionEnd.Value = OPT_FILE_DATE_END.Checked
                     Else
                         .FileAddDateToFileName.Value = False
                         .FileAddTimeToFileName.Value = False
-                        .FileReplaceNameByDate.Value = False
+                        .FileReplaceNameByDate.Value = FileNameReplaceMode.None
                     End If
                     'Channels
                     .ChannelsImagesRows.Value = CInt(TXT_CHANNELS_ROWS.Value)
@@ -184,19 +183,16 @@ Namespace Editors
                 MyDefs.CloseForm()
             End If
         End Sub
-        Private Sub Cancel() Implements IOkCancelToolbar.Cancel
-            MyDefs.CloseForm(DialogResult.Cancel)
-        End Sub
-        Private Sub TXT_GLOBAL_PATH_ActionOnButtonClick(ByVal Sender As ActionButton) Handles TXT_GLOBAL_PATH.ActionOnButtonClick
+        Private Sub TXT_GLOBAL_PATH_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As EventArgs) Handles TXT_GLOBAL_PATH.ActionOnButtonClick
             If Sender.DefaultButton = ActionButton.DefaultButtons.Open Then
                 Dim f As SFile = SFile.SelectPath(Settings.GlobalPath.Value)
                 If Not f.IsEmptyString Then TXT_GLOBAL_PATH.Text = f
             End If
         End Sub
-        Private Sub TXT_MAX_JOBS_USERS_ActionOnButtonClick(ByVal Sender As ActionButton) Handles TXT_MAX_JOBS_USERS.ActionOnButtonClick
+        Private Sub TXT_MAX_JOBS_USERS_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As EventArgs) Handles TXT_MAX_JOBS_USERS.ActionOnButtonClick
             If Sender.DefaultButton = ActionButton.DefaultButtons.Refresh Then TXT_MAX_JOBS_USERS.Value = SettingsCLS.DefaultMaxDownloadingTasks
         End Sub
-        Private Sub TXT_MAX_JOBS_CHANNELS_ActionOnButtonClick(ByVal Sender As ActionButton) Handles TXT_MAX_JOBS_CHANNELS.ActionOnButtonClick
+        Private Sub TXT_MAX_JOBS_CHANNELS_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As EventArgs) Handles TXT_MAX_JOBS_CHANNELS.ActionOnButtonClick
             If Sender.DefaultButton = ActionButton.DefaultButtons.Refresh Then TXT_MAX_JOBS_CHANNELS.Value = SettingsCLS.DefaultMaxDownloadingTasks
         End Sub
         Private Sub CH_FILE_NAME_CHANGE_CheckedChanged(sender As Object, e As EventArgs) Handles CH_FILE_NAME_CHANGE.CheckedChanged
@@ -217,11 +213,12 @@ Namespace Editors
             Dim b As Boolean = CH_FILE_NAME_CHANGE.Checked
             OPT_FILE_NAME_REPLACE.Enabled = b
             OPT_FILE_NAME_ADD_DATE.Enabled = b
+            If Not OPT_FILE_NAME_REPLACE.Checked And Not OPT_FILE_NAME_ADD_DATE.Checked Then OPT_FILE_NAME_REPLACE.Checked = True
             CH_FILE_DATE.Enabled = b
             CH_FILE_TIME.Enabled = b
             ChangePositionControlsEnabling()
         End Sub
-        Private Sub TXT_SCRIPT_ActionOnButtonClick(ByVal Sender As ActionButton) Handles TXT_SCRIPT.ActionOnButtonClick
+        Private Sub TXT_SCRIPT_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As EventArgs) Handles TXT_SCRIPT.ActionOnButtonClick
             SettingsCLS.ScriptTextBoxButtonClick(TXT_SCRIPT, Sender)
         End Sub
         Private Sub CH_COPY_CHANNEL_USER_IMAGE_CheckedChanged(sender As Object, e As EventArgs) Handles CH_COPY_CHANNEL_USER_IMAGE.CheckedChanged

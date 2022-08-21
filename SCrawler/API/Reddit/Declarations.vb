@@ -17,26 +17,8 @@ Namespace API.Reddit
                                                             New NodeParams("children", True, True, True)}
         Friend ReadOnly UrlBasePattern As RParams = RParams.DM("(?<=/)([^/]+?\.[\w]{3,4})(?=(\?|\Z))", 0)
         Friend ReadOnly VideoRegEx As RParams = RParams.DM("http.{0,1}://[^" & Chr(34) & "]+?mp4", 0)
-        Friend ReadOnly DateProvider As New JsonDate
-        Friend ReadOnly DateProviderChannel As New JsonDateChannel
         Private ReadOnly EUR_PROVIDER As New ANumbers(ANumbers.Cultures.EUR)
-        Friend Class JsonDate : Implements ICustomProvider
-            Friend Function Convert(ByVal Value As Object, ByVal DestinationType As Type, ByVal Provider As IFormatProvider,
-                                    Optional ByVal NothingArg As Object = Nothing, Optional ByVal e As ErrorsDescriber = Nothing) As Object Implements ICustomProvider.Convert
-                Return ADateTime.ParseUnicodeJS(Value, NothingArg, e)
-            End Function
-            Private Function GetFormat(ByVal FormatType As Type) As Object Implements IFormatProvider.GetFormat
-                Throw New NotImplementedException("GetFormat is not available in this context")
-            End Function
-        End Class
-        Friend Class JsonDateChannel : Implements ICustomProvider
-            Friend Function Convert(ByVal Value As Object, ByVal DestinationType As Type, ByVal Provider As IFormatProvider,
-                                    Optional ByVal NothingArg As Object = Nothing, Optional ByVal e As ErrorsDescriber = Nothing) As Object Implements ICustomProvider.Convert
-                Return ADateTime.ParseUnicode(AConvert(Of Integer)(Value, EUR_PROVIDER, Value), NothingArg, e)
-            End Function
-            Private Function GetFormat(ByVal FormatType As Type) As Object Implements IFormatProvider.GetFormat
-                Throw New NotImplementedException("GetFormat is not available in this context")
-            End Function
-        End Class
+        Friend ReadOnly DateProvider As New CustomProvider(Function(v, d, p, n, e) ADateTime.ParseUnicodeJS(v, n, e))
+        Friend ReadOnly DateProviderChannel As New CustomProvider(Function(v, d, p, n, e) ADateTime.ParseUnicode(AConvert(Of Integer)(v, EUR_PROVIDER, v), n, e))
     End Module
 End Namespace

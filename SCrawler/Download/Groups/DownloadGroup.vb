@@ -87,7 +87,7 @@ Namespace DownloadObjects.Groups
             If Not e.Value.IsEmptyString Then Labels.ListAddList(e.Value.Split("|"), LAP.NotContainsOnly)
         End Sub
         Public Overrides Function ToString() As String
-            Return $"{IIf(Index >= 0 And Index <= 8, $"#{Index + 1}: ", String.Empty)}{Name}"
+            Return $"{IIf(Index.ValueBetween(0, 8), $"#{Index + 1}: ", String.Empty)}{Name}"
         End Function
         Private _ControlSent As Boolean = False
         Friend Function GetControl() As ToolStripMenuItem

@@ -9,7 +9,7 @@
 Imports SCrawler.API.Base
 Imports SCrawler.Plugin
 Imports SCrawler.Plugin.Attributes
-Imports PersonalUtilities.Tools
+Imports PersonalUtilities.Tools.WEB
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports DownDetector = SCrawler.API.Base.DownDetector
 Imports Download = SCrawler.Plugin.ISiteSettings.Download
@@ -30,16 +30,17 @@ Namespace API.Reddit
         Friend ReadOnly Property SavedPostsUserName As PropertyValue
         <PropertyOption(ControlText:="Use M3U8", ControlToolTip:="Use M3U8 or mp4 for Reddit videos"), PXML>
         Friend ReadOnly Property UseM3U8 As PropertyValue
-        Friend Overrides ReadOnly Property Responser As WEB.Response
+        Friend Overrides ReadOnly Property Responser As Response
         Friend Sub New()
             MyBase.New(RedditSite)
-            Responser = New WEB.Response($"{SettingsFolderName}\Responser_{Site}.xml")
+            Responser = New Response($"{SettingsFolderName}\Responser_{Site}.xml")
 
             With Responser
                 If .File.Exists Then
                     .LoadSettings()
                 Else
                     .CookiesDomain = "reddit.com"
+                    .Cookies = New CookieKeeper(.CookiesDomain)
                     .Decoders.Add(SymbolsConverter.Converters.Unicode)
                     .SaveSettings()
                 End If

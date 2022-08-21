@@ -7,9 +7,8 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports PersonalUtilities.Forms
-Imports PersonalUtilities.Forms.Toolbars
-Friend Class FDatePickerForm : Implements IOkCancelDeleteToolbar
-    Private MyDefs As DefaultFormOptions
+Friend Class FDatePickerForm
+    Private ReadOnly MyDefs As DefaultFormOptions
     Friend ReadOnly Property SelectedDate As Date?
         Get
             If DT.Checked Then Return DT.Value.Date Else Return Nothing
@@ -19,12 +18,12 @@ Friend Class FDatePickerForm : Implements IOkCancelDeleteToolbar
     Friend Sub New(ByVal d As Date?)
         InitializeComponent()
         _InitialValue = d
+        MyDefs = New DefaultFormOptions(Me, Settings.Design)
     End Sub
     Private Sub FDatePickerForm_Load(sender As Object, e As EventArgs) Handles Me.Load
-        MyDefs = New DefaultFormOptions
         With MyDefs
-            .MyViewInitialize(Me, Settings.Design, True)
-            .AddOkCancelToolbar()
+            .MyViewInitialize(True)
+            .AddOkCancelToolbar(True)
             If _InitialValue.HasValue Then
                 DT.Checked = True
                 DT.Value = _InitialValue.Value.Date
@@ -35,14 +34,5 @@ Friend Class FDatePickerForm : Implements IOkCancelDeleteToolbar
             .EndLoaderOperations()
             MyDefs.MyOkCancel.EnableOK = True
         End With
-    End Sub
-    Private Sub OK() Implements IOkCancelToolbar.OK
-        MyDefs.CloseForm()
-    End Sub
-    Private Sub Cancel() Implements IOkCancelToolbar.Cancel
-        MyDefs.CloseForm(DialogResult.Cancel)
-    End Sub
-    Private Sub Delete() Implements IOkCancelDeleteToolbar.Delete
-        MyDefs.CloseForm(DialogResult.Abort)
     End Sub
 End Class

@@ -47,8 +47,7 @@ Friend NotInheritable Class M3U8
             CachePath.Delete(SFO.Path, SFODelete.None, EDP.None)
         End Try
     End Function
-    Friend Shared Function Download(ByVal URL As String, ByVal Appender As String, ByVal ffmpegFile As SFile, ByVal f As SFile,
-                                    ByRef Logger As ILogProvider) As SFile
+    Friend Shared Function Download(ByVal URL As String, ByVal Appender As String, ByVal ffmpegFile As SFile, ByVal f As SFile, ByRef Logger As ILogProvider) As SFile
         Try
             If Not URL.IsEmptyString Then
                 Using w As New WebClient
@@ -62,7 +61,7 @@ Friend NotInheritable Class M3U8
             End If
             Return Nothing
         Catch ex As Exception
-            If Not ex.HelpLink = 1 Then Logger.Add(ex, "[M3U8.Download]")
+            If Not ex.HelpLink = 1 Then Logger.Add(ex, $"[M3U8.Download({URL}, {Appender}, {ffmpegFile}, {f})]")
             Throw ex
         End Try
     End Function

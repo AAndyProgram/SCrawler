@@ -9,42 +9,38 @@
 Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Forms.Toolbars
 Namespace DownloadObjects
-    Friend Class SchedulerEditorForm : Implements IEditToolbar
-        Private ReadOnly MyDefs As DefaultFormOptions
+    Friend Class SchedulerEditorForm
+        Private WithEvents MyDefs As DefaultFormOptions
         Private WithEvents BTT_SKIP As ToolStripButton
         Private WithEvents BTT_START As ToolStripButton
         Friend Sub New()
             InitializeComponent()
-            MyDefs = New DefaultFormOptions
+            MyDefs = New DefaultFormOptions(Me, Settings.Design)
+            BTT_SKIP = New ToolStripButton With {
+                .Text = "Skip",
+                .ToolTipText = "Skip next run",
+                .AutoToolTip = True,
+                .DisplayStyle = ToolStripItemDisplayStyle.Text
+            }
+            BTT_START = New ToolStripButton With {
+                .Text = "Start",
+                .Image = My.Resources.StartPic_01_Green_16,
+                .ToolTipText = "Run selected plan",
+                .AutoToolTip = True
+            }
         End Sub
         Private Sub SchedulerEditorForm_Load(sender As Object, e As EventArgs) Handles Me.Load
             With MyDefs
-                .MyViewInitialize(Me, Settings.Design)
-                .AddEditToolbar()
-                BTT_SKIP = New ToolStripButton With {
-                    .Text = "Skip",
-                    .ToolTipText = "Skip next run",
-                    .AutoToolTip = True,
-                    .DisplayStyle = ToolStripItemDisplayStyle.Text
-                }
-                BTT_START = New ToolStripButton With {
-                    .Text = "Start",
-                    .Image = My.Resources.StartPic_01_Green_16,
-                    .ToolTipText = "Run selected plan",
-                    .AutoToolTip = True
-                }
-                .MyEditToolbar.ToolStrip.Items.AddRange({BTT_START, BTT_SKIP})
+                .MyViewInitialize()
+                .AddEditToolbarPlus({BTT_START, BTT_SKIP})
                 Refill()
                 .EndLoaderOperations(False)
             End With
         End Sub
-        Private Sub SchedulerEditorForm_Disposed(sender As Object, e As EventArgs) Handles Me.Disposed
-            BTT_SKIP.Dispose()
-        End Sub
         Private Sub SchedulerEditorForm_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
             If e.KeyCode = Keys.Escape Then Close()
         End Sub
-        Private Sub Refill() Implements IEditToolbar.Update
+        Private Sub Refill() Handles MyDefs.ButtonUpdateClick
             Try
                 LIST_PLANS.Items.Clear()
                 If Settings.Automation.Count > 0 Then
@@ -57,7 +53,7 @@ Namespace DownloadObjects
                 ErrorsDescriber.Execute(EDP.SendInLog, ex)
             End Try
         End Sub
-        Private Sub Add() Implements IEditToolbar.Add
+        Private Sub MyDefs_ButtonAddClick(ByVal Sender As Object, ByVal e As EditToolbar.EditToolbarEventArgs) Handles MyDefs.ButtonAddClick
             Dim a As New AutoDownloader(True)
             Using f As New AutoDownloaderEditorForm(a)
                 f.ShowDialog()
@@ -69,7 +65,7 @@ Namespace DownloadObjects
                 End If
             End Using
         End Sub
-        Private Sub Edit() Implements IEditToolbar.Edit
+        Private Sub Edit() Handles MyDefs.ButtonEditClick
             If _LatestSelected.ValueBetween(0, LIST_PLANS.Items.Count - 1) Then
                 Using f As New AutoDownloaderEditorForm(Settings.Automation(_LatestSelected)) : f.ShowDialog() : End Using
                 Refill()
@@ -78,14 +74,16 @@ Namespace DownloadObjects
             End If
         End Sub
         Private _DeleteInProgress As Boolean = False
-        Private Async Sub Delete() Implements IEditToolbar.Delete
+        Private Async Sub MyDefs_ButtonDeleteClickE(ByVal Sender As Object, ByVal e As EditToolbar.EditToolbarEventArgs) Handles MyDefs.ButtonDeleteClickE
             If Not _DeleteInProgress Then
                 If _LatestSelected.ValueBetween(0, LIST_PLANS.Items.Count - 1) Then
                     _DeleteInProgress = True
                     Dim n$ = Settings.Automation(_LatestSelected).Name
-                    Await Settings.Automation.RemoveAt(_LatestSelected)
-                    Refill()
-                    MsgBoxE($"Plan [{n}] deleted")
+                    If MsgBoxE({$"Are you sure you want to delete the [{n}] plan?", "Deleting a plan..."}, vbExclamation + vbYesNo) = vbYes Then
+                        Await Settings.Automation.RemoveAt(_LatestSelected)
+                        Refill()
+                        MsgBoxE($"Plan [{n}] deleted")
+                    End If
                     _DeleteInProgress = False
                 Else
                     MsgBoxE("You have not selected a plan to delete.", vbExclamation)

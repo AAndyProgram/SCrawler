@@ -70,8 +70,10 @@ Friend Class SettingsCLS : Implements IDisposable
         If tmpPluginList.ListExists Then Plugins.AddRange(tmpPluginList)
 
         FastProfilesLoading = New XMLValue(Of Boolean)("FastProfilesLoading", False, MyXML)
-        MaxLargeImageHeigh = New XMLValue(Of Integer)("MaxLargeImageHeigh", 150, MyXML)
-        MaxSmallImageHeigh = New XMLValue(Of Integer)("MaxSmallImageHeigh", 15, MyXML)
+        MaxLargeImageHeight = New XMLValue(Of Integer)("MaxLargeImageHeight", 150, MyXML)
+        MaxLargeImageHeight.ReplaceByValue("MaxLargeImageHeigh",, MyXML)
+        MaxSmallImageHeight = New XMLValue(Of Integer)("MaxSmallImageHeight", 15, MyXML)
+        MaxSmallImageHeight.ReplaceByValue("MaxSmallImageHeigh",, MyXML)
         DownloadOpenInfo = New XMLValueAttribute(Of Boolean, Boolean)("DownloadOpenInfo", "OpenAgain", False, False, MyXML)
         DownloadOpenProgress = New XMLValueAttribute(Of Boolean, Boolean)("DownloadOpenProgress", "OpenAgain", False, False, MyXML)
         DownloadsCompleteCommand = New XMLValueAttribute(Of String, Boolean)("DownloadsCompleteCommand", "Use",,, MyXML)
@@ -119,7 +121,7 @@ Friend Class SettingsCLS : Implements IDisposable
         AddHandler FileAddTimeToFileName.OnValueChanged, AddressOf ChangeDateProvider
         FileDateTimePositionEnd = New XMLValue(Of Boolean)("FileDateTimePositionEnd", True, MyXML, n)
         AddHandler FileDateTimePositionEnd.OnValueChanged, AddressOf ChangeDateProvider
-        FileReplaceNameByDate = New XMLValue(Of Boolean)("FileReplaceNameByDate", False, MyXML, n)
+        FileReplaceNameByDate = New XMLValue(Of Integer)("FileReplaceNameByDate", FileNameReplaceMode.None, MyXML, n)
 
         CheckUpdatesAtStart = New XMLValue(Of Boolean)("CheckUpdatesAtStart", True, MyXML)
         ShowNewVersionNotification = New XMLValue(Of Boolean)("ShowNewVersionNotification", True, MyXML)
@@ -151,7 +153,11 @@ Friend Class SettingsCLS : Implements IDisposable
             If FileAddDateToFileName Then p = "yyyyMMdd"
             If FileAddTimeToFileName Then p.StringAppend("HHmmss", "_")
             If Not p.IsEmptyString Then FileDateAppenderProvider = New ADateTime(p) Else FileDateAppenderProvider = New ADateTime("yyyyMMdd_HHmmss")
-            If FileDateTimePositionEnd Then FileDateAppenderPattern = "{0}_{1}" Else FileDateAppenderPattern = "{1}_{0}"
+            If FileReplaceNameByDate.Value = FileNameReplaceMode.Replace Then
+                FileDateAppenderPattern = "{1}"
+            Else
+                If FileDateTimePositionEnd Then FileDateAppenderPattern = "{0}_{1}" Else FileDateAppenderPattern = "{1}_{0}"
+            End If
         End If
     End Sub
 #Region "Script"
@@ -378,7 +384,7 @@ Friend Class SettingsCLS : Implements IDisposable
     Friend ReadOnly Property CollectionsPathF As SFile
         Get
             If GlobalPath.IsEmptyString Then
-                Throw New ArgumentNullException("GlobalPath", "GlobalPath does not set")
+                Throw New ArgumentNullException("GlobalPath", "GlobalPath not set")
             Else
                 Return SFile.GetPath($"{GlobalPath.Value.PathWithSeparator}{CollectionsPath.Value}")
             End If
@@ -402,13 +408,13 @@ Friend Class SettingsCLS : Implements IDisposable
     Friend ReadOnly Property FileAddDateToFileName As XMLValue(Of Boolean)
     Friend ReadOnly Property FileAddTimeToFileName As XMLValue(Of Boolean)
     Friend ReadOnly Property FileDateTimePositionEnd As XMLValue(Of Boolean)
-    Friend ReadOnly Property FileReplaceNameByDate As XMLValue(Of Boolean)
+    Friend ReadOnly Property FileReplaceNameByDate As XMLValue(Of Integer)
 #End Region
 #End Region
 #Region "View"
     Friend ReadOnly Property FastProfilesLoading As XMLValue(Of Boolean)
-    Friend ReadOnly Property MaxLargeImageHeigh As XMLValue(Of Integer)
-    Friend ReadOnly Property MaxSmallImageHeigh As XMLValue(Of Integer)
+    Friend ReadOnly Property MaxLargeImageHeight As XMLValue(Of Integer)
+    Friend ReadOnly Property MaxSmallImageHeight As XMLValue(Of Integer)
     Friend ReadOnly Property DownloadOpenInfo As XMLValueAttribute(Of Boolean, Boolean)
     Friend ReadOnly Property DownloadOpenProgress As XMLValueAttribute(Of Boolean, Boolean)
     Friend ReadOnly Property DownloadsCompleteCommand As XMLValueAttribute(Of String, Boolean)
@@ -481,6 +487,7 @@ Friend Class SettingsCLS : Implements IDisposable
                     DeleteCachePath()
                 End If
                 If Not Automation Is Nothing Then Automation.Dispose()
+                AutoDownloader.CachePath.Delete(SFO.Path, SFODelete.DeletePermanently, EDP.None)
                 Plugins.Clear()
                 Users.ListClearDispose
                 UsersList.Clear()

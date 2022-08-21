@@ -215,7 +215,7 @@
             Me.TXT_IMAGE_LARGE.Dock = System.Windows.Forms.DockStyle.Fill
             Me.TXT_IMAGE_LARGE.Location = New System.Drawing.Point(3, 3)
             Me.TXT_IMAGE_LARGE.Name = "TXT_IMAGE_LARGE"
-            Me.TXT_IMAGE_LARGE.NumberMaximum = New Decimal(New Integer() {1000, 0, 0, 0})
+            Me.TXT_IMAGE_LARGE.NumberMaximum = New Decimal(New Integer() {256, 0, 0, 0})
             Me.TXT_IMAGE_LARGE.NumberMinimum = New Decimal(New Integer() {50, 0, 0, 0})
             Me.TXT_IMAGE_LARGE.Size = New System.Drawing.Size(278, 22)
             Me.TXT_IMAGE_LARGE.TabIndex = 0
@@ -231,7 +231,7 @@
             Me.TXT_IMAGE_SMALL.Dock = System.Windows.Forms.DockStyle.Fill
             Me.TXT_IMAGE_SMALL.Location = New System.Drawing.Point(287, 3)
             Me.TXT_IMAGE_SMALL.Name = "TXT_IMAGE_SMALL"
-            Me.TXT_IMAGE_SMALL.NumberMaximum = New Decimal(New Integer() {500, 0, 0, 0})
+            Me.TXT_IMAGE_SMALL.NumberMaximum = New Decimal(New Integer() {256, 0, 0, 0})
             Me.TXT_IMAGE_SMALL.NumberMinimum = New Decimal(New Integer() {10, 0, 0, 0})
             Me.TXT_IMAGE_SMALL.Size = New System.Drawing.Size(278, 22)
             Me.TXT_IMAGE_SMALL.TabIndex = 1

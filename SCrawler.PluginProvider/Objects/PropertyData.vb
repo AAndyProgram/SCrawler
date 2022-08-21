@@ -10,9 +10,9 @@ Namespace Plugin
     Public Structure PropertyData
         Public ReadOnly Name As String
         Public ReadOnly Value As Object
-        Public Sub New(ByVal _Name As String, ByVal _Value As Object)
-            Name = _Name
-            Value = _Value
+        Public Sub New(ByVal Name As String, ByVal Value As Object)
+            Me.Name = Name
+            Me.Value = Value
         End Sub
     End Structure
 End Namespace

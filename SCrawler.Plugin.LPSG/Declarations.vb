@@ -30,19 +30,5 @@ Friend Module Declarations
     Friend ReadOnly Property FileRegExExt As New RParams(FileUrlRegexDefault, 0, Nothing, InputForbidRemover)
     Friend ReadOnly Property FileRegExExt2 As New RParams("([^/]+?)(?=(\Z|&))", 0, Nothing, InputForbidRemover)
     Friend ReadOnly Property FileExistsRegEx As RParams = RParams.DMS(FileUrlRegexDefault, 2)
-    Private Class PUMComparer : Implements IEqualityComparer, IEqualityComparer(Of PluginUserMedia)
-        Private Overloads Function Equals(ByVal x As PluginUserMedia, ByVal y As PluginUserMedia) As Boolean Implements IEqualityComparer(Of PluginUserMedia).Equals
-            Return x.URL = y.URL
-        End Function
-        Private Function IEqualityComparer_Equals(ByVal x As Object, ByVal y As Object) As Boolean Implements IEqualityComparer.Equals
-            Return DirectCast(x, PluginUserMedia).URL = DirectCast(y, PluginUserMedia).URL
-        End Function
-        Private Overloads Function GetHashCode(ByVal Obj As Object) As Integer Implements IEqualityComparer.GetHashCode
-            Throw New NotImplementedException()
-        End Function
-        Private Overloads Function GetHashCode(ByVal Obj As PluginUserMedia) As Integer Implements IEqualityComparer(Of PluginUserMedia).GetHashCode
-            Throw New NotImplementedException()
-        End Function
-    End Class
-    Friend ReadOnly TempListAddParams As New ListAddParams(LAP.NotContainsOnly) With {.Comparer = New PUMComparer}
+    Friend ReadOnly TempListAddParams As New ListAddParams(LAP.NotContainsOnly) With {.Comparer = New FComparer(Of PluginUserMedia)(Function(x, y) x.URL = y.URL)}
 End Module

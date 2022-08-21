@@ -100,7 +100,7 @@ Namespace DownloadObjects.Groups
             Controls.Add(TP_2, 0, 3)
             Controls.Add(TXT_LABELS, 0, 4)
         End Sub
-        Private Sub TXT_LABELS_ActionOnButtonClick(ByVal Sender As ActionButton) Handles TXT_LABELS.ActionOnButtonClick
+        Private Sub TXT_LABELS_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As EventArgs) Handles TXT_LABELS.ActionOnButtonClick
             Select Case Sender.DefaultButton
                 Case ADB.Edit
                     Using f As New LabelsForm(Labels)

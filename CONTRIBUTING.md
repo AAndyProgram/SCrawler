@@ -11,10 +11,14 @@ I welcome requests! Follow these steps to contribute:
 
 1. Delete the "PersonalUtilities" project from the solution.
 1. Delete the "PersonalUtilities.Notifications" project from the solution.
-1. Add the latest versions of the ```PersonalUtilities.dll``` and ```PersonalUtilities.Notifications.dll``` libraries (from the [latest release](https://github.com/AAndyProgram/SCrawler/releases/latest)).
+1. The following libraries must be added to project references with the '**Copy to output folder**' option:
+  - ```PersonalUtilities.dll```
+  - ```PersonalUtilities.Notifications.dll```
+  - ```Microsoft.Toolkit.Uwp.Notifications.dll```
+  - ```System.ValueTuple.dll```
 1. Import PersonalUtilities.Functions for the whole project.
 
-**Always use the correct "PersonalUtilities.dll" library. You must download this library from the release of the code you downloaded.**
+**Always use the correct libraries. You must download libraries from the same release date as the code commit date.**
 
 # How to request a new site
 

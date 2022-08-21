@@ -27,14 +27,14 @@ Friend Class MainFrameObjects
             Else
                 RemoveHandler User.UserUpdated, AddressOf MF.User_OnUserUpdated
             End If
-        Catch ex As Exception
+        Catch
         End Try
     End Sub
     Friend Sub CollectionHandler(ByVal [Collection] As UserDataBind)
         Try
             AddHandler Collection.OnCollectionSelfRemoved, AddressOf MF.CollectionRemoved
             AddHandler Collection.OnUserRemoved, AddressOf MF.UserRemovedFromCollection
-        Catch ex As Exception
+        Catch
         End Try
     End Sub
     Friend Sub Focus(Optional ByVal Show As Boolean = False)
@@ -54,7 +54,7 @@ Friend Class MainFrameObjects
     Friend Overloads Sub ShowNotification(ByVal Message As String, ByVal Title As String, ByVal Icon As ToolTipIcon)
         MF.TrayIcon.ShowBalloonTip(2000, Title, Message, Icon)
     End Sub
-    Friend Sub CLearNotifications()
+    Friend Sub ClearNotifications()
         Notificator.Clear()
     End Sub
     Private Sub Notificator_OnClicked(ByVal Key As String) Handles Notificator.OnClicked

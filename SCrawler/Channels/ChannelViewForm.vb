@@ -216,7 +216,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
         RefillChannels(Settings.LatestSelectedChannel.Value)
         ChangeComboIndex(0)
         MyRange.LabelText = String.Empty
-        CMB_CHANNELS_ActionOnCheckedChange(CMB_CHANNELS.Checked)
+        CMB_CHANNELS_ActionOnCheckedChange(Nothing, Nothing, CMB_CHANNELS.Checked)
         With LIST_POSTS
             Dim s As Size = GetImageSize()
             .LargeImageList = New ImageList With {.ColorDepth = ColorDepth.Depth32Bit, .ImageSize = s}
@@ -296,8 +296,8 @@ Friend Class ChannelViewForm : Implements IChannelLimits
         Const mhw% = 256
         Dim s As Size = LIST_POSTS.Size
         With LIST_POSTS
-            s.Width -= (.Margin.Left + .Margin.Right)
-            s.Height -= (.Margin.Top + .Margin.Bottom)
+            s.Width -= .Margin.Horizontal
+            s.Height -= .Margin.Vertical
             s.Width = s.Width / ImagesInRow - .Padding.Left * ImagesInRow - .Padding.Right * ImagesInRow
             s.Height = s.Height / ImagesRows - .Padding.Top * ImagesRows - .Padding.Bottom * ImagesRows
             If s.Width = 0 Then s.Width = 50
@@ -400,7 +400,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
                 CH_HIDE_EXISTS_USERS.Enabled = True
                 CMB_CHANNELS.Enabled(True) = True
                 BTT_SHOW_STATS.Enabled = True
-                CMB_CHANNELS_ActionOnCheckedChange(CMB_CHANNELS.Checked)
+                CMB_CHANNELS_ActionOnCheckedChange(Nothing, Nothing, CMB_CHANNELS.Checked)
                 MyRange.Enabled = True
                 MyRange.UpdateControls()
             End If
@@ -549,7 +549,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
                         If d.HasValue Then
                             LBL_LIMIT_TEXT.Text = $"to date {AConvert(Of String)(d, ADateTime.Formats.BaseDateTime, String.Empty)}"
                         Else
-                            LBL_LIMIT_TEXT.Text = $"to post [{c.First(Function(p) Not p.ID.IsEmptyString).ID}]"
+                            LBL_LIMIT_TEXT.Text = $"to post [{c.FirstOrDefault(Function(p) Not p.ID.IsEmptyString).ID}]"
                         End If
                     Else
                         OPT_LIMITS_COUNT.Checked = True
@@ -571,7 +571,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
         Dim c As Channel = GetCurrentChannel()
         If Not c Is Nothing Then MyRange.Source = c
     End Sub
-    Private Sub CMB_CHANNELS_ActionOnButtonClick(ByVal Sender As ActionButton) Handles CMB_CHANNELS.ActionOnButtonClick
+    Private Sub CMB_CHANNELS_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As EventArgs) Handles CMB_CHANNELS.ActionOnButtonClick
         Dim c As Channel
         Select Case Sender.DefaultButton
             Case ADB.Refresh : RefillChannels()
@@ -579,12 +579,12 @@ Friend Class ChannelViewForm : Implements IChannelLimits
             Case ADB.Delete
                 Try
                     c = GetCurrentChannel()
-                    If Not c Is Nothing AndAlso MsgBoxE($"Do you really want to delete channel [{c}]?", MsgBoxStyle.Exclamation + MsgBoxStyle.YesNo) = 0 Then
+                    If Not c Is Nothing AndAlso MsgBoxE($"Are you sure you want to delete the channel [{c}]?", vbExclamation + vbYesNo) = vbYes Then
                         Settings.Channels.Remove(c)
                         RefillChannels()
                     End If
-                Catch ex As Exception
-                    ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Error on trying to delete channel")
+                Catch del_ex As Exception
+                    ErrorsDescriber.Execute(EDP.LogMessageValue, del_ex, "An error occurred while trying to delete a channel")
                 End Try
             Case ADB.Up : ChangeComboIndex(-1)
             Case ADB.Down : ChangeComboIndex(1)
@@ -597,19 +597,19 @@ Friend Class ChannelViewForm : Implements IChannelLimits
                             If f.DialogResult = DialogResult.OK Then c.Save()
                         End Using
                     End If
-                Catch ex As Exception
-                    ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Error on trying to edit channel")
+                Catch edit_ex As Exception
+                    ErrorsDescriber.Execute(EDP.LogMessageValue, edit_ex, "An error occurred while trying to edit a channel")
                 End Try
             Case ADB.Info
                 Try
                     c = GetCurrentChannel()
                     If Not c Is Nothing Then MsgBoxE({c.GetChannelStats(True), "Channel statistics"})
                 Catch info_ex As Exception
-                    ErrorsDescriber.Execute(EDP.LogMessageValue, info_ex, "Error on trying to show channel info")
+                    ErrorsDescriber.Execute(EDP.LogMessageValue, info_ex, "An error occurred while trying to display channel information")
                 End Try
         End Select
     End Sub
-    Private Sub CMB_CHANNELS_ActionOnCheckedChange(ByVal Mode As Boolean) Handles CMB_CHANNELS.ActionOnCheckedChange
+    Private Sub CMB_CHANNELS_ActionOnCheckedChange(ByVal Sender As Object, ByVal e As EventArgs, ByVal Checked As Boolean) Handles CMB_CHANNELS.ActionOnCheckedChange
         Dim OneChannel As Boolean = Not CMB_CHANNELS.Checked
         CMB_CHANNELS.Enabled(False) = OneChannel
         If OneChannel Then
@@ -683,7 +683,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
         Try
             If Not p.UserID.IsEmptyString Then Process.Start($"https://www.reddit.com/user/{p.UserID}")
         Catch ex As Exception
-            ErrorsDescriber.Execute(EDP.LogMessageValue, ex, $"Error on opening user by [https://www.reddit.com/user/{p.UserID}]")
+            ErrorsDescriber.Execute(EDP.LogMessageValue, ex, $"Error opening user by [https://www.reddit.com/user/{p.UserID}]")
         End Try
     End Sub
     Private Sub BTT_C_OPEN_POST_Click(sender As Object, e As EventArgs) Handles BTT_C_OPEN_POST.Click
@@ -693,7 +693,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
             URL = $"https://www.reddit.com/r/{CMB_CHANNELS.Value}/comments/{p.ID.Split("_").Last}"
             If Not p.ID.IsEmptyString Then Process.Start(URL)
         Catch ex As Exception
-            ErrorsDescriber.Execute(EDP.LogMessageValue, ex, $"Error on opening post by [{URL}]")
+            ErrorsDescriber.Execute(EDP.LogMessageValue, ex, $"Error opening post by [{URL}]")
         End Try
     End Sub
     Private Sub BTT_C_OPEN_PICTURE_Click(sender As Object, e As EventArgs) Handles BTT_C_OPEN_PICTURE.Click
@@ -734,14 +734,14 @@ Friend Class ChannelViewForm : Implements IChannelLimits
                 MsgBoxE("User does not selected", MsgBoxStyle.Exclamation)
             End If
         Catch ex As Exception
-            ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Error on removing user from selected")
+            ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Error removing user from selected")
         End Try
     End Sub
     Private Sub BTT_C_ADD_TO_BLACKLIST_Click(sender As Object, e As EventArgs) Handles BTT_C_ADD_TO_BLACKLIST.Click
         Try
             Dim u$ = GetPostBySelected().UserID
             If Not u.IsEmptyString Then
-                Dim result% = MsgBoxE(New MMessage($"Do you really want to add user [{u}] to the BlackList?",
+                Dim result% = MsgBoxE(New MMessage($"Are you sure you want to add user [{u}] to the BlackList?",
                                                    "Adding user to the BlackList",
                                                    {"Add", "Add and update ranges",
                                                     "Add with the reason", "Add with the reason and update ranges",
@@ -771,7 +771,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
 #End Region
     Private Sub OpenPostPicture()
         Dim f As SFile = GetPostBySelected().CachedFile
-        If f.Exists Then f.Open() Else MsgBoxE($"Picture file [{f}] does not found", MsgBoxStyle.Critical)
+        If f.Exists Then f.Open() Else MsgBoxE($"Picture file [{f}] not found", MsgBoxStyle.Critical)
     End Sub
     Private Function GetPostBySelected(Optional ByVal SpecificTag As String = Nothing) As UserPost
         Dim p As UserPost = Nothing
@@ -798,7 +798,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
         MyRange.Limit = ImagesInRow * ImagesRows
         MyRange.GoTo(0)
     End Sub
-    Private Sub MyRange_IndexChanged(ByVal Sender As IRangeSwitcherProvider, ByVal Index As Integer) Handles MyRange.IndexChanged
+    Private Sub MyRange_IndexChanged(ByVal Sender As Object, ByVal e As EventArgs) Handles MyRange.IndexChanged
         Try
             If MyDefs.Initializing Then Exit Sub
             AppendPendingUsers()
@@ -828,8 +828,8 @@ Friend Class ChannelViewForm : Implements IChannelLimits
             ErrorsDescriber.Execute(EDP.LogMessageValue, ex)
         End Try
     End Sub
-    Private Sub MyRange_RangesChanged(ByVal Sender As IRangeSwitcherProvider, ByVal Index As Integer) Handles MyRange.RangesChanged
-        If Sender.Count > 0 Then MyRange_IndexChanged(Nothing, 0)
+    Private Sub MyRange_RangesChanged(ByVal Sender As IRangeSwitcherProvider, ByVal e As EventArgs) Handles MyRange.RangesChanged
+        If Sender.Count > 0 Then Sender.CurrentIndex = 0
     End Sub
 #End Region
 End Class

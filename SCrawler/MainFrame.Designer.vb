@@ -50,6 +50,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_DOWN_SITE_FULL = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_ADD_NEW_GROUP = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_DOWN_AUTOMATION = New System.Windows.Forms.ToolStripMenuItem()
+        Me.BTT_DOWN_AUTOMATION_PAUSE = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_DOWN_VIDEO = New System.Windows.Forms.ToolStripButton()
         Me.BTT_DOWN_STOP = New System.Windows.Forms.ToolStripButton()
         Me.MENU_VIEW = New System.Windows.Forms.ToolStripDropDownButton()
@@ -104,7 +105,6 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_TRAY_SHOW_HIDE = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_TRAY_CLOSE = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_TRAY_CLOSE_NO_SCRIPT = New System.Windows.Forms.ToolStripMenuItem()
-        Me.BTT_DOWN_AUTOMATION_PAUSE = New System.Windows.Forms.ToolStripMenuItem()
         SEP_1 = New System.Windows.Forms.ToolStripSeparator()
         SEP_2 = New System.Windows.Forms.ToolStripSeparator()
         CONTEXT_SEP_1 = New System.Windows.Forms.ToolStripSeparator()
@@ -372,6 +372,13 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_DOWN_AUTOMATION.Size = New System.Drawing.Size(231, 22)
         Me.BTT_DOWN_AUTOMATION.Text = "Automation"
         '
+        'BTT_DOWN_AUTOMATION_PAUSE
+        '
+        Me.BTT_DOWN_AUTOMATION_PAUSE.Image = Global.SCrawler.My.Resources.Resources.Pause_Blue_16
+        Me.BTT_DOWN_AUTOMATION_PAUSE.Name = "BTT_DOWN_AUTOMATION_PAUSE"
+        Me.BTT_DOWN_AUTOMATION_PAUSE.Size = New System.Drawing.Size(231, 22)
+        Me.BTT_DOWN_AUTOMATION_PAUSE.Text = "Pause automation"
+        '
         'BTT_DOWN_VIDEO
         '
         Me.BTT_DOWN_VIDEO.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text
@@ -547,7 +554,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_DONATE.Name = "BTT_DONATE"
         Me.BTT_DONATE.Size = New System.Drawing.Size(23, 20)
         Me.BTT_DONATE.Text = "Donate"
-        Me.BTT_DONATE.ToolTipText = "Donate"
+        Me.BTT_DONATE.ToolTipText = "Support"
         '
         'Toolbar_BOTTOM
         '
@@ -765,13 +772,6 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_TRAY_CLOSE_NO_SCRIPT.Text = "Close (no script)"
         Me.BTT_TRAY_CLOSE_NO_SCRIPT.ToolTipText = "Close the program without executing the script"
         Me.BTT_TRAY_CLOSE_NO_SCRIPT.Visible = False
-        '
-        'BTT_DOWN_AUTOMATION_PAUSE
-        '
-        Me.BTT_DOWN_AUTOMATION_PAUSE.Image = Global.SCrawler.My.Resources.Resources.Pause_Blue_16
-        Me.BTT_DOWN_AUTOMATION_PAUSE.Name = "BTT_DOWN_AUTOMATION_PAUSE"
-        Me.BTT_DOWN_AUTOMATION_PAUSE.Size = New System.Drawing.Size(231, 22)
-        Me.BTT_DOWN_AUTOMATION_PAUSE.Text = "Pause automation"
         '
         'MainFrame
         '

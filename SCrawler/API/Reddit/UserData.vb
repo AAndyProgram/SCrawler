@@ -58,7 +58,7 @@ Namespace API.Reddit
         Friend Property AutoGetLimits As Boolean = True Implements IChannelLimits.AutoGetLimits
 #End Region
         Friend Property ChannelInfo As Channel
-        Private ReadOnly ChannelPostsNames As New List(Of String)
+        Private ReadOnly ChannelPostsNames As List(Of String)
         Friend Property SkipExistsUsers As Boolean = True Implements IChannelData.SkipExistsUsers
         Private ReadOnly _ExistsUsersNames As List(Of String)
         Friend Property SaveToCache As Boolean = False Implements IChannelData.SaveToCache

@@ -16,11 +16,13 @@
         Private Sub InitializeComponent()
             Dim SEP_1 As System.Windows.Forms.ToolStripSeparator
             Dim SEP_2 As System.Windows.Forms.ToolStripSeparator
+            Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(VideosDownloaderForm))
             Me.ToolbarTOP = New System.Windows.Forms.ToolStrip()
             Me.BTT_ADD = New System.Windows.Forms.ToolStripButton()
             Me.BTT_ADD_LIST = New System.Windows.Forms.ToolStripButton()
             Me.BTT_DELETE = New System.Windows.Forms.ToolStripButton()
             Me.BTT_DOWN = New System.Windows.Forms.ToolStripButton()
+            Me.BTT_STOP = New System.Windows.Forms.ToolStripButton()
             Me.BTT_OPEN_PATH = New System.Windows.Forms.ToolStripButton()
             Me.ToolbarBOTTOM = New System.Windows.Forms.StatusStrip()
             Me.PR_V = New System.Windows.Forms.ToolStripProgressBar()
@@ -45,7 +47,7 @@
             'ToolbarTOP
             '
             Me.ToolbarTOP.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden
-            Me.ToolbarTOP.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_ADD, Me.BTT_ADD_LIST, Me.BTT_DELETE, SEP_1, Me.BTT_DOWN, SEP_2, Me.BTT_OPEN_PATH})
+            Me.ToolbarTOP.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_ADD, Me.BTT_ADD_LIST, Me.BTT_DELETE, SEP_1, Me.BTT_DOWN, Me.BTT_STOP, SEP_2, Me.BTT_OPEN_PATH})
             Me.ToolbarTOP.Location = New System.Drawing.Point(0, 0)
             Me.ToolbarTOP.Name = "ToolbarTOP"
             Me.ToolbarTOP.Size = New System.Drawing.Size(524, 25)
@@ -86,6 +88,16 @@
             Me.BTT_DOWN.Name = "BTT_DOWN"
             Me.BTT_DOWN.Size = New System.Drawing.Size(104, 22)
             Me.BTT_DOWN.Text = "Download (F5)"
+            '
+            'BTT_STOP
+            '
+            Me.BTT_STOP.AutoToolTip = False
+            Me.BTT_STOP.Enabled = False
+            Me.BTT_STOP.Image = CType(resources.GetObject("BTT_STOP.Image"), System.Drawing.Image)
+            Me.BTT_STOP.ImageTransparentColor = System.Drawing.Color.Magenta
+            Me.BTT_STOP.Name = "BTT_STOP"
+            Me.BTT_STOP.Size = New System.Drawing.Size(51, 22)
+            Me.BTT_STOP.Text = "Stop"
             '
             'BTT_OPEN_PATH
             '
@@ -156,5 +168,6 @@
         Private WithEvents LIST_VIDEOS As ListBox
         Private WithEvents BTT_DOWN As ToolStripButton
         Private WithEvents BTT_OPEN_PATH As ToolStripButton
+        Private WithEvents BTT_STOP As ToolStripButton
     End Class
 End Namespace

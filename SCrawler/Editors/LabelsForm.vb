@@ -7,12 +7,11 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports PersonalUtilities.Forms
-Imports PersonalUtilities.Forms.Toolbars
 Imports PersonalUtilities.Forms.Controls
 Imports PersonalUtilities.Forms.Controls.Base
 Imports PersonalUtilities.Functions.Messaging
-Friend Class LabelsForm : Implements IOkCancelDeleteToolbar
-    Private ReadOnly MyDefs As DefaultFormOptions
+Friend Class LabelsForm
+    Private WithEvents MyDefs As DefaultFormOptions
     Friend ReadOnly Property LabelsList As List(Of String)
     Private ReadOnly _Source As IEnumerable(Of String) = Nothing
     Private ReadOnly Property Source As IEnumerable(Of String)
@@ -32,7 +31,7 @@ Friend Class LabelsForm : Implements IOkCancelDeleteToolbar
         InitializeComponent()
         LabelsList = New List(Of String)
         LabelsList.ListAddList(LabelsArr)
-        MyDefs = New DefaultFormOptions
+        MyDefs = New DefaultFormOptions(Me, Settings.Design)
     End Sub
     Friend Sub New(ByVal Current As IEnumerable(Of String), ByVal Source As IEnumerable(Of String))
         Me.New(Current)
@@ -41,8 +40,9 @@ Friend Class LabelsForm : Implements IOkCancelDeleteToolbar
     Private Sub LabelsForm_Load(sender As Object, e As EventArgs) Handles Me.Load
         Try
             With MyDefs
-                .MyViewInitialize(Me, Settings.Design)
-                .AddOkCancelToolbar(, WithDeleteButton)
+                .MyViewInitialize()
+                .AddOkCancelToolbar()
+                .MyOkCancel.BTT_DELETE.Visible = WithDeleteButton
                 If Source.Count > 0 Then
                     Dim items As New List(Of Integer)
                     CMB_LABELS.BeginUpdate()
@@ -66,7 +66,7 @@ Friend Class LabelsForm : Implements IOkCancelDeleteToolbar
     Private Sub LabelsForm_Disposed(sender As Object, e As EventArgs) Handles Me.Disposed
         LabelsList.Clear()
     End Sub
-    Private Sub OK() Implements IOkCancelToolbar.OK
+    Private Sub MyDefs_ButtonOkClick(ByVal Sender As Object, ByVal e As KeyHandleEventArgs) Handles MyDefs.ButtonOkClick
         Try
             If MultiUser Then
                 Dim m As New MMessage("You are changing labels for more one user" & vbNewLine & "What do you want to do?",
@@ -88,18 +88,15 @@ Friend Class LabelsForm : Implements IOkCancelDeleteToolbar
             ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Choosing labels")
         End Try
     End Sub
-    Private Sub Cancel() Implements IOkCancelToolbar.Cancel
-        MyDefs.CloseForm(DialogResult.Cancel)
-    End Sub
-    Private Sub Delete() Implements IOkCancelDeleteToolbar.Delete
+    Private Sub MyDefs_ButtonDeleteClickOC(ByVal Sender As Object, ByVal e As KeyHandleEventArgs) Handles MyDefs.ButtonDeleteClickOC
         LabelsList.Clear()
         MyDefs.CloseForm()
     End Sub
-    Private Sub CMB_LABELS_ActionOnButtonClick(ByVal Sender As ActionButton) Handles CMB_LABELS.ActionOnButtonClick
-        If Sender.DefaultButton = ActionButton.DefaultButtons.Add Then AddNewLabel()
-    End Sub
-    Private Sub CMB_LABELS_ActionOnButtonClearClick() Handles CMB_LABELS.ActionOnButtonClearClick
-        CMB_LABELS.Clear(ComboBoxExtended.ClearMode.CheckedIndexes)
+    Private Sub CMB_LABELS_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As EventArgs) Handles CMB_LABELS.ActionOnButtonClick
+        Select Case Sender.DefaultButton
+            Case ActionButton.DefaultButtons.Add : AddNewLabel()
+            Case ActionButton.DefaultButtons.Clear : CMB_LABELS.Clear(ComboBoxExtended.ClearMode.CheckedIndexes)
+        End Select
     End Sub
     Private Sub AddNewLabel()
         Dim nl$ = InputBoxE("Enter new label name:", "New label")

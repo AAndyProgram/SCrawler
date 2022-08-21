@@ -67,7 +67,7 @@ Namespace Plugin.Hosts
                     End If
                 End If
             Catch ex As Exception
-                ErrorsDescriber.Execute(EDP.SendInLog, ex, "[PluginHost.New]")
+                ErrorsDescriber.Execute(EDP.SendInLog, ex, $"[PluginHost.New({AssemblyFile})]")
                 _HasError = True
             End Try
         End Sub
@@ -93,7 +93,7 @@ Namespace Plugin.Hosts
                 End If
                 Return pList
             Catch ex As Exception
-                ErrorsDescriber.Execute(EDP.SendInLog, ex, "[PluginHost.GetPluginsHosts]")
+                ErrorsDescriber.Execute(EDP.SendInLog, ex, $"[PluginHost.GetPluginsHosts({GlobalPath})]")
                 Return Nothing
             End Try
         End Function

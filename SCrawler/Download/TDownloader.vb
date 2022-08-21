@@ -7,12 +7,12 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports System.Threading
-Imports PersonalUtilities.Forms.Toolbars
-Imports EOptions = PersonalUtilities.Forms.Toolbars.IMyProgress.EnableOptions
+Imports PersonalUtilities.Tools
 Imports SCrawler.API
 Imports SCrawler.API.Base
 Imports SCrawler.Plugin.Hosts
 Imports Download = SCrawler.Plugin.ISiteSettings.Download
+Imports EOptions = PersonalUtilities.Forms.Toolbars.IMyProgress.EnableOptions
 Namespace DownloadObjects
     Friend Class TDownloader : Implements IDisposable
 #Region "Events"
@@ -34,7 +34,7 @@ Namespace DownloadObjects
         End Property
         Friend ReadOnly Property Count As Integer
             Get
-                If Pool.Count = 0 Then Return 0 Else Return Pool.Sum(Function(j) j.Count)
+                Return If(Pool.Count = 0, 0, Pool.Sum(Function(j) j.Count))
             End Get
         End Property
 #End Region
@@ -53,30 +53,11 @@ Namespace DownloadObjects
         End Sub
 #End Region
 #Region "Jobs"
-        Friend Class Job : Implements IDisposable
-            Friend Event OnItemsCountChange(ByVal Sender As Job, ByVal Count As Integer)
+        Friend Class Job : Inherits JobThread(Of IUserData)
             Private ReadOnly Hosts As List(Of SettingsHost)
             Private ReadOnly Keys As List(Of String)
             Private ReadOnly RemovingKeys As List(Of String)
-            Private TokenSource As CancellationTokenSource
-            Friend Token As CancellationToken
-            Private [Thread] As Thread
-            Private _Working As Boolean
-            Friend ReadOnly Property Items As List(Of IUserData)
             Friend ReadOnly Property [Type] As Download
-            Friend ReadOnly Property Count As Integer
-                Get
-                    Return Items.Count
-                End Get
-            End Property
-            Friend Sub Clear()
-                Items.Clear()
-            End Sub
-            Friend ReadOnly Property Working As Boolean
-                Get
-                    Return _Working OrElse If(Thread?.IsAlive, False)
-                End Get
-            End Property
             Friend ReadOnly Property IsSeparated As Boolean
                 Get
                     Return Hosts.Count = 1 AndAlso Hosts(0).IsSeparatedTasks
@@ -102,21 +83,19 @@ Namespace DownloadObjects
                     Return Nothing
                 End Get
             End Property
-            Friend Property Progress As MyProgress
             Friend Sub New(ByVal JobType As Download)
                 Hosts = New List(Of SettingsHost)
                 RemovingKeys = New List(Of String)
                 Keys = New List(Of String)
-                Items = New List(Of IUserData)
                 [Type] = JobType
             End Sub
-            Friend Function Add(ByVal User As IUserData) As Boolean
+            Public Overrides Function Add(ByVal User As IUserData) As Boolean
                 With DirectCast(User, UserDataBase)
                     If Keys.Count > 0 Then
                         Dim i% = Keys.IndexOf(.User.Plugin)
                         If i >= 0 Then
                             Items.Add(User)
-                            RaiseEvent OnItemsCountChange(Me, Count)
+                            OnItemsCountChange(Me, Count)
                             Return True
                         Else
                             If RemovingKeys.Count > 0 Then Return RemovingKeys.IndexOf(.User.Plugin) >= 0
@@ -151,29 +130,13 @@ Namespace DownloadObjects
                     Return False
                 End If
             End Function
-            Friend Sub ThrowIfCancellationRequested()
-                Token.ThrowIfCancellationRequested()
-            End Sub
-            Friend ReadOnly Property IsCancellationRequested As Boolean
-                Get
-                    Return Token.IsCancellationRequested
-                End Get
-            End Property
-            Friend Sub [Start](ByVal [ThreadStart] As ThreadStart)
-                Thread = New Thread(ThreadStart) With {.IsBackground = True}
-                Thread.SetApartmentState(ApartmentState.MTA)
-                Thread.Start()
-            End Sub
-            Friend Sub [Start]()
+            Public Overrides Sub Start()
                 If Hosts.Count > 0 Then Hosts.ForEach(Sub(h) h.DownloadStarted([Type]))
                 TokenSource = New CancellationTokenSource
                 Token = TokenSource.Token
                 _Working = True
             End Sub
-            Friend Sub [Stop]()
-                If Not TokenSource Is Nothing Then TokenSource.Cancel()
-            End Sub
-            Friend Sub Stopped()
+            Public Overrides Sub Stopped()
                 _Working = False
                 TokenSource = Nothing
                 Try
@@ -186,25 +149,13 @@ Namespace DownloadObjects
                 If Hosts.Count > 0 Then Hosts.ForEach(Sub(h) h.DownloadDone([Type]))
             End Sub
 #Region "IDisposable Support"
-            Private disposedValue As Boolean = False
-            Protected Overridable Overloads Sub Dispose(ByVal disposing As Boolean)
-                If Not disposedValue Then
-                    If disposing Then
-                        Hosts.Clear()
-                        Keys.Clear()
-                        RemovingKeys.Clear()
-                        Items.Clear()
-                    End If
-                    disposedValue = True
+            Protected Overrides Sub Dispose(ByVal disposing As Boolean)
+                If Not disposedValue And disposing Then
+                    Hosts.Clear()
+                    Keys.Clear()
+                    RemovingKeys.Clear()
                 End If
-            End Sub
-            Protected Overrides Sub Finalize()
-                Dispose(False)
-                MyBase.Finalize()
-            End Sub
-            Friend Overloads Sub Dispose() Implements IDisposable.Dispose
-                Dispose(True)
-                GC.SuppressFinalize(Me)
+                MyBase.Dispose(disposing)
             End Sub
 #End Region
         End Class

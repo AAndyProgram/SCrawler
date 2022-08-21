@@ -10,7 +10,7 @@ Imports SCrawler.API.Base
 Imports SCrawler.Plugin
 Imports SCrawler.Plugin.Attributes
 Imports PersonalUtilities.Forms
-Imports PersonalUtilities.Tools
+Imports PersonalUtilities.Tools.WEB
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.XML.Base
 Imports PersonalUtilities.Functions.RegularExpressions
@@ -55,7 +55,7 @@ Namespace API.Instagram
                 Return Nothing
             End Function
             Private Function GetFormat(ByVal FormatType As Type) As Object Implements IFormatProvider.GetFormat
-                Throw New NotImplementedException()
+                Throw New NotImplementedException("[GetFormat] is not available in the context of [TimersChecker]")
             End Function
         End Class
         Private Class TaggedNotifyLimitChecker : Implements IFieldsCheckerProvider
@@ -73,7 +73,7 @@ Namespace API.Instagram
                 End If
             End Function
             Private Function GetFormat(ByVal FormatType As Type) As Object Implements IFormatProvider.GetFormat
-                Throw New NotImplementedException()
+                Throw New NotImplementedException("[GetFormat] is not available in the context of [TaggedNotifyLimitChecker]")
             End Function
         End Class
 #End Region
@@ -186,13 +186,13 @@ Namespace API.Instagram
             End With
         End Sub
 #End Region
-        Friend Overrides ReadOnly Property Responser As WEB.Response
+        Friend Overrides ReadOnly Property Responser As Response
         Private Initialized As Boolean = False
 #End Region
 #Region "Initializer"
         Friend Sub New(ByRef _XML As XmlFile, ByVal GlobalPath As SFile)
             MyBase.New(InstagramSite)
-            Responser = New WEB.Response($"{SettingsFolderName}\Responser_{Site}.xml")
+            Responser = New Response($"{SettingsFolderName}\Responser_{Site}.xml")
 
             Dim app_id$ = String.Empty
             Dim www_claim$ = String.Empty
@@ -208,6 +208,7 @@ Namespace API.Instagram
                     End With
                 Else
                     .CookiesDomain = "instagram.com"
+                    .Cookies = New CookieKeeper(.CookiesDomain)
                     .SaveSettings()
                 End If
             End With
@@ -234,8 +235,7 @@ Namespace API.Instagram
             TaggedNotifyLimit = New PropertyValue(200)
             TaggedNotifyLimitProvider = New TaggedNotifyLimitChecker
 
-            DownloadingErrorDate = New XMLValue(Of Date) With {
-                .Provider = New XMLValueConversionProvider(Function(ss, vv) AConvert(Of String)(vv, AModes.Var, Nothing))}
+            DownloadingErrorDate = New XMLValue(Of Date) With {.Provider = New XMLValueConversionProvider(Function(ss, vv) AConvert(Of String)(vv, AModes.Var, Nothing))}
             DownloadingErrorDate.SetExtended("InstagramDownloadingErrorDate", Now.AddYears(-10), _XML, n)
             LastDownloadDate = New XMLValue(Of Date)("LastDownloadDate", Now.AddDays(-1), _XML, n)
             LastRequestsCount = New XMLValue(Of Integer)("LastRequestsCount", 0, _XML, n)
@@ -288,7 +288,7 @@ Namespace API.Instagram
                         Return True
                     ElseIf v = -1 Then
                         Return MsgBoxE({"You turn off notifications for tagged posts. This is highly undesirable. Do you still want to do it?",
-                                        "Disabling tagged notification limits "}, MsgBoxStyle.YesNo) = MsgBoxResult.Yes
+                                        "Disabling tagged notification limits"}, MsgBoxStyle.YesNo) = MsgBoxResult.Yes
                     Else
                         Return False
                     End If

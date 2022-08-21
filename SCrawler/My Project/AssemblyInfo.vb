@@ -13,7 +13,7 @@ Imports System.Runtime.InteropServices
 <Assembly: AssemblyDescription("Social networks media downloader")>
 <Assembly: AssemblyCompany("AndyProgram")>
 <Assembly: AssemblyProduct("SCrawler")>
-<Assembly: AssemblyCopyright("Copyright ©  2022")>
+<Assembly: AssemblyCopyright("Copyright © 2022")>
 <Assembly: AssemblyTrademark("AndyProgram")>
 
 <Assembly: ComVisible(False)>
@@ -32,6 +32,6 @@ Imports System.Runtime.InteropServices
 ' by using the '*' as shown below:
 ' <Assembly: AssemblyVersion("1.0.*")>
 
-<Assembly: AssemblyVersion("2022.7.7.0")>
-<Assembly: AssemblyFileVersion("2022.7.7.0")>
+<Assembly: AssemblyVersion("2022.8.22.0")>
+<Assembly: AssemblyFileVersion("2022.8.22.0")>
 <Assembly: NeutralResourcesLanguage("en")>

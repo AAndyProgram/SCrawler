@@ -22,20 +22,21 @@
             Dim ActionButton4 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim ActionButton5 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim ActionButton6 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim CONTAINER_MAIN As System.Windows.Forms.ToolStripContainer
             Me.TP_MAIN = New System.Windows.Forms.TableLayoutPanel()
             Me.TXT_PATH = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_COOKIES = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TP_SITE_PROPS = New SCrawler.Editors.SiteDefaults()
             Me.TXT_PATH_SAVED_POSTS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.CH_GET_USER_MEDIA_ONLY = New System.Windows.Forms.CheckBox()
-            Me.CONTAINER_MAIN = New System.Windows.Forms.ToolStripContainer()
             Me.TT_MAIN = New System.Windows.Forms.ToolTip(Me.components)
+            CONTAINER_MAIN = New System.Windows.Forms.ToolStripContainer()
             Me.TP_MAIN.SuspendLayout()
             CType(Me.TXT_PATH, System.ComponentModel.ISupportInitialize).BeginInit()
             CType(Me.TXT_COOKIES, System.ComponentModel.ISupportInitialize).BeginInit()
             CType(Me.TXT_PATH_SAVED_POSTS, System.ComponentModel.ISupportInitialize).BeginInit()
-            Me.CONTAINER_MAIN.ContentPanel.SuspendLayout()
-            Me.CONTAINER_MAIN.SuspendLayout()
+            CONTAINER_MAIN.ContentPanel.SuspendLayout()
+            CONTAINER_MAIN.SuspendLayout()
             Me.SuspendLayout()
             '
             'TP_MAIN
@@ -142,23 +143,23 @@
             '
             'CONTAINER_MAIN.ContentPanel
             '
-            Me.CONTAINER_MAIN.ContentPanel.Controls.Add(Me.TP_MAIN)
-            Me.CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(544, 219)
-            Me.CONTAINER_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CONTAINER_MAIN.LeftToolStripPanelVisible = False
-            Me.CONTAINER_MAIN.Location = New System.Drawing.Point(0, 0)
-            Me.CONTAINER_MAIN.Name = "CONTAINER_MAIN"
-            Me.CONTAINER_MAIN.RightToolStripPanelVisible = False
-            Me.CONTAINER_MAIN.Size = New System.Drawing.Size(544, 219)
-            Me.CONTAINER_MAIN.TabIndex = 0
-            Me.CONTAINER_MAIN.TopToolStripPanelVisible = False
+            CONTAINER_MAIN.ContentPanel.Controls.Add(Me.TP_MAIN)
+            CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(544, 219)
+            CONTAINER_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
+            CONTAINER_MAIN.LeftToolStripPanelVisible = False
+            CONTAINER_MAIN.Location = New System.Drawing.Point(0, 0)
+            CONTAINER_MAIN.Name = "CONTAINER_MAIN"
+            CONTAINER_MAIN.RightToolStripPanelVisible = False
+            CONTAINER_MAIN.Size = New System.Drawing.Size(544, 219)
+            CONTAINER_MAIN.TabIndex = 0
+            CONTAINER_MAIN.TopToolStripPanelVisible = False
             '
             'SiteEditorForm
             '
             Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
             Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
             Me.ClientSize = New System.Drawing.Size(544, 219)
-            Me.Controls.Add(Me.CONTAINER_MAIN)
+            Me.Controls.Add(CONTAINER_MAIN)
             Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle
             Me.KeyPreview = True
             Me.MaximizeBox = False
@@ -174,14 +175,12 @@
             CType(Me.TXT_PATH, System.ComponentModel.ISupportInitialize).EndInit()
             CType(Me.TXT_COOKIES, System.ComponentModel.ISupportInitialize).EndInit()
             CType(Me.TXT_PATH_SAVED_POSTS, System.ComponentModel.ISupportInitialize).EndInit()
-            Me.CONTAINER_MAIN.ContentPanel.ResumeLayout(False)
-            Me.CONTAINER_MAIN.ResumeLayout(False)
-            Me.CONTAINER_MAIN.PerformLayout()
+            CONTAINER_MAIN.ContentPanel.ResumeLayout(False)
+            CONTAINER_MAIN.ResumeLayout(False)
+            CONTAINER_MAIN.PerformLayout()
             Me.ResumeLayout(False)
 
         End Sub
-
-        Private WithEvents CONTAINER_MAIN As ToolStripContainer
         Private WithEvents TXT_PATH As PersonalUtilities.Forms.Controls.TextBoxExtended
         Private WithEvents TXT_COOKIES As PersonalUtilities.Forms.Controls.TextBoxExtended
         Private WithEvents TP_MAIN As TableLayoutPanel

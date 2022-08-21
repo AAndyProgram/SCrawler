@@ -9,7 +9,7 @@
 Imports SCrawler.API.Base
 Imports SCrawler.Plugin
 Imports SCrawler.Plugin.Attributes
-Imports PersonalUtilities.Tools
+Imports PersonalUtilities.Tools.WEB
 Imports PersonalUtilities.Functions.RegularExpressions
 Namespace API.Twitter
     <Manifest("AndyProgram_Twitter"), SavedPosts, UseClassAsIs>
@@ -33,10 +33,10 @@ Namespace API.Twitter
         Private ReadOnly Property Token As PropertyValue
         <PropertyOption(ControlText:="Saved posts user name", ControlToolTip:="Personal profile username", LeftOffset:=120), PXML>
         Friend ReadOnly Property SavedPostsUserName As PropertyValue
-        Friend Overrides ReadOnly Property Responser As WEB.Response
+        Friend Overrides ReadOnly Property Responser As Response
         Friend Sub New()
             MyBase.New(TwitterSite)
-            Responser = New WEB.Response($"{SettingsFolderName}\Responser_{Site}.xml")
+            Responser = New Response($"{SettingsFolderName}\Responser_{Site}.xml")
 
             Dim a$ = String.Empty
             Dim t$ = String.Empty
@@ -52,11 +52,10 @@ Namespace API.Twitter
                     .ContentType = "application/json"
                     .Accept = "*/*"
                     .CookiesDomain = "twitter.com"
+                    .Cookies = New CookieKeeper(.CookiesDomain)
                     .Decoders.Add(SymbolsConverter.Converters.Unicode)
                     With .Headers
-                        .Add("sec-ch-ua", " Not;A Brand" & Chr(34) & ";v=" & Chr(34) & "99" & Chr(34) & ", " & Chr(34) &
-                             "Google Chrome" & Chr(34) & ";v=" & Chr(34) & "91" & Chr(34) & ", " & Chr(34) & "Chromium" &
-                             Chr(34) & ";v=" & Chr(34) & "91" & Chr(34))
+                        .Add("sec-ch-ua", " Not;A Brand"";v=""99"", ""Google Chrome"";v=""91"", ""Chromium"";v=""91""")
                         .Add("sec-ch-ua-mobile", "?0")
                         .Add("sec-fetch-dest", "empty")
                         .Add("sec-fetch-mode", "cors")

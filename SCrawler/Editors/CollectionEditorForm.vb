@@ -8,15 +8,14 @@
 ' but WITHOUT ANY WARRANTY
 Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Forms.Controls.Base
-Imports PersonalUtilities.Forms.Toolbars
 Namespace Editors
-    Friend Class CollectionEditorForm : Implements IOkCancelToolbar
-        Private ReadOnly MyDefs As DefaultFormOptions
+    Friend Class CollectionEditorForm
+        Private WithEvents MyDefs As DefaultFormOptions
         Private ReadOnly Collections As List(Of String)
         Friend Property [Collection] As String = String.Empty
         Friend Sub New()
             InitializeComponent()
-            MyDefs = New DefaultFormOptions
+            MyDefs = New DefaultFormOptions(Me, Settings.Design)
             Collections = New List(Of String)
         End Sub
         Friend Sub New(ByVal CollectionName As String)
@@ -26,7 +25,7 @@ Namespace Editors
         Private Sub CollectionEditorForm_Load(sender As Object, e As EventArgs) Handles Me.Load
             Try
                 With MyDefs
-                    .MyViewInitialize(Me, Settings.Design)
+                    .MyViewInitialize()
                     .AddOkCancelToolbar()
                     Collections.ListAddList((From c In Settings.Users Where c.IsCollection Select c.CollectionName), LAP.NotContainsOnly, EDP.ThrowException)
                     If Collections.ListExists Then Collections.Sort() : CMB_COLLECTIONS.Items.AddRange(From c In Collections Select New ListItem(c))
@@ -44,7 +43,7 @@ Namespace Editors
         Private Sub CollectionEditorForm_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
             If e.KeyCode = Keys.Insert Then AddNewCollection() : e.Handled = True Else e.Handled = False
         End Sub
-        Private Sub OK() Implements IOkCancelToolbar.OK
+        Private Sub MyDefs_ButtonOkClick() Handles MyDefs.ButtonOkClick
             If CMB_COLLECTIONS.SelectedIndex >= 0 Then
                 Collection = CMB_COLLECTIONS.Value.ToString
                 MyDefs.CloseForm()
@@ -52,15 +51,12 @@ Namespace Editors
                 MsgBoxE("Collection not selected", MsgBoxStyle.Exclamation)
             End If
         End Sub
-        Private Sub Cancel() Implements IOkCancelToolbar.Cancel
-            MyDefs.CloseForm(DialogResult.Cancel)
-        End Sub
-        Private Sub CMB_COLLECTIONS_ActionOnButtonClick(ByVal Sender As ActionButton) Handles CMB_COLLECTIONS.ActionOnButtonClick
+        Private Sub CMB_COLLECTIONS_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As EventArgs) Handles CMB_COLLECTIONS.ActionOnButtonClick
             If Sender.DefaultButton = ActionButton.DefaultButtons.Add Then AddNewCollection()
         End Sub
         Private Sub CMB_COLLECTIONS_ActionOnListDoubleClick(ByVal _Item As ListViewItem) Handles CMB_COLLECTIONS.ActionOnListDoubleClick
             _Item.Selected = True
-            OK()
+            MyDefs_ButtonOkClick()
         End Sub
         Private Sub AddNewCollection()
             Dim c$ = InputBoxE("Enter new collection name:", "Collection name")

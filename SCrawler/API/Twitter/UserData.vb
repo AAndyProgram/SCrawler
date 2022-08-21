@@ -63,7 +63,7 @@ Namespace API.Twitter
                 Dim r$ = Responser.GetResponse(URL,, EDP.ThrowException)
                 If Not r.IsEmptyString Then
                     Using w As EContainer = JsonDocument.Parse(r)
-                        If Not w Is Nothing AndAlso w.Count > 0 Then
+                        If w.ListExists Then
                             For Each nn In If(IsSavedPosts, w({"globalObjects", "tweets"}).XmlIfNothing, w)
                                 ThrowAny(Token)
                                 If nn.Count > 0 Then
@@ -141,8 +141,7 @@ Namespace API.Twitter
                 If URL.Contains("twitter") Then
                     Dim PostID$ = RegexReplace(URL, RParams.DM("(?<=/)\d+", 0))
                     If Not PostID.IsEmptyString Then
-                        Dim r$ = DirectCast(resp.Copy(), Response).
-                                            GetResponse($"https://api.twitter.com/1.1/statuses/show.json?id={PostID}",, EDP.ReturnValue)
+                        Dim r$ = DirectCast(resp.Copy(), Response).GetResponse($"https://api.twitter.com/1.1/statuses/show.json?id={PostID}",, EDP.ReturnValue)
                         If Not r.IsEmptyString Then
                             Using j As EContainer = JsonDocument.Parse(r)
                                 If j.ListExists Then
@@ -163,7 +162,7 @@ Namespace API.Twitter
             Const P4K As String = "4096x4096"
             Try
                 Dim ww As EContainer = w("sizes")
-                If Not ww Is Nothing AndAlso ww.Count > 0 Then
+                If ww.ListExists Then
                     Dim l As New List(Of Sizes)
                     Dim Orig As Sizes? = New Sizes(w.Value({"original_info"}, "height").FromXML(Of Integer)(-1), P4K)
                     If Orig.Value.Value = -1 Then Orig = Nothing
@@ -177,7 +176,6 @@ Namespace API.Twitter
                             Return P4K
                         ElseIf l(0).Data.IsEmptyString Then
                             Return P4K
-                            'If LargeContained Then Return "large" Else Return P4K
                         Else
                             Return l(0).Data
                         End If
@@ -222,8 +220,8 @@ Namespace API.Twitter
                 Dim url$, ff$
                 Dim f As SFile
                 Dim m As UserMedia
-                With w({"extended_entities", "media"}).XmlIfNothing
-                    If .Count > 0 Then
+                With w({"extended_entities", "media"})
+                    If .ListExists Then
                         For Each n As EContainer In .Self
                             If n.Value("type") = "animated_gif" Then
                                 With n({"video_info", "variants"}).XmlIfNothing.ItemF({gifUrl}).XmlIfNothing
@@ -251,7 +249,7 @@ Namespace API.Twitter
         End Function
         Private Shared Function GetVideoNodeURL(ByVal w As EContainer) As String
             Dim v As EContainer = w.GetNode(VideoNode)
-            If Not v Is Nothing AndAlso v.Count > 0 Then
+            If v.ListExists Then
                 Dim l As New List(Of Sizes)
                 Dim u$
                 Dim nn As EContainer

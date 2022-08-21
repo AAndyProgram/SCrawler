@@ -95,7 +95,7 @@ Public Class UserData : Implements IPluginContentProvider
             If Responser.StatusCode = Net.HttpStatusCode.ServiceUnavailable Then
                 LogProvider.Add("LPSG not available")
             Else
-                LogProvider.Add(ex, "[LPSG.UserData.GetMedia]")
+                LogProvider.Add(ex, $"[LPSG.UserData.GetMedia({Name})]")
             End If
         End Try
     End Sub

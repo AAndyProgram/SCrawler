@@ -15,12 +15,10 @@ Namespace API.Reddit
         Friend Module M3U8_Declarations
             Friend ReadOnly BaseUrlPattern As RParams = RParams.DM("([htps:/]{7,8}.+?/.+?)(?=/)", 0, EDP.ReturnValue)
             ''' <summary>Video</summary>
-            Friend ReadOnly PlayListRegEx_1 As RParams = RParams.DM("(#EXT-X-STREAM-INF)(.+)(RESOLUTION=)(\d+)(.+?[\r\n]{1,2})(.+?)([\r\n]{1,2})", 0,
-                                                                    RegexReturn.List, EDP.SendInLog, EDP.ReturnValue)
+            Friend ReadOnly PlayListRegEx_1 As RParams = RParams.DM("(#EXT-X-STREAM-INF)(.+)(RESOLUTION=)(\d+)(.+?[\r\n]{1,2})(.+?)([\r\n]{1,2})", 0, RegexReturn.List)
             ''' <summary>Audio, Video</summary>
-            Friend ReadOnly PlayListRegEx_2 As RParams = RParams.DM("(?<=#EXT-X-BYTERANGE.+?[\r\n]{1,2})(.+)(?=[\r\n]{0,2})", 0,
-                                                                    RegexReturn.List, EDP.SendInLog, EDP.ReturnValue)
-            Friend ReadOnly PlayListAudioRegEx As RParams = RParams.DM("(HLS_AUDIO_(\d+)[^""]+)", 0, RegexReturn.List, EDP.SendInLog, EDP.ReturnValue)
+            Friend ReadOnly PlayListRegEx_2 As RParams = RParams.DM("(?<=#EXT-X-BYTERANGE.+?[\r\n]{1,2})(.+)(?=[\r\n]{0,2})", 0, RegexReturn.List)
+            Friend ReadOnly PlayListAudioRegEx As RParams = RParams.DM("(HLS_AUDIO_(\d+)[^""]+)", 0, RegexReturn.List)
             Friend ReadOnly DPED As New ErrorsDescriber(EDP.SendInLog + EDP.ReturnValue)
         End Module
     End Namespace
@@ -80,11 +78,11 @@ Namespace API.Reddit
                         If Not r.IsEmptyString Then
                             Dim l As New List(Of Resolution)
                             If Type = Types.Video Then
-                                l = FNF.RegexFields(Of Resolution)(r, {PlayListRegEx_1}, {6, 4})
+                                l = RegexFields(Of Resolution)(r, {PlayListRegEx_1}, {6, 4})
                             Else
                                 Try
-                                    l = FNF.RegexFields(Of Resolution)(r, {PlayListAudioRegEx}, {1, 2})
-                                Catch anull As FNF.RegexFieldsTextBecameNullException
+                                    l = RegexFields(Of Resolution)(r, {PlayListAudioRegEx}, {1, 2})
+                                Catch anull As RegexFieldsTextBecameNullException
                                     l.Clear()
                                 End Try
                             End If

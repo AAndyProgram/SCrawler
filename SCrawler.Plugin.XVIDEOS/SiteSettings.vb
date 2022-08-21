@@ -26,7 +26,7 @@ Public Class SiteSettings : Implements ISiteSettings
     Public Property Logger As ILogProvider Implements ISiteSettings.Logger
 #Region "M3U8"
     Private ReadOnly OS64 As Boolean
-    Private ReadOnly FfmpegExists As Boolean
+    Friend ReadOnly FfmpegExists As Boolean
     Friend ReadOnly FfmpegFile As SFile
     Friend ReadOnly Property UseM3U8 As Boolean
         Get

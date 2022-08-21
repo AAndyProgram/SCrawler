@@ -9,16 +9,15 @@
 Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Forms.Controls
 Imports PersonalUtilities.Forms.Controls.Base
-Imports PersonalUtilities.Forms.Toolbars
 Imports PersonalUtilities.Tools.WEB
 Imports CookieControl = PersonalUtilities.Tools.WEB.CookieListForm.CookieControl
 Imports SCrawler.Plugin
 Imports SCrawler.Plugin.Hosts
 Namespace Editors
-    Friend Class SiteEditorForm : Implements IOkCancelToolbar
+    Friend Class SiteEditorForm
         Private ReadOnly LBL_AUTH As Label
         Private ReadOnly LBL_OTHER As Label
-        Private ReadOnly MyDefs As DefaultFormOptions
+        Private WithEvents MyDefs As DefaultFormOptions
         Private WithEvents SpecialButton As Button
 #Region "Providers"
         Private Class SavedPostsChecker : Implements IFieldsCheckerProvider
@@ -35,14 +34,14 @@ Namespace Editors
                 End If
             End Function
             Private Function GetFormat(ByVal FormatType As Type) As Object Implements IFormatProvider.GetFormat
-                Throw New NotImplementedException()
+                Throw New NotImplementedException("[GetFormat] is not available in the context of [SavedPostsChecker]")
             End Function
         End Class
 #End Region
         Private ReadOnly Property Host As SettingsHost
         Friend Sub New(ByVal h As SettingsHost)
             InitializeComponent()
-            MyDefs = New DefaultFormOptions
+            MyDefs = New DefaultFormOptions(Me, Settings.Design)
             Host = h
             LBL_AUTH = New Label With {.Text = "Authorization", .TextAlign = ContentAlignment.MiddleCenter, .Dock = DockStyle.Fill}
             LBL_OTHER = New Label With {.Text = "Other Parameters", .TextAlign = ContentAlignment.MiddleCenter, .Dock = DockStyle.Fill}
@@ -50,7 +49,7 @@ Namespace Editors
         Private Sub SiteEditorForm_Load(sender As Object, e As EventArgs) Handles Me.Load
             Try
                 With MyDefs
-                    .MyViewInitialize(Me, Settings.Design, True)
+                    .MyViewInitialize(True)
                     .AddOkCancelToolbar()
 
                     .MyFieldsChecker = New FieldsChecker
@@ -68,7 +67,7 @@ Namespace Editors
 
                         SiteDefaultsFunctions.SetChecker(TP_SITE_PROPS, Host)
 
-                        With DirectCast(MyDefs.MyFieldsChecker, FieldsChecker)
+                        With MyDefs.MyFieldsCheckerE
                             .AddControl(Of String)(TXT_PATH, TXT_PATH.CaptionText, True, New SavedPostsChecker)
                             .AddControl(Of String)(TXT_PATH_SAVED_POSTS, TXT_PATH_SAVED_POSTS.CaptionText, True, New SavedPostsChecker)
                         End With
@@ -115,10 +114,9 @@ Namespace Editors
                                                 .CreateControl(TT_MAIN)
                                                 AddTpControl(.Control, .ControlHeight)
                                                 If .LeftOffset > offset Then offset = .LeftOffset
-                                                If Not .Options.AllowNull Or Not .ProviderFieldsChecker Is Nothing Then
-                                                    DirectCast(MyDefs.MyFieldsChecker, FieldsChecker).
-                                                        AddControl(.Control, .Options.ControlText, .Type, .Options.AllowNull, .ProviderFieldsChecker)
-                                                End If
+                                                If Not .Options.AllowNull Or Not .ProviderFieldsChecker Is Nothing Then _
+                                                   MyDefs.MyFieldsCheckerE.AddControl(.Control, .Options.ControlText, .Type,
+                                                                                      .Options.AllowNull, .ProviderFieldsChecker)
                                             End If
                                         End With
                                     End If
@@ -155,7 +153,7 @@ Namespace Editors
             LBL_AUTH.Dispose()
             LBL_OTHER.Dispose()
         End Sub
-        Private Sub OK() Implements IOkCancelToolbar.OK
+        Private Sub MyDefs_ButtonOkClick(ByVal Sender As Object, ByVal e As KeyHandleEventArgs) Handles MyDefs.ButtonOkClick
             If MyDefs.MyFieldsChecker.AllParamsOK Then
                 Dim i%, ii%
                 With Host
@@ -198,13 +196,10 @@ Namespace Editors
                 MyDefs.CloseForm()
             End If
         End Sub
-        Private Sub Cancel() Implements IOkCancelToolbar.Cancel
-            MyDefs.CloseForm(DialogResult.Cancel)
-        End Sub
-        Private Sub TXT_PATH_ActionOnButtonClick(ByVal Sender As ActionButton) Handles TXT_PATH.ActionOnButtonClick
+        Private Sub TXT_PATH_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As EventArgs) Handles TXT_PATH.ActionOnButtonClick
             ChangePath(Sender, Host.Path(False), TXT_PATH)
         End Sub
-        Private Sub TXT_PATH_SAVED_POSTS_ActionOnButtonClick(Sender As ActionButton) Handles TXT_PATH_SAVED_POSTS.ActionOnButtonClick
+        Private Sub TXT_PATH_SAVED_POSTS_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As EventArgs) Handles TXT_PATH_SAVED_POSTS.ActionOnButtonClick
             ChangePath(Sender, Host.SavedPostsPath(False), TXT_PATH_SAVED_POSTS)
         End Sub
         Private Sub ChangePath(ByVal Sender As ActionButton, ByVal PathValue As SFile, ByRef CNT As TextBoxExtended)
@@ -213,27 +208,27 @@ Namespace Editors
                 If Not f.IsEmptyString Then CNT.Text = f
             End If
         End Sub
-        Private Sub TXT_COOKIES_ActionOnButtonClick(ByVal Sender As ActionButton) Handles TXT_COOKIES.ActionOnButtonClick
-            If Sender.DefaultButton = ActionButton.DefaultButtons.Edit Then
-                If Not Host.Responser Is Nothing Then
-                    Using f As New CookieListForm(Host.Responser) With {
-                        .MyDesignXML = Settings.Design,
-                        .DisableControls = CookieControl.AddFromInternal + CookieControl.AuthorizeProgram + CookieControl.OpenBrowser
-                    }
-                        f.ShowDialog()
-                    End Using
-                    SetCookieText()
-                End If
-            End If
-        End Sub
-        Private Sub TXT_COOKIES_ActionOnButtonClearClick() Handles TXT_COOKIES.ActionOnButtonClearClick
-            If Not Host.Responser Is Nothing Then
-                With Host.Responser
-                    If Not .Cookies Is Nothing Then .Cookies.Dispose()
-                    .Cookies = New CookieKeeper(.CookiesDomain)
-                End With
-                SetCookieText()
-            End If
+        Private Sub TXT_COOKIES_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As EventArgs) Handles TXT_COOKIES.ActionOnButtonClick
+            Select Case Sender.DefaultButton
+                Case ActionButton.DefaultButtons.Edit
+                    If Not Host.Responser Is Nothing Then
+                        Using f As New CookieListForm(Host.Responser) With {
+                            .MyDesignXML = Settings.Design,
+                            .DisableControls = CookieControl.AddFromInternal + CookieControl.AuthorizeProgram + CookieControl.OpenBrowser
+                        }
+                            f.ShowDialog()
+                        End Using
+                        SetCookieText()
+                    End If
+                Case ActionButton.DefaultButtons.Clear
+                    If Not Host.Responser Is Nothing Then
+                        With Host.Responser
+                            If Not .Cookies Is Nothing Then .Cookies.Dispose()
+                            .Cookies = New CookieKeeper(.CookiesDomain)
+                        End With
+                        SetCookieText()
+                    End If
+            End Select
         End Sub
         Private Sub SetCookieText()
             If Not Host.Responser Is Nothing Then TXT_COOKIES.Text = $"{If(Host.Responser.Cookies?.Count, 0)} cookies"

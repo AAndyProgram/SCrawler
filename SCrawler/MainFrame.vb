@@ -138,7 +138,7 @@ EndFunction:
                         Downloader.Dispose()
                         MyProgressForm.Dispose()
                         InfoForm.Dispose()
-                        MainFrameObj.CLearNotifications()
+                        MainFrameObj.ClearNotifications()
                         If Not MyChannels Is Nothing Then MyChannels.Dispose()
                         If Not VideoDownloader Is Nothing Then VideoDownloader.Dispose()
                         If Not MySavedPosts Is Nothing Then MySavedPosts.Dispose()
@@ -206,7 +206,7 @@ CloseResume:
             Case Keys.F2 : DownloadVideoByURL()
             Case Keys.F3 : EditSelectedUser()
             Case Keys.F5 : BTT_DOWN_SELECTED.PerformClick()
-            Case Keys.F6 : If Settings.ShowingMode.Value = ShowingModes.All Then BTT_DOWN_ALL.PerformClick()
+            Case Keys.F6 : BTT_DOWN_ALL.PerformClick()
             Case Else : b = NumGroup(e)
         End Select
         If b Then e.Handled = True
@@ -262,13 +262,13 @@ CloseResume:
 #Region "Settings"
     Private Sub BTT_SETTINGS_Click(sender As Object, e As EventArgs) Handles BTT_SETTINGS.Click
         With Settings
-            Dim mhl% = .MaxLargeImageHeigh.Value
-            Dim mhs% = .MaxSmallImageHeigh.Value
+            Dim mhl% = .MaxLargeImageHeight.Value
+            Dim mhs% = .MaxSmallImageHeight.Value
             Dim sg As Boolean = .ShowGroups
             Using f As New GlobalSettingsForm
                 f.ShowDialog()
                 If f.DialogResult = DialogResult.OK Then
-                    If ((Not .MaxLargeImageHeigh = mhl Or Not .MaxSmallImageHeigh = mhs) And .ViewModeIsPicture) Or
+                    If ((Not .MaxLargeImageHeight = mhl Or Not .MaxSmallImageHeight = mhs) And .ViewModeIsPicture) Or
                         (Not sg = Settings.ShowGroups And .UseGrouping) Then RefillList()
                     TrayIcon.Visible = .CloseToTray
                     LIST_PROFILES.ShowGroups = .UseGrouping
@@ -565,7 +565,6 @@ CloseResume:
                 .ShowingMode.Value = m
             End If
         End With
-        BTT_DOWN_ALL.Enabled = m = ShowingModes.All
     End Sub
     Private Sub SetExcludedButtonChecker()
         BTT_SHOW_EXCLUDED_LABELS.Checked = Settings.Labels.Excluded.Count > 0
@@ -696,7 +695,7 @@ CloseResume:
                     End If
                 End Using
             Else
-                MsgBoxE("No one user does not detected", vbExclamation)
+                MsgBoxE("No user found", vbExclamation)
             End If
         Catch ex As Exception
             ErrorsDescriber.Execute(EDP.ShowAllMsg, ex, "[ChangeUserGroups]")
@@ -747,7 +746,7 @@ CloseResume:
     End Sub
     Private Sub BTT_CONTEXT_ADD_TO_COL_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_ADD_TO_COL.Click
         If Settings.CollectionsPath.Value.IsEmptyString Then
-            MsgBoxE("Collection path does not set", MsgBoxStyle.Exclamation)
+            MsgBoxE("Collection path not specified", MsgBoxStyle.Exclamation)
         Else
             Dim user As IUserData = GetSelectedUser()
             If Not user Is Nothing Then
@@ -979,7 +978,7 @@ CloseResume:
             On Error Resume Next
             If user.IsCollection Then
                 If USER_CONTEXT.Visible Then USER_CONTEXT.Hide()
-                MsgBoxE($"This is collection!{vbNewLine}Edit collections does not allowed!", vbExclamation)
+                MsgBoxE($"This is collection!{vbNewLine}Collection editing not allowed!", vbExclamation)
             Else
                 Using f As New UserCreatorForm(user)
                     f.ShowDialog()

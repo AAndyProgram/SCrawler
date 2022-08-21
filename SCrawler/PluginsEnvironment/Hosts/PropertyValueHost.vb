@@ -86,7 +86,7 @@ Namespace Plugin.Hosts
         Friend Sub DisposeControl()
             If Not Control Is Nothing Then Control.Dispose() : Control = Nothing
         End Sub
-        Private Sub TextBoxClick(ByVal Sender As ActionButton)
+        Private Sub TextBoxClick(ByVal Sender As ActionButton, ByVal e As EventArgs)
             Try
                 If Sender.DefaultButton = ADB.Refresh AndAlso Not Source Is Nothing AndAlso Not UpdateMethod Is Nothing Then
                     If CBool(UpdateMethod.Invoke(Source, Nothing)) Then

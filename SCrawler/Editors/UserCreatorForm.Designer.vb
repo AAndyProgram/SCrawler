@@ -32,6 +32,7 @@
             Dim ActionButton7 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim ActionButton8 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim TT_MAIN As System.Windows.Forms.ToolTip
+            Dim CONTAINER_MAIN As System.Windows.Forms.ToolStripContainer
             Me.TXT_USER = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.CH_IS_CHANNEL = New System.Windows.Forms.CheckBox()
             Me.CMB_SITE = New PersonalUtilities.Forms.Controls.ComboBoxExtended()
@@ -50,13 +51,13 @@
             Me.CH_DOWN_VIDEOS = New System.Windows.Forms.CheckBox()
             Me.TXT_SPEC_FOLDER = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_SCRIPT = New PersonalUtilities.Forms.Controls.TextBoxExtended()
-            Me.CONTAINER_MAIN = New System.Windows.Forms.ToolStripContainer()
             TP_MAIN = New System.Windows.Forms.TableLayoutPanel()
             TP_SITE = New System.Windows.Forms.TableLayoutPanel()
             TP_PARAMS = New System.Windows.Forms.TableLayoutPanel()
             TP_OTHER = New System.Windows.Forms.TableLayoutPanel()
             TP_DOWN_OPTIONS = New System.Windows.Forms.TableLayoutPanel()
             TT_MAIN = New System.Windows.Forms.ToolTip(Me.components)
+            CONTAINER_MAIN = New System.Windows.Forms.ToolStripContainer()
             TP_MAIN.SuspendLayout()
             CType(Me.TXT_USER, System.ComponentModel.ISupportInitialize).BeginInit()
             TP_SITE.SuspendLayout()
@@ -70,8 +71,8 @@
             TP_DOWN_OPTIONS.SuspendLayout()
             CType(Me.TXT_SPEC_FOLDER, System.ComponentModel.ISupportInitialize).BeginInit()
             CType(Me.TXT_SCRIPT, System.ComponentModel.ISupportInitialize).BeginInit()
-            Me.CONTAINER_MAIN.ContentPanel.SuspendLayout()
-            Me.CONTAINER_MAIN.SuspendLayout()
+            CONTAINER_MAIN.ContentPanel.SuspendLayout()
+            CONTAINER_MAIN.SuspendLayout()
             Me.SuspendLayout()
             '
             'TP_MAIN
@@ -125,7 +126,7 @@
             TP_SITE.ColumnCount = 3
             TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 79.0!))
             TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 98.0!))
+            TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 100.0!))
             TP_SITE.Controls.Add(Me.CH_IS_CHANNEL, 0, 0)
             TP_SITE.Controls.Add(Me.CMB_SITE, 1, 0)
             TP_SITE.Controls.Add(Me.BTT_OTHER_SETTINGS, 2, 0)
@@ -168,17 +169,17 @@
             Me.CMB_SITE.Location = New System.Drawing.Point(84, 3)
             Me.CMB_SITE.Margin = New System.Windows.Forms.Padding(3, 2, 3, 3)
             Me.CMB_SITE.Name = "CMB_SITE"
-            Me.CMB_SITE.Size = New System.Drawing.Size(265, 22)
+            Me.CMB_SITE.Size = New System.Drawing.Size(263, 22)
             Me.CMB_SITE.TabIndex = 1
             Me.CMB_SITE.TextBoxBorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
             '
             'BTT_OTHER_SETTINGS
             '
             Me.BTT_OTHER_SETTINGS.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.BTT_OTHER_SETTINGS.Location = New System.Drawing.Point(354, 2)
+            Me.BTT_OTHER_SETTINGS.Location = New System.Drawing.Point(352, 2)
             Me.BTT_OTHER_SETTINGS.Margin = New System.Windows.Forms.Padding(1)
             Me.BTT_OTHER_SETTINGS.Name = "BTT_OTHER_SETTINGS"
-            Me.BTT_OTHER_SETTINGS.Size = New System.Drawing.Size(96, 24)
+            Me.BTT_OTHER_SETTINGS.Size = New System.Drawing.Size(98, 24)
             Me.BTT_OTHER_SETTINGS.TabIndex = 2
             Me.BTT_OTHER_SETTINGS.Text = "Options (F2)"
             TT_MAIN.SetToolTip(Me.BTT_OTHER_SETTINGS, "Other settings")
@@ -438,23 +439,23 @@
             '
             'CONTAINER_MAIN.ContentPanel
             '
-            Me.CONTAINER_MAIN.ContentPanel.Controls.Add(TP_MAIN)
-            Me.CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(454, 461)
-            Me.CONTAINER_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CONTAINER_MAIN.LeftToolStripPanelVisible = False
-            Me.CONTAINER_MAIN.Location = New System.Drawing.Point(0, 0)
-            Me.CONTAINER_MAIN.Name = "CONTAINER_MAIN"
-            Me.CONTAINER_MAIN.RightToolStripPanelVisible = False
-            Me.CONTAINER_MAIN.Size = New System.Drawing.Size(454, 461)
-            Me.CONTAINER_MAIN.TabIndex = 0
-            Me.CONTAINER_MAIN.TopToolStripPanelVisible = False
+            CONTAINER_MAIN.ContentPanel.Controls.Add(TP_MAIN)
+            CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(454, 461)
+            CONTAINER_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
+            CONTAINER_MAIN.LeftToolStripPanelVisible = False
+            CONTAINER_MAIN.Location = New System.Drawing.Point(0, 0)
+            CONTAINER_MAIN.Name = "CONTAINER_MAIN"
+            CONTAINER_MAIN.RightToolStripPanelVisible = False
+            CONTAINER_MAIN.Size = New System.Drawing.Size(454, 461)
+            CONTAINER_MAIN.TabIndex = 0
+            CONTAINER_MAIN.TopToolStripPanelVisible = False
             '
             'UserCreatorForm
             '
             Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
             Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
             Me.ClientSize = New System.Drawing.Size(454, 461)
-            Me.Controls.Add(Me.CONTAINER_MAIN)
+            Me.Controls.Add(CONTAINER_MAIN)
             Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle
             Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
             Me.KeyPreview = True
@@ -484,14 +485,12 @@
             TP_DOWN_OPTIONS.PerformLayout()
             CType(Me.TXT_SPEC_FOLDER, System.ComponentModel.ISupportInitialize).EndInit()
             CType(Me.TXT_SCRIPT, System.ComponentModel.ISupportInitialize).EndInit()
-            Me.CONTAINER_MAIN.ContentPanel.ResumeLayout(False)
-            Me.CONTAINER_MAIN.ResumeLayout(False)
-            Me.CONTAINER_MAIN.PerformLayout()
+            CONTAINER_MAIN.ContentPanel.ResumeLayout(False)
+            CONTAINER_MAIN.ResumeLayout(False)
+            CONTAINER_MAIN.PerformLayout()
             Me.ResumeLayout(False)
 
         End Sub
-
-        Private WithEvents CONTAINER_MAIN As ToolStripContainer
         Private WithEvents TXT_USER As PersonalUtilities.Forms.Controls.TextBoxExtended
         Private WithEvents CH_TEMP As CheckBox
         Private WithEvents CH_FAV As CheckBox

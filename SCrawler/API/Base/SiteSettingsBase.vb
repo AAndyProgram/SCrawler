@@ -25,7 +25,7 @@ Namespace API.Base
             Site = SiteName
             Responser = New Response($"{SettingsFolderName}\Responser_{Site}.xml")
             With Responser
-                If .File.Exists Then .LoadSettings() Else .CookiesDomain = CookiesDomain : .SaveSettings()
+                If .File.Exists Then .LoadSettings() Else .CookiesDomain = CookiesDomain : .Cookies = New CookieKeeper(.CookiesDomain) : .SaveSettings()
             End With
         End Sub
 #Region "XML"

@@ -7,17 +7,16 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports PersonalUtilities.Forms
-Imports PersonalUtilities.Forms.Toolbars
 Imports CView = SCrawler.API.Reddit.IRedditView.View
 Imports CPeriod = SCrawler.API.Reddit.IRedditView.Period
 Namespace API.Reddit
-    Friend Class RedditViewSettingsForm : Implements IOkCancelToolbar
-        Private ReadOnly MyDefs As DefaultFormOptions
+    Friend Class RedditViewSettingsForm
+        Private WithEvents MyDefs As DefaultFormOptions
         Private ReadOnly Property MyOptions As IRedditView
         Friend Sub New(ByRef opt As IRedditView)
             InitializeComponent()
             MyOptions = opt
-            MyDefs = New DefaultFormOptions
+            MyDefs = New DefaultFormOptions(Me, Settings.Design)
         End Sub
         Private Sub ChannelSettingsForm_Load(sender As Object, e As EventArgs) Handles Me.Load
             Try
@@ -29,7 +28,7 @@ Namespace API.Reddit
                 End If
                 If Not n.IsEmptyString Then Text = n
                 With MyDefs
-                    .MyViewInitialize(Me, Settings.Design, True)
+                    .MyViewInitialize(True)
                     .AddOkCancelToolbar()
                     Select Case MyOptions.ViewMode
                         Case CView.Hot : OPT_VIEW_MODE_HOT.Checked = True
@@ -51,7 +50,7 @@ Namespace API.Reddit
                 MyDefs.InvokeLoaderError(ex)
             End Try
         End Sub
-        Private Sub OK() Implements IOkCancelToolbar.OK
+        Private Sub MyDefs_ButtonOkClick(ByVal Sender As Object, ByVal e As KeyHandleEventArgs) Handles MyDefs.ButtonOkClick
             With MyOptions
                 Select Case True
                     Case OPT_VIEW_MODE_HOT.Checked : .ViewMode = CView.Hot
@@ -68,9 +67,6 @@ Namespace API.Reddit
                 End Select
             End With
             MyDefs.CloseForm()
-        End Sub
-        Private Sub Cancel() Implements IOkCancelToolbar.Cancel
-            MyDefs.CloseForm(DialogResult.Cancel)
         End Sub
         Private Sub OPT_VIEW_MODE_NEW_CheckedChanged(sender As Object, e As EventArgs) Handles OPT_VIEW_MODE_NEW.CheckedChanged
             ChangePeriodEnabled()

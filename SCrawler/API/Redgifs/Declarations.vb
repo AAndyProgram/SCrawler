@@ -9,15 +9,6 @@
 Namespace API.RedGifs
     Friend Module Declarations
         Friend Const RedGifsSite As String = "RedGifs"
-        Friend ReadOnly DateProvider As New JsonDate
-        Friend Class JsonDate : Implements ICustomProvider
-            Friend Function Convert(ByVal Value As Object, ByVal DestinationType As Type, ByVal Provider As IFormatProvider,
-                                    Optional ByVal NothingArg As Object = Nothing, Optional ByVal e As ErrorsDescriber = Nothing) As Object Implements ICustomProvider.Convert
-                Return ADateTime.ParseUnicode(Value, NothingArg, e)
-            End Function
-            Private Function GetFormat(ByVal FormatType As Type) As Object Implements IFormatProvider.GetFormat
-                Throw New NotImplementedException("GetFormat is not available in this context")
-            End Function
-        End Class
+        Friend ReadOnly DateProvider As New CustomProvider(Function(v, d, p, n, e) ADateTime.ParseUnicode(v, n, e))
     End Module
 End Namespace

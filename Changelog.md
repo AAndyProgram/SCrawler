@@ -1,4 +1,20 @@
+# 2022.8.22.0
+
+*2022-08-22*
+
+- Added
+  - Ability to enable/disable the display of the downloaded image in toast notifications (AutoDownloader)
+  - Ability to enable/disable the display of the user icon in toast notifications (AutoDownloader)
+  - Downloading with standalone video downloader has been moved to a separate thread
+- Fixed
+  - (Issue #35) The file name does not change only by date
+  - (Issue #62) Internal library error
+  - AutoDownloader option ```Show notifications``` not saved
+  - Minor bugs
+
 # 2022.7.7.0
+
+*2022-07-07*
 
 - Added
   - **Scheduler** (creating multiple automation tasks)
@@ -16,12 +32,16 @@
 
 # 2022.6.10.0
 
+*2022-06-10*
+
 **Attention! From now on, Instagram requires Cookies, Hash and authorization headers!**
 
 - Fixed
   - Can't get Instagram user ID
 
 # 2022.6.6.0
+
+*2022-06-06*
 
 - Added
   - Ability to pause automation
@@ -30,6 +50,8 @@
   - Not quite correct algorithm for stopping automation
 
 # 2022.6.3.0
+
+*2022-06-03*
 
 Changed version numbering method. From now on, new versions will be numbered by release date (YYYY.M.D)
 
@@ -43,6 +65,8 @@ Changed version numbering method. From now on, new versions will be numbered by 
   - Instagram hash not able to be auto-filled from cookies
 
 # 3.0.0.10
+
+*2022-05-23*
 
 - Added
   - **Downloading groups**
@@ -65,6 +89,8 @@ Changed version numbering method. From now on, new versions will be numbered by 
 
 # 3.0.0.9
 
+*2022-04-24*
+
 - Added
   - Excluded labels
   - Ability to disable user grouping
@@ -75,6 +101,8 @@ Changed version numbering method. From now on, new versions will be numbered by 
 
 # 3.0.0.8
 
+*2022-04-19*
+
 - Added
   - Script mode ```command```
   - Disabled Instagram error 403 (Forbidden) logging for downloading tagged data
@@ -82,6 +110,8 @@ Changed version numbering method. From now on, new versions will be numbered by 
   - The script does not run after the user download is complete
 
 # 3.0.0.7
+
+*2022-04-14*
 
 - Added
   - Ability to run a script after the user download is complete
@@ -92,6 +122,8 @@ Changed version numbering method. From now on, new versions will be numbered by 
   - LPSG downloader does not download all content
 
 # 3.0.0.6
+
+*2022-04-04*
 
 - Added
   - ```GoTo Start``` channels button
@@ -104,16 +136,22 @@ Changed version numbering method. From now on, new versions will be numbered by 
 
 # 3.0.0.5
 
+*2022-04-02*
+
 - Added
   - ```New```, ```Hot```, ```Top``` Reddit channel and user download modes
 
 # 3.0.0.4
+
+*2022-03-26*
 
 - Fixed
   - External plugins do not save information about downloaded files
   - The user cannot be added to the collection if a special path has been specified.
 
 # 3.0.0.3
+
+*2022-03-24*
 
 - Added
   - Download all by specific sites
@@ -126,6 +164,8 @@ Changed version numbering method. From now on, new versions will be numbered by 
 
 # 3.0.0.2
 
+*2022-03-22*
+
 - Added
   - **LPSG** site plugin
   - **XVIDEOS** site plugin
@@ -135,6 +175,8 @@ Changed version numbering method. From now on, new versions will be numbered by 
   - Minor bugs
 
 # 3.0.0.1
+
+*2022-03-20*
 
 - Added
   - Download data up to a specific date
@@ -148,6 +190,8 @@ Changed version numbering method. From now on, new versions will be numbered by 
   - Minor bugs
 
 # 3.0.0.0
+
+*2022-03-17*
 
 **Attention! This version of the program makes changes user data file (Users.xml). Once you start using this version, you will not be able to use previous versions of the program. Therefore, it is highly recommended to archive the program settings folder and archive the users' data files (you can use the [```ArchiveSCrawlerUsersDataFiles.bat```](Tools/ArchiveSCrawlerUsersDataFiles.bat) tool to archive the data files of all users).**
 
@@ -189,6 +233,8 @@ At the requests of some users, I added [screenshots](ProgramScreenshots) of the 
 
 # 2.0.0.4
 
+*2022-02-07*
+
 **Removed compatibility of program settings with version 1.0.0.4 and lower.**
 
 **If your program version is 1.0.0.4 and lower, it is strongly recommended that you upgrade to release 2.0.0.1 to update the program settings (and run the program). Then update to this release. Otherwise, you will have to configure the program settings again**
@@ -202,6 +248,8 @@ At the requests of some users, I added [screenshots](ProgramScreenshots) of the 
   - Minor bugs
 
 # 2.0.0.3
+
+*2022-02-02*
 
 **Removed compatibility of program settings with version 1.0.0.4 and lower.**
 
@@ -217,6 +265,8 @@ At the requests of some users, I added [screenshots](ProgramScreenshots) of the 
   - Incorrect number of Instagram profiles downloads per session
 
 # 2.0.0.2
+
+*2022-01-23*
 
 **This is the last release that supports program settings of version 1.0.0.4 and lower. Compatibility of program settings with version 1.0.0.4 and lower will be removed in future releases. It is strongly recommended that you upgrade to this release before future releases. Otherwise, you will have to configure the program settings again. If your program version is 1.0.1.0 or higher, you should not pay attention to this message.**
 
@@ -240,6 +290,8 @@ At the requests of some users, I added [screenshots](ProgramScreenshots) of the 
 
 # 2.0.0.1
 
+*2021-12-29*
+
 - Added
   - Download individual Imgur media files (use the "Download video" form).
 - Fixed
@@ -247,6 +299,8 @@ At the requests of some users, I added [screenshots](ProgramScreenshots) of the 
   - In some cases, the global settings cannot be saved.
 
 # 2.0.0.0
+
+*2021-12-27*
 
 - Added
   - **Instagram**
@@ -264,6 +318,8 @@ At the requests of some users, I added [screenshots](ProgramScreenshots) of the 
   - Limited download for Twitter not implemented
 
 # 1.0.1.0
+
+*2021-12-20*
 
 - Added
   - Extended site settings
@@ -286,6 +342,8 @@ At the requests of some users, I added [screenshots](ProgramScreenshots) of the 
 
 # 1.0.0.4
 
+*2021-12-12*
+
 - Added
   - Full channels support (you can now add channel (subreddit) for standard download)
   - ```Ready for download``` now available for collections and can be changed for multiple user
@@ -294,11 +352,15 @@ At the requests of some users, I added [screenshots](ProgramScreenshots) of the 
 
 # 1.0.0.3
 
+*2021-12-11*
+
 - Fixed
   - Custom "Download videos" option is not saved
   - The "Download all" button is not activated after changing modes
 
 # 1.0.0.2
+
+*2021-12-10*
 
 - Added
   - Ability to choose what types of media you want to download (images only, videos only, both)
@@ -307,6 +369,8 @@ At the requests of some users, I added [screenshots](ProgramScreenshots) of the 
   - In some cases, the "Stop" button is not activated after download start
 
 # 1.0.0.1
+
+*2021-12-09*
 
 - Added
   - Limited download if user added from the channel
@@ -329,5 +393,7 @@ At the requests of some users, I added [screenshots](ProgramScreenshots) of the 
   - Wrong some Reddit images parsing
 
 # 1.0.0.0
+
+*2021-12-07*
 
 Initial release

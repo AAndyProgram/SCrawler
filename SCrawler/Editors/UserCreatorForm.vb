@@ -9,15 +9,14 @@
 Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Forms.Controls
 Imports PersonalUtilities.Forms.Controls.Base
-Imports PersonalUtilities.Forms.Toolbars
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports SCrawler.API.Base
 Imports SCrawler.Plugin
 Imports SCrawler.Plugin.Hosts
 Imports ADB = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons
 Namespace Editors
-    Friend Class UserCreatorForm : Implements IOkCancelToolbar
-        Private ReadOnly MyDef As DefaultFormOptions
+    Friend Class UserCreatorForm
+        Private WithEvents MyDef As DefaultFormOptions
         Friend Property User As UserInfo
         Private Property UserInstance As IUserData
 #Region "User options"
@@ -100,7 +99,7 @@ Namespace Editors
         Friend Sub New()
             InitializeComponent()
             UserLabels = New List(Of String)
-            MyDef = New DefaultFormOptions
+            MyDef = New DefaultFormOptions(Me, Settings.Design)
         End Sub
         ''' <summary>Edit exist user</summary>
         Friend Sub New(ByVal _Instance As IUserData)
@@ -115,7 +114,7 @@ Namespace Editors
         Private Sub UserCreatorForm_Load(sender As Object, e As EventArgs) Handles Me.Load
             Try
                 With MyDef
-                    .MyViewInitialize(Me, Settings.Design, True)
+                    .MyViewInitialize(True)
                     .AddOkCancelToolbar()
                     CH_AUTO_DETECT_SITE.Enabled = False
                     With CMB_SITE
@@ -168,7 +167,7 @@ Namespace Editors
                         End If
                     End If
                     .MyFieldsChecker = New FieldsChecker
-                    DirectCast(.MyFieldsChecker, FieldsChecker).AddControl(Of String)(TXT_USER, TXT_USER.CaptionText)
+                    .MyFieldsCheckerE.AddControl(Of String)(TXT_USER, TXT_USER.CaptionText)
                     .MyFieldsChecker.EndLoaderOperations()
                     .EndLoaderOperations()
                 End With
@@ -190,7 +189,7 @@ Namespace Editors
         End Sub
 #End Region
 #Region "Ok, Cancel"
-        Private Sub OK() Implements IOkCancelToolbar.OK
+        Private Sub MyDef_ButtonOkClick(ByVal Sender As Object, ByVal e As KeyHandleEventArgs) Handles MyDef.ButtonOkClick
             If Not CH_ADD_BY_LIST.Checked Then
                 If MyDef.MyFieldsChecker.AllParamsOK Then
                     Dim s As SettingsHost = GetSiteByCheckers()
@@ -250,13 +249,13 @@ Namespace Editors
 CloseForm:
             MyDef.CloseForm()
         End Sub
-        Private Sub Cancel() Implements IOkCancelToolbar.Cancel
+        Private Sub MyDef_ButtonCancelClick(ByVal Sender As Object, ByVal e As KeyHandleEventArgs) Handles MyDef.ButtonCancelClick
             MyDef.CloseForm(IIf(StartIndex >= 0, DialogResult.OK, DialogResult.Cancel))
         End Sub
 #End Region
 #Region "Controls handlers"
         Private _TextChangeInvoked As Boolean = False
-        Private Sub TXT_USER_ActionOnTextChange() Handles TXT_USER.ActionOnTextChange
+        Private Sub TXT_USER_ActionOnTextChanged(ByVal Sender As Object, ByVal e As EventArgs) Handles TXT_USER.ActionOnTextChanged
             Try
                 If Not _TextChangeInvoked Then
                     _TextChangeInvoked = True
@@ -280,10 +279,10 @@ CloseForm:
                     End If
                     _TextChangeInvoked = False
                 End If
-            Catch ex As Exception
+            Catch
             End Try
         End Sub
-        Private Sub CMB_SITE_ActionSelectedItemChanged(ByVal _Item As ListViewItem) Handles CMB_SITE.ActionSelectedItemChanged
+        Private Sub CMB_SITE_ActionSelectedItemChanged(ByVal Item As ListViewItem) Handles CMB_SITE.ActionSelectedItemChanged
             CH_IS_CHANNEL.Checked = False
             MyExchangeOptions = Nothing
             SetParamsBySite()
@@ -296,8 +295,8 @@ CloseForm:
                 MyDef.MyOkCancel.EnableOK = True
             End If
         End Sub
-        Private Sub TXT_SPEC_FOLDER_ActionOnButtonClick(ByVal Sender As ActionButton) Handles TXT_SPEC_FOLDER.ActionOnButtonClick
-            If Sender.DefaultButton = ActionButton.DefaultButtons.Open Then
+        Private Sub TXT_SPEC_FOLDER_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As EventArgs) Handles TXT_SPEC_FOLDER.ActionOnButtonClick
+            If Sender.DefaultButton = ADB.Open Then
                 Dim f As SFile = Nothing
                 If Not TXT_SPEC_FOLDER.Text.IsEmptyString Then f = $"{TXT_SPEC_FOLDER.Text}\"
                 f = SFile.SelectPath(f, True)
@@ -333,13 +332,13 @@ CloseForm:
                 BTT_OTHER_SETTINGS.Enabled = True
             End If
         End Sub
-        Private Sub TXT_LABELS_ActionOnButtonClick(ByVal Sender As ActionButton) Handles TXT_LABELS.ActionOnButtonClick
+        Private Sub TXT_LABELS_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As EventArgs) Handles TXT_LABELS.ActionOnButtonClick
             Select Case Sender.DefaultButton
                 Case ADB.Open : ChangeLabels()
                 Case ADB.Clear : UserLabels.Clear()
             End Select
         End Sub
-        Private Sub TXT_SCRIPT_ActionOnButtonClick(ByVal Sender As ActionButton) Handles TXT_SCRIPT.ActionOnButtonClick
+        Private Sub TXT_SCRIPT_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As EventArgs) Handles TXT_SCRIPT.ActionOnButtonClick
             SettingsCLS.ScriptTextBoxButtonClick(TXT_SCRIPT, Sender)
         End Sub
 #End Region
@@ -449,7 +448,7 @@ CloseForm:
                 End If
                 Return False
             Catch ex As Exception
-                Return ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Error on adding users by list", False)
+                Return ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Error when adding users by list", False)
             End Try
         End Function
         Private Function GetSiteByText(ByRef TXT As String) As ExchangeOptions

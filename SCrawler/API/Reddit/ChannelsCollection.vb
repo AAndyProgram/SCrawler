@@ -12,8 +12,16 @@ Imports SCrawler.API.Base
 Imports System.Threading
 Namespace API.Reddit
     Friend Class ChannelsCollection : Implements ICollection(Of Channel), IMyEnumerator(Of Channel), IChannelLimits, IDisposable
-        Friend Shared ReadOnly Property ChannelsPath As SFile = $"{SettingsFolderName}\Channels\"
-        Friend Shared ReadOnly Property ChannelsPathCache As SFile = $"{Settings.GlobalPath.Value.PathWithSeparator}_CachedData\"
+        Friend Shared ReadOnly Property ChannelsPath As SFile
+            Get
+                Return $"{SettingsFolderName}\Channels\"
+            End Get
+        End Property
+        Friend Shared ReadOnly Property ChannelsPathCache As SFile
+            Get
+                Return $"{Settings.GlobalPath.Value.PathWithSeparator}_CachedData\"
+            End Get
+        End Property
         Private ReadOnly Channels As List(Of Channel)
         Friend Structure ChannelImage : Implements IEquatable(Of ChannelImage)
             Friend File As SFile
@@ -42,7 +50,7 @@ Namespace API.Reddit
                     Return Nothing
                 End If
             Catch ex As Exception
-                Return ErrorsDescriber.Execute(EDP.SendInLog + EDP.ReturnValue, ex)
+                Return ErrorsDescriber.Execute(EDP.SendInLog + EDP.ReturnValue, ex, "[API.Reddit.ChannelsCollection.GetUserFiles]")
             End Try
         End Function
         Friend Sub UpdateUsersStats()
@@ -97,7 +105,7 @@ Namespace API.Reddit
                         If Item(i).ID = ChannelID Then Return Item(i)
                     Next
                 End If
-                Throw New ArgumentException($"Channel ID [{ChannelID}] does not found in channels collection", "ChannelID") With {.HelpLink = 1}
+                Throw New ArgumentException($"Channel ID [{ChannelID}] not found in channel collection", "ChannelID") With {.HelpLink = 1}
             End Get
         End Property
         Friend Sub DownloadData(ByVal Token As CancellationToken, Optional ByVal SkipExists As Boolean = True,

@@ -55,7 +55,7 @@ Namespace DownloadObjects
                 End If
                 BTT_CLEAR.Visible = ViewMode = ViewModes.Session
                 RefillList()
-            Catch ex As Exception
+            Catch
             Finally
                 Opened = True
             End Try
@@ -96,7 +96,7 @@ Namespace DownloadObjects
                     _TempUsersList.ListAddList(Downloader.Downloaded, LParams)
                 Else
                     _TempUsersList.ListAddList(Settings.Users.SelectMany(Of IUserData) _
-                        (Function(u) If(u.IsCollection, DirectCast(u, API.UserDataBind).Collections, {u})), LParams)
+                                               (Function(u) If(u.IsCollection, DirectCast(u, API.UserDataBind).Collections, {u})), LParams)
                 End If
                 If _TempUsersList.Count > 0 Then
                     _TempUsersList.Sort(New UsersDateOrder)
@@ -163,7 +163,7 @@ Namespace DownloadObjects
             Try
                 If _LatestSelected.ValueBetween(0, _TempUsersList.Count - 1) AndAlso
                    Not DirectCast(_TempUsersList(_LatestSelected), UserDataBase).Disposed Then _TempUsersList(_LatestSelected).OpenFolder()
-            Catch ex As Exception
+            Catch
             End Try
         End Sub
         Friend Sub Downloader_OnDownloadCountChange()

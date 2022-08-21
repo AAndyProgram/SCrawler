@@ -7,15 +7,14 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports PersonalUtilities.Forms
-Imports PersonalUtilities.Forms.Toolbars
 Namespace DownloadObjects.Groups
-    Friend Class GroupEditorForm : Implements IOkCancelToolbar
-        Private ReadOnly MyDefs As DefaultFormOptions
+    Friend Class GroupEditorForm
+        Private WithEvents MyDefs As DefaultFormOptions
         Friend Property MyGroup As DownloadGroup
         Friend Sub New(ByRef g As DownloadGroup)
             InitializeComponent()
             MyGroup = g
-            MyDefs = New DefaultFormOptions
+            MyDefs = New DefaultFormOptions(Me, Settings.Design)
         End Sub
         Friend Class NameChecker : Implements IFieldsCheckerProvider
             Private Property ErrorMessage As String Implements IFieldsCheckerProvider.ErrorMessage
@@ -48,7 +47,7 @@ Namespace DownloadObjects.Groups
         End Class
         Private Sub GroupEditorForm_Load(sender As Object, e As EventArgs) Handles Me.Load
             With MyDefs
-                .MyViewInitialize(Me, Settings.Design, True)
+                .MyViewInitialize(True)
                 .AddOkCancelToolbar()
                 If Not MyGroup Is Nothing Then
                     With MyGroup
@@ -59,13 +58,13 @@ Namespace DownloadObjects.Groups
                     Text = "New Group"
                 End If
                 .MyFieldsChecker = New FieldsChecker
-                DirectCast(.MyFieldsChecker, FieldsChecker).AddControl(Of String)(DEFS_GROUP.TXT_NAME, DEFS_GROUP.TXT_NAME.CaptionText,,
-                                                                                  New NameChecker(If(MyGroup?.Name, String.Empty), Settings.Groups, "Group"))
+                .MyFieldsCheckerE.AddControl(Of String)(DEFS_GROUP.TXT_NAME, DEFS_GROUP.TXT_NAME.CaptionText,,
+                                                        New NameChecker(If(MyGroup?.Name, String.Empty), Settings.Groups, "Group"))
                 .MyFieldsChecker.EndLoaderOperations()
                 .EndLoaderOperations()
             End With
         End Sub
-        Private Sub OK() Implements IOkCancelToolbar.OK
+        Private Sub MyDefs_ButtonOkClick(ByVal Sender As Object, ByVal e As KeyHandleEventArgs) Handles MyDefs.ButtonOkClick
             If MyDefs.MyFieldsChecker.AllParamsOK Then
                 If MyGroup Is Nothing Then MyGroup = New DownloadGroup
                 With MyGroup
@@ -74,9 +73,6 @@ Namespace DownloadObjects.Groups
                 End With
                 MyDefs.CloseForm()
             End If
-        End Sub
-        Private Sub Cancel() Implements IOkCancelToolbar.Cancel
-            MyDefs.CloseForm(DialogResult.Cancel)
         End Sub
     End Class
 End Namespace

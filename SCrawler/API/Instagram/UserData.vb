@@ -104,11 +104,7 @@ Namespace API.Instagram
             End Try
         End Sub
         Private _InstaHash As String = String.Empty
-        Friend Enum Sections
-            Timeline
-            Tagged
-            Stories
-        End Enum
+        Private Enum Sections : Timeline : Tagged : Stories : End Enum
         Private Const StoriesFolder As String = "Stories"
         Private Const TaggedFolder As String = "Tagged"
 #Region "429 bypass"
@@ -187,7 +183,7 @@ Namespace API.Instagram
             Dim m As New MMessage("You have not entered a valid posts limit", "Tagged posts download limit", {tryBtt, selectBtt, cancelBtt})
             Dim mh As New MMessage("", "Tagged posts download limit", {"Confirm", tryBtt, selectBtt, cancelBtt}) With {.ButtonsPerRow = 2}
             Do
-                v = AConvert(Of Integer)(InputBoxE(aStr, "Tagged posts download limit", CInt(MySiteSettings.TaggedNotifyLimit.Value)), Nothing)
+                v = AConvert(Of Integer)(InputBoxE(aStr, "Tagged posts download limit", CInt(MySiteSettings.TaggedNotifyLimit.Value)), AModes.Var, Nothing)
                 If v.HasValue Then
                     mh.Text = $"You have entered a limit of {v.Value.NumToString(p)} posts"
                     Select Case MsgBoxE(mh).Index
@@ -342,8 +338,7 @@ Namespace API.Instagram
                                                 _TempPostsList.Add(PostID)
                                                 ObtainMedia2(nn, PostID, SpecFolder)
                                                 DownloadedTags += 1
-                                                If DownloadTagsLimit.HasValue AndAlso DownloadedTags >= DownloadTagsLimit.Value Then _
-                                                   Throw New ExitException(_DownloadComplete)
+                                                If DownloadTagsLimit.HasValue AndAlso DownloadedTags >= DownloadTagsLimit.Value Then Throw New ExitException(_DownloadComplete)
                                             Next
                                             If TaggedLimitsNotifications Then
                                                 TaggedCount = j.Value("total_count").FromXML(Of Integer)(0)
@@ -444,7 +439,6 @@ Namespace API.Instagram
         End Sub
         Protected Overrides Sub ReparseVideo(ByVal Token As CancellationToken)
         End Sub
-
 #End Region
 #Region "Obtain Media"
         Private Sub ObtainMedia(ByVal node As EContainer, ByVal PostID As String, ByVal PostDate As String, ByVal SpecFolder As String)

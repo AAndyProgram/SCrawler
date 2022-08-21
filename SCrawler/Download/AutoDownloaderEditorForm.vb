@@ -8,17 +8,16 @@
 ' but WITHOUT ANY WARRANTY
 Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Forms.Controls.Base
-Imports PersonalUtilities.Forms.Toolbars
 Imports DModes = SCrawler.DownloadObjects.AutoDownloader.Modes
 Namespace DownloadObjects
-    Friend Class AutoDownloaderEditorForm : Implements IOkCancelToolbar
-        Private ReadOnly MyDefs As DefaultFormOptions
+    Friend Class AutoDownloaderEditorForm
+        Private WithEvents MyDefs As DefaultFormOptions
         Private ReadOnly MyGroups As List(Of String)
         Private ReadOnly Property Plan As AutoDownloader
         Friend Sub New(ByRef _Plan As AutoDownloader)
             InitializeComponent()
             Plan = _Plan
-            MyDefs = New DefaultFormOptions
+            MyDefs = New DefaultFormOptions(Me, Settings.Design)
             MyGroups.ListAddList(Plan.Groups, LAP.NotContainsOnly)
         End Sub
         Private Class AutomationTimerChecker : Implements IFieldsCheckerProvider
@@ -39,7 +38,7 @@ Namespace DownloadObjects
         End Class
         Private Sub AutoDownloaderEditorForm_Load(sender As Object, e As EventArgs) Handles Me.Load
             With MyDefs
-                .MyViewInitialize(Me, Settings.Design, True)
+                .MyViewInitialize(True)
                 .AddOkCancelToolbar()
                 With Plan
                     Select Case .Mode
@@ -49,14 +48,16 @@ Namespace DownloadObjects
                         Case DModes.Specified : OPT_SPEC.Checked = True
                         Case DModes.Groups : OPT_GROUP.Checked = True
                     End Select
-                    ChangeEnabled()
                     DEF_GROUP.Set(Plan)
                     If MyGroups.Count > 0 Then TXT_GROUPS.Text = MyGroups.ListToString
                     If Settings.Groups.Count = 0 Then TXT_GROUPS.Clear() : TXT_GROUPS.Enabled = False
                     CH_NOTIFY.Checked = .ShowNotifications
+                    CH_SHOW_PIC.Checked = .ShowPictureDownloaded
+                    CH_SHOW_PIC_USER.Checked = .ShowPictureUser
                     TXT_TIMER.Text = .Timer
                     NUM_DELAY.Value = .StartupDelay
                     LBL_LAST_TIME_UP.Text = .Information
+                    ChangeEnabled()
                 End With
                 .MyFieldsChecker = New FieldsChecker
                 With .MyFieldsCheckerE
@@ -71,8 +72,8 @@ Namespace DownloadObjects
         Private Sub AutoDownloaderEditorForm_Disposed(sender As Object, e As EventArgs) Handles Me.Disposed
             MyGroups.Clear()
         End Sub
-        Private Sub OK() Implements IOkCancelToolbar.OK
-            If If(MyDefs.MyFieldsChecker?.AllParamsOK, True) Then
+        Private Sub MyDefs_ButtonOkClick(ByVal Sender As Object, ByVal e As KeyHandleEventArgs) Handles MyDefs.ButtonOkClick
+            If MyDefs.MyFieldsChecker.AllParamsOK Then
                 With Plan
                     Select Case True
                         Case OPT_DISABLED.Checked : .Mode = DModes.None
@@ -84,6 +85,9 @@ Namespace DownloadObjects
                     DEF_GROUP.Get(Plan)
                     .Groups.Clear()
                     .Groups.ListAddList(MyGroups)
+                    .ShowNotifications = CH_NOTIFY.Checked
+                    .ShowPictureDownloaded = CH_SHOW_PIC.Checked
+                    .ShowPictureUser = CH_SHOW_PIC_USER.Checked
                     .Timer = AConvert(Of Integer)(TXT_TIMER.Text, AutoDownloader.DefaultTimer)
                     .StartupDelay = NUM_DELAY.Value
                     .Update()
@@ -91,10 +95,7 @@ Namespace DownloadObjects
                 MyDefs.CloseForm()
             End If
         End Sub
-        Private Sub Cancel() Implements IOkCancelToolbar.Cancel
-            MyDefs.CloseForm(DialogResult.Cancel)
-        End Sub
-        Private Sub TXT_GROUPS_ActionOnButtonClick(ByVal Sender As ActionButton) Handles TXT_GROUPS.ActionOnButtonClick
+        Private Sub TXT_GROUPS_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As EventArgs) Handles TXT_GROUPS.ActionOnButtonClick
             Select Case Sender.DefaultButton
                 Case ActionButton.DefaultButtons.Edit
                     Using f As New LabelsForm(MyGroups, Settings.Groups.Select(Function(g) g.Name)) With {.Text = "Groups"}
@@ -119,14 +120,19 @@ Namespace DownloadObjects
         Private Sub OPT_GROUP_CheckedChanged(sender As Object, e As EventArgs) Handles OPT_GROUP.CheckedChanged
             ChangeEnabled()
         End Sub
+        Private Sub CH_NOTIFY_CheckedChanged(sender As Object, e As EventArgs) Handles CH_NOTIFY.CheckedChanged
+            ChangeEnabled()
+        End Sub
         Private Sub ChangeEnabled()
             DEF_GROUP.Enabled = OPT_SPEC.Checked
             TXT_GROUPS.Enabled = OPT_GROUP.Checked
             TXT_TIMER.Enabled = Not OPT_DISABLED.Checked
             NUM_DELAY.Enabled = Not OPT_DISABLED.Checked
             CH_NOTIFY.Enabled = Not OPT_DISABLED.Checked
+            CH_SHOW_PIC.Enabled = CH_NOTIFY.Checked And Not OPT_DISABLED.Checked
+            CH_SHOW_PIC_USER.Enabled = CH_NOTIFY.Checked And Not OPT_DISABLED.Checked
         End Sub
-        Private Sub NUM_DELAY_ActionOnButtonClick(ByVal Sender As ActionButton) Handles NUM_DELAY.ActionOnButtonClick
+        Private Sub NUM_DELAY_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As EventArgs) Handles NUM_DELAY.ActionOnButtonClick
             If Sender.DefaultButton = ActionButton.DefaultButtons.Clear Then NUM_DELAY.Value = 0
         End Sub
     End Class

@@ -83,11 +83,11 @@ Namespace API.Base
             Dim cb As Color = SystemColors.Control
             Dim cf As Color = SystemColors.ControlText
             If Not UserExists Then
-                cb = ColorBttDeleteBack
-                cf = ColorBttDeleteFore
+                cb = MyColor.DeleteBack
+                cf = MyColor.DeleteFore
             ElseIf UserSuspended Then
-                cb = ColorBttEditBack
-                cf = ColorBttEditFore
+                cb = MyColor.EditBack
+                cf = MyColor.EditFore
             End If
             For Each b As ToolStripMenuItem In {BTT_CONTEXT_DOWN, BTT_CONTEXT_EDIT, BTT_CONTEXT_DELETE, BTT_CONTEXT_OPEN_PATH, BTT_CONTEXT_OPEN_SITE}
                 If Not b Is Nothing Then b.BackColor = cb : b.ForeColor = cf
@@ -227,21 +227,21 @@ Namespace API.Base
                 Return Nothing
             End If
         End Function
-        Friend Function GetUserPictureAddress() As SFile
-            Return GetPicture(Of SFile)(False)
+        Friend Function GetUserPictureToastAddress() As SFile
+            Return GetPicture(Of SFile)(False, True)
         End Function
         Friend Overridable Sub SetPicture(ByVal f As SFile) Implements IUserData.SetPicture
             Try
-                If Not f.IsEmptyString AndAlso f.Exists Then
+                If f.Exists Then
                     Using p As New UserImage(f, User.File) : p.Save() : End Using
                 End If
-            Catch ex As Exception
+            Catch
             End Try
         End Sub
         Protected Function GetNullPicture(ByVal MaxHeigh As XML.Base.XMLValue(Of Integer)) As Bitmap
             Return New Bitmap(CInt(DivideWithZeroChecking(MaxHeigh.Value, 100) * 75), MaxHeigh.Value)
         End Function
-        Protected Function GetPicture(Of T)(Optional ByVal ReturnNullImageOnNothing As Boolean = True) As T
+        Protected Function GetPicture(Of T)(Optional ByVal ReturnNullImageOnNothing As Boolean = True, Optional ByVal GetToast As Boolean = False) As T
             Dim rsfile As Boolean = GetType(T) Is GetType(SFile)
             Dim f As SFile = Nothing
             Dim p As UserImage = Nothing
@@ -273,7 +273,7 @@ BlockPictureScan:
                                                      New ErrorsDescriber(EDP.ReturnValue) With {
                                                          .ReturnValue = New List(Of SFile),
                                                          .ReturnValueExists = True}).FirstOrDefault
-            If Not NewPicFile.IsEmptyString AndAlso NewPicFile.Exists Then
+            If NewPicFile.Exists Then
                 p = New UserImage(NewPicFile, MyFile)
                 p.Save()
                 GoTo BlockReturn
@@ -288,8 +288,14 @@ BlockReturn:
             On Error GoTo BlockNullPicture
             If Not p Is Nothing Then
                 Dim i As Image = Nothing
-                Dim a As SFile = p.Address
-                If Not rsfile Then
+                Dim a As SFile = Nothing
+                If rsfile Then
+                    If GetToast Then
+                        a = p.Large.Address
+                    Else
+                        a = p.Address
+                    End If
+                Else
                     Select Case Settings.ViewMode.Value
                         Case View.LargeIcon : i = p.Large.OriginalImage.Clone
                         Case View.SmallIcon : i = p.Small.OriginalImage.Clone
@@ -301,8 +307,8 @@ BlockReturn:
 BlockNullPicture:
             If ReturnNullImageOnNothing Then
                 Select Case Settings.ViewMode.Value
-                    Case View.LargeIcon : Return CObj(GetNullPicture(Settings.MaxLargeImageHeigh))
-                    Case View.SmallIcon : Return CObj(GetNullPicture(Settings.MaxSmallImageHeigh))
+                    Case View.LargeIcon : Return CObj(GetNullPicture(Settings.MaxLargeImageHeight))
+                    Case View.SmallIcon : Return CObj(GetNullPicture(Settings.MaxSmallImageHeight))
                 End Select
             End If
             Return Nothing
@@ -678,17 +684,8 @@ BlockNullPicture:
                     x.LoadData()
                     If x.Count > 0 Then
                         Dim fs$ = MyFile.CutPath.PathWithSeparator
-                        Dim gfn As Func(Of String, String) = Function(ByVal Input As String) As String
-                                                                 If Input.IsEmptyString Then
-                                                                     Return String.Empty
-                                                                 Else
-                                                                     If Input.Contains("\") Then
-                                                                         Return New SFile(Input).File
-                                                                     Else
-                                                                         Return Input
-                                                                     End If
-                                                                 End If
-                                                             End Function
+                        Dim gfn As Func(Of String, String) = Function(Input) If(Input.IsEmptyString, String.Empty,
+                                                                                If(Input.Contains("\"), Input.CSFile.File, Input))
                         For Each v As EContainer In x
                             _ContentList.Add(New UserMedia With {
                                                 .Type = AConvert(Of Integer)(v.Attribute(Name_MediaType).Value, 0),
@@ -743,7 +740,7 @@ BlockNullPicture:
                 If Not URL.IsEmptyString Then Process.Start(URL)
             Catch ex As Exception
                 If Not e.Exists Then e = New ErrorsDescriber(EDP.ShowAllMsg)
-                MsgBoxE({$"Error on trying to open [{Site}] page of user [{Name}]", $"User [{ToString()}]"}, MsgBoxStyle.Critical, e, ex)
+                MsgBoxE({$"Error when trying to open [{Site}] page of user [{Name}]", $"User [{ToString()}]"}, MsgBoxStyle.Critical, e, ex)
             End Try
         End Sub
         Friend Overridable Sub OpenFolder() Implements IUserData.OpenFolder
@@ -852,7 +849,7 @@ BlockNullPicture:
                 MyFilePosts.Name &= "_Posts"
                 MyFilePosts.Extension = "txt"
             Else
-                Throw New ArgumentNullException("User.File", "User file does not detected")
+                Throw New ArgumentNullException("User.File", "User file not detected")
             End If
         End Sub
         Protected MustOverride Sub DownloadDataF(ByVal Token As CancellationToken)
@@ -962,8 +959,8 @@ BlockNullPicture:
         Protected Function ChangeFileNameByProvider(ByVal f As SFile, ByVal m As UserMedia) As SFile
             Dim ff As SFile = Nothing
             Try
-                If Not f.IsEmptyString AndAlso f.Exists Then
-                    If Settings.FileReplaceNameByDate Or Settings.FileAddTimeToFileName Then
+                If f.Exists Then
+                    If Not Settings.FileReplaceNameByDate.Value = FileNameReplaceMode.None Then
                         ff = f
                         ff.Name = String.Format(FileDateAppenderPattern, f.Name, CStr(AConvert(Of String)(If(m.Post.Date, Now), FileDateAppenderProvider, String.Empty)))
                         ff = SFile.Indexed_IndexFile(ff,, New NumberedFile(ff))

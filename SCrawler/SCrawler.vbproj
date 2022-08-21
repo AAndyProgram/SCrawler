@@ -30,6 +30,10 @@
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
+  <PropertyGroup>
+    <TargetPlatformVersion Condition=" '$(TargetPlatformVersion)' == '' ">10.0.16299.0</TargetPlatformVersion>
+    <TargetPlatformMinVersion>10.0.16299.0</TargetPlatformMinVersion>
+  </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
@@ -308,6 +312,7 @@
     <Compile Include="PluginsEnvironment\Hosts\SettingsHost.vb" />
     <Compile Include="SettingsCLS.vb" />
     <Compile Include="Download\TDownloader.vb" />
+    <Compile Include="UserBan.vb" />
     <Compile Include="UserImage.vb" />
     <Compile Include="Download\VideosDownloaderForm.Designer.vb">
       <DependentUpon>VideosDownloaderForm.vb</DependentUpon>
@@ -315,6 +320,7 @@
     <Compile Include="Download\VideosDownloaderForm.vb">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="UserInfo.vb" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="API\Instagram\OptionsForm.resx">

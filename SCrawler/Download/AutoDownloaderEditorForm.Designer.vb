@@ -30,6 +30,7 @@ Namespace DownloadObjects
             Dim TP_MODE As System.Windows.Forms.TableLayoutPanel
             Dim ActionButton3 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim ActionButton4 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim TP_NOTIFY As System.Windows.Forms.TableLayoutPanel
             Dim TT_MAIN As System.Windows.Forms.ToolTip
             Me.DEF_GROUP = New SCrawler.DownloadObjects.Groups.GroupDefaults()
             Me.TXT_GROUPS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
@@ -38,12 +39,15 @@ Namespace DownloadObjects
             Me.OPT_SPEC = New System.Windows.Forms.RadioButton()
             Me.OPT_DISABLED = New System.Windows.Forms.RadioButton()
             Me.OPT_GROUP = New System.Windows.Forms.RadioButton()
-            Me.CH_NOTIFY = New System.Windows.Forms.CheckBox()
             Me.TXT_TIMER = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.LBL_LAST_TIME_UP = New System.Windows.Forms.Label()
             Me.NUM_DELAY = New PersonalUtilities.Forms.Controls.TextBoxExtended()
+            Me.CH_NOTIFY = New System.Windows.Forms.CheckBox()
+            Me.CH_SHOW_PIC = New System.Windows.Forms.CheckBox()
+            Me.CH_SHOW_PIC_USER = New System.Windows.Forms.CheckBox()
             CONTAINER_MAIN = New System.Windows.Forms.ToolStripContainer()
             TP_MODE = New System.Windows.Forms.TableLayoutPanel()
+            TP_NOTIFY = New System.Windows.Forms.TableLayoutPanel()
             TT_MAIN = New System.Windows.Forms.ToolTip(Me.components)
             CONTAINER_MAIN.ContentPanel.SuspendLayout()
             CONTAINER_MAIN.SuspendLayout()
@@ -52,6 +56,7 @@ Namespace DownloadObjects
             TP_MODE.SuspendLayout()
             CType(Me.TXT_TIMER, System.ComponentModel.ISupportInitialize).BeginInit()
             CType(Me.NUM_DELAY, System.ComponentModel.ISupportInitialize).BeginInit()
+            TP_NOTIFY.SuspendLayout()
             Me.SuspendLayout()
             '
             'CONTAINER_MAIN
@@ -77,10 +82,10 @@ Namespace DownloadObjects
             Me.DEF_GROUP.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
             Me.DEF_GROUP.Controls.Add(Me.TXT_GROUPS, 0, 5)
             Me.DEF_GROUP.Controls.Add(TP_MODE, 0, 0)
-            Me.DEF_GROUP.Controls.Add(Me.CH_NOTIFY, 0, 6)
             Me.DEF_GROUP.Controls.Add(Me.TXT_TIMER, 0, 7)
             Me.DEF_GROUP.Controls.Add(Me.LBL_LAST_TIME_UP, 0, 9)
             Me.DEF_GROUP.Controls.Add(Me.NUM_DELAY, 0, 8)
+            Me.DEF_GROUP.Controls.Add(TP_NOTIFY, 0, 6)
             Me.DEF_GROUP.Dock = System.Windows.Forms.DockStyle.Fill
             Me.DEF_GROUP.Location = New System.Drawing.Point(0, 0)
             Me.DEF_GROUP.Name = "DEF_GROUP"
@@ -96,6 +101,7 @@ Namespace DownloadObjects
             Me.DEF_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             Me.DEF_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             Me.DEF_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            Me.DEF_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
             Me.DEF_GROUP.Size = New System.Drawing.Size(476, 301)
             Me.DEF_GROUP.TabIndex = 0
             '
@@ -136,7 +142,7 @@ Namespace DownloadObjects
             TP_MODE.RowCount = 1
             TP_MODE.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
             TP_MODE.Size = New System.Drawing.Size(474, 25)
-            TP_MODE.TabIndex = 1
+            TP_MODE.TabIndex = 0
             '
             'OPT_ALL
             '
@@ -203,17 +209,6 @@ Namespace DownloadObjects
             TT_MAIN.SetToolTip(Me.OPT_GROUP, "Download groups")
             Me.OPT_GROUP.UseVisualStyleBackColor = True
             '
-            'CH_NOTIFY
-            '
-            Me.CH_NOTIFY.AutoSize = True
-            Me.CH_NOTIFY.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_NOTIFY.Location = New System.Drawing.Point(4, 169)
-            Me.CH_NOTIFY.Name = "CH_NOTIFY"
-            Me.CH_NOTIFY.Size = New System.Drawing.Size(468, 19)
-            Me.CH_NOTIFY.TabIndex = 3
-            Me.CH_NOTIFY.Text = "Show notifications"
-            Me.CH_NOTIFY.UseVisualStyleBackColor = True
-            '
             'TXT_TIMER
             '
             ActionButton3.BackgroundImage = CType(resources.GetObject("ActionButton3.BackgroundImage"), System.Drawing.Image)
@@ -225,7 +220,7 @@ Namespace DownloadObjects
             Me.TXT_TIMER.Location = New System.Drawing.Point(4, 195)
             Me.TXT_TIMER.Name = "TXT_TIMER"
             Me.TXT_TIMER.Size = New System.Drawing.Size(468, 22)
-            Me.TXT_TIMER.TabIndex = 4
+            Me.TXT_TIMER.TabIndex = 2
             '
             'LBL_LAST_TIME_UP
             '
@@ -235,7 +230,7 @@ Namespace DownloadObjects
             Me.LBL_LAST_TIME_UP.Location = New System.Drawing.Point(4, 250)
             Me.LBL_LAST_TIME_UP.Name = "LBL_LAST_TIME_UP"
             Me.LBL_LAST_TIME_UP.Size = New System.Drawing.Size(468, 25)
-            Me.LBL_LAST_TIME_UP.TabIndex = 6
+            Me.LBL_LAST_TIME_UP.TabIndex = 4
             Me.LBL_LAST_TIME_UP.Text = "Last download date: "
             Me.LBL_LAST_TIME_UP.TextAlign = System.Drawing.ContentAlignment.TopCenter
             '
@@ -256,8 +251,63 @@ Namespace DownloadObjects
             Me.NUM_DELAY.NumberMaximum = New Decimal(New Integer() {1440, 0, 0, 0})
             Me.NUM_DELAY.NumberUpDownAlign = System.Windows.Forms.LeftRightAlignment.Left
             Me.NUM_DELAY.Size = New System.Drawing.Size(468, 22)
-            Me.NUM_DELAY.TabIndex = 5
+            Me.NUM_DELAY.TabIndex = 3
             Me.NUM_DELAY.Text = "0"
+            '
+            'TP_NOTIFY
+            '
+            TP_NOTIFY.ColumnCount = 3
+            TP_NOTIFY.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33333!))
+            TP_NOTIFY.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33333!))
+            TP_NOTIFY.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33333!))
+            TP_NOTIFY.Controls.Add(Me.CH_NOTIFY, 0, 0)
+            TP_NOTIFY.Controls.Add(Me.CH_SHOW_PIC, 1, 0)
+            TP_NOTIFY.Controls.Add(Me.CH_SHOW_PIC_USER, 2, 0)
+            TP_NOTIFY.Dock = System.Windows.Forms.DockStyle.Fill
+            TP_NOTIFY.Location = New System.Drawing.Point(1, 166)
+            TP_NOTIFY.Margin = New System.Windows.Forms.Padding(0)
+            TP_NOTIFY.Name = "TP_NOTIFY"
+            TP_NOTIFY.RowCount = 1
+            TP_NOTIFY.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            TP_NOTIFY.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            TP_NOTIFY.Size = New System.Drawing.Size(474, 25)
+            TP_NOTIFY.TabIndex = 1
+            '
+            'CH_NOTIFY
+            '
+            Me.CH_NOTIFY.AutoSize = True
+            Me.CH_NOTIFY.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_NOTIFY.Location = New System.Drawing.Point(3, 3)
+            Me.CH_NOTIFY.Name = "CH_NOTIFY"
+            Me.CH_NOTIFY.Size = New System.Drawing.Size(152, 19)
+            Me.CH_NOTIFY.TabIndex = 0
+            Me.CH_NOTIFY.Text = "Show notifications"
+            TT_MAIN.SetToolTip(Me.CH_NOTIFY, "Show notification when some data has been downloaded")
+            Me.CH_NOTIFY.UseVisualStyleBackColor = True
+            '
+            'CH_SHOW_PIC
+            '
+            Me.CH_SHOW_PIC.AutoSize = True
+            Me.CH_SHOW_PIC.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_SHOW_PIC.Location = New System.Drawing.Point(161, 3)
+            Me.CH_SHOW_PIC.Name = "CH_SHOW_PIC"
+            Me.CH_SHOW_PIC.Size = New System.Drawing.Size(152, 19)
+            Me.CH_SHOW_PIC.TabIndex = 1
+            Me.CH_SHOW_PIC.Text = "Show download picture"
+            TT_MAIN.SetToolTip(Me.CH_SHOW_PIC, "Show downloaded image in notification")
+            Me.CH_SHOW_PIC.UseVisualStyleBackColor = True
+            '
+            'CH_SHOW_PIC_USER
+            '
+            Me.CH_SHOW_PIC_USER.AutoSize = True
+            Me.CH_SHOW_PIC_USER.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_SHOW_PIC_USER.Location = New System.Drawing.Point(319, 3)
+            Me.CH_SHOW_PIC_USER.Name = "CH_SHOW_PIC_USER"
+            Me.CH_SHOW_PIC_USER.Size = New System.Drawing.Size(152, 19)
+            Me.CH_SHOW_PIC_USER.TabIndex = 2
+            Me.CH_SHOW_PIC_USER.Text = "Show user picture"
+            TT_MAIN.SetToolTip(Me.CH_SHOW_PIC_USER, "Show user image in notification")
+            Me.CH_SHOW_PIC_USER.UseVisualStyleBackColor = True
             '
             'AutoDownloaderEditorForm
             '
@@ -285,6 +335,8 @@ Namespace DownloadObjects
             TP_MODE.PerformLayout()
             CType(Me.TXT_TIMER, System.ComponentModel.ISupportInitialize).EndInit()
             CType(Me.NUM_DELAY, System.ComponentModel.ISupportInitialize).EndInit()
+            TP_NOTIFY.ResumeLayout(False)
+            TP_NOTIFY.PerformLayout()
             Me.ResumeLayout(False)
 
         End Sub
@@ -299,5 +351,7 @@ Namespace DownloadObjects
         Private WithEvents OPT_GROUP As RadioButton
         Private WithEvents LBL_LAST_TIME_UP As Label
         Private WithEvents NUM_DELAY As PersonalUtilities.Forms.Controls.TextBoxExtended
+        Private WithEvents CH_SHOW_PIC As CheckBox
+        Private WithEvents CH_SHOW_PIC_USER As CheckBox
     End Class
 End Namespace

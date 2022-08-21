@@ -9,6 +9,7 @@
 Imports System.Threading
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.XML.Base
+Imports PersonalUtilities.Tools
 Imports PersonalUtilities.Tools.Notifications
 Imports SCrawler.DownloadObjects.Groups
 Imports SCrawler.API
@@ -16,6 +17,11 @@ Imports SCrawler.API.Base
 Namespace DownloadObjects
     Friend Class AutoDownloader : Inherits GroupParameters : Implements IEContainerProvider
         Friend Event UserFind(ByVal Key As String, ByVal Activate As Boolean)
+        Friend Shared ReadOnly Property CachePath As SFile
+            Get
+                Return "_Cache\"
+            End Get
+        End Property
         Friend Enum Modes As Integer
             None = 0
             [Default] = 1
@@ -38,56 +44,78 @@ Namespace DownloadObjects
             Private ReadOnly Property KeySite As String
             Private ReadOnly Property KeyDismiss As String
             Private ReadOnly Property Images As Dictionary(Of String, SFile)
+            Private ReadOnly Property AutoDownloaderSource As AutoDownloader
             Private Sub New()
                 Images = New Dictionary(Of String, SFile)
             End Sub
-            Friend Sub New(ByVal _Key As String)
+            Private Sub New(ByVal _Key As String)
                 Me.New
                 Key = _Key
                 KeyFolder = $"{Key}{KeyOpenFolder}"
                 KeySite = $"{Key}{KeyOpenSite}"
                 KeyDismiss = $"{Key}{KeyBttDismiss}"
             End Sub
-            Friend Sub New(ByVal _Key As String, ByRef _User As IUserData)
+            Friend Sub New(ByVal _Key As String, ByRef _User As IUserData, ByRef Source As AutoDownloader)
                 Me.New(_Key)
                 User = _User
                 IUserDataKey = _User.Key
+                AutoDownloaderSource = Source
+                If _User.IncludedInCollection Then
+                    Dim cn$ = _User.CollectionName
+                    Dim i% = Settings.Users.FindIndex(Function(u) u.IsCollection And u.Name = cn)
+                    If i >= 0 Then IUserDataKey = Settings.Users(i).Key
+                End If
             End Sub
             Public Shared Widening Operator CType(ByVal Key As String) As NotifiedUser
                 Return New NotifiedUser(Key)
             End Operator
             Friend Sub ShowNotification()
                 Try
-                    If Not User Is Nothing Then
-                        Dim Text$ = $"{User.Site} - {User.Name}{vbNewLine}" &
-                                    $"Downloaded: {User.DownloadedPictures(False)} images, {User.DownloadedVideos(False)} videos"
-                        Dim Title$
-                        If Not User.CollectionName.IsEmptyString Then
-                            Title = User.CollectionName
-                        Else
-                            Title = User.ToString
-                        End If
-                        Using Notify As New Notification(Text, Title) With {.Key = Key}
-                            Dim uPic As SFile = DirectCast(User, UserDataBase).GetUserPictureAddress
-                            Dim uif As SFile = Nothing
-                            Dim uifKey$ = String.Empty
-                            If uPic.Exists Then Notify.Images = {New ToastImage(uPic)}
-                            If User.DownloadedPictures(False) > 0 Then
-                                uif = DirectCast(User, UserDataBase).GetLastImageAddress
-                                If uif.Exists Then
-                                    Notify.Images = {New ToastImage(uif, IImage.Modes.Inline)}
-                                    uifKey = $"{Key}_{Images.Keys.Count + 1}_{KeyBttPhoto}"
-                                    If Not Images.ContainsKey(uifKey) Then Images.Add(uifKey, uif)
+                    If Not AutoDownloaderSource Is Nothing Then
+                        If AutoDownloaderSource.ShowNotifications Then
+                            If Not User Is Nothing Then
+                                Dim Text$ = $"{User.Site} - {User.Name}{vbNewLine}" &
+                                            $"Downloaded: {User.DownloadedPictures(False)} images, {User.DownloadedVideos(False)} videos"
+                                Dim Title$
+                                If Not User.CollectionName.IsEmptyString Then
+                                    Title = User.CollectionName
+                                Else
+                                    Title = User.ToString
                                 End If
+                                Using Notify As New Notification(Text, Title) With {.Key = Key}
+                                    Dim uPic As SFile = Nothing
+                                    Dim uif As SFile = Nothing
+                                    Dim uif_compressed As SFile = Nothing
+                                    Dim uifKey$ = String.Empty
+                                    If AutoDownloaderSource.ShowPictureUser Then uPic = DirectCast(User, UserDataBase).GetUserPictureToastAddress
+                                    If AutoDownloaderSource.ShowPictureUser AndAlso uPic.Exists Then Notify.Images = {New ToastImage(uPic)}
+                                    If AutoDownloaderSource.ShowPictureDownloaded And User.DownloadedPictures(False) > 0 Then
+                                        uif = DirectCast(User, UserDataBase).GetLastImageAddress
+                                        If uif.Exists Then
+                                            uif_compressed = uif
+                                            uif_compressed.Path = CachePath.Path
+                                            uif_compressed.Name = $"360_{uif.Name}"
+                                            Using imgR As New ImageRenderer(uif, EDP.SendInLog)
+                                                Try : imgR.FitToWidth(360).Save(uif_compressed) : Catch : End Try
+                                            End Using
+                                            If uif_compressed.Exists Then uif = uif_compressed
+                                            If uif.Exists Then
+                                                Notify.Images = {New ToastImage(uif, IImage.Modes.Inline)}
+                                                uifKey = $"{Key}_{Images.Keys.Count + 1}_{KeyBttPhoto}"
+                                                If Not Images.ContainsKey(uifKey) Then Images.Add(uifKey, uif)
+                                            End If
+                                        End If
+                                    End If
+                                    Notify.Buttons = {
+                                        New ToastButton(KeyFolder, "Folder"),
+                                        New ToastButton(KeySite, "Site")
+                                    }
+                                    If Not uifKey.IsEmptyString Then Notify.Buttons = {New ToastButton(uifKey, "Photo")}
+                                    Notify.Buttons = {New ToastButton(KeyDismiss, "Dismiss")}
+                                    Notify.Show()
+                                End Using
                             End If
-                            Notify.Buttons = {
-                                New ToastButton(KeyFolder, "Folder"),
-                                New ToastButton(KeySite, "Site")
-                            }
-                            If Not uifKey.IsEmptyString Then Notify.Buttons = {New ToastButton(uifKey, "Photo")}
-                            Notify.Buttons = {New ToastButton(KeyDismiss, "Dismiss")}
-                            Notify.Show()
-                        End Using
+                        End If
                     End If
                 Catch ex As Exception
                     ErrorsDescriber.Execute(EDP.SendInLog, ex, "[AutoDownloader.NotifiedUser.ShowNotification]")
@@ -144,6 +172,8 @@ Namespace DownloadObjects
         Private Const Name_StartupDelay As String = "StartupDelay"
         Private Const Name_LastDownloadDate As String = "LastDownloadDate"
         Private Const Name_ShowNotifications As String = "Notify"
+        Private Const Name_ShowPictureDown As String = "ShowDownloadedPicture"
+        Private Const Name_ShowPictureUser As String = "ShowUserPicture"
 #End Region
 #Region "Declarations"
         Friend Property Source As Scheduler
@@ -161,6 +191,8 @@ Namespace DownloadObjects
         Friend Property Timer As Integer = DefaultTimer
         Friend Property StartupDelay As Integer = 0
         Friend Property ShowNotifications As Boolean = True
+        Friend Property ShowPictureDownloaded As Boolean = True
+        Friend Property ShowPictureUser As Boolean = True
 #Region "Date"
         Private ReadOnly LastDownloadDateXML As Date? = Nothing
         Private _LastDownloadDate As Date = Now.AddYears(-1)
@@ -190,6 +222,7 @@ Namespace DownloadObjects
             End If
         End Function
 #End Region
+#Region "Information"
         Friend ReadOnly Property Information As String
             Get
                 Return $"Last download date: {GetLastDateString()} ({GetWorkingState()})"
@@ -214,8 +247,7 @@ Namespace DownloadObjects
         Public Overrides Function ToString() As String
             Return $"{Name} ({GetWorkingState()}): last download date: {GetLastDateString()}; next run: {GetNextDateString()}"
         End Function
-        Private File As SFile = $"Settings\AutoDownload.xml"
-        Private AThread As Thread
+#End Region
 #End Region
 #Region "Initializer"
         Private ReadOnly Initialization As Boolean = True
@@ -245,6 +277,8 @@ Namespace DownloadObjects
             StartupDelay = x.Value(Name_StartupDelay).FromXML(Of Integer)(0)
             If StartupDelay < 0 Then StartupDelay = 0
             ShowNotifications = x.Value(Name_ShowNotifications).FromXML(Of Boolean)(True)
+            ShowPictureDownloaded = x.Value(Name_ShowPictureDown).FromXML(Of Boolean)(True)
+            ShowPictureUser = x.Value(Name_ShowPictureUser).FromXML(Of Boolean)(True)
             LastDownloadDateXML = AConvert(Of Date)(x.Value(Name_LastDownloadDate), DateProvider, Nothing)
             If LastDownloadDateXML.HasValue Then
                 LastDownloadDate = LastDownloadDateXML.Value
@@ -285,12 +319,15 @@ Namespace DownloadObjects
                                   New EContainer(Name_Timer, Timer),
                                   New EContainer(Name_StartupDelay, StartupDelay),
                                   New EContainer(Name_ShowNotifications, ShowNotifications.BoolToInteger),
+                                  New EContainer(Name_ShowPictureDown, ShowPictureDownloaded.BoolToInteger),
+                                  New EContainer(Name_ShowPictureUser, ShowPictureUser.BoolToInteger),
                                   New EContainer(Name_LastDownloadDate, CStr(AConvert(Of String)(If(LastDownloadDateXML.HasValue Or _LastDownloadDateChanged,
                                                                                                     CObj(LastDownloadDate), Nothing), DateProvider, String.Empty)))
             }
         End Function
 #End Region
 #Region "Execution"
+        Private AThread As Thread
         Friend ReadOnly Property Working As Boolean
             Get
                 Return If(AThread?.IsAlive, False)
@@ -406,7 +443,7 @@ Namespace DownloadObjects
             If i >= 0 Then
                 UserKeys(i).ShowNotification()
             Else
-                UserKeys.Add(New NotifiedUser(k, TDownloader.GetUserFromMainCollection(u)))
+                UserKeys.Add(New NotifiedUser(k, TDownloader.GetUserFromMainCollection(u), Me))
                 UserKeys.Last.ShowNotification()
             End If
         End Sub

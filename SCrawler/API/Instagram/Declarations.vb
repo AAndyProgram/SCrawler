@@ -11,15 +11,6 @@ Namespace API.Instagram
     Friend Module Declarations
         Friend Const InstagramSite As String = "Instagram"
         Friend ReadOnly FilesPattern As RParams = RParams.DMS(".+?([^/\?]+?\.[\w\d]{3,4})(?=(\?|\Z))", 1, EDP.ReturnValue)
-        Friend ReadOnly Property DateProvider As New JsonDate
-        Friend Class JsonDate : Implements ICustomProvider
-            Private Function Convert(ByVal Value As Object, ByVal DestinationType As Type, ByVal Provider As IFormatProvider,
-                                     Optional ByVal NothingArg As Object = Nothing, Optional ByVal e As ErrorsDescriber = Nothing) As Object Implements ICustomProvider.Convert
-                Return ADateTime.ParseUnicode(Value)
-            End Function
-            Private Function GetFormat(ByVal FormatType As Type) As Object Implements IFormatProvider.GetFormat
-                Throw New NotImplementedException("GetFormat is not available in this context")
-            End Function
-        End Class
+        Friend ReadOnly Property DateProvider As New CustomProvider(Function(v, d, p, n, e) ADateTime.ParseUnicode(v))
     End Module
 End Namespace

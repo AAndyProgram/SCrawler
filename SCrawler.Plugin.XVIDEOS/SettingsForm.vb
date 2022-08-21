@@ -17,19 +17,15 @@ Public Class SettingsForm
         MyDefs = New DefaultFormOptions(Me, Design)
     End Sub
     Private Sub SettingsForm_Load(sender As Object, e As EventArgs) Handles Me.Load
-        Try
-            With MyDefs
-                .MyViewInitialize(True)
-                .AddEditToolbar({EditToolbar.ControlItem.Add, EditToolbar.ControlItem.Delete})
-                .AddOkCancelToolbar()
-                If Settings.Domains.Count > 0 Then Settings.Domains.ForEach(Sub(d) LIST_DOMAINS.Items.Add(d))
-                .EndLoaderOperations()
-            End With
-        Catch ex As Exception
-            MyDefs.InvokeLoaderError(ex)
-        End Try
+        With MyDefs
+            .MyViewInitialize(True)
+            .AddEditToolbar({EditToolbar.ControlItem.Add, EditToolbar.ControlItem.Delete})
+            .AddOkCancelToolbar()
+            If Settings.Domains.Count > 0 Then Settings.Domains.ForEach(Sub(d) LIST_DOMAINS.Items.Add(d))
+            .EndLoaderOperations()
+        End With
     End Sub
-    Private Sub MyDefs_ButtonOkClick() Handles MyDefs.ButtonOkClick
+    Private Sub MyDefs_ButtonOkClick(ByVal Sender As Object, ByVal e As KeyHandleEventArgs) Handles MyDefs.ButtonOkClick
         Settings.Domains.Clear()
         With LIST_DOMAINS
             If .Items.Count > 0 Then
@@ -39,7 +35,7 @@ Public Class SettingsForm
         Settings.UpdateDomains()
         MyDefs.CloseForm()
     End Sub
-    Private Sub MyDefs_ButtonAddClick() Handles MyDefs.ButtonAddClick
+    Private Sub MyDefs_ButtonAddClick(ByVal Sender As Object, ByVal e As EditToolbar.EditToolbarEventArgs) Handles MyDefs.ButtonAddClick
         Dim nd$ = InputBoxE("Enter a new domain using the pattern [xvideos.com]:", "New domain")
         If Not nd.IsEmptyString Then
             If Not LIST_DOMAINS.Items.Contains(nd) Then
@@ -49,11 +45,10 @@ Public Class SettingsForm
             End If
         End If
     End Sub
-    Private Sub MyDefs_ButtonDeleteClick() Handles MyDefs.ButtonDeleteClickE
+    Private Sub MyDefs_ButtonDeleteClickE(ByVal Sender As Object, ByVal e As EditToolbar.EditToolbarEventArgs) Handles MyDefs.ButtonDeleteClickE
         If _LatestSelected.ValueBetween(0, LIST_DOMAINS.Items.Count - 1) Then
             Dim n$ = LIST_DOMAINS.Items(_LatestSelected)
-            If MsgBoxE({$"Are you sure you want to delete the [{n}] domain?",
-                        "Removing domains"}, MsgBoxStyle.YesNo) = MsgBoxResult.Yes Then
+            If MsgBoxE({$"Are you sure you want to delete the [{n}] domain?", "Removing domains"}, MsgBoxStyle.YesNo) = MsgBoxResult.Yes Then
                 LIST_DOMAINS.Items.RemoveAt(_LatestSelected)
                 MsgBoxE($"Domain [{n}] removed")
             Else

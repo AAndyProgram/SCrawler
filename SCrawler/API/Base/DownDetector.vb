@@ -37,7 +37,7 @@ Namespace API.Base
                 Using w As New WebClient
                     Dim r$ = w.DownloadString($"https://downdetector.co.uk/status/{Site}/")
                     If Not r.IsEmptyString Then
-                        l = FNF.RegexFields(Of Data)(r, {Params}, {1, 2})
+                        l = RegexFields(Of Data)(r, {Params}, {1, 2})
                         If l.ListExists(2) Then
                             l.Sort()
                             l2 = New List(Of Data)

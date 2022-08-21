@@ -47,8 +47,8 @@ Friend Class ListImagesLoader
                                   If Settings.ViewModeIsPicture Then
                                       .LargeImageList.ColorDepth = ColorDepth.Depth32Bit
                                       .SmallImageList.ColorDepth = ColorDepth.Depth32Bit
-                                      .LargeImageList.ImageSize = New Size(DivideWithZeroChecking(Settings.MaxLargeImageHeigh.Value, 100) * 75, Settings.MaxLargeImageHeigh.Value)
-                                      .SmallImageList.ImageSize = New Size(DivideWithZeroChecking(Settings.MaxSmallImageHeigh.Value, 100) * 75, Settings.MaxSmallImageHeigh.Value)
+                                      .LargeImageList.ImageSize = New Size(DivideWithZeroChecking(Settings.MaxLargeImageHeight.Value, 100) * 75, Settings.MaxLargeImageHeight.Value)
+                                      .SmallImageList.ImageSize = New Size(DivideWithZeroChecking(Settings.MaxSmallImageHeight.Value, 100) * 75, Settings.MaxSmallImageHeight.Value)
                                   End If
                               End With
                           End Sub
@@ -148,11 +148,11 @@ Friend Class ListImagesLoader
     Friend Shared Function ApplyLVIColor(ByVal User As IUserData, ByVal LVI As ListViewItem, ByVal IsInit As Boolean) As ListViewItem
         With LVI
             If Not User.Exists Then
-                .BackColor = ColorBttDeleteBack
-                .ForeColor = ColorBttDeleteFore
+                .BackColor = MyColor.DeleteBack
+                .ForeColor = MyColor.DeleteFore
             ElseIf User.Suspended Then
-                .BackColor = ColorBttEditBack
-                .ForeColor = ColorBttEditFore
+                .BackColor = MyColor.EditBack
+                .ForeColor = MyColor.EditFore
             ElseIf CheckUserCollection(User) Then
                 .BackColor = Color.LightSkyBlue
                 .ForeColor = Color.MidnightBlue

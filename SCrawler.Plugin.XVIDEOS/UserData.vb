@@ -14,8 +14,8 @@ Imports UStates = SCrawler.Plugin.PluginUserMedia.States
 Imports UTypes = SCrawler.Plugin.PluginUserMedia.Types
 Public Class UserData : Implements IPluginContentProvider
 #Region "Interface declarations"
-    Public Event ProgressChanged(Count As Integer) Implements IPluginContentProvider.ProgressChanged
-    Public Event TotalCountChanged(Count As Integer) Implements IPluginContentProvider.TotalCountChanged
+    Public Event ProgressChanged(ByVal Count As Integer) Implements IPluginContentProvider.ProgressChanged
+    Public Event TotalCountChanged(ByVal Count As Integer) Implements IPluginContentProvider.TotalCountChanged
     Public Property Thrower As IThrower Implements IPluginContentProvider.Thrower
     Public Property LogProvider As ILogProvider Implements IPluginContentProvider.LogProvider
     Public Property ESettings As ISiteSettings Implements IPluginContentProvider.Settings
@@ -56,7 +56,14 @@ Public Class UserData : Implements IPluginContentProvider
     Private Property Responser As Response
     Public Sub GetMedia() Implements IPluginContentProvider.GetMedia
         Try
-            If Not Settings.UseM3U8 Then LogProvider.Add("File [ffmpeg.exe] not found") : Exit Sub
+            If Not Settings.UseM3U8 Then
+                If Settings.FfmpegExists Then
+                    LogProvider.Add($"XVIDEOS [{Name}]: The plugin only works with x64 OS.")
+                Else
+                    LogProvider.Add($"XVIDEOS [{Name}]: File [ffmpeg.exe] not found")
+                End If
+                Exit Sub
+            End If
             If Not Responser Is Nothing Then Responser.Dispose()
             Responser = New Response
             Responser.Copy(Settings.Responser)
@@ -105,9 +112,7 @@ Public Class UserData : Implements IPluginContentProvider
             If TempMediaList.Count > 0 Then
                 For i% = 0 To TempMediaList.Count - 1
                     Thrower.ThrowAny()
-                    With TempMediaList(i)
-                        TempMediaList(i) = GetVideoData(.URL, Responser, Settings.DownloadUHD.Value, .PostID, LogProvider)
-                    End With
+                    With TempMediaList(i) : TempMediaList(i) = GetVideoData(.URL, Responser, Settings.DownloadUHD.Value, .PostID, LogProvider) : End With
                 Next
                 TempMediaList.RemoveAll(Function(m) m.URL.IsEmptyString)
             End If
@@ -149,7 +154,7 @@ Public Class UserData : Implements IPluginContentProvider
                         Dim t$ = RegexReplace(r, VideoTitleRegex)
                         r = resp.GetResponse(m,, EDP.ThrowException)
                         If Not r.IsEmptyString Then
-                            Dim ls As List(Of VSize) = FNF.RegexFields(Of VSize)(r, {M3U8Reparse}, {1, 2})
+                            Dim ls As List(Of VSize) = RegexFields(Of VSize)(r, {M3U8Reparse}, {1, 2})
                             If ls.ListExists And Not DownloadUHD Then ls.RemoveAll(Function(v) v.Size > 1080)
                             If ls.ListExists Then
                                 ls.Sort()

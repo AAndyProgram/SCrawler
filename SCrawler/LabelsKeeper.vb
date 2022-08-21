@@ -101,7 +101,7 @@ Friend Class LabelsKeeper : Implements ICollection(Of String), IMyEnumerator(Of 
     End Function
     Private ReadOnly Property IsReadOnly As Boolean = False Implements ICollection(Of String).IsReadOnly
     Private Sub CopyTo(ByVal _Array() As String, ByVal ArrayIndex As Integer) Implements ICollection(Of String).CopyTo
-        Throw New NotImplementedException()
+        LabelsList.CopyTo(_Array, ArrayIndex)
     End Sub
 #Region "IEnumerable Support"
     Private Function GetEnumerator() As IEnumerator(Of String) Implements IEnumerable(Of String).GetEnumerator

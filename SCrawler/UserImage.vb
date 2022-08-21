@@ -25,8 +25,8 @@ Friend Class UserImage : Inherits ImageRenderer
         _SmallAddress = Address
         _SmallAddress.Name &= ImagePostfix_Small
         If GenerateLargeSmallPictures Then
-            GetImage(Settings.MaxSmallImageHeigh.Value, True)
-            GetImage(Settings.MaxLargeImageHeigh.Value, False)
+            GetImage(Settings.MaxSmallImageHeight.Value, True)
+            GetImage(Settings.MaxLargeImageHeight.Value, False)
         End If
     End Sub
     Friend Sub New(ByVal _ImgOriginal As SFile, ByVal _ImgLarge As SFile, ByVal _ImgSmall As SFile, ByVal Destination As SFile)
@@ -39,27 +39,15 @@ Friend Class UserImage : Inherits ImageRenderer
         _SmallAddress = _ImgSmall
     End Sub
     ''' <inheritdoc cref="GetImage(Integer, Boolean)"/>
-    Friend ReadOnly Property SmallSize As Size
-        Get
-            Return GetImage(Settings.MaxSmallImageHeigh.Value, True).Size
-        End Get
-    End Property
-    ''' <inheritdoc cref="GetImage(Integer, Boolean)"/>
     Friend ReadOnly Property Small As ImageRenderer
         Get
-            Return GetImage(Settings.MaxSmallImageHeigh.Value, True)
-        End Get
-    End Property
-    ''' <inheritdoc cref="GetImage(Integer, Boolean)"/>
-    Friend ReadOnly Property LargeSize As Size
-        Get
-            Return GetImage(Settings.MaxLargeImageHeigh.Value, False).Size
+            Return GetImage(Settings.MaxSmallImageHeight.Value, True)
         End Get
     End Property
     ''' <inheritdoc cref="GetImage(Integer, Boolean)"/>
     Friend ReadOnly Property Large As ImageRenderer
         Get
-            Return GetImage(Settings.MaxLargeImageHeigh.Value, False)
+            Return GetImage(Settings.MaxLargeImageHeight.Value, False)
         End Get
     End Property
     ''' <exception cref="ArgumentNullException"></exception>

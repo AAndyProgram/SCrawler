@@ -79,7 +79,7 @@ Namespace API.Imgur
                 End If
                 Return Nothing
             Catch ex As Exception
-                Return ErrorsDescriber.Execute(EDP.ShowMainMsg + EDP.SendInLog, ex, "Imgur standalone downloader: fetch media error")
+                Return ErrorsDescriber.Execute(EDP.ShowMainMsg + EDP.SendInLog + EDP.ReturnValue, ex, "Imgur standalone downloader: fetch media error")
             End Try
         End Function
         Private Shared Function DownloadingException(ByVal ex As Exception, ByVal Message As String,

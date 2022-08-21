@@ -9,9 +9,9 @@
 Imports PersonalUtilities.Tools
 Imports PersonalUtilities.Forms.Toolbars
 Imports PersonalUtilities.Functions.XML
+Imports System.Threading
 Imports SCrawler.API.Base
 Imports SCrawler.Plugin.Hosts
-Imports System.Threading
 Imports SCrawler.API.Reddit.RedditViewExchange
 Imports View = SCrawler.API.Reddit.IRedditView.View
 Imports Period = SCrawler.API.Reddit.IRedditView.Period
@@ -112,7 +112,7 @@ Namespace API.Reddit
                 ChannelExistentUserNames.ListAddList((From p As UserPost In PostsAll
                                                       Where Not p.UserID.IsEmptyString AndAlso
                                                             Settings.UsersList.Exists(Function(u) u.Site = Site And u.Name = p.UserID)
-                                                      Select p.UserID), LAP.NotContainsOnly)
+                                                      Select p.UserID), LNC)
                 ChannelExistentUserNames.RemoveAll(Function(u) Not Settings.UsersList.Exists(Function(uu) uu.Site = Site And uu.Name = u))
             End If
         End Sub
@@ -165,7 +165,7 @@ Namespace API.Reddit
                 If Not ViewMode = View.New And AutoGetLimits Then
                     Return _DownloadLimitPost
                 Else
-                    Dim PID$ = ListAddList(Nothing, Posts, LAP.NotContainsOnly).ListAddList(PostsLatest, LAP.NotContainsOnly).ListSort.FirstOrDefault.ID
+                    Dim PID$ = ListAddList(Nothing, Posts, LNC).ListAddList(PostsLatest, LNC).ListSort.FirstOrDefault.ID
                     If AutoGetLimits And Not PID.IsEmptyString Then
                         Return PID
                     Else
@@ -233,11 +233,7 @@ Namespace API.Reddit
             Return New Channel(f)
         End Operator
         Public Overrides Function ToString() As String
-            If Not Name.IsEmptyString Then
-                Return Name
-            Else
-                Return ID
-            End If
+            Return If(Name.IsEmptyString, ID, Name)
         End Function
         Friend Sub Delete()
             File.Delete(, SFODelete.DeleteToRecycleBin)
@@ -261,7 +257,7 @@ Namespace API.Reddit
                         .DownloadData(Token)
                     End With
                     Dim b% = Posts.Count
-                    Posts.ListAddList(d.GetNewChannelPosts(), LAP.NotContainsOnly)
+                    Posts.ListAddList(d.GetNewChannelPosts(), LNC)
                     If Posts.Count - b > 0 Then CountOfLoadedPostsPerSession.Add(Posts.Count - b)
                     Posts.Sort()
                     LatestParsedDate = If(Posts.FirstOrDefault(Function(pp) pp.Date.HasValue).Date, LatestParsedDate)
@@ -364,8 +360,8 @@ Namespace API.Reddit
             UpdateUsersStats()
             If Not ViewMode = View.New Then
                 Dim l As New List(Of String)
-                If Posts.Count > 0 Or PostsLatest.Count > 0 Then l.ListAddList((From p In PostsAll Where Not p.ID.IsEmptyString Select p.ID), LAP.NotContainsOnly)
-                l.ListAddList(PostsNames, LAP.NotContainsOnly)
+                If Posts.Count > 0 Or PostsLatest.Count > 0 Then l.ListAddList((From p In PostsAll Where Not p.ID.IsEmptyString Select p.ID), LNC)
+                l.ListAddList(PostsNames, LNC)
                 If l.Count > 0 Then TextSaver.SaveTextToFile(l.ListToString("|"), FilePosts, True,, EDP.SendInLog)
             End If
             Using x As New XmlFile With {.AllowSameNames = True, .Name = "Channel"}

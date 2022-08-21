@@ -44,10 +44,7 @@ Namespace DownloadObjects.Groups
         End Property
         Friend Sub Update()
             If Count > 0 Then
-                Using x As New XmlFile With {.Name = "Groups", .AllowSameNames = True}
-                    x.AddRange(GroupsList)
-                    x.Save(GroupFile)
-                End Using
+                Using x As New XmlFile With {.Name = "Groups", .AllowSameNames = True} : x.AddRange(GroupsList) : x.Save(GroupFile) : End Using
             Else
                 GroupFile.Delete()
             End If

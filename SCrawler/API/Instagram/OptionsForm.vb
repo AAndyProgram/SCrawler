@@ -7,19 +7,18 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports PersonalUtilities.Forms
-Imports PersonalUtilities.Forms.Toolbars
 Namespace API.Instagram
-    Friend Class OptionsForm : Implements IOkCancelToolbar
-        Private ReadOnly MyDefs As DefaultFormOptions
+    Friend Class OptionsForm
+        Private WithEvents MyDefs As DefaultFormOptions
         Private ReadOnly Property MyExchangeOptions As EditorExchangeOptions
         Friend Sub New(ByRef ExchangeOptions As EditorExchangeOptions)
             InitializeComponent()
             MyExchangeOptions = ExchangeOptions
-            MyDefs = New DefaultFormOptions
+            MyDefs = New DefaultFormOptions(Me, Settings.Design)
         End Sub
         Private Sub OptionsForm_Load(sender As Object, e As EventArgs) Handles Me.Load
             With MyDefs
-                .MyViewInitialize(Me, Settings.Design, True)
+                .MyViewInitialize(True)
                 .AddOkCancelToolbar()
                 With MyExchangeOptions
                     CH_GET_STORIES.Checked = .GetStories
@@ -28,15 +27,12 @@ Namespace API.Instagram
                 .EndLoaderOperations()
             End With
         End Sub
-        Private Sub OK() Implements IOkCancelToolbar.OK
+        Private Sub MyDefs_ButtonOkClick(ByVal Sender As Object, ByVal e As KeyHandleEventArgs) Handles MyDefs.ButtonOkClick
             With MyExchangeOptions
                 .GetStories = CH_GET_STORIES.Checked
                 .GetTagged = CH_GET_TAGGED.Checked
             End With
             MyDefs.CloseForm()
-        End Sub
-        Private Sub Cancel() Implements IOkCancelToolbar.Cancel
-            MyDefs.CloseForm(DialogResult.Cancel)
         End Sub
     End Class
 End Namespace

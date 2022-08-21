@@ -21,8 +21,6 @@ Namespace Editors
         Private Sub InitCheckBox(ByRef CH As CheckBox, ByVal Caption As String)
             CH = New CheckBox With {.Text = Caption, .Dock = DockStyle.Fill, .UseVisualStyleBackColor = True,
                                     .ThreeState = True, .CheckState = CheckState.Indeterminate}
-            AddHandler CH.CheckedChanged, AddressOf Checker_CheckedChanged
-            AddHandler CH.CheckStateChanged, AddressOf Checker_CheckedChanged
         End Sub
         Private Sub SiteDefaults_Disposed(sender As Object, e As EventArgs) Handles Me.Disposed
             CH_TEMP.Dispose()
@@ -64,11 +62,6 @@ Namespace Editors
         Private Function ShouldSerializeBaseControlsPadding() As Boolean
             Return Not _BaseControlsPadding.Equals(New Padding(0))
         End Function
-        <Browsable(False), EditorBrowsable(EditorBrowsableState.Never), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)>
-        Public Property ChangesDetected As Boolean = False
-        Private Sub Checker_CheckedChanged(sender As Object, e As EventArgs)
-            ChangesDetected = True
-        End Sub
         <Browsable(True), EditorBrowsable(EditorBrowsableState.Always), DesignerSerializationVisibility(DesignerSerializationVisibility.Visible),
             Category("Values"), DefaultValue(CheckState.Indeterminate), DisplayName("Temporary"), Description("Temporary profile")>
         Public Property MyTemporary As CheckState

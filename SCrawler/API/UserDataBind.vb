@@ -79,7 +79,7 @@ Namespace API
             If Count > 0 Then
                 Return Collections(0).GetPicture
             Else
-                Return GetNullPicture(Settings.MaxLargeImageHeigh)
+                Return GetNullPicture(Settings.MaxLargeImageHeight)
             End If
         End Function
 #End Region
@@ -191,10 +191,10 @@ Namespace API
         Friend Overrides Property LastUpdated As Date?
             Get
                 If Count > 0 Then
-                    With If((From c As IUserData In Collections
-                             Where DirectCast(c, UserDataBase).LastUpdated.HasValue
-                             Select DirectCast(c, UserDataBase).LastUpdated.Value).ToList, New List(Of Date))
-                        If .Count > 0 Then Return .Max
+                    With (From c As IUserData In Collections
+                          Where DirectCast(c, UserDataBase).LastUpdated.HasValue
+                          Select DirectCast(c, UserDataBase).LastUpdated.Value).ToList
+                        If .ListExists Then Return .Max
                     End With
                 End If
                 Return Nothing
@@ -328,7 +328,7 @@ Namespace API
         Friend Overrides Sub OpenFolder()
             Try
                 If Count > 0 Then GlobalOpenPath(Collections(0).File.CutPath(2))
-            Catch ex As Exception
+            Catch
             End Try
         End Sub
 #End Region
@@ -406,7 +406,7 @@ Namespace API
             If Count > 1 AndAlso ScriptUse Then Collections.ForEach(Sub(c) c.ScriptUse = True)
         End Sub
         Friend Sub AddRange(ByVal _Items As IEnumerable(Of IUserData))
-            If Not _Items Is Nothing AndAlso _Items.Count > 0 Then
+            If _Items.ListExists Then
                 For i% = 0 To _Items.Count - 1 : Add(_Items(i)) : Next
             End If
         End Sub
@@ -441,7 +441,7 @@ Namespace API
             Collections.ListClearDispose
         End Sub
         Friend Function Contains(ByVal _Item As IUserData) As Boolean Implements ICollection(Of IUserData).Contains
-            Return Collections.Contains(_Item)
+            Return Count > 0 AndAlso Collections.Contains(_Item)
         End Function
         Private Sub CopyTo(ByVal _Array() As IUserData, ByVal _ArrayIndex As Integer) Implements ICollection(Of IUserData).CopyTo
             Throw New NotImplementedException("[CopyTo] method does not supported in collections context")
