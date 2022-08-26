@@ -49,3 +49,5 @@ If I'm interested in a site you want to add, it may be added in future releases.
 # Contact me
 
 [![matrix](https://img.shields.io/badge/Matrix-%40andyprogram%3Amatrix.org-informational)](https://matrix.to/#/@andyprogram:matrix.org)
+
+[![discord](https://img.shields.io/badge/discord-AndyProgram%233804-yellowgreen)](https://discordapp.com/users/1012768226679206009) AndyProgram#3804
