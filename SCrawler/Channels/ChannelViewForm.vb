@@ -194,6 +194,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
             .ButtonKey(RButton.Previous) = Keys.F2
             .ButtonKey(RButton.Next) = Keys.F3
             .LabelNumbersProvider = CProvider
+            .Limit = ImagesInRow * ImagesRows
             .AddThisToolbar()
         End With
         ToolbarTOP.Items.AddRange({CMB_CHANNELS.GetControlHost,

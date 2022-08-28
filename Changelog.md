@@ -1,3 +1,12 @@
+# 2022.8.28.0
+
+*2022-08-28*
+
+- Added
+  - RedGifs icon
+- Fixed
+  - Incorrect number of posts displayed in the Reddit channels downloader.
+
 # 2022.8.22.0
 
 *2022-08-22*

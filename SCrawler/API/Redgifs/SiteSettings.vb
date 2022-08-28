@@ -13,6 +13,16 @@ Imports PersonalUtilities.Functions.RegularExpressions
 Namespace API.RedGifs
     <Manifest("AndyProgram_RedGifs"), UseClassAsIs>
     Friend Class SiteSettings : Inherits SiteSettingsBase
+        Friend Overrides ReadOnly Property Icon As Icon
+            Get
+                Return My.Resources.RegGifsIcon
+            End Get
+        End Property
+        Friend Overrides ReadOnly Property Image As Image
+            Get
+                Return My.Resources.RegGifsPic32
+            End Get
+        End Property
         Friend Sub New()
             MyBase.New(RedGifsSite, "redgifs.com")
             UrlPatternUser = "https://www.redgifs.com/users/{0}/"

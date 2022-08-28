@@ -31,8 +31,8 @@
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup>
-    <TargetPlatformVersion Condition=" '$(TargetPlatformVersion)' == '' ">10.0.16299.0</TargetPlatformVersion>
-    <TargetPlatformMinVersion>10.0.16299.0</TargetPlatformMinVersion>
+    <TargetPlatformVersion>10.0</TargetPlatformVersion>
+    <TargetPlatformMinVersion>10.0</TargetPlatformMinVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -425,6 +425,8 @@
     <None Include="Content\Pictures\ScriptPic32.png" />
     <None Include="Content\Icons\GroupBy_284.ico" />
     <None Include="Content\Pictures\Pause_Blue_16.png" />
+    <None Include="Content\Pictures\RegGifsPic32.png" />
+    <None Include="Content\Icons\RegGifsIcon.ico" />
     <Content Include="ffmpeg.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
