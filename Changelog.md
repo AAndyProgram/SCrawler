@@ -1,3 +1,10 @@
+# 2022.9.8.1
+
+*2022-09-08*
+
+- Fixed
+  - Unexpected memory leak when using the 'Feed' form
+
 # 2022.9.8.0
 
 *2022-09-08*

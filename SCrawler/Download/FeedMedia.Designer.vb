@@ -8,7 +8,7 @@
 ' but WITHOUT ANY WARRANTY
 Namespace DownloadObjects
     <Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()>
-    Partial Class FeedMedia : Inherits System.Windows.Forms.UserControl
+    Partial Public Class FeedMedia : Inherits System.Windows.Forms.UserControl
         <System.Diagnostics.DebuggerNonUserCode()>
         Protected Overrides Sub Dispose(ByVal disposing As Boolean)
             Try
@@ -36,11 +36,10 @@ Namespace DownloadObjects
             Me.BTT_CONTEXT_OPEN_USER_URL = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_CONTEXT_OPEN_USER_POST = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_CONTEXT_FIND_USER = New System.Windows.Forms.ToolStripMenuItem()
+            Me.BTT_CONTEXT_INFO = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_CONTEXT_DELETE = New System.Windows.Forms.ToolStripMenuItem()
             Me.TP_MAIN = New System.Windows.Forms.TableLayoutPanel()
             Me.MyVideo = New AxWMPLib.AxWindowsMediaPlayer()
-            Me.TT_MAIN = New System.Windows.Forms.ToolTip(Me.components)
-            Me.BTT_CONTEXT_INFO = New System.Windows.Forms.ToolStripMenuItem()
             CONTEXT_SEP_1 = New System.Windows.Forms.ToolStripSeparator()
             CONTEXT_SEP_2 = New System.Windows.Forms.ToolStripSeparator()
             CONTEXT_SEP_3 = New System.Windows.Forms.ToolStripSeparator()
@@ -54,17 +53,17 @@ Namespace DownloadObjects
             'CONTEXT_SEP_1
             '
             CONTEXT_SEP_1.Name = "CONTEXT_SEP_1"
-            CONTEXT_SEP_1.Size = New System.Drawing.Size(177, 6)
+            CONTEXT_SEP_1.Size = New System.Drawing.Size(134, 6)
             '
             'CONTEXT_SEP_2
             '
             CONTEXT_SEP_2.Name = "CONTEXT_SEP_2"
-            CONTEXT_SEP_2.Size = New System.Drawing.Size(177, 6)
+            CONTEXT_SEP_2.Size = New System.Drawing.Size(134, 6)
             '
             'CONTEXT_SEP_3
             '
             CONTEXT_SEP_3.Name = "CONTEXT_SEP_3"
-            CONTEXT_SEP_3.Size = New System.Drawing.Size(177, 6)
+            CONTEXT_SEP_3.Size = New System.Drawing.Size(134, 6)
             '
             'TP_LBL
             '
@@ -109,48 +108,55 @@ Namespace DownloadObjects
             '
             Me.CONTEXT_DATA.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_CONTEXT_OPEN_MEDIA, Me.BTT_CONTEXT_OPEN_USER, CONTEXT_SEP_1, Me.BTT_CONTEXT_OPEN_USER_URL, Me.BTT_CONTEXT_OPEN_USER_POST, CONTEXT_SEP_2, Me.BTT_CONTEXT_FIND_USER, Me.BTT_CONTEXT_INFO, CONTEXT_SEP_3, Me.BTT_CONTEXT_DELETE})
             Me.CONTEXT_DATA.Name = "CONTEXT_PIC"
-            Me.CONTEXT_DATA.Size = New System.Drawing.Size(181, 198)
+            Me.CONTEXT_DATA.Size = New System.Drawing.Size(138, 176)
             '
             'BTT_CONTEXT_OPEN_MEDIA
             '
             Me.BTT_CONTEXT_OPEN_MEDIA.Image = Global.SCrawler.My.Resources.Resources.Folder_32
             Me.BTT_CONTEXT_OPEN_MEDIA.Name = "BTT_CONTEXT_OPEN_MEDIA"
-            Me.BTT_CONTEXT_OPEN_MEDIA.Size = New System.Drawing.Size(180, 22)
+            Me.BTT_CONTEXT_OPEN_MEDIA.Size = New System.Drawing.Size(137, 22)
             Me.BTT_CONTEXT_OPEN_MEDIA.Text = "Open"
             '
             'BTT_CONTEXT_OPEN_USER
             '
             Me.BTT_CONTEXT_OPEN_USER.Image = Global.SCrawler.My.Resources.Resources.Folder_32
             Me.BTT_CONTEXT_OPEN_USER.Name = "BTT_CONTEXT_OPEN_USER"
-            Me.BTT_CONTEXT_OPEN_USER.Size = New System.Drawing.Size(180, 22)
+            Me.BTT_CONTEXT_OPEN_USER.Size = New System.Drawing.Size(137, 22)
             Me.BTT_CONTEXT_OPEN_USER.Text = "Open user"
             '
             'BTT_CONTEXT_OPEN_USER_URL
             '
             Me.BTT_CONTEXT_OPEN_USER_URL.Image = Global.SCrawler.My.Resources.Resources.GlobeBlue_32
             Me.BTT_CONTEXT_OPEN_USER_URL.Name = "BTT_CONTEXT_OPEN_USER_URL"
-            Me.BTT_CONTEXT_OPEN_USER_URL.Size = New System.Drawing.Size(180, 22)
+            Me.BTT_CONTEXT_OPEN_USER_URL.Size = New System.Drawing.Size(137, 22)
             Me.BTT_CONTEXT_OPEN_USER_URL.Text = "Open user"
             '
             'BTT_CONTEXT_OPEN_USER_POST
             '
             Me.BTT_CONTEXT_OPEN_USER_POST.Image = Global.SCrawler.My.Resources.Resources.GlobeBlue_32
             Me.BTT_CONTEXT_OPEN_USER_POST.Name = "BTT_CONTEXT_OPEN_USER_POST"
-            Me.BTT_CONTEXT_OPEN_USER_POST.Size = New System.Drawing.Size(180, 22)
+            Me.BTT_CONTEXT_OPEN_USER_POST.Size = New System.Drawing.Size(137, 22)
             Me.BTT_CONTEXT_OPEN_USER_POST.Text = "Open post"
             '
             'BTT_CONTEXT_FIND_USER
             '
             Me.BTT_CONTEXT_FIND_USER.Image = Global.SCrawler.My.Resources.Resources.InfoPic_32
             Me.BTT_CONTEXT_FIND_USER.Name = "BTT_CONTEXT_FIND_USER"
-            Me.BTT_CONTEXT_FIND_USER.Size = New System.Drawing.Size(180, 22)
+            Me.BTT_CONTEXT_FIND_USER.Size = New System.Drawing.Size(137, 22)
             Me.BTT_CONTEXT_FIND_USER.Text = "Find user"
+            '
+            'BTT_CONTEXT_INFO
+            '
+            Me.BTT_CONTEXT_INFO.Image = Global.SCrawler.My.Resources.Resources.InfoPic_32
+            Me.BTT_CONTEXT_INFO.Name = "BTT_CONTEXT_INFO"
+            Me.BTT_CONTEXT_INFO.Size = New System.Drawing.Size(137, 22)
+            Me.BTT_CONTEXT_INFO.Text = "Information"
             '
             'BTT_CONTEXT_DELETE
             '
             Me.BTT_CONTEXT_DELETE.Image = Global.SCrawler.My.Resources.Resources.Delete
             Me.BTT_CONTEXT_DELETE.Name = "BTT_CONTEXT_DELETE"
-            Me.BTT_CONTEXT_DELETE.Size = New System.Drawing.Size(180, 22)
+            Me.BTT_CONTEXT_DELETE.Size = New System.Drawing.Size(137, 22)
             Me.BTT_CONTEXT_DELETE.Text = "Delete"
             '
             'TP_MAIN
@@ -179,13 +185,6 @@ Namespace DownloadObjects
             Me.MyVideo.OcxState = CType(resources.GetObject("MyVideo.OcxState"), System.Windows.Forms.AxHost.State)
             Me.MyVideo.Size = New System.Drawing.Size(140, 115)
             Me.MyVideo.TabIndex = 1
-            '
-            'BTT_CONTEXT_INFO
-            '
-            Me.BTT_CONTEXT_INFO.Image = Global.SCrawler.My.Resources.Resources.InfoPic_32
-            Me.BTT_CONTEXT_INFO.Name = "BTT_CONTEXT_INFO"
-            Me.BTT_CONTEXT_INFO.Size = New System.Drawing.Size(180, 22)
-            Me.BTT_CONTEXT_INFO.Text = "Information"
             '
             'FeedMedia
             '
@@ -218,7 +217,6 @@ Namespace DownloadObjects
         Private WithEvents BTT_CONTEXT_OPEN_USER As ToolStripMenuItem
         Private WithEvents CH_CHECKED As CheckBox
         Private WithEvents LBL_INFO As Label
-        Private WithEvents TT_MAIN As ToolTip
         Private WithEvents BTT_CONTEXT_INFO As ToolStripMenuItem
     End Class
 End Namespace

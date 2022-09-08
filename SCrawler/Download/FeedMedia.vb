@@ -136,7 +136,7 @@ Namespace DownloadObjects
                     End If
 
                     LBL_INFO.Text = info
-                    TT_MAIN.SetToolTip(LBL_INFO, Information)
+                    'TT_MAIN.SetToolTip(LBL_INFO, Information)
                     s = New Size(Width, h + TP_MAIN.RowStyles(0).Height + PaddingE.GetOf({TP_MAIN}).Vertical(2))
                     Size = s
                     MinimumSize = s
@@ -158,9 +158,6 @@ Namespace DownloadObjects
         Private Sub FeedImage_Disposed(sender As Object, e As EventArgs) Handles Me.Disposed
             If Not MyImage Is Nothing Then MyImage.Dispose()
             If Not MyPicture Is Nothing Then MyPicture.Dispose()
-            GC.SuppressFinalize(Me)
-            GC.Collect()
-            GC.WaitForFullGCComplete()
         End Sub
 #End Region
 #Region "LBL"
