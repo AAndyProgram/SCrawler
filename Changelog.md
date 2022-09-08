@@ -1,3 +1,14 @@
+# 2022.9.8.0
+
+*2022-09-08*
+
+- Added
+  - **Feed** (feed of downloaded media files)
+  - Missing posts tracking and management
+  - Simple scheduler notifications
+- Fixed
+  - (Issue #67) Saved Instagram posts not downloading
+
 # 2022.8.28.0
 
 *2022-08-28*

@@ -136,18 +136,6 @@ Friend Module MainMod
             Return $"{If(Host?.Name, String.Empty)}{Opt}"
         End If
     End Function
-#Region "Image Handlers management"
-    Friend Sub ImageHandler(ByVal User As IUserData)
-        ImageHandler(User, False)
-        ImageHandler(User, True)
-    End Sub
-    Friend Sub ImageHandler(ByVal User As IUserData, ByVal Add As Boolean)
-        MainFrameObj.ImageHandler(User, Add)
-    End Sub
-    Friend Sub CollectionHandler(ByVal [Collection] As UserDataBind)
-        MainFrameObj.CollectionHandler(Collection)
-    End Sub
-#End Region
 #Region "Standalone video download functions"
     Friend Function GetCurrentBuffer() As String
         Dim b$ = BufferText

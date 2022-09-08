@@ -23,8 +23,8 @@ Namespace DownloadObjects
         Friend Sub New()
             InitializeComponent()
             JobsList = New List(Of DownloadProgress)
-            AddHandler Downloader.OnReconfigured, AddressOf Downloader_OnReconfigured
-            Downloader_OnReconfigured()
+            AddHandler Downloader.Reconfigured, AddressOf Downloader_Reconfigured
+            Downloader_Reconfigured()
         End Sub
         Private Sub ActiveDownloadingProgress_Load(sender As Object, e As EventArgs) Handles Me.Load
             MyView = New FormsView(Me)
@@ -37,7 +37,7 @@ Namespace DownloadObjects
             e.Cancel = True
             Hide()
         End Sub
-        Private Sub Downloader_OnReconfigured()
+        Private Sub Downloader_Reconfigured()
             Const RowHeight% = 30
             Dim a As Action = Sub()
                                   With TP_MAIN
@@ -58,7 +58,7 @@ Namespace DownloadObjects
                                                   .RowStyles.Add(New RowStyle(SizeType.Absolute, RowHeight))
                                                   .RowCount += 1
                                                   JobsList.Add(New DownloadProgress(j))
-                                                  AddHandler JobsList.Last.OnTotalCountChange, AddressOf Jobs_OnTotalCountChange
+                                                  AddHandler JobsList.Last.ProgressMaximumChanged, AddressOf Jobs_ProgressMaximumChanged
                                                   .Controls.Add(JobsList.Last.Get, 0, .RowStyles.Count - 1)
                                               End With
                                           Next
@@ -74,11 +74,11 @@ Namespace DownloadObjects
                               End Sub
             If TP_MAIN.InvokeRequired Then TP_MAIN.Invoke(a) Else a.Invoke
         End Sub
-        Private Sub Jobs_OnTotalCountChange()
+        Private Sub Jobs_ProgressMaximumChanged()
             If JobsList.Count > 0 And Not DisableProgressChange Then
-                MainProgress.TotalCount = JobsList.Sum(Function(j) CLng(j.Job.Progress.TotalCount))
-                MainProgress.CurrentCounter = Math.Max(JobsList.Sum(Function(j) CLng(j.Job.Progress.CurrentCounter)) - 1, 0)
-                If MainProgress.CurrentCounter > 0 Then MainProgress.Perform()
+                MainProgress.Maximum = JobsList.Sum(Function(j) CLng(j.Job.Progress.Maximum))
+                MainProgress.Value = Math.Max(JobsList.Sum(Function(j) CLng(j.Job.Progress.Value)) - 1, 0)
+                If MainProgress.Value > 0 Then MainProgress.Perform()
             End If
         End Sub
     End Class

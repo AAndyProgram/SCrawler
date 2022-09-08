@@ -169,6 +169,18 @@
     <Compile Include="Download\AutoDownloaderEditorForm.vb">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="Download\DownloadFeedForm.Designer.vb">
+      <DependentUpon>DownloadFeedForm.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Download\DownloadFeedForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Download\FeedMedia.Designer.vb">
+      <DependentUpon>FeedMedia.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Download\FeedMedia.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="Download\Groups\DownloadGroup.vb" />
     <Compile Include="Download\DownloadProgress.vb" />
     <Compile Include="Download\Groups\DownloadGroupCollection.vb" />
@@ -182,6 +194,12 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Download\Groups\GroupParameters.vb" />
+    <Compile Include="Download\MissingPostsForm.Designer.vb">
+      <DependentUpon>MissingPostsForm.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Download\MissingPostsForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Download\Scheduler.vb" />
     <Compile Include="Download\SchedulerEditorForm.Designer.vb">
       <DependentUpon>SchedulerEditorForm.vb</DependentUpon>
@@ -189,7 +207,13 @@
     <Compile Include="Download\SchedulerEditorForm.vb">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="EncryptCookies.vb" />
     <Compile Include="MainFrameObjects.vb" />
+    <Compile Include="My Project\Resources.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="PluginsEnvironment\Hosts\UserDataHost.vb" />
     <Compile Include="API\Base\UserDataBase.vb" />
     <Compile Include="API\Gfycat\Envir.vb" />
@@ -295,11 +319,6 @@
       <DependentUpon>Application.myapp</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
-    <Compile Include="My Project\Resources.Designer.vb">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
     <Compile Include="My Project\Settings.Designer.vb">
       <AutoGen>True</AutoGen>
       <DependentUpon>Settings.settings</DependentUpon>
@@ -344,11 +363,20 @@
     <EmbeddedResource Include="Download\ActiveDownloadingProgress.resx">
       <DependentUpon>ActiveDownloadingProgress.vb</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Download\DownloadFeedForm.resx">
+      <DependentUpon>DownloadFeedForm.vb</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Download\DownloadSavedPostsForm.resx">
       <DependentUpon>DownloadSavedPostsForm.vb</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Download\FeedMedia.resx">
+      <DependentUpon>FeedMedia.vb</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Download\Groups\GroupEditorForm.resx">
       <DependentUpon>GroupEditorForm.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Download\MissingPostsForm.resx">
+      <DependentUpon>MissingPostsForm.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Download\SchedulerEditorForm.resx">
       <DependentUpon>SchedulerEditorForm.vb</DependentUpon>
@@ -379,9 +407,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="My Project\Resources.resx">
       <Generator>VbMyResourcesResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.vb</LastGenOutput>
       <CustomToolNamespace>My.Resources</CustomToolNamespace>
       <SubType>Designer</SubType>
+      <LastGenOutput>Resources.Designer.vb</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Include="Download\VideosDownloaderForm.resx">
       <DependentUpon>VideosDownloaderForm.vb</DependentUpon>
@@ -427,6 +455,11 @@
     <None Include="Content\Pictures\Pause_Blue_16.png" />
     <None Include="Content\Pictures\RegGifsPic32.png" />
     <None Include="Content\Icons\RegGifsIcon.ico" />
+    <None Include="Content\Icons\SettingsIcon.ico" />
+    <None Include="Content\Pictures\RedGifsPic32.png" />
+    <None Include="Content\Pictures\RSSPic.png" />
+    <None Include="Content\Icons\RedGifsIcon.ico" />
+    <None Include="Content\Icons\RSSIcon.ico" />
     <Content Include="ffmpeg.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -444,6 +477,33 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <COMReference Include="AxWMPLib">
+      <Guid>{6BF52A50-394A-11D3-B153-00C04F79FAA6}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>aximp</WrapperTool>
+      <Isolated>False</Isolated>
+    </COMReference>
+    <COMReference Include="stdole">
+      <Guid>{00020430-0000-0000-C000-000000000046}</Guid>
+      <VersionMajor>2</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>primary</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
+    <COMReference Include="WMPLib">
+      <Guid>{6BF52A50-394A-11D3-B153-00C04F79FAA6}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
 </Project>

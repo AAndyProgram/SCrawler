@@ -11,8 +11,8 @@ Imports Download = SCrawler.Plugin.ISiteSettings.Download
 Imports TDJob = SCrawler.DownloadObjects.TDownloader.Job
 Namespace DownloadObjects
     Friend Class DownloadProgress : Implements IDisposable
-        Friend Event OnDownloadDone(ByVal Message As String)
-        Friend Event OnTotalCountChange()
+        Friend Event DownloadDone As NotificationEventHandler
+        Friend Event ProgressMaximumChanged()
         Private ReadOnly TP_MAIN As TableLayoutPanel
         Private ReadOnly TP_CONTROLS As TableLayoutPanel
         Private WithEvents BTT_START As Button
@@ -89,10 +89,10 @@ Namespace DownloadObjects
             End If
 
             With Job
-                .Progress = New MyProgress(PR_MAIN, LBL_INFO) With {.DropCurrentProgressOnTotalChange = False}
+                .Progress = New MyProgress(PR_MAIN, LBL_INFO) With {.ResetProgressOnMaximumChanges = False}
                 With .Progress
-                    AddHandler .OnProgressChange, AddressOf JobProgress_OnProgressChange
-                    AddHandler .OnTotalCountChange, AddressOf JobProgress_OnTotalCountChange
+                    AddHandler .ProgressChanged, AddressOf JobProgress_ProgressChanged
+                    AddHandler .MaximumChanged, AddressOf JobProgress_MaximumChanged
                 End With
             End With
 
@@ -139,7 +139,7 @@ Namespace DownloadObjects
                 Job.Progress.InformationTemporary = $"{Job.Host.Name} downloading started"
                 Job.Start()
                 Instance.Download(Job.Token)
-                RaiseEvent OnDownloadDone($"Downloading saved {Job.Host.Name} posts is completed")
+                RaiseEvent DownloadDone($"Downloading saved {Job.Host.Name} posts is completed")
             Catch ex As Exception
                 Job.Progress.InformationTemporary = $"{Job.Host.Name} downloading error"
                 ErrorsDescriber.Execute(EDP.LogMessageValue, ex, {$"{Job.Host.Name} saved posts downloading error", "Saved posts"})
@@ -147,15 +147,15 @@ Namespace DownloadObjects
                 btte.Invoke(BTT_START, True)
                 btte.Invoke(BTT_STOP, False)
                 Job.Stopped()
-                If Job.Type = Download.SavedPosts Then Job.Progress.TotalCount = 0 : Job.Progress.CurrentCounter = 0
+                If Job.Type = Download.SavedPosts Then Job.Progress.Maximum = 0 : Job.Progress.Value = 0
             End Try
         End Sub
 #End Region
 #Region "Progress, Jobs count"
-        Private Sub JobProgress_OnTotalCountChange(ByVal Source As IMyProgress, ByVal Index As Integer)
-            RaiseEvent OnTotalCountChange()
+        Private Sub JobProgress_MaximumChanged(ByVal Sender As Object, ByVal e As ProgressEventArgs)
+            RaiseEvent ProgressMaximumChanged()
         End Sub
-        Private Sub JobProgress_OnProgressChange(ByVal Source As IMyProgress, ByVal Index As Integer)
+        Private Sub JobProgress_ProgressChanged(ByVal Sender As Object, ByVal e As ProgressEventArgs)
             If Not Job.Type = Download.SavedPosts Then MainProgress.Perform()
         End Sub
 #End Region

@@ -45,6 +45,7 @@ Namespace DownloadObjects
             Me.CH_NOTIFY = New System.Windows.Forms.CheckBox()
             Me.CH_SHOW_PIC = New System.Windows.Forms.CheckBox()
             Me.CH_SHOW_PIC_USER = New System.Windows.Forms.CheckBox()
+            Me.CH_NOTIFY_SIMPLE = New System.Windows.Forms.CheckBox()
             CONTAINER_MAIN = New System.Windows.Forms.ToolStripContainer()
             TP_MODE = New System.Windows.Forms.TableLayoutPanel()
             TP_NOTIFY = New System.Windows.Forms.TableLayoutPanel()
@@ -119,7 +120,7 @@ Namespace DownloadObjects
             Me.TXT_GROUPS.Location = New System.Drawing.Point(4, 140)
             Me.TXT_GROUPS.Name = "TXT_GROUPS"
             Me.TXT_GROUPS.Size = New System.Drawing.Size(468, 22)
-            Me.TXT_GROUPS.TabIndex = 2
+            Me.TXT_GROUPS.TabIndex = 1
             '
             'TP_MODE
             '
@@ -220,7 +221,7 @@ Namespace DownloadObjects
             Me.TXT_TIMER.Location = New System.Drawing.Point(4, 195)
             Me.TXT_TIMER.Name = "TXT_TIMER"
             Me.TXT_TIMER.Size = New System.Drawing.Size(468, 22)
-            Me.TXT_TIMER.TabIndex = 2
+            Me.TXT_TIMER.TabIndex = 3
             '
             'LBL_LAST_TIME_UP
             '
@@ -230,7 +231,7 @@ Namespace DownloadObjects
             Me.LBL_LAST_TIME_UP.Location = New System.Drawing.Point(4, 250)
             Me.LBL_LAST_TIME_UP.Name = "LBL_LAST_TIME_UP"
             Me.LBL_LAST_TIME_UP.Size = New System.Drawing.Size(468, 25)
-            Me.LBL_LAST_TIME_UP.TabIndex = 4
+            Me.LBL_LAST_TIME_UP.TabIndex = 5
             Me.LBL_LAST_TIME_UP.Text = "Last download date: "
             Me.LBL_LAST_TIME_UP.TextAlign = System.Drawing.ContentAlignment.TopCenter
             '
@@ -251,27 +252,28 @@ Namespace DownloadObjects
             Me.NUM_DELAY.NumberMaximum = New Decimal(New Integer() {1440, 0, 0, 0})
             Me.NUM_DELAY.NumberUpDownAlign = System.Windows.Forms.LeftRightAlignment.Left
             Me.NUM_DELAY.Size = New System.Drawing.Size(468, 22)
-            Me.NUM_DELAY.TabIndex = 3
+            Me.NUM_DELAY.TabIndex = 4
             Me.NUM_DELAY.Text = "0"
             '
             'TP_NOTIFY
             '
-            TP_NOTIFY.ColumnCount = 3
-            TP_NOTIFY.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33333!))
-            TP_NOTIFY.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33333!))
-            TP_NOTIFY.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33333!))
+            TP_NOTIFY.ColumnCount = 4
+            TP_NOTIFY.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25.0!))
+            TP_NOTIFY.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25.0!))
+            TP_NOTIFY.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25.0!))
+            TP_NOTIFY.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25.0!))
             TP_NOTIFY.Controls.Add(Me.CH_NOTIFY, 0, 0)
-            TP_NOTIFY.Controls.Add(Me.CH_SHOW_PIC, 1, 0)
-            TP_NOTIFY.Controls.Add(Me.CH_SHOW_PIC_USER, 2, 0)
+            TP_NOTIFY.Controls.Add(Me.CH_SHOW_PIC, 2, 0)
+            TP_NOTIFY.Controls.Add(Me.CH_SHOW_PIC_USER, 3, 0)
+            TP_NOTIFY.Controls.Add(Me.CH_NOTIFY_SIMPLE, 1, 0)
             TP_NOTIFY.Dock = System.Windows.Forms.DockStyle.Fill
             TP_NOTIFY.Location = New System.Drawing.Point(1, 166)
             TP_NOTIFY.Margin = New System.Windows.Forms.Padding(0)
             TP_NOTIFY.Name = "TP_NOTIFY"
             TP_NOTIFY.RowCount = 1
             TP_NOTIFY.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_NOTIFY.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_NOTIFY.Size = New System.Drawing.Size(474, 25)
-            TP_NOTIFY.TabIndex = 1
+            TP_NOTIFY.TabIndex = 2
             '
             'CH_NOTIFY
             '
@@ -279,7 +281,7 @@ Namespace DownloadObjects
             Me.CH_NOTIFY.Dock = System.Windows.Forms.DockStyle.Fill
             Me.CH_NOTIFY.Location = New System.Drawing.Point(3, 3)
             Me.CH_NOTIFY.Name = "CH_NOTIFY"
-            Me.CH_NOTIFY.Size = New System.Drawing.Size(152, 19)
+            Me.CH_NOTIFY.Size = New System.Drawing.Size(112, 19)
             Me.CH_NOTIFY.TabIndex = 0
             Me.CH_NOTIFY.Text = "Show notifications"
             TT_MAIN.SetToolTip(Me.CH_NOTIFY, "Show notification when some data has been downloaded")
@@ -289,11 +291,11 @@ Namespace DownloadObjects
             '
             Me.CH_SHOW_PIC.AutoSize = True
             Me.CH_SHOW_PIC.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_SHOW_PIC.Location = New System.Drawing.Point(161, 3)
+            Me.CH_SHOW_PIC.Location = New System.Drawing.Point(239, 3)
             Me.CH_SHOW_PIC.Name = "CH_SHOW_PIC"
-            Me.CH_SHOW_PIC.Size = New System.Drawing.Size(152, 19)
-            Me.CH_SHOW_PIC.TabIndex = 1
-            Me.CH_SHOW_PIC.Text = "Show download picture"
+            Me.CH_SHOW_PIC.Size = New System.Drawing.Size(112, 19)
+            Me.CH_SHOW_PIC.TabIndex = 2
+            Me.CH_SHOW_PIC.Text = "Image"
             TT_MAIN.SetToolTip(Me.CH_SHOW_PIC, "Show downloaded image in notification")
             Me.CH_SHOW_PIC.UseVisualStyleBackColor = True
             '
@@ -301,13 +303,25 @@ Namespace DownloadObjects
             '
             Me.CH_SHOW_PIC_USER.AutoSize = True
             Me.CH_SHOW_PIC_USER.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_SHOW_PIC_USER.Location = New System.Drawing.Point(319, 3)
+            Me.CH_SHOW_PIC_USER.Location = New System.Drawing.Point(357, 3)
             Me.CH_SHOW_PIC_USER.Name = "CH_SHOW_PIC_USER"
-            Me.CH_SHOW_PIC_USER.Size = New System.Drawing.Size(152, 19)
-            Me.CH_SHOW_PIC_USER.TabIndex = 2
-            Me.CH_SHOW_PIC_USER.Text = "Show user picture"
+            Me.CH_SHOW_PIC_USER.Size = New System.Drawing.Size(114, 19)
+            Me.CH_SHOW_PIC_USER.TabIndex = 3
+            Me.CH_SHOW_PIC_USER.Text = "User icon"
             TT_MAIN.SetToolTip(Me.CH_SHOW_PIC_USER, "Show user image in notification")
             Me.CH_SHOW_PIC_USER.UseVisualStyleBackColor = True
+            '
+            'CH_NOTIFY_SIMPLE
+            '
+            Me.CH_NOTIFY_SIMPLE.AutoSize = True
+            Me.CH_NOTIFY_SIMPLE.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_NOTIFY_SIMPLE.Location = New System.Drawing.Point(121, 3)
+            Me.CH_NOTIFY_SIMPLE.Name = "CH_NOTIFY_SIMPLE"
+            Me.CH_NOTIFY_SIMPLE.Size = New System.Drawing.Size(112, 19)
+            Me.CH_NOTIFY_SIMPLE.TabIndex = 1
+            Me.CH_NOTIFY_SIMPLE.Text = "Simple"
+            TT_MAIN.SetToolTip(Me.CH_NOTIFY_SIMPLE, resources.GetString("CH_NOTIFY_SIMPLE.ToolTip"))
+            Me.CH_NOTIFY_SIMPLE.UseVisualStyleBackColor = True
             '
             'AutoDownloaderEditorForm
             '
@@ -347,11 +361,12 @@ Namespace DownloadObjects
         Private WithEvents OPT_SPEC As RadioButton
         Private WithEvents OPT_DISABLED As RadioButton
         Private WithEvents CH_NOTIFY As CheckBox
-        Friend WithEvents TXT_TIMER As PersonalUtilities.Forms.Controls.TextBoxExtended
+        Private WithEvents TXT_TIMER As PersonalUtilities.Forms.Controls.TextBoxExtended
         Private WithEvents OPT_GROUP As RadioButton
         Private WithEvents LBL_LAST_TIME_UP As Label
         Private WithEvents NUM_DELAY As PersonalUtilities.Forms.Controls.TextBoxExtended
         Private WithEvents CH_SHOW_PIC As CheckBox
         Private WithEvents CH_SHOW_PIC_USER As CheckBox
+        Private WithEvents CH_NOTIFY_SIMPLE As CheckBox
     End Class
 End Namespace

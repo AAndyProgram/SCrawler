@@ -43,6 +43,7 @@ Namespace API.Twitter
 
             With Responser
                 If .File.Exists Then
+                    If EncryptCookies.CookiesEncrypted Then .CookiesEncryptKey = SettingsCLS.CookieEncryptKey
                     .LoadSettings()
                     With .Headers
                         If .ContainsKey(Header_Authorization) Then a = .Item(Header_Authorization)
@@ -52,7 +53,8 @@ Namespace API.Twitter
                     .ContentType = "application/json"
                     .Accept = "*/*"
                     .CookiesDomain = "twitter.com"
-                    .Cookies = New CookieKeeper(.CookiesDomain)
+                    .Cookies = New CookieKeeper(.CookiesDomain) With {.EncryptKey = SettingsCLS.CookieEncryptKey}
+                    .CookiesEncryptKey = SettingsCLS.CookieEncryptKey
                     .Decoders.Add(SymbolsConverter.Converters.Unicode)
                     With .Headers
                         .Add("sec-ch-ua", " Not;A Brand"";v=""99"", ""Google Chrome"";v=""91"", ""Chromium"";v=""91""")
@@ -100,6 +102,9 @@ Namespace API.Twitter
         End Function
         Friend Overrides Function GetSpecialDataF(ByVal URL As String) As IEnumerable(Of UserMedia)
             Return UserData.GetVideoInfo(URL, Responser)
+        End Function
+        Friend Overrides Function GetUserPostUrl(ByVal UserID As String, ByVal PostID As String) As String
+            Return $"https://twitter.com/{UserID}/status/{PostID}"
         End Function
     End Class
 End Namespace

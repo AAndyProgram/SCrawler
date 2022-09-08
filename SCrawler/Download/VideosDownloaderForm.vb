@@ -124,8 +124,8 @@ Namespace DownloadObjects
         Private Sub DownloadVideos()
             MyJob.Start()
             If MyJob.Count > 0 Then
-                MyJob.Progress.TotalCount = MyJob.Count
-                MyJob.Progress.Enabled = True
+                MyJob.Progress.Maximum = MyJob.Count
+                MyJob.Progress.Visible = True
                 Dim IsFirst As Boolean = True
                 For i% = MyJob.Count - 1 To 0 Step -1
                     If MyJob.IsCancellationRequested Then Exit For
@@ -135,7 +135,7 @@ Namespace DownloadObjects
                 Next
                 MyJob.Progress.Done()
                 RefillList()
-                MyJob.Progress.Enabled = False
+                MyJob.Progress.Visible = False
             End If
             SetControlValueInvoke(ToolbarTOP, BTT_DOWN, Sub() BTT_DOWN.Enabled = True)
             SetControlValueInvoke(ToolbarTOP, BTT_STOP, Sub() BTT_STOP.Enabled = False)

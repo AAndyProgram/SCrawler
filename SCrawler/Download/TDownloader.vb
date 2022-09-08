@@ -8,21 +8,44 @@
 ' but WITHOUT ANY WARRANTY
 Imports System.Threading
 Imports PersonalUtilities.Tools
-Imports SCrawler.API
 Imports SCrawler.API.Base
 Imports SCrawler.Plugin.Hosts
 Imports Download = SCrawler.Plugin.ISiteSettings.Download
-Imports EOptions = PersonalUtilities.Forms.Toolbars.IMyProgress.EnableOptions
 Namespace DownloadObjects
     Friend Class TDownloader : Implements IDisposable
 #Region "Events"
-        Friend Event OnJobsChange(ByVal JobsCount As Integer)
-        Friend Event OnDownloadCountChange()
-        Friend Event OnDownloading(ByVal Value As Boolean)
+        Friend Event JobsChange(ByVal JobsCount As Integer)
+        Friend Event DownloadCountChange()
+        Friend Event Downloading(ByVal Value As Boolean)
         Friend Event SendNotification As NotificationEventHandler
-        Friend Event OnReconfigured()
+        Friend Event Reconfigured()
+        Friend Event FeedFilesChanged(ByVal Added As Boolean)
 #End Region
 #Region "Declarations"
+#Region "Files"
+        Friend Structure UserMediaD : Implements IComparable(Of UserMediaD), IEquatable(Of UserMediaD)
+            Friend ReadOnly User As IUserData
+            Friend ReadOnly Data As UserMedia
+            Friend ReadOnly [Date] As Date
+            Friend Sub New(ByVal Data As UserMedia, ByVal User As IUserData)
+                Me.Data = Data
+                Me.User = User
+                [Date] = Now
+            End Sub
+            Private Function CompareTo(ByVal Other As UserMediaD) As Integer Implements IComparable(Of UserMediaD).CompareTo
+                Return [Date].Ticks.CompareTo(Other.Date.Ticks) * -1
+            End Function
+            Private Overloads Function Equals(ByVal Other As UserMediaD) As Boolean Implements IEquatable(Of UserMediaD).Equals
+                Return Data.File = Other.Data.File
+            End Function
+            Public Overloads Overrides Function Equals(ByVal Obj As Object) As Boolean
+                Return Equals(DirectCast(Obj, UserMedia))
+            End Function
+        End Structure
+        Friend ReadOnly Property Files As List(Of UserMediaD)
+        Friend Property FilesChanged As Boolean = False
+        Private ReadOnly FilesLP As New ListAddParams(LAP.NotContainsOnly)
+#End Region
         Friend ReadOnly Property Downloaded As List(Of IUserData)
         Private ReadOnly NProv As IFormatProvider
 #End Region
@@ -49,7 +72,7 @@ Namespace DownloadObjects
             End Set
         End Property
         Friend Sub InvokeDownloadsChangeEvent()
-            RaiseEvent OnDownloadCountChange()
+            RaiseEvent DownloadCountChange()
         End Sub
 #End Region
 #Region "Jobs"
@@ -163,6 +186,7 @@ Namespace DownloadObjects
 #End Region
 #Region "Initializer"
         Friend Sub New()
+            Files = New List(Of UserMediaD)
             Downloaded = New List(Of IUserData)
             NProv = New ANumbers With {.FormatOptions = ANumbers.Options.GroupIntegral}
             Pool = New List(Of Job)
@@ -183,27 +207,30 @@ Namespace DownloadObjects
                         End If
                     Next
                 End If
-                RaiseEvent OnReconfigured()
+                RaiseEvent Reconfigured()
             End If
         End Sub
 #End Region
 #Region "Thread"
         Private CheckerThread As Thread
+        Private MissingPostsDetected As Boolean = False
         Private Sub [Start]()
             If Not AutoDownloaderWorking AndAlso MyProgressForm.ReadyToOpen AndAlso Pool.LongCount(Function(p) p.Count > 0) > 1 Then MyProgressForm.Show() : MainFrameObj.Focus()
             If Not If(CheckerThread?.IsAlive, False) Then
-                MainProgress.Enabled = True
+                MainProgress.Visible = True
                 If Not AutoDownloaderWorking AndAlso InfoForm.ReadyToOpen Then InfoForm.Show() : MainFrameObj.Focus()
+                MissingPostsDetected = False
                 CheckerThread = New Thread(New ThreadStart(AddressOf JobsChecker))
                 CheckerThread.SetApartmentState(ApartmentState.MTA)
                 CheckerThread.Start()
             End If
-            End Sub
+        End Sub
         Private Sub JobsChecker()
-            RaiseEvent OnDownloading(True)
+            Dim fBefore% = Files.Count
+            RaiseEvent Downloading(True)
             Try
-                MainProgress.TotalCount = 0
-                MainProgress.CurrentCounter = 0
+                MainProgress.Maximum = 0
+                MainProgress.Value = 0
                 MyProgressForm.DisableProgressChange = False
                 Do While Pool.Exists(Function(p) p.Count > 0 Or p.Working)
                     For Each j As Job In Pool
@@ -214,16 +241,23 @@ Namespace DownloadObjects
             Catch
             Finally
                 With MainProgress
-                    .TotalCount = 0
-                    .CurrentCounter = 0
+                    .Maximum = 0
+                    .Value = 0
                     .InformationTemporary = "All data downloaded"
-                    .Enabled(EOptions.ProgressBar) = False
+                    .Visible(, False) = False
                 End With
                 MyProgressForm.DisableProgressChange = True
-                If Pool.Count > 0 Then Pool.ForEach(Sub(p) If Not p.Progress Is Nothing Then p.Progress.TotalCount = 0)
+                If Pool.Count > 0 Then Pool.ForEach(Sub(p) If Not p.Progress Is Nothing Then p.Progress.Maximum = 0)
                 ExecuteCommand(Settings.DownloadsCompleteCommand)
                 UpdateJobsLabel()
-                RaiseEvent OnDownloading(False)
+                If MissingPostsDetected And Settings.AddMissingToLog Then
+                    MyMainLOG = "Some posts didn't download. You can see them in the 'Missing posts' form."
+                    MainFrameObj.UpdateLogButton()
+                End If
+                Files.Sort()
+                FilesChanged = Not fBefore = Files.Count
+                RaiseEvent Downloading(False)
+                If FilesChanged Then RaiseEvent FeedFilesChanged(True)
             End Try
         End Sub
         Private Sub StartDownloading(ByRef _Job As Job)
@@ -236,9 +270,9 @@ Namespace DownloadObjects
                                                 End Function
             Try
                 _Job.Start()
-                _Job.Progress.TotalCount = 0
-                _Job.Progress.CurrentCounter = 0
-                _Job.Progress.Enabled = True
+                _Job.Progress.Maximum = 0
+                _Job.Progress.Value = 0
+                _Job.Progress.Visible = True
                 Dim SiteChecked As Boolean = False
                 Do While _Job.Count > 0
                     _Job.ThrowIfCancellationRequested()
@@ -263,7 +297,7 @@ Namespace DownloadObjects
             If Pool.Count > 0 Then Pool.ForEach(Sub(j) If j.Working Then j.Stop())
         End Sub
         Private Sub UpdateJobsLabel()
-            RaiseEvent OnJobsChange(Count)
+            RaiseEvent JobsChange(Count)
         End Sub
         Private Sub DownloadData(ByRef _Job As Job, ByVal Token As CancellationToken)
             Try
@@ -291,7 +325,7 @@ Namespace DownloadObjects
                     Next
                     If t.Count > 0 Or Keys.Count > 0 Then
                         With _Job.Progress
-                            .Enabled(EOptions.All) = True
+                            .Visible = True
                             .Information = IIf(_Job.IsSeparated, $"{_Job.Name} d", "D")
                             .Information &= $"ownloading {t.Count.NumToString(nf, NProv)}/{_Job.Items.Count.NumToString(nf, NProv)} profiles' data"
                             .InformationTemporary = .Information
@@ -303,9 +337,13 @@ Namespace DownloadObjects
                                 i = _Job.Items.FindIndex(Function(ii) ii.Key = k)
                                 If i >= 0 Then
                                     With _Job.Items(i)
+                                        If DirectCast(.Self, UserDataBase).ContentMissingExists Then MissingPostsDetected = True
                                         host.AfterDownload(_Job.Items(i), Download.Main)
                                         If Not .Disposed AndAlso Not .IsCollection AndAlso .DownloadedTotal(False) > 0 Then
-                                            If Not Downloaded.Contains(.Self) Then Downloaded.Add(GetUserFromMainCollection(.Self))
+                                            If Not Downloaded.Contains(.Self) Then Downloaded.Add(Settings.GetUser(.Self))
+                                            With DirectCast(.Self, UserDataBase)
+                                                If .LatestData.Count > 0 Then Files.ListAddList(.LatestData.Select(Function(d) New UserMediaD(d, .Self)), FilesLP)
+                                            End With
                                             dcc = True
                                         End If
                                     End With
@@ -316,7 +354,7 @@ Namespace DownloadObjects
                         Keys.Clear()
                         _Job.Items.RemoveAll(Function(ii) ii.Disposed)
                         If dcc Then Downloaded.RemoveAll(Function(u) u Is Nothing)
-                        If dcc And Downloaded.Count > 0 Then RaiseEvent OnDownloadCountChange()
+                        If dcc And Downloaded.Count > 0 Then RaiseEvent DownloadCountChange()
                         t.Clear()
                     End If
                 End If
@@ -332,30 +370,6 @@ Namespace DownloadObjects
                                       End Sub))
             End Try
         End Sub
-        Friend Shared Function GetUserFromMainCollection(ByVal User As IUserData) As IUserData
-            Dim uSimple As Predicate(Of IUserData) = Function(u) u.Equals(DirectCast(User, UserDataBase))
-            Dim uCol As Predicate(Of IUserData) = Function(ByVal u As IUserData) As Boolean
-                                                      If u.IsCollection Then
-                                                          Return DirectCast(u, UserDataBind).Collections.Exists(uSimple)
-                                                      Else
-                                                          Return False
-                                                      End If
-                                                  End Function
-            Dim uu As Predicate(Of IUserData)
-            If User.IncludedInCollection Then uu = uCol Else uu = uSimple
-            Dim i% = Settings.Users.FindIndex(uu)
-            If i >= 0 Then
-                If Settings.Users(i).IsCollection Then
-                    With DirectCast(Settings.Users(i), UserDataBind)
-                        i = .Collections.FindIndex(uSimple)
-                        If i >= 0 Then Return .Collections(i)
-                    End With
-                Else
-                    Return Settings.Users(i)
-                End If
-            End If
-            Return Nothing
-        End Function
 #End Region
 #Region "Add"
         Private Sub AddItem(ByVal Item As IUserData, ByVal _UpdateJobsLabel As Boolean)
@@ -395,7 +409,8 @@ Namespace DownloadObjects
             Return False
         End Function
         Friend Sub UserRemove(ByVal _Item As IUserData)
-            If Downloaded.Count > 0 AndAlso Downloaded.Contains(_Item) Then Downloaded.Remove(_Item) : RaiseEvent OnDownloadCountChange()
+            If Downloaded.Count > 0 AndAlso Downloaded.Contains(_Item) Then Downloaded.Remove(_Item) : RaiseEvent DownloadCountChange()
+            If Files.Count > 0 AndAlso Files.RemoveAll(Function(f) Not f.User Is Nothing AndAlso f.User.Equals(_Item)) > 0 Then RaiseEvent FeedFilesChanged(False)
         End Sub
 #End Region
 #Region "IDisposable Support"
@@ -405,6 +420,7 @@ Namespace DownloadObjects
                 If disposing Then
                     [Stop]()
                     Pool.ListClearDispose
+                    Files.Clear()
                     Downloaded.Clear()
                 End If
                 disposedValue = True

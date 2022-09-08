@@ -8,9 +8,11 @@
 ' but WITHOUT ANY WARRANTY
 Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Forms.Controls.Base
+Imports ADB = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons
 Namespace Editors
     Friend Class GlobalSettingsForm
         Private WithEvents MyDefs As DefaultFormOptions
+        Friend Property FeedParametersChanged As Boolean = False
         Friend Sub New()
             InitializeComponent()
             MyDefs = New DefaultFormOptions(Me, Settings.Design)
@@ -58,6 +60,8 @@ Namespace Editors
                         TXT_SCRIPT.Text = .ScriptData.Value
                         TXT_DOWN_COMPLETE_SCRIPT.Text = .DownloadsCompleteCommand
                         TXT_DOWN_COMPLETE_SCRIPT.Checked = .DownloadsCompleteCommand.Attribute
+                        CH_ADD_MISSING_TO_LOG.Checked = .AddMissingToLog
+                        CH_ADD_MISSING_ERROS_TO_LOG.Checked = .AddMissingErrorsToLog
                         'Downloading: file names
                         CH_FILE_NAME_CHANGE.Checked = Not .FileReplaceNameByDate.Value = FileNameReplaceMode.None
                         OPT_FILE_NAME_REPLACE.Checked = .FileReplaceNameByDate.Value = FileNameReplaceMode.Replace
@@ -75,6 +79,10 @@ Namespace Editors
                         CH_COPY_CHANNEL_USER_IMAGE_ALL.Checked = .ChannelsAddUserImagesFromAllChannels
                         CH_COPY_CHANNEL_USER_IMAGE_ALL.Enabled = CH_COPY_CHANNEL_USER_IMAGE.Checked
                         CH_CHANNELS_USERS_TEMP.Checked = .ChannelsDefaultTemporary
+                        'Feed
+                        TXT_FEED_ROWS.Value = .FeedDataRows.Value
+                        TXT_FEED_COLUMNS.Value = .FeedDataColumns.Value
+                        CH_FEED_ENDLESS.Checked = .FeedEndless
                     End With
                     .MyFieldsChecker = New FieldsChecker
                     With .MyFieldsCheckerE
@@ -158,6 +166,8 @@ Namespace Editors
                     .ScriptData.Attribute.Value = TXT_SCRIPT.Checked
                     .DownloadsCompleteCommand.Value = TXT_DOWN_COMPLETE_SCRIPT.Text
                     .DownloadsCompleteCommand.Attribute.Value = TXT_DOWN_COMPLETE_SCRIPT.Checked
+                    .AddMissingToLog.Value = CH_ADD_MISSING_TO_LOG.Checked
+                    .AddMissingErrorsToLog.Value = CH_ADD_MISSING_ERROS_TO_LOG.Checked
                     'Downloading: file names
                     If CH_FILE_NAME_CHANGE.Checked Then
                         .FileReplaceNameByDate.Value = If(OPT_FILE_NAME_REPLACE.Checked, FileNameReplaceMode.Replace, FileNameReplaceMode.Add)
@@ -177,6 +187,11 @@ Namespace Editors
                     .FromChannelCopyImageToUser.Value = CH_COPY_CHANNEL_USER_IMAGE.Checked
                     .ChannelsAddUserImagesFromAllChannels.Value = CH_COPY_CHANNEL_USER_IMAGE_ALL.Checked
                     .ChannelsDefaultTemporary.Value = CH_CHANNELS_USERS_TEMP.Checked
+                    'Feed
+                    .FeedDataRows.Value = CInt(TXT_FEED_ROWS.Value)
+                    .FeedDataColumns.Value = CInt(TXT_FEED_COLUMNS.Value)
+                    .FeedEndless.Value = CH_FEED_ENDLESS.Checked
+                    FeedParametersChanged = .FeedDataRows.ChangesDetected Or .FeedDataColumns.ChangesDetected Or .FeedEndless.ChangesDetected
 
                     .EndUpdate()
                 End With
@@ -184,16 +199,16 @@ Namespace Editors
             End If
         End Sub
         Private Sub TXT_GLOBAL_PATH_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As EventArgs) Handles TXT_GLOBAL_PATH.ActionOnButtonClick
-            If Sender.DefaultButton = ActionButton.DefaultButtons.Open Then
+            If Sender.DefaultButton = ADB.Open Then
                 Dim f As SFile = SFile.SelectPath(Settings.GlobalPath.Value)
                 If Not f.IsEmptyString Then TXT_GLOBAL_PATH.Text = f
             End If
         End Sub
         Private Sub TXT_MAX_JOBS_USERS_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As EventArgs) Handles TXT_MAX_JOBS_USERS.ActionOnButtonClick
-            If Sender.DefaultButton = ActionButton.DefaultButtons.Refresh Then TXT_MAX_JOBS_USERS.Value = SettingsCLS.DefaultMaxDownloadingTasks
+            If Sender.DefaultButton = ADB.Refresh Then TXT_MAX_JOBS_USERS.Value = SettingsCLS.DefaultMaxDownloadingTasks
         End Sub
         Private Sub TXT_MAX_JOBS_CHANNELS_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As EventArgs) Handles TXT_MAX_JOBS_CHANNELS.ActionOnButtonClick
-            If Sender.DefaultButton = ActionButton.DefaultButtons.Refresh Then TXT_MAX_JOBS_CHANNELS.Value = SettingsCLS.DefaultMaxDownloadingTasks
+            If Sender.DefaultButton = ADB.Refresh Then TXT_MAX_JOBS_CHANNELS.Value = SettingsCLS.DefaultMaxDownloadingTasks
         End Sub
         Private Sub CH_FILE_NAME_CHANGE_CheckedChanged(sender As Object, e As EventArgs) Handles CH_FILE_NAME_CHANGE.CheckedChanged
             ChangeFileNameChangersEnabling()

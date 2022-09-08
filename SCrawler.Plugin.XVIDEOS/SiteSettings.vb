@@ -179,4 +179,7 @@ Public Class SiteSettings : Implements ISiteSettings
         End If
         Return Nothing
     End Function
+    Public Function GetUserPostUrl(ByVal UserID As String, ByVal PostID As String) As String Implements ISiteSettings.GetUserPostUrl
+        Return String.Empty
+    End Function
 End Class

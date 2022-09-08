@@ -18,6 +18,7 @@ Friend Class SettingsCLS : Implements IDisposable
     Friend Const DefaultMaxDownloadingTasks As Integer = 5
     Friend Const Name_Node_Sites As String = "Sites"
     Private Const SitesValuesSeparator As String = ","
+    Friend Const CookieEncryptKey As String = "SCrawlerCookiesEncryptKeyword"
     Friend ReadOnly Design As XmlFile
     Private ReadOnly MyXML As XmlFile
     Private ReadOnly OS64 As Boolean
@@ -54,6 +55,9 @@ Friend Class SettingsCLS : Implements IDisposable
         GlobalPath = New XMLValue(Of SFile)("GlobalPath", New SFile($"{SFile.GetPath(Application.StartupPath).PathWithSeparator}Data\"), MyXML,,
                                             New XMLValueBase.ToFilePath)
 
+        CookiesEncrypted = New XMLValue(Of Boolean)("CookiesEncrypted", False, MyXML)
+        EncryptCookies.CookiesEncrypted = CookiesEncrypted
+
         SeparateVideoFolder = New XMLValue(Of Boolean)("SeparateVideoFolder", True, MyXML)
         CollectionsPath = New XMLValue(Of String)("CollectionsPath", "Collections", MyXML)
 
@@ -68,6 +72,7 @@ Friend Class SettingsCLS : Implements IDisposable
         Dim tmpPluginList As IEnumerable(Of PluginHost) = PluginHost.GetPluginsHosts(MyXML, GlobalPath.Value, DefaultTemporary,
                                                                                      DefaultDownloadImages, DefaultDownloadVideos)
         If tmpPluginList.ListExists Then Plugins.AddRange(tmpPluginList)
+        CookiesEncrypted.Value = True
 
         FastProfilesLoading = New XMLValue(Of Boolean)("FastProfilesLoading", False, MyXML)
         MaxLargeImageHeight = New XMLValue(Of Integer)("MaxLargeImageHeight", 150, MyXML)
@@ -85,6 +90,9 @@ Friend Class SettingsCLS : Implements IDisposable
         ShowGroupsInsteadLabels = New XMLValue(Of Boolean)("ShowGroupsInsteadLabels", False, MyXML)
         ShowGroups = New XMLValue(Of Boolean)("ShowGroups", True, MyXML)
         UseGrouping = New XMLValue(Of Boolean)("UseGrouping", True, MyXML)
+
+        AddMissingToLog = New XMLValue(Of Boolean)("AddMissingToLog", True, MyXML)
+        AddMissingErrorsToLog = New XMLValue(Of Boolean)("AddMissingErrorsToLog", False, MyXML)
 
         LatestSavingPath = New XMLValue(Of SFile)("LatestSavingPath", Nothing, MyXML,, New XMLValueBase.ToFilePath)
         LatestSelectedChannel = New XMLValue(Of String)("LatestSelectedChannel",, MyXML)
@@ -105,6 +113,11 @@ Friend Class SettingsCLS : Implements IDisposable
         ChannelsHideExistsUser = New XMLValue(Of Boolean)("HideExistsUser", True, MyXML, n)
         ChannelsMaxJobsCount = New XMLValue(Of Integer)("MaxJobsCount", DefaultMaxDownloadingTasks, MyXML, n)
         ChannelsAddUserImagesFromAllChannels = New XMLValue(Of Boolean)("AddUserImagesFromAllChannels", True, MyXML, n)
+
+        n = {"Feed"}
+        FeedDataColumns = New XMLValue(Of Integer)("DataColumns", 1, MyXML, n)
+        FeedDataRows = New XMLValue(Of Integer)("DataRows", 10, MyXML, n)
+        FeedEndless = New XMLValue(Of Boolean)("Endless", True, MyXML, n)
 
         n = {"Users"}
         FromChannelDownloadTop = New XMLValue(Of Integer)("FromChannelDownloadTop", 10, MyXML, n)
@@ -204,7 +217,7 @@ Friend Class SettingsCLS : Implements IDisposable
                         If d.Count > 0 Then
                             For Each kv In d
                                 Users.Add(New UserDataBind(kv.Value(0).CollectionName))
-                                CollectionHandler(DirectCast(Users(Users.Count - 1), UserDataBind))
+                                MainFrameObj.CollectionHandler(DirectCast(Users(Users.Count - 1), UserDataBind))
                                 For v = 0 To kv.Value.Count - 1 : DirectCast(Users(Users.Count - 1), UserDataBind).Add(kv.Value(v), False) : Next
                             Next
                             d.Clear()
@@ -329,6 +342,53 @@ Friend Class SettingsCLS : Implements IDisposable
             _UserListUpdateRequired = True
         End Try
     End Sub
+    Friend Overloads Function GetUser(ByVal User As IUserData) As IUserData
+        If Users.Count > 0 Then
+            Dim uSimple As Predicate(Of IUserData) = Function(u) u.Equals(DirectCast(User, UserDataBase))
+            Dim uCol As Predicate(Of IUserData) = Function(ByVal u As IUserData) As Boolean
+                                                      If u.IsCollection Then
+                                                          Return DirectCast(u, UserDataBind).Collections.Exists(uSimple)
+                                                      Else
+                                                          Return False
+                                                      End If
+                                                  End Function
+            Dim uu As Predicate(Of IUserData)
+            If User.IncludedInCollection Then uu = uCol Else uu = uSimple
+            Dim i% = Users.FindIndex(uu)
+            If i >= 0 Then
+                If Users(i).IsCollection Then
+                    With DirectCast(Users(i), UserDataBind)
+                        i = .Collections.FindIndex(uSimple)
+                        If i >= 0 Then Return .Collections(i)
+                    End With
+                Else
+                    Return Users(i)
+                End If
+            End If
+        End If
+        Return Nothing
+    End Function
+    Friend Overloads Function GetUser(ByVal UserKey As String) As IUserData
+        If Users.Count > 0 Then
+            Dim finder As Predicate(Of IUserData) = Function(u) u.Key = UserKey
+            Dim i%, ii%
+            For i = 0 To Users.Count - 1
+                With Users(i)
+                    If .IsCollection Then
+                        With DirectCast(.Self, UserDataBind)
+                            If .Count > 0 Then
+                                ii = .Collections.FindIndex(finder)
+                                If ii >= 0 Then Return .Collections(ii)
+                            End If
+                        End With
+                    Else
+                        If finder.Invoke(.Self) Then Return .Self
+                    End If
+                End With
+            Next
+        End If
+        Return Nothing
+    End Function
 #End Region
     Friend Sub UpdateBlackList()
         If BlackList.Count > 0 Then
@@ -392,6 +452,9 @@ Friend Class SettingsCLS : Implements IDisposable
     End Property
     Friend ReadOnly Property MaxUsersJobsCount As XMLValue(Of Integer)
     Friend ReadOnly Property ImgurClientID As XMLValue(Of String)
+    Private ReadOnly Property CookiesEncrypted As XMLValue(Of Boolean)
+    Friend ReadOnly Property AddMissingToLog As XMLValue(Of Boolean)
+    Friend ReadOnly Property AddMissingErrorsToLog As XMLValue(Of Boolean)
 #Region "Defaults"
     Friend ReadOnly Property DefaultTemporary As XMLValue(Of Boolean)
     Friend ReadOnly Property DefaultDownloadImages As XMLValue(Of Boolean)
@@ -458,6 +521,11 @@ Friend Class SettingsCLS : Implements IDisposable
     Friend ReadOnly Property ChannelsHideExistsUser As XMLValue(Of Boolean)
     Friend ReadOnly Property ChannelsMaxJobsCount As XMLValue(Of Integer)
     Friend ReadOnly Property ChannelsAddUserImagesFromAllChannels As XMLValue(Of Boolean)
+#End Region
+#Region "Feed properties"
+    Friend ReadOnly Property FeedDataColumns As XMLValue(Of Integer)
+    Friend ReadOnly Property FeedDataRows As XMLValue(Of Integer)
+    Friend ReadOnly Property FeedEndless As XMLValue(Of Boolean)
 #End Region
 #Region "New version properties"
     Friend ReadOnly Property CheckUpdatesAtStart As XMLValue(Of Boolean)

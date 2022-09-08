@@ -74,8 +74,6 @@ Namespace Plugin.Hosts
                 UserSuspended = .UserSuspended
             End With
         End Sub
-        Protected Overrides Sub ReparseVideo(ByVal Token As CancellationToken)
-        End Sub
         Protected Overrides Sub DownloadContent(ByVal Token As CancellationToken)
             If UseInternalDownloader Then
                 DownloadContentDefault(Token)
@@ -105,7 +103,7 @@ Namespace Plugin.Hosts
             Progress.Perform(Count)
         End Sub
         Private Sub ExternalPlugin_TotalCountChanged(ByVal Count As Integer)
-            Progress.TotalCount += Count
+            Progress.Maximum += Count
         End Sub
         Protected Overrides Sub Dispose(ByVal disposing As Boolean)
             If disposing And Not disposedValue Then

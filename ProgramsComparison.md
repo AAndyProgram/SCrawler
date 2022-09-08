@@ -18,7 +18,7 @@ https://www.4kdownload.com/products/product-stogram
 | Download posts by location | No | **Yes** |
 | Save Private Instagram Content with Permission| Yes | Yes |
 | Download Instagram Stories and Highlights | Yes | Yes |
-| See Others Instagram Feed As Your Own | No | **Yes** |
+| See Others Instagram Feed As Your Own | Yes | Yes |
 | Download Instagram Video Posts | Yes | Yes |
 | Backup Your Instagram Account | Yes | Yes |
 | Save Instagram Posts by Date | Yes | Yes |
@@ -31,7 +31,7 @@ https://www.4kdownload.com/products/product-stogram
 | Automatic Subscriptions Update | **Free** | Paid (43.56 EUR) |
 | Posts and Captions Export | No | Paid (43.56 EUR) |
 | Advertisements free | **No ADs at all for free** | Paid (14.52) |
-| Operating Systems | Windows 7+ | Windows 7+, MacOS 10.13+, Ubuntu x64 |
+| Operating Systems | Windows 10+ | Windows 7+, MacOS 10.13+, Ubuntu x64 |
 | Select want content type to download | **Yes** | No |
 | Instagram support | Yes | Yes |
 | Twitter support | **Yes** | No |
@@ -66,9 +66,9 @@ https://github.com/RipMeApp/ripme
 | Export and import subscriptions | No | No |
 | **Paid** | **No** | **No** |
 | **Free options** | The program is completely free | The program is completely free, but site limits are not declared |
-| Operating Systems | Windows 7+ | Windows, MacOS, Linux |
+| Operating Systems | Windows 10+ | Windows, MacOS, Linux |
 | Select want content type to download | Yes | Yes |
-| Suported sites | 3 internal and any site using plugins | 86+ sites (declared) |
+| Suported sites | 6 internal and any site using plugins | 86+ sites (declared) |
 | Other sites support | **Yes** | No |
 | Still supported | **Yes** | **No (last release date May 4, 2021)** |
 

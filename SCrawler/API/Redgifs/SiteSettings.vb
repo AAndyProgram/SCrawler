@@ -15,12 +15,12 @@ Namespace API.RedGifs
     Friend Class SiteSettings : Inherits SiteSettingsBase
         Friend Overrides ReadOnly Property Icon As Icon
             Get
-                Return My.Resources.RegGifsIcon
+                Return My.Resources.RedGifsIcon
             End Get
         End Property
         Friend Overrides ReadOnly Property Image As Image
             Get
-                Return My.Resources.RegGifsPic32
+                Return My.Resources.RedGifsPic32
             End Get
         End Property
         Friend Sub New()
@@ -34,6 +34,12 @@ Namespace API.RedGifs
         End Function
         Friend Overrides Function GetSpecialDataF(ByVal URL As String) As IEnumerable(Of UserMedia)
             Return Reddit.UserData.GetVideoInfo(URL, Nothing)
+        End Function
+        Friend Overrides Function GetUserPostUrl(ByVal UserID As String, ByVal PostID As String) As String
+            Return $"https://www.redgifs.com/watch/{PostID}"
+        End Function
+        Friend Overrides Function Available(ByVal What As ISiteSettings.Download, ByVal Silent As Boolean) As Boolean
+            Return False
         End Function
     End Class
 End Namespace

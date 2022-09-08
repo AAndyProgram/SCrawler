@@ -13,6 +13,7 @@ Imports PersonalUtilities.Functions.RegularExpressions
 Imports System.Net
 Imports System.Threading
 Imports SCrawler.API.Base
+Imports UStates = SCrawler.API.Base.UserMedia.States
 Namespace API.Twitter
     Friend Class UserData : Inherits UserDataBase
 #Region "Declarations"
@@ -33,6 +34,7 @@ Namespace API.Twitter
             Else
                 If _ContentList.Count > 0 Then _DataNames.ListAddList(_ContentList.Select(Function(c) c.File.File), LAP.ClearBeforeAdd, LAP.NotContainsOnly)
                 DownloadData(String.Empty, Token)
+                'ReparseMissing(Token)
             End If
         End Sub
         Private Overloads Sub DownloadData(ByVal POST As String, ByVal Token As CancellationToken)
@@ -41,8 +43,8 @@ Namespace API.Twitter
                 Dim NextCursor$ = String.Empty
                 Dim __NextCursor As Predicate(Of EContainer) = Function(e) e.Value({"content", "operation", "cursor"}, "cursorType") = "Bottom"
                 Dim PostID$ = String.Empty
-                Dim PostDate$, dName$
-                Dim m As EContainer, nn As EContainer, s As EContainer
+                Dim PostDate$ ', dName$
+                Dim nn As EContainer, s As EContainer ', m As EContainer
                 Dim NewPostDetected As Boolean = False
                 Dim ExistsDetected As Boolean = False
 
@@ -96,22 +98,23 @@ Namespace API.Twitter
 
                                     If IsSavedPosts OrElse Not ParseUserMediaOnly OrElse (Not nn.Contains("retweeted_status") OrElse
                                                                                          (Not ID.IsEmptyString AndAlso UID(nn("retweeted_status")) = ID)) Then
-                                        If Not CheckVideoNode(nn, PostID, PostDate) Then
-                                            s = nn.ItemF({"extended_entities", "media"})
-                                            If s Is Nothing OrElse s.Count = 0 Then s = nn.ItemF({"retweeted_status", "extended_entities", "media"})
-                                            If Not s Is Nothing AndAlso s.Count > 0 Then
-                                                For Each m In s
-                                                    If m.Count > 0 AndAlso m.Contains("media_url") Then
-                                                        dName = UrlFile(m("media_url").Value)
-                                                        If Not dName.IsEmptyString AndAlso Not _DataNames.Contains(dName) Then
-                                                            _DataNames.Add(dName)
-                                                            _TempMediaList.ListAddValue(MediaFromData(m("media_url").Value,
-                                                                                                      PostID, PostDate, GetPictureOption(m)), LNC)
-                                                        End If
-                                                    End If
-                                                Next
-                                            End If
-                                        End If
+                                        'If Not CheckVideoNode(nn, PostID, PostDate) Then
+                                        '    s = nn.ItemF({"extended_entities", "media"})
+                                        '    If s Is Nothing OrElse s.Count = 0 Then s = nn.ItemF({"retweeted_status", "extended_entities", "media"})
+                                        '    If Not s Is Nothing AndAlso s.Count > 0 Then
+                                        '        For Each m In s
+                                        '            If m.Count > 0 AndAlso m.Contains("media_url") Then
+                                        '                dName = UrlFile(m("media_url").Value)
+                                        '                If Not dName.IsEmptyString AndAlso Not _DataNames.Contains(dName) Then
+                                        '                    _DataNames.Add(dName)
+                                        '                    _TempMediaList.ListAddValue(MediaFromData(m("media_url").Value,
+                                        '                                                              PostID, PostDate, GetPictureOption(m)), LNC)
+                                        '                End If
+                                        '            End If
+                                        '        Next
+                                        '    End If
+                                        'End If
+                                        ObtainMedia(nn, PostID, PostDate)
                                     End If
                                 End If
                             Next
@@ -134,6 +137,61 @@ Namespace API.Twitter
                 MyMainLOG = "Username not set for saved Twitter posts"
             Catch ex As Exception
                 ProcessException(ex, Token, $"data downloading error{IIf(IsSavedPosts, " (Saved Posts)", String.Empty)} [{URL}]")
+            End Try
+        End Sub
+        Private Sub ObtainMedia(ByVal e As EContainer, ByVal PostID As String, ByVal PostDate As String, Optional ByVal State As UStates = UStates.Unknown)
+            If Not CheckVideoNode(e, PostID, PostDate) Then
+                Dim s As EContainer = e.ItemF({"extended_entities", "media"})
+                If s Is Nothing OrElse s.Count = 0 Then s = e.ItemF({"retweeted_status", "extended_entities", "media"})
+                If If(s?.Count, 0) > 0 Then
+                    For Each m In s
+                        If m.Contains("media_url") Then
+                            Dim dName$ = UrlFile(m("media_url").Value)
+                            If Not dName.IsEmptyString AndAlso Not _DataNames.Contains(dName) Then
+                                _DataNames.Add(dName)
+                                _TempMediaList.ListAddValue(MediaFromData(m("media_url").Value,
+                                                                          PostID, PostDate, GetPictureOption(m), State), LNC)
+                            End If
+                        End If
+                    Next
+                End If
+            End If
+        End Sub
+        Protected Overrides Sub ReparseMissing(ByVal Token As CancellationToken)
+            Dim rList As New List(Of Integer)
+            Dim URL$ = String.Empty
+            Try
+                If ContentMissingExists Then
+                    Dim m As UserMedia
+                    Dim r$, PostDate$
+                    Dim j As EContainer
+                    For i% = 0 To _ContentList.Count - 1
+                        If _ContentList(i).State = UStates.Missing Then
+                            m = _ContentList(i)
+                            If Not m.Post.ID.IsEmptyString Then
+                                ThrowAny(Token)
+                                URL = $"https://api.twitter.com/1.1/statuses/show.json?id={m.Post.ID}"
+                                r = Responser.GetResponse(URL,, EDP.ReturnValue)
+                                If Not r.IsEmptyString Then
+                                    j = JsonDocument.Parse(r)
+                                    If Not j Is Nothing Then
+                                        PostDate = String.Empty
+                                        If j.Contains("created_at") Then PostDate = j("created_at").Value Else PostDate = String.Empty
+                                        ObtainMedia(j, m.Post.ID, PostDate, UStates.Missing)
+                                        rList.Add(i)
+                                    End If
+                                End If
+                            End If
+                        End If
+                    Next
+                End If
+            Catch ex As Exception
+                ProcessException(ex, Token, $"ReparseMissing error [{URL}]")
+            Finally
+                If rList.Count > 0 Then
+                    For i% = rList.Count - 1 To 0 Step -1 : _ContentList.RemoveAt(i) : Next
+                    rList.Clear()
+                End If
             End Try
         End Sub
         Friend Shared Function GetVideoInfo(ByVal URL As String, ByVal resp As Response) As IEnumerable(Of UserMedia)
@@ -268,8 +326,6 @@ Namespace API.Twitter
             End If
             Return String.Empty
         End Function
-        Protected Overrides Sub ReparseVideo(ByVal Token As CancellationToken)
-        End Sub
         Private Function UrlFile(ByVal URL As String) As String
             Try
                 Dim f As SFile = CStr(RegexReplace(LinkFormatterSecure(RegexReplace(URL.Replace("\", String.Empty), LinkPattern)), FilesPattern))
@@ -280,7 +336,8 @@ Namespace API.Twitter
         End Function
 #End Region
         Private Shared Function MediaFromData(ByVal _URL As String, ByVal PostID As String, ByVal PostDate As String,
-                                              Optional ByVal _PictureOption As String = "") As UserMedia
+                                              Optional ByVal _PictureOption As String = Nothing,
+                                              Optional ByVal State As UStates = UStates.Unknown) As UserMedia
             _URL = LinkFormatterSecure(RegexReplace(_URL.Replace("\", String.Empty), LinkPattern))
             Dim m As New UserMedia(_URL) With {.PictureOption = _PictureOption, .Post = New UserPost With {.ID = PostID}}
             If Not m.URL.IsEmptyString Then m.File = CStr(RegexReplace(m.URL, FilesPattern))
@@ -288,6 +345,7 @@ Namespace API.Twitter
                 m.URL_BASE = $"{m.URL.Replace($".{m.File.Extension}", String.Empty)}?format={m.File.Extension}&name={m.PictureOption}"
             End If
             If Not PostDate.IsEmptyString Then m.Post.Date = AConvert(Of Date)(PostDate, Declarations.DateProvider, Nothing) Else m.Post.Date = Nothing
+            m.State = State
             Return m
         End Function
 #End Region

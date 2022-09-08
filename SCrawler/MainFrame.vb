@@ -20,6 +20,8 @@ Public Class MainFrame
     Private ReadOnly _VideoDownloadingMode As Boolean = False
     Private MyChannels As ChannelViewForm
     Private MySavedPosts As DownloadSavedPostsForm
+    Private MyMissingPosts As MissingPostsForm
+    Private MyFeed As DownloadFeedForm
     Private _UFinit As Boolean = True
     Public Sub New()
         InitializeComponent()
@@ -43,19 +45,19 @@ Public Class MainFrame
     End Sub
     Private Sub MainFrame_Load(sender As Object, e As EventArgs) Handles Me.Load
         If _VideoDownloadingMode Then GoTo FormClosingInvoker
-        If Now.Month = 6 Then Text = "SCrawler: Happy LGBT Pride Month! :-)"
+        If Now.Month.ValueBetween(6, 8) Then Text = "SCrawler: Happy LGBT Pride Month! :-)"
         Settings.DeleteCachePath()
         MainFrameObj = New MainFrameObjects(Me)
         MainFrameObj.ChangeCloseVisible()
         MainProgress = New Toolbars.MyProgress(Toolbar_BOTTOM, PR_MAIN, LBL_STATUS, "Downloading profiles' data") With {
-            .DropCurrentProgressOnTotalChange = False, .Enabled = False}
+            .ResetProgressOnMaximumChanges = False, .Visible = False}
         Downloader = New TDownloader
         InfoForm = New DownloadedInfoForm
         MyProgressForm = New ActiveDownloadingProgress
         Downloader.ReconfPool()
-        AddHandler Downloader.OnJobsChange, AddressOf Downloader_UpdateJobsCount
-        AddHandler Downloader.OnDownloading, AddressOf Downloader_OnDownloading
-        AddHandler Downloader.OnDownloadCountChange, AddressOf InfoForm.Downloader_OnDownloadCountChange
+        AddHandler Downloader.JobsChange, AddressOf Downloader_UpdateJobsCount
+        AddHandler Downloader.Downloading, AddressOf Downloader_Downloading
+        AddHandler Downloader.DownloadCountChange, AddressOf InfoForm.Downloader_DownloadCountChange
         AddHandler Downloader.SendNotification, AddressOf NotificationMessage
         AddHandler InfoForm.UserFind, AddressOf FocusUser
         Settings.LoadUsers()
@@ -97,7 +99,6 @@ Public Class MainFrame
         Settings.Automation = New Scheduler
         AddHandler Settings.Groups.Updated, AddressOf Settings.Automation.GROUPS_Updated
         AddHandler Settings.Groups.Deleted, AddressOf Settings.Automation.GROUPS_Deleted
-        AddHandler Settings.Automation.UserFind, AddressOf FocusUser
         _UFinit = False
         Settings.Automation.Start(True)
         GoTo EndFunction
@@ -138,6 +139,8 @@ EndFunction:
                         Downloader.Dispose()
                         MyProgressForm.Dispose()
                         InfoForm.Dispose()
+                        If Not MyMissingPosts Is Nothing Then MyMissingPosts.Dispose()
+                        If Not MyFeed Is Nothing Then MyFeed.Dispose()
                         MainFrameObj.ClearNotifications()
                         If Not MyChannels Is Nothing Then MyChannels.Dispose()
                         If Not VideoDownloader Is Nothing Then VideoDownloader.Dispose()
@@ -272,6 +275,7 @@ CloseResume:
                         (Not sg = Settings.ShowGroups And .UseGrouping) Then RefillList()
                     TrayIcon.Visible = .CloseToTray
                     LIST_PROFILES.ShowGroups = .UseGrouping
+                    If f.FeedParametersChanged And Not MyFeed Is Nothing Then MyFeed.UpdateSettings()
                 End If
             End Using
         End With
@@ -335,6 +339,16 @@ CloseResume:
     Private Sub BTT_SHOW_INFO_Click(sender As Object, e As EventArgs) Handles BTT_SHOW_INFO.Click
         ShowInfoForm(True)
     End Sub
+    Private Sub BTT_SHOW_INFO_MouseDown(sender As Object, e As MouseEventArgs) Handles BTT_SHOW_INFO.MouseDown
+        If e.Button = MouseButtons.Right Then
+            If MyMissingPosts Is Nothing Then MyMissingPosts = New MissingPostsForm
+            If MyMissingPosts.Visible Then MyMissingPosts.BringToFront() Else MyMissingPosts.Show()
+        End If
+    End Sub
+    Private Sub BTT_FEED_Click(sender As Object, e As EventArgs) Handles BTT_FEED.Click
+        If MyFeed Is Nothing Then MyFeed = New DownloadFeedForm : AddHandler Downloader.FeedFilesChanged, AddressOf MyFeed.Downloader_FilesChanged
+        If MyFeed.Visible Then MyFeed.BringToFront() Else MyFeed.Show()
+    End Sub
     Private Overloads Sub ShowInfoForm()
         ShowInfoForm(False)
     End Sub
@@ -356,7 +370,7 @@ CloseResume:
     Private Sub BTT_DOWN_SAVED_Click(sender As Object, e As EventArgs) Handles BTT_DOWN_SAVED.Click
         If MySavedPosts Is Nothing Then
             MySavedPosts = New DownloadSavedPostsForm
-            AddHandler MySavedPosts.OnDownloadDone, AddressOf NotificationMessage
+            AddHandler MySavedPosts.DownloadDone, AddressOf NotificationMessage
         End If
         With MySavedPosts
             If .Visible Then .BringToFront() Else .Show()
@@ -605,7 +619,7 @@ CloseResume:
     End Sub
 #End Region
     Private Sub BTT_LOG_Click(sender As Object, e As EventArgs) Handles BTT_LOG.Click
-        MyMainLOG_ShowForm(Settings.Design)
+        MyMainLOG_ShowForm(Settings.Design,,,, Sub() MainFrameObj.UpdateLogButton())
     End Sub
     Private Sub BTT_DONATE_Click(sender As Object, e As EventArgs) Handles BTT_DONATE.Click
         Try : Process.Start("https://github.com/AAndyProgram/SCrawler/blob/main/HowToSupport.md") : Catch : End Try
@@ -762,7 +776,7 @@ CloseResume:
                                 Dim Added As Boolean = i < 0
                                 If i < 0 Then
                                     .Users.Add(New UserDataBind(f.Collection))
-                                    CollectionHandler(DirectCast(.Users.Last, UserDataBind))
+                                    MainFrameObj.CollectionHandler(DirectCast(.Users.Last, UserDataBind))
                                     i = .Users.Count - 1
                                 End If
                                 Try
@@ -1153,7 +1167,7 @@ ResumeDownloadingOperation:
     Private Overloads Sub FocusUser(ByVal Key As String)
         FocusUser(Key, True)
     End Sub
-    Private Overloads Sub FocusUser(ByVal Key As String, Optional ByVal ActivateMe As Boolean = False)
+    Friend Overloads Sub FocusUser(ByVal Key As String, Optional ByVal ActivateMe As Boolean = False)
         Dim a As Action = Sub()
                               Dim i% = LIST_PROFILES.Items.IndexOfKey(Key)
                               If i < 0 Then
@@ -1183,16 +1197,14 @@ ResumeDownloadingOperation:
         Dim a As Action = Sub() LBL_JOBS_COUNT.Text = IIf(TotalCount = 0, String.Empty, $"[Jobs {TotalCount}]")
         If Toolbar_BOTTOM.InvokeRequired Then Toolbar_BOTTOM.Invoke(a) Else a.Invoke
         If Not _LogColorChanged AndAlso Not MyMainLOG.IsEmptyString Then
-            a = Sub() BTT_LOG.ControlChangeColor(False)
-            If Toolbar_TOP.InvokeRequired Then Toolbar_TOP.Invoke(a) Else a.Invoke
+            MainFrameObj.UpdateLogButton()
             _LogColorChanged = True
         ElseIf _LogColorChanged And MyMainLOG.IsEmptyString Then
-            a = Sub() BTT_LOG.ControlChangeColor(SystemColors.Control, SystemColors.ControlText)
-            If Toolbar_TOP.InvokeRequired Then Toolbar_TOP.Invoke(a) Else a.Invoke
+            MainFrameObj.UpdateLogButton()
             _LogColorChanged = False
         End If
     End Sub
-    Private Sub Downloader_OnDownloading(ByVal Value As Boolean)
+    Private Sub Downloader_Downloading(ByVal Value As Boolean)
         Dim a As Action = Sub() BTT_DOWN_STOP.Enabled = Value Or Downloader.Working
         If Toolbar_TOP.InvokeRequired Then Toolbar_TOP.Invoke(a) Else a.Invoke
     End Sub

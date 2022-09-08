@@ -16,7 +16,6 @@ Imports SCrawler.API
 Imports SCrawler.API.Base
 Namespace DownloadObjects
     Friend Class AutoDownloader : Inherits GroupParameters : Implements IEContainerProvider
-        Friend Event UserFind(ByVal Key As String, ByVal Activate As Boolean)
         Friend Shared ReadOnly Property CachePath As SFile
             Get
                 Return "_Cache\"
@@ -174,6 +173,7 @@ Namespace DownloadObjects
         Private Const Name_ShowNotifications As String = "Notify"
         Private Const Name_ShowPictureDown As String = "ShowDownloadedPicture"
         Private Const Name_ShowPictureUser As String = "ShowUserPicture"
+        Private Const Name_ShowSimpleNotification As String = "ShowSimpleNotification"
 #End Region
 #Region "Declarations"
         Friend Property Source As Scheduler
@@ -193,6 +193,7 @@ Namespace DownloadObjects
         Friend Property ShowNotifications As Boolean = True
         Friend Property ShowPictureDownloaded As Boolean = True
         Friend Property ShowPictureUser As Boolean = True
+        Friend Property ShowSimpleNotification As Boolean = False
 #Region "Date"
         Private ReadOnly LastDownloadDateXML As Date? = Nothing
         Private _LastDownloadDate As Date = Now.AddYears(-1)
@@ -279,6 +280,7 @@ Namespace DownloadObjects
             ShowNotifications = x.Value(Name_ShowNotifications).FromXML(Of Boolean)(True)
             ShowPictureDownloaded = x.Value(Name_ShowPictureDown).FromXML(Of Boolean)(True)
             ShowPictureUser = x.Value(Name_ShowPictureUser).FromXML(Of Boolean)(True)
+            ShowSimpleNotification = x.Value(Name_ShowSimpleNotification).FromXML(Of Boolean)(False)
             LastDownloadDateXML = AConvert(Of Date)(x.Value(Name_LastDownloadDate), DateProvider, Nothing)
             If LastDownloadDateXML.HasValue Then
                 LastDownloadDate = LastDownloadDateXML.Value
@@ -321,6 +323,7 @@ Namespace DownloadObjects
                                   New EContainer(Name_ShowNotifications, ShowNotifications.BoolToInteger),
                                   New EContainer(Name_ShowPictureDown, ShowPictureDownloaded.BoolToInteger),
                                   New EContainer(Name_ShowPictureUser, ShowPictureUser.BoolToInteger),
+                                  New EContainer(Name_ShowSimpleNotification, ShowSimpleNotification.BoolToInteger),
                                   New EContainer(Name_LastDownloadDate, CStr(AConvert(Of String)(If(LastDownloadDateXML.HasValue Or _LastDownloadDateChanged,
                                                                                                     CObj(LastDownloadDate), Nothing), DateProvider, String.Empty)))
             }
@@ -381,12 +384,18 @@ Namespace DownloadObjects
                 Dim users As New List(Of IUserData)
                 Dim GName$
                 Dim i%
+                Dim DownloadedUsersCount% = 0
                 Dim l As New ListAddParams(LAP.IgnoreICopier + LAP.NotContainsOnly)
+                Dim simple As Boolean = ShowSimpleNotification And ShowNotifications
                 Dim notify As Action = Sub()
                                            With Downloader.Downloaded
                                                If ShowNotifications And .Count > 0 Then .ForEach(Sub(ByVal u As IUserData)
                                                                                                      If Keys.Contains(u.Key) Then
-                                                                                                         ShowNotification(u)
+                                                                                                         If simple Then
+                                                                                                             DownloadedUsersCount += 1
+                                                                                                         Else
+                                                                                                             ShowNotification(u)
+                                                                                                         End If
                                                                                                          Keys.Remove(u.Key)
                                                                                                      End If
                                                                                                  End Sub)
@@ -426,6 +435,8 @@ Namespace DownloadObjects
                         While .Working Or .Count > 0 : notify.Invoke() : Thread.Sleep(200) : End While
                         .AutoDownloaderWorking = False
                         notify.Invoke
+                        If simple And DownloadedUsersCount > 0 Then _
+                           MainFrameObj.ShowNotification($"{DownloadedUsersCount} user(s) downloaded with scheduler plan '{Name}'", $"Scheduler plan '{Name}'")
                     End With
                 End If
             Catch ex As Exception
@@ -443,14 +454,14 @@ Namespace DownloadObjects
             If i >= 0 Then
                 UserKeys(i).ShowNotification()
             Else
-                UserKeys.Add(New NotifiedUser(k, TDownloader.GetUserFromMainCollection(u), Me))
+                UserKeys.Add(New NotifiedUser(k, Settings.GetUser(u), Me))
                 UserKeys.Last.ShowNotification()
             End If
         End Sub
         Friend Function NotificationClicked(ByVal Key As String) As Boolean
             Dim i% = UserKeys.IndexOf(Key)
             If i >= 0 Then
-                RaiseEvent UserFind(UserKeys(i).IUserDataKey, UserKeys(i).Open(Key))
+                MainFrameObj.FocusUser(UserKeys(i).IUserDataKey, UserKeys(i).Open(Key))
                 Return True
             Else
                 Return False

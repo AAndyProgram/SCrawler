@@ -48,16 +48,16 @@ Namespace DownloadObjects.Groups
             }
             BTT_DELETE = New ToolStripMenuItem With {
                 .Image = PersonalUtilities.My.Resources.DeletePic_02_Red_24,
-                .BackColor = ColorBttDeleteBack,
-                .ForeColor = ColorBttDeleteFore,
+                .BackColor = MyColor.DeleteBack,
+                .ForeColor = MyColor.DeleteFore,
                 .Text = "Delete",
                 .ToolTipText = String.Empty,
                 .AutoToolTip = False
             }
             BTT_EDIT = New ToolStripMenuItem With {
                 .Image = PersonalUtilities.My.Resources.PencilPic_01_48,
-                .BackColor = ColorBttEditBack,
-                .ForeColor = ColorBttEditFore,
+                .BackColor = MyColor.EditBack,
+                .ForeColor = MyColor.EditFore,
                 .Text = "Edit",
                 .ToolTipText = String.Empty,
                 .AutoToolTip = False

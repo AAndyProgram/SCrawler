@@ -105,6 +105,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_TRAY_SHOW_HIDE = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_TRAY_CLOSE = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_TRAY_CLOSE_NO_SCRIPT = New System.Windows.Forms.ToolStripMenuItem()
+        Me.BTT_FEED = New System.Windows.Forms.ToolStripButton()
         SEP_1 = New System.Windows.Forms.ToolStripSeparator()
         SEP_2 = New System.Windows.Forms.ToolStripSeparator()
         CONTEXT_SEP_1 = New System.Windows.Forms.ToolStripSeparator()
@@ -215,11 +216,12 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         '
         'MENU_SETTINGS
         '
-        Me.MENU_SETTINGS.AutoToolTip = False
+        Me.MENU_SETTINGS.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image
         Me.MENU_SETTINGS.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {MENU_SETTINGS_SEP_1, Me.BTT_SETTINGS})
+        Me.MENU_SETTINGS.Image = Global.SCrawler.My.Resources.Resources.SettingsPic_16
         Me.MENU_SETTINGS.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.MENU_SETTINGS.Name = "MENU_SETTINGS"
-        Me.MENU_SETTINGS.Size = New System.Drawing.Size(62, 22)
+        Me.MENU_SETTINGS.Size = New System.Drawing.Size(29, 22)
         Me.MENU_SETTINGS.Text = "Settings"
         '
         'BTT_SETTINGS
@@ -232,7 +234,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         'Toolbar_TOP
         '
         Me.Toolbar_TOP.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden
-        Me.Toolbar_TOP.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.MENU_SETTINGS, SEP_1, Me.BTT_ADD_USER, Me.BTT_EDIT_USER, Me.BTT_DELETE_USER, Me.BTT_REFRESH, Me.BTT_SHOW_INFO, Me.BTT_CHANNELS, Me.BTT_DOWN_SAVED, SEP_2, Me.BTT_DOWN_SELECTED, Me.MENU_DOWN_ALL, Me.BTT_DOWN_VIDEO, Me.BTT_DOWN_STOP, SEP_3, Me.MENU_VIEW, SEP_4, Me.BTT_LOG, Me.BTT_VERSION_INFO, Me.BTT_DONATE})
+        Me.Toolbar_TOP.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.MENU_SETTINGS, SEP_1, Me.BTT_ADD_USER, Me.BTT_EDIT_USER, Me.BTT_DELETE_USER, Me.BTT_REFRESH, Me.BTT_SHOW_INFO, Me.BTT_FEED, Me.BTT_CHANNELS, Me.BTT_DOWN_SAVED, SEP_2, Me.BTT_DOWN_SELECTED, Me.MENU_DOWN_ALL, Me.BTT_DOWN_VIDEO, Me.BTT_DOWN_STOP, SEP_3, Me.MENU_VIEW, SEP_4, Me.BTT_LOG, Me.BTT_VERSION_INFO, Me.BTT_DONATE})
         Me.Toolbar_TOP.Location = New System.Drawing.Point(0, 0)
         Me.Toolbar_TOP.Name = "Toolbar_TOP"
         Me.Toolbar_TOP.Size = New System.Drawing.Size(934, 25)
@@ -281,7 +283,8 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_SHOW_INFO.Name = "BTT_SHOW_INFO"
         Me.BTT_SHOW_INFO.Size = New System.Drawing.Size(48, 22)
         Me.BTT_SHOW_INFO.Text = "Info"
-        Me.BTT_SHOW_INFO.ToolTipText = "Show download summary"
+        Me.BTT_SHOW_INFO.ToolTipText = "Left-click: open the 'Info' form (show download summary)." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Right click: open the " &
+    "'Missing' form (show information about missing posts)."
         '
         'BTT_CHANNELS
         '
@@ -773,6 +776,14 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_TRAY_CLOSE_NO_SCRIPT.ToolTipText = "Close the program without executing the script"
         Me.BTT_TRAY_CLOSE_NO_SCRIPT.Visible = False
         '
+        'BTT_FEED
+        '
+        Me.BTT_FEED.Image = Global.SCrawler.My.Resources.Resources.RSSPic
+        Me.BTT_FEED.ImageTransparentColor = System.Drawing.Color.Magenta
+        Me.BTT_FEED.Name = "BTT_FEED"
+        Me.BTT_FEED.Size = New System.Drawing.Size(52, 22)
+        Me.BTT_FEED.Text = "Feed"
+        '
         'MainFrame
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
@@ -801,7 +812,6 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
     Private WithEvents BTT_DELETE_USER As ToolStripButton
     Private WithEvents BTT_DOWN_SELECTED As ToolStripButton
     Private WithEvents MENU_DOWN_ALL As ToolStripDropDownButton
-    Private WithEvents Toolbar_TOP As ToolStrip
     Private WithEvents Toolbar_BOTTOM As StatusStrip
     Private WithEvents PR_MAIN As ToolStripProgressBar
     Private WithEvents LBL_STATUS As ToolStripStatusLabel
@@ -823,7 +833,6 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
     Private WithEvents LBL_JOBS_COUNT As ToolStripStatusLabel
     Private WithEvents BTT_DOWN_VIDEO As ToolStripButton
     Private WithEvents BTT_SHOW_INFO As ToolStripButton
-    Private WithEvents BTT_LOG As ToolStripButton
     Private WithEvents BTT_CHANNELS As ToolStripButton
     Private WithEvents LIST_PROFILES As ListView
     Private WithEvents MENU_VIEW As ToolStripDropDownButton
@@ -869,4 +878,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
     Friend WithEvents TRAY_CONTEXT As ContextMenuStrip
     Private WithEvents BTT_DOWN_AUTOMATION As ToolStripMenuItem
     Private WithEvents BTT_DOWN_AUTOMATION_PAUSE As ToolStripMenuItem
+    Friend WithEvents BTT_LOG As ToolStripButton
+    Friend WithEvents Toolbar_TOP As ToolStrip
+    Private WithEvents BTT_FEED As ToolStripButton
 End Class

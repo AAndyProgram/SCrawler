@@ -23,6 +23,7 @@ Namespace Plugin
         Function IsMyImageVideo(ByVal URL As String) As ExchangeOptions
         Function GetSpecialData(ByVal URL As String, ByVal Path As String, ByVal AskForPath As Boolean) As IEnumerable(Of PluginUserMedia)
         Function GetInstance(ByVal What As Download) As IPluginContentProvider
+        Function GetUserPostUrl(ByVal UserID As String, ByVal PostID As String) As String
 #Region "XML Support"
         Sub Load(ByVal XMLValues As IEnumerable(Of KeyValuePair(Of String, String)))
 #End Region

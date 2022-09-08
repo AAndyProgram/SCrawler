@@ -186,30 +186,23 @@ Namespace API.Instagram
             End With
         End Sub
 #End Region
-        Friend Overrides ReadOnly Property Responser As Response
         Private Initialized As Boolean = False
 #End Region
 #Region "Initializer"
         Friend Sub New(ByRef _XML As XmlFile, ByVal GlobalPath As SFile)
-            MyBase.New(InstagramSite)
-            Responser = New Response($"{SettingsFolderName}\Responser_{Site}.xml")
+            MyBase.New(InstagramSite, "instagram.com")
 
             Dim app_id$ = String.Empty
             Dim www_claim$ = String.Empty
             Dim token$ = String.Empty
 
             With Responser
-                If .File.Exists Then
-                    .LoadSettings()
+                If .Headers.Count > 0 Then
                     With .Headers
                         If .ContainsKey(Header_CSRF_TOKEN) Then token = .Item(Header_CSRF_TOKEN)
                         If .ContainsKey(Header_IG_APP_ID) Then app_id = .Item(Header_IG_APP_ID)
                         If .ContainsKey(Header_IG_WWW_CLAIM) Then www_claim = .Item(Header_IG_WWW_CLAIM)
                     End With
-                Else
-                    .CookiesDomain = "instagram.com"
-                    .Cookies = New CookieKeeper(.CookiesDomain)
-                    .SaveSettings()
                 End If
             End With
 
@@ -250,6 +243,7 @@ Namespace API.Instagram
         End Sub
         Friend Overrides Sub EndInit()
             Initialized = True
+            MyBase.EndInit()
         End Sub
 #End Region
 #Region "PropertiesDataChecker"

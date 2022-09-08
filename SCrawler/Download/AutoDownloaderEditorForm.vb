@@ -52,6 +52,7 @@ Namespace DownloadObjects
                     If MyGroups.Count > 0 Then TXT_GROUPS.Text = MyGroups.ListToString
                     If Settings.Groups.Count = 0 Then TXT_GROUPS.Clear() : TXT_GROUPS.Enabled = False
                     CH_NOTIFY.Checked = .ShowNotifications
+                    CH_NOTIFY_SIMPLE.Checked = .ShowSimpleNotification
                     CH_SHOW_PIC.Checked = .ShowPictureDownloaded
                     CH_SHOW_PIC_USER.Checked = .ShowPictureUser
                     TXT_TIMER.Text = .Timer
@@ -86,6 +87,7 @@ Namespace DownloadObjects
                     .Groups.Clear()
                     .Groups.ListAddList(MyGroups)
                     .ShowNotifications = CH_NOTIFY.Checked
+                    .ShowSimpleNotification = CH_NOTIFY_SIMPLE.Checked
                     .ShowPictureDownloaded = CH_SHOW_PIC.Checked
                     .ShowPictureUser = CH_SHOW_PIC_USER.Checked
                     .Timer = AConvert(Of Integer)(TXT_TIMER.Text, AutoDownloader.DefaultTimer)
@@ -120,17 +122,15 @@ Namespace DownloadObjects
         Private Sub OPT_GROUP_CheckedChanged(sender As Object, e As EventArgs) Handles OPT_GROUP.CheckedChanged
             ChangeEnabled()
         End Sub
-        Private Sub CH_NOTIFY_CheckedChanged(sender As Object, e As EventArgs) Handles CH_NOTIFY.CheckedChanged
-            ChangeEnabled()
-        End Sub
-        Private Sub ChangeEnabled()
+        Private Sub ChangeEnabled() Handles CH_NOTIFY.CheckedChanged, CH_NOTIFY_SIMPLE.CheckedChanged
             DEF_GROUP.Enabled = OPT_SPEC.Checked
             TXT_GROUPS.Enabled = OPT_GROUP.Checked
             TXT_TIMER.Enabled = Not OPT_DISABLED.Checked
             NUM_DELAY.Enabled = Not OPT_DISABLED.Checked
             CH_NOTIFY.Enabled = Not OPT_DISABLED.Checked
-            CH_SHOW_PIC.Enabled = CH_NOTIFY.Checked And Not OPT_DISABLED.Checked
-            CH_SHOW_PIC_USER.Enabled = CH_NOTIFY.Checked And Not OPT_DISABLED.Checked
+            CH_NOTIFY_SIMPLE.Enabled = CH_NOTIFY.Enabled And CH_NOTIFY.Checked
+            CH_SHOW_PIC.Enabled = CH_NOTIFY.Checked And Not OPT_DISABLED.Checked And Not CH_NOTIFY_SIMPLE.Checked
+            CH_SHOW_PIC_USER.Enabled = CH_NOTIFY.Checked And Not OPT_DISABLED.Checked And Not CH_NOTIFY_SIMPLE.Checked
         End Sub
         Private Sub NUM_DELAY_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As EventArgs) Handles NUM_DELAY.ActionOnButtonClick
             If Sender.DefaultButton = ActionButton.DefaultButtons.Clear Then NUM_DELAY.Value = 0

@@ -30,20 +30,11 @@ Namespace API.Reddit
         Friend ReadOnly Property SavedPostsUserName As PropertyValue
         <PropertyOption(ControlText:="Use M3U8", ControlToolTip:="Use M3U8 or mp4 for Reddit videos"), PXML>
         Friend ReadOnly Property UseM3U8 As PropertyValue
-        Friend Overrides ReadOnly Property Responser As Response
         Friend Sub New()
-            MyBase.New(RedditSite)
-            Responser = New Response($"{SettingsFolderName}\Responser_{Site}.xml")
-
+            MyBase.New(RedditSite, "reddit.com")
             With Responser
-                If .File.Exists Then
-                    .LoadSettings()
-                Else
-                    .CookiesDomain = "reddit.com"
-                    .Cookies = New CookieKeeper(.CookiesDomain)
-                    .Decoders.Add(SymbolsConverter.Converters.Unicode)
-                    .SaveSettings()
-                End If
+                If .Decoders.Count = 0 OrElse Not .Decoders.Contains(SymbolsConverter.Converters.Unicode) Then _
+                   .Decoders.Add(SymbolsConverter.Converters.Unicode) : .SaveSettings()
             End With
             SavedPostsUserName = New PropertyValue(String.Empty, GetType(String))
             UseM3U8 = New PropertyValue(True)
@@ -110,5 +101,8 @@ Namespace API.Reddit
                 Using f As New RedditViewSettingsForm(Options) : f.ShowDialog() : End Using
             End If
         End Sub
+        Friend Overrides Function GetUserPostUrl(ByVal UserID As String, ByVal PostID As String) As String
+            Return $"https://www.reddit.com/comments/{PostID.Split("_").LastOrDefault}/"
+        End Function
     End Class
 End Namespace

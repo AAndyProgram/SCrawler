@@ -11,12 +11,18 @@ Imports PersonalUtilities.Tools.WEB
 Imports SCrawler.Plugin
 Imports Download = SCrawler.Plugin.ISiteSettings.Download
 Namespace API.Base
-    Friend MustInherit Class SiteSettingsBase : Implements ISiteSettings
+    Friend MustInherit Class SiteSettingsBase : Implements ISiteSettings, IResponserContainer
         Friend ReadOnly Property Site As String Implements ISiteSettings.Site
         Friend Overridable ReadOnly Property Icon As Icon Implements ISiteSettings.Icon
         Friend Overridable ReadOnly Property Image As Image Implements ISiteSettings.Image
         Private Property Logger As ILogProvider = LogConnector Implements ISiteSettings.Logger
         Friend Overridable ReadOnly Property Responser As Response
+        Private Property IResponserContainer_Responser As Response Implements IResponserContainer.Responser
+            Get
+                Return Responser
+            End Get
+            Set : End Set
+        End Property
         Friend MustOverride Function GetInstance(ByVal What As Download) As IPluginContentProvider Implements ISiteSettings.GetInstance
         Friend Sub New(ByVal SiteName As String)
             Site = SiteName
@@ -25,7 +31,15 @@ Namespace API.Base
             Site = SiteName
             Responser = New Response($"{SettingsFolderName}\Responser_{Site}.xml")
             With Responser
-                If .File.Exists Then .LoadSettings() Else .CookiesDomain = CookiesDomain : .Cookies = New CookieKeeper(.CookiesDomain) : .SaveSettings()
+                If .File.Exists Then
+                    If EncryptCookies.CookiesEncrypted Then .CookiesEncryptKey = SettingsCLS.CookieEncryptKey
+                    .LoadSettings()
+                Else
+                    .CookiesDomain = CookiesDomain
+                    .Cookies = New CookieKeeper(.CookiesDomain) With {.EncryptKey = SettingsCLS.CookieEncryptKey}
+                    .CookiesEncryptKey = SettingsCLS.CookieEncryptKey
+                    .SaveSettings()
+                End If
             End With
         End Sub
 #Region "XML"
@@ -36,6 +50,7 @@ Namespace API.Base
         Friend Overridable Sub BeginInit() Implements ISiteSettings.BeginInit
         End Sub
         Friend Overridable Sub EndInit() Implements ISiteSettings.EndInit
+            EncryptCookies.ValidateCookiesEncrypt(Responser)
         End Sub
         Friend Overridable Sub BeginUpdate() Implements ISiteSettings.BeginUpdate
         End Sub
@@ -61,6 +76,9 @@ Namespace API.Base
             Else
                 If Not UrlPatternUser.IsEmptyString Then Return String.Format(UrlPatternUser, UserName)
             End If
+            Return String.Empty
+        End Function
+        Friend Overridable Function GetUserPostUrl(ByVal UserID As String, ByVal PostID As String) As String Implements ISiteSettings.GetUserPostUrl
             Return String.Empty
         End Function
         Protected UserRegex As RParams = Nothing

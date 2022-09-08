@@ -255,7 +255,7 @@ Namespace API.Instagram
 
                         'Check environment
                         If Cursor.IsEmptyString And _InstaHash.IsEmptyString Then _
-                            _InstaHash = CStr(If(IsSavedPosts, MySiteSettings.HashSavedPosts, MySiteSettings.Hash).Value)
+                           _InstaHash = CStr(If(IsSavedPosts, MySiteSettings.HashSavedPosts, MySiteSettings.Hash).Value)
                         If ID.IsEmptyString Then GetUserId()
                         If ID.IsEmptyString Then Throw New ArgumentException("User ID is not detected", "ID")
 
@@ -317,13 +317,16 @@ Namespace API.Instagram
                                                     If IsSavedPosts Then
                                                         PostID = node.Value("shortcode")
                                                         If Not PostID.IsEmptyString Then
-                                                            If _TempPostsList.Contains(PostID) Then Throw New ExitException(_DownloadComplete) Else _SavedPostsIDs.Add(PostID)
+                                                            If _TempPostsList.Contains(PostID) Then Throw New ExitException(_DownloadComplete) 'Else _SavedPostsIDs.Add(PostID)
                                                         End If
+                                                    End If
+                                                    PostID = node.Value("id")
+                                                    If Not PostID.IsEmptyString And _TempPostsList.Contains(PostID) Then Throw New ExitException(_DownloadComplete)
+                                                    _TempPostsList.Add(PostID)
+                                                    PostDate = node.Value("taken_at_timestamp")
+                                                    If IsSavedPosts Then
+                                                        _SavedPostsIDs.Add(PostID)
                                                     Else
-                                                        PostID = node.Value("id")
-                                                        If Not PostID.IsEmptyString And _TempPostsList.Contains(PostID) Then Throw New ExitException(_DownloadComplete)
-                                                        _TempPostsList.Add(PostID)
-                                                        PostDate = node.Value("taken_at_timestamp")
                                                         If Not CheckDatesLimit(PostDate, DateProvider) Then Throw New ExitException(_DownloadComplete)
                                                         ObtainMedia(node, PostID, PostDate, SpecFolder)
                                                     End If
@@ -394,7 +397,8 @@ Namespace API.Instagram
                             Dim e As New ErrorsDescriber(EDP.ThrowException)
                             For i% = _Index To _SavedPostsIDs.Count - 1
                                 _Index = i
-                                URL = $"https://instagram.com/p/{_SavedPostsIDs(i)}/?__a=1"
+                                'URL = $"https://instagram.com/p/{_SavedPostsIDs(i)}/?__a=1"
+                                URL = $"https://i.instagram.com/api/v1/media/{_SavedPostsIDs(i)}/info/"
                                 ThrowAny(Token)
                                 NextRequest(((i + 1) Mod 5) = 0)
                                 ThrowAny(Token)
@@ -437,8 +441,26 @@ Namespace API.Instagram
                 ProcessException(DoEx, Token, $"downloading saved posts error [{URL}]")
             End Try
         End Sub
-        Protected Overrides Sub ReparseVideo(ByVal Token As CancellationToken)
-        End Sub
+#End Region
+#Region "Code ID converters"
+        Friend Shared Function CodeToID(ByVal Code As String) As String
+            Const CodeSymbols$ = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
+            Try
+                If Not Code.IsEmptyString Then
+                    Dim c As Char
+                    Dim id& = 0
+                    For i% = 0 To Code.Length - 1
+                        c = Code(i)
+                        id = (id * 64) + CodeSymbols.IndexOf(c)
+                    Next
+                    Return id
+                Else
+                    Return String.Empty
+                End If
+            Catch ex As Exception
+                Return ErrorsDescriber.Execute(EDP.SendInLog, ex, $"[API.Instagram.UserData.CodeToID({Code})", String.Empty)
+            End Try
+        End Function
 #End Region
 #Region "Obtain Media"
         Private Sub ObtainMedia(ByVal node As EContainer, ByVal PostID As String, ByVal PostDate As String, ByVal SpecFolder As String)
@@ -690,6 +712,7 @@ Namespace API.Instagram
             Try
                 If Not URL.IsEmptyString AndAlso URL.Contains("instagram.com") Then
                     Dim PID$ = RegexReplace(URL, RParams.DMS(".*?instagram.com/p/([_\w\d]+)", 1))
+                    If Not PID.IsEmptyString AndAlso Not ACheck(Of Long)(PID) Then PID = CodeToID(PID)
                     If Not PID.IsEmptyString Then
                         Using t As New UserData
                             t.SetEnvironment(Settings(_Settings.GetType.GetCustomAttribute(Of Plugin.Attributes.Manifest)().GUID), Nothing, False, False)

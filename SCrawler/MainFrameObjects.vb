@@ -16,6 +16,12 @@ Friend Class MainFrameObjects
         MF = f
         Notificator = New NotificationsManager
     End Sub
+#Region "Users"
+    Friend Sub FocusUser(ByVal Key As String, Optional ByVal ActivateForm As Boolean = False)
+        MF.FocusUser(Key, ActivateForm)
+    End Sub
+#End Region
+#Region "Image handlers"
     Friend Sub ImageHandler(ByVal User As IUserData)
         ImageHandler(User, False)
         ImageHandler(User, True)
@@ -37,6 +43,8 @@ Friend Class MainFrameObjects
         Catch
         End Try
     End Sub
+#End Region
+#Region "Form functions"
     Friend Sub Focus(Optional ByVal Show As Boolean = False)
         If Not MF.Visible And Show Then MF.Show()
         If MF.Visible Then MF.BringToFront() : MF.Activate()
@@ -45,6 +53,11 @@ Friend Class MainFrameObjects
         Dim a As Action = Sub() MF.BTT_TRAY_CLOSE_NO_SCRIPT.Visible = Settings.ClosingCommand.Attribute And Not Settings.ClosingCommand.IsEmptyString
         If MF.TRAY_CONTEXT.InvokeRequired Then MF.TRAY_CONTEXT.Invoke(a) Else a.Invoke
     End Sub
+    Friend Sub UpdateLogButton()
+        MyMainLOG_UpdateLogButton(MF.BTT_LOG, MF.Toolbar_TOP)
+    End Sub
+#End Region
+#Region "Notifications"
     Friend Overloads Sub ShowNotification(ByVal Message As String)
         MF.TrayIcon.ShowBalloonTip(2000, MF.TrayIcon.BalloonTipTitle, Message, ToolTipIcon.Info)
     End Sub
@@ -63,4 +76,5 @@ Friend Class MainFrameObjects
             Focus()
         End If
     End Sub
+#End Region
 End Class

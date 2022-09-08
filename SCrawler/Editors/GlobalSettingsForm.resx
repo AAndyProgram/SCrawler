@@ -211,6 +211,16 @@
 This parameter specifies how the video will be stored in the users' download path.
 If checked, videos will be stored in separate folder; otherwise, videos will be stored along with images.</value>
   </data>
+  <data name="CH_ADD_MISSING_TO_LOG.ToolTip" xml:space="preserve">
+    <value>Add information about missing posts (that were not downloaded) to the log.
+That means that text like "Missing posts exist" will be added to the log.
+You can find more detailed information about the missing posts in the form that opens by right-clicking on the 'Info' button in the main window.</value>
+  </data>
+  <data name="CH_ADD_MISSING_ERROS_TO_LOG.ToolTip" xml:space="preserve">
+    <value>Add error information about missing posts (that were not downloaded) to the log.
+That means that the error text about the not downloaded post will be added to the log.
+You can find more detailed information about the missing posts in the form that opens by right-clicking on the 'Info' button in the main window.</value>
+  </data>
   <metadata name="TP_CHANNELS_IMGS.GenerateMember" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>False</value>
   </metadata>
@@ -282,6 +292,18 @@ If checked, videos will be stored in separate folder; otherwise, videos will be 
         AFuc5QFgn6ClHh5iOQVAKNixyucB8NY0vG9JOzzyhrdq5IRgAAAAAElFTkSuQmCC
 </value>
   </data>
+  <metadata name="TP_MISSING_DATA.GenerateMember" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>False</value>
+  </metadata>
+  <metadata name="TAB_FEED.GenerateMember" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>False</value>
+  </metadata>
+  <metadata name="TP_FEED.GenerateMember" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>False</value>
+  </metadata>
+  <metadata name="TP_FEED_IMG_COUNT.GenerateMember" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>False</value>
+  </metadata>
   <data name="$this.Icon" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         AAABAA8AAAAQAAEABAAwOgAA9gAAADAwEAABAAQAaAYAACg7AAAgIBAAAQAEAOgCAACQQQAAGBgQAAEA

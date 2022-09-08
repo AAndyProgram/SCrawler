@@ -92,6 +92,11 @@ Namespace API
                 End If
             End Get
         End Property
+        Friend Overrides ReadOnly Property ContentMissingExists As Boolean
+            Get
+                Return Count > 0 AndAlso Collections.Exists(Function(c) DirectCast(c, UserDataBase).ContentMissingExists)
+            End Get
+        End Property
         Friend ReadOnly Property Count As Integer Implements ICollection(Of IUserData).Count, IMyEnumerator(Of IUserData).MyEnumeratorCount
             Get
                 If Collections Is Nothing Then
@@ -285,8 +290,8 @@ Namespace API
         Friend Overrides Sub UpdateUserInformation()
             If Count > 0 Then Collections.ForEach(Sub(c) c.UpdateUserInformation())
         End Sub
-        Friend Overrides Sub LoadContentInformation()
-            If Count > 0 Then Collections.ForEach(Sub(c) DirectCast(c, UserDataBase).LoadContentInformation())
+        Friend Overrides Sub LoadContentInformation(Optional ByVal Force As Boolean = False)
+            If Count > 0 Then Collections.ForEach(Sub(c) DirectCast(c, UserDataBase).LoadContentInformation(Force))
         End Sub
         Protected Overrides Sub LoadUserInformation_OptionalFields(ByRef Container As XmlFile, ByVal Loading As Boolean)
         End Sub
@@ -308,8 +313,6 @@ Namespace API
             If Count > 0 Then Downloader.AddRange(Collections)
         End Sub
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
-        End Sub
-        Protected Overrides Sub ReparseVideo(ByVal Token As CancellationToken)
         End Sub
         Protected Overrides Sub DownloadContent(ByVal Token As CancellationToken)
         End Sub
@@ -359,7 +362,7 @@ Namespace API
                             ConsolidateScripts()
                             .UpdateUserInformation()
                         End If
-                        ImageHandler(_Item, False)
+                        MainFrameObj.ImageHandler(_Item, False)
                         AddRemoveBttDeleteHandler(.Self, True)
                         AddHandler .Self.UserUpdated, AddressOf User_OnUserUpdated
                     End With
@@ -454,7 +457,7 @@ Namespace API
                 Return False
             Else
                 DirectCast(_Item, UserDataBase).MoveFiles(String.Empty)
-                ImageHandler(_Item)
+                MainFrameObj.ImageHandler(_Item)
                 AddRemoveBttDeleteHandler(_Item, False)
                 RaiseEvent OnUserRemoved(_Item)
                 Return Collections.Remove(_Item)
@@ -469,7 +472,7 @@ Namespace API
                     Settings.Users.Remove(Me)
                     Collections.ForEach(Sub(c) c.Delete())
                     Downloader.UserRemove(Me)
-                    ImageHandler(Me, False)
+                    MainFrameObj.ImageHandler(Me, False)
                     Collections.ListClearDispose
                     Dispose(False)
                     f.Delete(SFO.Path, SFODelete.EmptyOnly + Settings.DeleteMode, EDP.SendInLog)
@@ -487,12 +490,12 @@ Namespace API
                         Settings.Users.Remove(Me)
                         Collections.ForEach(Sub(c)
                                                 c.MoveFiles(String.Empty)
-                                                ImageHandler(c)
+                                                MainFrameObj.ImageHandler(c)
                                             End Sub)
                         Collections.Clear()
                         f.Delete(SFO.Path, SFODelete.Default + Settings.DeleteMode, EDP.SendInLog)
                         Downloader.UserRemove(Me)
-                        ImageHandler(Me, False)
+                        MainFrameObj.ImageHandler(Me, False)
                         Dispose(False)
                         Return 3
                     Else
@@ -511,7 +514,7 @@ Namespace API
                     Dim RemoveMeIfNull As Action = Sub()
                                                        If Count = 0 Then
                                                            Settings.Users.Remove(Me)
-                                                           ImageHandler(Me, False)
+                                                           MainFrameObj.ImageHandler(Me, False)
                                                            RaiseEvent OnCollectionSelfRemoved(Me)
                                                            Dispose(False)
                                                        End If

@@ -35,6 +35,7 @@ Do you like this program? Consider adding to my coffee fund by making a donation
 - Add users from parsed channel
 - **Advanced user management**
 - **Automation** (downloading data automatically every ```X``` minutes)
+- **Feed** (feed of downloaded media files)
 - Labeling users
 - Create download groups
 - Adding users to favorites and temporary

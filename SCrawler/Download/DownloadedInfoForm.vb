@@ -96,7 +96,7 @@ Namespace DownloadObjects
                     _TempUsersList.ListAddList(Downloader.Downloaded, LParams)
                 Else
                     _TempUsersList.ListAddList(Settings.Users.SelectMany(Of IUserData) _
-                                               (Function(u) If(u.IsCollection, DirectCast(u, API.UserDataBind).Collections, {u})), LParams)
+                                              (Function(u) If(u.IsCollection, DirectCast(u, API.UserDataBind).Collections, {u})), LParams)
                 End If
                 If _TempUsersList.Count > 0 Then
                     _TempUsersList.Sort(New UsersDateOrder)
@@ -166,7 +166,7 @@ Namespace DownloadObjects
             Catch
             End Try
         End Sub
-        Friend Sub Downloader_OnDownloadCountChange()
+        Friend Sub Downloader_DownloadCountChange()
             If ViewMode = ViewModes.Session Then RefillList()
         End Sub
         Private Sub BTT_UP_Click(sender As Object, e As EventArgs) Handles BTT_UP.Click

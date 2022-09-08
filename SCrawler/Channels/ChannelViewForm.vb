@@ -142,7 +142,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
     Friend Sub New()
         InitializeComponent()
         MyDefs = New DefaultFormOptions
-        CProgress = New MyProgress(ToolbarBOTTOM, PR_CN, LBL_STATUS, "Downloading data") With {.PerformMod = 10, .DropCurrentProgressOnTotalChange = False}
+        CProgress = New MyProgress(ToolbarBOTTOM, PR_CN, LBL_STATUS, "Downloading data") With {.PerformMod = 10, .ResetProgressOnMaximumChanges = False}
         CProvider = New ANumbers With {.FormatOptions = ANumbers.Options.GroupIntegral}
         LimitProvider = New ADateTime("dd.MM.yyyy HH:mm")
         PendingUsers = New List(Of PendingUser)
@@ -330,9 +330,9 @@ Friend Class ChannelViewForm : Implements IChannelLimits
             If Not TokenSource Is Nothing OrElse Not HOST.Source.Available(Plugin.ISiteSettings.Download.Channel, False) Then Exit Sub
             Dim InvokeToken As Action = Sub()
                                             If TokenSource Is Nothing Then
-                                                CProgress.TotalCount = 0
-                                                CProgress.CurrentCounter = 0
-                                                CProgress.Enabled = True
+                                                CProgress.Maximum = 0
+                                                CProgress.Value = 0
+                                                CProgress.Visible = True
                                                 TokenSource = New CancellationTokenSource
                                                 Token = TokenSource.Token
                                                 BTT_DOWNLOAD.Enabled = False
@@ -389,7 +389,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
         Finally
             If Not TokenSource Is Nothing AndAlso Not Settings.Channels.Downloading Then
                 TokenSource = Nothing
-                CProgress.Enabled = False
+                CProgress.Visible = False
                 BTT_DOWNLOAD.Enabled = True
                 BTT_STOP.Enabled = False
                 _CollectionDownloading = False

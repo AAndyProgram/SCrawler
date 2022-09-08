@@ -127,6 +127,8 @@ Namespace API.Base
         Private Const Name_DataMerging As String = "DataMerging"
 #Region "Downloaded data"
         Private Const Name_MediaType As String = "Type"
+        Private Const Name_MediaState As String = "State"
+        Private Const Name_MediaAttempts As String = "Attempts"
         Private Const Name_MediaURL As String = "URL"
         Private Const Name_MediaHash As String = "Hash"
         Private Const Name_MediaFile As String = "File"
@@ -358,10 +360,31 @@ BlockNullPicture:
         Friend Overridable Property ReadyForDownload As Boolean = True Implements IUserData.ReadyForDownload
         Friend Property DownloadImages As Boolean = True Implements IUserData.DownloadImages
         Friend Property DownloadVideos As Boolean = True Implements IUserData.DownloadVideos
+        Friend Property DownloadMissingOnly As Boolean = False Implements IUserData.DownloadMissingOnly
 #End Region
 #Region "Content"
         Protected ReadOnly _ContentList As List(Of UserMedia)
         Protected ReadOnly _ContentNew As List(Of UserMedia)
+        Friend ReadOnly Property LatestData As List(Of UserMedia)
+        Protected ReadOnly MissingFinder As Predicate(Of UserMedia) = Function(c) c.State = UStates.Missing
+        Friend ReadOnly Property ContentMissing As List(Of UserMedia)
+            Get
+                If _ContentList.Count > 0 Then
+                    Return _ContentList.Where(Function(c) MissingFinder(c)).ListIfNothing
+                Else
+                    Return New List(Of UserMedia)
+                End If
+            End Get
+        End Property
+        Friend Overridable ReadOnly Property ContentMissingExists As Boolean
+            Get
+                Return _ContentList.Exists(MissingFinder)
+            End Get
+        End Property
+        Friend Sub RemoveMedia(ByVal m As UserMedia, ByVal State As UStates?)
+            Dim i% = If(State.HasValue, _ContentList.FindIndex(Function(mm) mm.State = State.Value And mm.Equals(m)), _ContentList.IndexOf(m))
+            If i >= 0 Then _ContentList.RemoveAt(i)
+        End Sub
         Protected ReadOnly _TempMediaList As List(Of UserMedia)
         Protected ReadOnly _TempPostsList As List(Of String)
         Friend Function GetLastImageAddress() As SFile
@@ -568,11 +591,12 @@ BlockNullPicture:
         Friend Sub New(Optional ByVal InvokeImageHandler As Boolean = True)
             _ContentList = New List(Of UserMedia)
             _ContentNew = New List(Of UserMedia)
+            LatestData = New List(Of UserMedia)
             _TempMediaList = New List(Of UserMedia)
             _TempPostsList = New List(Of String)
             Labels = New List(Of String)
             UserUpdatedEventHandlers = New List(Of IUserData.UserUpdatedEventHandler)
-            If InvokeImageHandler Then ImageHandler(Me)
+            If InvokeImageHandler Then MainFrameObj.ImageHandler(Me)
         End Sub
         Friend Sub SetEnvironment(ByRef h As SettingsHost, ByVal u As UserInfo, ByVal _LoadUserInformation As Boolean,
                                   Optional ByVal AttachUserInfo As Boolean = True) Implements IUserData.SetEnvironment
@@ -583,12 +607,28 @@ BlockNullPicture:
             End If
         End Sub
         ''' <exception cref="ArgumentOutOfRangeException"></exception>
-        Friend Overloads Shared Function GetInstance(ByVal u As UserInfo, Optional ByVal _LoadUserInformation As Boolean = True) As IUserData
+        Friend Shared Function GetInstance(ByVal u As UserInfo, Optional ByVal _LoadUserInformation As Boolean = True) As IUserData
             If Not u.Plugin.IsEmptyString Then
                 Return Settings(u.Plugin).GetInstance(u.DownloadOption, u, _LoadUserInformation)
             Else
                 Throw New ArgumentOutOfRangeException("Plugin", $"Plugin [{u.Plugin}] information does not recognized by loader")
             End If
+        End Function
+        Friend Shared Function GetPostUrl(ByVal u As IUserData, ByVal PostData As UserMedia) As String
+            Dim uName$ = String.Empty
+            Try
+                If Not u Is Nothing AndAlso Not u.IsCollection Then
+                    With DirectCast(u, UserDataBase)
+                        If Not .User.Plugin.IsEmptyString Then
+                            uName = .User.Name
+                            Return Settings(.User.Plugin).GetUserPostUrl(.ID, PostData.Post.ID)
+                        End If
+                    End With
+                End If
+                Return String.Empty
+            Catch ex As Exception
+                Return ErrorsDescriber.Execute(EDP.SendInLog, ex, $"GetPostUrl({uName}, {PostData.Post.ID})", String.Empty)
+            End Try
         End Function
 #End Region
 #Region "Information & Content data files loader and saver"
@@ -676,19 +716,22 @@ BlockNullPicture:
         Protected MustOverride Sub LoadUserInformation_OptionalFields(ByRef Container As XmlFile, ByVal Loading As Boolean)
 #End Region
 #Region "User data"
-        Friend Overridable Overloads Sub LoadContentInformation()
+        Friend Overridable Overloads Sub LoadContentInformation(Optional ByVal Force As Boolean = False)
             Try
                 UpdateDataFiles()
-                If Not MyFileData.Exists Then Exit Sub
+                If Not MyFileData.Exists Or (_DataLoaded And Not Force) Then Exit Sub
                 Using x As New XmlFile(MyFileData, Protector.Modes.All, False) With {.XmlReadOnly = True, .AllowSameNames = True}
                     x.LoadData()
                     If x.Count > 0 Then
+
                         Dim fs$ = MyFile.CutPath.PathWithSeparator
                         Dim gfn As Func(Of String, String) = Function(Input) If(Input.IsEmptyString, String.Empty,
                                                                                 If(Input.Contains("\"), Input.CSFile.File, Input))
                         For Each v As EContainer In x
                             _ContentList.Add(New UserMedia With {
-                                                .Type = AConvert(Of Integer)(v.Attribute(Name_MediaType).Value, 0),
+                                                .Type = v.Attribute(Name_MediaType).Value.FromXML(Of Integer)(CInt(UTypes.Undefined)),
+                                                .State = v.Attribute(Name_MediaState).Value.FromXML(Of Integer)(CInt(UStates.Downloaded)),
+                                                .Attempts = v.Attribute(Name_MediaAttempts).Value.FromXML(Of Integer)(0),
                                                 .URL = v.Attribute(Name_MediaURL).Value,
                                                 .URL_BASE = v.Value,
                                                 .MD5 = v.Attribute(Name_MediaHash).Value,
@@ -715,6 +758,8 @@ BlockNullPicture:
                     If _ContentList.Count > 0 Then
                         For Each i As UserMedia In _ContentList
                             x.Add(New EContainer("MediaData", i.URL_BASE, {New EAttribute(Name_MediaType, CInt(i.Type)),
+                                                                           New EAttribute(Name_MediaState, CInt(i.State)),
+                                                                           New EAttribute(Name_MediaAttempts, i.Attempts),
                                                                            New EAttribute(Name_MediaURL, i.URL),
                                                                            New EAttribute(Name_MediaHash, i.MD5),
                                                                            New EAttribute(Name_MediaFile, i.File.File),
@@ -764,6 +809,7 @@ BlockNullPicture:
                 Dim UpPic As Boolean = Settings.ViewModeIsPicture AndAlso GetPicture(Of Image)(False) Is Nothing
                 Dim sEnvir() As Boolean = {UserExists, UserSuspended}
                 Dim EnvirChanged As Func(Of Boolean) = Function() Not sEnvir(0) = UserExists Or Not sEnvir(1) = UserSuspended
+                Dim _downContent As Func(Of UserMedia, Boolean) = Function(c) c.State = UStates.Downloaded
                 UserExists = True
                 UserSuspended = False
                 DownloadedPictures(False) = 0
@@ -772,19 +818,25 @@ BlockNullPicture:
                 _TempPostsList.Clear()
                 Dim __SaveData As Boolean = Not CreatedByChannel Or Not Settings.FromChannelDownloadTopUse
 
-                If Not _DataLoaded Then LoadContentInformation()
+                LoadContentInformation()
 
                 If MyFilePosts.Exists Then _TempPostsList.ListAddList(File.ReadAllLines(MyFilePosts))
                 If _ContentList.Count > 0 Then _TempPostsList.ListAddList(_ContentList.Select(Function(u) u.Post.ID), LNC)
 
-                ThrowAny(Token)
-                DownloadDataF(Token)
-                ThrowAny(Token)
+                If Not DownloadMissingOnly Then
+                    ThrowAny(Token)
+                    DownloadDataF(Token)
+                    ThrowAny(Token)
+                Else
+                    'ReparseMissing(Token)
+                End If
+                _TempMediaList.ListAddList(ContentMissing, LNC)
 
                 If _TempMediaList.Count > 0 Then
                     If Not DownloadImages Then _TempMediaList.RemoveAll(Function(m) m.Type = UTypes.GIF Or m.Type = UTypes.Picture)
                     If Not DownloadVideos Then _TempMediaList.RemoveAll(Function(m) m.Type = UTypes.Video Or
                                                                                     m.Type = UTypes.VideoPre Or m.Type = UTypes.m3u8)
+                    If DownloadMissingOnly Then _TempMediaList.RemoveAll(Function(m) Not m.State = UStates.Missing)
                 End If
 
                 ReparseVideo(Token)
@@ -793,8 +845,9 @@ BlockNullPicture:
                 _ContentNew.ListAddList(_TempMediaList, LAP.ClearBeforeAdd)
                 DownloadContent(Token)
                 ThrowIfDisposed()
-                _ContentList.ListAddList(_ContentNew.Where(Function(c) c.State = UStates.Downloaded), LNC)
-                If DownloadedTotal(False) > 0 Or EnvirChanged.Invoke Then
+                LatestData.ListAddList(_ContentNew.Where(_downContent), LNC)
+                _ContentList.ListAddList(_ContentNew.Where(_downContent), LNC)
+                If DownloadedTotal(False) > 0 Or EnvirChanged.Invoke Or _ContentList.Exists(MissingFinder) Then
                     If __SaveData Then
                         LastUpdated = Now
                         RunScript()
@@ -828,6 +881,7 @@ BlockNullPicture:
                 _ContentNew.Clear()
                 DownloadTopCount = Nothing
                 DownloadToDate = Nothing
+                DownloadMissingOnly = False
             End Try
         End Sub
         Protected Function CheckDatesLimit(ByVal DateString As String, ByVal DateProvider As IFormatProvider) As Boolean
@@ -853,7 +907,10 @@ BlockNullPicture:
             End If
         End Sub
         Protected MustOverride Sub DownloadDataF(ByVal Token As CancellationToken)
-        Protected MustOverride Sub ReparseVideo(ByVal Token As CancellationToken)
+        Protected Overridable Sub ReparseVideo(ByVal Token As CancellationToken)
+        End Sub
+        Protected Overridable Sub ReparseMissing(ByVal Token As CancellationToken)
+        End Sub
         Protected MustOverride Sub DownloadContent(ByVal Token As CancellationToken)
         Protected Sub DownloadContentDefault(ByVal Token As CancellationToken)
             Try
@@ -864,6 +921,7 @@ BlockNullPicture:
                     _ContentNew.RemoveAll(Function(c) c.URL.IsEmptyString)
                     If _ContentNew.Count > 0 Then
                         MyFile.Exists(SFO.Path)
+                        Dim MissingErrorsAdd As Boolean = Settings.AddMissingErrorsToLog
                         Dim MyDir$ = MyFile.CutPath.PathNoSeparator
                         Dim vsf As Boolean = SeparateVideoFolderF
                         Dim __isVideo As Boolean
@@ -871,7 +929,7 @@ BlockNullPicture:
                         Dim v As UserMedia
                         Using w As New WebClient
                             If vsf Then SFileShares.SFileExists($"{MyDir}\Video\", SFO.Path)
-                            Progress.TotalCount += _ContentNew.Count
+                            Progress.Maximum += _ContentNew.Count
                             For i = 0 To _ContentNew.Count - 1
                                 ThrowAny(Token)
                                 v = _ContentNew(i)
@@ -922,7 +980,9 @@ BlockNullPicture:
                                         v.State = UStates.Downloaded
                                         dCount += 1
                                     Catch wex As Exception
-                                        ErrorDownloading(f, v.URL_BASE)
+                                        v.Attempts += 1
+                                        v.State = UStates.Missing
+                                        If MissingErrorsAdd Then ErrorDownloading(f, v.URL_BASE)
                                     End Try
                                 Else
                                     v.State = UStates.Skipped
@@ -1000,7 +1060,7 @@ BlockNullPicture:
         Friend Overridable Function Delete() As Integer Implements IUserData.Delete
             Dim f As SFile = SFile.GetPath(MyFile.CutPath.Path)
             If f.Exists(SFO.Path, False) AndAlso (User.Merged OrElse f.Delete(SFO.Path, Settings.DeleteMode)) Then
-                ImageHandler(Me, False)
+                MainFrameObj.ImageHandler(Me, False)
                 Settings.UsersList.Remove(User)
                 Settings.UpdateUsersList()
                 Settings.Users.Remove(Me)
@@ -1205,6 +1265,7 @@ BlockNullPicture:
                 If disposing Then
                     _ContentList.Clear()
                     _ContentNew.Clear()
+                    LatestData.Clear()
                     _TempMediaList.Clear()
                     _TempPostsList.Clear()
                     If Not Responser Is Nothing Then Responser.Dispose()
@@ -1268,6 +1329,7 @@ BlockNullPicture:
         ReadOnly Property Key As String
         Property DownloadImages As Boolean
         Property DownloadVideos As Boolean
+        Property DownloadMissingOnly As Boolean
         Property ScriptUse As Boolean
         Property ScriptData As String
         Function GetLVI(ByVal Destination As ListView) As ListViewItem

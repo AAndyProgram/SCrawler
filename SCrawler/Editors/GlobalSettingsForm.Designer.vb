@@ -44,6 +44,10 @@
             Dim TP_DOWNLOADING As System.Windows.Forms.TableLayoutPanel
             Dim ActionButton9 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim ActionButton10 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim TP_MISSING_DATA As System.Windows.Forms.TableLayoutPanel
+            Dim TAB_FEED As System.Windows.Forms.TabPage
+            Dim TP_FEED As System.Windows.Forms.TableLayoutPanel
+            Dim TP_FEED_IMG_COUNT As System.Windows.Forms.TableLayoutPanel
             Me.TXT_GLOBAL_PATH = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_IMAGE_LARGE = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_IMAGE_SMALL = New PersonalUtilities.Forms.Controls.TextBoxExtended()
@@ -72,6 +76,8 @@
             Me.CH_UDESCR_UP = New System.Windows.Forms.CheckBox()
             Me.CH_DOWN_OPEN_INFO_SUSPEND = New System.Windows.Forms.CheckBox()
             Me.CH_DOWN_OPEN_PROGRESS_SUSPEND = New System.Windows.Forms.CheckBox()
+            Me.CH_ADD_MISSING_TO_LOG = New System.Windows.Forms.CheckBox()
+            Me.CH_ADD_MISSING_ERROS_TO_LOG = New System.Windows.Forms.CheckBox()
             Me.TXT_CHANNELS_ROWS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_CHANNELS_COLUMNS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.CH_DOWN_IMAGES_NATIVE = New System.Windows.Forms.CheckBox()
@@ -86,6 +92,9 @@
             Me.CH_DOWN_OPEN_PROGRESS = New System.Windows.Forms.CheckBox()
             Me.TXT_SCRIPT = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_DOWN_COMPLETE_SCRIPT = New PersonalUtilities.Forms.Controls.TextBoxExtended()
+            Me.TXT_FEED_ROWS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
+            Me.TXT_FEED_COLUMNS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
+            Me.CH_FEED_ENDLESS = New System.Windows.Forms.CheckBox()
             Me.TAB_MAIN = New System.Windows.Forms.TabControl()
             Me.CONTAINER_MAIN = New System.Windows.Forms.ToolStripContainer()
             TP_BASIS = New System.Windows.Forms.TableLayoutPanel()
@@ -106,6 +115,10 @@
             TP_OPEN_PROGRESS = New System.Windows.Forms.TableLayoutPanel()
             TAB_DOWN = New System.Windows.Forms.TabPage()
             TP_DOWNLOADING = New System.Windows.Forms.TableLayoutPanel()
+            TP_MISSING_DATA = New System.Windows.Forms.TableLayoutPanel()
+            TAB_FEED = New System.Windows.Forms.TabPage()
+            TP_FEED = New System.Windows.Forms.TableLayoutPanel()
+            TP_FEED_IMG_COUNT = New System.Windows.Forms.TableLayoutPanel()
             TP_BASIS.SuspendLayout()
             CType(Me.TXT_GLOBAL_PATH, System.ComponentModel.ISupportInitialize).BeginInit()
             TP_IMAGES.SuspendLayout()
@@ -136,6 +149,12 @@
             TP_DOWNLOADING.SuspendLayout()
             CType(Me.TXT_SCRIPT, System.ComponentModel.ISupportInitialize).BeginInit()
             CType(Me.TXT_DOWN_COMPLETE_SCRIPT, System.ComponentModel.ISupportInitialize).BeginInit()
+            TP_MISSING_DATA.SuspendLayout()
+            TAB_FEED.SuspendLayout()
+            TP_FEED.SuspendLayout()
+            TP_FEED_IMG_COUNT.SuspendLayout()
+            CType(Me.TXT_FEED_ROWS, System.ComponentModel.ISupportInitialize).BeginInit()
+            CType(Me.TXT_FEED_COLUMNS, System.ComponentModel.ISupportInitialize).BeginInit()
             Me.TAB_MAIN.SuspendLayout()
             Me.CONTAINER_MAIN.ContentPanel.SuspendLayout()
             Me.CONTAINER_MAIN.SuspendLayout()
@@ -606,6 +625,30 @@
             TT_MAIN.SetToolTip(Me.CH_DOWN_OPEN_PROGRESS_SUSPEND, "Do not open the form automatically if it was once closed")
             Me.CH_DOWN_OPEN_PROGRESS_SUSPEND.UseVisualStyleBackColor = True
             '
+            'CH_ADD_MISSING_TO_LOG
+            '
+            Me.CH_ADD_MISSING_TO_LOG.AutoSize = True
+            Me.CH_ADD_MISSING_TO_LOG.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_ADD_MISSING_TO_LOG.Location = New System.Drawing.Point(4, 4)
+            Me.CH_ADD_MISSING_TO_LOG.Name = "CH_ADD_MISSING_TO_LOG"
+            Me.CH_ADD_MISSING_TO_LOG.Size = New System.Drawing.Size(279, 17)
+            Me.CH_ADD_MISSING_TO_LOG.TabIndex = 0
+            Me.CH_ADD_MISSING_TO_LOG.Text = "Add 'missing' information to log"
+            TT_MAIN.SetToolTip(Me.CH_ADD_MISSING_TO_LOG, resources.GetString("CH_ADD_MISSING_TO_LOG.ToolTip"))
+            Me.CH_ADD_MISSING_TO_LOG.UseVisualStyleBackColor = True
+            '
+            'CH_ADD_MISSING_ERROS_TO_LOG
+            '
+            Me.CH_ADD_MISSING_ERROS_TO_LOG.AutoSize = True
+            Me.CH_ADD_MISSING_ERROS_TO_LOG.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_ADD_MISSING_ERROS_TO_LOG.Location = New System.Drawing.Point(290, 4)
+            Me.CH_ADD_MISSING_ERROS_TO_LOG.Name = "CH_ADD_MISSING_ERROS_TO_LOG"
+            Me.CH_ADD_MISSING_ERROS_TO_LOG.Size = New System.Drawing.Size(280, 17)
+            Me.CH_ADD_MISSING_ERROS_TO_LOG.TabIndex = 1
+            Me.CH_ADD_MISSING_ERROS_TO_LOG.Text = "Add 'missing' errors to log"
+            TT_MAIN.SetToolTip(Me.CH_ADD_MISSING_ERROS_TO_LOG, resources.GetString("CH_ADD_MISSING_ERROS_TO_LOG.ToolTip"))
+            Me.CH_ADD_MISSING_ERROS_TO_LOG.UseVisualStyleBackColor = True
+            '
             'TP_CHANNELS_IMGS
             '
             TP_CHANNELS_IMGS.ColumnCount = 2
@@ -962,15 +1005,17 @@
             TP_DOWNLOADING.Controls.Add(Me.TXT_SCRIPT, 0, 3)
             TP_DOWNLOADING.Controls.Add(Me.CH_UDESCR_UP, 0, 0)
             TP_DOWNLOADING.Controls.Add(Me.TXT_DOWN_COMPLETE_SCRIPT, 0, 4)
+            TP_DOWNLOADING.Controls.Add(TP_MISSING_DATA, 0, 5)
             TP_DOWNLOADING.Dock = System.Windows.Forms.DockStyle.Fill
             TP_DOWNLOADING.Location = New System.Drawing.Point(0, 0)
             TP_DOWNLOADING.Name = "TP_DOWNLOADING"
-            TP_DOWNLOADING.RowCount = 6
+            TP_DOWNLOADING.RowCount = 7
             TP_DOWNLOADING.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_DOWNLOADING.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 30.0!))
             TP_DOWNLOADING.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 30.0!))
             TP_DOWNLOADING.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_DOWNLOADING.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
+            TP_DOWNLOADING.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_DOWNLOADING.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
             TP_DOWNLOADING.Size = New System.Drawing.Size(576, 284)
             TP_DOWNLOADING.TabIndex = 0
@@ -1012,6 +1057,111 @@
             Me.TXT_DOWN_COMPLETE_SCRIPT.Size = New System.Drawing.Size(568, 22)
             Me.TXT_DOWN_COMPLETE_SCRIPT.TabIndex = 4
             '
+            'TP_MISSING_DATA
+            '
+            TP_MISSING_DATA.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
+            TP_MISSING_DATA.ColumnCount = 2
+            TP_MISSING_DATA.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
+            TP_MISSING_DATA.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
+            TP_MISSING_DATA.Controls.Add(Me.CH_ADD_MISSING_TO_LOG, 0, 0)
+            TP_MISSING_DATA.Controls.Add(Me.CH_ADD_MISSING_ERROS_TO_LOG, 1, 0)
+            TP_MISSING_DATA.Dock = System.Windows.Forms.DockStyle.Fill
+            TP_MISSING_DATA.Location = New System.Drawing.Point(1, 147)
+            TP_MISSING_DATA.Margin = New System.Windows.Forms.Padding(0)
+            TP_MISSING_DATA.Name = "TP_MISSING_DATA"
+            TP_MISSING_DATA.RowCount = 1
+            TP_MISSING_DATA.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            TP_MISSING_DATA.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 24.0!))
+            TP_MISSING_DATA.Size = New System.Drawing.Size(574, 25)
+            TP_MISSING_DATA.TabIndex = 5
+            '
+            'TAB_FEED
+            '
+            TAB_FEED.Controls.Add(TP_FEED)
+            TAB_FEED.Location = New System.Drawing.Point(4, 22)
+            TAB_FEED.Name = "TAB_FEED"
+            TAB_FEED.Size = New System.Drawing.Size(576, 284)
+            TAB_FEED.TabIndex = 7
+            TAB_FEED.Text = "Feed"
+            '
+            'TP_FEED
+            '
+            TP_FEED.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
+            TP_FEED.ColumnCount = 1
+            TP_FEED.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            TP_FEED.Controls.Add(TP_FEED_IMG_COUNT, 0, 0)
+            TP_FEED.Controls.Add(Me.CH_FEED_ENDLESS, 0, 1)
+            TP_FEED.Dock = System.Windows.Forms.DockStyle.Fill
+            TP_FEED.Location = New System.Drawing.Point(0, 0)
+            TP_FEED.Name = "TP_FEED"
+            TP_FEED.RowCount = 3
+            TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
+            TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
+            TP_FEED.Size = New System.Drawing.Size(576, 284)
+            TP_FEED.TabIndex = 0
+            '
+            'TP_FEED_IMG_COUNT
+            '
+            TP_FEED_IMG_COUNT.ColumnCount = 2
+            TP_FEED_IMG_COUNT.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
+            TP_FEED_IMG_COUNT.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
+            TP_FEED_IMG_COUNT.Controls.Add(Me.TXT_FEED_ROWS, 0, 0)
+            TP_FEED_IMG_COUNT.Controls.Add(Me.TXT_FEED_COLUMNS, 1, 0)
+            TP_FEED_IMG_COUNT.Dock = System.Windows.Forms.DockStyle.Fill
+            TP_FEED_IMG_COUNT.Location = New System.Drawing.Point(1, 1)
+            TP_FEED_IMG_COUNT.Margin = New System.Windows.Forms.Padding(0)
+            TP_FEED_IMG_COUNT.Name = "TP_FEED_IMG_COUNT"
+            TP_FEED_IMG_COUNT.RowCount = 1
+            TP_FEED_IMG_COUNT.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            TP_FEED_IMG_COUNT.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
+            TP_FEED_IMG_COUNT.Size = New System.Drawing.Size(574, 28)
+            TP_FEED_IMG_COUNT.TabIndex = 1
+            '
+            'TXT_FEED_ROWS
+            '
+            Me.TXT_FEED_ROWS.CaptionText = "Feed rows"
+            Me.TXT_FEED_ROWS.CaptionToolTipEnabled = True
+            Me.TXT_FEED_ROWS.CaptionToolTipText = "How many lines of images should be shown in the feed form"
+            Me.TXT_FEED_ROWS.ControlMode = PersonalUtilities.Forms.Controls.TextBoxExtended.ControlModes.NumericUpDown
+            Me.TXT_FEED_ROWS.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.TXT_FEED_ROWS.Location = New System.Drawing.Point(3, 3)
+            Me.TXT_FEED_ROWS.Name = "TXT_FEED_ROWS"
+            Me.TXT_FEED_ROWS.NumberMaximum = New Decimal(New Integer() {50, 0, 0, 0})
+            Me.TXT_FEED_ROWS.NumberMinimum = New Decimal(New Integer() {1, 0, 0, 0})
+            Me.TXT_FEED_ROWS.Size = New System.Drawing.Size(281, 22)
+            Me.TXT_FEED_ROWS.TabIndex = 0
+            Me.TXT_FEED_ROWS.Text = "1"
+            Me.TXT_FEED_ROWS.TextBoxTextAlign = System.Windows.Forms.HorizontalAlignment.Center
+            '
+            'TXT_FEED_COLUMNS
+            '
+            Me.TXT_FEED_COLUMNS.CaptionText = "Feed columns"
+            Me.TXT_FEED_COLUMNS.CaptionToolTipEnabled = True
+            Me.TXT_FEED_COLUMNS.CaptionToolTipText = "How many columns of images should be shown in the feed form"
+            Me.TXT_FEED_COLUMNS.ControlMode = PersonalUtilities.Forms.Controls.TextBoxExtended.ControlModes.NumericUpDown
+            Me.TXT_FEED_COLUMNS.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.TXT_FEED_COLUMNS.Location = New System.Drawing.Point(290, 3)
+            Me.TXT_FEED_COLUMNS.Name = "TXT_FEED_COLUMNS"
+            Me.TXT_FEED_COLUMNS.NumberMaximum = New Decimal(New Integer() {20, 0, 0, 0})
+            Me.TXT_FEED_COLUMNS.NumberMinimum = New Decimal(New Integer() {1, 0, 0, 0})
+            Me.TXT_FEED_COLUMNS.Size = New System.Drawing.Size(281, 22)
+            Me.TXT_FEED_COLUMNS.TabIndex = 1
+            Me.TXT_FEED_COLUMNS.Text = "1"
+            Me.TXT_FEED_COLUMNS.TextBoxTextAlign = System.Windows.Forms.HorizontalAlignment.Center
+            '
+            'CH_FEED_ENDLESS
+            '
+            Me.CH_FEED_ENDLESS.AutoSize = True
+            Me.CH_FEED_ENDLESS.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_FEED_ENDLESS.Location = New System.Drawing.Point(4, 33)
+            Me.CH_FEED_ENDLESS.Name = "CH_FEED_ENDLESS"
+            Me.CH_FEED_ENDLESS.Size = New System.Drawing.Size(568, 19)
+            Me.CH_FEED_ENDLESS.TabIndex = 3
+            Me.CH_FEED_ENDLESS.Text = "Endless feed"
+            Me.CH_FEED_ENDLESS.UseVisualStyleBackColor = True
+            '
             'TAB_MAIN
             '
             Me.TAB_MAIN.Controls.Add(TAB_BASIS)
@@ -1019,6 +1169,7 @@
             Me.TAB_MAIN.Controls.Add(TAB_DEFAULTS)
             Me.TAB_MAIN.Controls.Add(TAB_DOWN)
             Me.TAB_MAIN.Controls.Add(TAB_DEFS_CHANNELS)
+            Me.TAB_MAIN.Controls.Add(TAB_FEED)
             Me.TAB_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
             Me.TAB_MAIN.Location = New System.Drawing.Point(0, 0)
             Me.TAB_MAIN.Name = "TAB_MAIN"
@@ -1098,6 +1249,14 @@
             TP_DOWNLOADING.PerformLayout()
             CType(Me.TXT_SCRIPT, System.ComponentModel.ISupportInitialize).EndInit()
             CType(Me.TXT_DOWN_COMPLETE_SCRIPT, System.ComponentModel.ISupportInitialize).EndInit()
+            TP_MISSING_DATA.ResumeLayout(False)
+            TP_MISSING_DATA.PerformLayout()
+            TAB_FEED.ResumeLayout(False)
+            TP_FEED.ResumeLayout(False)
+            TP_FEED.PerformLayout()
+            TP_FEED_IMG_COUNT.ResumeLayout(False)
+            CType(Me.TXT_FEED_ROWS, System.ComponentModel.ISupportInitialize).EndInit()
+            CType(Me.TXT_FEED_COLUMNS, System.ComponentModel.ISupportInitialize).EndInit()
             Me.TAB_MAIN.ResumeLayout(False)
             Me.CONTAINER_MAIN.ContentPanel.ResumeLayout(False)
             Me.CONTAINER_MAIN.ResumeLayout(False)
@@ -1150,5 +1309,10 @@
         Private WithEvents CH_DOWN_OPEN_INFO_SUSPEND As CheckBox
         Private WithEvents CH_DOWN_OPEN_PROGRESS_SUSPEND As CheckBox
         Private WithEvents CH_DOWN_IMAGES_NATIVE As CheckBox
+        Private WithEvents CH_ADD_MISSING_TO_LOG As CheckBox
+        Private WithEvents CH_ADD_MISSING_ERROS_TO_LOG As CheckBox
+        Private WithEvents TXT_FEED_ROWS As PersonalUtilities.Forms.Controls.TextBoxExtended
+        Private WithEvents TXT_FEED_COLUMNS As PersonalUtilities.Forms.Controls.TextBoxExtended
+        Private WithEvents CH_FEED_ENDLESS As CheckBox
     End Class
 End Namespace

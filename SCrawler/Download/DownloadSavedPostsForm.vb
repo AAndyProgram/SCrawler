@@ -11,7 +11,7 @@ Imports PersonalUtilities.Forms
 Imports SCrawler.DownloadObjects
 Imports SCrawler.Plugin.Hosts
 Friend Class DownloadSavedPostsForm
-    Friend Event OnDownloadDone As NotificationEventHandler
+    Friend Event DownloadDone As NotificationEventHandler
     Private MyView As FormsView
     Private ReadOnly JobsList As List(Of DownloadProgress)
     Friend ReadOnly Property Working As Boolean
@@ -45,7 +45,7 @@ Friend Class DownloadSavedPostsForm
         MyView.SetMeSize()
         If JobsList.Count > 0 Then
             For Each j As DownloadProgress In JobsList
-                AddHandler j.OnDownloadDone, AddressOf Jobs_OnDownloadDone
+                AddHandler j.DownloadDone, AddressOf Jobs_DownloadDone
                 TP_MAIN.RowStyles.Add(New RowStyle(SizeType.Absolute, 60))
                 TP_MAIN.RowCount += 1
                 TP_MAIN.Controls.Add(j.Get, 0, TP_MAIN.RowStyles.Count - 1)
@@ -65,8 +65,8 @@ Friend Class DownloadSavedPostsForm
         [Stop]()
         MyView.Dispose(Settings.Design)
     End Sub
-    Private Sub Jobs_OnDownloadDone(ByVal Message As String)
-        RaiseEvent OnDownloadDone(Message)
+    Private Sub Jobs_DownloadDone(ByVal Message As String)
+        RaiseEvent DownloadDone(Message)
     End Sub
     Private Sub BTT_DOWN_ALL_Click(sender As Object, e As EventArgs) Handles BTT_DOWN_ALL.Click
         Start()

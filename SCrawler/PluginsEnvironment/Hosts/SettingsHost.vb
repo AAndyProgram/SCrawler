@@ -79,10 +79,13 @@ Namespace Plugin.Hosts
         End Property
         Friend ReadOnly Property HasSpecialOptions As Boolean = False
         Private ReadOnly _ResponserGetMethod As MethodInfo
+        Private ReadOnly _ResponserIsContainer As Boolean = False
         Friend ReadOnly Property Responser As Response
             Get
                 If Not _ResponserGetMethod Is Nothing Then
                     Return _ResponserGetMethod.Invoke(Source, Nothing)
+                ElseIf _ResponserIsContainer Then
+                    Return DirectCast(Source, IResponserContainer).Responser
                 Else
                     Return Nothing
                 End If
@@ -176,6 +179,7 @@ Namespace Plugin.Hosts
             Dim n() As String = {SettingsCLS.Name_Node_Sites, Name}
             If If(_XML(n)?.Count, 0) > 0 Then Source.Load(ToKeyValuePair(Of String, EContainer)(_XML(n)))
             Dim Members As IEnumerable(Of MemberInfo) = Plugin.GetType.GetTypeInfo.DeclaredMembers
+            _ResponserIsContainer = TypeOf Plugin Is IResponserContainer
             If Members.ListExists Then
                 Dim Updaters As New List(Of MemberInfo)
                 Dim Providers As New List(Of MemberInfo)
@@ -306,6 +310,9 @@ Namespace Plugin.Hosts
             Else
                 Throw New ArgumentNullException("IPluginContentProvider", $"Plugin [{Key}] does not provide user instance")
             End If
+        End Function
+        Friend Function GetUserPostUrl(ByVal UserID As String, ByVal PostID As String) As String
+            Return Source.GetUserPostUrl(UserID, PostID)
         End Function
         Private _AvailableValue As Boolean = True
         Private _AvailableAsked As Boolean = False

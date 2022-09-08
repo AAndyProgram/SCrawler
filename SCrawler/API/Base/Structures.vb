@@ -18,7 +18,7 @@ Namespace API.Base
                 GIF = 50
                 m3u8 = 100
             End Enum
-            Friend Enum States As Integer : Unknown = 0 : Tried = 1 : Downloaded = 2 : Skipped = 3 : End Enum
+            Friend Enum States As Integer : Unknown = 0 : Tried = 1 : Downloaded = 2 : Skipped = 3 : Missing = 4 : End Enum
             Friend [Type] As Types
             Friend URL_BASE As String
             Friend URL As String
@@ -27,6 +27,7 @@ Namespace API.Base
             Friend Post As UserPost
             Friend PictureOption As String
             Friend State As States
+            Friend Attempts As Integer
             ''' <summary>
             ''' SomeFolder<br/>
             ''' SomeFolder\SomeFolder2

@@ -150,6 +150,7 @@ Namespace API.Reddit
         End Sub
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
             _TotalPostsDownloaded = 0
+            'If Not IsSavedPosts AndAlso (Not IsChannel OrElse ChannelInfo Is Nothing) Then ReparseMissing(Token)
             If IsSavedPosts Then
                 DownloadDataChannel(String.Empty, Token)
             ElseIf IsChannel Then
@@ -507,6 +508,72 @@ Namespace API.Reddit
                 ProcessException(ex, Token, "video reparsing error", False)
             End Try
         End Sub
+        Protected Overrides Sub ReparseMissing(ByVal Token As CancellationToken)
+            Dim rList As New List(Of Integer)
+            Try
+                If _ContentList.Exists(MissingFinder) Then
+                    Dim m As UserMedia
+                    Dim j As EContainer, ss As EContainer
+                    Dim r$, tmpUrl$, PostDate$, _UserID$
+                    Dim err As New ErrorsDescriber(EDP.ReturnValue)
+                    Dim node As Object() = {"data", "children", 0, "data"}
+                    Dim eCount As Predicate(Of EContainer) = Function(e) e.Count > 0
+                    Dim cItems As Predicate(Of EContainer) = Function(e) If(e.ItemF(node)?.Count, 0) > 0
+                    For i% = 0 To _ContentList.Count - 1
+                        m = _ContentList(i)
+                        If m.State = UStates.Missing AndAlso Not m.Post.ID.IsEmptyString Then
+                            ThrowAny(Token)
+                            r = Responser.GetResponse($"https://www.reddit.com/comments/{m.Post.ID.Split("_").LastOrDefault}/.json",, err)
+                            If Not r.IsEmptyString Then
+                                j = JsonDocument.Parse(r, err)
+                                If Not j Is Nothing Then
+                                    If j.Contains(cItems) Then
+                                        With j.ItemF({cItems}).ItemF(node)
+                                            If .Contains("created") Then PostDate = .Item("created").Value Else PostDate = String.Empty
+                                            _UserID = .Value("author")
+                                            tmpUrl = .Value("url")
+                                            If Not tmpUrl.IsEmptyString AndAlso tmpUrl.StringContains({"redgifs.com", "gfycat.com"}) Then
+                                                _TempMediaList.ListAddValue(MediaFromData(UTypes.VideoPre, tmpUrl, m.Post.ID, PostDate, _UserID, IsChannel), LNC)
+                                                _TotalPostsDownloaded += 1
+                                            ElseIf Not .Value({"media", "reddit_video"}, "fallback_url").IsEmptyString Then
+                                                tmpUrl = .Value({"media", "reddit_video"}, "fallback_url")
+                                                If UseM3U8 AndAlso Not .Value({"media", "reddit_video"}, "hls_url").IsEmptyString Then
+                                                    _TempMediaList.ListAddValue(MediaFromData(UTypes.m3u8, .Value({"media", "reddit_video"}, "hls_url"),
+                                                                                              m.Post.ID, PostDate, _UserID, IsChannel), LNC)
+                                                Else
+                                                    '_TempMediaList.ListAddValue(MediaFromData(UTypes.VideoPre + UTypes.m3u8, tmpUrl, PostID, PostDate, _UserID, IsChannel), LNC)
+                                                    _TempMediaList.ListAddValue(MediaFromData(UTypes.Video, tmpUrl, m.Post.ID, PostDate, _UserID, IsChannel), LNC)
+                                                    _TotalPostsDownloaded += 1
+                                                End If
+                                            ElseIf CreateImgurMedia(tmpUrl, m.Post.ID, PostDate, _UserID, IsChannel) Then
+                                                _TotalPostsDownloaded += 1
+                                            ElseIf If(.Item("media_metadata")?.Count, 0) > 0 Then
+                                                DownloadGallery(.Self, m.Post.ID, PostDate, _UserID, SaveToCache)
+                                                _TotalPostsDownloaded += 1
+                                            ElseIf .Contains("preview") Then
+                                                ss = .ItemF({"preview", "images", eCount, "source", "url"}).XmlIfNothing
+                                                If Not ss.Value.IsEmptyString Then
+                                                    _TempMediaList.ListAddValue(MediaFromData(UTypes.Picture, ss.Value, m.Post.ID, PostDate, _UserID, IsChannel), LNC)
+                                                    _TotalPostsDownloaded += 1
+                                                End If
+                                            End If
+                                        End With
+                                    End If
+                                    j.Dispose()
+                                End If
+                            End If
+                        End If
+                    Next
+                End If
+            Catch ex As Exception
+                ProcessException(ex, Token, "missing data downloading error")
+            Finally
+                If rList.Count > 0 Then
+                    For i% = rList.Count - 1 To 0 Step -1 : _ContentList.RemoveAt(rList(i)) : Next
+                    rList.Clear()
+                End If
+            End Try
+        End Sub
         Friend Shared Function GetVideoInfo(ByVal URL As String, ByVal resp As Response) As IEnumerable(Of UserMedia)
             Try
                 If Not URL.IsEmptyString AndAlso URL.Contains("redgifs") Then
@@ -561,6 +628,8 @@ Namespace API.Reddit
                     _ContentNew.RemoveAll(Function(c) c.URL.IsEmptyString)
                     If _ContentNew.Count > 0 Then
                         MyFile.Exists(SFO.Path)
+                        Dim MissingErrorsAdd As Boolean = Settings.AddMissingErrorsToLog
+                        Dim IsImgurStuff As Boolean
                         Dim MyDir$
                         If Not IsSavedPosts AndAlso (IsChannel And SaveToCache And Not ChannelInfo Is Nothing) Then
                             MyDir = ChannelInfo.CachePath.PathNoSeparator
@@ -629,7 +698,7 @@ Namespace API.Reddit
                         Dim m$
                         Using w As New WebClient
                             If vsf Then SFileShares.SFileExists($"{MyDir}\Video\", SFO.Path)
-                            Progress.TotalCount += _ContentNew.Count
+                            Progress.Maximum += _ContentNew.Count
                             For i = 0 To _ContentNew.Count - 1
                                 ThrowAny(Token)
                                 v = _ContentNew(i)
@@ -651,6 +720,7 @@ Namespace API.Reddit
 
                                 If (Not m.IsEmptyString AndAlso Not HashList.Contains(m)) Or Not (v.Type = UTypes.Picture Or
                                                                                                   v.Type = UTypes.GIF) Or Not UseMD5 Or ImgurUrls.Count > 0 Then
+                                    isImgurStuff = ImgurUrls.Count > 0
                                     Do
                                         If Not cached And Not m.IsEmptyString Then HashList.Add(m)
                                         v.MD5 = m
@@ -695,7 +765,7 @@ Namespace API.Reddit
                                                 dCount += 1
                                             End If
                                         Catch wex As Exception
-                                            If Not IsChannel Then ErrorDownloading(f, v.URL)
+                                            If Not IsChannel And Not IsImgurStuff And MissingErrorsAdd Then ErrorDownloading(f, v.URL)
                                         End Try
                                         If ImgurUrls.Count > 0 Then ImgurUrls.RemoveAt(0)
                                     Loop While ImgurUrls.Count > 0

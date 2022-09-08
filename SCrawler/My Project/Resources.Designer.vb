@@ -261,6 +261,26 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+        '''</summary>
+        Friend ReadOnly Property RedGifsIcon() As System.Drawing.Icon
+            Get
+                Dim obj As Object = ResourceManager.GetObject("RedGifsIcon", resourceCulture)
+                Return CType(obj,System.Drawing.Icon)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized resource of type System.Drawing.Bitmap.
+        '''</summary>
+        Friend ReadOnly Property RedGifsPic32() As System.Drawing.Bitmap
+            Get
+                Dim obj As Object = ResourceManager.GetObject("RedGifsPic32", resourceCulture)
+                Return CType(obj,System.Drawing.Bitmap)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized resource of type System.Drawing.Bitmap.
         '''</summary>
         Friend ReadOnly Property Refresh() As System.Drawing.Bitmap
@@ -271,21 +291,11 @@ Namespace My.Resources
         End Property
         
         '''<summary>
-        '''  Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
-        '''</summary>
-        Friend ReadOnly Property RegGifsIcon() As System.Drawing.Icon
-            Get
-                Dim obj As Object = ResourceManager.GetObject("RegGifsIcon", resourceCulture)
-                Return CType(obj,System.Drawing.Icon)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized resource of type System.Drawing.Bitmap.
         '''</summary>
-        Friend ReadOnly Property RegGifsPic32() As System.Drawing.Bitmap
+        Friend ReadOnly Property RSSPic() As System.Drawing.Bitmap
             Get
-                Dim obj As Object = ResourceManager.GetObject("RegGifsPic32", resourceCulture)
+                Dim obj As Object = ResourceManager.GetObject("RSSPic", resourceCulture)
                 Return CType(obj,System.Drawing.Bitmap)
             End Get
         End Property
@@ -297,6 +307,16 @@ Namespace My.Resources
             Get
                 Dim obj As Object = ResourceManager.GetObject("ScriptPic32", resourceCulture)
                 Return CType(obj,System.Drawing.Bitmap)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+        '''</summary>
+        Friend ReadOnly Property SettingsIcon() As System.Drawing.Icon
+            Get
+                Dim obj As Object = ResourceManager.GetObject("SettingsIcon", resourceCulture)
+                Return CType(obj,System.Drawing.Icon)
             End Get
         End Property
         

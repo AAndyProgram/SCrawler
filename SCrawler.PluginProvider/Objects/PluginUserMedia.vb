@@ -17,7 +17,7 @@ Namespace Plugin
             GIF = 50
             m3u8 = 100
         End Enum
-        Enum States As Integer : Unknown = 0 : Tried = 1 : Downloaded = 2 : Skipped = 3 : End Enum
+        Enum States As Integer : Unknown = 0 : Tried = 1 : Downloaded = 2 : Skipped = 3 : Missing = 4 : End Enum
         Public ContentType As Integer
         Public URL As String
         Public MD5 As String

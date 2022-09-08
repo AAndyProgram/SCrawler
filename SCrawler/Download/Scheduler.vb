@@ -13,10 +13,6 @@ Imports System.Threading
 Namespace DownloadObjects
     Friend Class Scheduler : Implements IEnumerable(Of AutoDownloader), IMyEnumerator(Of AutoDownloader), IDisposable
         Friend Const Name_Plan As String = "Plan"
-        Friend Event UserFind As AutoDownloader.UserFindEventHandler
-        Private Sub OnUserFind(ByVal Key As String, ByVal Activate As Boolean)
-            RaiseEvent UserFind(Key, Activate)
-        End Sub
         Private ReadOnly Plans As List(Of AutoDownloader)
         Private ReadOnly File As SFile = $"Settings\AutoDownload.xml"
         Private ReadOnly PlanWorking As Predicate(Of AutoDownloader) = Function(Plan) Plan.Working
@@ -36,10 +32,7 @@ Namespace DownloadObjects
                     End If
                 End Using
             End If
-            If Plans.Count > 0 Then Plans.ForEach(Sub(p)
-                                                      p.Source = Me
-                                                      AddHandler p.UserFind, AddressOf OnUserFind
-                                                  End Sub)
+            If Plans.Count > 0 Then Plans.ForEach(Sub(p) p.Source = Me)
         End Sub
         Default Friend ReadOnly Property Item(ByVal Index As Integer) As AutoDownloader Implements IMyEnumerator(Of AutoDownloader).MyEnumeratorObject
             Get
@@ -56,7 +49,6 @@ Namespace DownloadObjects
         End Function
         Friend Sub Add(ByVal Plan As AutoDownloader)
             Plan.Source = Me
-            AddHandler Plan.UserFind, AddressOf OnUserFind
             Plans.Add(Plan)
             Update()
         End Sub
