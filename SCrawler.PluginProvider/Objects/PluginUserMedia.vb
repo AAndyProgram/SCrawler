@@ -26,5 +26,6 @@ Namespace Plugin
         Public PostID As String
         Public PostDate As Date?
         Public SpecialFolder As String
+        Public Attempts As Integer
     End Structure
 End Namespace

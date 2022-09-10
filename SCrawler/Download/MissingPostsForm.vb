@@ -112,24 +112,24 @@ Namespace DownloadObjects
 #End Region
 #Region "Post actions"
         Private Sub BTT_DOWN_Click(sender As Object, e As EventArgs) Handles BTT_DOWN.Click
-            Try
-                If LIST_DATA.SelectedItems.Count > 0 Then
-                    Dim users As List(Of IUserData) = LIST_DATA.SelectedItems.ToObjectsList.ListCast(Of ListViewItem)().
-                                                      Select(Function(d) Settings.GetUser(CStr(d.Group.Tag))).ListWithRemove(Function(d) d Is Nothing)
-                    If users.ListExists Then
-                        If MsgBoxE({"The following users will be added to the download queue:" & vbCr & vbCr &
-                                    users.Select(Function(u) u.ToString).ListToString(vbNewLine), "Download users"},,,, {"Process", "Cancel"}) = 0 Then
-                            users.ForEach(Sub(u) u.DownloadMissingOnly = True)
-                            Downloader.AddRange(users)
-                            users.Clear()
-                        End If
-                    End If
-                Else
-                    MsgBoxE("No selected posts")
-                End If
-            Catch ex As Exception
-                ErrorsDescriber.Execute(EDP.SendInLog, ex, "[DownloadObjects.MissingPostsForm.Download]")
-            End Try
+            'Try
+            '    If LIST_DATA.SelectedItems.Count > 0 Then
+            '        Dim users As List(Of IUserData) = LIST_DATA.SelectedItems.ToObjectsList.ListCast(Of ListViewItem)().
+            '                                          Select(Function(d) Settings.GetUser(CStr(d.Group.Tag))).ListWithRemove(Function(d) d Is Nothing)
+            '        If users.ListExists Then
+            '            If MsgBoxE({"The following users will be added to the download queue:" & vbCr & vbCr &
+            '                        users.Select(Function(u) u.ToString).ListToString(vbNewLine), "Download users"},,,, {"Process", "Cancel"}) = 0 Then
+            '                users.ForEach(Sub(u) u.DownloadMissingOnly = True)
+            '                Downloader.AddRange(users)
+            '                users.Clear()
+            '            End If
+            '        End If
+            '    Else
+            '        MsgBoxE("No selected posts")
+            '    End If
+            'Catch ex As Exception
+            '    ErrorsDescriber.Execute(EDP.SendInLog, ex, "[DownloadObjects.MissingPostsForm.Download]")
+            'End Try
         End Sub
         Private Sub BTT_OPEN_POST_Click(sender As Object, e As EventArgs) Handles BTT_OPEN_POST.Click
             Try

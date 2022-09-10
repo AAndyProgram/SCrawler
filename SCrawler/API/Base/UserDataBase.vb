@@ -846,7 +846,7 @@ BlockNullPicture:
                 DownloadContent(Token)
                 ThrowIfDisposed()
                 LatestData.ListAddList(_ContentNew.Where(_downContent), LNC)
-                _ContentList.ListAddList(_ContentNew.Where(_downContent), LNC)
+                _ContentList.ListAddList(_ContentNew.Where(Function(c) _downContent(c) Or MissingFinder(c)), LNC)
                 If DownloadedTotal(False) > 0 Or EnvirChanged.Invoke Or _ContentList.Exists(MissingFinder) Then
                     If __SaveData Then
                         LastUpdated = Now

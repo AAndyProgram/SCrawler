@@ -29,6 +29,7 @@ Friend Class SettingsCLS : Implements IDisposable
             Return OS64 And FfmpegExists
         End Get
     End Property
+    Friend ReadOnly Property CachePath As SFile = "_Cache\"
     Friend ReadOnly Plugins As List(Of PluginHost)
     Friend ReadOnly Property Users As List(Of IUserData)
     Friend ReadOnly Property UsersList As List(Of UserInfo)
@@ -555,7 +556,7 @@ Friend Class SettingsCLS : Implements IDisposable
                     DeleteCachePath()
                 End If
                 If Not Automation Is Nothing Then Automation.Dispose()
-                AutoDownloader.CachePath.Delete(SFO.Path, SFODelete.DeletePermanently, EDP.None)
+                CachePath.Delete(SFO.Path, SFODelete.DeletePermanently, EDP.None)
                 Plugins.Clear()
                 Users.ListClearDispose
                 UsersList.Clear()

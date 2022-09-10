@@ -765,7 +765,11 @@ Namespace API.Reddit
                                                 dCount += 1
                                             End If
                                         Catch wex As Exception
-                                            If Not IsChannel And Not IsImgurStuff And MissingErrorsAdd Then ErrorDownloading(f, v.URL)
+                                            If Not IsChannel Then
+                                                If Not IsImgurStuff And MissingErrorsAdd Then ErrorDownloading(f, v.URL)
+                                                v.Attempts += 1
+                                                v.State = UStates.Missing
+                                            End If
                                         End Try
                                         If ImgurUrls.Count > 0 Then ImgurUrls.RemoveAt(0)
                                     Loop While ImgurUrls.Count > 0

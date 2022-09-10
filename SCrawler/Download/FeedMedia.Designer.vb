@@ -27,7 +27,6 @@ Namespace DownloadObjects
             Dim CONTEXT_SEP_2 As System.Windows.Forms.ToolStripSeparator
             Dim CONTEXT_SEP_3 As System.Windows.Forms.ToolStripSeparator
             Dim TP_LBL As System.Windows.Forms.TableLayoutPanel
-            Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(FeedMedia))
             Me.CH_CHECKED = New System.Windows.Forms.CheckBox()
             Me.LBL_INFO = New System.Windows.Forms.Label()
             Me.CONTEXT_DATA = New System.Windows.Forms.ContextMenuStrip(Me.components)
@@ -39,7 +38,6 @@ Namespace DownloadObjects
             Me.BTT_CONTEXT_INFO = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_CONTEXT_DELETE = New System.Windows.Forms.ToolStripMenuItem()
             Me.TP_MAIN = New System.Windows.Forms.TableLayoutPanel()
-            Me.MyVideo = New AxWMPLib.AxWindowsMediaPlayer()
             CONTEXT_SEP_1 = New System.Windows.Forms.ToolStripSeparator()
             CONTEXT_SEP_2 = New System.Windows.Forms.ToolStripSeparator()
             CONTEXT_SEP_3 = New System.Windows.Forms.ToolStripSeparator()
@@ -47,7 +45,6 @@ Namespace DownloadObjects
             TP_LBL.SuspendLayout()
             Me.CONTEXT_DATA.SuspendLayout()
             Me.TP_MAIN.SuspendLayout()
-            CType(Me.MyVideo, System.ComponentModel.ISupportInitialize).BeginInit()
             Me.SuspendLayout()
             '
             'CONTEXT_SEP_1
@@ -164,7 +161,6 @@ Namespace DownloadObjects
             Me.TP_MAIN.ColumnCount = 1
             Me.TP_MAIN.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
             Me.TP_MAIN.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
-            Me.TP_MAIN.Controls.Add(Me.MyVideo, 0, 1)
             Me.TP_MAIN.Controls.Add(TP_LBL, 0, 0)
             Me.TP_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
             Me.TP_MAIN.Location = New System.Drawing.Point(0, 0)
@@ -175,16 +171,6 @@ Namespace DownloadObjects
             Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
             Me.TP_MAIN.Size = New System.Drawing.Size(146, 146)
             Me.TP_MAIN.TabIndex = 0
-            '
-            'MyVideo
-            '
-            Me.MyVideo.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.MyVideo.Enabled = True
-            Me.MyVideo.Location = New System.Drawing.Point(3, 28)
-            Me.MyVideo.Name = "MyVideo"
-            Me.MyVideo.OcxState = CType(resources.GetObject("MyVideo.OcxState"), System.Windows.Forms.AxHost.State)
-            Me.MyVideo.Size = New System.Drawing.Size(140, 115)
-            Me.MyVideo.TabIndex = 1
             '
             'FeedMedia
             '
@@ -201,7 +187,6 @@ Namespace DownloadObjects
             TP_LBL.PerformLayout()
             Me.CONTEXT_DATA.ResumeLayout(False)
             Me.TP_MAIN.ResumeLayout(False)
-            CType(Me.MyVideo, System.ComponentModel.ISupportInitialize).EndInit()
             Me.ResumeLayout(False)
 
         End Sub
@@ -213,7 +198,6 @@ Namespace DownloadObjects
         Private WithEvents BTT_CONTEXT_OPEN_USER_POST As ToolStripMenuItem
         Private WithEvents BTT_CONTEXT_FIND_USER As ToolStripMenuItem
         Private WithEvents BTT_CONTEXT_DELETE As ToolStripMenuItem
-        Private WithEvents MyVideo As AxWMPLib.AxWindowsMediaPlayer
         Private WithEvents BTT_CONTEXT_OPEN_USER As ToolStripMenuItem
         Private WithEvents CH_CHECKED As CheckBox
         Private WithEvents LBL_INFO As Label

@@ -1,3 +1,10 @@
+# 2022.9.10.0
+
+*2022-09-10*
+
+- Fixed
+  - The memory is still leaking. This time because of the video. *Using WMP was not the best choice.*
+
 # 2022.9.8.1
 
 *2022-09-08*

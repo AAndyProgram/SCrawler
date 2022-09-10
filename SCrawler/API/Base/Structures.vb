@@ -52,6 +52,7 @@ Namespace API.Base
                     Post = New UserPost With {.ID = m.PostID, .[Date] = m.PostDate}
                     State = m.DownloadState
                     SpecialFolder = m.SpecialFolder
+                    Attempts = m.Attempts
                 End If
             End Sub
             Public Shared Widening Operator CType(ByVal _URL As String) As UserMedia
@@ -72,7 +73,8 @@ Namespace API.Base
                     .URL = URL,
                     .SpecialFolder = SpecialFolder,
                     .PostID = Post.ID,
-                    .PostDate = Post.Date
+                    .PostDate = Post.Date,
+                    .Attempts = Attempts
                 }
             End Function
             Friend Overloads Function Equals(ByVal Other As UserMedia) As Boolean Implements IEquatable(Of UserMedia).Equals

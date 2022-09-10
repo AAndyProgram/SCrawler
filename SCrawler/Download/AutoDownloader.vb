@@ -16,9 +16,9 @@ Imports SCrawler.API
 Imports SCrawler.API.Base
 Namespace DownloadObjects
     Friend Class AutoDownloader : Inherits GroupParameters : Implements IEContainerProvider
-        Friend Shared ReadOnly Property CachePath As SFile
+        Private Shared ReadOnly Property CachePath As SFile
             Get
-                Return "_Cache\"
+                Return Settings.CachePath
             End Get
         End Property
         Friend Enum Modes As Integer

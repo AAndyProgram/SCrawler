@@ -11,7 +11,6 @@ Imports System.ComponentModel
 Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Tools
 Imports SCrawler.API.Base
-Imports AxWMPLib
 Imports UserMediaD = SCrawler.DownloadObjects.TDownloader.UserMediaD
 Namespace DownloadObjects
     <ToolboxItem(False), DesignTimeVisible(False)>
@@ -20,6 +19,7 @@ Namespace DownloadObjects
         Private Const VideoHeight As Integer = 450
         Private WithEvents MyPicture As PictureBox
         Private ReadOnly MyImage As ImageRenderer
+        Private ReadOnly MyVideo As FeedVideo
         Friend ReadOnly Property Exists As Boolean
             Get
                 Return Not MyPicture Is Nothing Or Not MyVideo Is Nothing
@@ -106,16 +106,12 @@ Namespace DownloadObjects
                                 .Padding = New Padding(0),
                                 .ContextMenuStrip = CONTEXT_DATA
                             }
-                            TP_MAIN.Controls.Remove(MyVideo)
-                            MyVideo.Dispose()
-                            MyVideo = Nothing
                             TP_MAIN.Controls.Add(MyPicture, 0, 1)
                             BTT_CONTEXT_OPEN_MEDIA.Text &= " picture"
                             BTT_CONTEXT_DELETE.Text &= " picture"
                         Case UserMedia.Types.Video
-                            MyVideo.Tag = File
+                            MyVideo = New FeedVideo(File) With {.Tag = File, .Dock = DockStyle.Fill, .ContextMenuStrip = CONTEXT_DATA}
                             TP_MAIN.Controls.Add(MyVideo, 0, 1)
-                            MyVideo.URL = File.ToString
                             BTT_CONTEXT_OPEN_MEDIA.Text &= " video"
                             BTT_CONTEXT_DELETE.Text &= " video"
                             h = VideoHeight
@@ -158,6 +154,7 @@ Namespace DownloadObjects
         Private Sub FeedImage_Disposed(sender As Object, e As EventArgs) Handles Me.Disposed
             If Not MyImage Is Nothing Then MyImage.Dispose()
             If Not MyPicture Is Nothing Then MyPicture.Dispose()
+            If Not MyVideo Is Nothing Then MyVideo.Dispose()
         End Sub
 #End Region
 #Region "LBL"
@@ -171,21 +168,6 @@ Namespace DownloadObjects
 #Region "Picture / Video objects"
         Private Sub MyPicture_DoubleClick(sender As Object, e As EventArgs) Handles MyPicture.DoubleClick
             Try : Process.Start(File) : Catch : End Try
-        End Sub
-        Private VideoPaused As Boolean = False
-        Private Sub MyVideo_PlayStateChange(sender As Object, e As _WMPOCXEvents_PlayStateChangeEvent) Handles MyVideo.PlayStateChange
-            Try
-                If Not VideoPaused Then
-                    With MyVideo
-                        If .playState = WMPLib.WMPPlayState.wmppsPlaying Then
-                            .Ctlcontrols.currentPosition = 1
-                            .Ctlcontrols.pause()
-                            VideoPaused = True
-                        End If
-                    End With
-                End If
-            Catch
-            End Try
         End Sub
 #End Region
 #Region "Context"

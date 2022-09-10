@@ -152,7 +152,8 @@ Public Class UserData : Implements IPluginContentProvider
                         If Responser.Client.StatusCode = Net.HttpStatusCode.ServiceUnavailable Then
                             LogProvider.Add("LPSG not available")
                         Else
-                            m.DownloadState = UStates.Skipped
+                            m.DownloadState = UStates.Missing
+                            m.Attempts += 1
                         End If
                     End Try
                     RaiseEvent ProgressChanged(1)

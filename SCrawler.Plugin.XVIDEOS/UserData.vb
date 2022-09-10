@@ -208,7 +208,8 @@ Public Class UserData : Implements IPluginContentProvider
                         m.File = f
                         m.DownloadState = UStates.Downloaded
                     Catch ex As Exception
-                        m.DownloadState = UStates.Skipped
+                        m.DownloadState = UStates.Missing
+                        m.Attempts += 1
                     End Try
                     TempMediaList(i) = m
                     RaiseEvent ProgressChanged(1)
