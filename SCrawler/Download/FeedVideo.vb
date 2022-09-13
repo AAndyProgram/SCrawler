@@ -18,7 +18,14 @@ Namespace DownloadObjects
                                                     Dim v# = DivideWithZeroChecking(MediaPlayer.Time, MediaPlayer.Length) * 10
                                                     If v > 10 Then TR_POSITION.Value = 10 Else TR_POSITION.Value = v
                                                 End Sub
+        Private ReadOnly TimeChangeLabel As Action = Sub()
+                                                         If MediaPlayer.Time >= 0 Then
+                                                             Dim t As TimeSpan = TimeSpan.FromMilliseconds(MediaPlayer.Time)
+                                                             LBL_TIME.Text = $"{VideoLength}/{t}"
+                                                         End If
+                                                     End Sub
         Private ReadOnly MyImage As ImageRenderer
+        Friend ReadOnly VideoLength As TimeSpan
         Public Sub New()
             InitializeComponent()
         End Sub
@@ -31,6 +38,7 @@ Namespace DownloadObjects
             MediaPlayer = New [Shared].MediaPlayer(New [Shared].Media(New [Shared].LibVLC(enableDebugLogs:=debugLogs), New Uri(File.ToString)))
             MyVideo.MediaPlayer = MediaPlayer
             TR_VOLUME.Value = MediaPlayer.Volume / 10
+            If MediaPlayer.Length >= 0 Then VideoLength = TimeSpan.FromMilliseconds(MediaPlayer.Length)
             If Settings.UseM3U8 Then
                 Dim f As SFile = $"{Settings.CachePath.PathWithSeparator}FeedSnapshots\{File.GetHashCode}.png"
                 If Not f.Exists Then f = FFMPEG.TakeSnapshot(File, f, Settings.FfmpegFile, TimeSpan.FromSeconds(1))
@@ -58,6 +66,7 @@ Namespace DownloadObjects
         End Sub
         Private Sub MediaPlayer_TimeChanged(sender As Object, e As [Shared].MediaPlayerTimeChangedEventArgs) Handles MediaPlayer.TimeChanged
             If TR_POSITION.InvokeRequired Then TR_POSITION.Invoke(TimeChange) Else TimeChange.Invoke
+            If LBL_TIME.InvokeRequired Then LBL_TIME.Invoke(TimeChangeLabel) Else TimeChangeLabel.Invoke
         End Sub
         Private Sub TR_POSITION_MouseUp(sender As Object, e As MouseEventArgs) Handles TR_POSITION.MouseUp
             Try : MediaPlayer.Time = (MediaPlayer.Length / 100) * (TR_POSITION.Value * 10) : Catch : End Try

@@ -247,6 +247,7 @@ Namespace API.Instagram
                     Try
                         Dim n As EContainer, nn As EContainer, node As EContainer
                         Dim HasNextPage As Boolean = False
+                        Dim Pinned As Boolean
                         Dim EndCursor$ = String.Empty
                         Dim PostID$ = String.Empty, PostDate$ = String.Empty, SpecFolder$ = String.Empty
                         Dim TaggedCount%
@@ -296,7 +297,7 @@ Namespace API.Instagram
                         RequestsCount += 1
                         ThrowAny(Token)
 
-                        'Data
+                        'Parsing
                         If Not r.IsEmptyString Then
                             Using j As EContainer = JsonDocument.Parse(r).XmlIfNothing
                                 n = j.ItemF(ENode).XmlIfNothing
@@ -321,13 +322,14 @@ Namespace API.Instagram
                                                         End If
                                                     End If
                                                     PostID = node.Value("id")
-                                                    If Not PostID.IsEmptyString And _TempPostsList.Contains(PostID) Then Throw New ExitException(_DownloadComplete)
+                                                    Pinned = CBool(If(node("pinned_for_users")?.Count, 0))
+                                                    If Not PostID.IsEmptyString And _TempPostsList.Contains(PostID) And Not Pinned Then Throw New ExitException(_DownloadComplete)
                                                     _TempPostsList.Add(PostID)
                                                     PostDate = node.Value("taken_at_timestamp")
                                                     If IsSavedPosts Then
                                                         _SavedPostsIDs.Add(PostID)
                                                     Else
-                                                        If Not CheckDatesLimit(PostDate, DateProvider) Then Throw New ExitException(_DownloadComplete)
+                                                        If Not CheckDatesLimit(PostDate, DateProvider) And Not Pinned Then Throw New ExitException(_DownloadComplete)
                                                         ObtainMedia(node, PostID, PostDate, SpecFolder)
                                                     End If
                                                 Next

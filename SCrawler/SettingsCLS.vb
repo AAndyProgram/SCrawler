@@ -343,7 +343,7 @@ Friend Class SettingsCLS : Implements IDisposable
             _UserListUpdateRequired = True
         End Try
     End Sub
-    Friend Overloads Function GetUser(ByVal User As IUserData) As IUserData
+    Friend Overloads Function GetUser(ByVal User As IUserData, Optional ByVal GetCollection As Boolean = False) As IUserData
         If Users.Count > 0 Then
             Dim uSimple As Predicate(Of IUserData) = Function(u) u.Equals(DirectCast(User, UserDataBase))
             Dim uCol As Predicate(Of IUserData) = Function(ByVal u As IUserData) As Boolean
@@ -360,7 +360,7 @@ Friend Class SettingsCLS : Implements IDisposable
                 If Users(i).IsCollection Then
                     With DirectCast(Users(i), UserDataBind)
                         i = .Collections.FindIndex(uSimple)
-                        If i >= 0 Then Return .Collections(i)
+                        If i >= 0 Then Return If(GetCollection, Users(i), .Collections(i))
                     End With
                 Else
                     Return Users(i)
@@ -369,7 +369,7 @@ Friend Class SettingsCLS : Implements IDisposable
         End If
         Return Nothing
     End Function
-    Friend Overloads Function GetUser(ByVal UserKey As String) As IUserData
+    Friend Overloads Function GetUser(ByVal UserKey As String, Optional ByVal GetCollection As Boolean = False) As IUserData
         If Users.Count > 0 Then
             Dim finder As Predicate(Of IUserData) = Function(u) u.Key = UserKey
             Dim i%, ii%
@@ -379,7 +379,7 @@ Friend Class SettingsCLS : Implements IDisposable
                         With DirectCast(.Self, UserDataBind)
                             If .Count > 0 Then
                                 ii = .Collections.FindIndex(finder)
-                                If ii >= 0 Then Return .Collections(ii)
+                                If ii >= 0 Then Return If(GetCollection, .Self, .Collections(ii))
                             End If
                         End With
                     Else

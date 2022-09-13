@@ -1,3 +1,13 @@
+# 2022.9.13.0
+
+*2022-09-13*
+
+- Added
+  - Video duration to the feed
+- Fixed
+  - (Issue #70) Instagram posts not downloading if there are pinned posts that have already been downloaded
+  - Minor bugs
+
 # 2022.9.10.0
 
 *2022-09-10*

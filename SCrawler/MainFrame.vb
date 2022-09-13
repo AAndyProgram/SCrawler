@@ -1171,10 +1171,10 @@ ResumeDownloadingOperation:
         Dim a As Action = Sub()
                               Dim i% = LIST_PROFILES.Items.IndexOfKey(Key)
                               If i < 0 Then
-                                  i = Settings.Users.FindIndex(Function(u) u.Key = Key)
-                                  If i >= 0 Then
-                                      UserListUpdate(Settings.Users(i), True)
-                                      i = LIST_PROFILES.Items.IndexOfKey(Key)
+                                  Dim u As IUserData = Settings.GetUser(Key, True)
+                                  If Not u Is Nothing Then
+                                      UserListUpdate(u, True)
+                                      i = LIST_PROFILES.Items.IndexOfKey(u.Key)
                                   End If
                               End If
                               If i >= 0 Then

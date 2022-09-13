@@ -30,6 +30,7 @@ Namespace DownloadObjects
             Me.BTT_PAUSE = New System.Windows.Forms.Button()
             Me.BTT_STOP = New System.Windows.Forms.Button()
             Me.TR_VOLUME = New System.Windows.Forms.TrackBar()
+            Me.LBL_TIME = New System.Windows.Forms.Label()
             TP_MAIN = New System.Windows.Forms.TableLayoutPanel()
             TP_BUTTONS = New System.Windows.Forms.TableLayoutPanel()
             TP_MAIN.SuspendLayout()
@@ -88,6 +89,7 @@ Namespace DownloadObjects
             TP_BUTTONS.Controls.Add(Me.BTT_PAUSE, 1, 0)
             TP_BUTTONS.Controls.Add(Me.BTT_STOP, 2, 0)
             TP_BUTTONS.Controls.Add(Me.TR_VOLUME, 4, 0)
+            TP_BUTTONS.Controls.Add(Me.LBL_TIME, 3, 0)
             TP_BUTTONS.Dock = System.Windows.Forms.DockStyle.Fill
             TP_BUTTONS.Location = New System.Drawing.Point(1, 133)
             TP_BUTTONS.Margin = New System.Windows.Forms.Padding(1)
@@ -141,6 +143,16 @@ Namespace DownloadObjects
             Me.TR_VOLUME.Size = New System.Drawing.Size(94, 20)
             Me.TR_VOLUME.TabIndex = 3
             '
+            'LBL_TIME
+            '
+            Me.LBL_TIME.AutoSize = True
+            Me.LBL_TIME.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.LBL_TIME.Location = New System.Drawing.Point(78, 0)
+            Me.LBL_TIME.Name = "LBL_TIME"
+            Me.LBL_TIME.Size = New System.Drawing.Size(1, 26)
+            Me.LBL_TIME.TabIndex = 4
+            Me.LBL_TIME.TextAlign = System.Drawing.ContentAlignment.MiddleCenter
+            '
             'FeedVideo
             '
             Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
@@ -164,5 +176,6 @@ Namespace DownloadObjects
         Private WithEvents BTT_PAUSE As Button
         Private WithEvents BTT_STOP As Button
         Private WithEvents TR_VOLUME As TrackBar
+        Private WithEvents LBL_TIME As Label
     End Class
 End Namespace

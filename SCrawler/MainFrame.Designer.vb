@@ -40,6 +40,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_DELETE_USER = New System.Windows.Forms.ToolStripButton()
         Me.BTT_REFRESH = New System.Windows.Forms.ToolStripButton()
         Me.BTT_SHOW_INFO = New System.Windows.Forms.ToolStripButton()
+        Me.BTT_FEED = New System.Windows.Forms.ToolStripButton()
         Me.BTT_CHANNELS = New System.Windows.Forms.ToolStripButton()
         Me.BTT_DOWN_SAVED = New System.Windows.Forms.ToolStripButton()
         Me.BTT_DOWN_SELECTED = New System.Windows.Forms.ToolStripButton()
@@ -105,7 +106,6 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_TRAY_SHOW_HIDE = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_TRAY_CLOSE = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_TRAY_CLOSE_NO_SCRIPT = New System.Windows.Forms.ToolStripMenuItem()
-        Me.BTT_FEED = New System.Windows.Forms.ToolStripButton()
         SEP_1 = New System.Windows.Forms.ToolStripSeparator()
         SEP_2 = New System.Windows.Forms.ToolStripSeparator()
         CONTEXT_SEP_1 = New System.Windows.Forms.ToolStripSeparator()
@@ -147,7 +147,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         'MENU_SETTINGS_SEP_1
         '
         MENU_SETTINGS_SEP_1.Name = "MENU_SETTINGS_SEP_1"
-        MENU_SETTINGS_SEP_1.Size = New System.Drawing.Size(113, 6)
+        MENU_SETTINGS_SEP_1.Size = New System.Drawing.Size(177, 6)
         '
         'SEP_3
         '
@@ -228,7 +228,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         '
         Me.BTT_SETTINGS.Image = Global.SCrawler.My.Resources.Resources.SettingsPic_16
         Me.BTT_SETTINGS.Name = "BTT_SETTINGS"
-        Me.BTT_SETTINGS.Size = New System.Drawing.Size(116, 22)
+        Me.BTT_SETTINGS.Size = New System.Drawing.Size(180, 22)
         Me.BTT_SETTINGS.Text = "Settings"
         '
         'Toolbar_TOP
@@ -269,12 +269,12 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         '
         'BTT_REFRESH
         '
-        Me.BTT_REFRESH.AutoToolTip = False
         Me.BTT_REFRESH.Image = Global.SCrawler.My.Resources.Resources.Refresh
         Me.BTT_REFRESH.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.BTT_REFRESH.Name = "BTT_REFRESH"
         Me.BTT_REFRESH.Size = New System.Drawing.Size(66, 22)
         Me.BTT_REFRESH.Text = "Refresh"
+        Me.BTT_REFRESH.ToolTipText = "Refresh user list"
         '
         'BTT_SHOW_INFO
         '
@@ -285,6 +285,15 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_SHOW_INFO.Text = "Info"
         Me.BTT_SHOW_INFO.ToolTipText = "Left-click: open the 'Info' form (show download summary)." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Right click: open the " &
     "'Missing' form (show information about missing posts)."
+        '
+        'BTT_FEED
+        '
+        Me.BTT_FEED.Image = Global.SCrawler.My.Resources.Resources.RSSPic
+        Me.BTT_FEED.ImageTransparentColor = System.Drawing.Color.Magenta
+        Me.BTT_FEED.Name = "BTT_FEED"
+        Me.BTT_FEED.Size = New System.Drawing.Size(52, 22)
+        Me.BTT_FEED.Text = "Feed"
+        Me.BTT_FEED.ToolTipText = "Feed of recently downloaded data"
         '
         'BTT_CHANNELS
         '
@@ -775,14 +784,6 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_TRAY_CLOSE_NO_SCRIPT.Text = "Close (no script)"
         Me.BTT_TRAY_CLOSE_NO_SCRIPT.ToolTipText = "Close the program without executing the script"
         Me.BTT_TRAY_CLOSE_NO_SCRIPT.Visible = False
-        '
-        'BTT_FEED
-        '
-        Me.BTT_FEED.Image = Global.SCrawler.My.Resources.Resources.RSSPic
-        Me.BTT_FEED.ImageTransparentColor = System.Drawing.Color.Magenta
-        Me.BTT_FEED.Name = "BTT_FEED"
-        Me.BTT_FEED.Size = New System.Drawing.Size(52, 22)
-        Me.BTT_FEED.Text = "Feed"
         '
         'MainFrame
         '

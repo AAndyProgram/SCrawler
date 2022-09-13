@@ -131,6 +131,7 @@ Namespace DownloadObjects
                         End With
                     End If
 
+                    If Not MyVideo Is Nothing Then info &= $" ({MyVideo.VideoLength})"
                     LBL_INFO.Text = info
                     'TT_MAIN.SetToolTip(LBL_INFO, Information)
                     s = New Size(Width, h + TP_MAIN.RowStyles(0).Height + PaddingE.GetOf({TP_MAIN}).Vertical(2))

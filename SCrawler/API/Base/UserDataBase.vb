@@ -830,7 +830,7 @@ BlockNullPicture:
                 Else
                     'ReparseMissing(Token)
                 End If
-                _TempMediaList.ListAddList(ContentMissing, LNC)
+                '_TempMediaList.ListAddList(ContentMissing, LNC)
 
                 If _TempMediaList.Count > 0 Then
                     If Not DownloadImages Then _TempMediaList.RemoveAll(Function(m) m.Type = UTypes.GIF Or m.Type = UTypes.Picture)
@@ -845,9 +845,12 @@ BlockNullPicture:
                 _ContentNew.ListAddList(_TempMediaList, LAP.ClearBeforeAdd)
                 DownloadContent(Token)
                 ThrowIfDisposed()
+
                 LatestData.ListAddList(_ContentNew.Where(_downContent), LNC)
+                Dim mcb& = If(ContentMissingExists, _ContentList.LongCount(Function(c) MissingFinder(c)), 0)
                 _ContentList.ListAddList(_ContentNew.Where(Function(c) _downContent(c) Or MissingFinder(c)), LNC)
-                If DownloadedTotal(False) > 0 Or EnvirChanged.Invoke Or _ContentList.Exists(MissingFinder) Then
+                Dim mca& = If(ContentMissingExists, _ContentList.LongCount(Function(c) MissingFinder(c)), 0)
+                If DownloadedTotal(False) > 0 Or EnvirChanged.Invoke Or Not mcb = mca Then
                     If __SaveData Then
                         LastUpdated = Now
                         RunScript()
