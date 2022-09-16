@@ -44,6 +44,7 @@ Namespace DownloadObjects
         Private Sub DownloadFeedForm_Load(sender As Object, e As EventArgs) Handles Me.Load
             With MyDefs
                 .MyViewInitialize()
+                LastWinState = WindowState
                 With MyRange
                     .AutoToolTip = True
                     .ButtonKey(RCI.Previous) = Keys.F3
@@ -91,7 +92,7 @@ Namespace DownloadObjects
                                                    Dim p% = IIf(DataColumns = 1, 100, 50)
                                                    For i = 0 To DataColumns - 1 : .ColumnStyles.Add(New ColumnStyle(SizeType.Percent, p)) : Next
                                                    .ColumnCount = .ColumnStyles.Count
-                                                   For i = 0 To DataRows - 1 : .RowStyles.Add(New RowStyle(SizeType.Absolute, 0)) : Next
+                                                   For i = 0 To DataRows : .RowStyles.Add(New RowStyle(SizeType.Absolute, 0)) : Next
                                                    .RowCount = .RowStyles.Count
                                                    .HorizontalScroll.Visible = False
                                                End With
@@ -177,8 +178,8 @@ Namespace DownloadObjects
             Friend ReadOnly Row As Integer
             Friend ReadOnly Column As Integer
             Friend Sub New(ByVal RowsCount As Integer, ByVal ColumnsCount As Integer)
-                Me.RowsCount = RowsCount - 1
-                Me.ColumnsCount = ColumnsCount - 1
+                Me.RowsCount = RowsCount
+                Me.ColumnsCount = ColumnsCount
                 Row = 0
                 Column = 0
             End Sub
@@ -190,86 +191,71 @@ Namespace DownloadObjects
             Friend Function [Next]() As TPCELL
                 Dim r% = Row
                 Dim c% = Column + 1
-                If Not c.ValueBetween(0, ColumnsCount) Then c = 0 : r += 1
+                If Not c.ValueBetween(0, ColumnsCount - 1) Then c = 0 : r += 1
                 Return New TPCELL(RowsCount, ColumnsCount, r, c)
             End Function
         End Structure
+        Private RefillInProgress As Boolean = False
         Private Sub MyRange_IndexChanged(ByVal Sender As IRangeSwitcherProvider, ByVal e As EventArgs) Handles MyRange.IndexChanged
             Try
-                If Sender.CurrentIndex >= 0 Then
+                If Not RefillInProgress AndAlso Sender.CurrentIndex >= 0 Then
+                    RefillInProgress = True
                     AllowTopScroll = False
                     ScrollSuspended = True
-                    Dim d As List(Of Integer) = MyRange.Indexes(Sender.CurrentIndex, EDP.ReturnValue).ListIfNothing
+                    Dim d As List(Of UserMediaD) = MyRange.Current
+                    Dim d2 As List(Of UserMediaD)
                     Dim i%
-                    If d.Count > 0 Then
+                    If d.ListExists Then
                         ClearTable()
                         If Sender.CurrentIndex > 0 And FeedEndless Then
-                            i = MyRange.Indexes(Sender.CurrentIndex - 1, EDP.ReturnValue).DefaultIfEmpty(-1).Last
-                            If i.ValueBetween(0, DataList.Count - 1) Then
-                                If d.Count = 0 Then d.Add(i) Else d.Insert(0, i)
-                            End If
+                            d2 = DirectCast(MyRange.Switcher, RangeSwitcher(Of UserMediaD)).Item(Sender.CurrentIndex - 1).ListTake(-2, DataColumns, EDP.ReturnValue).ListIfNothing
+                            If d2.Count > 0 Then d.InsertRange(0, d2) : d2.Clear()
                         End If
                         Dim w% = GetWidth()
-                        Dim hp% = PaddingE.GetOf({TP_DATA}).Vertical(2)
                         Dim p As New TPCELL(DataRows, DataColumns)
                         Dim fmList As New List(Of FeedMedia)
-                        Dim rhd As New Dictionary(Of Integer, List(Of Integer))
-                        For Each i In d
-                            If i.ValueBetween(0, DataList.Count - 1) Then fmList.Add(New FeedMedia(DataList(i), w))
-                        Next
+                        d.ForEach(Sub(de) fmList.Add(New FeedMedia(de, w)))
                         If fmList.Count > 0 Then fmList.ListDisposeRemoveAll(Function(fm) fm Is Nothing OrElse fm.HasError)
                         If fmList.Count > 0 Then
                             For i = 0 To fmList.Count - 1
-                                If Not rhd.ContainsKey(p.Row) Then rhd.Add(p.Row, New List(Of Integer))
-                                rhd(p.Row).Add(fmList(i).Height)
-                                p = p.Next
-                            Next
-                            p = New TPCELL(DataRows, DataColumns)
-                            ControlInvoke(TP_DATA, Sub()
-                                                       With TP_DATA
-                                                           With .RowStyles
-                                                               For i = 0 To .Count - 1
-                                                                   With .Item(i) : .SizeType = SizeType.Absolute : .Height = 0 : End With
-                                                               Next
-                                                           End With
-                                                           .AutoScroll = False
-                                                           .AutoScroll = True
-                                                       End With
-                                                   End Sub)
-                            For i = 0 To fmList.Count - 1
-                                ControlInvoke(TP_DATA, Sub()
-                                                           With TP_DATA
-                                                               With .RowStyles(p.Row) : .SizeType = SizeType.Absolute : .Height = rhd(p.Row).Max : End With
-                                                               .Controls.Add(fmList(i), p.Column, p.Row)
-                                                           End With
-                                                       End Sub)
+                                ControlInvoke(TP_DATA, Sub() TP_DATA.Controls.Add(fmList(i), p.Column, p.Row))
                                 p = p.Next
                             Next
                         End If
+                        ResizeGrid()
                         fmList.Clear()
-                        rhd.ListForEach(Sub(kv, ii) kv.Value.Clear())
-                        rhd.Clear()
                         d.Clear()
                     End If
+                    RefillInProgress = False
                 End If
             Catch ex As Exception
                 ErrorsDescriber.Execute(EDP.SendInLog, ex, $"[DownloadObjects.DownloadFeedForm.Range.IndexChanged({Sender.CurrentIndex})]")
+                RefillInProgress = False
             Finally
-                ControlInvoke(TP_DATA, Sub()
-                                           With TP_DATA.VerticalScroll
-                                               If Offset = 1 Then .Value = 0 Else .Value = .Maximum
-                                           End With
-                                       End Sub)
-                ScrollSuspended = False
-                DataPopulated = True
+                If Not RefillInProgress Then
+                    ControlInvoke(TP_DATA, Sub()
+                                               With TP_DATA.VerticalScroll
+                                                   If Offset = 1 Then .Value = 0 Else .Value = .Maximum
+                                               End With
+                                           End Sub)
+                    ScrollSuspended = False
+                    DataPopulated = True
+                End If
             End Try
         End Sub
 #End Region
 #Region "Size"
+        Private LastWinState As FormWindowState = FormWindowState.Normal
         Private Function GetWidth() As Integer
             Return (TP_DATA.Width - PaddingE.GetOf({Me, TP_DATA}).Horizontal(2)) / DataColumns
         End Function
         Private Sub DownloadFeedForm_ResizeEnd(sender As Object, e As EventArgs) Handles Me.ResizeEnd
+            ResizeGrid()
+        End Sub
+        Private Sub DownloadFeedForm_SizeChanged(sender As Object, e As EventArgs) Handles Me.SizeChanged
+            If Not LastWinState = WindowState And Not If(MyDefs?.Initializing, True) Then LastWinState = WindowState : ResizeGrid()
+        End Sub
+        Private Sub ResizeGrid()
             ControlInvoke(TP_DATA, Sub()
                                        With TP_DATA
                                            If .Controls.Count > 0 Then
@@ -282,9 +268,10 @@ Namespace DownloadObjects
                                                    If Not rh.ContainsKey(p.Row) Then rh.Add(p.Row, New List(Of Integer))
                                                    rh(p.Row).Add(cnt.Height)
                                                Next
+                                               For i% = 0 To .RowStyles.Count - 1 : .RowStyles(i).Height = 0 : Next
                                                If rh.Count > 0 Then
                                                    For Each kv In rh
-                                                       With .RowStyles(kv.Key) : .SizeType = SizeType.Absolute : .Height = kv.Value.Max : End With
+                                                       .RowStyles(kv.Key).Height = kv.Value.Max
                                                        kv.Value.Clear()
                                                    Next
                                                End If

@@ -1,3 +1,12 @@
+# 2022.9.16.0
+
+*2022-09-16*
+
+- Fixed
+  - Failed to get video thumbnail for channel video post
+  - Incorrect rendering of the 'Feed' table when the number of columns is more than one
+  - Minor design bugs
+
 # 2022.9.13.0
 
 *2022-09-13*

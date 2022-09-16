@@ -77,9 +77,7 @@ Friend Class SettingsCLS : Implements IDisposable
 
         FastProfilesLoading = New XMLValue(Of Boolean)("FastProfilesLoading", False, MyXML)
         MaxLargeImageHeight = New XMLValue(Of Integer)("MaxLargeImageHeight", 150, MyXML)
-        MaxLargeImageHeight.ReplaceByValue("MaxLargeImageHeigh",, MyXML)
         MaxSmallImageHeight = New XMLValue(Of Integer)("MaxSmallImageHeight", 15, MyXML)
-        MaxSmallImageHeight.ReplaceByValue("MaxSmallImageHeigh",, MyXML)
         DownloadOpenInfo = New XMLValueAttribute(Of Boolean, Boolean)("DownloadOpenInfo", "OpenAgain", False, False, MyXML)
         DownloadOpenProgress = New XMLValueAttribute(Of Boolean, Boolean)("DownloadOpenProgress", "OpenAgain", False, False, MyXML)
         DownloadsCompleteCommand = New XMLValueAttribute(Of String, Boolean)("DownloadsCompleteCommand", "Use",,, MyXML)
@@ -344,46 +342,23 @@ Friend Class SettingsCLS : Implements IDisposable
         End Try
     End Sub
     Friend Overloads Function GetUser(ByVal User As IUserData, Optional ByVal GetCollection As Boolean = False) As IUserData
-        If Users.Count > 0 Then
-            Dim uSimple As Predicate(Of IUserData) = Function(u) u.Equals(DirectCast(User, UserDataBase))
-            Dim uCol As Predicate(Of IUserData) = Function(ByVal u As IUserData) As Boolean
-                                                      If u.IsCollection Then
-                                                          Return DirectCast(u, UserDataBind).Collections.Exists(uSimple)
-                                                      Else
-                                                          Return False
-                                                      End If
-                                                  End Function
-            Dim uu As Predicate(Of IUserData)
-            If User.IncludedInCollection Then uu = uCol Else uu = uSimple
-            Dim i% = Users.FindIndex(uu)
-            If i >= 0 Then
-                If Users(i).IsCollection Then
-                    With DirectCast(Users(i), UserDataBind)
-                        i = .Collections.FindIndex(uSimple)
-                        If i >= 0 Then Return If(GetCollection, Users(i), .Collections(i))
-                    End With
-                Else
-                    Return Users(i)
-                End If
-            End If
-        End If
-        Return Nothing
+        Return GetUser(If(User?.Key, String.Empty), GetCollection)
     End Function
     Friend Overloads Function GetUser(ByVal UserKey As String, Optional ByVal GetCollection As Boolean = False) As IUserData
-        If Users.Count > 0 Then
+        If Users.Count > 0 And Not UserKey.IsEmptyString Then
             Dim finder As Predicate(Of IUserData) = Function(u) u.Key = UserKey
             Dim i%, ii%
             For i = 0 To Users.Count - 1
                 With Users(i)
-                    If .IsCollection Then
+                    If finder.Invoke(.Self) Then
+                        Return .Self
+                    ElseIf .IsCollection Then
                         With DirectCast(.Self, UserDataBind)
                             If .Count > 0 Then
                                 ii = .Collections.FindIndex(finder)
                                 If ii >= 0 Then Return If(GetCollection, .Self, .Collections(ii))
                             End If
                         End With
-                    Else
-                        If finder.Invoke(.Self) Then Return .Self
                     End If
                 End With
             Next

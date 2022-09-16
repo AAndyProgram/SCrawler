@@ -1213,6 +1213,16 @@ BlockNullPicture:
                 Return IIf(FriendlyName.IsEmptyString, Name, FriendlyName)
             End If
         End Function
+        Public Overrides Function GetHashCode() As Integer
+            Dim hcStr$
+            If Not CollectionName.IsEmptyString Then
+                hcStr = CollectionName
+            Else
+                hcStr = IIf(FriendlyName.IsEmptyString, Name, FriendlyName)
+            End If
+            If hcStr.IsEmptyString Then hcStr = LVIKey
+            Return hcStr.GetHashCode
+        End Function
 #Region "Buttons actions"
         Private Sub BTT_CONTEXT_DOWN_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_DOWN.Click
             Downloader.Add(Me)

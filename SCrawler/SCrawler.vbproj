@@ -491,6 +491,7 @@
     <None Include="Content\Pictures\RSSPic.png" />
     <None Include="Content\Icons\RedGifsIcon.ico" />
     <None Include="Content\Icons\RSSIcon.ico" />
+    <None Include="Content\Pictures\StopPic32.png" />
     <Content Include="ffmpeg.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

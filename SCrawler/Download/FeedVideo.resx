@@ -123,4 +123,18 @@
   <metadata name="TP_BUTTONS.GenerateMember" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>False</value>
   </metadata>
+  <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  <data name="BTT_STOP.BackgroundImage" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAGLSURBVFhH7Vc7TsNAEPUNaDhAxAl8EaT0UKRFoqdNTcsp
+        qHIEHyGn4CNAiihwu7w3mTFrZeI466Ch4Emv8O7Mm9nd8X6qsWjbtgaXYAOmPWQfbWp1mw6ILcA16AUc
+        In0WKnM84DwDu9F+vb6kzcN9eru6TM8XZ+npvOqRbeyjDW3NTzVmKjsOcJiDGwpQ7P3meifgIdInS4Ra
+        c5UfBgw55eL4uXp0RzuW9KWG6VFbw/iAAUcuxh93t65oCalluoyh4fpAB9dcpv2UwY1ZEoyxWxNolILj
+        lHkCp2C2HI2G3QINsu4smilrfojUzgrzpx7wIf/5vmovhafFGJrA2oJzh5PMPAeyFJ4Wmc1CzQS4dcoG
+        4hmTpfC0SMbSBJZd8XEX84zJUnhaJGNpAg0TkI+h4iuFp0UylsXtEvAMjaXwtIz/Cfy9BCKLMPw3DN+I
+        YrdiPQ/iDiMCHxHHcf9mhIa4CwmBxtgrGYGOuEupAQZx13IDDOMeJgY4xD3NcsB5yuP0uFEPAWK/8Dyv
+        qm/Ki638CNApKAAAAABJRU5ErkJggg==
+</value>
+  </data>
 </root>

@@ -24,13 +24,14 @@ Namespace DownloadObjects
         Private Sub InitializeComponent()
             Dim TP_MAIN As System.Windows.Forms.TableLayoutPanel
             Dim TP_BUTTONS As System.Windows.Forms.TableLayoutPanel
+            Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(FeedVideo))
             Me.MyVideo = New LibVLCSharp.WinForms.VideoView()
             Me.TR_POSITION = New System.Windows.Forms.TrackBar()
+            Me.TR_VOLUME = New System.Windows.Forms.TrackBar()
+            Me.LBL_TIME = New System.Windows.Forms.Label()
             Me.BTT_PLAY = New System.Windows.Forms.Button()
             Me.BTT_PAUSE = New System.Windows.Forms.Button()
             Me.BTT_STOP = New System.Windows.Forms.Button()
-            Me.TR_VOLUME = New System.Windows.Forms.TrackBar()
-            Me.LBL_TIME = New System.Windows.Forms.Label()
             TP_MAIN = New System.Windows.Forms.TableLayoutPanel()
             TP_BUTTONS = New System.Windows.Forms.TableLayoutPanel()
             TP_MAIN.SuspendLayout()
@@ -99,6 +100,24 @@ Namespace DownloadObjects
             TP_BUTTONS.Size = New System.Drawing.Size(178, 26)
             TP_BUTTONS.TabIndex = 2
             '
+            'TR_VOLUME
+            '
+            Me.TR_VOLUME.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.TR_VOLUME.Location = New System.Drawing.Point(81, 3)
+            Me.TR_VOLUME.Name = "TR_VOLUME"
+            Me.TR_VOLUME.Size = New System.Drawing.Size(94, 20)
+            Me.TR_VOLUME.TabIndex = 3
+            '
+            'LBL_TIME
+            '
+            Me.LBL_TIME.AutoSize = True
+            Me.LBL_TIME.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.LBL_TIME.Location = New System.Drawing.Point(78, 0)
+            Me.LBL_TIME.Name = "LBL_TIME"
+            Me.LBL_TIME.Size = New System.Drawing.Size(1, 26)
+            Me.LBL_TIME.TabIndex = 4
+            Me.LBL_TIME.TextAlign = System.Drawing.ContentAlignment.MiddleCenter
+            '
             'BTT_PLAY
             '
             Me.BTT_PLAY.BackgroundImage = Global.SCrawler.My.Resources.Resources.StartPic_01_Green_16
@@ -125,7 +144,7 @@ Namespace DownloadObjects
             '
             'BTT_STOP
             '
-            Me.BTT_STOP.BackgroundImage = Global.SCrawler.My.Resources.Resources.Delete
+            Me.BTT_STOP.BackgroundImage = CType(resources.GetObject("BTT_STOP.BackgroundImage"), System.Drawing.Image)
             Me.BTT_STOP.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom
             Me.BTT_STOP.Dock = System.Windows.Forms.DockStyle.Fill
             Me.BTT_STOP.Location = New System.Drawing.Point(51, 1)
@@ -134,24 +153,6 @@ Namespace DownloadObjects
             Me.BTT_STOP.Size = New System.Drawing.Size(23, 24)
             Me.BTT_STOP.TabIndex = 2
             Me.BTT_STOP.UseVisualStyleBackColor = True
-            '
-            'TR_VOLUME
-            '
-            Me.TR_VOLUME.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TR_VOLUME.Location = New System.Drawing.Point(81, 3)
-            Me.TR_VOLUME.Name = "TR_VOLUME"
-            Me.TR_VOLUME.Size = New System.Drawing.Size(94, 20)
-            Me.TR_VOLUME.TabIndex = 3
-            '
-            'LBL_TIME
-            '
-            Me.LBL_TIME.AutoSize = True
-            Me.LBL_TIME.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.LBL_TIME.Location = New System.Drawing.Point(78, 0)
-            Me.LBL_TIME.Name = "LBL_TIME"
-            Me.LBL_TIME.Size = New System.Drawing.Size(1, 26)
-            Me.LBL_TIME.TabIndex = 4
-            Me.LBL_TIME.TextAlign = System.Drawing.ContentAlignment.MiddleCenter
             '
             'FeedVideo
             '

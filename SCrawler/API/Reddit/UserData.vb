@@ -164,6 +164,8 @@ Namespace API.Reddit
                     End If
                     If DownloadTopCount.HasValue Then DownloadLimitCount = DownloadTopCount
                 End If
+                If SaveToCache AndAlso Not Responser.Decoders.Contains(SymbolsConverter.Converters.HTML) Then _
+                   Responser.Decoders.Add(SymbolsConverter.Converters.HTML)
                 DownloadDataChannel(String.Empty, Token)
                 If ChannelInfo Is Nothing Then _TempPostsList.ListAddList(_TempMediaList.Select(Function(m) m.Post.ID), LNC)
             Else
@@ -371,9 +373,10 @@ Namespace API.Reddit
                                         ElseIf Not s.Value({"media", "reddit_video"}, "fallback_url").IsEmptyString Then
                                             tmpUrl = s.Value({"media", "reddit_video"}, "fallback_url")
                                             If SaveToCache Then
-                                                tmpUrl = s.Value("thumbnail")
+                                                'tmpUrl = s.Value("thumbnail")
+                                                tmpUrl = GetVideoRedditPreview(s)
                                                 If Not tmpUrl.IsEmptyString Then
-                                                    _TempMediaList.ListAddValue(MediaFromData(UTypes.Picture, tmpUrl, PostID, PostDate, _UserID, IsChannel), LNC)
+                                                    _TempMediaList.ListAddValue(MediaFromData(UTypes.Picture, tmpUrl, PostID, PostDate, _UserID, IsChannel, False), LNC)
                                                     _TotalPostsDownloaded += 1
                                                 End If
                                             ElseIf UseM3U8 AndAlso Not s.Value({"media", "reddit_video"}, "hls_url").IsEmptyString Then
@@ -469,6 +472,38 @@ Namespace API.Reddit
             Catch ex As Exception
                 ProcessException(ex, Nothing, "gallery parsing error", False)
                 Return False
+            End Try
+        End Function
+        Private Function GetVideoRedditPreview(ByVal Node As EContainer) As String
+            Try
+                If Not Node Is Nothing Then
+                    Dim n As EContainer = Node.ItemF({"preview", "images", 0})
+                    Dim DestNode$() = Nothing
+                    If If(n?.Count, 0) > 0 Then
+                        If If(n("resolutions")?.Count, 0) > 0 Then
+                            DestNode = {"resolutions"}
+                        ElseIf If(n({"variants", "nsfw", "resolutions"})?.Count, 0) > 0 Then
+                            DestNode = {"variants", "nsfw", "resolutions"}
+                        End If
+                        If Not DestNode Is Nothing Then
+                            With n(DestNode)
+                                Dim sl As List(Of Sizes) = .Select(Function(e) New Sizes(e.Value("width"), e.Value("url"))).
+                                                            ListWithRemove(Function(ss) ss.HasError Or ss.Data.IsEmptyString)
+                                If sl.ListExists Then
+                                    Dim s As Sizes
+                                    sl.Sort()
+                                    s = sl.First
+                                    sl.Clear()
+                                    Return s.Data
+                                End If
+                            End With
+                        End If
+                    End If
+                End If
+                Return String.Empty
+            Catch ex As Exception
+                ProcessException(ex, Nothing, "reddit video preview parsing error", False)
+                Return String.Empty
             End Try
         End Function
         Protected Overrides Sub ReparseVideo(ByVal Token As CancellationToken)
@@ -593,12 +628,13 @@ Namespace API.Reddit
 #End Region
 #Region "Structure creator"
         Protected Shared Function MediaFromData(ByVal t As UTypes, ByVal _URL As String, ByVal PostID As String, ByVal PostDate As String,
-                                                Optional ByVal _UserID As String = "", Optional ByVal IsChannel As Boolean = False) As UserMedia
+                                                Optional ByVal _UserID As String = "", Optional ByVal IsChannel As Boolean = False,
+                                                Optional ByVal ReplacePreview As Boolean = True) As UserMedia
             If _URL.IsEmptyString And t = UTypes.Picture Then Return Nothing
             _URL = LinkFormatterSecure(RegexReplace(_URL.Replace("\", String.Empty), LinkPattern))
             Dim m As New UserMedia(_URL, t) With {.Post = New UserPost With {.ID = PostID, .UserID = _UserID}}
             If t = UTypes.Picture Or t = UTypes.GIF Then m.File = UrlToFile(m.URL) Else m.File = Nothing
-            If m.URL.Contains("preview") Then m.URL = $"https://i.redd.it/{m.File.File}"
+            If ReplacePreview And m.URL.Contains("preview") Then m.URL = $"https://i.redd.it/{m.File.File}"
             If Not PostDate.IsEmptyString Then m.Post.Date = AConvert(Of Date)(PostDate, DateTrueProvider(IsChannel), Nothing) Else m.Post.Date = Nothing
             Return m
         End Function

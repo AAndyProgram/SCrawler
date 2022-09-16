@@ -27,13 +27,22 @@ Namespace DownloadObjects
             Friend ReadOnly User As IUserData
             Friend ReadOnly Data As UserMedia
             Friend ReadOnly [Date] As Date
-            Friend Sub New(ByVal Data As UserMedia, ByVal User As IUserData)
+            Private ReadOnly Session As Integer
+            Friend Sub New(ByVal Data As UserMedia, ByVal User As IUserData, ByVal Session As Integer)
                 Me.Data = Data
                 Me.User = User
                 [Date] = Now
+                Me.Session = Session
             End Sub
             Private Function CompareTo(ByVal Other As UserMediaD) As Integer Implements IComparable(Of UserMediaD).CompareTo
-                Return [Date].Ticks.CompareTo(Other.Date.Ticks) * -1
+                'Return [Date].Ticks.CompareTo(Other.Date.Ticks) * -1
+                Return GetCompareValue(Me).CompareTo(GetCompareValue(Other)) * -1
+            End Function
+            Private Function GetCompareValue(ByVal m As UserMediaD) As Double
+                Dim v# = m.Session * 10000
+                If Not m.User Is Nothing Then v += m.User.GetHashCode
+                'v += m.[Date].Ticks
+                Return v
             End Function
             Private Overloads Function Equals(ByVal Other As UserMediaD) As Boolean Implements IEquatable(Of UserMediaD).Equals
                 Return Data.File = Other.Data.File
@@ -214,12 +223,14 @@ Namespace DownloadObjects
 #Region "Thread"
         Private CheckerThread As Thread
         Private MissingPostsDetected As Boolean = False
+        Private Session As Integer = 0
         Private Sub [Start]()
             If Not AutoDownloaderWorking AndAlso MyProgressForm.ReadyToOpen AndAlso Pool.LongCount(Function(p) p.Count > 0) > 1 Then MyProgressForm.Show() : MainFrameObj.Focus()
             If Not If(CheckerThread?.IsAlive, False) Then
                 MainProgress.Visible = True
                 If Not AutoDownloaderWorking AndAlso InfoForm.ReadyToOpen Then InfoForm.Show() : MainFrameObj.Focus()
                 MissingPostsDetected = False
+                Session += 1
                 CheckerThread = New Thread(New ThreadStart(AddressOf JobsChecker))
                 CheckerThread.SetApartmentState(ApartmentState.MTA)
                 CheckerThread.Start()
@@ -342,7 +353,7 @@ Namespace DownloadObjects
                                         If Not .Disposed AndAlso Not .IsCollection AndAlso .DownloadedTotal(False) > 0 Then
                                             If Not Downloaded.Contains(.Self) Then Downloaded.Add(Settings.GetUser(.Self))
                                             With DirectCast(.Self, UserDataBase)
-                                                If .LatestData.Count > 0 Then Files.ListAddList(.LatestData.Select(Function(d) New UserMediaD(d, .Self)), FilesLP)
+                                                If .LatestData.Count > 0 Then Files.ListAddList(.LatestData.Select(Function(d) New UserMediaD(d, .Self, Session)), FilesLP)
                                             End With
                                             dcc = True
                                         End If

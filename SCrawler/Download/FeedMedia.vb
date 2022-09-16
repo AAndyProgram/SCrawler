@@ -131,7 +131,6 @@ Namespace DownloadObjects
                         End With
                     End If
 
-                    If Not MyVideo Is Nothing Then info &= $" ({MyVideo.VideoLength})"
                     LBL_INFO.Text = info
                     'TT_MAIN.SetToolTip(LBL_INFO, Information)
                     s = New Size(Width, h + TP_MAIN.RowStyles(0).Height + PaddingE.GetOf({TP_MAIN}).Vertical(2))
@@ -219,6 +218,7 @@ Namespace DownloadObjects
                         If Not Silent Then MsgBoxE({"File deleted", msgTitle})
                         LBL_INFO.Height = 0
                         If Not MyPicture Is Nothing Then MyPicture.Size = New Size(0, 0)
+                        If Not MyVideo Is Nothing Then MyVideo.MinimumSize = New Size(0, 0) : MyVideo.Size = New Size(0, 0)
                         Height = 0
                         Return True
                     End If
