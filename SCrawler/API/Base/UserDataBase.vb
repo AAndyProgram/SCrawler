@@ -554,7 +554,7 @@ BlockNullPicture:
                     If LastUpdated.HasValue And Not .ViewDateMode.Value = ShowingDates.Off Then
                         Dim f As Date = If(.ViewDateFrom.HasValue, .ViewDateFrom.Value.Date, Date.MinValue.Date)
                         Dim t As Date = If(.ViewDateTo.HasValue, .ViewDateTo.Value.Date, Date.MaxValue.Date)
-                        Select Case DirectCast(.ViewMode.Value, ShowingDates)
+                        Select Case DirectCast(.ViewDateMode.Value, ShowingDates)
                             Case ShowingDates.In : If Not LastUpdated.Value.ValueBetween(f, t) Then Return False
                             Case ShowingDates.Not : If LastUpdated.Value.ValueBetween(f, t) Then Return False
                         End Select
