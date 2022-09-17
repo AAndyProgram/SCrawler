@@ -35,14 +35,13 @@ Namespace DownloadObjects
                 Me.Session = Session
             End Sub
             Private Function CompareTo(ByVal Other As UserMediaD) As Integer Implements IComparable(Of UserMediaD).CompareTo
-                'Return [Date].Ticks.CompareTo(Other.Date.Ticks) * -1
-                Return GetCompareValue(Me).CompareTo(GetCompareValue(Other)) * -1
-            End Function
-            Private Function GetCompareValue(ByVal m As UserMediaD) As Double
-                Dim v# = m.Session * 10000
-                If Not m.User Is Nothing Then v += m.User.GetHashCode
-                'v += m.[Date].Ticks
-                Return v
+                If Not Session = Other.Session Then
+                    Return Session.CompareTo(Other.Session) * -1
+                ElseIf Not If(User?.GetHashCode, 0) = If(Other.User?.GetHashCode, 0) Then
+                    Return If(User?.GetHashCode, 0).CompareTo(If(Other.User?.GetHashCode, 0))
+                Else
+                    Return [Date].Ticks.CompareTo(Other.Date.Ticks) * -1
+                End If
             End Function
             Private Overloads Function Equals(ByVal Other As UserMediaD) As Boolean Implements IEquatable(Of UserMediaD).Equals
                 Return Data.File = Other.Data.File

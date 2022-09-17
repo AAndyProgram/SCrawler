@@ -550,23 +550,31 @@ BlockNullPicture:
         End Function
         Friend Overridable ReadOnly Property FitToAddParams As Boolean Implements IUserData.FitToAddParams
             Get
-                If Settings.LastUpdatedDate.HasValue AndAlso LastUpdated.HasValue AndAlso
-                   LastUpdated.Value.Date > Settings.LastUpdatedDate.Value.Date Then Return False
-                If Not Settings.Labels.ExcludedIgnore AndAlso Settings.Labels.Excluded.ValuesList.ListContains(Labels) Then Return False
-                If Settings.SelectedSites.Count = 0 OrElse Settings.SelectedSites.Contains(Site) Then
-                    Select Case Settings.ShowingMode.Value
-                        Case ShowingModes.Regular : Return Not Temporary And Not Favorite
-                        Case ShowingModes.Temporary : Return Temporary
-                        Case ShowingModes.Favorite : Return Favorite
-                        Case ShowingModes.Deleted : Return Not UserExists
-                        Case ShowingModes.Suspended : Return UserSuspended
-                        Case ShowingModes.Labels : Return Settings.Labels.Current.ValuesList.ListContains(Labels)
-                        Case ShowingModes.NoLabels : Return Labels.Count = 0
-                        Case Else : Return True
-                    End Select
-                Else
-                    Return False
-                End If
+                With Settings
+                    If LastUpdated.HasValue And Not .ViewDateMode.Value = ShowingDates.Off Then
+                        Dim f As Date = If(.ViewDateFrom.HasValue, .ViewDateFrom.Value.Date, Date.MinValue.Date)
+                        Dim t As Date = If(.ViewDateTo.HasValue, .ViewDateTo.Value.Date, Date.MaxValue.Date)
+                        Select Case DirectCast(.ViewMode.Value, ShowingDates)
+                            Case ShowingDates.In : If Not LastUpdated.Value.ValueBetween(f, t) Then Return False
+                            Case ShowingDates.Not : If LastUpdated.Value.ValueBetween(f, t) Then Return False
+                        End Select
+                    End If
+                    If Not .Labels.ExcludedIgnore AndAlso .Labels.Excluded.ValuesList.ListContains(Labels) Then Return False
+                    If .SelectedSites.Count = 0 OrElse .SelectedSites.Contains(Site) Then
+                        Select Case .ShowingMode.Value
+                            Case ShowingModes.Regular : Return Not Temporary And Not Favorite
+                            Case ShowingModes.Temporary : Return Temporary
+                            Case ShowingModes.Favorite : Return Favorite
+                            Case ShowingModes.Deleted : Return Not UserExists
+                            Case ShowingModes.Suspended : Return UserSuspended
+                            Case ShowingModes.Labels : Return Settings.Labels.Current.ValuesList.ListContains(Labels)
+                            Case ShowingModes.NoLabels : Return Labels.Count = 0
+                            Case Else : Return True
+                        End Select
+                    Else
+                        Return False
+                    End If
+                End With
             End Get
         End Property
         Friend Function GetLVIGroup(ByVal Destination As ListView) As ListViewGroup Implements IUserData.GetLVIGroup
@@ -792,9 +800,52 @@ BlockNullPicture:
             GlobalOpenPath(MyFile.CutPath)
         End Sub
 #End Region
-#Region "Download functions and options"
+#Region "Download limits"
+        Protected Enum DateResult : [Continue] : [Skip] : [Exit] : End Enum
         Friend Overridable Property DownloadTopCount As Integer? = Nothing Implements IUserData.DownloadTopCount, IPluginContentProvider.PostsNumberLimit
-        Friend Overridable Property DownloadToDate As Date? = Nothing Implements IUserData.DownloadToDate, IPluginContentProvider.PostsDateLimit
+        Private _DownloadDateFrom As Date? = Nothing
+        Private _DownloadDateFromF As Date
+        Friend Overridable Property DownloadDateFrom As Date? Implements IUserData.DownloadDateFrom, IPluginContentProvider.DownloadDateFrom
+            Get
+                Return _DownloadDateFrom
+            End Get
+            Set(ByVal d As Date?)
+                _DownloadDateFrom = d
+                If _DownloadDateFrom.HasValue Then _DownloadDateFromF = _DownloadDateFrom.Value.Date Else _DownloadDateFromF = Date.MinValue.Date
+            End Set
+        End Property
+        Private _DownloadDateTo As Date? = Nothing
+        Private _DownloadDateToF As Date
+        Friend Overridable Property DownloadDateTo As Date? Implements IUserData.DownloadDateTo, IPluginContentProvider.DownloadDateTo
+            Get
+                Return _DownloadDateTo
+            End Get
+            Set(ByVal d As Date?)
+                _DownloadDateTo = d
+                If _DownloadDateTo.HasValue Then _DownloadDateToF = _DownloadDateTo.Value Else _DownloadDateToF = Date.MaxValue.Date
+            End Set
+        End Property
+        Protected Function CheckDatesLimit(ByVal DateString As String, ByVal DateProvider As IFormatProvider) As DateResult
+            Try
+                If (DownloadDateFrom.HasValue Or DownloadDateTo.HasValue) And Not DateString.IsEmptyString Then
+                    Dim td As Date? = AConvert(Of Date)(DateString, DateProvider, Nothing)
+                    If td.HasValue Then
+                        If td.Value.ValueBetween(_DownloadDateFromF, _DownloadDateToF) Then
+                            Return DateResult.Continue
+                        ElseIf td.Value > _DownloadDateToF Then
+                            Return DateResult.Skip
+                        Else
+                            Return DateResult.Exit
+                        End If
+                    End If
+                End If
+                Return DateResult.Continue
+            Catch ex As Exception
+                Return ErrorsDescriber.Execute(EDP.SendInLog, ex, $"[UserDataBase.CheckDatesLimit({DateString})]", DateResult.Continue)
+            End Try
+        End Function
+#End Region
+#Region "Download functions and options"
         Protected Responser As Response
         Friend Overridable Sub DownloadData(ByVal Token As CancellationToken) Implements IContentProvider.DownloadData
             Dim Canceled As Boolean = False
@@ -883,21 +934,11 @@ BlockNullPicture:
                 If Not Canceled Then _DataParsed = True
                 _ContentNew.Clear()
                 DownloadTopCount = Nothing
-                DownloadToDate = Nothing
+                DownloadDateFrom = Nothing
+                DownloadDateTo = Nothing
                 DownloadMissingOnly = False
             End Try
         End Sub
-        Protected Function CheckDatesLimit(ByVal DateString As String, ByVal DateProvider As IFormatProvider) As Boolean
-            Try
-                If DownloadToDate.HasValue And Not DateString.IsEmptyString Then
-                    Dim td As Date? = AConvert(Of Date)(DateString, DateProvider, Nothing)
-                    If td.HasValue Then Return td.Value < DownloadToDate.Value
-                End If
-                Return True
-            Catch ex As Exception
-                Return ErrorsDescriber.Execute(EDP.SendInLog, ex, $"[UserDataBase.CheckDatesLimit({DateString})]", True)
-            End Try
-        End Function
         Protected Sub UpdateDataFiles()
             If Not User.File.IsEmptyString Then
                 MyFileData = User.File
@@ -1360,7 +1401,8 @@ BlockNullPicture:
         Sub OpenFolder()
         ReadOnly Property Self As IUserData
         Property DownloadTopCount As Integer?
-        Property DownloadToDate As Date?
+        Property DownloadDateFrom As Date?
+        Property DownloadDateTo As Date?
         Sub SetEnvironment(ByRef h As SettingsHost, ByVal u As UserInfo, ByVal _LoadUserInformation As Boolean,
                            Optional ByVal AttachUserInfo As Boolean = True)
         ReadOnly Property Disposed As Boolean

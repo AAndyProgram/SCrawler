@@ -53,7 +53,8 @@ Namespace Plugin.Hosts
                 .SeparateVideoFolder = SeparateVideoFolderF
                 .DataPath = MyFile.CutPath.PathNoSeparator
                 .PostsNumberLimit = DownloadTopCount
-                .PostsDateLimit = DownloadToDate
+                .DownloadDateFrom = DownloadDateFrom
+                .DownloadDateTo = DownloadDateTo
 
                 .ExistingContentList = New List(Of PluginUserMedia)
                 .TempMediaList = New List(Of PluginUserMedia)

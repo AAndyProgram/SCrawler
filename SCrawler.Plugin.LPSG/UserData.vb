@@ -38,7 +38,8 @@ Public Class UserData : Implements IPluginContentProvider
     Public Property SeparateVideoFolder As Boolean Implements IPluginContentProvider.SeparateVideoFolder
     Public Property DataPath As String Implements IPluginContentProvider.DataPath
     Public Property PostsNumberLimit As Integer? Implements IPluginContentProvider.PostsNumberLimit
-    Public Property PostsDateLimit As Date? Implements IPluginContentProvider.PostsDateLimit
+    Public Property DownloadDateFrom As Date? Implements IPluginContentProvider.DownloadDateFrom
+    Public Property DownloadDateTo As Date? Implements IPluginContentProvider.DownloadDateTo
 #End Region
 #Region "Interface exchange options"
     Public Sub ExchangeOptionsSet(ByVal Obj As Object) Implements IPluginContentProvider.ExchangeOptionsSet

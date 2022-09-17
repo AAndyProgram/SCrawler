@@ -93,6 +93,7 @@ Namespace Plugin.Hosts
         End Property
 #End Region
 #Region "Base properties compatibility"
+        Friend ReadOnly Property DownloadSiteData As XMLValue(Of Boolean)
         Friend ReadOnly Property Temporary As XMLValue(Of Boolean)
         Friend ReadOnly Property DownloadImages As XMLValue(Of Boolean)
         Friend ReadOnly Property DownloadVideos As XMLValue(Of Boolean)
@@ -263,6 +264,8 @@ Namespace Plugin.Hosts
             DownloadVideos.SetExtended("DownloadVideos", True, _XML, n)
             DownloadVideos.SetDefault(_Vids)
 
+            DownloadSiteData = New XMLValue(Of Boolean)("DownloadSiteData", True, _XML, n)
+
             GetUserMediaOnly = New XMLValue(Of Boolean)("GetUserMediaOnly", True, _XML, n)
             If PropList.Count > 0 Then
                 Dim MaxOffset% = Math.Max(PropList.Max(Function(pp) pp.LeftOffset), PropertyValueHost.LeftOffsetDefault)
@@ -318,11 +321,15 @@ Namespace Plugin.Hosts
         Private _AvailableAsked As Boolean = False
         Private _ActiveTaskCount As Integer = 0
         Friend Function Available(ByVal What As Download, ByVal Silent As Boolean) As Boolean
-            If Not _AvailableAsked Then
-                _AvailableValue = Source.Available(What, Silent)
-                _AvailableAsked = True
+            If DownloadSiteData Then
+                If Not _AvailableAsked Then
+                    _AvailableValue = Source.Available(What, Silent)
+                    _AvailableAsked = True
+                End If
+                Return _AvailableValue
+            Else
+                Return False
             End If
-            Return _AvailableValue
         End Function
         Friend Sub DownloadStarted(ByVal What As Download)
             _ActiveTaskCount += 1

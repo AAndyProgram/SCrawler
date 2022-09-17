@@ -329,7 +329,10 @@ Namespace API.Instagram
                                                     If IsSavedPosts Then
                                                         _SavedPostsIDs.Add(PostID)
                                                     Else
-                                                        If Not CheckDatesLimit(PostDate, DateProvider) And Not Pinned Then Throw New ExitException(_DownloadComplete)
+                                                        Select Case CheckDatesLimit(PostDate, DateProvider)
+                                                            Case DateResult.Skip : Continue For
+                                                            Case DateResult.Exit : If Not Pinned Then Throw New ExitException(_DownloadComplete)
+                                                        End Select
                                                         ObtainMedia(node, PostID, PostDate, SpecFolder)
                                                     End If
                                                 Next

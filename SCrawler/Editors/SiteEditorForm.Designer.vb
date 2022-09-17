@@ -15,6 +15,7 @@
         <System.Diagnostics.DebuggerStepThrough()>
         Private Sub InitializeComponent()
             Me.components = New System.ComponentModel.Container()
+            Dim CONTAINER_MAIN As System.Windows.Forms.ToolStripContainer
             Dim ActionButton1 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(SiteEditorForm))
             Dim ActionButton2 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
@@ -22,7 +23,6 @@
             Dim ActionButton4 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim ActionButton5 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim ActionButton6 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
-            Dim CONTAINER_MAIN As System.Windows.Forms.ToolStripContainer
             Me.TP_MAIN = New System.Windows.Forms.TableLayoutPanel()
             Me.TXT_PATH = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_COOKIES = New PersonalUtilities.Forms.Controls.TextBoxExtended()
@@ -30,14 +30,31 @@
             Me.TXT_PATH_SAVED_POSTS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.CH_GET_USER_MEDIA_ONLY = New System.Windows.Forms.CheckBox()
             Me.TT_MAIN = New System.Windows.Forms.ToolTip(Me.components)
+            Me.CH_DOWNLOAD_SITE_DATA = New System.Windows.Forms.CheckBox()
             CONTAINER_MAIN = New System.Windows.Forms.ToolStripContainer()
+            CONTAINER_MAIN.ContentPanel.SuspendLayout()
+            CONTAINER_MAIN.SuspendLayout()
             Me.TP_MAIN.SuspendLayout()
             CType(Me.TXT_PATH, System.ComponentModel.ISupportInitialize).BeginInit()
             CType(Me.TXT_COOKIES, System.ComponentModel.ISupportInitialize).BeginInit()
             CType(Me.TXT_PATH_SAVED_POSTS, System.ComponentModel.ISupportInitialize).BeginInit()
-            CONTAINER_MAIN.ContentPanel.SuspendLayout()
-            CONTAINER_MAIN.SuspendLayout()
             Me.SuspendLayout()
+            '
+            'CONTAINER_MAIN
+            '
+            '
+            'CONTAINER_MAIN.ContentPanel
+            '
+            CONTAINER_MAIN.ContentPanel.Controls.Add(Me.TP_MAIN)
+            CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(544, 218)
+            CONTAINER_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
+            CONTAINER_MAIN.LeftToolStripPanelVisible = False
+            CONTAINER_MAIN.Location = New System.Drawing.Point(0, 0)
+            CONTAINER_MAIN.Name = "CONTAINER_MAIN"
+            CONTAINER_MAIN.RightToolStripPanelVisible = False
+            CONTAINER_MAIN.Size = New System.Drawing.Size(544, 243)
+            CONTAINER_MAIN.TabIndex = 0
+            CONTAINER_MAIN.TopToolStripPanelVisible = False
             '
             'TP_MAIN
             '
@@ -45,19 +62,21 @@
             Me.TP_MAIN.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
             Me.TP_MAIN.Controls.Add(Me.TXT_PATH, 0, 0)
             Me.TP_MAIN.Controls.Add(Me.TXT_COOKIES, 0, 2)
-            Me.TP_MAIN.Controls.Add(Me.TP_SITE_PROPS, 0, 4)
+            Me.TP_MAIN.Controls.Add(Me.TP_SITE_PROPS, 0, 5)
             Me.TP_MAIN.Controls.Add(Me.TXT_PATH_SAVED_POSTS, 0, 1)
-            Me.TP_MAIN.Controls.Add(Me.CH_GET_USER_MEDIA_ONLY, 0, 3)
+            Me.TP_MAIN.Controls.Add(Me.CH_GET_USER_MEDIA_ONLY, 0, 4)
+            Me.TP_MAIN.Controls.Add(Me.CH_DOWNLOAD_SITE_DATA, 0, 3)
             Me.TP_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
             Me.TP_MAIN.Location = New System.Drawing.Point(0, 0)
             Me.TP_MAIN.Name = "TP_MAIN"
-            Me.TP_MAIN.RowCount = 5
+            Me.TP_MAIN.RowCount = 6
             Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            Me.TP_MAIN.Size = New System.Drawing.Size(544, 219)
+            Me.TP_MAIN.Size = New System.Drawing.Size(544, 218)
             Me.TP_MAIN.TabIndex = 0
             '
             'TXT_PATH
@@ -101,15 +120,15 @@
             Me.TP_SITE_PROPS.ColumnCount = 1
             Me.TP_SITE_PROPS.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
             Me.TP_SITE_PROPS.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TP_SITE_PROPS.Location = New System.Drawing.Point(3, 112)
+            Me.TP_SITE_PROPS.Location = New System.Drawing.Point(3, 137)
             Me.TP_SITE_PROPS.Name = "TP_SITE_PROPS"
             Me.TP_SITE_PROPS.RowCount = 4
             Me.TP_SITE_PROPS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             Me.TP_SITE_PROPS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             Me.TP_SITE_PROPS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             Me.TP_SITE_PROPS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            Me.TP_SITE_PROPS.Size = New System.Drawing.Size(538, 104)
-            Me.TP_SITE_PROPS.TabIndex = 4
+            Me.TP_SITE_PROPS.Size = New System.Drawing.Size(538, 78)
+            Me.TP_SITE_PROPS.TabIndex = 5
             '
             'TXT_PATH_SAVED_POSTS
             '
@@ -130,54 +149,52 @@
             '
             Me.CH_GET_USER_MEDIA_ONLY.AutoSize = True
             Me.CH_GET_USER_MEDIA_ONLY.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_GET_USER_MEDIA_ONLY.Location = New System.Drawing.Point(3, 87)
+            Me.CH_GET_USER_MEDIA_ONLY.Location = New System.Drawing.Point(3, 112)
             Me.CH_GET_USER_MEDIA_ONLY.Name = "CH_GET_USER_MEDIA_ONLY"
             Me.CH_GET_USER_MEDIA_ONLY.Padding = New System.Windows.Forms.Padding(100, 0, 0, 0)
             Me.CH_GET_USER_MEDIA_ONLY.Size = New System.Drawing.Size(538, 19)
-            Me.CH_GET_USER_MEDIA_ONLY.TabIndex = 3
+            Me.CH_GET_USER_MEDIA_ONLY.TabIndex = 4
             Me.CH_GET_USER_MEDIA_ONLY.Text = "Get user media only"
             Me.CH_GET_USER_MEDIA_ONLY.UseVisualStyleBackColor = True
             '
-            'CONTAINER_MAIN
+            'CH_DOWNLOAD_SITE_DATA
             '
-            '
-            'CONTAINER_MAIN.ContentPanel
-            '
-            CONTAINER_MAIN.ContentPanel.Controls.Add(Me.TP_MAIN)
-            CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(544, 219)
-            CONTAINER_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
-            CONTAINER_MAIN.LeftToolStripPanelVisible = False
-            CONTAINER_MAIN.Location = New System.Drawing.Point(0, 0)
-            CONTAINER_MAIN.Name = "CONTAINER_MAIN"
-            CONTAINER_MAIN.RightToolStripPanelVisible = False
-            CONTAINER_MAIN.Size = New System.Drawing.Size(544, 219)
-            CONTAINER_MAIN.TabIndex = 0
-            CONTAINER_MAIN.TopToolStripPanelVisible = False
+            Me.CH_DOWNLOAD_SITE_DATA.AutoSize = True
+            Me.CH_DOWNLOAD_SITE_DATA.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_DOWNLOAD_SITE_DATA.Location = New System.Drawing.Point(3, 87)
+            Me.CH_DOWNLOAD_SITE_DATA.Name = "CH_DOWNLOAD_SITE_DATA"
+            Me.CH_DOWNLOAD_SITE_DATA.Padding = New System.Windows.Forms.Padding(100, 0, 0, 0)
+            Me.CH_DOWNLOAD_SITE_DATA.Size = New System.Drawing.Size(538, 19)
+            Me.CH_DOWNLOAD_SITE_DATA.TabIndex = 3
+            Me.CH_DOWNLOAD_SITE_DATA.Text = "Download site data"
+            Me.TT_MAIN.SetToolTip(Me.CH_DOWNLOAD_SITE_DATA, "If disabled, this site's data will not be downloaded." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "You can disable downloadin" &
+        "g data from the site if you need it.")
+            Me.CH_DOWNLOAD_SITE_DATA.UseVisualStyleBackColor = True
             '
             'SiteEditorForm
             '
             Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
             Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-            Me.ClientSize = New System.Drawing.Size(544, 219)
+            Me.ClientSize = New System.Drawing.Size(544, 243)
             Me.Controls.Add(CONTAINER_MAIN)
             Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle
             Me.KeyPreview = True
             Me.MaximizeBox = False
-            Me.MaximumSize = New System.Drawing.Size(560, 258)
+            Me.MaximumSize = New System.Drawing.Size(560, 282)
             Me.MinimizeBox = False
-            Me.MinimumSize = New System.Drawing.Size(560, 258)
+            Me.MinimumSize = New System.Drawing.Size(560, 282)
             Me.Name = "SiteEditorForm"
             Me.ShowInTaskbar = False
             Me.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide
             Me.Text = "Site"
+            CONTAINER_MAIN.ContentPanel.ResumeLayout(False)
+            CONTAINER_MAIN.ResumeLayout(False)
+            CONTAINER_MAIN.PerformLayout()
             Me.TP_MAIN.ResumeLayout(False)
             Me.TP_MAIN.PerformLayout()
             CType(Me.TXT_PATH, System.ComponentModel.ISupportInitialize).EndInit()
             CType(Me.TXT_COOKIES, System.ComponentModel.ISupportInitialize).EndInit()
             CType(Me.TXT_PATH_SAVED_POSTS, System.ComponentModel.ISupportInitialize).EndInit()
-            CONTAINER_MAIN.ContentPanel.ResumeLayout(False)
-            CONTAINER_MAIN.ResumeLayout(False)
-            CONTAINER_MAIN.PerformLayout()
             Me.ResumeLayout(False)
 
         End Sub
@@ -188,5 +205,6 @@
         Private WithEvents TP_SITE_PROPS As SiteDefaults
         Private WithEvents CH_GET_USER_MEDIA_ONLY As CheckBox
         Private WithEvents TT_MAIN As ToolTip
+        Private WithEvents CH_DOWNLOAD_SITE_DATA As CheckBox
     End Class
 End Namespace

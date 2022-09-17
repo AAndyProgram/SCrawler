@@ -230,7 +230,10 @@ Namespace API.Reddit
                                                 Continue For
                                             End If
                                             If nn.Contains("created") Then PostDate = nn("created").Value Else PostDate = String.Empty
-                                            If DownloadToDate.HasValue AndAlso Not CheckDatesLimit(PostDate, DateTrueProvider(IsChannel)) Then Exit Sub
+                                            Select Case CheckDatesLimit(PostDate, DateTrueProvider(IsChannel))
+                                                Case DateResult.Skip : Continue For
+                                                Case DateResult.Exit : Exit Sub
+                                            End Select
 
                                             _ItemsBefore = _TempMediaList.Count
                                             added = True

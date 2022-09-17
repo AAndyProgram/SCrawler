@@ -87,7 +87,10 @@ Public Class MainFrame
         CheckVersion(False)
         BTT_SITE_ALL.Checked = Settings.SelectedSites.Count = 0
         BTT_SITE_SPECIFIC.Checked = Settings.SelectedSites.Count > 0
-        BTT_SHOW_LIMIT_DATES.Checked = Settings.LastUpdatedDate.HasValue
+        BTT_SHOW_LIMIT_DATES_NOT.Tag = ShowingDates.Not
+        BTT_SHOW_LIMIT_DATES_NOT.Checked = Settings.ViewDateMode.Value = ShowingDates.Not
+        BTT_SHOW_LIMIT_DATES_IN.Tag = ShowingDates.In
+        BTT_SHOW_LIMIT_DATES_IN.Checked = Settings.ViewDateMode.Value = ShowingDates.In
         With Settings.Groups
             AddHandler .Added, AddressOf GROUPS_Added
             AddHandler .Deleted, AddressOf GROUPS_Deleted
@@ -595,26 +598,40 @@ CloseResume:
             End If
         End Using
     End Function
-    Private Sub BTT_SHOW_LIMIT_DATES_Click(sender As Object, e As EventArgs) Handles BTT_SHOW_LIMIT_DATES.Click
+    Private Sub BTT_SHOW_LIMIT_DATES_NOT_IN_Click(ByVal Sender As ToolStripMenuItem, ByVal e As EventArgs) Handles BTT_SHOW_LIMIT_DATES_NOT.Click,
+                                                                                                                   BTT_SHOW_LIMIT_DATES_IN.Click
         Dim r As Boolean = False
-        Dim snd As Action(Of Date?) = Sub(ByVal d As Date?)
-                                          With Settings.LastUpdatedDate
-                                              If .HasValue And d.HasValue Then
-                                                  r = Not .Value.Date = d.Value.Date
-                                              Else
-                                                  r = True
-                                              End If
-                                          End With
-                                          Settings.LastUpdatedDate = d
-                                      End Sub
-        Using f As New FDatePickerForm(Settings.LastUpdatedDate)
+        Dim UpSettings As Action(Of Date?, Date?, ShowingDates) = Sub(ByVal _from As Date?, ByVal _to As Date?, ByVal Mode As ShowingDates)
+                                                                      With Settings
+                                                                          .BeginUpdate()
+                                                                          If Not .ViewDateMode.Value = CInt(Mode) Then r = True
+                                                                          .ViewDateMode.Value = CInt(Mode)
+                                                                          If Not Mode = ShowingDates.Off Then
+                                                                              If .ViewDateFrom.HasValue And _from.HasValue Then
+                                                                                  If Not .ViewDateFrom.Value.Date = _from.Value.Date Then r = True
+                                                                              Else
+                                                                                  r = True
+                                                                              End If
+                                                                              .ViewDateFrom = _from
+                                                                              If .ViewDateTo.HasValue And _to.HasValue Then
+                                                                                  If Not .ViewDateTo.Value.Date = _to.Value.Date Then r = True
+                                                                              Else
+                                                                                  r = True
+                                                                              End If
+                                                                              .ViewDateTo = _to
+                                                                          End If
+                                                                          .EndUpdate()
+                                                                      End With
+                                                                  End Sub
+        Using f As New FDatePickerForm(Settings.ViewDateFrom, Settings.ViewDateTo)
             f.ShowDialog()
             Select Case f.DialogResult
-                Case DialogResult.Abort : snd(Nothing)
-                Case DialogResult.OK : snd(f.SelectedDate)
+                Case DialogResult.Abort : UpSettings(f.DateFrom, f.DateTo, ShowingDates.Off)
+                Case DialogResult.OK : UpSettings(f.DateFrom, f.DateTo, Sender.Tag)
             End Select
         End Using
-        BTT_SHOW_LIMIT_DATES.Checked = Settings.LastUpdatedDate.HasValue
+        BTT_SHOW_LIMIT_DATES_NOT.Checked = Settings.ViewDateMode.Value = ShowingDates.Not
+        BTT_SHOW_LIMIT_DATES_IN.Checked = Settings.ViewDateMode.Value = ShowingDates.In
         If r Then RefillList()
     End Sub
 #End Region
@@ -1090,22 +1107,25 @@ CloseResume:
     End Sub
     Private Enum DownUserLimits : None : Number : [Date] : End Enum
     Private Sub DownloadSelectedUser(ByVal UseLimits As DownUserLimits)
+        Const MsgTitle$ = "Download limit"
         Dim users As List(Of IUserData) = GetSelectedUserArray()
         If users.ListExists Then
-            Dim l%? = Nothing
-            Dim d As Date? = Nothing
+            Dim limit%? = Nothing
+            Dim _from As Date? = Nothing
+            Dim _to As Date? = Nothing
+            Dim _fromStr$, _toStr$
             If UseLimits = DownUserLimits.Number Then
                 Do
-                    l = AConvert(Of Integer)(InputBoxE("Enter top posts limit for downloading:", "Download limit", 10), AModes.Var, Nothing)
-                    If l.HasValue Then
-                        Select Case MsgBoxE(New MMessage($"You are set up downloading top [{l.Value}] posts", "Download limit",
+                    limit = AConvert(Of Integer)(InputBoxE("Enter top posts limit for downloading:", MsgTitle, 10), AModes.Var, Nothing)
+                    If limit.HasValue Then
+                        Select Case MsgBoxE(New MMessage($"You are set up downloading top [{limit.Value}] posts", MsgTitle,
                                             {"Confirm", "Try again", "Disable limit", "Cancel"}) With {.ButtonsPerRow = 2}).Index
                             Case 0 : Exit Do
-                            Case 2 : l = Nothing : Exit Do
+                            Case 2 : limit = Nothing : Exit Do
                             Case 3 : GoTo CancelDownloadingOperation
                         End Select
                     Else
-                        Select Case MsgBoxE({"You are not set up downloading limit", "Download limit"},,,, {"Confirm", "Try again", "Cancel"}).Index
+                        Select Case MsgBoxE({"You are not set up downloading limit", MsgTitle},,,, {"Confirm", "Try again", "Cancel"}).Index
                             Case 0 : Exit Do
                             Case 2 : GoTo CancelDownloadingOperation
                         End Select
@@ -1113,24 +1133,30 @@ CloseResume:
                 Loop
             ElseIf UseLimits = DownUserLimits.Date Then
                 Do
-                    Using fd As New FDatePickerForm(Nothing)
+                    Using fd As New FDatePickerForm(Nothing, Nothing)
                         fd.ShowDialog()
                         If fd.DialogResult = DialogResult.OK Then
-                            d = fd.SelectedDate
+                            _from = fd.DateFrom
+                            _to = fd.DateTo
                         ElseIf fd.DialogResult = DialogResult.Abort Then
-                            d = Nothing
+                            _from = Nothing
+                            _to = Nothing
                         End If
                     End Using
-                    If d.HasValue Then
-                        Select Case MsgBoxE(New MMessage($"You are set up downloading posts until [{d.Value.Date.ToStringDate(ADateTime.Formats.BaseDate)}]",
-                                                         "Download limit",
-                                            {"Confirm", "Try again", "Disable limit", "Cancel"}) With {.ButtonsPerRow = 2}).Index
+                    If _from.HasValue Or _to.HasValue Then
+                        _fromStr = AConvert(Of String)(_from, ADateTime.Formats.BaseDate, String.Empty)
+                        _toStr = AConvert(Of String)(_to, ADateTime.Formats.BaseDate, String.Empty)
+                        If Not _fromStr.IsEmptyString Then _fromStr = $"FROM [{_fromStr}]"
+                        If Not _toStr.IsEmptyString Then _toStr = $"TO [{_toStr}]"
+                        If Not _toStr.IsEmptyString And Not _fromStr.IsEmptyString Then _fromStr &= " "
+                        Select Case MsgBoxE(New MMessage($"You have set a date limit for downloading posts: {_fromStr}{_toStr}", MsgTitle,
+                                                         {"Confirm", "Try again", "Disable limit", "Cancel"}) With {.ButtonsPerRow = 2}).Index
                             Case 0 : Exit Do
-                            Case 2 : d = Nothing : Exit Do
+                            Case 2 : _from = Nothing : _to = Nothing : Exit Do
                             Case 3 : GoTo CancelDownloadingOperation
                         End Select
                     Else
-                        Select Case MsgBoxE({"You are not set up a date limit", "Download limit"},,,, {"Confirm", "Try again", "Cancel"}).Index
+                        Select Case MsgBoxE({"You have not set a date limit", MsgTitle},,,, {"Confirm", "Try again", "Cancel"}).Index
                             Case 0 : Exit Do
                             Case 2 : GoTo CancelDownloadingOperation
                         End Select
@@ -1144,18 +1170,17 @@ CancelDownloadingOperation:
             MsgBoxE("Operation canceled")
             Exit Sub
 ResumeDownloadingOperation:
-            If users.Count = 1 Then
-                users(0).DownloadTopCount = l
-                users(0).DownloadToDate = d
-                Downloader.Add(users(0))
-            Else
-                Dim uStr$ = users.Select(Function(u) u.ToString()).ListToString(vbNewLine)
-                If MsgBoxE({$"You are select {users.Count} users' profiles{vbNewLine}Do you want to download all of them?{vbNewLine.StringDup(2)}" &
-                            $"Selected users:{vbNewLine}{uStr}", "A few users selected"},
-                           MsgBoxStyle.Question + MsgBoxStyle.YesNo) = MsgBoxResult.Yes Then
-                    users.ForEach(Sub(u) u.DownloadTopCount = l)
-                    Downloader.AddRange(users)
-                End If
+            Dim uStr$ = If(users.Count = 1, String.Empty, users.Select(Function(u) u.ToString()).ListToString(vbNewLine))
+            If users.Count = 1 OrElse MsgBoxE({$"You have selected {users.Count} user profiles" & vbCr &
+                                               $"Do you want to download them all?{vbNewLine.StringDup(2)}" &
+                                               $"Selected users:{vbNewLine}{uStr}", "Multiple users selected"},
+                                              MsgBoxStyle.Question + MsgBoxStyle.YesNo) = MsgBoxResult.Yes Then
+                users.ForEach(Sub(u)
+                                  u.DownloadTopCount = limit
+                                  u.DownloadDateFrom = _from
+                                  u.DownloadDateTo = _to
+                              End Sub)
+                Downloader.AddRange(users)
             End If
         End If
     End Sub

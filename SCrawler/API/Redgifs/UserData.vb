@@ -37,7 +37,10 @@ Namespace API.RedGifs
                             pTotal = j.Value("pages").FromXML(Of Integer)(0)
                             For Each g As EContainer In j("gifs")
                                 postDate = g.Value("createDate")
-                                If Not CheckDatesLimit(postDate, DateProvider) Then Exit Sub
+                                Select Case CheckDatesLimit(postDate, DateProvider)
+                                    Case DateResult.Skip : Continue For
+                                    Case DateResult.Exit : Exit Sub
+                                End Select
                                 postID = g.Value("id")
                                 If Not _TempPostsList.Contains(postID) Then _TempPostsList.Add(postID) Else Exit For
                                 ObtainMedia(g, postID, postDate)

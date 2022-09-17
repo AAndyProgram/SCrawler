@@ -95,8 +95,13 @@ Friend Class SettingsCLS : Implements IDisposable
 
         LatestSavingPath = New XMLValue(Of SFile)("LatestSavingPath", Nothing, MyXML,, New XMLValueBase.ToFilePath)
         LatestSelectedChannel = New XMLValue(Of String)("LatestSelectedChannel",, MyXML)
-        LastUpdatedLimit = New XMLValue(Of Date)
-        LastUpdatedLimit.SetExtended("LastUpdatedLimit",, MyXML)
+
+        _ViewDateFrom = New XMLValue(Of Date)
+        _ViewDateFrom.SetExtended("ViewDateFrom",, MyXML)
+        _ViewDateTo = New XMLValue(Of Date)
+        _ViewDateTo.SetExtended("ViewDateTo",, MyXML)
+        ViewDateMode = New XMLValue(Of Integer)("ViewDateMode", ShowingDates.Off, MyXML)
+
         LatestDownloadedSites = New XMLValuesCollection(Of String)(XMLValueBase.ListModes.String, "LatestDownloadedSites", MyXML)
 
         SelectedSites = New XMLValuesCollection(Of String)(XMLValueBase.ListModes.String, "SelectedSites", MyXML, {Name_Node_Sites})
@@ -473,15 +478,27 @@ Friend Class SettingsCLS : Implements IDisposable
     Friend ReadOnly Property UseGrouping As XMLValue(Of Boolean)
     Friend ReadOnly Property ShowGroupsInsteadLabels As XMLValue(Of Boolean)
     Friend ReadOnly Property SelectedSites As XMLValuesCollection(Of String)
-    Private ReadOnly LastUpdatedLimit As XMLValue(Of Date)
-    Friend Property LastUpdatedDate As Date?
+#Region "View dates"
+    Private ReadOnly _ViewDateFrom As XMLValue(Of Date)
+    Friend Property ViewDateFrom As Date?
         Get
-            If LastUpdatedLimit.ValueF.Exists Then Return LastUpdatedLimit.Value Else Return Nothing
+            If _ViewDateFrom.ValueF.Exists Then Return _ViewDateFrom.Value Else Return Nothing
         End Get
-        Set(ByVal NewDate As Date?)
-            If Not NewDate.HasValue Then LastUpdatedLimit.ValueF = Nothing Else LastUpdatedLimit.Value = NewDate.Value
+        Set(ByVal d As Date?)
+            If Not d.HasValue Then _ViewDateFrom.ValueF = Nothing Else _ViewDateFrom.Value = d.Value
         End Set
     End Property
+    Private ReadOnly _ViewDateTo As XMLValue(Of Date)
+    Friend Property ViewDateTo As Date?
+        Get
+            If _ViewDateTo.ValueF.Exists Then Return _ViewDateTo.Value Else Return Nothing
+        End Get
+        Set(ByVal d As Date?)
+            If Not d.HasValue Then _ViewDateTo.ValueF = Nothing Else _ViewDateTo.Value = d.Value
+        End Set
+    End Property
+    Friend ReadOnly Property ViewDateMode As XMLValue(Of Integer)
+#End Region
 #End Region
 #Region "Latest values"
     Friend ReadOnly Property LatestSavingPath As XMLValue(Of SFile)

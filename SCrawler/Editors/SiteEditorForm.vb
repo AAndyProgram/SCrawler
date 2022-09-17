@@ -11,6 +11,7 @@ Imports PersonalUtilities.Forms.Controls
 Imports PersonalUtilities.Forms.Controls.Base
 Imports PersonalUtilities.Tools.WEB
 Imports CookieControl = PersonalUtilities.Tools.WEB.CookieListForm.CookieControl
+Imports ADB = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons
 Imports SCrawler.Plugin
 Imports SCrawler.Plugin.Hosts
 Namespace Editors
@@ -63,7 +64,8 @@ Namespace Editors
 
                         TXT_PATH.Text = .Path(False)
                         TXT_PATH_SAVED_POSTS.Text = .SavedPostsPath(False)
-                        CH_GET_USER_MEDIA_ONLY.Checked = .GetUserMediaOnly.Value
+                        CH_DOWNLOAD_SITE_DATA.Checked = .DownloadSiteData
+                        CH_GET_USER_MEDIA_ONLY.Checked = .GetUserMediaOnly
 
                         SiteDefaultsFunctions.SetChecker(TP_SITE_PROPS, Host)
 
@@ -131,6 +133,7 @@ Namespace Editors
                         TXT_PATH.CaptionWidth = offset
                         TXT_PATH_SAVED_POSTS.CaptionWidth = offset
                         TXT_COOKIES.CaptionWidth = offset
+                        CH_DOWNLOAD_SITE_DATA.Padding = New PaddingE(CH_DOWNLOAD_SITE_DATA.Padding) With {.Left = offset}
                         CH_GET_USER_MEDIA_ONLY.Padding = New PaddingE(CH_GET_USER_MEDIA_ONLY.Padding) With {.Left = offset}
                         If c > 0 Or Not Host.IsMyClass Then
                             Dim ss As New Size(Size.Width, Size.Height + h + c)
@@ -183,6 +186,7 @@ Namespace Editors
                         SiteDefaultsFunctions.SetPropByChecker(TP_SITE_PROPS, Host)
                         If TXT_PATH.IsEmptyString Then .Path = Nothing Else .Path = TXT_PATH.Text
                         .SavedPostsPath = TXT_PATH_SAVED_POSTS.Text
+                        .DownloadSiteData.Value = CH_DOWNLOAD_SITE_DATA.Checked
                         .GetUserMediaOnly.Value = CH_GET_USER_MEDIA_ONLY.Checked
 
                         If .PropList.Count > 0 Then .PropList.ForEach(Sub(p) If Not p.Options Is Nothing Then p.UpdateValueByControl())
@@ -203,14 +207,14 @@ Namespace Editors
             ChangePath(Sender, Host.SavedPostsPath(False), TXT_PATH_SAVED_POSTS)
         End Sub
         Private Sub ChangePath(ByVal Sender As ActionButton, ByVal PathValue As SFile, ByRef CNT As TextBoxExtended)
-            If Sender.DefaultButton = ActionButton.DefaultButtons.Open Then
+            If Sender.DefaultButton = ADB.Open Then
                 Dim f As SFile = SFile.SelectPath(PathValue)
                 If Not f.IsEmptyString Then CNT.Text = f
             End If
         End Sub
         Private Sub TXT_COOKIES_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As EventArgs) Handles TXT_COOKIES.ActionOnButtonClick
             Select Case Sender.DefaultButton
-                Case ActionButton.DefaultButtons.Edit
+                Case ADB.Edit
                     If Not Host.Responser Is Nothing Then
                         Using f As New CookieListForm(Host.Responser) With {
                             .MyDesignXML = Settings.Design,
@@ -220,7 +224,7 @@ Namespace Editors
                         End Using
                         SetCookieText()
                     End If
-                Case ActionButton.DefaultButtons.Clear
+                Case ADB.Clear
                     If Not Host.Responser Is Nothing Then
                         With Host.Responser
                             If Not .Cookies Is Nothing Then .Cookies.Dispose()

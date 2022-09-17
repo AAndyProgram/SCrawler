@@ -83,6 +83,11 @@ Friend Module MainMod
         Deleted = 10000
         Suspended = 12000
     End Enum
+    Friend Enum ShowingDates As Integer
+        [Off] = 0
+        [Not] = 1
+        [In] = 2
+    End Enum
     Friend Enum FileNameReplaceMode As Integer
         None = 0
         Replace = 1

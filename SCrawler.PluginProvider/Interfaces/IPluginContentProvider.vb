@@ -26,7 +26,8 @@ Namespace Plugin
         Property SeparateVideoFolder As Boolean
         Property DataPath As String
         Property PostsNumberLimit As Integer?
-        Property PostsDateLimit As Date?
+        Property DownloadDateFrom As Date?
+        Property DownloadDateTo As Date?
         Function ExchangeOptionsGet() As Object
         Sub ExchangeOptionsSet(ByVal Obj As Object)
         Sub XmlFieldsSet(ByVal Fields As List(Of KeyValuePair(Of String, String)))

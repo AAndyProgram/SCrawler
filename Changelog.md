@@ -1,3 +1,19 @@
+# 2022.9.17.0
+
+*2022-09-17*
+
+- Added
+  - Added two date filters to filter users (in range, not in range)
+  - (Request #71) Download data for a specific date range
+  - The ability to disable site downloading (in the site settings form)
+- Updated
+  - Plugins
+- Fixed
+  - (Issue #71) ```Download data to the date``` doesn't work for Twitter
+  - Download data for a specific date range doesn't work for multiple users
+  - Incorrect feed sorting algorithm
+  - Minor bugs
+
 # 2022.9.16.0
 
 *2022-09-16*
