@@ -8,6 +8,8 @@
 
 A program to download photo and video from [any site](#supported-sites) (e.g. Reddit, Twitter, Instagram).
 
+**If you like SCrawler, please like the program on [this site]( https://alternativeto.net/software/scrawler/about/)**
+
 Do you like this program? Consider adding to my coffee fund by making a donation to show your support. :blush:
 
 [![ko-fi](https://www.ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/andyprogram)

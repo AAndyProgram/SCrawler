@@ -10,6 +10,7 @@ Imports System.ComponentModel
 Imports System.Globalization
 Imports System.Threading
 Imports PersonalUtilities.Forms
+Imports PersonalUtilities.Functions.Messaging
 Imports SCrawler.API
 Imports SCrawler.API.Base
 Imports SCrawler.Editors
@@ -672,6 +673,9 @@ CloseResume:
     Private Sub BTT_CONTEXT_DELETE_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_DELETE.Click
         DeleteSelectedUser()
     End Sub
+    Private Sub BTT_CONTEXT_COPY_TO_FOLDER_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_COPY_TO_FOLDER.Click
+        CopyUserData()
+    End Sub
     Private Sub BTT_CONTEXT_FAV_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_FAV.Click
         Dim users As List(Of IUserData) = GetSelectedUserArray()
         If AskForMassReplace(users, "Favorite") Then
@@ -776,39 +780,82 @@ CloseResume:
         End If
     End Sub
     Private Sub BTT_CONTEXT_ADD_TO_COL_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_ADD_TO_COL.Click
+        Const MsgTitle$ = "Add users to the collection"
         If Settings.CollectionsPath.Value.IsEmptyString Then
-            MsgBoxE("Collection path not specified", MsgBoxStyle.Exclamation)
+            MsgBoxE({"Collection path not specified", MsgTitle}, MsgBoxStyle.Exclamation)
         Else
-            Dim user As IUserData = GetSelectedUser()
-            If Not user Is Nothing Then
-                If user.IsCollection Then
-                    MsgBoxE("Collection can not be added to collection!", MsgBoxStyle.Critical)
-                Else
-                    Using f As New CollectionEditorForm(user.CollectionName)
+            Dim users As List(Of IUserData) = GetSelectedUserArray()
+            If users.ListExists Then
+                Dim i%
+                Dim _col_user As Predicate(Of IUserData) = Function(u) u.IsCollection
+                Dim userCollection As UserDataBind = users.Find(_col_user)
+                Dim _col_name$ = String.Empty
+                If Not userCollection Is Nothing Then
+                    i = users.LongCount(Function(u) _col_user(u))
+                    If i > 1 OrElse i = users.Count OrElse
+                       (i = 1 AndAlso
+                        MsgBoxE({$"Do you want to add the following users to the [{userCollection.Name}] collection?" & vbCr &
+                                 users.Where(Function(u) Not _col_user(u)).ListToString(vbCr),
+                                 MsgTitle}, vbQuestion + vbYesNo) = vbNo) Then _
+                        MsgBoxE({"The collection cannot be added to the collection!", MsgTitle}, MsgBoxStyle.Critical) : Exit Sub
+                    _col_name = userCollection.Name
+                End If
+                If _col_name.IsEmptyString Then
+                    Using f As New CollectionEditorForm
                         f.ShowDialog()
-                        If f.DialogResult = DialogResult.OK Then
-                            With Settings
-                                Dim fCol As Predicate(Of IUserData) = Function(u) u.IsCollection And u.CollectionName = f.Collection
-                                Dim i% = .Users.FindIndex(fCol)
-                                Dim Added As Boolean = i < 0
-                                If i < 0 Then
-                                    .Users.Add(New UserDataBind(f.Collection))
-                                    MainFrameObj.CollectionHandler(DirectCast(.Users.Last, UserDataBind))
-                                    i = .Users.Count - 1
-                                End If
-                                Try
-                                    DirectCast(.Users(i), UserDataBind).Add(user)
-                                    RemoveUserFromList(user)
-                                    i = .Users.FindIndex(fCol)
-                                    If i >= 0 Then UserListUpdate(.Users(i), Added)
-                                    MsgBoxE($"[{user.Name}] was added to collection [{f.Collection}]")
-                                Catch ex As InvalidOperationException
-                                    i = .Users.FindIndex(fCol)
-                                    If i >= 0 AndAlso DirectCast(.Users(i), UserDataBind).Count = 0 Then .Users(i).Dispose() : .Users.RemoveAt(i)
-                                End Try
-                            End With
-                        End If
+                        If f.DialogResult = DialogResult.OK Then _col_name = f.Collection
                     End Using
+                End If
+                If _col_name.IsEmptyString Then
+                    MsgBoxE({"The destination collection has not been selected.", MsgTitle}, vbExclamation)
+                Else
+                    With Settings
+                        userCollection = .Users.Find(Function(u) u.IsCollection And u.CollectionName = _col_name)
+                        Dim Added As Boolean = userCollection Is Nothing
+                        If Added Then
+                            .Users.Add(New UserDataBind(_col_name))
+                            MainFrameObj.CollectionHandler(DirectCast(.Users.Last, UserDataBind))
+                            userCollection = .Users.Last
+                        End If
+                        Dim __added_users As New List(Of IUserData)
+                        Dim __added_users_not As New List(Of IUserData)
+                        For Each user As IUserData In users
+                            If Not user.IsCollection Then
+                                Try
+                                    userCollection.Add(user)
+                                    RemoveUserFromList(user)
+                                    UserListUpdate(userCollection, Added)
+                                    If Not Added Then FocusUser(userCollection.LVIKey)
+                                    Added = False
+                                    __added_users.Add(user)
+                                Catch ex As InvalidOperationException
+                                    userCollection.Remove(user)
+                                    If __added_users.Count > 0 AndAlso __added_users.Contains(user) Then __added_users.Remove(user)
+                                    __added_users_not.Add(user)
+                                End Try
+                            End If
+                        Next
+                        If userCollection.Count = 0 Then
+                            RemoveUserFromList(userCollection)
+                            If Settings.Users.Remove(userCollection) Then userCollection.Dispose()
+                            MsgBoxE({$"No users have been added to the [{_col_name}] collection.", MsgTitle}, vbCritical)
+                        ElseIf __added_users.Count = 1 And __added_users_not.Count = 0 Then
+                            MsgBoxE({$"The user [{__added_users(0)}] has been added to the collection [{_col_name}].", MsgTitle})
+                        ElseIf __added_users.Count = 0 And __added_users_not.Count = 1 Then
+                            MsgBoxE({$"The user [{__added_users_not(0)}] was not added to the collection [{_col_name}].", MsgTitle}, vbCritical)
+                        Else
+                            Dim m As New MMessage($"The following users have been added to the [{_col_name}] collection:{vbCr}", MsgTitle,,
+                                                  If(__added_users_not.Count > 0, vbExclamation, vbInformation))
+                            m.Text &= __added_users.ListToString(vbCr)
+                            If __added_users_not.Count > 0 Then
+                                m.Text &= $"{vbNewLine.StringDup(2)}The following users have not been added to the [{_col_name}] collection:{vbCr}"
+                                m.Text &= __added_users_not.ListToString(vbCr)
+                            End If
+                            MsgBoxE(m)
+                        End If
+                        __added_users.Clear()
+                        __added_users_not.Clear()
+                    End With
                 End If
             End If
         End If
@@ -1025,15 +1072,15 @@ CloseResume:
                 If USER_CONTEXT.Visible Then USER_CONTEXT.Hide()
                 Dim ugn As Func(Of IUserData, String) = Function(u) $"{IIf(u.IsCollection, "Collection", "User")}: {u.Name}"
                 Dim m As New MMessage(users.Select(ugn).ListToString(vbNewLine), "Users deleting",
-                                      {New Messaging.MsgBoxButton("Delete and ban") With {.ToolTip = "Users and their data will be deleted and added to the blacklist"},
-                                       New Messaging.MsgBoxButton("Delete user only and ban") With {
+                                      {New MsgBoxButton("Delete and ban") With {.ToolTip = "Users and their data will be deleted and added to the blacklist"},
+                                       New MsgBoxButton("Delete user only and ban") With {
                                             .ToolTip = "Users will be deleted and added to the blacklist (user data will not be deleted)"},
-                                       New Messaging.MsgBoxButton("Delete and ban with reason") With {
+                                       New MsgBoxButton("Delete and ban with reason") With {
                                             .ToolTip = "Users and their data will be deleted and added to the blacklist with set a reason to delete"},
-                                       New Messaging.MsgBoxButton("Delete user only and ban with reason") With {
+                                       New MsgBoxButton("Delete user only and ban with reason") With {
                                             .ToolTip = "Users will be deleted and added to the blacklist with set a reason to delete (user data will not be deleted)"},
-                                       New Messaging.MsgBoxButton("Delete") With {.ToolTip = "Delete users and their data"},
-                                       New Messaging.MsgBoxButton("Delete user only") With {.ToolTip = "Delete users but keep data"}, "Cancel"},
+                                       New MsgBoxButton("Delete") With {.ToolTip = "Delete users and their data"},
+                                       New MsgBoxButton("Delete user only") With {.ToolTip = "Delete users but keep data"}, "Cancel"},
                                       MsgBoxStyle.Exclamation) With {.ButtonsPerRow = 2, .ButtonsPlacing = MMessage.ButtonsPlacings.StartToEnd}
                 m.Text = $"The following users ({users.Count}) will be deleted:{vbNewLine}{m.Text}"
                 Dim result% = MsgBoxE(m)
@@ -1094,7 +1141,89 @@ CloseResume:
                 End If
             End If
         Catch ex As Exception
-            ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Error on trying to delete user / collection")
+            ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Error when trying to delete user / collection")
+        End Try
+    End Sub
+    Private Sub CopyUserData()
+        Const MsgTitle$ = "Copying user data"
+        Try
+            Dim users As List(Of IUserData) = GetSelectedUserArray()
+            If users.ListExists Then
+                Dim f As SFile = Settings.LastCopyPath
+                Dim _select_path As Func(Of Boolean) = Function() As Boolean
+                                                           f = SFile.SelectPath(f, True)
+                                                           If f.Exists(SFO.Path, False) Then
+                                                               Return MsgBoxE({$"Are you sure you want to copy the data to the selected folder?{vbCr}{f}",
+                                                                              MsgTitle}, vbQuestion + vbYesNo) = vbYes
+                                                           Else
+                                                               MsgBoxE({$"Destination path not selected.{vbCr}Operation canceled.", MsgTitle}, vbExclamation)
+                                                               Return False
+                                                           End If
+                                                       End Function
+                If f.Exists(SFO.Path, False) Then
+                    Select Case MsgBoxE({$"Last folder you copied to:{vbCr}{f}" & vbCr &
+                                         "Do you want to copy to this folder or choose another destination?", MsgTitle}, vbQuestion,,,
+                                        {New MsgBoxButton("Process") With {.ToolTip = "Use last folder"},
+                                         New MsgBoxButton("Choose new") With {.ToolTip = "Choose a new destination"},
+                                         New MsgBoxButton("Cancel")})
+                        Case 1 : If Not _select_path.Invoke Then Exit Sub
+                        Case 2 : MsgBoxE({"Operation canceled", MsgTitle}) : Exit Sub
+                    End Select
+                Else
+                    If Not _select_path.Invoke Then Exit Sub
+                End If
+                If f.Exists(SFO.Path, False) Then
+                    Settings.LastCopyPath.Value = f
+                    Using logger As New TextSaver With {.LogMode = True}
+                        Dim m As New MMessage("", MsgTitle,,, {logger})
+                        Dim err As New ErrorsDescriber(EDP.SendInLog) With {.DeclaredMessage = m}
+                        Dim __copied_users As New List(Of IUserData)
+                        Dim __copied_users_not As New List(Of IUserData)
+                        For Each user As IUserData In users
+                            If user.CopyFiles(f, err) Then
+                                __copied_users.Add(user)
+                            Else
+                                __copied_users_not.Add(user)
+                            End If
+                        Next
+                        err = Nothing
+                        Dim buttons As New List(Of MsgBoxButton) From {New MsgBoxButton("OK")}
+                        If __copied_users_not.Count > 0 Then
+                            err = New ErrorsDescriber(EDP.ShowAllMsg)
+                            m.Style = If(__copied_users.Count > 0, vbExclamation, vbCritical)
+                            If Not logger.IsEmptyString Then
+                                m.DefaultButton = 0
+                                m.CancelButton = 0
+                                buttons.Add(New MsgBoxButton("Show LOG") With {
+                                            .IsDialogResultButton = False,
+                                            .BackColor = MyColor.DeleteBack,
+                                            .ForeColor = MyColor.DeleteFore,
+                                            .KeyCode = Keys.F1,
+                                            .ToolTip = "Show error log",
+                                            .CallBack = Sub(r, mm, b)
+                                                            Using ff As New LOG_FORM(logger) : ff.ShowDialog() : End Using
+                                                        End Sub})
+                            End If
+                        End If
+                        m.Buttons = buttons
+                        If __copied_users_not.Count = 0 Then
+                            m.Text = "All users are copied."
+                        ElseIf __copied_users.Count = 0 And __copied_users_not.Count > 0 Then
+                            m.Text = "No users have been copied."
+                        Else
+                            m.Text = $"The following users have been copied:{vbNewLine}"
+                            m.Text &= __copied_users.ListToString(vbNewLine)
+                            If __copied_users_not.Count > 0 Then
+                                m.Text = $"{vbNewLine.StringDup(2)}The following users have not been copied:{vbNewLine}"
+                                m.Text &= __copied_users_not.ListToString(vbNewLine)
+                            End If
+                        End If
+                        MsgBoxE(m,, err)
+                    End Using
+                End If
+            End If
+        Catch ex As Exception
+            ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Error when trying to copy data")
         End Try
     End Sub
     Friend Sub UserRemovedFromCollection(ByVal User As IUserData)

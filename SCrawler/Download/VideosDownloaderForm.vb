@@ -109,15 +109,15 @@ Namespace DownloadObjects
             StartDownloading()
         End Sub
         Private Sub BTT_STOP_Click(sender As Object, e As EventArgs) Handles BTT_STOP.Click
-            SetControlValueInvoke(ToolbarTOP, BTT_STOP, Sub() BTT_STOP.Enabled = False)
+            ControlInvoke(ToolbarTOP, BTT_STOP, Sub() BTT_STOP.Enabled = False)
             MyJob.Stop()
         End Sub
 #End Region
 #Region "Downloading"
         Private Sub StartDownloading()
             If Not MyJob.Working And MyJob.Count > 0 Then
-                SetControlValueInvoke(ToolbarTOP, BTT_DOWN, Sub() BTT_DOWN.Enabled = False)
-                SetControlValueInvoke(ToolbarTOP, BTT_STOP, Sub() BTT_STOP.Enabled = True)
+                ControlInvoke(ToolbarTOP, BTT_DOWN, Sub() BTT_DOWN.Enabled = False)
+                ControlInvoke(ToolbarTOP, BTT_STOP, Sub() BTT_STOP.Enabled = True)
                 MyJob.Start(AddressOf DownloadVideos, Threading.ApartmentState.STA)
             End If
         End Sub
@@ -137,8 +137,8 @@ Namespace DownloadObjects
                 RefillList()
                 MyJob.Progress.Visible = False
             End If
-            SetControlValueInvoke(ToolbarTOP, BTT_DOWN, Sub() BTT_DOWN.Enabled = True)
-            SetControlValueInvoke(ToolbarTOP, BTT_STOP, Sub() BTT_STOP.Enabled = False)
+            ControlInvoke(ToolbarTOP, BTT_DOWN, Sub() BTT_DOWN.Enabled = True)
+            ControlInvoke(ToolbarTOP, BTT_STOP, Sub() BTT_STOP.Enabled = False)
             MyJob.Stopped()
         End Sub
 #End Region

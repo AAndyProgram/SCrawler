@@ -27,6 +27,7 @@ Namespace Editors
                 With MyDefs
                     .MyViewInitialize()
                     .AddOkCancelToolbar()
+                    Collections.ListAddList(Settings.LastCollections)
                     Collections.ListAddList((From c In Settings.Users Where c.IsCollection Select c.CollectionName), LAP.NotContainsOnly, EDP.ThrowException)
                     If Collections.ListExists Then Collections.Sort() : CMB_COLLECTIONS.Items.AddRange(From c In Collections Select New ListItem(c))
                     If Not Collection.IsEmptyString And Collections.Contains(Collection) Then CMB_COLLECTIONS.SelectedIndex = Collections.IndexOf(Collection)
@@ -46,6 +47,10 @@ Namespace Editors
         Private Sub MyDefs_ButtonOkClick() Handles MyDefs.ButtonOkClick
             If CMB_COLLECTIONS.SelectedIndex >= 0 Then
                 Collection = CMB_COLLECTIONS.Value.ToString
+                With Settings.LastCollections
+                    If .Contains(Collection) Then .Remove(Collection)
+                    If .Count = 0 Then .Add(Collection) Else .Insert(0, Collection)
+                End With
                 MyDefs.CloseForm()
             Else
                 MsgBoxE("Collection not selected", MsgBoxStyle.Exclamation)

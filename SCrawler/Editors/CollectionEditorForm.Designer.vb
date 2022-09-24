@@ -15,9 +15,9 @@
         <System.Diagnostics.DebuggerStepThrough()>
         Private Sub InitializeComponent()
             Dim CONTAINER_MAIN As System.Windows.Forms.ToolStripContainer
-            Dim ActionButton3 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton1 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(CollectionEditorForm))
-            Dim ActionButton4 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton2 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Me.CMB_COLLECTIONS = New PersonalUtilities.Forms.Controls.ComboBoxExtended()
             CONTAINER_MAIN = New System.Windows.Forms.ToolStripContainer()
             CONTAINER_MAIN.ContentPanel.SuspendLayout()
@@ -44,14 +44,14 @@
             '
             'CMB_COLLECTIONS
             '
-            ActionButton3.BackgroundImage = CType(resources.GetObject("ActionButton3.BackgroundImage"), System.Drawing.Image)
-            ActionButton3.Name = "Add"
-            ActionButton3.ToolTipText = "Add new collection"
-            ActionButton4.BackgroundImage = CType(resources.GetObject("ActionButton4.BackgroundImage"), System.Drawing.Image)
-            ActionButton4.Name = "ArrowDown"
-            ActionButton4.Visible = False
-            Me.CMB_COLLECTIONS.Buttons.Add(ActionButton3)
-            Me.CMB_COLLECTIONS.Buttons.Add(ActionButton4)
+            ActionButton1.BackgroundImage = CType(resources.GetObject("ActionButton1.BackgroundImage"), System.Drawing.Image)
+            ActionButton1.Name = "Add"
+            ActionButton1.ToolTipText = "Add new collection"
+            ActionButton2.BackgroundImage = CType(resources.GetObject("ActionButton2.BackgroundImage"), System.Drawing.Image)
+            ActionButton2.Name = "ArrowDown"
+            ActionButton2.Visible = False
+            Me.CMB_COLLECTIONS.Buttons.Add(ActionButton1)
+            Me.CMB_COLLECTIONS.Buttons.Add(ActionButton2)
             Me.CMB_COLLECTIONS.Dock = System.Windows.Forms.DockStyle.Fill
             Me.CMB_COLLECTIONS.ListDropDownStyle = PersonalUtilities.Forms.Controls.ComboBoxExtended.ListMode.Simple
             Me.CMB_COLLECTIONS.Location = New System.Drawing.Point(2, 0)

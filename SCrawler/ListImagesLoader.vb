@@ -176,9 +176,7 @@ Friend Class ListImagesLoader
         Try
             Dim t As New List(Of Task)
             Dim l As New List(Of UserOption)
-            For Each u As IUserData In Settings.Users
-                If u.FitToAddParams Then t.Add(Task.Run(Sub() l.Add(New UserOption(u, MyList, True))))
-            Next
+            t.AddRange(From u As IUserData In Settings.Users Where u.FitToAddParams Select Task.Run(Sub() l.Add(New UserOption(u, MyList, True))))
             If t.Count > 0 Then Task.WaitAll(t.ToArray)
             If l.Count > 0 Then
                 For i% = 0 To l.Count - 1

@@ -150,6 +150,7 @@ Namespace API.Reddit
         End Sub
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
             _TotalPostsDownloaded = 0
+            'PENDING: Reddit ReparseMissing (DownloadDataF)
             'If Not IsSavedPosts AndAlso (Not IsChannel OrElse ChannelInfo Is Nothing) Then ReparseMissing(Token)
             If IsSavedPosts Then
                 DownloadDataChannel(String.Empty, Token)
@@ -376,6 +377,7 @@ Namespace API.Reddit
                                         ElseIf Not s.Value({"media", "reddit_video"}, "fallback_url").IsEmptyString Then
                                             tmpUrl = s.Value({"media", "reddit_video"}, "fallback_url")
                                             If SaveToCache Then
+                                                'TODELETE: Reddit thumbnail -> GetVideoRedditPreview
                                                 'tmpUrl = s.Value("thumbnail")
                                                 tmpUrl = GetVideoRedditPreview(s)
                                                 If Not tmpUrl.IsEmptyString Then

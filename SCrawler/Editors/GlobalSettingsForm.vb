@@ -83,6 +83,8 @@ Namespace Editors
                         TXT_FEED_ROWS.Value = .FeedDataRows.Value
                         TXT_FEED_COLUMNS.Value = .FeedDataColumns.Value
                         CH_FEED_ENDLESS.Checked = .FeedEndless
+                        CH_FEED_ADD_SESSION.Checked = .FeedAddSessionToCaption
+                        CH_FEED_ADD_DATE.Checked = .FeedAddDateToCaption
                     End With
                     .MyFieldsChecker = New FieldsChecker
                     With .MyFieldsCheckerE
@@ -191,6 +193,8 @@ Namespace Editors
                     .FeedDataRows.Value = CInt(TXT_FEED_ROWS.Value)
                     .FeedDataColumns.Value = CInt(TXT_FEED_COLUMNS.Value)
                     .FeedEndless.Value = CH_FEED_ENDLESS.Checked
+                    .FeedAddSessionToCaption.Value = CH_FEED_ADD_SESSION.Checked
+                    .FeedAddDateToCaption.Value = CH_FEED_ADD_DATE.Checked
                     FeedParametersChanged = .FeedDataRows.ChangesDetected Or .FeedDataColumns.ChangesDetected Or .FeedEndless.ChangesDetected
 
                     .EndUpdate()

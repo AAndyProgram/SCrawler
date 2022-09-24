@@ -233,7 +233,7 @@ Namespace API.Instagram
             LastDownloadDate = New XMLValue(Of Date)("LastDownloadDate", Now.AddDays(-1), _XML, n)
             LastRequestsCount = New XMLValue(Of Integer)("LastRequestsCount", 0, _XML, n)
             LastRequestsCountLabel = New PropertyValue(LastRequestsCountLabelStr.Invoke(LastRequestsCount.Value))
-            AddHandler LastRequestsCount.OnValueChanged, Sub(sender, __name, __value) LastRequestsCountLabel.Value = LastRequestsCountLabelStr.Invoke(__value)
+            AddHandler LastRequestsCount.OnValueChanged, Sub(sender, __name, __value) LastRequestsCountLabel.Value = LastRequestsCountLabelStr.Invoke(DirectCast(__value, Existable(Of Integer)).Value)
 
             UrlPatternUser = "https://www.instagram.com/{0}/"
             UserRegex = RParams.DMS("[htps:/]{7,8}.*?instagram.com/([^/]+)", 1)

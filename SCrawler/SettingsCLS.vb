@@ -36,6 +36,7 @@ Friend Class SettingsCLS : Implements IDisposable
     Friend Property Channels As Reddit.ChannelsCollection
     Friend ReadOnly Property Labels As LabelsKeeper
     Friend ReadOnly Property Groups As Groups.DownloadGroupCollection
+    Friend ReadOnly Property LastCollections As List(Of String)
     Friend Property Automation As Scheduler
     Friend ReadOnly Property BlackList As List(Of UserBan)
     Private ReadOnly BlackListFile As SFile = $"{SettingsFolderName}\BlackList.txt"
@@ -52,9 +53,11 @@ Friend Class SettingsCLS : Implements IDisposable
         UsersList = New List(Of UserInfo)
         BlackList = New List(Of UserBan)
         Plugins = New List(Of PluginHost)
+        LastCollections = New List(Of String)
 
         GlobalPath = New XMLValue(Of SFile)("GlobalPath", New SFile($"{SFile.GetPath(Application.StartupPath).PathWithSeparator}Data\"), MyXML,,
                                             New XMLValueBase.ToFilePath)
+        LastCopyPath = New XMLValue(Of SFile)("LastCopyPath",, MyXML,, New XMLValueBase.ToFilePath)
 
         CookiesEncrypted = New XMLValue(Of Boolean)("CookiesEncrypted", False, MyXML)
         EncryptCookies.CookiesEncrypted = CookiesEncrypted
@@ -122,6 +125,8 @@ Friend Class SettingsCLS : Implements IDisposable
         FeedDataColumns = New XMLValue(Of Integer)("DataColumns", 1, MyXML, n)
         FeedDataRows = New XMLValue(Of Integer)("DataRows", 10, MyXML, n)
         FeedEndless = New XMLValue(Of Boolean)("Endless", True, MyXML, n)
+        FeedAddDateToCaption = New XMLValue(Of Boolean)("AddDateToCaption", True, MyXML, n)
+        FeedAddSessionToCaption = New XMLValue(Of Boolean)("AddSessionToCaption", False, MyXML, n)
 
         n = {"Users"}
         FromChannelDownloadTop = New XMLValue(Of Integer)("FromChannelDownloadTop", 10, MyXML, n)
@@ -420,6 +425,7 @@ Friend Class SettingsCLS : Implements IDisposable
         End Get
     End Property
     Friend ReadOnly Property GlobalPath As XMLValue(Of SFile)
+    Friend ReadOnly Property LastCopyPath As XMLValue(Of SFile)
     Friend ReadOnly Property SeparateVideoFolder As XMLValue(Of Boolean)
     Friend ReadOnly Property CollectionsPath As XMLValue(Of String)
     Friend ReadOnly Property CollectionsPathF As SFile
@@ -519,6 +525,8 @@ Friend Class SettingsCLS : Implements IDisposable
     Friend ReadOnly Property FeedDataColumns As XMLValue(Of Integer)
     Friend ReadOnly Property FeedDataRows As XMLValue(Of Integer)
     Friend ReadOnly Property FeedEndless As XMLValue(Of Boolean)
+    Friend ReadOnly Property FeedAddDateToCaption As XMLValue(Of Boolean)
+    Friend ReadOnly Property FeedAddSessionToCaption As XMLValue(Of Boolean)
 #End Region
 #Region "New version properties"
     Friend ReadOnly Property CheckUpdatesAtStart As XMLValue(Of Boolean)
@@ -550,6 +558,7 @@ Friend Class SettingsCLS : Implements IDisposable
                 If Not Automation Is Nothing Then Automation.Dispose()
                 CachePath.Delete(SFO.Path, SFODelete.DeletePermanently, EDP.None)
                 Plugins.Clear()
+                LastCollections.Clear()
                 Users.ListClearDispose
                 UsersList.Clear()
                 SelectedSites.Dispose()

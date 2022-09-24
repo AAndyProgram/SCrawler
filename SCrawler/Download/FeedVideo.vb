@@ -76,7 +76,7 @@ Namespace DownloadObjects
             Try : MediaPlayer.Pause() : Catch : End Try
             UpdateButtons()
         End Sub
-        Private Sub BTT_STOP_Click(sender As Object, e As EventArgs) Handles BTT_STOP.Click
+        Friend Sub [Stop]() Handles BTT_STOP.Click
             Try : MediaPlayer.Stop() : Catch : End Try
             UpdateButtons()
         End Sub

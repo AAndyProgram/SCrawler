@@ -1,3 +1,21 @@
+# 2022.9.24.0
+
+*2022-09-24*
+
+- Added
+  - Ability to copy user data to another destination
+  - Ability to add 'Session' and 'Date' values to the post title in the feed
+  - Minor feed improvements
+  - The newly created collection will now appear at the top of the list (after reopening the form)
+  - Ability to add multiple users at a time to the collection.
+- Fixed
+  - Autodownloader opens a compressed image instead of a full one
+  - Incorrect resizing of the feed grid after deleting a media file
+  - Incorrect behavior when deleting/removing a user from a collection.
+  - An incorrect function that displayed the number of spent Instagram requests.
+  - Bug in the XVIDEOS downloader
+  - Minor bugs
+
 # 2022.9.17.0
 
 *2022-09-17*

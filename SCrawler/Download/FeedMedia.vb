@@ -16,6 +16,7 @@ Namespace DownloadObjects
     <ToolboxItem(False), DesignTimeVisible(False)>
     Public Class FeedMedia
 #Region "Declarations"
+        Friend Event MediaDeleted(ByVal Sender As Object)
         Private Const VideoHeight As Integer = 450
         Private WithEvents MyPicture As PictureBox
         Private ReadOnly MyImage As ImageRenderer
@@ -64,7 +65,7 @@ Namespace DownloadObjects
         Public Sub New()
             InitializeComponent()
         End Sub
-        Friend Sub New(ByVal Media As UserMediaD, ByVal Width As Integer)
+        Friend Sub New(ByVal Media As UserMediaD, ByVal Width As Integer, ByVal Handler As MediaDeletedEventHandler)
             Try
                 InitializeComponent()
                 File = Media.Data.File
@@ -131,12 +132,16 @@ Namespace DownloadObjects
                         End With
                     End If
 
+                    If Settings.FeedAddSessionToCaption Then info = $"[{Media.Session}] {info}"
+                    If Settings.FeedAddDateToCaption Then info &= $" ({Media.Date.ToStringDate(ADateTime.Formats.BaseDateTime)})"
                     LBL_INFO.Text = info
-                    'TT_MAIN.SetToolTip(LBL_INFO, Information)
+
                     s = New Size(Width, h + TP_MAIN.RowStyles(0).Height + PaddingE.GetOf({TP_MAIN}).Vertical(2))
                     Size = s
                     MinimumSize = s
                     MaximumSize = s
+
+                    If Not Handler Is Nothing Then AddHandler Me.MediaDeleted, Handler
                 Else
                     Throw New ArgumentNullException With {.HelpLink = 1}
                 End If
@@ -158,6 +163,9 @@ Namespace DownloadObjects
         End Sub
 #End Region
 #Region "LBL"
+        Private Sub LBL_INFO_MouseClick(sender As Object, e As MouseEventArgs) Handles LBL_INFO.MouseClick
+            If e.Button = MouseButtons.Left Then ControlInvoke(CH_CHECKED, Sub() CH_CHECKED.Checked = Not CH_CHECKED.Checked)
+        End Sub
         Private Sub LBL_INFO_DoubleClick(sender As Object, e As EventArgs) Handles LBL_INFO.DoubleClick
             If Not UserKey.IsEmptyString Then
                 Dim u As IUserData = Settings.GetUser(UserKey)
@@ -214,11 +222,10 @@ Namespace DownloadObjects
             Const msgTitle$ = "Deleting a file"
             Try
                 If Silent OrElse MsgBoxE({$"Are you sure you want to delete the [{File.File}] file?{vbCr}{File}", msgTitle}, vbExclamation,,, {"Process", "Cancel"}) = 0 Then
+                    If Not MyVideo Is Nothing Then MyVideo.Stop()
                     If File.Delete(SFO.File, Settings.DeleteMode, EDP.ThrowException) Then
-                        If Not Silent Then MsgBoxE({"File deleted", msgTitle})
+                        If Not Silent Then RaiseEvent MediaDeleted(Me) : MsgBoxE({"File deleted", msgTitle})
                         LBL_INFO.Height = 0
-                        If Not MyPicture Is Nothing Then MyPicture.Size = New Size(0, 0)
-                        If Not MyVideo Is Nothing Then MyVideo.MinimumSize = New Size(0, 0) : MyVideo.Size = New Size(0, 0)
                         Height = 0
                         Return True
                     End If

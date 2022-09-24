@@ -84,12 +84,14 @@ Namespace DownloadObjects
                                 Using Notify As New Notification(Text, Title) With {.Key = Key}
                                     Dim uPic As SFile = Nothing
                                     Dim uif As SFile = Nothing
+                                    Dim uif_orig As SFile = Nothing
                                     Dim uif_compressed As SFile = Nothing
                                     Dim uifKey$ = String.Empty
                                     If AutoDownloaderSource.ShowPictureUser Then uPic = DirectCast(User, UserDataBase).GetUserPictureToastAddress
                                     If AutoDownloaderSource.ShowPictureUser AndAlso uPic.Exists Then Notify.Images = {New ToastImage(uPic)}
                                     If AutoDownloaderSource.ShowPictureDownloaded And User.DownloadedPictures(False) > 0 Then
                                         uif = DirectCast(User, UserDataBase).GetLastImageAddress
+                                        uif_orig = uif
                                         If uif.Exists Then
                                             uif_compressed = uif
                                             uif_compressed.Path = CachePath.Path
@@ -101,7 +103,7 @@ Namespace DownloadObjects
                                             If uif.Exists Then
                                                 Notify.Images = {New ToastImage(uif, IImage.Modes.Inline)}
                                                 uifKey = $"{Key}_{Images.Keys.Count + 1}_{KeyBttPhoto}"
-                                                If Not Images.ContainsKey(uifKey) Then Images.Add(uifKey, uif)
+                                                If Not Images.ContainsKey(uifKey) Then Images.Add(uifKey, uif_orig)
                                             End If
                                         End If
                                     End If

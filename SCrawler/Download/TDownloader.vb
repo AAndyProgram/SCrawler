@@ -27,7 +27,7 @@ Namespace DownloadObjects
             Friend ReadOnly User As IUserData
             Friend ReadOnly Data As UserMedia
             Friend ReadOnly [Date] As Date
-            Private ReadOnly Session As Integer
+            Friend ReadOnly Session As Integer
             Friend Sub New(ByVal Data As UserMedia, ByVal User As IUserData, ByVal Session As Integer)
                 Me.Data = Data
                 Me.User = User

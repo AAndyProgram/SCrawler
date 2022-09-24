@@ -95,6 +95,8 @@
             Me.TXT_FEED_ROWS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_FEED_COLUMNS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.CH_FEED_ENDLESS = New System.Windows.Forms.CheckBox()
+            Me.CH_FEED_ADD_SESSION = New System.Windows.Forms.CheckBox()
+            Me.CH_FEED_ADD_DATE = New System.Windows.Forms.CheckBox()
             Me.TAB_MAIN = New System.Windows.Forms.TabControl()
             Me.CONTAINER_MAIN = New System.Windows.Forms.ToolStripContainer()
             TP_BASIS = New System.Windows.Forms.TableLayoutPanel()
@@ -1091,14 +1093,17 @@
             TP_FEED.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
             TP_FEED.Controls.Add(TP_FEED_IMG_COUNT, 0, 0)
             TP_FEED.Controls.Add(Me.CH_FEED_ENDLESS, 0, 1)
+            TP_FEED.Controls.Add(Me.CH_FEED_ADD_SESSION, 0, 2)
+            TP_FEED.Controls.Add(Me.CH_FEED_ADD_DATE, 0, 3)
             TP_FEED.Dock = System.Windows.Forms.DockStyle.Fill
             TP_FEED.Location = New System.Drawing.Point(0, 0)
             TP_FEED.Name = "TP_FEED"
-            TP_FEED.RowCount = 3
+            TP_FEED.RowCount = 5
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
             TP_FEED.Size = New System.Drawing.Size(576, 284)
             TP_FEED.TabIndex = 0
             '
@@ -1117,7 +1122,7 @@
             TP_FEED_IMG_COUNT.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
             TP_FEED_IMG_COUNT.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_FEED_IMG_COUNT.Size = New System.Drawing.Size(574, 28)
-            TP_FEED_IMG_COUNT.TabIndex = 1
+            TP_FEED_IMG_COUNT.TabIndex = 0
             '
             'TXT_FEED_ROWS
             '
@@ -1158,9 +1163,31 @@
             Me.CH_FEED_ENDLESS.Location = New System.Drawing.Point(4, 33)
             Me.CH_FEED_ENDLESS.Name = "CH_FEED_ENDLESS"
             Me.CH_FEED_ENDLESS.Size = New System.Drawing.Size(568, 19)
-            Me.CH_FEED_ENDLESS.TabIndex = 3
+            Me.CH_FEED_ENDLESS.TabIndex = 1
             Me.CH_FEED_ENDLESS.Text = "Endless feed"
             Me.CH_FEED_ENDLESS.UseVisualStyleBackColor = True
+            '
+            'CH_FEED_ADD_SESSION
+            '
+            Me.CH_FEED_ADD_SESSION.AutoSize = True
+            Me.CH_FEED_ADD_SESSION.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_FEED_ADD_SESSION.Location = New System.Drawing.Point(4, 59)
+            Me.CH_FEED_ADD_SESSION.Name = "CH_FEED_ADD_SESSION"
+            Me.CH_FEED_ADD_SESSION.Size = New System.Drawing.Size(568, 19)
+            Me.CH_FEED_ADD_SESSION.TabIndex = 2
+            Me.CH_FEED_ADD_SESSION.Text = "Add the session number to the post title"
+            Me.CH_FEED_ADD_SESSION.UseVisualStyleBackColor = True
+            '
+            'CH_FEED_ADD_DATE
+            '
+            Me.CH_FEED_ADD_DATE.AutoSize = True
+            Me.CH_FEED_ADD_DATE.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_FEED_ADD_DATE.Location = New System.Drawing.Point(4, 85)
+            Me.CH_FEED_ADD_DATE.Name = "CH_FEED_ADD_DATE"
+            Me.CH_FEED_ADD_DATE.Size = New System.Drawing.Size(568, 19)
+            Me.CH_FEED_ADD_DATE.TabIndex = 3
+            Me.CH_FEED_ADD_DATE.Text = "Add the date to the post title"
+            Me.CH_FEED_ADD_DATE.UseVisualStyleBackColor = True
             '
             'TAB_MAIN
             '
@@ -1314,5 +1341,7 @@
         Private WithEvents TXT_FEED_ROWS As PersonalUtilities.Forms.Controls.TextBoxExtended
         Private WithEvents TXT_FEED_COLUMNS As PersonalUtilities.Forms.Controls.TextBoxExtended
         Private WithEvents CH_FEED_ENDLESS As CheckBox
+        Private WithEvents CH_FEED_ADD_SESSION As CheckBox
+        Private WithEvents CH_FEED_ADD_DATE As CheckBox
     End Class
 End Namespace

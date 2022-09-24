@@ -73,6 +73,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_SHOW_EXCLUDED_LABELS_IGNORE = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_SHOW_SHOW_GROUPS = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_SHOW_LIMIT_DATES_NOT = New System.Windows.Forms.ToolStripMenuItem()
+        Me.BTT_SHOW_LIMIT_DATES_IN = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_LOG = New System.Windows.Forms.ToolStripButton()
         Me.BTT_VERSION_INFO = New System.Windows.Forms.ToolStripButton()
         Me.BTT_DONATE = New System.Windows.Forms.ToolStripButton()
@@ -89,6 +90,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_CONTEXT_DOWN_DATE_LIMIT = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_CONTEXT_EDIT = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_CONTEXT_DELETE = New System.Windows.Forms.ToolStripMenuItem()
+        Me.BTT_CONTEXT_COPY_TO_FOLDER = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_CONTEXT_FAV = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_CONTEXT_TEMP = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_CONTEXT_READY = New System.Windows.Forms.ToolStripMenuItem()
@@ -106,7 +108,6 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_TRAY_SHOW_HIDE = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_TRAY_CLOSE = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_TRAY_CLOSE_NO_SCRIPT = New System.Windows.Forms.ToolStripMenuItem()
-        Me.BTT_SHOW_LIMIT_DATES_IN = New System.Windows.Forms.ToolStripMenuItem()
         SEP_1 = New System.Windows.Forms.ToolStripSeparator()
         SEP_2 = New System.Windows.Forms.ToolStripSeparator()
         CONTEXT_SEP_1 = New System.Windows.Forms.ToolStripSeparator()
@@ -537,6 +538,14 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_SHOW_LIMIT_DATES_NOT.Text = "Limit dates (not in range)"
         Me.BTT_SHOW_LIMIT_DATES_NOT.ToolTipText = "Filter users whose last download date is not in the selected date range"
         '
+        'BTT_SHOW_LIMIT_DATES_IN
+        '
+        Me.BTT_SHOW_LIMIT_DATES_IN.AutoToolTip = True
+        Me.BTT_SHOW_LIMIT_DATES_IN.Name = "BTT_SHOW_LIMIT_DATES_IN"
+        Me.BTT_SHOW_LIMIT_DATES_IN.Size = New System.Drawing.Size(231, 22)
+        Me.BTT_SHOW_LIMIT_DATES_IN.Text = "Limit dates (in range)"
+        Me.BTT_SHOW_LIMIT_DATES_IN.ToolTipText = "Filter users whose last download date is in the selected date range"
+        '
         'BTT_LOG
         '
         Me.BTT_LOG.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text
@@ -622,9 +631,9 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         '
         'USER_CONTEXT
         '
-        Me.USER_CONTEXT.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_CONTEXT_DOWN, Me.BTT_CONTEXT_DOWN_LIMITED, Me.BTT_CONTEXT_DOWN_DATE_LIMIT, Me.BTT_CONTEXT_EDIT, Me.BTT_CONTEXT_DELETE, CONTEXT_SEP_1, Me.BTT_CONTEXT_FAV, Me.BTT_CONTEXT_TEMP, Me.BTT_CONTEXT_READY, Me.BTT_CONTEXT_GROUPS, Me.BTT_CONTEXT_SCRIPT, Me.BTT_CONTEXT_ADD_TO_COL, Me.BTT_CONTEXT_COL_MERGE, Me.BTT_CONTEXT_CHANGE_FOLDER, CONTEXT_SEP_2, Me.BTT_CHANGE_IMAGE, CONTEXT_SEP_3, Me.BTT_CONTEXT_OPEN_PATH, CONTEXT_SEP_4, Me.BTT_CONTEXT_OPEN_SITE, CONTEXT_SEP_5, Me.BTT_CONTEXT_INFO})
+        Me.USER_CONTEXT.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_CONTEXT_DOWN, Me.BTT_CONTEXT_DOWN_LIMITED, Me.BTT_CONTEXT_DOWN_DATE_LIMIT, Me.BTT_CONTEXT_EDIT, Me.BTT_CONTEXT_DELETE, Me.BTT_CONTEXT_COPY_TO_FOLDER, CONTEXT_SEP_1, Me.BTT_CONTEXT_FAV, Me.BTT_CONTEXT_TEMP, Me.BTT_CONTEXT_READY, Me.BTT_CONTEXT_GROUPS, Me.BTT_CONTEXT_SCRIPT, Me.BTT_CONTEXT_ADD_TO_COL, Me.BTT_CONTEXT_COL_MERGE, Me.BTT_CONTEXT_CHANGE_FOLDER, CONTEXT_SEP_2, Me.BTT_CHANGE_IMAGE, CONTEXT_SEP_3, Me.BTT_CONTEXT_OPEN_PATH, CONTEXT_SEP_4, Me.BTT_CONTEXT_OPEN_SITE, CONTEXT_SEP_5, Me.BTT_CONTEXT_INFO})
         Me.USER_CONTEXT.Name = "USER_CONTEXT"
-        Me.USER_CONTEXT.Size = New System.Drawing.Size(222, 408)
+        Me.USER_CONTEXT.Size = New System.Drawing.Size(222, 452)
         '
         'BTT_CONTEXT_DOWN
         '
@@ -662,6 +671,13 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_CONTEXT_DELETE.Name = "BTT_CONTEXT_DELETE"
         Me.BTT_CONTEXT_DELETE.Size = New System.Drawing.Size(221, 22)
         Me.BTT_CONTEXT_DELETE.Text = "Delete user / collection"
+        '
+        'BTT_CONTEXT_COPY_TO_FOLDER
+        '
+        Me.BTT_CONTEXT_COPY_TO_FOLDER.Image = Global.SCrawler.My.Resources.Resources.PastePic32
+        Me.BTT_CONTEXT_COPY_TO_FOLDER.Name = "BTT_CONTEXT_COPY_TO_FOLDER"
+        Me.BTT_CONTEXT_COPY_TO_FOLDER.Size = New System.Drawing.Size(221, 22)
+        Me.BTT_CONTEXT_COPY_TO_FOLDER.Text = "Copy data to another folder"
         '
         'BTT_CONTEXT_FAV
         '
@@ -786,14 +802,6 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_TRAY_CLOSE_NO_SCRIPT.ToolTipText = "Close the program without executing the script"
         Me.BTT_TRAY_CLOSE_NO_SCRIPT.Visible = False
         '
-        'BTT_SHOW_LIMIT_DATES_IN
-        '
-        Me.BTT_SHOW_LIMIT_DATES_IN.AutoToolTip = True
-        Me.BTT_SHOW_LIMIT_DATES_IN.Name = "BTT_SHOW_LIMIT_DATES_IN"
-        Me.BTT_SHOW_LIMIT_DATES_IN.Size = New System.Drawing.Size(231, 22)
-        Me.BTT_SHOW_LIMIT_DATES_IN.Text = "Limit dates (in range)"
-        Me.BTT_SHOW_LIMIT_DATES_IN.ToolTipText = "Filter users whose last download date is in the selected date range"
-        '
         'MainFrame
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
@@ -892,4 +900,5 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
     Friend WithEvents Toolbar_TOP As ToolStrip
     Private WithEvents BTT_FEED As ToolStripButton
     Private WithEvents BTT_SHOW_LIMIT_DATES_IN As ToolStripMenuItem
+    Private WithEvents BTT_CONTEXT_COPY_TO_FOLDER As ToolStripMenuItem
 End Class

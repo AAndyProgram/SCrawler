@@ -879,6 +879,7 @@ BlockNullPicture:
                     DownloadDataF(Token)
                     ThrowAny(Token)
                 Else
+                    'PENDING: UserDataBase ReparseMissing (DownloadDataF)
                     'ReparseMissing(Token)
                 End If
                 '_TempMediaList.ListAddList(ContentMissing, LNC)
@@ -1100,14 +1101,14 @@ BlockNullPicture:
             End Try
         End Sub
 #End Region
-#Region "Delete, Move, Merge"
+#Region "Delete, Move, Merge, Copy"
         Friend Overridable Function Delete() As Integer Implements IUserData.Delete
             Dim f As SFile = SFile.GetPath(MyFile.CutPath.Path)
             If f.Exists(SFO.Path, False) AndAlso (User.Merged OrElse f.Delete(SFO.Path, Settings.DeleteMode)) Then
-                MainFrameObj.ImageHandler(Me, False)
+                If Not IncludedInCollection Then MainFrameObj.ImageHandler(Me, False)
                 Settings.UsersList.Remove(User)
                 Settings.UpdateUsersList()
-                Settings.Users.Remove(Me)
+                If Not IncludedInCollection Then Settings.Users.Remove(Me)
                 Downloader.UserRemove(Me)
                 Dispose(True)
                 Return 1
@@ -1223,6 +1224,48 @@ BlockNullPicture:
                 If i > 0 Then f.Name &= $" ({i + 1})"
             End If
             Return f
+        End Function
+        Private Class FilesCopyingException : Inherits ErrorsDescriberException
+            Friend Sub New(ByVal User As IUserData, ByVal Msg As String, ByVal Path As SFile)
+                SendInLogOnlyMessage = True
+                If User.IncludedInCollection Then _MainMessage = $"[{User.CollectionName}] - "
+                _MainMessage &= $"[{User.Site}] - [{User.Name}]. {Msg}: {Path.Path}."
+            End Sub
+        End Class
+        Friend Overridable Function CopyFiles(ByVal DestinationPath As SFile, Optional ByVal e As ErrorsDescriber = Nothing) As Boolean Implements IUserData.CopyFiles
+            Dim fSource As SFile = Nothing
+            Dim fDest As SFile = Nothing
+            Try
+                Dim pOffset%
+                If IncludedInCollection Then
+                    If DataMerging Then pOffset = 1 Else pOffset = 2
+                Else
+                    pOffset = 1
+                End If
+                fSource = User.File.CutPath(pOffset).Path.CSFileP
+
+                Dim OptPath$ = String.Empty
+                If IncludedInCollection Then
+                    OptPath = $"Collections\{CollectionName}" 'Copying a collection based on the first file
+                Else
+                    OptPath = $"{Site}\{Name}"
+                End If
+                fDest = $"{DestinationPath.PathWithSeparator}{OptPath}".CSFileP
+                If fDest.Exists(SFO.Path, False) AndAlso MsgBoxE({$"The following path already exists:{vbCr}{fDest.Path}" & vbCr &
+                                                                  "Do you want to copy files here?", "Copying files"}, vbExclamation + vbYesNo) = vbNo Then _
+                   Throw New FilesCopyingException(Me, "The following path already exists", fDest)
+
+                If DestinationPath.Exists(SFO.Path, True) Then
+                    My.Computer.FileSystem.CopyDirectory(fSource, fDest, FileIO.UIOption.OnlyErrorDialogs, FileIO.UICancelOption.ThrowException)
+                Else
+                    Throw New FilesCopyingException(Me, "Cannot create the following path", fDest)
+                End If
+                Return True
+            Catch cex As OperationCanceledException
+                Return ErrorsDescriber.Execute(e, New FilesCopyingException(Me, "Copy canceled", fDest),, False)
+            Catch ex As Exception
+                Return ErrorsDescriber.Execute(e, ex,, False)
+            End Try
         End Function
 #End Region
 #Region "Errors functions"
@@ -1398,6 +1441,7 @@ BlockNullPicture:
         ''' </summary>
         Function Delete() As Integer
         Function MoveFiles(ByVal CollectionName As String) As Boolean
+        Function CopyFiles(ByVal DestinationPath As SFile, Optional ByVal e As ErrorsDescriber = Nothing) As Boolean
         Sub OpenFolder()
         ReadOnly Property Self As IUserData
         Property DownloadTopCount As Integer?

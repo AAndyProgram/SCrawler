@@ -71,7 +71,7 @@ Public Class UserData : Implements IPluginContentProvider
 
             Dim NextPage% = 0
             Dim r$
-            Dim j As EContainer, jj As EContainer
+            Dim jj As EContainer
             Dim e As ErrorsDescriber = EDP.ThrowException
             Dim user$ = Settings.GetUserUrl(Name, False)
             Dim p As PluginUserMedia
@@ -82,8 +82,7 @@ Public Class UserData : Implements IPluginContentProvider
                 r = Responser.GetResponse($"https://www.xvideos.com/{user}/videos/new/{If(NextPage = 0, String.Empty, NextPage)}",, e)
                 If Not r.IsEmptyString Then
                     If Not EnvirSet Then UserExists = True : UserSuspended = False : EnvirSet = True
-                    j = JsonDocument.Parse(r).XmlIfNothing
-                    With j
+                    With JsonDocument.Parse(r).XmlIfNothing
                         If .Contains("videos") Then
                             With .Item("videos")
                                 If .Count > 0 Then
@@ -94,9 +93,12 @@ Public Class UserData : Implements IPluginContentProvider
                                             .URL = $"https://www.xvideos.com{jj.Value("u")}"
                                         }
                                         If Not p.PostID.IsEmptyString And Not jj.Value("u").IsEmptyString Then
-                                            If Not TempPostsList.Contains(p.PostID) Then TempPostsList.Add(p.PostID) : TempMediaList.Add(p) Else Exit Do
+                                            If Not TempPostsList.Contains(p.PostID) Then TempPostsList.Add(p.PostID) : TempMediaList.Add(p) Else .Dispose() : Exit Do
                                         End If
                                     Next
+                                Else
+                                    .Dispose()
+                                    Exit Do
                                 End If
                             End With
                         Else

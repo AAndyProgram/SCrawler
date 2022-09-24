@@ -39,6 +39,7 @@ Namespace API.RedGifs
             Return $"https://www.redgifs.com/watch/{PostID}"
         End Function
         Friend Overrides Function Available(ByVal What As ISiteSettings.Download, ByVal Silent As Boolean) As Boolean
+            'PENDING: RedGifs SiteSettings Available FALSE
             Return False
         End Function
     End Class

@@ -53,7 +53,7 @@ Namespace DownloadObjects
                 ErrorsDescriber.Execute(EDP.SendInLog, ex)
             End Try
         End Sub
-        Private Sub MyDefs_ButtonAddClick(ByVal Sender As Object, ByVal e As EditToolbar.EditToolbarEventArgs) Handles MyDefs.ButtonAddClick
+        Private Sub MyDefs_ButtonAddClick(ByVal Sender As Object, ByVal e As EditToolbarEventArgs) Handles MyDefs.ButtonAddClick
             Dim a As New AutoDownloader(True)
             Using f As New AutoDownloaderEditorForm(a)
                 f.ShowDialog()
@@ -74,7 +74,7 @@ Namespace DownloadObjects
             End If
         End Sub
         Private _DeleteInProgress As Boolean = False
-        Private Async Sub MyDefs_ButtonDeleteClickE(ByVal Sender As Object, ByVal e As EditToolbar.EditToolbarEventArgs) Handles MyDefs.ButtonDeleteClickE
+        Private Async Sub MyDefs_ButtonDeleteClickE(ByVal Sender As Object, ByVal e As EditToolbarEventArgs) Handles MyDefs.ButtonDeleteClickE
             If Not _DeleteInProgress Then
                 If _LatestSelected.ValueBetween(0, LIST_PLANS.Items.Count - 1) Then
                     _DeleteInProgress = True

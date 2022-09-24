@@ -35,7 +35,7 @@ Public Class SettingsForm
         Settings.UpdateDomains()
         MyDefs.CloseForm()
     End Sub
-    Private Sub MyDefs_ButtonAddClick(ByVal Sender As Object, ByVal e As EditToolbar.EditToolbarEventArgs) Handles MyDefs.ButtonAddClick
+    Private Sub MyDefs_ButtonAddClick(ByVal Sender As Object, ByVal e As EditToolbarEventArgs) Handles MyDefs.ButtonAddClick
         Dim nd$ = InputBoxE("Enter a new domain using the pattern [xvideos.com]:", "New domain")
         If Not nd.IsEmptyString Then
             If Not LIST_DOMAINS.Items.Contains(nd) Then
@@ -45,7 +45,7 @@ Public Class SettingsForm
             End If
         End If
     End Sub
-    Private Sub MyDefs_ButtonDeleteClickE(ByVal Sender As Object, ByVal e As EditToolbar.EditToolbarEventArgs) Handles MyDefs.ButtonDeleteClickE
+    Private Sub MyDefs_ButtonDeleteClickE(ByVal Sender As Object, ByVal e As EditToolbarEventArgs) Handles MyDefs.ButtonDeleteClickE
         If _LatestSelected.ValueBetween(0, LIST_DOMAINS.Items.Count - 1) Then
             Dim n$ = LIST_DOMAINS.Items(_LatestSelected)
             If MsgBoxE({$"Are you sure you want to delete the [{n}] domain?", "Removing domains"}, MsgBoxStyle.YesNo) = MsgBoxResult.Yes Then

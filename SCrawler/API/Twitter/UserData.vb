@@ -34,6 +34,7 @@ Namespace API.Twitter
             Else
                 If _ContentList.Count > 0 Then _DataNames.ListAddList(_ContentList.Select(Function(c) c.File.File), LAP.ClearBeforeAdd, LAP.NotContainsOnly)
                 DownloadData(String.Empty, Token)
+                'PENDING: Twitter ReparseMissing (DownloadDataF)
                 'ReparseMissing(Token)
             End If
         End Sub
@@ -101,6 +102,7 @@ Namespace API.Twitter
 
                                     If IsSavedPosts OrElse Not ParseUserMediaOnly OrElse (Not nn.Contains("retweeted_status") OrElse
                                                                                          (Not ID.IsEmptyString AndAlso UID(nn("retweeted_status")) = ID)) Then
+                                        'TODELETE: Twitter ObtainMedia
                                         'If Not CheckVideoNode(nn, PostID, PostDate) Then
                                         '    s = nn.ItemF({"extended_entities", "media"})
                                         '    If s Is Nothing OrElse s.Count = 0 Then s = nn.ItemF({"retweeted_status", "extended_entities", "media"})
@@ -161,6 +163,7 @@ Namespace API.Twitter
             End If
         End Sub
         Protected Overrides Sub ReparseMissing(ByVal Token As CancellationToken)
+            'PENDING: Twitter ReparseMissing verify
             Dim rList As New List(Of Integer)
             Dim URL$ = String.Empty
             Try

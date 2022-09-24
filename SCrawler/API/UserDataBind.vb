@@ -346,6 +346,14 @@ Namespace API
                 Return False
             End Get
         End Property
+        Private Sub CopyTo(ByVal _Array() As IUserData, ByVal _ArrayIndex As Integer) Implements ICollection(Of IUserData).CopyTo
+            Throw New NotImplementedException("[CopyTo] method does not supported in collections context")
+        End Sub
+        Friend Sub Clear() Implements ICollection(Of IUserData).Clear
+            Collections.ListClearDispose
+        End Sub
+#End Region
+#Region "Add"
         ''' <exception cref="InvalidOperationException"></exception>
         Friend Overloads Sub Add(ByVal _Item As IUserData) Implements ICollection(Of IUserData).Add
             With _Item
@@ -413,6 +421,8 @@ Namespace API
                 For i% = 0 To _Items.Count - 1 : Add(_Items(i)) : Next
             End If
         End Sub
+#End Region
+#Region "Move, Merge"
         Friend Overrides Function MoveFiles(ByVal __CollectionName As String) As Boolean
             Throw New NotImplementedException("Move files is not available in the collection context")
         End Function
@@ -440,15 +450,8 @@ Namespace API
                 End If
             End If
         End Sub
-        Friend Sub Clear() Implements ICollection(Of IUserData).Clear
-            Collections.ListClearDispose
-        End Sub
-        Friend Function Contains(ByVal _Item As IUserData) As Boolean Implements ICollection(Of IUserData).Contains
-            Return Count > 0 AndAlso Collections.Contains(_Item)
-        End Function
-        Private Sub CopyTo(ByVal _Array() As IUserData, ByVal _ArrayIndex As Integer) Implements ICollection(Of IUserData).CopyTo
-            Throw New NotImplementedException("[CopyTo] method does not supported in collections context")
-        End Sub
+#End Region
+#Region "Remove, Delete"
         Friend Function Remove(ByVal _Item As IUserData) As Boolean Implements ICollection(Of IUserData).Remove
             If DataMerging Then
                 MsgBoxE($"Collection [{CollectionName}] data is already merged" & vbCr &
@@ -547,6 +550,17 @@ Namespace API
                 End If
             End With
         End Sub
+#End Region
+#Region "Copy"
+        Friend Overrides Function CopyFiles(ByVal DestinationPath As SFile, Optional ByVal e As ErrorsDescriber = Nothing) As Boolean
+            Return Count > 0 AndAlso Collections(0).CopyFiles(DestinationPath, e)
+        End Function
+#End Region
+#Region "Contains"
+        Friend Function Contains(ByVal _Item As IUserData) As Boolean Implements ICollection(Of IUserData).Contains
+            Return Count > 0 AndAlso Collections.Contains(_Item)
+        End Function
+#End Region
 #Region "IEnumerable Support"
         Private Function GetEnumerator() As IEnumerator(Of IUserData) Implements IEnumerable(Of IUserData).GetEnumerator
             Return New MyEnumerator(Of IUserData)(Me)
@@ -554,7 +568,6 @@ Namespace API
         Private Function IEnumerable_GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
             Return GetEnumerator()
         End Function
-#End Region
 #End Region
         Friend Overrides Function Equals(ByVal Other As UserDataBase) As Boolean
             If Other.IsCollection Then
