@@ -97,6 +97,10 @@ Public Class SiteSettings : Implements ISiteSettings
     Public Sub DownloadDone(ByVal What As ISiteSettings.Download) Implements ISiteSettings.DownloadDone
     End Sub
 #End Region
+    Public Sub BeginEdit() Implements ISiteSettings.BeginEdit
+    End Sub
+    Public Sub EndEdit() Implements ISiteSettings.EndEdit
+    End Sub
     Public Sub BeginUpdate() Implements ISiteSettings.BeginUpdate
     End Sub
     Public Sub EndUpdate() Implements ISiteSettings.EndUpdate

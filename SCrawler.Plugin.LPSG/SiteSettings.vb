@@ -54,6 +54,10 @@ Public Class SiteSettings : Implements ISiteSettings
     End Sub
 #End Region
 #Region "Update"
+    Public Sub BeginEdit() Implements ISiteSettings.BeginEdit
+    End Sub
+    Public Sub EndEdit() Implements ISiteSettings.EndEdit
+    End Sub
     Public Sub BeginUpdate() Implements ISiteSettings.BeginUpdate
     End Sub
     Public Sub EndUpdate() Implements ISiteSettings.EndUpdate
@@ -92,7 +96,7 @@ Public Class SiteSettings : Implements ISiteSettings
         Return Nothing
     End Function
     Public Function Available(ByVal What As ISiteSettings.Download, ByVal Silent As Boolean) As Boolean Implements ISiteSettings.Available
-        Return True
+        Return If(Responser.Cookies?.Count, 0) > 0
     End Function
     Public Function ReadyToDownload(ByVal What As ISiteSettings.Download) As Boolean Implements ISiteSettings.ReadyToDownload
         Return True
