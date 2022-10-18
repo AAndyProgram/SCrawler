@@ -1,4 +1,4 @@
-﻿' Copyright (C) 2022  Andy
+﻿' Copyright (C) 2023  Andy https://github.com/AAndyProgram
 ' This program is free software: you can redistribute it and/or modify
 ' it under the terms of the GNU General Public License as published by
 ' the Free Software Foundation, either version 3 of the License, or
@@ -6,6 +6,7 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
+Imports PersonalUtilities.Functions.Messaging
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.XML.Base
 Imports PersonalUtilities.Forms.Controls
@@ -21,7 +22,7 @@ Friend Class SettingsCLS : Implements IDisposable
     Friend Const CookieEncryptKey As String = "SCrawlerCookiesEncryptKeyword"
     Friend ReadOnly Design As XmlFile
     Private ReadOnly MyXML As XmlFile
-    Private ReadOnly OS64 As Boolean
+    Friend ReadOnly OS64 As Boolean
     Private ReadOnly FfmpegExists As Boolean
     Friend ReadOnly FfmpegFile As SFile
     Friend ReadOnly Property UseM3U8 As Boolean
@@ -29,6 +30,7 @@ Friend Class SettingsCLS : Implements IDisposable
             Return OS64 And FfmpegExists
         End Get
     End Property
+    Private ReadOnly FFMPEGNotification As XMLValue(Of Boolean)
     Friend ReadOnly Property CachePath As SFile = "_Cache\"
     Friend ReadOnly Plugins As List(Of PluginHost)
     Friend ReadOnly Property Users As List(Of IUserData)
@@ -41,11 +43,33 @@ Friend Class SettingsCLS : Implements IDisposable
     Friend ReadOnly Property BlackList As List(Of UserBan)
     Private ReadOnly BlackListFile As SFile = $"{SettingsFolderName}\BlackList.txt"
     Private ReadOnly UsersSettingsFile As SFile = $"{SettingsFolderName}\Users.xml"
+    Private Sub RemoveUnusedPlugins()
+        Dim f As SFile = PluginHost.PluginsPath
+        If f.Exists(SFO.Path, False) Then
+            Dim fpe As SFile = f
+            fpe.Name = "PersonalUtilities"
+            fpe.Extension = "dll"
+            Dim fpp As SFile = fpe
+            fpp.Name = "SCrawler.PluginProvider"
+            Dim ff As List(Of SFile) = SFile.GetFiles(f, "*.dll")
+            If ff.ListExists Then
+                For i% = ff.Count - 1 To 0 Step -1
+                    Select Case ff(i).Name
+                        Case "SCrawler.Plugin.LPSG" : If ff(i).Delete Then ff.RemoveAt(i)
+                        Case "SCrawler.Plugin.XVIDEOS" : If ff(i).Delete Then ff.RemoveAt(i)
+                    End Select
+                Next
+                If ff.Count > 0 AndAlso ((ff.Count = 2 And ff.Contains(fpe) And ff.Contains(fpp)) Or (ff.Count = 1 And ff.Contains(fpp))) Then _
+                   fpe.Delete() : fpp.Delete()
+            End If
+        End If
+    End Sub
     Friend Sub New()
+        RemoveUnusedPlugins()
         OS64 = Environment.Is64BitOperatingSystem
         FfmpegFile = "ffmpeg.exe"
         FfmpegExists = FfmpegFile.Exists
-        If OS64 And Not FfmpegExists Then MsgBoxE("[ffmpeg.exe] is missing", vbExclamation)
+
         Design = New XmlFile("Settings\Design.xml", Protector.Modes.All)
         MyXML = New XmlFile(Nothing) With {.AutoUpdateFile = True}
         MyXML.BeginUpdate()
@@ -54,6 +78,18 @@ Friend Class SettingsCLS : Implements IDisposable
         BlackList = New List(Of UserBan)
         Plugins = New List(Of PluginHost)
         LastCollections = New List(Of String)
+
+        FFMPEGNotification = New XMLValue(Of Boolean)("FFMPEGNotification", True, MyXML)
+        If OS64 And Not FfmpegExists Then
+            If FFMPEGNotification.Value AndAlso MsgBoxE(New MMessage("[ffmpeg.exe] is missing", "ffmpeg.exe",
+                                                        {"OK", New MsgBoxButton("Disable notification") With {
+                                                        .IsDialogResultButton = False, .ToolTip = "Disable ffmpeg missing notification"}}, vbExclamation) With {
+                                                        .DefaultButton = 0, .CancelButton = 0}) = 1 Then
+                FFMPEGNotification.Value = False
+            End If
+        Else
+            FFMPEGNotification.Value = True
+        End If
 
         GlobalPath = New XMLValue(Of SFile)("GlobalPath", New SFile($"{SFile.GetPath(Application.StartupPath).PathWithSeparator}Data\"), MyXML,,
                                             New XMLValueBase.ToFilePath)
@@ -65,12 +101,18 @@ Friend Class SettingsCLS : Implements IDisposable
         SeparateVideoFolder = New XMLValue(Of Boolean)("SeparateVideoFolder", True, MyXML)
         CollectionsPath = New XMLValue(Of String)("CollectionsPath", "Collections", MyXML)
 
-        Dim n() As String = {"Defaults"}
+        Dim n() As String = {"Search"}
+        SearchInName = New XMLValue(Of Boolean)("SearchInName", True, MyXML, n)
+        SearchInDescription = New XMLValue(Of Boolean)("SearchInDescription", False, MyXML, n)
+        SearchInLabel = New XMLValue(Of Boolean)("SearchInLabel", False, MyXML, n)
+
+        n = {"Defaults"}
         DefaultTemporary = New XMLValue(Of Boolean)("Temporary", False, MyXML, n)
         DefaultDownloadImages = New XMLValue(Of Boolean)("DownloadImages", True, MyXML, n)
         DefaultDownloadVideos = New XMLValue(Of Boolean)("DownloadVideos", True, MyXML, n)
         ChangeReadyForDownOnTempChange = New XMLValue(Of Boolean)("ChangeReadyForDownOnTempChange", True, MyXML, n)
         DownloadNativeImageFormat = New XMLValue(Of Boolean)("DownloadNativeImageFormat", True, MyXML, n)
+        ReparseMissingInTheRoutine = New XMLValue(Of Boolean)("ReparseMissingInTheRoutine", False, MyXML, n)
 
         Plugins.AddRange(PluginHost.GetMyHosts(MyXML, GlobalPath.Value, DefaultTemporary, DefaultDownloadImages, DefaultDownloadVideos))
         Dim tmpPluginList As IEnumerable(Of PluginHost) = PluginHost.GetPluginsHosts(MyXML, GlobalPath.Value, DefaultTemporary,
@@ -127,6 +169,7 @@ Friend Class SettingsCLS : Implements IDisposable
         FeedEndless = New XMLValue(Of Boolean)("Endless", True, MyXML, n)
         FeedAddDateToCaption = New XMLValue(Of Boolean)("AddDateToCaption", True, MyXML, n)
         FeedAddSessionToCaption = New XMLValue(Of Boolean)("AddSessionToCaption", False, MyXML, n)
+        FeedStoreSessionsData = New XMLValue(Of Boolean)("StoreSessionsData", True, MyXML, n)
 
         n = {"Users"}
         FromChannelDownloadTop = New XMLValue(Of Integer)("FromChannelDownloadTop", 10, MyXML, n)
@@ -149,9 +192,16 @@ Friend Class SettingsCLS : Implements IDisposable
         ShowNewVersionNotification = New XMLValue(Of Boolean)("ShowNewVersionNotification", True, MyXML)
         LatestVersion = New XMLValue(Of String)("LatestVersion", String.Empty, MyXML)
 
+        n = {"Notifications"}
+        ShowNotifications = New XMLValue(Of Boolean)("ShowNotifications", True, MyXML, n)
+        ShowNotifications.ReplaceByValue("ShowNotifications") 'TODELETE: 2022.9.24.0
+        ShowNotificationsDownProfiles = New XMLValue(Of Boolean)("Profiles", True, MyXML, n)
+        ShowNotificationsDownAutoDownloader = New XMLValue(Of Boolean)("AutoDownloader", True, MyXML, n)
+        ShowNotificationsDownChannels = New XMLValue(Of Boolean)("Channels", True, MyXML, n)
+        ShowNotificationsDownSavedPosts = New XMLValue(Of Boolean)("SavedPosts", True, MyXML, n)
+
         ExitConfirm = New XMLValue(Of Boolean)("ExitConfirm", True, MyXML)
         CloseToTray = New XMLValue(Of Boolean)("CloseToTray", True, MyXML)
-        ShowNotifications = New XMLValue(Of Boolean)("ShowNotifications", True, MyXML)
         OpenFolderInOtherProgram = New XMLValueAttribute(Of String, Boolean)("OpenFolderInOtherProgram", "Use",,, MyXML)
         DeleteToRecycleBin = New XMLValue(Of Boolean)("DeleteToRecycleBin", True, MyXML)
 
@@ -375,6 +425,30 @@ Friend Class SettingsCLS : Implements IDisposable
         End If
         Return Nothing
     End Function
+    Friend Overloads Function GetUser(ByVal User As UserInfo) As IUserData
+        If Users.Count > 0 Then
+            Dim i%, ii%
+            For i = 0 To Users.Count - 1
+                With Users(i)
+                    If .IsCollection Then
+                        If User.IncludedInCollection And .CollectionName = User.CollectionName Then
+                            With DirectCast(.Self, UserDataBind)
+                                If .Count > 0 Then
+                                    For ii = 0 To .Count - 1
+                                        If DirectCast(.Item(ii), UserDataBase).User.Equals(User) Then Return .Item(ii)
+                                    Next
+                                End If
+                            End With
+                            Return Nothing
+                        End If
+                    ElseIf Not User.IncludedInCollection Then
+                        If DirectCast(.Self, UserDataBase).User.Equals(User) Then Return .Self
+                    End If
+                End With
+            Next
+        End If
+        Return Nothing
+    End Function
 #End Region
     Friend Sub UpdateBlackList()
         If BlackList.Count > 0 Then
@@ -386,8 +460,8 @@ Friend Class SettingsCLS : Implements IDisposable
     Friend Sub DeleteCachePath()
         Reddit.ChannelsCollection.ChannelsPathCache.Delete(SFO.Path, SFODelete.None, EDP.None)
     End Sub
-    Friend Overloads Function UserExists(ByVal s As String, ByVal UserID As String) As Boolean
-        Dim UserFinderBase As Predicate(Of IUserData) = Function(user) user.Site = s And user.Name = UserID
+    Friend Overloads Function UserExists(ByVal UserSite As String, ByVal UserID As String) As Boolean
+        Dim UserFinderBase As Predicate(Of IUserData) = Function(user) user.Site = UserSite And user.Name = UserID
         Dim UserFinder As Predicate(Of IUserData) = Function(ByVal user As IUserData) As Boolean
                                                         If user.IsCollection Then
                                                             With DirectCast(user, UserDataBind)
@@ -442,12 +516,18 @@ Friend Class SettingsCLS : Implements IDisposable
     Private ReadOnly Property CookiesEncrypted As XMLValue(Of Boolean)
     Friend ReadOnly Property AddMissingToLog As XMLValue(Of Boolean)
     Friend ReadOnly Property AddMissingErrorsToLog As XMLValue(Of Boolean)
+#Region "Search"
+    Friend ReadOnly Property SearchInName As XMLValue(Of Boolean)
+    Friend ReadOnly Property SearchInDescription As XMLValue(Of Boolean)
+    Friend ReadOnly Property SearchInLabel As XMLValue(Of Boolean)
+#End Region
 #Region "Defaults"
     Friend ReadOnly Property DefaultTemporary As XMLValue(Of Boolean)
     Friend ReadOnly Property DefaultDownloadImages As XMLValue(Of Boolean)
     Friend ReadOnly Property DefaultDownloadVideos As XMLValue(Of Boolean)
     Friend ReadOnly Property ChangeReadyForDownOnTempChange As XMLValue(Of Boolean)
     Friend ReadOnly Property DownloadNativeImageFormat As XMLValue(Of Boolean)
+    Friend ReadOnly Property ReparseMissingInTheRoutine As XMLValue(Of Boolean)
 #End Region
 #Region "User data"
     Friend ReadOnly Property FromChannelDownloadTop As XMLValue(Of Integer)
@@ -491,7 +571,7 @@ Friend Class SettingsCLS : Implements IDisposable
             If _ViewDateFrom.ValueF.Exists Then Return _ViewDateFrom.Value Else Return Nothing
         End Get
         Set(ByVal d As Date?)
-            If Not d.HasValue Then _ViewDateFrom.ValueF = Nothing Else _ViewDateFrom.Value = d.Value
+            If Not d.HasValue Then _ViewDateFrom.ValueF = Nothing Else _ViewDateFrom.Value = d.Value.Date
         End Set
     End Property
     Private ReadOnly _ViewDateTo As XMLValue(Of Date)
@@ -500,7 +580,7 @@ Friend Class SettingsCLS : Implements IDisposable
             If _ViewDateTo.ValueF.Exists Then Return _ViewDateTo.Value Else Return Nothing
         End Get
         Set(ByVal d As Date?)
-            If Not d.HasValue Then _ViewDateTo.ValueF = Nothing Else _ViewDateTo.Value = d.Value
+            If Not d.HasValue Then _ViewDateTo.ValueF = Nothing Else _ViewDateTo.Value = d.Value.Date
         End Set
     End Property
     Friend ReadOnly Property ViewDateMode As XMLValue(Of Integer)
@@ -527,16 +607,47 @@ Friend Class SettingsCLS : Implements IDisposable
     Friend ReadOnly Property FeedEndless As XMLValue(Of Boolean)
     Friend ReadOnly Property FeedAddDateToCaption As XMLValue(Of Boolean)
     Friend ReadOnly Property FeedAddSessionToCaption As XMLValue(Of Boolean)
+    Friend ReadOnly Property FeedStoreSessionsData As XMLValue(Of Boolean)
 #End Region
 #Region "New version properties"
     Friend ReadOnly Property CheckUpdatesAtStart As XMLValue(Of Boolean)
     Friend ReadOnly Property ShowNewVersionNotification As XMLValue(Of Boolean)
     Friend ReadOnly Property LatestVersion As XMLValue(Of String)
 #End Region
+#Region "Notifications"
+    Friend Enum NotificationObjects
+        All
+        Profiles
+        AutoDownloader
+        Channels
+        SavedPosts
+    End Enum
+    Friend ReadOnly Property ProcessNotification(ByVal Sender As NotificationObjects) As Boolean
+        Get
+            If Not NotificationsSilentMode And ShowNotifications Then
+                Select Case Sender
+                    Case NotificationObjects.All : Return ShowNotifications
+                    Case NotificationObjects.Profiles : Return ShowNotificationsDownProfiles
+                    Case NotificationObjects.AutoDownloader : Return ShowNotificationsDownAutoDownloader
+                    Case NotificationObjects.Channels : Return ShowNotificationsDownChannels
+                    Case NotificationObjects.SavedPosts : Return ShowNotificationsDownSavedPosts
+                    Case Else : Return True
+                End Select
+            Else
+                Return False
+            End If
+        End Get
+    End Property
+    Friend Property NotificationsSilentMode As Boolean = False
+    Friend ReadOnly Property ShowNotifications As XMLValue(Of Boolean)
+    Friend ReadOnly Property ShowNotificationsDownProfiles As XMLValue(Of Boolean)
+    Friend ReadOnly Property ShowNotificationsDownAutoDownloader As XMLValue(Of Boolean)
+    Friend ReadOnly Property ShowNotificationsDownChannels As XMLValue(Of Boolean)
+    Friend ReadOnly Property ShowNotificationsDownSavedPosts As XMLValue(Of Boolean)
+#End Region
 #Region "Other program properties"
     Friend ReadOnly Property ExitConfirm As XMLValue(Of Boolean)
     Friend ReadOnly Property CloseToTray As XMLValue(Of Boolean)
-    Friend ReadOnly Property ShowNotifications As XMLValue(Of Boolean)
     Friend ReadOnly Property OpenFolderInOtherProgram As XMLValueAttribute(Of String, Boolean)
     Friend ReadOnly Property DeleteToRecycleBin As XMLValue(Of Boolean)
     Friend ReadOnly Property DeleteMode As SFODelete

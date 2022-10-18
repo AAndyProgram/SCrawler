@@ -1,4 +1,4 @@
-﻿' Copyright (C) 2022  Andy
+﻿' Copyright (C) 2023  Andy https://github.com/AAndyProgram
 ' This program is free software: you can redistribute it and/or modify
 ' it under the terms of the GNU General Public License as published by
 ' the Free Software Foundation, either version 3 of the License, or
@@ -25,7 +25,7 @@ Namespace API.Base
                         HOST.DownloadStarted(PDownload.SavedPosts)
                         Dim u As New UserInfo With {.Plugin = HOST.Key, .Site = HOST.Name, .SpecialPath = HOST.SavedPostsPath}
                         Using user As IUserData = HOST.GetInstance(PDownload.SavedPosts, Nothing, False, False)
-                            If Not user Is Nothing AndAlso (Not user.Name.IsEmptyString Or Not HOST.IsMyClass) Then
+                            If Not user Is Nothing AndAlso Not user.Name.IsEmptyString Then
                                 u.Name = user.Name
                                 With DirectCast(user, UserDataBase)
                                     With .User : u.IsChannel = .IsChannel : u.UpdateUserFile() : End With
@@ -45,7 +45,7 @@ Namespace API.Base
                         Progress.InformationTemporary = $"Host [{HOST.Name}] is unavailable"
                     End If
                 Else
-                    Progress.InformationTemporary = $"Host [{HOST.Name}] is nor ready"
+                    Progress.InformationTemporary = $"Host [{HOST.Name}] is not ready"
                 End If
             Catch ex As Exception
                 Progress.InformationTemporary = $"{HOST.Name} downloading error"

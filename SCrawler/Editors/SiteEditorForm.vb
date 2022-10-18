@@ -1,4 +1,4 @@
-﻿' Copyright (C) 2022  Andy
+﻿' Copyright (C) 2023  Andy https://github.com/AAndyProgram
 ' This program is free software: you can redistribute it and/or modify
 ' it under the terms of the GNU General Public License as published by
 ' the Free Software Foundation, either version 3 of the License, or
@@ -6,14 +6,14 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
+Imports SCrawler.Plugin
+Imports SCrawler.Plugin.Hosts
 Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Forms.Controls
 Imports PersonalUtilities.Forms.Controls.Base
 Imports PersonalUtilities.Tools.WEB
 Imports CookieControl = PersonalUtilities.Tools.WEB.CookieListForm.CookieControl
 Imports ADB = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons
-Imports SCrawler.Plugin
-Imports SCrawler.Plugin.Hosts
 Namespace Editors
     Friend Class SiteEditorForm
         Private ReadOnly LBL_AUTH As Label
@@ -46,6 +46,7 @@ Namespace Editors
             Host = h
             LBL_AUTH = New Label With {.Text = "Authorization", .TextAlign = ContentAlignment.MiddleCenter, .Dock = DockStyle.Fill}
             LBL_OTHER = New Label With {.Text = "Other Parameters", .TextAlign = ContentAlignment.MiddleCenter, .Dock = DockStyle.Fill}
+            Host.Source.BeginEdit()
         End Sub
         Private Sub SiteEditorForm_Load(sender As Object, e As EventArgs) Handles Me.Load
             Try
@@ -91,7 +92,6 @@ Namespace Editors
                             TP_MAIN.RowStyles(2).Height = 0
                         End If
 
-
                         If .PropList.Count > 0 Then
                             Dim laAdded As Boolean = False
                             Dim loAdded As Boolean = False
@@ -135,7 +135,7 @@ Namespace Editors
                         TXT_COOKIES.CaptionWidth = offset
                         CH_DOWNLOAD_SITE_DATA.Padding = New PaddingE(CH_DOWNLOAD_SITE_DATA.Padding) With {.Left = offset}
                         CH_GET_USER_MEDIA_ONLY.Padding = New PaddingE(CH_GET_USER_MEDIA_ONLY.Padding) With {.Left = offset}
-                        If c > 0 Or Not Host.IsMyClass Then
+                        If c > 0 Or h <> 0 Then
                             Dim ss As New Size(Size.Width, Size.Height + h + c)
                             MinimumSize = ss
                             Size = ss
@@ -155,6 +155,7 @@ Namespace Editors
             If Not SpecialButton Is Nothing Then SpecialButton.Dispose()
             LBL_AUTH.Dispose()
             LBL_OTHER.Dispose()
+            Host.Source.EndEdit()
         End Sub
         Private Sub MyDefs_ButtonOkClick(ByVal Sender As Object, ByVal e As KeyHandleEventArgs) Handles MyDefs.ButtonOkClick
             If MyDefs.MyFieldsChecker.AllParamsOK Then
@@ -177,23 +178,19 @@ Namespace Editors
                             If pList.Count > 0 AndAlso Not CBool(.PropList(indxList(i)).PropertiesCheckingMethod.Invoke(.Source, {pList})) Then Exit Sub
                         Next
                     End If
+
+                    Settings.BeginUpdate()
+
+                    SiteDefaultsFunctions.SetPropByChecker(TP_SITE_PROPS, Host)
+                    If TXT_PATH.IsEmptyString Then .Path = Nothing Else .Path = TXT_PATH.Text
+                    .SavedPostsPath = TXT_PATH_SAVED_POSTS.Text
+                    .DownloadSiteData.Value = CH_DOWNLOAD_SITE_DATA.Checked
+                    .GetUserMediaOnly.Value = CH_GET_USER_MEDIA_ONLY.Checked
+
+                    If .PropList.Count > 0 Then .PropList.ForEach(Sub(p) If Not p.Options Is Nothing Then p.UpdateValueByControl())
+
+                    .Source.Update()
                 End With
-
-                Settings.BeginUpdate()
-
-                If Not Host Is Nothing Then
-                    With Host
-                        SiteDefaultsFunctions.SetPropByChecker(TP_SITE_PROPS, Host)
-                        If TXT_PATH.IsEmptyString Then .Path = Nothing Else .Path = TXT_PATH.Text
-                        .SavedPostsPath = TXT_PATH_SAVED_POSTS.Text
-                        .DownloadSiteData.Value = CH_DOWNLOAD_SITE_DATA.Checked
-                        .GetUserMediaOnly.Value = CH_GET_USER_MEDIA_ONLY.Checked
-
-                        If .PropList.Count > 0 Then .PropList.ForEach(Sub(p) If Not p.Options Is Nothing Then p.UpdateValueByControl())
-
-                        .Source.Update()
-                    End With
-                End If
 
                 Settings.EndUpdate()
 
@@ -221,6 +218,7 @@ Namespace Editors
                             .DisableControls = CookieControl.AddFromInternal + CookieControl.AuthorizeProgram + CookieControl.OpenBrowser
                         }
                             f.ShowDialog()
+                            MyDefs.MyOkCancel.EnableOK = True
                         End Using
                         SetCookieText()
                     End If
@@ -229,6 +227,7 @@ Namespace Editors
                         With Host.Responser
                             If Not .Cookies Is Nothing Then .Cookies.Dispose()
                             .Cookies = New CookieKeeper(.CookiesDomain)
+                            MyDefs.MyOkCancel.EnableOK = True
                         End With
                         SetCookieText()
                     End If

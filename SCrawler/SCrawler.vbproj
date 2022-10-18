@@ -73,7 +73,7 @@
     <OptionInfer>On</OptionInfer>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>Content\Icons\Rainbow.ico</ApplicationIcon>
+    <ApplicationIcon>Content\Icons\RainbowIcon_48.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
     <DebugSymbols>true</DebugSymbols>
@@ -163,6 +163,12 @@
     <Compile Include="API\Base\ProfileSaved.vb" />
     <Compile Include="API\Base\SiteSettingsBase.vb" />
     <Compile Include="API\Base\Structures.vb" />
+    <Compile Include="API\Instagram\AdditionalSettingsForm.Designer.vb">
+      <DependentUpon>AdditionalSettingsForm.vb</DependentUpon>
+    </Compile>
+    <Compile Include="API\Instagram\AdditionalSettingsForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="API\Instagram\EditorExchangeOptions.vb" />
     <Compile Include="API\Instagram\OptionsForm.Designer.vb">
       <DependentUpon>OptionsForm.vb</DependentUpon>
@@ -170,6 +176,10 @@
     <Compile Include="API\Instagram\OptionsForm.vb">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="API\Instagram\SettingsExchangeOptions.vb" />
+    <Compile Include="API\LPSG\Declarations.vb" />
+    <Compile Include="API\LPSG\SiteSettings.vb" />
+    <Compile Include="API\LPSG\UserData.vb" />
     <Compile Include="API\Reddit\RedditViewSettingsForm.Designer.vb">
       <DependentUpon>RedditViewSettingsForm.vb</DependentUpon>
     </Compile>
@@ -177,35 +187,49 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="API\Reddit\IRedditView.vb" />
+    <Compile Include="API\TikTok\Declarations.vb" />
+    <Compile Include="API\TikTok\SiteSettings.vb" />
+    <Compile Include="API\TikTok\UserData.vb" />
+    <Compile Include="API\XVIDEOS\Declarations.vb" />
+    <Compile Include="API\XVIDEOS\M3U8.vb" />
+    <Compile Include="API\XVIDEOS\SettingsForm.Designer.vb">
+      <DependentUpon>SettingsForm.vb</DependentUpon>
+    </Compile>
+    <Compile Include="API\XVIDEOS\SettingsForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="API\XVIDEOS\SiteSettings.vb" />
+    <Compile Include="API\XVIDEOS\UserData.vb" />
     <Compile Include="Download\ActiveDownloadingProgress.Designer.vb">
       <DependentUpon>ActiveDownloadingProgress.vb</DependentUpon>
     </Compile>
     <Compile Include="Download\ActiveDownloadingProgress.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Download\AutoDownloader.vb" />
-    <Compile Include="Download\AutoDownloaderEditorForm.Designer.vb">
+    <Compile Include="Download\Automation\AutoDownloader.vb" />
+    <Compile Include="Download\Automation\AutoDownloaderEditorForm.Designer.vb">
       <DependentUpon>AutoDownloaderEditorForm.vb</DependentUpon>
     </Compile>
-    <Compile Include="Download\AutoDownloaderEditorForm.vb">
+    <Compile Include="Download\Automation\AutoDownloaderEditorForm.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Download\DownloadFeedForm.Designer.vb">
+    <Compile Include="Download\Automation\AutoDownloaderPauseButtons.vb" />
+    <Compile Include="Download\Feed\DownloadFeedForm.Designer.vb">
       <DependentUpon>DownloadFeedForm.vb</DependentUpon>
     </Compile>
-    <Compile Include="Download\DownloadFeedForm.vb">
+    <Compile Include="Download\Feed\DownloadFeedForm.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Download\FeedMedia.Designer.vb">
+    <Compile Include="Download\Feed\FeedMedia.Designer.vb">
       <DependentUpon>FeedMedia.vb</DependentUpon>
     </Compile>
-    <Compile Include="Download\FeedMedia.vb">
+    <Compile Include="Download\Feed\FeedMedia.vb">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="Download\FeedVideo.Designer.vb">
+    <Compile Include="Download\Feed\FeedVideo.Designer.vb">
       <DependentUpon>FeedVideo.vb</DependentUpon>
     </Compile>
-    <Compile Include="Download\FeedVideo.vb">
+    <Compile Include="Download\Feed\FeedVideo.vb">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Download\Groups\DownloadGroup.vb" />
@@ -227,14 +251,15 @@
     <Compile Include="Download\MissingPostsForm.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Download\Scheduler.vb" />
-    <Compile Include="Download\SchedulerEditorForm.Designer.vb">
+    <Compile Include="Download\Automation\Scheduler.vb" />
+    <Compile Include="Download\Automation\SchedulerEditorForm.Designer.vb">
       <DependentUpon>SchedulerEditorForm.vb</DependentUpon>
     </Compile>
-    <Compile Include="Download\SchedulerEditorForm.vb">
+    <Compile Include="Download\Automation\SchedulerEditorForm.vb">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="EncryptCookies.vb" />
+    <Compile Include="GlobalSuppressions.vb" />
     <Compile Include="MainFrameObjects.vb" />
     <Compile Include="My Project\Resources.Designer.vb">
       <AutoGen>True</AutoGen>
@@ -324,12 +349,6 @@
     <Compile Include="Editors\UserCreatorForm.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="FDatePickerForm.Designer.vb">
-      <DependentUpon>FDatePickerForm.vb</DependentUpon>
-    </Compile>
-    <Compile Include="FDatePickerForm.vb">
-      <SubType>Form</SubType>
-    </Compile>
     <Compile Include="LabelsKeeper.vb" />
     <Compile Include="ListImagesLoader.vb" />
     <Compile Include="MainFrame.vb">
@@ -351,13 +370,20 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <Compile Include="PluginsEnvironment\Attributes\AttributesInternal.vb" />
     <Compile Include="PluginsEnvironment\Hosts\LogHost.vb" />
     <Compile Include="PluginsEnvironment\Hosts\PropertyValueHost.vb" />
     <Compile Include="PluginsEnvironment\Hosts\PluginHost.vb" />
     <Compile Include="PluginsEnvironment\Hosts\SettingsHost.vb" />
     <Compile Include="SettingsCLS.vb" />
     <Compile Include="Download\TDownloader.vb" />
+    <Compile Include="SiteResources.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>SiteResources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="ToolStripKeysButton.vb">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="UserBan.vb" />
     <Compile Include="UserImage.vb" />
     <Compile Include="Download\VideosDownloaderForm.Designer.vb">
@@ -367,13 +393,25 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="UserInfo.vb" />
+    <Compile Include="UserSearchForm.Designer.vb">
+      <DependentUpon>UserSearchForm.vb</DependentUpon>
+    </Compile>
+    <Compile Include="UserSearchForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="API\Instagram\AdditionalSettingsForm.resx">
+      <DependentUpon>AdditionalSettingsForm.vb</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="API\Instagram\OptionsForm.resx">
       <DependentUpon>OptionsForm.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="API\Reddit\RedditViewSettingsForm.resx">
       <DependentUpon>RedditViewSettingsForm.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="API\XVIDEOS\SettingsForm.resx">
+      <DependentUpon>SettingsForm.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Channels\ChannelsStatsForm.resx">
       <DependentUpon>ChannelsStatsForm.vb</DependentUpon>
@@ -381,7 +419,7 @@
     <EmbeddedResource Include="Channels\ChannelViewForm.resx">
       <DependentUpon>ChannelViewForm.vb</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Download\AutoDownloaderEditorForm.resx">
+    <EmbeddedResource Include="Download\Automation\AutoDownloaderEditorForm.resx">
       <DependentUpon>AutoDownloaderEditorForm.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Download\DownloadedInfoForm.resx">
@@ -390,16 +428,16 @@
     <EmbeddedResource Include="Download\ActiveDownloadingProgress.resx">
       <DependentUpon>ActiveDownloadingProgress.vb</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Download\DownloadFeedForm.resx">
+    <EmbeddedResource Include="Download\Feed\DownloadFeedForm.resx">
       <DependentUpon>DownloadFeedForm.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Download\DownloadSavedPostsForm.resx">
       <DependentUpon>DownloadSavedPostsForm.vb</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Download\FeedMedia.resx">
+    <EmbeddedResource Include="Download\Feed\FeedMedia.resx">
       <DependentUpon>FeedMedia.vb</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Download\FeedVideo.resx">
+    <EmbeddedResource Include="Download\Feed\FeedVideo.resx">
       <DependentUpon>FeedVideo.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Download\Groups\GroupEditorForm.resx">
@@ -408,7 +446,7 @@
     <EmbeddedResource Include="Download\MissingPostsForm.resx">
       <DependentUpon>MissingPostsForm.vb</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Download\SchedulerEditorForm.resx">
+    <EmbeddedResource Include="Download\Automation\SchedulerEditorForm.resx">
       <DependentUpon>SchedulerEditorForm.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Editors\CollectionEditorForm.resx">
@@ -429,9 +467,6 @@
     <EmbeddedResource Include="Editors\UserCreatorForm.resx">
       <DependentUpon>UserCreatorForm.vb</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="FDatePickerForm.resx">
-      <DependentUpon>FDatePickerForm.vb</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="MainFrame.resx">
       <DependentUpon>MainFrame.vb</DependentUpon>
     </EmbeddedResource>
@@ -444,9 +479,39 @@
     <EmbeddedResource Include="Download\VideosDownloaderForm.resx">
       <DependentUpon>VideosDownloaderForm.vb</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="SiteResources.resx">
+      <CustomToolNamespace>My.Resources</CustomToolNamespace>
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>SiteResources.Designer.vb</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UserSearchForm.resx">
+      <DependentUpon>UserSearchForm.vb</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <None Include=".editorconfig" />
+    <None Include="Content\Pictures\ApplicationPic_16.png" />
+    <None Include="Content\Pictures\BookmarkBlack_16.png" />
+    <None Include="Content\Pictures\DBPic_32.png" />
+    <None Include="Content\Pictures\DeletePic_24.png" />
+    <None Include="Content\Pictures\FolderPic_32.png" />
+    <None Include="Content\Pictures\GlobePic_32.png" />
+    <None Include="Content\Pictures\HeartPic_32.png" />
+    <None Include="Content\Pictures\InfoPic_32.png" />
+    <None Include="Content\Pictures\MessagePic_16.png" />
+    <None Include="Content\Pictures\OkPic_32.png" />
+    <None Include="Content\Pictures\PastePic_32.png" />
+    <None Include="Content\Pictures\Pause_Blue_16.png" />
+    <None Include="Content\Pictures\PencilPic_16.png" />
+    <None Include="Content\Pictures\PicturePic_32.png" />
+    <None Include="Content\Pictures\PlusPic_24.png" />
+    <None Include="Content\Pictures\RefreshPic_24.png" />
+    <None Include="Content\Pictures\RSSPic_512.png" />
+    <None Include="Content\Pictures\ScriptPic_32.png" />
+    <None Include="Content\Pictures\SettingsPic_16.bmp" />
+    <None Include="Content\Pictures\StarPic_24.png" />
+    <None Include="Content\Pictures\StartPic_Green_16.png" />
+    <None Include="Content\Pictures\StopPic_32.png" />
     <None Include="My Project\app.manifest" />
     <None Include="My Project\Application.myapp">
       <Generator>MyApplicationCodeGenerator</Generator>
@@ -475,28 +540,32 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Content\Icons\InstagramIcon.ico" />
-    <None Include="Content\Pictures\SettingsPic_16.bmp" />
-    <None Include="Content\Pictures\TwitterPic400.png" />
-    <None Include="Content\Pictures\InstagramPic76.png" />
-    <None Include="Content\Pictures\BookmarkBlack_16.png" />
-    <None Include="Content\Pictures\HeartPic_32.png" />
-    <None Include="Content\Pictures\ScriptPic32.png" />
-    <None Include="Content\Icons\GroupBy_284.ico" />
-    <None Include="Content\Pictures\Pause_Blue_16.png" />
-    <None Include="Content\Pictures\RegGifsPic32.png" />
-    <None Include="Content\Icons\RegGifsIcon.ico" />
-    <None Include="Content\Icons\SettingsIcon.ico" />
-    <None Include="Content\Pictures\RedGifsPic32.png" />
-    <None Include="Content\Pictures\RSSPic.png" />
-    <None Include="Content\Icons\RedGifsIcon.ico" />
-    <None Include="Content\Icons\RSSIcon.ico" />
-    <None Include="Content\Pictures\StopPic32.png" />
-    <None Include="Content\Pictures\PastePic32.png" />
+    <None Include="Content\Icons\BookmarkIcon_32.ico" />
+    <None Include="Content\Pictures\SitePictures\InstagramPic_76.png" />
+    <None Include="Content\Pictures\SitePictures\LPSGPic_32.png" />
+    <None Include="Content\Pictures\SitePictures\RedditPic_512.png" />
+    <None Include="Content\Pictures\SitePictures\RedGifsPic_32.png" />
+    <None Include="Content\Pictures\SitePictures\TikTokPic_192.png" />
+    <None Include="Content\Pictures\SitePictures\TwitterPic_400.png" />
+    <None Include="Content\Pictures\SitePictures\XvideosPic_32.png" />
+    <None Include="Content\Icons\GroupByIcon_16.ico" />
+    <None Include="Content\Icons\RainbowIcon_48.ico" />
+    <None Include="Content\Icons\RSSIcon_32.ico" />
+    <None Include="Content\Icons\SettingsIcon_48.ico" />
+    <None Include="Content\Icons\UsersIcon_32.ico" />
+    <None Include="Content\Icons\SiteIcons\InstagramIcon_32.ico" />
+    <None Include="Content\Icons\SiteIcons\LPSGIcon_48.ico" />
+    <None Include="Content\Icons\SiteIcons\RedditIcon_128.ico" />
+    <None Include="Content\Icons\SiteIcons\RedGifsIcon_32.ico" />
+    <None Include="Content\Icons\SiteIcons\TikTokIcon_32.ico" />
+    <None Include="Content\Icons\SiteIcons\TwitterIcon_32.ico" />
+    <None Include="Content\Icons\SiteIcons\XvideosIcon_48.ico" />
+    <None Include="Content\Pictures\ArrowDownPic_Blue_24.png" />
+    <None Include="Content\Icons\ArrowDownIcon_Blue_24.ico" />
+    <None Include="Content\Pictures\PinPic_32.png" />
     <Content Include="ffmpeg.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="RedditIcon.ico" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.6.1">
@@ -510,6 +579,7 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
   <Import Project="..\packages\VideoLAN.LibVLC.Windows.3.0.17.4\build\VideoLAN.LibVLC.Windows.targets" Condition="Exists('..\packages\VideoLAN.LibVLC.Windows.3.0.17.4\build\VideoLAN.LibVLC.Windows.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

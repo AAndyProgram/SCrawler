@@ -1,4 +1,4 @@
-﻿' Copyright (C) 2022  Andy
+﻿' Copyright (C) 2023  Andy https://github.com/AAndyProgram
 ' This program is free software: you can redistribute it and/or modify
 ' it under the terms of the GNU General Public License as published by
 ' the Free Software Foundation, either version 3 of the License, or
@@ -27,7 +27,6 @@ Namespace API.Reddit
             Dim TP_VIEW_MODE As System.Windows.Forms.TableLayoutPanel
             Dim LBL_VIEW_MODE As System.Windows.Forms.Label
             Dim LBL_PERIOD As System.Windows.Forms.Label
-            Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(RedditViewSettingsForm))
             Me.OPT_VIEW_MODE_NEW = New System.Windows.Forms.RadioButton()
             Me.OPT_VIEW_MODE_HOT = New System.Windows.Forms.RadioButton()
             Me.OPT_VIEW_MODE_TOP = New System.Windows.Forms.RadioButton()
@@ -266,7 +265,7 @@ Namespace API.Reddit
             Me.ClientSize = New System.Drawing.Size(477, 112)
             Me.Controls.Add(CONTAINER_MAIN)
             Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle
-            Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
+            Me.Icon = Global.SCrawler.My.Resources.SiteResources.RedditIcon_128
             Me.KeyPreview = True
             Me.MaximizeBox = False
             Me.MaximumSize = New System.Drawing.Size(493, 151)

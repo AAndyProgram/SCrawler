@@ -1,4 +1,4 @@
-﻿' Copyright (C) 2022  Andy
+﻿' Copyright (C) 2023  Andy https://github.com/AAndyProgram
 ' This program is free software: you can redistribute it and/or modify
 ' it under the terms of the GNU General Public License as published by
 ' the Free Software Foundation, either version 3 of the License, or
@@ -17,10 +17,6 @@ Namespace Editors
             InitializeComponent()
             MyDefs = New DefaultFormOptions(Me, Settings.Design)
             Collections = New List(Of String)
-        End Sub
-        Friend Sub New(ByVal CollectionName As String)
-            Me.New
-            Collection = CollectionName
         End Sub
         Private Sub CollectionEditorForm_Load(sender As Object, e As EventArgs) Handles Me.Load
             Try

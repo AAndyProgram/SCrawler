@@ -1,4 +1,4 @@
-﻿' Copyright (C) 2022  Andy
+﻿' Copyright (C) 2023  Andy https://github.com/AAndyProgram
 ' This program is free software: you can redistribute it and/or modify
 ' it under the terms of the GNU General Public License as published by
 ' the Free Software Foundation, either version 3 of the License, or
@@ -92,7 +92,7 @@ Partial Friend Class DownloadSavedPostsForm : Inherits System.Windows.Forms.Form
         Me.ClientSize = New System.Drawing.Size(484, 41)
         Me.Controls.Add(Me.TP_MAIN)
         Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle
-        Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
+        Me.Icon = Global.SCrawler.My.Resources.BookmarkIcon_32
         Me.MaximizeBox = False
         Me.MaximumSize = New System.Drawing.Size(500, 80)
         Me.MinimumSize = New System.Drawing.Size(500, 80)

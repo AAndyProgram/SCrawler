@@ -1,4 +1,4 @@
-﻿' Copyright (C) 2022  Andy
+﻿' Copyright (C) 2023  Andy https://github.com/AAndyProgram
 ' This program is free software: you can redistribute it and/or modify
 ' it under the terms of the GNU General Public License as published by
 ' the Free Software Foundation, either version 3 of the License, or
@@ -14,12 +14,15 @@ Imports SCrawler.Plugin.Hosts
 Imports DownOptions = SCrawler.Plugin.ISiteSettings.Download
 Partial Friend Module MainMod
     Friend Structure UserInfo : Implements IComparable(Of UserInfo), IEquatable(Of UserInfo), ICloneable, IEContainerProvider
+#Region "XML Names"
         Friend Const Name_Site As String = "Site"
         Friend Const Name_Plugin As String = "Plugin"
         Friend Const Name_Collection As String = "Collection"
         Friend Const Name_Merged As String = "Merged"
         Friend Const Name_IsChannel As String = "IsChannel"
         Friend Const Name_SpecialPath As String = "SpecialPath"
+        Friend Const Name_UserNode As String = "User"
+#End Region
         Friend Name As String
         Friend Site As String
         Friend Plugin As String
@@ -59,7 +62,6 @@ Partial Friend Module MainMod
             Merged = x.Attribute(Name_Merged).Value.FromXML(Of Boolean)(False)
             SpecialPath = SFile.GetPath(x.Attribute(Name_SpecialPath).Value)
             IsChannel = x.Attribute(Name_IsChannel).Value.FromXML(Of Boolean)(False)
-            'UpdateUserFile()
         End Sub
         Friend Sub New(ByVal c As Reddit.Channel)
             Name = c.Name
@@ -109,13 +111,13 @@ Partial Friend Module MainMod
                 End If
             End If
         End Function
-        Friend Function GetContainer(Optional ByVal e As ErrorsDescriber = Nothing) As EContainer Implements IEContainerProvider.ToEContainer
-            Return New EContainer("User", Name, {New EAttribute(Name_Site, Site),
-                                                 New EAttribute(Name_Plugin, Plugin),
-                                                 New EAttribute(Name_Collection, CollectionName),
-                                                 New EAttribute(Name_Merged, Merged.BoolToInteger),
-                                                 New EAttribute(Name_IsChannel, IsChannel.BoolToInteger),
-                                                 New EAttribute(Name_SpecialPath, SpecialPath.PathWithSeparator)})
+        Friend Function ToEContainer(Optional ByVal e As ErrorsDescriber = Nothing) As EContainer Implements IEContainerProvider.ToEContainer
+            Return New EContainer(Name_UserNode, Name, {New EAttribute(Name_Site, Site),
+                                                        New EAttribute(Name_Plugin, Plugin),
+                                                        New EAttribute(Name_Collection, CollectionName),
+                                                        New EAttribute(Name_Merged, Merged.BoolToInteger),
+                                                        New EAttribute(Name_IsChannel, IsChannel.BoolToInteger),
+                                                        New EAttribute(Name_SpecialPath, SpecialPath.PathWithSeparator)})
         End Function
         Friend Function CompareTo(ByVal Other As UserInfo) As Integer Implements IComparable(Of UserInfo).CompareTo
             If Site = Other.Site Then

@@ -1,4 +1,4 @@
-﻿' Copyright (C) 2022  Andy
+﻿' Copyright (C) 2023  Andy https://github.com/AAndyProgram
 ' This program is free software: you can redistribute it and/or modify
 ' it under the terms of the GNU General Public License as published by
 ' the Free Software Foundation, either version 3 of the License, or
@@ -6,15 +6,16 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
+Imports System.Net
+Imports System.Threading
+Imports SCrawler.API.Base
+Imports SCrawler.API.Reddit.RedditViewExchange
+Imports SCrawler.Plugin.Hosts
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Tools.ImageRenderer
 Imports PersonalUtilities.Tools.WEB
 Imports PersonalUtilities.Tools.WebDocuments.JSON
-Imports System.Net
-Imports System.Threading
-Imports SCrawler.API.Base
-Imports SCrawler.API.Reddit.RedditViewExchange
 Imports UStates = SCrawler.API.Base.UserMedia.States
 Imports UTypes = SCrawler.API.Base.UserMedia.Types
 Imports CView = SCrawler.API.Reddit.IRedditView.View
@@ -150,8 +151,6 @@ Namespace API.Reddit
         End Sub
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
             _TotalPostsDownloaded = 0
-            'PENDING: Reddit ReparseMissing (DownloadDataF)
-            'If Not IsSavedPosts AndAlso (Not IsChannel OrElse ChannelInfo Is Nothing) Then ReparseMissing(Token)
             If IsSavedPosts Then
                 DownloadDataChannel(String.Empty, Token)
             ElseIf IsChannel Then
@@ -177,6 +176,8 @@ Namespace API.Reddit
 #Region "Download Functions (User, Channel)"
         Private _TotalPostsDownloaded As Integer = 0
         Private ReadOnly _CrossPosts As List(Of String)
+        Private Const SiteGfycatKey As String = "gfycat"
+        Private Const SiteRedGifsKey As String = "redgifs"
         Private Sub DownloadDataUser(ByVal POST As String, ByVal Token As CancellationToken)
             Const CPRI$ = "crosspostRootId"
             Const CPPI$ = "crosspostParentId"
@@ -239,7 +240,7 @@ Namespace API.Reddit
                                             _ItemsBefore = _TempMediaList.Count
                                             added = True
                                             s = nn.ItemF({"source", "url"})
-                                            If s.XmlIfNothingValue("/").StringContains({"redgifs.com", "gfycat.com"}) Then
+                                            If s.XmlIfNothingValue("/").StringContains({$"{SiteRedGifsKey}.com", $"{SiteGfycatKey}.com"}) Then
                                                 _TempMediaList.ListAddValue(MediaFromData(UTypes.VideoPre, s.Value, _PostID(), PostDate,, IsChannel), LNC)
                                             ElseIf Not CreateImgurMedia(s.XmlIfNothingValue, _PostID(), PostDate,, IsChannel) Then
                                                 s = nn.ItemF({"media"}).XmlIfNothing
@@ -271,7 +272,7 @@ Namespace API.Reddit
                                                 If Not s.IsEmptyString AndAlso TryFile(s.Value) Then
                                                     With s.Value.ToLower
                                                         Select Case True
-                                                            Case .Contains("redgifs"), .Contains("gfycat") : tmpType = UTypes.VideoPre
+                                                            Case .Contains(SiteRedGifsKey), .Contains(SiteGfycatKey) : tmpType = UTypes.VideoPre
                                                             Case .Contains("m3u8") : If Settings.UseM3U8 Then tmpType = UTypes.m3u8
                                                             Case .Contains(".gif") And TryFile(s.Value) : tmpType = UTypes.GIF
                                                             Case TryFile(s.Value) : tmpType = UTypes.Picture
@@ -329,7 +330,7 @@ Namespace API.Reddit
 
                                         If ChannelPostsNames.Contains(PostID) Then
                                             If ViewMode = CView.New Then ExistsDetected = True Else NewPostDetected = True 'bypass
-                                            Continue For 'Exit Sub
+                                            Continue For
                                         End If
                                         If DownloadLimitCount.HasValue AndAlso _TotalPostsDownloaded >= DownloadLimitCount.Value Then Exit Sub
                                         If Not DownloadLimitPost.IsEmptyString AndAlso DownloadLimitPost = PostID Then Exit Sub
@@ -377,8 +378,6 @@ Namespace API.Reddit
                                         ElseIf Not s.Value({"media", "reddit_video"}, "fallback_url").IsEmptyString Then
                                             tmpUrl = s.Value({"media", "reddit_video"}, "fallback_url")
                                             If SaveToCache Then
-                                                'TODELETE: Reddit thumbnail -> GetVideoRedditPreview
-                                                'tmpUrl = s.Value("thumbnail")
                                                 tmpUrl = GetVideoRedditPreview(s)
                                                 If Not tmpUrl.IsEmptyString Then
                                                     _TempMediaList.ListAddValue(MediaFromData(UTypes.Picture, tmpUrl, PostID, PostDate, _UserID, IsChannel, False), LNC)
@@ -388,7 +387,6 @@ Namespace API.Reddit
                                                 _TempMediaList.ListAddValue(MediaFromData(UTypes.m3u8, s.Value({"media", "reddit_video"}, "hls_url"),
                                                                                           PostID, PostDate, _UserID, IsChannel), LNC)
                                             Else
-                                                '_TempMediaList.ListAddValue(MediaFromData(UTypes.VideoPre + UTypes.m3u8, tmpUrl, PostID, PostDate, _UserID, IsChannel), LNC)
                                                 _TempMediaList.ListAddValue(MediaFromData(UTypes.Video, tmpUrl, PostID, PostDate, _UserID, IsChannel), LNC)
                                                 _TotalPostsDownloaded += 1
                                             End If
@@ -418,19 +416,6 @@ Namespace API.Reddit
         End Sub
 #End Region
 #Region "Download Base Functions"
-        Private Function ImgurPicture(ByVal Source As EContainer, ByVal Value As String) As String
-            Try
-                Dim e As EContainer = Source({"source", "url"}).XmlIfNothing
-                If Not e.IsEmptyString AndAlso e.Value.ToLower.Contains("imgur") Then
-                    Return e.Value
-                Else
-                    Return Value
-                End If
-            Catch ex As Exception
-                LogError(ex, "[ImgurPicture]")
-                Return Value
-            End Try
-        End Function
         Private Function CreateImgurMedia(ByVal _URL As String, ByVal PostID As String, ByVal PostDate As String,
                                           Optional ByVal _UserID As String = "", Optional ByVal IsChannel As Boolean = False) As Boolean
             If Not _URL.IsEmptyString AndAlso _URL.Contains("imgur") Then
@@ -449,8 +434,33 @@ Namespace API.Reddit
                 ElseIf _URL.Contains(".gif") Then
                     _TempMediaList.ListAddValue(MediaFromData(UTypes.GIF, _URL, PostID, PostDate, _UserID, IsChannel), LNC)
                 Else
-                    If Not TryFile(_URL) Then _URL &= ".jpg"
-                    _TempMediaList.ListAddValue(MediaFromData(UTypes.Picture, _URL, PostID, PostDate, _UserID, IsChannel), LNC)
+                    Dim obj As IEnumerable(Of UserMedia) = Imgur.Envir.GetVideoInfo(_URL, EDP.ReturnValue)
+                    If Not obj.ListExists Then
+                        If Not TryFile(_URL) Then _URL &= ".jpg"
+                        _TempMediaList.ListAddValue(MediaFromData(UTypes.Picture, _URL, PostID, PostDate, _UserID, IsChannel), LNC)
+                    Else
+                        Dim ut As UTypes
+                        Dim m As UserMedia
+                        For Each data As UserMedia In obj
+                            With data
+                                If Not .URL.IsEmptyString Then
+                                    If Not .File.IsEmptyString Then
+                                        Select Case .File.Extension
+                                            Case "jpg", "png", "jpeg" : ut = UTypes.Picture
+                                            Case "gifv" : ut = IIf(SaveToCache, UTypes.Picture, UTypes.Video)
+                                            Case "mp4" : ut = UTypes.Video
+                                            Case "gif" : ut = UTypes.GIF
+                                            Case Else : ut = UTypes.Picture : .File.Extension = "jpg"
+                                        End Select
+                                        m = MediaFromData(ut, _URL, PostID, PostDate, _UserID, IsChannel)
+                                        m.URL = .URL
+                                        m.File = .File.File
+                                        _TempMediaList.ListAddValue(m, LNC)
+                                    End If
+                                End If
+                            End With
+                        Next
+                    End If
                 End If
                 Return True
             Else
@@ -512,20 +522,37 @@ Namespace API.Reddit
             End Try
         End Function
         Protected Overrides Sub ReparseVideo(ByVal Token As CancellationToken)
+            Dim RedGifsResponser As Response = Nothing
             Try
                 ThrowAny(Token)
                 Const v2 As UTypes = UTypes.VideoPre + UTypes.m3u8
                 If _TempMediaList.Count > 0 AndAlso _TempMediaList.Exists(Function(p) p.Type = UTypes.VideoPre Or p.Type = v2) Then
                     Dim r$, v$
                     Dim e As New ErrorsDescriber(EDP.ReturnValue)
-                    Dim m As UserMedia
+                    Dim m As UserMedia, m2 As UserMedia
+                    Dim RedGifsHost As SettingsHost = Settings(RedGifs.RedGifsSiteKey)
+                    RedGifsResponser = RedGifsHost.Responser.Copy
                     For i% = _TempMediaList.Count - 1 To 0 Step -1
                         ThrowAny(Token)
                         If _TempMediaList(i).Type = UTypes.VideoPre Or _TempMediaList(i).Type = v2 Then
                             m = _TempMediaList(i)
                             If _TempMediaList(i).Type = UTypes.VideoPre Then
-                                If m.URL.Contains("gfycat.com") Then
+                                If m.URL.Contains($"{SiteGfycatKey}.com") Then
                                     r = Gfycat.Envir.GetVideo(m.URL)
+                                ElseIf m.URL.Contains(SiteRedGifsKey) Then
+                                    m2 = RedGifs.UserData.GetDataFromUrlId(m.URL, False, RedGifsResponser, RedGifsHost)
+                                    If m2.State = UStates.Missing Then
+                                        m.State = UStates.Missing
+                                        _ContentList.Add(m)
+                                        _TempMediaList.RemoveAt(i)
+                                    ElseIf m2.State = RedGifs.UserData.DataGone Then
+                                        _TempMediaList.RemoveAt(i)
+                                    Else
+                                        m2.URL_BASE = m.URL
+                                        m2.Post = m.Post
+                                        _TempMediaList(i) = m2
+                                    End If
+                                    Continue For
                                 Else
                                     r = Responser.GetResponse(m.URL,, e)
                                 End If
@@ -546,60 +573,34 @@ Namespace API.Reddit
                 End If
             Catch ex As Exception
                 ProcessException(ex, Token, "video reparsing error", False)
+            Finally
+                If Not RedGifsResponser Is Nothing Then RedGifsResponser.Dispose()
             End Try
         End Sub
         Protected Overrides Sub ReparseMissing(ByVal Token As CancellationToken)
             Dim rList As New List(Of Integer)
+            Dim RedGifsResponser As Response = Nothing
             Try
-                If _ContentList.Exists(MissingFinder) Then
-                    Dim m As UserMedia
-                    Dim j As EContainer, ss As EContainer
-                    Dim r$, tmpUrl$, PostDate$, _UserID$
-                    Dim err As New ErrorsDescriber(EDP.ReturnValue)
-                    Dim node As Object() = {"data", "children", 0, "data"}
-                    Dim eCount As Predicate(Of EContainer) = Function(e) e.Count > 0
-                    Dim cItems As Predicate(Of EContainer) = Function(e) If(e.ItemF(node)?.Count, 0) > 0
+                If Not ChannelInfo Is Nothing Or SaveToCache Then Exit Sub
+                If ContentMissingExists Then
+                    Dim RedGifsHost As SettingsHost = Settings(RedGifs.RedGifsSiteKey)
+                    RedGifsResponser = RedGifsHost.Responser.Copy
+                    Dim m As UserMedia, m2 As UserMedia
                     For i% = 0 To _ContentList.Count - 1
                         m = _ContentList(i)
                         If m.State = UStates.Missing AndAlso Not m.Post.ID.IsEmptyString Then
                             ThrowAny(Token)
-                            r = Responser.GetResponse($"https://www.reddit.com/comments/{m.Post.ID.Split("_").LastOrDefault}/.json",, err)
-                            If Not r.IsEmptyString Then
-                                j = JsonDocument.Parse(r, err)
-                                If Not j Is Nothing Then
-                                    If j.Contains(cItems) Then
-                                        With j.ItemF({cItems}).ItemF(node)
-                                            If .Contains("created") Then PostDate = .Item("created").Value Else PostDate = String.Empty
-                                            _UserID = .Value("author")
-                                            tmpUrl = .Value("url")
-                                            If Not tmpUrl.IsEmptyString AndAlso tmpUrl.StringContains({"redgifs.com", "gfycat.com"}) Then
-                                                _TempMediaList.ListAddValue(MediaFromData(UTypes.VideoPre, tmpUrl, m.Post.ID, PostDate, _UserID, IsChannel), LNC)
-                                                _TotalPostsDownloaded += 1
-                                            ElseIf Not .Value({"media", "reddit_video"}, "fallback_url").IsEmptyString Then
-                                                tmpUrl = .Value({"media", "reddit_video"}, "fallback_url")
-                                                If UseM3U8 AndAlso Not .Value({"media", "reddit_video"}, "hls_url").IsEmptyString Then
-                                                    _TempMediaList.ListAddValue(MediaFromData(UTypes.m3u8, .Value({"media", "reddit_video"}, "hls_url"),
-                                                                                              m.Post.ID, PostDate, _UserID, IsChannel), LNC)
-                                                Else
-                                                    '_TempMediaList.ListAddValue(MediaFromData(UTypes.VideoPre + UTypes.m3u8, tmpUrl, PostID, PostDate, _UserID, IsChannel), LNC)
-                                                    _TempMediaList.ListAddValue(MediaFromData(UTypes.Video, tmpUrl, m.Post.ID, PostDate, _UserID, IsChannel), LNC)
-                                                    _TotalPostsDownloaded += 1
-                                                End If
-                                            ElseIf CreateImgurMedia(tmpUrl, m.Post.ID, PostDate, _UserID, IsChannel) Then
-                                                _TotalPostsDownloaded += 1
-                                            ElseIf If(.Item("media_metadata")?.Count, 0) > 0 Then
-                                                DownloadGallery(.Self, m.Post.ID, PostDate, _UserID, SaveToCache)
-                                                _TotalPostsDownloaded += 1
-                                            ElseIf .Contains("preview") Then
-                                                ss = .ItemF({"preview", "images", eCount, "source", "url"}).XmlIfNothing
-                                                If Not ss.Value.IsEmptyString Then
-                                                    _TempMediaList.ListAddValue(MediaFromData(UTypes.Picture, ss.Value, m.Post.ID, PostDate, _UserID, IsChannel), LNC)
-                                                    _TotalPostsDownloaded += 1
-                                                End If
-                                            End If
-                                        End With
-                                    End If
-                                    j.Dispose()
+                            If Not m.URL.IsEmptyString AndAlso m.URL.Contains(SiteRedGifsKey) Then
+                                m2 = RedGifs.UserData.GetDataFromUrlId(m.URL, False, RedGifsResponser, RedGifsHost)
+                                If m2.State = RedGifs.UserData.DataGone Then
+                                    rList.Add(i)
+                                ElseIf Not m2.Type = UTypes.Undefined And Not m2.State = UStates.Missing Then
+                                    m.Type = m2.Type
+                                    m.File = m2.File
+                                    m.URL_BASE = m.URL
+                                    m.URL = m2.URL
+                                    rList.Add(i)
+                                    _TempMediaList.ListAddValue(m, LNC)
                                 End If
                             End If
                         End If
@@ -608,26 +609,77 @@ Namespace API.Reddit
             Catch ex As Exception
                 ProcessException(ex, Token, "missing data downloading error")
             Finally
+                If Not RedGifsResponser Is Nothing Then RedGifsResponser.Dispose()
                 If rList.Count > 0 Then
                     For i% = rList.Count - 1 To 0 Step -1 : _ContentList.RemoveAt(rList(i)) : Next
                     rList.Clear()
                 End If
             End Try
         End Sub
-        Friend Shared Function GetVideoInfo(ByVal URL As String, ByVal resp As Response) As IEnumerable(Of UserMedia)
+        Private Sub ParsePost(ByVal URL As String)
             Try
-                If Not URL.IsEmptyString AndAlso URL.Contains("redgifs") Then
+                If Not URL.IsEmptyString Then
+                    Dim __id$ = RegexReplace(URL, RParams.DMS("comments/([^/]+)", 1, EDP.ReturnValue))
+                    If Not __id.IsEmptyString Then
+                        URL = $"https://www.reddit.com/comments/{__id.Split("_").LastOrDefault}/.json"
+                        Dim r$ = Responser.GetResponse(URL,, EDP.ReturnValue)
+                        If Not r.IsEmptyString Then
+                            Using j As EContainer = JsonDocument.Parse(r).XmlIfNothing
+                                With j.ItemF({0, "data", "children", 0, "data"})
+                                    If .ListExists Then
+                                        If .Contains({"media"}, "reddit_video") Then
+                                            With .Item({"media"}, "reddit_video")
+                                                If UseM3U8 AndAlso .Item("hls_url").XmlIfNothingValue("/").ToLower.Contains("m3u8") Then
+                                                    _TempMediaList.ListAddValue(MediaFromData(UTypes.m3u8, .Value("hls_url"), __id, String.Empty), LNC)
+                                                ElseIf Not UseM3U8 AndAlso .Item("fallback_url").XmlIfNothingValue("/").ToLower.Contains("mp4") Then
+                                                    _TempMediaList.ListAddValue(MediaFromData(UTypes.Video, .Value("fallback_url"), __id, String.Empty), LNC)
+                                                End If
+                                            End With
+                                        ElseIf Not .Value("url").IsEmptyString Then
+                                            If .Value("url").StringContains({$"{SiteRedGifsKey}.com", $"{SiteGfycatKey}.com"}) Then
+                                                _TempMediaList.ListAddValue(MediaFromData(UTypes.VideoPre, .Value("url"), __id, String.Empty), LNC)
+                                            Else
+                                                CreateImgurMedia(.Value("url"), __id, String.Empty)
+                                            End If
+                                        End If
+                                    End If
+                                End With
+                            End Using
+                        End If
+                    End If
+                End If
+            Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.SendInLog, ex, $"API.Reddit.ParsePost({URL})")
+            End Try
+        End Sub
+        Private Class AbsProgress : Inherits PersonalUtilities.Forms.Toolbars.MyProgress
+            Public Overrides Sub Perform(Optional ByVal Value As Double = 1)
+            End Sub
+        End Class
+        Friend Shared Function GetVideoInfo(ByVal URL As String, ByVal resp As Response, ByVal f As SFile, ByVal SpecialFolder As String) As IEnumerable(Of UserMedia)
+            Try
+                If Not URL.IsEmptyString Then
                     Using r As New UserData
-                        r._TempMediaList.Add(MediaFromData(UTypes.VideoPre, URL, String.Empty, String.Empty,, False))
                         r.Responser = New Response
                         r.Responser.Copy(resp)
-                        r.ReparseVideo(Nothing)
-                        If r._TempMediaList.ListExists Then Return {r._TempMediaList(0)}
+                        r.ParsePost(URL)
+                        If r._TempMediaList.Count > 0 Then
+                            r.ReparseVideo(Nothing)
+                            If r._TempMediaList.Count > 0 Then
+                                r._ContentNew.AddRange(r._TempMediaList)
+                                r.Progress = New AbsProgress
+                                r.User.File.Path = f.Path
+                                r.SeparateVideoFolder = False
+                                r.DownloadContent(Nothing)
+                                If r._ContentNew.Exists(Function(c) c.State = UStates.Downloaded) Then _
+                                   Return {New UserMedia With {.State = UStates.Downloaded, .SpecialFolder = SpecialFolder}}
+                            End If
+                        End If
                     End Using
                 End If
                 Return Nothing
             Catch ex As Exception
-                Return ErrorsDescriber.Execute(EDP.ShowMainMsg + EDP.SendInLog, ex, "Video searching error")
+                Return ErrorsDescriber.Execute(EDP.SendInLog, ex, $"[API.Reddit.UserData.GetVideoInfo({URL})]")
             End Try
         End Function
 #End Region
@@ -659,6 +711,7 @@ Namespace API.Reddit
         End Function
 #End Region
         Protected Overrides Sub DownloadContent(ByVal Token As CancellationToken)
+            Dim RedGifsResponser As Response = Nothing
             Try
                 Const _RFN$ = "RedditVideo"
                 Const RFN$ = _RFN & "{0}"
@@ -668,6 +721,7 @@ Namespace API.Reddit
                 If _ContentNew.Count > 0 Then
                     _ContentNew.RemoveAll(Function(c) c.URL.IsEmptyString)
                     If _ContentNew.Count > 0 Then
+                        RedGifsResponser = Settings(RedGifs.RedGifsSiteKey).Responser.Copy
                         MyFile.Exists(SFO.Path)
                         Dim MissingErrorsAdd As Boolean = Settings.AddMissingErrorsToLog
                         Dim IsImgurStuff As Boolean
@@ -689,6 +743,7 @@ Namespace API.Reddit
                         Dim vsf As Boolean = SeparateVideoFolderF
                         Dim UseMD5 As Boolean = Not IsChannel Or (Not cached And Settings.ChannelsRegularCheckMD5)
                         Dim bDP As New ErrorsDescriber(EDP.None)
+                        Dim RGRERROR As New ErrorsDescriber(EDP.ThrowException)
                         Dim ImgurUrls As New List(Of String)
                         Dim TryBytes As Func(Of String, Imaging.ImageFormat, String) =
                             Function(ByVal __URL As String, ByVal ImgFormat As Imaging.ImageFormat) As String
@@ -761,7 +816,7 @@ Namespace API.Reddit
 
                                 If (Not m.IsEmptyString AndAlso Not HashList.Contains(m)) Or Not (v.Type = UTypes.Picture Or
                                                                                                   v.Type = UTypes.GIF) Or Not UseMD5 Or ImgurUrls.Count > 0 Then
-                                    isImgurStuff = ImgurUrls.Count > 0
+                                    IsImgurStuff = ImgurUrls.Count > 0
                                     Do
                                         If Not cached And Not m.IsEmptyString Then HashList.Add(m)
                                         v.MD5 = m
@@ -788,6 +843,8 @@ Namespace API.Reddit
                                                 f = M3U8.Download(v.URL, f)
                                             ElseIf ImgurUrls.Count > 0 Then
                                                 w.DownloadFile(ImgurUrls(0), f.ToString)
+                                            ElseIf v.URL.Contains(SiteRedGifsKey) Then
+                                                RedGifsResponser.DownloadFile(v.URL, f, RGRERROR)
                                             Else
                                                 w.DownloadFile(v.URL, f.ToString)
                                             End If
@@ -838,7 +895,8 @@ Namespace API.Reddit
                 HasError = True
             End Try
         End Sub
-        Protected Overrides Function DownloadingException(ByVal ex As Exception, ByVal Message As String, Optional ByVal FromPE As Boolean = False) As Integer
+        Protected Overrides Function DownloadingException(ByVal ex As Exception, ByVal Message As String, Optional ByVal FromPE As Boolean = False,
+                                                          Optional ByVal EObj As Object = Nothing) As Integer
             If Responser.StatusCode = HttpStatusCode.NotFound Then
                 UserExists = False
             ElseIf Responser.StatusCode = HttpStatusCode.Forbidden Then

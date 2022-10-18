@@ -1,4 +1,4 @@
-﻿' Copyright (C) 2022  Andy
+﻿' Copyright (C) 2023  Andy https://github.com/AAndyProgram
 ' This program is free software: you can redistribute it and/or modify
 ' it under the terms of the GNU General Public License as published by
 ' the Free Software Foundation, either version 3 of the License, or
@@ -10,24 +10,23 @@ Imports SCrawler.API.Base
 Imports SCrawler.Plugin
 Imports SCrawler.Plugin.Attributes
 Imports PersonalUtilities.Forms
-Imports PersonalUtilities.Tools.WEB
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.XML.Base
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports Download = SCrawler.Plugin.ISiteSettings.Download
 Namespace API.Instagram
-    <Manifest("AndyProgram_Instagram"), UseClassAsIs, SeparatedTasks(1), SavedPosts, SpecialForm(False)>
+    <Manifest(InstagramSiteKey), SeparatedTasks(1), SavedPosts, SpecialForm(False), SpecialForm(True)>
     Friend Class SiteSettings : Inherits SiteSettingsBase
 #Region "Declarations"
 #Region "Images"
         Friend Overrides ReadOnly Property Icon As Icon
             Get
-                Return My.Resources.InstagramIcon
+                Return My.Resources.SiteResources.InstagramIcon_32
             End Get
         End Property
         Friend Overrides ReadOnly Property Image As Image
             Get
-                Return My.Resources.InstagramPic76
+                Return My.Resources.SiteResources.InstagramPic_76
             End Get
         End Property
 #End Region
@@ -78,23 +77,23 @@ Namespace API.Instagram
         End Class
 #End Region
 #Region "Authorization properties"
-        <PropertyOption(ControlText:="Hash", ControlToolTip:="Instagram session hash", IsAuth:=True), PXML("InstaHash"), ControlNumber(0)>
+        <PropertyOption(ControlText:="Hash", ControlToolTip:="Instagram session hash", IsAuth:=True, AllowNull:=False), PXML("InstaHash"), ControlNumber(0)>
         Friend ReadOnly Property Hash As PropertyValue
-        <PropertyOption(ControlText:="Hash 2", ControlToolTip:="Instagram session hash for saved posts", IsAuth:=True), PXML("InstaHashSavedPosts"), ControlNumber(1)>
+        Private Const HashSavedPosts_Text As String = "Hash 2"
+        <PropertyOption(ControlText:=HashSavedPosts_Text, ControlToolTip:="Instagram session hash for saved posts", IsAuth:=True), PXML("InstaHashSavedPosts"), ControlNumber(1)>
         Friend ReadOnly Property HashSavedPosts As PropertyValue
-        <PropertyOption(ControlText:="x-csrftoken", ControlToolTip:="Instagram token for tagged data", IsAuth:=True), ControlNumber(2)>
+        <PropertyOption(ControlText:="x-csrftoken", ControlToolTip:="Instagram token for tagged data", IsAuth:=True, AllowNull:=False), ControlNumber(2)>
         Friend ReadOnly Property CSRF_TOKEN As PropertyValue
-        <PropertyOption(ControlText:="x-ig-app-id", IsAuth:=True), ControlNumber(3)>
+        <PropertyOption(ControlText:="x-ig-app-id", IsAuth:=True, AllowNull:=False), ControlNumber(3)>
         Friend Property IG_APP_ID As PropertyValue
-        <PropertyOption(ControlText:="x-ig-www-claim", IsAuth:=True), ControlNumber(4)>
+        <PropertyOption(ControlText:="x-ig-www-claim", IsAuth:=True, AllowNull:=False), ControlNumber(4)>
         Friend Property IG_WWW_CLAIM As PropertyValue
-        <PropertyOption(ControlText:="Saved posts user", IsAuth:=True), PXML("SavedPostsUserName"), ControlNumber(5)>
+        Private Const SavedPostsUserName_Text As String = "Saved posts user"
+        <PropertyOption(ControlText:=SavedPostsUserName_Text, IsAuth:=True), PXML("SavedPostsUserName"), ControlNumber(5)>
         Friend ReadOnly Property SavedPostsUserName As PropertyValue
-        Friend ReadOnly Property BaseAuthExists As Boolean
-            Get
-                Return Responser.Cookies.Count > 0 And ACheck(IG_APP_ID.Value) And ACheck(IG_WWW_CLAIM.Value) And ACheck(CSRF_TOKEN.Value)
-            End Get
-        End Property
+        Friend Overrides Function BaseAuthExists() As Boolean
+            Return If(Responser.Cookies?.Count, 0) > 0 And ACheck(IG_APP_ID.Value) And ACheck(IG_WWW_CLAIM.Value) And ACheck(CSRF_TOKEN.Value)
+        End Function
         Private Const Header_IG_APP_ID As String = "x-ig-app-id"
         Private Const Header_IG_WWW_CLAIM As String = "x-ig-www-claim"
         Private Const Header_CSRF_TOKEN As String = "x-csrftoken"
@@ -138,11 +137,17 @@ Namespace API.Instagram
         <Provider(NameOf(TaggedNotifyLimit), FieldsChecker:=True)>
         Private ReadOnly Property TaggedNotifyLimitProvider As IFormatProvider
 #End Region
+#Region "Download ready"
+        Friend ReadOnly Property DownloadTimeline As XMLValue(Of Boolean)
+        Friend ReadOnly Property DownloadStoriesTagged As XMLValue(Of Boolean)
+        Friend ReadOnly Property DownloadSaved As XMLValue(Of Boolean)
+#End Region
 #Region "429 bypass"
         Private ReadOnly Property DownloadingErrorDate As XMLValue(Of Date)
         Friend Property LastApplyingValue As Integer? = Nothing
         Friend ReadOnly Property ReadyForDownload As Boolean
             Get
+                If SkipUntilNextSession Then Return False
                 With DownloadingErrorDate
                     If .ValueF.Exists Then
                         Return .ValueF.Value.AddMinutes(If(LastApplyingValue, 10)) < Now
@@ -186,7 +191,6 @@ Namespace API.Instagram
             End With
         End Sub
 #End Region
-        Private Initialized As Boolean = False
 #End Region
 #Region "Initializer"
         Friend Sub New(ByRef _XML As XmlFile, ByVal GlobalPath As SFile)
@@ -204,6 +208,10 @@ Namespace API.Instagram
                         If .ContainsKey(Header_IG_WWW_CLAIM) Then www_claim = .Item(Header_IG_WWW_CLAIM)
                     End With
                 End If
+                If Not .Cookies Is Nothing Then
+                    .Cookies.ChangedAllowInternalDrop = False
+                    .Cookies.Changed = False
+                End If
             End With
 
             Dim n() As String = {SettingsCLS.Name_Node_Sites, Site.ToString}
@@ -215,6 +223,10 @@ Namespace API.Instagram
             CSRF_TOKEN = New PropertyValue(token, GetType(String), Sub(v) ChangeResponserFields(NameOf(CSRF_TOKEN), v))
             IG_APP_ID = New PropertyValue(app_id, GetType(String), Sub(v) ChangeResponserFields(NameOf(IG_APP_ID), v))
             IG_WWW_CLAIM = New PropertyValue(www_claim, GetType(String), Sub(v) ChangeResponserFields(NameOf(IG_WWW_CLAIM), v))
+
+            DownloadTimeline = New XMLValue(Of Boolean)("DownloadTimeline", True, _XML, n)
+            DownloadStoriesTagged = New XMLValue(Of Boolean)("DownloadStoriesTagged", True, _XML, n)
+            DownloadSaved = New XMLValue(Of Boolean)("DownloadSaved", True, _XML, n)
 
             RequestsWaitTimer = New PropertyValue(1000)
             RequestsWaitTimerProvider = New TimersChecker(100)
@@ -239,11 +251,62 @@ Namespace API.Instagram
             UserRegex = RParams.DMS("[htps:/]{7,8}.*?instagram.com/([^/]+)", 1)
             ImageVideoContains = "instagram.com"
         End Sub
-        Friend Overrides Sub BeginInit()
+        Private Structure LatestValues
+            Friend Hash As String
+            Friend Hash2 As String
+            Friend Token As String
+            Friend AppID As String
+            Friend WwwClaim As String
+            Friend Exists As Boolean
+            Friend Sub New(ByVal Source As SiteSettings)
+                Exists = True
+                With Source
+                    Hash = AConvert(Of String)(.Hash.Value, String.Empty)
+                    Hash2 = AConvert(Of String)(.HashSavedPosts.Value, String.Empty)
+                    With .Responser.Headers
+                        If .ContainsKey(Header_CSRF_TOKEN) Then Token = .Item(Header_CSRF_TOKEN)
+                        If .ContainsKey(Header_IG_APP_ID) Then AppID = .Item(Header_IG_APP_ID)
+                        If .ContainsKey(Header_IG_WWW_CLAIM) Then WwwClaim = .Item(Header_IG_WWW_CLAIM)
+                    End With
+                End With
+            End Sub
+        End Structure
+        Private LV As LatestValues = Nothing
+        Private ASO As SettingsExchangeOptions = Nothing
+        Friend Overrides Sub BeginEdit()
+            LV = New LatestValues(Me)
+            ASO = Nothing
+            MyBase.BeginEdit()
         End Sub
-        Friend Overrides Sub EndInit()
-            Initialized = True
-            MyBase.EndInit()
+        Friend Overrides Sub EndEdit()
+            LV = Nothing
+            ASO = Nothing
+            MyBase.EndEdit()
+        End Sub
+        Friend Overrides Sub Update()
+            If LV.Exists Then
+                Dim __lv As New LatestValues(Me)
+                If If(Responser.Cookies?.Count, 0) > 0 Then
+                    Dim _cookiesChanged As Boolean = If(Responser.Cookies?.Changed, False)
+                    If Not DownloadTimeline AndAlso (_cookiesChanged Or
+                       (Not LV.Hash = __lv.Hash And Not __lv.Hash.IsEmptyString)) Then DownloadTimeline.Value = True
+                    If Not DownloadSaved AndAlso (_cookiesChanged Or (Not LV.Hash2 = __lv.Hash2 And Not __lv.Hash2.IsEmptyString)) Then DownloadSaved.Value = True
+                    If Not DownloadStoriesTagged AndAlso (
+                           _cookiesChanged Or (
+                                (Not LV.Hash = __lv.Hash Or Not LV.Token = __lv.Token Or Not LV.AppID = __lv.AppID Or Not LV.WwwClaim = __lv.WwwClaim) And
+                                (Not __lv.Hash.IsEmptyString And Not __lv.Token.IsEmptyString And Not __lv.AppID.IsEmptyString And Not __lv.WwwClaim.IsEmptyString)
+                            )) Then DownloadStoriesTagged.Value = True
+                End If
+            End If
+            If ASO.Changed Then
+                DownloadTimeline.Value = ASO.DownloadTimeline
+                DownloadStoriesTagged.Value = ASO.DownloadStoriesTagged
+                DownloadSaved.Value = ASO.DownloadSaved
+            End If
+            LV = Nothing
+            ASO = Nothing
+            If Not Responser.Cookies Is Nothing Then Responser.Cookies.Changed = False
+            MyBase.Update()
         End Sub
 #End Region
 #Region "PropertiesDataChecker"
@@ -290,6 +353,37 @@ Namespace API.Instagram
             End If
             Return False
         End Function
+        <PropertiesDataChecker({NameOf(HashSavedPosts), NameOf(SavedPostsUserName)})>
+        Private Function CheckSavedOptions(ByVal p As IEnumerable(Of PropertyData)) As Boolean
+            If p.ListExists Then
+                Const MsgTitle$ = "Saved posts credentials"
+                Dim __hash$ = String.Empty
+                Dim __name$ = String.Empty
+                Dim _OptionlErrorText$ = $"For download saved posts, you must to set both [{HashSavedPosts_Text}] and [{SavedPostsUserName_Text}]."
+                For i% = 0 To p.Count - 1
+                    Select Case p(i).Name
+                        Case NameOf(HashSavedPosts) : __hash = p(i).Value
+                        Case NameOf(SavedPostsUserName) : __name = p(i).Value
+                    End Select
+                Next
+                If __hash = __name Then
+                    If __hash.IsEmptyString Then
+                        Return True
+                    Else
+                        MsgBoxE({$"[{HashSavedPosts_Text}] and [{SavedPostsUserName_Text}] for saved posts cannot be equal!", MsgTitle}, vbCritical)
+                    End If
+                Else
+                    If __hash.IsEmptyString Then
+                        MsgBoxE({$"[{HashSavedPosts_Text}] not set.{vbCr}{_OptionlErrorText}", MsgTitle}, vbCritical)
+                    ElseIf __name.IsEmptyString Then
+                        MsgBoxE({$"[{SavedPostsUserName_Text}] not set.{vbCr}{_OptionlErrorText}", MsgTitle}, vbCritical)
+                    Else
+                        Return True
+                    End If
+                End If
+            End If
+            Return False
+        End Function
 #End Region
 #Region "Plugin functions"
         Friend Overrides Function GetInstance(ByVal What As Download) As IPluginContentProvider
@@ -303,11 +397,12 @@ Namespace API.Instagram
             Return Nothing
         End Function
 #Region "Downloading"
+        Friend Property SkipUntilNextSession As Boolean = False
         Friend Overrides Function ReadyToDownload(ByVal What As Download) As Boolean
-            If ActiveJobs < 2 AndAlso ReadyForDownload AndAlso BaseAuthExists Then
+            If ActiveJobs < 2 AndAlso Not SkipUntilNextSession AndAlso ReadyForDownload AndAlso BaseAuthExists() Then
                 Select Case What
-                    Case Download.Main : Return ACheck(Hash.Value)
-                    Case Download.SavedPosts : Return ACheck(HashSavedPosts.Value)
+                    Case Download.Main : Return ACheck(Hash.Value) And DownloadTimeline
+                    Case Download.SavedPosts : Return ACheck(HashSavedPosts.Value) And DownloadSaved
                 End Select
             End If
             Return False
@@ -346,16 +441,23 @@ Namespace API.Instagram
             _NextTagged = True
             LastDownloadDate.Value = Now
             ActiveJobs -= 1
+            SkipUntilNextSession = False
         End Sub
 #End Region
-        Friend Overrides Function GetSpecialDataF(ByVal URL As String) As IEnumerable(Of UserMedia)
-            Return UserData.GetVideoInfo(URL, Responser, Me)
+        Friend Overrides Function GetSpecialData(ByVal URL As String, ByVal Path As String, ByVal AskForPath As Boolean) As IEnumerable
+            Return UserData.GetVideoInfo(URL, Responser)
         End Function
         Friend Overrides Sub UserOptions(ByRef Options As Object, ByVal OpenForm As Boolean)
             If Options Is Nothing OrElse Not TypeOf Options Is EditorExchangeOptions Then Options = New EditorExchangeOptions(Me)
             If OpenForm Then
                 Using f As New OptionsForm(Options) : f.ShowDialog() : End Using
             End If
+        End Sub
+        Friend Overrides Sub OpenSettingsForm()
+            Using f As New AdditionalSettingsForm(If(ASO.Changed, ASO, New SettingsExchangeOptions(Me)))
+                f.ShowDialog()
+                If f.DialogResult = DialogResult.OK Then ASO = f.MyParameters
+            End Using
         End Sub
 #End Region
     End Class

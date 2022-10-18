@@ -1,4 +1,4 @@
-﻿' Copyright (C) 2022  Andy
+﻿' Copyright (C) 2023  Andy https://github.com/AAndyProgram
 ' This program is free software: you can redistribute it and/or modify
 ' it under the terms of the GNU General Public License as published by
 ' the Free Software Foundation, either version 3 of the License, or
@@ -6,7 +6,6 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
-
 <Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()>
 Partial Friend Class ChannelsStatsForm : Inherits System.Windows.Forms.Form
     <System.Diagnostics.DebuggerNonUserCode()>
@@ -42,7 +41,7 @@ Partial Friend Class ChannelsStatsForm : Inherits System.Windows.Forms.Form
         'CONTAINER_MAIN.ContentPanel
         '
         CONTAINER_MAIN.ContentPanel.Controls.Add(Me.CMB_CHANNELS)
-        CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(384, 261)
+        CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(384, 236)
         CONTAINER_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
         CONTAINER_MAIN.LeftToolStripPanelVisible = False
         CONTAINER_MAIN.Location = New System.Drawing.Point(0, 0)
@@ -82,7 +81,7 @@ Partial Friend Class ChannelsStatsForm : Inherits System.Windows.Forms.Form
         Me.CMB_CHANNELS.ListMultiSelect = True
         Me.CMB_CHANNELS.Location = New System.Drawing.Point(0, 0)
         Me.CMB_CHANNELS.Name = "CMB_CHANNELS"
-        Me.CMB_CHANNELS.Size = New System.Drawing.Size(386, 262)
+        Me.CMB_CHANNELS.Size = New System.Drawing.Size(386, 237)
         Me.CMB_CHANNELS.TabIndex = 0
         '
         'ChannelsStatsForm
@@ -91,7 +90,7 @@ Partial Friend Class ChannelsStatsForm : Inherits System.Windows.Forms.Form
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(384, 261)
         Me.Controls.Add(CONTAINER_MAIN)
-        Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
+        Me.Icon = Global.SCrawler.My.Resources.SiteResources.RedditIcon_128
         Me.KeyPreview = True
         Me.MinimizeBox = False
         Me.MinimumSize = New System.Drawing.Size(400, 300)

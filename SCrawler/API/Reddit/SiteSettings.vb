@@ -1,4 +1,4 @@
-﻿' Copyright (C) 2022  Andy
+﻿' Copyright (C) 2023  Andy https://github.com/AAndyProgram
 ' This program is free software: you can redistribute it and/or modify
 ' it under the terms of the GNU General Public License as published by
 ' the Free Software Foundation, either version 3 of the License, or
@@ -9,21 +9,20 @@
 Imports SCrawler.API.Base
 Imports SCrawler.Plugin
 Imports SCrawler.Plugin.Attributes
-Imports PersonalUtilities.Tools.WEB
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports DownDetector = SCrawler.API.Base.DownDetector
 Imports Download = SCrawler.Plugin.ISiteSettings.Download
 Namespace API.Reddit
-    <Manifest(RedditSiteKey), UseClassAsIs, SavedPosts, SpecialForm(False)>
+    <Manifest(RedditSiteKey), SavedPosts, SpecialForm(False)>
     Friend Class SiteSettings : Inherits SiteSettingsBase
         Friend Overrides ReadOnly Property Icon As Icon
             Get
-                Return My.Resources.RedditIcon
+                Return My.Resources.SiteResources.RedditIcon_128
             End Get
         End Property
         Friend Overrides ReadOnly Property Image As Image
             Get
-                Return My.Resources.RedditPic512
+                Return My.Resources.SiteResources.RedditPic_512
             End Get
         End Property
         <PropertyOption(ControlText:="Saved posts user"), PXML("SavedPostsUserName")>
@@ -40,7 +39,7 @@ Namespace API.Reddit
             UseM3U8 = New PropertyValue(True)
             UrlPatternUser = "https://www.reddit.com/user/{0}/"
             UrlPatternChannel = "https://www.reddit.com/r/{0}/"
-            ImageVideoContains = "redgifs"
+            ImageVideoContains = "reddit.com"
         End Sub
         Friend Overrides Function GetInstance(ByVal What As Download) As IPluginContentProvider
             Select Case What
@@ -92,8 +91,11 @@ Namespace API.Reddit
                 Return ErrorsDescriber.Execute(EDP.SendInLog + EDP.ReturnValue, ex, "[API.Reddit.SiteSettings.Available]", True)
             End Try
         End Function
-        Friend Overrides Function GetSpecialDataF(ByVal URL As String) As IEnumerable(Of UserMedia)
-            Return UserData.GetVideoInfo(URL, Responser)
+        Friend Overrides Function GetSpecialData(ByVal URL As String, ByVal Path As String, ByVal AskForPath As Boolean) As IEnumerable
+            Dim spf$ = String.Empty
+            Dim f As SFile = GetSpecialDataFile(Path, AskForPath, spf)
+            f = $"{f.PathWithSeparator}OptionalPath\"
+            Return UserData.GetVideoInfo(URL, Responser, f, spf)
         End Function
         Friend Overrides Sub UserOptions(ByRef Options As Object, ByVal OpenForm As Boolean)
             If Options Is Nothing OrElse Not TypeOf Options Is RedditViewExchange Then Options = New RedditViewExchange

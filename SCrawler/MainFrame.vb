@@ -1,4 +1,4 @@
-﻿' Copyright (C) 2022  Andy
+﻿' Copyright (C) 2023  Andy https://github.com/AAndyProgram
 ' This program is free software: you can redistribute it and/or modify
 ' it under the terms of the GNU General Public License as published by
 ' the Free Software Foundation, either version 3 of the License, or
@@ -6,9 +6,9 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
-Imports System.ComponentModel
-Imports System.Globalization
 Imports System.Threading
+Imports System.Globalization
+Imports System.ComponentModel
 Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Functions.Messaging
 Imports SCrawler.API
@@ -16,14 +16,20 @@ Imports SCrawler.API.Base
 Imports SCrawler.Editors
 Imports SCrawler.DownloadObjects
 Imports SCrawler.Plugin.Hosts
+Imports PauseModes = SCrawler.DownloadObjects.AutoDownloader.PauseModes
 Public Class MainFrame
-    Private MyView As FormsView
+#Region "Declarations"
+    Private MyView As FormView
+    Private WithEvents MyActivator As FormActivator
     Private ReadOnly _VideoDownloadingMode As Boolean = False
     Private MyChannels As ChannelViewForm
     Private MySavedPosts As DownloadSavedPostsForm
     Private MyMissingPosts As MissingPostsForm
     Private MyFeed As DownloadFeedForm
+    Private MySearch As UserSearchForm
     Private _UFinit As Boolean = True
+#End Region
+#Region "Initializer"
     Public Sub New()
         InitializeComponent()
         Dim n As DateTimeFormatInfo = CultureInfo.GetCultureInfo("en-us").DateTimeFormat.Clone
@@ -40,16 +46,19 @@ Public Class MainFrame
         End With
         Dim Args() As String = Environment.GetCommandLineArgs
         If Args.ListExists(2) AndAlso Args(1) = "v" Then
-            Using f As New VideosDownloaderForm : f.ShowDialog() : End Using
+            Using f As New VideosDownloaderForm With {.IsStandalone = True} : f.ShowDialog() : End Using
             _VideoDownloadingMode = True
         End If
     End Sub
+#End Region
+#Region "Form handlers"
     Private Sub MainFrame_Load(sender As Object, e As EventArgs) Handles Me.Load
         If _VideoDownloadingMode Then GoTo FormClosingInvoker
         If Now.Month.ValueBetween(6, 8) Then Text = "SCrawler: Happy LGBT Pride Month! :-)"
         Settings.DeleteCachePath()
         MainFrameObj = New MainFrameObjects(Me)
         MainFrameObj.ChangeCloseVisible()
+        MainFrameObj.PauseButtons.AddButtons()
         MainProgress = New Toolbars.MyProgress(Toolbar_BOTTOM, PR_MAIN, LBL_STATUS, "Downloading profiles' data") With {
             .ResetProgressOnMaximumChanges = False, .Visible = False}
         Downloader = New TDownloader
@@ -59,13 +68,14 @@ Public Class MainFrame
         AddHandler Downloader.JobsChange, AddressOf Downloader_UpdateJobsCount
         AddHandler Downloader.Downloading, AddressOf Downloader_Downloading
         AddHandler Downloader.DownloadCountChange, AddressOf InfoForm.Downloader_DownloadCountChange
-        AddHandler Downloader.SendNotification, AddressOf NotificationMessage
+        AddHandler Downloader.SendNotification, AddressOf MainFrameObj.ShowNotification
         AddHandler InfoForm.UserFind, AddressOf FocusUser
         Settings.LoadUsers()
-        MyView = New FormsView(Me)
-        MyView.ImportFromXML(Settings.Design)
-        MyView.SetMeSize()
+        MyView = New FormView(Me)
+        MyView.Import(Settings.Design)
+        MyView.SetFormSize()
         If Settings.CloseToTray Then TrayIcon.Visible = True
+        MyActivator = New FormActivator(Me)
         With LIST_PROFILES.Groups
             .AddRange(GetLviGroupName(Nothing, True, False)) 'collections
             .AddRange(GetLviGroupName(Nothing, False, True)) 'channels
@@ -103,8 +113,10 @@ Public Class MainFrame
         Settings.Automation = New Scheduler
         AddHandler Settings.Groups.Updated, AddressOf Settings.Automation.GROUPS_Updated
         AddHandler Settings.Groups.Deleted, AddressOf Settings.Automation.GROUPS_Deleted
+        AddHandler Settings.Automation.PauseDisabled, AddressOf MainFrameObj.PauseButtons.UpdatePauseButtons
         _UFinit = False
         Settings.Automation.Start(True)
+        UpdatePauseButtonsVisibility()
         GoTo EndFunction
 FormClosingInvoker:
         Close()
@@ -133,6 +145,7 @@ EndFunction:
                         If Downloader.Working Then _CloseInvoked = True : Downloader.Stop()
                         If ChannelsWorking.Invoke Then _CloseInvoked = True : MyChannels.Stop(False)
                         If SP_Working.Invoke Then _CloseInvoked = True : MySavedPosts.Stop()
+                        MyActivator.DisposeIfReady()
                         Settings.Automation.Stop()
                         If _CloseInvoked Then
                             e.Cancel = True
@@ -143,12 +156,14 @@ EndFunction:
                         Downloader.Dispose()
                         MyProgressForm.Dispose()
                         InfoForm.Dispose()
-                        If Not MyMissingPosts Is Nothing Then MyMissingPosts.Dispose()
-                        If Not MyFeed Is Nothing Then MyFeed.Dispose()
+                        MyMissingPosts.DisposeIfReady()
+                        MyFeed.DisposeIfReady()
                         MainFrameObj.ClearNotifications()
-                        If Not MyChannels Is Nothing Then MyChannels.Dispose()
-                        If Not VideoDownloader Is Nothing Then VideoDownloader.Dispose()
-                        If Not MySavedPosts Is Nothing Then MySavedPosts.Dispose()
+                        MainFrameObj.PauseButtons.Dispose()
+                        MyChannels.DisposeIfReady()
+                        VideoDownloader.DisposeIfReady()
+                        MySavedPosts.DisposeIfReady()
+                        MySearch.DisposeIfReady()
                         MyView.Dispose(Settings.Design)
                         Settings.Dispose()
                     Else
@@ -176,11 +191,42 @@ CloseResume:
         If Not _DisableClosingScript And Not _VideoDownloadingMode Then ExecuteCommand(Settings.ClosingCommand)
         If Not MyMainLOG.IsEmptyString Then SaveLogToFile()
     End Sub
-#Region "Tray"
-    Private Sub TrayIcon_MouseClick(sender As Object, e As MouseEventArgs) Handles TrayIcon.MouseClick
-        If e.Button = MouseButtons.Left Then
-            If Visible Then Hide() Else Show()
+    Private Sub MainFrame_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
+        Dim b As Boolean = True
+        Select Case e.KeyCode
+            Case Keys.Insert : BTT_ADD_USER.PerformClick()
+            Case Keys.Delete : DeleteSelectedUser()
+            Case Keys.Enter : OpenFolder()
+            Case Keys.F1 : BTT_VERSION_INFO.PerformClick()
+            Case Keys.F3 : EditSelectedUser()
+            Case Keys.F5 : DownloadSelectedUser(DownUserLimits.None, New MyKeyEventArgs(e).IncludeInTheFeed)
+            Case Keys.F6 : BTT_DOWN_ALL_FULL_KeyClick(Nothing, New MyKeyEventArgs(e))
+            Case Else : b = NumGroup(e)
+        End Select
+        If Not b And e.Control And e.KeyCode = Keys.F Then MySearch.FormShow() : b = True
+        If b Then e.Handled = True
+    End Sub
+    Private Function NumGroup(ByVal e As KeyEventArgs) As Boolean
+        Dim GroupExists As Func(Of Integer, Boolean) = Function(i) Settings.Groups.DownloadGroupIfExists(i - 1)
+        If e.Control And Settings.Groups.Count > 0 Then
+            Select Case e.KeyCode
+                Case Keys.D1, Keys.NumPad1 : Return GroupExists(1)
+                Case Keys.D2, Keys.NumPad2 : Return GroupExists(2)
+                Case Keys.D3, Keys.NumPad3 : Return GroupExists(3)
+                Case Keys.D4, Keys.NumPad4 : Return GroupExists(4)
+                Case Keys.D5, Keys.NumPad5 : Return GroupExists(5)
+                Case Keys.D6, Keys.NumPad6 : Return GroupExists(6)
+                Case Keys.D7, Keys.NumPad7 : Return GroupExists(7)
+                Case Keys.D8, Keys.NumPad8 : Return GroupExists(8)
+                Case Keys.D9, Keys.NumPad9 : Return GroupExists(9)
+            End Select
         End If
+        Return False
+    End Function
+#End Region
+#Region "Form Tray"
+    Private Sub MyActivator_TrayIconClick(Sender As Object, e As Controls.KeyClick.KeyClickEventArgs) Handles MyActivator.TrayIconClick
+        If e.Control Then ShowFeed() : e.Handled = True
     End Sub
     Private Sub BTT_TRAY_SHOW_HIDE_Click(sender As Object, e As EventArgs) Handles BTT_TRAY_SHOW_HIDE.Click
         If Visible Then Hide() Else Show()
@@ -203,41 +249,7 @@ CloseResume:
         End If
     End Function
 #End Region
-    Private Sub MainFrame_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
-        Dim b As Boolean = True
-        Select Case e.KeyCode
-            Case Keys.Insert : BTT_ADD_USER.PerformClick()
-            Case Keys.Delete : DeleteSelectedUser()
-            Case Keys.Enter : OpenFolder()
-            Case Keys.F1 : BTT_VERSION_INFO.PerformClick()
-            Case Keys.F2 : DownloadVideoByURL()
-            Case Keys.F3 : EditSelectedUser()
-            Case Keys.F5 : BTT_DOWN_SELECTED.PerformClick()
-            Case Keys.F6 : BTT_DOWN_ALL.PerformClick()
-            Case Else : b = NumGroup(e)
-        End Select
-        If b Then e.Handled = True
-    End Sub
-    Private Function NumGroup(ByVal e As KeyEventArgs) As Boolean
-        Dim GroupExists As Func(Of Integer, Boolean) = Function(i) Settings.Groups.DownloadGroupIfExists(i - 1)
-        If e.Control And Settings.Groups.Count > 0 Then
-            Select Case e.KeyCode
-                Case Keys.D1, Keys.NumPad1 : Return GroupExists(1)
-                Case Keys.D2, Keys.NumPad2 : Return GroupExists(2)
-                Case Keys.D3, Keys.NumPad3 : Return GroupExists(3)
-                Case Keys.D4, Keys.NumPad4 : Return GroupExists(4)
-                Case Keys.D5, Keys.NumPad5 : Return GroupExists(5)
-                Case Keys.D6, Keys.NumPad6 : Return GroupExists(6)
-                Case Keys.D7, Keys.NumPad7 : Return GroupExists(7)
-                Case Keys.D8, Keys.NumPad8 : Return GroupExists(8)
-                Case Keys.D9, Keys.NumPad9 : Return GroupExists(9)
-            End Select
-        End If
-        Return False
-    End Function
-    Private Sub BTT_VERSION_INFO_Click(sender As Object, e As EventArgs) Handles BTT_VERSION_INFO.Click
-        CheckVersion(True)
-    End Sub
+#Region "List refill, update"
     Friend Sub RefillList()
         UserListLoader.Update()
         GC.Collect()
@@ -245,26 +257,7 @@ CloseResume:
     Private Sub UserListUpdate(ByVal User As IUserData, ByVal Add As Boolean)
         UserListLoader.UpdateUser(User, Add)
     End Sub
-    Private Sub UpdateLabelsGroups()
-        If Settings.Labels.NewLabelsExists Then
-            If Settings.Labels.NewLabels.Count > 0 Then
-                Dim ll As ListViewGroup = Nothing
-                Dim a As Action = Sub() LIST_PROFILES.Groups.Add(ll)
-                For Each l$ In Settings.Labels.NewLabels
-                    ll = New ListViewGroup(l, l)
-                    If Not LIST_PROFILES.Groups.Contains(ll) Then
-                        If LIST_PROFILES.InvokeRequired Then LIST_PROFILES.Invoke(a) Else a.Invoke
-                    End If
-                Next
-            End If
-            Settings.Labels.NewLabels.Clear()
-        End If
-    End Sub
-    Private Sub OnUsersAddedHandler(ByVal StartIndex As Integer)
-        If StartIndex <= Settings.Users.Count - 1 Then
-            For i% = StartIndex To Settings.Users.Count - 1 : UserListUpdate(Settings.Users(i), True) : Next
-        End If
-    End Sub
+#End Region
 #Region "Toolbar buttons"
 #Region "Settings"
     Private Sub BTT_SETTINGS_Click(sender As Object, e As EventArgs) Handles BTT_SETTINGS.Click
@@ -280,12 +273,18 @@ CloseResume:
                     TrayIcon.Visible = .CloseToTray
                     LIST_PROFILES.ShowGroups = .UseGrouping
                     If f.FeedParametersChanged And Not MyFeed Is Nothing Then MyFeed.UpdateSettings()
+                    UpdateSilentButtons()
                 End If
             End Using
         End With
     End Sub
 #End Region
-#Region "User"
+#Region "Add, Edit, Delete, Refresh"
+    Private Sub OnUsersAddedHandler(ByVal StartIndex As Integer)
+        If StartIndex <= Settings.Users.Count - 1 Then
+            For i% = StartIndex To Settings.Users.Count - 1 : UserListUpdate(Settings.Users(i), True) : Next
+        End If
+    End Sub
     Private Sub BTT_ADD_USER_Click(sender As Object, e As EventArgs) Handles BTT_ADD_USER.Click
         Using f As New UserCreatorForm
             f.ShowDialog()
@@ -340,41 +339,32 @@ CloseResume:
     Private Sub BTT_REFRESH_Click(sender As Object, e As EventArgs) Handles BTT_REFRESH.Click
         RefillList()
     End Sub
-    Private Sub BTT_SHOW_INFO_Click(sender As Object, e As EventArgs) Handles BTT_SHOW_INFO.Click
-        ShowInfoForm(True)
-    End Sub
+#End Region
+#Region "Info, Feed, Channels, Saved posts"
     Private Sub BTT_SHOW_INFO_MouseDown(sender As Object, e As MouseEventArgs) Handles BTT_SHOW_INFO.MouseDown
         If e.Button = MouseButtons.Right Then
             If MyMissingPosts Is Nothing Then MyMissingPosts = New MissingPostsForm
             If MyMissingPosts.Visible Then MyMissingPosts.BringToFront() Else MyMissingPosts.Show()
+        ElseIf e.Button = MouseButtons.Left Then
+            InfoForm.FormShow()
         End If
     End Sub
-    Private Sub BTT_FEED_Click(sender As Object, e As EventArgs) Handles BTT_FEED.Click
+    Private Sub ShowFeed() Handles BTT_FEED.Click, BTT_TRAY_FEED_SHOW.Click
         If MyFeed Is Nothing Then MyFeed = New DownloadFeedForm : AddHandler Downloader.FeedFilesChanged, AddressOf MyFeed.Downloader_FilesChanged
         If MyFeed.Visible Then MyFeed.BringToFront() Else MyFeed.Show()
-    End Sub
-    Private Overloads Sub ShowInfoForm()
-        ShowInfoForm(False)
-    End Sub
-    Private Overloads Sub ShowInfoForm(ByVal BringToFrontIfOpen As Boolean)
-        If InfoForm.Visible Then
-            If BringToFrontIfOpen Then InfoForm.BringToFront()
-        Else
-            InfoForm.Show()
-        End If
     End Sub
     Private Sub BTT_CHANNELS_Click(sender As Object, e As EventArgs) Handles BTT_CHANNELS.Click
         If MyChannels Is Nothing Then
             MyChannels = New ChannelViewForm
             AddHandler MyChannels.OnUsersAdded, AddressOf OnUsersAddedHandler
-            AddHandler MyChannels.OnDownloadDone, AddressOf NotificationMessage
+            AddHandler MyChannels.OnDownloadDone, AddressOf MainFrameObj.ShowNotification
         End If
         If MyChannels.Visible Then MyChannels.BringToFront() Else MyChannels.Show()
     End Sub
     Private Sub BTT_DOWN_SAVED_Click(sender As Object, e As EventArgs) Handles BTT_DOWN_SAVED.Click
         If MySavedPosts Is Nothing Then
             MySavedPosts = New DownloadSavedPostsForm
-            AddHandler MySavedPosts.DownloadDone, AddressOf NotificationMessage
+            AddHandler MySavedPosts.DownloadDone, AddressOf MainFrameObj.ShowNotification
         End If
         With MySavedPosts
             If .Visible Then .BringToFront() Else .Show()
@@ -382,23 +372,22 @@ CloseResume:
     End Sub
 #End Region
 #Region "Download"
-    Private Sub BTT_DOWN_SELECTED_Click(sender As Object, e As EventArgs) Handles BTT_DOWN_SELECTED.Click
-        DownloadSelectedUser(DownUserLimits.None)
+    Private Sub BTT_DOWN_SELECTED_KeyClick(sender As Object, e As MyKeyEventArgs) Handles BTT_DOWN_SELECTED.KeyClick
+        DownloadSelectedUser(DownUserLimits.None, e.IncludeInTheFeed)
     End Sub
-#Region "Download all"
-    Private Sub BTT_DOWN_ALL_Click(sender As Object, e As EventArgs) Handles BTT_DOWN_ALL.Click
-        Downloader.AddRange(Settings.Users.Where(Function(u) u.ReadyForDownload))
+    Private Sub BTT_DOWN_ALL_KeyClick(sender As Object, e As MyKeyEventArgs) Handles BTT_DOWN_ALL.KeyClick
+        Downloader.AddRange(Settings.Users.Where(Function(u) u.ReadyForDownload And u.Exists), e.IncludeInTheFeed)
     End Sub
-    Private Sub BTT_DOWN_SITE_Click(sender As Object, e As EventArgs) Handles BTT_DOWN_SITE.Click
-        DownloadSiteFull(True)
+    Private Sub BTT_DOWN_SITE_KeyClick(sender As Object, e As MyKeyEventArgs) Handles BTT_DOWN_SITE.KeyClick
+        DownloadSiteFull(True, e.IncludeInTheFeed)
     End Sub
-    Private Sub BTT_DOWN_ALL_FULL_Click(sender As Object, e As EventArgs) Handles BTT_DOWN_ALL_FULL.Click
-        Downloader.AddRange(Settings.Users)
+    Private Sub BTT_DOWN_ALL_FULL_KeyClick(sender As Object, e As MyKeyEventArgs) Handles BTT_DOWN_ALL_FULL.KeyClick
+        Downloader.AddRange(Settings.Users.Where(Function(u) u.Exists), e.IncludeInTheFeed)
     End Sub
-    Private Sub BTT_DOWN_SITE_FULL_Click(sender As Object, e As EventArgs) Handles BTT_DOWN_SITE_FULL.Click
-        DownloadSiteFull(False)
+    Private Sub BTT_DOWN_SITE_FULL_KeyClick(sender As Object, e As MyKeyEventArgs) Handles BTT_DOWN_SITE_FULL.KeyClick
+        DownloadSiteFull(False, e.IncludeInTheFeed)
     End Sub
-    Private Sub DownloadSiteFull(ByVal ReadyForDownloadOnly As Boolean)
+    Private Sub DownloadSiteFull(ByVal ReadyForDownloadOnly As Boolean, ByVal IncludeInTheFeed As Boolean)
         Using f As New SiteSelectionForm(Settings.LatestDownloadedSites.ValuesList)
             f.ShowDialog()
             If f.DialogResult = DialogResult.OK Then
@@ -409,54 +398,73 @@ CloseResume:
                     Downloader.AddRange(Settings.Users.SelectMany(Function(ByVal u As IUserData) As IEnumerable(Of IUserData)
                                                                       If u.IsCollection Then
                                                                           Return DirectCast(u, UserDataBind).Collections.
-                                                                                 Where(Function(uu) f.SelectedSites.Contains(uu.Site) And
+                                                                                 Where(Function(uu) f.SelectedSites.Contains(uu.Site) And u.Exists And
                                                                                                     (Not ReadyForDownloadOnly Or uu.ReadyForDownload))
-                                                                      ElseIf f.SelectedSites.Contains(u.Site) And
+                                                                      ElseIf f.SelectedSites.Contains(u.Site) And u.Exists And
                                                                              (Not ReadyForDownloadOnly Or u.ReadyForDownload) Then
                                                                           Return {u}
                                                                       Else
                                                                           Return New IUserData() {}
                                                                       End If
-                                                                  End Function))
+                                                                  End Function), IncludeInTheFeed)
                 End If
             End If
         End Using
     End Sub
-#End Region
 #Region "Download groups"
     Private Sub BTT_ADD_NEW_GROUP_Click(sender As Object, e As EventArgs) Handles BTT_ADD_NEW_GROUP.Click
         Settings.Groups.Add()
     End Sub
     Private Sub GROUPS_Added(ByVal Sender As Groups.DownloadGroup)
         Dim i% = MENU_DOWN_ALL.DropDownItems.IndexOf(BTT_ADD_NEW_GROUP)
-        Dim a As Action = Sub() MENU_DOWN_ALL.DropDownItems.Insert(i, Sender.GetControl)
-        If Toolbar_TOP.InvokeRequired Then Toolbar_TOP.Invoke(a) Else a.Invoke
+        ControlInvoke(Toolbar_TOP, MENU_DOWN_ALL, Sub() MENU_DOWN_ALL.DropDownItems.Insert(i, Sender.GetControl))
     End Sub
     Private Sub GROUPS_Updated(ByVal Sender As Groups.DownloadGroup)
         Dim i% = MENU_DOWN_ALL.DropDownItems.IndexOf(Sender.GetControl)
-        Dim a As Action = Sub() MENU_DOWN_ALL.DropDownItems(i).Text = Sender.ToString
-        If Toolbar_TOP.InvokeRequired Then Toolbar_TOP.Invoke(a) Else a.Invoke
+        ControlInvoke(Toolbar_TOP, MENU_DOWN_ALL, Sub() MENU_DOWN_ALL.DropDownItems(i).Text = Sender.ToString)
     End Sub
     Private Sub GROUPS_Deleted(ByVal Sender As Groups.DownloadGroup)
         MENU_DOWN_ALL.DropDownItems.Remove(Sender.GetControl)
     End Sub
 #End Region
+    Private Sub BTT_SILENT_MODE_Click(sender As Object, e As EventArgs) Handles BTT_SILENT_MODE.Click, BTT_TRAY_SILENT_MODE.Click
+        With Settings : .NotificationsSilentMode = Not .NotificationsSilentMode : End With
+        UpdateSilentButtons()
+    End Sub
+    Private Sub UpdateSilentButtons()
+        With Settings
+            ControlInvokeFast(Toolbar_TOP, BTT_SILENT_MODE, Sub() BTT_SILENT_MODE.Checked = .NotificationsSilentMode)
+            ControlInvokeFast(Me, Sub() BTT_TRAY_SILENT_MODE.Checked = .NotificationsSilentMode)
+        End With
+    End Sub
+    Private Sub UpdatePauseButtonsVisibility()
+        Dim b As Boolean = Settings.Automation.Count > 0
+        ControlInvokeFast(Toolbar_TOP, BTT_DOWN_AUTOMATION_PAUSE, Sub() BTT_DOWN_AUTOMATION_PAUSE.Visible = b)
+        ControlInvokeFast(Me, Sub() BTT_TRAY_PAUSE_AUTOMATION.Visible = b)
+    End Sub
     Private Sub BTT_DOWN_AUTOMATION_Click(sender As Object, e As EventArgs) Handles BTT_DOWN_AUTOMATION.Click
         Using f As New SchedulerEditorForm : f.ShowDialog() : End Using
         Settings.Automation.Start(False)
+        UpdatePauseButtonsVisibility()
+        MainFrameObj.PauseButtons.UpdatePauseButtons()
     End Sub
-    Private Sub BTT_DOWN_AUTOMATION_PAUSE_Click(sender As Object, e As EventArgs) Handles BTT_DOWN_AUTOMATION_PAUSE.Click
-        Settings.Automation.Pause = Not Settings.Automation.Pause
-        BTT_DOWN_AUTOMATION_PAUSE.Checked = Settings.Automation.Pause
+    Private Sub BTT_DOWN_AUTOMATION_PAUSE_Click(sender As Object, e As EventArgs) Handles BTT_DOWN_AUTOMATION_PAUSE.Click, BTT_TRAY_PAUSE_AUTOMATION.Click
+        Dim p As PauseModes = Settings.Automation.Pause
+        If p = PauseModes.Disabled Then p = PauseModes.Unlimited Else p = PauseModes.Disabled
+        Settings.Automation.Pause = p
+        MENU_DOWN_ALL.HideDropDown()
+        TrayIcon.ContextMenuStrip.Hide()
+        MainFrameObj.PauseButtons.UpdatePauseButtons()
     End Sub
     Private Sub BTT_DOWN_VIDEO_Click(sender As Object, e As EventArgs) Handles BTT_DOWN_VIDEO.Click
-        DownloadVideoByURL()
+        VideoDownloader.FormShow()
     End Sub
     Private Sub BTT_DOWN_STOP_Click(sender As Object, e As EventArgs) Handles BTT_DOWN_STOP.Click
         Downloader.Stop()
     End Sub
 #End Region
 #Region "View"
+#Region "1 - view mode"
     Private Sub BTT_VIEW_LARGE_Click(sender As Object, e As EventArgs) Handles BTT_VIEW_LARGE.Click
         ApplyViewPattern(ViewModes.IconLarge)
     End Sub
@@ -493,7 +501,7 @@ CloseResume:
         End If
     End Sub
 #End Region
-#Region "View Site"
+#Region "2 - view site"
     Private Sub BTT_SITE_ALL_Click(sender As Object, e As EventArgs) Handles BTT_SITE_ALL.Click
         Settings.SelectedSites.Clear()
         Settings.SelectedSites.Update()
@@ -515,7 +523,7 @@ CloseResume:
         End Using
     End Sub
 #End Region
-#Region "View menu"
+#Region "3 - view filters"
     Private Sub BTT_SHOW_ALL_Click(sender As Object, e As EventArgs) Handles BTT_SHOW_ALL.Click
         SetShowButtonsCheckers(ShowingModes.All)
     End Sub
@@ -599,6 +607,8 @@ CloseResume:
             End If
         End Using
     End Function
+#End Region
+#Region "4 - view dates"
     Private Sub BTT_SHOW_LIMIT_DATES_NOT_IN_Click(ByVal Sender As ToolStripMenuItem, ByVal e As EventArgs) Handles BTT_SHOW_LIMIT_DATES_NOT.Click,
                                                                                                                    BTT_SHOW_LIMIT_DATES_IN.Click
         Dim r As Boolean = False
@@ -624,11 +634,15 @@ CloseResume:
                                                                           .EndUpdate()
                                                                       End With
                                                                   End Sub
-        Using f As New FDatePickerForm(Settings.ViewDateFrom, Settings.ViewDateTo)
+        Using f As New DateTimeSelectionForm(DateTimeSelectionForm.ModesAllDate, Settings.Design) With {
+            .MyDateStart = Settings.ViewDateFrom,
+            .MyDateEnd = Settings.ViewDateTo,
+            .UseDeleteButton = True
+        }
             f.ShowDialog()
             Select Case f.DialogResult
-                Case DialogResult.Abort : UpSettings(f.DateFrom, f.DateTo, ShowingDates.Off)
-                Case DialogResult.OK : UpSettings(f.DateFrom, f.DateTo, Sender.Tag)
+                Case DialogResult.Abort : UpSettings(f.MyDateStart, f.MyDateEnd, ShowingDates.Off)
+                Case DialogResult.OK : UpSettings(f.MyDateStart, f.MyDateEnd, Sender.Tag)
             End Select
         End Using
         BTT_SHOW_LIMIT_DATES_NOT.Checked = Settings.ViewDateMode.Value = ShowingDates.Not
@@ -636,13 +650,18 @@ CloseResume:
         If r Then RefillList()
     End Sub
 #End Region
+#End Region
     Private Sub BTT_LOG_Click(sender As Object, e As EventArgs) Handles BTT_LOG.Click
         MyMainLOG_ShowForm(Settings.Design,,,, Sub() MainFrameObj.UpdateLogButton())
+    End Sub
+    Private Sub BTT_VERSION_INFO_Click(sender As Object, e As EventArgs) Handles BTT_VERSION_INFO.Click
+        CheckVersion(True)
     End Sub
     Private Sub BTT_DONATE_Click(sender As Object, e As EventArgs) Handles BTT_DONATE.Click
         Try : Process.Start("https://github.com/AAndyProgram/SCrawler/blob/main/HowToSupport.md") : Catch : End Try
     End Sub
-#Region "List functions"
+#End Region
+#Region "List handlers"
     Private _LatestSelected As Integer = -1
     Private Sub LIST_PROFILES_SelectedIndexChanged(sender As Object, e As EventArgs) Handles LIST_PROFILES.SelectedIndexChanged
         Dim a As Action = Sub()
@@ -657,16 +676,20 @@ CloseResume:
     Private Sub LIST_PROFILES_MouseDoubleClick(sender As Object, e As MouseEventArgs) Handles LIST_PROFILES.MouseDoubleClick
         OpenFolder()
     End Sub
+#End Region
 #Region "Context"
-    Private Sub BTT_CONTEXT_DOWN_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_DOWN.Click
-        DownloadSelectedUser(DownUserLimits.None)
+#Region "1 - download"
+    Private Sub BTT_CONTEXT_DOWN_KeyClick(sender As Object, e As MyKeyEventArgs) Handles BTT_CONTEXT_DOWN.KeyClick
+        DownloadSelectedUser(DownUserLimits.None, e.IncludeInTheFeed)
     End Sub
-    Private Sub BTT_CONTEXT_DOWN_LIMITED_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_DOWN_LIMITED.Click
-        DownloadSelectedUser(DownUserLimits.Number)
+    Private Sub BTT_CONTEXT_DOWN_LIMITED_KeyClick(sender As Object, e As MyKeyEventArgs) Handles BTT_CONTEXT_DOWN_LIMITED.KeyClick
+        DownloadSelectedUser(DownUserLimits.Number, e.IncludeInTheFeed)
     End Sub
-    Private Sub BTT_CONTEXT_DOWN_DATE_LIMIT_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_DOWN_DATE_LIMIT.Click
-        DownloadSelectedUser(DownUserLimits.Date)
+    Private Sub BTT_CONTEXT_DOWN_DATE_LIMIT_KeyClick(sender As Object, e As MyKeyEventArgs) Handles BTT_CONTEXT_DOWN_DATE_LIMIT.KeyClick
+        DownloadSelectedUser(DownUserLimits.Date, e.IncludeInTheFeed)
     End Sub
+#End Region
+#Region "1 - edit, delete, copy"
     Private Sub BTT_CONTEXT_EDIT_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_EDIT.Click
         EditSelectedUser()
     End Sub
@@ -676,25 +699,23 @@ CloseResume:
     Private Sub BTT_CONTEXT_COPY_TO_FOLDER_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_COPY_TO_FOLDER.Click
         CopyUserData()
     End Sub
+#End Region
+#Region "2 - user parameters"
     Private Sub BTT_CONTEXT_FAV_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_FAV.Click
         Dim users As List(Of IUserData) = GetSelectedUserArray()
-        If AskForMassReplace(users, "Favorite") Then
-            users.ForEach(Sub(u)
-                              u.Favorite = Not u.Favorite
-                              u.UpdateUserInformation()
-                              UserListUpdate(u, False)
-                          End Sub)
-        End If
+        If AskForMassReplace(users, "Favorite") Then users.ForEach(Sub(u)
+                                                                       u.Favorite = Not u.Favorite
+                                                                       u.UpdateUserInformation()
+                                                                       UserListUpdate(u, False)
+                                                                   End Sub)
     End Sub
     Private Sub BTT_CONTEXT_TEMP_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_TEMP.Click
         Dim users As List(Of IUserData) = GetSelectedUserArray()
-        If AskForMassReplace(users, "Temporary") Then
-            users.ForEach(Sub(u)
-                              u.Temporary = Not u.Temporary
-                              u.UpdateUserInformation()
-                              UserListUpdate(u, False)
-                          End Sub)
-        End If
+        If AskForMassReplace(users, "Temporary") Then users.ForEach(Sub(u)
+                                                                        u.Temporary = Not u.Temporary
+                                                                        u.UpdateUserInformation()
+                                                                        UserListUpdate(u, False)
+                                                                    End Sub)
     End Sub
     Private Sub BTT_CONTEXT_READY_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_READY.Click
         Dim users As List(Of IUserData) = GetSelectedUserArray()
@@ -768,17 +789,6 @@ CloseResume:
                                                                          "Users' parameters change"},
                                                                         MsgBoxStyle.Exclamation + MsgBoxStyle.YesNo) = MsgBoxResult.Yes)
     End Function
-    Private Sub BTT_CHANGE_IMAGE_Click(sender As Object, e As EventArgs) Handles BTT_CHANGE_IMAGE.Click
-        Dim user As IUserData = GetSelectedUser()
-        If Not user Is Nothing Then
-            Dim f As SFile = SFile.SelectFiles(user.File.CutPath(IIf(user.IsCollection, 2, 1)), False, "Select new user picture",
-                                               "Pictures|*.jpeg;*.jpg;*.png;*.webp|GIF|*.gif|All Files|*.*").FirstOrDefault
-            If Not f.IsEmptyString Then
-                user.SetPicture(f)
-                UserListUpdate(user, False)
-            End If
-        End If
-    End Sub
     Private Sub BTT_CONTEXT_ADD_TO_COL_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_ADD_TO_COL.Click
         Const MsgTitle$ = "Add users to the collection"
         If Settings.CollectionsPath.Value.IsEmptyString Then
@@ -790,12 +800,13 @@ CloseResume:
                 Dim _col_user As Predicate(Of IUserData) = Function(u) u.IsCollection
                 Dim userCollection As UserDataBind = users.Find(_col_user)
                 Dim _col_name$ = String.Empty
+                Dim userProvider As IFormatProvider = GetUserListProvider(False)
                 If Not userCollection Is Nothing Then
                     i = users.LongCount(Function(u) _col_user(u))
                     If i > 1 OrElse i = users.Count OrElse
                        (i = 1 AndAlso
                         MsgBoxE({$"Do you want to add the following users to the [{userCollection.Name}] collection?" & vbCr &
-                                 users.Where(Function(u) Not _col_user(u)).ListToString(vbCr),
+                                 users.Where(Function(u) Not _col_user(u)).ListToStringE(vbCr, userProvider),
                                  MsgTitle}, vbQuestion + vbYesNo) = vbNo) Then _
                         MsgBoxE({"The collection cannot be added to the collection!", MsgTitle}, MsgBoxStyle.Critical) : Exit Sub
                     _col_name = userCollection.Name
@@ -846,10 +857,10 @@ CloseResume:
                         Else
                             Dim m As New MMessage($"The following users have been added to the [{_col_name}] collection:{vbCr}", MsgTitle,,
                                                   If(__added_users_not.Count > 0, vbExclamation, vbInformation))
-                            m.Text &= __added_users.ListToString(vbCr)
+                            m.Text &= __added_users.ListToStringE(vbCr, userProvider)
                             If __added_users_not.Count > 0 Then
                                 m.Text &= $"{vbNewLine.StringDup(2)}The following users have not been added to the [{_col_name}] collection:{vbCr}"
-                                m.Text &= __added_users_not.ListToString(vbCr)
+                                m.Text &= __added_users_not.ListToStringE(vbCr, userProvider)
                             End If
                             MsgBoxE(m)
                         End If
@@ -958,17 +969,37 @@ CloseResume:
             ErrorsDescriber.Execute(EDP.ShowAllMsg, ex, "Error while moving user")
         End Try
     End Sub
+#End Region
+#Region "3 - change image"
+    Private Sub BTT_CHANGE_IMAGE_Click(sender As Object, e As EventArgs) Handles BTT_CHANGE_IMAGE.Click
+        Dim user As IUserData = GetSelectedUser()
+        If Not user Is Nothing Then
+            Dim f As SFile = SFile.SelectFiles(user.File.CutPath(IIf(user.IsCollection, 2, 1)), False, "Select new user picture",
+                                               "Pictures|*.jpeg;*.jpg;*.png;*.webp|GIF|*.gif|All Files|*.*").FirstOrDefault
+            If Not f.IsEmptyString Then
+                user.SetPicture(f)
+                UserListUpdate(user, False)
+            End If
+        End If
+    End Sub
+#End Region
+#Region "4 - open folder"
     Private Sub BTT_CONTEXT_OPEN_PATH_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_OPEN_PATH.Click
         OpenFolder()
     End Sub
+#End Region
+#Region "5 - open site"
     Private Sub BTT_CONTEXT_OPEN_SITE_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_OPEN_SITE.Click
         Dim user As IUserData = GetSelectedUser()
         If Not user Is Nothing Then user.OpenSite()
     End Sub
+#End Region
+#Region "6 - information"
     Private Sub BTT_CONTEXT_INFO_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_INFO.Click
         Dim user As IUserData = GetSelectedUser()
         If Not user Is Nothing Then MsgBoxE(DirectCast(user, UserDataBase).GetUserInformation())
     End Sub
+#End Region
     Private Sub USER_CONTEXT_VisibleChanged(sender As Object, e As EventArgs) Handles USER_CONTEXT.VisibleChanged
         Try
             If USER_CONTEXT.Visible Then
@@ -993,9 +1024,66 @@ CloseResume:
         End Try
     End Sub
 #End Region
+#Region "Focus user"
+    Private Overloads Sub FocusUser(ByVal Key As String)
+        FocusUser(Key, True)
+    End Sub
+    Friend Overloads Sub FocusUser(ByVal Key As String, Optional ByVal ActivateMe As Boolean = False)
+        Dim a As Action = Sub()
+                              Dim i% = LIST_PROFILES.Items.IndexOfKey(Key)
+                              If i < 0 Then
+                                  Dim u As IUserData = Settings.GetUser(Key, True)
+                                  If Not u Is Nothing Then
+                                      UserListUpdate(u, True)
+                                      i = LIST_PROFILES.Items.IndexOfKey(u.Key)
+                                  End If
+                              End If
+                              If i >= 0 Then
+                                  LIST_PROFILES.Select()
+                                  LIST_PROFILES.SelectedIndices.Clear()
+                                  With LIST_PROFILES.Items(i) : .Selected = True : .Focused = True : End With
+                                  LIST_PROFILES.EnsureVisible(i)
+                                  If ActivateMe Then
+                                      If Visible Then BringToFront() Else Visible = True
+                                  End If
+                              End If
+                          End Sub
+        If LIST_PROFILES.InvokeRequired Then LIST_PROFILES.Invoke(a) Else a.Invoke
+    End Sub
 #End Region
+#Region "Toolbar bottom"
+    Private Sub BTT_PR_INFO_Click(sender As Object, e As EventArgs) Handles BTT_PR_INFO.Click
+        If MyProgressForm.Visible Then MyProgressForm.BringToFront() Else MyProgressForm.Show()
+    End Sub
+#End Region
+#Region "Operation providers"
+    Private OperationsUserListProvider As IFormatProvider = Nothing
+    Private OperationsUserListProviderCollections As IFormatProvider = Nothing
+    Private Function GetUserListProvider(ByVal WithCollections As Boolean) As IFormatProvider
+        If WithCollections Then
+            If OperationsUserListProviderCollections Is Nothing Then _
+               OperationsUserListProviderCollections = New CustomProvider(Function(v, d, p, n, ee)
+                                                                              Dim OutStr$
+                                                                              With DirectCast(v, IUserData)
+                                                                                  If .IsCollection Then
+                                                                                      OutStr = $"Collection [{ .Name}]"
+                                                                                  Else
+                                                                                      OutStr = $"User [{ .Site}] { .Name}"
+                                                                                  End If
+                                                                              End With
+                                                                              Return OutStr
+                                                                          End Function)
+            Return OperationsUserListProviderCollections
+        Else
+            If OperationsUserListProvider Is Nothing Then _
+               OperationsUserListProvider = New CustomProvider(Function(v, d, p, n, ee) $"[{DirectCast(v, IUserData).Site}] {DirectCast(v, IUserData).Name}")
+            Return OperationsUserListProvider
+        End If
+    End Function
+#End Region
+#Region "Operations with selected users: modify"
     Private Function GetSelectedUser() As IUserData
-        If _LatestSelected >= 0 And _LatestSelected <= LIST_PROFILES.Items.Count - 1 Then
+        If _LatestSelected.ValueBetween(0, LIST_PROFILES.Items.Count - 1) Then
             Dim k$ = LIST_PROFILES.Items(_LatestSelected).Name
             Dim i% = Settings.Users.FindIndex(Function(u) u.Key = k)
             If i >= 0 Then
@@ -1026,29 +1114,84 @@ CloseResume:
             Return ErrorsDescriber.Execute(EDP.SendInLog + EDP.ReturnValue, ex, "[MainFrame.GetSelectedUserArray]", New List(Of IUserData))
         End Try
     End Function
-    Private Overloads Sub RemoveUserFromList(ByVal _User As IUserData)
-        RemoveUserFromList(LIST_PROFILES.Items.IndexOfKey(_User.Key), _User.Key)
-    End Sub
-    Private Overloads Sub RemoveUserFromList(ByVal _Index As Integer, ByVal Key As String)
-        Dim a As Action = Sub()
-                              With LIST_PROFILES
-                                  If _Index >= 0 Then
-                                      .Items.RemoveAt(_Index)
-                                      If Settings.ViewModeIsPicture Then
-                                          Dim ImgIndx%
-                                          Select Case Settings.ViewMode.Value
-                                              Case View.LargeIcon
-                                                  ImgIndx = .LargeImageList.Images.IndexOfKey(Key)
-                                                  If ImgIndx >= 0 Then .LargeImageList.Images.RemoveAt(_Index)
-                                              Case View.SmallIcon
-                                                  ImgIndx = .SmallImageList.Images.IndexOfKey(Key)
-                                                  If ImgIndx >= 0 Then .SmallImageList.Images.RemoveAt(_Index)
-                                          End Select
-                                      End If
-                                  End If
-                              End With
-                          End Sub
-        If LIST_PROFILES.InvokeRequired Then LIST_PROFILES.Invoke(a) Else a.Invoke
+    Private Enum DownUserLimits : None : Number : [Date] : End Enum
+    Private Sub DownloadSelectedUser(ByVal UseLimits As DownUserLimits, Optional ByVal IncludeInTheFeed As Boolean = True)
+        Const MsgTitle$ = "Download limit"
+        Dim users As List(Of IUserData) = GetSelectedUserArray()
+        If users.ListExists Then
+            Dim limit%? = Nothing
+            Dim _from As Date? = Nothing
+            Dim _to As Date? = Nothing
+            Dim _fromStr$, _toStr$
+            If UseLimits = DownUserLimits.Number Then
+                Do
+                    limit = AConvert(Of Integer)(InputBoxE("Enter top posts limit for downloading:", MsgTitle, 10), AModes.Var, Nothing)
+                    If limit.HasValue Then
+                        Select Case MsgBoxE(New MMessage($"You are set up downloading top [{limit.Value}] posts", MsgTitle,
+                                            {"Confirm", "Try again", "Disable limit", "Cancel"}) With {.ButtonsPerRow = 2}).Index
+                            Case 0 : Exit Do
+                            Case 2 : limit = Nothing : Exit Do
+                            Case 3 : GoTo CancelDownloadingOperation
+                        End Select
+                    Else
+                        Select Case MsgBoxE({"You are not set up downloading limit", MsgTitle},,,, {"Confirm", "Try again", "Cancel"}).Index
+                            Case 0 : Exit Do
+                            Case 2 : GoTo CancelDownloadingOperation
+                        End Select
+                    End If
+                Loop
+            ElseIf UseLimits = DownUserLimits.Date Then
+                Do
+                    Using fd As New DateTimeSelectionForm(DateTimeSelectionForm.ModesAllDate, Settings.Design)
+                        fd.ShowDialog()
+                        If fd.DialogResult = DialogResult.OK Then
+                            _from = fd.MyDateStart
+                            _to = fd.MyDateEnd
+                        ElseIf fd.DialogResult = DialogResult.Abort Then
+                            _from = Nothing
+                            _to = Nothing
+                        End If
+                    End Using
+                    If _from.HasValue Or _to.HasValue Then
+                        _fromStr = AConvert(Of String)(_from, ADateTime.Formats.BaseDate, String.Empty)
+                        _toStr = AConvert(Of String)(_to, ADateTime.Formats.BaseDate, String.Empty)
+                        If Not _fromStr.IsEmptyString Then _fromStr = $"FROM [{_fromStr}]"
+                        If Not _toStr.IsEmptyString Then _toStr = $"TO [{_toStr}]"
+                        If Not _toStr.IsEmptyString And Not _fromStr.IsEmptyString Then _fromStr &= " "
+                        Select Case MsgBoxE(New MMessage($"You have set a date limit for downloading posts: {_fromStr}{_toStr}", MsgTitle,
+                                                         {"Confirm", "Try again", "Disable limit", "Cancel"}) With {.ButtonsPerRow = 2}).Index
+                            Case 0 : Exit Do
+                            Case 2 : _from = Nothing : _to = Nothing : Exit Do
+                            Case 3 : GoTo CancelDownloadingOperation
+                        End Select
+                    Else
+                        Select Case MsgBoxE({"You have not set a date limit", MsgTitle},,,, {"Confirm", "Try again", "Cancel"}).Index
+                            Case 0 : Exit Do
+                            Case 2 : GoTo CancelDownloadingOperation
+                        End Select
+                    End If
+                Loop
+            End If
+            If USER_CONTEXT.Visible Then USER_CONTEXT.Hide()
+            GoTo ResumeDownloadingOperation
+CancelDownloadingOperation:
+            MsgBoxE("Operation canceled")
+            Exit Sub
+ResumeDownloadingOperation:
+            Dim uStr$ = If(users.Count = 1, String.Empty, users.ListToStringE(vbNewLine, GetUserListProvider(True)))
+            Dim fStr$ = $"({IIf(IncludeInTheFeed, "included in", "excluded from")} the feed)"
+            If users.Count = 1 OrElse MsgBoxE({$"You have selected {users.Count} user profiles" & vbCr &
+                                               $"Do you want to download them all{fStr}?{vbNewLine.StringDup(2)}" &
+                                               $"Selected users:{vbNewLine}{uStr}", "Multiple users selected"},
+                                              MsgBoxStyle.Question + MsgBoxStyle.YesNo) = MsgBoxResult.Yes Then
+                users.ForEach(Sub(u)
+                                  u.DownloadTopCount = limit
+                                  u.DownloadDateFrom = _from
+                                  u.DownloadDateTo = _to
+                              End Sub)
+                Downloader.AddRange(users, IncludeInTheFeed)
+            End If
+        End If
     End Sub
     Private Sub EditSelectedUser()
         Dim user As IUserData = GetSelectedUser()
@@ -1070,8 +1213,9 @@ CloseResume:
             Dim users As List(Of IUserData) = GetSelectedUserArray()
             If users.ListExists Then
                 If USER_CONTEXT.Visible Then USER_CONTEXT.Hide()
-                Dim ugn As Func(Of IUserData, String) = Function(u) $"{IIf(u.IsCollection, "Collection", "User")}: {u.Name}"
-                Dim m As New MMessage(users.Select(ugn).ListToString(vbNewLine), "Users deleting",
+                Dim userProvider As IFormatProvider = GetUserListProvider(True)
+                Dim ugn As Func(Of IUserData, String) = Function(u) AConvert(Of String)(u, userProvider)
+                Dim m As New MMessage(users.ListToStringE(vbNewLine, userProvider), "Users deleting",
                                       {New MsgBoxButton("Delete and ban") With {.ToolTip = "Users and their data will be deleted and added to the blacklist"},
                                        New MsgBoxButton("Delete user only and ban") With {
                                             .ToolTip = "Users will be deleted and added to the blacklist (user data will not be deleted)"},
@@ -1085,6 +1229,7 @@ CloseResume:
                 m.Text = $"The following users ({users.Count}) will be deleted:{vbNewLine}{m.Text}"
                 Dim result% = MsgBoxE(m)
                 If result < 6 Then
+                    Dim IsMultiple As Boolean = users.Count > 1
                     Dim removedUsers As New List(Of String)
                     Dim keepData As Boolean = Not (result Mod 2) = 0
                     Dim banUser As Boolean = result < 4
@@ -1096,7 +1241,15 @@ CloseResume:
                     If setReason Then reason = InputBoxE("Enter a deletion reason:", "Deletion reason")
                     For Each user In users
                         If keepData Then
-                            If banUser Then Settings.BlackList.ListAddValue(New UserBan(user.Name, reason), l) : b = True
+                            If banUser Then
+                                If user.IsCollection Then
+                                    Settings.BlackList.ListAddList(DirectCast(user, UserDataBind).
+                                                                   Collections.Select(Function(u) New UserBan(u.Name, reason)), l)
+                                Else
+                                    Settings.BlackList.ListAddValue(New UserBan(user.Name, reason), l)
+                                End If
+                                b = True
+                            End If
                             If user.IsCollection Then
                                 With DirectCast(user, UserDataBind)
                                     If .Count > 0 Then .Collections.ForEach(Sub(c) Settings.UsersList.Remove(DirectCast(c, UserDataBase).User))
@@ -1110,7 +1263,7 @@ CloseResume:
                             removedUsers.Add(ugn(user))
                             user.Dispose()
                         Else
-                            If user.Delete > 0 Then
+                            If user.Delete(IsMultiple) > 0 Then
                                 If banUser Then Settings.BlackList.ListAddValue(New UserBan(user.Name, reason), l) : b = True
                                 RemoveUserFromList(user)
                                 removedUsers.Add(ugn(user))
@@ -1130,8 +1283,8 @@ CloseResume:
                         m.Text = "No one user deleted!"
                         m.Style = MsgBoxStyle.Critical
                     Else
-                        m.Text = $"The following users were deleted:{vbNewLine}{removedUsers.ListToString(vbNewLine)}{vbNewLine.StringDup(2)}"
-                        m.Text &= $"The following users were NOT deleted:{vbNewLine}{leftUsers.ListToString(vbNewLine)}"
+                        m.Text = $"The following users were deleted:{vbNewLine}{removedUsers.ListToStringE(vbNewLine, userProvider)}{vbNewLine.StringDup(2)}"
+                        m.Text &= $"The following users were NOT deleted:{vbNewLine}{leftUsers.ListToStringE(vbNewLine, userProvider)}"
                         m.Style = MsgBoxStyle.Exclamation
                     End If
                     If b Then Settings.UpdateBlackList()
@@ -1173,6 +1326,7 @@ CloseResume:
                     If Not _select_path.Invoke Then Exit Sub
                 End If
                 If f.Exists(SFO.Path, False) Then
+                    Dim userProvider As IFormatProvider = GetUserListProvider(True)
                     Settings.LastCopyPath.Value = f
                     Using logger As New TextSaver With {.LogMode = True}
                         Dim m As New MMessage("", MsgTitle,,, {logger})
@@ -1212,10 +1366,10 @@ CloseResume:
                             m.Text = "No users have been copied."
                         Else
                             m.Text = $"The following users have been copied:{vbNewLine}"
-                            m.Text &= __copied_users.ListToString(vbNewLine)
+                            m.Text &= __copied_users.ListToStringE(vbNewLine, userProvider)
                             If __copied_users_not.Count > 0 Then
                                 m.Text = $"{vbNewLine.StringDup(2)}The following users have not been copied:{vbNewLine}"
-                                m.Text &= __copied_users_not.ListToString(vbNewLine)
+                                m.Text &= __copied_users_not.ListToStringE(vbNewLine, userProvider)
                             End If
                         End If
                         MsgBoxE(m,, err)
@@ -1226,6 +1380,53 @@ CloseResume:
             ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Error when trying to copy data")
         End Try
     End Sub
+    Private Sub OpenFolder()
+        Dim user As IUserData = GetSelectedUser()
+        If Not user Is Nothing Then user.OpenFolder()
+    End Sub
+#End Region
+#Region "Operations with selected users: list"
+    Private Overloads Sub RemoveUserFromList(ByVal _User As IUserData)
+        RemoveUserFromList(LIST_PROFILES.Items.IndexOfKey(_User.Key), _User.Key)
+    End Sub
+    Private Overloads Sub RemoveUserFromList(ByVal _Index As Integer, ByVal Key As String)
+        Dim a As Action = Sub()
+                              With LIST_PROFILES
+                                  If _Index >= 0 Then
+                                      .Items.RemoveAt(_Index)
+                                      If Settings.ViewModeIsPicture Then
+                                          Dim ImgIndx%
+                                          Select Case Settings.ViewMode.Value
+                                              Case View.LargeIcon
+                                                  ImgIndx = .LargeImageList.Images.IndexOfKey(Key)
+                                                  If ImgIndx >= 0 Then .LargeImageList.Images.RemoveAt(_Index)
+                                              Case View.SmallIcon
+                                                  ImgIndx = .SmallImageList.Images.IndexOfKey(Key)
+                                                  If ImgIndx >= 0 Then .SmallImageList.Images.RemoveAt(_Index)
+                                          End Select
+                                      End If
+                                  End If
+                              End With
+                          End Sub
+        If LIST_PROFILES.InvokeRequired Then LIST_PROFILES.Invoke(a) Else a.Invoke
+    End Sub
+#End Region
+#Region "Handlers"
+    Private Sub UpdateLabelsGroups()
+        If Settings.Labels.NewLabelsExists Then
+            If Settings.Labels.NewLabels.Count > 0 Then
+                Dim ll As ListViewGroup = Nothing
+                Dim a As Action = Sub() LIST_PROFILES.Groups.Add(ll)
+                For Each l$ In Settings.Labels.NewLabels
+                    ll = New ListViewGroup(l, l)
+                    If Not LIST_PROFILES.Groups.Contains(ll) Then
+                        If LIST_PROFILES.InvokeRequired Then LIST_PROFILES.Invoke(a) Else a.Invoke
+                    End If
+                Next
+            End If
+            Settings.Labels.NewLabels.Clear()
+        End If
+    End Sub
     Friend Sub UserRemovedFromCollection(ByVal User As IUserData)
         If LIST_PROFILES.Items.Count = 0 OrElse Not LIST_PROFILES.Items.ContainsKey(User.Key) Then UserListUpdate(User, True)
     End Sub
@@ -1233,115 +1434,6 @@ CloseResume:
         With LIST_PROFILES.Items
             If .Count > 0 AndAlso .ContainsKey(User.Key) Then .RemoveByKey(User.Key)
         End With
-    End Sub
-    Private Enum DownUserLimits : None : Number : [Date] : End Enum
-    Private Sub DownloadSelectedUser(ByVal UseLimits As DownUserLimits)
-        Const MsgTitle$ = "Download limit"
-        Dim users As List(Of IUserData) = GetSelectedUserArray()
-        If users.ListExists Then
-            Dim limit%? = Nothing
-            Dim _from As Date? = Nothing
-            Dim _to As Date? = Nothing
-            Dim _fromStr$, _toStr$
-            If UseLimits = DownUserLimits.Number Then
-                Do
-                    limit = AConvert(Of Integer)(InputBoxE("Enter top posts limit for downloading:", MsgTitle, 10), AModes.Var, Nothing)
-                    If limit.HasValue Then
-                        Select Case MsgBoxE(New MMessage($"You are set up downloading top [{limit.Value}] posts", MsgTitle,
-                                            {"Confirm", "Try again", "Disable limit", "Cancel"}) With {.ButtonsPerRow = 2}).Index
-                            Case 0 : Exit Do
-                            Case 2 : limit = Nothing : Exit Do
-                            Case 3 : GoTo CancelDownloadingOperation
-                        End Select
-                    Else
-                        Select Case MsgBoxE({"You are not set up downloading limit", MsgTitle},,,, {"Confirm", "Try again", "Cancel"}).Index
-                            Case 0 : Exit Do
-                            Case 2 : GoTo CancelDownloadingOperation
-                        End Select
-                    End If
-                Loop
-            ElseIf UseLimits = DownUserLimits.Date Then
-                Do
-                    Using fd As New FDatePickerForm(Nothing, Nothing)
-                        fd.ShowDialog()
-                        If fd.DialogResult = DialogResult.OK Then
-                            _from = fd.DateFrom
-                            _to = fd.DateTo
-                        ElseIf fd.DialogResult = DialogResult.Abort Then
-                            _from = Nothing
-                            _to = Nothing
-                        End If
-                    End Using
-                    If _from.HasValue Or _to.HasValue Then
-                        _fromStr = AConvert(Of String)(_from, ADateTime.Formats.BaseDate, String.Empty)
-                        _toStr = AConvert(Of String)(_to, ADateTime.Formats.BaseDate, String.Empty)
-                        If Not _fromStr.IsEmptyString Then _fromStr = $"FROM [{_fromStr}]"
-                        If Not _toStr.IsEmptyString Then _toStr = $"TO [{_toStr}]"
-                        If Not _toStr.IsEmptyString And Not _fromStr.IsEmptyString Then _fromStr &= " "
-                        Select Case MsgBoxE(New MMessage($"You have set a date limit for downloading posts: {_fromStr}{_toStr}", MsgTitle,
-                                                         {"Confirm", "Try again", "Disable limit", "Cancel"}) With {.ButtonsPerRow = 2}).Index
-                            Case 0 : Exit Do
-                            Case 2 : _from = Nothing : _to = Nothing : Exit Do
-                            Case 3 : GoTo CancelDownloadingOperation
-                        End Select
-                    Else
-                        Select Case MsgBoxE({"You have not set a date limit", MsgTitle},,,, {"Confirm", "Try again", "Cancel"}).Index
-                            Case 0 : Exit Do
-                            Case 2 : GoTo CancelDownloadingOperation
-                        End Select
-                    End If
-
-                Loop
-            End If
-            If USER_CONTEXT.Visible Then USER_CONTEXT.Hide()
-            GoTo ResumeDownloadingOperation
-CancelDownloadingOperation:
-            MsgBoxE("Operation canceled")
-            Exit Sub
-ResumeDownloadingOperation:
-            Dim uStr$ = If(users.Count = 1, String.Empty, users.Select(Function(u) u.ToString()).ListToString(vbNewLine))
-            If users.Count = 1 OrElse MsgBoxE({$"You have selected {users.Count} user profiles" & vbCr &
-                                               $"Do you want to download them all?{vbNewLine.StringDup(2)}" &
-                                               $"Selected users:{vbNewLine}{uStr}", "Multiple users selected"},
-                                              MsgBoxStyle.Question + MsgBoxStyle.YesNo) = MsgBoxResult.Yes Then
-                users.ForEach(Sub(u)
-                                  u.DownloadTopCount = limit
-                                  u.DownloadDateFrom = _from
-                                  u.DownloadDateTo = _to
-                              End Sub)
-                Downloader.AddRange(users)
-            End If
-        End If
-    End Sub
-    Private Sub OpenFolder()
-        Dim user As IUserData = GetSelectedUser()
-        If Not user Is Nothing Then user.OpenFolder()
-    End Sub
-#End Region
-    Private Overloads Sub FocusUser(ByVal Key As String)
-        FocusUser(Key, True)
-    End Sub
-    Friend Overloads Sub FocusUser(ByVal Key As String, Optional ByVal ActivateMe As Boolean = False)
-        Dim a As Action = Sub()
-                              Dim i% = LIST_PROFILES.Items.IndexOfKey(Key)
-                              If i < 0 Then
-                                  Dim u As IUserData = Settings.GetUser(Key, True)
-                                  If Not u Is Nothing Then
-                                      UserListUpdate(u, True)
-                                      i = LIST_PROFILES.Items.IndexOfKey(u.Key)
-                                  End If
-                              End If
-                              If i >= 0 Then
-                                  LIST_PROFILES.Select()
-                                  LIST_PROFILES.SelectedIndices.Clear()
-                                  With LIST_PROFILES.Items(i) : .Selected = True : .Focused = True : End With
-                                  LIST_PROFILES.EnsureVisible(i)
-                                  If ActivateMe Then
-                                      If Visible Then BringToFront() Else Visible = True
-                                  End If
-                              End If
-                          End Sub
-        If LIST_PROFILES.InvokeRequired Then LIST_PROFILES.Invoke(a) Else a.Invoke
     End Sub
     Friend Sub User_OnUserUpdated(ByVal User As IUserData)
         UserListUpdate(User, False)
@@ -1362,10 +1454,5 @@ ResumeDownloadingOperation:
         Dim a As Action = Sub() BTT_DOWN_STOP.Enabled = Value Or Downloader.Working
         If Toolbar_TOP.InvokeRequired Then Toolbar_TOP.Invoke(a) Else a.Invoke
     End Sub
-    Private Sub NotificationMessage(ByVal Message As String)
-        If Settings.ShowNotifications Then MainFrameObj.ShowNotification(Message)
-    End Sub
-    Private Sub BTT_PR_INFO_Click(sender As Object, e As EventArgs) Handles BTT_PR_INFO.Click
-        If MyProgressForm.Visible Then MyProgressForm.BringToFront() Else MyProgressForm.Show()
-    End Sub
+#End Region
 End Class

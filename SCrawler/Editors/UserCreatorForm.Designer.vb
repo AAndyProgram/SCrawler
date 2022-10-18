@@ -1,4 +1,12 @@
-﻿Namespace Editors
+﻿' Copyright (C) 2023  Andy https://github.com/AAndyProgram
+' This program is free software: you can redistribute it and/or modify
+' it under the terms of the GNU General Public License as published by
+' the Free Software Foundation, either version 3 of the License, or
+' (at your option) any later version.
+'
+' This program is distributed in the hope that it will be useful,
+' but WITHOUT ANY WARRANTY
+Namespace Editors
     <Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()>
     Partial Friend Class UserCreatorForm : Inherits System.Windows.Forms.Form
         <System.Diagnostics.DebuggerNonUserCode()>
@@ -126,7 +134,7 @@
             TP_SITE.ColumnCount = 3
             TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 79.0!))
             TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 100.0!))
+            TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 104.0!))
             TP_SITE.Controls.Add(Me.CH_IS_CHANNEL, 0, 0)
             TP_SITE.Controls.Add(Me.CMB_SITE, 1, 0)
             TP_SITE.Controls.Add(Me.BTT_OTHER_SETTINGS, 2, 0)
@@ -169,17 +177,17 @@
             Me.CMB_SITE.Location = New System.Drawing.Point(84, 3)
             Me.CMB_SITE.Margin = New System.Windows.Forms.Padding(3, 2, 3, 3)
             Me.CMB_SITE.Name = "CMB_SITE"
-            Me.CMB_SITE.Size = New System.Drawing.Size(263, 22)
+            Me.CMB_SITE.Size = New System.Drawing.Size(259, 22)
             Me.CMB_SITE.TabIndex = 1
             Me.CMB_SITE.TextBoxBorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
             '
             'BTT_OTHER_SETTINGS
             '
             Me.BTT_OTHER_SETTINGS.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.BTT_OTHER_SETTINGS.Location = New System.Drawing.Point(352, 2)
+            Me.BTT_OTHER_SETTINGS.Location = New System.Drawing.Point(348, 2)
             Me.BTT_OTHER_SETTINGS.Margin = New System.Windows.Forms.Padding(1)
             Me.BTT_OTHER_SETTINGS.Name = "BTT_OTHER_SETTINGS"
-            Me.BTT_OTHER_SETTINGS.Size = New System.Drawing.Size(98, 24)
+            Me.BTT_OTHER_SETTINGS.Size = New System.Drawing.Size(102, 24)
             Me.BTT_OTHER_SETTINGS.TabIndex = 2
             Me.BTT_OTHER_SETTINGS.Text = "Options (F2)"
             TT_MAIN.SetToolTip(Me.BTT_OTHER_SETTINGS, "Other settings")
@@ -457,7 +465,7 @@
             Me.ClientSize = New System.Drawing.Size(454, 461)
             Me.Controls.Add(CONTAINER_MAIN)
             Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle
-            Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
+            Me.Icon = Global.SCrawler.My.Resources.Resources.UsersIcon_32
             Me.KeyPreview = True
             Me.MaximizeBox = False
             Me.MaximumSize = New System.Drawing.Size(470, 500)

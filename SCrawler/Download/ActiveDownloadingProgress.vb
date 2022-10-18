@@ -1,4 +1,4 @@
-﻿' Copyright (C) 2022  Andy
+﻿' Copyright (C) 2023  Andy https://github.com/AAndyProgram
 ' This program is free software: you can redistribute it and/or modify
 ' it under the terms of the GNU General Public License as published by
 ' the Free Software Foundation, either version 3 of the License, or
@@ -11,7 +11,7 @@ Imports PersonalUtilities.Forms
 Namespace DownloadObjects
     Friend Class ActiveDownloadingProgress
         Private Const MinWidth As Integer = 450
-        Private MyView As FormsView
+        Private MyView As FormView
         Private Opened As Boolean = False
         Friend ReadOnly Property ReadyToOpen As Boolean
             Get
@@ -27,15 +27,18 @@ Namespace DownloadObjects
             Downloader_Reconfigured()
         End Sub
         Private Sub ActiveDownloadingProgress_Load(sender As Object, e As EventArgs) Handles Me.Load
-            MyView = New FormsView(Me)
-            MyView.ImportFromXML(Settings.Design)
-            MyView.SetMeSize()
+            MyView = New FormView(Me)
+            MyView.Import(Settings.Design)
+            MyView.SetFormSize()
             Opened = True
         End Sub
         Private Sub ActiveDownloadingProgress_Closing(sender As Object, e As CancelEventArgs) Handles Me.Closing
-            MyView.ExportToXML(Settings.Design)
+            MyView.Export(Settings.Design)
             e.Cancel = True
             Hide()
+        End Sub
+        Private Sub ActiveDownloadingProgress_Disposed(sender As Object, e As EventArgs) Handles Me.Disposed
+            MyView.DisposeIfReady()
         End Sub
         Private Sub Downloader_Reconfigured()
             Const RowHeight% = 30

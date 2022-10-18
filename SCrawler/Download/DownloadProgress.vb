@@ -1,4 +1,4 @@
-﻿' Copyright (C) 2022  Andy
+﻿' Copyright (C) 2023  Andy https://github.com/AAndyProgram
 ' This program is free software: you can redistribute it and/or modify
 ' it under the terms of the GNU General Public License as published by
 ' the Free Software Foundation, either version 3 of the License, or
@@ -11,8 +11,12 @@ Imports Download = SCrawler.Plugin.ISiteSettings.Download
 Imports TDJob = SCrawler.DownloadObjects.TDownloader.Job
 Namespace DownloadObjects
     Friend Class DownloadProgress : Implements IDisposable
+#Region "Events"
         Friend Event DownloadDone As NotificationEventHandler
         Friend Event ProgressMaximumChanged()
+#End Region
+#Region "Declarations"
+#Region "Controls"
         Private ReadOnly TP_MAIN As TableLayoutPanel
         Private ReadOnly TP_CONTROLS As TableLayoutPanel
         Private WithEvents BTT_START As Button
@@ -20,8 +24,10 @@ Namespace DownloadObjects
         Private WithEvents BTT_OPEN As Button
         Private ReadOnly PR_MAIN As ProgressBar
         Private ReadOnly LBL_INFO As Label
+#End Region
         Private ReadOnly Property Instance As API.Base.ProfileSaved
         Friend ReadOnly Property Job As TDJob
+#End Region
 #Region "Initializer"
         Friend Sub New(ByVal _Job As TDJob)
             Job = _Job
@@ -32,7 +38,7 @@ Namespace DownloadObjects
             TP_CONTROLS = New TableLayoutPanel With {.Margin = New Padding(0), .Dock = DockStyle.Fill}
             PR_MAIN = New ProgressBar With {.Dock = DockStyle.Fill}
             LBL_INFO = New Label With {.Text = String.Empty, .Dock = DockStyle.Fill}
-            CreateButton(BTT_STOP, My.Resources.Delete)
+            CreateButton(BTT_STOP, My.Resources.DeletePic_24)
 
             If Job.Type = Download.Main Then
                 LBL_INFO.Margin = New Padding(3)
@@ -58,8 +64,8 @@ Namespace DownloadObjects
             Else
                 LBL_INFO.Padding = New Padding(3, 0, 3, 0)
                 LBL_INFO.TextAlign = ContentAlignment.TopCenter
-                CreateButton(BTT_START, My.Resources.StartPic_01_Green_16)
-                CreateButton(BTT_OPEN, PersonalUtilities.My.Resources.OpenFolderPic)
+                CreateButton(BTT_START, My.Resources.StartPic_Green_16)
+                CreateButton(BTT_OPEN, PersonalUtilities.My.Resources.FolderOpenPic_Black_16)
                 With TP_CONTROLS
                     With .ColumnStyles
                         .Add(New ColumnStyle(SizeType.Absolute, 30))
@@ -139,7 +145,7 @@ Namespace DownloadObjects
                 Job.Progress.InformationTemporary = $"{Job.Host.Name} downloading started"
                 Job.Start()
                 Instance.Download(Job.Token)
-                RaiseEvent DownloadDone($"Downloading saved {Job.Host.Name} posts is completed")
+                RaiseEvent DownloadDone(SettingsCLS.NotificationObjects.SavedPosts, $"Downloading saved {Job.Host.Name} posts is completed")
             Catch ex As Exception
                 Job.Progress.InformationTemporary = $"{Job.Host.Name} downloading error"
                 ErrorsDescriber.Execute(EDP.LogMessageValue, ex, {$"{Job.Host.Name} saved posts downloading error", "Saved posts"})

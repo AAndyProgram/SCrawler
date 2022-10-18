@@ -1,3 +1,38 @@
+# 2022.10.18.0
+
+*2022-10-18*
+
+- Added
+  - **TikTok** ([limited](https://github.com/AAndyProgram/SCrawler/wiki/Settings#tiktok-limits))
+  - **Search form** (```Ctrl+F```)
+  - Feed improvements
+  - Ability to save the download session for viewing later
+  - Ability to download user, excluding from the feed (use the ```Ctrl``` key with a button click of with a hot key press)
+  - Ability to disable the notification about the absence of the ffmpeg.exe file
+  - Extended user information with labels  
+  - Advanced AutoDownloader pause options
+  - Added pause buttons to tray icon and AutoDownloader form
+  - Additional Instagram protection
+  - Advanced notification management
+  - Silent mode (temporarily disable notification)
+  - Excluding users whose profiles do not exist from downloading with groups and AutoDownloader
+  - Minor improvements
+- Updated
+  - Grouped all download buttons into one menu
+  - **Finished missing posts**. You can now download missing posts if they exist.
+  - PluginProvider: added ```BeginEdit``` and ```EndEdit``` methods
+  - PluginProvider: ```GetSpecialData``` return type changed from ```IEnumerable(Of PluginUserMedia)``` to ```IEnumerable```
+  - XVIDEOS and LPSG plugins are moved from libraries to SCrawler
+- Fixed
+  - (Issue #69) **RedGifs data is not downloading**. Requires cookies and token.
+  - Some minor bugs when deleting a collection
+  - Feed: start video playing may cause the program to freeze (strange behavior of the vlc library)
+  - Feed: videos hosted on Reddit not showing up in feed
+  - Feed: minor bugs
+  - Collection users were not banned when deleted with the ban option
+  - When trying to delete multiple collections, each collection asked for confirmation to delete
+  - Minor bugs
+
 # 2022.9.24.0
 
 *2022-09-24*

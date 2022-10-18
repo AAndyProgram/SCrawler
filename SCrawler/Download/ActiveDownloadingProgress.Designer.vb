@@ -1,4 +1,4 @@
-﻿' Copyright (C) 2022  Andy
+﻿' Copyright (C) 2023  Andy https://github.com/AAndyProgram
 ' This program is free software: you can redistribute it and/or modify
 ' it under the terms of the GNU General Public License as published by
 ' the Free Software Foundation, either version 3 of the License, or
@@ -47,15 +47,13 @@ Namespace DownloadObjects
             Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
             Me.ClientSize = New System.Drawing.Size(434, 61)
             Me.Controls.Add(Me.TP_MAIN)
-            Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
+            Me.Icon = Global.SCrawler.My.Resources.ArrowDownIcon_Blue_24
             Me.KeyPreview = True
             Me.MinimumSize = New System.Drawing.Size(450, 100)
             Me.Name = "ActiveDownloadingProgress"
             Me.Text = "Active downloading progress"
             Me.ResumeLayout(False)
-
         End Sub
-
         Private WithEvents TP_MAIN As TableLayoutPanel
     End Class
 End Namespace

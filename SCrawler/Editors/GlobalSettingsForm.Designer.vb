@@ -1,4 +1,12 @@
-﻿Namespace Editors
+﻿' Copyright (C) 2023  Andy https://github.com/AAndyProgram
+' This program is free software: you can redistribute it and/or modify
+' it under the terms of the GNU General Public License as published by
+' the Free Software Foundation, either version 3 of the License, or
+' (at your option) any later version.
+'
+' This program is distributed in the hope that it will be useful,
+' but WITHOUT ANY WARRANTY
+Namespace Editors
     <Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()>
     Partial Friend Class GlobalSettingsForm : Inherits System.Windows.Forms.Form
         <System.Diagnostics.DebuggerNonUserCode()>
@@ -48,6 +56,8 @@
             Dim TAB_FEED As System.Windows.Forms.TabPage
             Dim TP_FEED As System.Windows.Forms.TableLayoutPanel
             Dim TP_FEED_IMG_COUNT As System.Windows.Forms.TableLayoutPanel
+            Dim TAB_NOTIFY As System.Windows.Forms.TabPage
+            Dim TP_NOTIFY_MAIN As System.Windows.Forms.TableLayoutPanel
             Me.TXT_GLOBAL_PATH = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_IMAGE_LARGE = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_IMAGE_SMALL = New PersonalUtilities.Forms.Controls.TextBoxExtended()
@@ -78,6 +88,14 @@
             Me.CH_DOWN_OPEN_PROGRESS_SUSPEND = New System.Windows.Forms.CheckBox()
             Me.CH_ADD_MISSING_TO_LOG = New System.Windows.Forms.CheckBox()
             Me.CH_ADD_MISSING_ERROS_TO_LOG = New System.Windows.Forms.CheckBox()
+            Me.CH_FEED_STORE_SESSION_DATA = New System.Windows.Forms.CheckBox()
+            Me.CH_NOTIFY_SHOW_BASE = New System.Windows.Forms.CheckBox()
+            Me.CH_NOTIFY_SILENT = New System.Windows.Forms.CheckBox()
+            Me.CH_NOTIFY_PROFILES = New System.Windows.Forms.CheckBox()
+            Me.CH_NOTIFY_AUTO_DOWN = New System.Windows.Forms.CheckBox()
+            Me.CH_NOTIFY_CHANNELS = New System.Windows.Forms.CheckBox()
+            Me.CH_NOTIFY_SAVED_POSTS = New System.Windows.Forms.CheckBox()
+            Me.CH_DOWN_REPARSE_MISSING = New System.Windows.Forms.CheckBox()
             Me.TXT_CHANNELS_ROWS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_CHANNELS_COLUMNS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.CH_DOWN_IMAGES_NATIVE = New System.Windows.Forms.CheckBox()
@@ -85,7 +103,6 @@
             Me.TXT_FOLDER_CMD = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.CH_EXIT_CONFIRM = New System.Windows.Forms.CheckBox()
             Me.CH_CLOSE_TO_TRAY = New System.Windows.Forms.CheckBox()
-            Me.CH_SHOW_NOTIFY = New System.Windows.Forms.CheckBox()
             Me.TXT_CLOSE_SCRIPT = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.CH_DOWN_OPEN_INFO = New System.Windows.Forms.CheckBox()
             Me.CH_RECYCLE_DEL = New System.Windows.Forms.CheckBox()
@@ -121,6 +138,8 @@
             TAB_FEED = New System.Windows.Forms.TabPage()
             TP_FEED = New System.Windows.Forms.TableLayoutPanel()
             TP_FEED_IMG_COUNT = New System.Windows.Forms.TableLayoutPanel()
+            TAB_NOTIFY = New System.Windows.Forms.TabPage()
+            TP_NOTIFY_MAIN = New System.Windows.Forms.TableLayoutPanel()
             TP_BASIS.SuspendLayout()
             CType(Me.TXT_GLOBAL_PATH, System.ComponentModel.ISupportInitialize).BeginInit()
             TP_IMAGES.SuspendLayout()
@@ -157,6 +176,8 @@
             TP_FEED_IMG_COUNT.SuspendLayout()
             CType(Me.TXT_FEED_ROWS, System.ComponentModel.ISupportInitialize).BeginInit()
             CType(Me.TXT_FEED_COLUMNS, System.ComponentModel.ISupportInitialize).BeginInit()
+            TAB_NOTIFY.SuspendLayout()
+            TP_NOTIFY_MAIN.SuspendLayout()
             Me.TAB_MAIN.SuspendLayout()
             Me.CONTAINER_MAIN.ContentPanel.SuspendLayout()
             Me.CONTAINER_MAIN.SuspendLayout()
@@ -497,10 +518,10 @@
             '
             Me.CH_FAST_LOAD.AutoSize = True
             Me.CH_FAST_LOAD.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_FAST_LOAD.Location = New System.Drawing.Point(4, 82)
+            Me.CH_FAST_LOAD.Location = New System.Drawing.Point(4, 56)
             Me.CH_FAST_LOAD.Name = "CH_FAST_LOAD"
             Me.CH_FAST_LOAD.Size = New System.Drawing.Size(568, 19)
-            Me.CH_FAST_LOAD.TabIndex = 3
+            Me.CH_FAST_LOAD.TabIndex = 2
             Me.CH_FAST_LOAD.Text = "Fast profiles loading"
             TT_MAIN.SetToolTip(Me.CH_FAST_LOAD, "Fast loading of profiles in the main window")
             Me.CH_FAST_LOAD.UseVisualStyleBackColor = True
@@ -650,6 +671,105 @@
             Me.CH_ADD_MISSING_ERROS_TO_LOG.Text = "Add 'missing' errors to log"
             TT_MAIN.SetToolTip(Me.CH_ADD_MISSING_ERROS_TO_LOG, resources.GetString("CH_ADD_MISSING_ERROS_TO_LOG.ToolTip"))
             Me.CH_ADD_MISSING_ERROS_TO_LOG.UseVisualStyleBackColor = True
+            '
+            'CH_FEED_STORE_SESSION_DATA
+            '
+            Me.CH_FEED_STORE_SESSION_DATA.AutoSize = True
+            Me.CH_FEED_STORE_SESSION_DATA.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_FEED_STORE_SESSION_DATA.Location = New System.Drawing.Point(4, 111)
+            Me.CH_FEED_STORE_SESSION_DATA.Name = "CH_FEED_STORE_SESSION_DATA"
+            Me.CH_FEED_STORE_SESSION_DATA.Size = New System.Drawing.Size(568, 19)
+            Me.CH_FEED_STORE_SESSION_DATA.TabIndex = 4
+            Me.CH_FEED_STORE_SESSION_DATA.Text = "Store session data"
+            TT_MAIN.SetToolTip(Me.CH_FEED_STORE_SESSION_DATA, "If checked, session data will be stored in an xml file.")
+            Me.CH_FEED_STORE_SESSION_DATA.UseVisualStyleBackColor = True
+            '
+            'CH_NOTIFY_SHOW_BASE
+            '
+            Me.CH_NOTIFY_SHOW_BASE.AutoSize = True
+            Me.CH_NOTIFY_SHOW_BASE.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_NOTIFY_SHOW_BASE.Location = New System.Drawing.Point(4, 30)
+            Me.CH_NOTIFY_SHOW_BASE.Name = "CH_NOTIFY_SHOW_BASE"
+            Me.CH_NOTIFY_SHOW_BASE.Size = New System.Drawing.Size(568, 19)
+            Me.CH_NOTIFY_SHOW_BASE.TabIndex = 1
+            Me.CH_NOTIFY_SHOW_BASE.Text = "Show notifications"
+            TT_MAIN.SetToolTip(Me.CH_NOTIFY_SHOW_BASE, "This is the base value of notifications. If you disable it, notifications will no" &
+        "t appear at all.")
+            Me.CH_NOTIFY_SHOW_BASE.UseVisualStyleBackColor = True
+            '
+            'CH_NOTIFY_SILENT
+            '
+            Me.CH_NOTIFY_SILENT.AutoSize = True
+            Me.CH_NOTIFY_SILENT.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_NOTIFY_SILENT.Location = New System.Drawing.Point(4, 4)
+            Me.CH_NOTIFY_SILENT.Name = "CH_NOTIFY_SILENT"
+            Me.CH_NOTIFY_SILENT.Size = New System.Drawing.Size(568, 19)
+            Me.CH_NOTIFY_SILENT.TabIndex = 0
+            Me.CH_NOTIFY_SILENT.Text = "Silent mode"
+            TT_MAIN.SetToolTip(Me.CH_NOTIFY_SILENT, "Turn off notifications temporarily." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "This setting is not stored in the settings f" &
+        "ile. It is valid until you turn it off or close the program.")
+            Me.CH_NOTIFY_SILENT.UseVisualStyleBackColor = True
+            '
+            'CH_NOTIFY_PROFILES
+            '
+            Me.CH_NOTIFY_PROFILES.AutoSize = True
+            Me.CH_NOTIFY_PROFILES.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_NOTIFY_PROFILES.Location = New System.Drawing.Point(4, 56)
+            Me.CH_NOTIFY_PROFILES.Name = "CH_NOTIFY_PROFILES"
+            Me.CH_NOTIFY_PROFILES.Size = New System.Drawing.Size(568, 19)
+            Me.CH_NOTIFY_PROFILES.TabIndex = 2
+            Me.CH_NOTIFY_PROFILES.Text = "Profiles"
+            TT_MAIN.SetToolTip(Me.CH_NOTIFY_PROFILES, "Show notifications when profiles download is complete")
+            Me.CH_NOTIFY_PROFILES.UseVisualStyleBackColor = True
+            '
+            'CH_NOTIFY_AUTO_DOWN
+            '
+            Me.CH_NOTIFY_AUTO_DOWN.AutoSize = True
+            Me.CH_NOTIFY_AUTO_DOWN.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_NOTIFY_AUTO_DOWN.Location = New System.Drawing.Point(4, 82)
+            Me.CH_NOTIFY_AUTO_DOWN.Name = "CH_NOTIFY_AUTO_DOWN"
+            Me.CH_NOTIFY_AUTO_DOWN.Size = New System.Drawing.Size(568, 19)
+            Me.CH_NOTIFY_AUTO_DOWN.TabIndex = 3
+            Me.CH_NOTIFY_AUTO_DOWN.Text = "AutoDownloader"
+            TT_MAIN.SetToolTip(Me.CH_NOTIFY_AUTO_DOWN, "Show AutoDownloader notifications")
+            Me.CH_NOTIFY_AUTO_DOWN.UseVisualStyleBackColor = True
+            '
+            'CH_NOTIFY_CHANNELS
+            '
+            Me.CH_NOTIFY_CHANNELS.AutoSize = True
+            Me.CH_NOTIFY_CHANNELS.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_NOTIFY_CHANNELS.Location = New System.Drawing.Point(4, 108)
+            Me.CH_NOTIFY_CHANNELS.Name = "CH_NOTIFY_CHANNELS"
+            Me.CH_NOTIFY_CHANNELS.Size = New System.Drawing.Size(568, 19)
+            Me.CH_NOTIFY_CHANNELS.TabIndex = 4
+            Me.CH_NOTIFY_CHANNELS.Text = "Channels"
+            TT_MAIN.SetToolTip(Me.CH_NOTIFY_CHANNELS, "Show notifications when channels download is complete")
+            Me.CH_NOTIFY_CHANNELS.UseVisualStyleBackColor = True
+            '
+            'CH_NOTIFY_SAVED_POSTS
+            '
+            Me.CH_NOTIFY_SAVED_POSTS.AutoSize = True
+            Me.CH_NOTIFY_SAVED_POSTS.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_NOTIFY_SAVED_POSTS.Location = New System.Drawing.Point(4, 134)
+            Me.CH_NOTIFY_SAVED_POSTS.Name = "CH_NOTIFY_SAVED_POSTS"
+            Me.CH_NOTIFY_SAVED_POSTS.Size = New System.Drawing.Size(568, 19)
+            Me.CH_NOTIFY_SAVED_POSTS.TabIndex = 5
+            Me.CH_NOTIFY_SAVED_POSTS.Text = "Saved posts"
+            TT_MAIN.SetToolTip(Me.CH_NOTIFY_SAVED_POSTS, "Show notifications when saved posts download is complete")
+            Me.CH_NOTIFY_SAVED_POSTS.UseVisualStyleBackColor = True
+            '
+            'CH_DOWN_REPARSE_MISSING
+            '
+            Me.CH_DOWN_REPARSE_MISSING.AutoSize = True
+            Me.CH_DOWN_REPARSE_MISSING.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_DOWN_REPARSE_MISSING.Location = New System.Drawing.Point(4, 176)
+            Me.CH_DOWN_REPARSE_MISSING.Name = "CH_DOWN_REPARSE_MISSING"
+            Me.CH_DOWN_REPARSE_MISSING.Size = New System.Drawing.Size(568, 19)
+            Me.CH_DOWN_REPARSE_MISSING.TabIndex = 6
+            Me.CH_DOWN_REPARSE_MISSING.Text = "Trying to download missing posts using regular download"
+            TT_MAIN.SetToolTip(Me.CH_DOWN_REPARSE_MISSING, "If missing posts exist, the missing posts will attempt to be downloaded via user " &
+        "download")
+            Me.CH_DOWN_REPARSE_MISSING.UseVisualStyleBackColor = True
             '
             'TP_CHANNELS_IMGS
             '
@@ -817,20 +937,18 @@
             TP_BEHAVIOR.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
             TP_BEHAVIOR.ColumnCount = 1
             TP_BEHAVIOR.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_BEHAVIOR.Controls.Add(Me.TXT_FOLDER_CMD, 0, 7)
+            TP_BEHAVIOR.Controls.Add(Me.TXT_FOLDER_CMD, 0, 6)
             TP_BEHAVIOR.Controls.Add(Me.CH_EXIT_CONFIRM, 0, 0)
             TP_BEHAVIOR.Controls.Add(Me.CH_CLOSE_TO_TRAY, 0, 1)
-            TP_BEHAVIOR.Controls.Add(Me.CH_SHOW_NOTIFY, 0, 2)
-            TP_BEHAVIOR.Controls.Add(Me.CH_FAST_LOAD, 0, 3)
-            TP_BEHAVIOR.Controls.Add(Me.TXT_CLOSE_SCRIPT, 0, 8)
-            TP_BEHAVIOR.Controls.Add(TP_OPEN_INFO, 0, 5)
-            TP_BEHAVIOR.Controls.Add(Me.CH_RECYCLE_DEL, 0, 4)
-            TP_BEHAVIOR.Controls.Add(TP_OPEN_PROGRESS, 0, 6)
+            TP_BEHAVIOR.Controls.Add(Me.CH_FAST_LOAD, 0, 2)
+            TP_BEHAVIOR.Controls.Add(Me.TXT_CLOSE_SCRIPT, 0, 7)
+            TP_BEHAVIOR.Controls.Add(TP_OPEN_INFO, 0, 4)
+            TP_BEHAVIOR.Controls.Add(Me.CH_RECYCLE_DEL, 0, 3)
+            TP_BEHAVIOR.Controls.Add(TP_OPEN_PROGRESS, 0, 5)
             TP_BEHAVIOR.Dock = System.Windows.Forms.DockStyle.Fill
             TP_BEHAVIOR.Location = New System.Drawing.Point(0, 0)
             TP_BEHAVIOR.Name = "TP_BEHAVIOR"
-            TP_BEHAVIOR.RowCount = 11
-            TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            TP_BEHAVIOR.RowCount = 9
             TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
@@ -839,8 +957,8 @@
             TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
-            TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
             TP_BEHAVIOR.Size = New System.Drawing.Size(576, 284)
             TP_BEHAVIOR.TabIndex = 0
             '
@@ -858,12 +976,12 @@
             Me.TXT_FOLDER_CMD.CaptionToolTipText = "The command to open a folder."
             Me.TXT_FOLDER_CMD.Dock = System.Windows.Forms.DockStyle.Fill
             Me.TXT_FOLDER_CMD.LeaveDefaultButtons = True
-            Me.TXT_FOLDER_CMD.Location = New System.Drawing.Point(4, 186)
+            Me.TXT_FOLDER_CMD.Location = New System.Drawing.Point(4, 160)
             Me.TXT_FOLDER_CMD.Name = "TXT_FOLDER_CMD"
             Me.TXT_FOLDER_CMD.PlaceholderEnabled = True
             Me.TXT_FOLDER_CMD.PlaceholderText = "MyCommand /arg {0}"
             Me.TXT_FOLDER_CMD.Size = New System.Drawing.Size(568, 22)
-            Me.TXT_FOLDER_CMD.TabIndex = 7
+            Me.TXT_FOLDER_CMD.TabIndex = 6
             '
             'CH_EXIT_CONFIRM
             '
@@ -887,17 +1005,6 @@
             Me.CH_CLOSE_TO_TRAY.Text = "Close to tray"
             Me.CH_CLOSE_TO_TRAY.UseVisualStyleBackColor = True
             '
-            'CH_SHOW_NOTIFY
-            '
-            Me.CH_SHOW_NOTIFY.AutoSize = True
-            Me.CH_SHOW_NOTIFY.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_SHOW_NOTIFY.Location = New System.Drawing.Point(4, 56)
-            Me.CH_SHOW_NOTIFY.Name = "CH_SHOW_NOTIFY"
-            Me.CH_SHOW_NOTIFY.Size = New System.Drawing.Size(568, 19)
-            Me.CH_SHOW_NOTIFY.TabIndex = 2
-            Me.CH_SHOW_NOTIFY.Text = "Show notifications"
-            Me.CH_SHOW_NOTIFY.UseVisualStyleBackColor = True
-            '
             'TXT_CLOSE_SCRIPT
             '
             Me.TXT_CLOSE_SCRIPT.AutoShowClearButton = True
@@ -912,12 +1019,12 @@
             Me.TXT_CLOSE_SCRIPT.CaptionToolTipText = "This command will be executed when SCrawler is closed"
             Me.TXT_CLOSE_SCRIPT.Dock = System.Windows.Forms.DockStyle.Fill
             Me.TXT_CLOSE_SCRIPT.LeaveDefaultButtons = True
-            Me.TXT_CLOSE_SCRIPT.Location = New System.Drawing.Point(4, 215)
+            Me.TXT_CLOSE_SCRIPT.Location = New System.Drawing.Point(4, 189)
             Me.TXT_CLOSE_SCRIPT.Name = "TXT_CLOSE_SCRIPT"
             Me.TXT_CLOSE_SCRIPT.PlaceholderEnabled = True
             Me.TXT_CLOSE_SCRIPT.PlaceholderText = "Enter command here..."
             Me.TXT_CLOSE_SCRIPT.Size = New System.Drawing.Size(568, 22)
-            Me.TXT_CLOSE_SCRIPT.TabIndex = 8
+            Me.TXT_CLOSE_SCRIPT.TabIndex = 7
             '
             'TP_OPEN_INFO
             '
@@ -928,14 +1035,14 @@
             TP_OPEN_INFO.Controls.Add(Me.CH_DOWN_OPEN_INFO, 0, 0)
             TP_OPEN_INFO.Controls.Add(Me.CH_DOWN_OPEN_INFO_SUSPEND, 1, 0)
             TP_OPEN_INFO.Dock = System.Windows.Forms.DockStyle.Fill
-            TP_OPEN_INFO.Location = New System.Drawing.Point(1, 131)
+            TP_OPEN_INFO.Location = New System.Drawing.Point(1, 105)
             TP_OPEN_INFO.Margin = New System.Windows.Forms.Padding(0)
             TP_OPEN_INFO.Name = "TP_OPEN_INFO"
             TP_OPEN_INFO.RowCount = 1
             TP_OPEN_INFO.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
             TP_OPEN_INFO.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 24.0!))
             TP_OPEN_INFO.Size = New System.Drawing.Size(574, 25)
-            TP_OPEN_INFO.TabIndex = 5
+            TP_OPEN_INFO.TabIndex = 4
             '
             'CH_DOWN_OPEN_INFO
             '
@@ -952,10 +1059,10 @@
             '
             Me.CH_RECYCLE_DEL.AutoSize = True
             Me.CH_RECYCLE_DEL.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_RECYCLE_DEL.Location = New System.Drawing.Point(4, 108)
+            Me.CH_RECYCLE_DEL.Location = New System.Drawing.Point(4, 82)
             Me.CH_RECYCLE_DEL.Name = "CH_RECYCLE_DEL"
             Me.CH_RECYCLE_DEL.Size = New System.Drawing.Size(568, 19)
-            Me.CH_RECYCLE_DEL.TabIndex = 4
+            Me.CH_RECYCLE_DEL.TabIndex = 3
             Me.CH_RECYCLE_DEL.Text = "Delete data to recycle bin"
             Me.CH_RECYCLE_DEL.UseVisualStyleBackColor = True
             '
@@ -968,14 +1075,14 @@
             TP_OPEN_PROGRESS.Controls.Add(Me.CH_DOWN_OPEN_PROGRESS, 0, 0)
             TP_OPEN_PROGRESS.Controls.Add(Me.CH_DOWN_OPEN_PROGRESS_SUSPEND, 1, 0)
             TP_OPEN_PROGRESS.Dock = System.Windows.Forms.DockStyle.Fill
-            TP_OPEN_PROGRESS.Location = New System.Drawing.Point(1, 157)
+            TP_OPEN_PROGRESS.Location = New System.Drawing.Point(1, 131)
             TP_OPEN_PROGRESS.Margin = New System.Windows.Forms.Padding(0)
             TP_OPEN_PROGRESS.Name = "TP_OPEN_PROGRESS"
             TP_OPEN_PROGRESS.RowCount = 1
             TP_OPEN_PROGRESS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
             TP_OPEN_PROGRESS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 24.0!))
             TP_OPEN_PROGRESS.Size = New System.Drawing.Size(574, 25)
-            TP_OPEN_PROGRESS.TabIndex = 6
+            TP_OPEN_PROGRESS.TabIndex = 5
             '
             'CH_DOWN_OPEN_PROGRESS
             '
@@ -1008,15 +1115,17 @@
             TP_DOWNLOADING.Controls.Add(Me.CH_UDESCR_UP, 0, 0)
             TP_DOWNLOADING.Controls.Add(Me.TXT_DOWN_COMPLETE_SCRIPT, 0, 4)
             TP_DOWNLOADING.Controls.Add(TP_MISSING_DATA, 0, 5)
+            TP_DOWNLOADING.Controls.Add(Me.CH_DOWN_REPARSE_MISSING, 0, 6)
             TP_DOWNLOADING.Dock = System.Windows.Forms.DockStyle.Fill
             TP_DOWNLOADING.Location = New System.Drawing.Point(0, 0)
             TP_DOWNLOADING.Name = "TP_DOWNLOADING"
-            TP_DOWNLOADING.RowCount = 7
+            TP_DOWNLOADING.RowCount = 8
             TP_DOWNLOADING.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_DOWNLOADING.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 30.0!))
             TP_DOWNLOADING.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 30.0!))
             TP_DOWNLOADING.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_DOWNLOADING.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
+            TP_DOWNLOADING.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_DOWNLOADING.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_DOWNLOADING.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
             TP_DOWNLOADING.Size = New System.Drawing.Size(576, 284)
@@ -1095,11 +1204,13 @@
             TP_FEED.Controls.Add(Me.CH_FEED_ENDLESS, 0, 1)
             TP_FEED.Controls.Add(Me.CH_FEED_ADD_SESSION, 0, 2)
             TP_FEED.Controls.Add(Me.CH_FEED_ADD_DATE, 0, 3)
+            TP_FEED.Controls.Add(Me.CH_FEED_STORE_SESSION_DATA, 0, 4)
             TP_FEED.Dock = System.Windows.Forms.DockStyle.Fill
             TP_FEED.Location = New System.Drawing.Point(0, 0)
             TP_FEED.Name = "TP_FEED"
-            TP_FEED.RowCount = 5
+            TP_FEED.RowCount = 6
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
+            TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
@@ -1189,10 +1300,46 @@
             Me.CH_FEED_ADD_DATE.Text = "Add the date to the post title"
             Me.CH_FEED_ADD_DATE.UseVisualStyleBackColor = True
             '
+            'TAB_NOTIFY
+            '
+            TAB_NOTIFY.Controls.Add(TP_NOTIFY_MAIN)
+            TAB_NOTIFY.Location = New System.Drawing.Point(4, 22)
+            TAB_NOTIFY.Name = "TAB_NOTIFY"
+            TAB_NOTIFY.Size = New System.Drawing.Size(576, 284)
+            TAB_NOTIFY.TabIndex = 8
+            TAB_NOTIFY.Text = "Notifications"
+            '
+            'TP_NOTIFY_MAIN
+            '
+            TP_NOTIFY_MAIN.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
+            TP_NOTIFY_MAIN.ColumnCount = 1
+            TP_NOTIFY_MAIN.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            TP_NOTIFY_MAIN.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
+            TP_NOTIFY_MAIN.Controls.Add(Me.CH_NOTIFY_SHOW_BASE, 0, 1)
+            TP_NOTIFY_MAIN.Controls.Add(Me.CH_NOTIFY_SILENT, 0, 0)
+            TP_NOTIFY_MAIN.Controls.Add(Me.CH_NOTIFY_PROFILES, 0, 2)
+            TP_NOTIFY_MAIN.Controls.Add(Me.CH_NOTIFY_AUTO_DOWN, 0, 3)
+            TP_NOTIFY_MAIN.Controls.Add(Me.CH_NOTIFY_CHANNELS, 0, 4)
+            TP_NOTIFY_MAIN.Controls.Add(Me.CH_NOTIFY_SAVED_POSTS, 0, 5)
+            TP_NOTIFY_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
+            TP_NOTIFY_MAIN.Location = New System.Drawing.Point(0, 0)
+            TP_NOTIFY_MAIN.Name = "TP_NOTIFY_MAIN"
+            TP_NOTIFY_MAIN.RowCount = 7
+            TP_NOTIFY_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            TP_NOTIFY_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            TP_NOTIFY_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            TP_NOTIFY_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            TP_NOTIFY_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            TP_NOTIFY_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            TP_NOTIFY_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            TP_NOTIFY_MAIN.Size = New System.Drawing.Size(576, 284)
+            TP_NOTIFY_MAIN.TabIndex = 0
+            '
             'TAB_MAIN
             '
             Me.TAB_MAIN.Controls.Add(TAB_BASIS)
             Me.TAB_MAIN.Controls.Add(TAB_BEHAVIOR)
+            Me.TAB_MAIN.Controls.Add(TAB_NOTIFY)
             Me.TAB_MAIN.Controls.Add(TAB_DEFAULTS)
             Me.TAB_MAIN.Controls.Add(TAB_DOWN)
             Me.TAB_MAIN.Controls.Add(TAB_DEFS_CHANNELS)
@@ -1227,7 +1374,7 @@
             Me.ClientSize = New System.Drawing.Size(584, 310)
             Me.Controls.Add(Me.CONTAINER_MAIN)
             Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle
-            Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
+            Me.Icon = Global.SCrawler.My.Resources.Resources.SettingsIcon_48
             Me.KeyPreview = True
             Me.MaximizeBox = False
             Me.MaximumSize = New System.Drawing.Size(600, 349)
@@ -1284,6 +1431,9 @@
             TP_FEED_IMG_COUNT.ResumeLayout(False)
             CType(Me.TXT_FEED_ROWS, System.ComponentModel.ISupportInitialize).EndInit()
             CType(Me.TXT_FEED_COLUMNS, System.ComponentModel.ISupportInitialize).EndInit()
+            TAB_NOTIFY.ResumeLayout(False)
+            TP_NOTIFY_MAIN.ResumeLayout(False)
+            TP_NOTIFY_MAIN.PerformLayout()
             Me.TAB_MAIN.ResumeLayout(False)
             Me.CONTAINER_MAIN.ContentPanel.ResumeLayout(False)
             Me.CONTAINER_MAIN.ResumeLayout(False)
@@ -1291,7 +1441,6 @@
             Me.ResumeLayout(False)
 
         End Sub
-
         Private WithEvents CONTAINER_MAIN As ToolStripContainer
         Private WithEvents TXT_GLOBAL_PATH As PersonalUtilities.Forms.Controls.TextBoxExtended
         Private WithEvents TXT_COLLECTIONS_PATH As PersonalUtilities.Forms.Controls.TextBoxExtended
@@ -1320,7 +1469,7 @@
         Private WithEvents CH_EXIT_CONFIRM As CheckBox
         Private WithEvents CH_CLOSE_TO_TRAY As CheckBox
         Private WithEvents TAB_MAIN As TabControl
-        Private WithEvents CH_SHOW_NOTIFY As CheckBox
+        Private WithEvents CH_NOTIFY_SHOW_BASE As CheckBox
         Private WithEvents CH_COPY_CHANNEL_USER_IMAGE_ALL As CheckBox
         Private WithEvents CH_UDESCR_UP As CheckBox
         Private WithEvents CH_FAST_LOAD As CheckBox
@@ -1343,5 +1492,12 @@
         Private WithEvents CH_FEED_ENDLESS As CheckBox
         Private WithEvents CH_FEED_ADD_SESSION As CheckBox
         Private WithEvents CH_FEED_ADD_DATE As CheckBox
+        Private WithEvents CH_FEED_STORE_SESSION_DATA As CheckBox
+        Private WithEvents CH_NOTIFY_SILENT As CheckBox
+        Private WithEvents CH_NOTIFY_SAVED_POSTS As CheckBox
+        Private WithEvents CH_NOTIFY_PROFILES As CheckBox
+        Private WithEvents CH_NOTIFY_AUTO_DOWN As CheckBox
+        Private WithEvents CH_NOTIFY_CHANNELS As CheckBox
+        Private WithEvents CH_DOWN_REPARSE_MISSING As CheckBox
     End Class
 End Namespace

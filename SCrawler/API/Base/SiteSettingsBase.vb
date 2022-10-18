@@ -1,4 +1,4 @@
-﻿' Copyright (C) 2022  Andy
+﻿' Copyright (C) 2023  Andy https://github.com/AAndyProgram
 ' This program is free software: you can redistribute it and/or modify
 ' it under the terms of the GNU General Public License as published by
 ' the Free Software Foundation, either version 3 of the License, or
@@ -56,6 +56,10 @@ Namespace API.Base
         End Sub
         Friend Overridable Sub EndUpdate() Implements ISiteSettings.EndUpdate
         End Sub
+        Friend Overridable Sub BeginEdit() Implements ISiteSettings.BeginEdit
+        End Sub
+        Friend Overridable Sub EndEdit() Implements ISiteSettings.EndEdit
+        End Sub
 #End Region
 #Region "Before and After Download"
         Friend Overridable Sub DownloadStarted(ByVal What As Download) Implements ISiteSettings.DownloadStarted
@@ -90,7 +94,7 @@ Namespace API.Base
                 End If
                 Return Nothing
             Catch ex As Exception
-                Return ErrorsDescriber.Execute(EDP.SendInLog + EDP.ReturnValue, ex, "[API.Base.SiteSettingsBase.IsMyUser]")
+                Return ErrorsDescriber.Execute(EDP.SendInLog + EDP.ReturnValue, ex, $"[API.Base.SiteSettingsBase.IsMyUser({UserURL})]")
             End Try
         End Function
         Protected ImageVideoContains As String = String.Empty
@@ -101,16 +105,24 @@ Namespace API.Base
                 Return Nothing
             End If
         End Function
-        Friend Overridable Function GetSpecialData(ByVal URL As String, ByVal Path As String, ByVal AskForPath As Boolean) As IEnumerable(Of PluginUserMedia) Implements ISiteSettings.GetSpecialData
+        Friend Overridable Function GetSpecialData(ByVal URL As String, ByVal Path As String, ByVal AskForPath As Boolean) As IEnumerable Implements ISiteSettings.GetSpecialData
             Return Nothing
         End Function
-        Friend Overridable Function GetSpecialDataF(ByVal URL As String) As IEnumerable(Of UserMedia)
-            Return Nothing
+        Friend Shared Function GetSpecialDataFile(ByVal Path As String, ByVal AskForPath As Boolean, ByRef SpecFolderObj As String) As SFile
+            Dim f As SFile = Path.CSFileP
+            If f.Name.IsEmptyString Then f.Name = "OutputFile"
+#Disable Warning BC40000
+            If Path.CSFileP.IsEmptyString Or AskForPath Then f = SFile.SaveAs(f, "File destination",,,, EDP.ReturnValue) : SpecFolderObj = f.Path
+#Enable Warning
+            Return f
         End Function
 #End Region
 #Region "Ready, Available"
-        Friend Overridable Function Available(ByVal What As Download, ByVal Silent As Boolean) As Boolean Implements ISiteSettings.Available
+        Friend Overridable Function BaseAuthExists() As Boolean
             Return True
+        End Function
+        Friend Overridable Function Available(ByVal What As Download, ByVal Silent As Boolean) As Boolean Implements ISiteSettings.Available
+            Return BaseAuthExists()
         End Function
         Friend Overridable Function ReadyToDownload(ByVal What As Download) As Boolean Implements ISiteSettings.ReadyToDownload
             Return True

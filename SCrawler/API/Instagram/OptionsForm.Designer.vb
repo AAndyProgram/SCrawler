@@ -1,4 +1,4 @@
-﻿' Copyright (C) 2022  Andy
+﻿' Copyright (C) 2023  Andy https://github.com/AAndyProgram
 ' This program is free software: you can redistribute it and/or modify
 ' it under the terms of the GNU General Public License as published by
 ' the Free Software Foundation, either version 3 of the License, or
@@ -95,13 +95,13 @@ Namespace API.Instagram
             Me.ClientSize = New System.Drawing.Size(260, 78)
             Me.Controls.Add(CONTAINER_MAIN)
             Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle
+            Me.Icon = Global.SCrawler.My.Resources.SiteResources.InstagramIcon_32
             Me.KeyPreview = True
             Me.MaximizeBox = False
             Me.MaximumSize = New System.Drawing.Size(276, 117)
             Me.MinimizeBox = False
             Me.MinimumSize = New System.Drawing.Size(276, 117)
             Me.Name = "OptionsForm"
-            Me.ShowIcon = False
             Me.ShowInTaskbar = False
             Me.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide
             Me.Text = "Options"

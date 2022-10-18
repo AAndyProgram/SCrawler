@@ -1,4 +1,4 @@
-﻿' Copyright (C) 2022  Andy
+﻿' Copyright (C) 2023  Andy https://github.com/AAndyProgram
 ' This program is free software: you can redistribute it and/or modify
 ' it under the terms of the GNU General Public License as published by
 ' the Free Software Foundation, either version 3 of the License, or
@@ -10,11 +10,13 @@ Imports SCrawler.API
 Imports SCrawler.API.Base
 Imports PersonalUtilities.Tools.Notifications
 Friend Class MainFrameObjects
-    Private ReadOnly Property MF As MainFrame
+    Friend ReadOnly Property MF As MainFrame
     Private WithEvents Notificator As NotificationsManager
+    Friend ReadOnly Property PauseButtons As DownloadObjects.AutoDownloaderPauseButtons
     Friend Sub New(ByRef f As MainFrame)
         MF = f
         Notificator = New NotificationsManager
+        PauseButtons = New DownloadObjects.AutoDownloaderPauseButtons(DownloadObjects.AutoDownloaderPauseButtons.ButtonsPlace.MainFrame)
     End Sub
 #Region "Users"
     Friend Sub FocusUser(ByVal Key As String, Optional ByVal ActivateForm As Boolean = False)
@@ -58,14 +60,14 @@ Friend Class MainFrameObjects
     End Sub
 #End Region
 #Region "Notifications"
-    Friend Overloads Sub ShowNotification(ByVal Message As String)
-        MF.TrayIcon.ShowBalloonTip(2000, MF.TrayIcon.BalloonTipTitle, Message, ToolTipIcon.Info)
+    Friend Overloads Sub ShowNotification(ByVal Sender As SettingsCLS.NotificationObjects, ByVal Message As String)
+        If Settings.ProcessNotification(Sender) Then MF.TrayIcon.ShowBalloonTip(2000, MF.TrayIcon.BalloonTipTitle, Message, ToolTipIcon.Info)
     End Sub
-    Friend Overloads Sub ShowNotification(ByVal Message As String, ByVal Title As String)
-        MF.TrayIcon.ShowBalloonTip(2000, Title, Message, ToolTipIcon.Info)
+    Friend Overloads Sub ShowNotification(ByVal Sender As SettingsCLS.NotificationObjects, ByVal Message As String, ByVal Title As String)
+        If Settings.ProcessNotification(Sender) Then MF.TrayIcon.ShowBalloonTip(2000, Title, Message, ToolTipIcon.Info)
     End Sub
-    Friend Overloads Sub ShowNotification(ByVal Message As String, ByVal Title As String, ByVal Icon As ToolTipIcon)
-        MF.TrayIcon.ShowBalloonTip(2000, Title, Message, Icon)
+    Friend Overloads Sub ShowNotification(ByVal Sender As SettingsCLS.NotificationObjects, ByVal Message As String, ByVal Title As String, ByVal Icon As ToolTipIcon)
+        If Settings.ProcessNotification(Sender) Then MF.TrayIcon.ShowBalloonTip(2000, Title, Message, Icon)
     End Sub
     Friend Sub ClearNotifications()
         Notificator.Clear()

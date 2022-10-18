@@ -1,4 +1,4 @@
-﻿' Copyright (C) 2022  Andy
+﻿' Copyright (C) 2023  Andy https://github.com/AAndyProgram
 ' This program is free software: you can redistribute it and/or modify
 ' it under the terms of the GNU General Public License as published by
 ' the Free Software Foundation, either version 3 of the License, or
@@ -51,14 +51,12 @@ Namespace API.Base
 #Region "Collection buttons"
         Private _CollectionButtonsExists As Boolean = False
         Private _CollectionButtonsColorsSet As Boolean = False
-        Friend InternalCollectionIndex As Integer = -1
-        Friend WithEvents BTT_CONTEXT_DOWN As ToolStripMenuItem
+        Friend WithEvents BTT_CONTEXT_DOWN As ToolStripKeyMenuItem
         Friend WithEvents BTT_CONTEXT_EDIT As ToolStripMenuItem
         Friend WithEvents BTT_CONTEXT_DELETE As ToolStripMenuItem
         Friend WithEvents BTT_CONTEXT_OPEN_PATH As ToolStripMenuItem
         Friend WithEvents BTT_CONTEXT_OPEN_SITE As ToolStripMenuItem
-        Friend Sub CreateButtons(ByVal CollectionIndex As Integer)
-            InternalCollectionIndex = CollectionIndex
+        Friend Sub CreateButtons()
             Dim tn$ = $"[{Site}] - {Name}"
             Dim _tn$ = $"{Site}{Name}"
             Dim tnn As Func(Of String, String) = Function(Input) $"{Input}{_tn}"
@@ -70,11 +68,11 @@ Namespace API.Base
                     i = .Image
                 End If
             End With
-            BTT_CONTEXT_DOWN = New ToolStripMenuItem(tn, i) With {.Name = tnn("DOWN"), .Tag = CollectionIndex}
-            BTT_CONTEXT_EDIT = New ToolStripMenuItem(tn, i) With {.Name = tnn("EDIT"), .Tag = CollectionIndex}
-            BTT_CONTEXT_DELETE = New ToolStripMenuItem(tn, i) With {.Name = tnn("DELETE"), .Tag = CollectionIndex}
-            BTT_CONTEXT_OPEN_PATH = New ToolStripMenuItem(tn, i) With {.Name = tnn("PATH"), .Tag = CollectionIndex}
-            BTT_CONTEXT_OPEN_SITE = New ToolStripMenuItem(tn, i) With {.Name = tnn("SITE"), .Tag = CollectionIndex}
+            BTT_CONTEXT_DOWN = New ToolStripKeyMenuItem(tn, i) With {.Name = tnn("DOWN"), .Tag = Me}
+            BTT_CONTEXT_EDIT = New ToolStripMenuItem(tn, i) With {.Name = tnn("EDIT"), .Tag = Me}
+            BTT_CONTEXT_DELETE = New ToolStripMenuItem(tn, i) With {.Name = tnn("DELETE"), .Tag = Me}
+            BTT_CONTEXT_OPEN_PATH = New ToolStripMenuItem(tn, i) With {.Name = tnn("PATH"), .Tag = Me}
+            BTT_CONTEXT_OPEN_SITE = New ToolStripMenuItem(tn, i) With {.Name = tnn("SITE"), .Tag = Me}
             UpdateButtonsColor()
             _CollectionButtonsExists = True
             If _UserInformationLoaded Then _CollectionButtonsColorsSet = True
@@ -125,16 +123,6 @@ Namespace API.Base
         Private Const Name_ScriptData As String = "ScriptData"
 
         Private Const Name_DataMerging As String = "DataMerging"
-#Region "Downloaded data"
-        Private Const Name_MediaType As String = "Type"
-        Private Const Name_MediaState As String = "State"
-        Private Const Name_MediaAttempts As String = "Attempts"
-        Private Const Name_MediaURL As String = "URL"
-        Private Const Name_MediaHash As String = "Hash"
-        Private Const Name_MediaFile As String = "File"
-        Private Const Name_MediaPostID As String = "ID"
-        Private Const Name_MediaPostDate As String = "Date"
-#End Region
 #End Region
 #Region "Declarations"
 #Region "Host, Site, Progress, Self"
@@ -320,7 +308,7 @@ BlockNullPicture:
         Friend Property SeparateVideoFolder As Boolean?
         Protected ReadOnly Property SeparateVideoFolderF As Boolean
             Get
-                Return (SeparateVideoFolder.HasValue AndAlso SeparateVideoFolder.Value) OrElse Settings.SeparateVideoFolder.Value
+                Return If(SeparateVideoFolder, Settings.SeparateVideoFolder.Value)
             End Get
         End Property
 #End Region
@@ -466,7 +454,10 @@ BlockNullPicture:
             End Get
         End Property
         Friend Overridable Function GetUserInformation() As String
-            Dim OutStr$ = $"User: {Name}"
+            Dim OutStr$ = $"User: {Name} (site: {Site}"
+            If IncludedInCollection Then OutStr &= $"; collection: {CollectionName}"
+            OutStr &= ")"
+            OutStr.StringAppendLine($"Labels: {Labels.ListToString}")
             OutStr.StringAppendLine($"Path: {MyFile.CutPath.Path}")
             OutStr.StringAppendLine($"Total downloaded ({DownloadedTotal(True).NumToString(ANumbers.Formats.Number, 3)}):")
             OutStr.StringAppendLine($"Pictures: {DownloadedPictures(True).NumToString(ANumbers.Formats.Number, 3)}")
@@ -731,25 +722,7 @@ BlockNullPicture:
                 Using x As New XmlFile(MyFileData, Protector.Modes.All, False) With {.XmlReadOnly = True, .AllowSameNames = True}
                     x.LoadData()
                     If x.Count > 0 Then
-
-                        Dim fs$ = MyFile.CutPath.PathWithSeparator
-                        Dim gfn As Func(Of String, String) = Function(Input) If(Input.IsEmptyString, String.Empty,
-                                                                                If(Input.Contains("\"), Input.CSFile.File, Input))
-                        For Each v As EContainer In x
-                            _ContentList.Add(New UserMedia With {
-                                                .Type = v.Attribute(Name_MediaType).Value.FromXML(Of Integer)(CInt(UTypes.Undefined)),
-                                                .State = v.Attribute(Name_MediaState).Value.FromXML(Of Integer)(CInt(UStates.Downloaded)),
-                                                .Attempts = v.Attribute(Name_MediaAttempts).Value.FromXML(Of Integer)(0),
-                                                .URL = v.Attribute(Name_MediaURL).Value,
-                                                .URL_BASE = v.Value,
-                                                .MD5 = v.Attribute(Name_MediaHash).Value,
-                                                .File = fs & gfn.Invoke(v.Attribute(Name_MediaFile).Value),
-                                                .Post = New UserPost With {
-                                                    .ID = v.Attribute(Name_MediaPostID).Value,
-                                                    .[Date] = AConvert(Of Date)(v.Attribute(Name_MediaPostDate).Value, ParsersDataDateProvider, Nothing)
-                                                }
-                                             })
-                        Next
+                        For Each v As EContainer In x : _ContentList.Add(New UserMedia(v, Me)) : Next
                     End If
                     _DataLoaded = True
                 End Using
@@ -763,21 +736,7 @@ BlockNullPicture:
                 If MyFileData.IsEmptyString Then Exit Sub
                 MyFileData.Exists(SFO.Path)
                 Using x As New XmlFile With {.AllowSameNames = True, .Name = "Data"}
-                    If _ContentList.Count > 0 Then
-                        For Each i As UserMedia In _ContentList
-                            x.Add(New EContainer("MediaData", i.URL_BASE, {New EAttribute(Name_MediaType, CInt(i.Type)),
-                                                                           New EAttribute(Name_MediaState, CInt(i.State)),
-                                                                           New EAttribute(Name_MediaAttempts, i.Attempts),
-                                                                           New EAttribute(Name_MediaURL, i.URL),
-                                                                           New EAttribute(Name_MediaHash, i.MD5),
-                                                                           New EAttribute(Name_MediaFile, i.File.File),
-                                                                           New EAttribute(Name_MediaPostID, i.Post.ID),
-                                                                           New EAttribute(Name_MediaPostDate, AConvert(Of String)(i.Post.Date, ParsersDataDateProvider, String.Empty))
-                                                                          }
-                                                )
-                                 )
-                        Next
-                    End If
+                    If _ContentList.Count > 0 Then x.AddRange(_ContentList)
                     x.Save(MyFileData)
                 End Using
             Catch ex As Exception
@@ -803,6 +762,7 @@ BlockNullPicture:
 #Region "Download limits"
         Protected Enum DateResult : [Continue] : [Skip] : [Exit] : End Enum
         Friend Overridable Property DownloadTopCount As Integer? = Nothing Implements IUserData.DownloadTopCount, IPluginContentProvider.PostsNumberLimit
+        Friend Overridable Property IncludeInTheFeed As Boolean = True
         Private _DownloadDateFrom As Date? = Nothing
         Private _DownloadDateFromF As Date
         Friend Overridable Property DownloadDateFrom As Date? Implements IUserData.DownloadDateFrom, IPluginContentProvider.DownloadDateFrom
@@ -825,10 +785,10 @@ BlockNullPicture:
                 If _DownloadDateTo.HasValue Then _DownloadDateToF = _DownloadDateTo.Value Else _DownloadDateToF = Date.MaxValue.Date
             End Set
         End Property
-        Protected Function CheckDatesLimit(ByVal DateString As String, ByVal DateProvider As IFormatProvider) As DateResult
+        Protected Function CheckDatesLimit(ByVal DateObj As Object, ByVal DateProvider As IFormatProvider) As DateResult
             Try
-                If (DownloadDateFrom.HasValue Or DownloadDateTo.HasValue) And Not DateString.IsEmptyString Then
-                    Dim td As Date? = AConvert(Of Date)(DateString, DateProvider, Nothing)
+                If (DownloadDateFrom.HasValue Or DownloadDateTo.HasValue) AndAlso ACheck(DateObj) Then
+                    Dim td As Date? = AConvert(Of Date)(DateObj, DateProvider, Nothing)
                     If td.HasValue Then
                         If td.Value.ValueBetween(_DownloadDateFromF, _DownloadDateToF) Then
                             Return DateResult.Continue
@@ -841,12 +801,13 @@ BlockNullPicture:
                 End If
                 Return DateResult.Continue
             Catch ex As Exception
-                Return ErrorsDescriber.Execute(EDP.SendInLog, ex, $"[UserDataBase.CheckDatesLimit({DateString})]", DateResult.Continue)
+                Return ErrorsDescriber.Execute(EDP.SendInLog, ex, $"[UserDataBase.CheckDatesLimit({If(TypeOf DateObj Is String, CStr(DateObj), "?")})]", DateResult.Continue)
             End Try
         End Function
 #End Region
 #Region "Download functions and options"
         Protected Responser As Response
+        Protected UseResponserClient As Boolean = False
         Friend Overridable Sub DownloadData(ByVal Token As CancellationToken) Implements IContentProvider.DownloadData
             Dim Canceled As Boolean = False
             _ExternalCompatibilityToken = Token
@@ -878,11 +839,10 @@ BlockNullPicture:
                     ThrowAny(Token)
                     DownloadDataF(Token)
                     ThrowAny(Token)
+                    If Settings.ReparseMissingInTheRoutine Then ReparseMissing(Token) : ThrowAny(Token)
                 Else
-                    'PENDING: UserDataBase ReparseMissing (DownloadDataF)
-                    'ReparseMissing(Token)
+                    ReparseMissing(Token)
                 End If
-                '_TempMediaList.ListAddList(ContentMissing, LNC)
 
                 If _TempMediaList.Count > 0 Then
                     If Not DownloadImages Then _TempMediaList.RemoveAll(Function(m) m.Type = UTypes.GIF Or m.Type = UTypes.Picture)
@@ -893,7 +853,8 @@ BlockNullPicture:
 
                 ReparseVideo(Token)
                 ThrowAny(Token)
-                If _TempPostsList.Count > 0 And __SaveData Then TextSaver.SaveTextToFile(_TempPostsList.ListToString(Environment.NewLine), MyFilePosts, True,, EDP.None)
+                If _TempPostsList.Count > 0 And Not DownloadMissingOnly And __SaveData Then _
+                   TextSaver.SaveTextToFile(_TempPostsList.ListToString(Environment.NewLine), MyFilePosts, True,, EDP.None)
                 _ContentNew.ListAddList(_TempMediaList, LAP.ClearBeforeAdd)
                 DownloadContent(Token)
                 ThrowIfDisposed()
@@ -954,9 +915,50 @@ BlockNullPicture:
         Protected MustOverride Sub DownloadDataF(ByVal Token As CancellationToken)
         Protected Overridable Sub ReparseVideo(ByVal Token As CancellationToken)
         End Sub
+        ''' <summary>
+        ''' Missing posts must be collected from [<see cref="_ContentList"/>].<br/>
+        ''' Reparsed post must be added to [<see cref="_TempMediaList"/>].<br/>
+        ''' At the end of the function, reparsed posts must be removed from [<see cref="_ContentList"/>].
+        ''' </summary>
         Protected Overridable Sub ReparseMissing(ByVal Token As CancellationToken)
         End Sub
         Protected MustOverride Sub DownloadContent(ByVal Token As CancellationToken)
+        Private NotInheritable Class OptionalWebClient : Implements IDisposable
+            Private ReadOnly WC As WebClient
+            Private ReadOnly RC As Response
+            Private ReadOnly RCERROR As New ErrorsDescriber(EDP.ThrowException)
+            Private ReadOnly UseResponserClient As Boolean
+            Friend Sub New(ByRef Source As UserDataBase)
+                UseResponserClient = Source.UseResponserClient
+                If UseResponserClient Then
+                    RC = Source.Responser
+                Else
+                    WC = New WebClient
+                End If
+            End Sub
+            Friend Sub DownloadFile(ByVal URL As String, ByVal File As String)
+                If UseResponserClient Then
+                    RC.DownloadFile(URL, File, RCERROR)
+                Else
+                    WC.DownloadFile(URL, File)
+                End If
+            End Sub
+#Region "IDisposable Support"
+            Private disposedValue As Boolean = False
+            Protected Sub Dispose(ByVal disposing As Boolean)
+                If Not disposedValue And disposing And Not WC Is Nothing Then WC.Dispose()
+                disposedValue = True
+            End Sub
+            Protected Overrides Sub Finalize()
+                Dispose(False)
+                MyBase.Finalize()
+            End Sub
+            Friend Sub Dispose() Implements IDisposable.Dispose
+                Dispose(True)
+                GC.SuppressFinalize(Me)
+            End Sub
+#End Region
+        End Class
         Protected Sub DownloadContentDefault(ByVal Token As CancellationToken)
             Try
                 Dim i%
@@ -972,7 +974,8 @@ BlockNullPicture:
                         Dim __isVideo As Boolean
                         Dim f As SFile
                         Dim v As UserMedia
-                        Using w As New WebClient
+
+                        Using w As New OptionalWebClient(Me)
                             If vsf Then SFileShares.SFileExists($"{MyDir}\Video\", SFO.Path)
                             Progress.Maximum += _ContentNew.Count
                             For i = 0 To _ContentNew.Count - 1
@@ -989,7 +992,7 @@ BlockNullPicture:
 
                                 If v.URL_BASE.IsEmptyString Then v.URL_BASE = v.URL
 
-                                If Not v.File.IsEmptyString And Not v.URL_BASE.IsEmptyString Then
+                                If Not v.File.IsEmptyString And Not v.URL.IsEmptyString Then
                                     Try
                                         __isVideo = v.Type = UTypes.Video Or f.Extension = "mp4"
 
@@ -1011,7 +1014,13 @@ BlockNullPicture:
                                             f.Path = $"{f.PathWithSeparator}Video"
                                             If Not v.SpecialFolder.IsEmptyString Then f.Exists(SFO.Path)
                                         End If
-                                        w.DownloadFile(v.URL_BASE, f.ToString)
+
+                                        If v.Type = UTypes.m3u8 And UseInternalM3U8Function Then
+                                            f = DownloadM3U8(v.URL, v, f)
+                                            If f.IsEmptyString Then Throw New Exception("M3U8 download failed")
+                                        Else
+                                            w.DownloadFile(v.URL, f.ToString)
+                                        End If
 
                                         If __isVideo Then
                                             v.Type = UTypes.Video
@@ -1027,7 +1036,7 @@ BlockNullPicture:
                                     Catch wex As Exception
                                         v.Attempts += 1
                                         v.State = UStates.Missing
-                                        If MissingErrorsAdd Then ErrorDownloading(f, v.URL_BASE)
+                                        If MissingErrorsAdd Then ErrorDownloading(f, v.URL)
                                     End Try
                                 Else
                                     v.State = UStates.Skipped
@@ -1052,15 +1061,25 @@ BlockNullPicture:
                 HasError = True
             End Try
         End Sub
+        Protected UseInternalM3U8Function As Boolean = False
+        Protected Overridable Function DownloadM3U8(ByVal URL As String, ByVal Media As UserMedia, ByVal DestinationFile As SFile) As SFile
+            Return Nothing
+        End Function
         ''' <param name="RDE">Request DownloadingException</param>
-        Protected Sub ProcessException(ByVal ex As Exception, ByVal Token As CancellationToken, ByVal Message As String, Optional ByVal RDE As Boolean = True)
+        ''' <returns>0 - exit</returns>
+        Protected Function ProcessException(ByVal ex As Exception, ByVal Token As CancellationToken, ByVal Message As String, Optional ByVal RDE As Boolean = True, Optional ByVal EObj As Object = Nothing) As Integer
             If Not ((TypeOf ex Is OperationCanceledException And Token.IsCancellationRequested) Or
                     (TypeOf ex Is ObjectDisposedException And Disposed)) Then
-                If RDE AndAlso DownloadingException(ex, Message, True) = 0 Then LogError(ex, Message) : HasError = True
+                If RDE Then
+                    Dim v% = DownloadingException(ex, Message, True, EObj)
+                    If v = 0 Then LogError(ex, Message) : HasError = True
+                    Return v
+                End If
             End If
-        End Sub
+            Return 0
+        End Function
         ''' <summary>0 - Execute LogError and set HasError</summary>
-        Protected MustOverride Function DownloadingException(ByVal ex As Exception, ByVal Message As String, Optional ByVal FromPE As Boolean = False) As Integer
+        Protected MustOverride Function DownloadingException(ByVal ex As Exception, ByVal Message As String, Optional ByVal FromPE As Boolean = False, Optional ByVal EObj As Object = Nothing) As Integer
         Protected Function ChangeFileNameByProvider(ByVal f As SFile, ByVal m As UserMedia) As SFile
             Dim ff As SFile = Nothing
             Try
@@ -1102,7 +1121,7 @@ BlockNullPicture:
         End Sub
 #End Region
 #Region "Delete, Move, Merge, Copy"
-        Friend Overridable Function Delete() As Integer Implements IUserData.Delete
+        Friend Overridable Function Delete(Optional ByVal Multiple As Boolean = False) As Integer Implements IUserData.Delete
             Dim f As SFile = SFile.GetPath(MyFile.CutPath.Path)
             If f.Exists(SFO.Path, False) AndAlso (User.Merged OrElse f.Delete(SFO.Path, Settings.DeleteMode)) Then
                 If Not IncludedInCollection Then MainFrameObj.ImageHandler(Me, False)
@@ -1270,7 +1289,7 @@ BlockNullPicture:
 #End Region
 #Region "Errors functions"
         Protected Sub LogError(ByVal ex As Exception, ByVal Message As String)
-            ErrorsDescriber.Execute(EDP.SendInLog, ex, $"{IIf(IncludedInCollection, $"{CollectionName}-", String.Empty)}{Site} - {Name}: {Message}")
+            ErrorsDescriber.Execute(EDP.SendInLog, ex, $"{ToStringForLog()}: {Message}")
         End Sub
         Protected Sub ErrorDownloading(ByVal f As SFile, ByVal URL As String)
             If Not f.Exists Then MyMainLOG = $"Error downloading from [{URL}] to [{f}]"
@@ -1285,11 +1304,14 @@ BlockNullPicture:
         End Sub
         ''' <exception cref="OperationCanceledException"></exception>
         ''' <exception cref="ObjectDisposedException"></exception>
-        Friend Overloads Sub ThrowAny(ByVal Token As CancellationToken)
+        Friend Overridable Overloads Sub ThrowAny(ByVal Token As CancellationToken)
             Token.ThrowIfCancellationRequested()
             ThrowIfDisposed()
         End Sub
 #End Region
+        Protected Function ToStringForLog() As String
+            Return $"{IIf(IncludedInCollection, $"[{CollectionName}] - ", String.Empty)}[{Site}] - {Name}"
+        End Function
         Public Overrides Function ToString() As String
             If IsCollection Then
                 Return CollectionName
@@ -1308,8 +1330,8 @@ BlockNullPicture:
             Return hcStr.GetHashCode
         End Function
 #Region "Buttons actions"
-        Private Sub BTT_CONTEXT_DOWN_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_DOWN.Click
-            Downloader.Add(Me)
+        Private Sub BTT_CONTEXT_DOWN_KeyClick(sender As Object, e As MyKeyEventArgs) Handles BTT_CONTEXT_DOWN.KeyClick
+            Downloader.Add(Me, e.IncludeInTheFeed)
         End Sub
         Private Sub BTT_CONTEXT_EDIT_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_EDIT.Click
             Using f As New Editors.UserCreatorForm(Me)
@@ -1439,7 +1461,7 @@ BlockNullPicture:
         ''' 2 - Collection removed<br/>
         ''' 3 - Collection split
         ''' </summary>
-        Function Delete() As Integer
+        Function Delete(Optional ByVal Multiple As Boolean = False) As Integer
         Function MoveFiles(ByVal CollectionName As String) As Boolean
         Function CopyFiles(ByVal DestinationPath As SFile, Optional ByVal e As ErrorsDescriber = Nothing) As Boolean
         Sub OpenFolder()

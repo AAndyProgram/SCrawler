@@ -1,4 +1,4 @@
-﻿' Copyright (C) 2022  Andy
+﻿' Copyright (C) 2023  Andy https://github.com/AAndyProgram
 ' This program is free software: you can redistribute it and/or modify
 ' it under the terms of the GNU General Public License as published by
 ' the Free Software Foundation, either version 3 of the License, or
@@ -37,7 +37,6 @@ Namespace Editors
                         'Behavior
                         CH_EXIT_CONFIRM.Checked = .ExitConfirm
                         CH_CLOSE_TO_TRAY.Checked = .CloseToTray
-                        CH_SHOW_NOTIFY.Checked = .ShowNotifications
                         CH_FAST_LOAD.Checked = .FastProfilesLoading
                         CH_RECYCLE_DEL.Checked = .DeleteToRecycleBin
                         CH_DOWN_OPEN_INFO.Checked = .DownloadOpenInfo
@@ -48,6 +47,13 @@ Namespace Editors
                         TXT_FOLDER_CMD.Checked = .OpenFolderInOtherProgram.Attribute
                         TXT_CLOSE_SCRIPT.Text = .ClosingCommand
                         TXT_CLOSE_SCRIPT.Checked = .ClosingCommand.Attribute
+                        'Notifications
+                        CH_NOTIFY_SILENT.Checked = .NotificationsSilentMode
+                        CH_NOTIFY_SHOW_BASE.Checked = .ShowNotifications
+                        CH_NOTIFY_PROFILES.Checked = .ShowNotificationsDownProfiles
+                        CH_NOTIFY_AUTO_DOWN.Checked = .ShowNotificationsDownAutoDownloader
+                        CH_NOTIFY_CHANNELS.Checked = .ShowNotificationsDownChannels
+                        CH_NOTIFY_SAVED_POSTS.Checked = .ShowNotificationsDownSavedPosts
                         'Defaults
                         CH_SEPARATE_VIDEO_FOLDER.Checked = .SeparateVideoFolder.Value
                         CH_DEF_TEMP.Checked = .DefaultTemporary
@@ -62,6 +68,7 @@ Namespace Editors
                         TXT_DOWN_COMPLETE_SCRIPT.Checked = .DownloadsCompleteCommand.Attribute
                         CH_ADD_MISSING_TO_LOG.Checked = .AddMissingToLog
                         CH_ADD_MISSING_ERROS_TO_LOG.Checked = .AddMissingErrorsToLog
+                        CH_DOWN_REPARSE_MISSING.Checked = .ReparseMissingInTheRoutine
                         'Downloading: file names
                         CH_FILE_NAME_CHANGE.Checked = Not .FileReplaceNameByDate.Value = FileNameReplaceMode.None
                         OPT_FILE_NAME_REPLACE.Checked = .FileReplaceNameByDate.Value = FileNameReplaceMode.Replace
@@ -85,6 +92,7 @@ Namespace Editors
                         CH_FEED_ENDLESS.Checked = .FeedEndless
                         CH_FEED_ADD_SESSION.Checked = .FeedAddSessionToCaption
                         CH_FEED_ADD_DATE.Checked = .FeedAddDateToCaption
+                        CH_FEED_STORE_SESSION_DATA.Checked = .FeedStoreSessionsData
                     End With
                     .MyFieldsChecker = New FieldsChecker
                     With .MyFieldsCheckerE
@@ -145,7 +153,6 @@ Namespace Editors
                     'Behavior
                     .ExitConfirm.Value = CH_EXIT_CONFIRM.Checked
                     .CloseToTray.Value = CH_CLOSE_TO_TRAY.Checked
-                    .ShowNotifications.Value = CH_SHOW_NOTIFY.Checked
                     .FastProfilesLoading.Value = CH_FAST_LOAD.Checked
                     .DeleteToRecycleBin.Value = CH_RECYCLE_DEL.Checked
                     .DownloadOpenInfo.Value = CH_DOWN_OPEN_INFO.Checked
@@ -156,6 +163,13 @@ Namespace Editors
                     .OpenFolderInOtherProgram.Attribute.Value = TXT_FOLDER_CMD.Checked
                     .ClosingCommand.Value = TXT_CLOSE_SCRIPT.Text
                     .ClosingCommand.Attribute.Value = TXT_CLOSE_SCRIPT.Checked
+                    'Notifications
+                    .NotificationsSilentMode = CH_NOTIFY_SILENT.Checked
+                    .ShowNotifications.Value = CH_NOTIFY_SHOW_BASE.Checked
+                    .ShowNotificationsDownProfiles.Value = CH_NOTIFY_PROFILES.Checked
+                    .ShowNotificationsDownAutoDownloader.Value = CH_NOTIFY_AUTO_DOWN.Checked
+                    .ShowNotificationsDownChannels.Value = CH_NOTIFY_CHANNELS.Checked
+                    .ShowNotificationsDownSavedPosts.Value = CH_NOTIFY_SAVED_POSTS.Checked
                     'Defaults
                     .SeparateVideoFolder.Value = CH_SEPARATE_VIDEO_FOLDER.Checked
                     .DefaultTemporary.Value = CH_DEF_TEMP.Checked
@@ -170,6 +184,7 @@ Namespace Editors
                     .DownloadsCompleteCommand.Attribute.Value = TXT_DOWN_COMPLETE_SCRIPT.Checked
                     .AddMissingToLog.Value = CH_ADD_MISSING_TO_LOG.Checked
                     .AddMissingErrorsToLog.Value = CH_ADD_MISSING_ERROS_TO_LOG.Checked
+                    .ReparseMissingInTheRoutine.Value = CH_DOWN_REPARSE_MISSING.Checked
                     'Downloading: file names
                     If CH_FILE_NAME_CHANGE.Checked Then
                         .FileReplaceNameByDate.Value = If(OPT_FILE_NAME_REPLACE.Checked, FileNameReplaceMode.Replace, FileNameReplaceMode.Add)
@@ -195,7 +210,9 @@ Namespace Editors
                     .FeedEndless.Value = CH_FEED_ENDLESS.Checked
                     .FeedAddSessionToCaption.Value = CH_FEED_ADD_SESSION.Checked
                     .FeedAddDateToCaption.Value = CH_FEED_ADD_DATE.Checked
-                    FeedParametersChanged = .FeedDataRows.ChangesDetected Or .FeedDataColumns.ChangesDetected Or .FeedEndless.ChangesDetected
+                    .FeedStoreSessionsData.Value = CH_FEED_STORE_SESSION_DATA.Checked
+                    FeedParametersChanged = .FeedDataRows.ChangesDetected Or .FeedDataColumns.ChangesDetected Or
+                                            .FeedEndless.ChangesDetected Or .FeedStoreSessionsData.ChangesDetected
 
                     .EndUpdate()
                 End With
@@ -214,21 +231,12 @@ Namespace Editors
         Private Sub TXT_MAX_JOBS_CHANNELS_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As EventArgs) Handles TXT_MAX_JOBS_CHANNELS.ActionOnButtonClick
             If Sender.DefaultButton = ADB.Refresh Then TXT_MAX_JOBS_CHANNELS.Value = SettingsCLS.DefaultMaxDownloadingTasks
         End Sub
-        Private Sub CH_FILE_NAME_CHANGE_CheckedChanged(sender As Object, e As EventArgs) Handles CH_FILE_NAME_CHANGE.CheckedChanged
-            ChangeFileNameChangersEnabling()
-        End Sub
-        Private Sub OPT_FILE_NAME_REPLACE_CheckedChanged(sender As Object, e As EventArgs) Handles OPT_FILE_NAME_REPLACE.CheckedChanged
-            ChangePositionControlsEnabling()
-        End Sub
-        Private Sub OPT_FILE_NAME_ADD_DATE_CheckedChanged(sender As Object, e As EventArgs) Handles OPT_FILE_NAME_ADD_DATE.CheckedChanged
-            ChangePositionControlsEnabling()
-        End Sub
-        Private Sub ChangePositionControlsEnabling()
+        Private Sub ChangePositionControlsEnabling() Handles OPT_FILE_NAME_REPLACE.CheckedChanged, OPT_FILE_NAME_ADD_DATE.CheckedChanged
             Dim b As Boolean = OPT_FILE_NAME_ADD_DATE.Checked And OPT_FILE_NAME_ADD_DATE.Enabled
             OPT_FILE_DATE_START.Enabled = b
             OPT_FILE_DATE_END.Enabled = b
         End Sub
-        Private Sub ChangeFileNameChangersEnabling()
+        Private Sub ChangeFileNameChangersEnabling() Handles CH_FILE_NAME_CHANGE.CheckedChanged
             Dim b As Boolean = CH_FILE_NAME_CHANGE.Checked
             OPT_FILE_NAME_REPLACE.Enabled = b
             OPT_FILE_NAME_ADD_DATE.Enabled = b
@@ -242,6 +250,13 @@ Namespace Editors
         End Sub
         Private Sub CH_COPY_CHANNEL_USER_IMAGE_CheckedChanged(sender As Object, e As EventArgs) Handles CH_COPY_CHANNEL_USER_IMAGE.CheckedChanged
             CH_COPY_CHANNEL_USER_IMAGE_ALL.Enabled = CH_COPY_CHANNEL_USER_IMAGE.Checked
+        End Sub
+        Private Sub CH_NOTIFY_SHOW_BASE_CheckedChanged(sender As Object, e As EventArgs) Handles CH_NOTIFY_SHOW_BASE.CheckedChanged
+            Dim b As Boolean = CH_NOTIFY_SHOW_BASE.Checked
+            CH_NOTIFY_PROFILES.Enabled = b
+            CH_NOTIFY_AUTO_DOWN.Enabled = b
+            CH_NOTIFY_CHANNELS.Enabled = b
+            CH_NOTIFY_SAVED_POSTS.Enabled = b
         End Sub
     End Class
 End Namespace

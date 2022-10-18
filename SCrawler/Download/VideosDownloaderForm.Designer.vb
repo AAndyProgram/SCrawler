@@ -1,4 +1,12 @@
-﻿Namespace DownloadObjects
+﻿' Copyright (C) 2023  Andy https://github.com/AAndyProgram
+' This program is free software: you can redistribute it and/or modify
+' it under the terms of the GNU General Public License as published by
+' the Free Software Foundation, either version 3 of the License, or
+' (at your option) any later version.
+'
+' This program is distributed in the hope that it will be useful,
+' but WITHOUT ANY WARRANTY
+Namespace DownloadObjects
     <Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()>
     Partial Friend Class VideosDownloaderForm : Inherits System.Windows.Forms.Form
         <System.Diagnostics.DebuggerNonUserCode()>
@@ -16,7 +24,6 @@
         Private Sub InitializeComponent()
             Dim SEP_1 As System.Windows.Forms.ToolStripSeparator
             Dim SEP_2 As System.Windows.Forms.ToolStripSeparator
-            Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(VideosDownloaderForm))
             Me.ToolbarTOP = New System.Windows.Forms.ToolStrip()
             Me.BTT_ADD = New System.Windows.Forms.ToolStripButton()
             Me.BTT_ADD_LIST = New System.Windows.Forms.ToolStripButton()
@@ -56,7 +63,7 @@
             'BTT_ADD
             '
             Me.BTT_ADD.AutoToolTip = False
-            Me.BTT_ADD.Image = Global.SCrawler.My.Resources.Resources.PlusPIC
+            Me.BTT_ADD.Image = Global.SCrawler.My.Resources.Resources.PlusPic_24
             Me.BTT_ADD.ImageTransparentColor = System.Drawing.Color.Magenta
             Me.BTT_ADD.Name = "BTT_ADD"
             Me.BTT_ADD.Size = New System.Drawing.Size(75, 22)
@@ -65,7 +72,7 @@
             'BTT_ADD_LIST
             '
             Me.BTT_ADD_LIST.AutoToolTip = False
-            Me.BTT_ADD_LIST.Image = Global.SCrawler.My.Resources.Resources.PlusPIC
+            Me.BTT_ADD_LIST.Image = Global.SCrawler.My.Resources.Resources.PlusPic_24
             Me.BTT_ADD_LIST.ImageTransparentColor = System.Drawing.Color.Magenta
             Me.BTT_ADD_LIST.Name = "BTT_ADD_LIST"
             Me.BTT_ADD_LIST.Size = New System.Drawing.Size(67, 22)
@@ -74,7 +81,7 @@
             'BTT_DELETE
             '
             Me.BTT_DELETE.AutoToolTip = False
-            Me.BTT_DELETE.Image = Global.SCrawler.My.Resources.Resources.Delete
+            Me.BTT_DELETE.Image = Global.SCrawler.My.Resources.Resources.DeletePic_24
             Me.BTT_DELETE.ImageTransparentColor = System.Drawing.Color.Magenta
             Me.BTT_DELETE.Name = "BTT_DELETE"
             Me.BTT_DELETE.Size = New System.Drawing.Size(83, 22)
@@ -83,7 +90,7 @@
             'BTT_DOWN
             '
             Me.BTT_DOWN.AutoToolTip = False
-            Me.BTT_DOWN.Image = Global.SCrawler.My.Resources.Resources.StartPic_01_Green_16
+            Me.BTT_DOWN.Image = Global.SCrawler.My.Resources.Resources.StartPic_Green_16
             Me.BTT_DOWN.ImageTransparentColor = System.Drawing.Color.Magenta
             Me.BTT_DOWN.Name = "BTT_DOWN"
             Me.BTT_DOWN.Size = New System.Drawing.Size(104, 22)
@@ -93,7 +100,7 @@
             '
             Me.BTT_STOP.AutoToolTip = False
             Me.BTT_STOP.Enabled = False
-            Me.BTT_STOP.Image = CType(resources.GetObject("BTT_STOP.Image"), System.Drawing.Image)
+            Me.BTT_STOP.Image = Global.SCrawler.My.Resources.Resources.DeletePic_24
             Me.BTT_STOP.ImageTransparentColor = System.Drawing.Color.Magenta
             Me.BTT_STOP.Name = "BTT_STOP"
             Me.BTT_STOP.Size = New System.Drawing.Size(51, 22)
@@ -102,7 +109,7 @@
             'BTT_OPEN_PATH
             '
             Me.BTT_OPEN_PATH.AutoToolTip = False
-            Me.BTT_OPEN_PATH.Image = Global.SCrawler.My.Resources.Resources.Folder_32
+            Me.BTT_OPEN_PATH.Image = Global.SCrawler.My.Resources.Resources.FolderPic_32
             Me.BTT_OPEN_PATH.ImageTransparentColor = System.Drawing.Color.Magenta
             Me.BTT_OPEN_PATH.Name = "BTT_OPEN_PATH"
             Me.BTT_OPEN_PATH.Size = New System.Drawing.Size(120, 22)
@@ -148,7 +155,7 @@
             Me.MinimumSize = New System.Drawing.Size(540, 400)
             Me.Name = "VideosDownloaderForm"
             Me.ShowIcon = False
-            Me.Text = "Download Videos"
+            Me.Text = "Download videos"
             Me.ToolbarTOP.ResumeLayout(False)
             Me.ToolbarTOP.PerformLayout()
             Me.ToolbarBOTTOM.ResumeLayout(False)
@@ -157,7 +164,6 @@
             Me.PerformLayout()
 
         End Sub
-
         Private WithEvents ToolbarTOP As ToolStrip
         Private WithEvents BTT_ADD As ToolStripButton
         Private WithEvents BTT_ADD_LIST As ToolStripButton

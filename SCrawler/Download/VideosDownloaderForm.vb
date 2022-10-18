@@ -1,4 +1,4 @@
-﻿' Copyright (C) 2022  Andy
+﻿' Copyright (C) 2023  Andy https://github.com/AAndyProgram
 ' This program is free software: you can redistribute it and/or modify
 ' it under the terms of the GNU General Public License as published by
 ' the Free Software Foundation, either version 3 of the License, or
@@ -12,26 +12,28 @@ Imports PersonalUtilities.Tools
 Namespace DownloadObjects
     Friend Class VideosDownloaderForm
 #Region "Declarations"
-        Private MyView As FormsView
+        Private MyView As FormView
         Private ReadOnly DownloadingUrlsFile As SFile = $"{SettingsFolderName}\VideosUrls.txt"
         Private ReadOnly MyJob As JobThread(Of String)
+        Friend Property IsStandalone As Boolean = False
 #End Region
 #Region "Initializer"
-        Friend Sub New()
+        Public Sub New()
             InitializeComponent()
             MyJob = New JobThread(Of String) With {.Progress = New Toolbars.MyProgress(ToolbarBOTTOM, PR_V, LBL_STATUS, "Downloading video")}
             If DownloadingUrlsFile.Exists Then _
                MyJob.Items.ListAddList(DownloadingUrlsFile.GetText.StringToList(Of String, List(Of String))(Environment.NewLine), LAP.NotContainsOnly)
         End Sub
+#End Region
+#Region "Form handlers"
         Private Sub VideosDownloaderForm_Load(sender As Object, e As EventArgs) Handles Me.Load
-            MyView = New FormsView(Me)
-            MyView.ImportFromXML(Settings.Design)
-            MyView.SetMeSize()
+            MyView = New FormView(Me)
+            MyView.Import(Settings.Design)
+            MyView.SetFormSize()
             RefillList(False)
         End Sub
         Private Sub VideosDownloaderForm_Closing(sender As Object, e As CancelEventArgs) Handles Me.Closing
-            e.Cancel = True
-            Hide()
+            If Not IsStandalone Then e.Cancel = True : Hide()
         End Sub
         Private Sub VideosDownloaderForm_Disposed(sender As Object, e As EventArgs) Handles Me.Disposed
             If Not MyView Is Nothing Then MyView.Dispose(Settings.Design)
@@ -44,6 +46,7 @@ Namespace DownloadObjects
                 Case Keys.Insert : AddItem()
                 Case Keys.F5 : StartDownloading()
                 Case Keys.F8 : DeleteItem()
+                Case Keys.Escape : If IsStandalone Then b = False Else Hide()
                 Case Else : b = False
             End Select
             If b Then e.Handled = True
@@ -75,7 +78,7 @@ Namespace DownloadObjects
 #End Region
 #Region "Add, Delete"
         Private Sub AddItem() Handles BTT_ADD.Click
-            Dim URL$ = GetNewVideoURL()
+            Dim URL$ = InputBoxE("Enter video URL:", "Download video by URL", GetCurrentBuffer())
             If Not URL.IsEmptyString Then
                 If Not MyJob.Contains(URL) Then
                     MyJob.Add(URL)
@@ -139,6 +142,7 @@ Namespace DownloadObjects
             End If
             ControlInvoke(ToolbarTOP, BTT_DOWN, Sub() BTT_DOWN.Enabled = True)
             ControlInvoke(ToolbarTOP, BTT_STOP, Sub() BTT_STOP.Enabled = False)
+            If Not IsStandalone Then MainFrameObj.UpdateLogButton()
             MyJob.Stopped()
         End Sub
 #End Region

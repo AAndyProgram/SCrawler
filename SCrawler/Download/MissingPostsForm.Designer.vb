@@ -1,4 +1,4 @@
-﻿' Copyright (C) 2022  Andy
+﻿' Copyright (C) 2023  Andy https://github.com/AAndyProgram
 ' This program is free software: you can redistribute it and/or modify
 ' it under the terms of the GNU General Public License as published by
 ' the Free Software Foundation, either version 3 of the License, or
@@ -99,7 +99,7 @@ Namespace DownloadObjects
             'BTT_DOWN
             '
             Me.BTT_DOWN.AutoToolTip = True
-            Me.BTT_DOWN.Image = Global.SCrawler.My.Resources.Resources.StartPic_01_Green_16
+            Me.BTT_DOWN.Image = Global.SCrawler.My.Resources.Resources.StartPic_Green_16
             Me.BTT_DOWN.Name = "BTT_DOWN"
             Me.BTT_DOWN.Size = New System.Drawing.Size(181, 22)
             Me.BTT_DOWN.Text = "Download"
@@ -107,14 +107,14 @@ Namespace DownloadObjects
             '
             'BTT_OPEN_POST
             '
-            Me.BTT_OPEN_POST.Image = Global.SCrawler.My.Resources.Resources.GlobeBlue_32
+            Me.BTT_OPEN_POST.Image = Global.SCrawler.My.Resources.Resources.GlobePic_32
             Me.BTT_OPEN_POST.Name = "BTT_OPEN_POST"
             Me.BTT_OPEN_POST.Size = New System.Drawing.Size(181, 22)
             Me.BTT_OPEN_POST.Text = "Open post"
             '
             'BTT_OPEN_USER
             '
-            Me.BTT_OPEN_USER.Image = Global.SCrawler.My.Resources.Resources.Folder_32
+            Me.BTT_OPEN_USER.Image = Global.SCrawler.My.Resources.Resources.FolderPic_32
             Me.BTT_OPEN_USER.Name = "BTT_OPEN_USER"
             Me.BTT_OPEN_USER.Size = New System.Drawing.Size(181, 22)
             Me.BTT_OPEN_USER.Text = "Open user folder"
@@ -129,7 +129,7 @@ Namespace DownloadObjects
             'BTT_DELETE
             '
             Me.BTT_DELETE.AutoToolTip = True
-            Me.BTT_DELETE.Image = Global.SCrawler.My.Resources.Resources.Delete
+            Me.BTT_DELETE.Image = Global.SCrawler.My.Resources.Resources.DeletePic_24
             Me.BTT_DELETE.Name = "BTT_DELETE"
             Me.BTT_DELETE.Size = New System.Drawing.Size(181, 22)
             Me.BTT_DELETE.Text = "Delete post"

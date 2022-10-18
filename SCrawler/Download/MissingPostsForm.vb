@@ -1,4 +1,4 @@
-﻿' Copyright (C) 2022  Andy
+﻿' Copyright (C) 2023  Andy https://github.com/AAndyProgram
 ' This program is free software: you can redistribute it and/or modify
 ' it under the terms of the GNU General Public License as published by
 ' the Free Software Foundation, either version 3 of the License, or
@@ -28,7 +28,7 @@ Namespace DownloadObjects
                 .Text = "Download ALL",
                 .ToolTipText = String.Empty,
                 .AutoToolTip = False,
-                .Image = My.Resources.StartPic_01_Green_16,
+                .Image = My.Resources.StartPic_Green_16,
                 .DisplayStyle = ToolStripItemDisplayStyle.ImageAndText
             }
             BTT_INFO = New ToolStripButton With {
@@ -62,17 +62,11 @@ Namespace DownloadObjects
 #End Region
 #Region "RefillList"
         Private Overloads Sub RefillList() Handles MyDefs.ButtonUpdateClick
-            RefillList(True)
-        End Sub
-        Friend Overloads Sub RefillList(ByVal User As IUserData)
-            If MUsers.Count = 0 OrElse Not MUsers.Contains(User) Then MUsers.Add(User) : RefillList(False)
-        End Sub
-        Friend Overloads Sub RefillList(ByVal Reload As Boolean)
             Try
-                If Reload Then MUsers.Clear()
+                MUsers.Clear()
                 LIST_DATA.Items.Clear()
                 LIST_DATA.Groups.Clear()
-                If Reload And Settings.Users.Count > 0 Then
+                If Settings.Users.Count > 0 Then
                     MUsers.ListAddList(Settings.Users.SelectMany(Function(ByVal user As IUserData) As IEnumerable(Of IUserData)
                                                                      DirectCast(user, UserDataBase).LoadContentInformation()
                                                                      If user.IsCollection Then
@@ -111,25 +105,43 @@ Namespace DownloadObjects
         End Sub
 #End Region
 #Region "Post actions"
+        Private Sub BTT_DOWN_ALL_Click(sender As Object, e As EventArgs) Handles BTT_DOWN_ALL.Click
+            Try
+                Const MsgTitle$ = "Download users"
+                If MUsers.Count > 0 Then
+                    If MsgBoxE({$"You are trying to download missing posts of {MUsers.Count} user(s).", MsgTitle}, vbExclamation,,, {"Process", "Cancel"}) = 0 Then
+                        MUsers.ForEach(Sub(u) u.DownloadMissingOnly = True)
+                        Downloader.AddRange(MUsers, True)
+                    Else
+                        MsgBoxE({"Operation canceled", MsgTitle})
+                    End If
+                Else
+                    MsgBoxE({"No users found", MsgTitle}, vbExclamation)
+                End If
+            Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.SendInLog, ex, "[DownloadObjects.MissingPostsForm.DownloadAll]")
+            End Try
+        End Sub
         Private Sub BTT_DOWN_Click(sender As Object, e As EventArgs) Handles BTT_DOWN.Click
-            'Try
-            '    If LIST_DATA.SelectedItems.Count > 0 Then
-            '        Dim users As List(Of IUserData) = LIST_DATA.SelectedItems.ToObjectsList.ListCast(Of ListViewItem)().
-            '                                          Select(Function(d) Settings.GetUser(CStr(d.Group.Tag))).ListWithRemove(Function(d) d Is Nothing)
-            '        If users.ListExists Then
-            '            If MsgBoxE({"The following users will be added to the download queue:" & vbCr & vbCr &
-            '                        users.Select(Function(u) u.ToString).ListToString(vbNewLine), "Download users"},,,, {"Process", "Cancel"}) = 0 Then
-            '                users.ForEach(Sub(u) u.DownloadMissingOnly = True)
-            '                Downloader.AddRange(users)
-            '                users.Clear()
-            '            End If
-            '        End If
-            '    Else
-            '        MsgBoxE("No selected posts")
-            '    End If
-            'Catch ex As Exception
-            '    ErrorsDescriber.Execute(EDP.SendInLog, ex, "[DownloadObjects.MissingPostsForm.Download]")
-            'End Try
+            Try
+                Const MsgTitle$ = "Download users"
+                If LIST_DATA.SelectedItems.Count > 0 Then
+                    Dim users As List(Of IUserData) = LIST_DATA.SelectedItems.ToObjectsList.ListCast(Of ListViewItem)().
+                                                      Select(Function(d) Settings.GetUser(CStr(d.Group.Tag))).ListWithRemove(Function(d) d Is Nothing)
+                    If users.ListExists Then
+                        If MsgBoxE({"The following users will be added to the download queue:" & vbCr & vbCr &
+                                    users.Select(Function(u) u.ToString).ListToString(vbNewLine), MsgTitle},,,, {"Process", "Cancel"}) = 0 Then
+                            users.ForEach(Sub(u) u.DownloadMissingOnly = True)
+                            Downloader.AddRange(users, True)
+                            users.Clear()
+                        End If
+                    End If
+                Else
+                    MsgBoxE({"No selected posts", MsgTitle})
+                End If
+            Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.SendInLog, ex, "[DownloadObjects.MissingPostsForm.Download]")
+            End Try
         End Sub
         Private Sub BTT_OPEN_POST_Click(sender As Object, e As EventArgs) Handles BTT_OPEN_POST.Click
             Try
@@ -236,7 +248,8 @@ Namespace DownloadObjects
             Try
                 If LIST_DATA.SelectedItems.Count > 0 Then
                     Dim user As IUserData = LIST_DATA.SelectedItems.ToObjectsList.ListCast(Of ListViewItem)().
-                                            Select(Function(d) Settings.GetUser(CStr(d.Group.Tag))).ListWithRemove(Function(d) d Is Nothing).DefaultIfEmpty(Nothing).First
+                                            Select(Function(d) Settings.GetUser(CStr(d.Group.Tag))).ListWithRemove(Function(d) d Is Nothing).
+                                            DefaultIfEmpty(Nothing).First
                     If Not user Is Nothing Then MainFrameObj.FocusUser(user.Key, True)
                 Else
                     MsgBoxE("No selected posts")
@@ -252,7 +265,7 @@ Namespace DownloadObjects
                 Dim data As List(Of ListViewItem) = LIST_DATA.SelectedItems.ToObjectsList.ListCast(Of ListViewItem)
                 If data.ListExists Then
                     Dim lp As New ListAddParams(LAP.NotContainsOnly)
-                    Dim usersCount% = ListAddList(Nothing, data.Select(Function(d) d.Group.Name), LAP.NotContainsOnly).ListIfNothing.Count
+                    Dim usersCount% = ListAddList(Nothing, data.Select(Function(d) d.Group.Header), LAP.NotContainsOnly).ListIfNothing.Count
                     If MsgBoxE({"Are you sure you want to delete the selected missing posts?" & vbCr &
                                 $"Number of affected users: {usersCount}." & vbCr &
                                 $"Number of posts to be deleted: {data.Count}.", MsgTitle}, vbExclamation,,, {"Process", "Cancel"}) = 0 Then
@@ -280,8 +293,11 @@ Namespace DownloadObjects
             Catch ex As Exception
                 ErrorsDescriber.Execute(EDP.SendInLog, ex, "[DownloadObjects.MissingPostsForm.DeletePost]")
             Finally
-                UpdateUsers(UsersToUpdate)
-                UsersToUpdate.Clear()
+                If UsersToUpdate.Count > 0 Then
+                    UpdateUsers(UsersToUpdate)
+                    UsersToUpdate.Clear()
+                    RefillList()
+                End If
             End Try
         End Sub
         Private Sub UpdateUsers(ByVal UserList As List(Of UserDataBase))

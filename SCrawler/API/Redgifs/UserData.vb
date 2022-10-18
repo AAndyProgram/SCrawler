@@ -1,4 +1,4 @@
-﻿' Copyright (C) 2022  Andy
+﻿' Copyright (C) 2023  Andy https://github.com/AAndyProgram
 ' This program is free software: you can redistribute it and/or modify
 ' it under the terms of the GNU General Public License as published by
 ' the Free Software Foundation, either version 3 of the License, or
@@ -6,20 +6,29 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
-Imports PersonalUtilities.Functions.XML
-Imports PersonalUtilities.Functions.RegularExpressions
-Imports PersonalUtilities.Tools.WebDocuments.JSON
 Imports System.Net
 Imports System.Threading
 Imports SCrawler.API.Base
+Imports PersonalUtilities.Functions.XML
+Imports PersonalUtilities.Functions.RegularExpressions
+Imports PersonalUtilities.Tools.WEB
+Imports PersonalUtilities.Tools.WebDocuments.JSON
 Imports UTypes = SCrawler.API.Base.UserMedia.Types
 Imports UStates = SCrawler.API.Base.UserMedia.States
 Namespace API.RedGifs
     Friend Class UserData : Inherits UserDataBase
-        Friend Sub New()
-        End Sub
+        Friend Const DataGone As HttpStatusCode = HttpStatusCode.Gone
+        Private Const PostDataUrl As String = "https://api.redgifs.com/v2/gifs/{0}?views=yes&users=yes"
+#Region "Base declarations"
         Protected Overrides Sub LoadUserInformation_OptionalFields(ByRef Container As XmlFile, ByVal Loading As Boolean)
         End Sub
+#End Region
+#Region "Initializer"
+        Friend Sub New()
+            UseResponserClient = True
+        End Sub
+#End Region
+#Region "Download functions"
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
             ReparseMissing(Token)
             DownloadData(1, Token)
@@ -28,7 +37,7 @@ Namespace API.RedGifs
             Dim URL$ = String.Empty
             Try
                 URL = $"https://api.redgifs.com/v2/users/{Name}/search?order=recent&page={Page}"
-                Dim r$ = Responser.GetResponse(URL,, EDP.ThrowException)
+                Dim r$ = Responser.DownloadString(URL, EDP.ThrowException)
                 Dim postDate$, postID$
                 Dim pTotal% = 0
                 If Not r.IsEmptyString Then
@@ -53,25 +62,37 @@ Namespace API.RedGifs
                 ProcessException(ex, Token, $"data downloading error [{URL}]")
             End Try
         End Sub
+#End Region
+#Region "Media obtain, extract"
         Private Sub ObtainMedia(ByVal j As EContainer, ByVal PostID As String,
                                 Optional ByVal PostDateStr As String = Nothing, Optional ByVal PostDateDate As Date? = Nothing,
                                 Optional ByVal State As UStates = UStates.Unknown)
-            With j("urls")
-                If .ListExists Then
-                    Dim u$ = If(.Item("hd"), .Item("sd")).XmlIfNothingValue
-                    If Not u.IsEmptyString Then
-                        Dim ut As UTypes = UTypes.Undefined
-                        'Type 1: video
-                        'Type 2: image
-                        Select Case j.Value("type").FromXML(Of Integer)(0)
-                            Case 1 : ut = UTypes.Video
-                            Case 2 : ut = UTypes.Picture
-                        End Select
-                        If Not ut = UTypes.Undefined Then _TempMediaList.ListAddValue(MediaFromData(ut, u, PostID, PostDateStr, PostDateDate, State))
-                    End If
-                End If
-            End With
+            Dim tMedia As UserMedia = ExtractMedia(j)
+            If Not tMedia.Type = UTypes.Undefined Then _
+               _TempMediaList.ListAddValue(MediaFromData(tMedia.Type, tMedia.URL, PostID, PostDateStr, PostDateDate, State))
         End Sub
+        Private Shared Function ExtractMedia(ByVal j As EContainer) As UserMedia
+            If Not j Is Nothing Then
+                With j("urls")
+                    If .ListExists Then
+                        Dim u$ = If(.Item("hd"), .Item("sd")).XmlIfNothingValue
+                        If Not u.IsEmptyString Then
+                            Dim ut As UTypes = UTypes.Undefined
+                            'Type 1: video
+                            'Type 2: image
+                            Select Case j.Value("type").FromXML(Of Integer)(0)
+                                Case 1 : ut = UTypes.Video
+                                Case 2 : ut = UTypes.Picture
+                            End Select
+                            Return New UserMedia(u, ut)
+                        End If
+                    End If
+                End With
+            End If
+            Return Nothing
+        End Function
+#End Region
+#Region "ReparseMissing"
         Protected Overrides Sub ReparseMissing(ByVal Token As CancellationToken)
             Dim rList As New List(Of Integer)
             Try
@@ -84,7 +105,7 @@ Namespace API.RedGifs
                             ThrowAny(Token)
                             u = _ContentList(i)
                             If Not u.Post.ID.IsEmptyString Then
-                                url = $"https://api.redgifs.com/v2/gifs/{u.Post.ID}?views=yes&users=yes"
+                                url = String.Format(PostDataUrl, u.Post.ID.ToLower)
                                 Try
                                     r = Responser.GetResponse(url,, EDP.ThrowException)
                                     If Not r.IsEmptyString Then
@@ -115,14 +136,74 @@ Namespace API.RedGifs
                 End If
             End Try
         End Sub
+#End Region
+#Region "Downloader"
         Protected Overrides Sub DownloadContent(ByVal Token As CancellationToken)
             DownloadContentDefault(Token)
         End Sub
+#End Region
+#Region "Get post data statics"
+        ''' <summary>
+        ''' https://thumbs4.redgifs.com/abcde-large.jpg?expires -> abcde<br/>
+        ''' https://thumbs4.redgifs.com/abcde.mp4?expires -> abcde<br/>
+        ''' https://www.redgifs.com/watch/abcde?rel=a -> abcde
+        ''' </summary>
+        Friend Shared Function GetVideoIdFromUrl(ByVal URL As String) As String
+            If Not URL.IsEmptyString Then
+                Return RegexReplace(URL, If(URL.Contains("/watch/"), WatchIDRegex, ThumbsIDRegex))
+            Else
+                Return String.Empty
+            End If
+        End Function
+        Friend Shared Function GetDataFromUrlId(ByVal Obj As String, ByVal ObjIsID As Boolean, ByVal Responser As Response,
+                                                ByVal Host As Plugin.Hosts.SettingsHost) As UserMedia
+            Dim URL$ = String.Empty
+            Try
+                If Obj.IsEmptyString Then Return Nothing
+                If Not ObjIsID Then
+                    Obj = GetVideoIdFromUrl(Obj)
+                    If Not Obj.IsEmptyString Then Return GetDataFromUrlId(Obj, True, Responser, Host)
+                Else
+                    If Host Is Nothing Then Host = Settings(RedGifsSiteKey)
+                    If Host.Source.Available(Plugin.ISiteSettings.Download.Main, True) Then
+                        If Responser Is Nothing Then Responser = Host.Responser.Copy
+                        URL = String.Format(PostDataUrl, Obj.ToLower)
+                        Dim r$ = Responser.DownloadString(URL, EDP.ThrowException)
+                        If Not r.IsEmptyString Then
+                            Using j As EContainer = JsonDocument.Parse(r)
+                                If Not j Is Nothing Then
+                                    Dim tm As UserMedia = ExtractMedia(j("gif"))
+                                    tm.Post.ID = Obj
+                                    tm.File = CStr(RegexReplace(tm.URL, FilesPattern))
+                                    If tm.File.IsEmptyString Then
+                                        tm.File.Name = Obj
+                                        Select Case tm.Type
+                                            Case UTypes.Picture : tm.File.Extension = "jpg"
+                                            Case UTypes.Video : tm.File.Extension = "mp4"
+                                        End Select
+                                    End If
+                                    Return tm
+                                End If
+                            End Using
+                        End If
+                    Else
+                        Return New UserMedia With {.State = UStates.Missing}
+                    End If
+                End If
+                Return Nothing
+            Catch ex As Exception
+                If Not Responser Is Nothing AndAlso Responser.Client.StatusCode = DataGone Then _
+                   Return New UserMedia With {.State = DataGone}
+                Return ErrorsDescriber.Execute(EDP.SendInLog, ex, $"[API.RedGifs.UserData.GetDataFromUrlId({URL})]", New UserMedia)
+            End Try
+        End Function
+#End Region
+#Region "Create media"
         Private Shared Function MediaFromData(ByVal t As UTypes, ByVal _URL As String, ByVal PostID As String,
                                               ByVal PostDateStr As String, ByVal PostDateDate As Date?, ByVal State As UStates) As UserMedia
             _URL = LinkFormatterSecure(RegexReplace(_URL.Replace("\", String.Empty), LinkPattern))
             Dim m As New UserMedia(_URL, t) With {.Post = New UserPost With {.ID = PostID}}
-            If Not m.URL.IsEmptyString Then m.File = CStr(RegexReplace(m.URL, FilesPattern)) : m.URL_BASE = m.URL
+            If Not m.URL.IsEmptyString Then m.File = CStr(RegexReplace(m.URL, FilesPattern))
             If Not PostDateStr.IsEmptyString Then
                 m.Post.Date = AConvert(Of Date)(PostDateStr, DateProvider, Nothing)
             ElseIf PostDateDate.HasValue Then
@@ -133,7 +214,10 @@ Namespace API.RedGifs
             m.State = State
             Return m
         End Function
-        Protected Overrides Function DownloadingException(ByVal ex As Exception, ByVal Message As String, Optional ByVal FromPE As Boolean = False) As Integer
+#End Region
+#Region "Exception"
+        Protected Overrides Function DownloadingException(ByVal ex As Exception, ByVal Message As String, Optional ByVal FromPE As Boolean = False,
+                                                          Optional ByVal EObj As Object = Nothing) As Integer
             If Responser.StatusCode = HttpStatusCode.NotFound Then
                 UserExists = False
             Else
@@ -142,5 +226,6 @@ Namespace API.RedGifs
             End If
             Return 1
         End Function
+#End Region
     End Class
 End Namespace

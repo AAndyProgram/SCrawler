@@ -1,4 +1,4 @@
-﻿' Copyright (C) 2022  Andy
+﻿' Copyright (C) 2023  Andy https://github.com/AAndyProgram
 ' This program is free software: you can redistribute it and/or modify
 ' it under the terms of the GNU General Public License as published by
 ' the Free Software Foundation, either version 3 of the License, or
@@ -13,6 +13,7 @@ Imports PersonalUtilities.Functions.XML.Base
 Imports PersonalUtilities.Tools.WEB.GitHub
 Namespace Plugin.Hosts
     Friend Class PluginHost
+        Friend Const PluginsPath As String = "Plugins\"
         Friend ReadOnly Property Settings As SettingsHost
         Friend ReadOnly Property Name As String
             Get
@@ -77,14 +78,17 @@ Namespace Plugin.Hosts
             Return {New PluginHost(New API.Reddit.SiteSettings, _XML, GlobalPath, _Temp, _Imgs, _Vids),
                     New PluginHost(New API.Twitter.SiteSettings, _XML, GlobalPath, _Temp, _Imgs, _Vids),
                     New PluginHost(New API.Instagram.SiteSettings(_XML, GlobalPath), _XML, GlobalPath, _Temp, _Imgs, _Vids),
-                    New PluginHost(New API.RedGifs.SiteSettings, _XML, GlobalPath, _Temp, _Imgs, _Vids)}
+                    New PluginHost(New API.RedGifs.SiteSettings, _XML, GlobalPath, _Temp, _Imgs, _Vids),
+                    New PluginHost(New API.TikTok.SiteSettings, _XML, GlobalPath, _Temp, _Imgs, _Vids),
+                    New PluginHost(New API.LPSG.SiteSettings, _XML, GlobalPath, _Temp, _Imgs, _Vids),
+                    New PluginHost(New API.XVIDEOS.SiteSettings, _XML, GlobalPath, _Temp, _Imgs, _Vids)}
         End Function
         Friend Shared Function GetPluginsHosts(ByRef _XML As XmlFile, ByVal GlobalPath As SFile,
                                                ByRef _Temp As XMLValue(Of Boolean), ByRef _Imgs As XMLValue(Of Boolean),
                                                ByRef _Vids As XMLValue(Of Boolean)) As IEnumerable(Of PluginHost)
             Try
                 Dim pList As New List(Of PluginHost)
-                Dim PluginsDir As SFile = SFile.GetPath($"{Application.StartupPath.CSFilePSN}\Plugins")
+                Dim PluginsDir As SFile = PluginsPath
                 PluginsDir.Exists(SFO.Path)
                 Dim fList As List(Of SFile) = SFile.GetFiles(PluginsDir, "*.dll",, EDP.ReturnValue).ListIfNothing
                 If fList.Count > 0 Then

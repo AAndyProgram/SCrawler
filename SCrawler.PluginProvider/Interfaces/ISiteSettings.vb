@@ -1,4 +1,4 @@
-﻿' Copyright (C) 2022  Andy
+﻿' Copyright (C) 2023  Andy https://github.com/AAndyProgram
 ' This program is free software: you can redistribute it and/or modify
 ' it under the terms of the GNU General Public License as published by
 ' the Free Software Foundation, either version 3 of the License, or
@@ -21,7 +21,7 @@ Namespace Plugin
         Function GetUserUrl(ByVal UserName As String, ByVal Channel As Boolean) As String
         Function IsMyUser(ByVal UserURL As String) As ExchangeOptions
         Function IsMyImageVideo(ByVal URL As String) As ExchangeOptions
-        Function GetSpecialData(ByVal URL As String, ByVal Path As String, ByVal AskForPath As Boolean) As IEnumerable(Of PluginUserMedia)
+        Function GetSpecialData(ByVal URL As String, ByVal Path As String, ByVal AskForPath As Boolean) As IEnumerable
         Function GetInstance(ByVal What As Download) As IPluginContentProvider
         Function GetUserPostUrl(ByVal UserID As String, ByVal PostID As String) As String
 #Region "XML Support"
@@ -32,6 +32,8 @@ Namespace Plugin
         Sub EndInit()
         Sub BeginUpdate()
         Sub EndUpdate()
+        Sub BeginEdit()
+        Sub EndEdit()
 #End Region
 #Region "Site availability"
         Function Available(ByVal What As Download, ByVal Silent As Boolean) As Boolean

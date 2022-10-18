@@ -1,4 +1,12 @@
-﻿Namespace DownloadObjects
+﻿' Copyright (C) 2023  Andy https://github.com/AAndyProgram
+' This program is free software: you can redistribute it and/or modify
+' it under the terms of the GNU General Public License as published by
+' the Free Software Foundation, either version 3 of the License, or
+' (at your option) any later version.
+'
+' This program is distributed in the hope that it will be useful,
+' but WITHOUT ANY WARRANTY
+Namespace DownloadObjects
     <Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()>
     Partial Friend Class DownloadedInfoForm : Inherits System.Windows.Forms.Form
         <System.Diagnostics.DebuggerNonUserCode()>
@@ -57,7 +65,6 @@
             Me.MENU_VIEW.AutoToolTip = False
             Me.MENU_VIEW.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text
             Me.MENU_VIEW.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.MENU_VIEW_SESSION, Me.MENU_VIEW_ALL})
-            Me.MENU_VIEW.Image = CType(resources.GetObject("MENU_VIEW.Image"), System.Drawing.Image)
             Me.MENU_VIEW.ImageTransparentColor = System.Drawing.Color.Magenta
             Me.MENU_VIEW.Name = "MENU_VIEW"
             Me.MENU_VIEW.Size = New System.Drawing.Size(45, 22)
@@ -67,7 +74,7 @@
             '
             Me.MENU_VIEW_SESSION.AutoToolTip = True
             Me.MENU_VIEW_SESSION.Name = "MENU_VIEW_SESSION"
-            Me.MENU_VIEW_SESSION.Size = New System.Drawing.Size(113, 22)
+            Me.MENU_VIEW_SESSION.Size = New System.Drawing.Size(180, 22)
             Me.MENU_VIEW_SESSION.Text = "Session"
             Me.MENU_VIEW_SESSION.ToolTipText = "Show downloaded users by this session"
             '
@@ -75,13 +82,13 @@
             '
             Me.MENU_VIEW_ALL.AutoToolTip = True
             Me.MENU_VIEW_ALL.Name = "MENU_VIEW_ALL"
-            Me.MENU_VIEW_ALL.Size = New System.Drawing.Size(113, 22)
+            Me.MENU_VIEW_ALL.Size = New System.Drawing.Size(180, 22)
             Me.MENU_VIEW_ALL.Text = "All"
             Me.MENU_VIEW_ALL.ToolTipText = "Show all users (sorted by latest download)"
             '
             'BTT_REFRESH
             '
-            Me.BTT_REFRESH.Image = Global.SCrawler.My.Resources.Resources.Refresh
+            Me.BTT_REFRESH.Image = Global.SCrawler.My.Resources.Resources.RefreshPic_24
             Me.BTT_REFRESH.ImageTransparentColor = System.Drawing.Color.Magenta
             Me.BTT_REFRESH.Name = "BTT_REFRESH"
             Me.BTT_REFRESH.Size = New System.Drawing.Size(89, 22)
@@ -111,7 +118,6 @@
             'BTT_FIND
             '
             Me.BTT_FIND.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text
-            Me.BTT_FIND.Image = CType(resources.GetObject("BTT_FIND.Image"), System.Drawing.Image)
             Me.BTT_FIND.ImageTransparentColor = System.Drawing.Color.Magenta
             Me.BTT_FIND.Name = "BTT_FIND"
             Me.BTT_FIND.Size = New System.Drawing.Size(57, 22)
@@ -121,7 +127,6 @@
             'BTT_CLEAR
             '
             Me.BTT_CLEAR.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text
-            Me.BTT_CLEAR.Image = CType(resources.GetObject("BTT_CLEAR.Image"), System.Drawing.Image)
             Me.BTT_CLEAR.ImageTransparentColor = System.Drawing.Color.Magenta
             Me.BTT_CLEAR.Name = "BTT_CLEAR"
             Me.BTT_CLEAR.Size = New System.Drawing.Size(38, 22)
@@ -152,7 +157,7 @@
             Me.Controls.Add(Me.LIST_DOWN)
             Me.Controls.Add(Me.ToolbarBOTTOM)
             Me.Controls.Add(Me.ToolbarTOP)
-            Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
+            Me.Icon = Global.SCrawler.My.Resources.Resources.ArrowDownIcon_Blue_24
             Me.KeyPreview = True
             Me.MinimumSize = New System.Drawing.Size(570, 450)
             Me.Name = "DownloadedInfoForm"
@@ -163,7 +168,6 @@
             Me.PerformLayout()
 
         End Sub
-
         Private WithEvents ToolbarTOP As ToolStrip
         Private WithEvents MENU_VIEW As ToolStripDropDownButton
         Private WithEvents MENU_VIEW_SESSION As ToolStripMenuItem

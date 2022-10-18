@@ -18,7 +18,7 @@ A: https://github.com/AAndyProgram/SCrawler/wiki/Settings#how-to-set-up-cookies
 
 #### Q: **I can't copy cookies.**
 
-A: Use the mouse. Don't use ```Ctrl``` + ```A```!
+A: Use the mouse. Don't use ```Ctrl+A```!
 
 ----
 
@@ -43,6 +43,8 @@ A: How to request a new site you can read [here](CONTRIBUTING.md#how-to-request-
 #### Q: **Twitter/Instagram download failed.**
 
 A: Check your credentials. Both of these sites require cookies. Check your [Twitter tokens](https://github.com/AAndyProgram/SCrawler/wiki/Settings#how-to-find-twitter-tokens) and [Instagram settings](https://github.com/AAndyProgram/SCrawler/wiki/Settings#instagram-settings). If all settings are set, but nothing works, go to [create a new issue](https://github.com/AAndyProgram/SCrawler/issues). Don't forget to attach the LOG.
+
+**[SITES REQUIREMENTS](https://github.com/AAndyProgram/SCrawler/wiki/Settings#sites-requirements)**
 
 ----
 
@@ -91,6 +93,24 @@ A: There is no functionality to remove an individual label. You can open the ```
 #### Q: **How to remove a user from the blacklist**
 
 A: Just add that user back to the program. In the dialog box that opens, click on the ```Add and remove from blacklist``` button.
+
+----
+
+#### Q: **Why don't you answer how it works**
+
+A: Because **I don't want to**. I don't want to waste my time explaining things that are already covered in the **[GUIDE](https://github.com/AAndyProgram/SCrawler/wiki)**! If you didn't bother to read the guide, why would I waste my time?! ALL FUNCTIONALITY IS DESCRIBED IN THE GUIDE. Before publishing a new release, I update the guide. If you don't respect my work, I don't waste my time.
+
+----
+
+#### Q: **You lost me. Your program is too complicated.**
+
+A: **I'm fine with that**. If the program is difficult for you or you can't configure it, I can only suggest you find another (easier) program. I really don't mind! The program is free. I am develop SCrawler for myself and publish on GitHub because people found my program useful. If someone can't use it or doesn't like it, I'm fine.
+
+----
+
+#### Q: **I can't configure something**
+
+A: I can only [suggest](#q-you-lost-me-your-program-is-too-complicated) you find another (easier) program.
 
 ----
 

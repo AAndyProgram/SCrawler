@@ -1,4 +1,4 @@
-﻿' Copyright (C) 2022  Andy
+﻿' Copyright (C) 2023  Andy https://github.com/AAndyProgram
 ' This program is free software: you can redistribute it and/or modify
 ' it under the terms of the GNU General Public License as published by
 ' the Free Software Foundation, either version 3 of the License, or
@@ -6,21 +6,23 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
+Imports System.Threading
+Imports System.ComponentModel
+Imports SCrawler.API.Base
+Imports SCrawler.API.Reddit
+Imports SCrawler.Plugin.Hosts
 Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Forms.Toolbars
 Imports PersonalUtilities.Forms.Controls
 Imports PersonalUtilities.Forms.Controls.Base
 Imports PersonalUtilities.Tools
-Imports System.ComponentModel
-Imports System.Threading
-Imports SCrawler.API.Base
-Imports SCrawler.API.Reddit
-Imports SCrawler.Plugin.Hosts
 Imports ADB = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons
 Imports RButton = PersonalUtilities.Forms.Toolbars.RangeSwitcherToolbar.ControlItem
 Friend Class ChannelViewForm : Implements IChannelLimits
+#Region "Events"
     Friend Event OnUsersAdded(ByVal StartIndex As Integer)
     Friend Event OnDownloadDone As NotificationEventHandler
+#End Region
 #Region "Appended user structure"
     Private Structure PendingUser
         Friend ID As String
@@ -138,7 +140,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
                                                                         End If
                                                                     End Function
 #End Region
-#Region "Initializer and form methods"
+#Region "Initializer"
     Friend Sub New()
         InitializeComponent()
         MyDefs = New DefaultFormOptions
@@ -212,6 +214,8 @@ Friend Class ChannelViewForm : Implements IChannelLimits
         AddHandler Settings.ChannelsImagesColumns.OnValueChanged, AddressOf ImagesCountChanged
         AddHandler Settings.ChannelsImagesRows.OnValueChanged, AddressOf ImagesCountChanged
     End Sub
+#End Region
+#Region "Form handlers"
     Private Sub ChannelViewForm_Load(sender As Object, e As EventArgs) Handles Me.Load
         MyDefs.MyViewInitialize(Me, Settings.Design)
         RefillChannels(Settings.LatestSelectedChannel.Value)
@@ -265,6 +269,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
         If b Then LIST_POSTS.Select() : e.Handled = True
     End Sub
 #End Region
+#Region "Refill"
     Private Sub RefillChannels(Optional ByVal SelectedChannel As String = Nothing)
         CMB_CHANNELS.BeginUpdate()
         Dim indx%? = Nothing
@@ -277,11 +282,13 @@ Friend Class ChannelViewForm : Implements IChannelLimits
                     CMB_CHANNELS.Items.Add(.Item(i).ID)
                     If .Item(i).ID = t Then indx = i
                 Next
-                If indx >= 0 And indx <= CMB_CHANNELS.Count - 1 Then CMB_CHANNELS.SelectedIndex = indx
+                If indx.HasValue AndAlso indx.Value.ValueBetween(0, CMB_CHANNELS.Count - 1) Then CMB_CHANNELS.SelectedIndex = indx
             End If
         End With
         CMB_CHANNELS.EndUpdate()
     End Sub
+#End Region
+#Region "User add, append"
     Private Sub AppendPendingUsers()
         If LIST_POSTS.CheckedIndices.Count > 0 Then
             Dim c As Channel = GetCurrentChannel(False)
@@ -293,6 +300,84 @@ Friend Class ChannelViewForm : Implements IChannelLimits
             If ToolbarTOP.InvokeRequired Then ToolbarTOP.Invoke(a) Else a.Invoke
         End If
     End Sub
+    Private Sub BTT_ADD_USERS_Click(sender As Object, e As EventArgs) Handles BTT_ADD_USERS.Click
+        AppendPendingUsers()
+        Dim i%
+        If LIST_POSTS.CheckedItems.Count > 0 Then
+            For i = 0 To LIST_POSTS.Items.Count - 1
+                If LIST_POSTS.Items(i).Checked Then LIST_POSTS.Items(i).Checked = False
+            Next
+        End If
+        If PendingUsers.Count > 0 Then
+            Dim Added% = 0, Skipped% = 0
+            Dim StartIndex% = Settings.Users.Count
+            Dim f As SFile
+            Dim umo As Boolean = HOST.GetUserMediaOnly
+            Settings.Labels.Add(CannelsLabelName)
+            Settings.Labels.Add(LabelsKeeper.NoParsedUser)
+            Dim rUsers$() = UserBanned(PendingUsers.Select(Function(u) u.ID).ToArray)
+            If rUsers.ListExists Then PendingUsers.RemoveAll(Function(u) rUsers.Contains(u))
+            If PendingUsers.Count > 0 Then
+                Dim c As New ListAddParams(LAP.NotContainsOnly)
+                Dim cn$
+                Dim tmpUser As IUserData
+                With PendingUsers.Select(Function(u) New UserInfo(u, HOST))
+                    For i = 0 To .Count - 1
+                        If Not Settings.UsersList.Contains(.ElementAt(i)) Then
+                            f = PendingUsers(i).File
+                            cn = If(PendingUsers(i).Channel?.Name, String.Empty)
+                            Settings.UpdateUsersList(.ElementAt(i))
+                            tmpUser = HOST.GetInstance(Plugin.ISiteSettings.Download.Main, .ElementAt(i), False)
+                            With DirectCast(tmpUser, UserData)
+                                .Temporary = Settings.ChannelsDefaultTemporary
+                                .CreatedByChannel = True
+                                .ReadyForDownload = Settings.ChannelsDefaultReadyForDownload
+                                .ParseUserMediaOnly = umo
+                            End With
+                            Settings.Users.Add(tmpUser)
+                            With Settings.Users.Last
+                                .Labels.Add(CannelsLabelName)
+                                .UpdateUserInformation()
+                                If Settings.FromChannelCopyImageToUser And Not f.IsEmptyString And Not .File.IsEmptyString Then _
+                                   CopyFile(ListAddValue(Nothing, New ChannelsCollection.ChannelImage(cn, f)).ListAddList(Settings.Channels.GetUserFiles(.Name), c), .File)
+                            End With
+                            Added += 1
+                        Else
+                            Skipped += 1
+                        End If
+                    Next
+                End With
+            End If
+            PendingUsers.Clear()
+            BTT_ADD_USERS.Text = "Add"
+            MsgBoxE($"Added users: {Added.ToString(CProvider)}{vbCr}Skipped users: {Skipped.ToString(CProvider)}{vbCr}Total: {PendingUsers.Count.ToString(CProvider)}")
+            RaiseEvent OnUsersAdded(StartIndex)
+            Settings.Channels.UpdateUsersStats()
+        Else
+            MsgBoxE("No user has been selected to add to the collection")
+        End If
+    End Sub
+    Private Sub CopyFile(ByVal Source As IEnumerable(Of ChannelsCollection.ChannelImage), ByVal Destination As SFile)
+        Try
+            If Source.ListExists And Not Destination.IsEmptyString Then
+                Destination = Destination.CutPath.PathWithSeparator & "ChannelImage\"
+                Dim f As SFile
+                Dim i% = 0
+                If Destination.Exists(SFO.Path) Then
+                    For Each ff As ChannelsCollection.ChannelImage In Source
+                        f = Destination
+                        f.Extension = ff.File.Extension
+                        f.Name = $"{IIf(i = 0, "!", String.Empty)}{ff.Channel}_{ff.File.Name}"
+                        If ff.File.Exists Then IO.File.Copy(ff.File, f)
+                        i += 1
+                    Next
+                End If
+            End If
+        Catch ex As Exception
+        End Try
+    End Sub
+#End Region
+#Region "List images"
     Friend Function GetImageSize() As Size
         Const mhw% = 256
         Dim s As Size = LIST_POSTS.Size
@@ -313,7 +398,12 @@ Friend Class ChannelViewForm : Implements IChannelLimits
         End With
         Return s
     End Function
-#Region "Toolbar controls"
+    Private Sub ImagesCountChanged(ByVal Sender As Object, ByVal _Name As String, ByVal _Value As Object)
+        AppendPendingUsers()
+        MyRange.Limit = ImagesInRow * ImagesRows
+        MyRange.GoTo(0)
+    End Sub
+#End Region
 #Region "Downloader"
     Private TokenSource As CancellationTokenSource
     Private Token As CancellationToken
@@ -357,7 +447,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
                     Settings.Channels.SetLimit(Me)
                     Await Task.Run(Sub() Settings.Channels.DownloadData(Token, CH_HIDE_EXISTS_USERS.Checked, CProgress))
                     Settings.Channels.UpdateUsersStats()
-                    RaiseEvent OnDownloadDone("All channels downloaded")
+                    RaiseEvent OnDownloadDone(SettingsCLS.NotificationObjects.Channels, "All channels downloaded")
                     Token.ThrowIfCancellationRequested()
                     c = GetCurrentChannel()
                 Else
@@ -367,7 +457,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
                         c.SetLimit(Me)
                         Await Task.Run(Sub() c.DownloadData(Token, CH_HIDE_EXISTS_USERS.Checked, CProgress))
                         c.UpdateUsersStats()
-                        RaiseEvent OnDownloadDone($"Channel [{c.Name}] downloaded")
+                        RaiseEvent OnDownloadDone(SettingsCLS.NotificationObjects.Channels, $"Channel [{c.Name}] downloaded")
                         Token.ThrowIfCancellationRequested()
                     End If
                 End If
@@ -424,82 +514,6 @@ Friend Class ChannelViewForm : Implements IChannelLimits
         If Not TokenSource Is Nothing Then TokenSource.Cancel() : BTT_STOP.Enabled = False
     End Sub
 #End Region
-    Private Sub BTT_ADD_USERS_Click(sender As Object, e As EventArgs) Handles BTT_ADD_USERS.Click
-        AppendPendingUsers()
-        Dim i%
-        If LIST_POSTS.CheckedItems.Count > 0 Then
-            For i = 0 To LIST_POSTS.Items.Count - 1
-                If LIST_POSTS.Items(i).Checked Then LIST_POSTS.Items(i).Checked = False
-            Next
-        End If
-        If PendingUsers.Count > 0 Then
-            Dim Added% = 0, Skipped% = 0
-            Dim StartIndex% = Settings.Users.Count
-            Dim f As SFile
-            Dim umo As Boolean = HOST.GetUserMediaOnly
-            Settings.Labels.Add(CannelsLabelName)
-            Settings.Labels.Add(LabelsKeeper.NoParsedUser)
-            Dim rUsers$() = UserBanned(PendingUsers.Select(Function(u) u.ID).ToArray)
-            If rUsers.ListExists Then PendingUsers.RemoveAll(Function(u) rUsers.Contains(u))
-            If PendingUsers.Count > 0 Then
-                Dim c As New ListAddParams(LAP.NotContainsOnly)
-                Dim cn$
-                Dim tmpUser As IUserData
-                With PendingUsers.Select(Function(u) New UserInfo(u, HOST))
-                    For i = 0 To .Count - 1
-                        If Not Settings.UsersList.Contains(.ElementAt(i)) Then
-                            f = PendingUsers(i).File
-                            cn = If(PendingUsers(i).Channel?.Name, String.Empty)
-                            Settings.UpdateUsersList(.ElementAt(i))
-                            tmpUser = HOST.GetInstance(Plugin.ISiteSettings.Download.Main, .ElementAt(i), False)
-                            With DirectCast(tmpUser, UserData)
-                                .Temporary = Settings.ChannelsDefaultTemporary
-                                .CreatedByChannel = True
-                                .ReadyForDownload = Settings.ChannelsDefaultReadyForDownload
-                                .ParseUserMediaOnly = umo
-                            End With
-                            Settings.Users.Add(tmpUser)
-                            With Settings.Users.Last
-                                .Labels.Add(CannelsLabelName)
-                                .UpdateUserInformation()
-                                If Settings.FromChannelCopyImageToUser And Not f.IsEmptyString And Not .File.IsEmptyString Then _
-                                   CopyFile(ListAddValue(Nothing, New ChannelsCollection.ChannelImage(cn, f)).ListAddList(Settings.Channels.GetUserFiles(.Name), c), .File)
-                            End With
-                            Added += 1
-                        Else
-                            Skipped += 1
-                        End If
-                    Next
-                End With
-            End If
-            PendingUsers.Clear()
-            BTT_ADD_USERS.Text = "Add"
-            MsgBoxE($"Added users: {Added.ToString(CProvider)}{vbCr}Skipped users: {Skipped.ToString(CProvider)}{vbCr}Total: {PendingUsers.Count.ToString(CProvider)}")
-            RaiseEvent OnUsersAdded(StartIndex)
-            Settings.Channels.UpdateUsersStats()
-        Else
-            MsgBoxE("No one users selected for add to collection")
-        End If
-    End Sub
-    Private Sub CopyFile(ByVal Source As IEnumerable(Of ChannelsCollection.ChannelImage), ByVal Destination As SFile)
-        Try
-            If Source.ListExists And Not Destination.IsEmptyString Then
-                Destination = Destination.CutPath.PathWithSeparator & "ChannelImage\"
-                Dim f As SFile
-                Dim i% = 0
-                If Destination.Exists(SFO.Path) Then
-                    For Each ff As ChannelsCollection.ChannelImage In Source
-                        f = Destination
-                        f.Extension = ff.File.Extension
-                        f.Name = $"{IIf(i = 0, "!", String.Empty)}{ff.Channel}_{ff.File.Name}"
-                        If ff.File.Exists Then IO.File.Copy(ff.File, f)
-                        i += 1
-                    Next
-                End If
-            End If
-        Catch ex As Exception
-        End Try
-    End Sub
 #Region "Limits changer"
     Private Sub OPT_LIMITS_DEFAULT_CheckedChanged(sender As Object, e As EventArgs) Handles OPT_LIMITS_DEFAULT.CheckedChanged
         If OPT_LIMITS_DEFAULT.Checked Then
@@ -624,19 +638,20 @@ Friend Class ChannelViewForm : Implements IChannelLimits
         End If
     End Sub
     Private Sub AddNewChannel()
-        Dim c$ = InputBoxE("Enter Reddit channel:", "New channel")
+        Const MsgTitle$ = "Add channel"
+        Dim c$ = InputBoxE("Enter Reddit channel ID:", "New channel")
         If Not c.IsEmptyString Then
             Dim cc As New Channel With {.Name = c, .ID = c}
             If Settings.Channels.Count = 0 OrElse Not Settings.Channels.Contains(cc) Then
                 Settings.Channels.Add(cc)
                 Settings.Channels.Last.Save()
                 RefillChannels()
-                MsgBoxE($"Channel [{c}] added")
+                MsgBoxE({$"Channel [{c}] added", MsgTitle})
             Else
-                MsgBoxE($"Channel [{c}] already exists")
+                MsgBoxE({$"Channel [{c}] already exists", MsgTitle})
             End If
         Else
-            MsgBoxE("You doesn't enter channel name. Operation canceled.", MsgBoxStyle.Exclamation)
+            MsgBoxE({"You didn't enter a channel name. Operation canceled.", MsgTitle}, MsgBoxStyle.Exclamation)
         End If
     End Sub
     Private Sub ChangeComboIndex(ByVal Appender As Integer)
@@ -651,7 +666,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
                 Else
                     If i < 0 Then i = 0
                     i += Appender
-                    If i >= 0 And i <= CMB_CHANNELS.Count - 1 And Not CMB_CHANNELS.SelectedIndex = i Then CMB_CHANNELS.SelectedIndex = i
+                    If i.ValueBetween(0, CMB_CHANNELS.Count - 1) And Not CMB_CHANNELS.SelectedIndex = i Then CMB_CHANNELS.SelectedIndex = i
                 End If
                 i = CMB_CHANNELS.SelectedIndex
                 Dim c% = CMB_CHANNELS.Count - 1
@@ -665,6 +680,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
         End Try
     End Sub
 #End Region
+#Region "Toolbar controls"
     Private Sub CH_HIDE_EXISTS_USERS_CheckedChanged(sender As Object, e As EventArgs) Handles CH_HIDE_EXISTS_USERS.CheckedChanged
         If Not MyDefs.Initializing Then
             Settings.ChannelsHideExistsUser.Value = CH_HIDE_EXISTS_USERS.Checked
@@ -726,9 +742,9 @@ Friend Class ChannelViewForm : Implements IChannelLimits
                     End If
                 End With
                 If uRemoved Then
-                    MsgBoxE($"User [{u}] was successfully removed")
+                    MsgBoxE($"User [{u}] has been successfully removed")
                 Else
-                    MsgBoxE($"User [{u}] was not added to selected users")
+                    MsgBoxE($"User [{u}] is not added to the selected users")
                 End If
                 BTT_ADD_USERS.Text = $"Add ({PendingUsers.Count.ToString(CProvider)})"
             Else
@@ -770,6 +786,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
         End Try
     End Sub
 #End Region
+#Region "Additional functions: OpenPostPicture, GetPostBySelected"
     Private Sub OpenPostPicture()
         Dim f As SFile = GetPostBySelected().CachedFile
         If f.Exists Then f.Open() Else MsgBoxE($"Picture file [{f}] not found", MsgBoxStyle.Critical)
@@ -790,15 +807,13 @@ Friend Class ChannelViewForm : Implements IChannelLimits
         End Try
         Return p
     End Function
+#End Region
+#Region "List handlers"
     Private Sub LIST_POSTS_MouseDoubleClick(sender As Object, e As MouseEventArgs) Handles LIST_POSTS.MouseDoubleClick
         OpenPostPicture()
     End Sub
+#End Region
 #Region "MyRange"
-    Private Sub ImagesCountChanged(ByVal Sender As Object, ByVal _Name As String, ByVal _Value As Object)
-        AppendPendingUsers()
-        MyRange.Limit = ImagesInRow * ImagesRows
-        MyRange.GoTo(0)
-    End Sub
     Private Sub MyRange_IndexChanged(ByVal Sender As Object, ByVal e As EventArgs) Handles MyRange.IndexChanged
         Try
             If MyDefs.Initializing Then Exit Sub

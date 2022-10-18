@@ -1,4 +1,4 @@
-﻿' Copyright (C) 2022  Andy
+﻿' Copyright (C) 2023  Andy https://github.com/AAndyProgram
 ' This program is free software: you can redistribute it and/or modify
 ' it under the terms of the GNU General Public License as published by
 ' the Free Software Foundation, either version 3 of the License, or
@@ -7,12 +7,15 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports System.ComponentModel
-Imports PersonalUtilities.Forms
 Imports SCrawler.API.Base
+Imports PersonalUtilities.Forms
 Namespace DownloadObjects
     Friend Class DownloadedInfoForm
+#Region "Events"
         Friend Event UserFind(ByVal Key As String)
-        Private MyView As FormsView
+#End Region
+#Region "Declarations"
+        Private MyView As FormView
         Private ReadOnly LParams As New ListAddParams(LAP.IgnoreICopier) With {.Error = EDP.None}
         Private Opened As Boolean = False
         Friend ReadOnly Property ReadyToOpen As Boolean
@@ -33,7 +36,9 @@ Namespace DownloadObjects
             End Set
         End Property
         Private ReadOnly _TempUsersList As List(Of IUserData)
-        Friend Sub New()
+#End Region
+#Region "Initializer"
+        Public Sub New()
             InitializeComponent()
             _TempUsersList = New List(Of IUserData)
             If Settings.InfoViewMode.Value = CInt(ViewModes.All) Then
@@ -46,12 +51,14 @@ Namespace DownloadObjects
             Settings.InfoViewMode.Value = ViewMode
             RefillList()
         End Sub
+#End Region
+#Region "Form handlers"
         Private Sub DownloadedInfoForm_Load(sender As Object, e As EventArgs) Handles Me.Load
             Try
                 If MyView Is Nothing Then
-                    MyView = New FormsView(Me)
-                    MyView.ImportFromXML(Settings.Design)
-                    MyView.SetMeSize()
+                    MyView = New FormView(Me)
+                    MyView.Import(Settings.Design)
+                    MyView.SetFormSize()
                 End If
                 BTT_CLEAR.Visible = ViewMode = ViewModes.Session
                 RefillList()
@@ -80,6 +87,8 @@ Namespace DownloadObjects
             End Select
             If b Then e.Handled = True
         End Sub
+#End Region
+#Region "Refill"
         Private Class UsersDateOrder : Implements IComparer(Of IUserData)
             Friend Function Compare(ByVal x As IUserData, ByVal y As IUserData) As Integer Implements IComparer(Of IUserData).Compare
                 Dim xv& = If(DirectCast(x, UserDataBase).LastUpdated.HasValue, DirectCast(x, UserDataBase).LastUpdated.Value.Ticks, 0)
@@ -87,7 +96,7 @@ Namespace DownloadObjects
                 Return xv.CompareTo(yv) * -1
             End Function
         End Class
-        Private Sub RefillList()
+        Private Sub RefillList() Handles BTT_REFRESH.Click
             Try
                 _TempUsersList.Clear()
                 Dim lClear As Action = Sub() LIST_DOWN.Items.Clear()
@@ -122,6 +131,8 @@ Namespace DownloadObjects
                 UpdateNavigationButtons(Nothing)
             End Try
         End Sub
+#End Region
+#Region "Toolbar controls"
         Private Sub MENU_VIEW_SESSION_Click(sender As Object, e As EventArgs) Handles MENU_VIEW_SESSION.Click
             MENU_VIEW_SESSION.Checked = True
             MENU_VIEW_ALL.Checked = False
@@ -134,9 +145,6 @@ Namespace DownloadObjects
             MENU_VIEW_ALL.Checked = True
             ViewMode = ViewModes.All
             BTT_CLEAR.Visible = False
-            RefillList()
-        End Sub
-        Private Sub BTT_REFRESH_Click(sender As Object, e As EventArgs) Handles BTT_REFRESH.Click
             RefillList()
         End Sub
         Private Sub BTT_FIND_Click(sender As Object, e As EventArgs) Handles BTT_FIND.Click
@@ -154,6 +162,8 @@ Namespace DownloadObjects
                 RefillList()
             End If
         End Sub
+#End Region
+#Region "List handlers"
         Private _LatestSelected As Integer = -1
         Private Sub LIST_DOWN_SelectedIndexChanged(sender As Object, e As EventArgs) Handles LIST_DOWN.SelectedIndexChanged
             _LatestSelected = LIST_DOWN.SelectedIndex
@@ -166,9 +176,8 @@ Namespace DownloadObjects
             Catch
             End Try
         End Sub
-        Friend Sub Downloader_DownloadCountChange()
-            If ViewMode = ViewModes.Session Then RefillList()
-        End Sub
+#End Region
+#Region "Navigation"
         Private Sub BTT_UP_Click(sender As Object, e As EventArgs) Handles BTT_UP.Click
             UpdateNavigationButtons(-1)
         End Sub
@@ -195,5 +204,11 @@ Namespace DownloadObjects
                 End If
             End With
         End Sub
+#End Region
+#Region "Downloader handlers"
+        Friend Sub Downloader_DownloadCountChange()
+            If ViewMode = ViewModes.Session Then RefillList()
+        End Sub
+#End Region
     End Class
 End Namespace

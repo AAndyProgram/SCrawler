@@ -1,4 +1,4 @@
-﻿' Copyright (C) 2022  Andy
+﻿' Copyright (C) 2023  Andy https://github.com/AAndyProgram
 ' This program is free software: you can redistribute it and/or modify
 ' it under the terms of the GNU General Public License as published by
 ' the Free Software Foundation, either version 3 of the License, or
@@ -68,16 +68,7 @@ Namespace API.Reddit
             End With
             MyDefs.CloseForm()
         End Sub
-        Private Sub OPT_VIEW_MODE_NEW_CheckedChanged(sender As Object, e As EventArgs) Handles OPT_VIEW_MODE_NEW.CheckedChanged
-            ChangePeriodEnabled()
-        End Sub
-        Private Sub OPT_VIEW_MODE_HOT_CheckedChanged(sender As Object, e As EventArgs) Handles OPT_VIEW_MODE_HOT.CheckedChanged
-            ChangePeriodEnabled()
-        End Sub
-        Private Sub OPT_VIEW_MODE_TOP_CheckedChanged(sender As Object, e As EventArgs) Handles OPT_VIEW_MODE_TOP.CheckedChanged
-            ChangePeriodEnabled()
-        End Sub
-        Private Sub ChangePeriodEnabled()
+        Private Sub ChangePeriodEnabled() Handles OPT_VIEW_MODE_NEW.CheckedChanged, OPT_VIEW_MODE_HOT.CheckedChanged, OPT_VIEW_MODE_TOP.CheckedChanged
             TP_PERIOD.Enabled = OPT_VIEW_MODE_TOP.Checked
         End Sub
     End Class

@@ -1,4 +1,4 @@
-﻿' Copyright (C) 2022  Andy
+﻿' Copyright (C) 2023  Andy https://github.com/AAndyProgram
 ' This program is free software: you can redistribute it and/or modify
 ' it under the terms of the GNU General Public License as published by
 ' the Free Software Foundation, either version 3 of the License, or
@@ -39,7 +39,7 @@ Namespace Editors
             'CONTAINER_MAIN.ContentPanel
             '
             CONTAINER_MAIN.ContentPanel.Controls.Add(Me.CMB_SITES)
-            CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(284, 276)
+            CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(284, 251)
             CONTAINER_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
             CONTAINER_MAIN.LeftToolStripPanelVisible = False
             CONTAINER_MAIN.Location = New System.Drawing.Point(0, 0)
@@ -68,7 +68,7 @@ Namespace Editors
             Me.CMB_SITES.ListMultiSelect = True
             Me.CMB_SITES.Location = New System.Drawing.Point(0, 0)
             Me.CMB_SITES.Name = "CMB_SITES"
-            Me.CMB_SITES.Size = New System.Drawing.Size(286, 277)
+            Me.CMB_SITES.Size = New System.Drawing.Size(286, 252)
             Me.CMB_SITES.TabIndex = 0
             '
             'SiteSelectionForm
@@ -95,7 +95,6 @@ Namespace Editors
             Me.ResumeLayout(False)
 
         End Sub
-
         Private WithEvents CMB_SITES As PersonalUtilities.Forms.Controls.ComboBoxExtended
     End Class
 End Namespace

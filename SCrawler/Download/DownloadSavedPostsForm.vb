@@ -1,4 +1,4 @@
-﻿' Copyright (C) 2022  Andy
+﻿' Copyright (C) 2023  Andy https://github.com/AAndyProgram
 ' This program is free software: you can redistribute it and/or modify
 ' it under the terms of the GNU General Public License as published by
 ' the Free Software Foundation, either version 3 of the License, or
@@ -7,24 +7,18 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports System.ComponentModel
-Imports PersonalUtilities.Forms
 Imports SCrawler.DownloadObjects
 Imports SCrawler.Plugin.Hosts
+Imports PersonalUtilities.Forms
 Friend Class DownloadSavedPostsForm
     Friend Event DownloadDone As NotificationEventHandler
-    Private MyView As FormsView
+    Private MyView As FormView
     Private ReadOnly JobsList As List(Of DownloadProgress)
     Friend ReadOnly Property Working As Boolean
         Get
             Return JobsList.Count > 0 AndAlso JobsList.Exists(Function(j) j.Job.Working)
         End Get
     End Property
-    Friend Sub [Stop]()
-        If JobsList.Count > 0 Then JobsList.ForEach(Sub(j) j.Stop())
-    End Sub
-    Private Sub [Start]()
-        If JobsList.Count > 0 Then JobsList.ForEach(Sub(j) j.Start())
-    End Sub
     Friend Sub New()
         InitializeComponent()
         JobsList = New List(Of DownloadProgress)
@@ -40,9 +34,9 @@ Friend Class DownloadSavedPostsForm
         End If
     End Sub
     Private Sub DownloadSavedPostsForm_Load(sender As Object, e As EventArgs) Handles Me.Load
-        MyView = New FormsView(Me) With {.LocationOnly = True}
-        MyView.ImportFromXML(Settings.Design)
-        MyView.SetMeSize()
+        MyView = New FormView(Me) With {.LocationOnly = True}
+        MyView.Import(Settings.Design)
+        MyView.SetFormSize()
         If JobsList.Count > 0 Then
             For Each j As DownloadProgress In JobsList
                 AddHandler j.DownloadDone, AddressOf Jobs_DownloadDone
@@ -65,13 +59,13 @@ Friend Class DownloadSavedPostsForm
         [Stop]()
         MyView.Dispose(Settings.Design)
     End Sub
-    Private Sub Jobs_DownloadDone(ByVal Message As String)
-        RaiseEvent DownloadDone(Message)
+    Private Sub [Start]() Handles BTT_DOWN_ALL.Click
+        If JobsList.Count > 0 Then JobsList.ForEach(Sub(j) j.Start())
     End Sub
-    Private Sub BTT_DOWN_ALL_Click(sender As Object, e As EventArgs) Handles BTT_DOWN_ALL.Click
-        Start()
+    Friend Sub [Stop]() Handles BTT_STOP_ALL.Click
+        If JobsList.Count > 0 Then JobsList.ForEach(Sub(j) j.Stop())
     End Sub
-    Private Sub BTT_STOP_ALL_Click(sender As Object, e As EventArgs) Handles BTT_STOP_ALL.Click
-        [Stop]()
+    Private Sub Jobs_DownloadDone(ByVal Obj As SettingsCLS.NotificationObjects, ByVal Message As String)
+        RaiseEvent DownloadDone(SettingsCLS.NotificationObjects.SavedPosts, Message)
     End Sub
 End Class

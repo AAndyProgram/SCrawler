@@ -1,4 +1,4 @@
-﻿' Copyright (C) 2022  Andy
+﻿' Copyright (C) 2023  Andy https://github.com/AAndyProgram
 ' This program is free software: you can redistribute it and/or modify
 ' it under the terms of the GNU General Public License as published by
 ' the Free Software Foundation, either version 3 of the License, or
@@ -12,18 +12,18 @@ Imports SCrawler.Plugin.Attributes
 Imports PersonalUtilities.Tools.WEB
 Imports PersonalUtilities.Functions.RegularExpressions
 Namespace API.Twitter
-    <Manifest("AndyProgram_Twitter"), SavedPosts, UseClassAsIs>
+    <Manifest("AndyProgram_Twitter"), SavedPosts>
     Friend Class SiteSettings : Inherits SiteSettingsBase
         Friend Const Header_Authorization As String = "authorization"
         Friend Const Header_Token As String = "x-csrf-token"
         Friend Overrides ReadOnly Property Icon As Icon
             Get
-                Return My.Resources.TwitterIcon
+                Return My.Resources.SiteResources.TwitterIcon_32
             End Get
         End Property
         Friend Overrides ReadOnly Property Image As Image
             Get
-                Return My.Resources.TwitterPic400
+                Return My.Resources.SiteResources.TwitterPic_400
             End Get
         End Property
         <PropertyOption(AllowNull:=False, ControlText:="Authorization",
@@ -100,11 +100,14 @@ Namespace API.Twitter
                 Return New UserData
             End If
         End Function
-        Friend Overrides Function GetSpecialDataF(ByVal URL As String) As IEnumerable(Of UserMedia)
+        Friend Overrides Function GetSpecialData(ByVal URL As String, ByVal Path As String, ByVal AskForPath As Boolean) As IEnumerable
             Return UserData.GetVideoInfo(URL, Responser)
         End Function
         Friend Overrides Function GetUserPostUrl(ByVal UserID As String, ByVal PostID As String) As String
             Return $"https://twitter.com/{UserID}/status/{PostID}"
+        End Function
+        Friend Overrides Function BaseAuthExists() As Boolean
+            Return If(Responser.Cookies?.Count, 0) > 0 And ACheck(Token.Value) And ACheck(Auth.Value)
         End Function
     End Class
 End Namespace

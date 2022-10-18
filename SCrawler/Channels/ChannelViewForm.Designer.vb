@@ -1,4 +1,12 @@
-﻿<Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()>
+﻿' Copyright (C) 2023  Andy https://github.com/AAndyProgram
+' This program is free software: you can redistribute it and/or modify
+' it under the terms of the GNU General Public License as published by
+' the Free Software Foundation, either version 3 of the License, or
+' (at your option) any later version.
+'
+' This program is distributed in the hope that it will be useful,
+' but WITHOUT ANY WARRANTY
+<Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()>
 Partial Friend Class ChannelViewForm : Inherits System.Windows.Forms.Form
     <System.Diagnostics.DebuggerNonUserCode()>
     Protected Overrides Sub Dispose(ByVal disposing As Boolean)
@@ -17,7 +25,6 @@ Partial Friend Class ChannelViewForm : Inherits System.Windows.Forms.Form
         Dim SEP_1 As System.Windows.Forms.ToolStripSeparator
         Dim CONTEXT_SEP_1 As System.Windows.Forms.ToolStripSeparator
         Dim CONTEXT_SEP_2 As System.Windows.Forms.ToolStripSeparator
-        Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(ChannelViewForm))
         Me.TT_MAIN = New System.Windows.Forms.ToolTip(Me.components)
         Me.ToolbarTOP = New System.Windows.Forms.ToolStrip()
         Me.BTT_DOWNLOAD = New System.Windows.Forms.ToolStripButton()
@@ -69,7 +76,7 @@ Partial Friend Class ChannelViewForm : Inherits System.Windows.Forms.Form
         'BTT_DOWNLOAD
         '
         Me.BTT_DOWNLOAD.AutoToolTip = False
-        Me.BTT_DOWNLOAD.Image = Global.SCrawler.My.Resources.Resources.StartPic_01_Green_16
+        Me.BTT_DOWNLOAD.Image = Global.SCrawler.My.Resources.Resources.StartPic_Green_16
         Me.BTT_DOWNLOAD.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.BTT_DOWNLOAD.Name = "BTT_DOWNLOAD"
         Me.BTT_DOWNLOAD.Size = New System.Drawing.Size(104, 22)
@@ -78,7 +85,7 @@ Partial Friend Class ChannelViewForm : Inherits System.Windows.Forms.Form
         'BTT_STOP
         '
         Me.BTT_STOP.Enabled = False
-        Me.BTT_STOP.Image = Global.SCrawler.My.Resources.Resources.Delete
+        Me.BTT_STOP.Image = Global.SCrawler.My.Resources.Resources.DeletePic_24
         Me.BTT_STOP.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.BTT_STOP.Name = "BTT_STOP"
         Me.BTT_STOP.Size = New System.Drawing.Size(51, 22)
@@ -87,7 +94,7 @@ Partial Friend Class ChannelViewForm : Inherits System.Windows.Forms.Form
         '
         'BTT_ADD_USERS
         '
-        Me.BTT_ADD_USERS.Image = Global.SCrawler.My.Resources.Resources.PlusPIC
+        Me.BTT_ADD_USERS.Image = Global.SCrawler.My.Resources.Resources.PlusPic_24
         Me.BTT_ADD_USERS.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.BTT_ADD_USERS.Name = "BTT_ADD_USERS"
         Me.BTT_ADD_USERS.Size = New System.Drawing.Size(49, 22)
@@ -177,7 +184,7 @@ Partial Friend Class ChannelViewForm : Inherits System.Windows.Forms.Form
         Me.Controls.Add(Me.LIST_POSTS)
         Me.Controls.Add(Me.ToolbarBOTTOM)
         Me.Controls.Add(Me.ToolbarTOP)
-        Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
+        Me.Icon = Global.SCrawler.My.Resources.SiteResources.RedditIcon_128
         Me.KeyPreview = True
         Me.MinimumSize = New System.Drawing.Size(760, 500)
         Me.Name = "ChannelViewForm"

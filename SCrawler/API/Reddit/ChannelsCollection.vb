@@ -1,4 +1,4 @@
-﻿' Copyright (C) 2022  Andy
+﻿' Copyright (C) 2023  Andy https://github.com/AAndyProgram
 ' This program is free software: you can redistribute it and/or modify
 ' it under the terms of the GNU General Public License as published by
 ' the Free Software Foundation, either version 3 of the License, or
@@ -6,10 +6,10 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
+Imports System.Threading
+Imports SCrawler.API.Base
 Imports PersonalUtilities.Tools
 Imports PersonalUtilities.Forms.Toolbars
-Imports SCrawler.API.Base
-Imports System.Threading
 Namespace API.Reddit
     Friend Class ChannelsCollection : Implements ICollection(Of Channel), IMyEnumerator(Of Channel), IChannelLimits, IDisposable
         Friend Shared ReadOnly Property ChannelsPath As SFile

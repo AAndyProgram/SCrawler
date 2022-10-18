@@ -1,4 +1,4 @@
-﻿' Copyright (C) 2022  Andy
+﻿' Copyright (C) 2023  Andy https://github.com/AAndyProgram
 ' This program is free software: you can redistribute it and/or modify
 ' it under the terms of the GNU General Public License as published by
 ' the Free Software Foundation, either version 3 of the License, or
@@ -8,9 +8,9 @@
 ' but WITHOUT ANY WARRANTY
 Imports PersonalUtilities.Functions.XML.Base
 Imports PersonalUtilities.Functions.RegularExpressions
+Imports PersonalUtilities.Forms.Toolbars
 Imports PersonalUtilities.Tools
 Imports PersonalUtilities.Tools.WEB
-Imports PersonalUtilities.Forms.Toolbars
 Imports SCrawler.API
 Imports SCrawler.API.Base
 Imports SCrawler.Plugin.Hosts
@@ -20,7 +20,7 @@ Friend Module MainMod
     Friend Const SettingsFolderName As String = "Settings"
     Friend ReadOnly LinkPattern As RParams = RParams.DMS("[htps:]{0,6}[/]{0,2}(.+)", 1)
     Friend ReadOnly FilesPattern As RParams = RParams.DM("[^\./]+?\.\w+", 1, EDP.ReturnValue)
-    Friend Delegate Sub NotificationEventHandler(ByVal Message As String)
+    Friend Delegate Sub NotificationEventHandler(ByVal Sender As SettingsCLS.NotificationObjects, ByVal Message As String)
     Friend Const LVI_TempOption As String = "Temp"
     Friend Const LVI_FavOption As String = "Favorite"
     Friend Const CannelsLabelName As String = "Channels"
@@ -148,18 +148,6 @@ Friend Module MainMod
         If Not (Not b.IsEmptyString AndAlso b.Length > 4 AndAlso b.StartsWith("http")) Then b = String.Empty
         Return b
     End Function
-    Friend Function GetNewVideoURL() As String
-        Dim URL$ = InputBoxE("Enter video URL:", "Download video by URL", GetCurrentBuffer())
-        If Not URL.IsEmptyString Then Return URL Else Return String.Empty
-    End Function
-    Friend Sub DownloadVideoByURL()
-        If VideoDownloader Is Nothing Then VideoDownloader = New VideosDownloaderForm
-        If VideoDownloader.Visible Then
-            VideoDownloader.BringToFront()
-        Else
-            VideoDownloader.Show()
-        End If
-    End Sub
     Friend Function DownloadVideoByURL(ByVal URL As String, ByVal AskForPath As Boolean, ByVal Silent As Boolean) As Boolean
         Dim e As New ErrorsDescriber(Not Silent, Not Silent, True, False)
         Try
@@ -175,8 +163,7 @@ Friend Module MainMod
                             um = Settings(d.HostKey).GetSpecialData(URL, Settings.LatestSavingPath.Value, AskForPath)
                             found = True
                             If um.ListExists Then
-                                If AskForPath And Not um(0).SpecialFolder.IsEmptyString And Not p.Settings.IsMyClass Then _
-                                   Settings.LatestSavingPath.Value = um(0).SpecialFolder
+                                If AskForPath And Not um(0).SpecialFolder.IsEmptyString Then Settings.LatestSavingPath.Value = um(0).SpecialFolder
                                 If um(0).State = UserMedia.States.Downloaded Then Return True
                             End If
                             Exit For
@@ -209,12 +196,12 @@ Friend Module MainMod
                             If AskForPath OrElse Not f.Exists(SFO.Path, False) Then
 #Disable Warning BC40000
                                 ff = SFile.SaveAs(f, "Files destination",,,, EDP.ReturnValue)
+#Enable Warning
                                 If Not ff.IsEmptyString Then
                                     f.Path = ff.Path
                                 Else
                                     f = Nothing
                                 End If
-#Enable Warning
                                 AskForPath = False
                             End If
                             If Not f.IsEmptyString Then

@@ -1,4 +1,12 @@
-﻿Namespace Editors
+﻿' Copyright (C) 2023  Andy https://github.com/AAndyProgram
+' This program is free software: you can redistribute it and/or modify
+' it under the terms of the GNU General Public License as published by
+' the Free Software Foundation, either version 3 of the License, or
+' (at your option) any later version.
+'
+' This program is distributed in the hope that it will be useful,
+' but WITHOUT ANY WARRANTY
+Namespace Editors
     <Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()>
     Partial Friend Class SiteEditorForm : Inherits System.Windows.Forms.Form
         <System.Diagnostics.DebuggerNonUserCode()>
@@ -29,8 +37,8 @@
             Me.TP_SITE_PROPS = New SCrawler.Editors.SiteDefaults()
             Me.TXT_PATH_SAVED_POSTS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.CH_GET_USER_MEDIA_ONLY = New System.Windows.Forms.CheckBox()
-            Me.TT_MAIN = New System.Windows.Forms.ToolTip(Me.components)
             Me.CH_DOWNLOAD_SITE_DATA = New System.Windows.Forms.CheckBox()
+            Me.TT_MAIN = New System.Windows.Forms.ToolTip(Me.components)
             CONTAINER_MAIN = New System.Windows.Forms.ToolStripContainer()
             CONTAINER_MAIN.ContentPanel.SuspendLayout()
             CONTAINER_MAIN.SuspendLayout()

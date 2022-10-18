@@ -1,4 +1,4 @@
-﻿' Copyright (C) 2022  Andy
+﻿' Copyright (C) 2023  Andy https://github.com/AAndyProgram
 ' This program is free software: you can redistribute it and/or modify
 ' it under the terms of the GNU General Public License as published by
 ' the Free Software Foundation, either version 3 of the License, or
@@ -32,25 +32,26 @@ Friend Class ChannelsStatsForm
         End If
     End Sub
     Private Sub MyDefs_ButtonDeleteClickOC(ByVal Sender As Object, ByVal e As KeyHandleEventArgs) Handles MyDefs.ButtonDeleteClickOC
+        Const MsgTitle$ = "Deleting channels"
         Try
             Dim c As List(Of String) = CMB_CHANNELS.Items.CheckedItems.Select(Function(cc) CStr(cc.Value(1))).ListIfNothing
             If c.ListExists Then
-                If MsgBoxE({$"The following channels will be deleted:{vbCr}{c.ListToString(vbCr)}", "Deleting channels"}, vbExclamation,,, {"Confirm", "Cancel"}) = 0 Then
+                If MsgBoxE({$"The following channels will be deleted:{vbCr}{c.ListToString(vbCr)}", MsgTitle}, vbExclamation,,, {"Confirm", "Cancel"}) = 0 Then
                     For Each CID$ In c : Settings.Channels.Remove(Settings.Channels.Find(CID)) : Next
                     MyMainLOG = $"Deleted channels:{vbNewLine}{c.ListToString(vbNewLine)}"
-                    MsgBoxE("Channels deleted")
+                    MsgBoxE({"Channels deleted", MsgTitle})
                     DeletedChannels += c.Count
                     c.Clear()
                     MyDefs.ChangesDetected = False
                     RefillList()
                 Else
-                    MsgBoxE("Operation canceled")
+                    MsgBoxE({"Operation canceled", MsgTitle})
                 End If
             Else
-                MsgBoxE("No one channel checked", vbExclamation)
+                MsgBoxE({"No channels marked for deletion", MsgTitle}, vbExclamation)
             End If
         Catch ex As Exception
-            ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Deleting channels")
+            ErrorsDescriber.Execute(EDP.LogMessageValue, ex, MsgTitle)
         End Try
     End Sub
     Private Sub CMB_CHANNELS_ActionOnChangeDetected(ByVal c As Boolean) Handles CMB_CHANNELS.ActionOnChangeDetected

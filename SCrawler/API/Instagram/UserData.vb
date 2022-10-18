@@ -1,4 +1,4 @@
-﻿' Copyright (C) 2022  Andy
+﻿' Copyright (C) 2023  Andy https://github.com/AAndyProgram
 ' This program is free software: you can redistribute it and/or modify
 ' it under the terms of the GNU General Public License as published by
 ' the Free Software Foundation, either version 3 of the License, or
@@ -6,15 +6,14 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
+Imports System.Net
+Imports System.Threading
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.Messaging
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Tools.WEB
 Imports PersonalUtilities.Tools.WebDocuments.JSON
 Imports SCrawler.API.Base
-Imports System.Net
-Imports System.Threading
-Imports System.Reflection
 Imports UTypes = SCrawler.API.Base.UserMedia.Types
 Namespace API.Instagram
     Friend Class UserData : Inherits UserDataBase
@@ -70,41 +69,58 @@ Namespace API.Instagram
         End Sub
 #End Region
 #Region "Download data"
+        Private E560Thrown As Boolean = False
         Private Class ExitException : Inherits Exception
+            Friend Shared Sub Throw560(ByRef Source As UserData)
+                If Not Source.E560Thrown Then
+                    MyMainLOG = $"{Source.ToStringForLog}: (560) Download skipped until next session"
+                    Source.E560Thrown = True
+                End If
+                Throw New ExitException
+            End Sub
+            Friend Sub New()
+            End Sub
             Friend Sub New(ByRef CompleteArg As Boolean)
                 CompleteArg = True
             End Sub
         End Class
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
+            Dim s As Sections = Sections.Timeline
             Try
+                ThrowAny(Token)
                 _InstaHash = String.Empty
                 HasError = False
-                If Not LastCursor.IsEmptyString Then
-                    DownloadData(LastCursor, Sections.Timeline, Token)
+                Dim fc As Boolean = IIf(IsSavedPosts, MySiteSettings.DownloadSaved.Value, MySiteSettings.DownloadTimeline.Value)
+                If fc And Not LastCursor.IsEmptyString Then
+                    s = IIf(IsSavedPosts, Sections.SavedPosts, Sections.Timeline)
+                    DownloadData(LastCursor, s, Token)
                     ThrowAny(Token)
                     If Not HasError Then FirstLoadingDone = True
                 End If
-                If Not HasError Then
-                    DownloadData(String.Empty, Sections.Timeline, Token)
+                If fc And Not HasError Then
+                    s = IIf(IsSavedPosts, Sections.SavedPosts, Sections.Timeline)
+                    DownloadData(String.Empty, s, Token)
                     ThrowAny(Token)
                     If Not HasError Then FirstLoadingDone = True
                 End If
                 If FirstLoadingDone Then LastCursor = String.Empty
                 If IsSavedPosts Then
-                    DownloadPosts(Token)
-                ElseIf MySiteSettings.BaseAuthExists Then
+                    If MySiteSettings.DownloadSaved Then s = Sections.SavedPosts : DownloadPosts(Token)
+                ElseIf MySiteSettings.BaseAuthExists() Then
                     DownloadedTags = 0
-                    If GetStories Then DownloadData(String.Empty, Sections.Stories, Token)
-                    If GetTaggedData Then DownloadData(String.Empty, Sections.Tagged, Token)
+                    If MySiteSettings.DownloadStoriesTagged And GetStories Then s = Sections.Stories : DownloadData(String.Empty, s, Token)
+                    If MySiteSettings.DownloadStoriesTagged And GetTaggedData Then s = Sections.Tagged : DownloadData(String.Empty, s, Token)
                 End If
                 If WaitNotificationMode = WNM.SkipTemp Or WaitNotificationMode = WNM.SkipCurrent Then WaitNotificationMode = WNM.Notify
             Catch eex As ExitException
             Catch ex As Exception
-                ProcessException(ex, Token, "[API.Instagram.UserData.DownloadDataF", False)
+                ProcessException(ex, Token, "[API.Instagram.UserData.DownloadDataF]", False, s)
+            Finally
+                E560Thrown = False
             End Try
         End Sub
         Private _InstaHash As String = String.Empty
-        Private Enum Sections : Timeline : Tagged : Stories : End Enum
+        Private Enum Sections : Timeline : Tagged : Stories : SavedPosts : End Enum
         Private Const StoriesFolder As String = "Stories"
         Private Const TaggedFolder As String = "Tagged"
 #Region "429 bypass"
@@ -262,7 +278,7 @@ Namespace API.Instagram
 
                         'Create query
                         Select Case Section
-                            Case Sections.Timeline
+                            Case Sections.Timeline, Sections.SavedPosts
                                 Dim vars$ = "{""id"":" & ID & ",""first"":50,""after"":""" & Cursor & """}"
                                 vars = SymbolsConverter.ASCII.EncodeSymbolsOnly(vars)
                                 URL = $"https://www.instagram.com/graphql/query/?query_hash={_InstaHash}&variables={vars}"
@@ -303,7 +319,7 @@ Namespace API.Instagram
                                 n = j.ItemF(ENode).XmlIfNothing
                                 If n.Count > 0 Then
                                     Select Case Section
-                                        Case Sections.Timeline
+                                        Case Sections.Timeline, Sections.SavedPosts
                                             If n.Contains("page_info") Then
                                                 With n("page_info")
                                                     HasNextPage = .Value("has_next_page").FromXML(Of Boolean)(False)
@@ -317,9 +333,7 @@ Namespace API.Instagram
                                                     node = nn(0).XmlIfNothing
                                                     If IsSavedPosts Then
                                                         PostID = node.Value("shortcode")
-                                                        If Not PostID.IsEmptyString Then
-                                                            If _TempPostsList.Contains(PostID) Then Throw New ExitException(_DownloadComplete) 'Else _SavedPostsIDs.Add(PostID)
-                                                        End If
+                                                        If Not PostID.IsEmptyString AndAlso _TempPostsList.Contains(PostID) Then Throw New ExitException(_DownloadComplete)
                                                     End If
                                                     PostID = node.Value("id")
                                                     Pinned = CBool(If(node("pinned_for_users")?.Count, 0))
@@ -373,7 +387,7 @@ Namespace API.Instagram
                     Catch dex As ObjectDisposedException When Disposed
                         Exit Do
                     Catch ex As Exception
-                        If DownloadingException(ex, $"data downloading error [{URL}]", Section, False) = 1 Then Continue Do Else Exit Do
+                        If DownloadingException(ex, $"data downloading error [{URL}]", False, Section) = 1 Then Continue Do Else Exit Do
                     End Try
                 Loop
             Catch eex2 As ExitException
@@ -381,7 +395,7 @@ Namespace API.Instagram
             Catch oex2 As OperationCanceledException When Token.IsCancellationRequested Or oex2.HelpLink = InstAborted
                 If oex2.HelpLink = InstAborted Then HasError = True
             Catch DoEx As Exception
-                ProcessException(DoEx, Token, $"data downloading error [{URL}]")
+                ProcessException(DoEx, Token, $"data downloading error [{URL}]",, Section)
             End Try
         End Sub
         Private Sub DownloadPosts(ByVal Token As CancellationToken)
@@ -432,23 +446,26 @@ Namespace API.Instagram
                             Next
                         End If
                         _DownloadComplete = True
+                    Catch eex As ExitException
+                        Throw eex
                     Catch oex As OperationCanceledException When Token.IsCancellationRequested
                         Exit Do
                     Catch dex As ObjectDisposedException When Disposed
                         Exit Do
                     Catch ex As Exception
-                        If DownloadingException(ex, $"downloading saved posts error [{URL}]") = 1 Then Continue Do Else Exit Do
+                        If DownloadingException(ex, $"downloading saved posts error [{URL}]", False, Sections.SavedPosts) = 1 Then Continue Do Else Exit Do
                     End Try
                 Loop
+            Catch eex2 As ExitException
             Catch oex2 As OperationCanceledException When Token.IsCancellationRequested Or oex2.HelpLink = InstAborted
                 If oex2.HelpLink = InstAborted Then HasError = True
             Catch DoEx As Exception
-                ProcessException(DoEx, Token, $"downloading saved posts error [{URL}]")
+                ProcessException(DoEx, Token, $"downloading saved posts error [{URL}]",, Sections.SavedPosts)
             End Try
         End Sub
 #End Region
 #Region "Code ID converters"
-        Friend Shared Function CodeToID(ByVal Code As String) As String
+        Private Shared Function CodeToID(ByVal Code As String) As String
             Const CodeSymbols$ = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
             Try
                 If Not Code.IsEmptyString Then
@@ -658,7 +675,7 @@ Namespace API.Instagram
                 End If
                 Return Nothing
             Catch ex As Exception
-                DownloadingException(ex, "API.Instagram.GetStoriesList", Sections.Stories, False)
+                DownloadingException(ex, "API.Instagram.GetStoriesList", False, Sections.Stories)
                 Return Nothing
             End Try
         End Function
@@ -669,19 +686,24 @@ Namespace API.Instagram
         End Sub
 #End Region
 #Region "Exceptions"
+        ''' <exception cref="ExitException"></exception>
+        ''' <inheritdoc cref="UserDataBase.ThrowAny(CancellationToken)"/>
+        Friend Overrides Sub ThrowAny(ByVal Token As CancellationToken)
+            If MySiteSettings.SkipUntilNextSession Then ExitException.Throw560(Me)
+            MyBase.ThrowAny(Token)
+        End Sub
         ''' <summary>
-        ''' <inheritdoc cref="UserDataBase.DownloadingException(Exception, String)"/><br/>
+        ''' <inheritdoc cref="UserDataBase.DownloadingException(Exception, String, Boolean, Object)"/><br/>
         ''' 1 - continue
         ''' </summary>
-        Protected Overloads Overrides Function DownloadingException(ByVal ex As Exception, ByVal Message As String, Optional ByVal FromPE As Boolean = False) As Integer
-            Return DownloadingException(ex, Message, Sections.Timeline, FromPE)
-        End Function
-        Private Overloads Function DownloadingException(ByVal ex As Exception, ByVal Message As String, ByVal s As Sections, ByVal FromPE As Boolean) As Integer
+        Protected Overrides Function DownloadingException(ByVal ex As Exception, ByVal Message As String, Optional ByVal FromPE As Boolean = False,
+                                                          Optional ByVal s As Object = Nothing) As Integer
             If Responser.StatusCode = HttpStatusCode.NotFound Then
                 UserExists = False
             ElseIf Responser.StatusCode = HttpStatusCode.BadRequest Then
                 HasError = True
                 MyMainLOG = $"Instagram credentials have expired [{CInt(Responser.StatusCode)}]: {ToString()} [{s}]"
+                DisableSection(s)
             ElseIf Responser.StatusCode = HttpStatusCode.Forbidden And s = Sections.Tagged Then
                 Return 3
             ElseIf Responser.StatusCode = 429 Then
@@ -693,13 +715,27 @@ Namespace API.Instagram
                 Caught429 = True
                 MyMainLOG = $"Number of requests before error 429: {RequestsCount}"
                 Return 1
+            ElseIf Responser.StatusCode = 560 Then
+                MySiteSettings.SkipUntilNextSession = True
             Else
                 MyMainLOG = $"Instagram hash requested [{CInt(Responser.StatusCode)}]: {ToString()} [{s}]"
+                DisableSection(s)
                 If Not FromPE Then LogError(ex, Message) : HasError = True
                 Return 0
             End If
             Return 2
         End Function
+        Private Sub DisableSection(ByVal Section As Object)
+            If Not IsNothing(Section) AndAlso TypeOf Section Is Sections Then
+                Dim s As Sections = DirectCast(Section, Sections)
+                Select Case s
+                    Case Sections.Timeline : MySiteSettings.DownloadTimeline.Value = False
+                    Case Sections.SavedPosts : MySiteSettings.DownloadSaved.Value = False
+                    Case Else : MySiteSettings.DownloadStoriesTagged.Value = False
+                End Select
+                MyMainLOG = $"[{s}] downloading is disabled until you update your credentials".ToUpper
+            End If
+        End Sub
 #End Region
 #Region "Create media"
         Private Shared Function MediaFromData(ByVal t As UTypes, ByVal _URL As String, ByVal PostID As String, ByVal PostDate As String,
@@ -713,14 +749,14 @@ Namespace API.Instagram
         End Function
 #End Region
 #Region "Standalone downloader"
-        Friend Shared Function GetVideoInfo(ByVal URL As String, ByVal r As Response, ByVal _Settings As SiteSettings) As IEnumerable(Of UserMedia)
+        Friend Shared Function GetVideoInfo(ByVal URL As String, ByVal r As Response) As IEnumerable(Of UserMedia)
             Try
                 If Not URL.IsEmptyString AndAlso URL.Contains("instagram.com") Then
                     Dim PID$ = RegexReplace(URL, RParams.DMS(".*?instagram.com/p/([_\w\d]+)", 1))
                     If Not PID.IsEmptyString AndAlso Not ACheck(Of Long)(PID) Then PID = CodeToID(PID)
                     If Not PID.IsEmptyString Then
                         Using t As New UserData
-                            t.SetEnvironment(Settings(_Settings.GetType.GetCustomAttribute(Of Plugin.Attributes.Manifest)().GUID), Nothing, False, False)
+                            t.SetEnvironment(Settings(InstagramSiteKey), Nothing, False, False)
                             t.Responser = New Response
                             t.Responser.Copy(r)
                             t._SavedPostsIDs.Add(PID)
@@ -731,7 +767,7 @@ Namespace API.Instagram
                 End If
                 Return Nothing
             Catch ex As Exception
-                Return ErrorsDescriber.Execute(EDP.ShowMainMsg + EDP.SendInLog, ex, "Instagram standalone downloader: fetch media error")
+                Return ErrorsDescriber.Execute(EDP.ShowMainMsg + EDP.SendInLog, ex, $"Instagram standalone downloader: fetch media error ({URL})")
             End Try
         End Function
 #End Region

@@ -1,4 +1,4 @@
-﻿' Copyright (C) 2022  Andy
+﻿' Copyright (C) 2023  Andy https://github.com/AAndyProgram
 ' This program is free software: you can redistribute it and/or modify
 ' it under the terms of the GNU General Public License as published by
 ' the Free Software Foundation, either version 3 of the License, or
@@ -61,7 +61,6 @@ Namespace Plugin.Hosts
                 Return IIf(_Key.IsEmptyString, Name, _Key)
             End Get
         End Property
-        Friend ReadOnly Property IsMyClass As Boolean = False
         Friend ReadOnly Property IsSeparatedTasks As Boolean = False
         Friend ReadOnly Property IsSavedPostsCompatible As Boolean = False
         Private ReadOnly _TaskCountDefined As Integer? = Nothing
@@ -152,8 +151,6 @@ Namespace Plugin.Hosts
                 For Each a As Attribute In ClsAttr
                     If TypeOf a Is Manifest Then
                         _Key = DirectCast(a, Manifest).GUID
-                    ElseIf TypeOf a Is UseClassAsIs Then
-                        IsMyClass = True
                     ElseIf TypeOf a Is SeparatedTasks Then
                         IsSeparatedTasks = True
                         With DirectCast(a, SeparatedTasks)
@@ -290,24 +287,22 @@ Namespace Plugin.Hosts
             Return s
         End Function
         Friend Function GetSpecialData(ByVal URL As String, ByVal Path As SFile, ByVal AskForPath As Boolean) As IEnumerable(Of UserMedia)
-            If IsMyClass Then
-                Return DirectCast(Source, SiteSettingsBase).GetSpecialDataF(URL)
-            Else
-                Dim um As IEnumerable(Of PluginUserMedia) = Source.GetSpecialData(URL, Path, AskForPath)
-                If um.ListExists Then
-                    Dim u As New List(Of UserMedia)
-                    For Each d As PluginUserMedia In um : u.Add(New UserMedia(d)) : Next
-                    Return u
+            Dim um As IEnumerable = Source.GetSpecialData(URL, Path, AskForPath)
+            If Not um Is Nothing Then
+                If TypeOf um Is IEnumerable(Of UserMedia) Then
+                    Return um
+                ElseIf TypeOf um Is IEnumerable(Of PluginUserMedia) Then
+                    Return um.ToObjectsList.ListCast(Of UserMedia)(New ListAddParams With {.Converter = Function(v) New UserMedia(DirectCast(v, PluginUserMedia))})
                 End If
-                Return Nothing
             End If
+            Return Nothing
         End Function
         Friend Function GetInstance(ByVal What As Download, ByVal u As UserInfo, Optional ByVal _LoadUserInformation As Boolean = True,
                                     Optional ByVal AttachUserInfo As Boolean = True) As IUserData
             Dim p As IPluginContentProvider = Source.GetInstance(What)
             If Not p Is Nothing Then
                 Dim pp As IUserData
-                If IsMyClass Then pp = p Else pp = New UserDataHost(p)
+                If TypeOf p Is IUserData Then pp = p Else pp = New UserDataHost(p)
                 pp.SetEnvironment(Me, u, _LoadUserInformation, AttachUserInfo)
                 Return pp
             Else
@@ -347,7 +342,7 @@ Namespace Plugin.Hosts
             Source.DownloadDone(What)
         End Sub
         Private Function ConvertUser(ByVal User As IUserData) As Object
-            If IsMyClass Then Return User Else Return DirectCast(User, UserDataBase).ExternalPlugin
+            Return If(DirectCast(User, UserDataBase).ExternalPlugin, User)
         End Function
 #End Region
     End Class

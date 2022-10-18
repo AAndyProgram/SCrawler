@@ -1,4 +1,4 @@
-﻿' Copyright (C) 2022  Andy
+﻿' Copyright (C) 2023  Andy https://github.com/AAndyProgram
 ' This program is free software: you can redistribute it and/or modify
 ' it under the terms of the GNU General Public License as published by
 ' the Free Software Foundation, either version 3 of the License, or
@@ -6,8 +6,10 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
-Imports System.Threading
+Imports PersonalUtilities.Functions.XML
+Imports PersonalUtilities.Functions.XML.Base
 Imports PersonalUtilities.Tools
+Imports System.Threading
 Imports SCrawler.API.Base
 Imports SCrawler.Plugin.Hosts
 Imports Download = SCrawler.Plugin.ISiteSettings.Download
@@ -23,7 +25,15 @@ Namespace DownloadObjects
 #End Region
 #Region "Declarations"
 #Region "Files"
-        Friend Structure UserMediaD : Implements IComparable(Of UserMediaD), IEquatable(Of UserMediaD)
+        Friend Structure UserMediaD : Implements IComparable(Of UserMediaD), IEquatable(Of UserMediaD), IEContainerProvider
+#Region "XML Names"
+            Private Const Name_Data As String = "Data"
+            Private Const Name_User As String = UserInfo.Name_UserNode
+            Private Const Name_Media As String = UserMedia.Name_MediaNode
+            Private Const Name_Date As String = "Date"
+            Private Const Name_Session As String = "Session"
+            Private Const Name_File As String = "File"
+#End Region
             Friend ReadOnly User As IUserData
             Friend ReadOnly Data As UserMedia
             Friend ReadOnly [Date] As Date
@@ -34,6 +44,22 @@ Namespace DownloadObjects
                 [Date] = Now
                 Me.Session = Session
             End Sub
+            Private Sub New(ByVal e As EContainer)
+                If Not e Is Nothing Then
+                    If e.Contains(Name_User) Then
+                        Dim u As UserInfo = e(Name_User)
+                        If Not u.Name.IsEmptyString And Not u.Site.IsEmptyString Then User = Settings.GetUser(u)
+                    End If
+                    Data = New UserMedia(e(Name_Media), User)
+                    [Date] = AConvert(Of Date)(e.Value(Name_Date), ParsersDataDateProvider, Now)
+                    Session = e.Value(Name_Session).FromXML(Of Integer)(0)
+                    Dim f As SFile = e.Value(Name_File)
+                    If f.Exists Then Data.File = f
+                End If
+            End Sub
+            Public Shared Widening Operator CType(ByVal e As EContainer) As UserMediaD
+                Return New UserMediaD(e)
+            End Operator
             Private Function CompareTo(ByVal Other As UserMediaD) As Integer Implements IComparable(Of UserMediaD).CompareTo
                 If Not Session = Other.Session Then
                     Return Session.CompareTo(Other.Session) * -1
@@ -49,10 +75,54 @@ Namespace DownloadObjects
             Public Overloads Overrides Function Equals(ByVal Obj As Object) As Boolean
                 Return Equals(DirectCast(Obj, UserMedia))
             End Function
+            Friend Function ToEContainer(Optional ByVal e As ErrorsDescriber = Nothing) As EContainer Implements IEContainerProvider.ToEContainer
+                Return ListAddValue(New EContainer(Name_Data, String.Empty) From {
+                                        Data.ToEContainer,
+                                        New EContainer(Name_Date, AConvert(Of String)([Date], ParsersDataDateProvider, String.Empty)),
+                                        New EContainer(Name_Session, Session),
+                                        New EContainer(Name_File, Data.File)},
+                                    If(Not User Is Nothing, DirectCast(User, UserDataBase).User.ToEContainer, Nothing), LAP.IgnoreICopier)
+            End Function
         End Structure
         Friend ReadOnly Property Files As List(Of UserMediaD)
         Friend Property FilesChanged As Boolean = False
         Private ReadOnly FilesLP As New ListAddParams(LAP.NotContainsOnly)
+        Private FilesLastSessionBackedup As Boolean = False
+        Friend Const SessionsPath As String = "Settings\Sessions\"
+        Friend ReadOnly FilesSessionActual As SFile = $"{SessionsPath}Latest.xml"
+        Private ReadOnly FilesSessionBackup As SFile = $"{SessionsPath}Latest_Backup.xml"
+        Private Sub FilesSave()
+            Try
+                If Settings.FeedStoreSessionsData And Files.Count > 0 Then
+                    FilesBackupLastSession()
+                    Using x As New XmlFile With {.Name = "Session", .AllowSameNames = True}
+                        x.AddRange(Files)
+                        x.Save(FilesSessionActual)
+                    End Using
+                End If
+            Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.SendInLog, ex, "[DownloadObjects.TDownloader.FilesSave]")
+            End Try
+        End Sub
+        Private Sub FilesBackupLastSession()
+            Try
+                If Not FilesLastSessionBackedup Then
+                    If FilesSessionActual.Exists Then
+                        If FilesSessionBackup.Exists Then
+                            Dim f As SFile = SFile.Indexed_IndexFile(FilesSessionBackup)
+                            SFile.Rename(FilesSessionBackup, f)
+                            RemoveLogFiles(FilesSessionBackup, 10)
+                            FilesSessionBackup.Delete()
+                        End If
+                        SFile.Rename(FilesSessionActual, FilesSessionBackup)
+                    End If
+                End If
+            Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.SendInLog, ex, "[DownloadObjects.TDownloader.FilesBackupLastSession]")
+            Finally
+                FilesLastSessionBackedup = True
+            End Try
+        End Sub
 #End Region
         Friend ReadOnly Property Downloaded As List(Of IUserData)
         Private ReadOnly NProv As IFormatProvider
@@ -120,12 +190,13 @@ Namespace DownloadObjects
                 Keys = New List(Of String)
                 [Type] = JobType
             End Sub
-            Public Overrides Function Add(ByVal User As IUserData) As Boolean
+            Public Overloads Function Add(ByVal User As IUserData, ByVal _IncludedInTheFeed As Boolean) As Boolean
                 With DirectCast(User, UserDataBase)
                     If Keys.Count > 0 Then
                         Dim i% = Keys.IndexOf(.User.Plugin)
                         If i >= 0 Then
                             Items.Add(User)
+                            DirectCast(Items.Last, UserDataBase).IncludeInTheFeed = _IncludedInTheFeed
                             OnItemsCountChange(Me, Count)
                             Return True
                         Else
@@ -267,7 +338,7 @@ Namespace DownloadObjects
                 Files.Sort()
                 FilesChanged = Not fBefore = Files.Count
                 RaiseEvent Downloading(False)
-                If FilesChanged Then RaiseEvent FeedFilesChanged(True)
+                If FilesChanged Then FilesSave() : RaiseEvent FeedFilesChanged(True)
             End Try
         End Sub
         Private Sub StartDownloading(ByRef _Job As Job)
@@ -275,7 +346,7 @@ Namespace DownloadObjects
             Dim n$ = _Job.Name
             Dim pt As Func(Of String, String) = Function(ByVal t As String) As String
                                                     Dim _t$ = If(isSeparated, $"{n} {Left(t, 1).ToLower}{Right(t, t.Length - 1)}", t)
-                                                    If Not AutoDownloaderWorking Then RaiseEvent SendNotification(_t)
+                                                    If Not AutoDownloaderWorking Then RaiseEvent SendNotification(SettingsCLS.NotificationObjects.Profiles, _t)
                                                     Return _t
                                                 End Function
             Try
@@ -352,7 +423,7 @@ Namespace DownloadObjects
                                         If Not .Disposed AndAlso Not .IsCollection AndAlso .DownloadedTotal(False) > 0 Then
                                             If Not Downloaded.Contains(.Self) Then Downloaded.Add(Settings.GetUser(.Self))
                                             With DirectCast(.Self, UserDataBase)
-                                                If .LatestData.Count > 0 Then Files.ListAddList(.LatestData.Select(Function(d) New UserMediaD(d, .Self, Session)), FilesLP)
+                                                If .LatestData.Count > 0 And .IncludeInTheFeed Then Files.ListAddList(.LatestData.Select(Function(d) New UserMediaD(d, .Self, Session)), FilesLP)
                                             End With
                                             dcc = True
                                         End If
@@ -382,28 +453,28 @@ Namespace DownloadObjects
         End Sub
 #End Region
 #Region "Add"
-        Private Sub AddItem(ByVal Item As IUserData, ByVal _UpdateJobsLabel As Boolean)
+        Private Sub AddItem(ByVal Item As IUserData, ByVal _UpdateJobsLabel As Boolean, ByVal _IncludedInTheFeed As Boolean)
             ReconfPool()
             If Item.IsCollection Then
-                Item.DownloadData(Nothing)
+                DirectCast(Item, API.UserDataBind).DownloadData(Nothing, _IncludedInTheFeed)
             Else
                 If Not Contains(Item) Then
                     If Pool.Count > 0 Then
                         For i% = 0 To Pool.Count - 1
-                            If Pool(i).Add(Item) Then Exit For
+                            If Pool(i).Add(Item, _IncludedInTheFeed) Then Exit For
                         Next
                     End If
                     If _UpdateJobsLabel Then UpdateJobsLabel()
                 End If
             End If
         End Sub
-        Friend Sub Add(ByVal Item As IUserData)
-            AddItem(Item, True)
+        Friend Sub Add(ByVal Item As IUserData, ByVal _IncludedInTheFeed As Boolean)
+            AddItem(Item, True, _IncludedInTheFeed)
             Start()
         End Sub
-        Friend Sub AddRange(ByVal _Items As IEnumerable(Of IUserData))
+        Friend Sub AddRange(ByVal _Items As IEnumerable(Of IUserData), ByVal _IncludedInTheFeed As Boolean)
             If _Items.ListExists Then
-                For i% = 0 To _Items.Count - 1 : AddItem(_Items(i), False) : Next
+                For i% = 0 To _Items.Count - 1 : AddItem(_Items(i), False, _IncludedInTheFeed) : Next
                 UpdateJobsLabel()
             End If
             Start()

@@ -1,4 +1,4 @@
-﻿' Copyright (C) 2022  Andy
+﻿' Copyright (C) 2023  Andy https://github.com/AAndyProgram
 ' This program is free software: you can redistribute it and/or modify
 ' it under the terms of the GNU General Public License as published by
 ' the Free Software Foundation, either version 3 of the License, or
@@ -6,12 +6,12 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
-Imports PersonalUtilities.Functions.XML
-Imports PersonalUtilities.Functions.RegularExpressions
-Imports PersonalUtilities.Tools.WebDocuments.JSON
 Imports System.Net
 Imports SCrawler.API.Base
 Imports SCrawler.API.Imgur.Declarations
+Imports PersonalUtilities.Functions.XML
+Imports PersonalUtilities.Functions.RegularExpressions
+Imports PersonalUtilities.Tools.WebDocuments.JSON
 Namespace API.Imgur
     Namespace Declarations
         Friend Module Imgur_Declarations
@@ -67,7 +67,7 @@ Namespace API.Imgur
                 Return DownloadingException(ex, $"[API.Imgur.Envir.GetImage({URL})]", String.Empty, e)
             End Try
         End Function
-        Friend Shared Function GetVideoInfo(ByVal URL As String) As IEnumerable(Of UserMedia)
+        Friend Shared Function GetVideoInfo(ByVal URL As String, Optional ByVal e As ErrorsDescriber = Nothing) As IEnumerable(Of UserMedia)
             Try
                 If Not URL.IsEmptyString AndAlso URL.ToLower.Contains("imgur") AndAlso Not Settings.ImgurClientID.IsEmptyString Then
                     Dim img$ = GetImage(URL, EDP.ReturnValue)
@@ -79,7 +79,8 @@ Namespace API.Imgur
                 End If
                 Return Nothing
             Catch ex As Exception
-                Return ErrorsDescriber.Execute(EDP.ShowMainMsg + EDP.SendInLog + EDP.ReturnValue, ex, "Imgur standalone downloader: fetch media error")
+                If Not e.Exists Then e = EDP.LogMessageValue
+                Return ErrorsDescriber.Execute(e, ex, "Imgur standalone downloader: fetch media error")
             End Try
         End Function
         Private Shared Function DownloadingException(ByVal ex As Exception, ByVal Message As String,

@@ -1,4 +1,4 @@
-﻿' Copyright (C) 2022  Andy
+﻿' Copyright (C) 2023  Andy https://github.com/AAndyProgram
 ' This program is free software: you can redistribute it and/or modify
 ' it under the terms of the GNU General Public License as published by
 ' the Free Software Foundation, either version 3 of the License, or
@@ -42,7 +42,7 @@ Namespace DownloadObjects.Groups
                 Return Nothing
             End Function
             Private Function GetFormat(ByVal FormatType As Type) As Object Implements IFormatProvider.GetFormat
-                Throw New NotImplementedException("GetFormat is not available in this context")
+                Throw New NotImplementedException("[GetFormat] is not available in this context")
             End Function
         End Class
         Private Sub GroupEditorForm_Load(sender As Object, e As EventArgs) Handles Me.Load
