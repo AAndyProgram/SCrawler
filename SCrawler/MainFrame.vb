@@ -52,7 +52,7 @@ Public Class MainFrame
     End Sub
 #End Region
 #Region "Form handlers"
-    Private Sub MainFrame_Load(sender As Object, e As EventArgs) Handles Me.Load
+    Private Async Sub MainFrame_Load(sender As Object, e As EventArgs) Handles Me.Load
         If _VideoDownloadingMode Then GoTo FormClosingInvoker
         If Now.Month.ValueBetween(6, 8) Then Text = "SCrawler: Happy LGBT Pride Month! :-)"
         Settings.DeleteCachePath()
@@ -115,7 +115,7 @@ Public Class MainFrame
         AddHandler Settings.Groups.Deleted, AddressOf Settings.Automation.GROUPS_Deleted
         AddHandler Settings.Automation.PauseDisabled, AddressOf MainFrameObj.PauseButtons.UpdatePauseButtons
         _UFinit = False
-        Settings.Automation.Start(True)
+        Await Settings.Automation.Start(True)
         UpdatePauseButtonsVisibility()
         GoTo EndFunction
 FormClosingInvoker:
@@ -376,13 +376,13 @@ CloseResume:
         DownloadSelectedUser(DownUserLimits.None, e.IncludeInTheFeed)
     End Sub
     Private Sub BTT_DOWN_ALL_KeyClick(sender As Object, e As MyKeyEventArgs) Handles BTT_DOWN_ALL.KeyClick
-        Downloader.AddRange(Settings.Users.Where(Function(u) u.ReadyForDownload And u.Exists), e.IncludeInTheFeed)
+        Downloader.AddRange(Settings.GetUsers(Function(u) u.ReadyForDownload And u.Exists), e.IncludeInTheFeed)
     End Sub
     Private Sub BTT_DOWN_SITE_KeyClick(sender As Object, e As MyKeyEventArgs) Handles BTT_DOWN_SITE.KeyClick
         DownloadSiteFull(True, e.IncludeInTheFeed)
     End Sub
     Private Sub BTT_DOWN_ALL_FULL_KeyClick(sender As Object, e As MyKeyEventArgs) Handles BTT_DOWN_ALL_FULL.KeyClick
-        Downloader.AddRange(Settings.Users.Where(Function(u) u.Exists), e.IncludeInTheFeed)
+        Downloader.AddRange(Settings.GetUsers(UserExistsPredicate), e.IncludeInTheFeed)
     End Sub
     Private Sub BTT_DOWN_SITE_FULL_KeyClick(sender As Object, e As MyKeyEventArgs) Handles BTT_DOWN_SITE_FULL.KeyClick
         DownloadSiteFull(False, e.IncludeInTheFeed)
@@ -395,18 +395,8 @@ CloseResume:
                 Settings.LatestDownloadedSites.AddRange(f.SelectedSites)
                 Settings.LatestDownloadedSites.Update()
                 If f.SelectedSites.Count > 0 Then
-                    Downloader.AddRange(Settings.Users.SelectMany(Function(ByVal u As IUserData) As IEnumerable(Of IUserData)
-                                                                      If u.IsCollection Then
-                                                                          Return DirectCast(u, UserDataBind).Collections.
-                                                                                 Where(Function(uu) f.SelectedSites.Contains(uu.Site) And u.Exists And
-                                                                                                    (Not ReadyForDownloadOnly Or uu.ReadyForDownload))
-                                                                      ElseIf f.SelectedSites.Contains(u.Site) And u.Exists And
-                                                                             (Not ReadyForDownloadOnly Or u.ReadyForDownload) Then
-                                                                          Return {u}
-                                                                      Else
-                                                                          Return New IUserData() {}
-                                                                      End If
-                                                                  End Function), IncludeInTheFeed)
+                    Downloader.AddRange(Settings.GetUsers(Function(u) f.SelectedSites.Contains(u.Site) And u.Exists And
+                                                                      (Not ReadyForDownloadOnly Or u.ReadyForDownload)), IncludeInTheFeed)
                 End If
             End If
         End Using
@@ -421,7 +411,7 @@ CloseResume:
     End Sub
     Private Sub GROUPS_Updated(ByVal Sender As Groups.DownloadGroup)
         Dim i% = MENU_DOWN_ALL.DropDownItems.IndexOf(Sender.GetControl)
-        ControlInvoke(Toolbar_TOP, MENU_DOWN_ALL, Sub() MENU_DOWN_ALL.DropDownItems(i).Text = Sender.ToString)
+        If i >= 0 Then ControlInvoke(Toolbar_TOP, MENU_DOWN_ALL, Sub() MENU_DOWN_ALL.DropDownItems(i).Text = Sender.ToString)
     End Sub
     Private Sub GROUPS_Deleted(ByVal Sender As Groups.DownloadGroup)
         MENU_DOWN_ALL.DropDownItems.Remove(Sender.GetControl)
@@ -442,9 +432,9 @@ CloseResume:
         ControlInvokeFast(Toolbar_TOP, BTT_DOWN_AUTOMATION_PAUSE, Sub() BTT_DOWN_AUTOMATION_PAUSE.Visible = b)
         ControlInvokeFast(Me, Sub() BTT_TRAY_PAUSE_AUTOMATION.Visible = b)
     End Sub
-    Private Sub BTT_DOWN_AUTOMATION_Click(sender As Object, e As EventArgs) Handles BTT_DOWN_AUTOMATION.Click
+    Private Async Sub BTT_DOWN_AUTOMATION_Click(sender As Object, e As EventArgs) Handles BTT_DOWN_AUTOMATION.Click
         Using f As New SchedulerEditorForm : f.ShowDialog() : End Using
-        Settings.Automation.Start(False)
+        Await Settings.Automation.Start(False)
         UpdatePauseButtonsVisibility()
         MainFrameObj.PauseButtons.UpdatePauseButtons()
     End Sub
@@ -1438,21 +1428,14 @@ ResumeDownloadingOperation:
     Friend Sub User_OnUserUpdated(ByVal User As IUserData)
         UserListUpdate(User, False)
     End Sub
-    Private _LogColorChanged As Boolean = False
     Private Sub Downloader_UpdateJobsCount(ByVal TotalCount As Integer)
-        Dim a As Action = Sub() LBL_JOBS_COUNT.Text = IIf(TotalCount = 0, String.Empty, $"[Jobs {TotalCount}]")
-        If Toolbar_BOTTOM.InvokeRequired Then Toolbar_BOTTOM.Invoke(a) Else a.Invoke
-        If Not _LogColorChanged AndAlso Not MyMainLOG.IsEmptyString Then
-            MainFrameObj.UpdateLogButton()
-            _LogColorChanged = True
-        ElseIf _LogColorChanged And MyMainLOG.IsEmptyString Then
-            MainFrameObj.UpdateLogButton()
-            _LogColorChanged = False
-        End If
+        ControlInvokeFast(Toolbar_BOTTOM, LBL_JOBS_COUNT, Sub() LBL_JOBS_COUNT.Text = IIf(TotalCount = 0, String.Empty, $"[Jobs {TotalCount}]"))
+        MainFrameObj.UpdateLogButton()
     End Sub
     Private Sub Downloader_Downloading(ByVal Value As Boolean)
-        Dim a As Action = Sub() BTT_DOWN_STOP.Enabled = Value Or Downloader.Working
-        If Toolbar_TOP.InvokeRequired Then Toolbar_TOP.Invoke(a) Else a.Invoke
+        Dim __isDownloading As Boolean = Value Or Downloader.Working
+        ControlInvokeFast(Toolbar_TOP, BTT_DOWN_STOP, Sub() BTT_DOWN_STOP.Enabled = __isDownloading)
+        ControlInvokeFast(Me, Sub() TrayIcon.Icon = If(__isDownloading, My.Resources.ArrowDownIcon_Blue_24, My.Resources.RainbowIcon_48))
     End Sub
 #End Region
 End Class

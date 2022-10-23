@@ -79,11 +79,11 @@ Partial Friend Class LabelsForm : Inherits System.Windows.Forms.Form
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(374, 421)
         Me.Controls.Add(CONTAINER_MAIN)
+        Me.Icon = Global.SCrawler.My.Resources.Resources.TagIcon_32
         Me.KeyPreview = True
         Me.MinimizeBox = False
         Me.MinimumSize = New System.Drawing.Size(390, 460)
         Me.Name = "LabelsForm"
-        Me.ShowIcon = False
         Me.ShowInTaskbar = False
         Me.Text = "Labels"
         CONTAINER_MAIN.ContentPanel.ResumeLayout(False)

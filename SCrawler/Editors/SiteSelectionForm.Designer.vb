@@ -87,7 +87,7 @@ Namespace Editors
             Me.ShowIcon = False
             Me.ShowInTaskbar = False
             Me.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide
-            Me.Text = "Select Site"
+            Me.Text = "Sites"
             CONTAINER_MAIN.ContentPanel.ResumeLayout(False)
             CONTAINER_MAIN.ResumeLayout(False)
             CONTAINER_MAIN.PerformLayout()

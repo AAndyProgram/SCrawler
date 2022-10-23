@@ -702,7 +702,7 @@ Namespace API.Instagram
                 UserExists = False
             ElseIf Responser.StatusCode = HttpStatusCode.BadRequest Then
                 HasError = True
-                MyMainLOG = $"Instagram credentials have expired [{CInt(Responser.StatusCode)}]: {ToString()} [{s}]"
+                MyMainLOG = $"Instagram credentials have expired [{CInt(Responser.StatusCode)}]: {ToStringForLog()} [{s}]"
                 DisableSection(s)
             ElseIf Responser.StatusCode = HttpStatusCode.Forbidden And s = Sections.Tagged Then
                 Return 3

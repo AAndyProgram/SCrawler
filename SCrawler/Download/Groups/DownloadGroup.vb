@@ -51,6 +51,7 @@ Namespace DownloadObjects.Groups
         End Function
 #End Region
 #Region "Initializers"
+        Friend ReadOnly NeedToSave As Boolean = False
         Friend Sub New()
             BTT_MENU = New ToolStripMenuItem With {
                 .ToolTipText = "Download users of this group",
@@ -90,12 +91,18 @@ Namespace DownloadObjects.Groups
         End Sub
         Friend Sub New(ByVal e As EContainer)
             Me.New
-            Name = e.Attribute(Name_Name)
-            Temporary = e.Attribute(Name_Temporary).Value.FromXML(Of Integer)(CInt(CheckState.Indeterminate))
-            Favorite = e.Attribute(Name_Favorite).Value.FromXML(Of Integer)(CInt(CheckState.Indeterminate))
-            ReadyForDownload = e.Attribute(Name_ReadyForDownload).Value.FromXML(Of Boolean)(True)
-            ReadyForDownloadIgnore = e.Attribute(Name_ReadyForDownloadIgnore).Value.FromXML(Of Boolean)(False)
-            If Not e.Value.IsEmptyString Then Labels.ListAddList(e.Value.Split("|"), LAP.NotContainsOnly)
+            If e.Attributes.Contains(New EAttribute(Name_Name)) Then
+                'TODELETE: 2022.10.18.0
+                NeedToSave = True
+                Name = e.Attribute(Name_Name)
+                Temporary = e.Attribute(Name_Temporary).Value.FromXML(Of Integer)(CInt(CheckState.Indeterminate))
+                Favorite = e.Attribute(Name_Favorite).Value.FromXML(Of Integer)(CInt(CheckState.Indeterminate))
+                ReadyForDownload = e.Attribute(Name_ReadyForDownload).Value.FromXML(Of Boolean)(True)
+                ReadyForDownloadIgnore = e.Attribute(Name_ReadyForDownloadIgnore).Value.FromXML(Of Boolean)(False)
+                If Not e.Value.IsEmptyString Then Labels.ListAddList(e.Value.Split("|"), LAP.NotContainsOnly)
+            Else
+                Import(e)
+            End If
         End Sub
 #End Region
 #Region "ToString"
@@ -149,19 +156,28 @@ Namespace DownloadObjects.Groups
                             (.Temporary = CheckState.Indeterminate Or user.Temporary = CBool(.Temporary)) And
                             (.Favorite = CheckState.Indeterminate Or (user.Favorite = CBool(.Favorite))) And
                             (Not UseReadyOption Or .ReadyForDownloadIgnore Or user.ReadyForDownload = .ReadyForDownload) And user.Exists
-                        Dim f As Func(Of IUserData, IEnumerable(Of IUserData)) = Function(ByVal user As IUserData) As IEnumerable(Of IUserData)
-                                                                                     If user.IsCollection Then
-                                                                                         With DirectCast(user, UserDataBind)
-                                                                                             If .Count > 0 Then Return .Collections.SelectMany(f)
-                                                                                         End With
-                                                                                     Else
-                                                                                         If .Labels.Count = 0 OrElse user.Labels.ListContains(.Labels) Then
-                                                                                             If CheckParams.Invoke(user) Then Return {user}
-                                                                                         End If
-                                                                                     End If
-                                                                                     Return New IUserData() {}
-                                                                                 End Function
-                        Return Settings.Users.SelectMany(f)
+                        Dim CheckLabelsExcluded As Predicate(Of IUserData) = Function(ByVal user As IUserData) As Boolean
+                                                                                 If .LabelsExcluded.Count = 0 Then
+                                                                                     Return True
+                                                                                 ElseIf user.Labels.Count = 0 Then
+                                                                                     Return True
+                                                                                 Else
+                                                                                     Return Not user.Labels.ListContains(.LabelsExcluded)
+                                                                                 End If
+                                                                             End Function
+                        Dim CheckLabels As Predicate(Of IUserData) = Function(ByVal user As IUserData) As Boolean
+                                                                         If .Labels.Count = 0 Then
+                                                                             Return CheckLabelsExcluded.Invoke(user)
+                                                                         ElseIf user.Labels.Count = 0 Then
+                                                                             Return False
+                                                                         Else
+                                                                             Return user.Labels.ListContains(.Labels) And CheckLabelsExcluded.Invoke(user)
+                                                                         End If
+                                                                     End Function
+                        Dim CheckSites As Predicate(Of IUserData) = Function(user) _
+                            (.Sites.Count = 0 OrElse .Sites.Contains(user.Site)) AndAlso
+                            (.SitesExcluded.Count = 0 OrElse Not .SitesExcluded.Contains(user.Site))
+                        Return Settings.GetUsers(Function(user) CheckLabels.Invoke(user) AndAlso CheckSites.Invoke(user) AndAlso CheckParams.Invoke(user))
                     End With
                 Else
                     Return Nothing
@@ -189,11 +205,7 @@ Namespace DownloadObjects.Groups
 #End Region
 #Region "IEContainerProvider Support"
         Private Function ToEContainer(Optional ByVal e As ErrorsDescriber = Nothing) As EContainer Implements IEContainerProvider.ToEContainer
-            Return New EContainer("Group", Labels.ListToString("|"), {New EAttribute(Name_Name, Name),
-                                                                      New EAttribute(Name_Temporary, CInt(Temporary)),
-                                                                      New EAttribute(Name_Favorite, CInt(Favorite)),
-                                                                      New EAttribute(Name_ReadyForDownload, ReadyForDownload.BoolToInteger),
-                                                                      New EAttribute(Name_ReadyForDownloadIgnore, ReadyForDownloadIgnore.BoolToInteger)})
+            Return Export(New EContainer("Group"))
         End Function
 #End Region
 #Region "IDisposable Support"

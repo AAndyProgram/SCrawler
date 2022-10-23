@@ -101,6 +101,7 @@ Friend Module MainMod
     Friend MainFrameObj As MainFrameObjects
     Friend ReadOnly ParsersDataDateProvider As New ADateTime(ADateTime.Formats.BaseDateTime)
     Friend ReadOnly FeedVideoLengthProvider As New ADateTime("hh\:mm\:ss") With {.TimeParseMode = ADateTime.TimeModes.TimeSpan}
+    Friend ReadOnly UserExistsPredicate As New FPredicate(Of IUserData)(Function(u) u.Exists)
     Friend ReadOnly LogConnector As New LogHost
 #Region "File name operations"
     Friend FileDateAppenderProvider As IFormatProvider

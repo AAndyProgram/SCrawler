@@ -1,3 +1,22 @@
+# 2022.10.23.0
+
+*2022-10-23*
+
+- Added
+  - RedGifs token Auto-Renewal
+  - Download groups: ability to select sites
+  - Download groups: ability to exclude labels and sites
+  - AutoDownloader: ability to exclude labels and sites in ```All```, ```Default``` and ```Specified``` modes
+  - The ```Download All``` button turns blue when pause is enabled
+  - Updated Twitter status codes
+  - Minor improvements
+- Fixed
+  - Updated Twitter status codes
+  - AutoDownloader: incorrect next run date in scheduler task information
+  - AutoDownloader: minor bugs
+  - (Issue #69) **RedGifs data is not downloading**. Requires token.
+  - Minor bugs
+
 # 2022.10.18.0
 
 *2022-10-18*

@@ -40,7 +40,7 @@ Namespace DownloadObjects
             If Plans.Count > 0 Then Plans.ForEach(Sub(p)
                                                       p.Source = Me
                                                       AddHandler p.PauseDisabled, AddressOf OnPauseDisabled
-                                                  End Sub)
+                                                  End Sub) : Plans.ListReindex
         End Sub
         Default Friend ReadOnly Property Item(ByVal Index As Integer) As AutoDownloader Implements IMyEnumerator(Of AutoDownloader).MyEnumeratorObject
             Get
@@ -59,6 +59,7 @@ Namespace DownloadObjects
             Plan.Source = Me
             AddHandler Plan.PauseDisabled, AddressOf OnPauseDisabled
             Plans.Add(Plan)
+            Plans.ListReindex
             Update()
         End Sub
         Friend Async Function RemoveAt(ByVal Index As Integer) As Task
@@ -73,6 +74,7 @@ Namespace DownloadObjects
                     .Dispose()
                 End With
                 Plans.RemoveAt(Index)
+                Plans.ListReindex
                 Update()
             End If
         End Function
@@ -98,16 +100,18 @@ Namespace DownloadObjects
         End Sub
 #End Region
 #Region "Execution"
-        Friend Async Sub Start(ByVal Init As Boolean)
-            If Count > 0 Then
-                If Plans.Exists(PlanDownloading) Then Await Task.Run(Sub() PlansWaiter(PlanDownloading))
-                For Each Plan In Plans
-                    Plan.Start(Init)
-                    Thread.Sleep(1000)
-                    Await Task.Run(Sub() PlansWaiter(PlanDownloading))
-                Next
-            End If
-        End Sub
+        Friend Async Function Start(ByVal Init As Boolean) As Task
+            Await Task.Run(Sub()
+                               If Count > 0 Then
+                                   If Plans.Exists(PlanDownloading) Then PlansWaiter(PlanDownloading)
+                                   For Each Plan In Plans
+                                       Plan.Start(Init)
+                                       PlansWaiter(PlanDownloading)
+                                       Thread.Sleep(1000)
+                                   Next
+                               End If
+                           End Sub)
+        End Function
         Friend Sub [Stop]()
             If Count > 0 Then Plans.ForEach(Sub(p) p.Stop())
         End Sub

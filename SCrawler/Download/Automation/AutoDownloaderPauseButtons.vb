@@ -178,7 +178,18 @@ Namespace DownloadObjects
         Private Sub UpdateBaseButton(ByVal Checked As Boolean)
             With MainFrameObj.MF
                 Select Case Place
-                    Case ButtonsPlace.MainFrame : ApplyButtonStyle(.BTT_DOWN_AUTOMATION_PAUSE, Sub() .BTT_DOWN_AUTOMATION_PAUSE.Checked = Checked)
+                    Case ButtonsPlace.MainFrame : ApplyButtonStyle(.BTT_DOWN_AUTOMATION_PAUSE, Sub()
+                                                                                                   .BTT_DOWN_AUTOMATION_PAUSE.Checked = Checked
+                                                                                                   With .MENU_DOWN_ALL
+                                                                                                       If Checked Then
+                                                                                                           .BackColor = MyColor.UpdateBack
+                                                                                                           .ForeColor = MyColor.UpdateFore
+                                                                                                       Else
+                                                                                                           .BackColor = Control.DefaultBackColor
+                                                                                                           .ForeColor = Control.DefaultForeColor
+                                                                                                       End If
+                                                                                                   End With
+                                                                                               End Sub)
                     Case ButtonsPlace.Tray : ApplyButtonStyle(MainFrameObj.MF.BTT_TRAY_PAUSE_AUTOMATION, Sub() MainFrameObj.MF.BTT_TRAY_PAUSE_AUTOMATION.Checked = Checked)
                 End Select
             End With

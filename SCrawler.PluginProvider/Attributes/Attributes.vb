@@ -53,6 +53,9 @@ Namespace Plugin.Attributes
             ElementName = XMLElementName
         End Sub
     End Class
+    ''' <summary>Attribute to disable some properties for host use</summary>
+    <AttributeUsage(AttributeTargets.Property, AllowMultiple:=False, Inherited:=False)> Public NotInheritable Class DoNotUse : Inherits Attribute
+    End Class
     ''' <summary>Special property updater</summary>
     <AttributeUsage(AttributeTargets.Method, AllowMultiple:=True, Inherited:=False)> Public NotInheritable Class PropertyUpdater : Inherits Attribute
         Public ReadOnly Name As String

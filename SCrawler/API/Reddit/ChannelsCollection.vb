@@ -17,6 +17,11 @@ Namespace API.Reddit
                 Return $"{SettingsFolderName}\Channels\"
             End Get
         End Property
+        Friend Shared ReadOnly Property ChannelsDeletedPath As SFile
+            Get
+                Return $"{SettingsFolderName}\ChannelsDeleted\"
+            End Get
+        End Property
         Friend Shared ReadOnly Property ChannelsPathCache As SFile
             Get
                 Return $"{Settings.GlobalPath.Value.PathWithSeparator}_CachedData\"

@@ -355,18 +355,20 @@ Namespace API.Twitter
 #Region "Exception"
         Protected Overrides Function DownloadingException(ByVal ex As Exception, ByVal Message As String, Optional ByVal FromPE As Boolean = False,
                                                           Optional ByVal EObj As Object = Nothing) As Integer
-            If Responser.StatusCode = HttpStatusCode.NotFound Then
-                UserExists = False
-            ElseIf Responser.StatusCode = HttpStatusCode.Unauthorized Then
-                UserSuspended = True
-            ElseIf Responser.StatusCode = HttpStatusCode.BadRequest Then
-                MyMainLOG = "Twitter has invalid credentials"
-            ElseIf Responser.StatusCode = HttpStatusCode.ServiceUnavailable Then
-                MyMainLOG = $"Twitter is currently unavailable ({ToString()})"
-            Else
-                If Not FromPE Then LogError(ex, Message) : HasError = True
-                Return 0
-            End If
+            With Responser
+                If .StatusCode = HttpStatusCode.NotFound Then
+                    UserExists = False
+                ElseIf .StatusCode = HttpStatusCode.Unauthorized Then
+                    UserSuspended = True
+                ElseIf .StatusCode = HttpStatusCode.BadRequest Then
+                    MyMainLOG = "Twitter has invalid credentials"
+                ElseIf .StatusCode = HttpStatusCode.ServiceUnavailable Or .StatusCode = HttpStatusCode.InternalServerError Then
+                    MyMainLOG = $"[{CInt(.StatusCode)}] Twitter is currently unavailable ({ToString()})"
+                Else
+                    If Not FromPE Then LogError(ex, Message) : HasError = True
+                    Return 0
+                End If
+            End With
             Return 1
         End Function
 #End Region

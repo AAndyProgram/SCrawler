@@ -363,6 +363,16 @@ Namespace My.Resources
         '''<summary>
         '''  Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
         '''</summary>
+        Friend ReadOnly Property TagIcon_32() As System.Drawing.Icon
+            Get
+                Dim obj As Object = ResourceManager.GetObject("TagIcon_32", resourceCulture)
+                Return CType(obj,System.Drawing.Icon)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+        '''</summary>
         Friend ReadOnly Property UsersIcon_32() As System.Drawing.Icon
             Get
                 Dim obj As Object = ResourceManager.GetObject("UsersIcon_32", resourceCulture)

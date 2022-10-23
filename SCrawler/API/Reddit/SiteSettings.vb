@@ -79,10 +79,15 @@ Namespace API.Reddit
                         If Silent Then
                             Return False
                         Else
-                            Return MsgBoxE({"Over the past hour, Reddit has received an average of " &
-                                            avg.NumToString(New ANumbers With {.FormatOptions = ANumbers.Options.GroupIntegral}) & " outage reports:" & vbCr &
-                                            dl.ListToString(vbCr) & vbCr & vbCr &
-                                            "Do you want to continue parsing Reddit data?", "There are outage reports on Reddit"}, vbYesNo) = vbYes
+                            If MsgBoxE({"Over the past hour, Reddit has received an average of " &
+                                        avg.NumToString(New ANumbers With {.FormatOptions = ANumbers.Options.GroupIntegral}) & " outage reports:" & vbCr &
+                                        dl.ListToString(vbCr) & vbCr & vbCr &
+                                        "Do you want to continue parsing Reddit data?", "There are outage reports on Reddit"}, vbYesNo) = vbYes Then
+                                DirectCast(Settings(RedGifs.RedGifsSiteKey).Source, RedGifs.SiteSettings).UpdateTokenIfRequired()
+                                Return True
+                            Else
+                                Return False
+                            End If
                         End If
                     End If
                 End If

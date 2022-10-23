@@ -20,6 +20,11 @@ Namespace API.RedGifs
         Friend Const DataGone As HttpStatusCode = HttpStatusCode.Gone
         Private Const PostDataUrl As String = "https://api.redgifs.com/v2/gifs/{0}?views=yes&users=yes"
 #Region "Base declarations"
+        Private ReadOnly Property MySettings As SiteSettings
+            Get
+                Return DirectCast(HOST.Source, SiteSettings)
+            End Get
+        End Property
         Protected Overrides Sub LoadUserInformation_OptionalFields(ByRef Container As XmlFile, ByVal Loading As Boolean)
         End Sub
 #End Region
@@ -29,15 +34,21 @@ Namespace API.RedGifs
         End Sub
 #End Region
 #Region "Download functions"
+        Private NoCredentialsResponser As Response
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
-            ReparseMissing(Token)
-            DownloadData(1, Token)
+            Try
+                NoCredentialsResponser = MySettings.NoCredentialsResponser.Copy
+                DownloadData(1, Token)
+            Finally
+                NoCredentialsResponser.Dispose()
+            End Try
         End Sub
         Private Overloads Sub DownloadData(ByVal Page As Integer, ByVal Token As CancellationToken)
             Dim URL$ = String.Empty
             Try
-                URL = $"https://api.redgifs.com/v2/users/{Name}/search?order=recent&page={Page}"
-                Dim r$ = Responser.DownloadString(URL, EDP.ThrowException)
+                Dim _page As Func(Of String) = Function() If(Page = 1, String.Empty, $"&page={Page}")
+                URL = $"https://api.redgifs.com/v2/users/{Name}/search?order=recent{_page.Invoke}"
+                Dim r$ = NoCredentialsResponser.GetResponse(URL,, EDP.ThrowException)
                 Dim postDate$, postID$
                 Dim pTotal% = 0
                 If Not r.IsEmptyString Then
@@ -59,7 +70,7 @@ Namespace API.RedGifs
                 End If
                 If pTotal > 0 And Page < pTotal Then DownloadData(Page + 1, Token)
             Catch ex As Exception
-                ProcessException(ex, Token, $"data downloading error [{URL}]")
+                ProcessException(ex, Token, $"data downloading error [{URL}]",, True)
             End Try
         End Sub
 #End Region
@@ -129,7 +140,7 @@ Namespace API.RedGifs
                 End If
             Catch dex As ObjectDisposedException When Disposed
             Catch ex As Exception
-                ProcessException(ex, Token, $"missing data downloading error")
+                ProcessException(ex, Token, $"missing data downloading error",, False)
             Finally
                 If Not Disposed And rList.Count > 0 Then
                     For i% = rList.Count - 1 To 0 Step -1 : _ContentList.RemoveAt(rList(i)) : Next
@@ -192,9 +203,12 @@ Namespace API.RedGifs
                 End If
                 Return Nothing
             Catch ex As Exception
-                If Not Responser Is Nothing AndAlso Responser.Client.StatusCode = DataGone Then _
-                   Return New UserMedia With {.State = DataGone}
-                Return ErrorsDescriber.Execute(EDP.SendInLog, ex, $"[API.RedGifs.UserData.GetDataFromUrlId({URL})]", New UserMedia)
+                If Not Responser Is Nothing AndAlso (Responser.Client.StatusCode = DataGone Or Responser.Client.StatusCode = HttpStatusCode.NotFound) Then
+                    Return New UserMedia With {.State = DataGone}
+                Else
+                    Return ErrorsDescriber.Execute(EDP.SendInLog, ex, $"[API.RedGifs.UserData.GetDataFromUrlId({URL})]",
+                                                   New UserMedia With {.State = UStates.Missing})
+                End If
             End Try
         End Function
 #End Region
@@ -218,8 +232,22 @@ Namespace API.RedGifs
 #Region "Exception"
         Protected Overrides Function DownloadingException(ByVal ex As Exception, ByVal Message As String, Optional ByVal FromPE As Boolean = False,
                                                           Optional ByVal EObj As Object = Nothing) As Integer
-            If Responser.StatusCode = HttpStatusCode.NotFound Then
+            Dim IsNoCredentialsResponser As Boolean = AConvert(Of Boolean)(EObj, False)
+            Dim s As WebExceptionStatus = -1
+            Dim sc As HttpStatusCode = -1
+            If IsNoCredentialsResponser Then
+                If Not NoCredentialsResponser Is Nothing Then
+                    s = NoCredentialsResponser.Status
+                    sc = NoCredentialsResponser.StatusCode
+                End If
+            Else
+                s = Responser.Client.Status
+                sc = Responser.Client.StatusCode
+            End If
+            If sc = HttpStatusCode.NotFound Or s = DataGone Then
                 UserExists = False
+            ElseIf sc = HttpStatusCode.Unauthorized Then
+                MyMainLOG = $"RedGifs credentials have expired [{CInt(sc)}]: {ToStringForLog()}"
             Else
                 If Not FromPE Then LogError(ex, Message) : HasError = True
                 Return 0

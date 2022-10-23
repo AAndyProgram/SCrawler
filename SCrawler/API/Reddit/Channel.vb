@@ -236,8 +236,19 @@ Namespace API.Reddit
             Return If(Name.IsEmptyString, ID, Name)
         End Function
         Friend Sub Delete()
-            File.Delete(, SFODelete.DeleteToRecycleBin)
-            FilePosts.Delete(, SFODelete.DeleteToRecycleBin)
+            Dim f As SFile = ChannelsCollection.ChannelsDeletedPath
+            With File
+                f.Name = .Name
+                f.Extension = .Extension
+                .Copy(f,, True, SFODelete.DeleteToRecycleBin)
+                .Delete(, SFODelete.DeleteToRecycleBin)
+            End With
+            With FilePosts
+                f.Name = .Name
+                f.Extension = .Extension
+                .Copy(f,, True, SFODelete.DeleteToRecycleBin)
+                .Delete(, SFODelete.DeleteToRecycleBin)
+            End With
         End Sub
         Friend Sub DownloadData(ByVal Token As CancellationToken, Optional ByVal SkipExists As Boolean = True,
                                 Optional ByVal p As MyProgress = Nothing)

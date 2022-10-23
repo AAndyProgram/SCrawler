@@ -449,6 +449,24 @@ Friend Class SettingsCLS : Implements IDisposable
         End If
         Return Nothing
     End Function
+    Friend Function GetUsers(ByVal Predicate As Predicate(Of IUserData)) As IEnumerable(Of IUserData)
+        With Users
+            If .Count > 0 Then
+                Dim fp As Func(Of IUserData, Boolean) = FPredicate(Of IUserData).ToFunc(Predicate)
+                Return .SelectMany(Of IUserData)(Function(ByVal user As IUserData) As IEnumerable(Of IUserData)
+                                                     If user.IsCollection Then
+                                                         With DirectCast(user, UserDataBind)
+                                                             If .Count > 0 Then Return .Where(fp)
+                                                         End With
+                                                     Else
+                                                         If Predicate.Invoke(user) Then Return {user}
+                                                     End If
+                                                     Return New IUserData() {}
+                                                 End Function)
+            End If
+        End With
+        Return New IUserData() {}
+    End Function
 #End Region
     Friend Sub UpdateBlackList()
         If BlackList.Count > 0 Then

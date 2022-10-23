@@ -20,6 +20,7 @@ Friend Class ChannelsStatsForm
             .MyViewInitialize()
             .AddOkCancelToolbar()
             If Settings.Channels.Count > 0 Then RefillList() Else MsgBoxE("Channels not found", vbExclamation)
+            .DelegateClosingChecker = False
             .EndLoaderOperations()
         End With
     End Sub

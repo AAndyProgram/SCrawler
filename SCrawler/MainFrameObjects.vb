@@ -48,35 +48,31 @@ Friend Class MainFrameObjects
 #End Region
 #Region "Form functions"
     Friend Sub Focus(Optional ByVal Show As Boolean = False)
-        If Not MF.Visible And Show Then MF.Show()
-        If MF.Visible Then MF.BringToFront() : MF.Activate()
+        ControlInvokeFast(MF, Sub()
+                                  If Not MF.Visible And Show Then MF.Show()
+                                  If MF.Visible Then MF.BringToFront() : MF.Activate()
+                              End Sub)
     End Sub
     Friend Sub ChangeCloseVisible()
-        Dim a As Action = Sub() MF.BTT_TRAY_CLOSE_NO_SCRIPT.Visible = Settings.ClosingCommand.Attribute And Not Settings.ClosingCommand.IsEmptyString
-        If MF.TRAY_CONTEXT.InvokeRequired Then MF.TRAY_CONTEXT.Invoke(a) Else a.Invoke
+        ControlInvokeFast(MF.TRAY_CONTEXT, Sub() MF.BTT_TRAY_CLOSE_NO_SCRIPT.Visible =
+                                                 Settings.ClosingCommand.Attribute And Not Settings.ClosingCommand.IsEmptyString)
     End Sub
     Friend Sub UpdateLogButton()
         MyMainLOG_UpdateLogButton(MF.BTT_LOG, MF.Toolbar_TOP)
     End Sub
 #End Region
 #Region "Notifications"
-    Friend Overloads Sub ShowNotification(ByVal Sender As SettingsCLS.NotificationObjects, ByVal Message As String)
-        If Settings.ProcessNotification(Sender) Then MF.TrayIcon.ShowBalloonTip(2000, MF.TrayIcon.BalloonTipTitle, Message, ToolTipIcon.Info)
-    End Sub
-    Friend Overloads Sub ShowNotification(ByVal Sender As SettingsCLS.NotificationObjects, ByVal Message As String, ByVal Title As String)
-        If Settings.ProcessNotification(Sender) Then MF.TrayIcon.ShowBalloonTip(2000, Title, Message, ToolTipIcon.Info)
-    End Sub
-    Friend Overloads Sub ShowNotification(ByVal Sender As SettingsCLS.NotificationObjects, ByVal Message As String, ByVal Title As String, ByVal Icon As ToolTipIcon)
-        If Settings.ProcessNotification(Sender) Then MF.TrayIcon.ShowBalloonTip(2000, Title, Message, Icon)
+    Private Const NotificationInternalKey As String = "NotificationInternalKey"
+    Friend Sub ShowNotification(ByVal Sender As SettingsCLS.NotificationObjects, ByVal Message As String)
+        If Settings.ProcessNotification(Sender) Then
+            Using n As New Notification(Message) With {.Key = NotificationInternalKey} : n.Show() : End Using
+        End If
     End Sub
     Friend Sub ClearNotifications()
         Notificator.Clear()
     End Sub
     Private Sub Notificator_OnClicked(ByVal Key As String) Handles Notificator.OnClicked
-        If Settings.Automation Is Nothing OrElse Not Settings.Automation.NotificationClicked(Key) Then
-            If Not MF.Visible Then MF.Show()
-            Focus()
-        End If
+        If Key = NotificationInternalKey OrElse Settings.Automation Is Nothing OrElse Not Settings.Automation.NotificationClicked(Key) Then Focus(True)
     End Sub
 #End Region
 End Class

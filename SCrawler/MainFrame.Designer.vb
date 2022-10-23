@@ -910,7 +910,6 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
     Private WithEvents BTT_ADD_USER As ToolStripButton
     Private WithEvents BTT_DELETE_USER As ToolStripButton
     Private WithEvents BTT_DOWN_SELECTED As ToolStripKeyMenuItem
-    Private WithEvents MENU_DOWN_ALL As ToolStripDropDownButton
     Private WithEvents Toolbar_BOTTOM As StatusStrip
     Private WithEvents PR_MAIN As ToolStripProgressBar
     Private WithEvents LBL_STATUS As ToolStripStatusLabel
@@ -986,4 +985,5 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
     Private WithEvents BTT_SILENT_MODE As ToolStripMenuItem
     Friend WithEvents BTT_DOWN_AUTOMATION_PAUSE As ToolStripMenuItem
     Private WithEvents BTT_TRAY_FEED_SHOW As ToolStripMenuItem
+    Friend WithEvents MENU_DOWN_ALL As ToolStripDropDownButton
 End Class

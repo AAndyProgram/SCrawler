@@ -9,13 +9,16 @@
 Imports SCrawler.API.Base
 Imports SCrawler.Plugin
 Imports SCrawler.Plugin.Attributes
+Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Tools.WEB
+Imports PersonalUtilities.Tools.WebDocuments.JSON
 Imports UTypes = SCrawler.API.Base.UserMedia.Types
 Imports UStates = SCrawler.API.Base.UserMedia.States
 Namespace API.RedGifs
     <Manifest(RedGifsSiteKey)>
     Friend Class SiteSettings : Inherits SiteSettingsBase
+#Region "Declarations"
         Friend Overrides ReadOnly Property Icon As Icon
             Get
                 Return My.Resources.SiteResources.RedGifsIcon_32
@@ -28,7 +31,11 @@ Namespace API.RedGifs
         End Property
         <PropertyOption(AllowNull:=False, ControlText:="Token", ControlToolTip:="Bearer token")>
         Friend Property Token As PropertyValue
+        <PXML> Friend Property TokenLastDateUpdated As PropertyValue
+        <DoNotUse> Friend ReadOnly Property NoCredentialsResponser As Response
         Private Const TokenName As String = "authorization"
+#End Region
+#Region "Initializer"
         Friend Sub New()
             MyBase.New(RedGifsSite, "redgifs.com")
             Dim t$ = String.Empty
@@ -40,17 +47,83 @@ Namespace API.RedGifs
                 If .Headers.Count > 0 AndAlso .Headers.ContainsKey(TokenName) Then t = .Headers(TokenName)
                 If b Then .SaveSettings()
             End With
+            NoCredentialsResponser = New Response($"{SettingsFolderName}\Responser_{RedGifsSite}_NC.xml") With {
+                .CookiesEncryptKey = SettingsCLS.CookieEncryptKey,
+                .CookiesDomain = "redgifs.com"
+            }
+            With NoCredentialsResponser
+                If .File.Exists Then
+                    .LoadSettings()
+                Else
+                    .Cookies = New CookieKeeper(.CookiesDomain) With {.EncryptKey = SettingsCLS.CookieEncryptKey}
+                    .SaveSettings()
+                End If
+            End With
             Token = New PropertyValue(t, GetType(String), Sub(v) UpdateResponse(v))
+            TokenLastDateUpdated = New PropertyValue(Now.AddYears(-1), GetType(Date))
             UrlPatternUser = "https://www.redgifs.com/users/{0}/"
             UserRegex = RParams.DMS("[htps:/]{7,8}.*?redgifs.com/users/([^/]+)", 1)
             ImageVideoContains = "redgifs"
         End Sub
+#End Region
+#Region "Response updater"
         Private Sub UpdateResponse(ByVal Value As String)
             With Responser.Headers
                 If .Count = 0 OrElse Not .ContainsKey(TokenName) Then .Add(TokenName, Value) Else .Item(TokenName) = Value
                 Responser.SaveSettings()
             End With
         End Sub
+#End Region
+#Region "Token updaters"
+        Friend Function UpdateTokenIfRequired() As Boolean
+            Dim d As Date? = AConvert(Of Date)(TokenLastDateUpdated.Value, AModes.Var, Nothing)
+            If Not d.HasValue OrElse d.Value < Now.AddDays(-1) Then
+                Return UpdateToken()
+            Else
+                Return True
+            End If
+        End Function
+        <PropertyUpdater(NameOf(Token))>
+        Friend Function UpdateToken() As Boolean
+            Try
+                Dim r$
+                Dim NewToken$ = String.Empty
+                Using resp As New Response : r = resp.GetResponse("https://api.redgifs.com/v2/auth/temporary",, EDP.ThrowException) : End Using
+                If Not r.IsEmptyString Then
+                    Dim j As EContainer = JsonDocument.Parse(r)
+                    If Not j Is Nothing Then
+                        NewToken = j.Value("token")
+                        j.Dispose()
+                    End If
+                End If
+                If Not NewToken.IsEmptyString Then
+                    Token.Value = $"Bearer {NewToken}"
+                    TokenLastDateUpdated.Value = Now
+                    Return True
+                Else
+                    Return False
+                End If
+            Catch ex As Exception
+                Return ErrorsDescriber.Execute(EDP.SendInLog, ex, "[API.RedGifs.SiteSettings.UpdateToken]", False)
+            End Try
+        End Function
+#End Region
+#Region "Update settings"
+        Private _LastTokenValue As String = String.Empty
+        Friend Overrides Sub BeginEdit()
+            _LastTokenValue = AConvert(Of String)(Token.Value, AModes.Var, String.Empty)
+            MyBase.BeginEdit()
+        End Sub
+        Friend Overrides Sub Update()
+            Dim NewToken$ = AConvert(Of String)(Token.Value, AModes.Var, String.Empty)
+            If Not _LastTokenValue = NewToken Then TokenLastDateUpdated.Value = Now
+            MyBase.Update()
+        End Sub
+        Friend Overrides Sub EndEdit()
+            _LastTokenValue = String.Empty
+            MyBase.EndEdit()
+        End Sub
+#End Region
         Friend Overrides Function GetInstance(ByVal What As ISiteSettings.Download) As IPluginContentProvider
             Return New UserData
         End Function
@@ -84,7 +157,7 @@ Namespace API.RedGifs
             Return $"https://www.redgifs.com/watch/{PostID}"
         End Function
         Friend Overrides Function BaseAuthExists() As Boolean
-            Return If(Responser.Cookies?.Count, 0) > 0 AndAlso ACheck(Token.Value)
+            Return UpdateTokenIfRequired() AndAlso ACheck(Token.Value)
         End Function
     End Class
 End Namespace

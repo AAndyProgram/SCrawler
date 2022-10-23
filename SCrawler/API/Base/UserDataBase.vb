@@ -817,6 +817,9 @@ BlockNullPicture:
                 If Not Responser Is Nothing Then Responser.Dispose()
                 Responser = New Response
                 If Not HOST.Responser Is Nothing Then Responser.Copy(HOST.Responser)
+                'TODO: remove
+                Responser.DecodersError = New ErrorsDescriber(EDP.SendInLog + EDP.ReturnValue) With {
+                    .DeclaredMessage = New MMessage($"SymbolsConverter error: [{ToStringForLog()}]", ToStringForLog())}
 
                 Dim UpPic As Boolean = Settings.ViewModeIsPicture AndAlso GetPicture(Of Image)(False) Is Nothing
                 Dim sEnvir() As Boolean = {UserExists, UserSuspended}
@@ -976,7 +979,7 @@ BlockNullPicture:
                         Dim v As UserMedia
 
                         Using w As New OptionalWebClient(Me)
-                            If vsf Then SFileShares.SFileExists($"{MyDir}\Video\", SFO.Path)
+                            If vsf Then CSFileP($"{MyDir}\Video\").Exists(SFO.Path)
                             Progress.Maximum += _ContentNew.Count
                             For i = 0 To _ContentNew.Count - 1
                                 ThrowAny(Token)

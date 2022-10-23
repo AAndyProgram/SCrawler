@@ -15,7 +15,7 @@ Imports PersonalUtilities.Functions.XML.Base
 Imports PersonalUtilities.Tools
 Imports PersonalUtilities.Tools.Notifications
 Namespace DownloadObjects
-    Friend Class AutoDownloader : Inherits GroupParameters : Implements IEContainerProvider
+    Friend Class AutoDownloader : Inherits GroupParameters : Implements IIndexable, IEContainerProvider
         Friend Event PauseDisabled()
         Private Shared ReadOnly Property CachePath As SFile
             Get
@@ -135,8 +135,9 @@ Namespace DownloadObjects
                     ErrorsDescriber.Execute(EDP.SendInLog, ex, "[AutoDownloader.NotifiedUser.ShowNotification]")
                     If Not User Is Nothing Then
                         MainFrameObj.ShowNotification(SettingsCLS.NotificationObjects.AutoDownloader,
-                                                      $"Downloaded: {User.DownloadedPictures(False)} images, {User.DownloadedVideos(False)} videos",
-                                                      User.ToString, IIf(User.HasError, ToolTipIcon.Warning, ToolTipIcon.Info))
+                                                      User.ToString & vbNewLine &
+                                                      $"Downloaded: {User.DownloadedPictures(False)} images, {User.DownloadedVideos(False)} videos" &
+                                                      If(User.HasError, vbNewLine & "With errors", String.Empty))
                     End If
                 End Try
             End Sub
@@ -182,7 +183,6 @@ Namespace DownloadObjects
 #Region "XML Names"
         Private Const Name_Mode As String = "Mode"
         Private Const Name_Groups As String = "Groups"
-        Private Const Name_Labels As String = "Labels"
         Private Const Name_Timer As String = "Timer"
         Private Const Name_StartupDelay As String = "StartupDelay"
         Private Const Name_LastDownloadDate As String = "LastDownloadDate"
@@ -205,11 +205,16 @@ Namespace DownloadObjects
         End Property
         Friend ReadOnly Property Groups As List(Of String)
         Friend Property Timer As Integer = DefaultTimer
-        Friend Property StartupDelay As Integer = 0
+        Friend Property StartupDelay As Integer = 1
         Friend Property ShowNotifications As Boolean = True
         Friend Property ShowPictureDownloaded As Boolean = True
         Friend Property ShowPictureUser As Boolean = True
         Friend Property ShowSimpleNotification As Boolean = False
+        Private Property Index As Integer = -1 Implements IIndexable.Index
+        Private Function SetIndex(ByVal Obj As Object, ByVal Index As Integer) As Object Implements IIndexable.SetIndex
+            DirectCast(Obj, AutoDownloader).Index = Index
+            Return Obj
+        End Function
 #Region "Date"
         Private ReadOnly LastDownloadDateXML As Date? = Nothing
         Private _LastDownloadDate As Date = Now.AddYears(-1)
@@ -223,20 +228,25 @@ Namespace DownloadObjects
                 If Not Initialization Then _LastDownloadDateChanged = True
             End Set
         End Property
+        Private ReadOnly Property NextExecutionDate As Date
+            Get
+                If _PauseValue.HasValue Then
+                    Return {LastDownloadDate.AddMinutes(Timer), _StartTime.AddMinutes(StartupDelay), _PauseValue.Value}.Max
+                Else
+                    Return {LastDownloadDate.AddMinutes(Timer), _StartTime.AddMinutes(StartupDelay)}.Max
+                End If
+            End Get
+        End Property
         Private ReadOnly DateProvider As New ADateTime(ADateTime.Formats.BaseDateTime)
         Private Function GetLastDateString() As String
             If LastDownloadDateXML.HasValue Or _LastDownloadDateChanged Then
-                Return LastDownloadDate.ToStringDate(ADateTime.Formats.BaseDateTime)
+                Return LastDownloadDate.ToStringDate(DateProvider)
             Else
                 Return "never"
             End If
         End Function
         Private Function GetNextDateString() As String
-            If _LastDownloadDateChanged Then
-                Return LastDownloadDate.AddMinutes(Timer).ToStringDate(ADateTime.Formats.BaseDateTime)
-            Else
-                Return _StartTime.AddMinutes(StartupDelay).ToStringDate(ADateTime.Formats.BaseDateTime)
-            End If
+            Return NextExecutionDate.ToStringDate(DateProvider)
         End Function
 #End Region
 #Region "Information"
@@ -287,14 +297,11 @@ Namespace DownloadObjects
         End Sub
         Friend Sub New(ByVal x As EContainer)
             Me.New
-            Name = x.Value(Name_Name).FromXML(Of String)("Default")
             Mode = x.Value(Name_Mode).FromXML(Of Integer)(Modes.None)
+            Import(x)
+            If Name.IsEmptyString Then Name = "Default"
             Groups.ListAddList(x.Value(Name_Groups).StringToList(Of String)("|"), LAP.NotContainsOnly)
-            Labels.ListAddList(x.Value(Name_Labels).StringToList(Of String)("|"), LAP.NotContainsOnly)
-            Temporary = x.Value(Name_Temporary).FromXML(Of Integer)(CheckState.Indeterminate)
-            Favorite = x.Value(Name_Favorite).FromXML(Of Integer)(CheckState.Indeterminate)
-            ReadyForDownload = x.Value(Name_ReadyForDownload).FromXML(Of Boolean)(True)
-            ReadyForDownloadIgnore = x.Value(Name_ReadyForDownloadIgnore).FromXML(Of Boolean)(False)
+
             Timer = x.Value(Name_Timer).FromXML(Of Integer)(DefaultTimer)
             If Timer <= 0 Then Timer = DefaultTimer
             StartupDelay = x.Value(Name_StartupDelay).FromXML(Of Integer)(0)
@@ -331,24 +338,18 @@ Namespace DownloadObjects
             If Not Source Is Nothing Then Source.Update()
         End Sub
         Private Function ToEContainer(Optional ByVal e As ErrorsDescriber = Nothing) As EContainer Implements IEContainerProvider.ToEContainer
-            Return New EContainer(Scheduler.Name_Plan, String.Empty) From {
-                                  New EContainer(Name_Name, Name),
-                                  New EContainer(Name_Mode, CInt(Mode)),
-                                  New EContainer(Name_Groups, Groups.ListToString("|")),
-                                  New EContainer(Name_Labels, Labels.ListToString("|")),
-                                  New EContainer(Name_Temporary, CInt(Temporary)),
-                                  New EContainer(Name_Favorite, CInt(Favorite)),
-                                  New EContainer(Name_ReadyForDownload, ReadyForDownload.BoolToInteger),
-                                  New EContainer(Name_ReadyForDownloadIgnore, ReadyForDownloadIgnore.BoolToInteger),
-                                  New EContainer(Name_Timer, Timer),
-                                  New EContainer(Name_StartupDelay, StartupDelay),
-                                  New EContainer(Name_ShowNotifications, ShowNotifications.BoolToInteger),
-                                  New EContainer(Name_ShowPictureDown, ShowPictureDownloaded.BoolToInteger),
-                                  New EContainer(Name_ShowPictureUser, ShowPictureUser.BoolToInteger),
-                                  New EContainer(Name_ShowSimpleNotification, ShowSimpleNotification.BoolToInteger),
-                                  New EContainer(Name_LastDownloadDate, CStr(AConvert(Of String)(If(LastDownloadDateXML.HasValue Or _LastDownloadDateChanged,
-                                                                                                    CObj(LastDownloadDate), Nothing), DateProvider, String.Empty)))
-            }
+            Return Export(New EContainer(Scheduler.Name_Plan, String.Empty) From {
+                                         New EContainer(Name_Mode, CInt(Mode)),
+                                         New EContainer(Name_Groups, Groups.ListToString("|")),
+                                         New EContainer(Name_Timer, Timer),
+                                         New EContainer(Name_StartupDelay, StartupDelay),
+                                         New EContainer(Name_ShowNotifications, ShowNotifications.BoolToInteger),
+                                         New EContainer(Name_ShowPictureDown, ShowPictureDownloaded.BoolToInteger),
+                                         New EContainer(Name_ShowPictureUser, ShowPictureUser.BoolToInteger),
+                                         New EContainer(Name_ShowSimpleNotification, ShowSimpleNotification.BoolToInteger),
+                                         New EContainer(Name_LastDownloadDate, CStr(AConvert(Of String)(If(LastDownloadDateXML.HasValue Or _LastDownloadDateChanged,
+                                                                                                           CObj(LastDownloadDate), Nothing), DateProvider, String.Empty)))
+                          })
         End Function
 #End Region
 #Region "Execution"
@@ -422,9 +423,20 @@ Namespace DownloadObjects
         End Sub
         Private Sub Checker()
             Try
+                Dim _StartDownload As Boolean
                 While (Not _StopRequested Or Downloader.Working) And Not Mode = Modes.None
                     If LastDownloadDate.AddMinutes(Timer) < Now And _StartTime.AddMinutes(StartupDelay) < Now And
-                       Not Downloader.Working And Not IsPaused And Not _StopRequested And Not Mode = Modes.None Then Download()
+                       Not Downloader.Working And Not IsPaused And Not _StopRequested And Not Mode = Modes.None Then
+                        _StartDownload = False
+                        If Settings.Automation.Count = 1 Then
+                            _StartDownload = True
+                        ElseIf Index = -1 Then
+                            _StartDownload = True
+                        Else
+                            _StartDownload = NextExecutionDate.AddMilliseconds(1000 * (Index + 1)).Ticks <= Now.Ticks
+                        End If
+                        If _StartDownload Then Download()
+                    End If
                     Thread.Sleep(500)
                 End While
             Catch ex As Exception
@@ -447,7 +459,6 @@ Namespace DownloadObjects
                 Dim GName$
                 Dim i%
                 Dim DownloadedUsersCount% = 0
-                Dim l As New ListAddParams(LAP.IgnoreICopier + LAP.NotContainsOnly)
                 Dim simple As Boolean = ShowSimpleNotification And ShowNotifications
                 Dim notify As Action = Sub()
                                            With Downloader.Downloaded
@@ -464,7 +475,18 @@ Namespace DownloadObjects
                                            End With
                                        End Sub
                 Select Case Mode
-                    Case Modes.All : users.ListAddList(Settings.Users.Where(Function(u) u.Exists))
+                    Case Modes.All
+                        Dim CheckLabels As Predicate(Of IUserData) = Function(ByVal u As IUserData) As Boolean
+                                                                         If LabelsExcluded.Count = 0 Then
+                                                                             Return True
+                                                                         ElseIf u.Labels.Count = 0 Then
+                                                                             Return True
+                                                                         Else
+                                                                             Return Not u.Labels.ListContains(LabelsExcluded)
+                                                                         End If
+                                                                     End Function
+                        Dim CheckSites As Predicate(Of IUserData) = Function(u) SitesExcluded.Count = 0 OrElse Not SitesExcluded.Contains(u.Site)
+                        users.ListAddList(Settings.GetUsers(Function(u) UserExistsPredicate(u) And CheckLabels.Invoke(u) And CheckSites.Invoke(u)))
                     Case Modes.Default
                         Using g As New GroupParameters : users.ListAddList(DownloadGroup.GetUsers(g, True)) : End Using
                     Case Modes.Specified : users.ListAddList(DownloadGroup.GetUsers(Me, True))
@@ -472,24 +494,12 @@ Namespace DownloadObjects
                         If Groups.Count > 0 And Settings.Groups.Count > 0 Then
                             For Each GName In Groups
                                 i = Settings.Groups.IndexOf(GName)
-                                If i >= 0 Then users.ListAddList(Settings.Groups(i).GetUsers, l)
+                                If i >= 0 Then users.ListAddList(Settings.Groups(i).GetUsers, LAP.IgnoreICopier, LAP.NotContainsOnly)
                             Next
                         End If
                 End Select
                 If users.Count > 0 Then
-                    Keys.ListAddList(users.SelectMany(Of String)(Function(ByVal user As IUserData) As IEnumerable(Of String)
-                                                                     If user.IsCollection Then
-                                                                         With DirectCast(user, UserDataBind)
-                                                                             If .Count > 0 Then
-                                                                                 Return .Collections.Select(Function(u) u.Key)
-                                                                             Else
-                                                                                 Return New String() {}
-                                                                             End If
-                                                                         End With
-                                                                     Else
-                                                                         Return {user.Key}
-                                                                     End If
-                                                                 End Function))
+                    Keys.ListAddList(users.Select(Function(u) u.Key))
                     With Downloader
                         .AutoDownloaderWorking = True
                         If .Downloaded.Count > 0 Then .Downloaded.RemoveAll(Function(u) Keys.Contains(u.Key)) : .InvokeDownloadsChangeEvent()
@@ -499,7 +509,7 @@ Namespace DownloadObjects
                         notify.Invoke
                         If simple And DownloadedUsersCount > 0 Then _
                            MainFrameObj.ShowNotification(SettingsCLS.NotificationObjects.AutoDownloader,
-                                                         $"{DownloadedUsersCount} user(s) downloaded with scheduler plan '{Name}'", $"Scheduler plan '{Name}'")
+                                                         $"{DownloadedUsersCount} user(s) downloaded with scheduler plan '{Name}'")
                     End With
                 End If
             Catch ex As Exception

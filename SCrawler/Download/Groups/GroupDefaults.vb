@@ -18,28 +18,28 @@ Namespace DownloadObjects.Groups
         Private ReadOnly CH_READY_FOR_DOWN As CheckBox
         Private ReadOnly CH_READY_FOR_DOWN_IGNORE As CheckBox
         Private WithEvents TXT_LABELS As TextBoxExtended
+        Private WithEvents TXT_SITES As TextBoxExtended
         Friend WithEvents TXT_NAME As TextBoxExtended
         Private ReadOnly Labels As List(Of String)
+        Private ReadOnly LabelsExcluded As List(Of String)
+        Private ReadOnly Sites As List(Of String)
+        Private ReadOnly SitesExcluded As List(Of String)
         Public Sub New()
             Labels = New List(Of String)
-            TXT_LABELS = New TextBoxExtended
-            With TXT_LABELS
-                .BeginInit()
-                .Buttons.AddRange({ADB.Edit, ADB.Clear})
-                .CaptionText = "Labels"
-                .CaptionWidth = 50
-                .Dock = DockStyle.Fill
-                .EndInit()
-            End With
-            TXT_NAME = New TextBoxExtended
-            With TXT_NAME
-                .BeginInit()
-                .Buttons.Add(ADB.Clear)
-                .CaptionText = "Name"
-                .CaptionWidth = 50
-                .Dock = DockStyle.Fill
-                .EndInit()
-            End With
+            LabelsExcluded = New List(Of String)
+            Sites = New List(Of String)
+            SitesExcluded = New List(Of String)
+
+            InitTextBox(TXT_LABELS, "Labels", {New ActionButton(ADB.Edit) With {.ToolTipText = "Edit selected labels"},
+                                               New ActionButton(ADB.Delete) With {.ToolTipText = "Edit excluded labels"}, ADB.Clear})
+            TXT_LABELS.TextBoxReadOnly = True
+
+            InitTextBox(TXT_SITES, "Sites", {New ActionButton(ADB.Edit) With {.ToolTipText = "Edit selected sites"},
+                                             New ActionButton(ADB.Delete) With {.ToolTipText = "Edit excluded sites"}, ADB.Clear})
+            TXT_SITES.TextBoxReadOnly = True
+
+            InitTextBox(TXT_NAME, "Name", {ADB.Clear})
+
             CH_TEMPORARY = New CheckBox With {.Text = "Temporary", .Name = "CH_TEMPORARY", .ThreeState = True, .CheckState = CheckState.Indeterminate, .Dock = DockStyle.Fill}
             CH_FAV = New CheckBox With {.Text = "Favorite", .Name = "CH_FAV", .ThreeState = True, .CheckState = CheckState.Indeterminate, .Dock = DockStyle.Fill}
             CH_READY_FOR_DOWN = New CheckBox With {.Text = "Ready for download", .Name = "CH_READY_FOR_DOWN", .Checked = True, .Dock = DockStyle.Fill}
@@ -48,6 +48,17 @@ Namespace DownloadObjects.Groups
             FillTP(TP_1, CH_TEMPORARY, CH_FAV)
             TP_2 = New TableLayoutPanel With {.CellBorderStyle = TableLayoutPanelCellBorderStyle.Single, .Margin = New Padding(0), .Dock = DockStyle.Fill}
             FillTP(TP_2, CH_READY_FOR_DOWN, CH_READY_FOR_DOWN_IGNORE)
+        End Sub
+        Private Sub InitTextBox(ByRef TXT As TextBoxExtended, ByVal Caption As String, ByVal Buttons As ActionButton())
+            TXT = New TextBoxExtended
+            With TXT
+                .BeginInit()
+                .Buttons.AddRange(Buttons)
+                .CaptionText = Caption
+                .CaptionWidth = 50
+                .Dock = DockStyle.Fill
+                .EndInit()
+            End With
         End Sub
         Private Sub FillTP(ByRef TP As TableLayoutPanel, ByVal CNT1 As Control, ByVal CNT2 As Control)
             With TP
@@ -87,11 +98,12 @@ Namespace DownloadObjects.Groups
                 CellBorderStyle = TableLayoutPanelCellBorderStyle.Single
                 ColumnCount = 1
                 ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 100))
-                RowCount = 6
+                RowCount = 7
                 RowStyles.Add(New RowStyle(SizeType.Absolute, 25))
                 RowStyles.Add(New RowStyle(SizeType.Absolute, 28))
                 RowStyles.Add(New RowStyle(SizeType.Absolute, 25))
                 RowStyles.Add(New RowStyle(SizeType.Absolute, 25))
+                RowStyles.Add(New RowStyle(SizeType.Absolute, 28))
                 RowStyles.Add(New RowStyle(SizeType.Absolute, 28))
                 RowStyles.Add(New RowStyle(SizeType.Percent, 100))
             End If
@@ -99,20 +111,49 @@ Namespace DownloadObjects.Groups
             Controls.Add(TP_1, 0, 2)
             Controls.Add(TP_2, 0, 3)
             Controls.Add(TXT_LABELS, 0, 4)
+            Controls.Add(TXT_SITES, 0, 5)
         End Sub
-        Private Sub TXT_LABELS_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As EventArgs) Handles TXT_LABELS.ActionOnButtonClick
+        Private Sub TXT_LABELS_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As ActionButtonEventArgs) Handles TXT_LABELS.ActionOnButtonClick
             Select Case Sender.DefaultButton
-                Case ADB.Edit
-                    Using f As New LabelsForm(Labels)
-                        f.ShowDialog()
-                        If f.DialogResult = DialogResult.OK Then
-                            Labels.ListAddList(f.LabelsList, LAP.NotContainsOnly, LAP.ClearBeforeAdd)
-                            TXT_LABELS.Clear()
-                            TXT_LABELS.Text = Labels.ListToString
-                        End If
-                    End Using
-                Case ADB.Clear : Labels.Clear()
+                Case ADB.Edit, ADB.Delete
+                    With If(Sender.DefaultButton = ADB.Edit, Labels, LabelsExcluded)
+                        Using f As New LabelsForm(.ListSelf, True)
+                            If Sender.DefaultButton = ADB.Delete Then f.Text &= " excluded"
+                            f.ShowDialog()
+                            If f.DialogResult = DialogResult.OK Then
+                                .AsList.ListAddList(f.LabelsList, LAP.NotContainsOnly, LAP.ClearBeforeAdd)
+                                UpdateLabelsText()
+                            End If
+                        End Using
+                    End With
+                Case ADB.Clear : Labels.Clear() : LabelsExcluded.Clear() : TXT_LABELS.Clear() : UpdateLabelsText()
             End Select
+        End Sub
+        Private Sub TXT_SITES_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As ActionButtonEventArgs) Handles TXT_SITES.ActionOnButtonClick
+            Select Case Sender.DefaultButton
+                Case ADB.Edit, ADB.Delete
+                    With If(Sender.DefaultButton = ADB.Edit, Sites, SitesExcluded)
+                        Using f As New Editors.SiteSelectionForm(.ListSelf)
+                            If Sender.DefaultButton = ADB.Delete Then f.Text &= " excluded"
+                            f.ShowDialog()
+                            If f.DialogResult = DialogResult.OK Then
+                                .AsList.ListAddList(f.SelectedSites, LAP.NotContainsOnly, LAP.ClearBeforeAdd)
+                                UpdateSitesText()
+                            End If
+                        End Using
+                    End With
+                Case ADB.Clear : Sites.Clear() : SitesExcluded.Clear() : TXT_SITES.Clear() : UpdateSitesText()
+            End Select
+        End Sub
+        Private Sub UpdateLabelsText()
+            TXT_LABELS.Clear()
+            If Not _JustExcludeOptions Then TXT_LABELS.Text = Labels.ListToString
+            If LabelsExcluded.Count > 0 Then TXT_LABELS.Text.StringAppend($"EXCLUDED: {LabelsExcluded.ListToString}", "; ")
+        End Sub
+        Private Sub UpdateSitesText()
+            TXT_SITES.Clear()
+            If Not _JustExcludeOptions Then TXT_SITES.Text = Sites.ListToString
+            If SitesExcluded.Count > 0 Then TXT_SITES.Text.StringAppend($"EXCLUDED: {SitesExcluded.ListToString}", "; ")
         End Sub
         Friend Sub [Get](ByRef Instance As IGroup)
             If Not Instance Is Nothing Then
@@ -124,6 +165,12 @@ Namespace DownloadObjects.Groups
                     .ReadyForDownloadIgnore = CH_READY_FOR_DOWN_IGNORE.Checked
                     .Labels.Clear()
                     .Labels.ListAddList(Labels)
+                    .LabelsExcluded.Clear()
+                    .LabelsExcluded.ListAddList(LabelsExcluded)
+                    .Sites.Clear()
+                    .Sites.ListAddList(Sites)
+                    .SitesExcluded.Clear()
+                    .SitesExcluded.ListAddList(SitesExcluded)
                 End With
             End If
         End Sub
@@ -135,21 +182,48 @@ Namespace DownloadObjects.Groups
                     CH_FAV.CheckState = .Favorite
                     CH_READY_FOR_DOWN.Checked = .ReadyForDownload
                     CH_READY_FOR_DOWN_IGNORE.Checked = .ReadyForDownloadIgnore
+
                     Labels.ListAddList(.Labels)
-                    TXT_LABELS.Text = Labels.ListToString
+                    LabelsExcluded.ListAddList(.LabelsExcluded)
+                    UpdateLabelsText()
+
+                    Sites.ListAddList(.Sites)
+                    SitesExcluded.ListAddList(.SitesExcluded)
+                    UpdateSitesText()
                 End With
             End If
         End Sub
         Private _Enabled As Boolean = True
-        Friend Shadows Property Enabled As Boolean
+        Private _JustExcludeOptions As Boolean = False
+        Friend Overloads Property Enabled(Optional ByVal LeaveExcludeOptions As Boolean = False) As Boolean
             Get
                 Return _Enabled
             End Get
             Set(ByVal e As Boolean)
                 _Enabled = e
+                _JustExcludeOptions = False
                 TP_1.Enabled = e
                 TP_2.Enabled = e
-                TXT_LABELS.Enabled = e
+                If e Then
+                    TXT_LABELS.Enabled = True
+                    TXT_SITES.Enabled = True
+                ElseIf LeaveExcludeOptions Then
+                    _JustExcludeOptions = True
+                    TXT_LABELS.Enabled = True
+                    TXT_LABELS.Button(ADB.Edit).Enabled = False
+                    TXT_LABELS.Button(ADB.Delete).Enabled = True
+                    TXT_LABELS.Button(ADB.Clear).Enabled = False
+
+                    TXT_SITES.Enabled = True
+                    TXT_SITES.Button(ADB.Edit).Enabled = False
+                    TXT_SITES.Button(ADB.Delete).Enabled = True
+                    TXT_SITES.Button(ADB.Clear).Enabled = False
+                Else
+                    TXT_LABELS.Enabled = False
+                    TXT_SITES.Enabled = False
+                End If
+                UpdateLabelsText()
+                UpdateSitesText()
             End Set
         End Property
     End Class

@@ -22,10 +22,15 @@ Namespace DownloadObjects.Groups
                     x.LoadData()
                     If x.Count > 0 Then GroupsList.ListAddList(x, LAP.IgnoreICopier)
                 End Using
-                If GroupsList.Count > 0 Then GroupsList.ForEach(Sub(ByVal g As DownloadGroup)
-                                                                    AddHandler g.Deleted, AddressOf OnGroupDeleted
-                                                                    AddHandler g.Updated, AddressOf OnGroupUpdated
-                                                                End Sub)
+                With GroupsList
+                    If .Count > 0 Then
+                        .ForEach(Sub(ByVal g As DownloadGroup)
+                                     AddHandler g.Deleted, AddressOf OnGroupDeleted
+                                     AddHandler g.Updated, AddressOf OnGroupUpdated
+                                 End Sub)
+                        If .Exists(Function(g) g.NeedToSave) Then Update()
+                    End If
+                End With
             End If
             GroupsList.ListReindex
         End Sub
@@ -49,9 +54,9 @@ Namespace DownloadObjects.Groups
                 GroupFile.Delete()
             End If
         End Sub
+        Private _GroupAddInProgress As Boolean = False
         Private Sub OnGroupUpdated(ByVal Sender As DownloadGroup)
-            Update()
-            RaiseEvent Updated(Sender)
+            If Not _GroupAddInProgress Then Update() : RaiseEvent Updated(Sender)
         End Sub
         Private Sub OnGroupDeleted(ByVal Sender As DownloadGroup)
             RaiseEvent Deleted(Sender)
@@ -67,10 +72,16 @@ Namespace DownloadObjects.Groups
             Using f As New GroupEditorForm(Nothing)
                 f.ShowDialog()
                 If f.DialogResult = DialogResult.OK Then
+                    _GroupAddInProgress = True
                     GroupsList.Add(f.MyGroup)
+                    With GroupsList.Last
+                        AddHandler .Deleted, AddressOf OnGroupDeleted
+                        AddHandler .Updated, AddressOf OnGroupUpdated
+                    End With
                     GroupsList.ListReindex
                     RaiseEvent Added(GroupsList.Last)
                     Update()
+                    _GroupAddInProgress = False
                 End If
             End Using
         End Sub

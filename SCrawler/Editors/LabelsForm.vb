@@ -18,6 +18,8 @@ Friend Class LabelsForm
         Get
             If Not _Source Is Nothing Then
                 Return _Source
+            ElseIf AddNoParsed Then
+                Return ListAddList(Nothing, Settings.Labels).ListAddValue(LabelsKeeper.NoParsedUser, LAP.NotContainsOnly)
             Else
                 Return Settings.Labels
             End If
@@ -27,8 +29,10 @@ Friend Class LabelsForm
     Friend Property MultiUser As Boolean = False
     Friend Property MultiUserClearExists As Boolean = False
     Friend Property WithDeleteButton As Boolean = False
-    Friend Sub New(ByVal LabelsArr As IEnumerable(Of String))
+    Private ReadOnly AddNoParsed As Boolean = False
+    Friend Sub New(ByVal LabelsArr As IEnumerable(Of String), Optional ByVal AddNoParsed As Boolean = False)
         InitializeComponent()
+        Me.AddNoParsed = AddNoParsed
         LabelsList = New List(Of String)
         LabelsList.ListAddList(LabelsArr)
         MyDefs = New DefaultFormOptions(Me, Settings.Design)

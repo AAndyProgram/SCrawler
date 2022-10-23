@@ -563,6 +563,7 @@
     <None Include="Content\Pictures\ArrowDownPic_Blue_24.png" />
     <None Include="Content\Icons\ArrowDownIcon_Blue_24.ico" />
     <None Include="Content\Pictures\PinPic_32.png" />
+    <None Include="Content\Icons\TagIcon_32.ico" />
     <Content Include="ffmpeg.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

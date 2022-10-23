@@ -101,7 +101,7 @@ Namespace DownloadObjects
         Private Sub TXT_GROUPS_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As EventArgs) Handles TXT_GROUPS.ActionOnButtonClick
             Select Case Sender.DefaultButton
                 Case ActionButton.DefaultButtons.Edit
-                    Using f As New LabelsForm(MyGroups, Settings.Groups.Select(Function(g) g.Name)) With {.Text = "Groups"}
+                    Using f As New LabelsForm(MyGroups, Settings.Groups.Select(Function(g) g.Name)) With {.Text = "Groups", .Icon = My.Resources.GroupByIcon_16}
                         f.ShowDialog()
                         If f.DialogResult = DialogResult.OK Then MyGroups.ListAddList(f.LabelsList, LAP.ClearBeforeAdd) : TXT_GROUPS.Text = MyGroups.ListToString
                     End Using
@@ -111,7 +111,7 @@ Namespace DownloadObjects
         Private Sub ChangeEnabled() Handles OPT_DISABLED.CheckedChanged, OPT_ALL.CheckedChanged, OPT_DEFAULT.CheckedChanged,
                                             OPT_SPEC.CheckedChanged, OPT_GROUP.CheckedChanged,
                                             CH_NOTIFY.CheckedChanged, CH_NOTIFY_SIMPLE.CheckedChanged
-            DEF_GROUP.Enabled = OPT_SPEC.Checked
+            DEF_GROUP.Enabled(OPT_ALL.Checked Or OPT_DEFAULT.Checked Or OPT_SPEC.Checked) = OPT_SPEC.Checked
             TXT_GROUPS.Enabled = OPT_GROUP.Checked
             TXT_TIMER.Enabled = Not OPT_DISABLED.Checked
             NUM_DELAY.Enabled = Not OPT_DISABLED.Checked

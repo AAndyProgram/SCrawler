@@ -793,7 +793,7 @@ Namespace API.Reddit
                                                                        End Function
                         Dim m$
                         Using w As New WebClient
-                            If vsf Then SFileShares.SFileExists($"{MyDir}\Video\", SFO.Path)
+                            If vsf Then CSFileP($"{MyDir}\Video\").Exists(SFO.Path)
                             Progress.Maximum += _ContentNew.Count
                             For i = 0 To _ContentNew.Count - 1
                                 ThrowAny(Token)
@@ -850,7 +850,7 @@ Namespace API.Reddit
                                             End If
                                             If Not v.Type = UTypes.m3u8 Or Not f.IsEmptyString Then
                                                 Select Case v.Type
-                                                    Case UTypes.Picture : DownloadedPictures(False) += 1
+                                                    Case UTypes.Picture, UTypes.GIF : DownloadedPictures(False) += 1
                                                     Case UTypes.Video, UTypes.m3u8 : DownloadedVideos(False) += 1
                                                 End Select
                                                 If Not IsChannel Or Not SaveToCache Then
@@ -897,19 +897,20 @@ Namespace API.Reddit
         End Sub
         Protected Overrides Function DownloadingException(ByVal ex As Exception, ByVal Message As String, Optional ByVal FromPE As Boolean = False,
                                                           Optional ByVal EObj As Object = Nothing) As Integer
-            If Responser.StatusCode = HttpStatusCode.NotFound Then
-                UserExists = False
-            ElseIf Responser.StatusCode = HttpStatusCode.Forbidden Then
-                UserSuspended = True
-            ElseIf Responser.StatusCode = HttpStatusCode.BadGateway Or
-                   Responser.StatusCode = HttpStatusCode.ServiceUnavailable Then
-                MyMainLOG = $"[{CInt(Responser.StatusCode)}] Reddit is currently unavailable ({ToString()})"
-            ElseIf Responser.StatusCode = HttpStatusCode.GatewayTimeout Then
-                Return 1
-            Else
-                If Not FromPE Then LogError(ex, Message) : HasError = True
-                Return 0
-            End If
+            With Responser
+                If .StatusCode = HttpStatusCode.NotFound Then
+                    UserExists = False
+                ElseIf .StatusCode = HttpStatusCode.Forbidden Then
+                    UserSuspended = True
+                ElseIf .StatusCode = HttpStatusCode.BadGateway Or .StatusCode = HttpStatusCode.ServiceUnavailable Then
+                    MyMainLOG = $"[{CInt(Responser.StatusCode)}] Reddit is currently unavailable ({ToString()})"
+                ElseIf .StatusCode = HttpStatusCode.GatewayTimeout Then
+                    Return 1
+                Else
+                    If Not FromPE Then LogError(ex, Message) : HasError = True
+                    Return 0
+                End If
+            End With
             Return 1
         End Function
         Protected Overrides Sub Dispose(ByVal disposing As Boolean)
