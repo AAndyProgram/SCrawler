@@ -81,6 +81,8 @@ Namespace Plugin.Hosts
                     New PluginHost(New API.RedGifs.SiteSettings, _XML, GlobalPath, _Temp, _Imgs, _Vids),
                     New PluginHost(New API.TikTok.SiteSettings, _XML, GlobalPath, _Temp, _Imgs, _Vids),
                     New PluginHost(New API.LPSG.SiteSettings, _XML, GlobalPath, _Temp, _Imgs, _Vids),
+                    New PluginHost(New API.PornHub.SiteSettings, _XML, GlobalPath, _Temp, _Imgs, _Vids),
+                    New PluginHost(New API.Xhamster.SiteSettings, _XML, GlobalPath, _Temp, _Imgs, _Vids),
                     New PluginHost(New API.XVIDEOS.SiteSettings, _XML, GlobalPath, _Temp, _Imgs, _Vids)}
         End Function
         Friend Shared Function GetPluginsHosts(ByRef _XML As XmlFile, ByVal GlobalPath As SFile,

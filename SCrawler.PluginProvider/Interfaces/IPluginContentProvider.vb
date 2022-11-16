@@ -17,9 +17,9 @@ Namespace Plugin
         Property ID As String
         Property ParseUserMediaOnly As Boolean
         Property UserDescription As String
-        Property ExistingContentList As List(Of PluginUserMedia)
+        Property ExistingContentList As List(Of IUserMedia)
         Property TempPostsList As List(Of String)
-        Property TempMediaList As List(Of PluginUserMedia)
+        Property TempMediaList As List(Of IUserMedia)
         Property UserExists As Boolean
         Property UserSuspended As Boolean
         Property IsSavedPosts As Boolean

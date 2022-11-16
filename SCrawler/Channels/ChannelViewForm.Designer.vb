@@ -140,24 +140,28 @@ Partial Friend Class ChannelViewForm : Inherits System.Windows.Forms.Form
         '
         'BTT_C_OPEN_USER
         '
+        Me.BTT_C_OPEN_USER.Image = Global.SCrawler.My.Resources.Resources.GlobePic_32
         Me.BTT_C_OPEN_USER.Name = "BTT_C_OPEN_USER"
         Me.BTT_C_OPEN_USER.Size = New System.Drawing.Size(305, 22)
         Me.BTT_C_OPEN_USER.Text = "Open user"
         '
         'BTT_C_OPEN_POST
         '
+        Me.BTT_C_OPEN_POST.Image = Global.SCrawler.My.Resources.Resources.GlobePic_32
         Me.BTT_C_OPEN_POST.Name = "BTT_C_OPEN_POST"
         Me.BTT_C_OPEN_POST.Size = New System.Drawing.Size(305, 22)
         Me.BTT_C_OPEN_POST.Text = "Open post"
         '
         'BTT_C_OPEN_PICTURE
         '
+        Me.BTT_C_OPEN_PICTURE.Image = Global.SCrawler.My.Resources.Resources.PicturePic_32
         Me.BTT_C_OPEN_PICTURE.Name = "BTT_C_OPEN_PICTURE"
         Me.BTT_C_OPEN_PICTURE.Size = New System.Drawing.Size(305, 22)
         Me.BTT_C_OPEN_PICTURE.Text = "Open picture"
         '
         'BTT_C_OPEN_FOLDER
         '
+        Me.BTT_C_OPEN_FOLDER.Image = Global.SCrawler.My.Resources.Resources.FolderPic_32
         Me.BTT_C_OPEN_FOLDER.Name = "BTT_C_OPEN_FOLDER"
         Me.BTT_C_OPEN_FOLDER.Size = New System.Drawing.Size(305, 22)
         Me.BTT_C_OPEN_FOLDER.Text = "Open folder"
@@ -165,6 +169,7 @@ Partial Friend Class ChannelViewForm : Inherits System.Windows.Forms.Form
         'BTT_C_REMOVE_FROM_SELECTED
         '
         Me.BTT_C_REMOVE_FROM_SELECTED.AutoToolTip = True
+        Me.BTT_C_REMOVE_FROM_SELECTED.Image = Global.SCrawler.My.Resources.Resources.DeletePic_24
         Me.BTT_C_REMOVE_FROM_SELECTED.Name = "BTT_C_REMOVE_FROM_SELECTED"
         Me.BTT_C_REMOVE_FROM_SELECTED.Size = New System.Drawing.Size(305, 22)
         Me.BTT_C_REMOVE_FROM_SELECTED.Text = "Remove user from selected"
@@ -172,6 +177,7 @@ Partial Friend Class ChannelViewForm : Inherits System.Windows.Forms.Form
         '
         'BTT_C_ADD_TO_BLACKLIST
         '
+        Me.BTT_C_ADD_TO_BLACKLIST.Image = Global.SCrawler.My.Resources.Resources.DBPic_32
         Me.BTT_C_ADD_TO_BLACKLIST.Name = "BTT_C_ADD_TO_BLACKLIST"
         Me.BTT_C_ADD_TO_BLACKLIST.Size = New System.Drawing.Size(305, 22)
         Me.BTT_C_ADD_TO_BLACKLIST.Text = "Add/Remove this user to/from the BlackList"

@@ -10,7 +10,7 @@ Imports PersonalUtilities.Functions.XML.Base
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Forms.Toolbars
 Imports PersonalUtilities.Tools
-Imports PersonalUtilities.Tools.WEB
+Imports PersonalUtilities.Tools.Web
 Imports SCrawler.API
 Imports SCrawler.API.Base
 Imports SCrawler.Plugin.Hosts
@@ -92,6 +92,10 @@ Friend Module MainMod
         None = 0
         Replace = 1
         Add = 2
+    End Enum
+    Friend Enum UsageModel As Integer
+        [Default] = 0
+        Virtual = 1
     End Enum
     Friend Downloader As TDownloader
     Friend InfoForm As DownloadedInfoForm

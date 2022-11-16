@@ -7,25 +7,44 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Namespace Plugin
-    Public Structure PluginUserMedia
-        Enum Types As Integer
-            Undefined = 0
-            [Picture] = 1
-            [Video] = 2
-            [Text] = 3
-            VideoPre = 10
-            GIF = 50
-            m3u8 = 100
-        End Enum
-        Enum States As Integer : Unknown = 0 : Tried = 1 : Downloaded = 2 : Skipped = 3 : Missing = 4 : End Enum
-        Public ContentType As Integer
-        Public URL As String
-        Public MD5 As String
-        Public File As String
-        Public DownloadState As Integer
-        Public PostID As String
-        Public PostDate As Date?
-        Public SpecialFolder As String
-        Public Attempts As Integer
+    Public Enum UserMediaTypes As Integer
+        Undefined = 0
+        [Picture] = 1
+        [Video] = 2
+        [Text] = 3
+        VideoPre = 10
+        GIF = 50
+        m3u8 = 100
+    End Enum
+    Public Enum UserMediaStates As Integer
+        Unknown = 0
+        Tried = 1
+        Downloaded = 2
+        Skipped = 3
+        Missing = 4
+    End Enum
+    Public Structure PluginUserMedia : Implements IUserMedia
+        Public Property ContentType As Integer Implements IUserMedia.ContentType
+        Public Property URL As String Implements IUserMedia.URL
+        Public Property URL_BASE As String Implements IUserMedia.URL_BASE
+        Public Property MD5 As String Implements IUserMedia.MD5
+        Public Property File As String Implements IUserMedia.File
+        Public Property DownloadState As Integer Implements IUserMedia.DownloadState
+        Public Property PostID As String Implements IUserMedia.PostID
+        Public Property PostDate As Date? Implements IUserMedia.PostDate
+        Public Property SpecialFolder As String Implements IUserMedia.SpecialFolder
+        Public Property Attempts As Integer Implements IUserMedia.Attempts
     End Structure
+    Public Interface IUserMedia
+        Property ContentType As Integer
+        Property URL As String
+        Property URL_BASE As String
+        Property MD5 As String
+        Property File As String
+        Property DownloadState As Integer
+        Property PostID As String
+        Property PostDate As Date?
+        Property SpecialFolder As String
+        Property Attempts As Integer
+    End Interface
 End Namespace

@@ -10,7 +10,7 @@ Imports LibVLCSharp
 Imports System.Threading
 Imports System.ComponentModel
 Imports PersonalUtilities.Tools
-Imports PersonalUtilities.Tools.WEB
+Imports PersonalUtilities.Tools.Web
 Imports VLCState = LibVLCSharp.Shared.VLCState
 Namespace DownloadObjects
     <ToolboxItem(False), DesignTimeVisible(False)>

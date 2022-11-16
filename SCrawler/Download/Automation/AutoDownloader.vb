@@ -7,7 +7,6 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports System.Threading
-Imports SCrawler.API
 Imports SCrawler.API.Base
 Imports SCrawler.DownloadObjects.Groups
 Imports PersonalUtilities.Functions.XML
@@ -421,21 +420,32 @@ Namespace DownloadObjects
                 LastDownloadDate = LastDownloadDate.AddMinutes(Timer)
             End If
         End Sub
+        Private _SpecialDelayUse As Boolean = False
+        Private _SpecialDelayTime As Date? = Nothing
         Private Sub Checker()
             Try
                 Dim _StartDownload As Boolean
                 While (Not _StopRequested Or Downloader.Working) And Not Mode = Modes.None
                     If LastDownloadDate.AddMinutes(Timer) < Now And _StartTime.AddMinutes(StartupDelay) < Now And
-                       Not Downloader.Working And Not IsPaused And Not _StopRequested And Not Mode = Modes.None Then
-                        _StartDownload = False
-                        If Settings.Automation.Count = 1 Then
-                            _StartDownload = True
-                        ElseIf Index = -1 Then
-                            _StartDownload = True
+                       Not IsPaused And Not _StopRequested And Not Mode = Modes.None Then
+                        If Downloader.Working Then
+                            _SpecialDelayUse = True
                         Else
-                            _StartDownload = NextExecutionDate.AddMilliseconds(1000 * (Index + 1)).Ticks <= Now.Ticks
+                            If _SpecialDelayUse And Not _SpecialDelayTime.HasValue Then _SpecialDelayTime = Now.AddSeconds(10)
+                            If Not _SpecialDelayUse OrElse (_SpecialDelayTime.HasValue AndAlso _SpecialDelayTime.Value < Now) Then
+                                _SpecialDelayUse = False
+                                _SpecialDelayTime = Nothing
+                                _StartDownload = False
+                                If Settings.Automation.Count = 1 Then
+                                    _StartDownload = True
+                                ElseIf Index = -1 Then
+                                    _StartDownload = True
+                                Else
+                                    _StartDownload = NextExecutionDate.AddMilliseconds(1000 * (Index + 1)).Ticks <= Now.Ticks
+                                End If
+                                If _StartDownload Then Download()
+                            End If
                         End If
-                        If _StartDownload Then Download()
                     End If
                     Thread.Sleep(500)
                 End While

@@ -1,3 +1,37 @@
+# 2022.11.16.0
+
+*2022-11-16*
+
+**ATTENTION! This version makes changes to the base SCrawler user configuration file. Since you started using this version, you still can downgrade. BUT! Once you add a virtual collection or a virtual user to a collection, you won't be able to downgrade without losing data.**
+
+- Added
+  - **PornHub**
+  - **XHamster**
+  - An ability to download saved XVIDEOS posts
+  - Download indicator. While downloading, the rainbow tray icon changed to a blue arrow.
+  - Collections: the ability to edit a collection using a form
+  - Collections: the ability to create a **`virtual collection`** and add a **`virtual user`** to a real collection
+  - Collections: an easier way to added users to a collection
+  - Collections: an easier way to create collections
+  - Added icons for channels form context menu buttons
+  - More convenient change of user labels from the context menu of the user list
+  - Notifications: complete transition from default notifications to ToastNotifications
+  - Notifications: when you click on the notification that some of the channels are downloaded, the channels form opens
+  - Notifications: when you click on the notification that all users are downloaded, the main window form opens
+  - Notifications: when you click on the notification that the saved posts are downloaded, the saved posts form opens
+  - Import users
+  - Minor improvements
+- Plugins
+  - Added
+    - `TaskGroup` attribute
+    - `IUserMedia` interface
+  - Changed
+    - `GetUserUrl` and `GetUserPostUrl` functions: `String UserName` and `String UserID` changed to ` IPluginContentProvider User`
+- Fixed
+  - Collections editor: new added collections are still not added to the top of the collections list
+  - Users search form doesn't remember last size
+  - Minor bugs
+
 # 2022.10.23.0
 
 *2022-10-23*

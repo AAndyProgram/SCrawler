@@ -10,8 +10,8 @@ Imports System.Threading
 Imports System.Reflection
 Imports PersonalUtilities.Functions.XML
 Imports SCrawler.API.Base
-Imports UStates = SCrawler.Plugin.PluginUserMedia.States
-Imports UTypes = SCrawler.Plugin.PluginUserMedia.Types
+Imports UStates = SCrawler.Plugin.UserMediaStates
+Imports UTypes = SCrawler.Plugin.UserMediaTypes
 Namespace Plugin.Hosts
     Friend Class UserDataHost : Inherits UserDataBase
         Private ReadOnly UseInternalDownloader As Boolean
@@ -56,11 +56,11 @@ Namespace Plugin.Hosts
                 .DownloadDateFrom = DownloadDateFrom
                 .DownloadDateTo = DownloadDateTo
 
-                .ExistingContentList = New List(Of PluginUserMedia)
-                .TempMediaList = New List(Of PluginUserMedia)
+                .ExistingContentList = New List(Of IUserMedia)
+                .TempMediaList = New List(Of IUserMedia)
                 .TempPostsList = New List(Of String)
 
-                If _ContentList.Count > 0 Then ExternalPlugin.ExistingContentList = _ContentList.Select(Function(u) u.PluginUserMedia).ToList
+                If _ContentList.Count > 0 Then ExternalPlugin.ExistingContentList = _ContentList.ListCast(Of IUserMedia)
                 ExternalPlugin.TempPostsList = ListAddList(Nothing, _TempPostsList)
 
                 .GetMedia()
@@ -81,8 +81,8 @@ Namespace Plugin.Hosts
             Else
                 With ExternalPlugin
                     If .TempMediaList.ListExists Then .TempMediaList.Clear()
-                    .TempMediaList = New List(Of PluginUserMedia)
-                    .TempMediaList.ListAddList(_ContentNew.Select(Function(c) c.PluginUserMedia()))
+                    .TempMediaList = New List(Of IUserMedia)
+                    .TempMediaList.ListAddList(_ContentNew)
                     .Download()
                     _ContentNew.Clear()
                     If .TempMediaList.ListExists Then

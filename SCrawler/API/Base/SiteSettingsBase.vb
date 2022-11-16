@@ -7,7 +7,8 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports PersonalUtilities.Functions.RegularExpressions
-Imports PersonalUtilities.Tools.WEB
+Imports PersonalUtilities.Tools.Web.Clients
+Imports PersonalUtilities.Tools.Web.Cookies
 Imports SCrawler.Plugin
 Imports Download = SCrawler.Plugin.ISiteSettings.Download
 Namespace API.Base
@@ -40,6 +41,7 @@ Namespace API.Base
                     .CookiesEncryptKey = SettingsCLS.CookieEncryptKey
                     .SaveSettings()
                 End If
+                If .CookiesDomain.IsEmptyString Then .CookiesDomain = CookiesDomain
             End With
         End Sub
 #Region "XML"
@@ -74,15 +76,18 @@ Namespace API.Base
 #Region "User info"
         Protected UrlPatternUser As String = String.Empty
         Protected UrlPatternChannel As String = String.Empty
-        Friend Overridable Function GetUserUrl(ByVal UserName As String, ByVal Channel As Boolean) As String Implements ISiteSettings.GetUserUrl
+        Friend Overridable Function GetUserUrl(ByVal User As IPluginContentProvider, ByVal Channel As Boolean) As String Implements ISiteSettings.GetUserUrl
             If Channel Then
-                If Not UrlPatternChannel.IsEmptyString Then Return String.Format(UrlPatternChannel, UserName)
+                If Not UrlPatternChannel.IsEmptyString Then Return String.Format(UrlPatternChannel, User.Name)
             Else
-                If Not UrlPatternUser.IsEmptyString Then Return String.Format(UrlPatternUser, UserName)
+                If Not UrlPatternUser.IsEmptyString Then Return String.Format(UrlPatternUser, User.Name)
             End If
             Return String.Empty
         End Function
-        Friend Overridable Function GetUserPostUrl(ByVal UserID As String, ByVal PostID As String) As String Implements ISiteSettings.GetUserPostUrl
+        Private Function ISiteSettings_GetUserPostUrl(ByVal User As IPluginContentProvider, ByVal Media As IUserMedia) As String Implements ISiteSettings.GetUserPostUrl
+            Return GetUserPostUrl(User, Media)
+        End Function
+        Friend Overridable Function GetUserPostUrl(ByVal User As UserDataBase, ByVal Media As UserMedia) As String
             Return String.Empty
         End Function
         Protected UserRegex As RParams = Nothing
@@ -94,7 +99,7 @@ Namespace API.Base
                 End If
                 Return Nothing
             Catch ex As Exception
-                Return ErrorsDescriber.Execute(EDP.SendInLog + EDP.ReturnValue, ex, $"[API.Base.SiteSettingsBase.IsMyUser({UserURL})]")
+                Return ErrorsDescriber.Execute(EDP.SendInLog + EDP.ReturnValue, ex, $"[API.Base.SiteSettingsBase.IsMyUser({UserURL})]", New ExchangeOptions)
             End Try
         End Function
         Protected ImageVideoContains As String = String.Empty

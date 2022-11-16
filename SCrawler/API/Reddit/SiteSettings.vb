@@ -25,7 +25,7 @@ Namespace API.Reddit
                 Return My.Resources.SiteResources.RedditPic_512
             End Get
         End Property
-        <PropertyOption(ControlText:="Saved posts user"), PXML("SavedPostsUserName")>
+        <PropertyOption(ControlText:="Saved posts user", ControlToolTip:="Personal profile username"), PXML>
         Friend ReadOnly Property SavedPostsUserName As PropertyValue
         <PropertyOption(ControlText:="Use M3U8", ControlToolTip:="Use M3U8 or mp4 for Reddit videos"), PXML>
         Friend ReadOnly Property UseM3U8 As PropertyValue
@@ -40,6 +40,7 @@ Namespace API.Reddit
             UrlPatternUser = "https://www.reddit.com/user/{0}/"
             UrlPatternChannel = "https://www.reddit.com/r/{0}/"
             ImageVideoContains = "reddit.com"
+            UserRegex = RParams.DM("[htps:/]{7,8}.*?reddit.com/([user]{1,4})/([^/]+)", 0, RegexReturn.ListByMatch, EDP.ReturnValue)
         End Sub
         Friend Overrides Function GetInstance(ByVal What As Download) As IPluginContentProvider
             Select Case What
@@ -55,19 +56,9 @@ Namespace API.Reddit
             End Select
             Return Nothing
         End Function
-        Private ReadOnly RedditRegEx1 As RParams = RParams.DMS("[htps:/]{7,8}.*?reddit.com/user/([^/]+)", 1)
-        Private ReadOnly RedditRegEx2 As RParams = RParams.DMS(".?u/([^/]+)", 1)
-        Private ReadOnly RedditChannelRegEx1 As RParams = RParams.DMS("[htps:/]{7,8}.*?reddit.com/r/([^/]+)", 1)
-        Private ReadOnly RedditChannelRegEx2 As RParams = RParams.DMS(".?r/([^/]+)", 1)
         Friend Overrides Function IsMyUser(ByVal UserURL As String) As ExchangeOptions
-            Dim s$
-            Dim c% = 0
-            For Each r As RParams In {RedditRegEx1, RedditRegEx2, RedditChannelRegEx1, RedditChannelRegEx2}
-                s = RegexReplace(UserURL, r)
-                If Not s.IsEmptyString Then Return New ExchangeOptions(Site, s, c > 1)
-                c += 1
-            Next
-            Return Nothing
+            Dim l As List(Of String) = RegexReplace(UserURL, UserRegex)
+            If l.ListExists(3) Then Return New ExchangeOptions(Site, l(2), l(1) = "r") Else Return Nothing
         End Function
         Friend Overrides Function Available(ByVal What As Download, ByVal Silent As Boolean) As Boolean
             Try
@@ -83,7 +74,7 @@ Namespace API.Reddit
                                         avg.NumToString(New ANumbers With {.FormatOptions = ANumbers.Options.GroupIntegral}) & " outage reports:" & vbCr &
                                         dl.ListToString(vbCr) & vbCr & vbCr &
                                         "Do you want to continue parsing Reddit data?", "There are outage reports on Reddit"}, vbYesNo) = vbYes Then
-                                DirectCast(Settings(RedGifs.RedGifsSiteKey).Source, RedGifs.SiteSettings).UpdateTokenIfRequired()
+                                UpdateRedGifsToken()
                                 Return True
                             Else
                                 Return False
@@ -91,11 +82,15 @@ Namespace API.Reddit
                         End If
                     End If
                 End If
+                UpdateRedGifsToken()
                 Return True
             Catch ex As Exception
                 Return ErrorsDescriber.Execute(EDP.SendInLog + EDP.ReturnValue, ex, "[API.Reddit.SiteSettings.Available]", True)
             End Try
         End Function
+        Private Sub UpdateRedGifsToken()
+            DirectCast(Settings(RedGifs.RedGifsSiteKey).Source, RedGifs.SiteSettings).UpdateTokenIfRequired()
+        End Sub
         Friend Overrides Function GetSpecialData(ByVal URL As String, ByVal Path As String, ByVal AskForPath As Boolean) As IEnumerable
             Dim spf$ = String.Empty
             Dim f As SFile = GetSpecialDataFile(Path, AskForPath, spf)
@@ -108,8 +103,8 @@ Namespace API.Reddit
                 Using f As New RedditViewSettingsForm(Options) : f.ShowDialog() : End Using
             End If
         End Sub
-        Friend Overrides Function GetUserPostUrl(ByVal UserID As String, ByVal PostID As String) As String
-            Return $"https://www.reddit.com/comments/{PostID.Split("_").LastOrDefault}/"
+        Friend Overrides Function GetUserPostUrl(ByVal User As UserDataBase, ByVal Media As UserMedia) As String
+            Return $"https://www.reddit.com/comments/{Media.Post.ID.Split("_").LastOrDefault}/"
         End Function
     End Class
 End Namespace

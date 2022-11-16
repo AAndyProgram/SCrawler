@@ -10,7 +10,7 @@ Imports System.Threading
 Imports SCrawler.API.Base
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.RegularExpressions
-Imports PersonalUtilities.Tools.WEB
+Imports PersonalUtilities.Tools.Web.Clients
 Namespace API.TikTok
     Friend Class UserData : Inherits UserDataBase
         Protected Overrides Sub LoadUserInformation_OptionalFields(ByRef Container As XmlFile, ByVal Loading As Boolean)

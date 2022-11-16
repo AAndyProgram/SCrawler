@@ -10,6 +10,8 @@ Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Forms.Controls
 Imports PersonalUtilities.Forms.Controls.Base
 Imports PersonalUtilities.Functions.RegularExpressions
+Imports PersonalUtilities.Tools
+Imports SCrawler.API
 Imports SCrawler.API.Base
 Imports SCrawler.Plugin
 Imports SCrawler.Plugin.Hosts
@@ -19,7 +21,10 @@ Namespace Editors
         Private WithEvents MyDef As DefaultFormOptions
         Friend Property User As UserInfo
         Private Property UserInstance As IUserData
+        Private ReadOnly UserIsCollection As Boolean = False
 #Region "User options"
+        ''' <summary>COLLECTION EDITING ONLY</summary>
+        Friend Property CollectionName As String = String.Empty
         Friend Property StartIndex As Integer = -1
         Friend ReadOnly Property UserTemporary As Boolean
             Get
@@ -107,10 +112,36 @@ Namespace Editors
             If Not _Instance Is Nothing Then
                 UserInstance = _Instance
                 User = DirectCast(UserInstance, UserDataBase).User
+                UserIsCollection = TypeOf UserInstance Is UserDataBind
+                If UserIsCollection Then
+                    With DirectCast(UserInstance, UserDataBind) : .CurrentlyEdited = True : CollectionName = .CollectionName : End With
+                End If
             End If
         End Sub
 #End Region
 #Region "Form handlers"
+        Private Class CollectionNameFieldProvider : Implements IFieldsCheckerProvider
+            Private Property ErrorMessage As String Implements IFieldsCheckerProvider.ErrorMessage
+            Private Property Name As String Implements IFieldsCheckerProvider.Name
+            Private Property TypeError As Boolean Implements IFieldsCheckerProvider.TypeError
+            Private Function Convert(ByVal Value As Object, ByVal DestinationType As Type, ByVal Provider As IFormatProvider,
+                                     Optional ByVal NothingArg As Object = Nothing, Optional ByVal e As ErrorsDescriber = Nothing) As Object Implements ICustomProvider.Convert
+                If ACheck(Value) Then
+                    If Settings.Users.Exists(Function(u) u.IsCollection AndAlso u.CollectionName = CStr(Value) AndAlso
+                                                         Not DirectCast(u, UserDataBind).CurrentlyEdited) Then
+                        ErrorMessage = $"A collection named [{Value}] already exist"
+                        Return Nothing
+                    Else
+                        Return Value
+                    End If
+                Else
+                    Return Nothing
+                End If
+            End Function
+            Private Function GetFormat(ByVal FormatType As Type) As Object Implements IFormatProvider.GetFormat
+                Throw New NotImplementedException("[GetFormat] is not available in the 'CollectionNameFieldProvider'")
+            End Function
+        End Class
         Private Sub UserCreatorForm_Load(sender As Object, e As EventArgs) Handles Me.Load
             Try
                 With MyDef
@@ -122,52 +153,123 @@ Namespace Editors
                         .Items.AddRange(Settings.Plugins.Select(Function(p) New ListItem({p.Key, p.Name})))
                         .EndUpdate(True)
                     End With
-                    If User.Name.IsEmptyString Then
-                        CH_READY_FOR_DOWN.Checked = True
-                        CH_TEMP.Checked = Settings.DefaultTemporary
-                        CH_DOWN_IMAGES.Checked = Settings.DefaultDownloadImages
-                        CH_DOWN_VIDEOS.Checked = Settings.DefaultDownloadVideos
-                        TXT_SCRIPT.Checked = Settings.ScriptData.Attribute
-                        SetParamsBySite()
-                    Else
-                        TP_ADD_BY_LIST.Enabled = False
-                        TXT_USER.Text = User.Name
-                        TXT_SPEC_FOLDER.Text = User.SpecialPath
-                        Dim i% = Settings.Plugins.FindIndex(Function(p) p.Key = User.Plugin)
-                        If i >= 0 Then CMB_SITE.SelectedIndex = i
-                        SetParamsBySite()
-                        CH_IS_CHANNEL.Enabled = False
-                        CMB_SITE.Enabled = False
-                        CH_IS_CHANNEL.Checked = User.IsChannel
-                        If Not UserInstance Is Nothing Then
-                            TXT_USER.Enabled = False
-                            TXT_SPEC_FOLDER.TextBoxReadOnly = True
-                            TXT_SPEC_FOLDER.Buttons.Clear()
-                            TXT_SPEC_FOLDER.Buttons.UpdateButtonsPositions()
-                            With UserInstance
-                                TXT_USER_FRIENDLY.Text = .FriendlyName
-                                CH_FAV.Checked = .Favorite
-                                CH_TEMP.Checked = .Temporary
-                                CH_PARSE_USER_MEDIA.Checked = .ParseUserMediaOnly
-                                CH_READY_FOR_DOWN.Checked = .ReadyForDownload
-                                CH_DOWN_IMAGES.Checked = .DownloadImages
-                                CH_DOWN_VIDEOS.Checked = .DownloadVideos
-                                TXT_SCRIPT.Checked = .ScriptUse
-                                TXT_SCRIPT.Text = .ScriptData
-                                TXT_DESCR.Text = .Description.StringFormatLines
-                                UserLabels.ListAddList(.Labels)
-                                If UserLabels.ListExists Then TXT_LABELS.Text = UserLabels.ListToString
+
+                    Dim NameFieldProvider As IFormatProvider = Nothing
+
+                    If UserIsCollection Then
+                        Icon = If(ImageRenderer.GetIcon(My.Resources.DBPic_32, EDP.ReturnValue), Icon)
+                        Text = $"Collection: {UserInstance.CollectionName}"
+
+                        TXT_USER.CaptionText = "Collection name"
+                        TXT_USER.Text = UserInstance.CollectionName
+                        TXT_USER.Buttons.AddRange({ADB.Refresh, ADB.Clear})
+                        TXT_USER.Buttons.UpdateButtonsPositions()
+                        TXT_SPEC_FOLDER.Buttons.Clear()
+                        TXT_SPEC_FOLDER.TextBoxReadOnly = True
+                        TXT_SPEC_FOLDER.Buttons.UpdateButtonsPositions()
+
+                        With TP_MAIN
+                            .Controls.Clear()
+                            .RowStyles.Clear()
+                            .RowCount = 0
+                            With .RowStyles
+                                .Add(New RowStyle(SizeType.Absolute, 28))
+                                .Add(New RowStyle(SizeType.Absolute, 28))
+                                .Add(New RowStyle(SizeType.Absolute, 28))
+                                .Add(New RowStyle(SizeType.Absolute, 28))
+                                .Add(New RowStyle(SizeType.Absolute, 28))
+                                .Add(New RowStyle(SizeType.Absolute, 26))
+                                .Add(New RowStyle(SizeType.Percent, 100))
                             End With
-                            CH_ADD_BY_LIST.Enabled = False
-                        Else
+                            .RowCount = .RowStyles.Count
+                            With .Controls
+                                .Add(TXT_USER, 0, 0)
+                                .Add(TXT_SPEC_FOLDER, 0, 1)
+                                .Add(TP_TEMP_FAV, 0, 2)
+                                .Add(TP_DOWN_IMG_VID, 0, 3)
+                                .Add(TP_READY_USERMEDIA, 0, 4)
+                                .Add(TXT_LABELS, 0, 5)
+                                .Add(TXT_DESCR, 0, 6)
+                            End With
+                            .Refresh()
+                            .Update()
+                        End With
+
+                        TXT_DESCR.TextBoxReadOnly = True
+                        TXT_DESCR.Buttons.Clear()
+                        TXT_DESCR.Buttons.UpdateButtonsPositions()
+
+                        CH_TEMP.ThreeState = True
+                        CH_FAV.ThreeState = True
+                        CH_DOWN_IMAGES.ThreeState = True
+                        CH_DOWN_VIDEOS.ThreeState = True
+                        CH_READY_FOR_DOWN.ThreeState = True
+                        CH_PARSE_USER_MEDIA.ThreeState = True
+
+                        With DirectCast(UserInstance, UserDataBind)
+                            Dim state As Func(Of Boolean, Func(Of IUserData, Boolean, Boolean), CheckState) =
+                                Function(v, p) If(.All(Function(pp) p.Invoke(pp, v)), If(v, CheckState.Checked, CheckState.Unchecked), CheckState.Indeterminate)
+                            TXT_SPEC_FOLDER.Text = DirectCast(.Item(0), UserDataBase).User.SpecialCollectionPath.ToString
+                            CH_TEMP.CheckState = state(.Item(0).Temporary, Function(p, v) p.Temporary = v)
+                            CH_FAV.CheckState = state(.Item(0).Favorite, Function(p, v) p.Favorite = v)
+                            CH_DOWN_IMAGES.CheckState = state(.Item(0).DownloadImages, Function(p, v) p.DownloadImages = v)
+                            CH_DOWN_VIDEOS.CheckState = state(.Item(0).DownloadVideos, Function(p, v) p.DownloadVideos = v)
+                            CH_READY_FOR_DOWN.CheckState = state(.Item(0).ReadyForDownload, Function(p, v) p.ReadyForDownload = v)
+                            CH_PARSE_USER_MEDIA.CheckState = state(.Item(0).ParseUserMediaOnly, Function(p, v) p.ParseUserMediaOnly = v)
+                            TXT_DESCR.Text = .GetUserInformation.StringFormatLines
+                            UserLabels.ListAddList(.Labels)
+                            If UserLabels.ListExists Then TXT_LABELS.Text = UserLabels.ListToString
+                        End With
+
+                        NameFieldProvider = New CollectionNameFieldProvider
+                    Else
+                        If User.Name.IsEmptyString Then
+                            CH_READY_FOR_DOWN.Checked = True
                             CH_TEMP.Checked = Settings.DefaultTemporary
-                            CH_READY_FOR_DOWN.Checked = Not Settings.DefaultTemporary
                             CH_DOWN_IMAGES.Checked = Settings.DefaultDownloadImages
                             CH_DOWN_VIDEOS.Checked = Settings.DefaultDownloadVideos
+                            TXT_SCRIPT.Checked = Settings.ScriptData.Attribute
+                            SetParamsBySite()
+                        Else
+                            TP_ADD_BY_LIST.Enabled = False
+                            TXT_USER.Text = User.Name
+                            TXT_SPEC_FOLDER.Text = User.SpecialPath
+                            Dim i% = Settings.Plugins.FindIndex(Function(p) p.Key = User.Plugin)
+                            If i >= 0 Then CMB_SITE.SelectedIndex = i
+                            SetParamsBySite()
+                            CH_IS_CHANNEL.Enabled = False
+                            CMB_SITE.Enabled = False
+                            CH_IS_CHANNEL.Checked = User.IsChannel
+                            If Not UserInstance Is Nothing Then
+                                TXT_USER.Enabled = False
+                                TXT_SPEC_FOLDER.TextBoxReadOnly = True
+                                TXT_SPEC_FOLDER.Buttons.Clear()
+                                TXT_SPEC_FOLDER.Buttons.UpdateButtonsPositions()
+                                With UserInstance
+                                    TXT_USER_FRIENDLY.Text = .FriendlyName
+                                    CH_FAV.Checked = .Favorite
+                                    CH_TEMP.Checked = .Temporary
+                                    CH_PARSE_USER_MEDIA.Checked = .ParseUserMediaOnly
+                                    CH_READY_FOR_DOWN.Checked = .ReadyForDownload
+                                    CH_DOWN_IMAGES.Checked = .DownloadImages
+                                    CH_DOWN_VIDEOS.Checked = .DownloadVideos
+                                    TXT_SCRIPT.Checked = .ScriptUse
+                                    TXT_SCRIPT.Text = .ScriptData
+                                    TXT_DESCR.Text = .Description.StringFormatLines
+                                    UserLabels.ListAddList(.Labels)
+                                    If UserLabels.ListExists Then TXT_LABELS.Text = UserLabels.ListToString
+                                End With
+                                CH_ADD_BY_LIST.Enabled = False
+                            Else
+                                CH_TEMP.Checked = Settings.DefaultTemporary
+                                CH_READY_FOR_DOWN.Checked = Not Settings.DefaultTemporary
+                                CH_DOWN_IMAGES.Checked = Settings.DefaultDownloadImages
+                                CH_DOWN_VIDEOS.Checked = Settings.DefaultDownloadVideos
+                            End If
                         End If
                     End If
                     .MyFieldsChecker = New FieldsChecker
-                    .MyFieldsCheckerE.AddControl(Of String)(TXT_USER, TXT_USER.CaptionText)
+                    .MyFieldsCheckerE.AddControl(Of String)(TXT_USER, TXT_USER.CaptionText,, NameFieldProvider)
                     .MyFieldsChecker.EndLoaderOperations()
                     .EndLoaderOperations()
                 End With
@@ -186,64 +288,82 @@ Namespace Editors
         End Sub
         Private Sub UserCreatorForm_Disposed(sender As Object, e As EventArgs) Handles Me.Disposed
             UserLabels.Clear()
+            If UserIsCollection And Not UserInstance Is Nothing Then DirectCast(UserInstance, UserDataBind).CurrentlyEdited = False
         End Sub
 #End Region
 #Region "Ok, Cancel"
         Private Sub MyDef_ButtonOkClick(ByVal Sender As Object, ByVal e As KeyHandleEventArgs) Handles MyDef.ButtonOkClick
-            If Not CH_ADD_BY_LIST.Checked Then
+            If UserIsCollection Then
                 If MyDef.MyFieldsChecker.AllParamsOK Then
-                    Dim s As SettingsHost = GetSiteByCheckers()
-                    If Not s Is Nothing Then
-                        Dim tmpUser As UserInfo = User.Clone
-                        With tmpUser
-                            .Name = TXT_USER.Text
-                            .SpecialPath = SpecialPath(s)
-                            .Site = s.Name
-                            .Plugin = s.Key
-                            .IsChannel = CH_IS_CHANNEL.Checked
-                            .UpdateUserFile()
-                        End With
-                        User = tmpUser
-                        Dim ScriptText$ = TXT_SCRIPT.Text
-                        If Not ScriptText.IsEmptyString Then
-                            Dim f As SFile = ScriptText
-                            If Not SFile.IsDirectory(ScriptText) And Not UserInstance Is Nothing Then
-                                With DirectCast(UserInstance, UserDataBase) : f.Path = .MyFile.Path : End With
-                            End If
-                            TXT_SCRIPT.Text = f
-                        End If
-                        If Not UserInstance Is Nothing Then
-                            With DirectCast(UserInstance, UserDataBase)
-                                .User = User
-                                .FriendlyName = TXT_USER_FRIENDLY.Text
-                                .Favorite = CH_FAV.Checked
-                                .Temporary = CH_TEMP.Checked
-                                .ReadyForDownload = CH_READY_FOR_DOWN.Checked
-                                .DownloadImages = CH_DOWN_IMAGES.Checked
-                                .DownloadVideos = CH_DOWN_VIDEOS.Checked
-                                .UserDescription = TXT_DESCR.Text
-                                If Not MyExchangeOptions Is Nothing Then .ExchangeOptionsSet(MyExchangeOptions)
-                                Dim l As New ListAddParams(LAP.NotContainsOnly + LAP.ClearBeforeAdd)
-                                If .IsCollection Then
-                                    With DirectCast(UserInstance, API.UserDataBind)
-                                        If .Count > 0 Then .Collections.ForEach(Sub(c) c.Labels.ListAddList(UserLabels, l))
-                                    End With
-                                Else
-                                    .Labels.ListAddList(UserLabels, LAP.NotContainsOnly, LAP.ClearBeforeAdd)
-                                End If
-                                .ParseUserMediaOnly = CH_PARSE_USER_MEDIA.Checked
-                                .ScriptUse = TXT_SCRIPT.Checked
-                                .ScriptData = TXT_SCRIPT.Text
-                                .UpdateUserInformation()
-                            End With
-                        End If
-                        GoTo CloseForm
-                    Else
-                        MsgBoxE("User site not selected", MsgBoxStyle.Exclamation)
-                    End If
+                    With UserInstance
+                        If Not CH_TEMP.CheckState = CheckState.Indeterminate Then .Temporary = CH_TEMP.Checked
+                        If Not CH_FAV.CheckState = CheckState.Indeterminate Then .Favorite = CH_FAV.Checked
+                        If Not CH_DOWN_IMAGES.CheckState = CheckState.Indeterminate Then .DownloadImages = CH_DOWN_IMAGES.Checked
+                        If Not CH_DOWN_VIDEOS.CheckState = CheckState.Indeterminate Then .DownloadVideos = CH_DOWN_VIDEOS.Checked
+                        If Not CH_READY_FOR_DOWN.CheckState = CheckState.Indeterminate Then .ReadyForDownload = CH_READY_FOR_DOWN.Checked
+                        If Not CH_PARSE_USER_MEDIA.CheckState = CheckState.Indeterminate Then .ParseUserMediaOnly = CH_PARSE_USER_MEDIA.Checked
+                        DirectCast(UserInstance, UserDataBind).Collections.ForEach(Sub(u) u.Labels.ListAddList(UserLabels, LAP.ClearBeforeAdd, LAP.NotContainsOnly))
+                        CollectionName = TXT_USER.Text
+                        .UpdateUserInformation()
+                    End With
+                    GoTo CloseForm
                 End If
             Else
-                If CreateUsersByList() Then GoTo CloseForm
+                If Not CH_ADD_BY_LIST.Checked Then
+                    If MyDef.MyFieldsChecker.AllParamsOK Then
+                        Dim s As SettingsHost = GetSiteByCheckers()
+                        If Not s Is Nothing Then
+                            Dim tmpUser As UserInfo = User.Clone
+                            With tmpUser
+                                .Name = TXT_USER.Text
+                                .SpecialPath = SpecialPath(s)
+                                .Site = s.Name
+                                .Plugin = s.Key
+                                .IsChannel = CH_IS_CHANNEL.Checked
+                                .UpdateUserFile()
+                            End With
+                            User = tmpUser
+                            Dim ScriptText$ = TXT_SCRIPT.Text
+                            If Not ScriptText.IsEmptyString Then
+                                Dim f As SFile = ScriptText
+                                If Not SFile.IsDirectory(ScriptText) And Not UserInstance Is Nothing Then
+                                    With DirectCast(UserInstance, UserDataBase) : f.Path = .MyFile.Path : End With
+                                End If
+                                TXT_SCRIPT.Text = f
+                            End If
+                            If Not UserInstance Is Nothing Then
+                                With DirectCast(UserInstance, UserDataBase)
+                                    .User = User
+                                    .FriendlyName = TXT_USER_FRIENDLY.Text
+                                    .Favorite = CH_FAV.Checked
+                                    .Temporary = CH_TEMP.Checked
+                                    .ReadyForDownload = CH_READY_FOR_DOWN.Checked
+                                    .DownloadImages = CH_DOWN_IMAGES.Checked
+                                    .DownloadVideos = CH_DOWN_VIDEOS.Checked
+                                    .UserDescription = TXT_DESCR.Text
+                                    If Not MyExchangeOptions Is Nothing Then .ExchangeOptionsSet(MyExchangeOptions)
+                                    Dim l As New ListAddParams(LAP.NotContainsOnly + LAP.ClearBeforeAdd)
+                                    If .IsCollection Then
+                                        With DirectCast(UserInstance, API.UserDataBind)
+                                            If .Count > 0 Then .Collections.ForEach(Sub(c) c.Labels.ListAddList(UserLabels, l))
+                                        End With
+                                    Else
+                                        .Labels.ListAddList(UserLabels, LAP.NotContainsOnly, LAP.ClearBeforeAdd)
+                                    End If
+                                    .ParseUserMediaOnly = CH_PARSE_USER_MEDIA.Checked
+                                    .ScriptUse = TXT_SCRIPT.Checked
+                                    .ScriptData = TXT_SCRIPT.Text
+                                    .UpdateUserInformation()
+                                End With
+                            End If
+                            GoTo CloseForm
+                        Else
+                            MsgBoxE("User site not selected", MsgBoxStyle.Exclamation)
+                        End If
+                    End If
+                Else
+                    If CreateUsersByList() Then GoTo CloseForm
+                End If
             End If
             Exit Sub
 CloseForm:
@@ -257,7 +377,7 @@ CloseForm:
         Private _TextChangeInvoked As Boolean = False
         Private Sub TXT_USER_ActionOnTextChanged(ByVal Sender As Object, ByVal e As EventArgs) Handles TXT_USER.ActionOnTextChanged
             Try
-                If Not _TextChangeInvoked Then
+                If Not _TextChangeInvoked And Not UserIsCollection Then
                     _TextChangeInvoked = True
                     If Not CH_ADD_BY_LIST.Checked Then
                         Dim s As ExchangeOptions = GetSiteByText(TXT_USER.Text)
@@ -282,7 +402,10 @@ CloseForm:
             Catch
             End Try
         End Sub
-        Private Sub CMB_SITE_ActionSelectedItemChanged(ByVal Item As ListViewItem) Handles CMB_SITE.ActionSelectedItemChanged
+        Private Sub TXT_USER_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As ActionButtonEventArgs) Handles TXT_USER.ActionOnButtonClick
+            If UserIsCollection AndAlso Sender.DefaultButton = ADB.Refresh Then TXT_USER.Text = UserInstance.CollectionName
+        End Sub
+        Private Sub CMB_SITE_ActionSelectedItemChanged(ByVal Sender As Object, ByVal e As EventArgs, ByVal Item As ListViewItem) Handles CMB_SITE.ActionSelectedItemChanged
             CH_IS_CHANNEL.Checked = False
             MyExchangeOptions = Nothing
             SetParamsBySite()
@@ -299,7 +422,7 @@ CloseForm:
             If Sender.DefaultButton = ADB.Open Then
                 Dim f As SFile = Nothing
                 If Not TXT_SPEC_FOLDER.Text.IsEmptyString Then f = $"{TXT_SPEC_FOLDER.Text}\"
-                f = SFile.SelectPath(f, True)
+                f = SFile.SelectPath(f)
                 If Not f.IsEmptyString Then TXT_SPEC_FOLDER.Text = f.PathWithSeparator
             End If
         End Sub
@@ -382,7 +505,8 @@ CloseForm:
                                 End If
 
                                 If Not s Is Nothing Then
-                                    tmpUser = New UserInfo(uu, s,,, __sf(uu, s)) With {.IsChannel = _IsChannel}
+                                    tmpUser = New UserInfo(uu, s) With {.SpecialPath = __sf(uu, s), .IsChannel = _IsChannel}
+                                    tmpUser.UpdateUserFile()
                                     uid = -1
                                     If Settings.UsersList.Count > 0 Then uid = Settings.UsersList.IndexOf(tmpUser)
                                     If uid < 0 And Not UsersForCreate.Contains(tmpUser) Then

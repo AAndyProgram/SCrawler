@@ -132,12 +132,25 @@ Namespace Plugin.Attributes
         ''' Predefined task counter.<br/>
         ''' <see cref="TaskCounter"/> will take precedence if it is defined.
         ''' </param>
-        Public Sub New(Optional ByVal JobsCount As Integer = -1)
-            TasksCount = JobsCount
+        Public Sub New(Optional ByVal TasksCount As Integer = -1)
+            Me.TasksCount = TasksCount
         End Sub
     End Class
     ''' <summary>A property attribute that specifies how many users should be downloaded at the same time in one thread</summary>
     <AttributeUsage(AttributeTargets.Property, AllowMultiple:=False, Inherited:=False)> Public NotInheritable Class TaskCounter : Inherits Attribute
+    End Class
+    ''' <remarks>
+    ''' This attribute cannot be combined with <see cref="SeparatedTasks"/>.
+    ''' If set to <see cref="SeparatedTasks"/>, this attribute will be ignored
+    ''' </remarks>
+    ''' <inheritdoc cref="SeparatedTasks"/>
+    <AttributeUsage(AttributeTargets.Class, AllowMultiple:=False, Inherited:=False)> Public NotInheritable Class TaskGroup : Inherits Attribute
+        Public ReadOnly Name As String
+        ''' <summary>Initialize a new TaskGroup attribute.</summary>
+        ''' <param name="Name">Group name</param>
+        Public Sub New(ByVal Name As String)
+            Me.Name = Name
+        End Sub
     End Class
     ''' <summary>This attribute indicates that the plugin has a SavedPosts environment</summary>
     <AttributeUsage(AttributeTargets.Class, AllowMultiple:=False, Inherited:=False)> Public NotInheritable Class SavedPosts : Inherits Attribute

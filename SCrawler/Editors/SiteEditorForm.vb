@@ -11,8 +11,8 @@ Imports SCrawler.Plugin.Hosts
 Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Forms.Controls
 Imports PersonalUtilities.Forms.Controls.Base
-Imports PersonalUtilities.Tools.WEB
-Imports CookieControl = PersonalUtilities.Tools.WEB.CookieListForm.CookieControl
+Imports PersonalUtilities.Tools.Web.Cookies
+Imports CookieControl = PersonalUtilities.Tools.Web.Cookies.CookieListForm.CookieControl
 Imports ADB = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons
 Namespace Editors
     Friend Class SiteEditorForm
@@ -205,7 +205,7 @@ Namespace Editors
         End Sub
         Private Sub ChangePath(ByVal Sender As ActionButton, ByVal PathValue As SFile, ByRef CNT As TextBoxExtended)
             If Sender.DefaultButton = ADB.Open Then
-                Dim f As SFile = SFile.SelectPath(PathValue)
+                Dim f As SFile = SFile.SelectPath(PathValue).IfNullOrEmpty(PathValue)
                 If Not f.IsEmptyString Then CNT.Text = f
             End If
         End Sub

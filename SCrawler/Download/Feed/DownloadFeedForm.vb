@@ -157,7 +157,7 @@ Namespace DownloadObjects
                     Using chooser As New SimpleListForm(Of SFile)(fList, Settings.Design) With {
                         .FormText = "Sessions",
                         .Icon = My.Resources.ArrowDownIcon_Blue_24,
-                        .Mode = SimpleListForm(Of SFile).Modes.CheckedItems,
+                        .Mode = SimpleListFormModes.CheckedItems,
                         .Provider = New CustomProvider(Function(v, d, p, n, ee) DirectCast(v, SFile).File)
                     }
                         chooser.ClearButtons()

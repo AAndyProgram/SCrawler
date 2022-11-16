@@ -221,7 +221,7 @@ Namespace Editors
         End Sub
         Private Sub TXT_GLOBAL_PATH_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As EventArgs) Handles TXT_GLOBAL_PATH.ActionOnButtonClick
             If Sender.DefaultButton = ADB.Open Then
-                Dim f As SFile = SFile.SelectPath(Settings.GlobalPath.Value)
+                Dim f As SFile = SFile.SelectPath(Settings.GlobalPath.Value).IfNullOrEmpty(Settings.GlobalPath.Value)
                 If Not f.IsEmptyString Then TXT_GLOBAL_PATH.Text = f
             End If
         End Sub

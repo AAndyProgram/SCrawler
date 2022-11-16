@@ -11,7 +11,7 @@ Imports SCrawler.API.Base
 Imports SCrawler.Plugin.Attributes
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.XML.Base
-Imports PersonalUtilities.Tools.WEB
+Imports PersonalUtilities.Tools.Web.Clients
 Imports Download = SCrawler.Plugin.ISiteSettings.Download
 Namespace Plugin.Hosts
     Friend Class SettingsHost
@@ -71,11 +71,12 @@ Namespace Plugin.Hosts
                         Dim i% = PropList.FindIndex(Function(p) p.IsTaskCounter)
                         If i >= 0 Then Return CInt(PropList(i).Value)
                     End If
-                    If _TaskCountDefined.HasValue Then Return _TaskCountDefined.Value
+                    If _TaskCountDefined.HasValue AndAlso _TaskCountDefined.Value > 0 Then Return _TaskCountDefined.Value
                 End If
                 Return Settings.MaxUsersJobsCount
             End Get
         End Property
+        Friend ReadOnly Property TaskGroupName As String = String.Empty
         Friend ReadOnly Property HasSpecialOptions As Boolean = False
         Private ReadOnly _ResponserGetMethod As MethodInfo
         Private ReadOnly _ResponserIsContainer As Boolean = False
@@ -156,6 +157,8 @@ Namespace Plugin.Hosts
                         With DirectCast(a, SeparatedTasks)
                             If .TasksCount > 0 Then _TaskCountDefined = .TasksCount
                         End With
+                    ElseIf TypeOf a Is TaskGroup Then
+                        TaskGroupName = DirectCast(a, TaskGroup).Name
                     ElseIf TypeOf a Is SavedPosts Then
                         IsSavedPostsCompatible = True
                     ElseIf TypeOf a Is SpecialForm Then
@@ -291,8 +294,8 @@ Namespace Plugin.Hosts
             If Not um Is Nothing Then
                 If TypeOf um Is IEnumerable(Of UserMedia) Then
                     Return um
-                ElseIf TypeOf um Is IEnumerable(Of PluginUserMedia) Then
-                    Return um.ToObjectsList.ListCast(Of UserMedia)(New ListAddParams With {.Converter = Function(v) New UserMedia(DirectCast(v, PluginUserMedia))})
+                ElseIf TypeOf um Is IEnumerable(Of IUserMedia) Then
+                    Return um.ToObjectsList.ListCast(Of UserMedia)(New ListAddParams With {.Converter = Function(v) New UserMedia(DirectCast(v, IUserMedia))})
                 End If
             End If
             Return Nothing
@@ -309,8 +312,8 @@ Namespace Plugin.Hosts
                 Throw New ArgumentNullException("IPluginContentProvider", $"Plugin [{Key}] does not provide user instance")
             End If
         End Function
-        Friend Function GetUserPostUrl(ByVal UserID As String, ByVal PostID As String) As String
-            Return Source.GetUserPostUrl(UserID, PostID)
+        Friend Function GetUserPostUrl(ByVal User As IPluginContentProvider, ByVal Media As IUserMedia) As String
+            Return Source.GetUserPostUrl(User, Media)
         End Function
         Private _AvailableValue As Boolean = True
         Private _AvailableAsked As Boolean = False

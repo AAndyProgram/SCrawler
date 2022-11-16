@@ -11,8 +11,9 @@ Imports SCrawler.Plugin
 Imports SCrawler.Plugin.Attributes
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.RegularExpressions
-Imports PersonalUtilities.Tools.WEB
-Imports PersonalUtilities.Tools.WebDocuments.JSON
+Imports PersonalUtilities.Tools.Web.Clients
+Imports PersonalUtilities.Tools.Web.Cookies
+Imports PersonalUtilities.Tools.Web.Documents.JSON
 Imports UTypes = SCrawler.API.Base.UserMedia.Types
 Imports UStates = SCrawler.API.Base.UserMedia.States
 Namespace API.RedGifs
@@ -40,11 +41,9 @@ Namespace API.RedGifs
             MyBase.New(RedGifsSite, "redgifs.com")
             Dim t$ = String.Empty
             With Responser
-                Dim b As Boolean = Not .UseWebClient Or Not .UseWebClientCookies Or Not .UseWebClientAdditionalHeaders
-                .UseWebClient = True
-                .UseWebClientCookies = True
-                .UseWebClientAdditionalHeaders = True
-                If .Headers.Count > 0 AndAlso .Headers.ContainsKey(TokenName) Then t = .Headers(TokenName)
+                Dim b As Boolean = Not .Mode = Response.Modes.WebClient
+                .Mode = Response.Modes.WebClient
+                t = .HeadersValue(TokenName)
                 If b Then .SaveSettings()
             End With
             NoCredentialsResponser = New Response($"{SettingsFolderName}\Responser_{RedGifsSite}_NC.xml") With {
@@ -68,10 +67,8 @@ Namespace API.RedGifs
 #End Region
 #Region "Response updater"
         Private Sub UpdateResponse(ByVal Value As String)
-            With Responser.Headers
-                If .Count = 0 OrElse Not .ContainsKey(TokenName) Then .Add(TokenName, Value) Else .Item(TokenName) = Value
-                Responser.SaveSettings()
-            End With
+            Responser.HeadersAdd(TokenName, Value)
+            Responser.SaveSettings()
         End Sub
 #End Region
 #Region "Token updaters"
@@ -153,8 +150,8 @@ Namespace API.RedGifs
             End If
             Return Nothing
         End Function
-        Friend Overrides Function GetUserPostUrl(ByVal UserID As String, ByVal PostID As String) As String
-            Return $"https://www.redgifs.com/watch/{PostID}"
+        Friend Overrides Function GetUserPostUrl(ByVal User As UserDataBase, ByVal Media As UserMedia) As String
+            Return $"https://www.redgifs.com/watch/{Media.Post.ID}"
         End Function
         Friend Overrides Function BaseAuthExists() As Boolean
             Return UpdateTokenIfRequired() AndAlso ACheck(Token.Value)

@@ -138,6 +138,7 @@ Namespace DownloadObjects
                 Return If(Pool.Count = 0, 0, Pool.Sum(Function(j) j.Count))
             End Get
         End Property
+        Friend Property Suspended As Boolean = False
 #End Region
 #Region "Automation Support"
         Private _AutoDownloaderTasks As Integer = 0
@@ -166,9 +167,10 @@ Namespace DownloadObjects
             End Property
             Friend ReadOnly Property Name As String
                 Get
-                    Return Hosts(0).Name
+                    If Not GroupName.IsEmptyString Then Return GroupName Else Return Hosts(0).Name
                 End Get
             End Property
+            Friend ReadOnly Property GroupName As String
             Friend ReadOnly Property TaskCount As Integer
                 Get
                     Return Hosts(0).TaskCount
@@ -189,6 +191,10 @@ Namespace DownloadObjects
                 RemovingKeys = New List(Of String)
                 Keys = New List(Of String)
                 [Type] = JobType
+            End Sub
+            Friend Sub New(ByVal JobType As Download, ByVal GroupName As String)
+                Me.New(JobType)
+                Me.GroupName = GroupName
             End Sub
             Public Overloads Function Add(ByVal User As IUserData, ByVal _IncludedInTheFeed As Boolean) As Boolean
                 With DirectCast(User, UserDataBase)
@@ -274,6 +280,7 @@ Namespace DownloadObjects
 #Region "Pool"
         Friend Sub ReconfPool()
             If Pool.Count = 0 OrElse Not Pool.Exists(Function(j) j.Working Or j.Count > 0) Then
+                Dim i%
                 Pool.ListClearDispose
                 If Settings.Plugins.Count > 0 Then
                     Pool.Add(New Job(Download.Main))
@@ -281,6 +288,15 @@ Namespace DownloadObjects
                         If p.Settings.IsSeparatedTasks Then
                             Pool.Add(New Job(Download.Main))
                             Pool.Last.AddHost(p.Settings)
+                        ElseIf Not p.Settings.TaskGroupName.IsEmptyString Then
+                            i = -1
+                            If Pool.Count > 0 Then i = Pool.FindIndex(Function(pt) pt.GroupName = p.Settings.TaskGroupName)
+                            If i >= 0 Then
+                                Pool(i).AddHost(p.Settings)
+                            Else
+                                Pool.Add(New Job(Download.Main, p.Settings.TaskGroupName))
+                                Pool.Last.AddHost(p.Settings)
+                            End If
                         Else
                             Pool(0).AddHost(p.Settings)
                         End If
@@ -315,7 +331,7 @@ Namespace DownloadObjects
                 MyProgressForm.DisableProgressChange = False
                 Do While Pool.Exists(Function(p) p.Count > 0 Or p.Working)
                     For Each j As Job In Pool
-                        If j.Count > 0 And Not j.Working Then j.Start(New ThreadStart(Sub() StartDownloading(j)))
+                        If j.Count > 0 And Not j.Working And Not Suspended Then j.Start(New ThreadStart(Sub() StartDownloading(j)))
                     Next
                     Thread.Sleep(200)
                 Loop

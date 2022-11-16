@@ -10,7 +10,7 @@ Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Forms.Toolbars
 Imports PersonalUtilities.Tools
-Imports PersonalUtilities.Tools.WEB
+Imports PersonalUtilities.Tools.Web.Clients
 Imports System.IO
 Imports System.Net
 Imports System.Threading
@@ -94,9 +94,16 @@ Namespace API.Base
         End Sub
 #End Region
 #Region "XML Declarations"
-        Private Const Name_Site As String = "Site"
-        Private Const Name_IsChannel As String = "IsChannel"
-        Private Const Name_UserName As String = "UserName"
+        Private Const Name_Site As String = UserInfo.Name_Site
+        Private Const Name_Plugin As String = UserInfo.Name_Plugin
+        Private Const Name_IsChannel As String = UserInfo.Name_IsChannel
+        Friend Const Name_UserName As String = "UserName"
+        Private Const Name_Model_User As String = UserInfo.Name_Model_User
+        Private Const Name_Model_Collection As String = UserInfo.Name_Model_Collection
+        Private Const Name_Merged As String = UserInfo.Name_Merged
+        Private Const Name_SpecialPath As String = UserInfo.Name_SpecialPath
+        Private Const Name_SpecialCollectionPath As String = UserInfo.Name_SpecialCollectionPath
+
         Private Const Name_UserExists As String = "UserExists"
         Private Const Name_UserSuspended As String = "UserSuspended"
         Private Const Name_FriendlyName As String = "FriendlyName"
@@ -108,8 +115,8 @@ Namespace API.Base
         Private Const Name_CreatedByChannel As String = "CreatedByChannel"
 
         Private Const Name_SeparateVideoFolder As String = "SeparateVideoFolder"
-        Private Const Name_CollectionName As String = "Collection"
-        Private Const Name_LabelsName As String = "Labels"
+        Private Const Name_CollectionName As String = UserInfo.Name_Collection
+        Friend Const Name_LabelsName As String = "Labels"
 
         Private Const Name_ReadyForDownload As String = "ReadyForDownload"
         Private Const Name_DownloadImages As String = "DownloadImages"
@@ -122,7 +129,7 @@ Namespace API.Base
         Private Const Name_ScriptUse As String = "ScriptUse"
         Private Const Name_ScriptData As String = "ScriptData"
 
-        Private Const Name_DataMerging As String = "DataMerging"
+        <Obsolete("Use 'Name_Merged'", False)> Friend Const Name_DataMerging As String = "DataMerging"
 #End Region
 #Region "Declarations"
 #Region "Host, Site, Progress, Self"
@@ -156,6 +163,21 @@ Namespace API.Base
         End Property
         Friend Overridable Property ID As String = String.Empty Implements IContentProvider.ID, IPluginContentProvider.ID
         Friend Overridable Property FriendlyName As String = String.Empty Implements IContentProvider.FriendlyName
+        Friend ReadOnly Property UserModel As UsageModel Implements IUserData.UserModel
+            Get
+                Return User.UserModel
+            End Get
+        End Property
+        Friend Overridable ReadOnly Property CollectionModel As UsageModel Implements IUserData.CollectionModel
+            Get
+                Return User.CollectionModel
+            End Get
+        End Property
+        Friend Overridable ReadOnly Property IsVirtual As Boolean Implements IUserData.IsVirtual
+            Get
+                Return UserModel = UsageModel.Virtual
+            End Get
+        End Property
 #End Region
 #Region "Description"
         Friend Property UserDescription As String = String.Empty Implements IContentProvider.Description, IPluginContentProvider.UserDescription
@@ -231,7 +253,7 @@ Namespace API.Base
         Protected Function GetNullPicture(ByVal MaxHeigh As XML.Base.XMLValue(Of Integer)) As Bitmap
             Return New Bitmap(CInt(DivideWithZeroChecking(MaxHeigh.Value, 100) * 75), MaxHeigh.Value)
         End Function
-        Protected Function GetPicture(Of T)(Optional ByVal ReturnNullImageOnNothing As Boolean = True, Optional ByVal GetToast As Boolean = False) As T
+        Friend Function GetPicture(Of T)(Optional ByVal ReturnNullImageOnNothing As Boolean = True, Optional ByVal GetToast As Boolean = False) As T
             Dim rsfile As Boolean = GetType(T) Is GetType(SFile)
             Dim f As SFile = Nothing
             Dim p As UserImage = Nothing
@@ -335,7 +357,7 @@ BlockNullPicture:
         Friend Overridable Sub ChangeCollectionName(ByVal NewName As String, ByVal UpdateSettings As Boolean)
             Dim u As UserInfo = User
             u.CollectionName = NewName
-            u.IncludedInCollection = Not NewName.IsEmptyString
+            u.UpdateUserFile()
             User = u
             If UpdateSettings Then Settings.UpdateUsersList(User)
         End Sub
@@ -455,7 +477,10 @@ BlockNullPicture:
         End Property
         Friend Overridable Function GetUserInformation() As String
             Dim OutStr$ = $"User: {Name} (site: {Site}"
-            If IncludedInCollection Then OutStr &= $"; collection: {CollectionName}"
+            If IncludedInCollection Then
+                OutStr &= $"; collection: {CollectionName}"
+                If CollectionModel = UsageModel.Default And UserModel = UsageModel.Virtual Then OutStr &= "; virtual"
+            End If
             OutStr &= ")"
             OutStr.StringAppendLine($"Labels: {Labels.ListToString}")
             OutStr.StringAppendLine($"Path: {MyFile.CutPath.Path}")
@@ -494,9 +519,9 @@ BlockNullPicture:
         Private Property IPluginContentProvider_Thrower As IThrower Implements IPluginContentProvider.Thrower
         Private Property IPluginContentProvider_LogProvider As ILogProvider Implements IPluginContentProvider.LogProvider
         Friend Property ExternalPlugin As IPluginContentProvider
-        Private Property IPluginContentProvider_ExistingContentList As List(Of PluginUserMedia) Implements IPluginContentProvider.ExistingContentList
+        Private Property IPluginContentProvider_ExistingContentList As List(Of IUserMedia) Implements IPluginContentProvider.ExistingContentList
         Private Property IPluginContentProvider_TempPostsList As List(Of String) Implements IPluginContentProvider.TempPostsList
-        Private Property IPluginContentProvider_TempMediaList As List(Of PluginUserMedia) Implements IPluginContentProvider.TempMediaList
+        Private Property IPluginContentProvider_TempMediaList As List(Of IUserMedia) Implements IPluginContentProvider.TempMediaList
         Private Property IPluginContentProvider_SeparateVideoFolder As Boolean Implements IPluginContentProvider.SeparateVideoFolder
         Private Property IPluginContentProvider_DataPath As String Implements IPluginContentProvider.DataPath
         Private Sub IPluginContentProvider_XmlFieldsSet(ByVal Fields As List(Of KeyValuePair(Of String, String))) Implements IPluginContentProvider.XmlFieldsSet
@@ -620,7 +645,7 @@ BlockNullPicture:
                     With DirectCast(u, UserDataBase)
                         If Not .User.Plugin.IsEmptyString Then
                             uName = .User.Name
-                            Return Settings(.User.Plugin).GetUserPostUrl(.ID, PostData.Post.ID)
+                            Return Settings(.User.Plugin).GetUserPostUrl(.Self, PostData)
                         End If
                     End With
                 End If
@@ -657,7 +682,13 @@ BlockNullPicture:
                         LastUpdated = AConvert(Of Date)(x.Value(Name_LastUpdated), ADateTime.Formats.BaseDateTime, Nothing)
                         ScriptUse = x.Value(Name_ScriptUse).FromXML(Of Boolean)(False)
                         ScriptData = x.Value(Name_ScriptData)
-                        DataMerging = x.Value(Name_DataMerging).FromXML(Of Boolean)(False)
+#Disable Warning BC40000
+                        If x.Contains(Name_DataMerging) Then
+                            DataMerging = x.Value(Name_DataMerging).FromXML(Of Boolean)(False)
+                        Else
+                            DataMerging = x.Value(Name_Merged).FromXML(Of Boolean)(False)
+                        End If
+#Enable Warning
                         ChangeCollectionName(x.Value(Name_CollectionName), False)
                         Labels.ListAddList(x.Value(Name_LabelsName).StringToList(Of String, List(Of String))("|", EDP.ReturnValue), LAP.NotContainsOnly, LAP.ClearBeforeAdd)
                         LoadUserInformation_OptionalFields(x, True)
@@ -675,7 +706,13 @@ BlockNullPicture:
                 MyFile.Exists(SFO.Path)
                 Using x As New XmlFile With {.Name = "User"}
                     x.Add(Name_Site, Site)
+                    x.Add(Name_Plugin, HOST.Key)
                     x.Add(Name_UserName, User.Name)
+                    x.Add(Name_IsChannel, IsChannel.BoolToInteger)
+                    x.Add(Name_Model_User, CInt(UserModel))
+                    x.Add(Name_Model_Collection, CInt(CollectionModel))
+                    x.Add(Name_SpecialPath, User.SpecialPath)
+                    x.Add(Name_SpecialCollectionPath, User.SpecialCollectionPath)
                     x.Add(Name_UserExists, UserExists.BoolToInteger)
                     x.Add(Name_UserSuspended, UserSuspended.BoolToInteger)
                     x.Add(Name_UserID, ID)
@@ -700,7 +737,7 @@ BlockNullPicture:
                     x.Add(Name_ScriptData, ScriptData)
                     x.Add(Name_CollectionName, CollectionName)
                     x.Add(Name_LabelsName, Labels.ListToString("|", EDP.ReturnValue))
-                    x.Add(Name_DataMerging, DataMerging.BoolToInteger)
+                    x.Add(Name_Merged, DataMerging.BoolToInteger)
 
                     LoadUserInformation_OptionalFields(x, False)
 
@@ -748,7 +785,7 @@ BlockNullPicture:
 #Region "Open site, folder"
         Friend Overridable Sub OpenSite(Optional ByVal e As ErrorsDescriber = Nothing) Implements IContentProvider.OpenSite
             Try
-                Dim URL$ = HOST.Source.GetUserUrl(Name, IsChannel)
+                Dim URL$ = HOST.Source.GetUserUrl(Me, IsChannel)
                 If Not URL.IsEmptyString Then Process.Start(URL)
             Catch ex As Exception
                 If Not e.Exists Then e = New ErrorsDescriber(EDP.ShowAllMsg)
@@ -817,7 +854,7 @@ BlockNullPicture:
                 If Not Responser Is Nothing Then Responser.Dispose()
                 Responser = New Response
                 If Not HOST.Responser Is Nothing Then Responser.Copy(HOST.Responser)
-                'TODO: remove
+                'TODO: UserDataBase remove [Responser.DecodersError]
                 Responser.DecodersError = New ErrorsDescriber(EDP.SendInLog + EDP.ReturnValue) With {
                     .DeclaredMessage = New MMessage($"SymbolsConverter error: [{ToStringForLog()}]", ToStringForLog())}
 
@@ -831,6 +868,7 @@ BlockNullPicture:
                 DownloadedVideos(False) = 0
                 _TempMediaList.Clear()
                 _TempPostsList.Clear()
+                LatestData.Clear()
                 Dim __SaveData As Boolean = Not CreatedByChannel Or Not Settings.FromChannelDownloadTopUse
 
                 LoadContentInformation()
@@ -862,7 +900,7 @@ BlockNullPicture:
                 DownloadContent(Token)
                 ThrowIfDisposed()
 
-                LatestData.ListAddList(_ContentNew.Where(_downContent), LNC)
+                If IncludeInTheFeed Then LatestData.ListAddList(_ContentNew.Where(_downContent), LNC)
                 Dim mcb& = If(ContentMissingExists, _ContentList.LongCount(Function(c) MissingFinder(c)), 0)
                 _ContentList.ListAddList(_ContentNew.Where(Function(c) _downContent(c) Or MissingFinder(c)), LNC)
                 Dim mca& = If(ContentMissingExists, _ContentList.LongCount(Function(c) MissingFinder(c)), 0)
@@ -887,7 +925,7 @@ BlockNullPicture:
                 ThrowIfDisposed()
                 If UpPic Or EnvirChanged.Invoke Then OnUserUpdated()
             Catch oex As OperationCanceledException When Token.IsCancellationRequested
-                MyMainLOG = $"{Site} - {Name}: downloading canceled"
+                MyMainLOG = $"{ToStringForLog()}: downloading canceled"
                 Canceled = True
             Catch dex As ObjectDisposedException When Disposed
                 Canceled = True
@@ -926,11 +964,7 @@ BlockNullPicture:
         Protected Overridable Sub ReparseMissing(ByVal Token As CancellationToken)
         End Sub
         Protected MustOverride Sub DownloadContent(ByVal Token As CancellationToken)
-        Private NotInheritable Class OptionalWebClient : Implements IDisposable
-            Private ReadOnly WC As WebClient
-            Private ReadOnly RC As Response
-            Private ReadOnly RCERROR As New ErrorsDescriber(EDP.ThrowException)
-            Private ReadOnly UseResponserClient As Boolean
+        Private NotInheritable Class OptionalWebClient : Inherits DownloadObjects.WebClient2
             Friend Sub New(ByRef Source As UserDataBase)
                 UseResponserClient = Source.UseResponserClient
                 If UseResponserClient Then
@@ -939,28 +973,6 @@ BlockNullPicture:
                     WC = New WebClient
                 End If
             End Sub
-            Friend Sub DownloadFile(ByVal URL As String, ByVal File As String)
-                If UseResponserClient Then
-                    RC.DownloadFile(URL, File, RCERROR)
-                Else
-                    WC.DownloadFile(URL, File)
-                End If
-            End Sub
-#Region "IDisposable Support"
-            Private disposedValue As Boolean = False
-            Protected Sub Dispose(ByVal disposing As Boolean)
-                If Not disposedValue And disposing And Not WC Is Nothing Then WC.Dispose()
-                disposedValue = True
-            End Sub
-            Protected Overrides Sub Finalize()
-                Dispose(False)
-                MyBase.Finalize()
-            End Sub
-            Friend Sub Dispose() Implements IDisposable.Dispose
-                Dispose(True)
-                GC.SuppressFinalize(Me)
-            End Sub
-#End Region
         End Class
         Protected Sub DownloadContentDefault(ByVal Token As CancellationToken)
             Try
@@ -1068,9 +1080,12 @@ BlockNullPicture:
         Protected Overridable Function DownloadM3U8(ByVal URL As String, ByVal Media As UserMedia, ByVal DestinationFile As SFile) As SFile
             Return Nothing
         End Function
+        Protected Const EXCEPTION_OPERATION_CANCELED As Integer = -1
         ''' <param name="RDE">Request DownloadingException</param>
         ''' <returns>0 - exit</returns>
-        Protected Function ProcessException(ByVal ex As Exception, ByVal Token As CancellationToken, ByVal Message As String, Optional ByVal RDE As Boolean = True, Optional ByVal EObj As Object = Nothing) As Integer
+        Protected Function ProcessException(ByVal ex As Exception, ByVal Token As CancellationToken, ByVal Message As String,
+                                            Optional ByVal RDE As Boolean = True, Optional ByVal EObj As Object = Nothing,
+                                            Optional ByVal ThrowEx As Boolean = True) As Integer
             If Not ((TypeOf ex Is OperationCanceledException And Token.IsCancellationRequested) Or
                     (TypeOf ex Is ObjectDisposedException And Disposed)) Then
                 If RDE Then
@@ -1078,6 +1093,9 @@ BlockNullPicture:
                     If v = 0 Then LogError(ex, Message) : HasError = True
                     Return v
                 End If
+            Else
+                'URGENT: UserDataBase.ProcessException [Throw ex]
+                If ThrowEx Then Throw ex Else Return EXCEPTION_OPERATION_CANCELED
             End If
             Return 0
         End Function
@@ -1124,7 +1142,7 @@ BlockNullPicture:
         End Sub
 #End Region
 #Region "Delete, Move, Merge, Copy"
-        Friend Overridable Function Delete(Optional ByVal Multiple As Boolean = False) As Integer Implements IUserData.Delete
+        Friend Overridable Function Delete(Optional ByVal Multiple As Boolean = False, Optional ByVal CollectionValue As Integer = -1) As Integer Implements IUserData.Delete
             Dim f As SFile = SFile.GetPath(MyFile.CutPath.Path)
             If f.Exists(SFO.Path, False) AndAlso (User.Merged OrElse f.Delete(SFO.Path, Settings.DeleteMode)) Then
                 If Not IncludedInCollection Then MainFrameObj.ImageHandler(Me, False)
@@ -1138,44 +1156,51 @@ BlockNullPicture:
                 Return 0
             End If
         End Function
-        Friend Overridable Function MoveFiles(ByVal __CollectionName As String) As Boolean Implements IUserData.MoveFiles
+        Friend Overridable Function MoveFiles(ByVal __CollectionName As String, ByVal __SpecialCollectionPath As SFile) As Boolean Implements IUserData.MoveFiles
             Dim UserBefore As UserInfo = User
             Dim Removed As Boolean = True
             Dim _TurnBack As Boolean = False
             Try
                 Dim f As SFile
+                Dim v As Boolean = IsVirtual
                 If IncludedInCollection Then
                     Settings.Users.Add(Me)
                     Removed = False
                     User.CollectionName = String.Empty
-                    User.IncludedInCollection = False
+                    User.SpecialCollectionPath = String.Empty
+                    User.UserModel = UsageModel.Default
+                    User.CollectionModel = UsageModel.Default
                 Else
                     Settings.Users.Remove(Me)
                     Removed = True
                     User.CollectionName = __CollectionName
-                    User.IncludedInCollection = True
-                    User.SpecialPath = Nothing
+                    User.SpecialCollectionPath = __SpecialCollectionPath
+                    If Not IsVirtual Then User.SpecialPath = Nothing
                 End If
                 _TurnBack = True
                 User.UpdateUserFile()
-                f = User.File.CutPath(, EDP.ThrowException)
-                If f.Exists(SFO.Path, False) Then
-                    If If(SFile.GetFiles(f,, SearchOption.AllDirectories), New List(Of SFile)).Count > 0 AndAlso
-                       MsgBoxE({$"Destination directory [{f.Path}] already exists and contains files!" & vbCr &
-                                "By continuing, this directory and all files will be deleted",
-                                "Destination directory is not empty!"}, MsgBoxStyle.Exclamation,,, {"Delete", "Cancel"}) = 1 Then
-                        MsgBoxE("Operation canceled", MsgBoxStyle.Exclamation)
-                        User = UserBefore
-                        If Removed Then Settings.Users.Add(Me) Else Settings.Users.Remove(Me)
-                        _TurnBack = False
-                        Return False
+
+                If Not v Then
+                    f = User.File.CutPath(, EDP.ThrowException)
+                    If f.Exists(SFO.Path, False) Then
+                        If If(SFile.GetFiles(f,, SearchOption.AllDirectories), New List(Of SFile)).Count > 0 AndAlso
+                           MsgBoxE({$"Destination directory [{f.Path}] already exists and contains files!" & vbCr &
+                                    "By continuing, this directory and all files will be deleted",
+                                    "Destination directory is not empty!"}, MsgBoxStyle.Exclamation,,, {"Delete", "Cancel"}) = 1 Then
+                            MsgBoxE("Operation canceled", MsgBoxStyle.Exclamation)
+                            User = UserBefore
+                            If Removed Then Settings.Users.Add(Me) Else Settings.Users.Remove(Me)
+                            _TurnBack = False
+                            Return False
+                        End If
+                        f.Delete(SFO.Path, Settings.DeleteMode, EDP.ThrowException)
                     End If
-                    f.Delete(SFO.Path, Settings.DeleteMode, EDP.ThrowException)
+                    f.CutPath.Exists(SFO.Path)
+                    Directory.Move(UserBefore.File.CutPath(, EDP.ThrowException).Path, f.Path)
+                    If Not ScriptData.IsEmptyString AndAlso ScriptData.Contains(UserBefore.File.PathNoSeparator) Then _
+                       ScriptData = ScriptData.Replace(UserBefore.File.PathNoSeparator, MyFile.PathNoSeparator)
                 End If
-                f.CutPath.Exists(SFO.Path)
-                Directory.Move(UserBefore.File.CutPath(, EDP.ThrowException).Path, f.Path)
-                If Not ScriptData.IsEmptyString AndAlso ScriptData.Contains(UserBefore.File.PathNoSeparator) Then _
-                   ScriptData = ScriptData.Replace(UserBefore.File.PathNoSeparator, MyFile.PathNoSeparator)
+
                 Settings.UsersList.Remove(UserBefore)
                 Settings.UpdateUsersList(User)
                 UpdateUserInformation()
@@ -1411,6 +1436,7 @@ BlockNullPicture:
         End Sub
 #End Region
     End Class
+#Region "Base interfaces"
     Friend Interface IContentProvider
         ReadOnly Property Site As String
         Property Name As String
@@ -1433,6 +1459,9 @@ BlockNullPicture:
         ReadOnly Property IsCollection As Boolean
         Property CollectionName As String
         ReadOnly Property IncludedInCollection As Boolean
+        ReadOnly Property UserModel As UsageModel
+        ReadOnly Property CollectionModel As UsageModel
+        ReadOnly Property IsVirtual As Boolean
         ReadOnly Property Labels As List(Of String)
 #End Region
         ReadOnly Property IsChannel As Boolean
@@ -1464,8 +1493,8 @@ BlockNullPicture:
         ''' 2 - Collection removed<br/>
         ''' 3 - Collection split
         ''' </summary>
-        Function Delete(Optional ByVal Multiple As Boolean = False) As Integer
-        Function MoveFiles(ByVal CollectionName As String) As Boolean
+        Function Delete(Optional ByVal Multiple As Boolean = False, Optional ByVal CollectionValue As Integer = -1) As Integer
+        Function MoveFiles(ByVal CollectionName As String, ByVal SpecialCollectionPath As SFile) As Boolean
         Function CopyFiles(ByVal DestinationPath As SFile, Optional ByVal e As ErrorsDescriber = Nothing) As Boolean
         Sub OpenFolder()
         ReadOnly Property Self As IUserData
@@ -1488,4 +1517,5 @@ BlockNullPicture:
         Property SkipExistsUsers As Boolean
         Property SaveToCache As Boolean
     End Interface
+#End Region
 End Namespace

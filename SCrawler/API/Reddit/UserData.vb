@@ -14,8 +14,8 @@ Imports SCrawler.Plugin.Hosts
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Tools.ImageRenderer
-Imports PersonalUtilities.Tools.WEB
-Imports PersonalUtilities.Tools.WebDocuments.JSON
+Imports PersonalUtilities.Tools.Web.Clients
+Imports PersonalUtilities.Tools.Web.Documents.JSON
 Imports UStates = SCrawler.API.Base.UserMedia.States
 Imports UTypes = SCrawler.API.Base.UserMedia.Types
 Imports CView = SCrawler.API.Reddit.IRedditView.View
@@ -152,6 +152,8 @@ Namespace API.Reddit
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
             _TotalPostsDownloaded = 0
             If IsSavedPosts Then
+                'TODO: Reddit saved posts: remove Unicode converter?
+                Responser.DecodersError = EDP.ReturnValue
                 DownloadDataChannel(String.Empty, Token)
             ElseIf IsChannel Then
                 If ChannelInfo Is Nothing Then

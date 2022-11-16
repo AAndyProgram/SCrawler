@@ -11,8 +11,8 @@ Imports System.Threading
 Imports SCrawler.API.Base
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.RegularExpressions
-Imports PersonalUtilities.Tools.WEB
-Imports PersonalUtilities.Tools.WebDocuments.JSON
+Imports PersonalUtilities.Tools.Web.Clients
+Imports PersonalUtilities.Tools.Web.Documents.JSON
 Imports UStates = SCrawler.API.Base.UserMedia.States
 Namespace API.Twitter
     Friend Class UserData : Inherits UserDataBase

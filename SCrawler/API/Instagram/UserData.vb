@@ -11,8 +11,8 @@ Imports System.Threading
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.Messaging
 Imports PersonalUtilities.Functions.RegularExpressions
-Imports PersonalUtilities.Tools.WEB
-Imports PersonalUtilities.Tools.WebDocuments.JSON
+Imports PersonalUtilities.Tools.Web.Clients
+Imports PersonalUtilities.Tools.Web.Documents.JSON
 Imports SCrawler.API.Base
 Imports UTypes = SCrawler.API.Base.UserMedia.Types
 Namespace API.Instagram
@@ -510,6 +510,7 @@ Namespace API.Instagram
                 Dim vid As Predicate(Of EContainer) = Function(_vid) Not _vid.Name.IsEmptyString AndAlso _vid.Name.StartsWith("video_versions") AndAlso _vid.Count > 0
                 Dim ss As Func(Of EContainer, Sizes) = Function(_ss) New Sizes(_ss.Value("width"), _ss.Value("url"))
                 Dim mDate As Func(Of EContainer, String) = Function(ByVal elem As EContainer) As String
+                                                               If Not DateObj.IsEmptyString Then Return DateObj
                                                                If elem.Contains("taken_at") Then
                                                                    Return elem.Value("taken_at")
                                                                ElseIf elem.Contains("imported_taken_at") Then
@@ -518,7 +519,7 @@ Namespace API.Instagram
                                                                    Dim ev$ = elem.Value("device_timestamp")
                                                                    If Not ev.IsEmptyString Then
                                                                        If ev.Length > 10 Then
-                                                                           Return elem.Value("device_timestamp").Substring(0, 10)
+                                                                           Return ev.Substring(0, 10)
                                                                        Else
                                                                            Return ev
                                                                        End If

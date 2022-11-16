@@ -10,10 +10,13 @@ Imports PersonalUtilities.Functions.RegularExpressions
 Namespace API.XVIDEOS
     Friend Module Declarations
         Friend Const XvideosSiteKey As String = "AndyProgram_XVIDEOS"
-        Friend ReadOnly Property M3U8Regex As RParams = RParams.DM("http.+?.m3u8.*?(?=')", 0)
-        Friend ReadOnly Property VideoTitleRegex As RParams = RParams.DMS("html5player.setVideoTitle\('(.+)(?='\);)", 1)
-        Friend ReadOnly Property VideoID As RParams = RParams.DMS(".*?www.xvideos.com/(video\d+).*", 1)
-        Friend ReadOnly Property M3U8Reparse As RParams = RParams.DM("NAME=""(\d+).*?""[\r\n]*?(.+)(?=(|[\r\n]+?))", 0, RegexReturn.List)
-        Friend ReadOnly Property M3U8Appender As RParams = RParams.DM("(.+)(?=/.+?\.m3u8.*?)", 0)
+        Private ReadOnly HtmlConverter As Func(Of String, String) = Function(Input) SymbolsConverter.HTML.Decode(Input, EDP.ReturnValue)
+        Friend ReadOnly Regex_M3U8 As RParams = RParams.DM("http.+?.m3u8.*?(?=')", 0)
+        Friend ReadOnly Regex_VideoTitle As RParams = RParams.DMS("html5player.setVideoTitle\('(.+)(?='\);)", 1, EDP.ReturnValue, HtmlConverter)
+        Friend ReadOnly Regex_VideoID As RParams = RParams.DMS(".*?www.xvideos.com/(video\d+).*", 1)
+        Friend ReadOnly Regex_M3U8_Reparse As RParams = RParams.DM("NAME=""(\d+).*?""[\r\n]*?(.+)(?=(|[\r\n]+?))", 0, RegexReturn.List)
+        Friend ReadOnly Regex_M3U8_Appender As RParams = RParams.DM("(.+)(?=/.+?\.m3u8.*?)", 0)
+        Friend ReadOnly Regex_SavedVideosPlaylist As RParams = RParams.DM("<div id=""video.+?data-id=""(\d+).+?a href=""([^""]+)"".+?title=""([^""]*)""",
+                                                                          0, RegexReturn.List, EDP.ReturnValue, HtmlConverter)
     End Module
 End Namespace

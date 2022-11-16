@@ -11,7 +11,7 @@ Imports SCrawler.API.Base
 Imports SCrawler.API.Imgur.Declarations
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.RegularExpressions
-Imports PersonalUtilities.Tools.WebDocuments.JSON
+Imports PersonalUtilities.Tools.Web.Documents.JSON
 Namespace API.Imgur
     Namespace Declarations
         Friend Module Imgur_Declarations

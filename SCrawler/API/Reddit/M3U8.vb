@@ -8,7 +8,7 @@
 ' but WITHOUT ANY WARRANTY
 Imports System.Net
 Imports SCrawler.API.Reddit.M3U8_Declarations
-Imports PersonalUtilities.Tools.WEB
+Imports PersonalUtilities.Tools.Web
 Imports PersonalUtilities.Functions.RegularExpressions
 Namespace API.Reddit
     Namespace M3U8_Declarations

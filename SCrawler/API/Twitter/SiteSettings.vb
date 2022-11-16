@@ -9,8 +9,9 @@
 Imports SCrawler.API.Base
 Imports SCrawler.Plugin
 Imports SCrawler.Plugin.Attributes
-Imports PersonalUtilities.Tools.WEB
 Imports PersonalUtilities.Functions.RegularExpressions
+Imports PersonalUtilities.Tools.Web.Clients
+Imports PersonalUtilities.Tools.Web.Cookies
 Namespace API.Twitter
     <Manifest("AndyProgram_Twitter"), SavedPosts>
     Friend Class SiteSettings : Inherits SiteSettingsBase
@@ -31,7 +32,7 @@ Namespace API.Twitter
         Private ReadOnly Property Auth As PropertyValue
         <PropertyOption(AllowNull:=False, ControlText:="Token", ControlToolTip:="Set token from [x-csrf-token] response header")>
         Private ReadOnly Property Token As PropertyValue
-        <PropertyOption(ControlText:="Saved posts user name", ControlToolTip:="Personal profile username", LeftOffset:=120), PXML>
+        <PropertyOption(ControlText:="Saved posts user", ControlToolTip:="Personal profile username"), PXML>
         Friend ReadOnly Property SavedPostsUserName As PropertyValue
         Friend Overrides ReadOnly Property Responser As Response
         Friend Sub New()
@@ -45,10 +46,8 @@ Namespace API.Twitter
                 If .File.Exists Then
                     If EncryptCookies.CookiesEncrypted Then .CookiesEncryptKey = SettingsCLS.CookieEncryptKey
                     .LoadSettings()
-                    With .Headers
-                        If .ContainsKey(Header_Authorization) Then a = .Item(Header_Authorization)
-                        If .ContainsKey(Header_Token) Then t = .Item(Header_Token)
-                    End With
+                    a = .HeadersValue(Header_Authorization)
+                    t = .HeadersValue(Header_Token)
                 Else
                     .ContentType = "application/json"
                     .Accept = "*/*"
@@ -56,17 +55,15 @@ Namespace API.Twitter
                     .Cookies = New CookieKeeper(.CookiesDomain) With {.EncryptKey = SettingsCLS.CookieEncryptKey}
                     .CookiesEncryptKey = SettingsCLS.CookieEncryptKey
                     .Decoders.Add(SymbolsConverter.Converters.Unicode)
-                    With .Headers
-                        .Add("sec-ch-ua", " Not;A Brand"";v=""99"", ""Google Chrome"";v=""91"", ""Chromium"";v=""91""")
-                        .Add("sec-ch-ua-mobile", "?0")
-                        .Add("sec-fetch-dest", "empty")
-                        .Add("sec-fetch-mode", "cors")
-                        .Add("sec-fetch-site", "same-origin")
-                        .Add(Header_Token, String.Empty)
-                        .Add("x-twitter-active-user", "yes")
-                        .Add("x-twitter-auth-type", "OAuth2Session")
-                        .Add(Header_Authorization, String.Empty)
-                    End With
+                    .HeadersAdd("sec-ch-ua", " Not;A Brand"";v=""99"", ""Google Chrome"";v=""91"", ""Chromium"";v=""91""")
+                    .HeadersAdd("sec-ch-ua-mobile", "?0")
+                    .HeadersAdd("sec-fetch-dest", "empty")
+                    .HeadersAdd("sec-fetch-mode", "cors")
+                    .HeadersAdd("sec-fetch-site", "same-origin")
+                    .HeadersAdd(Header_Token, String.Empty)
+                    .HeadersAdd("x-twitter-active-user", "yes")
+                    .HeadersAdd("x-twitter-auth-type", "OAuth2Session")
+                    .HeadersAdd(Header_Authorization, String.Empty)
                     .SaveSettings()
                 End If
             End With
@@ -87,8 +84,8 @@ Namespace API.Twitter
                     Case NameOf(Token) : f = Header_Token
                 End Select
                 If Not f.IsEmptyString Then
-                    If Responser.Headers.Count > 0 AndAlso Responser.Headers.ContainsKey(f) Then Responser.Headers.Remove(f)
-                    If Not CStr(Value).IsEmptyString Then Responser.Headers.Add(f, CStr(Value))
+                    Responser.HeadersRemove(f)
+                    If Not CStr(Value).IsEmptyString Then Responser.HeadersAdd(f, CStr(Value))
                     Responser.SaveSettings()
                 End If
             End If
@@ -103,8 +100,8 @@ Namespace API.Twitter
         Friend Overrides Function GetSpecialData(ByVal URL As String, ByVal Path As String, ByVal AskForPath As Boolean) As IEnumerable
             Return UserData.GetVideoInfo(URL, Responser)
         End Function
-        Friend Overrides Function GetUserPostUrl(ByVal UserID As String, ByVal PostID As String) As String
-            Return $"https://twitter.com/{UserID}/status/{PostID}"
+        Friend Overrides Function GetUserPostUrl(ByVal User As UserDataBase, ByVal Media As UserMedia) As String
+            Return $"https://twitter.com/{User.Name}/status/{Media.Post.ID}"
         End Function
         Friend Overrides Function BaseAuthExists() As Boolean
             Return If(Responser.Cookies?.Count, 0) > 0 And ACheck(Token.Value) And ACheck(Auth.Value)

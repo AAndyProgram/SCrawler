@@ -8,9 +8,10 @@
 ' but WITHOUT ANY WARRANTY
 Imports System.Threading
 Imports SCrawler.API.Base
-Imports PersonalUtilities.Tools
+Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.Messaging
+Imports PersonalUtilities.Tools
 Namespace API
     Friend Class UserDataBind : Inherits UserDataBase : Implements ICollection(Of IUserData), IMyEnumerator(Of IUserData)
 #Region "Events"
@@ -20,6 +21,17 @@ Namespace API
 #Region "Declarations"
         Friend ReadOnly Property Collections As List(Of IUserData)
 #Region "Base class overrides"
+        Friend Overrides ReadOnly Property IsVirtual As Boolean
+            Get
+                Return CollectionModel = UsageModel.Virtual
+            End Get
+        End Property
+        Friend Overrides ReadOnly Property CollectionModel As UsageModel
+            Get
+                If Count > 0 Then Return Item(0).CollectionModel Else Return UsageModel.Default
+            End Get
+        End Property
+        Friend Property CurrentlyEdited As Boolean = False
         Private _CollectionName As String = String.Empty
         Friend Overrides Property CollectionName As String
             Get
@@ -80,10 +92,13 @@ Namespace API
         End Sub
         Friend Overrides Function GetUserPicture() As Image
             If Count > 0 Then
-                Return Collections(0).GetPicture
-            Else
-                Return GetNullPicture(Settings.MaxLargeImageHeight)
+                Dim img As Image
+                For Each u As UserDataBase In Collections
+                    img = u.GetPicture(Of Image)(False)
+                    If Not img Is Nothing Then Return img
+                Next
             End If
+            Return GetNullPicture(Settings.MaxLargeImageHeight)
         End Function
 #End Region
         Friend Overrides ReadOnly Property DownloadedTotal(Optional ByVal Total As Boolean = True) As Integer
@@ -102,7 +117,15 @@ Namespace API
         End Property
         Friend Overrides Property MyFile As SFile
             Get
-                If Count > 0 Then Return Collections(0).File Else Return Nothing
+                If Count > 0 Then
+                    If IsVirtual Then
+                        Return GetRealUserFile.IfNullOrEmpty(Collections(0).File)
+                    Else
+                        Return Collections(0).File
+                    End If
+                Else
+                    Return Nothing
+                End If
             End Get
             Set(ByVal NewFile As SFile)
             End Set
@@ -120,8 +143,8 @@ Namespace API
         End Property
         Friend Overrides Property DataMerging As Boolean
             Get
-                If Count > 0 Then
-                    Return DirectCast(Collections(0), UserDataBase).DataMerging
+                If Count > 0 AndAlso Collections.Exists(RealUser) Then
+                    Return DirectCast(Collections.Find(RealUser), UserDataBase).DataMerging
                 Else
                     Return False
                 End If
@@ -184,6 +207,7 @@ Namespace API
         End Property
         Friend Overrides Function GetUserInformation() As String
             Dim OutStr$ = String.Empty
+            If IsVirtual Then OutStr = "This is a virtual collection."
             If Count > 0 Then Collections.ForEach(Sub(c) OutStr.StringAppendLine(DirectCast(c, UserDataBase).GetUserInformation(), vbNewLine.StringDup(2)))
             Return OutStr
         End Function
@@ -346,12 +370,36 @@ Namespace API
             If Not e.Exists Then e = New ErrorsDescriber(EDP.SendInLog)
             If Count > 0 Then Collections.ForEach(Sub(c) c.OpenSite(e))
         End Sub
+        Private ReadOnly RealUser As Predicate(Of IUserData) = Function(u) u.UserModel = UsageModel.Default
         Friend Overrides Sub OpenFolder()
             Try
-                If Count > 0 Then GlobalOpenPath(Collections(0).File.CutPath(2))
+                If Count > 0 Then
+                    Dim i% = Collections.FindIndex(RealUser)
+                    If i = -1 Then i = 0
+                    If i >= 0 Then
+                        If IsVirtual Or Collections(i).UserModel = UsageModel.Virtual Then
+                            Collections(i).OpenFolder()
+                        Else
+                            GlobalOpenPath(Collections(i).File.CutPath(2))
+                        End If
+                    End If
+                End If
             Catch
             End Try
         End Sub
+        Friend Function GetRealUserFile() As SFile
+            Dim i% = -1
+            If Count > 0 Then i = Collections.FindIndex(RealUser)
+            If i >= 0 Then Return Collections(i).File Else Return Nothing
+        End Function
+        Friend Function GetRealUserSpecialCollectionPath()
+            Dim _SpecialCollectionPath As SFile = Nothing
+            If Count > 0 And Not IsVirtual Then
+                Dim _RealUser As UserDataBase = Collections.Find(RealUser)
+                If Not _RealUser Is Nothing Then _SpecialCollectionPath = _RealUser.User.SpecialCollectionPath
+            End If
+            Return _SpecialCollectionPath
+        End Function
 #End Region
 #Region "ICollection Support"
         Private ReadOnly Property IsReadOnly As Boolean Implements ICollection(Of IUserData).IsReadOnly
@@ -386,8 +434,8 @@ Namespace API
         ''' <exception cref="InvalidOperationException"></exception>
         Friend Overloads Sub Add(ByVal _Item As IUserData) Implements ICollection(Of IUserData).Add
             With _Item
-                If .MoveFiles(CollectionName) Then
-                    If DataMerging Then DirectCast(.Self, UserDataBase).MergeData()
+                If .MoveFiles(CollectionName, GetRealUserSpecialCollectionPath()) Then
+                    If Not _Item.IsVirtual And DataMerging Then DirectCast(.Self, UserDataBase).MergeData()
                     Collections.Add(_Item)
                     With Collections.Last
                         If Count > 1 Then
@@ -445,14 +493,9 @@ Namespace API
         Private Sub ConsolidateScripts()
             If Count > 1 AndAlso ScriptUse Then Collections.ForEach(Sub(c) c.ScriptUse = True)
         End Sub
-        Friend Sub AddRange(ByVal _Items As IEnumerable(Of IUserData))
-            If _Items.ListExists Then
-                For i% = 0 To _Items.Count - 1 : Add(_Items(i)) : Next
-            End If
-        End Sub
 #End Region
 #Region "Move, Merge"
-        Friend Overrides Function MoveFiles(ByVal __CollectionName As String) As Boolean
+        Friend Overrides Function MoveFiles(ByVal __CollectionName As String, ByVal __SpecialCollectionPath As SFile) As Boolean
             Throw New NotImplementedException("Move files is not available in the collection context")
         End Function
         Friend Overloads Sub MergeData(ByVal Merging As Boolean)
@@ -488,52 +531,69 @@ Namespace API
                         "Operation canceled", MsgBoxStyle.Critical)
                 Return False
             Else
-                DirectCast(_Item, UserDataBase).MoveFiles(String.Empty)
+                _Item.MoveFiles(String.Empty, Nothing)
                 MainFrameObj.ImageHandler(_Item)
                 AddRemoveBttDeleteHandler(_Item, False)
                 RaiseEvent OnUserRemoved(_Item)
                 Return Collections.Remove(_Item)
             End If
         End Function
-        Friend Overrides Function Delete(Optional ByVal Multiple As Boolean = False) As Integer
+        Friend Overrides Function Delete(Optional ByVal Multiple As Boolean = False, Optional ByVal CollectionValue As Integer = -1) As Integer
             If Count > 0 Then
                 Const MsgTitle$ = "Deleting a collection"
-                Dim f As SFile
+                Dim f As SFile = Nothing
+                If Not IsVirtual Then
+                    f = GetRealUserFile()
+                    If Not f.IsEmptyString Then f = f.CutPath(IIf(DataMerging, 1, 2))
+                End If
                 Dim m As New MMessage($"Collection [{CollectionName} (number of profiles: {Count})] may contain data" & vbCr &
                                       "Are you sure you want to delete the collection and all of its files?", MsgTitle,
-                                      {New MsgBoxButton("Delete") With {.ToolTip = "Delete the collection and all files"},
+                                      {New MsgBoxButton("Delete") With {.ToolTip = "Delete the collection and all files", .KeyCode = Keys.Enter},
                                        New MsgBoxButton("Split") With {
                                         .ToolTip = "Users will be removed from the collection and will be displayed in the program as separate users." & vbCr &
-                                                   "All user data will remain."},
+                                                   "All user data will remain.",
+                                        .KeyCode = New ButtonKey(Keys.Enter, True)},
                                        "Cancel"}, vbExclamation)
-                Select Case If(Multiple, 0, MsgBoxE(m).Index)
+                Dim v%
+                If CollectionValue >= 0 Then
+                    v = CollectionValue
+                ElseIf Multiple Then
+                    v = 0
+                Else
+                    v = MsgBoxE(m)
+                End If
+                Select Case v
                     Case 0
-                        f = Collections(0).File.CutPath(IIf(DataMerging, 1, 2)).PathWithSeparator
-                        Settings.Users.Remove(Me)
                         Collections.ForEach(Sub(c) c.Delete())
-                        Downloader.UserRemove(Me)
-                        MainFrameObj.ImageHandler(Me, False)
-                        Collections.ListClearDispose
-                        Dispose(False)
-                        f.Delete(SFO.Path, SFODelete.EmptyOnly + Settings.DeleteMode, EDP.SendInLog)
-                        Return 2
+                        If Collections.All(Function(c As UserDataBase) c.Disposed) Then
+                            Settings.Users.Remove(Me)
+                            Downloader.UserRemove(Me)
+                            MainFrameObj.ImageHandler(Me, False)
+                            Collections.ListClearDispose
+                            Dispose(False)
+                            If Not f.IsEmptyString Then f.Delete(SFO.Path, SFODelete.EmptyOnly + Settings.DeleteMode, EDP.SendInLog)
+                            Return 2
+                        End If
                     Case 1
                         If DataMerging Then
                             MsgBoxE({$"Collection [{CollectionName}] data merged{vbCr}Unable to split merged collection{vbCr}Operation canceled", MsgTitle}, vbExclamation)
                             Return 0
                         Else
-                            f = Collections(0).File.CutPath(2)
-                            Settings.Users.Remove(Me)
-                            Collections.ForEach(Sub(c)
-                                                    c.MoveFiles(String.Empty)
-                                                    MainFrameObj.ImageHandler(c)
+                            Collections.ForEach(Sub(ByVal c As IUserData)
+                                                    If c.MoveFiles(String.Empty, Nothing) Then
+                                                        UserListLoader.UpdateUser(Settings.GetUser(c), True)
+                                                        MainFrameObj.ImageHandler(c)
+                                                    End If
                                                 End Sub)
-                            Collections.Clear()
-                            f.Delete(SFO.Path, SFODelete.Default + Settings.DeleteMode, EDP.SendInLog)
-                            Downloader.UserRemove(Me)
-                            MainFrameObj.ImageHandler(Me, False)
-                            Dispose(False)
-                            Return 3
+                            If Collections.All(Function(c) c.CollectionName.IsEmptyString) Then
+                                Settings.Users.Remove(Me)
+                                Collections.Clear()
+                                If Not f.IsEmptyString Then f.Delete(SFO.Path, SFODelete.Default + Settings.DeleteMode, EDP.SendInLog)
+                                Downloader.UserRemove(Me)
+                                MainFrameObj.ImageHandler(Me, False)
+                                Dispose(False)
+                                Return 3
+                            End If
                         End If
                     Case Else : If Not Multiple Then MsgBoxE({"Operation canceled", MsgTitle})
                 End Select
@@ -562,9 +622,11 @@ Namespace API
                                      "Deleting a user"}, vbExclamation,,,
                                     {
                                         New MsgBoxButton("Remove") With {
-                                        .ToolTip = "Remove a user from the collection only. All its data will remain. The user will appear in the program."},
+                                            .ToolTip = "Remove a user from the collection only. All its data will remain. The user will appear in the program.",
+                                            .KeyCode = Keys.Enter},
                                         New MsgBoxButton("Delete") With {
-                                        .ToolTip = "Delete a user from the collection and erase their data."},
+                                            .ToolTip = "Delete a user from the collection and erase their data.",
+                                            .KeyCode = New ButtonKey(Keys.Enter, True)},
                                         "Cancel"
                                     }).Index
                     Case 0

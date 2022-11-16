@@ -6,7 +6,7 @@
 [![GUIDE](https://img.shields.io/badge/GUIDE-green)](https://github.com/AAndyProgram/SCrawler/wiki)
 [![How to support](https://img.shields.io/badge/HowToSupport-green)](HowToSupport.md)
 
-A program to download photo and video from [any site](#supported-sites) (e.g. Reddit, Twitter, Instagram, TikTok, RedGifs, XVIDEOS, LPSG).
+A program to download photo and video from [any site](#supported-sites) (e.g. Reddit, Twitter, Instagram, TikTok, RedGifs, PornHub, XHamster, XVIDEOS, LPSG).
 
 **If you like SCrawler, please like the program on [this site]( https://alternativeto.net/software/scrawler/about/)**
 
@@ -14,20 +14,23 @@ Do you like this program? Consider adding to my coffee fund by making a donation
 
 [![ko-fi](https://www.ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/andyprogram)
 
-**Bitcoin**: bitcoin:BC1Q0NH839FT5TA44DD7L7RLR97XDQAG9V8D6N7XET
+**Bitcoin**: BC1Q0NH839FT5TA44DD7L7RLR97XDQAG9V8D6N7XET
 
 ![Main window](ProgramScreenshots/MainWindow.png)
 ![Channels window](ProgramScreenshots/Channels.png)
 
 # What can program do:
 - Download pictures and videos from users' profiles and subreddits:
-  - Reddit images, galleries of images, videos (downloading Reddit hosted video is going through ffmpeg (**ffmpeg only works with the x64 program**));
+  - Reddit images, galleries of images, videos (downloading Reddit hosted video is going through ffmpeg (**ffmpeg only works with the x64 program**)), saved posts;
   - Redgifs videos (https://www.redgifs.com/);
-  - Twitter images and videos;
-  - Instagram images and videos, tagged posts, stories;
+  - Twitter images and videos, saved (bookmarked) posts;
+  - Instagram images and videos, tagged posts, stories, saved posts;
   - TikTok videos ([limited](https://github.com/AAndyProgram/SCrawler/wiki/Settings#tiktok-limits));
   - Imgur images, galleries and videos;
   - Gfycat videos;
+  - PornHub images, videos, save (liked) posts;
+  - XHamster images, videos, saved posts;
+  - XVIDEOS videos;
   - [Other](#supported-sites) supported sites
 - Parse [channel and view data](https://github.com/AAndyProgram/SCrawler/wiki/Channels)
 - Download [saved Reddit, Twitter and Instagram posts](https://github.com/AAndyProgram/SCrawler/wiki/Home#saved-posts)
@@ -57,7 +60,9 @@ Do you like this program? Consider adding to my coffee fund by making a donation
 - Imgur
 - Gfycat
 - LPSG
-- XVIDEOS
+- **PornHub**
+- **XHamster**
+- **XVIDEOS**
 - [Other sites](Plugins.md)
 
 **[SITES REQUIREMENTS](https://github.com/AAndyProgram/SCrawler/wiki/Settings#sites-requirements)**
@@ -105,6 +110,8 @@ Read [here](CONTRIBUTING.md#how-to-request-a-new-site) about
   - [Instagram](https://github.com/AAndyProgram/SCrawler/wiki/Settings#instagram)
   - [TikTok](https://github.com/AAndyProgram/SCrawler/wiki/Settings#tiktok)
   - [RedGifs](https://github.com/AAndyProgram/SCrawler/wiki/Settings#redgifs)
+  - [PornHub](https://github.com/AAndyProgram/SCrawler/wiki/Settings#pornhub)
+  - [XHamster](https://github.com/AAndyProgram/SCrawler/wiki/Settings#xhamster)
   - [XVIDEOS](https://github.com/AAndyProgram/SCrawler/wiki/Settings#xvideos)
   - [LPSG](https://github.com/AAndyProgram/SCrawler/wiki/Settings#lpsg)
 

@@ -9,6 +9,7 @@
 Imports SCrawler.API
 Imports SCrawler.API.Base
 Imports PersonalUtilities.Tools.Notifications
+Imports NotifyObj = SCrawler.SettingsCLS.NotificationObjects
 Friend Class MainFrameObjects
     Friend ReadOnly Property MF As MainFrame
     Private WithEvents Notificator As NotificationsManager
@@ -63,16 +64,28 @@ Friend Class MainFrameObjects
 #End Region
 #Region "Notifications"
     Private Const NotificationInternalKey As String = "NotificationInternalKey"
-    Friend Sub ShowNotification(ByVal Sender As SettingsCLS.NotificationObjects, ByVal Message As String)
+    Friend Sub ShowNotification(ByVal Sender As NotifyObj, ByVal Message As String)
         If Settings.ProcessNotification(Sender) Then
-            Using n As New Notification(Message) With {.Key = NotificationInternalKey} : n.Show() : End Using
+            Using n As New Notification(Message) With {.Key = $"{NotificationInternalKey}_{Sender}"} : n.Show() : End Using
         End If
     End Sub
     Friend Sub ClearNotifications()
         Notificator.Clear()
     End Sub
     Private Sub Notificator_OnClicked(ByVal Key As String) Handles Notificator.OnClicked
-        If Key = NotificationInternalKey OrElse Settings.Automation Is Nothing OrElse Not Settings.Automation.NotificationClicked(Key) Then Focus(True)
+        If Not Key.IsEmptyString Then
+            If Key.StartsWith(NotificationInternalKey) Then
+                Select Case Key
+                    Case $"{NotificationInternalKey}_{NotifyObj.Channels}" : MF.MyChannels.FormShowS()
+                    Case $"{NotificationInternalKey}_{NotifyObj.SavedPosts}" : MF.MySavedPosts.FormShowS()
+                    Case Else : Focus(True)
+                End Select
+            ElseIf Settings.Automation Is Nothing OrElse Not Settings.Automation.NotificationClicked(Key) Then
+                Focus(True)
+            Else
+                Focus(True)
+            End If
+        End If
     End Sub
 #End Region
 End Class

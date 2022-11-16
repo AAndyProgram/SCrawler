@@ -50,7 +50,7 @@ Namespace Plugin.Hosts
                     End With
                     If Not .ControlToolTip.IsEmptyString And Not TT Is Nothing Then TT.SetToolTip(Control, .ControlToolTip)
                 Else
-                    If Type Is GetType(Boolean) Then
+                    If Type Is GetType(Boolean) Or .ThreeStates Then
                         Control = New CheckBox
                         If Not .ControlToolTip.IsEmptyString And Not TT Is Nothing Then TT.SetToolTip(Control, .ControlToolTip)
                         DirectCast(Control, CheckBox).ThreeState = .ThreeStates

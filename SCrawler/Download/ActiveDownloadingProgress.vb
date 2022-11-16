@@ -42,6 +42,7 @@ Namespace DownloadObjects
         End Sub
         Private Sub Downloader_Reconfigured()
             Const RowHeight% = 30
+            Const LowestValue% = 39
             Dim a As Action = Sub()
                                   With TP_MAIN
                                       If .Controls.Count > 0 Then
@@ -65,13 +66,18 @@ Namespace DownloadObjects
                                                   .Controls.Add(JobsList.Last.Get, 0, .RowStyles.Count - 1)
                                               End With
                                           Next
-                                          TP_MAIN.RowStyles.Add(New RowStyle(SizeType.Percent, 100))
+                                          TP_MAIN.RowStyles.Add(New RowStyle(SizeType.AutoSize))
                                           TP_MAIN.RowCount += 1
+
+                                          Dim s As Size = Size
+                                          Dim ss As Size = Screen.PrimaryScreen.WorkingArea.Size
+                                          Dim c% = TP_MAIN.RowStyles.Count - 1
+                                          s.Height = c * RowHeight + LowestValue + (PaddingE.GetOf({TP_MAIN}).Vertical(c) / c).RoundDown - c
+                                          If s.Height > ss.Height Then s.Height = ss.Height
+                                          MinimumSize = Nothing
+                                          Size = s
+                                          MinimumSize = New Size(MinWidth, s.Height)
                                       End If
-                                      Dim s As Size = Size
-                                      s.Height = TP_MAIN.RowStyles.Count * RowHeight + PaddingE.GetOf({TP_MAIN}).Vertical(TP_MAIN.RowStyles.Count) - TP_MAIN.RowStyles.Count * 2
-                                      MinimumSize = New Size(MinWidth, s.Height)
-                                      Size = s
                                   End With
                                   TP_MAIN.Refresh()
                               End Sub

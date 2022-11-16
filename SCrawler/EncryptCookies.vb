@@ -6,7 +6,7 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
-Imports PersonalUtilities.Tools.WEB
+Imports PersonalUtilities.Tools.Web.Clients
 Namespace EncryptCookies
     Friend Module EncryptFunction
         Friend CookiesEncrypted As Boolean = False

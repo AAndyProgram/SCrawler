@@ -7,8 +7,8 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports System.Threading
-Imports PersonalUtilities.Forms.Toolbars
 Imports SCrawler.Plugin.Hosts
+Imports PersonalUtilities.Forms.Toolbars
 Imports PDownload = SCrawler.Plugin.ISiteSettings.Download
 Namespace API.Base
     Friend NotInheritable Class ProfileSaved
@@ -52,6 +52,7 @@ Namespace API.Base
                 ErrorsDescriber.Execute(EDP.SendInLog, ex, $"[API.Base.ProfileSaved.Download({HOST.Key})]")
             Finally
                 HOST.DownloadDone(PDownload.SavedPosts)
+                MainFrameObj.UpdateLogButton()
             End Try
         End Sub
     End Class

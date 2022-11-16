@@ -65,6 +65,7 @@ Friend Class UserSearchForm
         If e.KeyCode = Keys.Escape Then Hide() : e.Handled = True
     End Sub
     Private Sub UserSearchForm_Disposed(sender As Object, e As EventArgs) Handles Me.Disposed
+        MyView.Dispose()
         Results.Clear()
     End Sub
     Private Sub TXT_SEARCH_TextChanged(sender As Object, e As EventArgs) Handles TXT_SEARCH.TextChanged

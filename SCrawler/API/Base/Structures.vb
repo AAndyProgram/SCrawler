@@ -6,12 +6,13 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
+Imports SCrawler.Plugin
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.XML.Base
 Imports PersonalUtilities.Functions.RegularExpressions
 Namespace API.Base
     Friend Module Structures
-        Friend Structure UserMedia : Implements IEquatable(Of UserMedia), IEContainerProvider
+        Friend Structure UserMedia : Implements IUserMedia, IEquatable(Of UserMedia), IEContainerProvider
 #Region "XML Names"
             Friend Const Name_MediaNode As String = "MediaData"
             Private Const Name_MediaType As String = "Type"
@@ -48,6 +49,89 @@ Namespace API.Base
             ''' SomeFolder\SomeFolder2
             ''' </summary>
             Friend SpecialFolder As String
+            Friend [Object] As Object
+#Region "Interface Support"
+            Private Property IUserMedia_Type As Integer Implements IUserMedia.ContentType
+                Get
+                    Return Type
+                End Get
+                Set(ByVal Type As Integer)
+                    Me.Type = Type
+                End Set
+            End Property
+            Private Property IUserMedia_URL_BASE As String Implements IUserMedia.URL_BASE
+                Get
+                    Return URL_BASE
+                End Get
+                Set(ByVal URL_BASE As String)
+                    Me.URL_BASE = URL_BASE
+                End Set
+            End Property
+            Private Property IUserMedia_URL As String Implements IUserMedia.URL
+                Get
+                    Return URL
+                End Get
+                Set(ByVal URL As String)
+                    Me.URL = URL
+                End Set
+            End Property
+            Private Property IUserMedia_MD5 As String Implements IUserMedia.MD5
+                Get
+                    Return MD5
+                End Get
+                Set(ByVal MD5 As String)
+                    Me.MD5 = MD5
+                End Set
+            End Property
+            Private Property IUserMedia_File As String Implements IUserMedia.File
+                Get
+                    Return File
+                End Get
+                Set(ByVal File As String)
+                    Me.File = File
+                End Set
+            End Property
+            Private Property IUserMedia_State As Integer Implements IUserMedia.DownloadState
+                Get
+                    Return State
+                End Get
+                Set(ByVal State As Integer)
+                    Me.State = State
+                End Set
+            End Property
+            Private Property IUserMedia_PostID As String Implements IUserMedia.PostID
+                Get
+                    Return Post.ID
+                End Get
+                Set(ByVal PostID As String)
+                    Post.ID = PostID
+                End Set
+            End Property
+            Private Property IUserMedia_PostDate As Date? Implements IUserMedia.PostDate
+                Get
+                    Return Post.Date
+                End Get
+                Set(ByVal PostDate As Date?)
+                    Post.Date = PostDate
+                End Set
+            End Property
+            Private Property IUserMedia_SpecialFolder As String Implements IUserMedia.SpecialFolder
+                Get
+                    Return SpecialFolder
+                End Get
+                Set(ByVal SpecialFolder As String)
+                    Me.SpecialFolder = SpecialFolder
+                End Set
+            End Property
+            Private Property IUserMedia_Attempts As Integer Implements IUserMedia.Attempts
+                Get
+                    Return Attempts
+                End Get
+                Set(ByVal Attempts As Integer)
+                    Me.Attempts = Attempts
+                End Set
+            End Property
+#End Region
             Friend Sub New(ByVal URL As String)
                 Me.URL = URL
                 URL_BASE = URL
@@ -58,10 +142,10 @@ Namespace API.Base
                 Me.New(URL)
                 Me.Type = Type
             End Sub
-            Friend Sub New(ByVal m As Plugin.PluginUserMedia)
+            Friend Sub New(ByVal m As Plugin.IUserMedia)
                 [Type] = m.ContentType
                 URL = m.URL
-                URL_BASE = URL
+                URL_BASE = m.URL_BASE
                 MD5 = m.MD5
                 File = m.File
                 Post = New UserPost With {.ID = m.PostID, .[Date] = m.PostDate}
@@ -117,19 +201,6 @@ Namespace API.Base
             Public Overrides Function ToString() As String
                 Return URL
             End Function
-            Friend Function PluginUserMedia() As Plugin.PluginUserMedia
-                Return New Plugin.PluginUserMedia With {
-                    .ContentType = Type,
-                    .DownloadState = State,
-                    .File = File,
-                    .MD5 = MD5,
-                    .URL = URL,
-                    .SpecialFolder = SpecialFolder,
-                    .PostID = Post.ID,
-                    .PostDate = Post.Date,
-                    .Attempts = Attempts
-                }
-            End Function
             Friend Overloads Function Equals(ByVal Other As UserMedia) As Boolean Implements IEquatable(Of UserMedia).Equals
                 Return URL = Other.URL
             End Function
@@ -154,17 +225,31 @@ Namespace API.Base
             ''' <summary>Post ID</summary>
             Friend ID As String
             Friend [Date] As Date?
-#Region "Channel compatible fields"
             Friend UserID As String
             Friend CachedFile As SFile
+#Region "Initializers"
+            Public Sub New(ByVal ID As String)
+                Me.ID = ID
+            End Sub
+            Public Sub New(ByVal [Date] As Date?)
+                Me.Date = [Date]
+            End Sub
+            Public Sub New(ByVal ID As String, ByVal [Date] As Date?)
+                Me.ID = ID
+                Me.Date = [Date]
+            End Sub
+            Public Shared Widening Operator CType(ByVal ID As String) As UserPost
+                Return New UserPost(ID)
+            End Operator
+            Public Shared Widening Operator CType(ByVal Post As UserPost) As String
+                Return Post.ID
+            End Operator
 #End Region
-            Friend Function GetImage(ByVal s As Size, ByVal e As ErrorsDescriber, ByVal NullArg As Image) As Image
-                If Not CachedFile.IsEmptyString Then
-                    Return If(PersonalUtilities.Tools.ImageRenderer.GetImage(SFile.GetBytes(CachedFile), s, e), NullArg.Clone)
-                Else
-                    Return NullArg.Clone
-                End If
+#Region "ToString"
+            Public Overrides Function ToString() As String
+                Return ID
             End Function
+#End Region
 #Region "IEquatable, IComparable Support"
             Friend Overloads Function Equals(ByVal Other As UserPost) As Boolean Implements IEquatable(Of UserPost).Equals
                 Return ID = Other.ID

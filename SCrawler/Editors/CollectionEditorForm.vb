@@ -24,8 +24,9 @@ Namespace Editors
                     .MyViewInitialize()
                     .AddOkCancelToolbar()
                     Collections.ListAddList(Settings.LastCollections)
-                    Collections.ListAddList((From c In Settings.Users Where c.IsCollection Select c.CollectionName), LAP.NotContainsOnly, EDP.ThrowException)
-                    If Collections.ListExists Then Collections.Sort() : CMB_COLLECTIONS.Items.AddRange(From c In Collections Select New ListItem(c))
+                    Dim ecol As List(Of String) = ListAddList(Nothing, (From c In Settings.Users Where c.IsCollection Select c.CollectionName), LAP.NotContainsOnly)
+                    If ecol.ListExists Then ecol.Sort() : Collections.ListAddList(ecol, LAP.NotContainsOnly) : ecol.Clear()
+                    If Collections.Count > 0 Then CMB_COLLECTIONS.Items.AddRange(Collections.Select(Function(c) New ListItem(c)))
                     If Not Collection.IsEmptyString And Collections.Contains(Collection) Then CMB_COLLECTIONS.SelectedIndex = Collections.IndexOf(Collection)
                     .DelegateClosingChecker = False
                     .EndLoaderOperations()
@@ -55,8 +56,8 @@ Namespace Editors
         Private Sub CMB_COLLECTIONS_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As EventArgs) Handles CMB_COLLECTIONS.ActionOnButtonClick
             If Sender.DefaultButton = ActionButton.DefaultButtons.Add Then AddNewCollection()
         End Sub
-        Private Sub CMB_COLLECTIONS_ActionOnListDoubleClick(ByVal _Item As ListViewItem) Handles CMB_COLLECTIONS.ActionOnListDoubleClick
-            _Item.Selected = True
+        Private Sub CMB_COLLECTIONS_ActionOnListDoubleClick(ByVal Sender As Object, ByVal e As EventArgs, ByVal Item As ListViewItem) Handles CMB_COLLECTIONS.ActionOnListDoubleClick
+            Item.Selected = True
             MyDefs_ButtonOkClick()
         End Sub
         Private Sub AddNewCollection()

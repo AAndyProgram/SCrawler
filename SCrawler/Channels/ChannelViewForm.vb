@@ -581,7 +581,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
             End If
         End If
     End Sub
-    Private Sub CMB_CHANNELS_ActionSelectedItemChanged(ByVal _Item As ListViewItem) Handles CMB_CHANNELS.ActionSelectedItemChanged
+    Private Sub CMB_CHANNELS_ActionSelectedItemChanged(ByVal Sender As Object, ByVal e As EventArgs, ByVal Item As ListViewItem) Handles CMB_CHANNELS.ActionSelectedItemChanged
         SetLimitsByChannel()
         Dim c As Channel = GetCurrentChannel()
         If Not c Is Nothing Then MyRange.Source = c
@@ -814,6 +814,14 @@ Friend Class ChannelViewForm : Implements IChannelLimits
     End Sub
 #End Region
 #Region "MyRange"
+    Private ReadOnly GetListImage_Error As New ErrorsDescriber(EDP.ReturnValue)
+    Private Function GetListImage(ByVal Post As UserPost, ByVal s As Size, ByVal NullArg As Image) As Image
+        If Not Post.CachedFile.IsEmptyString Then
+            Return If(ImageRenderer.GetImage(SFile.GetBytes(Post.CachedFile), s, GetListImage_Error), NullArg.Clone)
+        Else
+            Return NullArg.Clone
+        End If
+    End Function
     Private Sub MyRange_IndexChanged(ByVal Sender As Object, ByVal e As EventArgs) Handles MyRange.IndexChanged
         Try
             If MyDefs.Initializing Then Exit Sub
@@ -825,11 +833,10 @@ Friend Class ChannelViewForm : Implements IChannelLimits
                 If .Count > 0 Then
                     Dim s As Size = GetImageSize()
                     Dim NullImage As Image = New Bitmap(s.Width, s.Height)
-                    Dim ie As New ErrorsDescriber(EDP.ReturnValue)
                     For i% = 0 To .Count - 1
                         p = .Item(i)
                         With p
-                            LIST_POSTS.LargeImageList.Images.Add(.GetImage(s, ie, NullImage))
+                            LIST_POSTS.LargeImageList.Images.Add(GetListImage(p, s, NullImage))
                             LIST_POSTS.Items.Add(New ListViewItem(.UserID, i) With {.Tag = p.ID})
                             With LIST_POSTS.Items(LIST_POSTS.Items.Count - 1)
                                 If PendingUsers.Contains(.Text) Then .Checked = True

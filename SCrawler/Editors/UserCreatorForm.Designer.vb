@@ -23,99 +23,147 @@ Namespace Editors
         <System.Diagnostics.DebuggerStepThrough()>
         Private Sub InitializeComponent()
             Me.components = New System.ComponentModel.Container()
-            Dim TP_MAIN As System.Windows.Forms.TableLayoutPanel
-            Dim TP_SITE As System.Windows.Forms.TableLayoutPanel
+            Dim TT_MAIN As System.Windows.Forms.ToolTip
+            Dim CONTAINER_MAIN As System.Windows.Forms.ToolStripContainer
             Dim ActionButton1 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(UserCreatorForm))
             Dim ListColumn1 As PersonalUtilities.Forms.Controls.Base.ListColumn = New PersonalUtilities.Forms.Controls.Base.ListColumn()
             Dim ListColumn2 As PersonalUtilities.Forms.Controls.Base.ListColumn = New PersonalUtilities.Forms.Controls.Base.ListColumn()
-            Dim TP_PARAMS As System.Windows.Forms.TableLayoutPanel
-            Dim TP_OTHER As System.Windows.Forms.TableLayoutPanel
             Dim ActionButton2 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim ActionButton3 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim ActionButton4 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
-            Dim TP_DOWN_OPTIONS As System.Windows.Forms.TableLayoutPanel
             Dim ActionButton5 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim ActionButton6 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim ActionButton7 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim ActionButton8 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
-            Dim TT_MAIN As System.Windows.Forms.ToolTip
-            Dim CONTAINER_MAIN As System.Windows.Forms.ToolStripContainer
-            Me.TXT_USER = New PersonalUtilities.Forms.Controls.TextBoxExtended()
-            Me.CH_IS_CHANNEL = New System.Windows.Forms.CheckBox()
-            Me.CMB_SITE = New PersonalUtilities.Forms.Controls.ComboBoxExtended()
-            Me.BTT_OTHER_SETTINGS = New System.Windows.Forms.Button()
-            Me.CH_TEMP = New System.Windows.Forms.CheckBox()
-            Me.CH_FAV = New System.Windows.Forms.CheckBox()
             Me.CH_PARSE_USER_MEDIA = New System.Windows.Forms.CheckBox()
             Me.CH_READY_FOR_DOWN = New System.Windows.Forms.CheckBox()
+            Me.BTT_OTHER_SETTINGS = New System.Windows.Forms.Button()
+            Me.TP_MAIN = New System.Windows.Forms.TableLayoutPanel()
+            Me.TXT_USER = New PersonalUtilities.Forms.Controls.TextBoxExtended()
+            Me.TP_SITE = New System.Windows.Forms.TableLayoutPanel()
+            Me.CH_IS_CHANNEL = New System.Windows.Forms.CheckBox()
+            Me.CMB_SITE = New PersonalUtilities.Forms.Controls.ComboBoxExtended()
+            Me.TP_TEMP_FAV = New System.Windows.Forms.TableLayoutPanel()
+            Me.CH_TEMP = New System.Windows.Forms.CheckBox()
+            Me.CH_FAV = New System.Windows.Forms.CheckBox()
+            Me.TP_READY_USERMEDIA = New System.Windows.Forms.TableLayoutPanel()
             Me.TXT_DESCR = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_USER_FRIENDLY = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TP_ADD_BY_LIST = New System.Windows.Forms.TableLayoutPanel()
             Me.CH_ADD_BY_LIST = New System.Windows.Forms.CheckBox()
             Me.CH_AUTO_DETECT_SITE = New System.Windows.Forms.CheckBox()
             Me.TXT_LABELS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
+            Me.TP_DOWN_IMG_VID = New System.Windows.Forms.TableLayoutPanel()
             Me.CH_DOWN_IMAGES = New System.Windows.Forms.CheckBox()
             Me.CH_DOWN_VIDEOS = New System.Windows.Forms.CheckBox()
             Me.TXT_SPEC_FOLDER = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_SCRIPT = New PersonalUtilities.Forms.Controls.TextBoxExtended()
-            TP_MAIN = New System.Windows.Forms.TableLayoutPanel()
-            TP_SITE = New System.Windows.Forms.TableLayoutPanel()
-            TP_PARAMS = New System.Windows.Forms.TableLayoutPanel()
-            TP_OTHER = New System.Windows.Forms.TableLayoutPanel()
-            TP_DOWN_OPTIONS = New System.Windows.Forms.TableLayoutPanel()
             TT_MAIN = New System.Windows.Forms.ToolTip(Me.components)
             CONTAINER_MAIN = New System.Windows.Forms.ToolStripContainer()
-            TP_MAIN.SuspendLayout()
+            CONTAINER_MAIN.ContentPanel.SuspendLayout()
+            CONTAINER_MAIN.SuspendLayout()
+            Me.TP_MAIN.SuspendLayout()
             CType(Me.TXT_USER, System.ComponentModel.ISupportInitialize).BeginInit()
-            TP_SITE.SuspendLayout()
+            Me.TP_SITE.SuspendLayout()
             CType(Me.CMB_SITE, System.ComponentModel.ISupportInitialize).BeginInit()
-            TP_PARAMS.SuspendLayout()
-            TP_OTHER.SuspendLayout()
+            Me.TP_TEMP_FAV.SuspendLayout()
+            Me.TP_READY_USERMEDIA.SuspendLayout()
             CType(Me.TXT_DESCR, System.ComponentModel.ISupportInitialize).BeginInit()
             CType(Me.TXT_USER_FRIENDLY, System.ComponentModel.ISupportInitialize).BeginInit()
             Me.TP_ADD_BY_LIST.SuspendLayout()
             CType(Me.TXT_LABELS, System.ComponentModel.ISupportInitialize).BeginInit()
-            TP_DOWN_OPTIONS.SuspendLayout()
+            Me.TP_DOWN_IMG_VID.SuspendLayout()
             CType(Me.TXT_SPEC_FOLDER, System.ComponentModel.ISupportInitialize).BeginInit()
             CType(Me.TXT_SCRIPT, System.ComponentModel.ISupportInitialize).BeginInit()
-            CONTAINER_MAIN.ContentPanel.SuspendLayout()
-            CONTAINER_MAIN.SuspendLayout()
             Me.SuspendLayout()
+            '
+            'CH_PARSE_USER_MEDIA
+            '
+            Me.CH_PARSE_USER_MEDIA.AutoSize = True
+            Me.CH_PARSE_USER_MEDIA.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_PARSE_USER_MEDIA.Location = New System.Drawing.Point(229, 4)
+            Me.CH_PARSE_USER_MEDIA.Name = "CH_PARSE_USER_MEDIA"
+            Me.CH_PARSE_USER_MEDIA.Size = New System.Drawing.Size(219, 20)
+            Me.CH_PARSE_USER_MEDIA.TabIndex = 0
+            Me.CH_PARSE_USER_MEDIA.Text = "Get user media only"
+            TT_MAIN.SetToolTip(Me.CH_PARSE_USER_MEDIA, "For twitter only!" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "If checked then user media only will be downloaded." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Otherwise" &
+        " all media (include comments and retwits) will be downloaded.")
+            Me.CH_PARSE_USER_MEDIA.UseVisualStyleBackColor = True
+            '
+            'CH_READY_FOR_DOWN
+            '
+            Me.CH_READY_FOR_DOWN.AutoSize = True
+            Me.CH_READY_FOR_DOWN.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_READY_FOR_DOWN.Location = New System.Drawing.Point(4, 4)
+            Me.CH_READY_FOR_DOWN.Name = "CH_READY_FOR_DOWN"
+            Me.CH_READY_FOR_DOWN.Size = New System.Drawing.Size(218, 20)
+            Me.CH_READY_FOR_DOWN.TabIndex = 1
+            Me.CH_READY_FOR_DOWN.Text = "Ready for download"
+            TT_MAIN.SetToolTip(Me.CH_READY_FOR_DOWN, "Can be downloaded by [Download All]")
+            Me.CH_READY_FOR_DOWN.UseVisualStyleBackColor = True
+            '
+            'BTT_OTHER_SETTINGS
+            '
+            Me.BTT_OTHER_SETTINGS.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.BTT_OTHER_SETTINGS.Location = New System.Drawing.Point(330, 2)
+            Me.BTT_OTHER_SETTINGS.Margin = New System.Windows.Forms.Padding(1)
+            Me.BTT_OTHER_SETTINGS.Name = "BTT_OTHER_SETTINGS"
+            Me.BTT_OTHER_SETTINGS.Size = New System.Drawing.Size(120, 24)
+            Me.BTT_OTHER_SETTINGS.TabIndex = 2
+            Me.BTT_OTHER_SETTINGS.Text = "Options (F2)"
+            TT_MAIN.SetToolTip(Me.BTT_OTHER_SETTINGS, "Other settings")
+            Me.BTT_OTHER_SETTINGS.UseVisualStyleBackColor = True
+            '
+            'CONTAINER_MAIN
+            '
+            '
+            'CONTAINER_MAIN.ContentPanel
+            '
+            CONTAINER_MAIN.ContentPanel.Controls.Add(Me.TP_MAIN)
+            CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(454, 436)
+            CONTAINER_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
+            CONTAINER_MAIN.LeftToolStripPanelVisible = False
+            CONTAINER_MAIN.Location = New System.Drawing.Point(0, 0)
+            CONTAINER_MAIN.Name = "CONTAINER_MAIN"
+            CONTAINER_MAIN.RightToolStripPanelVisible = False
+            CONTAINER_MAIN.Size = New System.Drawing.Size(454, 461)
+            CONTAINER_MAIN.TabIndex = 0
+            CONTAINER_MAIN.TopToolStripPanelVisible = False
             '
             'TP_MAIN
             '
-            TP_MAIN.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
-            TP_MAIN.ColumnCount = 1
-            TP_MAIN.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_MAIN.Controls.Add(Me.TXT_USER, 0, 0)
-            TP_MAIN.Controls.Add(TP_SITE, 0, 3)
-            TP_MAIN.Controls.Add(TP_PARAMS, 0, 4)
-            TP_MAIN.Controls.Add(TP_OTHER, 0, 6)
-            TP_MAIN.Controls.Add(Me.TXT_DESCR, 0, 10)
-            TP_MAIN.Controls.Add(Me.TXT_USER_FRIENDLY, 0, 1)
-            TP_MAIN.Controls.Add(Me.TP_ADD_BY_LIST, 0, 7)
-            TP_MAIN.Controls.Add(Me.TXT_LABELS, 0, 8)
-            TP_MAIN.Controls.Add(TP_DOWN_OPTIONS, 0, 5)
-            TP_MAIN.Controls.Add(Me.TXT_SPEC_FOLDER, 0, 2)
-            TP_MAIN.Controls.Add(Me.TXT_SCRIPT, 0, 9)
-            TP_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
-            TP_MAIN.Location = New System.Drawing.Point(0, 0)
-            TP_MAIN.Name = "TP_MAIN"
-            TP_MAIN.RowCount = 11
-            TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
-            TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
-            TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
-            TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
-            TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
-            TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
-            TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
-            TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
-            TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 26.0!))
-            TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 26.0!))
-            TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_MAIN.Size = New System.Drawing.Size(454, 461)
-            TP_MAIN.TabIndex = 0
+            Me.TP_MAIN.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
+            Me.TP_MAIN.ColumnCount = 1
+            Me.TP_MAIN.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            Me.TP_MAIN.Controls.Add(Me.TXT_USER, 0, 0)
+            Me.TP_MAIN.Controls.Add(Me.TP_SITE, 0, 3)
+            Me.TP_MAIN.Controls.Add(Me.TP_TEMP_FAV, 0, 4)
+            Me.TP_MAIN.Controls.Add(Me.TP_READY_USERMEDIA, 0, 6)
+            Me.TP_MAIN.Controls.Add(Me.TXT_DESCR, 0, 10)
+            Me.TP_MAIN.Controls.Add(Me.TXT_USER_FRIENDLY, 0, 1)
+            Me.TP_MAIN.Controls.Add(Me.TP_ADD_BY_LIST, 0, 7)
+            Me.TP_MAIN.Controls.Add(Me.TXT_LABELS, 0, 8)
+            Me.TP_MAIN.Controls.Add(Me.TP_DOWN_IMG_VID, 0, 5)
+            Me.TP_MAIN.Controls.Add(Me.TXT_SPEC_FOLDER, 0, 2)
+            Me.TP_MAIN.Controls.Add(Me.TXT_SCRIPT, 0, 9)
+            Me.TP_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.TP_MAIN.Location = New System.Drawing.Point(0, 0)
+            Me.TP_MAIN.Name = "TP_MAIN"
+            Me.TP_MAIN.RowCount = 11
+            Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
+            Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
+            Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
+            Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
+            Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
+            Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
+            Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
+            Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
+            Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 26.0!))
+            Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 26.0!))
+            Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            Me.TP_MAIN.Size = New System.Drawing.Size(454, 436)
+            Me.TP_MAIN.TabIndex = 0
             '
             'TXT_USER
             '
@@ -130,22 +178,22 @@ Namespace Editors
             '
             'TP_SITE
             '
-            TP_SITE.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
-            TP_SITE.ColumnCount = 3
-            TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 79.0!))
-            TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 104.0!))
-            TP_SITE.Controls.Add(Me.CH_IS_CHANNEL, 0, 0)
-            TP_SITE.Controls.Add(Me.CMB_SITE, 1, 0)
-            TP_SITE.Controls.Add(Me.BTT_OTHER_SETTINGS, 2, 0)
-            TP_SITE.Dock = System.Windows.Forms.DockStyle.Fill
-            TP_SITE.Location = New System.Drawing.Point(1, 88)
-            TP_SITE.Margin = New System.Windows.Forms.Padding(0)
-            TP_SITE.Name = "TP_SITE"
-            TP_SITE.RowCount = 1
-            TP_SITE.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_SITE.Size = New System.Drawing.Size(452, 28)
-            TP_SITE.TabIndex = 3
+            Me.TP_SITE.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
+            Me.TP_SITE.ColumnCount = 3
+            Me.TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 79.0!))
+            Me.TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            Me.TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 122.0!))
+            Me.TP_SITE.Controls.Add(Me.CH_IS_CHANNEL, 0, 0)
+            Me.TP_SITE.Controls.Add(Me.CMB_SITE, 1, 0)
+            Me.TP_SITE.Controls.Add(Me.BTT_OTHER_SETTINGS, 2, 0)
+            Me.TP_SITE.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.TP_SITE.Location = New System.Drawing.Point(1, 88)
+            Me.TP_SITE.Margin = New System.Windows.Forms.Padding(0)
+            Me.TP_SITE.Name = "TP_SITE"
+            Me.TP_SITE.RowCount = 1
+            Me.TP_SITE.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            Me.TP_SITE.Size = New System.Drawing.Size(452, 28)
+            Me.TP_SITE.TabIndex = 3
             '
             'CH_IS_CHANNEL
             '
@@ -177,39 +225,27 @@ Namespace Editors
             Me.CMB_SITE.Location = New System.Drawing.Point(84, 3)
             Me.CMB_SITE.Margin = New System.Windows.Forms.Padding(3, 2, 3, 3)
             Me.CMB_SITE.Name = "CMB_SITE"
-            Me.CMB_SITE.Size = New System.Drawing.Size(259, 22)
+            Me.CMB_SITE.Size = New System.Drawing.Size(241, 22)
             Me.CMB_SITE.TabIndex = 1
             Me.CMB_SITE.TextBoxBorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
             '
-            'BTT_OTHER_SETTINGS
+            'TP_TEMP_FAV
             '
-            Me.BTT_OTHER_SETTINGS.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.BTT_OTHER_SETTINGS.Location = New System.Drawing.Point(348, 2)
-            Me.BTT_OTHER_SETTINGS.Margin = New System.Windows.Forms.Padding(1)
-            Me.BTT_OTHER_SETTINGS.Name = "BTT_OTHER_SETTINGS"
-            Me.BTT_OTHER_SETTINGS.Size = New System.Drawing.Size(102, 24)
-            Me.BTT_OTHER_SETTINGS.TabIndex = 2
-            Me.BTT_OTHER_SETTINGS.Text = "Options (F2)"
-            TT_MAIN.SetToolTip(Me.BTT_OTHER_SETTINGS, "Other settings")
-            Me.BTT_OTHER_SETTINGS.UseVisualStyleBackColor = True
-            '
-            'TP_PARAMS
-            '
-            TP_PARAMS.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
-            TP_PARAMS.ColumnCount = 2
-            TP_PARAMS.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
-            TP_PARAMS.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
-            TP_PARAMS.Controls.Add(Me.CH_TEMP, 0, 0)
-            TP_PARAMS.Controls.Add(Me.CH_FAV, 1, 0)
-            TP_PARAMS.Dock = System.Windows.Forms.DockStyle.Fill
-            TP_PARAMS.Location = New System.Drawing.Point(1, 117)
-            TP_PARAMS.Margin = New System.Windows.Forms.Padding(0)
-            TP_PARAMS.Name = "TP_PARAMS"
-            TP_PARAMS.RowCount = 1
-            TP_PARAMS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_PARAMS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 27.0!))
-            TP_PARAMS.Size = New System.Drawing.Size(452, 28)
-            TP_PARAMS.TabIndex = 4
+            Me.TP_TEMP_FAV.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
+            Me.TP_TEMP_FAV.ColumnCount = 2
+            Me.TP_TEMP_FAV.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
+            Me.TP_TEMP_FAV.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
+            Me.TP_TEMP_FAV.Controls.Add(Me.CH_TEMP, 0, 0)
+            Me.TP_TEMP_FAV.Controls.Add(Me.CH_FAV, 1, 0)
+            Me.TP_TEMP_FAV.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.TP_TEMP_FAV.Location = New System.Drawing.Point(1, 117)
+            Me.TP_TEMP_FAV.Margin = New System.Windows.Forms.Padding(0)
+            Me.TP_TEMP_FAV.Name = "TP_TEMP_FAV"
+            Me.TP_TEMP_FAV.RowCount = 1
+            Me.TP_TEMP_FAV.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            Me.TP_TEMP_FAV.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 27.0!))
+            Me.TP_TEMP_FAV.Size = New System.Drawing.Size(452, 28)
+            Me.TP_TEMP_FAV.TabIndex = 4
             '
             'CH_TEMP
             '
@@ -233,48 +269,23 @@ Namespace Editors
             Me.CH_FAV.Text = "Favorite"
             Me.CH_FAV.UseVisualStyleBackColor = True
             '
-            'TP_OTHER
+            'TP_READY_USERMEDIA
             '
-            TP_OTHER.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
-            TP_OTHER.ColumnCount = 2
-            TP_OTHER.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
-            TP_OTHER.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
-            TP_OTHER.Controls.Add(Me.CH_PARSE_USER_MEDIA, 1, 0)
-            TP_OTHER.Controls.Add(Me.CH_READY_FOR_DOWN, 0, 0)
-            TP_OTHER.Dock = System.Windows.Forms.DockStyle.Fill
-            TP_OTHER.Location = New System.Drawing.Point(1, 175)
-            TP_OTHER.Margin = New System.Windows.Forms.Padding(0)
-            TP_OTHER.Name = "TP_OTHER"
-            TP_OTHER.RowCount = 1
-            TP_OTHER.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_OTHER.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 27.0!))
-            TP_OTHER.Size = New System.Drawing.Size(452, 28)
-            TP_OTHER.TabIndex = 6
-            '
-            'CH_PARSE_USER_MEDIA
-            '
-            Me.CH_PARSE_USER_MEDIA.AutoSize = True
-            Me.CH_PARSE_USER_MEDIA.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_PARSE_USER_MEDIA.Location = New System.Drawing.Point(229, 4)
-            Me.CH_PARSE_USER_MEDIA.Name = "CH_PARSE_USER_MEDIA"
-            Me.CH_PARSE_USER_MEDIA.Size = New System.Drawing.Size(219, 20)
-            Me.CH_PARSE_USER_MEDIA.TabIndex = 0
-            Me.CH_PARSE_USER_MEDIA.Text = "Get user media only"
-            TT_MAIN.SetToolTip(Me.CH_PARSE_USER_MEDIA, "For twitter only!" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "If checked then user media only will be downloaded." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Otherwise" &
-        " all media (include comments and retwits) will be downloaded.")
-            Me.CH_PARSE_USER_MEDIA.UseVisualStyleBackColor = True
-            '
-            'CH_READY_FOR_DOWN
-            '
-            Me.CH_READY_FOR_DOWN.AutoSize = True
-            Me.CH_READY_FOR_DOWN.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_READY_FOR_DOWN.Location = New System.Drawing.Point(4, 4)
-            Me.CH_READY_FOR_DOWN.Name = "CH_READY_FOR_DOWN"
-            Me.CH_READY_FOR_DOWN.Size = New System.Drawing.Size(218, 20)
-            Me.CH_READY_FOR_DOWN.TabIndex = 1
-            Me.CH_READY_FOR_DOWN.Text = "Ready for download"
-            TT_MAIN.SetToolTip(Me.CH_READY_FOR_DOWN, "Can be downloaded by [Download All]")
-            Me.CH_READY_FOR_DOWN.UseVisualStyleBackColor = True
+            Me.TP_READY_USERMEDIA.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
+            Me.TP_READY_USERMEDIA.ColumnCount = 2
+            Me.TP_READY_USERMEDIA.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
+            Me.TP_READY_USERMEDIA.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
+            Me.TP_READY_USERMEDIA.Controls.Add(Me.CH_PARSE_USER_MEDIA, 1, 0)
+            Me.TP_READY_USERMEDIA.Controls.Add(Me.CH_READY_FOR_DOWN, 0, 0)
+            Me.TP_READY_USERMEDIA.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.TP_READY_USERMEDIA.Location = New System.Drawing.Point(1, 175)
+            Me.TP_READY_USERMEDIA.Margin = New System.Windows.Forms.Padding(0)
+            Me.TP_READY_USERMEDIA.Name = "TP_READY_USERMEDIA"
+            Me.TP_READY_USERMEDIA.RowCount = 1
+            Me.TP_READY_USERMEDIA.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            Me.TP_READY_USERMEDIA.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 27.0!))
+            Me.TP_READY_USERMEDIA.Size = New System.Drawing.Size(452, 28)
+            Me.TP_READY_USERMEDIA.TabIndex = 6
             '
             'TXT_DESCR
             '
@@ -291,7 +302,7 @@ Namespace Editors
             Me.TXT_DESCR.Location = New System.Drawing.Point(4, 290)
             Me.TXT_DESCR.Multiline = True
             Me.TXT_DESCR.Name = "TXT_DESCR"
-            Me.TXT_DESCR.Size = New System.Drawing.Size(446, 167)
+            Me.TXT_DESCR.Size = New System.Drawing.Size(446, 142)
             Me.TXT_DESCR.TabIndex = 10
             '
             'TXT_USER_FRIENDLY
@@ -361,23 +372,23 @@ Namespace Editors
             Me.TXT_LABELS.TabIndex = 8
             Me.TXT_LABELS.TextBoxReadOnly = True
             '
-            'TP_DOWN_OPTIONS
+            'TP_DOWN_IMG_VID
             '
-            TP_DOWN_OPTIONS.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
-            TP_DOWN_OPTIONS.ColumnCount = 2
-            TP_DOWN_OPTIONS.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
-            TP_DOWN_OPTIONS.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
-            TP_DOWN_OPTIONS.Controls.Add(Me.CH_DOWN_IMAGES, 0, 0)
-            TP_DOWN_OPTIONS.Controls.Add(Me.CH_DOWN_VIDEOS, 1, 0)
-            TP_DOWN_OPTIONS.Dock = System.Windows.Forms.DockStyle.Fill
-            TP_DOWN_OPTIONS.Location = New System.Drawing.Point(1, 146)
-            TP_DOWN_OPTIONS.Margin = New System.Windows.Forms.Padding(0)
-            TP_DOWN_OPTIONS.Name = "TP_DOWN_OPTIONS"
-            TP_DOWN_OPTIONS.RowCount = 1
-            TP_DOWN_OPTIONS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_DOWN_OPTIONS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 27.0!))
-            TP_DOWN_OPTIONS.Size = New System.Drawing.Size(452, 28)
-            TP_DOWN_OPTIONS.TabIndex = 5
+            Me.TP_DOWN_IMG_VID.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
+            Me.TP_DOWN_IMG_VID.ColumnCount = 2
+            Me.TP_DOWN_IMG_VID.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
+            Me.TP_DOWN_IMG_VID.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
+            Me.TP_DOWN_IMG_VID.Controls.Add(Me.CH_DOWN_IMAGES, 0, 0)
+            Me.TP_DOWN_IMG_VID.Controls.Add(Me.CH_DOWN_VIDEOS, 1, 0)
+            Me.TP_DOWN_IMG_VID.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.TP_DOWN_IMG_VID.Location = New System.Drawing.Point(1, 146)
+            Me.TP_DOWN_IMG_VID.Margin = New System.Windows.Forms.Padding(0)
+            Me.TP_DOWN_IMG_VID.Name = "TP_DOWN_IMG_VID"
+            Me.TP_DOWN_IMG_VID.RowCount = 1
+            Me.TP_DOWN_IMG_VID.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            Me.TP_DOWN_IMG_VID.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 27.0!))
+            Me.TP_DOWN_IMG_VID.Size = New System.Drawing.Size(452, 28)
+            Me.TP_DOWN_IMG_VID.TabIndex = 5
             '
             'CH_DOWN_IMAGES
             '
@@ -442,22 +453,6 @@ Namespace Editors
             Me.TXT_SCRIPT.Size = New System.Drawing.Size(446, 22)
             Me.TXT_SCRIPT.TabIndex = 9
             '
-            'CONTAINER_MAIN
-            '
-            '
-            'CONTAINER_MAIN.ContentPanel
-            '
-            CONTAINER_MAIN.ContentPanel.Controls.Add(TP_MAIN)
-            CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(454, 461)
-            CONTAINER_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
-            CONTAINER_MAIN.LeftToolStripPanelVisible = False
-            CONTAINER_MAIN.Location = New System.Drawing.Point(0, 0)
-            CONTAINER_MAIN.Name = "CONTAINER_MAIN"
-            CONTAINER_MAIN.RightToolStripPanelVisible = False
-            CONTAINER_MAIN.Size = New System.Drawing.Size(454, 461)
-            CONTAINER_MAIN.TabIndex = 0
-            CONTAINER_MAIN.TopToolStripPanelVisible = False
-            '
             'UserCreatorForm
             '
             Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
@@ -475,27 +470,27 @@ Namespace Editors
             Me.ShowInTaskbar = False
             Me.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide
             Me.Text = "Create User"
-            TP_MAIN.ResumeLayout(False)
+            CONTAINER_MAIN.ContentPanel.ResumeLayout(False)
+            CONTAINER_MAIN.ResumeLayout(False)
+            CONTAINER_MAIN.PerformLayout()
+            Me.TP_MAIN.ResumeLayout(False)
             CType(Me.TXT_USER, System.ComponentModel.ISupportInitialize).EndInit()
-            TP_SITE.ResumeLayout(False)
-            TP_SITE.PerformLayout()
+            Me.TP_SITE.ResumeLayout(False)
+            Me.TP_SITE.PerformLayout()
             CType(Me.CMB_SITE, System.ComponentModel.ISupportInitialize).EndInit()
-            TP_PARAMS.ResumeLayout(False)
-            TP_PARAMS.PerformLayout()
-            TP_OTHER.ResumeLayout(False)
-            TP_OTHER.PerformLayout()
+            Me.TP_TEMP_FAV.ResumeLayout(False)
+            Me.TP_TEMP_FAV.PerformLayout()
+            Me.TP_READY_USERMEDIA.ResumeLayout(False)
+            Me.TP_READY_USERMEDIA.PerformLayout()
             CType(Me.TXT_DESCR, System.ComponentModel.ISupportInitialize).EndInit()
             CType(Me.TXT_USER_FRIENDLY, System.ComponentModel.ISupportInitialize).EndInit()
             Me.TP_ADD_BY_LIST.ResumeLayout(False)
             Me.TP_ADD_BY_LIST.PerformLayout()
             CType(Me.TXT_LABELS, System.ComponentModel.ISupportInitialize).EndInit()
-            TP_DOWN_OPTIONS.ResumeLayout(False)
-            TP_DOWN_OPTIONS.PerformLayout()
+            Me.TP_DOWN_IMG_VID.ResumeLayout(False)
+            Me.TP_DOWN_IMG_VID.PerformLayout()
             CType(Me.TXT_SPEC_FOLDER, System.ComponentModel.ISupportInitialize).EndInit()
             CType(Me.TXT_SCRIPT, System.ComponentModel.ISupportInitialize).EndInit()
-            CONTAINER_MAIN.ContentPanel.ResumeLayout(False)
-            CONTAINER_MAIN.ResumeLayout(False)
-            CONTAINER_MAIN.PerformLayout()
             Me.ResumeLayout(False)
 
         End Sub
@@ -517,5 +512,10 @@ Namespace Editors
         Private WithEvents CMB_SITE As PersonalUtilities.Forms.Controls.ComboBoxExtended
         Private WithEvents BTT_OTHER_SETTINGS As Button
         Private WithEvents TXT_SCRIPT As PersonalUtilities.Forms.Controls.TextBoxExtended
+        Private WithEvents TP_SITE As TableLayoutPanel
+        Private WithEvents TP_MAIN As TableLayoutPanel
+        Private WithEvents TP_TEMP_FAV As TableLayoutPanel
+        Private WithEvents TP_READY_USERMEDIA As TableLayoutPanel
+        Private WithEvents TP_DOWN_IMG_VID As TableLayoutPanel
     End Class
 End Namespace

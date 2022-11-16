@@ -17,6 +17,7 @@ Imports SCrawler.Plugin.Hosts
 Imports SCrawler.DownloadObjects
 Friend Class SettingsCLS : Implements IDisposable
     Friend Const DefaultMaxDownloadingTasks As Integer = 5
+    Friend Const TaskStackNamePornSite As String = "Porn sites"
     Friend Const Name_Node_Sites As String = "Sites"
     Private Const SitesValuesSeparator As String = ","
     Friend Const CookieEncryptKey As String = "SCrawlerCookiesEncryptKeyword"
@@ -256,15 +257,14 @@ Friend Class SettingsCLS : Implements IDisposable
                 If UsersList.Count > 0 Then
                     Dim cUsers As List(Of UserInfo) = UsersList.Where(Function(u) u.IncludedInCollection And Not u.Protected).ToList
                     If cUsers.ListExists Then
-                        Dim d As New Dictionary(Of SFile, List(Of UserInfo))
+                        Dim d As New Dictionary(Of String, List(Of UserInfo))
                         cUsers = cUsers.ListForEachCopy(Of List(Of UserInfo))(Function(ByVal f As UserInfo, ByVal f_indx As Integer) As UserInfo
-                                                                                  Dim m% = IIf(f.Merged, 1, 2)
+                                                                                  Dim m% = IIf(f.Merged Or f.IsVirual, 1, 2)
                                                                                   If Not f.Protected AndAlso SFile.GetPath(f.File.CutPath(m - 1).Path).Exists(SFO.Path, False) Then
-                                                                                      Dim fp As SFile = SFile.GetPath(f.File.CutPath(m).Path)
-                                                                                      If Not d.ContainsKey(fp) Then
-                                                                                          d.Add(fp, New List(Of UserInfo) From {f})
+                                                                                      If Not d.ContainsKey(f.CollectionName) Then
+                                                                                          d.Add(f.CollectionName, New List(Of UserInfo) From {f})
                                                                                       Else
-                                                                                          d(f.File.CutPath(m).Path).Add(f)
+                                                                                          d(f.CollectionName).Add(f)
                                                                                       End If
                                                                                       Return f
                                                                                   Else
@@ -274,8 +274,8 @@ Friend Class SettingsCLS : Implements IDisposable
                                                                               End Function, True)
                         Dim v%
                         If d.Count > 0 Then
-                            For Each kv In d
-                                Users.Add(New UserDataBind(kv.Value(0).CollectionName))
+                            For Each kv As KeyValuePair(Of String, List(Of UserInfo)) In d
+                                Users.Add(New UserDataBind(kv.Key))
                                 MainFrameObj.CollectionHandler(DirectCast(Users(Users.Count - 1), UserDataBind))
                                 For v = 0 To kv.Value.Count - 1 : DirectCast(Users(Users.Count - 1), UserDataBind).Add(kv.Value(v), False) : Next
                             Next

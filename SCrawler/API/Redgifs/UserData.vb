@@ -11,8 +11,8 @@ Imports System.Threading
 Imports SCrawler.API.Base
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.RegularExpressions
-Imports PersonalUtilities.Tools.WEB
-Imports PersonalUtilities.Tools.WebDocuments.JSON
+Imports PersonalUtilities.Tools.Web.Clients
+Imports PersonalUtilities.Tools.Web.Documents.JSON
 Imports UTypes = SCrawler.API.Base.UserMedia.Types
 Imports UStates = SCrawler.API.Base.UserMedia.States
 Namespace API.RedGifs
@@ -62,7 +62,7 @@ Namespace API.RedGifs
                                     Case DateResult.Exit : Exit Sub
                                 End Select
                                 postID = g.Value("id")
-                                If Not _TempPostsList.Contains(postID) Then _TempPostsList.Add(postID) Else Exit For
+                                If Not _TempPostsList.Contains(postID) Then _TempPostsList.Add(postID) Else Exit Sub
                                 ObtainMedia(g, postID, postDate)
                             Next
                         End If
@@ -179,7 +179,7 @@ Namespace API.RedGifs
                     If Host.Source.Available(Plugin.ISiteSettings.Download.Main, True) Then
                         If Responser Is Nothing Then Responser = Host.Responser.Copy
                         URL = String.Format(PostDataUrl, Obj.ToLower)
-                        Dim r$ = Responser.DownloadString(URL, EDP.ThrowException)
+                        Dim r$ = Responser.GetResponse(URL,, EDP.ThrowException)
                         If Not r.IsEmptyString Then
                             Using j As EContainer = JsonDocument.Parse(r)
                                 If Not j Is Nothing Then
@@ -206,8 +206,15 @@ Namespace API.RedGifs
                 If Not Responser Is Nothing AndAlso (Responser.Client.StatusCode = DataGone Or Responser.Client.StatusCode = HttpStatusCode.NotFound) Then
                     Return New UserMedia With {.State = DataGone}
                 Else
-                    Return ErrorsDescriber.Execute(EDP.SendInLog, ex, $"[API.RedGifs.UserData.GetDataFromUrlId({URL})]",
-                                                   New UserMedia With {.State = UStates.Missing})
+                    Dim m As New UserMedia With {.State = UStates.Missing}
+                    Dim _errText$ = "API.RedGifs.UserData.GetDataFromUrlId({0})"
+                    If Responser.Client.StatusCode = HttpStatusCode.Unauthorized Then
+                        _errText = $"RedGifs credentials have expired [{CInt(Responser.Client.StatusCode)}]: {_errText}"
+                        MyMainLOG = String.Format(_errText, URL)
+                        Return m
+                    Else
+                        Return ErrorsDescriber.Execute(EDP.SendInLog, ex, String.Format(_errText, URL), m)
+                    End If
                 End If
             End Try
         End Function

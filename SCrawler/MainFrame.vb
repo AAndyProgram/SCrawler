@@ -7,7 +7,6 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports System.Threading
-Imports System.Globalization
 Imports System.ComponentModel
 Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Functions.Messaging
@@ -21,9 +20,10 @@ Public Class MainFrame
 #Region "Declarations"
     Private MyView As FormView
     Private WithEvents MyActivator As FormActivator
+    Private WithEvents BTT_IMPORT_USERS As ToolStripMenuItem
     Private ReadOnly _VideoDownloadingMode As Boolean = False
-    Private MyChannels As ChannelViewForm
-    Private MySavedPosts As DownloadSavedPostsForm
+    Friend MyChannels As ChannelViewForm
+    Friend MySavedPosts As DownloadSavedPostsForm
     Private MyMissingPosts As MissingPostsForm
     Private MyFeed As DownloadFeedForm
     Private MySearch As UserSearchForm
@@ -32,10 +32,6 @@ Public Class MainFrame
 #Region "Initializer"
     Public Sub New()
         InitializeComponent()
-        Dim n As DateTimeFormatInfo = CultureInfo.GetCultureInfo("en-us").DateTimeFormat.Clone
-        n.FullDateTimePattern = "ddd MMM dd HH:mm:ss +ffff yyyy"
-        n.TimeSeparator = String.Empty
-        Twitter.DateProvider = New ADateTime(DirectCast(n.Clone, DateTimeFormatInfo)) With {.DateTimeStyle = DateTimeStyles.AssumeUniversal}
         Settings = New SettingsCLS
         With Settings.Plugins
             If .Count > 0 Then
@@ -44,6 +40,8 @@ Public Class MainFrame
                 Next
             End If
         End With
+        BTT_IMPORT_USERS = New ToolStripMenuItem With {.Text = "Import", .Image = My.Resources.UsersIcon_32.ToBitmap}
+        MENU_SETTINGS.DropDownItems.AddRange({New ToolStripSeparator, BTT_IMPORT_USERS})
         Dim Args() As String = Environment.GetCommandLineArgs
         If Args.ListExists(2) AndAlso Args(1) = "v" Then
             Using f As New VideosDownloaderForm With {.IsStandalone = True} : f.ShowDialog() : End Using
@@ -277,6 +275,35 @@ CloseResume:
                 End If
             End Using
         End With
+    End Sub
+    Private Sub BTT_IMPORT_USERS_Click(sender As Object, e As EventArgs) Handles BTT_IMPORT_USERS.Click
+        Const MsgTitle$ = "Import users"
+        Try
+            Dim file As SFile = Nothing
+            Dim _OriginalLocations As Boolean = False
+            Select Case MsgBoxE({"Where do you want to import users from?" & vbCr & vbCr &
+                                 "This feature is not for importing users from the site. It's more like searching for missing users.", MsgTitle}, vbQuestion,,,
+                                {"Select path", New MsgBoxButton("Current", "All plugin paths will be checked"), "Cancel"}).Index
+                Case 0 : file = SFile.SelectPath
+                Case 1 : _OriginalLocations = True
+                Case Else : MsgBoxE({"Operation canceled", MsgTitle}) : Exit Sub
+            End Select
+            If Not file.IsEmptyString Or _OriginalLocations Then
+                Using import As New UserFinder(file)
+                    With import
+                        .Find(_OriginalLocations)
+                        If .Count > 0 Then
+                            .Verify()
+                            .Dialog()
+                        Else
+                            MsgBoxE({"No users found", MsgTitle})
+                        End If
+                    End With
+                End Using
+            End If
+        Catch ex As Exception
+            ErrorsDescriber.Execute(EDP.LogMessageValue, ex, MsgTitle)
+        End Try
     End Sub
 #End Region
 #Region "Add, Edit, Delete, Refresh"
@@ -718,23 +745,47 @@ CloseResume:
         End If
     End Sub
     Private Sub BTT_CONTEXT_GROUPS_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_GROUPS.Click
+        Const MsgTitle$ = "Label change"
         Try
             Dim users As List(Of IUserData) = GetSelectedUserArray()
             If users.ListExists Then
                 Dim l As List(Of String) = ListAddList(Nothing, users.SelectMany(Function(u) u.Labels), LAP.NotContainsOnly)
-                Using f As New LabelsForm(l) With {.MultiUser = True}
+                Using f As New LabelsForm(l) With {.WithDeleteButton = l.Count > 0}
                     f.ShowDialog()
                     If f.DialogResult = DialogResult.OK Then
-                        Dim _lp As LAP = LAP.NotContainsOnly
-                        If f.MultiUserClearExists Then _lp += LAP.ClearBeforeAdd
-                        Dim lp As New ListAddParams(_lp)
+                        Dim labels As List(Of String) = f.LabelsList
+                        Dim lp As New ListAddParams(LAP.NotContainsOnly)
+                        Dim a As Action(Of IUserData) = Sub(u) u.Labels.ListAddList(labels, lp)
+                        Dim cMsg As New MMessage("Operation canceled", MsgTitle)
+                        If labels.ListExists Then
+                            Select Case MsgBoxE(New MMessage($"What do you want to do with the selected labels?{vbCr}Selected labels:{vbCr}{labels.ListToString(vbCr)}",
+                                                             MsgTitle,
+                                                             {
+                                                                New MsgBoxButton("Replace", "All existing labels will be removed and replaced with these labels"),
+                                                                New MsgBoxButton("Add", "These labels will be added to the existing ones"),
+                                                                New MsgBoxButton("Remove", "These labels will be removed from the existing ones"),
+                                                                "Cancel"
+                                                             }, vbExclamation) With {.ButtonsPerRow = 2}).Index
+                                Case 0 : lp.ClearBeforeAdd = True
+                                Case 1 : lp.ClearBeforeAdd = False
+                                Case 2 : a = Sub(u) u.Labels.ListDisposeRemove(labels)
+                                Case Else : cMsg.Show() : Exit Sub
+                            End Select
+                        Else
+                            If MsgBoxE({"Are you sure you want to remove all labels?", MsgTitle}, vbExclamation + vbYesNo) = vbYes Then
+                                a = Sub(u) u.Labels.Clear()
+                            Else
+                                cMsg.Show()
+                                Exit Sub
+                            End If
+                        End If
                         users.ForEach(Sub(ByVal u As IUserData)
                                           If u.IsCollection Then
                                               With DirectCast(u, UserDataBind)
-                                                  If .Count > 0 Then .Collections.ForEach(Sub(uu) uu.Labels.ListAddList(f.LabelsList, lp))
+                                                  If .Count > 0 Then .Collections.ForEach(a)
                                               End With
                                           Else
-                                              u.Labels.ListAddList(f.LabelsList, lp)
+                                              a.Invoke(u)
                                           End If
                                           u.UpdateUserInformation()
                                       End Sub)
@@ -818,11 +869,48 @@ CloseResume:
                             MainFrameObj.CollectionHandler(DirectCast(.Users.Last, UserDataBind))
                             userCollection = .Users.Last
                         End If
+
+                        Dim __modelUser As UsageModel = -1
+                        Dim __modelCollection As UsageModel = -1
+                        Dim __ModelAskForDecision As Boolean = False
+                        If Not Added Then __modelCollection = userCollection.CollectionModel
+                        If Added Then
+                            __ModelAskForDecision = True
+                        ElseIf userCollection.CollectionModel = UsageModel.Virtual Then
+                            __modelUser = UsageModel.Virtual
+                            __modelCollection = UsageModel.Virtual
+                        Else
+                            __ModelAskForDecision = True
+                        End If
+                        If __ModelAskForDecision Then
+                            Select Case MsgBoxE({"How do you want to add users to the collection?", MsgTitle}, vbQuestion,,,
+                                                {
+                                                    New MsgBoxButton("Default", "User files will be moved to the collection") With {.KeyCode = Keys.Enter},
+                                                    New MsgBoxButton("Virtual", "The user will be included in the collection, but user files will not be moved") With {
+                                                                     .KeyCode = New ButtonKey(Keys.Enter, True)}
+                                                }).Index
+                                Case 0
+                                    __modelUser = UsageModel.Default
+                                    If __modelCollection = -1 Then __modelCollection = UsageModel.Default
+                                Case 1
+                                    __modelUser = UsageModel.Virtual
+                                    If __modelCollection = -1 Then __modelCollection = UsageModel.Virtual
+                            End Select
+                        End If
+                        If __modelUser = -1 Or __modelCollection = -1 Then
+                            MsgBoxE({$"Some parameters cannot be processed:{vbCr}" &
+                                     $"UserModel: {CInt(__modelUser)}{vbCr}CollectionModel: {CInt(__modelCollection)}{vbCr}" &
+                                     "Operation canceled", MsgTitle}, vbCritical)
+                            Exit Sub
+                        End If
+
                         Dim __added_users As New List(Of IUserData)
                         Dim __added_users_not As New List(Of IUserData)
-                        For Each user As IUserData In users
+                        For Each user As UserDataBase In users
                             If Not user.IsCollection Then
                                 Try
+                                    user.User.UserModel = __modelUser
+                                    user.User.CollectionModel = __modelCollection
                                     userCollection.Add(user)
                                     RemoveUserFromList(user)
                                     UserListUpdate(userCollection, Added)
@@ -862,15 +950,17 @@ CloseResume:
         End If
     End Sub
     Private Sub BTT_CONTEXT_COL_MERGE_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_COL_MERGE.Click
+        Const MsgTitle$ = "Merging files"
         Dim user As IUserData = GetSelectedUser()
         If Not user Is Nothing Then
             If user.IsCollection Then
                 If DirectCast(user, UserDataBind).DataMerging Then
-                    MsgBoxE("Collection files are already merged")
+                    MsgBoxE({"Collection files are already merged", MsgTitle})
+                ElseIf user.IsVirtual Then
+                    MsgBoxE({"The action cannot be performed. This is a virtual collection.", MsgTitle}, vbCritical)
                 Else
-                    If MsgBoxE({"Do you really want to merge collection files into one folder?" & vbNewLine &
-                                "This action is not turnable!", "Merging files"},
-                               MsgBoxStyle.Exclamation + MsgBoxStyle.YesNo) = MsgBoxResult.Yes Then
+                    If MsgBoxE({"Are you sure you want to merge the collection files into one folder?" & vbNewLine &
+                                "This action is not turnable!", MsgTitle}, vbExclamation + vbYesNo) = vbYes Then
                         DirectCast(user, UserDataBind).DataMerging = True
                     End If
                 End If
@@ -880,83 +970,118 @@ CloseResume:
         End If
     End Sub
     Private Sub BTT_CONTEXT_CHANGE_FOLDER_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_CHANGE_FOLDER.Click
+        Const MsgTitle$ = "Change user folder"
         Try
+            If Downloader.Working Then
+                MsgBoxE({"Some users are currently downloading." & vbCr &
+                         "You cannot change paths while downloading." & vbCr &
+                         "Wait until the download is complete.", MsgTitle}, vbCritical)
+                Exit Sub
+            Else
+                Downloader.Suspended = True
+            End If
             Dim users As List(Of IUserData) = GetSelectedUserArray()
             If users.ListExists Then
                 If users.Count = 1 Then
                     Dim CutOption% = 1
                     Dim _IsCollection As Boolean = False
+                    Dim CurrDir As SFile
+                    Dim colName$ = String.Empty
                     With users(0)
                         If .IsCollection Then
                             _IsCollection = True
                             With DirectCast(.Self, UserDataBind)
                                 If .Count = 0 Then
                                     Throw New ArgumentOutOfRangeException("Collection", "Collection is empty")
+                                ElseIf .IsVirtual Then
+                                    MsgBoxE({"This is a virtual collection." & vbCr &
+                                             "The virtual collection path cannot be changed." & vbCr &
+                                             "To change the paths of users included in a virtual collection, " &
+                                             "you must split the collection and then change the user paths.", MsgTitle}, vbCritical)
+                                    Exit Sub
                                 Else
-                                    With DirectCast(.Collections(0), UserDataBase)
-                                        If Not .User.Merged Then CutOption = 2
-                                    End With
+                                    CurrDir = .GetRealUserFile
+                                    If CurrDir.IsEmptyString Then
+                                        MsgBoxE({"Non-virtual users not found", MsgTitle}, vbCritical)
+                                        Exit Sub
+                                    End If
+                                    CurrDir = CurrDir.CutPath(IIf(.DataMerging, 3, 2))
+                                    colName = CurrDir.PathFolders.LastOrDefault
+                                    Dim vu As IEnumerable(Of IUserData) = .Where(Function(vuu) vuu.UserModel = UsageModel.Virtual)
+                                    If vu.ListExists Then
+                                        If MsgBoxE({"This collection contains virtual users." & vbCr &
+                                                    "If you continue, the virtual user paths will not be changed." & vbCr &
+                                                    "The following users have been added to the collection in virtual mode:" & vbCr &
+                                                    vu.ListToStringE(vbCr, GetUserListProvider(False)), MsgTitle},
+                                                   vbExclamation,,, {"Continue", "Cancel"}) = 1 Then MsgBoxE({"Operation canceled", MsgTitle}) : Exit Sub
+                                    End If
                                 End If
                             End With
+                        Else
+                            CurrDir = .Self.File.CutPath(1)
                         End If
-                    End With
 
-                    Dim CurrDir As SFile = users(0).File.CutPath(CutOption)
-                    Dim NewDest As SFile = SFile.GetPath(InputBoxE($"Enter a new destination for user [{users(0)}]", "Change user folder", CurrDir.Path))
-                    If Not NewDest.IsEmptyString Then
-                        If MsgBoxE({$"You are changing the user's [{users(0)}] destination" & vbCr &
-                                    $"Current destination: {CurrDir.PathNoSeparator}" & vbCr &
-                                    $"New destination: {NewDest.Path}",
-                                    "Changing user destination"}, MsgBoxStyle.Exclamation,,, {"Confirm", "Cancel"}) = 0 Then
-                            If Not NewDest.IsEmptyString AndAlso
-                               (Not NewDest.Exists(SFO.Path, False) OrElse
-                                    (
-                                        SFile.GetFiles(NewDest,, IO.SearchOption.AllDirectories, EDP.ThrowException).ListIfNothing.Count = 0 AndAlso
-                                        NewDest.Delete(SFO.Path, Settings.DeleteMode, EDP.ThrowException) AndAlso
-                                        Not NewDest.Exists(SFO.Path, False)
-                                    )
-                               ) Then
-                                NewDest.CutPath.Exists(SFO.Path)
-                                IO.Directory.Move(CurrDir.Path, NewDest.Path)
-                                Dim ApplyChanges As Action(Of IUserData) = Sub(ByVal __user As IUserData)
-                                                                               With DirectCast(__user, UserDataBase)
-                                                                                   Dim u As UserInfo = .User.Clone
-                                                                                   Settings.UsersList.Remove(u)
-                                                                                   Dim d As SFile = Nothing
-                                                                                   If _IsCollection Then d = SFile.GetPath($"{NewDest.PathWithSeparator}{u.File.PathFolders(1).LastOrDefault}")
-                                                                                   If d.IsEmptyString Then d = NewDest
-                                                                                   u.SpecialPath = d.PathWithSeparator
-                                                                                   u.UpdateUserFile()
-                                                                                   Settings.UpdateUsersList(u)
-                                                                                   .User = u.Clone
-                                                                                   .UpdateUserInformation()
-                                                                               End With
-                                                                           End Sub
-                                If users(0).IsCollection Then
-                                    With DirectCast(users(0), UserDataBind)
-                                        For Each user In .Collections : ApplyChanges(user) : Next
-                                    End With
+                        Dim NewDest As SFile = SFile.SelectPath(CurrDir, $"Select a new destination for {IIf(_IsCollection, "collection", "user")} [{ .Self}]")
+                        If Not NewDest.IsEmptyString Then
+                            NewDest = $"{NewDest.PathWithSeparator}{colName}\"
+                            If MsgBoxE({$"You are changing the user's [{ .Self}] destination" & vbCr &
+                                        $"Current destination: {CurrDir.PathNoSeparator}" & vbCr &
+                                        $"New destination: {NewDest.PathNoSeparator}",
+                                        MsgTitle}, MsgBoxStyle.Exclamation,,, {"Confirm", "Cancel"}) = 0 Then
+                                If Not NewDest.IsEmptyString AndAlso
+                                   (Not NewDest.Exists(SFO.Path, False) OrElse
+                                        (
+                                            SFile.GetFiles(NewDest,, IO.SearchOption.AllDirectories, EDP.ThrowException).ListIfNothing.Count = 0 AndAlso
+                                            NewDest.Delete(SFO.Path, Settings.DeleteMode, EDP.ThrowException) AndAlso
+                                            Not NewDest.Exists(SFO.Path, False)
+                                        )
+                                   ) Then
+                                    If SFile.Move(CurrDir, NewDest, SFO.Path,,, EDP.ShowMainMsg + EDP.ReturnValue) Then
+                                        Dim ApplyChanges As Action(Of IUserData) = Sub(ByVal __user As IUserData)
+                                                                                       With DirectCast(__user, UserDataBase)
+                                                                                           Dim u As UserInfo = .User
+                                                                                           Settings.UsersList.Remove(u)
+                                                                                           If _IsCollection Then
+                                                                                               u.SpecialCollectionPath = NewDest
+                                                                                           Else
+                                                                                               u.SpecialPath = NewDest
+                                                                                           End If
+                                                                                           u.UpdateUserFile()
+                                                                                           Settings.UsersList.Add(u)
+                                                                                           .User = u
+                                                                                           .UpdateUserInformation()
+                                                                                       End With
+                                                                                   End Sub
+                                        If .Self.IsCollection Then
+                                            With DirectCast(.Self, UserDataBind)
+                                                For Each user In .Collections : ApplyChanges(user) : Next
+                                            End With
+                                        Else
+                                            ApplyChanges(.Self)
+                                        End If
+                                        Settings.UpdateUsersList()
+                                        MsgBoxE({"User data has been moved", MsgTitle})
+                                    End If
                                 Else
-                                    ApplyChanges(users(0))
+                                    MsgBoxE({$"Unable to move user data to new destination [{NewDest}]{vbCr}Operation canceled", MsgTitle}, MsgBoxStyle.Critical)
                                 End If
-                                MsgBoxE($"User data has been moved")
                             Else
-                                MsgBoxE($"Unable to move user data to new destination [{NewDest}]{vbCr}Operation canceled", MsgBoxStyle.Critical)
+                                MsgBoxE({"Operation canceled", MsgTitle})
                             End If
                         Else
-                            MsgBoxE("Operation canceled")
+                            MsgBoxE({$"You have not entered a new destination{vbCr}Operation canceled", MsgTitle}, MsgBoxStyle.Exclamation)
                         End If
-                    Else
-                        MsgBoxE("You have not entered a new destination" & vbCr & "Operation canceled", MsgBoxStyle.Exclamation)
-                    End If
+                    End With
                 Else
-                    MsgBoxE("You have selected multiple users. You can change the folder only for one user!", MsgBoxStyle.Critical)
+                    MsgBoxE({"You have selected multiple users. You can change the folder only for one user!", MsgTitle}, MsgBoxStyle.Critical)
                 End If
             Else
-                MsgBoxE("No one user selected", MsgBoxStyle.Exclamation)
+                MsgBoxE({"No one user selected", MsgTitle}, MsgBoxStyle.Exclamation)
             End If
         Catch ex As Exception
             ErrorsDescriber.Execute(EDP.ShowAllMsg, ex, "Error while moving user")
+        Finally
+            Downloader.Suspended = False
         End Try
     End Sub
 #End Region
@@ -987,7 +1112,7 @@ CloseResume:
 #Region "6 - information"
     Private Sub BTT_CONTEXT_INFO_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_INFO.Click
         Dim user As IUserData = GetSelectedUser()
-        If Not user Is Nothing Then MsgBoxE(DirectCast(user, UserDataBase).GetUserInformation())
+        If Not user Is Nothing Then MsgBoxE(New MMessage(DirectCast(user, UserDataBase).GetUserInformation(), "User information") With {.Editable = True})
     End Sub
 #End Region
     Private Sub USER_CONTEXT_VisibleChanged(sender As Object, e As EventArgs) Handles USER_CONTEXT.VisibleChanged
@@ -1169,7 +1294,7 @@ CancelDownloadingOperation:
             Exit Sub
 ResumeDownloadingOperation:
             Dim uStr$ = If(users.Count = 1, String.Empty, users.ListToStringE(vbNewLine, GetUserListProvider(True)))
-            Dim fStr$ = $"({IIf(IncludeInTheFeed, "included in", "excluded from")} the feed)"
+            Dim fStr$ = $" ({IIf(IncludeInTheFeed, "included in", "excluded from")} the feed)"
             If users.Count = 1 OrElse MsgBoxE({$"You have selected {users.Count} user profiles" & vbCr &
                                                $"Do you want to download them all{fStr}?{vbNewLine.StringDup(2)}" &
                                                $"Selected users:{vbNewLine}{uStr}", "Multiple users selected"},
@@ -1184,16 +1309,61 @@ ResumeDownloadingOperation:
         End If
     End Sub
     Private Sub EditSelectedUser()
+        Const MsgTitle$ = "User update"
         Dim user As IUserData = GetSelectedUser()
         If Not user Is Nothing Then
             On Error Resume Next
-            If user.IsCollection Then
-                If USER_CONTEXT.Visible Then USER_CONTEXT.Hide()
-                MsgBoxE($"This is collection!{vbNewLine}Collection editing not allowed!", vbExclamation)
-            Else
+            If Not user.IsCollection OrElse DirectCast(user, UserDataBind).Count > 0 Then
+                If user.IsCollection And USER_CONTEXT.Visible Then USER_CONTEXT.Hide()
                 Using f As New UserCreatorForm(user)
                     f.ShowDialog()
-                    If f.DialogResult = DialogResult.OK Then UserListUpdate(user, False)
+                    If f.DialogResult = DialogResult.OK Then
+                        Dim NeedToUpdate As Boolean = True
+                        If user.IsCollection Then
+                            If user.IsCollection And Not user.CollectionName = f.CollectionName Then
+                                If Not user.IsVirtual AndAlso Downloader.Working Then
+                                    MsgBoxE({"Some users are currently downloading." & vbCr &
+                                             "You cannot change collection name while downloading." & vbCr &
+                                             "Wait until the download is complete.", MsgTitle}, vbCritical)
+                                    Exit Sub
+                                Else
+                                    If Not user.IsVirtual Then
+                                        Dim colFile As SFile = DirectCast(user, UserDataBind).GetRealUserFile
+                                        If Not colFile.IsEmptyString Then
+                                            colFile = colFile.CutPath(IIf(DirectCast(user, UserDataBind).DataMerging, 1, 2))
+                                            If Not colFile.IsEmptyString Then
+                                                Dim nf As SFile = $"{colFile.CutPath(1).PathWithSeparator}{f.CollectionName}".CSFilePS
+                                                If Not SFile.Rename(colFile, New SFile With {.Path = f.CollectionName}, SFO.Path,
+                                                                    New ErrorsDescriber(True, False, False, New SFile)).IsEmptyString Then
+                                                    RemoveUserFromList(user)
+                                                    Dim __user As UserInfo
+                                                    For Each ColUser As UserDataBase In DirectCast(user, UserDataBind).Collections
+                                                        __user = ColUser.User
+                                                        Settings.UsersList.Remove(__user)
+                                                        __user.CollectionName = f.CollectionName
+                                                        If Not __user.SpecialCollectionPath.IsEmptyString Then __user.SpecialCollectionPath = nf
+                                                        __user.UpdateUserFile()
+                                                        ColUser.User = __user
+                                                        Settings.UsersList.Add(__user)
+                                                    Next
+                                                    user.UpdateUserInformation()
+                                                    UserListUpdate(user, True)
+                                                    NeedToUpdate = False
+                                                End If
+                                            End If
+                                        End If
+                                    Else
+                                        RemoveUserFromList(user)
+                                        user.CollectionName = f.CollectionName
+                                        user.UpdateUserInformation()
+                                        UserListUpdate(user, True)
+                                        NeedToUpdate = False
+                                    End If
+                                End If
+                            End If
+                        End If
+                        If NeedToUpdate Then UserListUpdate(user, False)
+                    End If
                 End Using
             End If
         End If
@@ -1206,19 +1376,26 @@ ResumeDownloadingOperation:
                 Dim userProvider As IFormatProvider = GetUserListProvider(True)
                 Dim ugn As Func(Of IUserData, String) = Function(u) AConvert(Of String)(u, userProvider)
                 Dim m As New MMessage(users.ListToStringE(vbNewLine, userProvider), "Users deleting",
-                                      {New MsgBoxButton("Delete and ban") With {.ToolTip = "Users and their data will be deleted and added to the blacklist"},
+                                      {New MsgBoxButton("Delete and ban") With {
+                                            .ToolTip = "Users and their data will be deleted and added to the blacklist",
+                                            .KeyCode = Keys.Enter},
                                        New MsgBoxButton("Delete user only and ban") With {
                                             .ToolTip = "Users will be deleted and added to the blacklist (user data will not be deleted)"},
                                        New MsgBoxButton("Delete and ban with reason") With {
-                                            .ToolTip = "Users and their data will be deleted and added to the blacklist with set a reason to delete"},
+                                            .ToolTip = "Users and their data will be deleted and added to the blacklist with set a reason to delete",
+                                            .KeyCode = New ButtonKey(Keys.Enter,, True)},
                                        New MsgBoxButton("Delete user only and ban with reason") With {
                                             .ToolTip = "Users will be deleted and added to the blacklist with set a reason to delete (user data will not be deleted)"},
-                                       New MsgBoxButton("Delete") With {.ToolTip = "Delete users and their data"},
+                                       New MsgBoxButton("Delete") With {
+                                            .ToolTip = "Delete users and their data",
+                                            .KeyCode = New ButtonKey(Keys.Enter, True)},
                                        New MsgBoxButton("Delete user only") With {.ToolTip = "Delete users but keep data"}, "Cancel"},
                                       MsgBoxStyle.Exclamation) With {.ButtonsPerRow = 2, .ButtonsPlacing = MMessage.ButtonsPlacings.StartToEnd}
                 m.Text = $"The following users ({users.Count}) will be deleted:{vbNewLine}{m.Text}"
                 Dim result% = MsgBoxE(m)
                 If result < 6 Then
+                    Dim collectionResult% = -1
+                    Dim tmpResult%
                     Dim IsMultiple As Boolean = users.Count > 1
                     Dim removedUsers As New List(Of String)
                     Dim keepData As Boolean = Not (result Mod 2) = 0
@@ -1253,7 +1430,9 @@ ResumeDownloadingOperation:
                             removedUsers.Add(ugn(user))
                             user.Dispose()
                         Else
-                            If user.Delete(IsMultiple) > 0 Then
+                            tmpResult = user.Delete(IsMultiple, collectionResult)
+                            If user.IsCollection And collectionResult = -1 Then collectionResult = tmpResult
+                            If tmpResult > 0 Then
                                 If banUser Then Settings.BlackList.ListAddValue(New UserBan(user.Name, reason), l) : b = True
                                 RemoveUserFromList(user)
                                 removedUsers.Add(ugn(user))
@@ -1294,7 +1473,7 @@ ResumeDownloadingOperation:
             If users.ListExists Then
                 Dim f As SFile = Settings.LastCopyPath
                 Dim _select_path As Func(Of Boolean) = Function() As Boolean
-                                                           f = SFile.SelectPath(f, True)
+                                                           f = SFile.SelectPath(f)
                                                            If f.Exists(SFO.Path, False) Then
                                                                Return MsgBoxE({$"Are you sure you want to copy the data to the selected folder?{vbCr}{f}",
                                                                               MsgTitle}, vbQuestion + vbYesNo) = vbYes

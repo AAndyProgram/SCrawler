@@ -14,6 +14,6 @@ Namespace API.RedGifs
         Friend ReadOnly DateProvider As New CustomProvider(Function(v, d, p, n, e) ADateTime.ParseUnicode(v, n, e))
         Friend ReadOnly WatchIDRegex As RParams = RParams.DMS(".+?watch/([^\?&""/]+)", 1, EDP.ReturnValue)
         Friend ReadOnly ThumbsIDRegex As RParams = RParams.DMS("([^/\?&""]+?)(-\w+?|)\.(mp4|jpg)", 1, EDP.ReturnValue,
-                                                               Function(v) If(CStr(v).IsEmptyString, String.Empty, CStr(v).ToLower.Trim))
+                                                               CType(Function(Input$) Input.StringToLower.StringTrim, Func(Of String, String)))
     End Module
 End Namespace

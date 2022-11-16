@@ -10,6 +10,7 @@ Imports System.Threading
 Imports SCrawler.API.Base
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.RegularExpressions
+Imports PersonalUtilities.Tools.Web.Clients
 Imports UTypes = SCrawler.API.Base.UserMedia.Types
 Imports Converters = PersonalUtilities.Functions.SymbolsConverter.Converters
 Namespace API.LPSG
@@ -27,7 +28,7 @@ Namespace API.LPSG
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
             Dim URL$ = String.Empty
             Try
-                Responser.Error = EDP.ThrowException
+                Responser.DeclaredError = EDP.ThrowException
 
                 Dim NextPage$
                 Dim r$
@@ -87,7 +88,7 @@ Namespace API.LPSG
             End If
         End Sub
         Protected Overrides Sub DownloadContent(ByVal Token As CancellationToken)
-            With Responser : .UseWebClient = True : .UseWebClientCookies = True : .ResetError() : End With
+            With Responser : .Mode = Response.Modes.WebClient : .ResetStatus() : End With
             UseResponserClient = True
             DownloadContentDefault(Token)
         End Sub

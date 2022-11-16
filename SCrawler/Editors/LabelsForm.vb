@@ -9,7 +9,6 @@
 Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Forms.Controls
 Imports PersonalUtilities.Forms.Controls.Base
-Imports PersonalUtilities.Functions.Messaging
 Friend Class LabelsForm
     Private WithEvents MyDefs As DefaultFormOptions
     Friend ReadOnly Property LabelsList As List(Of String)
@@ -26,8 +25,6 @@ Friend Class LabelsForm
         End Get
     End Property
     Private _AnyLabelAdd As Boolean = False
-    Friend Property MultiUser As Boolean = False
-    Friend Property MultiUserClearExists As Boolean = False
     Friend Property WithDeleteButton As Boolean = False
     Private ReadOnly AddNoParsed As Boolean = False
     Friend Sub New(ByVal LabelsArr As IEnumerable(Of String), Optional ByVal AddNoParsed As Boolean = False)
@@ -47,12 +44,14 @@ Friend Class LabelsForm
                 .MyViewInitialize()
                 .AddOkCancelToolbar()
                 .MyOkCancel.BTT_DELETE.Visible = WithDeleteButton
-                If Source.Count > 0 Then
+                Dim s As List(Of String) = ListAddList(Nothing, Source).ListAddList(LabelsList, LAP.NotContainsOnly)
+                If s.ListExists Then
                     Dim items As New List(Of Integer)
+                    s.Sort()
                     CMB_LABELS.BeginUpdate()
-                    For i% = 0 To Source.Count - 1
-                        If LabelsList.Contains(Source(i)) Then items.Add(i)
-                        CMB_LABELS.Items.Add(Source(i))
+                    For i% = 0 To s.Count - 1
+                        If LabelsList.Contains(s(i)) Then items.Add(i)
+                        CMB_LABELS.Items.Add(s(i))
                     Next
                     If Not _Source Is Nothing Then CMB_LABELS.Buttons.Clear()
                     CMB_LABELS.EndUpdate()
@@ -72,24 +71,11 @@ Friend Class LabelsForm
     End Sub
     Private Sub MyDefs_ButtonOkClick(ByVal Sender As Object, ByVal e As KeyHandleEventArgs) Handles MyDefs.ButtonOkClick
         Try
-            If MultiUser Then
-                Dim m As New MMessage("You are changing labels for more one user" & vbNewLine & "What do you want to do?",
-                                      "MultiUser labels changing",
-                                      {New MsgBoxButton("Replace exists") With {.ToolTip = "Per user: all existing labels will be removed and replaced with these labels"},
-                                       New MsgBoxButton("Add to exists") With {.ToolTip = "Per user: these labels will be add to existing labels"},
-                                       New MsgBoxButton("Cancel")},
-                                      MsgBoxStyle.Exclamation)
-                Select Case MsgBoxE(m).Index
-                    Case 0 : MultiUserClearExists = True
-                    Case 1 : MultiUserClearExists = False
-                    Case 2 : Exit Sub
-                End Select
-            End If
             LabelsList.ListAddList(CMB_LABELS.Items.CheckedItems.Select(Function(l) CStr(l.Value(0))), LAP.ClearBeforeAdd, LAP.NotContainsOnly)
             If _AnyLabelAdd And _Source Is Nothing Then Settings.Labels.Update()
             MyDefs.CloseForm()
         Catch ex As Exception
-            ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Choosing labels")
+            ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Label selection")
         End Try
     End Sub
     Private Sub MyDefs_ButtonDeleteClickOC(ByVal Sender As Object, ByVal e As KeyHandleEventArgs) Handles MyDefs.ButtonDeleteClickOC

@@ -130,6 +130,12 @@
   <data name="LPSGPic_32" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Content\Pictures\SitePictures\LPSGPic_32.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="PornHubIcon_16" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Content\Icons\SiteIcons\PornHubIcon_16.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="PornHubPic_16" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Content\Pictures\SitePictures\PornHubPic_16.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="RedditIcon_128" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Content\Icons\SiteIcons\RedditIcon_128.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
@@ -153,6 +159,12 @@
   </data>
   <data name="TwitterPic_400" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Content\Pictures\SitePictures\TwitterPic_400.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="XhamsterIcon_32" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Content\Icons\SiteIcons\XhamsterIcon_32.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="XhamsterPic_32" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Content\Pictures\SitePictures\XhamsterPic_32.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="XvideosIcon_48" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Content\Icons\SiteIcons\XvideosIcon_48.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
