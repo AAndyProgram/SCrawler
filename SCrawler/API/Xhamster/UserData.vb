@@ -219,7 +219,7 @@ Namespace API.Xhamster
         End Sub
 #End Region
 #Region "GetM3U8"
-        Private Overloads Function GetM3U8(ByRef m As UserMedia, ByVal URL As String, ByVal Responser As Response,
+        Private Overloads Function GetM3U8(ByRef m As UserMedia, ByVal URL As String, ByVal Responser As Responser,
                                            Optional ByVal e As ErrorsDescriber = Nothing) As Boolean
             Try
                 If Not URL.IsEmptyString Then
@@ -248,7 +248,7 @@ Namespace API.Xhamster
         End Function
 #End Region
 #Region "Standalone downloader"
-        Friend Shared Function GetVideoInfo(ByVal URL As String, ByVal Responser As Response, ByVal Path As SFile) As UserMedia
+        Friend Shared Function GetVideoInfo(ByVal URL As String, ByVal Responser As Responser, ByVal Path As SFile) As UserMedia
             Try
                 Using u As New UserData With {.Responser = Responser, .HOST = Settings(XhamsterSiteKey)}
                     Dim m As UserMedia = Nothing

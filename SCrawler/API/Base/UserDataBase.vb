@@ -843,7 +843,7 @@ BlockNullPicture:
         End Function
 #End Region
 #Region "Download functions and options"
-        Protected Responser As Response
+        Protected Responser As Responser
         Protected UseResponserClient As Boolean = False
         Friend Overridable Sub DownloadData(ByVal Token As CancellationToken) Implements IContentProvider.DownloadData
             Dim Canceled As Boolean = False
@@ -852,7 +852,7 @@ BlockNullPicture:
                 UpdateDataFiles()
                 UserDescriptionReset()
                 If Not Responser Is Nothing Then Responser.Dispose()
-                Responser = New Response
+                Responser = New Responser
                 If Not HOST.Responser Is Nothing Then Responser.Copy(HOST.Responser)
                 'TODO: UserDataBase remove [Responser.DecodersError]
                 Responser.DecodersError = New ErrorsDescriber(EDP.SendInLog + EDP.ReturnValue) With {

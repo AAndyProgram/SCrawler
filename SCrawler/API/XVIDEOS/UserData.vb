@@ -171,7 +171,7 @@ Namespace API.XVIDEOS
                 ProcessException(ex, Token, $"data downloading error [{URL}]")
             End Try
         End Sub
-        Private Function GetVideoData(ByVal Media As UserMedia, ByVal resp As Response, ByVal DownloadUHD As Boolean) As UserMedia
+        Private Function GetVideoData(ByVal Media As UserMedia, ByVal resp As Responser, ByVal DownloadUHD As Boolean) As UserMedia
             Try
                 If Not Media.URL.IsEmptyString Then
                     Dim r$ = resp.GetResponse(Media.URL)
@@ -217,7 +217,7 @@ Namespace API.XVIDEOS
                 Return Nothing
             End Try
         End Function
-        Friend Function Download(ByVal URL As String, ByVal resp As Response, ByVal DownloadUHD As Boolean, ByVal ID As String)
+        Friend Function Download(ByVal URL As String, ByVal resp As Responser, ByVal DownloadUHD As Boolean, ByVal ID As String)
             Dim m As UserMedia = GetVideoData(New UserMedia(URL, UTypes.VideoPre) With {.Post = ID}, resp, DownloadUHD)
             If Not m.URL.IsEmptyString Then
                 Dim f As SFile = m.File

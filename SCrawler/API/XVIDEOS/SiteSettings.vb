@@ -141,7 +141,7 @@ Namespace API.XVIDEOS
                 Dim f As SFile = GetSpecialDataFile(Path, AskForPath, spf)
                 f.Name = "video"
                 f.Extension = "mp4"
-                Using resp As Response = Responser.Copy
+                Using resp As Responser = Responser.Copy
                     Using user As New UserData With {.HOST = Settings(XvideosSiteKey)}
                         DirectCast(user, UserDataBase).User.File = f
                         Dim p As UserMedia = user.Download(URL, resp, DownloadUHD.Value, String.Empty)

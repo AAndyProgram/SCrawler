@@ -263,13 +263,13 @@ Namespace API.Twitter
         End Sub
 #End Region
 #Region "Get video static"
-        Friend Shared Function GetVideoInfo(ByVal URL As String, ByVal resp As Response) As IEnumerable(Of UserMedia)
+        Friend Shared Function GetVideoInfo(ByVal URL As String, ByVal resp As Responser) As IEnumerable(Of UserMedia)
             Try
                 If URL.Contains("twitter") Then
                     Dim PostID$ = RegexReplace(URL, RParams.DM("(?<=/)\d+", 0))
                     If Not PostID.IsEmptyString Then
                         Dim r$
-                        Using rc As Response = resp.Copy() : r = rc.GetResponse(String.Format(SinglePostUrl, PostID),, EDP.ReturnValue) : End Using
+                        Using rc As Responser = resp.Copy() : r = rc.GetResponse(String.Format(SinglePostUrl, PostID),, EDP.ReturnValue) : End Using
                         If Not r.IsEmptyString Then
                             Using j As EContainer = JsonDocument.Parse(r)
                                 If j.ListExists Then

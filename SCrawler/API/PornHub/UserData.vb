@@ -178,7 +178,7 @@ Namespace API.PornHub
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
             Try
                 Responser.ResetStatus()
-                If PersonType = PersonTypeUser Then Responser.Mode = Response.Modes.Curl
+                If PersonType = PersonTypeUser Then Responser.Mode = Responser.Modes.Curl
 
                 If IsSavedPosts Then VideoPageModel = VideoPageModels.Favorite
 
@@ -187,7 +187,7 @@ Namespace API.PornHub
                 Dim __videoDone As Boolean = False
                 Dim d%
                 If DownloadVideos Then
-                    If PersonType = PersonTypeUser Then Responser.Mode = Response.Modes.Curl : Responser.Method = "POST"
+                    If PersonType = PersonTypeUser Then Responser.Mode = Responser.Modes.Curl : Responser.Method = "POST"
                     If VideoPageModel = VideoPageModels.Undefined Then
                         __continue = False
                         d = DownloadUserVideos(page, Token)
@@ -216,7 +216,7 @@ Namespace API.PornHub
                 If DownloadGifs And Not IsSavedPosts Then DownloadUserGifs(Token)
                 If DownloadImages Then DownloadUserPhotos(Token)
             Finally
-                Responser.Mode = Response.Modes.Default
+                Responser.Mode = Responser.Modes.Default
                 Responser.Method = "GET"
             End Try
         End Sub
@@ -624,7 +624,7 @@ Namespace API.PornHub
         End Function
 #End Region
 #Region "Standalone downloader"
-        Friend Shared Function GetVideoInfo(ByVal URL As String, ByVal Responser As Response, ByVal Destination As SFile) As UserMedia
+        Friend Shared Function GetVideoInfo(ByVal URL As String, ByVal Responser As Responser, ByVal Destination As SFile) As UserMedia
             Try
                 Dim r$ = Responser.Curl(URL)
                 If Not r.IsEmptyString Then

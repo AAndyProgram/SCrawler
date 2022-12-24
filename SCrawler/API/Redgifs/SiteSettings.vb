@@ -33,7 +33,7 @@ Namespace API.RedGifs
         <PropertyOption(AllowNull:=False, ControlText:="Token", ControlToolTip:="Bearer token")>
         Friend Property Token As PropertyValue
         <PXML> Friend Property TokenLastDateUpdated As PropertyValue
-        <DoNotUse> Friend ReadOnly Property NoCredentialsResponser As Response
+        <DoNotUse> Friend ReadOnly Property NoCredentialsResponser As Responser
         Private Const TokenName As String = "authorization"
 #End Region
 #Region "Initializer"
@@ -41,12 +41,12 @@ Namespace API.RedGifs
             MyBase.New(RedGifsSite, "redgifs.com")
             Dim t$ = String.Empty
             With Responser
-                Dim b As Boolean = Not .Mode = Response.Modes.WebClient
-                .Mode = Response.Modes.WebClient
-                t = .HeadersValue(TokenName)
+                Dim b As Boolean = Not .Mode = Responser.Modes.WebClient
+                .Mode = Responser.Modes.WebClient
+                t = .Headers.Value(TokenName)
                 If b Then .SaveSettings()
             End With
-            NoCredentialsResponser = New Response($"{SettingsFolderName}\Responser_{RedGifsSite}_NC.xml") With {
+            NoCredentialsResponser = New Responser($"{SettingsFolderName}\Responser_{RedGifsSite}_NC.xml") With {
                 .CookiesEncryptKey = SettingsCLS.CookieEncryptKey,
                 .CookiesDomain = "redgifs.com"
             }
@@ -67,7 +67,7 @@ Namespace API.RedGifs
 #End Region
 #Region "Response updater"
         Private Sub UpdateResponse(ByVal Value As String)
-            Responser.HeadersAdd(TokenName, Value)
+            Responser.Headers.Add(TokenName, Value)
             Responser.SaveSettings()
         End Sub
 #End Region
@@ -85,7 +85,7 @@ Namespace API.RedGifs
             Try
                 Dim r$
                 Dim NewToken$ = String.Empty
-                Using resp As New Response : r = resp.GetResponse("https://api.redgifs.com/v2/auth/temporary",, EDP.ThrowException) : End Using
+                Using resp As New Responser : r = resp.GetResponse("https://api.redgifs.com/v2/auth/temporary",, EDP.ThrowException) : End Using
                 If Not r.IsEmptyString Then
                     Dim j As EContainer = JsonDocument.Parse(r)
                     If Not j Is Nothing Then
@@ -126,7 +126,7 @@ Namespace API.RedGifs
         End Function
         Friend Overrides Function GetSpecialData(ByVal URL As String, ByVal Path As String, ByVal AskForPath As Boolean) As IEnumerable
             If BaseAuthExists() Then
-                Using resp As Response = Responser.Copy
+                Using resp As Responser = Responser.Copy
                     Dim m As UserMedia = UserData.GetDataFromUrlId(URL, False, resp, Settings(RedGifsSiteKey))
                     If Not m.State = UStates.Missing And Not m.State = UserData.DataGone And (m.Type = UTypes.Picture Or m.Type = UTypes.Video) Then
                         Try

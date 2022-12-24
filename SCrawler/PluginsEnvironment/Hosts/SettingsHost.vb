@@ -80,7 +80,7 @@ Namespace Plugin.Hosts
         Friend ReadOnly Property HasSpecialOptions As Boolean = False
         Private ReadOnly _ResponserGetMethod As MethodInfo
         Private ReadOnly _ResponserIsContainer As Boolean = False
-        Friend ReadOnly Property Responser As Response
+        Friend ReadOnly Property Responser As Responser
             Get
                 If Not _ResponserGetMethod Is Nothing Then
                     Return _ResponserGetMethod.Invoke(Source, Nothing)
@@ -190,7 +190,7 @@ Namespace Plugin.Hosts
                     If m.MemberType = MemberTypes.Property Then
                         PropList.Add(New PropertyValueHost(Source, m))
                         With DirectCast(m, PropertyInfo)
-                            If .PropertyType Is GetType(Response) AndAlso m.GetCustomAttribute(Of DoNotUse)() Is Nothing Then _ResponserGetMethod = .GetMethod
+                            If .PropertyType Is GetType(Responser) AndAlso m.GetCustomAttribute(Of DoNotUse)() Is Nothing Then _ResponserGetMethod = .GetMethod
                         End With
                     End If
                     With m.GetCustomAttributes()

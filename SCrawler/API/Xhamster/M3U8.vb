@@ -14,7 +14,7 @@ Namespace API.Xhamster
     Friend NotInheritable Class M3U8
         Private Sub New()
         End Sub
-        Private Shared Function ParseFirstM3U8(ByVal URL As String, ByVal Responser As Response, ByVal UHD As Boolean) As String
+        Private Shared Function ParseFirstM3U8(ByVal URL As String, ByVal Responser As Responser, ByVal UHD As Boolean) As String
             Dim r$, d$
             Dim _DataObtained As Boolean = False
             For i% = 0 To 1
@@ -38,7 +38,7 @@ Namespace API.Xhamster
             Next
             Return String.Empty
         End Function
-        Private Shared Function ParseSecondM3U8(ByVal URL As String, ByVal Responser As Response, ByVal Appender As String) As List(Of String)
+        Private Shared Function ParseSecondM3U8(ByVal URL As String, ByVal Responser As Responser, ByVal Appender As String) As List(Of String)
             Dim r$
             Dim l As List(Of String)
             For i% = 0 To 1
@@ -57,7 +57,7 @@ Namespace API.Xhamster
             Next
             Return Nothing
         End Function
-        Private Shared Function ObtainUrls(ByVal URL As String, ByVal Responser As Response, ByVal UHD As Boolean) As List(Of String)
+        Private Shared Function ObtainUrls(ByVal URL As String, ByVal Responser As Responser, ByVal UHD As Boolean) As List(Of String)
             Try
                 Dim file$ = ParseFirstM3U8(URL, Responser, UHD)
                 If Not file.IsEmptyString Then
@@ -72,7 +72,7 @@ Namespace API.Xhamster
                 Responser.UseGZipStream = False
             End Try
         End Function
-        Friend Shared Function Download(ByVal Media As UserMedia, ByVal Responser As Response, ByVal UHD As Boolean) As SFile
+        Friend Shared Function Download(ByVal Media As UserMedia, ByVal Responser As Responser, ByVal UHD As Boolean) As SFile
             Return M3U8Base.Download(ObtainUrls(Media.URL, Responser, UHD), Media.File, Responser)
         End Function
     End Class

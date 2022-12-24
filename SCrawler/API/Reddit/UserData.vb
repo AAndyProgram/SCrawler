@@ -136,7 +136,7 @@ Namespace API.Reddit
             _CrossPosts.Clear()
             If Not IsSavedPosts AndAlso (IsChannel AndAlso Not ChannelInfo Is Nothing) Then
                 If Not Responser Is Nothing Then Responser.Dispose()
-                Responser = New Response
+                Responser = New Responser
                 Responser.Copy(MySiteSettings.Responser)
                 ChannelPostsNames.ListAddList(ChannelInfo.PostsAll.Select(Function(p) p.ID), LNC)
                 If Not ViewMode = CView.New Then ChannelPostsNames.ListAddList(ChannelInfo.PostsNames, LNC)
@@ -524,7 +524,7 @@ Namespace API.Reddit
             End Try
         End Function
         Protected Overrides Sub ReparseVideo(ByVal Token As CancellationToken)
-            Dim RedGifsResponser As Response = Nothing
+            Dim RedGifsResponser As Responser = Nothing
             Try
                 ThrowAny(Token)
                 Const v2 As UTypes = UTypes.VideoPre + UTypes.m3u8
@@ -581,7 +581,7 @@ Namespace API.Reddit
         End Sub
         Protected Overrides Sub ReparseMissing(ByVal Token As CancellationToken)
             Dim rList As New List(Of Integer)
-            Dim RedGifsResponser As Response = Nothing
+            Dim RedGifsResponser As Responser = Nothing
             Try
                 If Not ChannelInfo Is Nothing Or SaveToCache Then Exit Sub
                 If ContentMissingExists Then
@@ -658,11 +658,11 @@ Namespace API.Reddit
             Public Overrides Sub Perform(Optional ByVal Value As Double = 1)
             End Sub
         End Class
-        Friend Shared Function GetVideoInfo(ByVal URL As String, ByVal resp As Response, ByVal f As SFile, ByVal SpecialFolder As String) As IEnumerable(Of UserMedia)
+        Friend Shared Function GetVideoInfo(ByVal URL As String, ByVal resp As Responser, ByVal f As SFile, ByVal SpecialFolder As String) As IEnumerable(Of UserMedia)
             Try
                 If Not URL.IsEmptyString Then
                     Using r As New UserData
-                        r.Responser = New Response
+                        r.Responser = New Responser
                         r.Responser.Copy(resp)
                         r.ParsePost(URL)
                         If r._TempMediaList.Count > 0 Then
@@ -713,7 +713,7 @@ Namespace API.Reddit
         End Function
 #End Region
         Protected Overrides Sub DownloadContent(ByVal Token As CancellationToken)
-            Dim RedGifsResponser As Response = Nothing
+            Dim RedGifsResponser As Responser = Nothing
             Try
                 Const _RFN$ = "RedditVideo"
                 Const RFN$ = _RFN & "{0}"

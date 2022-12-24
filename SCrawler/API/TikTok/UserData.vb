@@ -52,7 +52,7 @@ Namespace API.TikTok
         Protected Overrides Sub DownloadContent(ByVal Token As CancellationToken)
             DownloadContentDefault(Token)
         End Sub
-        Friend Shared Function GetVideoInfo(ByVal URL As String, ByVal Responser As Response, Optional ByVal e As ErrorsDescriber = Nothing) As IEnumerable(Of UserMedia)
+        Friend Shared Function GetVideoInfo(ByVal URL As String, ByVal Responser As Responser, Optional ByVal e As ErrorsDescriber = Nothing) As IEnumerable(Of UserMedia)
             Try
                 If Not URL.IsEmptyString Then
                     Dim PostId$ = String.Empty
@@ -61,7 +61,7 @@ Namespace API.TikTok
                     Dim r$
                     PostId = RegexEnvir.ExtractPostID(URL)
                     If Not PostId.IsEmptyString Then
-                        Using resp As Response = Responser.Copy() : r = resp.GetResponse(URL,, EDP.ThrowException) : End Using
+                        Using resp As Responser = Responser.Copy() : r = resp.GetResponse(URL,, EDP.ThrowException) : End Using
                         If Not r.IsEmptyString Then
                             If RegexEnvir.GetVideoData(r, PostId, PostURL, PostDate) Then Return {MediaFromData(PostURL, PostId, PostDate)}
                         End If

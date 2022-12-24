@@ -750,7 +750,7 @@ Namespace API.Instagram
         End Function
 #End Region
 #Region "Standalone downloader"
-        Friend Shared Function GetVideoInfo(ByVal URL As String, ByVal r As Response) As IEnumerable(Of UserMedia)
+        Friend Shared Function GetVideoInfo(ByVal URL As String, ByVal r As Responser) As IEnumerable(Of UserMedia)
             Try
                 If Not URL.IsEmptyString AndAlso URL.Contains("instagram.com") Then
                     Dim PID$ = RegexReplace(URL, RParams.DMS(".*?instagram.com/p/([_\w\d]+)", 1))
@@ -758,7 +758,7 @@ Namespace API.Instagram
                     If Not PID.IsEmptyString Then
                         Using t As New UserData
                             t.SetEnvironment(Settings(InstagramSiteKey), Nothing, False, False)
-                            t.Responser = New Response
+                            t.Responser = New Responser
                             t.Responser.Copy(r)
                             t._SavedPostsIDs.Add(PID)
                             t.DownloadPosts(Nothing)

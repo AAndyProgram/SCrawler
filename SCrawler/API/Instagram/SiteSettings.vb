@@ -106,8 +106,8 @@ Namespace API.Instagram
                     Case NameOf(CSRF_TOKEN) : f = Header_CSRF_TOKEN
                 End Select
                 If Not f.IsEmptyString Then
-                    Responser.HeadersRemove(f)
-                    If Not CStr(Value).IsEmptyString Then Responser.HeadersAdd(f, CStr(Value))
+                    Responser.Headers.Remove(f)
+                    If Not CStr(Value).IsEmptyString Then Responser.Headers.Add(f, CStr(Value))
                     Responser.SaveSettings()
                 End If
             End If
@@ -202,9 +202,9 @@ Namespace API.Instagram
 
             With Responser
                 If .Headers.Count > 0 Then
-                    token = .HeadersValue(Header_CSRF_TOKEN)
-                    app_id = .HeadersValue(Header_IG_APP_ID)
-                    www_claim = .HeadersValue(Header_IG_WWW_CLAIM)
+                    token = .Headers.Value(Header_CSRF_TOKEN)
+                    app_id = .Headers.Value(Header_IG_APP_ID)
+                    www_claim = .Headers.Value(Header_IG_WWW_CLAIM)
                 End If
                 If Not .Cookies Is Nothing Then
                     .Cookies.ChangedAllowInternalDrop = False
@@ -262,9 +262,9 @@ Namespace API.Instagram
                     Hash = AConvert(Of String)(.Hash.Value, String.Empty)
                     Hash2 = AConvert(Of String)(.HashSavedPosts.Value, String.Empty)
                     With .Responser
-                        Token = .HeadersValue(Header_CSRF_TOKEN)
-                        AppID = .HeadersValue(Header_IG_APP_ID)
-                        WwwClaim = .HeadersValue(Header_IG_WWW_CLAIM)
+                        Token = .Headers.Value(Header_CSRF_TOKEN)
+                        AppID = .Headers.Value(Header_IG_APP_ID)
+                        WwwClaim = .Headers.Value(Header_IG_WWW_CLAIM)
                     End With
                 End With
             End Sub

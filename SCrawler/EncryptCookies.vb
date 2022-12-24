@@ -10,7 +10,7 @@ Imports PersonalUtilities.Tools.Web.Clients
 Namespace EncryptCookies
     Friend Module EncryptFunction
         Friend CookiesEncrypted As Boolean = False
-        Friend Sub ValidateCookiesEncrypt(ByRef Responser As Response)
+        Friend Sub ValidateCookiesEncrypt(ByRef Responser As Responser)
             If Not Responser Is Nothing Then
                 Dim b As Boolean = False
                 With Responser

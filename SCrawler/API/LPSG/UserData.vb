@@ -88,7 +88,7 @@ Namespace API.LPSG
             End If
         End Sub
         Protected Overrides Sub DownloadContent(ByVal Token As CancellationToken)
-            With Responser : .Mode = Response.Modes.WebClient : .ResetStatus() : End With
+            With Responser : .Mode = Responser.Modes.WebClient : .ResetStatus() : End With
             UseResponserClient = True
             DownloadContentDefault(Token)
         End Sub

@@ -12,7 +12,6 @@ Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Forms.Controls
 Imports PersonalUtilities.Forms.Controls.Base
 Imports PersonalUtilities.Tools.Web.Cookies
-Imports CookieControl = PersonalUtilities.Tools.Web.Cookies.CookieListForm.CookieControl
 Imports ADB = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons
 Namespace Editors
     Friend Class SiteEditorForm
@@ -213,12 +212,13 @@ Namespace Editors
             Select Case Sender.DefaultButton
                 Case ADB.Edit
                     If Not Host.Responser Is Nothing Then
-                        Using f As New CookieListForm(Host.Responser) With {
-                            .MyDesignXML = Settings.Design,
-                            .DisableControls = CookieControl.AddFromInternal + CookieControl.AuthorizeProgram + CookieControl.OpenBrowser
-                        }
+                        Using f As New CookieListForm With {.DesignXML = Settings.Design, .UseGrid = False}
+                            f.SetCollection(Host.Responser.Cookies)
                             f.ShowDialog()
-                            MyDefs.MyOkCancel.EnableOK = True
+                            If f.DialogResult = DialogResult.OK Then
+                                f.GetCollection(Host.Responser)
+                                MyDefs.MyOkCancel.EnableOK = True
+                            End If
                         End Using
                         SetCookieText()
                     End If

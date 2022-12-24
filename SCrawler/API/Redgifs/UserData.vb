@@ -34,7 +34,7 @@ Namespace API.RedGifs
         End Sub
 #End Region
 #Region "Download functions"
-        Private NoCredentialsResponser As Response
+        Private NoCredentialsResponser As Responser
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
             Try
                 NoCredentialsResponser = MySettings.NoCredentialsResponser.Copy
@@ -166,7 +166,7 @@ Namespace API.RedGifs
                 Return String.Empty
             End If
         End Function
-        Friend Shared Function GetDataFromUrlId(ByVal Obj As String, ByVal ObjIsID As Boolean, ByVal Responser As Response,
+        Friend Shared Function GetDataFromUrlId(ByVal Obj As String, ByVal ObjIsID As Boolean, ByVal Responser As Responser,
                                                 ByVal Host As Plugin.Hosts.SettingsHost) As UserMedia
             Dim URL$ = String.Empty
             Try

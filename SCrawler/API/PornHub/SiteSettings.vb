@@ -69,7 +69,7 @@ Namespace API.PornHub
         End Function
         Friend Overrides Function GetSpecialData(ByVal URL As String, ByVal Path As String, ByVal AskForPath As Boolean) As IEnumerable
             If Available(ISiteSettings.Download.Main, True) Then
-                Using resp As Response = Responser.Copy
+                Using resp As Responser = Responser.Copy
                     Dim spf$ = String.Empty
                     Dim f As SFile = GetSpecialDataFile(Path, AskForPath, spf)
                     Dim m As UserMedia = UserData.GetVideoInfo(URL, resp, f)

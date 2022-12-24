@@ -17,8 +17,8 @@ Namespace API.Base
         Friend Overridable ReadOnly Property Icon As Icon Implements ISiteSettings.Icon
         Friend Overridable ReadOnly Property Image As Image Implements ISiteSettings.Image
         Private Property Logger As ILogProvider = LogConnector Implements ISiteSettings.Logger
-        Friend Overridable ReadOnly Property Responser As Response
-        Private Property IResponserContainer_Responser As Response Implements IResponserContainer.Responser
+        Friend Overridable ReadOnly Property Responser As Responser
+        Private Property IResponserContainer_Responser As Responser Implements IResponserContainer.Responser
             Get
                 Return Responser
             End Get
@@ -30,7 +30,7 @@ Namespace API.Base
         End Sub
         Friend Sub New(ByVal SiteName As String, ByVal CookiesDomain As String)
             Site = SiteName
-            Responser = New Response($"{SettingsFolderName}\Responser_{Site}.xml")
+            Responser = New Responser($"{SettingsFolderName}\Responser_{Site}.xml")
             With Responser
                 If .File.Exists Then
                     If EncryptCookies.CookiesEncrypted Then .CookiesEncryptKey = SettingsCLS.CookieEncryptKey

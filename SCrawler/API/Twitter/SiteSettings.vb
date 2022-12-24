@@ -34,10 +34,10 @@ Namespace API.Twitter
         Private ReadOnly Property Token As PropertyValue
         <PropertyOption(ControlText:="Saved posts user", ControlToolTip:="Personal profile username"), PXML>
         Friend ReadOnly Property SavedPostsUserName As PropertyValue
-        Friend Overrides ReadOnly Property Responser As Response
+        Friend Overrides ReadOnly Property Responser As Responser
         Friend Sub New()
             MyBase.New(TwitterSite)
-            Responser = New Response($"{SettingsFolderName}\Responser_{Site}.xml")
+            Responser = New Responser($"{SettingsFolderName}\Responser_{Site}.xml")
 
             Dim a$ = String.Empty
             Dim t$ = String.Empty
@@ -46,8 +46,8 @@ Namespace API.Twitter
                 If .File.Exists Then
                     If EncryptCookies.CookiesEncrypted Then .CookiesEncryptKey = SettingsCLS.CookieEncryptKey
                     .LoadSettings()
-                    a = .HeadersValue(Header_Authorization)
-                    t = .HeadersValue(Header_Token)
+                    a = .Headers.Value(Header_Authorization)
+                    t = .Headers.Value(Header_Token)
                 Else
                     .ContentType = "application/json"
                     .Accept = "*/*"
@@ -55,15 +55,15 @@ Namespace API.Twitter
                     .Cookies = New CookieKeeper(.CookiesDomain) With {.EncryptKey = SettingsCLS.CookieEncryptKey}
                     .CookiesEncryptKey = SettingsCLS.CookieEncryptKey
                     .Decoders.Add(SymbolsConverter.Converters.Unicode)
-                    .HeadersAdd("sec-ch-ua", " Not;A Brand"";v=""99"", ""Google Chrome"";v=""91"", ""Chromium"";v=""91""")
-                    .HeadersAdd("sec-ch-ua-mobile", "?0")
-                    .HeadersAdd("sec-fetch-dest", "empty")
-                    .HeadersAdd("sec-fetch-mode", "cors")
-                    .HeadersAdd("sec-fetch-site", "same-origin")
-                    .HeadersAdd(Header_Token, String.Empty)
-                    .HeadersAdd("x-twitter-active-user", "yes")
-                    .HeadersAdd("x-twitter-auth-type", "OAuth2Session")
-                    .HeadersAdd(Header_Authorization, String.Empty)
+                    .Headers.Add("sec-ch-ua", " Not;A Brand"";v=""99"", ""Google Chrome"";v=""91"", ""Chromium"";v=""91""")
+                    .Headers.Add("sec-ch-ua-mobile", "?0")
+                    .Headers.Add("sec-fetch-dest", "empty")
+                    .Headers.Add("sec-fetch-mode", "cors")
+                    .Headers.Add("sec-fetch-site", "same-origin")
+                    .Headers.Add(Header_Token, String.Empty)
+                    .Headers.Add("x-twitter-active-user", "yes")
+                    .Headers.Add("x-twitter-auth-type", "OAuth2Session")
+                    .Headers.Add(Header_Authorization, String.Empty)
                     .SaveSettings()
                 End If
             End With
@@ -84,8 +84,8 @@ Namespace API.Twitter
                     Case NameOf(Token) : f = Header_Token
                 End Select
                 If Not f.IsEmptyString Then
-                    Responser.HeadersRemove(f)
-                    If Not CStr(Value).IsEmptyString Then Responser.HeadersAdd(f, CStr(Value))
+                    Responser.Headers.Remove(f)
+                    If Not CStr(Value).IsEmptyString Then Responser.Headers.Add(f, CStr(Value))
                     Responser.SaveSettings()
                 End If
             End If

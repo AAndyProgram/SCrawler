@@ -28,7 +28,7 @@ Namespace API.Base
                 Return $"{Appender.StringTrimEnd("/")}/{File}"
             End If
         End Function
-        Friend Shared Function Download(ByVal URLs As List(Of String), ByVal DestinationFile As SFile, Optional ByVal Responser As Response = Nothing) As SFile
+        Friend Shared Function Download(ByVal URLs As List(Of String), ByVal DestinationFile As SFile, Optional ByVal Responser As Responser = Nothing) As SFile
             Dim CachePath As SFile = Nothing
             Try
                 If URLs.ListExists Then

@@ -11,12 +11,12 @@ Imports PersonalUtilities.Tools.Web.Clients
 Namespace DownloadObjects
     Friend Class WebClient2 : Implements IDisposable
         Protected WC As WebClient
-        Protected RC As Response
+        Protected RC As Responser
         Private ReadOnly RCERROR As New ErrorsDescriber(EDP.ThrowException)
         Protected UseResponserClient As Boolean
         Friend Sub New()
         End Sub
-        Friend Sub New(ByVal Responser As Response)
+        Friend Sub New(ByVal Responser As Responser)
             If Not Responser Is Nothing Then
                 RC = Responser
                 UseResponserClient = True
