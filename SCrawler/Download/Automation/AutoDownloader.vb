@@ -471,18 +471,25 @@ Namespace DownloadObjects
                 Dim DownloadedUsersCount% = 0
                 Dim simple As Boolean = ShowSimpleNotification And ShowNotifications
                 Dim notify As Action = Sub()
-                                           With Downloader.Downloaded
-                                               If ShowNotifications And .Count > 0 Then .ForEach(Sub(ByVal u As IUserData)
-                                                                                                     If Keys.Contains(u.Key) Then
-                                                                                                         If simple Then
-                                                                                                             DownloadedUsersCount += 1
-                                                                                                         Else
-                                                                                                             ShowNotification(u)
-                                                                                                         End If
-                                                                                                         Keys.Remove(u.Key)
-                                                                                                     End If
-                                                                                                 End Sub)
-                                           End With
+                                           Try
+                                               With Downloader.Downloaded
+                                                   If ShowNotifications And .Count > 0 Then
+                                                       For indx% = 0 To .Count - 1
+                                                           With .Item(indx)
+                                                               If Keys.Contains(.Key) Then
+                                                                   If simple Then
+                                                                       DownloadedUsersCount += 1
+                                                                   Else
+                                                                       ShowNotification(.Self)
+                                                                   End If
+                                                                   Keys.Remove(.Key)
+                                                               End If
+                                                           End With
+                                                       Next
+                                                   End If
+                                               End With
+                                           Catch n_ex As Exception
+                                           End Try
                                        End Sub
                 Select Case Mode
                     Case Modes.All

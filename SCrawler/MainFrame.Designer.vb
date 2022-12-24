@@ -754,6 +754,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         '
         'BTT_CONTEXT_GROUPS
         '
+        Me.BTT_CONTEXT_GROUPS.Image = Global.SCrawler.My.Resources.Resources.TagPic_24
         Me.BTT_CONTEXT_GROUPS.Name = "BTT_CONTEXT_GROUPS"
         Me.BTT_CONTEXT_GROUPS.Size = New System.Drawing.Size(221, 22)
         Me.BTT_CONTEXT_GROUPS.Text = "Change labels"

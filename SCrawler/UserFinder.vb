@@ -158,7 +158,7 @@ Friend Class UserFinder : Implements IDisposable
         Const MsgTitle$ = "Import users"
         Const DesignNode$ = "ImportUserSelector"
         Try
-            Dim uStr As Func(Of UserInfo, String) = Function(u) $"{IIf(u.CollectionName.IsEmptyString, String.Empty, $"[{u.CollectionName}]: ")} {u.Site} - {u.Name}"
+            Dim uStr As Func(Of UserInfo, String) = Function(u) $"{IIf(u.CollectionName.IsEmptyString, String.Empty, $"[{u.CollectionName}]: ")}{u.Site} - {u.Name}"
             Dim uc As Comparison(Of UserInfo) = Function(ByVal x As UserInfo, ByVal y As UserInfo) As Integer
                                                     If Not x.CollectionName.IsEmptyString And Not y.CollectionName.IsEmptyString Then
                                                         Return x.CollectionName.CompareTo(y.CollectionName)
@@ -296,7 +296,7 @@ Friend Class UserFinder : Implements IDisposable
                 AddHandler f.AddClick, __add
                 If f.ShowDialog() = DialogResult.OK Then
                     l.Clear()
-                    l.AddRange(f.DataResult)
+                    l.ListAddList(f.DataResult, LAP.NotContainsOnly)
                     Return l
                 End If
             End Using

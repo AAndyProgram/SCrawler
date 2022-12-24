@@ -346,12 +346,12 @@ Namespace API.PornHub
                     If PhotoPageModel = PhotoPageModels.Undefined Then
                         If DownloadUserPhotos_ModelHub(Token) Then PhotoPageModel = PhotoPageModels.ModelHubPage
                         ThrowAny(Token)
-                        If PhotoPageModel = PhotoPageModels.Undefined AndAlso DownloadPhotoOnlyFromModelHub AndAlso
+                        If PhotoPageModel = PhotoPageModels.Undefined AndAlso Not DownloadPhotoOnlyFromModelHub AndAlso
                            DownloadUserPhotos_PornHub(Token) Then PhotoPageModel = PhotoPageModels.PornHubPage
                     Else
                         Select Case PhotoPageModel
                             Case PhotoPageModels.ModelHubPage : DownloadUserPhotos_ModelHub(Token)
-                            Case PhotoPageModels.PornHubPage : If DownloadPhotoOnlyFromModelHub Then DownloadUserPhotos_PornHub(Token)
+                            Case PhotoPageModels.PornHubPage : If Not DownloadPhotoOnlyFromModelHub Then DownloadUserPhotos_PornHub(Token)
                         End Select
                     End If
                 ElseIf Not DownloadPhotoOnlyFromModelHub Then

@@ -1452,8 +1452,8 @@ ResumeDownloadingOperation:
                         m.Text = "No one user deleted!"
                         m.Style = MsgBoxStyle.Critical
                     Else
-                        m.Text = $"The following users were deleted:{vbNewLine}{removedUsers.ListToStringE(vbNewLine, userProvider)}{vbNewLine.StringDup(2)}"
-                        m.Text &= $"The following users were NOT deleted:{vbNewLine}{leftUsers.ListToStringE(vbNewLine, userProvider)}"
+                        m.Text = $"The following users were deleted:{vbNewLine}{removedUsers.ListToString(vbNewLine)}{vbNewLine.StringDup(2)}"
+                        m.Text &= $"The following users were NOT deleted:{vbNewLine}{leftUsers.ListToString(vbNewLine)}"
                         m.Style = MsgBoxStyle.Exclamation
                     End If
                     If b Then Settings.UpdateBlackList()

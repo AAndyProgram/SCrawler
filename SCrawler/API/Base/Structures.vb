@@ -131,6 +131,14 @@ Namespace API.Base
                     Me.Attempts = Attempts
                 End Set
             End Property
+            Private Property IUserMedia_Object As Object Implements IUserMedia.Object
+                Get
+                    Return Me.Object
+                End Get
+                Set(ByVal Obj As Object)
+                    Me.Object = Obj
+                End Set
+            End Property
 #End Region
             Friend Sub New(ByVal URL As String)
                 Me.URL = URL
@@ -142,7 +150,7 @@ Namespace API.Base
                 Me.New(URL)
                 Me.Type = Type
             End Sub
-            Friend Sub New(ByVal m As Plugin.IUserMedia)
+            Friend Sub New(ByVal m As IUserMedia)
                 [Type] = m.ContentType
                 URL = m.URL
                 URL_BASE = m.URL_BASE
@@ -152,6 +160,7 @@ Namespace API.Base
                 State = m.DownloadState
                 SpecialFolder = m.SpecialFolder
                 Attempts = m.Attempts
+                Me.Object = m.Object
             End Sub
             Friend Sub New(ByVal e As EContainer, ByVal UserInstance As IUserData)
                 Type = e.Attribute(Name_MediaType).Value.FromXML(Of Integer)(CInt(Types.Undefined))

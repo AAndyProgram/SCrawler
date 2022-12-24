@@ -584,6 +584,7 @@
     <None Include="Content\Icons\SiteIcons\XhamsterIcon_32.ico" />
     <None Include="Content\Pictures\SitePictures\PornHubPic_16.png" />
     <None Include="Content\Icons\SiteIcons\PornHubIcon_16.ico" />
+    <None Include="Content\Pictures\TagPic_24.png" />
     <Content Include="cURL\curl.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

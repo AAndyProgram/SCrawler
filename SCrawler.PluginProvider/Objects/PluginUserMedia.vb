@@ -34,6 +34,7 @@ Namespace Plugin
         Public Property PostDate As Date? Implements IUserMedia.PostDate
         Public Property SpecialFolder As String Implements IUserMedia.SpecialFolder
         Public Property Attempts As Integer Implements IUserMedia.Attempts
+        Public Property [Object] As Object Implements IUserMedia.Object
     End Structure
     Public Interface IUserMedia
         Property ContentType As Integer
@@ -46,5 +47,6 @@ Namespace Plugin
         Property PostDate As Date?
         Property SpecialFolder As String
         Property Attempts As Integer
+        Property [Object] As Object
     End Interface
 End Namespace
