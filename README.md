@@ -1,7 +1,10 @@
-# :rainbow_flag: Social networks crawler :rainbow_flag:
+# :rainbow_flag: Social networks crawler :rainbow_flag: :christmas_tree:
+
+# :christmas_tree: Happy new year :christmas_tree:
 
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/AAndyProgram/SCrawler)](https://github.com/AAndyProgram/SCrawler/releases/latest)
 [![GitHub license](https://img.shields.io/github/license/AAndyProgram/SCrawler)](https://github.com/AAndyProgram/SCrawler/blob/main/LICENSE)
+[![GitHub all releases](https://img.shields.io/github/downloads/aandyprogram/scrawler/total?label=Total%20downloads)](https://github.com/AAndyProgram/SCrawler/releases)
 [![FAQ](https://img.shields.io/badge/FAQ-green)](FAQ.md)
 [![GUIDE](https://img.shields.io/badge/GUIDE-green)](https://github.com/AAndyProgram/SCrawler/wiki)
 [![How to support](https://img.shields.io/badge/HowToSupport-green)](HowToSupport.md)

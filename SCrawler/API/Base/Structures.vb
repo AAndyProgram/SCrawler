@@ -104,7 +104,7 @@ Namespace API.Base
                     Return Post.ID
                 End Get
                 Set(ByVal PostID As String)
-                    Post.ID = PostID
+                    Post = New UserPost(PostID, Post.Date)
                 End Set
             End Property
             Private Property IUserMedia_PostDate As Date? Implements IUserMedia.PostDate
@@ -112,7 +112,7 @@ Namespace API.Base
                     Return Post.Date
                 End Get
                 Set(ByVal PostDate As Date?)
-                    Post.Date = PostDate
+                    Post = New UserPost(Post.ID, PostDate)
                 End Set
             End Property
             Private Property IUserMedia_SpecialFolder As String Implements IUserMedia.SpecialFolder

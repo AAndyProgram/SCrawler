@@ -38,6 +38,7 @@ Namespace DownloadObjects
         Private VideoLengthMs As Integer = 0
         Private VideoLengthStr As String
         Private MediaFile As SFile = Nothing
+        Friend ReadOnly HasError As Boolean = False
         Public Sub New()
             InitializeComponent()
         End Sub
@@ -63,7 +64,6 @@ Namespace DownloadObjects
                                 MyVideo.BackgroundImageLayout = ImageLayout.Zoom
                             End If
                         Catch img_set_ex As Exception
-                            'TODELETE: FeedVideo set BackgroundImage error
                             ErrorsDescriber.Execute(EDP.SendInLog, img_set_ex, "Error setting background image for media player." & vbCr &
                                                                                $"File: {File}{vbCr}Image: {f}")
                         End Try
@@ -71,8 +71,8 @@ Namespace DownloadObjects
                 End If
                 UpdateButtons()
             Catch ex As Exception
-                'TODELETE: FeedVideo initialization error
                 ErrorsDescriber.Execute(EDP.SendInLog, ex, $"Media player initialization error({File})")
+                HasError = True
             End Try
         End Sub
         Private _Disposed As Boolean = False

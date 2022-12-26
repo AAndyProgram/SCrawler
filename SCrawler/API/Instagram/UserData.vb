@@ -9,6 +9,7 @@
 Imports System.Net
 Imports System.Threading
 Imports PersonalUtilities.Functions.XML
+Imports PersonalUtilities.Functions.XML.Base
 Imports PersonalUtilities.Functions.Messaging
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Tools.Web.Clients
@@ -25,12 +26,48 @@ Namespace API.Instagram
         Private Const Name_TaggedChecked As String = "TaggedChecked"
 #End Region
 #Region "Declarations"
+        Private Structure PostKV : Implements IEContainerProvider
+            Private Const Name_Code As String = "Code"
+            Private Const Name_Section As String = "Section"
+            Friend Code As String
+            Friend ID As String
+            Friend Section As Sections
+            Friend Sub New(ByVal _Section As Sections)
+                Section = _Section
+            End Sub
+            Friend Sub New(ByVal _Code As String, ByVal _ID As String, ByVal _Section As Sections)
+                Code = _Code
+                ID = _ID
+                Section = _Section
+            End Sub
+            Private Sub New(ByVal e As EContainer)
+                Code = e.Attribute(Name_Code)
+                Section = e.Attribute(Name_Section)
+                ID = e.Value
+            End Sub
+            Public Shared Widening Operator CType(ByVal e As EContainer) As PostKV
+                Return New PostKV(e)
+            End Operator
+            Public Overrides Function Equals(ByVal Obj As Object) As Boolean
+                If Not IsNothing(Obj) AndAlso TypeOf Obj Is PostKV Then
+                    With DirectCast(Obj, PostKV)
+                        Return Code = .Code And ID = .ID And Section = .Section
+                    End With
+                Else
+                    Return False
+                End If
+            End Function
+            Private Function ToEContainer(Optional ByVal e As ErrorsDescriber = Nothing) As EContainer Implements IEContainerProvider.ToEContainer
+                Return New EContainer("Post", ID, {New EAttribute(Name_Section, CInt(Section)), New EAttribute(Name_Code, Code)})
+            End Function
+        End Structure
         Private ReadOnly Property MySiteSettings As SiteSettings
             Get
                 Return DirectCast(HOST.Source, SiteSettings)
             End Get
         End Property
-        Private ReadOnly _SavedPostsIDs As New List(Of String)
+        Private ReadOnly PostsKVIDs As List(Of PostKV)
+        Private ReadOnly PostsToReparse As List(Of PostKV)
         Private LastCursor As String = String.Empty
         Private FirstLoadingDone As Boolean = False
         Friend Property GetStories As Boolean
@@ -51,6 +88,8 @@ Namespace API.Instagram
 #End Region
 #Region "Initializer, loader"
         Friend Sub New()
+            PostsKVIDs = New List(Of PostKV)
+            PostsToReparse = New List(Of PostKV)
         End Sub
         Protected Overrides Sub LoadUserInformation_OptionalFields(ByRef Container As XmlFile, ByVal Loading As Boolean)
             If Loading Then
@@ -78,48 +117,127 @@ Namespace API.Instagram
                 End If
                 Throw New ExitException
             End Sub
-            Friend Sub New()
-            End Sub
-            Friend Sub New(ByRef CompleteArg As Boolean)
-                CompleteArg = True
-            End Sub
         End Class
+        Private Sub LoadSavePostsKV(ByVal Load As Boolean)
+            Dim x As XmlFile
+            Dim f As SFile = MyFilePosts
+            If Not f.IsEmptyString Then
+                f.Name &= "_KV"
+                f.Extension = "xml"
+                If Load Then
+                    PostsKVIDs.Clear()
+                    x = New XmlFile(f, Protector.Modes.All, False) With {.AllowSameNames = True, .XmlReadOnly = True}
+                    x.LoadData()
+                    If x.Count > 0 Then PostsKVIDs.ListAddList(x, LAP.IgnoreICopier)
+                    x.Dispose()
+                Else
+                    x = New XmlFile With {.AllowSameNames = True}
+                    x.AddRange(PostsKVIDs)
+                    x.Name = "Posts"
+                    x.Save(f, EDP.SendInLog)
+                    x.Dispose()
+                End If
+            End If
+        End Sub
+        Private Overloads Function PostKvExists(ByVal pkv As PostKV) As Boolean
+            Return PostKvExists(pkv.ID, False, pkv.Section) OrElse PostKvExists(pkv.Code, True, pkv.Section)
+        End Function
+        Private Overloads Function PostKvExists(ByVal PostCodeId As String, ByVal IsCode As Boolean, ByVal Section As Sections) As Boolean
+            If Not PostCodeId.IsEmptyString And PostsKVIDs.Count > 0 Then
+                If PostsKVIDs.FindIndex(Function(p) p.Section = Section AndAlso If(IsCode, p.Code = PostCodeId, p.ID = PostCodeId)) >= 0 Then
+                    Return True
+                ElseIf Not IsCode Then
+                    Return _TempPostsList.Contains(GetPostIdBySection(PostCodeId, Section)) Or
+                           _TempPostsList.Contains(PostCodeId.Replace($"_{ID}", String.Empty)) Or
+                           _TempPostsList.Contains(GetPostIdBySection(PostCodeId.Replace($"_{ID}", String.Empty), Section))
+                End If
+            End If
+            Return False
+        End Function
+        Friend Function GetPostCodeById(ByVal PostID As String) As String
+            Try
+                If Not PostID.IsEmptyString Then
+                    Dim f As SFile = MyFilePosts
+                    If Not f.IsEmptyString Then
+                        f.Name &= "_KV"
+                        f.Extension = "xml"
+                        Dim l As List(Of PostKV) = Nothing
+                        Using x As New XmlFile(f, Protector.Modes.All, False) With {.AllowSameNames = True, .XmlReadOnly = True}
+                            x.LoadData()
+                            l.ListAddList(x, LAP.IgnoreICopier)
+                        End Using
+                        Dim code$ = String.Empty
+                        If l.ListExists Then
+                            Dim i% = l.FindIndex(Function(p) p.ID = PostID)
+                            If i >= 0 Then code = l(i).Code
+                            l.Clear()
+                        End If
+                        Return code
+                    End If
+                End If
+                Return String.Empty
+            Catch ex As Exception
+                Return ErrorsDescriber.Execute(EDP.SendInLog, ex, $"{ToStringForLog()}: Cannot find post code by ID ({PostID})", String.Empty)
+            End Try
+        End Function
+        Private Function GetPostIdBySection(ByVal ID As String, ByVal Section As Sections) As String
+            If Section = Sections.Timeline Then
+                Return ID
+            Else
+                Return $"{Section}_{ID}"
+            End If
+        End Function
+        Private _DownloadingInProgress As Boolean = False
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
             Dim s As Sections = Sections.Timeline
+            Dim errorFound As Boolean = False
             Try
+                LoadSavePostsKV(True)
+                _DownloadingInProgress = True
+                AddHandler Responser.ResponseReceived, AddressOf Responser_ResponseReceived
                 ThrowAny(Token)
-                _InstaHash = String.Empty
                 HasError = False
-                Dim fc As Boolean = IIf(IsSavedPosts, MySiteSettings.DownloadSaved.Value, MySiteSettings.DownloadTimeline.Value)
-                If fc And Not LastCursor.IsEmptyString Then
+                If CBool(MySiteSettings.DownloadTimeline.Value) And Not LastCursor.IsEmptyString Then
                     s = IIf(IsSavedPosts, Sections.SavedPosts, Sections.Timeline)
                     DownloadData(LastCursor, s, Token)
                     ThrowAny(Token)
                     If Not HasError Then FirstLoadingDone = True
                 End If
-                If fc And Not HasError Then
+                If CBool(MySiteSettings.DownloadTimeline.Value) And Not HasError Then
                     s = IIf(IsSavedPosts, Sections.SavedPosts, Sections.Timeline)
                     DownloadData(String.Empty, s, Token)
                     ThrowAny(Token)
                     If Not HasError Then FirstLoadingDone = True
                 End If
                 If FirstLoadingDone Then LastCursor = String.Empty
-                If IsSavedPosts Then
-                    If MySiteSettings.DownloadSaved Then s = Sections.SavedPosts : DownloadPosts(Token)
-                ElseIf MySiteSettings.BaseAuthExists() Then
-                    DownloadedTags = 0
-                    If MySiteSettings.DownloadStoriesTagged And GetStories Then s = Sections.Stories : DownloadData(String.Empty, s, Token)
-                    If MySiteSettings.DownloadStoriesTagged And GetTaggedData Then s = Sections.Tagged : DownloadData(String.Empty, s, Token)
+                If MySiteSettings.BaseAuthExists() Then
+                    If CBool(MySiteSettings.DownloadTimeline.Value) And GetStories Then s = Sections.Stories : DownloadData(String.Empty, s, Token)
+                    If CBool(MySiteSettings.DownloadTagged.Value) And ACheck(MySiteSettings.HashTagged.Value) And GetTaggedData Then s = Sections.Tagged : DownloadData(String.Empty, s, Token)
                 End If
                 If WaitNotificationMode = WNM.SkipTemp Or WaitNotificationMode = WNM.SkipCurrent Then WaitNotificationMode = WNM.Notify
             Catch eex As ExitException
             Catch ex As Exception
-                ProcessException(ex, Token, "[API.Instagram.UserData.DownloadDataF]", False, s)
+                errorFound = True
+                Throw ex
             Finally
                 E560Thrown = False
+                UpdateResponser()
+                If Not errorFound Then LoadSavePostsKV(False)
             End Try
         End Sub
-        Private _InstaHash As String = String.Empty
+        Private Sub UpdateResponser()
+            Try
+                If _DownloadingInProgress AndAlso Not Responser Is Nothing AndAlso Not Responser.Disposed Then
+                    _DownloadingInProgress = False
+                    RemoveHandler Responser.ResponseReceived, AddressOf Responser_ResponseReceived
+                    Declarations.UpdateResponser(Responser, MySiteSettings.Responser)
+                End If
+            Catch
+            End Try
+        End Sub
+        Private Sub Responser_ResponseReceived(ByVal Sender As Object, ByVal e As EventArguments.WebDataResponse)
+            Declarations.UpdateResponser(e, Responser)
+        End Sub
         Private Enum Sections : Timeline : Tagged : Stories : SavedPosts : End Enum
         Private Const StoriesFolder As String = "Stories"
         Private Const TaggedFolder As String = "Tagged"
@@ -145,7 +263,7 @@ Namespace API.Instagram
                                               "What do you want to do?", "Waiting for Instagram download...",
                                               {
                                                New MsgBoxButton("Wait") With {.ToolTip = "Wait and ask again when the error is found."},
-                                               New MsgBoxButton("Wait (disable current") With {.ToolTip = "Wait and skip future prompts while downloading the current profile."},
+                                               New MsgBoxButton("Wait (disable current)") With {.ToolTip = "Wait and skip future prompts while downloading the current profile."},
                                                New MsgBoxButton("Abort") With {.ToolTip = "Abort operation"},
                                                New MsgBoxButton("Wait (disable all)") With {.ToolTip = "Wait and skip future prompts while downloading the current session."}
                                               },
@@ -180,13 +298,11 @@ Namespace API.Instagram
 #Region "Tags"
         Private TaggedChecked As Boolean = False
         Friend TaggedCheckSession As Boolean = True
-        Private DownloadedTags As Integer = 0
         Private DownloadTagsLimit As Integer? = Nothing
-        Private ReadOnly Property TaggedLimitsNotifications(Optional ByVal v As Integer? = Nothing) As Boolean
+        Private ReadOnly Property TaggedLimitsNotifications(ByVal v As Integer) As Boolean
             Get
                 Return Not TaggedChecked AndAlso TaggedCheckSession AndAlso
-                       CInt(MySiteSettings.TaggedNotifyLimit.Value) > 0 AndAlso
-                       (Not v.HasValue OrElse v.Value > CInt(MySiteSettings.TaggedNotifyLimit.Value))
+                       CInt(MySiteSettings.TaggedNotifyLimit.Value) > 0 AndAlso v > CInt(MySiteSettings.TaggedNotifyLimit.Value)
             End Get
         End Property
         Private Function SetTagsLimit(ByVal Max As Integer, ByVal p As ANumbers) As DialogResult
@@ -219,8 +335,9 @@ Namespace API.Instagram
         End Function
         Private Function TaggedContinue(ByVal TaggedCount As Integer) As DialogResult
             Dim agi As New ANumbers With {.FormatOptions = ANumbers.Options.GroupIntegral}
-            Dim msg As New MMessage($"The number of tagged posts by user [{ToString()}] is {TaggedCount.NumToString(agi)}" & vbCr &
-                                    $"This is about {(TaggedCount / 12).RoundUp.NumToString(agi)} requests." & vbCr &
+            Dim msg As New MMessage($"The number of already downloaded tagged posts by user [{ToString()}] is {TaggedCount.NumToString(agi)}" & vbCr &
+                                    "There is currently no way to know how many posts exist." & vbCr &
+                                    "One request will be spent per post." & vbCr &
                                     "The tagged data download operation can take a long time.",
                                     "Too much tagged data",
                                     {
@@ -252,40 +369,46 @@ Namespace API.Instagram
             Dim URL$ = String.Empty
             Dim StoriesList As List(Of String) = Nothing
             Dim StoriesRequested As Boolean = False
-            Dim _DownloadComplete As Boolean = False
+            Dim dValue% = 1
             LastCursor = Cursor
             Try
-                Do While Not _DownloadComplete
+                Do While dValue = 1
                     ThrowAny(Token)
                     If Not Ready() Then Thread.Sleep(10000) : ThrowAny(Token) : Continue Do
                     ReconfigureAwaiter()
 
                     Try
-                        Dim n As EContainer, nn As EContainer, node As EContainer
+                        Dim n As EContainer, nn As EContainer
                         Dim HasNextPage As Boolean = False
-                        Dim Pinned As Boolean
                         Dim EndCursor$ = String.Empty
                         Dim PostID$ = String.Empty, PostDate$ = String.Empty, SpecFolder$ = String.Empty
-                        Dim TaggedCount%
+                        Dim PostIDKV As PostKV
                         Dim ENode() As Object = Nothing
                         NextRequest(True)
 
                         'Check environment
-                        If Cursor.IsEmptyString And _InstaHash.IsEmptyString Then _
-                           _InstaHash = CStr(If(IsSavedPosts, MySiteSettings.HashSavedPosts, MySiteSettings.Hash).Value)
-                        If ID.IsEmptyString Then GetUserId()
-                        If ID.IsEmptyString Then Throw New ArgumentException("User ID is not detected", "ID")
+                        If Not IsSavedPosts Then
+                            If ID.IsEmptyString Then GetUserId()
+                            If ID.IsEmptyString Then Throw New ArgumentException("User ID is not detected", "ID")
+                        End If
+
 
                         'Create query
                         Select Case Section
-                            Case Sections.Timeline, Sections.SavedPosts
+                            Case Sections.Timeline
+                                URL = $"https://www.instagram.com/api/v1/feed/user/{Name}/username/?count=50" &
+                                        If(Cursor.IsEmptyString, String.Empty, $"&max_id={Cursor}")
+                                ENode = Nothing
+                            Case Sections.SavedPosts
+                                SavedPostsDownload(String.Empty, Token)
+                                Exit Sub
+                            Case Sections.Tagged
+                                Dim h$ = AConvert(Of String)(MySiteSettings.HashTagged.Value, String.Empty)
+                                If h.IsEmptyString Then Throw New ExitException
                                 Dim vars$ = "{""id"":" & ID & ",""first"":50,""after"":""" & Cursor & """}"
                                 vars = SymbolsConverter.ASCII.EncodeSymbolsOnly(vars)
-                                URL = $"https://www.instagram.com/graphql/query/?query_hash={_InstaHash}&variables={vars}"
+                                URL = $"https://www.instagram.com/graphql/query/?query_hash={h}&variables={vars}"
                                 ENode = {"data", "user", 0}
-                            Case Sections.Tagged
-                                URL = $"https://i.instagram.com/api/v1/usertags/{ID}/feed/?count=50&max_id={Cursor}"
-                                ENode = {"items"}
                                 SpecFolder = TaggedFolder
                             Case Sections.Stories
                                 If Not StoriesRequested Then
@@ -303,7 +426,7 @@ Namespace API.Instagram
                                 If StoriesList.ListExists Then
                                     Continue Do
                                 Else
-                                    Throw New ExitException(_DownloadComplete)
+                                    Throw New ExitException
                                 End If
                         End Select
 
@@ -316,78 +439,73 @@ Namespace API.Instagram
                         'Parsing
                         If Not r.IsEmptyString Then
                             Using j As EContainer = JsonDocument.Parse(r).XmlIfNothing
-                                n = j.ItemF(ENode).XmlIfNothing
+                                n = If(ENode Is Nothing, j, j.ItemF(ENode)).XmlIfNothing
                                 If n.Count > 0 Then
                                     Select Case Section
-                                        Case Sections.Timeline, Sections.SavedPosts
-                                            If n.Contains("page_info") Then
-                                                With n("page_info")
-                                                    HasNextPage = .Value("has_next_page").FromXML(Of Boolean)(False)
-                                                    EndCursor = .Value("end_cursor")
-                                                End With
-                                            End If
-                                            n = n("edges").XmlIfNothing
-                                            If n.Count > 0 Then
-                                                For Each nn In n
-                                                    ThrowAny(Token)
-                                                    node = nn(0).XmlIfNothing
-                                                    If IsSavedPosts Then
-                                                        PostID = node.Value("shortcode")
-                                                        If Not PostID.IsEmptyString AndAlso _TempPostsList.Contains(PostID) Then Throw New ExitException(_DownloadComplete)
-                                                    End If
-                                                    PostID = node.Value("id")
-                                                    Pinned = CBool(If(node("pinned_for_users")?.Count, 0))
-                                                    If Not PostID.IsEmptyString And _TempPostsList.Contains(PostID) And Not Pinned Then Throw New ExitException(_DownloadComplete)
-                                                    _TempPostsList.Add(PostID)
-                                                    PostDate = node.Value("taken_at_timestamp")
-                                                    If IsSavedPosts Then
-                                                        _SavedPostsIDs.Add(PostID)
-                                                    Else
-                                                        Select Case CheckDatesLimit(PostDate, DateProvider)
-                                                            Case DateResult.Skip : Continue For
-                                                            Case DateResult.Exit : If Not Pinned Then Throw New ExitException(_DownloadComplete)
-                                                        End Select
-                                                        ObtainMedia(node, PostID, PostDate, SpecFolder)
-                                                    End If
-                                                Next
-                                            End If
+                                        Case Sections.Timeline
+                                            With n
+                                                HasNextPage = .Value("more_available").FromXML(Of Boolean)(False)
+                                                EndCursor = .Value("next_max_id")
+                                                If If(.Item("items")?.Count, 0) > 0 Then
+                                                    If Not DefaultParser(.Item("items"), Section, Token) Then Throw New ExitException
+                                                Else
+                                                    HasNextPage = False
+                                                End If
+                                            End With
                                         Case Sections.Tagged
-                                            HasNextPage = j.Value("more_available").FromXML(Of Boolean)(False)
-                                            EndCursor = j.Value("next_max_id")
-                                            For Each nn In n
-                                                PostID = $"Tagged_{nn.Value("id")}"
-                                                If Not PostID.IsEmptyString And _TempPostsList.Contains(PostID) Then Throw New ExitException(_DownloadComplete)
-                                                _TempPostsList.Add(PostID)
-                                                ObtainMedia2(nn, PostID, SpecFolder)
-                                                DownloadedTags += 1
-                                                If DownloadTagsLimit.HasValue AndAlso DownloadedTags >= DownloadTagsLimit.Value Then Throw New ExitException(_DownloadComplete)
-                                            Next
-                                            If TaggedLimitsNotifications Then
-                                                TaggedCount = j.Value("total_count").FromXML(Of Integer)(0)
+                                            With n
+                                                If .Contains("page_info") Then
+                                                    With .Item("page_info")
+                                                        HasNextPage = .Value("has_next_page").FromXML(Of Boolean)(False)
+                                                        EndCursor = .Value("end_cursor")
+                                                    End With
+                                                Else
+                                                    HasNextPage = False
+                                                End If
+                                                If If(.Item("edges")?.Count, 0) > 0 Then
+                                                    For Each nn In .Item("edges")
+                                                        PostIDKV = New PostKV(Section)
+                                                        If nn.Count > 0 AndAlso nn(0).Count > 0 Then
+                                                            With nn(0)
+                                                                PostIDKV = New PostKV(.Value("shortcode"), .Value("id"), Section)
+                                                                If PostKvExists(PostIDKV) Then
+                                                                    Throw New ExitException
+                                                                Else
+                                                                    If Not DownloadTagsLimit.HasValue OrElse PostsToReparse.Count + 1 < DownloadTagsLimit.Value Then
+                                                                        _TempPostsList.Add(GetPostIdBySection(PostIDKV.ID, Section))
+                                                                        PostsKVIDs.ListAddValue(PostIDKV, LAP.NotContainsOnly)
+                                                                        PostsToReparse.ListAddValue(PostIDKV, LNC)
+                                                                    ElseIf DownloadTagsLimit.HasValue OrElse PostsToReparse.Count + 1 >= DownloadTagsLimit.Value Then
+                                                                        Throw New ExitException
+                                                                    End If
+                                                                End If
+                                                            End With
+                                                        End If
+                                                    Next
+                                                Else
+                                                    HasNextPage = False
+                                                End If
+                                            End With
+                                            If TaggedLimitsNotifications(PostsToReparse.Count) Then
                                                 TaggedChecked = True
-                                                If TaggedLimitsNotifications(TaggedCount) AndAlso
-                                                   TaggedContinue(TaggedCount) = DialogResult.Cancel Then Throw New ExitException(_DownloadComplete)
+                                                If TaggedContinue(PostsToReparse.Count) = DialogResult.Cancel Then Throw New ExitException
                                             End If
                                     End Select
                                 Else
-                                    If j.Value("status") = "ok" AndAlso j({"data", "user"}).XmlIfNothing.Count = 0 AndAlso
+                                    If j.Value("status") = "ok" AndAlso If(j("items")?.Count, 0) = 0 AndAlso
                                        _TempMediaList.Count = 0 AndAlso Section = Sections.Timeline Then _
-                                       UserExists = False : Throw New ExitException(_DownloadComplete)
+                                       UserExists = False : Throw New ExitException
                                 End If
                             End Using
                         Else
-                            Throw New ExitException(_DownloadComplete)
+                            Throw New ExitException
                         End If
-                        _DownloadComplete = True
+                        dValue = 0
                         If HasNextPage And Not EndCursor.IsEmptyString Then DownloadData(EndCursor, Section, Token)
                     Catch eex As ExitException
                         Throw eex
-                    Catch oex As OperationCanceledException When Token.IsCancellationRequested
-                        Exit Do
-                    Catch dex As ObjectDisposedException When Disposed
-                        Exit Do
                     Catch ex As Exception
-                        If DownloadingException(ex, $"data downloading error [{URL}]", False, Section) = 1 Then Continue Do Else Exit Do
+                        dValue = ProcessException(ex, Token, $"data downloading error [{URL}]",, Section, False)
                     End Try
                 Loop
             Catch eex2 As ExitException
@@ -400,10 +518,10 @@ Namespace API.Instagram
         End Sub
         Private Sub DownloadPosts(ByVal Token As CancellationToken)
             Dim URL$ = String.Empty
-            Dim _DownloadComplete As Boolean = False
+            Dim dValue% = 1
             Dim _Index% = 0
             Try
-                Do While Not _DownloadComplete
+                Do While dValue = 1
                     ThrowAny(Token)
                     If Not Ready() Then Thread.Sleep(10000) : ThrowAny(Token) : Continue Do
                     ReconfigureAwaiter()
@@ -411,13 +529,11 @@ Namespace API.Instagram
                     Try
                         Dim r$
                         Dim j As EContainer, jj As EContainer
-                        Dim _MediaObtained As Boolean
-                        If _SavedPostsIDs.Count > 0 And _Index <= _SavedPostsIDs.Count - 1 Then
+                        If PostsToReparse.Count > 0 And _Index <= PostsToReparse.Count - 1 Then
                             Dim e As New ErrorsDescriber(EDP.ThrowException)
-                            For i% = _Index To _SavedPostsIDs.Count - 1
+                            For i% = _Index To PostsToReparse.Count - 1
                                 _Index = i
-                                'URL = $"https://instagram.com/p/{_SavedPostsIDs(i)}/?__a=1"
-                                URL = $"https://i.instagram.com/api/v1/media/{_SavedPostsIDs(i)}/info/"
+                                URL = $"https://www.instagram.com/api/v1/media/{PostsToReparse(i).ID}/info/"
                                 ThrowAny(Token)
                                 NextRequest(((i + 1) Mod 5) = 0)
                                 ThrowAny(Token)
@@ -427,17 +543,9 @@ Namespace API.Instagram
                                 If Not r.IsEmptyString Then
                                     j = JsonDocument.Parse(r)
                                     If Not j Is Nothing Then
-                                        _MediaObtained = False
-                                        If j.Contains({"graphql", "shortcode_media"}) Then
-                                            With j({"graphql", "shortcode_media"}).XmlIfNothing
-                                                If .Count > 0 Then ObtainMedia(.Self, _SavedPostsIDs(i), String.Empty, String.Empty) : _MediaObtained = True
-                                            End With
-                                        End If
-                                        If Not _MediaObtained AndAlso j.Contains("items") Then
+                                        If If(j("items")?.Count, 0) > 0 Then
                                             With j("items")
-                                                If .Count > 0 Then
-                                                    For Each jj In .Self : ObtainMedia2(jj, _SavedPostsIDs(i)) : Next
-                                                End If
+                                                For Each jj In .Self : ObtainMedia(jj, PostsToReparse(i).ID) : Next
                                             End With
                                         End If
                                         j.Dispose()
@@ -445,24 +553,79 @@ Namespace API.Instagram
                                 End If
                             Next
                         End If
-                        _DownloadComplete = True
+                        dValue = 0
                     Catch eex As ExitException
                         Throw eex
-                    Catch oex As OperationCanceledException When Token.IsCancellationRequested
-                        Exit Do
-                    Catch dex As ObjectDisposedException When Disposed
-                        Exit Do
                     Catch ex As Exception
-                        If DownloadingException(ex, $"downloading saved posts error [{URL}]", False, Sections.SavedPosts) = 1 Then Continue Do Else Exit Do
+                        dValue = ProcessException(ex, Token, $"downloading posts error [{URL}]",, Sections.Tagged, False)
                     End Try
                 Loop
             Catch eex2 As ExitException
             Catch oex2 As OperationCanceledException When Token.IsCancellationRequested Or oex2.HelpLink = InstAborted
                 If oex2.HelpLink = InstAborted Then HasError = True
             Catch DoEx As Exception
-                ProcessException(DoEx, Token, $"downloading saved posts error [{URL}]",, Sections.SavedPosts)
+                ProcessException(DoEx, Token, $"downloading posts error [{URL}]",, Sections.Tagged)
             End Try
         End Sub
+        Private Sub SavedPostsDownload(ByVal Cursor As String, ByVal Token As CancellationToken)
+            Dim URL$ = $"https://www.instagram.com/api/v1/feed/saved/posts/?max_id={Cursor}"
+            Dim HasNextPage As Boolean = False
+            Dim NextCursor$ = String.Empty
+            ThrowAny(Token)
+            Dim r$ = Responser.GetResponse(URL)
+            Dim nodes As IEnumerable(Of EContainer) = Nothing
+            If Not r.IsEmptyString Then
+                Using e As EContainer = JsonDocument.Parse(r)
+                    If If(e?.Count, 0) > 0 Then
+                        With e
+                            HasNextPage = .Value("more_available").FromXML(Of Boolean)(False)
+                            NextCursor = .Value("next_max_id")
+                            If .Contains("items") Then nodes = (From ee As EContainer In .Item("items") Where ee.Count > 0 Select ee(0))
+                        End With
+                        If nodes.ListExists Then
+                            DefaultParser(nodes, Sections.SavedPosts, Token)
+                            If HasNextPage And Not NextCursor.IsEmptyString Then SavedPostsDownload(NextCursor, Token)
+                        End If
+                    End If
+                End Using
+            End If
+        End Sub
+        Private Function DefaultParser(ByVal Items As IEnumerable(Of EContainer), ByVal Section As Sections, ByVal Token As CancellationToken,
+                                       Optional ByVal SpecFolder As String = Nothing) As Boolean
+            ThrowAny(Token)
+            If Items.Count > 0 Then
+                Dim PostIDKV As PostKV
+                Dim Pinned As Boolean
+                Dim PostDate$
+                If SpecFolder.IsEmptyString Then
+                    Select Case Section
+                        Case Sections.Tagged : SpecFolder = TaggedFolder
+                        Case Sections.Stories : SpecFolder = StoriesFolder
+                        Case Else : SpecFolder = String.Empty
+                    End Select
+                End If
+                For Each nn In Items
+                    With nn
+                        PostIDKV = New PostKV(.Value("code"), .Value("id"), Section)
+                        Pinned = .Contains("timeline_pinned_user_ids")
+                        If PostKvExists(PostIDKV) And Not Pinned Then Return False
+                        _TempPostsList.Add(PostIDKV.ID)
+                        PostsKVIDs.ListAddValue(PostIDKV, LAP.NotContainsOnly)
+                        PostDate = .Value("taken_at")
+                        If Not IsSavedPosts Then
+                            Select Case CheckDatesLimit(PostDate, DateProvider)
+                                Case DateResult.Skip : Continue For
+                                Case DateResult.Exit : If Not Pinned Then Return False
+                            End Select
+                        End If
+                        ObtainMedia(.Self, PostIDKV.ID, SpecFolder, PostDate)
+                    End With
+                Next
+                Return True
+            Else
+                Return False
+            End If
+        End Function
 #End Region
 #Region "Code ID converters"
         Private Shared Function CodeToID(ByVal Code As String) As String
@@ -485,25 +648,7 @@ Namespace API.Instagram
         End Function
 #End Region
 #Region "Obtain Media"
-        Private Sub ObtainMedia(ByVal node As EContainer, ByVal PostID As String, ByVal PostDate As String, ByVal SpecFolder As String)
-            Dim CreateMedia As Action(Of EContainer) =
-                Sub(ByVal e As EContainer)
-                    Dim t As UTypes = If(e.Value("is_video").FromXML(Of Boolean)(False), UTypes.Video, UTypes.Picture)
-                    Dim tmpValue$
-                    If t = UTypes.Picture Then
-                        tmpValue = e.Value("display_url")
-                    Else
-                        tmpValue = e.Value("video_url")
-                    End If
-                    If Not tmpValue.IsEmptyString Then _TempMediaList.ListAddValue(MediaFromData(t, tmpValue, PostID, PostDate, SpecFolder), LNC)
-                End Sub
-            If node.Contains({"edge_sidecar_to_children", "edges"}) Then
-                For Each edge As EContainer In node({"edge_sidecar_to_children", "edges"}) : CreateMedia(edge("node").XmlIfNothing) : Next
-            Else
-                CreateMedia(node)
-            End If
-        End Sub
-        Private Sub ObtainMedia2(ByVal n As EContainer, ByVal PostID As String, Optional ByVal SpecialFolder As String = Nothing,
+        Private Sub ObtainMedia(ByVal n As EContainer, ByVal PostID As String, Optional ByVal SpecialFolder As String = Nothing,
                                  Optional ByVal DateObj As String = Nothing)
             Try
                 Dim img As Predicate(Of EContainer) = Function(_img) Not _img.Name.IsEmptyString AndAlso _img.Name.StartsWith("image_versions") AndAlso _img.Count > 0
@@ -575,7 +720,7 @@ Namespace API.Instagram
                                 DateObj = mDate(n)
                                 With n("carousel_media").XmlIfNothing
                                     If .Count > 0 Then
-                                        For Each d In .Self : ObtainMedia2(d, PostID, SpecialFolder, DateObj) : Next
+                                        For Each d In .Self : ObtainMedia(d, PostID, SpecialFolder, DateObj) : Next
                                     End If
                                 End With
                         End Select
@@ -588,22 +733,6 @@ Namespace API.Instagram
         End Sub
 #End Region
 #Region "GetUserId"
-        <Obsolete> Private Sub GetUserId_Old()
-            Try
-                Dim r$ = Responser.GetResponse($"https://www.instagram.com/{Name}/?__a=1",, EDP.ThrowException)
-                If Not r.IsEmptyString Then
-                    Using j As EContainer = JsonDocument.Parse(r).XmlIfNothing
-                        ID = j({"graphql", "user"}, "id").XmlIfNothingValue
-                    End Using
-                End If
-            Catch ex As Exception
-                If Responser.StatusCode = HttpStatusCode.NotFound Or Responser.StatusCode = HttpStatusCode.BadRequest Then
-                    Throw ex
-                Else
-                    LogError(ex, "get Instagram user id")
-                End If
-            End Try
-        End Sub
         Private Sub GetUserId()
             Try
                 Dim r$ = Responser.GetResponse($"https://i.instagram.com/api/v1/users/web_profile_info/?username={Name}",, EDP.ThrowException)
@@ -652,7 +781,7 @@ Namespace API.Instagram
                                                 pid = storyID & s.Value("id")
                                                 If Not _TempPostsList.Contains(pid) Then
                                                     ThrowAny(Token)
-                                                    ObtainMedia2(s, pid, sFolder)
+                                                    ObtainMedia(s, pid, sFolder)
                                                     _TempPostsList.Add(pid)
                                                 End If
                                             Next
@@ -731,8 +860,7 @@ Namespace API.Instagram
                 Dim s As Sections = DirectCast(Section, Sections)
                 Select Case s
                     Case Sections.Timeline : MySiteSettings.DownloadTimeline.Value = False
-                    Case Sections.SavedPosts : MySiteSettings.DownloadSaved.Value = False
-                    Case Else : MySiteSettings.DownloadStoriesTagged.Value = False
+                    Case Else : MySiteSettings.DownloadTagged.Value = False
                 End Select
                 MyMainLOG = $"[{s}] downloading is disabled until you update your credentials".ToUpper
             End If
@@ -760,7 +888,7 @@ Namespace API.Instagram
                             t.SetEnvironment(Settings(InstagramSiteKey), Nothing, False, False)
                             t.Responser = New Responser
                             t.Responser.Copy(r)
-                            t._SavedPostsIDs.Add(PID)
+                            t.PostsToReparse.Add(New PostKV With {.ID = PID})
                             t.DownloadPosts(Nothing)
                             Return ListAddList(Nothing, t._TempMediaList)
                         End Using
@@ -774,7 +902,13 @@ Namespace API.Instagram
 #End Region
 #Region "IDisposable Support"
         Protected Overrides Sub Dispose(ByVal disposing As Boolean)
-            If Not disposedValue And disposing Then _SavedPostsIDs.Clear()
+            If Not disposedValue Then
+                UpdateResponser()
+                If disposing Then
+                    PostsKVIDs.Clear()
+                    PostsToReparse.Clear()
+                End If
+            End If
             MyBase.Dispose(disposing)
         End Sub
 #End Region

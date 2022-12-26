@@ -1,3 +1,26 @@
+# 2022.12.26.0
+
+*2022-12-26*
+
+**ATTENTION!**
+
+**Instagram requirements changed. Headers and cookies are now required to download Timeline, Stories and Saved posts; hash to download tagged posts. Please update your credentials.**
+
+**Instagram tagged posts no longer provide the total amount of tagged posts. I've corrected the tagged posts notification, but now I can't tell how many requests will be spent on downloading tagged posts. And from now on, one request will be spent on downloading each tagged post, because Instagram doesn't provide complete information about the tagged post with the site's response. In this case, if the number of tagged posts is 1000, 1000 requests will be spent. Be careful when downloading them. I highly recommend that you forcefully disable the downloading of tagged posts for a while.**
+
+- Added
+  - Updated user loading algorithm
+  - Channels button to tray context menu
+  - (Request #96) Add FFmpeg to x86 version
+- Fixed
+  - PornHub wrong behavior when downloading images
+  - Unable open XVideos user profile
+  - Cannot delete multiple collections at once
+  - Can't focus user from the download info form
+  - Instagram downloader not working
+  - (Issue #69) **RedGifs data is not downloading**. Again.
+  - Minor bugs
+
 # 2022.11.16.0
 
 *2022-11-16*

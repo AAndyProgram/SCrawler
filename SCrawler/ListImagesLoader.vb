@@ -6,11 +6,12 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
+Imports System.Threading
 Imports SCrawler.API
 Imports SCrawler.API.Base
 Friend Class ListImagesLoader
     Private ReadOnly Property MyList As ListView
-    Private Class UserOption : Implements IComparable(Of UserOption)
+    Private Structure UserOption : Implements IComparable(Of UserOption)
         Friend ReadOnly User As IUserData
         Friend ReadOnly LVI As ListViewItem
         Friend Index As Integer
@@ -19,93 +20,106 @@ Friend Class ListImagesLoader
                 Return LVI.Name
             End Get
         End Property
-        Friend [Image] As Image
-        Friend Sub New(ByVal u As IUserData, ByVal l As ListView, ByVal GetImage As Boolean)
+        Friend Sub New(ByVal u As IUserData, ByVal l As ListView)
             User = u
             LVI = u.GetLVI(l)
             Index = u.Index
-            If GetImage Then Image = u.GetPicture
-        End Sub
-        Friend Sub UpdateImage()
-            Image = User.GetPicture
         End Sub
         Friend Function CompareTo(ByVal Other As UserOption) As Integer Implements IComparable(Of UserOption).CompareTo
             Return Index.CompareTo(Other.Index)
         End Function
-    End Class
+    End Structure
     Friend Sub New(ByRef l As ListView)
         MyList = l
     End Sub
+    Private UserDataList As List(Of UserOption)
+    Private UpdateInProgress As Boolean = False
+    Private ImageThread As Thread
+    Private Sub UpdateImages()
+        If UserDataList.ListExists And Not If(ImageThread?.IsAlive, False) Then
+            ImageThread = New Thread(New ThreadStart(Sub()
+                                                         Dim ar As IAsyncResult = Nothing
+                                                         Dim a As Action = Sub()
+                                                                               If UserDataList.ListExists Then
+                                                                                   For i% = 0 To UserDataList.Count - 1
+                                                                                       With UserDataList(i).User
+                                                                                           Select Case Settings.ViewMode.Value
+                                                                                               Case View.LargeIcon : MyList.LargeImageList.Images.Add(.Key, .GetPicture())
+                                                                                               Case View.SmallIcon : MyList.SmallImageList.Images.Add(.Key, .GetPicture())
+                                                                                           End Select
+                                                                                       End With
+                                                                                       Application.DoEvents()
+                                                                                   Next
+                                                                                   UserDataList.Clear()
+                                                                                   GC.Collect()
+                                                                               End If
+                                                                               If Not ar Is Nothing Then MyList.EndInvoke(ar)
+                                                                           End Sub
+                                                         If MyList.InvokeRequired Then
+                                                             ar = MyList.BeginInvoke(a)
+                                                         Else
+                                                             a.Invoke
+                                                         End If
+                                                     End Sub)) With {.IsBackground = True}
+            ImageThread.SetApartmentState(ApartmentState.MTA)
+            ImageThread.Start()
+        End If
+    End Sub
     Friend Sub Update()
-        Dim a As Action = Sub()
-                              With MyList
-                                  .Items.Clear()
-                                  If Not .LargeImageList Is Nothing Then .LargeImageList.Images.Clear()
-                                  .LargeImageList = New ImageList
-                                  If Not .SmallImageList Is Nothing Then .SmallImageList.Images.Clear()
-                                  .SmallImageList = New ImageList
-                                  If Settings.ViewModeIsPicture Then
-                                      .LargeImageList.ColorDepth = ColorDepth.Depth32Bit
-                                      .SmallImageList.ColorDepth = ColorDepth.Depth32Bit
-                                      .LargeImageList.ImageSize = New Size(DivideWithZeroChecking(Settings.MaxLargeImageHeight.Value, 100) * 75, Settings.MaxLargeImageHeight.Value)
-                                      .SmallImageList.ImageSize = New Size(DivideWithZeroChecking(Settings.MaxSmallImageHeight.Value, 100) * 75, Settings.MaxSmallImageHeight.Value)
-                                  End If
-                              End With
-                          End Sub
-        If MyList.InvokeRequired Then MyList.Invoke(a) Else a.Invoke
-        If Settings.Users.Count > 0 Then
-            Settings.Users.Sort()
-            Dim v As View = Settings.ViewMode.Value
-            Dim i%
+        If Not UpdateInProgress Then
+            UpdateInProgress = True
+            Dim a As Action = Sub()
+                                  With MyList
+                                      .Items.Clear()
+                                      If Not .LargeImageList Is Nothing Then .LargeImageList.Images.Clear()
+                                      .LargeImageList = New ImageList
+                                      If Not .SmallImageList Is Nothing Then .SmallImageList.Images.Clear()
+                                      .SmallImageList = New ImageList
+                                      If Settings.ViewModeIsPicture Then
+                                          .LargeImageList.ColorDepth = ColorDepth.Depth32Bit
+                                          .SmallImageList.ColorDepth = ColorDepth.Depth32Bit
+                                          .LargeImageList.ImageSize = New Size(DivideWithZeroChecking(Settings.MaxLargeImageHeight.Value, 100) * 75, Settings.MaxLargeImageHeight.Value)
+                                          .SmallImageList.ImageSize = New Size(DivideWithZeroChecking(Settings.MaxSmallImageHeight.Value, 100) * 75, Settings.MaxSmallImageHeight.Value)
+                                      End If
+                                  End With
+                              End Sub
+            If MyList.InvokeRequired Then MyList.Invoke(a) Else a.Invoke
+            If Settings.Users.Count > 0 Then
+                Settings.Users.Sort()
+                Dim v As View = Settings.ViewMode.Value
 
-            With MyList
-                MyList.BeginUpdate()
+                With MyList
+                    MyList.BeginUpdate()
 
-                If Settings.FastProfilesLoading Then
-                    Settings.Users.ListReindex
-                    Dim UData As List(Of UserOption)
+                    If Settings.FastProfilesLoading Then
+                        Settings.Users.ListReindex
 
-                    If Settings.ViewModeIsPicture Then
-                        UData = GetUsersWithImages()
-                        If UData.ListExists Then
-                            UData.Sort()
-                            Select Case v
-                                Case View.LargeIcon : .LargeImageList.Images.AddRange(UData.Select(Function(u) u.Image).ToArray)
-                                Case View.SmallIcon : .SmallImageList.Images.AddRange(UData.Select(Function(u) u.Image).ToArray)
-                            End Select
+                        UserDataList = (From u As IUserData In Settings.Users Where u.FitToAddParams Select New UserOption(u, MyList)).ListIfNothing
+                        If UserDataList.ListExists Then UserDataList.Sort()
+
+                        If UserDataList.ListExists Then
+                            .Items.AddRange(UserDataList.Select(Function(u) u.LVI).ToArray)
+                            If Settings.ViewModeIsPicture Then MyList.EndUpdate() : UpdateImages() Else UserDataList.Clear()
                         End If
                     Else
-                        UData = (From u As IUserData In Settings.Users Where u.FitToAddParams Select New UserOption(u, MyList, False)).ListIfNothing
-                        If UData.ListExists Then UData.Sort()
-                    End If
-
-                    If UData.ListExists Then
-                        If Settings.ViewModeIsPicture Then
-                            For i = 0 To UData.Count - 1
-                                Select Case v
-                                    Case View.LargeIcon : .LargeImageList.Images.SetKeyName(i, UData(i).Key)
-                                    Case View.SmallIcon : .SmallImageList.Images.SetKeyName(i, UData(i).Key)
-                                End Select
-                            Next
-                        End If
-                        .Items.AddRange(UData.Select(Function(u) u.LVI).ToArray)
-                        UData.Clear()
-                    End If
-                Else
-                    Dim t As New List(Of Task)
-                    For Each User As IUserData In Settings.Users
-                        If User.FitToAddParams Then
-                            If Settings.ViewModeIsPicture Then
-                                t.Add(Task.Run(Sub() UpdateUser(User, True)))
-                            Else
-                                UpdateUser(User, True)
+                        Dim t As New List(Of Task)
+                        For Each User As IUserData In Settings.Users
+                            If User.FitToAddParams Then
+                                If Settings.ViewModeIsPicture Then
+                                    t.Add(Task.Run(Sub() UpdateUser(User, True)))
+                                Else
+                                    UpdateUser(User, True)
+                                End If
                             End If
-                        End If
-                    Next
-                    If t.Count > 0 Then Task.WhenAll(t.ToArray) : t.Clear()
-                End If
-            End With
-            MyList.EndUpdate()
+                        Next
+                        If t.Count > 0 Then Task.WhenAll(t.ToArray) : t.Clear()
+                    End If
+                End With
+                MyList.EndUpdate()
+            End If
+            UpdateInProgress = False
+        Else
+            MsgBoxE({"The user list is currently being updated. Please wait for the update operation to complete and try again.", "Update user list"}, vbExclamation)
         End If
     End Sub
     Friend Sub UpdateUser(ByVal User As IUserData, ByVal Add As Boolean)
@@ -171,25 +185,5 @@ Friend Class ListImagesLoader
         Else
             Return False
         End If
-    End Function
-    Private Function GetUsersWithImages() As List(Of UserOption)
-        Try
-            Dim t As New List(Of Task)
-            Dim l As New List(Of UserOption)
-            t.AddRange(From u As IUserData In Settings.Users Where u.FitToAddParams Select Task.Run(Sub() l.Add(New UserOption(u, MyList, True))))
-            If t.Count > 0 Then Task.WaitAll(t.ToArray)
-            If l.Count > 0 Then
-                For i% = 0 To l.Count - 1
-                    If l(i) Is Nothing Then Throw New ArgumentNullException("UserOption", $"One of the UserOptions [{i} / {l.Count - 1}] is null.")
-                    If l(i).Image Is Nothing Then l(i).UpdateImage()
-                Next
-            End If
-            Return l
-        Catch ex As Exception
-            Return ErrorsDescriber.Execute(EDP.LogMessageValue, ex,
-                                           "Image fast loading error." & vbCr &
-                                           "Click the ""Refresh"" button to manually refresh the user list." & vbCr &
-                                           "[ListImagesLoader.GetUsersWithImages]")
-        End Try
     End Function
 End Class

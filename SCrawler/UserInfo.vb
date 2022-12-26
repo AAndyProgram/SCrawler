@@ -39,7 +39,7 @@ Partial Friend Module MainMod
                 Return Not CollectionName.IsEmptyString
             End Get
         End Property
-        Friend ReadOnly Property IsVirual As Boolean
+        Friend ReadOnly Property IsVirtual As Boolean
             Get
                 Return CollectionModel = UsageModel.Virtual Or UserModel = UsageModel.Virtual
             End Get
@@ -123,7 +123,7 @@ Partial Friend Module MainMod
             ElseIf Merged And IncludedInCollection Then
                 Return $"{ColPath}\{SettingsFolderName}"
             Else
-                If IncludedInCollection And Not IsVirual Then
+                If IncludedInCollection And Not IsVirtual Then
                     Return $"{ColPath}\{Site}_{Name}\{SettingsFolderName}"
                 ElseIf Not Settings(Plugin) Is Nothing Then
                     Return $"{Settings(Plugin).Path.PathNoSeparator}\{Name}\{SettingsFolderName}"

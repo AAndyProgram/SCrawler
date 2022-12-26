@@ -46,11 +46,13 @@ Namespace API.XVIDEOS
         End Sub
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
             If Not Settings.UseM3U8 Then
-                If Not Settings.OS64 Then
-                    MyMainLOG = $"XVIDEOS [{ToStringForLog()}]: The plugin only works with x64 OS."
-                Else
-                    MyMainLOG = $"{ToStringForLog()}: File [ffmpeg.exe] not found"
-                End If
+                'TODELETE: XVideos m3u8 delete after debug ffmpeg x86
+                'If Not Settings.OS64 Then
+                '    MyMainLOG = $"XVIDEOS [{ToStringForLog()}]: The plugin only works with x64 OS."
+                'Else
+                '    'MyMainLOG = $"{ToStringForLog()}: File [ffmpeg.exe] not found"
+                'End If
+                MyMainLOG = $"{ToStringForLog()}: File [ffmpeg.exe] not found"
                 Exit Sub
             End If
             If IsSavedPosts Then

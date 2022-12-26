@@ -165,12 +165,6 @@
     <Compile Include="API\Base\ProfileSaved.vb" />
     <Compile Include="API\Base\SiteSettingsBase.vb" />
     <Compile Include="API\Base\Structures.vb" />
-    <Compile Include="API\Instagram\AdditionalSettingsForm.Designer.vb">
-      <DependentUpon>AdditionalSettingsForm.vb</DependentUpon>
-    </Compile>
-    <Compile Include="API\Instagram\AdditionalSettingsForm.vb">
-      <SubType>Form</SubType>
-    </Compile>
     <Compile Include="API\Instagram\EditorExchangeOptions.vb" />
     <Compile Include="API\Instagram\OptionsForm.Designer.vb">
       <DependentUpon>OptionsForm.vb</DependentUpon>
@@ -178,7 +172,6 @@
     <Compile Include="API\Instagram\OptionsForm.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="API\Instagram\SettingsExchangeOptions.vb" />
     <Compile Include="API\LPSG\Declarations.vb" />
     <Compile Include="API\LPSG\SiteSettings.vb" />
     <Compile Include="API\LPSG\UserData.vb" />
@@ -414,9 +407,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="API\Instagram\AdditionalSettingsForm.resx">
-      <DependentUpon>AdditionalSettingsForm.vb</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="API\Instagram\OptionsForm.resx">
       <DependentUpon>OptionsForm.vb</DependentUpon>
     </EmbeddedResource>

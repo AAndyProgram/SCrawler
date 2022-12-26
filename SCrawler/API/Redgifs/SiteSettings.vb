@@ -33,7 +33,6 @@ Namespace API.RedGifs
         <PropertyOption(AllowNull:=False, ControlText:="Token", ControlToolTip:="Bearer token")>
         Friend Property Token As PropertyValue
         <PXML> Friend Property TokenLastDateUpdated As PropertyValue
-        <DoNotUse> Friend ReadOnly Property NoCredentialsResponser As Responser
         Private Const TokenName As String = "authorization"
 #End Region
 #Region "Initializer"
@@ -45,18 +44,6 @@ Namespace API.RedGifs
                 .Mode = Responser.Modes.WebClient
                 t = .Headers.Value(TokenName)
                 If b Then .SaveSettings()
-            End With
-            NoCredentialsResponser = New Responser($"{SettingsFolderName}\Responser_{RedGifsSite}_NC.xml") With {
-                .CookiesEncryptKey = SettingsCLS.CookieEncryptKey,
-                .CookiesDomain = "redgifs.com"
-            }
-            With NoCredentialsResponser
-                If .File.Exists Then
-                    .LoadSettings()
-                Else
-                    .Cookies = New CookieKeeper(.CookiesDomain) With {.EncryptKey = SettingsCLS.CookieEncryptKey}
-                    .SaveSettings()
-                End If
             End With
             Token = New PropertyValue(t, GetType(String), Sub(v) UpdateResponse(v))
             TokenLastDateUpdated = New PropertyValue(Now.AddYears(-1), GetType(Date))

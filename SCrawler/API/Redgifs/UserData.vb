@@ -34,21 +34,15 @@ Namespace API.RedGifs
         End Sub
 #End Region
 #Region "Download functions"
-        Private NoCredentialsResponser As Responser
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
-            Try
-                NoCredentialsResponser = MySettings.NoCredentialsResponser.Copy
-                DownloadData(1, Token)
-            Finally
-                NoCredentialsResponser.Dispose()
-            End Try
+            DownloadData(1, Token)
         End Sub
         Private Overloads Sub DownloadData(ByVal Page As Integer, ByVal Token As CancellationToken)
             Dim URL$ = String.Empty
             Try
                 Dim _page As Func(Of String) = Function() If(Page = 1, String.Empty, $"&page={Page}")
                 URL = $"https://api.redgifs.com/v2/users/{Name}/search?order=recent{_page.Invoke}"
-                Dim r$ = NoCredentialsResponser.GetResponse(URL,, EDP.ThrowException)
+                Dim r$ = Responser.GetResponse(URL,, EDP.ThrowException)
                 Dim postDate$, postID$
                 Dim pTotal% = 0
                 If Not r.IsEmptyString Then
@@ -70,7 +64,7 @@ Namespace API.RedGifs
                 End If
                 If pTotal > 0 And Page < pTotal Then DownloadData(Page + 1, Token)
             Catch ex As Exception
-                ProcessException(ex, Token, $"data downloading error [{URL}]",, True)
+                ProcessException(ex, Token, $"data downloading error [{URL}]")
             End Try
         End Sub
 #End Region
@@ -239,18 +233,8 @@ Namespace API.RedGifs
 #Region "Exception"
         Protected Overrides Function DownloadingException(ByVal ex As Exception, ByVal Message As String, Optional ByVal FromPE As Boolean = False,
                                                           Optional ByVal EObj As Object = Nothing) As Integer
-            Dim IsNoCredentialsResponser As Boolean = AConvert(Of Boolean)(EObj, False)
-            Dim s As WebExceptionStatus = -1
-            Dim sc As HttpStatusCode = -1
-            If IsNoCredentialsResponser Then
-                If Not NoCredentialsResponser Is Nothing Then
-                    s = NoCredentialsResponser.Status
-                    sc = NoCredentialsResponser.StatusCode
-                End If
-            Else
-                s = Responser.Client.Status
-                sc = Responser.Client.StatusCode
-            End If
+            Dim s As WebExceptionStatus = Responser.Client.Status
+            Dim sc As HttpStatusCode = Responser.Client.StatusCode
             If sc = HttpStatusCode.NotFound Or s = DataGone Then
                 UserExists = False
             ElseIf sc = HttpStatusCode.Unauthorized Then

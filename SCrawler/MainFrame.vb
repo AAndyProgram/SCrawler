@@ -250,7 +250,6 @@ CloseResume:
 #Region "List refill, update"
     Friend Sub RefillList()
         UserListLoader.Update()
-        GC.Collect()
     End Sub
     Private Sub UserListUpdate(ByVal User As IUserData, ByVal Add As Boolean)
         UserListLoader.UpdateUser(User, Add)
@@ -380,7 +379,7 @@ CloseResume:
         If MyFeed Is Nothing Then MyFeed = New DownloadFeedForm : AddHandler Downloader.FeedFilesChanged, AddressOf MyFeed.Downloader_FilesChanged
         If MyFeed.Visible Then MyFeed.BringToFront() Else MyFeed.Show()
     End Sub
-    Private Sub BTT_CHANNELS_Click(sender As Object, e As EventArgs) Handles BTT_CHANNELS.Click
+    Private Sub BTT_CHANNELS_Click(sender As Object, e As EventArgs) Handles BTT_CHANNELS.Click, BTT_TRAY_CHANNELS.Click
         If MyChannels Is Nothing Then
             MyChannels = New ChannelViewForm
             AddHandler MyChannels.OnUsersAdded, AddressOf OnUsersAddedHandler

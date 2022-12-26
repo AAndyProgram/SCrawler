@@ -115,6 +115,7 @@ Namespace DownloadObjects
                         Case UserMedia.Types.Video, UserMedia.Types.m3u8
                             infoType = UserMedia.Types.Video
                             MyVideo = New FeedVideo(File) With {.Tag = File, .Dock = DockStyle.Fill, .ContextMenuStrip = CONTEXT_DATA}
+                            If MyVideo.HasError Then HasError = True
                             TP_MAIN.Controls.Add(MyVideo, 0, 1)
                             BTT_CONTEXT_OPEN_MEDIA.Text &= " video"
                             BTT_CONTEXT_DELETE.Text &= " video"

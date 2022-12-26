@@ -124,6 +124,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_TRAY_SHOW_HIDE = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_TRAY_CLOSE = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_TRAY_CLOSE_NO_SCRIPT = New System.Windows.Forms.ToolStripMenuItem()
+        Me.BTT_TRAY_CHANNELS = New System.Windows.Forms.ToolStripMenuItem()
         SEP_1 = New System.Windows.Forms.ToolStripSeparator()
         SEP_2 = New System.Windows.Forms.ToolStripSeparator()
         CONTEXT_SEP_1 = New System.Windows.Forms.ToolStripSeparator()
@@ -825,9 +826,9 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         '
         'TRAY_CONTEXT
         '
-        Me.TRAY_CONTEXT.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_TRAY_PAUSE_AUTOMATION, Me.BTT_TRAY_SILENT_MODE, Me.BTT_TRAY_FEED_SHOW, TRAY_SEP_1, Me.BTT_TRAY_SHOW_HIDE, TRAY_SEP_2, Me.BTT_TRAY_CLOSE, Me.BTT_TRAY_CLOSE_NO_SCRIPT})
+        Me.TRAY_CONTEXT.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_TRAY_PAUSE_AUTOMATION, Me.BTT_TRAY_SILENT_MODE, Me.BTT_TRAY_FEED_SHOW, Me.BTT_TRAY_CHANNELS, TRAY_SEP_1, Me.BTT_TRAY_SHOW_HIDE, TRAY_SEP_2, Me.BTT_TRAY_CLOSE, Me.BTT_TRAY_CLOSE_NO_SCRIPT})
         Me.TRAY_CONTEXT.Name = "TRAY_CONTEXT"
-        Me.TRAY_CONTEXT.Size = New System.Drawing.Size(171, 148)
+        Me.TRAY_CONTEXT.Size = New System.Drawing.Size(171, 170)
         '
         'BTT_TRAY_PAUSE_AUTOMATION
         '
@@ -883,6 +884,13 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_TRAY_CLOSE_NO_SCRIPT.Text = "Close (no script)"
         Me.BTT_TRAY_CLOSE_NO_SCRIPT.ToolTipText = "Close the program without executing the script"
         Me.BTT_TRAY_CLOSE_NO_SCRIPT.Visible = False
+        '
+        'BTT_TRAY_CHANNELS
+        '
+        Me.BTT_TRAY_CHANNELS.Name = "BTT_TRAY_CHANNELS"
+        Me.BTT_TRAY_CHANNELS.Size = New System.Drawing.Size(170, 22)
+        Me.BTT_TRAY_CHANNELS.Text = "Channels"
+        Me.BTT_TRAY_CHANNELS.Image = Global.SCrawler.My.Resources.SiteResources.RedditPic_512
         '
         'MainFrame
         '
@@ -987,4 +995,5 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
     Friend WithEvents BTT_DOWN_AUTOMATION_PAUSE As ToolStripMenuItem
     Private WithEvents BTT_TRAY_FEED_SHOW As ToolStripMenuItem
     Friend WithEvents MENU_DOWN_ALL As ToolStripDropDownButton
+    Private WithEvents BTT_TRAY_CHANNELS As ToolStripMenuItem
 End Class

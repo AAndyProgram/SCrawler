@@ -105,17 +105,14 @@ Namespace API.PornHub
             With DirectCast(User, UserData) : Return String.Format(UrlPatternUser, .PersonType, .NameTrue) : End With
         End Function
         Friend Overrides Function GetUserPostUrl(ByVal User As UserDataBase, ByVal Media As UserMedia) As String
-            'TODELETE: remove comment
-            Return Media.URL_BASE '$"https://www.pornhub.com/view_video.php?viewkey={Media.Post.ID}"
+            Return Media.URL_BASE
         End Function
 #End Region
 #Region "User options"
         Friend Overrides Sub UserOptions(ByRef Options As Object, ByVal OpenForm As Boolean)
-            Dim e As UserExchangeOptions = Nothing
-            If Not Options Is Nothing AndAlso TypeOf Options Is UserExchangeOptions Then e = Options
-            If e Is Nothing Then e = New UserExchangeOptions(Me)
+            If Options Is Nothing OrElse Not TypeOf Options Is UserExchangeOptions Then Options = New UserExchangeOptions(Me)
             If OpenForm Then
-                Using f As New OptionsForm(e) : f.ShowDialog() : End Using
+                Using f As New OptionsForm(Options) : f.ShowDialog() : End Using
             End If
         End Sub
 #End Region

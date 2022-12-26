@@ -98,7 +98,7 @@ Namespace API
                     If Not img Is Nothing Then Return img
                 Next
             End If
-            Return GetNullPicture(Settings.MaxLargeImageHeight)
+            Return GetNullPicture(If(Settings.ViewMode.Value = ViewModes.IconLarge, Settings.MaxLargeImageHeight, Settings.MaxSmallImageHeight))
         End Function
 #End Region
         Friend Overrides ReadOnly Property DownloadedTotal(Optional ByVal Total As Boolean = True) As Integer
@@ -556,7 +556,11 @@ Namespace API
                                        "Cancel"}, vbExclamation)
                 Dim v%
                 If CollectionValue >= 0 Then
-                    v = CollectionValue
+                    Select Case CollectionValue
+                        Case 2 : v = 0
+                        Case 3 : v = 1
+                        Case Else : v = MsgBoxE(m)
+                    End Select
                 ElseIf Multiple Then
                     v = 0
                 Else

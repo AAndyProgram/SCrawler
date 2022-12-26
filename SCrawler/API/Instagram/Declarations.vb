@@ -7,11 +7,49 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports PersonalUtilities.Functions.RegularExpressions
+Imports PersonalUtilities.Tools.Web.Clients
+Imports PersonalUtilities.Tools.Web.Clients.EventArguments
+Imports PersonalUtilities.Tools.Web.Cookies
 Namespace API.Instagram
     Friend Module Declarations
         Friend Const InstagramSite As String = "Instagram"
         Friend Const InstagramSiteKey As String = "AndyProgram_Instagram"
         Friend ReadOnly FilesPattern As RParams = RParams.DMS(".+?([^/\?]+?\.[\w\d]{3,4})(?=(\?|\Z))", 1, EDP.ReturnValue)
         Friend ReadOnly Property DateProvider As New CustomProvider(Function(v, d, p, n, e) ADateTime.ParseUnicode(v))
+        Friend Sub UpdateResponser(ByVal Source As IResponse, ByRef Destination As Responser)
+            Const r_wwwClaimName$ = "x-ig-set-www-claim"
+            Const r_tokenName$ = "csrftoken"
+            If Not Source Is Nothing Then
+                Dim isInternal As Boolean = TypeOf Source Is WebDataResponse
+                Dim wwwClaimName$, tokenName$
+                If isInternal Then
+                    wwwClaimName = r_wwwClaimName
+                    tokenName = r_tokenName
+                Else
+                    wwwClaimName = SiteSettings.Header_IG_WWW_CLAIM
+                    tokenName = SiteSettings.Header_CSRF_TOKEN
+                End If
+                Dim wwwClaim$ = String.Empty
+                Dim token$ = String.Empty
+                With Source
+                    If isInternal Then
+                        If .HeadersExists Then wwwClaim = .Headers.Value(wwwClaimName)
+                        If .CookiesExists Then token = If(.Cookies.FirstOrDefault(Function(c) c.Name = tokenName)?.Value, String.Empty)
+                    Else
+                        If .HeadersExists Then
+                            wwwClaim = .Headers.Value(wwwClaimName)
+                            token = .Headers.Value(tokenName)
+                        End If
+                    End If
+                End With
+
+                If Not wwwClaim.IsEmptyString Then Destination.Headers.Add(SiteSettings.Header_IG_WWW_CLAIM, wwwClaim)
+                If Not token.IsEmptyString Then Destination.Headers.Add(SiteSettings.Header_CSRF_TOKEN, token)
+                If Not isInternal Then
+                    Destination.Cookies.Update(Source.Cookies, CookieKeeper.UpdateModes.ReplaceByNameAll, False, EDP.SendInLog)
+                    Destination.SaveSettings()
+                End If
+            End If
+        End Sub
     End Module
 End Namespace

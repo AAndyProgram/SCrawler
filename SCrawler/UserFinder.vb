@@ -86,6 +86,7 @@ Friend Class UserFinder : Implements IDisposable
                                 .CollectionName = x.Value(UserInfo.Name_Collection),
                                 .IsChannel = x.Value(UserInfo.Name_IsChannel).FromXML(Of Boolean)(False)
                             }
+                            'TODELETE: UserFinder remove old 'merge' constant
 #Disable Warning BC40000
                             If x.Contains(UserDataBase.Name_DataMerging) Then
                                 u.Merged = x.Value(UserDataBase.Name_DataMerging).FromXML(Of Boolean)(False)
@@ -182,7 +183,7 @@ Friend Class UserFinder : Implements IDisposable
             End If
             __added = {__added, __dup, __skipped}.ListToString(vbCr.StringDup(2))
             If Not __added.IsEmptyString Then
-                Using t As New TextSaver($"LOGs\ImportUsers.txt") With {.ForceAddDateTimeToFileName = True}
+                Using t As New TextSaver("LOGs\ImportUsers.txt") With {.ForceAddDateTimeToFileName = True}
                     t.Append(__added)
                     If Added.Count > 0 Then
                         t.AppendLine(vbNewLine.StringDup(2))

@@ -359,7 +359,7 @@ Namespace API.PornHub
                 End If
                 ThrowAny(Token)
             Catch ex As Exception
-                ProcessException(ex, Token, $"photos downloading error")
+                ProcessException(ex, Token, "photos downloading error")
             End Try
         End Sub
         Private Function DownloadUserPhotos_ModelHub(ByVal Token As CancellationToken) As Boolean

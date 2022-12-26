@@ -150,8 +150,8 @@ Namespace DownloadObjects
         Private Sub BTT_FIND_Click(sender As Object, e As EventArgs) Handles BTT_FIND.Click
             Try
                 If _LatestSelected.ValueBetween(0, LIST_DOWN.Items.Count - 1) AndAlso _LatestSelected.ValueBetween(0, Downloader.Downloaded.Count - 1) Then
-                    Dim i% = Settings.Users.IndexOf(_TempUsersList(_LatestSelected))
-                    If i >= 0 Then RaiseEvent UserFind(Settings.Users(i).Key)
+                    Dim u As IUserData = Settings.GetUser(_TempUsersList(_LatestSelected), True)
+                    If Not u Is Nothing Then RaiseEvent UserFind(u.Key)
                 End If
             Catch ex As Exception
             End Try

@@ -241,6 +241,8 @@ Namespace Editors
                             CMB_SITE.Enabled = False
                             CH_IS_CHANNEL.Checked = User.IsChannel
                             If Not UserInstance Is Nothing Then
+                                Text = $"User: {UserInstance.Name}"
+                                If Not UserInstance.FriendlyName.IsEmptyString Then Text &= $" ({UserInstance.FriendlyName})"
                                 TXT_USER.Enabled = False
                                 TXT_SPEC_FOLDER.TextBoxReadOnly = True
                                 TXT_SPEC_FOLDER.Buttons.Clear()

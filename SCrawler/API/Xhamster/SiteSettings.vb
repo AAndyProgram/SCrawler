@@ -114,10 +114,10 @@ Namespace API.Xhamster
             End If
             Return Nothing
         End Function
-        Friend Overrides Function Available(ByVal What As ISiteSettings.Download, Silent As Boolean) As Boolean
+        Friend Overrides Function Available(ByVal What As ISiteSettings.Download, ByVal Silent As Boolean) As Boolean
             If Settings.UseM3U8 AndAlso MyBase.Available(What, Silent) Then
                 If What = ISiteSettings.Download.SavedPosts Then
-                    Return If(Responser.Cookies?.Count, 0) > 0
+                    Return Responser.CookiesExists
                 Else
                     Return True
                 End If

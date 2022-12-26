@@ -57,6 +57,7 @@ Namespace API.XVIDEOS
             SiteDomains = New PropertyValue(DomainsDefault, GetType(String), Sub(s) UpdateDomains())
             DownloadUHD = New PropertyValue(False)
             SavedVideosPlaylist = New PropertyValue(String.Empty, GetType(String))
+            UrlPatternUser = "https://xvideos.com/{0}"
         End Sub
         Friend Overrides Sub EndInit()
             Initialized = True
@@ -105,8 +106,8 @@ Namespace API.XVIDEOS
 #Region "User: get, check"
         Friend Overrides Function GetUserUrl(ByVal User As IPluginContentProvider, ByVal Channel As Boolean) As String
             Dim __user$ = User.Name.Split("_").FirstOrDefault
-            __user &= $"/{User.Name.Replace($"{User}_", String.Empty)}"
-            Return __user
+            __user &= $"/{User.Name.Replace($"{__user}_", String.Empty)}"
+            Return String.Format(UrlPatternUser, __user)
         End Function
         Private Const UserRegexDefault As String = "/(profiles|[\w]*?[-]{0,1}channels)/([^/]+)(\Z|.*?)"
         Private Const URD As String = ".*?{0}{1}"

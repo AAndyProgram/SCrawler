@@ -682,6 +682,7 @@ BlockNullPicture:
                         LastUpdated = AConvert(Of Date)(x.Value(Name_LastUpdated), ADateTime.Formats.BaseDateTime, Nothing)
                         ScriptUse = x.Value(Name_ScriptUse).FromXML(Of Boolean)(False)
                         ScriptData = x.Value(Name_ScriptData)
+                        'TODELETE: UserDataBase remove old 'merge' constant
 #Disable Warning BC40000
                         If x.Contains(Name_DataMerging) Then
                             DataMerging = x.Value(Name_DataMerging).FromXML(Of Boolean)(False)

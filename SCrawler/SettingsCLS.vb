@@ -23,12 +23,14 @@ Friend Class SettingsCLS : Implements IDisposable
     Friend Const CookieEncryptKey As String = "SCrawlerCookiesEncryptKeyword"
     Friend ReadOnly Design As XmlFile
     Private ReadOnly MyXML As XmlFile
-    Friend ReadOnly OS64 As Boolean
+    Private ReadOnly OS64 As Boolean
     Private ReadOnly FfmpegExists As Boolean
     Friend ReadOnly FfmpegFile As SFile
     Friend ReadOnly Property UseM3U8 As Boolean
         Get
-            Return OS64 And FfmpegExists
+            'TODELETE: SETTINGS m3u8 delete after debug ffmpeg x86
+            'Return OS64 And FfmpegExists
+            Return FfmpegExists
         End Get
     End Property
     Private ReadOnly FFMPEGNotification As XMLValue(Of Boolean)
@@ -259,7 +261,7 @@ Friend Class SettingsCLS : Implements IDisposable
                     If cUsers.ListExists Then
                         Dim d As New Dictionary(Of String, List(Of UserInfo))
                         cUsers = cUsers.ListForEachCopy(Of List(Of UserInfo))(Function(ByVal f As UserInfo, ByVal f_indx As Integer) As UserInfo
-                                                                                  Dim m% = IIf(f.Merged Or f.IsVirual, 1, 2)
+                                                                                  Dim m% = IIf(f.Merged Or f.IsVirtual, 1, 2)
                                                                                   If Not f.Protected AndAlso SFile.GetPath(f.File.CutPath(m - 1).Path).Exists(SFO.Path, False) Then
                                                                                       If Not d.ContainsKey(f.CollectionName) Then
                                                                                           d.Add(f.CollectionName, New List(Of UserInfo) From {f})

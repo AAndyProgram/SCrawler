@@ -106,10 +106,10 @@ Namespace Editors
             'BTT_OTHER_SETTINGS
             '
             Me.BTT_OTHER_SETTINGS.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.BTT_OTHER_SETTINGS.Location = New System.Drawing.Point(330, 2)
+            Me.BTT_OTHER_SETTINGS.Location = New System.Drawing.Point(329, 2)
             Me.BTT_OTHER_SETTINGS.Margin = New System.Windows.Forms.Padding(1)
             Me.BTT_OTHER_SETTINGS.Name = "BTT_OTHER_SETTINGS"
-            Me.BTT_OTHER_SETTINGS.Size = New System.Drawing.Size(120, 24)
+            Me.BTT_OTHER_SETTINGS.Size = New System.Drawing.Size(121, 24)
             Me.BTT_OTHER_SETTINGS.TabIndex = 2
             Me.BTT_OTHER_SETTINGS.Text = "Options (F2)"
             TT_MAIN.SetToolTip(Me.BTT_OTHER_SETTINGS, "Other settings")
@@ -121,7 +121,7 @@ Namespace Editors
             'CONTAINER_MAIN.ContentPanel
             '
             CONTAINER_MAIN.ContentPanel.Controls.Add(Me.TP_MAIN)
-            CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(454, 436)
+            CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(454, 461)
             CONTAINER_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
             CONTAINER_MAIN.LeftToolStripPanelVisible = False
             CONTAINER_MAIN.Location = New System.Drawing.Point(0, 0)
@@ -162,7 +162,7 @@ Namespace Editors
             Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 26.0!))
             Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 26.0!))
             Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            Me.TP_MAIN.Size = New System.Drawing.Size(454, 436)
+            Me.TP_MAIN.Size = New System.Drawing.Size(454, 461)
             Me.TP_MAIN.TabIndex = 0
             '
             'TXT_USER
@@ -182,7 +182,7 @@ Namespace Editors
             Me.TP_SITE.ColumnCount = 3
             Me.TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 79.0!))
             Me.TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            Me.TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 122.0!))
+            Me.TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 123.0!))
             Me.TP_SITE.Controls.Add(Me.CH_IS_CHANNEL, 0, 0)
             Me.TP_SITE.Controls.Add(Me.CMB_SITE, 1, 0)
             Me.TP_SITE.Controls.Add(Me.BTT_OTHER_SETTINGS, 2, 0)
@@ -225,7 +225,7 @@ Namespace Editors
             Me.CMB_SITE.Location = New System.Drawing.Point(84, 3)
             Me.CMB_SITE.Margin = New System.Windows.Forms.Padding(3, 2, 3, 3)
             Me.CMB_SITE.Name = "CMB_SITE"
-            Me.CMB_SITE.Size = New System.Drawing.Size(241, 22)
+            Me.CMB_SITE.Size = New System.Drawing.Size(240, 22)
             Me.CMB_SITE.TabIndex = 1
             Me.CMB_SITE.TextBoxBorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
             '
@@ -302,7 +302,7 @@ Namespace Editors
             Me.TXT_DESCR.Location = New System.Drawing.Point(4, 290)
             Me.TXT_DESCR.Multiline = True
             Me.TXT_DESCR.Name = "TXT_DESCR"
-            Me.TXT_DESCR.Size = New System.Drawing.Size(446, 142)
+            Me.TXT_DESCR.Size = New System.Drawing.Size(446, 167)
             Me.TXT_DESCR.TabIndex = 10
             '
             'TXT_USER_FRIENDLY
@@ -469,7 +469,7 @@ Namespace Editors
             Me.Name = "UserCreatorForm"
             Me.ShowInTaskbar = False
             Me.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide
-            Me.Text = "Create User"
+            Me.Text = "Create user"
             CONTAINER_MAIN.ContentPanel.ResumeLayout(False)
             CONTAINER_MAIN.ResumeLayout(False)
             CONTAINER_MAIN.PerformLayout()
