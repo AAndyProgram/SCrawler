@@ -45,16 +45,7 @@ Namespace API.XVIDEOS
             UseInternalM3U8Function = True
         End Sub
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
-            If Not Settings.UseM3U8 Then
-                'TODELETE: XVideos m3u8 delete after debug ffmpeg x86
-                'If Not Settings.OS64 Then
-                '    MyMainLOG = $"XVIDEOS [{ToStringForLog()}]: The plugin only works with x64 OS."
-                'Else
-                '    'MyMainLOG = $"{ToStringForLog()}: File [ffmpeg.exe] not found"
-                'End If
-                MyMainLOG = $"{ToStringForLog()}: File [ffmpeg.exe] not found"
-                Exit Sub
-            End If
+            If Not Settings.UseM3U8 Then MyMainLOG = $"{ToStringForLog()}: File [ffmpeg.exe] not found" : Exit Sub
             If IsSavedPosts Then
                 If Not ACheck(MySettings.SavedVideosPlaylist.Value) Then Throw New ArgumentNullException("SavedVideosPlaylist", "Playlist of saved videos cannot be null")
                 DownloadSavedVideos(Token)
@@ -65,49 +56,63 @@ Namespace API.XVIDEOS
         Private Sub DownloadUserVideo(ByVal Token As CancellationToken)
             Dim URL$ = String.Empty
             Try
-                Dim NextPage% = 0
-                Dim r$
+                Dim NextPage%, d%
+                Dim limit% = If(DownloadTopCount, -1)
+                Dim r$, n$
                 Dim j As EContainer = Nothing
                 Dim jj As EContainer
-                Dim user$ = MySettings.GetUserUrl(Me, False)
+                Dim user$ = MySettings.GetUserUrlPart(Me)
                 Dim p As UserMedia
                 Dim EnvirSet As Boolean = False
 
-                Do
-                    ThrowAny(Token)
-                    URL = $"https://www.xvideos.com/{user}/videos/new/{If(NextPage = 0, String.Empty, NextPage)}"
-                    r = Responser.GetResponse(URL)
-                    If Not r.IsEmptyString Then
-                        If Not EnvirSet Then UserExists = True : UserSuspended = False : EnvirSet = True
-                        j = JsonDocument.Parse(r).XmlIfNothing
-                        With j
-                            If .Contains("videos") Then
-                                With .Item("videos")
-                                    If .Count > 0 Then
-                                        NextPage += 1
-                                        For Each jj In .Self
-                                            p = New UserMedia With {
-                                                .Post = jj.Value("id"),
-                                                .URL = $"https://www.xvideos.com/{jj.Value("u").StringTrimStart("/")}"
-                                            }
-                                            If Not p.Post.ID.IsEmptyString And Not jj.Value("u").IsEmptyString Then
-                                                If Not _TempPostsList.Contains(p.Post.ID) Then
-                                                    _TempPostsList.Add(p.Post.ID)
-                                                    _TempMediaList.Add(p)
-                                                Else
-                                                    Exit Do
+                If ID.IsEmptyString Then GetUserID()
+                For i% = 0 To 1
+                    If i = 1 And ID.IsEmptyString Then Exit For
+                    NextPage = 0
+                    d = 0
+                    n = IIf(i = 0, "u", "url")
+                    Do
+                        ThrowAny(Token)
+                        If i = 0 Then
+                            URL = $"https://www.xvideos.com/{user}/videos/new/{If(NextPage = 0, String.Empty, NextPage)}"
+                        Else 'Quickies
+                            URL = $"https://www.xvideos.com/quickies-api/profilevideos/all/none/N/{ID}/{NextPage}"
+                        End If
+                        r = Responser.GetResponse(URL,, EDP.ReturnValue)
+                        If Not r.IsEmptyString Then
+                            If Not EnvirSet Then UserExists = True : UserSuspended = False : EnvirSet = True
+                            j = JsonDocument.Parse(r).XmlIfNothing
+                            With j
+                                If .Contains("videos") Then
+                                    With .Item("videos")
+                                        If .Count > 0 Then
+                                            NextPage += 1
+                                            For Each jj In .Self
+                                                p = New UserMedia With {
+                                                    .Post = jj.Value("id"),
+                                                    .URL = $"https://www.xvideos.com/{jj.Value(n).StringTrimStart("/")}"
+                                                }
+                                                If Not p.Post.ID.IsEmptyString And Not jj.Value(n).IsEmptyString Then
+                                                    If Not _TempPostsList.Contains(p.Post.ID) Then
+                                                        _TempPostsList.Add(p.Post.ID)
+                                                        _TempMediaList.Add(p)
+                                                        d += 1
+                                                        If limit > 0 And d = limit Then Exit Do
+                                                    Else
+                                                        Exit Do
+                                                    End If
                                                 End If
-                                            End If
-                                        Next
-                                        Continue Do
-                                    End If
-                                End With
-                            End If
-                        End With
-                    End If
-                    If Not j Is Nothing Then j.Dispose()
-                    Exit Do
-                Loop While NextPage < 100
+                                            Next
+                                            Continue Do
+                                        End If
+                                    End With
+                                End If
+                            End With
+                        End If
+                        If Not j Is Nothing Then j.Dispose()
+                        Exit Do
+                    Loop While NextPage < 100
+                Next
 
                 If Not j Is Nothing Then j.Dispose()
 
@@ -129,6 +134,10 @@ Namespace API.XVIDEOS
             Finally
                 If _TempMediaList.ListExists Then _TempMediaList.RemoveAll(Function(m) m.URL.IsEmptyString)
             End Try
+        End Sub
+        Private Sub GetUserID()
+            Dim r$ = Responser.GetResponse($"https://www.xvideos.com/{MySettings.GetUserUrlPart(Me)}",, EDP.ReturnValue)
+            If Not r.IsEmptyString Then ID = RegexReplace(r, RParams.DMS("""id_user"":(\d+)", 1, EDP.ReturnValue))
         End Sub
         Private Sub DownloadSavedVideos(ByVal Token As CancellationToken)
             Dim URL$ = MySettings.SavedVideosPlaylist.Value

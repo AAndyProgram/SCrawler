@@ -23,13 +23,10 @@ Friend Class SettingsCLS : Implements IDisposable
     Friend Const CookieEncryptKey As String = "SCrawlerCookiesEncryptKeyword"
     Friend ReadOnly Design As XmlFile
     Private ReadOnly MyXML As XmlFile
-    Private ReadOnly OS64 As Boolean
     Private ReadOnly FfmpegExists As Boolean
     Friend ReadOnly FfmpegFile As SFile
     Friend ReadOnly Property UseM3U8 As Boolean
         Get
-            'TODELETE: SETTINGS m3u8 delete after debug ffmpeg x86
-            'Return OS64 And FfmpegExists
             Return FfmpegExists
         End Get
     End Property
@@ -69,7 +66,6 @@ Friend Class SettingsCLS : Implements IDisposable
     End Sub
     Friend Sub New()
         RemoveUnusedPlugins()
-        OS64 = Environment.Is64BitOperatingSystem
         FfmpegFile = "ffmpeg.exe"
         FfmpegExists = FfmpegFile.Exists
 
@@ -83,7 +79,7 @@ Friend Class SettingsCLS : Implements IDisposable
         LastCollections = New List(Of String)
 
         FFMPEGNotification = New XMLValue(Of Boolean)("FFMPEGNotification", True, MyXML)
-        If OS64 And Not FfmpegExists Then
+        If Not FfmpegExists Then
             If FFMPEGNotification.Value AndAlso MsgBoxE(New MMessage("[ffmpeg.exe] is missing", "ffmpeg.exe",
                                                         {"OK", New MsgBoxButton("Disable notification") With {
                                                         .IsDialogResultButton = False, .ToolTip = "Disable ffmpeg missing notification"}}, vbExclamation) With {

@@ -21,6 +21,7 @@ Namespace API.Instagram
                 .MyViewInitialize(True)
                 .AddOkCancelToolbar()
                 With MyExchangeOptions
+                    CH_GET_TIMELINE.Checked = .GetTimeline
                     CH_GET_STORIES.Checked = .GetStories
                     CH_GET_TAGGED.Checked = .GetTagged
                 End With
@@ -29,6 +30,7 @@ Namespace API.Instagram
         End Sub
         Private Sub MyDefs_ButtonOkClick(ByVal Sender As Object, ByVal e As KeyHandleEventArgs) Handles MyDefs.ButtonOkClick
             With MyExchangeOptions
+                .GetTimeline = CH_GET_TIMELINE.Checked
                 .GetStories = CH_GET_STORIES.Checked
                 .GetTagged = CH_GET_TAGGED.Checked
             End With

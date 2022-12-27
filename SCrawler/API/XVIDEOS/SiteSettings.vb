@@ -104,10 +104,13 @@ Namespace API.XVIDEOS
         End Function
 #End Region
 #Region "User: get, check"
-        Friend Overrides Function GetUserUrl(ByVal User As IPluginContentProvider, ByVal Channel As Boolean) As String
+        Friend Function GetUserUrlPart(ByVal User As UserData) As String
             Dim __user$ = User.Name.Split("_").FirstOrDefault
             __user &= $"/{User.Name.Replace($"{__user}_", String.Empty)}"
-            Return String.Format(UrlPatternUser, __user)
+            Return __user
+        End Function
+        Friend Overrides Function GetUserUrl(ByVal User As IPluginContentProvider, ByVal Channel As Boolean) As String
+            Return String.Format(UrlPatternUser, GetUserUrlPart(User))
         End Function
         Private Const UserRegexDefault As String = "/(profiles|[\w]*?[-]{0,1}channels)/([^/]+)(\Z|.*?)"
         Private Const URD As String = ".*?{0}{1}"

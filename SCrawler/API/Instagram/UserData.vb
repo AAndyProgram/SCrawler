@@ -21,6 +21,7 @@ Namespace API.Instagram
 #Region "XML Names"
         Private Const Name_LastCursor As String = "LastCursor"
         Private Const Name_FirstLoadingDone As String = "FirstLoadingDone"
+        Private Const Name_GetTimeline As String = "GetTimeline"
         Private Const Name_GetStories As String = "GetStories"
         Private Const Name_GetTagged As String = "GetTaggedData"
         Private Const Name_TaggedChecked As String = "TaggedChecked"
@@ -70,16 +71,18 @@ Namespace API.Instagram
         Private ReadOnly PostsToReparse As List(Of PostKV)
         Private LastCursor As String = String.Empty
         Private FirstLoadingDone As Boolean = False
+        Friend Property GetTimeline As Boolean = True
         Friend Property GetStories As Boolean
         Friend Property GetTaggedData As Boolean
 #End Region
 #Region "Exchange options"
         Friend Overrides Function ExchangeOptionsGet() As Object
-            Return New EditorExchangeOptions(HOST.Source) With {.GetStories = GetStories, .GetTagged = GetTaggedData}
+            Return New EditorExchangeOptions(HOST.Source) With {.GetTimeline = GetTimeline, .GetStories = GetStories, .GetTagged = GetTaggedData}
         End Function
         Friend Overrides Sub ExchangeOptionsSet(ByVal Obj As Object)
             If Not Obj Is Nothing AndAlso TypeOf Obj Is EditorExchangeOptions Then
                 With DirectCast(Obj, EditorExchangeOptions)
+                    GetTimeline = .GetTimeline
                     GetStories = .GetStories
                     GetTaggedData = .GetTagged
                 End With
@@ -197,21 +200,22 @@ Namespace API.Instagram
                 AddHandler Responser.ResponseReceived, AddressOf Responser_ResponseReceived
                 ThrowAny(Token)
                 HasError = False
-                If CBool(MySiteSettings.DownloadTimeline.Value) And Not LastCursor.IsEmptyString Then
+                Dim dt As Boolean = (CBool(MySiteSettings.DownloadTimeline.Value) And GetTimeline) Or IsSavedPosts
+                If dt And Not LastCursor.IsEmptyString Then
                     s = IIf(IsSavedPosts, Sections.SavedPosts, Sections.Timeline)
                     DownloadData(LastCursor, s, Token)
                     ThrowAny(Token)
                     If Not HasError Then FirstLoadingDone = True
                 End If
-                If CBool(MySiteSettings.DownloadTimeline.Value) And Not HasError Then
+                If dt And Not HasError Then
                     s = IIf(IsSavedPosts, Sections.SavedPosts, Sections.Timeline)
                     DownloadData(String.Empty, s, Token)
                     ThrowAny(Token)
                     If Not HasError Then FirstLoadingDone = True
                 End If
                 If FirstLoadingDone Then LastCursor = String.Empty
-                If MySiteSettings.BaseAuthExists() Then
-                    If CBool(MySiteSettings.DownloadTimeline.Value) And GetStories Then s = Sections.Stories : DownloadData(String.Empty, s, Token)
+                If Not IsSavedPosts AndAlso MySiteSettings.BaseAuthExists() Then
+                    If CBool(MySiteSettings.DownloadStories.Value) And GetStories Then s = Sections.Stories : DownloadData(String.Empty, s, Token)
                     If CBool(MySiteSettings.DownloadTagged.Value) And ACheck(MySiteSettings.HashTagged.Value) And GetTaggedData Then s = Sections.Tagged : DownloadData(String.Empty, s, Token)
                 End If
                 If WaitNotificationMode = WNM.SkipTemp Or WaitNotificationMode = WNM.SkipCurrent Then WaitNotificationMode = WNM.Notify

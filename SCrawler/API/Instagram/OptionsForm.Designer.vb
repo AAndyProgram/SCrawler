@@ -26,6 +26,7 @@ Namespace API.Instagram
             Dim TP_MAIN As System.Windows.Forms.TableLayoutPanel
             Me.CH_GET_STORIES = New System.Windows.Forms.CheckBox()
             Me.CH_GET_TAGGED = New System.Windows.Forms.CheckBox()
+            Me.CH_GET_TIMELINE = New System.Windows.Forms.CheckBox()
             CONTAINER_MAIN = New System.Windows.Forms.ToolStripContainer()
             TP_MAIN = New System.Windows.Forms.TableLayoutPanel()
             CONTAINER_MAIN.ContentPanel.SuspendLayout()
@@ -39,13 +40,13 @@ Namespace API.Instagram
             'CONTAINER_MAIN.ContentPanel
             '
             CONTAINER_MAIN.ContentPanel.Controls.Add(TP_MAIN)
-            CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(260, 53)
+            CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(260, 79)
             CONTAINER_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
             CONTAINER_MAIN.LeftToolStripPanelVisible = False
             CONTAINER_MAIN.Location = New System.Drawing.Point(0, 0)
             CONTAINER_MAIN.Name = "CONTAINER_MAIN"
             CONTAINER_MAIN.RightToolStripPanelVisible = False
-            CONTAINER_MAIN.Size = New System.Drawing.Size(260, 78)
+            CONTAINER_MAIN.Size = New System.Drawing.Size(260, 104)
             CONTAINER_MAIN.TabIndex = 0
             CONTAINER_MAIN.TopToolStripPanelVisible = False
             '
@@ -54,26 +55,28 @@ Namespace API.Instagram
             TP_MAIN.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
             TP_MAIN.ColumnCount = 1
             TP_MAIN.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_MAIN.Controls.Add(Me.CH_GET_STORIES, 0, 0)
-            TP_MAIN.Controls.Add(Me.CH_GET_TAGGED, 0, 1)
+            TP_MAIN.Controls.Add(Me.CH_GET_STORIES, 0, 1)
+            TP_MAIN.Controls.Add(Me.CH_GET_TAGGED, 0, 2)
+            TP_MAIN.Controls.Add(Me.CH_GET_TIMELINE, 0, 0)
             TP_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
             TP_MAIN.Location = New System.Drawing.Point(0, 0)
             TP_MAIN.Name = "TP_MAIN"
-            TP_MAIN.RowCount = 3
+            TP_MAIN.RowCount = 4
+            TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_MAIN.Size = New System.Drawing.Size(260, 53)
+            TP_MAIN.Size = New System.Drawing.Size(260, 79)
             TP_MAIN.TabIndex = 0
             '
             'CH_GET_STORIES
             '
             Me.CH_GET_STORIES.AutoSize = True
             Me.CH_GET_STORIES.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_GET_STORIES.Location = New System.Drawing.Point(4, 4)
+            Me.CH_GET_STORIES.Location = New System.Drawing.Point(4, 30)
             Me.CH_GET_STORIES.Name = "CH_GET_STORIES"
             Me.CH_GET_STORIES.Size = New System.Drawing.Size(252, 19)
-            Me.CH_GET_STORIES.TabIndex = 0
+            Me.CH_GET_STORIES.TabIndex = 1
             Me.CH_GET_STORIES.Text = "Get stories"
             Me.CH_GET_STORIES.UseVisualStyleBackColor = True
             '
@@ -81,26 +84,37 @@ Namespace API.Instagram
             '
             Me.CH_GET_TAGGED.AutoSize = True
             Me.CH_GET_TAGGED.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_GET_TAGGED.Location = New System.Drawing.Point(4, 30)
+            Me.CH_GET_TAGGED.Location = New System.Drawing.Point(4, 56)
             Me.CH_GET_TAGGED.Name = "CH_GET_TAGGED"
             Me.CH_GET_TAGGED.Size = New System.Drawing.Size(252, 19)
-            Me.CH_GET_TAGGED.TabIndex = 1
+            Me.CH_GET_TAGGED.TabIndex = 2
             Me.CH_GET_TAGGED.Text = "Get tagged data"
             Me.CH_GET_TAGGED.UseVisualStyleBackColor = True
+            '
+            'CH_GET_TIMELINE
+            '
+            Me.CH_GET_TIMELINE.AutoSize = True
+            Me.CH_GET_TIMELINE.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_GET_TIMELINE.Location = New System.Drawing.Point(4, 4)
+            Me.CH_GET_TIMELINE.Name = "CH_GET_TIMELINE"
+            Me.CH_GET_TIMELINE.Size = New System.Drawing.Size(252, 19)
+            Me.CH_GET_TIMELINE.TabIndex = 0
+            Me.CH_GET_TIMELINE.Text = "Get Timeline"
+            Me.CH_GET_TIMELINE.UseVisualStyleBackColor = True
             '
             'OptionsForm
             '
             Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
             Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-            Me.ClientSize = New System.Drawing.Size(260, 78)
+            Me.ClientSize = New System.Drawing.Size(260, 104)
             Me.Controls.Add(CONTAINER_MAIN)
             Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle
             Me.Icon = Global.SCrawler.My.Resources.SiteResources.InstagramIcon_32
             Me.KeyPreview = True
             Me.MaximizeBox = False
-            Me.MaximumSize = New System.Drawing.Size(276, 117)
+            Me.MaximumSize = New System.Drawing.Size(276, 143)
             Me.MinimizeBox = False
-            Me.MinimumSize = New System.Drawing.Size(276, 117)
+            Me.MinimumSize = New System.Drawing.Size(276, 143)
             Me.Name = "OptionsForm"
             Me.ShowInTaskbar = False
             Me.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide
@@ -116,5 +130,6 @@ Namespace API.Instagram
 
         Private WithEvents CH_GET_STORIES As CheckBox
         Private WithEvents CH_GET_TAGGED As CheckBox
+        Private WithEvents CH_GET_TIMELINE As CheckBox
     End Class
 End Namespace

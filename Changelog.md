@@ -1,3 +1,13 @@
+# 2022.12.27.0
+
+*2022-12-27*
+
+- Added
+  - XVideos: added downloading 'Quickies'
+  - Instagram: added more enable/disable options
+- Fixed
+  - XVideos not downloading (sorry, I broke it in a previous release)
+
 # 2022.12.26.0
 
 *2022-12-26*

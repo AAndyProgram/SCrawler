@@ -9,10 +9,12 @@
 Imports SCrawler.Plugin
 Namespace API.Instagram
     Friend Class EditorExchangeOptions
+        Friend Property GetTimeline As Boolean
         Friend Property GetStories As Boolean
         Friend Property GetTagged As Boolean
         Friend Sub New(ByVal h As ISiteSettings)
             With DirectCast(h, SiteSettings)
+                GetTimeline = CBool(.GetTimeline.Value)
                 GetStories = CBool(.GetStories.Value)
                 GetTagged = CBool(.GetTagged.Value)
             End With

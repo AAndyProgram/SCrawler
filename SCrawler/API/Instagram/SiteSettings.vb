@@ -111,33 +111,37 @@ Namespace API.Instagram
         End Sub
 #End Region
 #Region "Download properties"
-        <PropertyOption(ControlText:="Request timer", AllowNull:=False), PXML("RequestsWaitTimer"), ControlNumber(8)>
+        <PropertyOption(ControlText:="Request timer", AllowNull:=False), PXML("RequestsWaitTimer"), ControlNumber(20)>
         Friend ReadOnly Property RequestsWaitTimer As PropertyValue
         <Provider(NameOf(RequestsWaitTimer), FieldsChecker:=True)>
         Private ReadOnly Property RequestsWaitTimerProvider As IFormatProvider
-        <PropertyOption(ControlText:="Request timer counter", AllowNull:=False, LeftOffset:=120), PXML("RequestsWaitTimerTaskCount"), ControlNumber(9)>
+        <PropertyOption(ControlText:="Request timer counter", AllowNull:=False, LeftOffset:=120), PXML("RequestsWaitTimerTaskCount"), ControlNumber(21)>
         Friend ReadOnly Property RequestsWaitTimerTaskCount As PropertyValue
         <Provider(NameOf(RequestsWaitTimerTaskCount), FieldsChecker:=True)>
         Private ReadOnly Property RequestsWaitTimerTaskCountProvider As IFormatProvider
-        <PropertyOption(ControlText:="Posts limit timer", AllowNull:=False), PXML("SleepTimerOnPostsLimit"), ControlNumber(10)>
+        <PropertyOption(ControlText:="Posts limit timer", AllowNull:=False), PXML("SleepTimerOnPostsLimit"), ControlNumber(22)>
         Friend ReadOnly Property SleepTimerOnPostsLimit As PropertyValue
         <Provider(NameOf(SleepTimerOnPostsLimit), FieldsChecker:=True)>
         Private ReadOnly Property SleepTimerOnPostsLimitProvider As IFormatProvider
-        <PropertyOption(ControlText:="Get stories"), PXML, ControlNumber(11)>
+        <PropertyOption(ControlText:="Get timeline", ControlToolTip:="Default value for new users"), PXML, ControlNumber(23)>
+        Friend ReadOnly Property GetTimeline As PropertyValue
+        <PropertyOption(ControlText:="Get stories", ControlToolTip:="Default value for new users"), PXML, ControlNumber(24)>
         Friend ReadOnly Property GetStories As PropertyValue
-        <PropertyOption(ControlText:="Get tagged photos"), PXML, ControlNumber(12)>
+        <PropertyOption(ControlText:="Get tagged photos", ControlToolTip:="Default value for new users"), PXML, ControlNumber(25)>
         Friend ReadOnly Property GetTagged As PropertyValue
         <PropertyOption(ControlText:="Tagged notify limit",
                         ControlToolTip:="If the number of tagged posts exceeds this number you will be notified." & vbCr &
-                        "-1 to disable"), PXML, ControlNumber(13)>
+                        "-1 to disable"), PXML, ControlNumber(26)>
         Friend ReadOnly Property TaggedNotifyLimit As PropertyValue
         <Provider(NameOf(TaggedNotifyLimit), FieldsChecker:=True)>
         Private ReadOnly Property TaggedNotifyLimitProvider As IFormatProvider
 #End Region
 #Region "Download ready"
-        <PropertyOption(ControlText:="Download timeline", ControlToolTip:="Download timeline, stories and saved posts"), PXML, ControlNumber(6)>
+        <PropertyOption(ControlText:="Download timeline", ControlToolTip:="Download timeline"), PXML, ControlNumber(10)>
         Friend ReadOnly Property DownloadTimeline As PropertyValue
-        <PropertyOption(ControlText:="Download tagged", ControlToolTip:="Download tagged posts"), PXML, ControlNumber(7)>
+        <PropertyOption(ControlText:="Download stories", ControlToolTip:="Download stories"), PXML, ControlNumber(11)>
+        Friend ReadOnly Property DownloadStories As PropertyValue
+        <PropertyOption(ControlText:="Download tagged", ControlToolTip:="Download tagged posts"), PXML, ControlNumber(12)>
         Friend ReadOnly Property DownloadTagged As PropertyValue
 #End Region
 #Region "429 bypass"
@@ -207,10 +211,6 @@ Namespace API.Instagram
                 .CookiesExtractMode = Responser.CookiesExtractModes.Response
                 .CookiesUpdateMode = CookieKeeper.UpdateModes.ReplaceByNameAll
                 .CookiesExtractedAutoSave = False
-                If Not .Cookies Is Nothing Then
-                    .Cookies.ChangedAllowInternalDrop = False
-                    .Cookies.Changed = False
-                End If
             End With
 
             Dim n() As String = {SettingsCLS.Name_Node_Sites, Site.ToString}
@@ -221,6 +221,7 @@ Namespace API.Instagram
             IG_WWW_CLAIM = New PropertyValue(www_claim, GetType(String), Sub(v) ChangeResponserFields(NameOf(IG_WWW_CLAIM), v))
 
             DownloadTimeline = New PropertyValue(True)
+            DownloadStories = New PropertyValue(True)
             DownloadTagged = New PropertyValue(False)
 
             RequestsWaitTimer = New PropertyValue(1000)
@@ -230,6 +231,7 @@ Namespace API.Instagram
             SleepTimerOnPostsLimit = New PropertyValue(60000)
             SleepTimerOnPostsLimitProvider = New TimersChecker(10000)
 
+            GetTimeline = New PropertyValue(True)
             GetStories = New PropertyValue(False)
             GetTagged = New PropertyValue(False)
             TaggedNotifyLimit = New PropertyValue(200)
@@ -245,48 +247,6 @@ Namespace API.Instagram
             UrlPatternUser = "https://www.instagram.com/{0}/"
             UserRegex = RParams.DMS("[htps:/]{7,8}.*?instagram.com/([^/]+)", 1)
             ImageVideoContains = "instagram.com"
-        End Sub
-        Private Structure LatestValues
-            Friend Hash As String
-            Friend Token As String
-            Friend AppID As String
-            Friend WwwClaim As String
-            Friend Exists As Boolean
-            Friend Sub New(ByVal Source As SiteSettings)
-                Exists = True
-                With Source
-                    Hash = AConvert(Of String)(.HashTagged.Value, String.Empty)
-                    With .Responser
-                        Token = .Headers.Value(Header_CSRF_TOKEN)
-                        AppID = .Headers.Value(Header_IG_APP_ID)
-                        WwwClaim = .Headers.Value(Header_IG_WWW_CLAIM)
-                    End With
-                End With
-            End Sub
-        End Structure
-        Private LV As LatestValues = Nothing
-        Friend Overrides Sub BeginEdit()
-            LV = New LatestValues(Me)
-            MyBase.BeginEdit()
-        End Sub
-        Friend Overrides Sub EndEdit()
-            LV = Nothing
-            MyBase.EndEdit()
-        End Sub
-        Friend Overloads Overrides Sub Update()
-            If LV.Exists Then
-                Dim __lv As New LatestValues(Me)
-                If If(Responser.Cookies?.Count, 0) > 0 Then
-                    Dim _cookiesChanged As Boolean = If(Responser.Cookies?.Changed, False) And Responser.CookiesExists
-                    Dim _tokensChanged As Boolean = (Not __lv.Token.IsEmptyString And Not __lv.WwwClaim.IsEmptyString And Not __lv.AppID.IsEmptyString) And
-                        (Not LV.Token = __lv.Token Or Not LV.WwwClaim = __lv.WwwClaim Or Not LV.AppID = __lv.AppID)
-                    If _cookiesChanged Or _tokensChanged Then DownloadTimeline.Value = True
-                    If Not __lv.Hash.IsEmptyString And (_cookiesChanged Or _tokensChanged Or Not LV.Hash = __lv.Hash) Then DownloadTagged.Value = True
-                End If
-            End If
-            LV = Nothing
-            If Not Responser.Cookies Is Nothing Then Responser.Cookies.Changed = False
-            MyBase.Update()
         End Sub
 #End Region
 #Region "PropertiesDataChecker"
