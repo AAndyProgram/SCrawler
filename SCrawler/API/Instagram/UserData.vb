@@ -98,12 +98,14 @@ Namespace API.Instagram
             If Loading Then
                 LastCursor = Container.Value(Name_LastCursor)
                 FirstLoadingDone = Container.Value(Name_FirstLoadingDone).FromXML(Of Boolean)(False)
+                GetTimeline = Container.Value(Name_GetTimeline).FromXML(Of Boolean)(CBool(MySiteSettings.GetTimeline.Value))
                 GetStories = Container.Value(Name_GetStories).FromXML(Of Boolean)(CBool(MySiteSettings.GetStories.Value))
                 GetTaggedData = Container.Value(Name_GetTagged).FromXML(Of Boolean)(CBool(MySiteSettings.GetTagged.Value))
                 TaggedChecked = Container.Value(Name_TaggedChecked).FromXML(Of Boolean)(False)
             Else
                 Container.Add(Name_LastCursor, LastCursor)
                 Container.Add(Name_FirstLoadingDone, FirstLoadingDone.BoolToInteger)
+                Container.Add(Name_GetTimeline, GetTimeline.BoolToInteger)
                 Container.Add(Name_GetStories, GetStories.BoolToInteger)
                 Container.Add(Name_GetTagged, GetTaggedData.BoolToInteger)
                 Container.Add(Name_TaggedChecked, TaggedChecked.BoolToInteger)
