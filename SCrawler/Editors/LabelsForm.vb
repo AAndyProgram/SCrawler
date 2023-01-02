@@ -72,7 +72,7 @@ Friend Class LabelsForm
     Private Sub MyDefs_ButtonOkClick(ByVal Sender As Object, ByVal e As KeyHandleEventArgs) Handles MyDefs.ButtonOkClick
         Try
             LabelsList.ListAddList(CMB_LABELS.Items.CheckedItems.Select(Function(l) CStr(l.Value(0))), LAP.ClearBeforeAdd, LAP.NotContainsOnly)
-            If _AnyLabelAdd And _Source Is Nothing Then Settings.Labels.Update()
+            If _Source Is Nothing Then Settings.Labels.Update()
             MyDefs.CloseForm()
         Catch ex As Exception
             ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Label selection")

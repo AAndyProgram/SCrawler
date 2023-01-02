@@ -25,30 +25,16 @@ Friend Class LabelsKeeper : Implements ICollection(Of String), IMyEnumerator(Of 
     Friend ReadOnly Property Current As XMLValuesCollection(Of String)
     Friend ReadOnly Property Excluded As XMLValuesCollection(Of String)
     Friend ReadOnly Property ExcludedIgnore As XMLValue(Of Boolean)
-    Private ReadOnly Property SourceXML As XmlFile
     Friend Sub New(ByRef x As XmlFile)
-        SourceXML = x
         LabelsList = New List(Of String)
         NewLabels = New List(Of String)
         If LabelsFile.Exists Then LabelsList.ListAddList(IO.File.ReadAllLines(LabelsFile), LAP.NotContainsOnly)
         Current = New XMLValuesCollection(Of String)(XMLValueBase.ListModes.String, "LatestSelectedLabels", x) With {.ListAddParameters = LAP.NotContainsOnly}
         Excluded = New XMLValuesCollection(Of String)(XMLValueBase.ListModes.String, "LatestExcludedLabels", x) With {.ListAddParameters = LAP.NotContainsOnly}
         ExcludedIgnore = New XMLValue(Of Boolean)("LatestExcludedLabelsIgnore", False, x)
-    End Sub
-    Friend Sub Verify()
-        SourceXML.BeginUpdate()
-        Dim r As Predicate(Of String) = Function(l) Not LabelsList.Contains(l)
-        Dim c% = Current.Count
-        If c > 0 Then
-            Current.ValuesList.RemoveAll(r)
-            If Not Current.Count = c Then Current.Update()
-        End If
-        c = Excluded.Count
-        If c > 0 Then
-            Excluded.ValuesList.RemoveAll(r)
-            If Not c = Excluded.Count Then Excluded.Update()
-        End If
-        SourceXML.EndUpdate()
+        Dim lp As New ListAddParams(LAP.NotContainsOnly + LAP.IgnoreICopier)
+        If Current.Count > 0 Then LabelsList.ListAddList(Current, lp)
+        If Excluded.Count > 0 Then LabelsList.ListAddList(Excluded, lp)
     End Sub
     Friend ReadOnly Property ToList As List(Of String)
         Get
@@ -69,10 +55,14 @@ Friend Class LabelsKeeper : Implements ICollection(Of String), IMyEnumerator(Of 
         LabelsList.Clear()
         NewLabels.Clear()
     End Sub
-    Friend Sub Update()
+    Friend Sub Update(Optional ByVal Force As Boolean = False)
         If LabelsList.Count > 0 Then
-            LabelsList.Sort()
-            TextSaver.SaveTextToFile(LabelsList.ListToString(vbNewLine), LabelsFile, True, False, EDP.SendInLog)
+            If NewLabelsExists Or Force Then
+                If LabelsList.Contains(NoParsedUser) Then LabelsList.Remove(NoParsedUser)
+                LabelsList.Sort()
+                TextSaver.SaveTextToFile(LabelsList.ListToString(vbNewLine), LabelsFile, True, False, EDP.SendInLog)
+                If NewLabels.Count > 0 Then NewLabels.Clear()
+            End If
         Else
             LabelsFile.Delete(, Settings.DeleteMode, EDP.SendInLog)
         End If

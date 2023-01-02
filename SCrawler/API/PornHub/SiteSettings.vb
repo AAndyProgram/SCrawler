@@ -41,6 +41,7 @@ Namespace API.PornHub
         Friend Sub New()
             MyBase.New("PornHub", "pornhub.com")
             Responser.CurlPath = $"cURL\curl.exe"
+            Responser.CurlArgumentsRight = "--ssl-no-revoke"
             CurlPathExists = Responser.CurlPath.Exists
             Responser.DeclaredError = EDP.ThrowException
 

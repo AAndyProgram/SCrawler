@@ -143,7 +143,8 @@ Namespace DownloadObjects
             ''' <returns>True to activate</returns>
             Friend Function Open(ByVal _Key As String) As Boolean
                 If Not User Is Nothing Then
-                    If Key = _Key Then
+                    If KeyDismiss = _Key Then
+                    ElseIf Key = _Key Then
                         Return True
                     ElseIf KeyFolder = _Key Then
                         User.OpenFolder()
@@ -152,6 +153,8 @@ Namespace DownloadObjects
                     ElseIf Images.ContainsKey(_Key) Then
                         Images(_Key).Open(, EDP.None)
                     End If
+                Else
+                    Return True
                 End If
                 Return False
             End Function
@@ -548,10 +551,12 @@ Namespace DownloadObjects
                 UserKeys.Last.ShowNotification()
             End If
         End Sub
-        Friend Function NotificationClicked(ByVal Key As String) As Boolean
+        Friend Function NotificationClicked(ByVal Key As String, ByRef Found As Boolean, ByRef ActivateForm As Boolean) As Boolean
             Dim i% = UserKeys.IndexOf(Key)
             If i >= 0 Then
-                MainFrameObj.FocusUser(UserKeys(i).IUserDataKey, UserKeys(i).Open(Key))
+                Found = True
+                ActivateForm = UserKeys(i).Open(Key)
+                MainFrameObj.FocusUser(UserKeys(i).IUserDataKey, ActivateForm)
                 Return True
             Else
                 Return False

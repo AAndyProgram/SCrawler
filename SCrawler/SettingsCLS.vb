@@ -119,7 +119,7 @@ Friend Class SettingsCLS : Implements IDisposable
         If tmpPluginList.ListExists Then Plugins.AddRange(tmpPluginList)
         CookiesEncrypted.Value = True
 
-        FastProfilesLoading = New XMLValue(Of Boolean)("FastProfilesLoading", False, MyXML)
+        FastProfilesLoading = New XMLValue(Of Boolean)("FastProfilesLoading", True, MyXML)
         MaxLargeImageHeight = New XMLValue(Of Integer)("MaxLargeImageHeight", 150, MyXML)
         MaxSmallImageHeight = New XMLValue(Of Integer)("MaxSmallImageHeight", 15, MyXML)
         DownloadOpenInfo = New XMLValueAttribute(Of Boolean, Boolean)("DownloadOpenInfo", "OpenAgain", False, False, MyXML)
@@ -206,7 +206,7 @@ Friend Class SettingsCLS : Implements IDisposable
 
         Labels = New LabelsKeeper(MyXML)
         Groups = New Groups.DownloadGroupCollection
-        Labels.AddRange(Groups.GetLabels, False)
+        Labels.AddRange(Groups.GetGroupsLabels, False)
 
         MyXML.EndUpdate()
         If MyXML.ChangesDetected Then MyXML.Sort() : MyXML.UpdateData()
@@ -317,11 +317,8 @@ Friend Class SettingsCLS : Implements IDisposable
                 If NeedUpdate Then UpdateUsersList()
             End If
             If Users.Count > 0 Then
-                Dim tul As IEnumerable(Of String) = Users.SelectMany(Function(u) u.Labels)
-                Labels.AddRange(tul, False)
-                If Labels.NewLabelsExists Or
-                   (tul.ListExists AndAlso Not tul.Contains(LabelsKeeper.NoParsedUser) AndAlso Labels.Remove(LabelsKeeper.NoParsedUser)) Then _
-                   Labels.Update() : Labels.NewLabels.Clear() : Labels.Verify()
+                Labels.AddRange(Users.SelectMany(Function(u) u.Labels), False)
+                Labels.Update()
             End If
         Catch ex As Exception
         End Try

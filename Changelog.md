@@ -1,3 +1,18 @@
+# 2023.1.2.0
+
+*2023-01-02*
+
+- Added
+  - RedGifs: an ability to customize token refresh interval
+  - RedGifs: token refresh interval changed from 24 hours to 12 hours
+  - Updated labels collection
+- Fixed
+  - PornHub: bug in the downloader
+  - PornHub: download additional non-user videos
+  - Reddit: bug in standalone downloader
+  - Fixed a bug in the user list loading algorithm
+  - Notifications: pressing any button opens SCrawler
+
 # 2022.12.27.0
 
 *2022-12-27*

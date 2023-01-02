@@ -662,6 +662,7 @@ Namespace API.Reddit
             Try
                 If Not URL.IsEmptyString Then
                     Using r As New UserData
+                        r.SetEnvironment(Settings(RedditSiteKey), Nothing, False, False)
                         r.Responser = New Responser
                         r.Responser.Copy(resp)
                         r.ParsePost(URL)

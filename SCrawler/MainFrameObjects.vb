@@ -74,14 +74,18 @@ Friend Class MainFrameObjects
     End Sub
     Private Sub Notificator_OnClicked(ByVal Key As String) Handles Notificator.OnClicked
         If Not Key.IsEmptyString Then
+            Dim found As Boolean = False
+            Dim activateForm As Boolean = False
             If Key.StartsWith(NotificationInternalKey) Then
                 Select Case Key
                     Case $"{NotificationInternalKey}_{NotifyObj.Channels}" : MF.MyChannels.FormShowS()
                     Case $"{NotificationInternalKey}_{NotifyObj.SavedPosts}" : MF.MySavedPosts.FormShowS()
                     Case Else : Focus(True)
                 End Select
-            ElseIf Settings.Automation Is Nothing OrElse Not Settings.Automation.NotificationClicked(Key) Then
+            ElseIf Settings.Automation Is Nothing OrElse Not Settings.Automation.NotificationClicked(Key, found, activateForm) Then
                 Focus(True)
+            ElseIf found Then
+                Focus(activateForm)
             Else
                 Focus(True)
             End If

@@ -52,8 +52,13 @@ Namespace DownloadObjects
                 Return Plans.Count
             End Get
         End Property
-        Friend Function NotificationClicked(ByVal Key As String) As Boolean
-            Return Count > 0 AndAlso Plans.Exists(Function(p) p.NotificationClicked(Key))
+        Friend Function NotificationClicked(ByVal Key As String, ByRef Found As Boolean, ByRef ActivateForm As Boolean) As Boolean
+            If Count > 0 Then
+                For Each plan As AutoDownloader In Plans
+                    If plan.NotificationClicked(Key, Found, ActivateForm) Then Return True
+                Next
+            End If
+            Return False
         End Function
         Friend Sub Add(ByVal Plan As AutoDownloader)
             Plan.Source = Me

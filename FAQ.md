@@ -42,7 +42,7 @@ A: How to request a new site you can read [here](CONTRIBUTING.md#how-to-request-
 
 #### Q: **Twitter/Instagram download failed.**
 
-A: Check your credentials. Both of these sites require cookies. Check your [Twitter tokens](https://github.com/AAndyProgram/SCrawler/wiki/Settings#how-to-find-twitter-tokens) and [Instagram settings](https://github.com/AAndyProgram/SCrawler/wiki/Settings#instagram-settings). If all settings are set, but nothing works, go to [create a new issue](https://github.com/AAndyProgram/SCrawler/issues). Don't forget to attach the LOG.
+A: Check your credentials. Both of these sites require cookies. Check your [Twitter tokens](https://github.com/AAndyProgram/SCrawler/wiki/Settings#how-to-find-twitter-tokens) and [Instagram settings](https://github.com/AAndyProgram/SCrawler/wiki/Settings#instagram). If all settings are set, but nothing works, go to [create a new issue](https://github.com/AAndyProgram/SCrawler/issues). Don't forget to attach the LOG.
 
 **[SITES REQUIREMENTS](https://github.com/AAndyProgram/SCrawler/wiki/Settings#sites-requirements)**
 

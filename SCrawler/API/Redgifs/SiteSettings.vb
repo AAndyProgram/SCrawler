@@ -9,10 +9,10 @@
 Imports SCrawler.API.Base
 Imports SCrawler.Plugin
 Imports SCrawler.Plugin.Attributes
+Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Tools.Web.Clients
-Imports PersonalUtilities.Tools.Web.Cookies
 Imports PersonalUtilities.Tools.Web.Documents.JSON
 Imports UTypes = SCrawler.API.Base.UserMedia.Types
 Imports UStates = SCrawler.API.Base.UserMedia.States
@@ -30,10 +30,38 @@ Namespace API.RedGifs
                 Return My.Resources.SiteResources.RedGifsPic_32
             End Get
         End Property
-        <PropertyOption(AllowNull:=False, ControlText:="Token", ControlToolTip:="Bearer token")>
-        Friend Property Token As PropertyValue
-        <PXML> Friend Property TokenLastDateUpdated As PropertyValue
+        <PropertyOption(ControlToolTip:="Bearer token", AllowNull:=False), ControlNumber(1)>
+        Friend ReadOnly Property Token As PropertyValue
+        <PXML> Friend ReadOnly Property TokenLastDateUpdated As PropertyValue
         Private Const TokenName As String = "authorization"
+#Region "TokenUpdateInterval"
+        <PropertyOption(ControlText:="Token refresh interval", ControlToolTip:="Interval (in minutes) to refresh the token", AllowNull:=False, LeftOffset:=120),
+            PXML, ControlNumber(0)>
+        Friend ReadOnly Property TokenUpdateInterval As PropertyValue
+        Private Class TokenIntervalProvider : Implements IFieldsCheckerProvider
+            Private Property ErrorMessage As String Implements IFieldsCheckerProvider.ErrorMessage
+            Private Property Name As String Implements IFieldsCheckerProvider.Name
+            Private Property TypeError As Boolean Implements IFieldsCheckerProvider.TypeError
+            Private Function Convert(ByVal Value As Object, ByVal DestinationType As Type, ByVal Provider As IFormatProvider,
+                                     Optional ByVal NothingArg As Object = Nothing, Optional ByVal e As ErrorsDescriber = Nothing) As Object Implements ICustomProvider.Convert
+                TypeError = False
+                ErrorMessage = String.Empty
+                If Not ACheck(Of Integer)(Value) Then
+                    TypeError = True
+                ElseIf CInt(Value) > 0 Then
+                    Return Value
+                Else
+                    ErrorMessage = $"The value of [{Name}] field must be greater than or equal to 1"
+                End If
+                Return Nothing
+            End Function
+            Private Function GetFormat(ByVal FormatType As Type) As Object Implements IFormatProvider.GetFormat
+                Throw New NotImplementedException("[GetFormat] is not available in the context of [TokenIntervalProvider]")
+            End Function
+        End Class
+        <Provider(NameOf(TokenUpdateInterval), FieldsChecker:=True)>
+        Private ReadOnly Property TokenUpdateIntervalProvider As IFormatProvider
+#End Region
 #End Region
 #Region "Initializer"
         Friend Sub New()
@@ -47,6 +75,8 @@ Namespace API.RedGifs
             End With
             Token = New PropertyValue(t, GetType(String), Sub(v) UpdateResponse(v))
             TokenLastDateUpdated = New PropertyValue(Now.AddYears(-1), GetType(Date))
+            TokenUpdateInterval = New PropertyValue(60 * 12, GetType(Integer))
+            TokenUpdateIntervalProvider = New TokenIntervalProvider
             UrlPatternUser = "https://www.redgifs.com/users/{0}/"
             UserRegex = RParams.DMS("[htps:/]{7,8}.*?redgifs.com/users/([^/]+)", 1)
             ImageVideoContains = "redgifs"
@@ -61,7 +91,7 @@ Namespace API.RedGifs
 #Region "Token updaters"
         Friend Function UpdateTokenIfRequired() As Boolean
             Dim d As Date? = AConvert(Of Date)(TokenLastDateUpdated.Value, AModes.Var, Nothing)
-            If Not d.HasValue OrElse d.Value < Now.AddDays(-1) Then
+            If Not d.HasValue OrElse d.Value < Now.AddMinutes(-CInt(TokenUpdateInterval.Value)) Then
                 Return UpdateToken()
             Else
                 Return True

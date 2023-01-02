@@ -34,9 +34,6 @@ Namespace DownloadObjects.Groups
             End If
             GroupsList.ListReindex
         End Sub
-        Friend Function GetLabels() As List(Of String)
-            Return ListAddList(Nothing, GroupsList.SelectMany(Function(g) g.Labels), LAP.NotContainsOnly)
-        End Function
         Default Friend ReadOnly Property Item(ByVal Index As Integer) As DownloadGroup Implements IMyEnumerator(Of DownloadGroup).MyEnumeratorObject
             Get
                 Return GroupsList(Index)

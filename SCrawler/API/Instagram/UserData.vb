@@ -202,14 +202,14 @@ Namespace API.Instagram
                 AddHandler Responser.ResponseReceived, AddressOf Responser_ResponseReceived
                 ThrowAny(Token)
                 HasError = False
-                Dim dt As Boolean = (CBool(MySiteSettings.DownloadTimeline.Value) And GetTimeline) Or IsSavedPosts
-                If dt And Not LastCursor.IsEmptyString Then
+                Dim dt As Func(Of Boolean) = Function() (CBool(MySiteSettings.DownloadTimeline.Value) And GetTimeline) Or IsSavedPosts
+                If dt.Invoke And Not LastCursor.IsEmptyString Then
                     s = IIf(IsSavedPosts, Sections.SavedPosts, Sections.Timeline)
                     DownloadData(LastCursor, s, Token)
                     ThrowAny(Token)
                     If Not HasError Then FirstLoadingDone = True
                 End If
-                If dt And Not HasError Then
+                If dt.Invoke And Not HasError Then
                     s = IIf(IsSavedPosts, Sections.SavedPosts, Sections.Timeline)
                     DownloadData(String.Empty, s, Token)
                     ThrowAny(Token)
@@ -397,7 +397,6 @@ Namespace API.Instagram
                             If ID.IsEmptyString Then GetUserId()
                             If ID.IsEmptyString Then Throw New ArgumentException("User ID is not detected", "ID")
                         End If
-
 
                         'Create query
                         Select Case Section

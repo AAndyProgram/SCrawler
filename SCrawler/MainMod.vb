@@ -6,6 +6,7 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
+Imports System.Runtime.CompilerServices
 Imports PersonalUtilities.Functions.XML.Base
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Forms.Toolbars
@@ -145,6 +146,14 @@ Friend Module MainMod
             Return $"{LVI_ChannelOption}{Opt}"
         Else
             Return $"{If(Host?.Name, String.Empty)}{Opt}"
+        End If
+    End Function
+    <Extension> Friend Function GetGroupsLabels(Of T As Groups.IGroup)(ByVal Groups As IEnumerable(Of T)) As List(Of String)
+        If Groups.ListExists Then
+            Return ListAddList(Nothing, Groups.SelectMany(Function(g) g.Labels), LAP.NotContainsOnly).
+                   ListAddList(Groups.SelectMany(Function(g) g.LabelsExcluded), LAP.NotContainsOnly)
+        Else
+            Return Nothing
         End If
     End Function
 #Region "Standalone video download functions"

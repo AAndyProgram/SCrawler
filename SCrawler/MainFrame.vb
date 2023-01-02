@@ -88,32 +88,33 @@ Public Class MainFrame
             LIST_PROFILES.ShowGroups = .UseGrouping
             ApplyViewPattern(.ViewMode.Value)
             AddHandler .Labels.NewLabelAdded, AddressOf UpdateLabelsGroups
+            UserListLoader = New ListImagesLoader(LIST_PROFILES)
+            RefillList()
+            UpdateLabelsGroups()
+            SetShowButtonsCheckers(.ShowingMode.Value)
+            CheckVersion(False)
+            BTT_SITE_ALL.Checked = .SelectedSites.Count = 0
+            BTT_SITE_SPECIFIC.Checked = .SelectedSites.Count > 0
+            BTT_SHOW_LIMIT_DATES_NOT.Tag = ShowingDates.Not
+            BTT_SHOW_LIMIT_DATES_NOT.Checked = .ViewDateMode.Value = ShowingDates.Not
+            BTT_SHOW_LIMIT_DATES_IN.Tag = ShowingDates.In
+            BTT_SHOW_LIMIT_DATES_IN.Checked = .ViewDateMode.Value = ShowingDates.In
+            With .Groups
+                AddHandler .Added, AddressOf GROUPS_Added
+                AddHandler .Deleted, AddressOf GROUPS_Deleted
+                AddHandler .Updated, AddressOf GROUPS_Updated
+                If .Count > 0 Then
+                    For Each ugroup As Groups.DownloadGroup In Settings.Groups : GROUPS_Added(ugroup) : Next
+                End If
+            End With
+            .Automation = New Scheduler
+            AddHandler .Groups.Updated, AddressOf .Automation.GROUPS_Updated
+            AddHandler .Groups.Deleted, AddressOf .Automation.GROUPS_Deleted
+            AddHandler .Automation.PauseDisabled, AddressOf MainFrameObj.PauseButtons.UpdatePauseButtons
+            If .Automation.Count > 0 Then .Labels.AddRange(.Automation.GetGroupsLabels, False) : .Labels.Update()
+            _UFinit = False
+            Await .Automation.Start(True)
         End With
-        UserListLoader = New ListImagesLoader(LIST_PROFILES)
-        RefillList()
-        UpdateLabelsGroups()
-        SetShowButtonsCheckers(Settings.ShowingMode.Value)
-        CheckVersion(False)
-        BTT_SITE_ALL.Checked = Settings.SelectedSites.Count = 0
-        BTT_SITE_SPECIFIC.Checked = Settings.SelectedSites.Count > 0
-        BTT_SHOW_LIMIT_DATES_NOT.Tag = ShowingDates.Not
-        BTT_SHOW_LIMIT_DATES_NOT.Checked = Settings.ViewDateMode.Value = ShowingDates.Not
-        BTT_SHOW_LIMIT_DATES_IN.Tag = ShowingDates.In
-        BTT_SHOW_LIMIT_DATES_IN.Checked = Settings.ViewDateMode.Value = ShowingDates.In
-        With Settings.Groups
-            AddHandler .Added, AddressOf GROUPS_Added
-            AddHandler .Deleted, AddressOf GROUPS_Deleted
-            AddHandler .Updated, AddressOf GROUPS_Updated
-            If .Count > 0 Then
-                For Each ugroup As Groups.DownloadGroup In Settings.Groups : GROUPS_Added(ugroup) : Next
-            End If
-        End With
-        Settings.Automation = New Scheduler
-        AddHandler Settings.Groups.Updated, AddressOf Settings.Automation.GROUPS_Updated
-        AddHandler Settings.Groups.Deleted, AddressOf Settings.Automation.GROUPS_Deleted
-        AddHandler Settings.Automation.PauseDisabled, AddressOf MainFrameObj.PauseButtons.UpdatePauseButtons
-        _UFinit = False
-        Await Settings.Automation.Start(True)
         UpdatePauseButtonsVisibility()
         GoTo EndFunction
 FormClosingInvoker:

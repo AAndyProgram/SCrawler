@@ -210,6 +210,7 @@ Namespace API.PornHub
                     If __continue And Not __videoDone Then
                         Do While DownloadUserVideos(page, Token) = DataDownloaded And page < 100 : page += 1 : Loop
                     End If
+                    If _TempMediaList.Count > 0 Then _TempMediaList.RemoveAll(Function(m) Not m.Type = UTypes.m3u8 And Not m.Type = UTypes.VideoPre)
                 End If
 
                 Responser.Method = "GET"
@@ -256,7 +257,7 @@ Namespace API.PornHub
                     If PersonType = PersonTypeUser And r.Contains(HtmlPageNotFoundVideo) Then Return DataDownloaded_NotFound
                     Dim l As List(Of UserVideo) = RegexFields(Of UserVideo)(r, {RegexVideo_Video_All}, {1, 2})
                     Dim lw As List(Of UserVideo) = Nothing
-                    If Not PersonType = PersonTypeUser Then RegexFields(Of UserVideo)(r, {RegexVideo_Video_Wrong}, RegexVideo_Video_Wrong_Fields)
+                    If Not PersonType = PersonTypeUser Then lw = RegexFields(Of UserVideo)(r, {RegexVideo_Video_Wrong}, RegexVideo_Video_Wrong_Fields)
                     If l.ListExists Then
                         If lw.ListExists Then l.ListWithRemove(lw)
                         If l.Count > 0 Then
