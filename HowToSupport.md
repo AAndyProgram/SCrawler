@@ -6,6 +6,7 @@ You can support the program by:
   - :repeat: make a post about my program on your profile (Reddit, Twitter, Instagram and any other social networks)
   - :speech_balloon: tell your friends about the program
   - :heart: like the program on this site: https://alternativeto.net/software/scrawler/about/
+  - :heart: like the program on this site: https://www.softpedia.com/get/Internet/Download-Managers/Social-networks-crawler.shtml
   - suggest my program as an alternative ([on this site](https://alternativeto.net/software/scrawler/about/)) to any program you have used before
 
 I would be very grateful for any support! :blush:
