@@ -8,14 +8,16 @@ I welcome requests! Follow these steps to contribute:
 1. If you have a code change suggestion, you can post a replacement code block. I also accept pull requests.
 
 # How to build from source
-1. Delete the "PersonalUtilities" project from the solution.
-1. Delete the "PersonalUtilities.Notifications" project from the solution.
+1. Delete the ```PersonalUtilities``` project from the solution.
+1. Delete the ```PersonalUtilities.Notifications``` project from the solution.
+1. Delete the ```cURL``` folder from the solution.
+1. Delete the ```ffmpeg.exe``` from the solution.
 1. The following libraries must be added to project references with the '**Copy to output folder**' option:
     - ```PersonalUtilities.dll```
     - ```PersonalUtilities.Notifications.dll```
     - ```Microsoft.Toolkit.Uwp.Notifications.dll```
     - ```System.ValueTuple.dll```
-1. Import PersonalUtilities.Functions for the whole project.
+1. Import ```PersonalUtilities.Functions``` for the whole project.
 
 **Always use the correct libraries. You must download libraries from the same release date as the code commit date.**
 

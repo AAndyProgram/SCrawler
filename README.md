@@ -1,6 +1,4 @@
-# :rainbow_flag: Social networks crawler :rainbow_flag: :christmas_tree:
-
-# :christmas_tree: Happy new year :christmas_tree:
+# :rainbow_flag: Social networks crawler :rainbow_flag:
 
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/AAndyProgram/SCrawler)](https://github.com/AAndyProgram/SCrawler/releases/latest)
 [![GitHub license](https://img.shields.io/github/license/AAndyProgram/SCrawler)](https://github.com/AAndyProgram/SCrawler/blob/main/LICENSE)
@@ -39,18 +37,18 @@ Do you like this program? Consider adding to my coffee fund by making a donation
 - Download [saved Reddit, Twitter and Instagram posts](https://github.com/AAndyProgram/SCrawler/wiki/Home#saved-posts)
 - Add users from parsed channel
 - **Advanced user management**
-- **Automation** (downloading data automatically every ```X``` minutes)
-- **Feed** (feed of downloaded media files)
+- **Automation** ([downloading data automatically](https://github.com/AAndyProgram/SCrawler/wiki/Settings#automation) every ```X``` minutes)
+- **Feed** ([feed](https://github.com/AAndyProgram/SCrawler/wiki#feed) of downloaded media files)
 - Labeling users
-- Create download groups
+- Create [download groups](https://github.com/AAndyProgram/SCrawler/wiki/Settings#download-groups)
 - Adding users to favorites and temporary
-- Filter exists users by label or group
+- [Filter exists users](https://github.com/AAndyProgram/SCrawler/wiki#view) by label or group
 - Selection of media types you want to download (images only, videos only, both)
-- Download a special video, image or gallery
-- Making collections (grouping users into collections)
+- [Download a special video](https://github.com/AAndyProgram/SCrawler/wiki#download-separate-video), image or gallery
+- Making [collections](https://github.com/AAndyProgram/SCrawler/wiki#collections) (grouping users into collections)
 - Specifying a user folder (for downloading data to another location)
 - Changing user icons
-- Changing view modes
+- Changing [view modes](https://github.com/AAndyProgram/SCrawler/wiki#view)
 - ...and many others...
 
 # Supported sites
@@ -76,11 +74,11 @@ First, the program downloads the full profile. After the program downloads only 
 
 ## Reddit
 
-The program parses all user posts, obtain MD5  images hash and compares them with existing ones to remove duplicates. Then the media will be downloaded.
+The program parses user posts, obtain MD5  images hash and compares them with existing ones to remove duplicates. Then the media will be downloaded.
 
 ## Other sites
 
-The program parses all user posts and compares file names with existing ones to remove duplicates. Then the media will be downloaded.
+The program parses user posts and compares file names with existing ones to remove duplicates. Then the media will be downloaded.
 
 ## How to request a new site
 
@@ -122,7 +120,7 @@ Read [here](CONTRIBUTING.md#how-to-request-a-new-site) about
 
 # Installation
 
-**Just download the [latest release](https://github.com/AAndyProgram/SCrawler/releases/latest), unzip the program archive to any folder, copy the file ```ffmpeg.exe``` into it and enjoy.** :blush:
+**Just download the [latest release](https://github.com/AAndyProgram/SCrawler/releases/latest), unzip the program archive to any folder and enjoy.** :blush:
 
 **Don't put program in the ```Program Files``` system folder (this is portable program and program settings are stored in the program folder)**
 
@@ -140,7 +138,7 @@ Read about how to make plugin [here](https://github.com/AAndyProgram/SCrawler/wi
 
 # How to support
 
-Read more about how to support the program [here](HowToSupport.md).
+Read about how to support the program [here](HowToSupport.md).
 
 # Settings and usage
 
