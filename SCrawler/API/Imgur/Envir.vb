@@ -15,7 +15,7 @@ Imports PersonalUtilities.Tools.Web.Documents.JSON
 Namespace API.Imgur
     Namespace Declarations
         Friend Module Imgur_Declarations
-            Friend ReadOnly PostRegex As RParams = RParams.DMS("/([\w\d]+?)(|\.[\w]{0,4})\Z", 1)
+            Friend ReadOnly PostRegex As RParams = RParams.DMS("/([^/]+?)(|#.*?|\.[\w]{0,4})(|\?.*?)\Z", 1)
         End Module
     End Namespace
     Friend NotInheritable Class Envir

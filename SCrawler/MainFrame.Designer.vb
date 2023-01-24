@@ -121,10 +121,10 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_TRAY_PAUSE_AUTOMATION = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_TRAY_SILENT_MODE = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_TRAY_FEED_SHOW = New System.Windows.Forms.ToolStripMenuItem()
+        Me.BTT_TRAY_CHANNELS = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_TRAY_SHOW_HIDE = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_TRAY_CLOSE = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_TRAY_CLOSE_NO_SCRIPT = New System.Windows.Forms.ToolStripMenuItem()
-        Me.BTT_TRAY_CHANNELS = New System.Windows.Forms.ToolStripMenuItem()
         SEP_1 = New System.Windows.Forms.ToolStripSeparator()
         SEP_2 = New System.Windows.Forms.ToolStripSeparator()
         CONTEXT_SEP_1 = New System.Windows.Forms.ToolStripSeparator()
@@ -419,7 +419,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         'BTT_DOWN_VIDEO
         '
         Me.BTT_DOWN_VIDEO.AutoToolTip = True
-        Me.BTT_DOWN_VIDEO.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text
+        Me.BTT_DOWN_VIDEO.Image = Global.SCrawler.My.Resources.Resources.ArrowDownPic_Blue_24
         Me.BTT_DOWN_VIDEO.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.BTT_DOWN_VIDEO.Name = "BTT_DOWN_VIDEO"
         Me.BTT_DOWN_VIDEO.Size = New System.Drawing.Size(231, 22)
@@ -857,6 +857,13 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_TRAY_FEED_SHOW.ToolTipText = "Show feed of recently downloaded data." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Ctrl+Click the tray icon to show the feed" &
     "."
         '
+        'BTT_TRAY_CHANNELS
+        '
+        Me.BTT_TRAY_CHANNELS.Image = Global.SCrawler.My.Resources.SiteResources.RedditPic_512
+        Me.BTT_TRAY_CHANNELS.Name = "BTT_TRAY_CHANNELS"
+        Me.BTT_TRAY_CHANNELS.Size = New System.Drawing.Size(170, 22)
+        Me.BTT_TRAY_CHANNELS.Text = "Channels"
+        '
         'BTT_TRAY_SHOW_HIDE
         '
         Me.BTT_TRAY_SHOW_HIDE.Image = Global.SCrawler.My.Resources.Resources.ApplicationPic_16
@@ -884,13 +891,6 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_TRAY_CLOSE_NO_SCRIPT.Text = "Close (no script)"
         Me.BTT_TRAY_CLOSE_NO_SCRIPT.ToolTipText = "Close the program without executing the script"
         Me.BTT_TRAY_CLOSE_NO_SCRIPT.Visible = False
-        '
-        'BTT_TRAY_CHANNELS
-        '
-        Me.BTT_TRAY_CHANNELS.Name = "BTT_TRAY_CHANNELS"
-        Me.BTT_TRAY_CHANNELS.Size = New System.Drawing.Size(170, 22)
-        Me.BTT_TRAY_CHANNELS.Text = "Channels"
-        Me.BTT_TRAY_CHANNELS.Image = Global.SCrawler.My.Resources.SiteResources.RedditPic_512
         '
         'MainFrame
         '

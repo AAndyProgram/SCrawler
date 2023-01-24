@@ -151,10 +151,10 @@ Namespace DownloadObjects
             Me.Controls.Add(Me.LIST_VIDEOS)
             Me.Controls.Add(Me.ToolbarBOTTOM)
             Me.Controls.Add(Me.ToolbarTOP)
+            Me.Icon = Global.SCrawler.My.Resources.Resources.ArrowDownIcon_Blue_24
             Me.KeyPreview = True
             Me.MinimumSize = New System.Drawing.Size(540, 400)
             Me.Name = "VideosDownloaderForm"
-            Me.ShowIcon = False
             Me.Text = "Download videos"
             Me.ToolbarTOP.ResumeLayout(False)
             Me.ToolbarTOP.PerformLayout()

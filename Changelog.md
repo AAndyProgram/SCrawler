@@ -1,3 +1,12 @@
+# 2023.1.24.1
+
+*2023-01-24*
+
+- Added
+  - Icon for standalone downloader
+- Fixed
+  - (Issue #100) some Imgur albums won't download
+
 # 2023.1.24.0
 
 *2023-01-24*
