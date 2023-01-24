@@ -70,11 +70,12 @@ Namespace API.Imgur
         Friend Shared Function GetVideoInfo(ByVal URL As String, Optional ByVal e As ErrorsDescriber = Nothing) As IEnumerable(Of UserMedia)
             Try
                 If Not URL.IsEmptyString AndAlso URL.ToLower.Contains("imgur") AndAlso Not Settings.ImgurClientID.IsEmptyString Then
-                    Dim img$ = GetImage(URL, EDP.ReturnValue)
-                    If Not img.IsEmptyString Then
-                        Return {New UserMedia(img)}
+                    Dim imgList As List(Of String) = GetGallery(URL, EDP.ReturnValue)
+                    If imgList.ListExists Then
+                        Return imgList.Select(Function(u) New UserMedia(u))
                     Else
-                        Return GetGallery(URL, EDP.ReturnValue).ListIfNothing.Select(Function(u) New UserMedia(u))
+                        Dim img$ = GetImage(URL, EDP.ReturnValue)
+                        If Not img.IsEmptyString Then Return {New UserMedia(img)}
                     End If
                 End If
                 Return Nothing

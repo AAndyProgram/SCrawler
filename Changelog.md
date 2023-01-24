@@ -1,3 +1,11 @@
+# 2023.1.24.0
+
+*2023-01-24*
+
+- Fixed
+  - (Issue #100) Imgur albums not downloading
+  - When deleting a collection with the 'ban' option, users in the collection are not banned
+
 # 2023.1.2.0
 
 *2023-01-02*

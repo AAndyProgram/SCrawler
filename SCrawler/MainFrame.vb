@@ -1396,6 +1396,7 @@ ResumeDownloadingOperation:
                 If result < 6 Then
                     Dim collectionResult% = -1
                     Dim tmpResult%
+                    Dim tmpUserNames As New List(Of String)
                     Dim IsMultiple As Boolean = users.Count > 1
                     Dim removedUsers As New List(Of String)
                     Dim keepData As Boolean = Not (result Mod 2) = 0
@@ -1430,10 +1431,18 @@ ResumeDownloadingOperation:
                             removedUsers.Add(ugn(user))
                             user.Dispose()
                         Else
+                            If banUser Then
+                                tmpUserNames.Clear()
+                                If user.IsCollection Then
+                                    tmpUserNames.ListAddList(DirectCast(user, UserDataBind).Collections.Select(Function(u) u.Name), l)
+                                Else
+                                    tmpUserNames.Add(user.Name)
+                                End If
+                            End If
                             tmpResult = user.Delete(IsMultiple, collectionResult)
                             If user.IsCollection And collectionResult = -1 Then collectionResult = tmpResult
                             If tmpResult > 0 Then
-                                If banUser Then Settings.BlackList.ListAddValue(New UserBan(user.Name, reason), l) : b = True
+                                If banUser And tmpUserNames.Count > 0 Then Settings.BlackList.ListAddList(tmpUserNames.Select(Function(u) New UserBan(u, reason)), l) : b = True
                                 RemoveUserFromList(user)
                                 removedUsers.Add(ugn(user))
                             Else
