@@ -17,14 +17,49 @@ Imports UStates = SCrawler.API.Base.UserMedia.States
 Namespace API.Twitter
     Friend Class UserData : Inherits UserDataBase
         Private Const SinglePostUrl As String = "https://api.twitter.com/1.1/statuses/show.json?id={0}&tweet_mode=extended"
+#Region "XML names"
+        Private Const Name_GifsDownload As String = "GifsDownload"
+        Private Const Name_GifsSpecialFolder As String = "GifsSpecialFolder"
+        Private Const Name_GifsPrefix As String = "GifsPrefix"
+#End Region
 #Region "Declarations"
+        Friend Property GifsDownload As Boolean
+        Friend Property GifsSpecialFolder As String
+        Friend Property GifsPrefix As String
         Private ReadOnly _DataNames As List(Of String)
-        Protected Overrides Sub LoadUserInformation_OptionalFields(ByRef Container As XmlFile, ByVal Loading As Boolean)
+#End Region
+#Region "Exchange options"
+        Friend Overrides Function ExchangeOptionsGet() As Object
+            Return New EditorExchangeOptions(Me)
+        End Function
+        Friend Overrides Sub ExchangeOptionsSet(ByVal Obj As Object)
+            If Not Obj Is Nothing AndAlso TypeOf Obj Is EditorExchangeOptions Then
+                With DirectCast(Obj, EditorExchangeOptions)
+                    GifsDownload = .GifsDownload
+                    GifsSpecialFolder = .GifsSpecialFolder
+                    GifsPrefix = .GifsPrefix
+                End With
+            End If
         End Sub
 #End Region
-#Region "Initializer"
+#Region "Initializer, loader"
         Friend Sub New()
             _DataNames = New List(Of String)
+        End Sub
+        Protected Overrides Sub LoadUserInformation_OptionalFields(ByRef Container As XmlFile, ByVal Loading As Boolean)
+            If Loading Then
+                GifsDownload = Container.Value(Name_GifsDownload).FromXML(Of Boolean)(True)
+                GifsSpecialFolder = Container.Value(Name_GifsSpecialFolder)
+                If Not Container.Contains(Name_GifsPrefix) Then
+                    GifsPrefix = "GIF_"
+                Else
+                    GifsPrefix = Container.Value(Name_GifsPrefix)
+                End If
+            Else
+                Container.Add(Name_GifsDownload, GifsDownload.BoolToInteger)
+                Container.Add(Name_GifsSpecialFolder, GifsSpecialFolder)
+                Container.Add(Name_GifsPrefix, GifsPrefix)
+            End If
         End Sub
 #End Region
 #Region "Download functions"
@@ -182,10 +217,11 @@ Namespace API.Twitter
                                     url = .Value("url")
                                     ff = UrlFile(url)
                                     If Not ff.IsEmptyString Then
-                                        If Not _DataNames.Contains(ff) Then
+                                        If GifsDownload And Not _DataNames.Contains(ff) Then
                                             m = MediaFromData(url, PostID, PostDate,, State)
                                             f = m.File
-                                            If Not f.IsEmptyString Then f.Name = $"GIF_{f.Name}" : m.File = f
+                                            If Not f.IsEmptyString And Not GifsPrefix.IsEmptyString Then f.Name = $"{GifsPrefix}{f.Name}" : m.File = f
+                                            If Not GifsSpecialFolder.IsEmptyString Then m.SpecialFolder = $"{GifsSpecialFolder}*"
                                             _TempMediaList.ListAddValue(m, LNC)
                                         End If
                                         Return True

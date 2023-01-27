@@ -397,6 +397,7 @@ CloseForm:
                             CMB_SITE.SelectedIndex = -1
                             CMB_SITE.Clear(ComboBoxExtended.ClearMode.Text)
                             CH_IS_CHANNEL.Checked = False
+                            If Not UserIsCollection Then Icon = My.Resources.UsersIcon_32
                         End If
                     End If
                     _TextChangeInvoked = False
@@ -411,6 +412,9 @@ CloseForm:
             CH_IS_CHANNEL.Checked = False
             MyExchangeOptions = Nothing
             SetParamsBySite()
+        End Sub
+        Private Sub CMB_SITE_ActionOnTextChanged(sender As Object, e As EventArgs) Handles CMB_SITE.ActionOnTextChanged
+            If CMB_SITE.Text.IsEmptyString And Not UserIsCollection Then CMB_SITE.SelectedIndex = -1 : Icon = My.Resources.UsersIcon_32
         End Sub
         Private Sub BTT_OTHER_SETTINGS_Click(sender As Object, e As EventArgs) Handles BTT_OTHER_SETTINGS.Click
             Dim s As SettingsHost = GetSiteByCheckers()
@@ -604,9 +608,17 @@ CloseForm:
                     Else
                         BTT_OTHER_SETTINGS.Enabled = False
                     End If
+                    If Not UserIsCollection Then
+                        If Not s.Source.Icon Is Nothing Then
+                            Icon = s.Source.Icon
+                        ElseIf Not s.Source.Image Is Nothing Then
+                            Icon = ImageRenderer.GetIcon(s.Source.Image, New ErrorsDescriber(False, False, False, My.Resources.UsersIcon_32))
+                        End If
+                    End If
                 End With
             Else
                 BTT_OTHER_SETTINGS.Enabled = False
+                If Not UserIsCollection Then Icon = My.Resources.UsersIcon_32
             End If
         End Sub
         Private Sub ChangeLabels()

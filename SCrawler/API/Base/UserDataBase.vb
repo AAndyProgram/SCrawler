@@ -1023,12 +1023,14 @@ BlockNullPicture:
                                         End If
 
                                         If Not v.SpecialFolder.IsEmptyString Then
-                                            f.Path = $"{f.PathWithSeparator}{v.SpecialFolder}\".CSFileP.Path
+                                            f.Path = $"{f.PathWithSeparator}{v.SpecialFolder.StringTrimEnd("*")}\".CSFileP.Path
                                             f.Exists(SFO.Path)
                                         End If
                                         If __isVideo And vsf Then
-                                            f.Path = $"{f.PathWithSeparator}Video"
-                                            If Not v.SpecialFolder.IsEmptyString Then f.Exists(SFO.Path)
+                                            If v.SpecialFolder.IsEmptyString OrElse Not v.SpecialFolder.EndsWith("*") Then
+                                                f.Path = $"{f.PathWithSeparator}Video"
+                                                If Not v.SpecialFolder.IsEmptyString Then f.Exists(SFO.Path)
+                                            End If
                                         End If
 
                                         If v.Type = UTypes.m3u8 And UseInternalM3U8Function Then

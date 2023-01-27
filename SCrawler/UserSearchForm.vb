@@ -94,56 +94,49 @@ Friend Class UserSearchForm
             LIST_SEARCH.BeginUpdate()
             ControlInvokeFast(LIST_SEARCH, Sub() LIST_SEARCH.Items.Clear())
             Results.Clear()
-            Dim t$ = TXT_SEARCH.Text.Trim
+            Dim t$ = TXT_SEARCH.Text.StringTrim.StringToLower
             With Settings
                 If Not t.IsEmptyString And .Users.Count > 0 Then
                     Dim i%
                     Dim s As Plugin.ExchangeOptions = Nothing
-                    Dim cu As Boolean = False
                     Dim __descr As Boolean = CH_SEARCH_IN_DESCR.Checked
                     Dim __name As Boolean = CH_SEARCH_IN_NAME.Checked
                     Dim __lbl As Boolean = CH_SEARCH_IN_LABEL.Checked
-                    Dim _CheckUrl As Action(Of IUserData) = Sub(ByVal u As IUserData)
-                                                                If cu AndAlso ((u.Site = s.SiteName Or u.HOST.Key = s.HostKey) And u.Name.ToLower = s.UserName) Then _
-                                                                   Results.ListAddValue(New SearchResult(u, SearchResult.Modes.URL), RLP)
-                                                            End Sub
-                    Dim _CheckDescr As Action(Of IUserData) = Sub(ByVal u As IUserData)
-                                                                  If __descr AndAlso Not u.Description.IsEmptyString AndAlso
-                                                                     u.Description.Contains(t) Then _
-                                                                     Results.ListAddValue(New SearchResult(u, SearchResult.Modes.Description), RLP)
-                                                              End Sub
-                    Dim _LabelPredicate As Predicate(Of String) = Function(l) l.ToLower.Contains(t)
-                    Dim _CheckLabels As Action(Of IUserData) = Sub(ByVal u As IUserData)
-                                                                   If __lbl AndAlso u.Labels.ListExists AndAlso u.Labels.Exists(_LabelPredicate) Then _
-                                                                      Results.ListAddValue(New SearchResult(u, SearchResult.Modes.Label), RLP)
-                                                               End Sub
+                    Dim __isUrl As Boolean = t.StartsWith("http")
+                    Dim __urlFound As Boolean = False
+                    Dim _p_url As Predicate(Of IUserData) = Function(u) __urlFound AndAlso ((u.Site = s.SiteName Or u.HOST.Key = s.HostKey) And u.Name.ToLower = s.UserName.ToLower)
+                    Dim _p_descr As Predicate(Of IUserData) = Function(u) __descr AndAlso Not u.Description.IsEmptyString AndAlso u.Description.ToLower.Contains(t)
+                    Dim _p_labels_p As Predicate(Of String) = Function(l) l.ToLower.Contains(t)
+                    Dim _p_labels As Predicate(Of IUserData) = Function(u) __lbl AndAlso u.Labels.ListExists AndAlso u.Labels.Exists(_p_labels_p)
+                    Dim _addValue As Action(Of IUserData, SearchResult.Modes, Predicate(Of IUserData)) = Sub(u, m, p) If p.Invoke(u) Then Results.ListAddValue(New SearchResult(u, m), RLP)
 
-                    If t.Length >= 4 AndAlso t.StartsWith("http") Then
+                    If __isUrl Then
                         For Each p In Settings.Plugins
                             s = p.Settings.IsMyUser(t)
                             If Not s.UserName.IsEmptyString Then Exit For
                         Next
+                        __urlFound = Not s.UserName.IsEmptyString
                     End If
-                    cu = Not s.UserName.IsEmptyString
-                    t = t.ToLower
 
                     For Each user As IUserData In .Users
-                        If __name AndAlso user.Name.ToLower.Contains(t) Then Results.ListAddValue(New SearchResult(user, SearchResult.Modes.Name), RLP)
+                        If Not __isUrl AndAlso __name AndAlso user.Name.ToLower.Contains(t) Then Results.ListAddValue(New SearchResult(user, SearchResult.Modes.Name), RLP)
                         If user.IsCollection Then
                             With DirectCast(user, UserDataBind)
                                 If .Count > 0 Then
                                     For i = 0 To .Count - 1
-                                        If __name AndAlso .Item(i).Name.ToLower = t Then Results.ListAddValue(New SearchResult(.Item(i), SearchResult.Modes.Name), RLP)
-                                        _CheckUrl(.Item(i))
-                                        _CheckDescr(.Item(i))
-                                        _CheckLabels(.Item(i))
+                                        With .Item(i)
+                                            If Not __isUrl AndAlso __name AndAlso .Self.Name.ToLower = t Then Results.ListAddValue(New SearchResult(.Self, SearchResult.Modes.Name), RLP)
+                                            _addValue(.Self, SearchResult.Modes.URL, _p_url)
+                                            _addValue(.Self, SearchResult.Modes.Description, _p_descr)
+                                            _addValue(.Self, SearchResult.Modes.Label, _p_labels)
+                                        End With
                                     Next
                                 End If
                             End With
                         Else
-                            _CheckUrl(user)
-                            _CheckDescr(user)
-                            _CheckLabels(user)
+                            _addValue(user, SearchResult.Modes.URL, _p_url)
+                            _addValue(user, SearchResult.Modes.Description, _p_descr)
+                            _addValue(user, SearchResult.Modes.Label, _p_labels)
                         End If
                     Next
                     If Results.Count > 0 Then

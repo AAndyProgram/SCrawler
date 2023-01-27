@@ -100,6 +100,8 @@ Namespace Plugin.Attributes
         ''' <see langword="False"/> - only for conversion
         ''' </summary>
         Public FieldsChecker As Boolean = False
+        ''' <summary>Interaction with changing text field. Default: <see langword="False"/></summary>
+        Public Interaction As Boolean = False
         ''' <summary>Initialize a new Provider attribute. <see cref="IFormatProvider"/> is only allowed</summary>
         ''' <param name="PropertyName">The name of the property for which this provider is used</param>
         Public Sub New(ByVal PropertyName As String)

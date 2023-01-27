@@ -76,6 +76,7 @@ Namespace Plugin.Hosts
                                 .EndInit(True)
                             End With
                             AddHandler .ActionOnButtonClick, AddressOf TextBoxClick
+                            If Not ProviderValue Is Nothing AndAlso ProviderValueInteraction Then AddHandler .ActionOnTextChanged, AddressOf TextBoxTextChanged
                         End With
                     End If
                 End If
@@ -98,6 +99,14 @@ Namespace Plugin.Hosts
                 ErrorsDescriber.Execute(EDP.LogMessageValue, ex, $"Updating [{Name}] property")
             End Try
         End Sub
+        Private Sub TextBoxTextChanged(ByVal Sender As Object, ByVal e As EventArgs)
+            UpdateProviderPropertyName()
+            With DirectCast(Sender, TextBoxExtended)
+                Dim s% = .SelectionStart
+                Dim t$ = AConvert(Of String)(.Text, ProviderValue, String.Empty)
+                If Not t = .Text Then .Text = t : .Select(s, 0)
+            End With
+        End Sub
         Friend Sub UpdateValueByControl()
             If Not Control Is Nothing AndAlso Not TypeOf Control Is Label Then
                 If TypeOf Control Is CheckBox Then
@@ -105,6 +114,7 @@ Namespace Plugin.Hosts
                         If Options.ThreeStates Then Value = CInt(.CheckState) Else Value = .Checked
                     End With
                 Else
+                    UpdateProviderPropertyName()
                     Value = AConvert(DirectCast(Control, TextBoxExtended).Text, AModes.Var, [Type],,,, ProviderValue)
                 End If
             End If
@@ -116,12 +126,16 @@ Namespace Plugin.Hosts
                         If Options.ThreeStates Then Return CInt(.CheckState) Else Return .Checked
                     End With
                 Else
+                    UpdateProviderPropertyName()
                     Return AConvert(DirectCast(Control, TextBoxExtended).Text, AModes.Var, [Type],,,, ProviderValue)
                 End If
             Else
                 Return Nothing
             End If
         End Function
+        Private Sub UpdateProviderPropertyName()
+            If ProviderValueIsPropertyProvider Then DirectCast(ProviderValue, IPropertyProvider).PropertyName = Name
+        End Sub
 #End Region
 #Region "Compatibility"
         Private ReadOnly Source As Object
@@ -143,9 +157,17 @@ Namespace Plugin.Hosts
         End Property
 #Region "Providers"
         Friend Property ProviderFieldsChecker As IFormatProvider
-        Friend Property ProviderValue As IFormatProvider
-        Friend Sub SetProvider(ByVal Provider As IFormatProvider, ByVal FC As Boolean)
-            If FC Then ProviderFieldsChecker = Provider Else ProviderValue = Provider
+        Private Property ProviderValue As IFormatProvider
+        Private Property ProviderValueInteraction As Boolean = False
+        Private Property ProviderValueIsPropertyProvider As Boolean = False
+        Friend Sub SetProvider(ByVal Provider As IFormatProvider, ByVal Instance As Provider)
+            If Instance.FieldsChecker Then
+                ProviderFieldsChecker = Provider
+            Else
+                ProviderValue = Provider
+                ProviderValueIsPropertyProvider = TypeOf ProviderValue Is IPropertyProvider
+                ProviderValueInteraction = Instance.Interaction
+            End If
         End Sub
 #End Region
         Friend PropertiesChecking As String()

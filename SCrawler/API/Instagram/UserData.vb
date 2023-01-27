@@ -613,17 +613,20 @@ Namespace API.Instagram
                     With nn
                         PostIDKV = New PostKV(.Value("code"), .Value("id"), Section)
                         Pinned = .Contains("timeline_pinned_user_ids")
-                        If PostKvExists(PostIDKV) And Not Pinned Then Return False
-                        _TempPostsList.Add(PostIDKV.ID)
-                        PostsKVIDs.ListAddValue(PostIDKV, LAP.NotContainsOnly)
-                        PostDate = .Value("taken_at")
-                        If Not IsSavedPosts Then
-                            Select Case CheckDatesLimit(PostDate, DateProvider)
-                                Case DateResult.Skip : Continue For
-                                Case DateResult.Exit : If Not Pinned Then Return False
-                            End Select
+                        If PostKvExists(PostIDKV) Then
+                            If Not Pinned Then Return False
+                        Else
+                            _TempPostsList.Add(PostIDKV.ID)
+                            PostsKVIDs.ListAddValue(PostIDKV, LNC)
+                            PostDate = .Value("taken_at")
+                            If Not IsSavedPosts Then
+                                Select Case CheckDatesLimit(PostDate, DateProvider)
+                                    Case DateResult.Skip : Continue For
+                                    Case DateResult.Exit : If Not Pinned Then Return False
+                                End Select
+                            End If
+                            ObtainMedia(.Self, PostIDKV.ID, SpecFolder, PostDate)
                         End If
-                        ObtainMedia(.Self, PostIDKV.ID, SpecFolder, PostDate)
                     End With
                 Next
                 Return True

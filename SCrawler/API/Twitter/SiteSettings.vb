@@ -13,10 +13,11 @@ Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Tools.Web.Clients
 Imports PersonalUtilities.Tools.Web.Cookies
 Namespace API.Twitter
-    <Manifest("AndyProgram_Twitter"), SavedPosts>
+    <Manifest(TwitterSiteKey), SavedPosts, SpecialForm(False)>
     Friend Class SiteSettings : Inherits SiteSettingsBase
         Friend Const Header_Authorization As String = "authorization"
         Friend Const Header_Token As String = "x-csrf-token"
+#Region "Declarations"
         Friend Overrides ReadOnly Property Icon As Icon
             Get
                 Return My.Resources.SiteResources.TwitterIcon_32
@@ -27,14 +28,50 @@ Namespace API.Twitter
                 Return My.Resources.SiteResources.TwitterPic_400
             End Get
         End Property
-        <PropertyOption(AllowNull:=False, ControlText:="Authorization",
+#Region "Auth"
+        <PropertyOption(AllowNull:=False, IsAuth:=True, ControlText:="Authorization",
                         ControlToolTip:="Set authorization from [authorization] response header. This field must start from [Bearer] key word")>
         Private ReadOnly Property Auth As PropertyValue
-        <PropertyOption(AllowNull:=False, ControlText:="Token", ControlToolTip:="Set token from [x-csrf-token] response header")>
+        <PropertyOption(AllowNull:=False, IsAuth:=True, ControlText:="Token", ControlToolTip:="Set token from [x-csrf-token] response header")>
         Private ReadOnly Property Token As PropertyValue
-        <PropertyOption(ControlText:="Saved posts user", ControlToolTip:="Personal profile username"), PXML>
+        <PropertyOption(IsAuth:=True, ControlText:="Saved posts user", ControlToolTip:="Personal profile username"), PXML>
         Friend ReadOnly Property SavedPostsUserName As PropertyValue
+#End Region
+#Region "Other properties"
+        <PropertyOption(IsAuth:=False, ControlText:="Download GIFs"), PXML>
+        Friend ReadOnly Property GifsDownload As PropertyValue
+        <PropertyOption(IsAuth:=False, ControlText:="GIFs special folder",
+                        ControlToolTip:="Put the GIFs in a special folder" & vbCr &
+                        "This is a folder name, not an absolute path." & vbCr &
+                        "This folder(s) will be created relative to the user's root folder." & vbCr &
+                        "Examples:" & vbCr & "SomeFolderName" & vbCr & "SomeFolderName\SomeFolderName2"), PXML>
+        Friend ReadOnly Property GifsSpecialFolder As PropertyValue
+        <PropertyOption(IsAuth:=False, ControlText:="GIF prefix", ControlToolTip:="This prefix will be added to the beginning of the filename"), PXML>
+        Friend ReadOnly Property GifsPrefix As PropertyValue
+        <Provider(NameOf(GifsSpecialFolder), Interaction:=True), Provider(NameOf(GifsPrefix), Interaction:=True)>
+        Private ReadOnly Property GifStringChecker As IFormatProvider
+        Friend Class GifStringProvider : Implements ICustomProvider, IPropertyProvider
+            Friend Property PropertyName As String Implements IPropertyProvider.PropertyName
+            Private Function Convert(ByVal Value As Object, ByVal DestinationType As Type, ByVal Provider As IFormatProvider,
+                                     Optional ByVal NothingArg As Object = Nothing, Optional ByVal e As ErrorsDescriber = Nothing) As Object Implements ICustomProvider.Convert
+                Dim v$ = AConvert(Of String)(Value, String.Empty)
+                If Not v.IsEmptyString Then
+                    If PropertyName = NameOf(GifsPrefix) Then
+                        v = v.StringRemoveWinForbiddenSymbols
+                    Else
+                        v = v.StringReplaceSymbols(GetWinForbiddenSymbols.ToList.ListWithRemove("\").ToArray, String.Empty, EDP.ReturnValue)
+                        v = v.StringTrim("\")
+                    End If
+                End If
+                Return v
+            End Function
+            Private Function GetFormat(ByVal FormatType As Type) As Object Implements IFormatProvider.GetFormat
+                Throw New NotImplementedException("[GetFormat] is not available in the context of [TimersChecker]")
+            End Function
+        End Class
+#End Region
         Friend Overrides ReadOnly Property Responser As Responser
+#End Region
         Friend Sub New()
             MyBase.New(TwitterSite)
             Responser = New Responser($"{SettingsFolderName}\Responser_{Site}.xml")
@@ -72,6 +109,11 @@ Namespace API.Twitter
             Token = New PropertyValue(t, GetType(String), Sub(v) ChangeResponserFields(NameOf(Token), v))
             SavedPostsUserName = New PropertyValue(String.Empty, GetType(String))
 
+            GifsDownload = New PropertyValue(True)
+            GifsSpecialFolder = New PropertyValue(String.Empty, GetType(String))
+            GifsPrefix = New PropertyValue("GIF_")
+            GifStringChecker = New GifStringProvider
+
             UserRegex = RParams.DMS("[htps:/]{7,8}.*?twitter.com/([^/]+)", 1)
             UrlPatternUser = "https://twitter.com/{0}"
             ImageVideoContains = "twitter"
@@ -106,5 +148,11 @@ Namespace API.Twitter
         Friend Overrides Function BaseAuthExists() As Boolean
             Return If(Responser.Cookies?.Count, 0) > 0 And ACheck(Token.Value) And ACheck(Auth.Value)
         End Function
+        Friend Overrides Sub UserOptions(ByRef Options As Object, ByVal OpenForm As Boolean)
+            If Options Is Nothing OrElse Not TypeOf Options Is EditorExchangeOptions Then Options = New EditorExchangeOptions(Me)
+            If OpenForm Then
+                Using f As New OptionsForm(Options) : f.ShowDialog() : End Using
+            End If
+        End Sub
     End Class
 End Namespace

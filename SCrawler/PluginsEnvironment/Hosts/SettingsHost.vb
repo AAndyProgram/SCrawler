@@ -204,7 +204,7 @@ Namespace Plugin.Hosts
                                     End If
                                 Next
                             ElseIf m.MemberType = MemberTypes.Property Then
-                                If Not m.GetCustomAttribute(Of Provider)() Is Nothing Then Providers.Add(m)
+                                If m.GetCustomAttributes(Of Provider)().ListExists Then Providers.Add(m)
                             End If
                         End If
                     End With
@@ -220,13 +220,15 @@ Namespace Plugin.Hosts
                     Updaters.Clear()
                 End If
                 If Providers.Count > 0 Then
-                    Dim prov As Provider
+                    Dim prov As IEnumerable(Of Provider)
+                    Dim _prov As Provider
                     For Each m In Providers
-                        prov = m.GetCustomAttribute(Of Provider)()
-                        i = PropList.FindIndex(Function(p) p.Name = prov.Name)
-                        If i >= 0 Then
-                            PropList(i).SetProvider(DirectCast(DirectCast(m, PropertyInfo).GetValue(Source), IFormatProvider),
-                                                    m.GetCustomAttribute(Of Provider)().FieldsChecker)
+                        prov = m.GetCustomAttributes(Of Provider)()
+                        If prov.ListExists Then
+                            For Each _prov In prov
+                                i = PropList.FindIndex(Function(p) p.Name = _prov.Name)
+                                If i >= 0 Then PropList(i).SetProvider(DirectCast(DirectCast(m, PropertyInfo).GetValue(Source), IFormatProvider), _prov)
+                            Next
                         End If
                     Next
                     Providers.Clear()

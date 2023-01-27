@@ -1,3 +1,17 @@
+# 2023.1.27.0
+
+*2023-01-27*
+
+- Added
+  - Advanced Twitter options for GIFs
+  - Changing the icon of the user creation form based on the selected site
+- Fixed
+  - Pinned Instagram posts reload every time
+- Plugins
+  - Added
+    - `Interaction` option to the `Provider` attribute
+	- `IPropertyProvider` interface
+
 # 2023.1.24.1
 
 *2023-01-24*
