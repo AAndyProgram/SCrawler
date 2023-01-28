@@ -10,7 +10,7 @@
 - Plugins
   - Added
     - `Interaction` option to the `Provider` attribute
-	- `IPropertyProvider` interface
+    - `IPropertyProvider` interface
 
 # 2023.1.24.1
 
