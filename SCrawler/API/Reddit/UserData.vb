@@ -533,31 +533,36 @@ Namespace API.Reddit
                     Dim e As New ErrorsDescriber(EDP.ReturnValue)
                     Dim m As UserMedia, m2 As UserMedia
                     Dim RedGifsHost As SettingsHost = Settings(RedGifs.RedGifsSiteKey)
+                    Dim _repeatForRedgifs As Boolean
                     RedGifsResponser = RedGifsHost.Responser.Copy
                     For i% = _TempMediaList.Count - 1 To 0 Step -1
                         ThrowAny(Token)
                         If _TempMediaList(i).Type = UTypes.VideoPre Or _TempMediaList(i).Type = v2 Then
                             m = _TempMediaList(i)
                             If _TempMediaList(i).Type = UTypes.VideoPre Then
-                                If m.URL.Contains($"{SiteGfycatKey}.com") Then
-                                    r = Gfycat.Envir.GetVideo(m.URL)
-                                ElseIf m.URL.Contains(SiteRedGifsKey) Then
-                                    m2 = RedGifs.UserData.GetDataFromUrlId(m.URL, False, RedGifsResponser, RedGifsHost)
-                                    If m2.State = UStates.Missing Then
-                                        m.State = UStates.Missing
-                                        _ContentList.Add(m)
-                                        _TempMediaList.RemoveAt(i)
-                                    ElseIf m2.State = RedGifs.UserData.DataGone Then
-                                        _TempMediaList.RemoveAt(i)
+                                Do
+                                    _repeatForRedgifs = False
+                                    If m.URL.Contains($"{SiteGfycatKey}.com") Then
+                                        r = Gfycat.Envir.GetVideo(m.URL)
+                                        If Not r.IsEmptyString AndAlso r.Contains("redgifs.com") Then m.URL = r : _repeatForRedgifs = True
+                                    ElseIf m.URL.Contains(SiteRedGifsKey) Then
+                                        m2 = RedGifs.UserData.GetDataFromUrlId(m.URL, False, RedGifsResponser, RedGifsHost)
+                                        If m2.State = UStates.Missing Then
+                                            m.State = UStates.Missing
+                                            _ContentList.Add(m)
+                                            _TempMediaList.RemoveAt(i)
+                                        ElseIf m2.State = RedGifs.UserData.DataGone Then
+                                            _TempMediaList.RemoveAt(i)
+                                        Else
+                                            m2.URL_BASE = m.URL
+                                            m2.Post = m.Post
+                                            _TempMediaList(i) = m2
+                                        End If
+                                        Continue For
                                     Else
-                                        m2.URL_BASE = m.URL
-                                        m2.Post = m.Post
-                                        _TempMediaList(i) = m2
+                                        r = Responser.GetResponse(m.URL,, e)
                                     End If
-                                    Continue For
-                                Else
-                                    r = Responser.GetResponse(m.URL,, e)
-                                End If
+                                Loop While _repeatForRedgifs
                             Else
                                 r = m.URL
                             End If

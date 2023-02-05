@@ -108,6 +108,7 @@ Friend Module MainMod
     Friend ReadOnly FeedVideoLengthProvider As New ADateTime("hh\:mm\:ss") With {.TimeParseMode = ADateTime.TimeModes.TimeSpan}
     Friend ReadOnly UserExistsPredicate As New FPredicate(Of IUserData)(Function(u) u.Exists)
     Friend ReadOnly LogConnector As New LogHost
+    Friend DefaultUserAgent As String = String.Empty
 #Region "File name operations"
     Friend FileDateAppenderProvider As IFormatProvider
     ''' <summary>File, Date</summary>
@@ -187,6 +188,7 @@ Friend Module MainMod
                 If Not found Then
                     If URL.Contains("gfycat") Then
                         um = Gfycat.Envir.GetVideoInfo(URL)
+                        If um.ListExists AndAlso um(0).URL.Contains("redgifs.com") Then Return DownloadVideoByURL(um(0).URL, AskForPath, Silent)
                     ElseIf URL.Contains("imgur.com") Then
                         um = Imgur.Envir.GetVideoInfo(URL)
                     Else

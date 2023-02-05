@@ -6,7 +6,6 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
-Imports System.Reflection
 Imports SCrawler.Plugin.Attributes
 Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Forms.Controls

@@ -31,7 +31,7 @@ Namespace API.LPSG
             Return New UserData
         End Function
         Friend Overrides Function Available(ByVal What As ISiteSettings.Download, ByVal Silent As Boolean) As Boolean
-            Return If(Responser.Cookies?.Count, 0) > 0
+            Return Responser.CookiesExists
         End Function
     End Class
 End Namespace

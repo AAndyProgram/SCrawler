@@ -17,7 +17,18 @@ Namespace API.Gfycat
             Try
                 Dim r$
                 Using w As New WebClient : r = w.DownloadString(URL) : End Using
-                If Not r.IsEmptyString Then Return RegexReplace(r, RParams.DMS("contentUrl.:.(http.?://[^""]+?\.mp4)", 1)) Else Return String.Empty
+                If Not r.IsEmptyString Then
+                    Dim _url$ = RegexReplace(r, RParams.DMS("contentUrl.:.(http.?://[^""]+?\.mp4)", 1, EDP.ReturnValue))
+                    If Not _url.IsEmptyString Then
+                        If _url.Contains("redgifs.com") Then
+                            _url = RegexReplace(_url, RParams.DMS("([^/-]+)[-\w]*\.mp4", 1, EDP.ReturnValue))
+                            If Not _url.IsEmptyString Then Return $"https://www.redgifs.com/watch/{_url}"
+                        Else
+                            Return _url
+                        End If
+                    End If
+                End If
+                Return String.Empty
             Catch ex As Exception
                 Dim e As EDP = EDP.ReturnValue
                 If TypeOf ex Is WebException Then

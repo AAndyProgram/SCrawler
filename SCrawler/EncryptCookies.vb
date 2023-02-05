@@ -12,15 +12,8 @@ Namespace EncryptCookies
         Friend CookiesEncrypted As Boolean = False
         Friend Sub ValidateCookiesEncrypt(ByRef Responser As Responser)
             If Not Responser Is Nothing Then
-                Dim b As Boolean = False
                 With Responser
-                    If Not .Cookies Is Nothing Then
-                        With .Cookies
-                            If .EncryptKey.IsEmptyString Then .EncryptKey = SettingsCLS.CookieEncryptKey : b = .Count > 0
-                        End With
-                    End If
-                    If .CookiesEncryptKey.IsEmptyString Then .CookiesEncryptKey = SettingsCLS.CookieEncryptKey : b = True
-                    If b Then .SaveSettings()
+                    If .CookiesEncryptKey.IsEmptyString Then .CookiesEncryptKey = SettingsCLS.CookieEncryptKey : .SaveSettings()
                 End With
             End If
         End Sub

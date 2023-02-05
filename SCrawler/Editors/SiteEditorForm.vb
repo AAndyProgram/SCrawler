@@ -212,7 +212,7 @@ Namespace Editors
             Select Case Sender.DefaultButton
                 Case ADB.Edit
                     If Not Host.Responser Is Nothing Then
-                        Using f As New CookieListForm With {.DesignXML = Settings.Design, .UseGrid = False}
+                        Using f As New CookieListForm With {.DesignXML = Settings.Design, .ShowGrid = False}
                             f.SetCollection(Host.Responser.Cookies)
                             f.ShowDialog()
                             If f.DialogResult = DialogResult.OK Then
@@ -224,17 +224,14 @@ Namespace Editors
                     End If
                 Case ADB.Clear
                     If Not Host.Responser Is Nothing Then
-                        With Host.Responser
-                            If Not .Cookies Is Nothing Then .Cookies.Dispose()
-                            .Cookies = New CookieKeeper(.CookiesDomain)
-                            MyDefs.MyOkCancel.EnableOK = True
-                        End With
+                        Host.Responser.Cookies.Clear()
+                        MyDefs.MyOkCancel.EnableOK = True
                         SetCookieText()
                     End If
             End Select
         End Sub
         Private Sub SetCookieText()
-            If Not Host.Responser Is Nothing Then TXT_COOKIES.Text = $"{If(Host.Responser.Cookies?.Count, 0)} cookies"
+            If Not Host.Responser Is Nothing Then TXT_COOKIES.Text = $"{Host.Responser.Cookies.Count} cookies"
         End Sub
         Private Sub SpecialButton_Click(sender As Object, e As EventArgs) Handles SpecialButton.Click
             MyDefs.Detector()

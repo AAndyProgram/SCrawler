@@ -36,7 +36,7 @@ Namespace API.TikTok
             Return UserData.GetVideoInfo(URL, Responser)
         End Function
         Friend Overrides Function BaseAuthExists() As Boolean
-            Return If(Responser.Cookies?.Count, 0) > 0
+            Return Responser.CookiesExists
         End Function
     End Class
 End Namespace

@@ -102,7 +102,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Attributes\Attributes.vb" />
-    <Compile Include="Interfaces\IPropertyProvider.vb" />
+    <Compile Include="ObjectInterfaces\IPropertyProvider.vb" />
     <Compile Include="Objects\ExchangeOptions.vb" />
     <Compile Include="ObjectInterfaces\ILogProvider.vb" />
     <Compile Include="Interfaces\IPluginContentProvider.vb" />

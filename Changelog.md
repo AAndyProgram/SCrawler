@@ -1,3 +1,12 @@
+# 2023.2.5.0
+
+*2023-02-05*
+
+- Added
+  - The ability to configure UserAgent
+- Fixed
+  - (Issue #101) Failed download Gfycat video in some cases
+
 # 2023.1.27.0
 
 *2023-01-27*

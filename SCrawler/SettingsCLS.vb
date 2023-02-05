@@ -100,6 +100,9 @@ Friend Class SettingsCLS : Implements IDisposable
         SeparateVideoFolder = New XMLValue(Of Boolean)("SeparateVideoFolder", True, MyXML)
         CollectionsPath = New XMLValue(Of String)("CollectionsPath", "Collections", MyXML)
 
+        UserAgent = New XMLValue(Of String)("UserAgent",, MyXML)
+        If Not UserAgent.IsEmptyString Then DefaultUserAgent = UserAgent
+
         Dim n() As String = {"Search"}
         SearchInName = New XMLValue(Of Boolean)("SearchInName", True, MyXML, n)
         SearchInDescription = New XMLValue(Of Boolean)("SearchInDescription", False, MyXML, n)
@@ -529,6 +532,7 @@ Friend Class SettingsCLS : Implements IDisposable
     Private ReadOnly Property CookiesEncrypted As XMLValue(Of Boolean)
     Friend ReadOnly Property AddMissingToLog As XMLValue(Of Boolean)
     Friend ReadOnly Property AddMissingErrorsToLog As XMLValue(Of Boolean)
+    Friend ReadOnly Property UserAgent As XMLValue(Of String)
 #Region "Search"
     Friend ReadOnly Property SearchInName As XMLValue(Of Boolean)
     Friend ReadOnly Property SearchInDescription As XMLValue(Of Boolean)

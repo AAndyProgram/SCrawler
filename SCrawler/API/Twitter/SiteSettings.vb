@@ -81,15 +81,17 @@ Namespace API.Twitter
 
             With Responser
                 If .File.Exists Then
+                    Dim b As Boolean = .CookiesDomain.IsEmptyString
                     If EncryptCookies.CookiesEncrypted Then .CookiesEncryptKey = SettingsCLS.CookieEncryptKey
                     .LoadSettings()
                     a = .Headers.Value(Header_Authorization)
                     t = .Headers.Value(Header_Token)
+                    .CookiesDomain = "twitter.com"
+                    If b Then .SaveSettings()
                 Else
                     .ContentType = "application/json"
                     .Accept = "*/*"
                     .CookiesDomain = "twitter.com"
-                    .Cookies = New CookieKeeper(.CookiesDomain) With {.EncryptKey = SettingsCLS.CookieEncryptKey}
                     .CookiesEncryptKey = SettingsCLS.CookieEncryptKey
                     .Decoders.Add(SymbolsConverter.Converters.Unicode)
                     .Headers.Add("sec-ch-ua", " Not;A Brand"";v=""99"", ""Google Chrome"";v=""91"", ""Chromium"";v=""91""")
@@ -146,7 +148,7 @@ Namespace API.Twitter
             Return $"https://twitter.com/{User.Name}/status/{Media.Post.ID}"
         End Function
         Friend Overrides Function BaseAuthExists() As Boolean
-            Return If(Responser.Cookies?.Count, 0) > 0 And ACheck(Token.Value) And ACheck(Auth.Value)
+            Return Responser.CookiesExists And ACheck(Token.Value) And ACheck(Auth.Value)
         End Function
         Friend Overrides Sub UserOptions(ByRef Options As Object, ByVal OpenForm As Boolean)
             If Options Is Nothing OrElse Not TypeOf Options Is EditorExchangeOptions Then Options = New EditorExchangeOptions(Me)

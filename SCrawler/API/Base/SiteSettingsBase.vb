@@ -37,7 +37,6 @@ Namespace API.Base
                     .LoadSettings()
                 Else
                     .CookiesDomain = CookiesDomain
-                    .Cookies = New CookieKeeper(.CookiesDomain) With {.EncryptKey = SettingsCLS.CookieEncryptKey}
                     .CookiesEncryptKey = SettingsCLS.CookieEncryptKey
                     .SaveSettings()
                 End If
@@ -53,6 +52,7 @@ Namespace API.Base
         End Sub
         Friend Overridable Sub EndInit() Implements ISiteSettings.EndInit
             EncryptCookies.ValidateCookiesEncrypt(Responser)
+            If Not DefaultUserAgent.IsEmptyString And Not Responser Is Nothing Then Responser.UserAgent = DefaultUserAgent
         End Sub
         Friend Overridable Sub BeginUpdate() Implements ISiteSettings.BeginUpdate
         End Sub

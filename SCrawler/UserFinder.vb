@@ -183,7 +183,7 @@ Friend Class UserFinder : Implements IDisposable
             End If
             __added = {__added, __dup, __skipped}.ListToString(vbCr.StringDup(2))
             If Not __added.IsEmptyString Then
-                Using t As New TextSaver("LOGs\ImportUsers.txt") With {.ForceAddDateTimeToFileName = True}
+                Using t As New TextSaver("LOGs\ImportUsers.txt") With {.FileForceAddDateTimeToName = True}
                     t.Append(__added)
                     If Added.Count > 0 Then
                         t.AppendLine(vbNewLine.StringDup(2))

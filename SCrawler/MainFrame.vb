@@ -1623,7 +1623,7 @@ ResumeDownloadingOperation:
     Private Sub Downloader_Downloading(ByVal Value As Boolean)
         Dim __isDownloading As Boolean = Value Or Downloader.Working
         ControlInvokeFast(Toolbar_TOP, BTT_DOWN_STOP, Sub() BTT_DOWN_STOP.Enabled = __isDownloading)
-        ControlInvokeFast(Me, Sub() TrayIcon.Icon = If(__isDownloading, My.Resources.ArrowDownIcon_Blue_24, My.Resources.RainbowIcon_48))
+        TrayIcon.Icon = If(__isDownloading, My.Resources.ArrowDownIcon_Blue_24, My.Resources.RainbowIcon_48)
     End Sub
 #End Region
 End Class

@@ -63,6 +63,7 @@ Namespace API.XVIDEOS
             Initialized = True
             DomainContainer.EndInit(Me)
             DomainsTemp.ListAddList(Domains)
+            MyBase.EndInit()
         End Sub
 #End Region
 #Region "Edit"
@@ -94,7 +95,7 @@ Namespace API.XVIDEOS
         Friend Overrides Function Available(ByVal What As ISiteSettings.Download, ByVal Silent As Boolean) As Boolean
             If Settings.UseM3U8 Then
                 If What = ISiteSettings.Download.SavedPosts Then
-                    Return ACheck(SavedVideosPlaylist.Value) And If(Responser.Cookies?.Count, 0) > 0
+                    Return ACheck(SavedVideosPlaylist.Value) And Responser.CookiesExists
                 Else
                     Return True
                 End If
