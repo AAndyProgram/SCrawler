@@ -9,7 +9,7 @@
 Imports System.Reflection
 Imports SCrawler.Plugin.Attributes
 Imports PersonalUtilities.Functions.XML
-Imports PersonalUtilities.Functions.XML.Base
+Imports PersonalUtilities.Functions.XML.Objects
 Imports PersonalUtilities.Tools.WEB.GitHub
 Namespace Plugin.Hosts
     Friend Class PluginHost

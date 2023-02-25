@@ -11,6 +11,7 @@ Imports SCrawler.API.Base
 Imports SCrawler.Plugin.Attributes
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.XML.Base
+Imports PersonalUtilities.Functions.XML.Objects
 Imports PersonalUtilities.Tools.Web.Clients
 Imports Download = SCrawler.Plugin.ISiteSettings.Download
 Namespace Plugin.Hosts
@@ -251,8 +252,8 @@ Namespace Plugin.Hosts
                 End If
             End If
 
-            _Path = New XMLValue(Of SFile)("Path",, _XML, n, New XMLValueBase.ToFilePath)
-            _SavedPostsPath = New XMLValue(Of SFile)("SavedPostsPath",, _XML, n, New XMLValueBase.ToFilePath)
+            _Path = New XMLValue(Of SFile)("Path",, _XML, n, New XMLToFilePathProvider)
+            _SavedPostsPath = New XMLValue(Of SFile)("SavedPostsPath",, _XML, n, New XMLToFilePathProvider)
 
             Temporary = New XMLValue(Of Boolean)
             Temporary.SetExtended("Temporary", False, _XML, n)

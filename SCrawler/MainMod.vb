@@ -7,7 +7,7 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports System.Runtime.CompilerServices
-Imports PersonalUtilities.Functions.XML.Base
+Imports PersonalUtilities.Functions.XML.Objects
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Forms.Toolbars
 Imports PersonalUtilities.Tools

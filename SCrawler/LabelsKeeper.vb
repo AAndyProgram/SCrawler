@@ -7,7 +7,7 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports PersonalUtilities.Functions.XML
-Imports PersonalUtilities.Functions.XML.Base
+Imports PersonalUtilities.Functions.XML.Objects
 Imports PersonalUtilities.Tools
 Friend Class LabelsKeeper : Implements ICollection(Of String), IMyEnumerator(Of String), IDisposable
     Friend Event NewLabelAdded()
@@ -29,8 +29,8 @@ Friend Class LabelsKeeper : Implements ICollection(Of String), IMyEnumerator(Of 
         LabelsList = New List(Of String)
         NewLabels = New List(Of String)
         If LabelsFile.Exists Then LabelsList.ListAddList(IO.File.ReadAllLines(LabelsFile), LAP.NotContainsOnly)
-        Current = New XMLValuesCollection(Of String)(XMLValueBase.ListModes.String, "LatestSelectedLabels", x) With {.ListAddParameters = LAP.NotContainsOnly}
-        Excluded = New XMLValuesCollection(Of String)(XMLValueBase.ListModes.String, "LatestExcludedLabels", x) With {.ListAddParameters = LAP.NotContainsOnly}
+        Current = New XMLValuesCollection(Of String)(IXMLValuesCollection.Modes.String, "LatestSelectedLabels",, x) With {.ListAddParameters = LAP.NotContainsOnly}
+        Excluded = New XMLValuesCollection(Of String)(IXMLValuesCollection.Modes.String, "LatestExcludedLabels",, x) With {.ListAddParameters = LAP.NotContainsOnly}
         ExcludedIgnore = New XMLValue(Of Boolean)("LatestExcludedLabelsIgnore", False, x)
         Dim lp As New ListAddParams(LAP.NotContainsOnly + LAP.IgnoreICopier)
         If Current.Count > 0 Then LabelsList.ListAddList(Current, lp)

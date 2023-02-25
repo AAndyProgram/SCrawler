@@ -71,7 +71,7 @@ Namespace API.BaseObjects
                 .Icon = s.Icon,
                 .LocationOnly = True,
                 .Size = New Size(400, 330),
-                .DesignXMLNode = s.Site
+                .DesignXMLNodeName = s.Site
             }
                 AddHandler f.AddClick, __add
                 AddHandler f.DeleteClick, __delete

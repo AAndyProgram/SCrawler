@@ -101,7 +101,7 @@ Namespace Editors
             SetChecker(CH.MyImagesDown, h.DownloadImages)
             SetChecker(CH.MyVideosDown, h.DownloadVideos)
         End Sub
-        Private Overloads Shared Sub SetChecker(ByRef State As CheckState, ByVal Prop As XML.Base.XMLValue(Of Boolean))
+        Private Overloads Shared Sub SetChecker(ByRef State As CheckState, ByVal Prop As XML.Objects.XMLValue(Of Boolean))
             If Prop.ValueF.Exists Then
                 State = If(Prop.Value, CheckState.Checked, CheckState.Unchecked)
             Else
@@ -113,7 +113,7 @@ Namespace Editors
             SetPropByChecker(CH.MyImagesDown, h.DownloadImages)
             SetPropByChecker(CH.MyVideosDown, h.DownloadVideos)
         End Sub
-        Private Overloads Shared Sub SetPropByChecker(ByVal State As CheckState, ByRef Prop As XML.Base.XMLValue(Of Boolean))
+        Private Overloads Shared Sub SetPropByChecker(ByVal State As CheckState, ByRef Prop As XML.Objects.XMLValue(Of Boolean))
             Select Case State
                 Case CheckState.Checked : Prop.Value = True
                 Case CheckState.Unchecked : Prop.Value = False

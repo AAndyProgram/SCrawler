@@ -211,8 +211,8 @@ Friend Class ChannelViewForm : Implements IChannelLimits
                                   New ToolStripSeparator,
                                   New ToolStripControlHost(CH_HIDE_EXISTS_USERS),
                                   BTT_SHOW_STATS})
-        AddHandler Settings.ChannelsImagesColumns.OnValueChanged, AddressOf ImagesCountChanged
-        AddHandler Settings.ChannelsImagesRows.OnValueChanged, AddressOf ImagesCountChanged
+        AddHandler Settings.ChannelsImagesColumns.ValueChanged, AddressOf ImagesCountChanged
+        AddHandler Settings.ChannelsImagesRows.ValueChanged, AddressOf ImagesCountChanged
     End Sub
 #End Region
 #Region "Form handlers"
@@ -398,7 +398,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
         End With
         Return s
     End Function
-    Private Sub ImagesCountChanged(ByVal Sender As Object, ByVal _Name As String, ByVal _Value As Object)
+    Private Sub ImagesCountChanged(ByVal Sender As Object, ByVal e As EventArgs)
         AppendPendingUsers()
         MyRange.Limit = ImagesInRow * ImagesRows
         MyRange.GoTo(0)

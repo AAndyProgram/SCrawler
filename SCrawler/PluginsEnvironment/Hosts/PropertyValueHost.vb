@@ -9,6 +9,7 @@
 Imports System.Reflection
 Imports SCrawler.Plugin.Attributes
 Imports PersonalUtilities.Functions.XML.Base
+Imports PersonalUtilities.Functions.XML.Objects
 Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Forms.Controls
 Imports PersonalUtilities.Forms.Controls.Base
@@ -200,7 +201,7 @@ Namespace Plugin.Hosts
                 Options = Member.GetCustomAttribute(Of PropertyOption)()
                 IsTaskCounter = Not Member.GetCustomAttribute(Of TaskCounter)() Is Nothing
                 _XmlName = If(Member.GetCustomAttribute(Of PXML)()?.ElementName, String.Empty)
-                If Not _XmlName.IsEmptyString Then XValue = XMLValueBase.CreateInstance([Type])
+                If Not _XmlName.IsEmptyString Then XValue = CreateXMLValueInstance([Type], True)
                 Exists = True
             End If
         End Sub

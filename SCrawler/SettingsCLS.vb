@@ -9,6 +9,7 @@
 Imports PersonalUtilities.Functions.Messaging
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.XML.Base
+Imports PersonalUtilities.Functions.XML.Objects
 Imports PersonalUtilities.Forms.Controls
 Imports PersonalUtilities.Forms.Controls.Base
 Imports SCrawler.API
@@ -91,8 +92,8 @@ Friend Class SettingsCLS : Implements IDisposable
         End If
 
         GlobalPath = New XMLValue(Of SFile)("GlobalPath", New SFile($"{SFile.GetPath(Application.StartupPath).PathWithSeparator}Data\"), MyXML,,
-                                            New XMLValueBase.ToFilePath)
-        LastCopyPath = New XMLValue(Of SFile)("LastCopyPath",, MyXML,, New XMLValueBase.ToFilePath)
+                                            New XMLToFilePathProvider)
+        LastCopyPath = New XMLValue(Of SFile)("LastCopyPath",, MyXML,, New XMLToFilePathProvider)
 
         CookiesEncrypted = New XMLValue(Of Boolean)("CookiesEncrypted", False, MyXML)
         EncryptCookies.CookiesEncrypted = CookiesEncrypted
@@ -129,7 +130,7 @@ Friend Class SettingsCLS : Implements IDisposable
         DownloadOpenProgress = New XMLValueAttribute(Of Boolean, Boolean)("DownloadOpenProgress", "OpenAgain", False, False, MyXML)
         DownloadsCompleteCommand = New XMLValueAttribute(Of String, Boolean)("DownloadsCompleteCommand", "Use",,, MyXML)
         ClosingCommand = New XMLValueAttribute(Of String, Boolean)("ClosingCommand", "Use",,, MyXML)
-        AddHandler ClosingCommand.OnValueChanged, Sub(s, __n, v) MainFrameObj?.ChangeCloseVisible()
+        AddHandler ClosingCommand.ValueChanged, Sub(s, ev) MainFrameObj?.ChangeCloseVisible()
         InfoViewMode = New XMLValue(Of Integer)("InfoViewMode", DownloadedInfoForm.ViewModes.Session, MyXML)
         ViewMode = New XMLValue(Of Integer)("ViewMode", ViewModes.IconLarge, MyXML)
         ShowingMode = New XMLValue(Of Integer)("ShowingMode", ShowingModes.All, MyXML)
@@ -140,7 +141,7 @@ Friend Class SettingsCLS : Implements IDisposable
         AddMissingToLog = New XMLValue(Of Boolean)("AddMissingToLog", True, MyXML)
         AddMissingErrorsToLog = New XMLValue(Of Boolean)("AddMissingErrorsToLog", False, MyXML)
 
-        LatestSavingPath = New XMLValue(Of SFile)("LatestSavingPath", Nothing, MyXML,, New XMLValueBase.ToFilePath)
+        LatestSavingPath = New XMLValue(Of SFile)("LatestSavingPath", Nothing, MyXML,, New XMLToFilePathProvider)
         LatestSelectedChannel = New XMLValue(Of String)("LatestSelectedChannel",, MyXML)
 
         _ViewDateFrom = New XMLValue(Of Date)
@@ -149,9 +150,9 @@ Friend Class SettingsCLS : Implements IDisposable
         _ViewDateTo.SetExtended("ViewDateTo",, MyXML)
         ViewDateMode = New XMLValue(Of Integer)("ViewDateMode", ShowingDates.Off, MyXML)
 
-        LatestDownloadedSites = New XMLValuesCollection(Of String)(XMLValueBase.ListModes.String, "LatestDownloadedSites", MyXML)
+        LatestDownloadedSites = New XMLValuesCollection(Of String)(IXMLValuesCollection.Modes.String, "LatestDownloadedSites",, MyXML)
 
-        SelectedSites = New XMLValuesCollection(Of String)(XMLValueBase.ListModes.String, "SelectedSites", MyXML, {Name_Node_Sites})
+        SelectedSites = New XMLValuesCollection(Of String)(IXMLValuesCollection.Modes.String, "SelectedSites",, MyXML, {Name_Node_Sites})
 
         ImgurClientID = New XMLValue(Of String)("ImgurClientID", String.Empty, MyXML, {Name_Node_Sites})
 
@@ -183,11 +184,11 @@ Friend Class SettingsCLS : Implements IDisposable
         n = {"Users", "FileName"}
         MaxUsersJobsCount = New XMLValue(Of Integer)("MaxJobsCount", DefaultMaxDownloadingTasks, MyXML, n)
         FileAddDateToFileName = New XMLValue(Of Boolean)("FileAddDateToFileName", False, MyXML, n)
-        AddHandler FileAddDateToFileName.OnValueChanged, AddressOf ChangeDateProvider
+        AddHandler FileAddDateToFileName.ValueChanged, AddressOf ChangeDateProvider
         FileAddTimeToFileName = New XMLValue(Of Boolean)("FileAddTimeToFileName", False, MyXML, n)
-        AddHandler FileAddTimeToFileName.OnValueChanged, AddressOf ChangeDateProvider
+        AddHandler FileAddTimeToFileName.ValueChanged, AddressOf ChangeDateProvider
         FileDateTimePositionEnd = New XMLValue(Of Boolean)("FileDateTimePositionEnd", True, MyXML, n)
-        AddHandler FileDateTimePositionEnd.OnValueChanged, AddressOf ChangeDateProvider
+        AddHandler FileDateTimePositionEnd.ValueChanged, AddressOf ChangeDateProvider
         FileReplaceNameByDate = New XMLValue(Of Integer)("FileReplaceNameByDate", FileNameReplaceMode.None, MyXML, n)
 
         CheckUpdatesAtStart = New XMLValue(Of Boolean)("CheckUpdatesAtStart", True, MyXML)
@@ -219,9 +220,9 @@ Friend Class SettingsCLS : Implements IDisposable
             If BlackList.Count > 0 Then BlackList.RemoveAll(Function(b) Not b.Exists)
         End If
         _UpdatesSuspended = False
-        ChangeDateProvider(Nothing, Nothing, Nothing)
+        ChangeDateProvider(Nothing, Nothing)
     End Sub
-    Private Sub ChangeDateProvider(ByVal Sender As Object, ByVal Name As String, ByVal Value As Object)
+    Private Sub ChangeDateProvider(ByVal Sender As Object, ByVal e As EventArgs)
         If Not _UpdatesSuspended Then
             Dim p$ = String.Empty
             If FileAddDateToFileName Then p = "yyyyMMdd"
@@ -506,7 +507,7 @@ Friend Class SettingsCLS : Implements IDisposable
         MyXML.EndUpdate()
         If MyXML.ChangesDetected Then MyXML.UpdateData()
         _UpdatesSuspended = False
-        ChangeDateProvider(Nothing, Nothing, Nothing)
+        ChangeDateProvider(Nothing, Nothing)
     End Sub
     Default Friend ReadOnly Property Site(ByVal PluginKey As String) As SettingsHost
         Get

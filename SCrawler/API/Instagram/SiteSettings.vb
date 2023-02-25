@@ -11,6 +11,7 @@ Imports SCrawler.Plugin
 Imports SCrawler.Plugin.Attributes
 Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Functions.XML
+Imports PersonalUtilities.Functions.XML.Objects
 Imports PersonalUtilities.Functions.XML.Base
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Tools.Web.Clients
@@ -237,12 +238,12 @@ Namespace API.Instagram
             TaggedNotifyLimit = New PropertyValue(200)
             TaggedNotifyLimitProvider = New TaggedNotifyLimitChecker
 
-            DownloadingErrorDate = New XMLValue(Of Date) With {.Provider = New XMLValueConversionProvider(Function(ss, vv) AConvert(Of String)(vv, AModes.Var, Nothing))}
+            DownloadingErrorDate = New XMLValue(Of Date) With {.Provider = New XMLValueConversionProvider(Function(ss, nn, vv, dd) AConvert(Of String)(vv, AModes.Var, Nothing))}
             DownloadingErrorDate.SetExtended("InstagramDownloadingErrorDate", Now.AddYears(-10), _XML, n)
             LastDownloadDate = New XMLValue(Of Date)("LastDownloadDate", Now.AddDays(-1), _XML, n)
             LastRequestsCount = New XMLValue(Of Integer)("LastRequestsCount", 0, _XML, n)
             LastRequestsCountLabel = New PropertyValue(LastRequestsCountLabelStr.Invoke(LastRequestsCount.Value))
-            AddHandler LastRequestsCount.OnValueChanged, Sub(sender, __name, __value) LastRequestsCountLabel.Value = LastRequestsCountLabelStr.Invoke(DirectCast(__value, Existable(Of Integer)).Value)
+            AddHandler LastRequestsCount.ValueChanged, Sub(sender, e) LastRequestsCountLabel.Value = LastRequestsCountLabelStr.Invoke(DirectCast(sender, XMLValue(Of Integer)).ValueF.Value)
 
             UrlPatternUser = "https://www.instagram.com/{0}/"
             UserRegex = RParams.DMS("[htps:/]{7,8}.*?instagram.com/([^/]+)", 1)

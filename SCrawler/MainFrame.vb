@@ -613,7 +613,7 @@ CloseResume:
         BTT_SHOW_EXCLUDED_LABELS.Checked = Settings.Labels.Excluded.Count > 0
         BTT_SHOW_EXCLUDED_LABELS_IGNORE.Checked = Settings.Labels.ExcludedIgnore
     End Sub
-    Private Function OpenLabelsForm(ByRef ll As XML.Base.XMLValuesCollection(Of String)) As Boolean
+    Private Function OpenLabelsForm(ByRef ll As XML.Objects.XMLValuesCollection(Of String)) As Boolean
         Using f As New LabelsForm(ll) With {.WithDeleteButton = True}
             f.ShowDialog()
             If f.DialogResult = DialogResult.OK Then

@@ -6,7 +6,6 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
-'Imports System.Windows.Forms.PropertyGridInternal
 Imports System.ComponentModel
 Imports SCrawler.API.Base
 Imports PersonalUtilities.Forms
