@@ -51,7 +51,7 @@ Namespace DownloadObjects
                         If Not u.Name.IsEmptyString And Not u.Site.IsEmptyString Then User = Settings.GetUser(u)
                     End If
                     Data = New UserMedia(e(Name_Media), User)
-                    [Date] = AConvert(Of Date)(e.Value(Name_Date), ParsersDataDateProvider, Now)
+                    [Date] = AConvert(Of Date)(e.Value(Name_Date), DateTimeDefaultProvider, Now)
                     Session = e.Value(Name_Session).FromXML(Of Integer)(0)
                     Dim f As SFile = e.Value(Name_File)
                     If f.Exists Then Data.File = f
@@ -78,7 +78,7 @@ Namespace DownloadObjects
             Friend Function ToEContainer(Optional ByVal e As ErrorsDescriber = Nothing) As EContainer Implements IEContainerProvider.ToEContainer
                 Return ListAddValue(New EContainer(Name_Data, String.Empty) From {
                                         Data.ToEContainer,
-                                        New EContainer(Name_Date, AConvert(Of String)([Date], ParsersDataDateProvider, String.Empty)),
+                                        New EContainer(Name_Date, AConvert(Of String)([Date], DateTimeDefaultProvider, String.Empty)),
                                         New EContainer(Name_Session, Session),
                                         New EContainer(Name_File, Data.File)},
                                     If(Not User Is Nothing, DirectCast(User, UserDataBase).User.ToEContainer, Nothing), LAP.IgnoreICopier)

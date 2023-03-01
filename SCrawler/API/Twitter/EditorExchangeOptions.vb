@@ -11,17 +11,22 @@ Namespace API.Twitter
         Friend Property GifsDownload As Boolean
         Friend Property GifsSpecialFolder As String
         Friend Property GifsPrefix As String
+        Friend Property UseMD5Comparison As Boolean = False
+        Friend Property RemoveExistingDuplicates As Boolean = False
         Friend Sub New()
         End Sub
         Friend Sub New(ByVal s As SiteSettings)
             GifsDownload = s.GifsDownload.Value
             GifsSpecialFolder = s.GifsSpecialFolder.Value
             GifsPrefix = s.GifsPrefix.Value
+            UseMD5Comparison = s.UseMD5Comparison.Value
         End Sub
         Friend Sub New(ByVal u As UserData)
             GifsDownload = u.GifsDownload
             GifsSpecialFolder = u.GifsSpecialFolder
             GifsPrefix = u.GifsPrefix
+            UseMD5Comparison = u.UseMD5Comparison
+            RemoveExistingDuplicates = u.RemoveExistingDuplicates
         End Sub
     End Class
 End Namespace

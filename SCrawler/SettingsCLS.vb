@@ -116,6 +116,8 @@ Friend Class SettingsCLS : Implements IDisposable
         ChangeReadyForDownOnTempChange = New XMLValue(Of Boolean)("ChangeReadyForDownOnTempChange", True, MyXML, n)
         DownloadNativeImageFormat = New XMLValue(Of Boolean)("DownloadNativeImageFormat", True, MyXML, n)
         ReparseMissingInTheRoutine = New XMLValue(Of Boolean)("ReparseMissingInTheRoutine", False, MyXML, n)
+        UserSiteNameAsFriendly = New XMLValue(Of Boolean)("UserSiteNameAsFriendly", False, MyXML, n)
+        UserSiteNameUpdateEveryTime = New XMLValue(Of Boolean)("UserSiteNameUpdateEveryTime", False, MyXML, n)
 
         Plugins.AddRange(PluginHost.GetMyHosts(MyXML, GlobalPath.Value, DefaultTemporary, DefaultDownloadImages, DefaultDownloadVideos))
         Dim tmpPluginList As IEnumerable(Of PluginHost) = PluginHost.GetPluginsHosts(MyXML, GlobalPath.Value, DefaultTemporary,
@@ -126,6 +128,11 @@ Friend Class SettingsCLS : Implements IDisposable
         FastProfilesLoading = New XMLValue(Of Boolean)("FastProfilesLoading", True, MyXML)
         MaxLargeImageHeight = New XMLValue(Of Integer)("MaxLargeImageHeight", 150, MyXML)
         MaxSmallImageHeight = New XMLValue(Of Integer)("MaxSmallImageHeight", 15, MyXML)
+        UserListBackColor = New XMLValue(Of Color)
+        UserListBackColor.SetExtended("UserListBackColor",, MyXML)
+        UserListForeColor = New XMLValue(Of Color)
+        UserListForeColor.SetExtended("UserListForeColor",, MyXML)
+        UserListImage = New XMLValue(Of SFile)("UserListImage",, MyXML)
         DownloadOpenInfo = New XMLValueAttribute(Of Boolean, Boolean)("DownloadOpenInfo", "OpenAgain", False, False, MyXML)
         DownloadOpenProgress = New XMLValueAttribute(Of Boolean, Boolean)("DownloadOpenProgress", "OpenAgain", False, False, MyXML)
         DownloadsCompleteCommand = New XMLValueAttribute(Of String, Boolean)("DownloadsCompleteCommand", "Use",,, MyXML)
@@ -169,10 +176,15 @@ Friend Class SettingsCLS : Implements IDisposable
         n = {"Feed"}
         FeedDataColumns = New XMLValue(Of Integer)("DataColumns", 1, MyXML, n)
         FeedDataRows = New XMLValue(Of Integer)("DataRows", 10, MyXML, n)
+        FeedCenterImage = New XMLValueUse(Of Integer)("FeedCenterImage", 1,, MyXML, n)
         FeedEndless = New XMLValue(Of Boolean)("Endless", True, MyXML, n)
         FeedAddDateToCaption = New XMLValue(Of Boolean)("AddDateToCaption", True, MyXML, n)
         FeedAddSessionToCaption = New XMLValue(Of Boolean)("AddSessionToCaption", False, MyXML, n)
         FeedStoreSessionsData = New XMLValue(Of Boolean)("StoreSessionsData", True, MyXML, n)
+        FeedBackColor = New XMLValue(Of Color)
+        FeedBackColor.SetExtended("FeedColorBack",, MyXML, n)
+        FeedForeColor = New XMLValue(Of Color)
+        FeedForeColor.SetExtended("FeedColorFore",, MyXML, n)
 
         n = {"Users"}
         FromChannelDownloadTop = New XMLValue(Of Integer)("FromChannelDownloadTop", 10, MyXML, n)
@@ -197,7 +209,6 @@ Friend Class SettingsCLS : Implements IDisposable
 
         n = {"Notifications"}
         ShowNotifications = New XMLValue(Of Boolean)("ShowNotifications", True, MyXML, n)
-        ShowNotifications.ReplaceByValue("ShowNotifications") 'TODELETE: 2022.9.24.0
         ShowNotificationsDownProfiles = New XMLValue(Of Boolean)("Profiles", True, MyXML, n)
         ShowNotificationsDownAutoDownloader = New XMLValue(Of Boolean)("AutoDownloader", True, MyXML, n)
         ShowNotificationsDownChannels = New XMLValue(Of Boolean)("Channels", True, MyXML, n)
@@ -247,63 +258,148 @@ Friend Class SettingsCLS : Implements IDisposable
 #Region "USERS"
     Friend Sub LoadUsers()
         Try
-            Users.Clear()
+            Users.ListClearDispose
+            UsersList.Clear()
             If UsersSettingsFile.Exists Then
                 Using x As New XmlFile(UsersSettingsFile, Protector.Modes.All, False) With {.AllowSameNames = True}
                     x.LoadData()
-                    If x.Count > 0 Then x.ForEach(Sub(xx) UsersList.Add(xx))
+                    UsersList.ListAddList(x, LAP.IgnoreICopier)
                 End Using
-                UsersCompatibilityCheck()
-                Dim PNC As Func(Of UserInfo, Boolean) = Function(u) Not u.IncludedInCollection And Not u.Protected
-                Dim NeedUpdate As Boolean = False
-                If UsersList.Count > 0 Then
-                    Dim cUsers As List(Of UserInfo) = UsersList.Where(Function(u) u.IncludedInCollection And Not u.Protected).ToList
-                    If cUsers.ListExists Then
-                        Dim d As New Dictionary(Of String, List(Of UserInfo))
-                        cUsers = cUsers.ListForEachCopy(Of List(Of UserInfo))(Function(ByVal f As UserInfo, ByVal f_indx As Integer) As UserInfo
-                                                                                  Dim m% = IIf(f.Merged Or f.IsVirtual, 1, 2)
-                                                                                  If Not f.Protected AndAlso SFile.GetPath(f.File.CutPath(m - 1).Path).Exists(SFO.Path, False) Then
-                                                                                      If Not d.ContainsKey(f.CollectionName) Then
-                                                                                          d.Add(f.CollectionName, New List(Of UserInfo) From {f})
-                                                                                      Else
-                                                                                          d(f.CollectionName).Add(f)
-                                                                                      End If
-                                                                                      Return f
-                                                                                  Else
-                                                                                      If Not f.Protected Then NeedUpdate = True : UsersList.Remove(f)
-                                                                                      Return Nothing
-                                                                                  End If
-                                                                              End Function, True)
-                        Dim v%
-                        If d.Count > 0 Then
-                            For Each kv As KeyValuePair(Of String, List(Of UserInfo)) In d
-                                Users.Add(New UserDataBind(kv.Key))
-                                MainFrameObj.CollectionHandler(DirectCast(Users(Users.Count - 1), UserDataBind))
-                                For v = 0 To kv.Value.Count - 1 : DirectCast(Users(Users.Count - 1), UserDataBind).Add(kv.Value(v), False) : Next
-                            Next
-                            d.Clear()
-                        End If
-                    End If
 
-                    If UsersList.LongCount(PNC) > 0 Then UsersList.Where(PNC).ToList.ForEach(Sub(u) Users.Add(UserDataBase.GetInstance(u, False)))
+                Dim NeedUpdate As Boolean = False
+                Dim i%, indx%, c%
+                Dim UsersListInitialCount% = UsersList.Count
+                Dim iUser As UserInfo
+                Dim userFileExists As Boolean
+                Dim __plugins As List(Of KeyValuePair(Of String, String))
+
+                If UsersList.Count > 0 Then
+                    __plugins = Plugins.Select(Function(p) New KeyValuePair(Of String, String)(p.Key, p.Name)).ToList
+                    For i% = UsersList.Count - 1 To 0 Step -1
+                        iUser = UsersList(i)
+                        With iUser
+                            'Check plugins
+                            If .Plugin.IsEmptyString Then
+                                If .Site.IsEmptyString Then
+                                    MyMainLOG = $"The corresponding plugin was not found for the user [{ .Name}]. The user was removed from SCrawler."
+                                Else
+                                    indx = __plugins.FindIndex(Function(p) p.Value.ToLower = .Site.ToLower)
+                                    If indx >= 0 Then
+                                        .Plugin = __plugins(indx).Key
+                                        .Site = __plugins(indx).Value
+                                        NeedUpdate = True
+                                    Else
+                                        .Protected = True
+                                        MyMainLOG = $"The corresponding plugin was not found for the user [{ .Name}]."
+                                    End If
+                                End If
+                            Else
+                                If Not __plugins.Exists(Function(p) p.Key.ToLower = .Plugin.ToLower) Then
+                                    .Protected = True
+                                    MyMainLOG = $"The corresponding plugin was not found for the user [{ .Plugin}:{ .Site}: { .Name}]."
+                                End If
+                            End If
+
+                            'Check paths
+                            c = IIf((Not .IncludedInCollection Or (.Merged Or .IsVirtual)) And Not .Plugin = PathPlugin.PluginKey, 1, 2)
+                            userFileExists = SFile.GetPath(.File.CutPath(c - 1).Path).Exists(SFO.Path, False)
+                            If Not .IsProtected Then
+                                If userFileExists Then
+                                    If .LastSeen.HasValue Then .LastSeen = Nothing : NeedUpdate = True
+                                Else
+                                    .LastSeen = Now
+                                    MyMainLOG = $"The user [{ .Site}: { .Name}]  was not found. " &
+                                                $"It will be removed from SCrawler on { .LastSeen.Value.ToStringDate(DateTimeDefaultProvider)}."
+                                    NeedUpdate = True
+                                End If
+                            ElseIf userFileExists Then
+                                If .Protected Then
+                                    If Not .LastSeen.HasValue Then .LastSeen = Now : NeedUpdate = True
+                                    MyMainLOG = $"The corresponding plugin was not found for the user [{ .Site}: { .Name}]. " &
+                                                $"It will be removed from SCrawler on { .LastSeen.Value.ToStringDate(DateTimeDefaultProvider)}."
+                                Else
+                                    If .LastSeen.HasValue Then .LastSeen = Nothing : NeedUpdate = True
+                                End If
+                            ElseIf If(.LastSeen, Now).AddDays(30) < Now Then
+                                UsersList.RemoveAt(i)
+                                MyMainLOG = $"The user [{ .Site}: { .Name}] was not found and was removed from SCrawler."
+                                NeedUpdate = True
+                                Continue For
+                            End If
+                        End With
+                        UsersList(i) = iUser
+                    Next
+
+                    If UsersList.Count > 0 Then
+                        With UsersList
+                            'Create collections
+                            Dim d As New Dictionary(Of String, List(Of UserInfo))
+                            .Where(Function(u) u.IncludedInCollection And Not u.IsProtected).ListIfNothing.
+                             ListForEachCopy(Of List(Of UserInfo))(Function(ByVal u As UserInfo, ByVal ii As Integer) As UserInfo
+                                                                       If Not d.ContainsKey(u.CollectionName) Then
+                                                                           d.Add(u.CollectionName, New List(Of UserInfo) From {u})
+                                                                       Else
+                                                                           d(u.CollectionName).Add(u)
+                                                                       End If
+                                                                       Return u
+                                                                   End Function, True, EDP.ThrowException)
+                            If d.Count > 0 Then
+                                For Each kv As KeyValuePair(Of String, List(Of UserInfo)) In d
+                                    Users.Add(New UserDataBind(kv.Key))
+                                    With DirectCast(Users.Last, UserDataBind)
+                                        MainFrameObj.CollectionHandler(.Self)
+                                        For i = 0 To kv.Value.Count - 1 : .Self.Add(kv.Value(i), False) : Next
+                                    End With
+                                Next
+                                d.Clear()
+                            End If
+
+                            'Create users
+                            .Where(Function(u) Not u.IncludedInCollection And Not u.IsProtected).
+                             ListIfNothing.ListForEach(Sub(u, ii) Users.Add(UserDataBase.GetInstance(u, False)))
+                        End With
+                    End If
                 End If
+
                 If Users.Count > 0 Then
+                    'Load user data
                     Dim t As New List(Of Task)
                     For Each user As IUserData In Users : t.Add(Task.Run(AddressOf user.LoadUserInformation)) : Next
                     Task.WaitAll(t.ToArray)
                     t.Clear()
-                    Dim du As List(Of UserInfo) = (From u As IUserData In Users
-                                                   Where Not u.IsCollection AndAlso Not u.FileExists AndAlso Not DirectCast(u, UserDataBase).User.Protected
-                                                   Select DirectCast(u, UserDataBase).User).ToList
-                    If du.ListExists Then du.ForEach(Sub(u) UsersList.Remove(u)) : du.Clear()
-                    Users.ListDisposeRemoveAll(Function(ByVal u As IUserData) As Boolean
-                                                   If Not DirectCast(u, UserDataBase).User.Protected Then
+
+                    'Users final check
+                    Dim findWrongUser As Func(Of UserInfo, Boolean) = Function(ByVal u As UserInfo) As Boolean
+                                                                          Dim uIndex% = UsersList.IndexOf(u)
+                                                                          If uIndex >= 0 Then
+                                                                              Dim uu As UserInfo = UsersList(indx)
+                                                                              If Not uu.LastSeen.HasValue Then
+                                                                                  uu.LastSeen = Now
+                                                                                  NeedUpdate = True
+                                                                                  UsersList(indx) = uu
+                                                                                  MyMainLOG = $"The user [{uu.Site}: {uu.Name}]  was not found. " &
+                                                                                              $"It will be removed from SCrawler on {uu.LastSeen.Value.ToStringDate(DateTimeDefaultProvider)}."
+                                                                              End If
+                                                                          End If
+                                                                          Return uIndex >= 0
+                                                                      End Function
+                    Users.ListDisposeRemoveAll(Function(ByVal u As UserDataBase) As Boolean
+                                                   If Not u.User.IsProtected Then
                                                        If u.IsCollection Then
                                                            With DirectCast(u, UserDataBind)
                                                                If .Count > 0 Then
+                                                                   Dim __del As Boolean
                                                                    For i% = .Count - 1 To 0 Step -1
+                                                                       __del = False
                                                                        If Not .Item(i).FileExists Then
-                                                                           .Item(i).Delete()
+                                                                           With DirectCast(.Item(i), UserDataBase).User
+                                                                               If Not findWrongUser(.Self) Then
+                                                                                   __del = True
+                                                                                   MyMainLOG = $"The user [{ .Site}: { .Name}] was not found and was removed from SCrawler."
+                                                                               End If
+                                                                           End With
+                                                                           If __del Then .Item(i).Delete()
+                                                                           .Item(i).Dispose()
                                                                            .Collections.RemoveAt(i)
                                                                        End If
                                                                    Next
@@ -311,14 +407,22 @@ Friend Class SettingsCLS : Implements IDisposable
                                                                Return Not .FileExists
                                                            End With
                                                        Else
-                                                           Return Not u.FileExists
+                                                           If Not u.FileExists Then
+                                                               If Not findWrongUser(u.User) Then MyMainLOG = $"The user [{u.User.Site}: {u.User.Name}]  was not found."
+                                                               Return True
+                                                           Else
+                                                               Return False
+                                                           End If
                                                        End If
                                                    Else
                                                        Return False
                                                    End If
                                                End Function)
                 End If
-                If NeedUpdate Then UpdateUsersList()
+
+                If NeedUpdate Or Not UsersList.Count = UsersListInitialCount Then
+                    If UsersList.Count = 0 Then UsersSettingsFile.Delete() Else UpdateUsersList()
+                End If
             End If
             If Users.Count > 0 Then
                 Labels.AddRange(Users.SelectMany(Function(u) u.Labels), False)
@@ -326,51 +430,6 @@ Friend Class SettingsCLS : Implements IDisposable
             End If
         Catch ex As Exception
         End Try
-    End Sub
-    Private Sub UsersCompatibilityCheck()
-        With UsersList
-            Dim user As UserInfo
-            Dim uKeysList As List(Of String) = Nothing
-            If Plugins.Count > 0 Then uKeysList = Plugins.Select(Function(p) p.Key).ListIfNothing
-            If uKeysList Is Nothing Then uKeysList = New List(Of String)
-            Dim i%
-            If .Count > 0 AndAlso (uKeysList.Count = 0 OrElse
-                                   .Exists(Function(u) u.Site.Length = 1 Or u.Plugin.IsEmptyString Or Not uKeysList.Contains(u.Plugin))) Then
-                Dim indx%
-                Dim c As Boolean = False
-                For i = 0 To .Count - 1
-                    user = .Item(i)
-                    With user
-                        If .Site.Length = 1 Then
-                            Select Case .Site
-                                Case "1" : .Site = Reddit.RedditSite : c = True
-                                Case "2" : .Site = Twitter.TwitterSite : c = True
-                                Case "3" : .Site = Instagram.InstagramSite : c = True
-                                Case "4" : .Site = RedGifs.RedGifsSite : c = True
-                            End Select
-                        End If
-                        If Not .Site.IsEmptyString Then
-                            If .Plugin.IsEmptyString Then
-                                indx = Plugins.FindIndex(Function(p) p.Settings.Name.ToLower = .Site.ToLower)
-                                If indx >= 0 Then .Plugin = Plugins(indx).Settings.Key : c = True Else .Protected = True
-                            Else
-                                indx = Plugins.FindIndex(Function(p) p.Key = .Plugin)
-                                If indx < 0 Then .Protected = True
-                            End If
-                        End If
-                        .UpdateUserFile()
-                    End With
-                    .Item(i) = user
-                Next
-                If c Then UpdateUsersList()
-            Else
-                For i = 0 To .Count - 1
-                    user = .Item(i)
-                    user.UpdateUserFile()
-                    .Item(i) = user
-                Next
-            End If
-        End With
     End Sub
     Private _UserListUpdateRequired As Boolean = False
     Friend ReadOnly Property UserListUpdateRequired As Boolean
@@ -546,6 +605,8 @@ Friend Class SettingsCLS : Implements IDisposable
     Friend ReadOnly Property ChangeReadyForDownOnTempChange As XMLValue(Of Boolean)
     Friend ReadOnly Property DownloadNativeImageFormat As XMLValue(Of Boolean)
     Friend ReadOnly Property ReparseMissingInTheRoutine As XMLValue(Of Boolean)
+    Friend ReadOnly Property UserSiteNameAsFriendly As XMLValue(Of Boolean)
+    Friend ReadOnly Property UserSiteNameUpdateEveryTime As XMLValue(Of Boolean)
 #End Region
 #Region "User data"
     Friend ReadOnly Property FromChannelDownloadTop As XMLValue(Of Integer)
@@ -563,6 +624,19 @@ Friend Class SettingsCLS : Implements IDisposable
     Friend ReadOnly Property FastProfilesLoading As XMLValue(Of Boolean)
     Friend ReadOnly Property MaxLargeImageHeight As XMLValue(Of Integer)
     Friend ReadOnly Property MaxSmallImageHeight As XMLValue(Of Integer)
+    Friend ReadOnly Property UserListBackColor As XMLValue(Of Color)
+    Friend ReadOnly Property UserListBackColorF As Color
+        Get
+            Return If(UserListBackColor.Exists, UserListBackColor.Value, SystemColors.Window)
+        End Get
+    End Property
+    Friend ReadOnly Property UserListForeColor As XMLValue(Of Color)
+    Friend ReadOnly Property UserListForeColorF As Color
+        Get
+            Return If(UserListForeColor.Exists, UserListForeColor.Value, SystemColors.WindowText)
+        End Get
+    End Property
+    Friend ReadOnly Property UserListImage As XMLValue(Of SFile)
     Friend ReadOnly Property DownloadOpenInfo As XMLValueAttribute(Of Boolean, Boolean)
     Friend ReadOnly Property DownloadOpenProgress As XMLValueAttribute(Of Boolean, Boolean)
     Friend ReadOnly Property DownloadsCompleteCommand As XMLValueAttribute(Of String, Boolean)
@@ -622,10 +696,13 @@ Friend Class SettingsCLS : Implements IDisposable
 #Region "Feed properties"
     Friend ReadOnly Property FeedDataColumns As XMLValue(Of Integer)
     Friend ReadOnly Property FeedDataRows As XMLValue(Of Integer)
+    Friend ReadOnly Property FeedCenterImage As XMLValueUse(Of Integer)
     Friend ReadOnly Property FeedEndless As XMLValue(Of Boolean)
     Friend ReadOnly Property FeedAddDateToCaption As XMLValue(Of Boolean)
     Friend ReadOnly Property FeedAddSessionToCaption As XMLValue(Of Boolean)
     Friend ReadOnly Property FeedStoreSessionsData As XMLValue(Of Boolean)
+    Friend ReadOnly Property FeedBackColor As XMLValue(Of Color)
+    Friend ReadOnly Property FeedForeColor As XMLValue(Of Color)
 #End Region
 #Region "New version properties"
     Friend ReadOnly Property CheckUpdatesAtStart As XMLValue(Of Boolean)

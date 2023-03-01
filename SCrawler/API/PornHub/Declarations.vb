@@ -11,7 +11,6 @@ Namespace API.PornHub
     Friend Module Declarations
 #Region "Converters"
         Private ReadOnly UnicodeHexConverter As Func(Of String, String) = Function(Input) SymbolsConverter.UnicodeHex.Decode(Input, EDP.ReturnValue)
-        Friend ReadOnly HtmlConverter As Func(Of String, String) = Function(Input) SymbolsConverter.HTML.Decode(Input, EDP.ReturnValue)
 #End Region
 #Region "Declarations video"
         Friend ReadOnly RegexVideo_FlashVarsBlock As RParams = RParams.DM("(?<=flashvars_\['[nN]ext[vV]ideo'\];[\r\n]*?)(.+?)(?=;flashvars_\d+?)", 0, EDP.ReturnValue)

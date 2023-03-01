@@ -29,19 +29,19 @@ Namespace DownloadObjects
         End Property
         Friend ReadOnly Property HasError As Boolean
         Friend ReadOnly File As SFile
-        Public Shadows Property Width As Integer
+        Public Shadows Property Width(Optional ByVal UpdateImage As Boolean = True) As Integer
             Get
                 Return MyBase.Width
             End Get
             Set(ByVal w As Integer)
                 If Size.Width <> w Then
-                    Dim s As New Size(w, If(MyImage Is Nothing, VideoHeight, MyImage.FitToWidthF(w).Height))
+                    Dim s As New Size(w, If(MyImage Is Nothing, VideoHeight, If(UpdateImage, MyImage.FitToWidthF(w).Height, MyPicture.Height)))
                     Dim objSize As Size = s
-                    objSize.Height += (TP_MAIN.RowStyles(0).Height + PaddingE.GetOf({TP_MAIN}).Vertical(2))
+                    objSize.Height += ObjectsPaddingHeight
                     MinimumSize = objSize
                     MyBase.MaximumSize = objSize
                     Size = objSize
-                    If Not MyImage Is Nothing Then
+                    If UpdateImage AndAlso Not MyImage Is Nothing Then
                         With MyPicture
                             .MinimumSize = Nothing
                             .MaximumSize = Nothing
@@ -53,6 +53,11 @@ Namespace DownloadObjects
                 End If
             End Set
         End Property
+        Private ReadOnly Property ObjectsPaddingHeight
+            Get
+                Return TP_MAIN.RowStyles(0).Height + PaddingE.GetOf({TP_MAIN}).Vertical(2)
+            End Get
+        End Property
         Private ReadOnly UserKey As String
         Private ReadOnly Post As UserMedia
         Friend ReadOnly Property Checked As Boolean
@@ -61,12 +66,56 @@ Namespace DownloadObjects
             End Get
         End Property
         Friend ReadOnly Property Information As String
+        Private Function GetImageResize(ByVal Width As Integer, ByVal Height As Integer) As Size
+            If Height > 0 Then
+                Dim h% = Height = ObjectsPaddingHeight
+                If h <= 0 Then h = Height
+                Dim s As Size = MyImage.FitToHeightF(h)
+                s = MyImage.FitToWidthF(s, Width, False)
+                If s.Height > MyImage.Height Then s = MyImage.Size
+                Return s
+            Else
+                Return MyImage.FitToWidthF(Width)
+            End If
+        End Function
+        Friend Sub RerenderObject(ByVal Width As Integer, ByVal Height As Integer)
+            If Not MyImage Is Nothing Then
+                Dim s As Size
+                If Height > 0 Then
+                    s = GetImageResize(Width, Height)
+                    With MyPicture
+                        .MinimumSize = Nothing
+                        .MaximumSize = Nothing
+                        .Size = s
+                        .MinimumSize = s
+                        .MaximumSize = s
+                        .Anchor = AnchorStyles.Top
+                    End With
+                    Me.Width(False) = Width
+                Else
+                    Me.Width = Width
+                    MyPicture.Anchor = AnchorStyles.Left + AnchorStyles.Top
+                End If
+            Else
+                Me.Width = Width
+            End If
+        End Sub
+        Private Sub ApplyColors()
+            If Settings.FeedBackColor.Exists Then
+                BackColor = Settings.FeedBackColor
+                LBL_INFO.BackColor = Settings.FeedBackColor
+            End If
+            If Settings.FeedForeColor.Exists Then
+                ForeColor = Settings.FeedForeColor
+                LBL_INFO.ForeColor = Settings.FeedForeColor
+            End If
+        End Sub
 #End Region
 #Region "Initializers"
         Public Sub New()
             InitializeComponent()
         End Sub
-        Friend Sub New(ByVal Media As UserMediaD, ByVal Width As Integer, ByVal Handler As MediaDeletedEventHandler)
+        Friend Sub New(ByVal Media As UserMediaD, ByVal Width As Integer, ByVal Height As Integer, ByVal Handler As MediaDeletedEventHandler)
             Try
                 InitializeComponent()
                 File = Media.Data.File
@@ -92,14 +141,15 @@ Namespace DownloadObjects
                     Select Case Media.Data.Type
                         Case UserMedia.Types.Picture, UserMedia.Types.GIF
                             MyImage = New ImageRenderer(File)
-                            s = MyImage.FitToWidthF(Width)
+                            Dim a As AnchorStyles = AnchorStyles.Top + If(Height > 0, 0, AnchorStyles.Left)
+                            s = GetImageResize(Width, Height)
                             h = s.Height
                             MyPicture = New PictureBox With {
                                 .SizeMode = PictureBoxSizeMode.Zoom,
                                 .Image = MyImage,
                                 .InitialImage = .Image,
                                 .Dock = DockStyle.None,
-                                .Anchor = AnchorStyles.Left + AnchorStyles.Top,
+                                .Anchor = a,
                                 .Size = s,
                                 .MinimumSize = s,
                                 .MaximumSize = s,
@@ -141,11 +191,11 @@ Namespace DownloadObjects
                     If Settings.FeedAddDateToCaption Then info &= $" ({Media.Date.ToStringDate(ADateTime.Formats.BaseDateTime)})"
                     LBL_INFO.Text = info
 
-                    s = New Size(Width, h + TP_MAIN.RowStyles(0).Height + PaddingE.GetOf({TP_MAIN}).Vertical(2))
+                    s = New Size(Width, h + ObjectsPaddingHeight)
                     Size = s
                     MinimumSize = s
                     MaximumSize = s
-
+                    ApplyColors()
                     If Not Handler Is Nothing Then AddHandler Me.MediaDeleted, Handler
                 Else
                     Throw New ArgumentNullException With {.HelpLink = 1}

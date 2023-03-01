@@ -33,6 +33,8 @@ Namespace Editors
                         CH_CHECK_VER_START.Checked = .CheckUpdatesAtStart
                         TXT_USER_AGENT.Text = .UserAgent
                         TXT_IMGUR_CLIENT_ID.Text = .ImgurClientID
+                        TXT_USER_LIST_IMAGE.Text = .UserListImage.Value
+                        COLORS_USERLIST.ColorsSet(.UserListBackColor, .UserListForeColor, SystemColors.Window, SystemColors.WindowText)
                         CH_SHOW_GROUPS.Checked = .ShowGroups
                         CH_USERS_GROUPING.Checked = .UseGrouping
                         'Behavior
@@ -61,8 +63,10 @@ Namespace Editors
                         CH_DOWN_IMAGES.Checked = .DefaultDownloadImages
                         CH_DOWN_VIDEOS.Checked = .DefaultDownloadVideos
                         CH_DOWN_IMAGES_NATIVE.Checked = .DownloadNativeImageFormat
+                        CH_NAME_SITE_FRIENDLY.Checked = .UserSiteNameAsFriendly
                         'Downloading
                         CH_UDESCR_UP.Checked = .UpdateUserDescriptionEveryTime
+                        CH_UNAME_UP.Checked = .UserSiteNameUpdateEveryTime
                         TXT_SCRIPT.Checked = .ScriptData.Attribute
                         TXT_SCRIPT.Text = .ScriptData.Value
                         TXT_DOWN_COMPLETE_SCRIPT.Text = .DownloadsCompleteCommand
@@ -90,6 +94,10 @@ Namespace Editors
                         'Feed
                         TXT_FEED_ROWS.Value = .FeedDataRows.Value
                         TXT_FEED_COLUMNS.Value = .FeedDataColumns.Value
+                        TXT_FEED_CENTER_IMAGE.Checked = .FeedCenterImage.Use
+                        TXT_FEED_CENTER_IMAGE.Value = .FeedCenterImage.Value
+                        TXT_FEED_CENTER_IMAGE.Enabled = .FeedDataColumns = 1
+                        COLORS_FEED.ColorsSet(.FeedBackColor, .FeedForeColor, SystemColors.Window, SystemColors.WindowText)
                         CH_FEED_ENDLESS.Checked = .FeedEndless
                         CH_FEED_ADD_SESSION.Checked = .FeedAddSessionToCaption
                         CH_FEED_ADD_DATE.Checked = .FeedAddDateToCaption
@@ -151,6 +159,8 @@ Namespace Editors
                     .UserAgent.Value = TXT_USER_AGENT.Text
                     DefaultUserAgent = TXT_USER_AGENT.Text
                     .ImgurClientID.Value = TXT_IMGUR_CLIENT_ID.Text
+                    .UserListImage.Value = TXT_USER_LIST_IMAGE.Text
+                    COLORS_USERLIST.ColorsGet(.UserListBackColor, .UserListForeColor)
                     .ShowGroups.Value = CH_SHOW_GROUPS.Checked
                     .UseGrouping.Value = CH_USERS_GROUPING.Checked
                     'Behavior
@@ -179,8 +189,10 @@ Namespace Editors
                     .DefaultDownloadImages.Value = CH_DOWN_IMAGES.Checked
                     .DefaultDownloadVideos.Value = CH_DOWN_VIDEOS.Checked
                     .DownloadNativeImageFormat.Value = CH_DOWN_IMAGES_NATIVE.Checked
+                    .UserSiteNameAsFriendly.Value = CH_NAME_SITE_FRIENDLY.Checked
                     'Downloading
                     .UpdateUserDescriptionEveryTime.Value = CH_UDESCR_UP.Checked
+                    .UserSiteNameUpdateEveryTime.Value = CH_UNAME_UP.Checked
                     .ScriptData.Value = TXT_SCRIPT.Text
                     .ScriptData.Attribute.Value = TXT_SCRIPT.Checked
                     .DownloadsCompleteCommand.Value = TXT_DOWN_COMPLETE_SCRIPT.Text
@@ -202,6 +214,8 @@ Namespace Editors
                     'Channels
                     .ChannelsImagesRows.Value = CInt(TXT_CHANNELS_ROWS.Value)
                     .ChannelsImagesColumns.Value = CInt(TXT_CHANNELS_COLUMNS.Value)
+                    .FeedCenterImage.Use = TXT_FEED_CENTER_IMAGE.Checked
+                    .FeedCenterImage.Value = TXT_FEED_CENTER_IMAGE.Value
                     .FromChannelDownloadTop.Value = CInt(TXT_CHANNEL_USER_POST_LIMIT.Value)
                     .FromChannelDownloadTopUse.Value = TXT_CHANNEL_USER_POST_LIMIT.Checked
                     .FromChannelCopyImageToUser.Value = CH_COPY_CHANNEL_USER_IMAGE.Checked
@@ -210,12 +224,15 @@ Namespace Editors
                     'Feed
                     .FeedDataRows.Value = CInt(TXT_FEED_ROWS.Value)
                     .FeedDataColumns.Value = CInt(TXT_FEED_COLUMNS.Value)
+                    COLORS_FEED.ColorsGet(.FeedBackColor, .FeedForeColor)
                     .FeedEndless.Value = CH_FEED_ENDLESS.Checked
                     .FeedAddSessionToCaption.Value = CH_FEED_ADD_SESSION.Checked
                     .FeedAddDateToCaption.Value = CH_FEED_ADD_DATE.Checked
                     .FeedStoreSessionsData.Value = CH_FEED_STORE_SESSION_DATA.Checked
                     FeedParametersChanged = .FeedDataRows.ChangesDetected Or .FeedDataColumns.ChangesDetected Or
-                                            .FeedEndless.ChangesDetected Or .FeedStoreSessionsData.ChangesDetected
+                                            .FeedEndless.ChangesDetected Or .FeedStoreSessionsData.ChangesDetected Or
+                                            .FeedBackColor.ChangesDetected Or .FeedForeColor.ChangesDetected Or
+                                            .FeedCenterImage.ChangesDetected
 
                     .EndUpdate()
                 End With
@@ -263,6 +280,15 @@ Namespace Editors
             CH_NOTIFY_AUTO_DOWN.Enabled = b
             CH_NOTIFY_CHANNELS.Enabled = b
             CH_NOTIFY_SAVED_POSTS.Enabled = b
+        End Sub
+        Private Sub TXT_USER_LIST_IMAGE_ActionOnButtonClick(ByVal Sender As ActionButton, e As ActionButtonEventArgs) Handles TXT_USER_LIST_IMAGE.ActionOnButtonClick
+            If Sender.DefaultButton = ADB.Open Then
+                Dim f As SFile = SFile.SelectFiles(TXT_USER_LIST_IMAGE.Text, False, "Select a new image for the user list:", "Pictures|*.jpg;*.jpeg;*.png").FirstOrDefault
+                If Not f.IsEmptyString Then TXT_USER_LIST_IMAGE.Text = f
+            End If
+        End Sub
+        Private Sub TXT_FEED_COLUMNS_ActionOnValueChanged(sender As Object, e As EventArgs) Handles TXT_FEED_COLUMNS.ActionOnValueChanged
+            TXT_FEED_CENTER_IMAGE.Enabled = TXT_FEED_COLUMNS.Value = 1
         End Sub
     End Class
 End Namespace

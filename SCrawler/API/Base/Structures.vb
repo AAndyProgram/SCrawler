@@ -187,7 +187,7 @@ Namespace API.Base
 
                 Post = New UserPost With {
                     .ID = e.Attribute(Name_MediaPostID).Value,
-                    .[Date] = AConvert(Of Date)(e.Attribute(Name_MediaPostDate).Value, ParsersDataDateProvider, Nothing)
+                    .[Date] = AConvert(Of Date)(e.Attribute(Name_MediaPostDate).Value, DateTimeDefaultProvider, Nothing)
                 }
             End Sub
             Public Shared Widening Operator CType(ByVal _URL As String) As UserMedia
@@ -225,7 +225,7 @@ Namespace API.Base
                                                                  New EAttribute(Name_MediaFile, File.File),
                                                                  New EAttribute(Name_SpecialFolder, SpecialFolder),
                                                                  New EAttribute(Name_MediaPostID, Post.ID),
-                                                                 New EAttribute(Name_MediaPostDate, AConvert(Of String)(Post.Date, ParsersDataDateProvider, String.Empty))
+                                                                 New EAttribute(Name_MediaPostDate, AConvert(Of String)(Post.Date, DateTimeDefaultProvider, String.Empty))
                                                                 }
                                      )
             End Function

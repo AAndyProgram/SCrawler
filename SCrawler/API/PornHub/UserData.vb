@@ -59,7 +59,7 @@ Namespace API.PornHub
                     URL = ParamsArray(0)
                     ID = RegexReplace(URL, RegexVideo_Video_VideoKey)
                     URL = String.Format(UrlPattern, URL.TrimStart("/"))
-                    Title = HtmlConverter(ParamsArray(1)).StringRemoveWinForbiddenSymbols.StringTrim
+                    Title = TitleHtmlConverter(ParamsArray(1))
                 End If
                 Return Me
             End Function
@@ -99,7 +99,6 @@ Namespace API.PornHub
 #Region "Person"
         Friend Property PersonType As String
         Friend Property NameTrue As String
-        Private _FriendlyName As String = String.Empty
         Friend Overrides Property FriendlyName As String
             Get
                 If _FriendlyName.IsEmptyString Then Return NameTrue Else Return _FriendlyName
@@ -315,7 +314,7 @@ Namespace API.PornHub
                                         If l3.ListExists(3) Then
                                             m.URL = l3(2)
                                             m.File = m.URL
-                                            n = HtmlConverter(l3(1)).StringRemoveWinForbiddenSymbols.StringTrim
+                                            n = TitleHtmlConverter(l3(1))
                                             If MySettings.DownloadGifsAsMp4.Value Then m.File.Extension = "mp4"
                                             If Not n.IsEmptyString Then m.File.Name = n
                                         End If
@@ -416,7 +415,7 @@ Namespace API.PornHub
                             If albumName.IsEmptyString Then
                                 albumName = block.AlbumID.Split("/").LastOrDefault.StringTrim
                             Else
-                                albumName = HtmlConverter(albumName).StringRemoveWinForbiddenSymbols.StringTrim
+                                albumName = TitleHtmlConverter(albumName)
                             End If
                             page = 1
                             Do While DownloadUserPhotos_PornHub(page, block.AlbumID, albumName, Token) : page += 1 : Loop

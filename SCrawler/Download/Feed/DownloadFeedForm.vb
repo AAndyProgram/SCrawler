@@ -25,6 +25,8 @@ Namespace DownloadObjects
         Private FeedEndless As Boolean = False
         Private ReadOnly FileNotExist As New FPredicate(Of UserMediaD)(Function(d) Not d.Data.File.Exists)
         Private BttRefreshToolTipText As String = "Refresh data list"
+        Private CenterImage As Boolean = False
+        Private NumberOfVisibleImages As Integer = 1
 #End Region
 #Region "Initializer"
         Friend Sub New()
@@ -81,6 +83,25 @@ Namespace DownloadObjects
                 DataRows = .FeedDataRows
                 DataColumns = .FeedDataColumns
                 FeedEndless = .FeedEndless
+                If .FeedCenterImage.Use Then
+                    CenterImage = True
+                    NumberOfVisibleImages = .FeedCenterImage
+                Else
+                    CenterImage = False
+                    NumberOfVisibleImages = 1
+                End If
+
+                If .FeedBackColor.Exists Then
+                    BackColor = .FeedBackColor
+                Else
+                    BackColor = SystemColors.Window
+                End If
+                If .FeedForeColor.Exists Then
+                    ForeColor = .FeedForeColor
+                Else
+                    ForeColor = SystemColors.WindowText
+                End If
+
                 Dim fsd As Boolean = .FeedStoreSessionsData
                 ControlInvoke(ToolbarTOP, MENU_LOAD_SESSION, Sub()
                                                                  MENU_LOAD_SESSION.Visible = fsd
@@ -107,7 +128,7 @@ Namespace DownloadObjects
                 MyRange.HandlersSuspended = True
                 MyRange.Limit = c
                 MyRange.HandlersSuspended = False
-                If Not MyDefs.Initializing And rangeChanged Then RefillList()
+                If Not MyDefs.Initializing Then RefillList(False)
             End With
         End Sub
 #End Region
@@ -376,9 +397,10 @@ Namespace DownloadObjects
                             If d2.Count > 0 Then d.InsertRange(0, d2) : d2.Clear()
                         End If
                         Dim w% = GetWidth()
+                        Dim h% = GetHeight()
                         Dim p As New TPCELL(DataRows, DataColumns)
                         Dim fmList As New List(Of FeedMedia)
-                        d.ForEach(Sub(de) fmList.Add(New FeedMedia(de, w, AddressOf FeedMedia_MediaDeleted)))
+                        d.ForEach(Sub(de) fmList.Add(New FeedMedia(de, w, h, AddressOf FeedMedia_MediaDeleted)))
                         If fmList.Count > 0 Then fmList.ListDisposeRemoveAll(Function(fm) fm Is Nothing OrElse fm.HasError)
                         If fmList.Count > 0 Then
                             For i = 0 To fmList.Count - 1
@@ -420,6 +442,13 @@ Namespace DownloadObjects
         Private Function GetWidth() As Integer
             Return (TP_DATA.Width - PaddingE.GetOf({Me, TP_DATA}).Horizontal(2)) / DataColumns
         End Function
+        Private Function GetHeight() As Integer
+            If CenterImage And DataColumns = 1 Then
+                Return (TP_DATA.Height - PaddingE.GetOf({Me, TP_DATA}).Vertical(2)) / IIf(NumberOfVisibleImages > 0, NumberOfVisibleImages, 1)
+            Else
+                Return -1
+            End If
+        End Function
         Private Sub DownloadFeedForm_ResizeEnd(sender As Object, e As EventArgs) Handles Me.ResizeEnd
             ResizeGrid()
         End Sub
@@ -431,10 +460,11 @@ Namespace DownloadObjects
                                        With TP_DATA
                                            If .Controls.Count > 0 Then
                                                Dim w% = GetWidth()
+                                               Dim h% = GetHeight()
                                                Dim p As TableLayoutPanelCellPosition
                                                Dim rh As New Dictionary(Of Integer, List(Of Integer))
                                                For Each cnt As FeedMedia In .Controls
-                                                   cnt.Width = w
+                                                   cnt.RerenderObject(w, h)
                                                    p = .GetCellPosition(cnt)
                                                    If Not rh.ContainsKey(p.Row) Then rh.Add(p.Row, New List(Of Integer))
                                                    rh(p.Row).Add(cnt.Height)

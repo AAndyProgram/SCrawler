@@ -86,10 +86,10 @@ Namespace API.Instagram
         Friend ReadOnly Property CSRF_TOKEN As PropertyValue
         <PropertyOption(ControlText:="x-ig-app-id", IsAuth:=True, AllowNull:=False), ControlNumber(3)>
         Friend Property IG_APP_ID As PropertyValue
-        <PropertyOption(ControlText:="x-ig-www-claim", IsAuth:=True, AllowNull:=False), ControlNumber(4)>
+        <PropertyOption(ControlText:="x-ig-www-claim", IsAuth:=True, AllowNull:=True), ControlNumber(4)>
         Friend Property IG_WWW_CLAIM As PropertyValue
         Friend Overrides Function BaseAuthExists() As Boolean
-            Return Responser.CookiesExists And ACheck(IG_APP_ID.Value) And ACheck(IG_WWW_CLAIM.Value) And ACheck(CSRF_TOKEN.Value)
+            Return Responser.CookiesExists And ACheck(IG_APP_ID.Value) And ACheck(CSRF_TOKEN.Value)
         End Function
         Private Const Header_IG_APP_ID As String = "x-ig-app-id"
         Friend Const Header_IG_WWW_CLAIM As String = "x-ig-www-claim"
@@ -219,7 +219,7 @@ Namespace API.Instagram
             HashTagged = New PropertyValue(String.Empty, GetType(String))
             CSRF_TOKEN = New PropertyValue(token, GetType(String), Sub(v) ChangeResponserFields(NameOf(CSRF_TOKEN), v))
             IG_APP_ID = New PropertyValue(app_id, GetType(String), Sub(v) ChangeResponserFields(NameOf(IG_APP_ID), v))
-            IG_WWW_CLAIM = New PropertyValue(www_claim, GetType(String), Sub(v) ChangeResponserFields(NameOf(IG_WWW_CLAIM), v))
+            IG_WWW_CLAIM = New PropertyValue(www_claim.IfNullOrEmpty(0), GetType(String), Sub(v) ChangeResponserFields(NameOf(IG_WWW_CLAIM), v))
 
             DownloadTimeline = New PropertyValue(True)
             DownloadStories = New PropertyValue(True)
@@ -291,6 +291,7 @@ Namespace API.Instagram
         Private _NextTagged As Boolean = True
         Friend Overrides Sub DownloadStarted(ByVal What As Download)
             ActiveJobs += 1
+            If LastDownloadDate.Value.AddMinutes(120) < Now Or Not ACheck(IG_WWW_CLAIM.Value) Then IG_WWW_CLAIM.Value = "0"
         End Sub
         Friend Overrides Sub BeforeStartDownload(ByVal User As Object, ByVal What As Download)
             With DirectCast(User, UserData)

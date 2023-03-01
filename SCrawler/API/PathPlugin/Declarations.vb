@@ -6,11 +6,9 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
-Namespace API.Base
+Namespace API.PathPlugin
     Friend Module Declarations
-        Friend ReadOnly LNC As New ListAddParams(LAP.NotContainsOnly)
-        Friend ReadOnly TitleHtmlConverter As Func(Of String, String) =
-               Function(Input) SymbolsConverter.HTML.Decode(SymbolsConverter.Convert(Input, EDP.ReturnValue), EDP.ReturnValue).
-                               StringRemoveWinForbiddenSymbols().StringTrim()
+        Friend Const PluginKey As String = "AndyProgram_PathPlugin"
+        Friend Const PluginName As String = "Path"
     End Module
 End Namespace

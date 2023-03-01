@@ -175,6 +175,9 @@
     <Compile Include="API\LPSG\Declarations.vb" />
     <Compile Include="API\LPSG\SiteSettings.vb" />
     <Compile Include="API\LPSG\UserData.vb" />
+    <Compile Include="API\PathPlugin\Declarations.vb" />
+    <Compile Include="API\PathPlugin\SiteSettings.vb" />
+    <Compile Include="API\PathPlugin\UserData.vb" />
     <Compile Include="API\PornHub\Declarations.vb" />
     <Compile Include="API\PornHub\M3U8.vb" />
     <Compile Include="API\PornHub\OptionsForm.Designer.vb">
@@ -270,6 +273,12 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Download\WebClient2.vb" />
+    <Compile Include="Editors\ColorPicker.Designer.vb">
+      <DependentUpon>ColorPicker.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Editors\ColorPicker.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="EncryptCookies.vb" />
     <Compile Include="GlobalSuppressions.vb" />
     <Compile Include="MainFrameObjects.vb" />
@@ -464,6 +473,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Editors\CollectionEditorForm.resx">
       <DependentUpon>CollectionEditorForm.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Editors\ColorPicker.resx">
+      <DependentUpon>ColorPicker.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Editors\GlobalSettingsForm.resx">
       <DependentUpon>GlobalSettingsForm.vb</DependentUpon>

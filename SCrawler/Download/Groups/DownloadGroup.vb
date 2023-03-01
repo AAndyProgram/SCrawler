@@ -90,18 +90,7 @@ Namespace DownloadObjects.Groups
         End Sub
         Friend Sub New(ByVal e As EContainer)
             Me.New
-            If e.Attributes.Contains(New EAttribute(Name_Name)) Then
-                'TODELETE: 2022.10.18.0
-                NeedToSave = True
-                Name = e.Attribute(Name_Name)
-                Temporary = e.Attribute(Name_Temporary).Value.FromXML(Of Integer)(CInt(CheckState.Indeterminate))
-                Favorite = e.Attribute(Name_Favorite).Value.FromXML(Of Integer)(CInt(CheckState.Indeterminate))
-                ReadyForDownload = e.Attribute(Name_ReadyForDownload).Value.FromXML(Of Boolean)(True)
-                ReadyForDownloadIgnore = e.Attribute(Name_ReadyForDownloadIgnore).Value.FromXML(Of Boolean)(False)
-                If Not e.Value.IsEmptyString Then Labels.ListAddList(e.Value.Split("|"), LAP.NotContainsOnly)
-            Else
-                Import(e)
-            End If
+            Import(e)
         End Sub
 #End Region
 #Region "ToString"

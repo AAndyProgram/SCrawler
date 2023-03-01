@@ -69,6 +69,8 @@ Namespace API.Twitter
                 Throw New NotImplementedException("[GetFormat] is not available in the context of [TimersChecker]")
             End Function
         End Class
+        <PropertyOption(IsAuth:=False, ControlText:="Use MD5 comparison", ControlToolTip:="Each image will be checked for existence using MD5"), PXML>
+        Friend ReadOnly Property UseMD5Comparison As PropertyValue
 #End Region
         Friend Overrides ReadOnly Property Responser As Responser
 #End Region
@@ -115,6 +117,7 @@ Namespace API.Twitter
             GifsSpecialFolder = New PropertyValue(String.Empty, GetType(String))
             GifsPrefix = New PropertyValue("GIF_")
             GifStringChecker = New GifStringProvider
+            UseMD5Comparison = New PropertyValue(False)
 
             UserRegex = RParams.DMS("[htps:/]{7,8}.*?twitter.com/([^/]+)", 1)
             UrlPatternUser = "https://twitter.com/{0}"

@@ -59,7 +59,8 @@ Namespace API.Xhamster
             DownloadUHD = New PropertyValue(False)
 
             UrlPatternUser = "https://xhamster.com/users/{0}"
-            UserRegex = RParams.DMS("xhamster.com/users/([^/]+).*?", 1)
+            UrlPatternChannel = "https://xhamster.com/channels/{0}"
+            UserRegex = RParams.DMS($"/({UserOption}|{ChannelOption})/([^/]+)(\Z|.*)", 0, RegexReturn.ListByMatch)
             ImageVideoContains = "xhamster"
         End Sub
         Friend Overrides Sub EndInit()
@@ -129,18 +130,12 @@ Namespace API.Xhamster
             Return Media.URL_BASE
         End Function
 #Region "Is my user/data"
-        Private Const UserRegexDefault As String = "{0}/users/([^/]+).*?"
+        Private Const ChannelOption As String = "channels"
+        Private Const UserOption As String = "users"
         Friend Overrides Function IsMyUser(ByVal UserURL As String) As ExchangeOptions
-            Dim b As ExchangeOptions = MyBase.IsMyUser(UserURL)
-            If b.Exists Then Return b
-            If Not UserURL.IsEmptyString And Domains.Count > 0 Then
-                Dim uName$, fStr$
-                Dim uErr As New ErrorsDescriber(EDP.ReturnValue)
-                For i% = 0 To Domains.Count - 1
-                    fStr = String.Format(UserRegexDefault, Domains(i))
-                    uName = RegexReplace(UserURL, RParams.DMS(fStr, 1, uErr))
-                    If Not uName.IsEmptyString Then Return New ExchangeOptions(Site, uName)
-                Next
+            If Not UserURL.IsEmptyString AndAlso Domains.Count > 0 AndAlso Domains.Exists(Function(d) UserURL.ToLower.Contains(d.ToLower)) Then
+                Dim data As List(Of String) = RegexReplace(UserURL, UserRegex)
+                If data.ListExists(3) AndAlso Not data(2).IsEmptyString Then Return New ExchangeOptions(Site, data(2), data(1) = ChannelOption)
             End If
             Return Nothing
         End Function

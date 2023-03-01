@@ -139,6 +139,8 @@ Friend Class ListImagesLoader
                         End If
                     End With
                     MyList.EndUpdate()
+                Else
+                    UpdateInProgress = False
                 End If
             Else
                 MsgBoxE({"User list update aborted. Click the 'Refresh' button to refresh the user list.", "Update user list"}, vbExclamation)
@@ -195,9 +197,9 @@ Friend Class ListImagesLoader
             ElseIf CheckUserCollection(User) Then
                 .BackColor = Color.LightSkyBlue
                 .ForeColor = Color.MidnightBlue
-            ElseIf Not IsInit Then
-                .BackColor = SystemColors.Window
-                .ForeColor = SystemColors.WindowText
+            Else 'If Not IsInit Then
+                .BackColor = Settings.UserListBackColorF
+                .ForeColor = Settings.UserListForeColorF
             End If
         End With
         Return LVI

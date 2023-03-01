@@ -1,3 +1,25 @@
+# 2023.3.1.0
+
+*2023-03-01*
+
+- Added
+  - **Path plugin.** Now you can add paths. *This may be suitable if you want to add a collection of media data to a specific user collection.*
+  - MainWindow: setting a background image
+  - MainWindow: setting background color and font color
+  - Feed: setting background color and font color
+  - Feed: (Request #108) center the image in the feed grid
+  - Users: the ability to use user site name (if it exists) as a friendly name (on supported sites: Reddit, Twitter, Instagram)
+  - Users: the ability to update user site name every time
+  - Twitter: ability to download images using MD5 comparison to protect against duplicate downloads *(this may be suitable for the users who post the same image many times)*
+  - Twitter: one-time duplicate image removal option
+  - XHamster: (Request #107) added channels downloading
+- Updated
+  - Updated ffmpeg to version [5.1.2](https://github.com/GyanD/codexffmpeg/releases/tag/5.1.2)
+- Fixed
+  - PornHub: (Issue #106) unicode titles
+  - (Issue #106) problem with non-Latin characters
+  - ffmpeg: maximum input length error when merging parts of files
+
 # 2023.2.5.0
 
 *2023-02-05*

@@ -25,7 +25,7 @@ Namespace API.XVIDEOS
                     ID = ParamsArray(0)
                     URL = ParamsArray(1)
                     If Not URL.IsEmptyString Then URL = $"https://www.xvideos.com/{URL.StringTrimStart("/")}"
-                    Title = ParamsArray(2).StringRemoveWinForbiddenSymbols.StringTrim
+                    Title = ParamsArray(2)
                 End If
                 Return Me
             End Function

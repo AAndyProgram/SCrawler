@@ -281,7 +281,7 @@ Namespace API.Instagram
                             Case Else : WaitNotificationMode = WNM.SkipTemp
                         End Select
                     End If
-                    If Not ProgressTempSet Then Progress.InformationTemporary = $"Waiting until { .GetWaitDate().ToString(ParsersDataDateProvider)}"
+                    If Not ProgressTempSet Then Progress.InformationTemporary = $"Waiting until { .GetWaitDate().ToString(DateTimeDefaultProvider)}"
                     ProgressTempSet = True
                     Return False
                 Else
@@ -452,6 +452,7 @@ Namespace API.Instagram
                                                 HasNextPage = .Value("more_available").FromXML(Of Boolean)(False)
                                                 EndCursor = .Value("next_max_id")
                                                 If If(.Item("items")?.Count, 0) > 0 Then
+                                                    UserSiteNameUpdate(.ItemF({"items", 0, "user", "full_name"}).XmlIfNothingValue)
                                                     If Not DefaultParser(.Item("items"), Section, Token) Then Throw New ExitException
                                                 Else
                                                     HasNextPage = False
@@ -742,18 +743,40 @@ Namespace API.Instagram
 #End Region
 #Region "GetUserId"
         Private Sub GetUserId()
+            Dim __idFound As Boolean = False
             Try
                 Dim r$ = Responser.GetResponse($"https://i.instagram.com/api/v1/users/web_profile_info/?username={Name}",, EDP.ThrowException)
                 If Not r.IsEmptyString Then
-                    Using j As EContainer = JsonDocument.Parse(r).XmlIfNothing
-                        ID = j({"data", "user"}, "id").XmlIfNothingValue
+                    Using j As EContainer = JsonDocument.Parse(r)
+                        If Not j Is Nothing AndAlso j.Contains({"data", "user"}) Then
+                            With j({"data", "user"})
+                                ID = .Value("id")
+                                __idFound = True
+                                UserSiteNameUpdate(.Value("full_name"))
+                                Dim descr$ = .Value("biography")
+                                If If(.Item("bio_links")?.Count, 0) > 0 Then descr.StringAppend(.Item("bio_links").Select(Function(bl) bl.Value("url")).ListToString(vbNewLine), vbNewLine)
+                                Dim eUrl$ = .Value("external_url")
+                                If Not eUrl.IsEmptyString AndAlso (descr.IsEmptyString OrElse Not descr.Contains(eUrl)) Then descr.StringAppendLine(eUrl)
+                                UserDescriptionUpdate(descr)
+                                Dim f As New SFile With {.Path = MyFile.CutPath.Path, .Name = "ProfilePicture", .Extension = "jpg"}
+                                If Not f.Exists Then
+                                    Dim profilePicture$ = .Value("profile_pic_url_hd")
+                                    If profilePicture.IsEmptyString OrElse Not GetWebFile(profilePicture, f, EDP.ReturnValue) Then
+                                        profilePicture = .Value("profile_pic_url")
+                                        If Not profilePicture.IsEmptyString Then GetWebFile(profilePicture, f, EDP.ReturnValue)
+                                    End If
+                                End If
+                            End With
+                        End If
                     End Using
                 End If
             Catch ex As Exception
-                If Responser.StatusCode = HttpStatusCode.NotFound Or Responser.StatusCode = HttpStatusCode.BadRequest Then
-                    Throw ex
-                Else
-                    LogError(ex, "get Instagram user id")
+                If Not __idFound Then
+                    If Responser.StatusCode = HttpStatusCode.NotFound Or Responser.StatusCode = HttpStatusCode.BadRequest Then
+                        Throw ex
+                    Else
+                        LogError(ex, "get Instagram user id")
+                    End If
                 End If
             End Try
         End Sub

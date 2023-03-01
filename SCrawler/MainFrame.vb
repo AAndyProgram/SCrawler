@@ -10,6 +10,7 @@ Imports System.Threading
 Imports System.ComponentModel
 Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Functions.Messaging
+Imports PersonalUtilities.Tools
 Imports SCrawler.API
 Imports SCrawler.API.Base
 Imports SCrawler.Editors
@@ -36,7 +37,8 @@ Public Class MainFrame
         With Settings.Plugins
             If .Count > 0 Then
                 For i% = 0 To .Count - 1
-                    MENU_SETTINGS.DropDownItems.Insert(MENU_SETTINGS.DropDownItems.Count - 2, .Item(i).Settings.GetSettingsButton)
+                    If Not .Item(i).Key = PathPlugin.PluginKey Then _
+                       MENU_SETTINGS.DropDownItems.Insert(MENU_SETTINGS.DropDownItems.Count - 2, .Item(i).Settings.GetSettingsButton)
                 Next
             End If
         End With
@@ -88,6 +90,7 @@ Public Class MainFrame
             LIST_PROFILES.ShowGroups = .UseGrouping
             ApplyViewPattern(.ViewMode.Value)
             AddHandler .Labels.NewLabelAdded, AddressOf UpdateLabelsGroups
+            UpdateImageColor()
             UserListLoader = New ListImagesLoader(LIST_PROFILES)
             RefillList()
             UpdateLabelsGroups()
@@ -116,6 +119,7 @@ Public Class MainFrame
             Await .Automation.Start(True)
         End With
         UpdatePauseButtonsVisibility()
+        MainFrameObj.UpdateLogButton()
         GoTo EndFunction
 FormClosingInvoker:
         Close()
@@ -189,6 +193,25 @@ CloseResume:
     Private Sub MainFrame_Disposed(sender As Object, e As EventArgs) Handles Me.Disposed
         If Not _DisableClosingScript And Not _VideoDownloadingMode Then ExecuteCommand(Settings.ClosingCommand)
         If Not MyMainLOG.IsEmptyString Then SaveLogToFile()
+    End Sub
+    Private Sub MainFrame_ResizeEnd(sender As Object, e As EventArgs) Handles Me.ResizeEnd
+        If Not _UFinit Then UpdateImageColor()
+    End Sub
+    Private Sub UpdateImageColor()
+        Try
+            If Settings.UserListImage.Value.Exists Then
+                Using ir As New ImageRenderer(Settings.UserListImage) : LIST_PROFILES.BackgroundImage = ir.FitToWidth(LIST_PROFILES.Width) : End Using
+            Else
+                LIST_PROFILES.BackgroundImage = Nothing
+            End If
+            With Settings
+                If Not .UserListBackColorF = LIST_PROFILES.BackColor Or Not .UserListForeColorF = LIST_PROFILES.ForeColor Then
+                    LIST_PROFILES.BackColor = .UserListBackColorF
+                    LIST_PROFILES.ForeColor = .UserListForeColorF
+                End If
+            End With
+        Catch ex As Exception
+        End Try
     End Sub
     Private Sub MainFrame_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
         Dim b As Boolean = True
@@ -272,6 +295,7 @@ CloseResume:
                     LIST_PROFILES.ShowGroups = .UseGrouping
                     If f.FeedParametersChanged And Not MyFeed Is Nothing Then MyFeed.UpdateSettings()
                     UpdateSilentButtons()
+                    UpdateImageColor()
                 End If
             End Using
         End With
@@ -339,8 +363,11 @@ CloseResume:
                                     .ScriptUse = f.ScriptUse
                                     .ScriptData = f.ScriptData
                                     If Not f.MyExchangeOptions Is Nothing Then DirectCast(.Self, UserDataBase).ExchangeOptionsSet(f.MyExchangeOptions)
-                                    Settings.Labels.Add(LabelsKeeper.NoParsedUser)
-                                    .Self.Labels.ListAddList(f.UserLabels.ListAddValue(LabelsKeeper.NoParsedUser), LAP.ClearBeforeAdd, LAP.NotContainsOnly)
+                                    If Not .HOST.Key = PathPlugin.PluginKey Then
+                                        Settings.Labels.Add(LabelsKeeper.NoParsedUser)
+                                        f.UserLabels.ListAddValue(LabelsKeeper.NoParsedUser)
+                                    End If
+                                    .Self.Labels.ListAddList(f.UserLabels, LAP.ClearBeforeAdd, LAP.NotContainsOnly)
                                     .UpdateUserInformation()
                                 End If
                             End With
@@ -882,6 +909,23 @@ CloseResume:
                         Else
                             __ModelAskForDecision = True
                         End If
+
+                        If (users.Count = 1 AndAlso Not users(0).IsCollection AndAlso users(0).HOST.Key = PathPlugin.PluginKey) OrElse
+                           (users.Count = 2 AndAlso users.All(Function(u) u.IsCollection OrElse u.HOST.Key = PathPlugin.PluginKey)) Then
+                            __modelUser = UsageModel.Virtual
+                            If Added Then
+                                __modelCollection = UsageModel.Virtual
+                            Else
+                                i = users.FindIndex(_col_user)
+                                If i >= 0 Then
+                                    __modelCollection = users(i).CollectionModel
+                                Else
+                                    __modelCollection = UsageModel.Virtual
+                                End If
+                            End If
+                            __ModelAskForDecision = False
+                        End If
+
                         If __ModelAskForDecision Then
                             Select Case MsgBoxE({"How do you want to add users to the collection?", MsgTitle}, vbQuestion,,,
                                                 {
@@ -909,7 +953,7 @@ CloseResume:
                         For Each user As UserDataBase In users
                             If Not user.IsCollection Then
                                 Try
-                                    user.User.UserModel = __modelUser
+                                    user.User.UserModel = IIf(user.HOST.Key = PathPlugin.PluginKey, UsageModel.Virtual, __modelUser)
                                     user.User.CollectionModel = __modelCollection
                                     userCollection.Add(user)
                                     RemoveUserFromList(user)
@@ -1006,10 +1050,10 @@ CloseResume:
                                         Exit Sub
                                     End If
                                     CurrDir = CurrDir.CutPath(IIf(.DataMerging, 3, 2))
-                                    colName = CurrDir.PathFolders.LastOrDefault
-                                    Dim vu As IEnumerable(Of IUserData) = .Where(Function(vuu) vuu.UserModel = UsageModel.Virtual)
+                                    colName = CurrDir.Segments.LastOrDefault
+                                    Dim vu As IEnumerable(Of IUserData) = .Where(Function(vuu) vuu.UserModel = UsageModel.Virtual Or vuu.HOST.Key = PathPlugin.PluginKey)
                                     If vu.ListExists Then
-                                        If MsgBoxE({"This collection contains virtual users." & vbCr &
+                                        If MsgBoxE({"This collection contains virtual users and/or paths." & vbCr &
                                                     "If you continue, the virtual user paths will not be changed." & vbCr &
                                                     "The following users have been added to the collection in virtual mode:" & vbCr &
                                                     vu.ListToStringE(vbCr, GetUserListProvider(False)), MsgTitle},
@@ -1017,17 +1061,29 @@ CloseResume:
                                     End If
                                 End If
                             End With
+                        ElseIf .HOST.Key = PathPlugin.PluginKey Then
+                            MsgBoxE({"This is the path (not user). The paths cannot be changed.", MsgTitle}, vbCritical)
+                            Exit Sub
                         Else
                             CurrDir = .Self.File.CutPath(1)
                         End If
 
                         Dim NewDest As SFile = SFile.SelectPath(CurrDir, $"Select a new destination for {IIf(_IsCollection, "collection", "user")} [{ .Self}]")
+                        Dim NewDest2 As SFile
                         If Not NewDest.IsEmptyString Then
                             NewDest = $"{NewDest.PathWithSeparator}{colName}\"
-                            If MsgBoxE({$"You are changing the user's [{ .Self}] destination" & vbCr &
-                                        $"Current destination: {CurrDir.PathNoSeparator}" & vbCr &
-                                        $"New destination: {NewDest.PathNoSeparator}",
-                                        MsgTitle}, MsgBoxStyle.Exclamation,,, {"Confirm", "Cancel"}) = 0 Then
+                            NewDest2 = $"{NewDest.PathWithSeparator}{CurrDir.Segments.LastOrDefault().StringAppend("\", String.Empty)}"
+                            Dim choice% = MsgBoxE(New MMessage($"You are changing the user's [{ .Self}] destination" & vbCr &
+                                                               $"Current destination: {CurrDir.PathNoSeparator}" & vbCr &
+                                                               $"New destination [1]: {NewDest.PathNoSeparator}" & vbCr &
+                                                               $"New destination [2]: {NewDest2.PathWithSeparator}",
+                                                               MsgTitle,
+                                                               {New MsgBoxButton("Confirm [1] (Enter)", "Move the data to the destination [1]."),
+                                                                New MsgBoxButton("Confirm [2]", "Move the data to the destination [2].") With {.KeyCode = Keys.D2},
+                                                                "Cancel"},
+                                                               MsgBoxStyle.Exclamation) With {.AppendKeyCode = False})
+                            If choice < 2 Then
+                                If choice = 1 Then NewDest = NewDest2
                                 If Not NewDest.IsEmptyString AndAlso
                                    (Not NewDest.Exists(SFO.Path, False) OrElse
                                         (

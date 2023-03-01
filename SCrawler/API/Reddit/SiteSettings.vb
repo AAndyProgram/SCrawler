@@ -32,8 +32,9 @@ Namespace API.Reddit
         Friend Sub New()
             MyBase.New(RedditSite, "reddit.com")
             With Responser
-                If .Decoders.Count = 0 OrElse Not .Decoders.Contains(SymbolsConverter.Converters.Unicode) Then _
-                   .Decoders.Add(SymbolsConverter.Converters.Unicode) : .SaveSettings()
+                Dim d% = .Decoders.Count
+                .Decoders.ListAddList({SymbolsConverter.Converters.Unicode, SymbolsConverter.Converters.HTML}, LAP.NotContainsOnly)
+                If d <> .Decoders.Count Then .SaveSettings()
             End With
             SavedPostsUserName = New PropertyValue(String.Empty, GetType(String))
             UseM3U8 = New PropertyValue(True)

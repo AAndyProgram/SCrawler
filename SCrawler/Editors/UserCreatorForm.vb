@@ -80,6 +80,8 @@ Namespace Editors
                 Return TXT_SCRIPT.Text
             End Get
         End Property
+        Private FriendlyNameIsSiteName As Boolean = False
+        Private FriendlyNameChanged As Boolean = False
 #End Region
 #Region "Exchange, Path, Labels"
         Friend Property MyExchangeOptions As Object = Nothing
@@ -248,7 +250,18 @@ Namespace Editors
                                 TXT_SPEC_FOLDER.Buttons.Clear()
                                 TXT_SPEC_FOLDER.Buttons.UpdateButtonsPositions()
                                 With UserInstance
+                                    If .HOST.Key = PathPlugin.PluginKey Then TXT_SPEC_FOLDER.Enabled = False
                                     TXT_USER_FRIENDLY.Text = .FriendlyName
+                                    FriendlyNameIsSiteName = DirectCast(.Self, UserDataBase).FriendlyNameIsSiteName
+                                    If FriendlyNameIsSiteName Then
+                                        With TXT_USER_FRIENDLY
+                                            .ControlChangeColor(True, False)
+                                            .Buttons.AddRange({New ActionButton With {.Text = "F", .ToolTipText = "Name set by you"},
+                                                               New ActionButton With {.Text = "S", .ToolTipText = "Name from site"},
+                                                               New ActionButton(ADB.Clear)})
+                                            .ClearTextByButtonClear = False
+                                        End With
+                                    End If
                                     CH_FAV.Checked = .Favorite
                                     CH_TEMP.Checked = .Temporary
                                     CH_PARSE_USER_MEDIA.Checked = .ParseUserMediaOnly
@@ -275,6 +288,7 @@ Namespace Editors
                     .MyFieldsChecker.EndLoaderOperations()
                     .EndLoaderOperations()
                 End With
+                FriendlyNameChanged = False
             Catch ex As Exception
                 MyDef.InvokeLoaderError(ex)
             End Try
@@ -336,7 +350,19 @@ Namespace Editors
                             If Not UserInstance Is Nothing Then
                                 With DirectCast(UserInstance, UserDataBase)
                                     .User = User
-                                    .FriendlyName = TXT_USER_FRIENDLY.Text
+                                    Dim setFriendly As Boolean = True
+                                    If FriendlyNameIsSiteName Then
+                                        If Not FriendlyNameChanged Then
+                                            setFriendly = False
+                                        Else
+                                            setFriendly = MsgBoxE({"Are you sure you want to set the site name as the friendly name?" & vbCr &
+                                                                   $"Friendly name: { .FriendlyNameOrig}" & vbCr &
+                                                                   $"Site name: { .UserSiteName}" & vbCr &
+                                                                   $"Your choice: {TXT_USER_FRIENDLY.Text}", "Friendly name change"}, vbExclamation,,,
+                                                                   {"Confirm", New Messaging.MsgBoxButton("Decline", "Friendly name will not be changed")}) = 0
+                                        End If
+                                    End If
+                                    If setFriendly Then .FriendlyName = TXT_USER_FRIENDLY.Text
                                     .Favorite = CH_FAV.Checked
                                     .Temporary = CH_TEMP.Checked
                                     .ReadyForDownload = CH_READY_FOR_DOWN.Checked
@@ -346,7 +372,7 @@ Namespace Editors
                                     If Not MyExchangeOptions Is Nothing Then .ExchangeOptionsSet(MyExchangeOptions)
                                     Dim l As New ListAddParams(LAP.NotContainsOnly + LAP.ClearBeforeAdd)
                                     If .IsCollection Then
-                                        With DirectCast(UserInstance, API.UserDataBind)
+                                        With DirectCast(UserInstance, UserDataBind)
                                             If .Count > 0 Then .Collections.ForEach(Sub(c) c.Labels.ListAddList(UserLabels, l))
                                         End With
                                     Else
@@ -387,6 +413,10 @@ CloseForm:
                         If Not s.UserName.IsEmptyString Then
                             Dim i% = Settings.Plugins.FindIndex(Function(p) p.Key = s.HostKey)
                             If i >= 0 Then
+                                If s.HostKey = PathPlugin.PluginKey Then
+                                    TXT_SPEC_FOLDER.Text = s.UserName
+                                    s.UserName = s.UserName.CSFileP.Segments.LastOrDefault
+                                End If
                                 CMB_SITE.SelectedIndex = i
                                 CH_IS_CHANNEL.Checked = s.IsChannel
                                 TXT_USER.Text = s.UserName
@@ -407,6 +437,30 @@ CloseForm:
         End Sub
         Private Sub TXT_USER_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As ActionButtonEventArgs) Handles TXT_USER.ActionOnButtonClick
             If UserIsCollection AndAlso Sender.DefaultButton = ADB.Refresh Then TXT_USER.Text = UserInstance.CollectionName
+        End Sub
+        Private Sub TXT_USER_FRIENDLY_ActionOnTextChanged(sender As Object, e As EventArgs) Handles TXT_USER_FRIENDLY.ActionOnTextChanged
+            If Not MyDef.Initializing Then FriendlyNameChanged = True
+        End Sub
+        Private Sub TXT_USER_FRIENDLY_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As ActionButtonEventArgs) Handles TXT_USER_FRIENDLY.ActionOnButtonClick
+            If Sender.DefaultButton = ADB.Clear Then
+                TXT_USER_FRIENDLY.Clear()
+                FriendlyNameIsSiteName = False
+                FriendlyNameChanged = False
+                TXT_USER_FRIENDLY.ControlChangeColor(SystemColors.Window, SystemColors.WindowText)
+            Else
+                Select Case Sender.Text
+                    Case "F"
+                        TXT_USER_FRIENDLY.Text = DirectCast(UserInstance, UserDataBase).FriendlyNameOrig
+                        FriendlyNameIsSiteName = False
+                        FriendlyNameChanged = False
+                        TXT_USER_FRIENDLY.ControlChangeColor(SystemColors.Window, SystemColors.WindowText)
+                    Case "S"
+                        TXT_USER_FRIENDLY.Text = DirectCast(UserInstance, UserDataBase).UserSiteName
+                        FriendlyNameIsSiteName = True
+                        FriendlyNameChanged = False
+                        TXT_USER_FRIENDLY.ControlChangeColor(True, False)
+                End Select
+            End If
         End Sub
         Private Sub CMB_SITE_ActionSelectedItemChanged(ByVal Sender As Object, ByVal e As EventArgs, ByVal Item As ListViewItem) Handles CMB_SITE.ActionSelectedItemChanged
             CH_IS_CHANNEL.Checked = False

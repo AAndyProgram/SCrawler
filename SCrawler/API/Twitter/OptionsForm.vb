@@ -30,6 +30,8 @@ Namespace API.Twitter
                     TXT_GIF_FOLDER.Tag = NameOf(SiteSettings.GifsSpecialFolder)
                     TXT_GIF_PREFIX.Text = .GifsPrefix
                     TXT_GIF_PREFIX.Tag = NameOf(SiteSettings.GifsPrefix)
+                    CH_USE_MD5.Checked = .UseMD5Comparison
+                    CH_REMOVE_EXISTING_DUP.Checked = .RemoveExistingDuplicates
 
                     Try
                         Dim p As PropertyOption
@@ -59,6 +61,8 @@ Namespace API.Twitter
                 .GifsDownload = CH_DOWN_GIFS.Checked
                 .GifsSpecialFolder = TXT_GIF_FOLDER.Text
                 .GifsPrefix = TXT_GIF_PREFIX.Text
+                .UseMD5Comparison = CH_USE_MD5.Checked
+                .RemoveExistingDuplicates = CH_REMOVE_EXISTING_DUP.Checked
             End With
             MyDefs.CloseForm()
         End Sub

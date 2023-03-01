@@ -25,6 +25,7 @@ Partial Friend Module MainMod
         Friend Const Name_IsChannel As String = "IsChannel"
         Friend Const Name_SpecialPath As String = "SpecialPath"
         Friend Const Name_SpecialCollectionPath As String = "SpecialCollectionPath"
+        Private Const Name_LastSeen As String = "LastSeen"
 #End Region
 #Region "Declarations"
         Friend Name As String
@@ -49,6 +50,12 @@ Partial Friend Module MainMod
         Friend CollectionModel As UsageModel
         Friend IsChannel As Boolean
         Friend [Protected] As Boolean
+        Friend ReadOnly Property IsProtected As Boolean
+            Get
+                Return [Protected] Or (LastSeen.HasValue AndAlso LastSeen.Value.AddDays(30) < Now)
+            End Get
+        End Property
+        Friend LastSeen As Date?
         Friend ReadOnly Property DownloadOption As DownOptions
             Get
                 If IsChannel Then
@@ -77,6 +84,8 @@ Partial Friend Module MainMod
             SpecialPath = SFile.GetPath(x.Attribute(Name_SpecialPath).Value)
             SpecialCollectionPath = SFile.GetPath(x.Attribute(Name_SpecialCollectionPath).Value)
             IsChannel = x.Attribute(Name_IsChannel).Value.FromXML(Of Boolean)(False)
+            If Not x.Attribute(Name_LastSeen).Value.IsEmptyString Then LastSeen = AConvert(Of Date)(x.Attribute(Name_LastSeen).Value, DateTimeDefaultProvider, Nothing)
+            UpdateUserFile()
         End Sub
         Friend Sub New(ByVal c As Reddit.Channel)
             Name = c.Name
@@ -145,7 +154,8 @@ Partial Friend Module MainMod
                                                         New EAttribute(Name_Merged, Merged.BoolToInteger),
                                                         New EAttribute(Name_IsChannel, IsChannel.BoolToInteger),
                                                         New EAttribute(Name_SpecialPath, SpecialPath.PathWithSeparator),
-                                                        New EAttribute(Name_SpecialCollectionPath, SpecialCollectionPath.PathWithSeparator)})
+                                                        New EAttribute(Name_SpecialCollectionPath, SpecialCollectionPath.PathWithSeparator),
+                                                        New EAttribute(Name_LastSeen, AConvert(Of String)(LastSeen, DateTimeDefaultProvider, String.Empty))})
         End Function
 #End Region
 #Region "IComparable Support"
@@ -159,7 +169,8 @@ Partial Friend Module MainMod
 #End Region
 #Region "IEquatable Support"
         Friend Overloads Function Equals(ByVal Other As UserInfo) As Boolean Implements IEquatable(Of UserInfo).Equals
-            Return Site.StringToLower = Other.Site.StringToLower And Name.StringToLower = Other.Name.StringToLower
+            Return Site.StringToLower = Other.Site.StringToLower And Name.StringToLower = Other.Name.StringToLower And
+                   (Not Plugin = PathPlugin.PluginKey Or SpecialPath = Other.SpecialPath)
         End Function
         Public Overloads Overrides Function Equals(ByVal Obj As Object) As Boolean
             Return Equals(DirectCast(Obj, UserInfo))

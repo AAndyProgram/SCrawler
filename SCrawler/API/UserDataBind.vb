@@ -370,7 +370,7 @@ Namespace API
             If Not e.Exists Then e = New ErrorsDescriber(EDP.SendInLog)
             If Count > 0 Then Collections.ForEach(Sub(c) c.OpenSite(e))
         End Sub
-        Private ReadOnly RealUser As Predicate(Of IUserData) = Function(u) u.UserModel = UsageModel.Default
+        Private ReadOnly RealUser As Predicate(Of IUserData) = Function(u) u.UserModel = UsageModel.Default And Not u.HOST.Key = PathPlugin.PluginKey
         Friend Overrides Sub OpenFolder()
             Try
                 If Count > 0 Then

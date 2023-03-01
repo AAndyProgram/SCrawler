@@ -6,17 +6,18 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
+Imports System.IO
+Imports System.Net
+Imports System.Threading
+Imports System.Runtime.CompilerServices
+Imports SCrawler.Plugin
+Imports SCrawler.Plugin.Hosts
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.XML.Objects
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Forms.Toolbars
 Imports PersonalUtilities.Tools
 Imports PersonalUtilities.Tools.Web.Clients
-Imports System.IO
-Imports System.Net
-Imports System.Threading
-Imports SCrawler.Plugin
-Imports SCrawler.Plugin.Hosts
 Imports UStates = SCrawler.API.Base.UserMedia.States
 Imports UTypes = SCrawler.API.Base.UserMedia.Types
 Namespace API.Base
@@ -108,6 +109,7 @@ Namespace API.Base
         Private Const Name_UserExists As String = "UserExists"
         Private Const Name_UserSuspended As String = "UserSuspended"
         Private Const Name_FriendlyName As String = "FriendlyName"
+        Private Const Name_UserSiteName As String = "UserSiteName"
         Private Const Name_UserID As String = "UserID"
         Private Const Name_Description As String = "Description"
         Private Const Name_ParseUserMediaOnly As String = "ParseUserMediaOnly"
@@ -141,17 +143,30 @@ Namespace API.Base
             End Get
         End Property
         Friend Property Progress As MyProgress
-        Friend ReadOnly Property Self As IUserData Implements IUserData.Self
-            Get
-                Return Me
-            End Get
-        End Property
 #End Region
 #Region "User name, ID, exist, suspend"
         Friend User As UserInfo
         Friend Property IsSavedPosts As Boolean Implements IPluginContentProvider.IsSavedPosts
-        Friend Overridable Property UserExists As Boolean = True Implements IUserData.Exists, IPluginContentProvider.UserExists
-        Friend Overridable Property UserSuspended As Boolean = False Implements IUserData.Suspended, IPluginContentProvider.UserSuspended
+        Private _UserExists As Boolean = True
+        Friend Overridable Property UserExists As Boolean Implements IUserData.Exists, IPluginContentProvider.UserExists
+            Get
+                Return _UserExists
+            End Get
+            Set(ByVal _UserExists As Boolean)
+                If Not Me._UserExists = _UserExists Then EnvirChanged(_UserExists)
+                Me._UserExists = _UserExists
+            End Set
+        End Property
+        Private _UserSuspended As Boolean = False
+        Friend Overridable Property UserSuspended As Boolean Implements IUserData.Suspended, IPluginContentProvider.UserSuspended
+            Get
+                Return _UserSuspended
+            End Get
+            Set(ByVal _UserSuspended As Boolean)
+                If Not Me._UserSuspended = _UserSuspended Then EnvirChanged(_UserSuspended)
+                Me._UserSuspended = _UserSuspended
+            End Set
+        End Property
         Friend Overridable Property Name As String Implements IContentProvider.Name, IPluginContentProvider.Name
             Get
                 Return User.Name
@@ -163,7 +178,46 @@ Namespace API.Base
             End Set
         End Property
         Friend Overridable Property ID As String = String.Empty Implements IContentProvider.ID, IPluginContentProvider.ID
-        Friend Overridable Property FriendlyName As String = String.Empty Implements IContentProvider.FriendlyName
+        Protected _FriendlyName As String = String.Empty
+        Friend Overridable Property FriendlyName As String Implements IContentProvider.FriendlyName
+            Get
+                If Settings.UserSiteNameAsFriendly Then
+                    Return _FriendlyName.IfNullOrEmpty(UserSiteName)
+                Else
+                    Return _FriendlyName
+                End If
+            End Get
+            Set(ByVal n As String)
+                _FriendlyName = n
+            End Set
+        End Property
+        Friend ReadOnly Property FriendlyNameOrig As String
+            Get
+                Return _FriendlyName
+            End Get
+        End Property
+        Friend ReadOnly Property FriendlyNameIsSiteName As Boolean
+            Get
+                If Settings.UserSiteNameAsFriendly Then
+                    Return Not FriendlyName.IsEmptyString And Not _FriendlyName = UserSiteName And FriendlyName = UserSiteName
+                Else
+                    Return False
+                End If
+            End Get
+        End Property
+        Private _UserSiteName As String = String.Empty
+        Friend Property UserSiteName As String
+            Get
+                Return _UserSiteName
+            End Get
+            Set(ByVal _UserSiteName As String)
+                If Not Me._UserSiteName = _UserSiteName Then EnvirChanged(_UserSiteName)
+                Me._UserSiteName = _UserSiteName
+            End Set
+        End Property
+        Protected Sub UserSiteNameUpdate(ByVal NewName As String)
+            If Not NewName.IsEmptyString And (UserSiteName.IsEmptyString Or Settings.UserSiteNameUpdateEveryTime) Then UserSiteName = NewName
+        End Sub
         Friend ReadOnly Property UserModel As UsageModel Implements IUserData.UserModel
             Get
                 Return User.UserModel
@@ -196,10 +250,6 @@ Namespace API.Base
                 End If
                 _DescriptionChecked = True
             End If
-        End Sub
-        Protected Sub UserDescriptionReset()
-            _DescriptionChecked = False
-            _DescriptionEveryTime = Settings.UpdateUserDescriptionEveryTime
         End Sub
 #End Region
 #Region "Favorite, Temporary"
@@ -246,7 +296,7 @@ Namespace API.Base
         Friend Overridable Sub SetPicture(ByVal f As SFile) Implements IUserData.SetPicture
             Try
                 If f.Exists Then
-                    Using p As New UserImage(f, User.File) : p.Save() : End Using
+                    Using p As New UserImage(f, MyFile) : p.Save() : End Using
                 End If
             Catch
             End Try
@@ -409,13 +459,18 @@ BlockNullPicture:
 #Region "Files"
         Friend Overridable Property MyFile As SFile Implements IUserData.File
             Get
-                Return User.File
+                If IsSavedPosts Then
+                    Return MyFileSettings
+                Else
+                    Return User.File
+                End If
             End Get
             Set(ByVal f As SFile)
                 User.File = f
                 Settings.UpdateUsersList(User)
             End Set
         End Property
+        Protected MyFileSettings As SFile
         Protected MyFileData As SFile
         Protected MyFilePosts As SFile
         Friend Overridable Property FileExists As Boolean = False Implements IUserData.FileExists
@@ -661,14 +716,16 @@ BlockNullPicture:
         Private _UserInformationLoaded As Boolean = False
         Friend Overridable Sub LoadUserInformation() Implements IUserData.LoadUserInformation
             Try
-                If MyFile.Exists Then
+                UpdateDataFiles(, True)
+                If MyFileSettings.Exists Then
                     FileExists = True
-                    Using x As New XmlFile(MyFile) With {.XmlReadOnly = True}
+                    Using x As New XmlFile(MyFileSettings) With {.XmlReadOnly = True}
                         If User.Name.IsEmptyString Then User.Name = x.Value(Name_UserName)
                         UserExists = x.Value(Name_UserExists).FromXML(Of Boolean)(True)
                         UserSuspended = x.Value(Name_UserSuspended).FromXML(Of Boolean)(False)
                         ID = x.Value(Name_UserID)
-                        FriendlyName = x.Value(Name_FriendlyName)
+                        _FriendlyName = x.Value(Name_FriendlyName)
+                        UserSiteName = x.Value(Name_UserSiteName)
                         UserDescription = x.Value(Name_Description)
                         ParseUserMediaOnly = x.Value(Name_ParseUserMediaOnly).FromXML(Of Boolean)(False)
                         Temporary = x.Value(Name_Temporary).FromXML(Of Boolean)(False)
@@ -705,7 +762,8 @@ BlockNullPicture:
         End Sub
         Friend Overridable Sub UpdateUserInformation() Implements IUserData.UpdateUserInformation
             Try
-                MyFile.Exists(SFO.Path)
+                UpdateDataFiles(True)
+                MyFileSettings.Exists(SFO.Path)
                 Using x As New XmlFile With {.Name = "User"}
                     x.Add(Name_Site, Site)
                     x.Add(Name_Plugin, HOST.Key)
@@ -718,7 +776,8 @@ BlockNullPicture:
                     x.Add(Name_UserExists, UserExists.BoolToInteger)
                     x.Add(Name_UserSuspended, UserSuspended.BoolToInteger)
                     x.Add(Name_UserID, ID)
-                    x.Add(Name_FriendlyName, FriendlyName)
+                    x.Add(Name_FriendlyName, _FriendlyName)
+                    x.Add(Name_UserSiteName, UserSiteName)
                     x.Add(Name_Description, UserDescription)
                     x.Add(Name_ParseUserMediaOnly, ParseUserMediaOnly.BoolToInteger)
                     x.Add(Name_Temporary, Temporary.BoolToInteger)
@@ -743,7 +802,7 @@ BlockNullPicture:
 
                     LoadUserInformation_OptionalFields(x, False)
 
-                    x.Save(MyFile)
+                    x.Save(MyFileSettings)
                 End Using
                 If Not IsSavedPosts Then Settings.UpdateUsersList(User)
             Catch ex As Exception
@@ -756,7 +815,7 @@ BlockNullPicture:
 #Region "User data"
         Friend Overridable Overloads Sub LoadContentInformation(Optional ByVal Force As Boolean = False)
             Try
-                UpdateDataFiles()
+                UpdateDataFiles(, True)
                 If Not MyFileData.Exists Or (_DataLoaded And Not Force) Then Exit Sub
                 Using x As New XmlFile(MyFileData, Protector.Modes.All, False) With {.XmlReadOnly = True, .AllowSameNames = True}
                     x.LoadData()
@@ -771,7 +830,7 @@ BlockNullPicture:
         End Sub
         Friend Sub UpdateContentInformation()
             Try
-                UpdateDataFiles()
+                UpdateDataFiles(True, True)
                 If MyFileData.IsEmptyString Then Exit Sub
                 MyFileData.Exists(SFO.Path)
                 Using x As New XmlFile With {.AllowSameNames = True, .Name = "Data"}
@@ -847,12 +906,45 @@ BlockNullPicture:
 #Region "Download functions and options"
         Protected Responser As Responser
         Protected UseResponserClient As Boolean = False
+        Protected _ForceSaveUserData As Boolean = False
+        Protected _ForceSaveUserInfo As Boolean = False
+        Private _DownloadInProgress As Boolean = False
+        Private _EnvirUserExists As Boolean
+        Private _EnvirUserSuspended As Boolean
+        Private _EnvirChanged As Boolean = False
+        Private _PictureExists As Boolean
+        Private _EnvirInvokeUserUpdated As Boolean = False
+        Protected Sub EnvirDownloadSet()
+            UpdateDataFiles(, True)
+            _DownloadInProgress = True
+            _DescriptionChecked = False
+            _DescriptionEveryTime = Settings.UpdateUserDescriptionEveryTime
+            _ForceSaveUserData = False
+            _ForceSaveUserInfo = False
+            _EnvirUserExists = UserExists
+            _EnvirUserSuspended = UserSuspended
+            _EnvirChanged = False
+            UserExists = True
+            UserSuspended = False
+            DownloadedPictures(False) = 0
+            DownloadedVideos(False) = 0
+            _PictureExists = Settings.ViewModeIsPicture AndAlso Not GetPicture(Of Image)(False) Is Nothing
+            _EnvirInvokeUserUpdated = False
+        End Sub
+        Private Sub EnvirChanged(ByVal NewValue As Object, <CallerMemberName> Optional ByVal Caller As String = Nothing)
+            If _DownloadInProgress Then
+                Select Case Caller
+                    Case NameOf(UserExists) : If Not _EnvirUserExists = CBool(NewValue) Then _EnvirChanged = True : _EnvirInvokeUserUpdated = True
+                    Case NameOf(UserSuspended) : If Not _EnvirUserSuspended = CBool(NewValue) Then _EnvirChanged = True : _EnvirInvokeUserUpdated = True
+                    Case Else : _EnvirChanged = True
+                End Select
+            End If
+        End Sub
         Friend Overridable Sub DownloadData(ByVal Token As CancellationToken) Implements IContentProvider.DownloadData
             Dim Canceled As Boolean = False
             _ExternalCompatibilityToken = Token
             Try
-                UpdateDataFiles()
-                UserDescriptionReset()
+                EnvirDownloadSet()
                 If Not Responser Is Nothing Then Responser.Dispose()
                 Responser = New Responser
                 If Not HOST.Responser Is Nothing Then Responser.Copy(HOST.Responser)
@@ -860,14 +952,7 @@ BlockNullPicture:
                 Responser.DecodersError = New ErrorsDescriber(EDP.SendInLog + EDP.ReturnValue) With {
                     .DeclaredMessage = New MMessage($"SymbolsConverter error: [{ToStringForLog()}]", ToStringForLog())}
 
-                Dim UpPic As Boolean = Settings.ViewModeIsPicture AndAlso GetPicture(Of Image)(False) Is Nothing
-                Dim sEnvir() As Boolean = {UserExists, UserSuspended}
-                Dim EnvirChanged As Func(Of Boolean) = Function() Not sEnvir(0) = UserExists Or Not sEnvir(1) = UserSuspended
                 Dim _downContent As Func(Of UserMedia, Boolean) = Function(c) c.State = UStates.Downloaded
-                UserExists = True
-                UserSuspended = False
-                DownloadedPictures(False) = 0
-                DownloadedVideos(False) = 0
                 _TempMediaList.Clear()
                 _TempPostsList.Clear()
                 LatestData.Clear()
@@ -896,6 +981,7 @@ BlockNullPicture:
 
                 ReparseVideo(Token)
                 ThrowAny(Token)
+                If IsSavedPosts Then UpdateDataFiles(True)
                 If _TempPostsList.Count > 0 And Not DownloadMissingOnly And __SaveData Then _
                    TextSaver.SaveTextToFile(_TempPostsList.ListToString(Environment.NewLine), MyFilePosts, True,, EDP.None)
                 _ContentNew.ListAddList(_TempMediaList, LAP.ClearBeforeAdd)
@@ -906,12 +992,12 @@ BlockNullPicture:
                 Dim mcb& = If(ContentMissingExists, _ContentList.LongCount(Function(c) MissingFinder(c)), 0)
                 _ContentList.ListAddList(_ContentNew.Where(Function(c) _downContent(c) Or MissingFinder(c)), LNC)
                 Dim mca& = If(ContentMissingExists, _ContentList.LongCount(Function(c) MissingFinder(c)), 0)
-                If DownloadedTotal(False) > 0 Or EnvirChanged.Invoke Or Not mcb = mca Then
+                If DownloadedTotal(False) > 0 Or _EnvirChanged Or Not mcb = mca Or _ForceSaveUserData Then
                     If __SaveData Then
                         LastUpdated = Now
                         RunScript()
-                        DownloadedPictures(True) = SFile.GetFiles(User.File.CutPath, "*.jpg|*.jpeg|*.png|*.gif|*.webm",, EDP.ReturnValue).Count
-                        DownloadedVideos(True) = SFile.GetFiles(User.File.CutPath, "*.mp4|*.mkv|*.mov", SearchOption.AllDirectories, EDP.ReturnValue).Count
+                        DownloadedPictures(True) = SFile.GetFiles(MyFile.CutPath, "*.jpg|*.jpeg|*.png|*.gif|*.webm",, EDP.ReturnValue).Count
+                        DownloadedVideos(True) = SFile.GetFiles(MyFile.CutPath, "*.mp4|*.mkv|*.mov", SearchOption.AllDirectories, EDP.ReturnValue).Count
                         If Labels.Contains(LabelsKeeper.NoParsedUser) Then Labels.Remove(LabelsKeeper.NoParsedUser)
                         UpdateContentInformation()
                     Else
@@ -922,10 +1008,12 @@ BlockNullPicture:
                     End If
                     If Not UserExists Then ReadyForDownload = False
                     UpdateUserInformation()
-                    If _CollectionButtonsExists AndAlso EnvirChanged.Invoke Then UpdateButtonsColor()
+                    If _CollectionButtonsExists AndAlso _EnvirChanged Then UpdateButtonsColor()
+                ElseIf _ForceSaveUserInfo Then
+                    UpdateUserInformation()
                 End If
                 ThrowIfDisposed()
-                If UpPic Or EnvirChanged.Invoke Then OnUserUpdated()
+                If Not _PictureExists Or _EnvirInvokeUserUpdated Then OnUserUpdated()
             Catch oex As OperationCanceledException When Token.IsCancellationRequested
                 MyMainLOG = $"{ToStringForLog()}: downloading canceled"
                 Canceled = True
@@ -938,17 +1026,32 @@ BlockNullPicture:
                 If Not Responser Is Nothing Then Responser.Dispose() : Responser = Nothing
                 If Not Canceled Then _DataParsed = True
                 _ContentNew.Clear()
+                _DownloadInProgress = False
                 DownloadTopCount = Nothing
                 DownloadDateFrom = Nothing
                 DownloadDateTo = Nothing
                 DownloadMissingOnly = False
+                _ForceSaveUserData = False
+                _ForceSaveUserInfo = False
             End Try
         End Sub
-        Protected Sub UpdateDataFiles()
+        Protected Sub UpdateDataFiles(Optional ByVal ForceSaved As Boolean = False, Optional ByVal ValidateContetnt As Boolean = False)
+            'TODELETE: saved posts name compatibility 2023.2.5.0
+            Dim __validateSaved As Func(Of Boolean) = Function() MyFileData.Exists Or MyFilePosts.Exists
             If Not User.File.IsEmptyString Then
-                MyFileData = User.File
+                MyFileSettings = Nothing
+                If IsSavedPosts Then
+                    Dim u As UserInfo = User
+                    u.Name = "SavedPosts"
+                    u.UpdateUserFile()
+                    Dim mfp As SFile = u.File
+                    mfp.Name &= "_Posts"
+                    If (ValidateContetnt AndAlso mfp.Exists) Or (Not ValidateContetnt AndAlso u.File.Exists) Or ForceSaved Then MyFileSettings = u.File
+                End If
+                If MyFileSettings.IsEmptyString Then MyFileSettings = User.File
+                MyFileData = MyFileSettings
                 MyFileData.Name &= "_Data"
-                MyFilePosts = User.File
+                MyFilePosts = MyFileSettings
                 MyFilePosts.Name &= "_Posts"
                 MyFilePosts.Extension = "txt"
             Else
@@ -1098,7 +1201,6 @@ BlockNullPicture:
                     Return v
                 End If
             Else
-                'URGENT: UserDataBase.ProcessException [Throw ex]
                 If ThrowEx Then Throw ex Else Return EXCEPTION_OPERATION_CANCELED
             End If
             Return 0
@@ -1293,7 +1395,7 @@ BlockNullPicture:
                 Else
                     pOffset = 1
                 End If
-                fSource = User.File.CutPath(pOffset).Path.CSFileP
+                fSource = MyFile.CutPath(pOffset).Path.CSFileP
 
                 Dim OptPath$ = String.Empty
                 If IncludedInCollection Then
@@ -1501,7 +1603,6 @@ BlockNullPicture:
         Function MoveFiles(ByVal CollectionName As String, ByVal SpecialCollectionPath As SFile) As Boolean
         Function CopyFiles(ByVal DestinationPath As SFile, Optional ByVal e As ErrorsDescriber = Nothing) As Boolean
         Sub OpenFolder()
-        ReadOnly Property Self As IUserData
         Property DownloadTopCount As Integer?
         Property DownloadDateFrom As Date?
         Property DownloadDateTo As Date?

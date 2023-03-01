@@ -132,9 +132,9 @@ Namespace API.Reddit
 #End Region
 #Region "Download Overrides"
         Friend Overrides Sub DownloadData(ByVal Token As CancellationToken)
-            UserDescriptionReset()
             _CrossPosts.Clear()
             If Not IsSavedPosts AndAlso (IsChannel AndAlso Not ChannelInfo Is Nothing) Then
+                EnvirDownloadSet()
                 If Not Responser Is Nothing Then Responser.Dispose()
                 Responser = New Responser
                 Responser.Copy(MySiteSettings.Responser)
@@ -165,12 +165,15 @@ Namespace API.Reddit
                         End With
                     End If
                     If DownloadTopCount.HasValue Then DownloadLimitCount = DownloadTopCount
+                Else
+                    GetUserInfo()
                 End If
                 If SaveToCache AndAlso Not Responser.Decoders.Contains(SymbolsConverter.Converters.HTML) Then _
                    Responser.Decoders.Add(SymbolsConverter.Converters.HTML)
                 DownloadDataChannel(String.Empty, Token)
                 If ChannelInfo Is Nothing Then _TempPostsList.ListAddList(_TempMediaList.Select(Function(m) m.Post.ID), LNC)
             Else
+                GetUserInfo()
                 DownloadDataUser(String.Empty, Token)
             End If
         End Sub
@@ -205,7 +208,8 @@ Namespace API.Reddit
                 If Not r.IsEmptyString Then
                     Using w As EContainer = JsonDocument.Parse(r).XmlIfNothing
                         If w.Count > 0 Then
-                            If UserDescriptionNeedToUpdate() Then UserDescriptionUpdate(w.ItemF({"subredditAboutInfo", 0, "publicDescription"}).XmlIfNothingValue)
+                            'TODELETE: moved to 'GetUserInfo' 2023.2.5.0
+                            'If UserDescriptionNeedToUpdate() Then UserDescriptionUpdate(w.ItemF({"subredditAboutInfo", 0, "publicDescription"}).XmlIfNothingValue)
                             n = w.GetNode(JsonNodesJson)
                             If Not n Is Nothing AndAlso n.Count > 0 Then
                                 For Each nn In n
@@ -414,6 +418,37 @@ Namespace API.Reddit
                 End If
             Catch ex As Exception
                 ProcessException(ex, Token, $"channel data downloading error [{URL}]")
+            End Try
+        End Sub
+        Private Sub GetUserInfo()
+            Try
+                If Not IsSavedPosts And ChannelInfo Is Nothing Then
+                    Dim r$ = Responser.GetResponse($"https://reddit.com/{IIf(IsChannel, "r", "user")}/{Name}/about.json",, EDP.ReturnValue)
+                    If Not r.IsEmptyString Then
+                        Using j As EContainer = JsonDocument.Parse(r)
+                            If Not j Is Nothing AndAlso j.Contains({"data", "subreddit"}) Then
+                                With j({"data", "subreddit"})
+                                    UserSiteNameUpdate(.Value("title"))
+                                    UserDescriptionUpdate(.Value("public_description"))
+                                    Dim dir As SFile = MyFile.CutPath
+                                    Dim __getFile As Action(Of String) = Sub(ByVal img As String)
+                                                                             If Not img.IsEmptyString Then
+                                                                                 Dim f As SFile = UrlToFile(img)
+                                                                                 If Not f.Name.IsEmptyString Then
+                                                                                     If f.Extension.IsEmptyString Then f.Extension = "jpg"
+                                                                                     f.Path = dir.Path
+                                                                                     If Not f.Exists Then GetWebFile(img, f, EDP.ReturnValue)
+                                                                                 End If
+                                                                             End If
+                                                                         End Sub
+                                    __getFile.Invoke(.Value("icon_img"))
+                                    __getFile.Invoke(.Value("banner_img"))
+                                End With
+                            End If
+                        End Using
+                    End If
+                End If
+            Catch ex As Exception
             End Try
         End Sub
 #End Region

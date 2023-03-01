@@ -38,7 +38,7 @@ Namespace API.Xhamster
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
             _TempPhotoData.Clear()
             If DownloadVideos Then DownloadData(1, True, Token)
-            If DownloadImages Then
+            If Not IsChannel And DownloadImages Then
                 DownloadData(1, False, Token)
                 ReparsePhoto(Token)
             End If
@@ -50,11 +50,16 @@ Namespace API.Xhamster
                 Dim Type As UTypes = IIf(IsVideo, UTypes.VideoPre, UTypes.Picture)
                 Dim mPages$ = IIf(IsVideo, "maxVideoPages", "maxPhotoPages")
                 Dim listNode$()
+                Dim skipped As Boolean = False
+                Dim cBefore% = _TempMediaList.Count
                 Dim m As UserMedia
 
                 If IsSavedPosts Then
                     URL = $"https://xhamster.com/my/favorites/{IIf(IsVideo, "videos", "photos-and-galleries")}{IIf(Page = 1, String.Empty, $"/{Page}")}"
                     listNode = If(IsVideo, {"favoriteVideoListComponent", "models"}, {"favoritesGalleriesAndPhotosCollection"})
+                ElseIf IsChannel Then
+                    URL = $"https://xhamster.com/channels/{Name}/newest{IIf(Page = 1, String.Empty, $"/{Page}")}"
+                    listNode = {"trendingVideoListComponent", "models"}
                 Else
                     URL = $"https://xhamster.com/users/{Name}/{IIf(IsVideo, "videos", "photos")}{IIf(Page = 1, String.Empty, $"/{Page}")}"
                     listNode = {If(IsVideo, "userVideoCollection", "userGalleriesCollection")}
@@ -80,7 +85,7 @@ Namespace API.Xhamster
 
                                             If m.Post.Date.HasValue Then
                                                 Select Case CheckDatesLimit(m.Post.Date.Value, Nothing)
-                                                    Case DateResult.Skip : Continue For
+                                                    Case DateResult.Skip : skipped = True : Continue For
                                                     Case DateResult.Exit : Exit Sub
                                                 End Select
                                             End If
@@ -108,7 +113,7 @@ Namespace API.Xhamster
                     End Using
                 End If
 
-                If MaxPage > 0 AndAlso Page < MaxPage Then DownloadData(Page + 1, IsVideo, Token)
+                If (Not _TempMediaList.Count = cBefore Or skipped) And (IsChannel Or (MaxPage > 0 And Page < MaxPage)) Then DownloadData(Page + 1, IsVideo, Token)
             Catch ex As Exception
                 ProcessException(ex, Token, $"data downloading error [{URL}]")
             End Try
@@ -286,7 +291,7 @@ Namespace API.Xhamster
                         .ID = j.Value("id"),
                         .Date = AConvert(Of Date)(j.Value("created"), DateProvider, Nothing)
                     },
-                    .PictureOption = j.Value("title").StringRemoveWinForbiddenSymbols,
+                    .PictureOption = TitleHtmlConverter(j.Value("title")),
                     .Object = New ExchObj
                 }
                 If PostDate.HasValue Then m.Post.Date = PostDate
@@ -309,7 +314,7 @@ Namespace API.Xhamster
                 End If
                 If Not m.URL.IsEmptyString Then
                     If m.Post.ID.IsEmptyString Then m.Post.ID = m.URL.Split("/").LastOrDefault
-                    If m.PictureOption.IsEmptyString Then m.PictureOption = j.Value("titleLocalized").StringRemoveWinForbiddenSymbols
+                    If m.PictureOption.IsEmptyString Then m.PictureOption = TitleHtmlConverter(j.Value("titleLocalized"))
                     If m.PictureOption.IsEmptyString Then m.PictureOption = m.Post.ID
                     If setSpecialFolder Then m.SpecialFolder = m.PictureOption
 
@@ -334,7 +339,7 @@ Namespace API.Xhamster
             Return If(Responser.Status = Net.WebExceptionStatus.ConnectionClosed, 1, 0)
         End Function
 #End Region
-#Region "Idisposable support"
+#Region "IDisposable support"
         Protected Overrides Sub Dispose(ByVal disposing As Boolean)
             If Not disposedValue And disposing Then _TempPhotoData.Clear()
             MyBase.Dispose(disposing)
