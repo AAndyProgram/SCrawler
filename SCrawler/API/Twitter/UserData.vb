@@ -394,7 +394,7 @@ Namespace API.Twitter
                                         h = __getMD5(New UserMedia With {.File = existingFiles(i)}, False)
                                         If Not h.IsEmptyString Then
                                             If hashList.ContainsKey(h) Then
-                                                MyMainLOG = $"[{ToStringForLog()}]: Removed image [{existingFiles(i).File}] (duplicate of [{hashList(h).File}])"
+                                                MyMainLOG = $"{ToStringForLog()}: Removed image [{existingFiles(i).File}] (duplicate of [{hashList(h).File}])"
                                                 existingFiles(i).Delete(SFO.File, SFODelete.DeleteToRecycleBin, ErrMD5)
                                                 existingFiles.RemoveAt(i)
                                             Else
@@ -437,7 +437,8 @@ Namespace API.Twitter
 
                     If _ContentList.Count > 0 Then
                         With _ContentList.Select(Function(d) d.MD5)
-                            If .ListExists Then .ToList.ForEach(Sub(md5value) If Not hashList.ContainsKey(md5value) Then hashList.Add(md5value, New SFile))
+                            If .ListExists Then .ToList.ForEach(Sub(md5value) _
+                               If Not md5value.IsEmptyString AndAlso Not hashList.ContainsKey(md5value) Then hashList.Add(md5value, New SFile))
                         End With
                     End If
 

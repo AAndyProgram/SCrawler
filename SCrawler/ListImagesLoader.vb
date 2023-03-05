@@ -197,7 +197,7 @@ Friend Class ListImagesLoader
             ElseIf CheckUserCollection(User) Then
                 .BackColor = Color.LightSkyBlue
                 .ForeColor = Color.MidnightBlue
-            Else 'If Not IsInit Then
+            Else
                 .BackColor = Settings.UserListBackColorF
                 .ForeColor = Settings.UserListForeColorF
             End If

@@ -58,9 +58,9 @@ Namespace API.BaseObjects
             s.DomainsChanged = False
         End Sub
         Friend Shared Sub OpenSettingsForm(ByVal s As IDomainContainer)
-            Dim __add As EventHandler(Of SimpleListFormEventArgs) = Sub(sender, e) e.ValueNew = InputBoxE($"Enter a new domain using the pattern [{s.Site}.com]:", "New domain").IfNullOrEmptyE(Nothing)
+            Dim __add As EventHandler(Of SimpleListFormEventArgs) = Sub(sender, e) e.Item = InputBoxE($"Enter a new domain using the pattern [{s.Site}.com]:", "New domain").IfNullOrEmptyE(Nothing)
             Dim __delete As EventHandler(Of SimpleListFormEventArgs) = Sub(sender, e)
-                                                                           Dim n$ = AConvert(Of String)(e.ValueCurrent, AModes.Var, String.Empty)
+                                                                           Dim n$ = AConvert(Of String)(e.Item, AModes.Var, String.Empty)
                                                                            e.Result = MsgBoxE({$"Are you sure you want to delete the [{n}] domain?",
                                                                                               "Removing domains"}, vbYesNo) = vbYes
                                                                        End Sub

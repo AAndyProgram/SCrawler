@@ -283,7 +283,7 @@ Friend Class UserFinder : Implements IDisposable
     Private Function GetLabels() As List(Of String)
         Const DesignNode$ = "ImportUserSelectorLabels"
         Try
-            Dim __add As EventHandler(Of SimpleListFormEventArgs) = Sub(sender, e) e.ValueNew = InputBoxE("Enter a new label name", "New label").IfNullOrEmptyE(Nothing)
+            Dim __add As EventHandler(Of SimpleListFormEventArgs) = Sub(sender, e) e.Item = InputBoxE("Enter a new label name", "New label").IfNullOrEmptyE(Nothing)
             Dim l As List(Of String) = ListAddList(Nothing, Settings.Labels, LAP.NotContainsOnly).ListAddValue(LabelImported, LAP.NotContainsOnly)
             If l.Count > 0 Then l.Sort()
             If Not Settings.Design.Contains(DesignNode) Then Settings.Design.Add(DesignNode, String.Empty)

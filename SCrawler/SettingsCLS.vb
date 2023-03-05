@@ -81,12 +81,9 @@ Friend Class SettingsCLS : Implements IDisposable
 
         FFMPEGNotification = New XMLValue(Of Boolean)("FFMPEGNotification", True, MyXML)
         If Not FfmpegExists Then
-            If FFMPEGNotification.Value AndAlso MsgBoxE(New MMessage("[ffmpeg.exe] is missing", "ffmpeg.exe",
-                                                        {"OK", New MsgBoxButton("Disable notification") With {
-                                                        .IsDialogResultButton = False, .ToolTip = "Disable ffmpeg missing notification"}}, vbExclamation) With {
-                                                        .DefaultButton = 0, .CancelButton = 0}) = 1 Then
-                FFMPEGNotification.Value = False
-            End If
+            If FFMPEGNotification.Value AndAlso
+               MsgBoxE({"[ffmpeg.exe] is missing", "ffmpeg.exe"}, vbExclamation,,,
+                       {"OK", New MsgBoxButton("Disable notification", "Disable ffmpeg missing notification")}) = 1 Then FFMPEGNotification.Value = False
         Else
             FFMPEGNotification.Value = True
         End If

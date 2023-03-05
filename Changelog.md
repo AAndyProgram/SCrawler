@@ -1,3 +1,12 @@
+# 2023.3.5.0
+
+*2023-03-05*
+
+- Fixed
+  - A bug in the new way of naming `SavedPosts` data files.
+  - An error that could occur during Twitter MD5 comparison.
+  - A bug in the ffmpeg file parts concatenation algorithm that could occur in some cases.
+
 # 2023.3.1.0
 
 *2023-03-01*

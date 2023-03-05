@@ -1046,6 +1046,7 @@ BlockNullPicture:
                     u.UpdateUserFile()
                     Dim mfp As SFile = u.File
                     mfp.Name &= "_Posts"
+                    mfp.Extension = "txt"
                     If (ValidateContetnt AndAlso mfp.Exists) Or (Not ValidateContetnt AndAlso u.File.Exists) Or ForceSaved Then MyFileSettings = u.File
                 End If
                 If MyFileSettings.IsEmptyString Then MyFileSettings = User.File
