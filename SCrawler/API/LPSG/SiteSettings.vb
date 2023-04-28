@@ -25,7 +25,7 @@ Namespace API.LPSG
         Friend Sub New()
             MyBase.New("LPSG", "www.lpsg.com")
             UrlPatternUser = "https://www.lpsg.com/threads/{0}/"
-            UserRegex = RParams.DMS(".+?lpsg.com/threads/([^/]+)", 1)
+            UserRegex = RParams.DMS(".+?lpsg.com/threads/[^/]+?\.(\d+)", 1, EDP.ReturnValue)
         End Sub
         Friend Overrides Function GetInstance(ByVal What As ISiteSettings.Download) As IPluginContentProvider
             Return New UserData

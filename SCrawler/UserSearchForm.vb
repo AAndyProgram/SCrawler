@@ -147,7 +147,7 @@ Friend Class UserSearchForm
             End With
         Catch aex As ArgumentOutOfRangeException
         Catch ex As Exception
-            ErrorsDescriber.Execute(EDP.SendInLog, ex, $"[UserSearchForm.SearchUser({TXT_SEARCH.Text})]")
+            ErrorsDescriber.Execute(EDP.SendToLog, ex, $"[UserSearchForm.SearchUser({TXT_SEARCH.Text})]")
         Finally
             LIST_SEARCH.EndUpdate()
         End Try

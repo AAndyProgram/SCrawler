@@ -42,7 +42,6 @@ Namespace Editors
             Me.TP_MAIN = New System.Windows.Forms.TableLayoutPanel()
             Me.TXT_USER = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TP_SITE = New System.Windows.Forms.TableLayoutPanel()
-            Me.CH_IS_CHANNEL = New System.Windows.Forms.CheckBox()
             Me.CMB_SITE = New PersonalUtilities.Forms.Controls.ComboBoxExtended()
             Me.TP_TEMP_FAV = New System.Windows.Forms.TableLayoutPanel()
             Me.CH_TEMP = New System.Windows.Forms.CheckBox()
@@ -106,11 +105,11 @@ Namespace Editors
             'BTT_OTHER_SETTINGS
             '
             Me.BTT_OTHER_SETTINGS.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.BTT_OTHER_SETTINGS.Location = New System.Drawing.Point(329, 2)
+            Me.BTT_OTHER_SETTINGS.Location = New System.Drawing.Point(2, 2)
             Me.BTT_OTHER_SETTINGS.Margin = New System.Windows.Forms.Padding(1)
             Me.BTT_OTHER_SETTINGS.Name = "BTT_OTHER_SETTINGS"
-            Me.BTT_OTHER_SETTINGS.Size = New System.Drawing.Size(121, 24)
-            Me.BTT_OTHER_SETTINGS.TabIndex = 2
+            Me.BTT_OTHER_SETTINGS.Size = New System.Drawing.Size(101, 24)
+            Me.BTT_OTHER_SETTINGS.TabIndex = 1
             Me.BTT_OTHER_SETTINGS.Text = "Options (F2)"
             TT_MAIN.SetToolTip(Me.BTT_OTHER_SETTINGS, "Other settings")
             Me.BTT_OTHER_SETTINGS.UseVisualStyleBackColor = True
@@ -172,20 +171,19 @@ Namespace Editors
             Me.TXT_USER.Location = New System.Drawing.Point(4, 4)
             Me.TXT_USER.Name = "TXT_USER"
             Me.TXT_USER.PlaceholderEnabled = True
-            Me.TXT_USER.PlaceholderText = "Enter user name or url here..."
+            Me.TXT_USER.PlaceholderText = "Enter user profile URL here..."
             Me.TXT_USER.Size = New System.Drawing.Size(446, 22)
             Me.TXT_USER.TabIndex = 0
             '
             'TP_SITE
             '
             Me.TP_SITE.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
-            Me.TP_SITE.ColumnCount = 3
-            Me.TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 79.0!))
+            Me.TP_SITE.ColumnCount = 2
+            Me.TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 103.0!))
             Me.TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            Me.TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 123.0!))
-            Me.TP_SITE.Controls.Add(Me.CH_IS_CHANNEL, 0, 0)
+            Me.TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
             Me.TP_SITE.Controls.Add(Me.CMB_SITE, 1, 0)
-            Me.TP_SITE.Controls.Add(Me.BTT_OTHER_SETTINGS, 2, 0)
+            Me.TP_SITE.Controls.Add(Me.BTT_OTHER_SETTINGS, 0, 0)
             Me.TP_SITE.Dock = System.Windows.Forms.DockStyle.Fill
             Me.TP_SITE.Location = New System.Drawing.Point(1, 88)
             Me.TP_SITE.Margin = New System.Windows.Forms.Padding(0)
@@ -194,17 +192,6 @@ Namespace Editors
             Me.TP_SITE.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
             Me.TP_SITE.Size = New System.Drawing.Size(452, 28)
             Me.TP_SITE.TabIndex = 3
-            '
-            'CH_IS_CHANNEL
-            '
-            Me.CH_IS_CHANNEL.AutoSize = True
-            Me.CH_IS_CHANNEL.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_IS_CHANNEL.Location = New System.Drawing.Point(4, 4)
-            Me.CH_IS_CHANNEL.Name = "CH_IS_CHANNEL"
-            Me.CH_IS_CHANNEL.Size = New System.Drawing.Size(73, 20)
-            Me.CH_IS_CHANNEL.TabIndex = 0
-            Me.CH_IS_CHANNEL.Text = "Channel"
-            Me.CH_IS_CHANNEL.UseVisualStyleBackColor = True
             '
             'CMB_SITE
             '
@@ -222,11 +209,11 @@ Namespace Editors
             Me.CMB_SITE.Columns.Add(ListColumn1)
             Me.CMB_SITE.Columns.Add(ListColumn2)
             Me.CMB_SITE.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CMB_SITE.Location = New System.Drawing.Point(84, 3)
+            Me.CMB_SITE.Location = New System.Drawing.Point(108, 3)
             Me.CMB_SITE.Margin = New System.Windows.Forms.Padding(3, 2, 3, 3)
             Me.CMB_SITE.Name = "CMB_SITE"
-            Me.CMB_SITE.Size = New System.Drawing.Size(240, 22)
-            Me.CMB_SITE.TabIndex = 1
+            Me.CMB_SITE.Size = New System.Drawing.Size(340, 21)
+            Me.CMB_SITE.TabIndex = 0
             Me.CMB_SITE.TextBoxBorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
             '
             'TP_TEMP_FAV
@@ -476,7 +463,6 @@ Namespace Editors
             Me.TP_MAIN.ResumeLayout(False)
             CType(Me.TXT_USER, System.ComponentModel.ISupportInitialize).EndInit()
             Me.TP_SITE.ResumeLayout(False)
-            Me.TP_SITE.PerformLayout()
             CType(Me.CMB_SITE, System.ComponentModel.ISupportInitialize).EndInit()
             Me.TP_TEMP_FAV.ResumeLayout(False)
             Me.TP_TEMP_FAV.PerformLayout()
@@ -507,7 +493,6 @@ Namespace Editors
         Private WithEvents TXT_LABELS As PersonalUtilities.Forms.Controls.TextBoxExtended
         Private WithEvents CH_DOWN_IMAGES As CheckBox
         Private WithEvents CH_DOWN_VIDEOS As CheckBox
-        Private WithEvents CH_IS_CHANNEL As CheckBox
         Private WithEvents TXT_SPEC_FOLDER As PersonalUtilities.Forms.Controls.TextBoxExtended
         Private WithEvents CMB_SITE As PersonalUtilities.Forms.Controls.ComboBoxExtended
         Private WithEvents BTT_OTHER_SETTINGS As Button

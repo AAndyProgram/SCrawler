@@ -8,20 +8,21 @@ I welcome requests! Follow these steps to contribute:
 1. If you have a code change suggestion, you can post a replacement code block. I also accept pull requests.
 
 # How to build from source
-1. Delete the ```PersonalUtilities``` project from the solution.
-1. Delete the ```PersonalUtilities.Notifications``` project from the solution.
-1. Delete the ```cURL``` folder from the solution.
-1. Delete the ```ffmpeg.exe``` from the solution.
+1. Delete the `PersonalUtilities` project from the solution.
+1. Delete the `PersonalUtilities.Notifications` project from the solution.
 1. The following libraries must be added to project references with the '**Copy to output folder**' option:
-    - ```PersonalUtilities.dll```
-    - ```PersonalUtilities.Notifications.dll```
-    - ```Microsoft.Toolkit.Uwp.Notifications.dll```
-    - ```System.ValueTuple.dll```
-1. Import ```PersonalUtilities.Functions``` for the whole project.
+    - `PersonalUtilities.dll`
+    - `PersonalUtilities.Notifications.dll`
+    - `Microsoft.Toolkit.Uwp.Notifications.dll`
+    - `System.ValueTuple.dll`
+1. Import `PersonalUtilities.Functions` for the whole project.
 
 **Always use the correct libraries. You must download libraries from the same release date as the code commit date.**
 
 # How to request a new site
+
+**I'm currently not accepting requests to develop new sites.**
+
 1. Check [issues](https://github.com/AAndyProgram/SCrawler/issues) (open and [closed](https://github.com/AAndyProgram/SCrawler/issues?q=is%3Aissue+is%3Aclosed)) and [discussions](https://github.com/AAndyProgram/SCrawler/discussions) to find your issue. Perhaps I have already answered your request.
 1. If you don't find anything, create a new issue with your request. I usually reply as soon as possible (within the next few hours).
 

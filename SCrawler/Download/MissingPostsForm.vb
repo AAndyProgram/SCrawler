@@ -7,10 +7,10 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports System.ComponentModel
-Imports PersonalUtilities.Functions.Messaging
+Imports SCrawler.API.Base
 Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Forms.Toolbars
-Imports SCrawler.API.Base
+Imports PersonalUtilities.Functions.Messaging
 Namespace DownloadObjects
     Friend Class MissingPostsForm
 #Region "Declarations"
@@ -100,7 +100,7 @@ Namespace DownloadObjects
                     Next
                 End If
             Catch ex As Exception
-                ErrorsDescriber.Execute(EDP.SendInLog, ex, "[DownloadObjects.MissingPostsForm.RefillList]")
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "[DownloadObjects.MissingPostsForm.RefillList]")
             End Try
         End Sub
 #End Region
@@ -119,7 +119,7 @@ Namespace DownloadObjects
                     MsgBoxE({"No users found", MsgTitle}, vbExclamation)
                 End If
             Catch ex As Exception
-                ErrorsDescriber.Execute(EDP.SendInLog, ex, "[DownloadObjects.MissingPostsForm.DownloadAll]")
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "[DownloadObjects.MissingPostsForm.DownloadAll]")
             End Try
         End Sub
         Private Sub BTT_DOWN_Click(sender As Object, e As EventArgs) Handles BTT_DOWN.Click
@@ -140,7 +140,7 @@ Namespace DownloadObjects
                     MsgBoxE({"No selected posts", MsgTitle})
                 End If
             Catch ex As Exception
-                ErrorsDescriber.Execute(EDP.SendInLog, ex, "[DownloadObjects.MissingPostsForm.Download]")
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "[DownloadObjects.MissingPostsForm.Download]")
             End Try
         End Sub
         Private Sub BTT_OPEN_POST_Click(sender As Object, e As EventArgs) Handles BTT_OPEN_POST.Click
@@ -175,7 +175,7 @@ Namespace DownloadObjects
                     End If
                 End If
             Catch ex As Exception
-                ErrorsDescriber.Execute(EDP.SendInLog, ex, "[DownloadObjects.MissingPostsForm.OpenPost]")
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "[DownloadObjects.MissingPostsForm.OpenPost]")
             End Try
         End Sub
         Private Sub BTT_OPEN_USER_Click(sender As Object, e As EventArgs) Handles BTT_OPEN_USER.Click
@@ -188,7 +188,7 @@ Namespace DownloadObjects
                     MsgBoxE("No selected posts")
                 End If
             Catch ex As Exception
-                ErrorsDescriber.Execute(EDP.SendInLog, ex, $"[DownloadObjects.MissingPostsForm.OpenUser]")
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, $"[DownloadObjects.MissingPostsForm.OpenUser]")
             End Try
         End Sub
         Private Sub ShowPostInformation() Handles BTT_INFO.Click, BTT_CONTEXT_SHOW_POST_INFO.Click, LIST_DATA.DoubleClick
@@ -241,7 +241,7 @@ Namespace DownloadObjects
                     MsgBoxE("No selected posts")
                 End If
             Catch ex As Exception
-                ErrorsDescriber.Execute(EDP.SendInLog, ex, "[DownloadObjects.MissingPostsForm.ShowPostInformation]")
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "[DownloadObjects.MissingPostsForm.ShowPostInformation]")
             End Try
         End Sub
         Private Sub BTT_FIND_USER_Click(sender As Object, e As EventArgs) Handles BTT_FIND_USER.Click
@@ -255,7 +255,7 @@ Namespace DownloadObjects
                     MsgBoxE("No selected posts")
                 End If
             Catch ex As Exception
-                ErrorsDescriber.Execute(EDP.SendInLog, ex, $"[DownloadObjects.MissingPostsForm.FindUser]")
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, $"[DownloadObjects.MissingPostsForm.FindUser]")
             End Try
         End Sub
         Private Sub DeletePost() Handles MyDefs.ButtonDeleteClickE, BTT_DELETE.Click
@@ -291,7 +291,7 @@ Namespace DownloadObjects
                     MsgBoxE({"No selected posts", MsgTitle})
                 End If
             Catch ex As Exception
-                ErrorsDescriber.Execute(EDP.SendInLog, ex, "[DownloadObjects.MissingPostsForm.DeletePost]")
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "[DownloadObjects.MissingPostsForm.DeletePost]")
             Finally
                 If UsersToUpdate.Count > 0 Then
                     UpdateUsers(UsersToUpdate)
@@ -304,7 +304,7 @@ Namespace DownloadObjects
             Try
                 If UserList.ListExists Then UserList.ForEach(Sub(u) u.UpdateContentInformation())
             Catch ex As Exception
-                ErrorsDescriber.Execute(EDP.SendInLog, ex, "[DownloadObjects.MissingPostsForm.UpdateUsers]")
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "[DownloadObjects.MissingPostsForm.UpdateUsers]")
             End Try
         End Sub
 #End Region

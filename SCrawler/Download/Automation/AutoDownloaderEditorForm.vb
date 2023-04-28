@@ -20,20 +20,23 @@ Namespace DownloadObjects
             MyDefs = New DefaultFormOptions(Me, Settings.Design)
             MyGroups.ListAddList(Plan.Groups, LAP.NotContainsOnly)
         End Sub
-        Private Class AutomationTimerChecker : Implements IFieldsCheckerProvider
-            Private Property ErrorMessage As String = "The timer value must be greater than 0" Implements IFieldsCheckerProvider.ErrorMessage
-            Private Property Name As String Implements IFieldsCheckerProvider.Name
-            Private Property TypeError As Boolean Implements IFieldsCheckerProvider.TypeError
-            Private Function Convert(ByVal Value As Object, ByVal DestinationType As Type, ByVal Provider As IFormatProvider,
-                                     Optional ByVal NothingArg As Object = Nothing, Optional ByVal e As ErrorsDescriber = Nothing) As Object Implements ICustomProvider.Convert
+        Private Class AutomationTimerChecker : Inherits FieldsCheckerProviderBase
+            Public Overrides Property ErrorMessage As String
+                Get
+                    Return "The timer value must be greater than 0"
+                End Get
+                Set(ByVal msg As String)
+                    MyBase.ErrorMessage = msg
+                End Set
+            End Property
+            Public Overrides Function Convert(ByVal Value As Object, ByVal DestinationType As Type, ByVal Provider As IFormatProvider,
+                                              Optional ByVal NothingArg As Object = Nothing, Optional ByVal e As ErrorsDescriber = Nothing) As Object
                 If CInt(AConvert(Of Integer)(Value, -10)) > 0 Then
                     Return Value
                 Else
+                    HasError = True
                     Return Nothing
                 End If
-            End Function
-            Private Function GetFormat(ByVal FormatType As Type) As Object Implements IFormatProvider.GetFormat
-                Throw New NotImplementedException("[GetFormat] is not available in the context of [AutoDownloaderEditorForm]")
             End Function
         End Class
         Private Sub AutoDownloaderEditorForm_Load(sender As Object, e As EventArgs) Handles Me.Load

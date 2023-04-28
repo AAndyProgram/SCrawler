@@ -22,7 +22,6 @@ Public Class MainFrame
     Private MyView As FormView
     Private WithEvents MyActivator As FormActivator
     Private WithEvents BTT_IMPORT_USERS As ToolStripMenuItem
-    Private ReadOnly _VideoDownloadingMode As Boolean = False
     Friend MyChannels As ChannelViewForm
     Friend MySavedPosts As DownloadSavedPostsForm
     Private MyMissingPosts As MissingPostsForm
@@ -44,21 +43,20 @@ Public Class MainFrame
         End With
         BTT_IMPORT_USERS = New ToolStripMenuItem With {.Text = "Import", .Image = My.Resources.UsersIcon_32.ToBitmap}
         MENU_SETTINGS.DropDownItems.AddRange({New ToolStripSeparator, BTT_IMPORT_USERS})
-        Dim Args() As String = Environment.GetCommandLineArgs
-        If Args.ListExists(2) AndAlso Args(1) = "v" Then
-            Using f As New VideosDownloaderForm With {.IsStandalone = True} : f.ShowDialog() : End Using
-            _VideoDownloadingMode = True
-        End If
     End Sub
 #End Region
 #Region "Form handlers"
     Private Async Sub MainFrame_Load(sender As Object, e As EventArgs) Handles Me.Load
-        If _VideoDownloadingMode Then GoTo FormClosingInvoker
         If Now.Month.ValueBetween(6, 8) Then Text = "SCrawler: Happy LGBT Pride Month! :-)"
         Settings.DeleteCachePath()
         MainFrameObj = New MainFrameObjects(Me)
         MainFrameObj.ChangeCloseVisible()
         MainFrameObj.PauseButtons.AddButtons()
+        STDownloader.MyNotificator = MainFrameObj
+        STDownloader.MyDownloaderSettings = Settings
+        YouTube.MyCache = Settings.Cache
+        YouTube.MyYouTubeSettings = New YouTube.YTSettings_Internal
+        UpdateYouTubeSettings()
         MainProgress = New Toolbars.MyProgress(Toolbar_BOTTOM, PR_MAIN, LBL_STATUS, "Downloading profiles' data") With {
             .ResetProgressOnMaximumChanges = False, .Visible = False}
         Downloader = New TDownloader
@@ -77,10 +75,9 @@ Public Class MainFrame
         If Settings.CloseToTray Then TrayIcon.Visible = True
         MyActivator = New FormActivator(Me)
         With LIST_PROFILES.Groups
-            .AddRange(GetLviGroupName(Nothing, True, False)) 'collections
-            .AddRange(GetLviGroupName(Nothing, False, True)) 'channels
+            .AddRange(GetLviGroupName(Nothing, True)) 'collections
             If Settings.Plugins.Count > 0 Then
-                For Each h As SettingsHost In Settings.Plugins.Select(Function(hh) hh.Settings) : .AddRange(GetLviGroupName(h, False, False)) : Next
+                For Each h As SettingsHost In Settings.Plugins.Select(Function(hh) hh.Settings) : .AddRange(GetLviGroupName(h, False)) : Next
             End If
             If Settings.Labels.Count > 0 Then Settings.Labels.ToList.ForEach(Sub(l) .Add(New ListViewGroup(l, l)))
             .Add(Settings.Labels.NoLabel)
@@ -120,61 +117,54 @@ Public Class MainFrame
         End With
         UpdatePauseButtonsVisibility()
         MainFrameObj.UpdateLogButton()
-        GoTo EndFunction
-FormClosingInvoker:
-        Close()
-EndFunction:
     End Sub
     Private _CloseInvoked As Boolean = False
     Private _IgnoreTrayOptions As Boolean = False
     Private _IgnoreCloseConfirm As Boolean = False
     Private Async Sub MainFrame_Closing(sender As Object, e As CancelEventArgs) Handles Me.Closing
-        If _VideoDownloadingMode Then Exit Sub
         If Settings.CloseToTray And Not _IgnoreTrayOptions Then
             e.Cancel = True
             Hide()
         Else
-            If Not _VideoDownloadingMode Then
-                If CheckForClose(_IgnoreCloseConfirm) Then
-                    If _CloseInvoked Then GoTo CloseResume
-                    Dim ChannelsWorking As Func(Of Boolean) = Function() If(MyChannels?.Working, False)
-                    Dim SP_Working As Func(Of Boolean) = Function() If(MySavedPosts?.Working, False)
-                    If (Not Downloader.Working And Not ChannelsWorking.Invoke And Not SP_Working.Invoke) OrElse
-                        MsgBoxE({"Program still downloading something..." & vbNewLine &
-                                 "Do you really want to stop downloading and exit of program?",
+            If CheckForClose(_IgnoreCloseConfirm) Then
+                If _CloseInvoked Then GoTo CloseResume
+                Dim ChannelsWorking As Func(Of Boolean) = Function() If(MyChannels?.Working, False)
+                Dim SP_Working As Func(Of Boolean) = Function() If(MySavedPosts?.Working, False)
+                If (Not Downloader.Working And Not ChannelsWorking.Invoke And Not SP_Working.Invoke) OrElse
+                        MsgBoxE({"The program is still downloading something..." & vbNewLine &
+                                 "Are you sure you want to stop downloading and exit the program?",
                                  "Downloading in progress"},
                                 MsgBoxStyle.Exclamation,,,
                                 {"Stop downloading and close", "Cancel"}) = 0 Then
-                        If Downloader.Working Then _CloseInvoked = True : Downloader.Stop()
-                        If ChannelsWorking.Invoke Then _CloseInvoked = True : MyChannels.Stop(False)
-                        If SP_Working.Invoke Then _CloseInvoked = True : MySavedPosts.Stop()
-                        MyActivator.DisposeIfReady()
-                        Settings.Automation.Stop()
-                        If _CloseInvoked Then
-                            e.Cancel = True
-                            Await Task.Run(Sub()
-                                               While Downloader.Working Or ChannelsWorking.Invoke Or SP_Working.Invoke : Thread.Sleep(500) : End While
-                                           End Sub)
-                        End If
-                        Downloader.Dispose()
-                        MyProgressForm.Dispose()
-                        InfoForm.Dispose()
-                        MyMissingPosts.DisposeIfReady()
-                        MyFeed.DisposeIfReady()
-                        MainFrameObj.ClearNotifications()
-                        MainFrameObj.PauseButtons.Dispose()
-                        MyChannels.DisposeIfReady()
-                        VideoDownloader.DisposeIfReady()
-                        MySavedPosts.DisposeIfReady()
-                        MySearch.DisposeIfReady()
-                        MyView.Dispose(Settings.Design)
-                        Settings.Dispose()
-                    Else
-                        GoTo DropCloseParams
+                    If Downloader.Working Then _CloseInvoked = True : Downloader.Stop()
+                    If ChannelsWorking.Invoke Then _CloseInvoked = True : MyChannels.Stop(False)
+                    If SP_Working.Invoke Then _CloseInvoked = True : MySavedPosts.Stop()
+                    MyActivator.DisposeIfReady()
+                    Settings.Automation.Stop()
+                    If _CloseInvoked Then
+                        e.Cancel = True
+                        Await Task.Run(Sub()
+                                           While Downloader.Working Or ChannelsWorking.Invoke Or SP_Working.Invoke : Thread.Sleep(500) : End While
+                                       End Sub)
                     End If
+                    Downloader.Dispose()
+                    MyProgressForm.Dispose()
+                    InfoForm.Dispose()
+                    MyMissingPosts.DisposeIfReady()
+                    MyFeed.DisposeIfReady()
+                    MainFrameObj.ClearNotifications()
+                    MainFrameObj.PauseButtons.Dispose()
+                    MyChannels.DisposeIfReady()
+                    VideoDownloader.DisposeIfReady()
+                    MySavedPosts.DisposeIfReady()
+                    MySearch.DisposeIfReady()
+                    MyView.Dispose(Settings.Design)
+                    Settings.Dispose()
                 Else
                     GoTo DropCloseParams
                 End If
+            Else
+                GoTo DropCloseParams
             End If
             GoTo CloseContinue
 DropCloseParams:
@@ -191,7 +181,7 @@ CloseResume:
     End Sub
     Private _DisableClosingScript As Boolean = False
     Private Sub MainFrame_Disposed(sender As Object, e As EventArgs) Handles Me.Disposed
-        If Not _DisableClosingScript And Not _VideoDownloadingMode Then ExecuteCommand(Settings.ClosingCommand)
+        If Not _DisableClosingScript Then ExecuteCommand(Settings.ClosingCommand)
         If Not MyMainLOG.IsEmptyString Then SaveLogToFile()
     End Sub
     Private Sub MainFrame_ResizeEnd(sender As Object, e As EventArgs) Handles Me.ResizeEnd
@@ -216,7 +206,7 @@ CloseResume:
     Private Sub MainFrame_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
         Dim b As Boolean = True
         Select Case e.KeyCode
-            Case Keys.Insert : BTT_ADD_USER.PerformClick()
+            Case Keys.Insert : BTT_ADD_USER_Click(Me, New Controls.KeyClick.KeyClickEventArgs(e))
             Case Keys.Delete : DeleteSelectedUser()
             Case Keys.Enter : OpenFolder()
             Case Keys.F1 : BTT_VERSION_INFO.PerformClick()
@@ -289,6 +279,7 @@ CloseResume:
             Using f As New GlobalSettingsForm
                 f.ShowDialog()
                 If f.DialogResult = DialogResult.OK Then
+                    UpdateYouTubeSettings()
                     If ((Not .MaxLargeImageHeight = mhl Or Not .MaxSmallImageHeight = mhs) And .ViewModeIsPicture) Or
                         (Not sg = Settings.ShowGroups And .UseGrouping) Then RefillList()
                     TrayIcon.Visible = .CloseToTray
@@ -298,6 +289,13 @@ CloseResume:
                     UpdateImageColor()
                 End If
             End Using
+        End With
+    End Sub
+    Private Sub UpdateYouTubeSettings()
+        With YouTube.MyYouTubeSettings
+            If Not .YTDLP.Value.Exists And Settings.YtdlpFile.Exists Then .YTDLP.Value = Settings.YtdlpFile.File
+            If Not .FFMPEG.Value.Exists And Settings.FfmpegFile.Exists Then .FFMPEG.Value = Settings.FfmpegFile.File
+            If .OutputPath.IsEmptyString And Not Settings.LatestSavingPath.IsEmptyString Then .OutputPath.Value = Settings.LatestSavingPath.Value
         End With
     End Sub
     Private Sub BTT_IMPORT_USERS_Click(sender As Object, e As EventArgs) Handles BTT_IMPORT_USERS.Click
@@ -336,53 +334,61 @@ CloseResume:
             For i% = StartIndex To Settings.Users.Count - 1 : UserListUpdate(Settings.Users(i), True) : Next
         End If
     End Sub
-    Private Sub BTT_ADD_USER_Click(sender As Object, e As EventArgs) Handles BTT_ADD_USER.Click
-        Using f As New UserCreatorForm
+    Private Sub BTT_ADD_USER_Click(ByVal Sender As Object, ByVal e As Controls.KeyClick.KeyClickEventArgs) Handles BTT_ADD_USER.KeyClick
+        Dim f As UserCreatorForm = Nothing
+        If e.Control Then
+            Dim tmpBufferUrl$ = BufferText
+            If Not tmpBufferUrl.IsEmptyString Then f = UserCreatorForm.TryCreate(tmpBufferUrl)
+        End If
+        If f Is Nothing Then
+            f = New UserCreatorForm
             f.ShowDialog()
-            If f.DialogResult = DialogResult.OK Or f.StartIndex >= 0 Then
-                Dim i%
-                If f.StartIndex >= 0 Then
-                    OnUsersAddedHandler(f.StartIndex)
-                Else
-                    Dim SimpleUser As Predicate(Of IUserData) = Function(u) u.Site = f.User.Site And u.Name = f.User.Name
-                    i = Settings.Users.FindIndex(Function(u) If(u.IsCollection, DirectCast(u, UserDataBind).Collections.Exists(SimpleUser), SimpleUser.Invoke(u)))
-                    If i < 0 Then
-                        If Not UserBanned(f.User.Name) Then
-                            Settings.UpdateUsersList(f.User)
-                            Settings.Users.Add(UserDataBase.GetInstance(f.User))
-                            With Settings.Users.Last
-                                If Not .FileExists Then
-                                    .Favorite = f.UserFavorite
-                                    .Temporary = f.UserTemporary
-                                    .ParseUserMediaOnly = f.UserMediaOnly
-                                    .ReadyForDownload = f.UserReady
-                                    .DownloadImages = f.DownloadImages
-                                    .DownloadVideos = f.DownloadVideos
-                                    .FriendlyName = f.UserFriendly
-                                    .Description = f.UserDescr
-                                    .ScriptUse = f.ScriptUse
-                                    .ScriptData = f.ScriptData
-                                    If Not f.MyExchangeOptions Is Nothing Then DirectCast(.Self, UserDataBase).ExchangeOptionsSet(f.MyExchangeOptions)
-                                    If Not .HOST.Key = PathPlugin.PluginKey Then
-                                        Settings.Labels.Add(LabelsKeeper.NoParsedUser)
-                                        f.UserLabels.ListAddValue(LabelsKeeper.NoParsedUser)
-                                    End If
-                                    .Self.Labels.ListAddList(f.UserLabels, LAP.ClearBeforeAdd, LAP.NotContainsOnly)
-                                    .UpdateUserInformation()
+            If Not (f.DialogResult = DialogResult.OK Or f.StartIndex >= 0) Then f.Dispose() : f = Nothing
+        End If
+        If Not f Is Nothing Then
+            Dim i%
+            If f.StartIndex >= 0 Then
+                OnUsersAddedHandler(f.StartIndex)
+            Else
+                Dim SimpleUser As Predicate(Of IUserData) = Function(u) u.Site = f.User.Site And u.Name = f.User.Name
+                i = Settings.Users.FindIndex(Function(u) If(u.IsCollection, DirectCast(u, UserDataBind).Collections.Exists(SimpleUser), SimpleUser.Invoke(u)))
+                If i < 0 Then
+                    If Not UserBanned(f.User.Name) Then
+                        Settings.UpdateUsersList(f.User)
+                        Settings.Users.Add(UserDataBase.GetInstance(f.User))
+                        With Settings.Users.Last
+                            If Not .FileExists Then
+                                .Favorite = f.UserFavorite
+                                .Temporary = f.UserTemporary
+                                .ParseUserMediaOnly = f.UserMediaOnly
+                                .ReadyForDownload = f.UserReady
+                                .DownloadImages = f.DownloadImages
+                                .DownloadVideos = f.DownloadVideos
+                                .FriendlyName = f.UserFriendly
+                                .Description = f.UserDescr
+                                .ScriptUse = f.ScriptUse
+                                .ScriptData = f.ScriptData
+                                If Not f.MyExchangeOptions Is Nothing Then DirectCast(.Self, UserDataBase).ExchangeOptionsSet(f.MyExchangeOptions)
+                                If Not .HOST.Key = PathPlugin.PluginKey Then
+                                    Settings.Labels.Add(LabelsKeeper.NoParsedUser)
+                                    f.UserLabels.ListAddValue(LabelsKeeper.NoParsedUser)
                                 End If
-                            End With
-                            UserListUpdate(Settings.Users.Last, True)
-                            FocusUser(Settings.Users(Settings.Users.Count - 1).Key)
-                        Else
-                            MsgBoxE($"User [{f.User.Name}] was not added")
-                        End If
+                                .Self.Labels.ListAddList(f.UserLabels, LAP.ClearBeforeAdd, LAP.NotContainsOnly)
+                                .UpdateUserInformation()
+                            End If
+                        End With
+                        UserListUpdate(Settings.Users.Last, True)
+                        FocusUser(Settings.Users(Settings.Users.Count - 1).Key)
                     Else
-                        FocusUser(Settings.Users(i).Key)
-                        MsgBoxE($"User [{f.User.Name}] already exists", MsgBoxStyle.Exclamation)
+                        MsgBoxE($"User [{f.User.Name}] was not added")
                     End If
+                Else
+                    FocusUser(Settings.Users(i).Key)
+                    MsgBoxE($"User [{f.User.Name}] already exists", MsgBoxStyle.Exclamation)
                 End If
             End If
-        End Using
+            f.Dispose()
+        End If
     End Sub
     Private Sub BTT_EDIT_USER_Click(sender As Object, e As EventArgs) Handles BTT_EDIT_USER.Click
         EditSelectedUser()
@@ -1282,7 +1288,7 @@ CloseResume:
             End With
             Return New List(Of IUserData)
         Catch ex As Exception
-            Return ErrorsDescriber.Execute(EDP.SendInLog + EDP.ReturnValue, ex, "[MainFrame.GetSelectedUserArray]", New List(Of IUserData))
+            Return ErrorsDescriber.Execute(EDP.SendToLog + EDP.ReturnValue, ex, "[MainFrame.GetSelectedUserArray]", New List(Of IUserData))
         End Try
     End Function
     Private Enum DownUserLimits : None : Number : [Date] : End Enum
@@ -1564,7 +1570,7 @@ ResumeDownloadingOperation:
                     Settings.LastCopyPath.Value = f
                     Using logger As New TextSaver With {.LogMode = True}
                         Dim m As New MMessage("", MsgTitle,,, {logger})
-                        Dim err As New ErrorsDescriber(EDP.SendInLog) With {.DeclaredMessage = m}
+                        Dim err As New ErrorsDescriber(EDP.SendToLog) With {.DeclaredMessage = m}
                         Dim __copied_users As New List(Of IUserData)
                         Dim __copied_users_not As New List(Of IUserData)
                         For Each user As IUserData In users
@@ -1658,6 +1664,7 @@ ResumeDownloadingOperation:
                     End If
                 Next
             End If
+            Settings.Labels.Update()
             Settings.Labels.NewLabels.Clear()
         End If
     End Sub

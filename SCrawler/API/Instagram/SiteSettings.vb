@@ -34,48 +34,38 @@ Namespace API.Instagram
         End Property
 #End Region
 #Region "Providers"
-        Private Class TimersChecker : Implements IFieldsCheckerProvider
-            Private Property ErrorMessage As String Implements IFieldsCheckerProvider.ErrorMessage
-            Private Property Name As String Implements IFieldsCheckerProvider.Name
-            Private Property TypeError As Boolean Implements IFieldsCheckerProvider.TypeError
+        Private Class TimersChecker : Inherits FieldsCheckerProviderBase
             Private ReadOnly LVProvider As New ANumbers With {.FormatOptions = ANumbers.Options.GroupIntegral}
             Private ReadOnly _LowestValue As Integer
             Friend Sub New(ByVal LowestValue As Integer)
                 _LowestValue = LowestValue
             End Sub
-            Private Function Convert(ByVal Value As Object, ByVal DestinationType As Type, ByVal Provider As IFormatProvider,
-                                     Optional ByVal NothingArg As Object = Nothing, Optional ByVal e As ErrorsDescriber = Nothing) As Object Implements ICustomProvider.Convert
+            Public Overrides Function Convert(ByVal Value As Object, ByVal DestinationType As Type, ByVal Provider As IFormatProvider,
+                                              Optional ByVal NothingArg As Object = Nothing, Optional ByVal e As ErrorsDescriber = Nothing) As Object
                 TypeError = False
                 ErrorMessage = String.Empty
                 If Not ACheck(Of Integer)(Value) Then
                     TypeError = True
                 ElseIf CInt(Value) < _LowestValue Then
                     ErrorMessage = $"The value of [{Name}] field must be greater than or equal to {_LowestValue.NumToString(LVProvider)}"
+                    HasError = True
                 Else
                     Return Value
                 End If
                 Return Nothing
             End Function
-            Private Function GetFormat(ByVal FormatType As Type) As Object Implements IFormatProvider.GetFormat
-                Throw New NotImplementedException("[GetFormat] is not available in the context of [TimersChecker]")
-            End Function
         End Class
-        Private Class TaggedNotifyLimitChecker : Implements IFieldsCheckerProvider
-            Private Property ErrorMessage As String Implements IFieldsCheckerProvider.ErrorMessage
-            Private Property Name As String Implements IFieldsCheckerProvider.Name
-            Private Property TypeError As Boolean Implements IFieldsCheckerProvider.TypeError
-            Private Function Convert(ByVal Value As Object, ByVal DestinationType As Type, ByVal Provider As IFormatProvider,
-                                     Optional ByVal NothingArg As Object = Nothing, Optional ByVal e As ErrorsDescriber = Nothing) As Object Implements ICustomProvider.Convert
+        Private Class TaggedNotifyLimitChecker : Inherits FieldsCheckerProviderBase
+            Public Overrides Function Convert(ByVal Value As Object, ByVal DestinationType As Type, ByVal Provider As IFormatProvider,
+                                              Optional ByVal NothingArg As Object = Nothing, Optional ByVal e As ErrorsDescriber = Nothing) As Object
                 Dim v% = AConvert(Of Integer)(Value, -10)
                 If v > 0 Or v = -1 Then
                     Return Value
                 Else
                     ErrorMessage = $"The value of [{Name}] field must be greater than 0 or equal to -1"
+                    HasError = True
                     Return Nothing
                 End If
-            End Function
-            Private Function GetFormat(ByVal FormatType As Type) As Object Implements IFormatProvider.GetFormat
-                Throw New NotImplementedException("[GetFormat] is not available in the context of [TaggedNotifyLimitChecker]")
             End Function
         End Class
 #End Region
@@ -270,17 +260,11 @@ Namespace API.Instagram
             Return False
         End Function
 #End Region
-#Region "Plugin functions"
+#Region "GetInstance"
         Friend Overrides Function GetInstance(ByVal What As Download) As IPluginContentProvider
-            Select Case What
-                Case Download.Main : Return New UserData
-                Case Download.SavedPosts
-                    Dim u As New UserData
-                    DirectCast(u, UserDataBase).User = New UserInfo With {.Name = Site}
-                    Return u
-            End Select
-            Return Nothing
+            Return New UserData
         End Function
+#End Region
 #Region "Downloading"
         Friend Property SkipUntilNextSession As Boolean = False
         Friend Overrides Function ReadyToDownload(ByVal What As Download) As Boolean
@@ -328,13 +312,11 @@ Namespace API.Instagram
             SkipUntilNextSession = False
         End Sub
 #End Region
-        Friend Overrides Function GetSpecialData(ByVal URL As String, ByVal Path As String, ByVal AskForPath As Boolean) As IEnumerable
-            Return UserData.GetVideoInfo(URL, Responser)
-        End Function
+#Region "UserOptions, GetUserPostUrl"
         Friend Overrides Sub UserOptions(ByRef Options As Object, ByVal OpenForm As Boolean)
             If Options Is Nothing OrElse Not TypeOf Options Is EditorExchangeOptions Then Options = New EditorExchangeOptions(Me)
             If OpenForm Then
-                Using f As New OptionsForm(Options) : f.ShowDialog() : End Using
+                Using f As New InternalSettingsForm(Options, Me, False) : f.ShowDialog() : End Using
             End If
         End Sub
         Friend Overrides Function GetUserPostUrl(ByVal User As UserDataBase, ByVal Media As UserMedia) As String
@@ -342,7 +324,7 @@ Namespace API.Instagram
                 Dim code$ = DirectCast(User, UserData).GetPostCodeById(Media.Post.ID)
                 If Not code.IsEmptyString Then Return $"https://instagram.com/p/{code}/" Else Return String.Empty
             Catch ex As Exception
-                Return ErrorsDescriber.Execute(EDP.SendInLog, ex, "Can't open user's post", String.Empty)
+                Return ErrorsDescriber.Execute(EDP.SendToLog, ex, "Can't open user's post", String.Empty)
             End Try
         End Function
 #End Region

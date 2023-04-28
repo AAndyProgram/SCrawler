@@ -12,27 +12,79 @@ Imports PersonalUtilities.Functions.XML.Base
 Imports PersonalUtilities.Functions.XML.Objects
 Imports PersonalUtilities.Forms.Controls
 Imports PersonalUtilities.Forms.Controls.Base
+Imports PersonalUtilities.Tools
 Imports SCrawler.API
 Imports SCrawler.API.Base
 Imports SCrawler.Plugin.Hosts
 Imports SCrawler.DownloadObjects
-Friend Class SettingsCLS : Implements IDisposable
+Imports IDownloaderSettings = SCrawler.DownloadObjects.STDownloader.IDownloaderSettings
+Imports DoubleClickBehavior = SCrawler.DownloadObjects.STDownloader.DoubleClickBehavior
+Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
     Friend Const DefaultMaxDownloadingTasks As Integer = 5
     Friend Const TaskStackNamePornSite As String = "Porn sites"
     Friend Const Name_Node_Sites As String = "Sites"
     Private Const SitesValuesSeparator As String = ","
     Friend Const CookieEncryptKey As String = "SCrawlerCookiesEncryptKeyword"
+    Private Const EnvironmentPath As String = "Environment\"
+    Friend Const DefaultCmdEncoding As Integer = BatchExecutor.UnicodeEncoding
     Friend ReadOnly Design As XmlFile
     Private ReadOnly MyXML As XmlFile
-    Private ReadOnly FfmpegExists As Boolean
-    Friend ReadOnly FfmpegFile As SFile
+#Region "Media environment"
+    Friend Class ProgramFile
+        Private ReadOnly XML As XMLValue(Of SFile)
+        Friend Property File As SFile
+            Get
+                Return XML.Value
+            End Get
+            Set(ByVal f As SFile)
+                XML.Value = f
+                _Exists = f.Exists
+            End Set
+        End Property
+        Private _Exists As Boolean = False
+        Friend ReadOnly Property Exists As Boolean
+            Get
+                Return _Exists
+            End Get
+        End Property
+        Friend Sub New(ByVal ElementName As String, ByRef Container As EContainer, ByVal Nodes As String(), ByVal Program As String,
+                       Optional ByVal AdditPath As String = Nothing)
+            XML = New XMLValue(Of SFile)(ElementName,, Container, Nodes)
+            If Not XML.Value.Exists Then
+                If Program.CSFile.Exists Then
+                    XML.Value = Program
+                ElseIf $"{EnvironmentPath}{Program}".CSFile.Exists Then
+                    XML.Value = $"{EnvironmentPath}{Program}"
+                ElseIf Not AdditPath.IsEmptyString AndAlso $"{AdditPath}\{Program}".CSFile.Exists Then
+                    XML.Value = $"{AdditPath}\{Program}"
+                ElseIf Not AdditPath.IsEmptyString AndAlso $"{EnvironmentPath}{AdditPath}\{Program}".CSFile.Exists Then
+                    XML.Value = $"{EnvironmentPath}{AdditPath}\{Program}"
+                Else
+                    XML.Value = SystemEnvironment.FindFileInPaths(Program).ListIfNothing.FirstOrDefault
+                End If
+            End If
+            If Not XML.Value.Exists Then XML.Value = Nothing
+            _Exists = File.Exists
+        End Sub
+        Public Shared Widening Operator CType(ByVal f As ProgramFile) As SFile
+            Return f.File
+        End Operator
+        Public Overrides Function ToString() As String
+            Return File.ToString
+        End Function
+    End Class
+    Friend ReadOnly Property FfmpegFile As ProgramFile
     Friend ReadOnly Property UseM3U8 As Boolean
         Get
-            Return FfmpegExists
+            Return FfmpegFile.Exists
         End Get
     End Property
     Private ReadOnly FFMPEGNotification As XMLValue(Of Boolean)
-    Friend ReadOnly Property CachePath As SFile = "_Cache\"
+    Friend ReadOnly Property YtdlpFile As ProgramFile
+    Friend ReadOnly Property GalleryDLFile As ProgramFile
+    Friend ReadOnly Property CurlFile As ProgramFile
+#End Region
+    Friend ReadOnly Property Cache As CacheKeeper
     Friend ReadOnly Plugins As List(Of PluginHost)
     Friend ReadOnly Property Users As List(Of IUserData)
     Friend ReadOnly Property UsersList As List(Of UserInfo)
@@ -44,33 +96,11 @@ Friend Class SettingsCLS : Implements IDisposable
     Friend ReadOnly Property BlackList As List(Of UserBan)
     Private ReadOnly BlackListFile As SFile = $"{SettingsFolderName}\BlackList.txt"
     Private ReadOnly UsersSettingsFile As SFile = $"{SettingsFolderName}\Users.xml"
-    Private Sub RemoveUnusedPlugins()
-        Dim f As SFile = PluginHost.PluginsPath
-        If f.Exists(SFO.Path, False) Then
-            Dim fpe As SFile = f
-            fpe.Name = "PersonalUtilities"
-            fpe.Extension = "dll"
-            Dim fpp As SFile = fpe
-            fpp.Name = "SCrawler.PluginProvider"
-            Dim ff As List(Of SFile) = SFile.GetFiles(f, "*.dll")
-            If ff.ListExists Then
-                For i% = ff.Count - 1 To 0 Step -1
-                    Select Case ff(i).Name
-                        Case "SCrawler.Plugin.LPSG" : If ff(i).Delete Then ff.RemoveAt(i)
-                        Case "SCrawler.Plugin.XVIDEOS" : If ff(i).Delete Then ff.RemoveAt(i)
-                    End Select
-                Next
-                If ff.Count > 0 AndAlso ((ff.Count = 2 And ff.Contains(fpe) And ff.Contains(fpp)) Or (ff.Count = 1 And ff.Contains(fpp))) Then _
-                   fpe.Delete() : fpp.Delete()
-            End If
-        End If
-    End Sub
     Friend Sub New()
-        RemoveUnusedPlugins()
-        FfmpegFile = "ffmpeg.exe"
-        FfmpegExists = FfmpegFile.Exists
+        Cache = CacheKeeper.Default
+        Cache.DisposeSuspended = True
 
-        Design = New XmlFile("Settings\Design.xml", Protector.Modes.All)
+        Design = XmlFile.Design
         MyXML = New XmlFile(Nothing) With {.AutoUpdateFile = True}
         MyXML.BeginUpdate()
         Users = New List(Of IUserData)
@@ -79,21 +109,25 @@ Friend Class SettingsCLS : Implements IDisposable
         Plugins = New List(Of PluginHost)
         LastCollections = New List(Of String)
 
-        FFMPEGNotification = New XMLValue(Of Boolean)("FFMPEGNotification", True, MyXML)
-        If Not FfmpegExists Then
+        Dim n() As String = {"MediaEnvironment"}
+
+        EnvironmentPath.CSFileP.Exists(SFO.Path, True)
+        FfmpegFile = New ProgramFile("ffmpeg", MyXML, n, "ffmpeg.exe")
+        FFMPEGNotification = New XMLValue(Of Boolean)("FFMPEGNotification", True, MyXML, n)
+        If Not FfmpegFile.Exists Then
             If FFMPEGNotification.Value AndAlso
                MsgBoxE({"[ffmpeg.exe] is missing", "ffmpeg.exe"}, vbExclamation,,,
                        {"OK", New MsgBoxButton("Disable notification", "Disable ffmpeg missing notification")}) = 1 Then FFMPEGNotification.Value = False
         Else
             FFMPEGNotification.Value = True
         End If
+        YtdlpFile = New ProgramFile("ytdlp", MyXML, n, "yt-dlp.exe")
+        GalleryDLFile = New ProgramFile("gallerydl", MyXML, n, "gallery-dl.exe")
+        CurlFile = New ProgramFile("curl", MyXML, n, "curl.exe", "cURL")
 
         GlobalPath = New XMLValue(Of SFile)("GlobalPath", New SFile($"{SFile.GetPath(Application.StartupPath).PathWithSeparator}Data\"), MyXML,,
                                             New XMLToFilePathProvider)
         LastCopyPath = New XMLValue(Of SFile)("LastCopyPath",, MyXML,, New XMLToFilePathProvider)
-
-        CookiesEncrypted = New XMLValue(Of Boolean)("CookiesEncrypted", False, MyXML)
-        EncryptCookies.CookiesEncrypted = CookiesEncrypted
 
         SeparateVideoFolder = New XMLValue(Of Boolean)("SeparateVideoFolder", True, MyXML)
         CollectionsPath = New XMLValue(Of String)("CollectionsPath", "Collections", MyXML)
@@ -101,7 +135,7 @@ Friend Class SettingsCLS : Implements IDisposable
         UserAgent = New XMLValue(Of String)("UserAgent",, MyXML)
         If Not UserAgent.IsEmptyString Then DefaultUserAgent = UserAgent
 
-        Dim n() As String = {"Search"}
+        n = {"Search"}
         SearchInName = New XMLValue(Of Boolean)("SearchInName", True, MyXML, n)
         SearchInDescription = New XMLValue(Of Boolean)("SearchInDescription", False, MyXML, n)
         SearchInLabel = New XMLValue(Of Boolean)("SearchInLabel", False, MyXML, n)
@@ -115,12 +149,12 @@ Friend Class SettingsCLS : Implements IDisposable
         ReparseMissingInTheRoutine = New XMLValue(Of Boolean)("ReparseMissingInTheRoutine", False, MyXML, n)
         UserSiteNameAsFriendly = New XMLValue(Of Boolean)("UserSiteNameAsFriendly", False, MyXML, n)
         UserSiteNameUpdateEveryTime = New XMLValue(Of Boolean)("UserSiteNameUpdateEveryTime", False, MyXML, n)
+        CMDEncoding = New XMLValue(Of Integer)("CMDEncoding", DefaultCmdEncoding, MyXML, n)
 
         Plugins.AddRange(PluginHost.GetMyHosts(MyXML, GlobalPath.Value, DefaultTemporary, DefaultDownloadImages, DefaultDownloadVideos))
         Dim tmpPluginList As IEnumerable(Of PluginHost) = PluginHost.GetPluginsHosts(MyXML, GlobalPath.Value, DefaultTemporary,
                                                                                      DefaultDownloadImages, DefaultDownloadVideos)
         If tmpPluginList.ListExists Then Plugins.AddRange(tmpPluginList)
-        CookiesEncrypted.Value = True
 
         FastProfilesLoading = New XMLValue(Of Boolean)("FastProfilesLoading", True, MyXML)
         MaxLargeImageHeight = New XMLValue(Of Integer)("MaxLargeImageHeight", 150, MyXML)
@@ -169,6 +203,16 @@ Friend Class SettingsCLS : Implements IDisposable
         ChannelsHideExistsUser = New XMLValue(Of Boolean)("HideExistsUser", True, MyXML, n)
         ChannelsMaxJobsCount = New XMLValue(Of Integer)("MaxJobsCount", DefaultMaxDownloadingTasks, MyXML, n)
         ChannelsAddUserImagesFromAllChannels = New XMLValue(Of Boolean)("AddUserImagesFromAllChannels", True, MyXML, n)
+        STDownloader_UpdateYouTubeOutputPath = New XMLValue(Of Boolean)("UpdateYouTubeOutputPath", False, MyXML, n)
+
+        n = {"Downloader"}
+        STDownloader_MaxJobsCount = New XMLValue(Of Integer)("MaxJobsCount", 1, MyXML, n)
+        STDownloader_DownloadAutomatically = New XMLValue(Of Boolean)("DownloadAutomatically", True, MyXML, n)
+        STDownloader_RemoveDownloadedAutomatically = New XMLValue(Of Boolean)("RemoveDownloadedAutomatically", False, MyXML, n)
+        STDownloader_OnItemDoubleClick = New XMLValue(Of DoubleClickBehavior)("OnItemDoubleClick", DoubleClickBehavior.Folder, MyXML, n)
+        STDownloader_TakeSnapshot = New XMLValue(Of Boolean)("TakeSnapshot", True, MyXML, n)
+        STDownloader_RemoveYTVideosOnClear = New XMLValue(Of Boolean)("RemoveYouTubeVideosOnClear", False, MyXML, n)
+        STDownloader_LoadYTVideos = New XMLValue(Of Boolean)("LoadYouTubeVideos", False, MyXML, n)
 
         n = {"Feed"}
         FeedDataColumns = New XMLValue(Of Integer)("DataColumns", 1, MyXML, n)
@@ -210,10 +254,12 @@ Friend Class SettingsCLS : Implements IDisposable
         ShowNotificationsDownAutoDownloader = New XMLValue(Of Boolean)("AutoDownloader", True, MyXML, n)
         ShowNotificationsDownChannels = New XMLValue(Of Boolean)("Channels", True, MyXML, n)
         ShowNotificationsDownSavedPosts = New XMLValue(Of Boolean)("SavedPosts", True, MyXML, n)
+        ShowNotificationsSTDownloader = New XMLValue(Of Boolean)("STDownloader", True, MyXML, n)
+        ShowNotificationsSTDownloaderEveryDownload = New XMLValue(Of Boolean)("STDownloaderEveryDownload", True, MyXML, n)
 
         ExitConfirm = New XMLValue(Of Boolean)("ExitConfirm", True, MyXML)
         CloseToTray = New XMLValue(Of Boolean)("CloseToTray", True, MyXML)
-        OpenFolderInOtherProgram = New XMLValueAttribute(Of String, Boolean)("OpenFolderInOtherProgram", "Use",,, MyXML)
+        OpenFolderInOtherProgram = New XMLValueUse(Of String)("OpenFolderInOtherProgram",,, MyXML)
         DeleteToRecycleBin = New XMLValue(Of Boolean)("DeleteToRecycleBin", True, MyXML)
 
         Labels = New LabelsKeeper(MyXML)
@@ -264,19 +310,21 @@ Friend Class SettingsCLS : Implements IDisposable
                 End Using
 
                 Dim NeedUpdate As Boolean = False
-                Dim i%, indx%, c%
+                Dim i%, indx% ', c%
                 Dim UsersListInitialCount% = UsersList.Count
                 Dim iUser As UserInfo
-                Dim userFileExists As Boolean
+                Dim userFileExists As Boolean, pluginFound As Boolean
                 Dim __plugins As List(Of KeyValuePair(Of String, String))
 
                 If UsersList.Count > 0 Then
                     __plugins = Plugins.Select(Function(p) New KeyValuePair(Of String, String)(p.Key, p.Name)).ToList
                     For i% = UsersList.Count - 1 To 0 Step -1
                         iUser = UsersList(i)
+                        pluginFound = True
                         With iUser
                             'Check plugins
                             If .Plugin.IsEmptyString Then
+                                pluginFound = False
                                 If .Site.IsEmptyString Then
                                     MyMainLOG = $"The corresponding plugin was not found for the user [{ .Name}]. The user was removed from SCrawler."
                                 Else
@@ -285,43 +333,51 @@ Friend Class SettingsCLS : Implements IDisposable
                                         .Plugin = __plugins(indx).Key
                                         .Site = __plugins(indx).Value
                                         NeedUpdate = True
+                                        pluginFound = True
                                     Else
                                         .Protected = True
                                         MyMainLOG = $"The corresponding plugin was not found for the user [{ .Name}]."
+                                        pluginFound = False
                                     End If
                                 End If
                             Else
                                 If Not __plugins.Exists(Function(p) p.Key.ToLower = .Plugin.ToLower) Then
+                                    pluginFound = False
                                     .Protected = True
                                     MyMainLOG = $"The corresponding plugin was not found for the user [{ .Plugin}:{ .Site}: { .Name}]."
                                 End If
                             End If
 
                             'Check paths
-                            c = IIf((Not .IncludedInCollection Or (.Merged Or .IsVirtual)) And Not .Plugin = PathPlugin.PluginKey, 1, 2)
-                            userFileExists = SFile.GetPath(.File.CutPath(c - 1).Path).Exists(SFO.Path, False)
-                            If Not .IsProtected Then
-                                If userFileExists Then
-                                    If .LastSeen.HasValue Then .LastSeen = Nothing : NeedUpdate = True
-                                Else
-                                    .LastSeen = Now
-                                    MyMainLOG = $"The user [{ .Site}: { .Name}]  was not found. " &
-                                                $"It will be removed from SCrawler on { .LastSeen.Value.ToStringDate(DateTimeDefaultProvider)}."
+                            'c = IIf((Not .IncludedInCollection Or (.Merged Or .IsVirtual)) And Not .Plugin = PathPlugin.PluginKey, 1, 2)
+                            'URGENT: changed user file validation
+                            userFileExists = .File.Exists ' SFile.GetPath(.File.CutPath(c - 1).Path).Exists(SFO.Path, False)
+                            If Not pluginFound Or Not userFileExists Then
+                                If Not .IsProtected Then
+                                    If userFileExists Then
+                                        If .LastSeen.HasValue Then .LastSeen = Nothing : NeedUpdate = True
+                                    Else
+                                        .LastSeen = Now
+                                        MyMainLOG = $"The user [{ .Site}: { .Name}]  was not found. " &
+                                                    $"It will be removed from SCrawler on { .LastSeen.Value.ToStringDate(DateTimeDefaultProvider)}."
+                                        NeedUpdate = True
+                                    End If
+                                ElseIf userFileExists Then
+                                    If .Protected Then
+                                        If Not .LastSeen.HasValue Then .LastSeen = Now : NeedUpdate = True
+                                        MyMainLOG = $"The corresponding plugin was not found for the user [{ .Site}: { .Name}]. " &
+                                                    $"It will be removed from SCrawler on { .LastSeen.Value.ToStringDate(DateTimeDefaultProvider)}."
+                                    Else
+                                        If .LastSeen.HasValue Then .LastSeen = Nothing : NeedUpdate = True
+                                    End If
+                                ElseIf If(.LastSeen, Now).AddDays(30) < Now Then
+                                    UsersList.RemoveAt(i)
+                                    MyMainLOG = $"The user [{ .Site}: { .Name}] was not found and was removed from SCrawler."
                                     NeedUpdate = True
+                                    Continue For
                                 End If
-                            ElseIf userFileExists Then
-                                If .Protected Then
-                                    If Not .LastSeen.HasValue Then .LastSeen = Now : NeedUpdate = True
-                                    MyMainLOG = $"The corresponding plugin was not found for the user [{ .Site}: { .Name}]. " &
-                                                $"It will be removed from SCrawler on { .LastSeen.Value.ToStringDate(DateTimeDefaultProvider)}."
-                                Else
-                                    If .LastSeen.HasValue Then .LastSeen = Nothing : NeedUpdate = True
-                                End If
-                            ElseIf If(.LastSeen, Now).AddDays(30) < Now Then
-                                UsersList.RemoveAt(i)
-                                MyMainLOG = $"The user [{ .Site}: { .Name}] was not found and was removed from SCrawler."
-                                NeedUpdate = True
-                                Continue For
+                            Else
+                                If .LastSeen.HasValue Then .LastSeen = Nothing : NeedUpdate = True
                             End If
                         End With
                         UsersList(i) = iUser
@@ -369,11 +425,11 @@ Friend Class SettingsCLS : Implements IDisposable
                     Dim findWrongUser As Func(Of UserInfo, Boolean) = Function(ByVal u As UserInfo) As Boolean
                                                                           Dim uIndex% = UsersList.IndexOf(u)
                                                                           If uIndex >= 0 Then
-                                                                              Dim uu As UserInfo = UsersList(indx)
+                                                                              Dim uu As UserInfo = UsersList(uIndex)
                                                                               If Not uu.LastSeen.HasValue Then
                                                                                   uu.LastSeen = Now
                                                                                   NeedUpdate = True
-                                                                                  UsersList(indx) = uu
+                                                                                  UsersList(uIndex) = uu
                                                                                   MyMainLOG = $"The user [{uu.Site}: {uu.Name}]  was not found. " &
                                                                                               $"It will be removed from SCrawler on {uu.LastSeen.Value.ToStringDate(DateTimeDefaultProvider)}."
                                                                               End If
@@ -586,7 +642,6 @@ Friend Class SettingsCLS : Implements IDisposable
     End Property
     Friend ReadOnly Property MaxUsersJobsCount As XMLValue(Of Integer)
     Friend ReadOnly Property ImgurClientID As XMLValue(Of String)
-    Private ReadOnly Property CookiesEncrypted As XMLValue(Of Boolean)
     Friend ReadOnly Property AddMissingToLog As XMLValue(Of Boolean)
     Friend ReadOnly Property AddMissingErrorsToLog As XMLValue(Of Boolean)
     Friend ReadOnly Property UserAgent As XMLValue(Of String)
@@ -604,6 +659,51 @@ Friend Class SettingsCLS : Implements IDisposable
     Friend ReadOnly Property ReparseMissingInTheRoutine As XMLValue(Of Boolean)
     Friend ReadOnly Property UserSiteNameAsFriendly As XMLValue(Of Boolean)
     Friend ReadOnly Property UserSiteNameUpdateEveryTime As XMLValue(Of Boolean)
+    Friend ReadOnly Property CMDEncoding As XMLValue(Of Integer)
+#End Region
+#Region "STDownloader"
+    Friend ReadOnly Property STDownloader_UpdateYouTubeOutputPath As XMLValue(Of Boolean)
+    Private ReadOnly Property IDownloaderSettings_ShowNotifications As Boolean Implements IDownloaderSettings.ShowNotifications
+        Get
+            Return ProcessNotification(NotificationObjects.STDownloader)
+        End Get
+    End Property
+    Private ReadOnly Property IDownloaderSettings_ShowNotificationsEveryDownload As Boolean Implements IDownloaderSettings.ShowNotificationsEveryDownload
+        Get
+            If ProcessNotification(NotificationObjects.STDownloader) Then
+                Return ShowNotificationsSTDownloaderEveryDownload
+            Else
+                Return False
+            End If
+        End Get
+    End Property
+    Friend ReadOnly Property STDownloader_MaxJobsCount As XMLValue(Of Integer)
+    Private ReadOnly Property IDownloaderSettings_MaxJobsCount As Integer Implements IDownloaderSettings.MaxJobsCount
+        Get
+            Return STDownloader_MaxJobsCount
+        End Get
+    End Property
+    Friend ReadOnly Property STDownloader_DownloadAutomatically As XMLValue(Of Boolean)
+    Private ReadOnly Property IDownloaderSettings_DownloadAutomatically As Boolean Implements IDownloaderSettings.DownloadAutomatically
+        Get
+            Return STDownloader_DownloadAutomatically
+        End Get
+    End Property
+    Friend ReadOnly Property STDownloader_RemoveDownloadedAutomatically As XMLValue(Of Boolean)
+    Private ReadOnly Property IDownloaderSettings_RemoveDownloadedAutomatically As Boolean Implements IDownloaderSettings.RemoveDownloadedAutomatically
+        Get
+            Return STDownloader_RemoveDownloadedAutomatically
+        End Get
+    End Property
+    Friend ReadOnly Property STDownloader_OnItemDoubleClick As XMLValue(Of DoubleClickBehavior)
+    Private ReadOnly Property IDownloaderSettings_OnItemDoubleClick As DoubleClickBehavior Implements IDownloaderSettings.OnItemDoubleClick
+        Get
+            Return STDownloader_OnItemDoubleClick
+        End Get
+    End Property
+    Friend ReadOnly Property STDownloader_TakeSnapshot As XMLValue(Of Boolean)
+    Friend ReadOnly Property STDownloader_RemoveYTVideosOnClear As XMLValue(Of Boolean)
+    Friend ReadOnly Property STDownloader_LoadYTVideos As XMLValue(Of Boolean)
 #End Region
 #Region "User data"
     Friend ReadOnly Property FromChannelDownloadTop As XMLValue(Of Integer)
@@ -713,6 +813,7 @@ Friend Class SettingsCLS : Implements IDisposable
         AutoDownloader
         Channels
         SavedPosts
+        STDownloader
     End Enum
     Friend ReadOnly Property ProcessNotification(ByVal Sender As NotificationObjects) As Boolean
         Get
@@ -723,6 +824,7 @@ Friend Class SettingsCLS : Implements IDisposable
                     Case NotificationObjects.AutoDownloader : Return ShowNotificationsDownAutoDownloader
                     Case NotificationObjects.Channels : Return ShowNotificationsDownChannels
                     Case NotificationObjects.SavedPosts : Return ShowNotificationsDownSavedPosts
+                    Case NotificationObjects.STDownloader : Return ShowNotificationsSTDownloader
                     Case Else : Return True
                 End Select
             Else
@@ -736,11 +838,23 @@ Friend Class SettingsCLS : Implements IDisposable
     Friend ReadOnly Property ShowNotificationsDownAutoDownloader As XMLValue(Of Boolean)
     Friend ReadOnly Property ShowNotificationsDownChannels As XMLValue(Of Boolean)
     Friend ReadOnly Property ShowNotificationsDownSavedPosts As XMLValue(Of Boolean)
+    Friend ReadOnly Property ShowNotificationsSTDownloader As XMLValue(Of Boolean)
+    Friend ReadOnly Property ShowNotificationsSTDownloaderEveryDownload As XMLValue(Of Boolean)
 #End Region
 #Region "Other program properties"
     Friend ReadOnly Property ExitConfirm As XMLValue(Of Boolean)
     Friend ReadOnly Property CloseToTray As XMLValue(Of Boolean)
-    Friend ReadOnly Property OpenFolderInOtherProgram As XMLValueAttribute(Of String, Boolean)
+    Friend ReadOnly Property OpenFolderInOtherProgram As XMLValueUse(Of String)
+    Private ReadOnly Property IDownloaderSettings_OpenFolderInOtherProgram As Boolean Implements IDownloaderSettings.OpenFolderInOtherProgram
+        Get
+            Return OpenFolderInOtherProgram.Use
+        End Get
+    End Property
+    Private ReadOnly Property IDownloaderSettings_OpenFolderInOtherProgram_Command As String Implements IDownloaderSettings.OpenFolderInOtherProgram_Command
+        Get
+            Return OpenFolderInOtherProgram
+        End Get
+    End Property
     Friend ReadOnly Property DeleteToRecycleBin As XMLValue(Of Boolean)
     Friend ReadOnly Property DeleteMode As SFODelete
         Get
@@ -754,12 +868,13 @@ Friend Class SettingsCLS : Implements IDisposable
         If Not disposedValue Then
             If disposing Then
                 If UserListUpdateRequired Then UpdateUsersList()
+                If UsersList.Count = 0 Then UsersSettingsFile.Delete()
                 If Not Channels Is Nothing Then
                     Channels.Dispose()
                     DeleteCachePath()
                 End If
                 If Not Automation Is Nothing Then Automation.Dispose()
-                CachePath.Delete(SFO.Path, SFODelete.DeletePermanently, EDP.None)
+                Cache.Dispose()
                 Plugins.Clear()
                 LastCollections.Clear()
                 Users.ListClearDispose

@@ -171,7 +171,7 @@ Namespace DownloadObjects.Groups
                     Return Nothing
                 End If
             Catch ex As Exception
-                Return ErrorsDescriber.Execute(EDP.SendInLog, ex, "[DownloadGroup.GetUsers]")
+                Return ErrorsDescriber.Execute(EDP.SendToLog, ex, "[DownloadGroup.GetUsers]")
             End Try
         End Function
 #End Region
@@ -187,7 +187,7 @@ Namespace DownloadObjects.Groups
                     End If
                 End If
             Catch ex As Exception
-                ErrorsDescriber.Execute(EDP.SendInLog, ex, "[DownloadGroup.DownloadUsers]")
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "[DownloadGroup.DownloadUsers]")
             End Try
         End Sub
 #End Region

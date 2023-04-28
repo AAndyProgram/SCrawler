@@ -13,7 +13,6 @@ Namespace API.Xhamster
         Friend Const XhamsterSiteKey As String = "AndyProgram_XHamster"
         Friend ReadOnly HtmlScript As RParams = RParams.DMS("\<script id='initials-script'\>window.initials=(\{.+?\});\</script\>", 1, EDP.ReturnValue,
                                                             CType(Function(Input$) Input.StringTrim, Func(Of String, String)))
-        Friend ReadOnly DateProvider As New CustomProvider(Function(v, d, p, n, e) ADateTime.ParseUnicode(v))
         Friend ReadOnly FirstM3U8FileRegEx As RParams = RParams.DM("RESOLUTION=\d+x(\d+).*?[\r\n]+?([^#]*?\.m3u8.*)", 0, RegexReturn.List)
     End Module
 End Namespace

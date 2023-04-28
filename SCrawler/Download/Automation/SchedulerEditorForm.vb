@@ -75,7 +75,7 @@ Namespace DownloadObjects
                     _RefillInProgress = False
                 End If
             Catch ex As Exception
-                ErrorsDescriber.Execute(EDP.SendInLog, ex, "[DownloadObjects.SchedulerEditorForm.Refill]")
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "[DownloadObjects.SchedulerEditorForm.Refill]")
             End Try
         End Sub
 #Region "Add, Edit, Delete"

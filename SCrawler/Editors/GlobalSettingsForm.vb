@@ -7,8 +7,10 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports PersonalUtilities.Forms
+Imports PersonalUtilities.Forms.Controls
 Imports PersonalUtilities.Forms.Controls.Base
 Imports ADB = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons
+Imports StdDblClck = SCrawler.DownloadObjects.STDownloader.DoubleClickBehavior
 Namespace Editors
     Friend Class GlobalSettingsForm
         Private WithEvents MyDefs As DefaultFormOptions
@@ -37,6 +39,12 @@ Namespace Editors
                         COLORS_USERLIST.ColorsSet(.UserListBackColor, .UserListForeColor, SystemColors.Window, SystemColors.WindowText)
                         CH_SHOW_GROUPS.Checked = .ShowGroups
                         CH_USERS_GROUPING.Checked = .UseGrouping
+                        'Environment
+                        TXT_FFMPEG.Text = .FfmpegFile.File
+                        TXT_CURL.Text = .CurlFile.File
+                        TXT_YTDLP.Text = .YtdlpFile.File
+                        TXT_GALLERYDL.Text = .GalleryDLFile.File
+                        TXT_CMD_ENCODING.Text = .CMDEncoding
                         'Behavior
                         CH_EXIT_CONFIRM.Checked = .ExitConfirm
                         CH_CLOSE_TO_TRAY.Checked = .CloseToTray
@@ -57,6 +65,8 @@ Namespace Editors
                         CH_NOTIFY_AUTO_DOWN.Checked = .ShowNotificationsDownAutoDownloader
                         CH_NOTIFY_CHANNELS.Checked = .ShowNotificationsDownChannels
                         CH_NOTIFY_SAVED_POSTS.Checked = .ShowNotificationsDownSavedPosts
+                        CH_STD.Checked = .ShowNotificationsSTDownloader
+                        CH_STD_EVERY.Checked = .ShowNotificationsSTDownloaderEveryDownload
                         'Defaults
                         CH_SEPARATE_VIDEO_FOLDER.Checked = .SeparateVideoFolder.Value
                         CH_DEF_TEMP.Checked = .DefaultTemporary
@@ -64,6 +74,18 @@ Namespace Editors
                         CH_DOWN_VIDEOS.Checked = .DefaultDownloadVideos
                         CH_DOWN_IMAGES_NATIVE.Checked = .DownloadNativeImageFormat
                         CH_NAME_SITE_FRIENDLY.Checked = .UserSiteNameAsFriendly
+                        'STDownloader
+                        TXT_STD_MAX_JOBS_COUNT.Value = .STDownloader_MaxJobsCount.Value
+                        CH_STD_AUTO_DOWN.Checked = .STDownloader_DownloadAutomatically
+                        CH_STD_AUTO_REMOVE.Checked = .STDownloader_RemoveDownloadedAutomatically
+                        'CMB_STD_OPEN_DBL.BeginUpdate()
+                        CMB_STD_OPEN_DBL.Items.AddRange([Enum].GetValues(GetType(StdDblClck)).ToObjectsList(Of StdDblClck).Select(Function(dcb) New ListItem({dcb.ToString, dcb})))
+                        CMB_STD_OPEN_DBL.EndUpdate(True)
+                        CMB_STD_OPEN_DBL.SelectedIndex = [Enum].GetValues(GetType(StdDblClck)).ToObjectsList(Of StdDblClck).ToList.IndexOf(.STDownloader_OnItemDoubleClick.Value)
+                        CH_STD_TAKESNAP.Checked = .STDownloader_TakeSnapshot
+                        CH_STD_UPDATE_YT_PATH.Checked = .STDownloader_UpdateYouTubeOutputPath
+                        CH_STD_YT_LOAD.Checked = .STDownloader_LoadYTVideos
+                        CH_STD_YT_REMOVE.Checked = .STDownloader_RemoveYTVideosOnClear
                         'Downloading
                         CH_UDESCR_UP.Checked = .UpdateUserDescriptionEveryTime
                         CH_UNAME_UP.Checked = .UserSiteNameUpdateEveryTime
@@ -107,6 +129,7 @@ Namespace Editors
                     With .MyFieldsCheckerE
                         .AddControl(Of String)(TXT_GLOBAL_PATH, TXT_GLOBAL_PATH.CaptionText)
                         .AddControl(Of String)(TXT_COLLECTIONS_PATH, TXT_COLLECTIONS_PATH.CaptionText)
+                        .AddControl(Of Integer)(TXT_CMD_ENCODING, TXT_CMD_ENCODING.CaptionText)
                         .EndLoaderOperations()
                     End With
                     ChangeFileNameChangersEnabling()
@@ -146,6 +169,17 @@ Namespace Editors
                         Exit Sub
                     End If
 
+                    Dim paths$ = String.Empty
+                    If Not TXT_FFMPEG.Text.CSFile.Exists Then paths.StringAppendLine("ffmpeg.exe")
+                    If Not TXT_YTDLP.Text.CSFile.Exists Then paths.StringAppendLine("yt-dlp.exe")
+                    If Not TXT_GALLERYDL.Text.CSFile.Exists Then paths.StringAppendLine("gallery-dl.exe")
+                    If Not TXT_CURL.Text.CSFile.Exists Then paths.StringAppendLine("curl.exe")
+                    If Not paths.IsEmptyString AndAlso
+                       MsgBoxE({$"The following paths to programs are missing or invalid:{vbCr}{vbCr}{paths}{vbCr}{vbCr}" &
+                                "Do you still want to process without setting these fields?" & vbCr &
+                                "If this case, the functionality of SCrawler will be limited, and some sites will not work at all.",
+                                "Environment missing"}, vbExclamation,,, {"Process", "Cancel"}) = 1 Then Exit Sub
+
                     .BeginUpdate()
 
                     'Basis
@@ -163,6 +197,12 @@ Namespace Editors
                     COLORS_USERLIST.ColorsGet(.UserListBackColor, .UserListForeColor)
                     .ShowGroups.Value = CH_SHOW_GROUPS.Checked
                     .UseGrouping.Value = CH_USERS_GROUPING.Checked
+                    'Environment
+                    .FfmpegFile.File = TXT_FFMPEG.Text
+                    .CurlFile.File = TXT_CURL.Text
+                    .YtdlpFile.File = TXT_YTDLP.Text
+                    .GalleryDLFile.File = TXT_GALLERYDL.Text
+                    .CMDEncoding.Value = AConvert(Of Integer)(TXT_CMD_ENCODING.Text, SettingsCLS.DefaultCmdEncoding)
                     'Behavior
                     .ExitConfirm.Value = CH_EXIT_CONFIRM.Checked
                     .CloseToTray.Value = CH_CLOSE_TO_TRAY.Checked
@@ -183,6 +223,8 @@ Namespace Editors
                     .ShowNotificationsDownAutoDownloader.Value = CH_NOTIFY_AUTO_DOWN.Checked
                     .ShowNotificationsDownChannels.Value = CH_NOTIFY_CHANNELS.Checked
                     .ShowNotificationsDownSavedPosts.Value = CH_NOTIFY_SAVED_POSTS.Checked
+                    .ShowNotificationsSTDownloader.Value = CH_STD.Checked
+                    .ShowNotificationsSTDownloaderEveryDownload.Value = CH_STD_EVERY.Checked
                     'Defaults
                     .SeparateVideoFolder.Value = CH_SEPARATE_VIDEO_FOLDER.Checked
                     .DefaultTemporary.Value = CH_DEF_TEMP.Checked
@@ -190,6 +232,15 @@ Namespace Editors
                     .DefaultDownloadVideos.Value = CH_DOWN_VIDEOS.Checked
                     .DownloadNativeImageFormat.Value = CH_DOWN_IMAGES_NATIVE.Checked
                     .UserSiteNameAsFriendly.Value = CH_NAME_SITE_FRIENDLY.Checked
+                    'STDownloader
+                    .STDownloader_MaxJobsCount.Value = CInt(TXT_STD_MAX_JOBS_COUNT.Value)
+                    .STDownloader_DownloadAutomatically.Value = CH_STD_AUTO_DOWN.Checked
+                    .STDownloader_RemoveDownloadedAutomatically.Value = CH_STD_AUTO_REMOVE.Checked
+                    .STDownloader_OnItemDoubleClick.Value = CInt(CMB_STD_OPEN_DBL.Value)
+                    .STDownloader_TakeSnapshot.Value = CH_STD_TAKESNAP.Checked
+                    .STDownloader_UpdateYouTubeOutputPath.Value = CH_STD_UPDATE_YT_PATH.Checked
+                    .STDownloader_LoadYTVideos.Value = CH_STD_YT_LOAD.Checked
+                    .STDownloader_RemoveYTVideosOnClear.Value = CH_STD_YT_REMOVE.Checked
                     'Downloading
                     .UpdateUserDescriptionEveryTime.Value = CH_UDESCR_UP.Checked
                     .UserSiteNameUpdateEveryTime.Value = CH_UNAME_UP.Checked
@@ -289,6 +340,27 @@ Namespace Editors
         End Sub
         Private Sub TXT_FEED_COLUMNS_ActionOnValueChanged(sender As Object, e As EventArgs) Handles TXT_FEED_COLUMNS.ActionOnValueChanged
             TXT_FEED_CENTER_IMAGE.Enabled = TXT_FEED_COLUMNS.Value = 1
+        End Sub
+        Private Sub EnvirPrograms_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As ActionButtonEventArgs) Handles TXT_FFMPEG.ActionOnButtonClick,
+                                                                                                                              TXT_CURL.ActionOnButtonClick,
+                                                                                                                              TXT_YTDLP.ActionOnButtonClick,
+                                                                                                                              TXT_GALLERYDL.ActionOnButtonClick
+            If Sender.DefaultButton = ADB.Open AndAlso Not e Is Nothing AndAlso Not e.AssociatedControl Is Nothing Then
+                Dim __chooseNewFile As Action(Of TextBoxExtended, String) = Sub(ByVal cnt As TextBoxExtended, ByVal __name As String)
+                                                                                Dim f As SFile = cnt.Text
+                                                                                f = SFile.SelectFiles(f, False, $"Select the {__name} program file.", "EXE|*.exe", EDP.ReturnValue).FirstOrDefault
+                                                                                If Not f.IsEmptyString Then cnt.Text = f
+                                                                            End Sub
+                Select Case CStr(DirectCast(e.AssociatedControl, Control).Tag)
+                    Case "f" : __chooseNewFile.Invoke(e.AssociatedControl, "ffmpeg")
+                    Case "c" : __chooseNewFile.Invoke(e.AssociatedControl, "curl")
+                    Case "y" : __chooseNewFile.Invoke(e.AssociatedControl, "yt-dlp")
+                    Case "g" : __chooseNewFile.Invoke(e.AssociatedControl, "gallery-dl")
+                End Select
+            End If
+        End Sub
+        Private Sub TXT_CMD_ENCODING_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As ActionButtonEventArgs) Handles TXT_CMD_ENCODING.ActionOnButtonClick
+            If Sender.DefaultButton = ADB.Refresh Then TXT_CMD_ENCODING.Text = SettingsCLS.DefaultCmdEncoding
         End Sub
     End Class
 End Namespace

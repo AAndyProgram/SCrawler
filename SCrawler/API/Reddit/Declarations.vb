@@ -15,10 +15,12 @@ Namespace API.Reddit
         Friend ReadOnly JsonNodesJson() As NodeParams = {New NodeParams("posts", True, True, True, True, 3)}
         Friend ReadOnly ChannelJsonNodes() As NodeParams = {New NodeParams("data", True, True, True, True, 1),
                                                             New NodeParams("children", True, True, True)}
+        Friend ReadOnly SingleJsonNodes() As NodeParams = {New NodeParams("data", True, True, True, True, 2),
+                                                           New NodeParams("children", True, True, True),
+                                                           New NodeParams("data", True, True, True, True, 1)}
         Friend ReadOnly UrlBasePattern As RParams = RParams.DM("(?<=/)([^/]+?\.[\w]{3,4})(?=(\?|\Z))", 0)
         Friend ReadOnly VideoRegEx As RParams = RParams.DM("http.{0,1}://[^" & Chr(34) & "]+?mp4", 0)
         Private ReadOnly EUR_PROVIDER As New ANumbers(ANumbers.Cultures.EUR)
-        Friend ReadOnly DateProvider As New CustomProvider(Function(v, d, p, n, e) ADateTime.ParseUnicodeJS(v, n, e))
-        Friend ReadOnly DateProviderChannel As New CustomProvider(Function(v, d, p, n, e) ADateTime.ParseUnicode(AConvert(Of Integer)(v, EUR_PROVIDER, v), n, e))
+        Friend ReadOnly UnixDate32ProviderReddit As New CustomProvider(Function(v, d, p, n, e) ADateTime.ParseUnix32(AConvert(Of Integer)(v, EUR_PROVIDER, v), n, e))
     End Module
 End Namespace

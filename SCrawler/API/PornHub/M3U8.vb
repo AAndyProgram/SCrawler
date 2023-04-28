@@ -6,10 +6,12 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
+Imports System.Threading
 Imports SCrawler.API.Base
 Imports SCrawler.API.Base.M3U8Declarations
-Imports PersonalUtilities.Functions.RegularExpressions
+Imports PersonalUtilities.Forms.Toolbars
 Imports PersonalUtilities.Tools.Web.Clients
+Imports PersonalUtilities.Functions.RegularExpressions
 Namespace API.PornHub
     Friend NotInheritable Class M3U8
         Private Sub New()
@@ -35,8 +37,9 @@ Namespace API.PornHub
             End If
             Return Nothing
         End Function
-        Friend Shared Function Download(ByVal URL As String, ByVal Responser As Responser, ByVal Destination As SFile) As SFile
-            Return M3U8Base.Download(GetUrlsList(URL, Responser), Destination, Responser)
+        Friend Shared Function Download(ByVal URL As String, ByVal Responser As Responser, ByVal Destination As SFile,
+                                        ByVal Token As CancellationToken, ByVal Progress As MyProgress) As SFile
+            Return M3U8Base.Download(GetUrlsList(URL, Responser), Destination, Responser, Token, Progress)
         End Function
     End Class
 End Namespace

@@ -27,10 +27,12 @@ Namespace API.Base
 #End Region
             Friend Enum Types As Integer
                 Undefined = 0
-                [Picture] = 1
-                [Video] = 2
-                [Text] = 3
+                Picture = 1
+                Video = 2
+                Audio = 200
+                Text = 4
                 VideoPre = 10
+                AudioPre = 215
                 GIF = 50
                 m3u8 = 100
             End Enum
@@ -51,12 +53,12 @@ Namespace API.Base
             Friend SpecialFolder As String
             Friend [Object] As Object
 #Region "Interface Support"
-            Private Property IUserMedia_Type As Integer Implements IUserMedia.ContentType
+            Private Property IUserMedia_Type As UserMediaTypes Implements IUserMedia.ContentType
                 Get
-                    Return Type
+                    Return CInt(Type)
                 End Get
-                Set(ByVal Type As Integer)
-                    Me.Type = Type
+                Set(ByVal Type As UserMediaTypes)
+                    Me.Type = CInt(Type)
                 End Set
             End Property
             Private Property IUserMedia_URL_BASE As String Implements IUserMedia.URL_BASE
@@ -91,12 +93,12 @@ Namespace API.Base
                     Me.File = File
                 End Set
             End Property
-            Private Property IUserMedia_State As Integer Implements IUserMedia.DownloadState
+            Private Property IUserMedia_State As UserMediaStates Implements IUserMedia.DownloadState
                 Get
-                    Return State
+                    Return CInt(State)
                 End Get
-                Set(ByVal State As Integer)
-                    Me.State = State
+                Set(ByVal State As UserMediaStates)
+                    Me.State = CInt(State)
                 End Set
             End Property
             Private Property IUserMedia_PostID As String Implements IUserMedia.PostID

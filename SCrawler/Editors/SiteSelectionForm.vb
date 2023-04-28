@@ -24,7 +24,7 @@ Namespace Editors
                     .MyViewInitialize(True)
                     .AddOkCancelToolbar()
                     CMB_SITES.BeginUpdate()
-                    Dim sl As List(Of String) = ListAddList(Nothing, Settings.Plugins.Select(Function(p) p.Name))
+                    Dim sl As List(Of String) = Settings.Plugins.Select(Function(p) p.Name).ToList
                     CMB_SITES.Items.AddRange(sl.Select(Function(s) New ListItem(s)))
                     Dim l As New List(Of Integer)
                     If SelectedSites.Count > 0 Then sl.ForEach(Sub(s) If SelectedSites.Contains(s) Then l.Add(sl.IndexOf(s)))

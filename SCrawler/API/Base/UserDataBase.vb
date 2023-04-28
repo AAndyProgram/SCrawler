@@ -9,6 +9,7 @@
 Imports System.IO
 Imports System.Net
 Imports System.Threading
+Imports System.ComponentModel
 Imports System.Runtime.CompilerServices
 Imports SCrawler.Plugin
 Imports SCrawler.Plugin.Hosts
@@ -18,6 +19,7 @@ Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Forms.Toolbars
 Imports PersonalUtilities.Tools
 Imports PersonalUtilities.Tools.Web.Clients
+Imports PersonalUtilities.Tools.ImageRenderer
 Imports UStates = SCrawler.API.Base.UserMedia.States
 Imports UTypes = SCrawler.API.Base.UserMedia.Types
 Namespace API.Base
@@ -98,7 +100,7 @@ Namespace API.Base
 #Region "XML Declarations"
         Private Const Name_Site As String = UserInfo.Name_Site
         Private Const Name_Plugin As String = UserInfo.Name_Plugin
-        Private Const Name_IsChannel As String = UserInfo.Name_IsChannel
+        Protected Const Name_IsChannel As String = "IsChannel"
         Friend Const Name_UserName As String = "UserName"
         Private Const Name_Model_User As String = UserInfo.Name_Model_User
         Private Const Name_Model_Collection As String = UserInfo.Name_Model_Collection
@@ -108,9 +110,9 @@ Namespace API.Base
 
         Private Const Name_UserExists As String = "UserExists"
         Private Const Name_UserSuspended As String = "UserSuspended"
-        Private Const Name_FriendlyName As String = "FriendlyName"
+        Protected Const Name_FriendlyName As String = "FriendlyName"
         Private Const Name_UserSiteName As String = "UserSiteName"
-        Private Const Name_UserID As String = "UserID"
+        Protected Const Name_UserID As String = "UserID"
         Private Const Name_Description As String = "Description"
         Private Const Name_ParseUserMediaOnly As String = "ParseUserMediaOnly"
         Private Const Name_Temporary As String = "Temporary"
@@ -132,10 +134,12 @@ Namespace API.Base
         Private Const Name_ScriptUse As String = "ScriptUse"
         Private Const Name_ScriptData As String = "ScriptData"
 
-        <Obsolete("Use 'Name_Merged'", False)> Friend Const Name_DataMerging As String = "DataMerging"
+        Protected Const Name_UseMD5Comparison As String = "UseMD5Comparison"
+        Protected Const Name_RemoveExistingDuplicates As String = "RemoveExistingDuplicates"
+        Protected Const Name_StartMD5Checked As String = "StartMD5Checked"
 #End Region
 #Region "Declarations"
-#Region "Host, Site, Progress, Self"
+#Region "Host, Site, Progress"
         Friend Property HOST As SettingsHost Implements IUserData.HOST
         Friend ReadOnly Property Site As String Implements IContentProvider.Site
             Get
@@ -167,15 +171,17 @@ Namespace API.Base
                 Me._UserSuspended = _UserSuspended
             End Set
         End Property
-        Friend Overridable Property Name As String Implements IContentProvider.Name, IPluginContentProvider.Name
+        Private Property IPluginContentProvider_Name As String Implements IPluginContentProvider.Name
+            Get
+                Return Name
+            End Get
+            Set(ByVal NewName As String)
+            End Set
+        End Property
+        Friend Overridable ReadOnly Property Name As String Implements IContentProvider.Name
             Get
                 Return User.Name
             End Get
-            Set(ByVal NewName As String)
-                User.Name = NewName
-                User.UpdateUserFile()
-                Settings.UpdateUsersList(User)
-            End Set
         End Property
         Friend Overridable Property ID As String = String.Empty Implements IContentProvider.ID, IPluginContentProvider.ID
         Protected _FriendlyName As String = String.Empty
@@ -275,11 +281,6 @@ Namespace API.Base
         End Property
 #End Region
 #Region "Channel"
-        Friend Overridable ReadOnly Property IsChannel As Boolean Implements IUserData.IsChannel
-            Get
-                Return User.IsChannel
-            End Get
-        End Property
         Friend Property CreatedByChannel As Boolean = False
 #End Region
 #Region "Images"
@@ -564,7 +565,7 @@ BlockNullPicture:
 #End Region
 #Region "Plugins Support"
         Protected Event ProgressChanged As IPluginContentProvider.ProgressChangedEventHandler Implements IPluginContentProvider.ProgressChanged
-        Protected Event TotalCountChanged As IPluginContentProvider.TotalCountChangedEventHandler Implements IPluginContentProvider.TotalCountChanged
+        Protected Event ProgressMaximumChanged As IPluginContentProvider.ProgressMaximumChangedEventHandler Implements IPluginContentProvider.ProgressMaximumChanged
         Private Property IPluginContentProvider_Settings As ISiteSettings Implements IPluginContentProvider.Settings
             Get
                 Return HOST.Source
@@ -585,9 +586,11 @@ BlockNullPicture:
         Private Function IPluginContentProvider_XmlFieldsGet() As List(Of KeyValuePair(Of String, String)) Implements IPluginContentProvider.XmlFieldsGet
             Return Nothing
         End Function
-        Private Sub IPluginContentProvider_GetMedia() Implements IPluginContentProvider.GetMedia
+        Private Sub IPluginContentProvider_GetMedia(ByVal Token As CancellationToken) Implements IPluginContentProvider.GetMedia
         End Sub
-        Private Sub IPluginContentProvider_Download() Implements IPluginContentProvider.Download
+        Private Sub IPluginContentProvider_Download(ByVal Token As CancellationToken) Implements IPluginContentProvider.Download
+        End Sub
+        Private Sub IPluginContentProvider_DownloadSingleObject(ByVal Data As IDownloadableMedia, ByVal Token As CancellationToken) Implements IPluginContentProvider.DownloadSingleObject
         End Sub
         Friend Overridable Function ExchangeOptionsGet() As Object Implements IPluginContentProvider.ExchangeOptionsGet
             Return Nothing
@@ -598,8 +601,8 @@ BlockNullPicture:
 #End Region
 #Region "IIndexable Support"
         Friend Property Index As Integer = 0 Implements IIndexable.Index
-        Private Function SetIndex(ByVal Obj As Object, ByVal _Index As Integer) As Object Implements IIndexable.SetIndex
-            DirectCast(Obj, UserDataBase).Index = _Index
+        Private Function SetIndex(ByVal Obj As Object, ByVal Index As Integer) As Object Implements IIndexable.SetIndex
+            DirectCast(Obj, UserDataBase).Index = Index
             Return Obj
         End Function
 #End Region
@@ -607,7 +610,7 @@ BlockNullPicture:
         Friend ReadOnly Property LVIKey As String Implements IUserData.Key
             Get
                 If Not _IsCollection Then
-                    Return $"{IIf(IsChannel, "C", String.Empty)}{Site.ToString.ToUpper}_{Name}"
+                    Return $"{Site.ToString.ToUpper}_{Name}"
                 Else
                     Return $"CCCC_{CollectionName}"
                 End If
@@ -658,7 +661,7 @@ BlockNullPicture:
                         Next
                     End If
                 ElseIf Settings.ShowGroups Then
-                    Return Destination.Groups.Item(GetLviGroupName(HOST, Temporary, Favorite, IsCollection, IsChannel))
+                    Return Destination.Groups.Item(GetLviGroupName(HOST, Temporary, Favorite, IsCollection))
                 End If
                 Return Destination.Groups.Item(LabelsKeeper.NoLabeledName)
             Catch ex As Exception
@@ -689,7 +692,7 @@ BlockNullPicture:
         ''' <exception cref="ArgumentOutOfRangeException"></exception>
         Friend Shared Function GetInstance(ByVal u As UserInfo, Optional ByVal _LoadUserInformation As Boolean = True) As IUserData
             If Not u.Plugin.IsEmptyString Then
-                Return Settings(u.Plugin).GetInstance(u.DownloadOption, u, _LoadUserInformation)
+                Return Settings(u.Plugin).GetInstance(ISiteSettings.Download.Main, u, _LoadUserInformation)
             Else
                 Throw New ArgumentOutOfRangeException("Plugin", $"Plugin [{u.Plugin}] information does not recognized by loader")
             End If
@@ -707,7 +710,7 @@ BlockNullPicture:
                 End If
                 Return String.Empty
             Catch ex As Exception
-                Return ErrorsDescriber.Execute(EDP.SendInLog, ex, $"GetPostUrl({uName}, {PostData.Post.ID})", String.Empty)
+                Return ErrorsDescriber.Execute(EDP.SendToLog, ex, $"GetPostUrl({uName}, {PostData.Post.ID})", String.Empty)
             End Try
         End Function
 #End Region
@@ -716,7 +719,7 @@ BlockNullPicture:
         Private _UserInformationLoaded As Boolean = False
         Friend Overridable Sub LoadUserInformation() Implements IUserData.LoadUserInformation
             Try
-                UpdateDataFiles(, True)
+                UpdateDataFiles()
                 If MyFileSettings.Exists Then
                     FileExists = True
                     Using x As New XmlFile(MyFileSettings) With {.XmlReadOnly = True}
@@ -740,14 +743,7 @@ BlockNullPicture:
                         LastUpdated = AConvert(Of Date)(x.Value(Name_LastUpdated), ADateTime.Formats.BaseDateTime, Nothing)
                         ScriptUse = x.Value(Name_ScriptUse).FromXML(Of Boolean)(False)
                         ScriptData = x.Value(Name_ScriptData)
-                        'TODELETE: UserDataBase remove old 'merge' constant
-#Disable Warning BC40000
-                        If x.Contains(Name_DataMerging) Then
-                            DataMerging = x.Value(Name_DataMerging).FromXML(Of Boolean)(False)
-                        Else
-                            DataMerging = x.Value(Name_Merged).FromXML(Of Boolean)(False)
-                        End If
-#Enable Warning
+                        DataMerging = x.Value(Name_Merged).FromXML(Of Boolean)(False)
                         ChangeCollectionName(x.Value(Name_CollectionName), False)
                         Labels.ListAddList(x.Value(Name_LabelsName).StringToList(Of String, List(Of String))("|", EDP.ReturnValue), LAP.NotContainsOnly, LAP.ClearBeforeAdd)
                         LoadUserInformation_OptionalFields(x, True)
@@ -762,13 +758,12 @@ BlockNullPicture:
         End Sub
         Friend Overridable Sub UpdateUserInformation() Implements IUserData.UpdateUserInformation
             Try
-                UpdateDataFiles(True)
+                UpdateDataFiles()
                 MyFileSettings.Exists(SFO.Path)
                 Using x As New XmlFile With {.Name = "User"}
                     x.Add(Name_Site, Site)
                     x.Add(Name_Plugin, HOST.Key)
                     x.Add(Name_UserName, User.Name)
-                    x.Add(Name_IsChannel, IsChannel.BoolToInteger)
                     x.Add(Name_Model_User, CInt(UserModel))
                     x.Add(Name_Model_Collection, CInt(CollectionModel))
                     x.Add(Name_SpecialPath, User.SpecialPath)
@@ -815,7 +810,7 @@ BlockNullPicture:
 #Region "User data"
         Friend Overridable Overloads Sub LoadContentInformation(Optional ByVal Force As Boolean = False)
             Try
-                UpdateDataFiles(, True)
+                UpdateDataFiles()
                 If Not MyFileData.Exists Or (_DataLoaded And Not Force) Then Exit Sub
                 Using x As New XmlFile(MyFileData, Protector.Modes.All, False) With {.XmlReadOnly = True, .AllowSameNames = True}
                     x.LoadData()
@@ -830,7 +825,7 @@ BlockNullPicture:
         End Sub
         Friend Sub UpdateContentInformation()
             Try
-                UpdateDataFiles(True, True)
+                UpdateDataFiles()
                 If MyFileData.IsEmptyString Then Exit Sub
                 MyFileData.Exists(SFO.Path)
                 Using x As New XmlFile With {.AllowSameNames = True, .Name = "Data"}
@@ -846,7 +841,7 @@ BlockNullPicture:
 #Region "Open site, folder"
         Friend Overridable Sub OpenSite(Optional ByVal e As ErrorsDescriber = Nothing) Implements IContentProvider.OpenSite
             Try
-                Dim URL$ = HOST.Source.GetUserUrl(Me, IsChannel)
+                Dim URL$ = HOST.Source.GetUserUrl(Me)
                 If Not URL.IsEmptyString Then Process.Start(URL)
             Catch ex As Exception
                 If Not e.Exists Then e = New ErrorsDescriber(EDP.ShowAllMsg)
@@ -886,7 +881,7 @@ BlockNullPicture:
         Protected Function CheckDatesLimit(ByVal DateObj As Object, ByVal DateProvider As IFormatProvider) As DateResult
             Try
                 If (DownloadDateFrom.HasValue Or DownloadDateTo.HasValue) AndAlso ACheck(DateObj) Then
-                    Dim td As Date? = AConvert(Of Date)(DateObj, DateProvider, Nothing)
+                    Dim td As Date? = AConvert(DateObj, AModes.Var, GetType(Date),, True, Nothing, DateProvider)
                     If td.HasValue Then
                         If td.Value.ValueBetween(_DownloadDateFromF, _DownloadDateToF) Then
                             Return DateResult.Continue
@@ -899,13 +894,14 @@ BlockNullPicture:
                 End If
                 Return DateResult.Continue
             Catch ex As Exception
-                Return ErrorsDescriber.Execute(EDP.SendInLog, ex, $"[UserDataBase.CheckDatesLimit({If(TypeOf DateObj Is String, CStr(DateObj), "?")})]", DateResult.Continue)
+                Return ErrorsDescriber.Execute(EDP.SendToLog, ex, $"[UserDataBase.CheckDatesLimit({If(TypeOf DateObj Is String, CStr(DateObj), "?")})]", DateResult.Continue)
             End Try
         End Function
 #End Region
 #Region "Download functions and options"
         Protected Responser As Responser
         Protected UseResponserClient As Boolean = False
+        Protected UseClientTokens As Boolean = False
         Protected _ForceSaveUserData As Boolean = False
         Protected _ForceSaveUserInfo As Boolean = False
         Private _DownloadInProgress As Boolean = False
@@ -915,7 +911,7 @@ BlockNullPicture:
         Private _PictureExists As Boolean
         Private _EnvirInvokeUserUpdated As Boolean = False
         Protected Sub EnvirDownloadSet()
-            UpdateDataFiles(, True)
+            UpdateDataFiles()
             _DownloadInProgress = True
             _DescriptionChecked = False
             _DescriptionEveryTime = Settings.UpdateUserDescriptionEveryTime
@@ -948,8 +944,8 @@ BlockNullPicture:
                 If Not Responser Is Nothing Then Responser.Dispose()
                 Responser = New Responser
                 If Not HOST.Responser Is Nothing Then Responser.Copy(HOST.Responser)
-                'TODO: UserDataBase remove [Responser.DecodersError]
-                Responser.DecodersError = New ErrorsDescriber(EDP.SendInLog + EDP.ReturnValue) With {
+
+                Responser.DecodersError = New ErrorsDescriber(EDP.SendToLog + EDP.ReturnValue) With {
                     .DeclaredMessage = New MMessage($"SymbolsConverter error: [{ToStringForLog()}]", ToStringForLog())}
 
                 Dim _downContent As Func(Of UserMedia, Boolean) = Function(c) c.State = UStates.Downloaded
@@ -981,7 +977,9 @@ BlockNullPicture:
 
                 ReparseVideo(Token)
                 ThrowAny(Token)
-                If IsSavedPosts Then UpdateDataFiles(True)
+
+                If UseMD5Comparison Then ValidateMD5(Token) : ThrowAny(Token)
+
                 If _TempPostsList.Count > 0 And Not DownloadMissingOnly And __SaveData Then _
                    TextSaver.SaveTextToFile(_TempPostsList.ListToString(Environment.NewLine), MyFilePosts, True,, EDP.None)
                 _ContentNew.ListAddList(_TempMediaList, LAP.ClearBeforeAdd)
@@ -1035,19 +1033,14 @@ BlockNullPicture:
                 _ForceSaveUserInfo = False
             End Try
         End Sub
-        Protected Sub UpdateDataFiles(Optional ByVal ForceSaved As Boolean = False, Optional ByVal ValidateContetnt As Boolean = False)
-            'TODELETE: saved posts name compatibility 2023.2.5.0
-            Dim __validateSaved As Func(Of Boolean) = Function() MyFileData.Exists Or MyFilePosts.Exists
-            If Not User.File.IsEmptyString Then
+        Protected Sub UpdateDataFiles()
+            If Not User.File.IsEmptyString OrElse IsSavedPosts Then
                 MyFileSettings = Nothing
                 If IsSavedPosts Then
-                    Dim u As UserInfo = User
-                    u.Name = "SavedPosts"
-                    u.UpdateUserFile()
-                    Dim mfp As SFile = u.File
-                    mfp.Name &= "_Posts"
-                    mfp.Extension = "txt"
-                    If (ValidateContetnt AndAlso mfp.Exists) Or (Not ValidateContetnt AndAlso u.File.Exists) Or ForceSaved Then MyFileSettings = u.File
+                    User = New UserInfo(SettingsHost.SavedPostsFolderName, HOST)
+                    User.File.Path = $"{HOST.SavedPostsPath.PathWithSeparator}{SettingsFolderName}"
+                    MyFileSettings = User.File
+                    MyFileSettings.Name = MyFileSettings.Name.Replace(SettingsHost.SavedPostsFolderName, "SavedPosts")
                 End If
                 If MyFileSettings.IsEmptyString Then MyFileSettings = User.File
                 MyFileData = MyFileSettings
@@ -1060,6 +1053,71 @@ BlockNullPicture:
             End If
         End Sub
         Protected MustOverride Sub DownloadDataF(ByVal Token As CancellationToken)
+#Region "DownloadSingleObject"
+        Protected IsSingleObjectDownload As Boolean = False
+        Friend Overridable Sub DownloadSingleObject(ByVal Data As YouTube.Objects.IYouTubeMediaContainer, ByVal Token As CancellationToken) Implements IUserData.DownloadSingleObject
+            Try
+                Data.DownloadState = UserMediaStates.Tried
+                Progress = Data.Progress
+                If Not Responser Is Nothing Then Responser.Dispose()
+                Responser = New Responser
+                If Not HOST Is Nothing AndAlso Not HOST.Responser Is Nothing Then Responser.Copy(HOST.Responser)
+                SeparateVideoFolder = False
+                IsSingleObjectDownload = True
+                UseInternalDownloadFileFunction_UseProgress = True
+                UseInternalM3U8Function_UseProgress = True
+                DownloadSingleObject_GetPosts(Data, Token)
+                DownloadSingleObject_CreateMedia(Data, Token)
+                DownloadSingleObject_Download(Data, Token)
+                DownloadSingleObject_PostProcessing(Data)
+            Catch ex As Exception
+                Data.DownloadState = UserMediaStates.Missing
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, $"{Site} single data downloader error: {Data.URL}")
+            End Try
+        End Sub
+        Protected Overridable Sub DownloadSingleObject_CreateMedia(ByVal Data As YouTube.Objects.IYouTubeMediaContainer, ByVal Token As CancellationToken)
+            If _TempMediaList.Count > 0 Then
+                For Each m As UserMedia In _TempMediaList
+                    m.File = DownloadSingleObject_CreateFile(Data, m.File)
+                    _ContentNew.Add(m)
+                Next
+            End If
+        End Sub
+        Protected Overridable Sub DownloadSingleObject_PostProcessing(ByVal Data As YouTube.Objects.IYouTubeMediaContainer, Optional ByVal ResetTitle As Boolean = True)
+            If _ContentNew.Count > 0 Then
+                If _ContentNew.Any(Function(mm) mm.State = UStates.Downloaded) Then
+                    Data.DownloadState = UserMediaStates.Downloaded
+                    If _ContentNew(0).Type = UTypes.Picture Or _ContentNew(0).Type = UTypes.GIF Then
+                        DirectCast(Data, IDownloadableMedia).ThumbnailFile = _ContentNew(0).File
+                    ElseIf Settings.STDownloader_TakeSnapshot And Settings.FfmpegFile.Exists And Not Settings.STDownloader_RemoveDownloadedAutomatically Then
+                        Dim f As SFile = _ContentNew(0).File
+                        Dim ff As SFile = f
+                        ff.Name &= "_thumb"
+                        ff.Extension = "jpg"
+                        f = Web.FFMPEG.TakeSnapshot(f, ff, Settings.FfmpegFile, TimeSpan.FromSeconds(1),,, EDP.LogMessageValue)
+                        If f.Exists Then DirectCast(Data, IDownloadableMedia).ThumbnailFile = f
+                    End If
+                Else
+                    Data.DownloadState = UserMediaStates.Missing
+                End If
+                YouTube.Objects.YouTubeMediaContainerBase.Update(_ContentNew(0), Data)
+                If ResetTitle And Not _ContentNew(0).File.Name.IsEmptyString Then Data.Title = _ContentNew(0).File.Name
+            Else
+                Data.DownloadState = UserMediaStates.Missing
+            End If
+        End Sub
+        Protected Function DownloadSingleObject_CreateFile(ByVal Data As YouTube.Objects.IYouTubeMediaContainer, ByVal DFile As SFile) As SFile
+            If Not Data.File.Path.IsEmptyString Then DFile.Path = Data.File.Path
+            If DFile.Name.IsEmptyString Then DFile.Name = "OutputFile"
+            Return DFile
+        End Function
+        Protected Overridable Sub DownloadSingleObject_Download(ByVal Data As YouTube.Objects.IYouTubeMediaContainer, ByVal Token As CancellationToken)
+            DownloadContent(Token)
+        End Sub
+        Protected Overridable Sub DownloadSingleObject_GetPosts(ByVal Data As YouTube.Objects.IYouTubeMediaContainer, ByVal Token As CancellationToken)
+        End Sub
+#End Region
+#Region "ReparseVideo, ReparseMissing"
         Protected Overridable Sub ReparseVideo(ByVal Token As CancellationToken)
         End Sub
         ''' <summary>
@@ -1069,15 +1127,170 @@ BlockNullPicture:
         ''' </summary>
         Protected Overridable Sub ReparseMissing(ByVal Token As CancellationToken)
         End Sub
+#End Region
+#Region "MD5 support"
+        Protected Const VALIDATE_MD5_ERROR As String = "VALIDATE_MD5_ERROR"
+        Friend Property UseMD5Comparison As Boolean = False
+        Protected Property StartMD5Checked As Boolean = True
+        Friend Property RemoveExistingDuplicates As Boolean = False
+        Protected Overridable Sub ValidateMD5(ByVal Token As CancellationToken)
+            Try
+                Dim missingMD5 As Predicate(Of UserMedia) = Function(d) (d.Type = UTypes.GIF Or d.Type = UTypes.Picture) And d.MD5.IsEmptyString
+                If UseMD5Comparison And _TempMediaList.Exists(missingMD5) Then
+                    Dim i%
+                    Dim itemsCount% = 0
+                    Dim limit% = If(DownloadTopCount, 0)
+                    Dim data As UserMedia = Nothing
+                    Dim hashList As New Dictionary(Of String, SFile)
+                    Dim f As SFile
+                    Dim ErrMD5 As New ErrorsDescriber(EDP.ReturnValue)
+                    Dim __getMD5 As Func(Of UserMedia, Boolean, String) =
+                        Function(ByVal __data As UserMedia, ByVal IsUrl As Boolean) As String
+                            Try
+                                Dim ImgFormat As Imaging.ImageFormat = Nothing
+                                Dim hash$ = String.Empty
+                                Dim __isGif As Boolean = False
+                                If __data.Type = UTypes.GIF Then
+                                    ImgFormat = Imaging.ImageFormat.Gif
+                                    __isGif = True
+                                ElseIf Not __data.File.IsEmptyString Then
+                                    ImgFormat = GetImageFormat(__data.File)
+                                End If
+                                If ImgFormat Is Nothing Then ImgFormat = Imaging.ImageFormat.Jpeg
+                                If IsUrl Then
+                                    hash = ByteArrayToString(GetMD5(SFile.GetBytesFromNet(__data.URL_BASE.IfNullOrEmpty(__data.URL), ErrMD5), ImgFormat, ErrMD5))
+                                Else
+                                    hash = ByteArrayToString(GetMD5(SFile.GetBytes(__data.File, ErrMD5), ImgFormat, ErrMD5))
+                                End If
+                                If hash.IsEmptyString And Not __isGif Then
+                                    If ImgFormat Is Imaging.ImageFormat.Jpeg Then ImgFormat = Imaging.ImageFormat.Png Else ImgFormat = Imaging.ImageFormat.Jpeg
+                                    If IsUrl Then
+                                        hash = ByteArrayToString(GetMD5(SFile.GetBytesFromNet(__data.URL_BASE.IfNullOrEmpty(__data.URL), ErrMD5), ImgFormat, ErrMD5))
+                                    Else
+                                        hash = ByteArrayToString(GetMD5(SFile.GetBytes(__data.File, ErrMD5), ImgFormat, ErrMD5))
+                                    End If
+                                End If
+                                Return hash
+                            Catch
+                                Return String.Empty
+                            End Try
+                        End Function
+                    If Not StartMD5Checked Then
+                        StartMD5Checked = True
+                        If _ContentList.Exists(missingMD5) Then
+                            Dim existingFiles As List(Of SFile) = SFile.GetFiles(MyFileSettings.CutPath, "*.jpg|*.jpeg|*.png|*.gif",, EDP.ReturnValue).ListIfNothing
+                            Dim eIndx%
+                            Dim eFinder As Predicate(Of SFile) = Function(ff) ff.File = data.File.File
+                            If RemoveExistingDuplicates Then
+                                RemoveExistingDuplicates = False
+                                _ForceSaveUserInfo = True
+                                If existingFiles.Count > 0 Then
+                                    Dim h$
+                                    For i = existingFiles.Count - 1 To 0 Step -1
+                                        h = __getMD5(New UserMedia With {.File = existingFiles(i)}, False)
+                                        If Not h.IsEmptyString Then
+                                            If hashList.ContainsKey(h) Then
+                                                MyMainLOG = $"{ToStringForLog()}: Removed image [{existingFiles(i).File}] (duplicate of [{hashList(h).File}])"
+                                                existingFiles(i).Delete(SFO.File, SFODelete.DeleteToRecycleBin, ErrMD5)
+                                                existingFiles.RemoveAt(i)
+                                            Else
+                                                hashList.Add(h, existingFiles(i))
+                                            End If
+                                        End If
+                                    Next
+                                End If
+                            End If
+                            For i = 0 To _ContentList.Count - 1
+                                data = _ContentList(i)
+                                If (data.Type = UTypes.GIF Or data.Type = UTypes.Picture) Then
+                                    If data.MD5.IsEmptyString Then
+                                        ThrowAny(Token)
+                                        eIndx = existingFiles.FindIndex(eFinder)
+                                        If eIndx >= 0 Then
+                                            data.MD5 = __getMD5(New UserMedia With {.File = existingFiles(eIndx)}, False)
+                                            If Not data.MD5.IsEmptyString Then _ContentList(i) = data : _ForceSaveUserData = True
+                                        End If
+                                    End If
+                                    existingFiles.RemoveAll(eFinder)
+                                End If
+                            Next
+                            If existingFiles.Count > 0 Then
+                                For i = 0 To existingFiles.Count - 1
+                                    f = existingFiles(i)
+                                    data = New UserMedia(f.File) With {
+                                        .State = UStates.Downloaded,
+                                        .Type = IIf(f.Extension = "gif", UTypes.GIF, UTypes.Picture),
+                                        .File = f
+                                    }
+                                    ThrowAny(Token)
+                                    data.MD5 = __getMD5(data, False)
+                                    If Not data.MD5.IsEmptyString Then _ContentList.Add(data) : _ForceSaveUserData = True
+                                Next
+                                existingFiles.Clear()
+                            End If
+                        End If
+                    End If
+
+                    If _ContentList.Count > 0 Then
+                        With _ContentList.Select(Function(d) d.MD5)
+                            If .ListExists Then .ToList.ForEach(Sub(md5value) _
+                               If Not md5value.IsEmptyString AndAlso Not hashList.ContainsKey(md5value) Then hashList.Add(md5value, New SFile))
+                        End With
+                    End If
+
+                    For i = _TempMediaList.Count - 1 To 0 Step -1
+                        If limit > 0 And itemsCount >= limit Then
+                            _TempMediaList.RemoveAt(i)
+                        Else
+                            data = _TempMediaList(i)
+                            If missingMD5(data) Then
+                                ThrowAny(Token)
+                                data.MD5 = __getMD5(data, True)
+                                If Not data.MD5.IsEmptyString Then
+                                    If hashList.ContainsKey(data.MD5) Then
+                                        _TempMediaList.RemoveAt(i)
+                                    Else
+                                        hashList.Add(data.MD5, New SFile)
+                                        _TempMediaList(i) = data
+                                        itemsCount += 1
+                                    End If
+                                End If
+                            End If
+                        End If
+                    Next
+                End If
+            Catch iex As ArgumentOutOfRangeException When Disposed
+            Catch ex As Exception
+                ProcessException(ex, Token, "ValidateMD5",, VALIDATE_MD5_ERROR)
+            End Try
+        End Sub
+#End Region
+#Region "DownloadContent"
         Protected MustOverride Sub DownloadContent(ByVal Token As CancellationToken)
         Private NotInheritable Class OptionalWebClient : Inherits DownloadObjects.WebClient2
+            Private ReadOnly Source As UserDataBase
             Friend Sub New(ByRef Source As UserDataBase)
+                Me.Source = Source
                 UseResponserClient = Source.UseResponserClient
                 If UseResponserClient Then
-                    RC = Source.Responser
+                    Client = Source.Responser
                 Else
-                    WC = New WebClient
+                    Client = New RWebClient With {.UseNativeClient = Not Source.IsSingleObjectDownload}
                 End If
+                If Source.IsSingleObjectDownload Then DelegateEvents = True
+            End Sub
+            Private _LastProgressValue As Integer = 0
+            Protected Overrides Sub Client_DownloadProgressChanged(ByVal Sender As Object, ByVal e As DownloadProgressChangedEventArgs)
+                Dim v% = e.ProgressPercentage
+                If v > _LastProgressValue Then
+                    If v > 100 Then v = 100
+                    Source.Progress.Value = v
+                    Source.Progress.Perform(0)
+                End If
+                _LastProgressValue = e.ProgressPercentage
+            End Sub
+            Protected Overrides Sub Client_DownloadFileCompleted(ByVal Sender As Object, ByVal e As AsyncCompletedEventArgs)
+                Source.Progress.Done()
             End Sub
         End Class
         Protected Sub DownloadContentDefault(ByVal Token As CancellationToken)
@@ -1090,37 +1303,51 @@ BlockNullPicture:
                     If _ContentNew.Count > 0 Then
                         MyFile.Exists(SFO.Path)
                         Dim MissingErrorsAdd As Boolean = Settings.AddMissingErrorsToLog
-                        Dim MyDir$ = MyFile.CutPath.PathNoSeparator
+                        Dim MyDir$ = DownloadContentDefault_GetRootDir()
                         Dim vsf As Boolean = SeparateVideoFolderF
                         Dim __isVideo As Boolean
+                        Dim __interrupt As Boolean
                         Dim f As SFile
                         Dim v As UserMedia
+                        Dim fileNumProvider As SFileNumbers = SFileNumbers.Default
 
                         Using w As New OptionalWebClient(Me)
                             If vsf Then CSFileP($"{MyDir}\Video\").Exists(SFO.Path)
                             Progress.Maximum += _ContentNew.Count
+                            If IsSingleObjectDownload Then
+                                If _ContentNew.Count = 1 And _ContentNew(0).Type = UTypes.Video Then
+                                    Progress.Value = 0
+                                    Progress.Maximum = 100
+                                    Progress.Provider = MyProgressNumberProvider.Percentage
+                                ElseIf _ContentNew(0).Type = UTypes.m3u8 Then
+                                    Progress.Provider = MyProgressNumberProvider.Percentage
+                                Else
+                                    w.DelegateEvents = False
+                                End If
+                            End If
+
                             For i = 0 To _ContentNew.Count - 1
                                 ThrowAny(Token)
                                 v = _ContentNew(i)
                                 v.State = UStates.Tried
                                 If v.File.IsEmptyString Then
-                                    f = v.URL
+                                    f = CreateFileFromUrl(v.URL)
                                 Else
                                     f = v.File
                                 End If
                                 f.Separator = "\"
-                                f.Path = MyDir
+                                If Not IsSingleObjectDownload Then f.Path = MyDir
 
                                 If v.URL_BASE.IsEmptyString Then v.URL_BASE = v.URL
 
-                                If Not v.File.IsEmptyString And Not v.URL.IsEmptyString Then
+                                If Not f.IsEmptyString And Not v.URL.IsEmptyString Then
                                     Try
-                                        __isVideo = v.Type = UTypes.Video Or f.Extension = "mp4"
+                                        __isVideo = v.Type = UTypes.Video Or f.Extension = "mp4" Or v.Type = UTypes.m3u8
 
                                         If f.Extension.IsEmptyString Then
                                             Select Case v.Type
                                                 Case UTypes.Picture : f.Extension = "jpg"
-                                                Case UTypes.Video : f.Extension = "mp4"
+                                                Case UTypes.Video, UTypes.m3u8 : f.Extension = "mp4"
                                                 Case UTypes.GIF : f.Extension = "gif"
                                             End Select
                                         ElseIf f.Extension = "webp" And Settings.DownloadNativeImageFormat Then
@@ -1138,16 +1365,29 @@ BlockNullPicture:
                                             End If
                                         End If
 
+                                        If __isVideo Then fileNumProvider.FileName = f.Name : f = SFile.IndexReindex(f,,, fileNumProvider)
+
+                                        __interrupt = False
                                         If v.Type = UTypes.m3u8 And UseInternalM3U8Function Then
-                                            f = DownloadM3U8(v.URL, v, f)
+                                            f = DownloadM3U8(v.URL, v, f, Token)
                                             If f.IsEmptyString Then Throw New Exception("M3U8 download failed")
+                                        ElseIf UseInternalDownloadFileFunction AndAlso ValidateDownloadFile(v.URL, v, __interrupt) Then
+                                            f = DownloadFile(v.URL, v, f, Token)
+                                            If f.IsEmptyString Then Throw New Exception("InternalFunc download failed")
                                         Else
-                                            w.DownloadFile(v.URL, f.ToString)
+                                            If UseInternalDownloadFileFunction And __interrupt Then Throw New Exception("InternalFunc download interrupted")
+                                            If UseClientTokens Then
+                                                w.DownloadFile(v.URL, f, Token)
+                                            Else
+                                                w.DownloadFile(v.URL, f)
+                                            End If
                                         End If
 
                                         If __isVideo Then
                                             v.Type = UTypes.Video
                                             DownloadedVideos(False) += 1
+                                        ElseIf v.Type = UTypes.GIF Then
+                                            DownloadedPictures(False) += 1
                                         Else
                                             v.Type = UTypes.Picture
                                             DownloadedPictures(False) += 1
@@ -1155,11 +1395,20 @@ BlockNullPicture:
 
                                         v.File = ChangeFileNameByProvider(f, v)
                                         v.State = UStates.Downloaded
+                                        DownloadContentDefault_PostProcessing(v, f, Token)
                                         dCount += 1
-                                    Catch wex As Exception
-                                        v.Attempts += 1
+                                    Catch woex As OperationCanceledException When Token.IsCancellationRequested
+                                        If f.Exists Then f.Delete()
                                         v.State = UStates.Missing
-                                        If MissingErrorsAdd Then ErrorDownloading(f, v.URL)
+                                        v.Attempts += 1
+                                        _ContentNew(i) = v
+                                        Throw woex
+                                    Catch wex As Exception
+                                        If DownloadContentDefault_ProcessDownloadException() Then
+                                            v.Attempts += 1
+                                            v.State = UStates.Missing
+                                            If MissingErrorsAdd Then ErrorDownloading(f, v.URL)
+                                        End If
                                     End Try
                                 Else
                                     v.State = UStates.Skipped
@@ -1185,9 +1434,30 @@ BlockNullPicture:
             End Try
         End Sub
         Protected UseInternalM3U8Function As Boolean = False
-        Protected Overridable Function DownloadM3U8(ByVal URL As String, ByVal Media As UserMedia, ByVal DestinationFile As SFile) As SFile
+        Protected UseInternalM3U8Function_UseProgress As Boolean = False
+        Protected Overridable Function DownloadM3U8(ByVal URL As String, ByVal Media As UserMedia, ByVal DestinationFile As SFile,
+                                                    ByVal Token As CancellationToken) As SFile
             Return Nothing
         End Function
+        Protected UseInternalDownloadFileFunction As Boolean = False
+        Protected UseInternalDownloadFileFunction_UseProgress As Boolean = False
+        Protected Overridable Function DownloadFile(ByVal URL As String, ByVal Media As UserMedia, ByVal DestinationFile As SFile,
+                                                    ByVal Token As CancellationToken) As SFile
+            Return Nothing
+        End Function
+        Protected Overridable Function ValidateDownloadFile(ByVal URL As String, ByVal Media As UserMedia, ByRef Interrupt As Boolean) As Boolean
+            Return True
+        End Function
+        Protected Overridable Function DownloadContentDefault_GetRootDir() As String
+            Return MyFile.CutPath(IIf(IsSingleObjectDownload, 0, 1)).PathNoSeparator
+        End Function
+        Protected Overridable Sub DownloadContentDefault_PostProcessing(ByRef m As UserMedia, ByVal File As SFile, ByVal Token As CancellationToken)
+        End Sub
+        Protected Overridable Function DownloadContentDefault_ProcessDownloadException() As Boolean
+            Return True
+        End Function
+#End Region
+#Region "ProcessException"
         Protected Const EXCEPTION_OPERATION_CANCELED As Integer = -1
         ''' <param name="RDE">Request DownloadingException</param>
         ''' <returns>0 - exit</returns>
@@ -1208,14 +1478,19 @@ BlockNullPicture:
         End Function
         ''' <summary>0 - Execute LogError and set HasError</summary>
         Protected MustOverride Function DownloadingException(ByVal ex As Exception, ByVal Message As String, Optional ByVal FromPE As Boolean = False, Optional ByVal EObj As Object = Nothing) As Integer
-        Protected Function ChangeFileNameByProvider(ByVal f As SFile, ByVal m As UserMedia) As SFile
+#End Region
+#Region "ChangeFileNameByProvider, RunScript"
+        Protected Overridable Function CreateFileFromUrl(ByVal URL As String) As SFile
+            Return New SFile(URL)
+        End Function
+        Protected Overridable Function ChangeFileNameByProvider(ByVal f As SFile, ByVal m As UserMedia) As SFile
             Dim ff As SFile = Nothing
             Try
                 If f.Exists Then
                     If Not Settings.FileReplaceNameByDate.Value = FileNameReplaceMode.None Then
                         ff = f
                         ff.Name = String.Format(FileDateAppenderPattern, f.Name, CStr(AConvert(Of String)(If(m.Post.Date, Now), FileDateAppenderProvider, String.Empty)))
-                        ff = SFile.Indexed_IndexFile(ff,, New NumberedFile(ff))
+                        ff = SFile.IndexReindex(ff,,, New NumberedFile(ff))
                     End If
                     If Not ff.Name.IsEmptyString Then My.Computer.FileSystem.RenameFile(f, ff.File) : Return ff
                 End If
@@ -1238,7 +1513,7 @@ BlockNullPicture:
                     If Not ScriptPattern.IsEmptyString Then
                         If Not ScriptPattern.Contains(spa) Then ScriptPattern &= $" ""{spa}"""
                         Using b As New BatchExecutor With {.RedirectStandardError = True}
-                            b.Execute({String.Format(ScriptPattern, MyFile.CutPath(1).PathNoSeparator)}, EDP.SendInLog + EDP.ThrowException)
+                            b.Execute({String.Format(ScriptPattern, MyFile.CutPath(1).PathNoSeparator)}, EDP.SendToLog + EDP.ThrowException)
                             If b.HasError Or Not b.ErrorOutput.IsEmptyString Then Throw New Exception(b.ErrorOutput, b.ErrorException)
                         End Using
                     End If
@@ -1247,6 +1522,7 @@ BlockNullPicture:
                 LogError(ex, "script execution error")
             End Try
         End Sub
+#End Region
 #End Region
 #Region "Delete, Move, Merge, Copy"
         Friend Overridable Function Delete(Optional ByVal Multiple As Boolean = False, Optional ByVal CollectionValue As Integer = -1) As Integer Implements IUserData.Delete
@@ -1359,7 +1635,7 @@ BlockNullPicture:
                     FilesMover.Invoke
                     If SFile.GetFiles(UserBefore.File.CutPath,, SearchOption.AllDirectories,
                                       New ErrorsDescriber(False, False, False, New List(Of SFile))).Count = 0 Then
-                        UserBefore.File.CutPath.Delete(SFO.Path, Settings.DeleteMode, EDP.SendInLog)
+                        UserBefore.File.CutPath.Delete(SFO.Path, Settings.DeleteMode, EDP.SendToLog)
                     End If
                     If Not ScriptData.IsEmptyString AndAlso ScriptData.Contains(UserBefore.File.PathNoSeparator) Then _
                        ScriptData = ScriptData.Replace(UserBefore.File.PathNoSeparator, MyFile.PathNoSeparator)
@@ -1424,7 +1700,7 @@ BlockNullPicture:
 #End Region
 #Region "Errors functions"
         Protected Sub LogError(ByVal ex As Exception, ByVal Message As String)
-            ErrorsDescriber.Execute(EDP.SendInLog, ex, $"{ToStringForLog()}: {Message}")
+            ErrorsDescriber.Execute(EDP.SendToLog, ex, $"{ToStringForLog()}: {Message}")
         End Sub
         Protected Sub ErrorDownloading(ByVal f As SFile, ByVal URL As String)
             If Not f.Exists Then MyMainLOG = $"Error downloading from [{URL}] to [{f}]"
@@ -1546,7 +1822,7 @@ BlockNullPicture:
 #Region "Base interfaces"
     Friend Interface IContentProvider
         ReadOnly Property Site As String
-        Property Name As String
+        ReadOnly Property Name As String
         Property ID As String
         Property FriendlyName As String
         Property Description As String
@@ -1554,6 +1830,7 @@ BlockNullPicture:
         Property Temporary As Boolean
         Sub OpenSite(Optional ByVal e As ErrorsDescriber = Nothing)
         Sub DownloadData(ByVal Token As CancellationToken)
+        Sub DownloadSingleObject(ByVal Data As YouTube.Objects.IYouTubeMediaContainer, ByVal Token As CancellationToken)
     End Interface
     Friend Interface IUserData : Inherits IContentProvider, IComparable(Of UserDataBase), IComparable, IEquatable(Of UserDataBase), IIndexable, IDisposable
         Event UserUpdated(ByVal User As IUserData)
@@ -1571,7 +1848,6 @@ BlockNullPicture:
         ReadOnly Property IsVirtual As Boolean
         ReadOnly Property Labels As List(Of String)
 #End Region
-        ReadOnly Property IsChannel As Boolean
         Property Exists As Boolean
         Property Suspended As Boolean
         Property ReadyForDownload As Boolean

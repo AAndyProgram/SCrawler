@@ -14,8 +14,6 @@ Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Tools.Web.Clients
 Imports PersonalUtilities.Tools.Web.Documents.JSON
-Imports UTypes = SCrawler.API.Base.UserMedia.Types
-Imports UStates = SCrawler.API.Base.UserMedia.States
 Namespace API.RedGifs
     <Manifest(RedGifsSiteKey)>
     Friend Class SiteSettings : Inherits SiteSettingsBase
@@ -32,18 +30,17 @@ Namespace API.RedGifs
         End Property
         <PropertyOption(ControlToolTip:="Bearer token", AllowNull:=False), ControlNumber(1)>
         Friend ReadOnly Property Token As PropertyValue
+        <PropertyOption, ControlNumber(2)>
+        Private ReadOnly Property UserAgent As PropertyValue
         <PXML> Friend ReadOnly Property TokenLastDateUpdated As PropertyValue
         Private Const TokenName As String = "authorization"
 #Region "TokenUpdateInterval"
         <PropertyOption(ControlText:="Token refresh interval", ControlToolTip:="Interval (in minutes) to refresh the token", AllowNull:=False, LeftOffset:=120),
             PXML, ControlNumber(0)>
         Friend ReadOnly Property TokenUpdateInterval As PropertyValue
-        Private Class TokenIntervalProvider : Implements IFieldsCheckerProvider
-            Private Property ErrorMessage As String Implements IFieldsCheckerProvider.ErrorMessage
-            Private Property Name As String Implements IFieldsCheckerProvider.Name
-            Private Property TypeError As Boolean Implements IFieldsCheckerProvider.TypeError
-            Private Function Convert(ByVal Value As Object, ByVal DestinationType As Type, ByVal Provider As IFormatProvider,
-                                     Optional ByVal NothingArg As Object = Nothing, Optional ByVal e As ErrorsDescriber = Nothing) As Object Implements ICustomProvider.Convert
+        Private Class TokenIntervalProvider : Inherits FieldsCheckerProviderBase
+            Public Overrides Function Convert(ByVal Value As Object, ByVal DestinationType As Type, ByVal Provider As IFormatProvider,
+                                              Optional ByVal NothingArg As Object = Nothing, Optional ByVal e As ErrorsDescriber = Nothing) As Object
                 TypeError = False
                 ErrorMessage = String.Empty
                 If Not ACheck(Of Integer)(Value) Then
@@ -52,11 +49,9 @@ Namespace API.RedGifs
                     Return Value
                 Else
                     ErrorMessage = $"The value of [{Name}] field must be greater than or equal to 1"
+                    HasError = True
                 End If
                 Return Nothing
-            End Function
-            Private Function GetFormat(ByVal FormatType As Type) As Object Implements IFormatProvider.GetFormat
-                Throw New NotImplementedException("[GetFormat] is not available in the context of [TokenIntervalProvider]")
             End Function
         End Class
         <Provider(NameOf(TokenUpdateInterval), FieldsChecker:=True)>
@@ -68,12 +63,14 @@ Namespace API.RedGifs
             MyBase.New(RedGifsSite, "redgifs.com")
             Dim t$ = String.Empty
             With Responser
-                Dim b As Boolean = Not .Mode = Responser.Modes.WebClient
                 .Mode = Responser.Modes.WebClient
+                If Not .UserAgentExists Then .UserAgent = ParserUserAgent
+                .ClientWebUseCookies = False
+                .ClientWebUseHeaders = True
                 t = .Headers.Value(TokenName)
-                If b Then .SaveSettings()
             End With
-            Token = New PropertyValue(t, GetType(String), Sub(v) UpdateResponse(v))
+            Token = New PropertyValue(t, GetType(String), Sub(v) UpdateResponse(NameOf(Token), v))
+            UserAgent = New PropertyValue(Responser.UserAgent, GetType(String), Sub(v) UpdateResponse(NameOf(UserAgent), v))
             TokenLastDateUpdated = New PropertyValue(Now.AddYears(-1), GetType(Date))
             TokenUpdateInterval = New PropertyValue(60 * 12, GetType(Integer))
             TokenUpdateIntervalProvider = New TokenIntervalProvider
@@ -83,8 +80,11 @@ Namespace API.RedGifs
         End Sub
 #End Region
 #Region "Response updater"
-        Private Sub UpdateResponse(ByVal Value As String)
-            Responser.Headers.Add(TokenName, Value)
+        Private Sub UpdateResponse(ByVal Name As String, ByVal Value As String)
+            Select Case Name
+                Case NameOf(Token) : Responser.Headers.Add(TokenName, Value)
+                Case NameOf(UserAgent) : Responser.UserAgent = Value
+            End Select
             Responser.SaveSettings()
         End Sub
 #End Region
@@ -101,16 +101,18 @@ Namespace API.RedGifs
         Friend Function UpdateToken() As Boolean
             Try
                 Dim r$
-                Dim NewToken$ = String.Empty
+                Dim NewToken$ = String.Empty, NewAgent$ = String.Empty
                 Using resp As New Responser : r = resp.GetResponse("https://api.redgifs.com/v2/auth/temporary",, EDP.ThrowException) : End Using
                 If Not r.IsEmptyString Then
                     Dim j As EContainer = JsonDocument.Parse(r)
                     If Not j Is Nothing Then
                         NewToken = j.Value("token")
+                        NewAgent = j.Value("agent")
                         j.Dispose()
                     End If
                 End If
                 If Not NewToken.IsEmptyString Then
+                    If Not NewAgent.IsEmptyString Then UserAgent.Value = NewAgent
                     Token.Value = $"Bearer {NewToken}"
                     TokenLastDateUpdated.Value = Now
                     Return True
@@ -118,7 +120,7 @@ Namespace API.RedGifs
                     Return False
                 End If
             Catch ex As Exception
-                Return ErrorsDescriber.Execute(EDP.SendInLog, ex, "[API.RedGifs.SiteSettings.UpdateToken]", False)
+                Return ErrorsDescriber.Execute(EDP.SendToLog, ex, "[API.RedGifs.SiteSettings.UpdateToken]", False)
             End Try
         End Function
 #End Region
@@ -129,8 +131,10 @@ Namespace API.RedGifs
             MyBase.BeginEdit()
         End Sub
         Friend Overrides Sub Update()
-            Dim NewToken$ = AConvert(Of String)(Token.Value, AModes.Var, String.Empty)
-            If Not _LastTokenValue = NewToken Then TokenLastDateUpdated.Value = Now
+            If _SiteEditorFormOpened Then
+                Dim NewToken$ = AConvert(Of String)(Token.Value, AModes.Var, String.Empty)
+                If Not _LastTokenValue = NewToken Then TokenLastDateUpdated.Value = Now
+            End If
             MyBase.Update()
         End Sub
         Friend Overrides Sub EndEdit()
@@ -140,32 +144,6 @@ Namespace API.RedGifs
 #End Region
         Friend Overrides Function GetInstance(ByVal What As ISiteSettings.Download) As IPluginContentProvider
             Return New UserData
-        End Function
-        Friend Overrides Function GetSpecialData(ByVal URL As String, ByVal Path As String, ByVal AskForPath As Boolean) As IEnumerable
-            If BaseAuthExists() Then
-                Using resp As Responser = Responser.Copy
-                    Dim m As UserMedia = UserData.GetDataFromUrlId(URL, False, resp, Settings(RedGifsSiteKey))
-                    If Not m.State = UStates.Missing And Not m.State = UserData.DataGone And (m.Type = UTypes.Picture Or m.Type = UTypes.Video) Then
-                        Try
-                            Dim spf$ = String.Empty
-                            Dim f As SFile = GetSpecialDataFile(Path, AskForPath, spf)
-                            If f.IsEmptyString Then
-                                f = m.File.File
-                            Else
-                                f.Name = m.File.Name
-                                f.Extension = m.File.Extension
-                            End If
-                            resp.DownloadFile(m.URL, f, EDP.ThrowException)
-                            m.State = UStates.Downloaded
-                            m.SpecialFolder = spf
-                            Return {m}
-                        Catch ex As Exception
-                            ErrorsDescriber.Execute(EDP.SendInLog, ex, $"Redgifs standalone download error: [{URL}]")
-                        End Try
-                    End If
-                End Using
-            End If
-            Return Nothing
         End Function
         Friend Overrides Function GetUserPostUrl(ByVal User As UserDataBase, ByVal Media As UserMedia) As String
             Return $"https://www.redgifs.com/watch/{Media.Post.ID}"

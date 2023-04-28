@@ -213,7 +213,7 @@ Namespace DownloadObjects
                 End If
                 If fList.ListExists Then fList.Clear()
             Catch ex As Exception
-                ErrorsDescriber.Execute(EDP.SendInLog, ex, $"[DownloadObjects.DownloadFeedForm.SessionChooser({GetLast})]")
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, $"[DownloadObjects.DownloadFeedForm.SessionChooser({GetLast})]")
             End Try
         End Sub
 #End Region
@@ -242,7 +242,7 @@ Namespace DownloadObjects
                                                        If d > 0 Then
                                                            .AutoScroll = False
                                                            .AutoScroll = True
-                                                           If LatestScrollValue.HasValue Then TP_DATA.VerticalScroll.Value = LatestScrollValue.Value
+                                                           SetScrollValue(False)
                                                            .PerformLayout()
                                                            LatestScrollValueDisabled = False
                                                        End If
@@ -302,7 +302,7 @@ Namespace DownloadObjects
                     If HeightChanged Then
                         TP_DATA.AutoScroll = False
                         TP_DATA.AutoScroll = True
-                        If LatestScrollValue.HasValue Then TP_DATA.VerticalScroll.Value = LatestScrollValue.Value
+                        SetScrollValue(False)
                         TP_DATA.PerformLayout()
                         LatestScrollValueDisabled = False
                     End If
@@ -331,10 +331,7 @@ Namespace DownloadObjects
                     DirectCast(MyRange.Switcher, RangeSwitcher(Of UserMediaD)).PerformIndexChanged()
                     If Not indxChanged Then
                         LatestScrollValueDisabled = False
-                        If LatestScrollValue.HasValue Then
-                            TP_DATA.VerticalScroll.Value = LatestScrollValue.Value
-                            TP_DATA.PerformLayout()
-                        End If
+                        SetScrollValue(True)
                     End If
                 End If
                 .HandlersSuspended = False
@@ -415,7 +412,7 @@ Namespace DownloadObjects
                     RefillInProgress = False
                 End If
             Catch ex As Exception
-                ErrorsDescriber.Execute(EDP.SendInLog, ex, $"[DownloadObjects.DownloadFeedForm.Range.IndexChanged({Sender.CurrentIndex})]")
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, $"[DownloadObjects.DownloadFeedForm.Range.IndexChanged({Sender.CurrentIndex})]")
                 RefillInProgress = False
             Finally
                 If Not RefillInProgress AndAlso Sender.CurrentIndex >= 0 Then
@@ -495,8 +492,7 @@ Namespace DownloadObjects
             If LatestScrollValue.HasValue Then ControlInvoke(TP_DATA, Sub()
                                                                           Dim b As Boolean = ScrollSuspended
                                                                           If Not b Then ScrollSuspended = True
-                                                                          TP_DATA.VerticalScroll.Value = LatestScrollValue.Value
-                                                                          TP_DATA.PerformLayout()
+                                                                          SetScrollValue(True)
                                                                           If Not b Then ScrollSuspended = False
                                                                       End Sub)
         End Sub
@@ -514,6 +510,26 @@ Namespace DownloadObjects
                                            End With
                                        End Sub)
             End If
+        End Sub
+        Private Sub TP_DATA_StyleChanged(sender As Object, e As EventArgs) Handles TP_DATA.StyleChanged
+            ControlInvokeFast(TP_DATA, Sub()
+                                           With TP_DATA
+                                               .Padding = New Padding(0, 0, .VerticalScroll.Visible.BoolToInteger * 3, 0)
+                                               .HorizontalScroll.Visible = False
+                                               .HorizontalScroll.Enabled = False
+                                               .PerformLayout()
+                                           End With
+                                       End Sub, EDP.None)
+        End Sub
+        Private Sub SetScrollValue(ByVal Perform As Boolean)
+            With TP_DATA
+                If LatestScrollValue.HasValue Then
+                    If LatestScrollValue.Value < 0 Then LatestScrollValue = 0
+                    If LatestScrollValue.Value > .VerticalScroll.Maximum Then LatestScrollValue = .VerticalScroll.Maximum
+                    .VerticalScroll.Value = LatestScrollValue.Value
+                    If Perform Then .PerformLayout()
+                End If
+            End With
         End Sub
 #End Region
         Private Sub ClearTable()

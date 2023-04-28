@@ -16,7 +16,7 @@ Namespace API.XVIDEOS
         Friend ReadOnly Regex_VideoID As RParams = RParams.DMS(".*?www.xvideos.com/(video\d+).*", 1)
         Friend ReadOnly Regex_M3U8_Reparse As RParams = RParams.DM("NAME=""(\d+).*?""[\r\n]*?(.+)(?=(|[\r\n]+?))", 0, RegexReturn.List)
         Friend ReadOnly Regex_M3U8_Appender As RParams = RParams.DM("(.+)(?=/.+?\.m3u8.*?)", 0)
-        Friend ReadOnly Regex_SavedVideosPlaylist As RParams = RParams.DM("<div id=""video.+?data-id=""(\d+).+?a href=""([^""]+)"".+?title=""([^""]*)""",
-                                                                          0, RegexReturn.List, EDP.ReturnValue, TitleHtmlConverter)
+        Friend ReadOnly Regex_SavedVideosPlaylist As RParams = RParams.DM("\<div id=""video.+?data-id=""(\d+).+?a href=""([^""]+)"".+?title=""([^""]*)""",
+                                                                          0, RegexReturn.List, EDP.ReturnValue)
     End Module
 End Namespace

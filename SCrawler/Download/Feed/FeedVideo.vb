@@ -54,8 +54,8 @@ Namespace DownloadObjects
                 MyVideo.MediaPlayer = MediaPlayer
                 TR_VOLUME.Value = MediaPlayer.Volume / 10
                 If Settings.UseM3U8 Then
-                    Dim f As SFile = $"{Settings.CachePath.PathWithSeparator}FeedSnapshots\{File.GetHashCode}.png"
-                    If Not f.Exists Then f = FFMPEG.TakeSnapshot(File, f, Settings.FfmpegFile, TimeSpan.FromSeconds(1))
+                    Dim f As SFile = $"{Settings.Cache.RootDirectory.PathWithSeparator}FeedSnapshots\{File.GetHashCode}.png"
+                    If Not f.Exists Then f = FFMPEG.TakeSnapshot(File, f, Settings.FfmpegFile.File, TimeSpan.FromSeconds(1))
                     If f.Exists Then
                         MyImage = New ImageRenderer(f, EDP.None)
                         Try
@@ -64,14 +64,14 @@ Namespace DownloadObjects
                                 MyVideo.BackgroundImageLayout = ImageLayout.Zoom
                             End If
                         Catch img_set_ex As Exception
-                            ErrorsDescriber.Execute(EDP.SendInLog, img_set_ex, "Error setting background image for media player." & vbCr &
+                            ErrorsDescriber.Execute(EDP.SendToLog, img_set_ex, "Error setting background image for media player." & vbCr &
                                                                                $"File: {File}{vbCr}Image: {f}")
                         End Try
                     End If
                 End If
                 UpdateButtons()
             Catch ex As Exception
-                ErrorsDescriber.Execute(EDP.SendInLog, ex, $"Media player initialization error({File})")
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, $"Media player initialization error({File})")
                 HasError = True
             End Try
         End Sub
@@ -173,7 +173,7 @@ Namespace DownloadObjects
             Catch oex As OperationCanceledException
                 MyMainLOG = $"Cannot perform action [{ActionName}] on file [{MediaFile}]"
             Catch ex As Exception
-                ErrorsDescriber.Execute(EDP.SendInLog, ex, $"An error occurred while performing action [{ActionName}] on file [{MediaFile}]")
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, $"An error occurred while performing action [{ActionName}] on file [{MediaFile}]")
             End Try
         End Function
     End Class

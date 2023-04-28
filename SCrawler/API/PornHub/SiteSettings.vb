@@ -25,7 +25,6 @@ Namespace API.PornHub
                 Return My.Resources.SiteResources.PornHubPic_16
             End Get
         End Property
-        Private ReadOnly Property CurlPathExists As Boolean
         <PropertyOption(ControlText:="Download GIF", ControlToolTip:="Default for new users", ThreeStates:=True), PXML>
         Friend ReadOnly Property DownloadGifs As PropertyValue
         <PropertyOption(ControlText:="Download GIFs as mp4", ControlToolTip:="Download gifs in 'mp4' format instead of native 'webm'"), PXML>
@@ -40,10 +39,7 @@ Namespace API.PornHub
 #Region "Initializer"
         Friend Sub New()
             MyBase.New("PornHub", "pornhub.com")
-            Responser.CurlPath = $"cURL\curl.exe"
-            Responser.CurlArgumentsRight = "--ssl-no-revoke"
-            CurlPathExists = Responser.CurlPath.Exists
-            Responser.DeclaredError = EDP.ThrowException
+            With Responser : .CurlSslNoRevoke = True : .CurlInsecure = True : End With
 
             DownloadGifsAsMp4 = New PropertyValue(True)
             DownloadGifs = New PropertyValue(CInt(CheckState.Indeterminate), GetType(Integer))
@@ -55,37 +51,16 @@ Namespace API.PornHub
             ImageVideoContains = "pornhub"
         End Sub
 #End Region
-#Region "GetInstance, GetSpecialData"
+#Region "GetInstance"
         Friend Overrides Function GetInstance(ByVal What As ISiteSettings.Download) As IPluginContentProvider
-            If What = ISiteSettings.Download.SavedPosts Then
-                Return New UserData With {
-                    .IsSavedPosts = True,
-                    .VideoPageModel = UserData.VideoPageModels.Favorite,
-                    .PersonType = UserData.PersonTypeUser,
-                    .User = New UserInfo With {.Name = $"{UserData.PersonTypeUser}_{CStr(AConvert(Of String)(SavedPostsUserName.Value, String.Empty))}"}
-                }
-            Else
-                Return New UserData
-            End If
-        End Function
-        Friend Overrides Function GetSpecialData(ByVal URL As String, ByVal Path As String, ByVal AskForPath As Boolean) As IEnumerable
-            If Available(ISiteSettings.Download.Main, True) Then
-                Using resp As Responser = Responser.Copy
-                    Dim spf$ = String.Empty
-                    Dim f As SFile = GetSpecialDataFile(Path, AskForPath, spf)
-                    Dim m As UserMedia = UserData.GetVideoInfo(URL, resp, f)
-                    If m.State = UserMedia.States.Downloaded Then
-                        m.SpecialFolder = f
-                        Return {m}
-                    End If
-                End Using
-            End If
-            Return Nothing
+            Return New UserData
         End Function
 #End Region
 #Region "Downloading"
         Friend Overrides Function Available(ByVal What As ISiteSettings.Download, ByVal Silent As Boolean) As Boolean
-            Return Settings.UseM3U8 And CurlPathExists And (Not What = ISiteSettings.Download.SavedPosts OrElse ACheck(SavedPostsUserName.Value))
+            Responser.CurlPath = Settings.CurlFile
+            Return Settings.UseM3U8 And Settings.CurlFile.Exists And
+                   (Not What = ISiteSettings.Download.SavedPosts OrElse (ACheck(SavedPostsUserName.Value) And Responser.CookiesExists))
         End Function
 #End Region
 #Region "IsMyUser"
@@ -97,23 +72,20 @@ Namespace API.PornHub
                 End If
                 Return Nothing
             Catch ex As Exception
-                Return ErrorsDescriber.Execute(EDP.SendInLog + EDP.ReturnValue, ex, $"[API.PornHub.SiteSettings.IsMyUser({UserURL})]", New ExchangeOptions)
+                Return ErrorsDescriber.Execute(EDP.SendToLog + EDP.ReturnValue, ex, $"[API.PornHub.SiteSettings.IsMyUser({UserURL})]", New ExchangeOptions)
             End Try
         End Function
 #End Region
-#Region "GetUserUrl, GetUserPostUrl"
-        Friend Overrides Function GetUserUrl(ByVal User As IPluginContentProvider, ByVal Channel As Boolean) As String
+#Region "GetUserUrl"
+        Friend Overrides Function GetUserUrl(ByVal User As IPluginContentProvider) As String
             With DirectCast(User, UserData) : Return String.Format(UrlPatternUser, .PersonType, .NameTrue) : End With
-        End Function
-        Friend Overrides Function GetUserPostUrl(ByVal User As UserDataBase, ByVal Media As UserMedia) As String
-            Return Media.URL_BASE
         End Function
 #End Region
 #Region "User options"
         Friend Overrides Sub UserOptions(ByRef Options As Object, ByVal OpenForm As Boolean)
             If Options Is Nothing OrElse Not TypeOf Options Is UserExchangeOptions Then Options = New UserExchangeOptions(Me)
             If OpenForm Then
-                Using f As New OptionsForm(Options) : f.ShowDialog() : End Using
+                Using f As New InternalSettingsForm(Options, Me, False) : f.ShowDialog() : End Using
             End If
         End Sub
 #End Region

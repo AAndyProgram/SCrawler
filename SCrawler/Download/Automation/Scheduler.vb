@@ -7,9 +7,9 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports System.Threading
-Imports SCrawler.DownloadObjects.Groups
-Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Tools
+Imports PersonalUtilities.Functions.XML
+Imports SCrawler.DownloadObjects.Groups
 Imports PauseModes = SCrawler.DownloadObjects.AutoDownloader.PauseModes
 Namespace DownloadObjects
     Friend Class Scheduler : Implements IEnumerable(Of AutoDownloader), IMyEnumerator(Of AutoDownloader), IDisposable

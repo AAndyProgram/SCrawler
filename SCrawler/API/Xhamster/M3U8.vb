@@ -6,10 +6,12 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
+Imports System.Threading
 Imports SCrawler.API.Base
 Imports SCrawler.API.Base.M3U8Declarations
-Imports PersonalUtilities.Functions.RegularExpressions
+Imports PersonalUtilities.Forms.Toolbars
 Imports PersonalUtilities.Tools.Web.Clients
+Imports PersonalUtilities.Functions.RegularExpressions
 Namespace API.Xhamster
     Friend NotInheritable Class M3U8
         Private Sub New()
@@ -72,8 +74,9 @@ Namespace API.Xhamster
                 Responser.UseGZipStream = False
             End Try
         End Function
-        Friend Shared Function Download(ByVal Media As UserMedia, ByVal Responser As Responser, ByVal UHD As Boolean) As SFile
-            Return M3U8Base.Download(ObtainUrls(Media.URL, Responser, UHD), Media.File, Responser)
+        Friend Shared Function Download(ByVal Media As UserMedia, ByVal Responser As Responser, ByVal UHD As Boolean,
+                                        ByVal Token As CancellationToken, ByVal Progress As MyProgress) As SFile
+            Return M3U8Base.Download(ObtainUrls(Media.URL, Responser, UHD), Media.File, Responser, Token, Progress)
         End Function
     End Class
 End Namespace

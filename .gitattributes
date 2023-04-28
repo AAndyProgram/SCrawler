@@ -1,2 +1,5 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Declare files that will always have CRLF line endings on checkout.
+*.md text eol=crlf

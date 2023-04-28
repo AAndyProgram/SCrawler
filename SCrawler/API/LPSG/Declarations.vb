@@ -10,28 +10,41 @@ Imports SCrawler.API.Base
 Imports PersonalUtilities.Functions.RegularExpressions
 Namespace API.LPSG
     Friend Module Declarations
-        Friend ReadOnly Property PhotoRegEx As RParams = RParams.DM("(https://www.lpsg.com/attachments)(.+?)(?="")", 0, RegexReturn.List)
+        Friend ReadOnly Property PhotoRegEx As RParams =
+            RParams.DM("(?<=(https://www.lpsg.com|)/attachments/)([^/]+?[-\.]{1}(jpg|jpeg|gif|png|webm)\.?\d*)(?=/?"")", 0, RegexReturn.List,
+                       CType(Function(Input$) If(Input.IsEmptyString, String.Empty, $"https://www.lpsg.com/attachments/{Input.StringTrimStart("/")}"),
+                             Func(Of String, String)))
         Friend ReadOnly Property PhotoRegExExt As New RParams("img.data.src=""(/proxy[^""]+?)""", Nothing, 1, RegexReturn.List) With {
-            .Converter = Function(Input) $"https://www.lpsg.com/{SymbolsConverter.HTML.Decode(Input)}"}
+                                                              .Converter = Function(Input) $"https://www.lpsg.com/{SymbolsConverter.HTML.Decode(Input)}"}
         Friend ReadOnly Property NextPageRegex As RParams = RParams.DMS("<link rel=""next"" href=""(.+?/page-(\d+))""", 2)
         Private Const FileUrlRegexDefault As String = "([^/]+?)(jpg|jpeg|gif|png|webm)"
         Private ReadOnly InputFReplacer As New ErrorsDescriber(EDP.ReturnValue)
         Private ReadOnly InputForbidRemover As Func(Of String, String) = Function(Input) If(Input.IsEmptyString, Input, Input.StringRemoveWinForbiddenSymbols(, InputFReplacer))
-        Friend ReadOnly Property FileRegEx As New RParams(FileUrlRegexDefault, Nothing, 0) With {
-            .Converter = Function(ByVal Input As String) As String
-                             Input = InputForbidRemover.Invoke(Input)
-                             If Not Input.IsEmptyString Then
-                                 Dim lv$ = Input.Split("-").LastOrDefault
-                                 If Not lv.IsEmptyString Then
-                                     Input = Input.Replace($"-{lv}", String.Empty)
-                                     Input &= $".{lv}"
-                                 End If
-                             End If
-                             Return Input
-                         End Function}
-        Friend ReadOnly Property FileRegExExt As New RParams(FileUrlRegexDefault, 0, Nothing, InputForbidRemover)
-        Friend ReadOnly Property FileRegExExt2 As New RParams("([^/]+?)(?=(\Z|&))", 0, Nothing, InputForbidRemover)
+        Private ReadOnly FileRegEx As RParams = RParams.DMS(FileUrlRegexDefault, 0, RegexReturn.ListByMatch, InputFReplacer)
+#Disable Warning IDE0060
+        Friend Function FileRegExF(ByVal Input As String, ByVal Index As Integer) As String
+#Enable Warning
+            If Not Input.IsEmptyString Then
+                Dim l As List(Of String) = RegexReplace(Input, FileRegEx)
+                If l.ListExists(3) Then
+                    Dim ext$ = l(2)
+                    Dim f$ = l(1).StringTrim("-", ".")
+                    Input = $"{f}.{ext}"
+                End If
+            End If
+            Return Input
+        End Function
+        Private ReadOnly FileRegExExt As RParams = RParams.DM(FileUrlRegexDefault, 0, InputForbidRemover, InputFReplacer)
+        Private ReadOnly FileRegExExt2 As RParams = RParams.DM("([^/]+?)(?=(\Z|&))", 0, InputForbidRemover, InputFReplacer)
+        Friend Function FileRegExExtF(ByVal Input As String, ByVal Index As Integer) As String
+            If Index = 0 Then
+                Return RegexReplace(Input, FileRegExExt)
+            Else
+                Return RegexReplace(Input, FileRegExExt2)
+            End If
+        End Function
         Friend ReadOnly Property FileExistsRegEx As RParams = RParams.DMS(FileUrlRegexDefault, 2)
         Friend ReadOnly Property TempListAddParams As New ListAddParams(LAP.NotContainsOnly) With {.Comparer = New FComparer(Of UserMedia)(Function(x, y) x.URL = y.URL)}
+        Friend ReadOnly Property ContentTitleRegEx As RParams = RParams.DMS("meta property=.og:title..content=""([^""]+)""", 1, InputFReplacer)
     End Module
 End Namespace

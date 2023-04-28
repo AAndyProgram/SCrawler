@@ -258,7 +258,8 @@ Namespace API.Reddit
                     .Progress = p,
                     .SaveToCache = True,
                     .SkipExistsUsers = SkipExists,
-                    .ChannelInfo = Me
+                    .ChannelInfo = Me,
+                    .IsChannel = True
                 }
                     With d
                         .SetEnvironment(HOST, CUser, False)
@@ -306,7 +307,7 @@ Namespace API.Reddit
         Friend Function GetEnumerator() As IEnumerator(Of UserPost) Implements IEnumerable(Of UserPost).GetEnumerator
             Return New MyEnumerator(Of UserPost)(Me)
         End Function
-        Friend Function IEnumerable_GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
+        Private Function IEnumerable_GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
             Return GetEnumerator()
         End Function
 #End Region
@@ -373,7 +374,7 @@ Namespace API.Reddit
                 Dim l As New List(Of String)
                 If Posts.Count > 0 Or PostsLatest.Count > 0 Then l.ListAddList((From p In PostsAll Where Not p.ID.IsEmptyString Select p.ID), LNC)
                 l.ListAddList(PostsNames, LNC)
-                If l.Count > 0 Then TextSaver.SaveTextToFile(l.ListToString("|"), FilePosts, True,, EDP.SendInLog)
+                If l.Count > 0 Then TextSaver.SaveTextToFile(l.ListToString("|"), FilePosts, True,, EDP.SendToLog)
             End If
             Using x As New XmlFile With {.AllowSameNames = True, .Name = "Channel"}
                 x.Add(Name_Name, Name)
@@ -418,7 +419,7 @@ Namespace API.Reddit
                     CountOfAddedUsers.Clear()
                     CountOfLoadedPostsPerSession.Clear()
                     ChannelExistentUserNames.Clear()
-                    CachePath.Delete(SFO.Path, SFODelete.None, EDP.SendInLog)
+                    CachePath.Delete(SFO.Path, SFODelete.None, EDP.SendToLog)
                 End If
                 disposedValue = True
             End If

@@ -18,20 +18,17 @@ Namespace API.Base
             HOST = h
             Progress = Bar
         End Sub
-        Friend Sub Download(ByVal Token As CancellationToken)
+        Friend Sub Download(ByVal Token As CancellationToken, ByVal Multiple As Boolean)
             Try
                 If HOST.Source.ReadyToDownload(PDownload.SavedPosts) Then
-                    If HOST.Available(PDownload.SavedPosts, False) Then
+                    If HOST.Available(PDownload.SavedPosts, Multiple) Then
                         HOST.DownloadStarted(PDownload.SavedPosts)
                         Dim u As New UserInfo With {.Plugin = HOST.Key, .Site = HOST.Name, .SpecialPath = HOST.SavedPostsPath}
                         Using user As IUserData = HOST.GetInstance(PDownload.SavedPosts, Nothing, False, False)
-                            If Not user Is Nothing AndAlso Not user.Name.IsEmptyString Then
-                                u.Name = user.Name
+                            If Not user Is Nothing Then
                                 With DirectCast(user, UserDataBase)
-                                    With .User : u.IsChannel = .IsChannel : u.UpdateUserFile() : End With
-                                    .User = u
-                                    .LoadUserInformation()
                                     .IsSavedPosts = True
+                                    .LoadUserInformation()
                                     .Progress = Progress
                                     If Not .FileExists Then .UpdateUserInformation()
                                 End With
@@ -49,7 +46,7 @@ Namespace API.Base
                 End If
             Catch ex As Exception
                 Progress.InformationTemporary = $"{HOST.Name} downloading error"
-                ErrorsDescriber.Execute(EDP.SendInLog, ex, $"[API.Base.ProfileSaved.Download({HOST.Key})]")
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, $"[API.Base.ProfileSaved.Download({HOST.Key})]")
             Finally
                 HOST.DownloadDone(PDownload.SavedPosts)
                 MainFrameObj.UpdateLogButton()

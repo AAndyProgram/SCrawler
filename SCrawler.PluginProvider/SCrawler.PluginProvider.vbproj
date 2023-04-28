@@ -102,6 +102,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Attributes\Attributes.vb" />
+    <Compile Include="Interfaces\IDownloadableMedia.vb" />
     <Compile Include="ObjectInterfaces\IPropertyProvider.vb" />
     <Compile Include="Objects\ExchangeOptions.vb" />
     <Compile Include="ObjectInterfaces\ILogProvider.vb" />

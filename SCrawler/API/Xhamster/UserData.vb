@@ -8,6 +8,7 @@
 ' but WITHOUT ANY WARRANTY
 Imports System.Threading
 Imports SCrawler.API.Base
+Imports SCrawler.API.YouTube.Objects
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Tools.Web.Clients
@@ -15,7 +16,12 @@ Imports PersonalUtilities.Tools.Web.Documents.JSON
 Imports UTypes = SCrawler.API.Base.UserMedia.Types
 Namespace API.Xhamster
     Friend Class UserData : Inherits UserDataBase
+#Region "XML names"
+        Private Const Name_TrueName As String = "TrueName"
+#End Region
 #Region "Declarations"
+        Friend Property IsChannel As Boolean = False
+        Friend Property TrueName As String = String.Empty
         Private ReadOnly Property MySettings As SiteSettings
             Get
                 Return DirectCast(HOST.Source, SiteSettings)
@@ -26,11 +32,39 @@ Namespace API.Xhamster
         End Structure
         Private ReadOnly _TempPhotoData As List(Of UserMedia)
         Protected Overrides Sub LoadUserInformation_OptionalFields(ByRef Container As XmlFile, ByVal Loading As Boolean)
+            Dim setNames As Action = Sub()
+                                         If TrueName.IsEmptyString Then
+                                             Dim n$() = Name.Split("@")
+                                             If n.ListExists Then
+                                                 If n.Length = 2 Then
+                                                     TrueName = n(0)
+                                                     IsChannel = True
+                                                 ElseIf IsChannel Then
+                                                     TrueName = Name
+                                                 Else
+                                                     TrueName = n(0)
+                                                 End If
+                                             End If
+                                         End If
+                                     End Sub
+            With Container
+                If Loading Then
+                    IsChannel = .Value(Name_IsChannel).FromXML(Of Boolean)(False)
+                    TrueName = .Value(Name_TrueName)
+                    setNames.Invoke
+                Else
+                    setNames.Invoke
+                    .Add(Name_IsChannel, IsChannel.BoolToInteger)
+                    .Add(Name_TrueName, TrueName)
+                    setNames.Invoke
+                End If
+            End With
         End Sub
 #End Region
 #Region "Initializer"
         Friend Sub New()
             UseInternalM3U8Function = True
+            UseClientTokens = True
             _TempPhotoData = New List(Of UserMedia)
         End Sub
 #End Region
@@ -58,10 +92,10 @@ Namespace API.Xhamster
                     URL = $"https://xhamster.com/my/favorites/{IIf(IsVideo, "videos", "photos-and-galleries")}{IIf(Page = 1, String.Empty, $"/{Page}")}"
                     listNode = If(IsVideo, {"favoriteVideoListComponent", "models"}, {"favoritesGalleriesAndPhotosCollection"})
                 ElseIf IsChannel Then
-                    URL = $"https://xhamster.com/channels/{Name}/newest{IIf(Page = 1, String.Empty, $"/{Page}")}"
+                    URL = $"https://xhamster.com/channels/{TrueName}/newest{IIf(Page = 1, String.Empty, $"/{Page}")}"
                     listNode = {"trendingVideoListComponent", "models"}
                 Else
-                    URL = $"https://xhamster.com/users/{Name}/{IIf(IsVideo, "videos", "photos")}{IIf(Page = 1, String.Empty, $"/{Page}")}"
+                    URL = $"https://xhamster.com/users/{TrueName}/{IIf(IsVideo, "videos", "photos")}{IIf(Page = 1, String.Empty, $"/{Page}")}"
                     listNode = {If(IsVideo, "userVideoCollection", "userGalleriesCollection")}
                 End If
                 ThrowAny(Token)
@@ -69,10 +103,10 @@ Namespace API.Xhamster
                 Dim r$ = Responser.GetResponse(URL)
                 If Not r.IsEmptyString Then r = RegexReplace(r, HtmlScript)
                 If Not r.IsEmptyString Then
-                    Using j As EContainer = JsonDocument.Parse(r).XmlIfNothing
-                        If j.Count > 0 Then
-                            If Not MySettings.DomainsUpdated AndAlso j.Contains("trustURLs") Then _
-                               MySettings.UpdateDomains(j("trustURLs").Select(Function(d) d(0).XmlIfNothingValue), False)
+                    Using j As EContainer = JsonDocument.Parse(r)
+                        If j.ListExists Then
+                            If Not MySettings.Domains.UpdatedBySite AndAlso j.Contains("trustURLs") Then _
+                               MySettings.Domains.Add(j("trustURLs").Select(Function(d) d(0).XmlIfNothingValue), True)
 
                             MaxPage = j.Value(mPages).FromXML(Of Integer)(-1)
 
@@ -113,7 +147,8 @@ Namespace API.Xhamster
                     End Using
                 End If
 
-                If (Not _TempMediaList.Count = cBefore Or skipped) And (IsChannel Or (MaxPage > 0 And Page < MaxPage)) Then DownloadData(Page + 1, IsVideo, Token)
+                If (Not _TempMediaList.Count = cBefore Or skipped) And
+                   (IsChannel Or (MaxPage > 0 And Page < MaxPage)) Then DownloadData(Page + 1, IsVideo, Token)
             Catch ex As Exception
                 ProcessException(ex, Token, $"data downloading error [{URL}]")
             End Try
@@ -130,7 +165,7 @@ Namespace API.Xhamster
                             m = _TempMediaList(i)
                             If Not m.URL_BASE.IsEmptyString Then
                                 m2 = Nothing
-                                If GetM3U8(m2, m.URL_BASE, Responser) Then
+                                If GetM3U8(m2, m.URL_BASE) Then
                                     m2.URL_BASE = m.URL_BASE
                                     _TempMediaList(i) = m2
                                 Else
@@ -205,7 +240,7 @@ Namespace API.Xhamster
                         If m.State = UserMedia.States.Missing AndAlso Not m.URL_BASE.IsEmptyString Then
                             ThrowAny(Token)
                             m2 = Nothing
-                            If GetM3U8(m2, m.URL_BASE, Responser) Then
+                            If GetM3U8(m2, m.URL_BASE) Then
                                 m2.URL_BASE = m.URL_BASE
                                 _TempMediaList.ListAddValue(m2, LNC)
                                 rList.Add(i)
@@ -224,8 +259,7 @@ Namespace API.Xhamster
         End Sub
 #End Region
 #Region "GetM3U8"
-        Private Overloads Function GetM3U8(ByRef m As UserMedia, ByVal URL As String, ByVal Responser As Responser,
-                                           Optional ByVal e As ErrorsDescriber = Nothing) As Boolean
+        Private Overloads Function GetM3U8(ByRef m As UserMedia, ByVal URL As String) As Boolean
             Try
                 If Not URL.IsEmptyString Then
                     Dim r$ = Responser.GetResponse(URL)
@@ -242,8 +276,7 @@ Namespace API.Xhamster
                 End If
                 Return False
             Catch ex As Exception
-                If Not e.Exists Then e = EDP.ReturnValue
-                Return ErrorsDescriber.Execute(e, ex, $"[{ToStringForLog()}]: API.Xhamster.GetM3U8({URL})", False)
+                Return ErrorsDescriber.Execute(EDP.ReturnValue, ex, $"[{ToStringForLog()}]: API.Xhamster.GetM3U8({URL})", False)
             End Try
         End Function
         Private Overloads Function GetM3U8(ByRef m As UserMedia, ByVal j As EContainer) As Boolean
@@ -252,44 +285,29 @@ Namespace API.Xhamster
             Return False
         End Function
 #End Region
-#Region "Standalone downloader"
-        Friend Shared Function GetVideoInfo(ByVal URL As String, ByVal Responser As Responser, ByVal Path As SFile) As UserMedia
-            Try
-                Using u As New UserData With {.Responser = Responser, .HOST = Settings(XhamsterSiteKey)}
-                    Dim m As UserMedia = Nothing
-                    If u.GetM3U8(m, URL, Responser, EDP.ThrowException) Then
-                        m.File.Path = Path.Path
-                        Dim f As SFile = u.DownloadM3U8(m.URL, m, m.File)
-                        If Not f.IsEmptyString Then
-                            m.File = f
-                            m.State = UserMedia.States.Downloaded
-                            Return m
-                        End If
-                    End If
-                End Using
-                Return Nothing
-            Catch ex As Exception
-                Return ErrorsDescriber.Execute(EDP.SendInLog + EDP.ReturnValue, ex, $"XHamster standalone download error: [{URL}]", New UserMedia)
-            End Try
-        End Function
+#Region "DownloadSingleObject"
+        Protected Overrides Sub DownloadSingleObject_GetPosts(ByVal Data As IYouTubeMediaContainer, ByVal Token As CancellationToken)
+            _ContentList.Add(New UserMedia(Data.URL_BASE) With {.State = UserMedia.States.Missing})
+            ReparseMissing(Token)
+        End Sub
 #End Region
 #Region "Download data"
         Protected Overrides Sub DownloadContent(ByVal Token As CancellationToken)
             DownloadContentDefault(Token)
         End Sub
-        Protected Overloads Overrides Function DownloadM3U8(ByVal URL As String, ByVal Media As UserMedia, ByVal DestinationFile As SFile) As SFile
+        Protected Overrides Function DownloadM3U8(ByVal URL As String, ByVal Media As UserMedia, ByVal DestinationFile As SFile, ByVal Token As CancellationToken) As SFile
             Media.File = DestinationFile
-            Return M3U8.Download(Media, Responser, MySettings.DownloadUHD.Value)
+            Return M3U8.Download(Media, Responser, MySettings.DownloadUHD.Value, Token, If(UseInternalM3U8Function_UseProgress, Progress, Nothing))
         End Function
 #End Region
 #Region "Create media"
-        Private Shared Function ExtractMedia(ByVal j As EContainer, ByVal t As UTypes, Optional ByVal UrlNode As String = "pageURL",
-                                             Optional ByVal DetectGalery As Boolean = True, Optional ByVal PostDate As Date? = Nothing) As UserMedia
+        Private Function ExtractMedia(ByVal j As EContainer, ByVal t As UTypes, Optional ByVal UrlNode As String = "pageURL",
+                                      Optional ByVal DetectGalery As Boolean = True, Optional ByVal PostDate As Date? = Nothing) As UserMedia
             If Not j Is Nothing Then
                 Dim m As New UserMedia(j.Value(UrlNode).Replace("\", String.Empty), t) With {
                     .Post = New UserPost With {
                         .ID = j.Value("id"),
-                        .Date = AConvert(Of Date)(j.Value("created"), DateProvider, Nothing)
+                        .Date = AConvert(Of Date)(j.Value("created"), UnixDate32Provider, Nothing)
                     },
                     .PictureOption = TitleHtmlConverter(j.Value("title")),
                     .Object = New ExchObj

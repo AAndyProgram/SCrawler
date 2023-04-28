@@ -7,8 +7,11 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports System.Net
+Imports System.Threading
 Imports SCrawler.API.Base
 Imports SCrawler.API.Imgur.Declarations
+Imports SCrawler.API.YouTube.Objects
+Imports SCrawler.Plugin.Hosts
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Tools.Web.Documents.JSON
@@ -18,8 +21,28 @@ Namespace API.Imgur
             Friend ReadOnly PostRegex As RParams = RParams.DMS("/([^/]+?)(|#.*?|\.[\w]{0,4})(|\?.*?)\Z", 1)
         End Module
     End Namespace
-    Friend NotInheritable Class Envir
-        Private Sub New()
+    Friend NotInheritable Class Envir : Inherits UserDataBase
+        Friend Const SiteKey As String = "AndyProgram_Imgur"
+        Friend Const SiteName As String = "Imgur"
+        Friend Sub New()
+        End Sub
+#Region "UserDataBase Support"
+        Protected Overrides Sub LoadUserInformation_OptionalFields(ByRef Container As XmlFile, ByVal Loading As Boolean)
+        End Sub
+        Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
+        End Sub
+        Protected Overrides Sub DownloadContent(ByVal Token As CancellationToken)
+            SeparateVideoFolder = False
+            DownloadContentDefault(Token)
+        End Sub
+        Protected Overrides Function DownloadingException(ByVal ex As Exception, ByVal Message As String, Optional ByVal FromPE As Boolean = False,
+                                                          Optional ByVal EObj As Object = Nothing) As Integer
+            Return 0
+        End Function
+#End Region
+        Protected Overrides Sub DownloadSingleObject_GetPosts(ByVal Data As IYouTubeMediaContainer, ByVal Token As CancellationToken)
+            Dim videos As IEnumerable(Of UserMedia) = GetVideoInfo(Data.URL, EDP.SendToLog)
+            If videos.ListExists Then _TempMediaList.AddRange(videos)
         End Sub
         Friend Shared Function GetGallery(ByVal URL As String, Optional ByVal e As ErrorsDescriber = Nothing) As List(Of String)
             Try
@@ -47,7 +70,7 @@ Namespace API.Imgur
                 End If
                 Return Nothing
             Catch ex As Exception
-                Return DownloadingException(ex, $"[API.Imgur.Envir.GetGallery({URL})]", Nothing, e)
+                Return DownloadingException_Internal(ex, $"[API.Imgur.Envir.GetGallery({URL})]", Nothing, e)
             End Try
         End Function
         Friend Shared Function GetImage(ByVal URL As String, Optional ByVal e As ErrorsDescriber = Nothing) As String
@@ -64,7 +87,7 @@ Namespace API.Imgur
                 End If
                 Return String.Empty
             Catch ex As Exception
-                Return DownloadingException(ex, $"[API.Imgur.Envir.GetImage({URL})]", String.Empty, e)
+                Return DownloadingException_Internal(ex, $"[API.Imgur.Envir.GetImage({URL})]", String.Empty, e)
             End Try
         End Function
         Friend Shared Function GetVideoInfo(ByVal URL As String, Optional ByVal e As ErrorsDescriber = Nothing) As IEnumerable(Of UserMedia)
@@ -81,11 +104,23 @@ Namespace API.Imgur
                 Return Nothing
             Catch ex As Exception
                 If Not e.Exists Then e = EDP.LogMessageValue
-                Return ErrorsDescriber.Execute(e, ex, "Imgur standalone downloader: fetch media error")
+                Return ErrorsDescriber.Execute(e, ex, $"[API.Imgur.Envir.GetVideoInfo({URL})]: fetch media error")
             End Try
         End Function
-        Private Shared Function DownloadingException(ByVal ex As Exception, ByVal Message As String,
-                                                     ByVal NullArg As Object, ByVal e As ErrorsDescriber) As Object
+        Friend Shared Function GetSingleMediaInstance(ByVal URL As String, ByVal OutputFile As SFile) As IYouTubeMediaContainer
+            If Not URL.IsEmptyString AndAlso URL.Contains("imgur.com") Then
+                Return New DownloadableMediaHost(URL, OutputFile) With {
+                    .Instance = New Envir,
+                    .Site = SiteName,
+                    .SiteKey = SiteKey,
+                    .SiteIcon = Nothing
+                }
+            Else
+                Return Nothing
+            End If
+        End Function
+        Private Shared Function DownloadingException_Internal(ByVal ex As Exception, ByVal Message As String,
+                                                              ByVal NullArg As Object, ByVal e As ErrorsDescriber) As Object
             If TypeOf ex Is WebException Then
                 Dim obj As HttpWebResponse = TryCast(DirectCast(ex, WebException).Response, HttpWebResponse)
                 If Not obj Is Nothing Then
@@ -97,7 +132,7 @@ Namespace API.Imgur
                     End If
                 End If
             End If
-            If Not e.Exists Then e = New ErrorsDescriber(EDP.ReturnValue + EDP.SendInLog)
+            If Not e.Exists Then e = New ErrorsDescriber(EDP.ReturnValue + EDP.SendToLog)
             Return ErrorsDescriber.Execute(e, ex, Message, NullArg)
         End Function
     End Class

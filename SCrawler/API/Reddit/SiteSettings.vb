@@ -38,31 +38,28 @@ Namespace API.Reddit
             End With
             SavedPostsUserName = New PropertyValue(String.Empty, GetType(String))
             UseM3U8 = New PropertyValue(True)
-            UrlPatternUser = "https://www.reddit.com/user/{0}/"
-            UrlPatternChannel = "https://www.reddit.com/r/{0}/"
+            UrlPatternUser = "https://www.reddit.com/{0}/{1}/"
             ImageVideoContains = "reddit.com"
             UserRegex = RParams.DM("[htps:/]{7,8}.*?reddit.com/([user]{1,4})/([^/]+)", 0, RegexReturn.ListByMatch, EDP.ReturnValue)
         End Sub
         Friend Overrides Function GetInstance(ByVal What As Download) As IPluginContentProvider
-            Select Case What
-                Case Download.Main : Return New UserData
-                Case Download.Channel : Return New UserData With {.SaveToCache = False, .SkipExistsUsers = False, .AutoGetLimits = True}
-                Case Download.SavedPosts
-                    Dim u As New UserData With {.IsSavedPosts = True}
-                    DirectCast(u, UserDataBase).User = New UserInfo With {
-                        .Name = CStr(AConvert(Of String)(SavedPostsUserName.Value, String.Empty)),
-                        .IsChannel = True
-                    }
-                    Return u
-            End Select
-            Return Nothing
+            Return New UserData
         End Function
+        Friend Const ChannelOption As String = "r"
         Friend Overrides Function IsMyUser(ByVal UserURL As String) As ExchangeOptions
             Dim l As List(Of String) = RegexReplace(UserURL, UserRegex)
-            If l.ListExists(3) Then Return New ExchangeOptions(Site, l(2), l(1) = "r") Else Return Nothing
+            If l.ListExists(3) Then
+                Dim n$ = l(2)
+                If Not l(1).IsEmptyString AndAlso l(1) = ChannelOption Then n &= $"@{ChannelOption}"
+                Return New ExchangeOptions(Site, n)
+            Else
+                Return Nothing
+            End If
         End Function
         Friend Overrides Function Available(ByVal What As Download, ByVal Silent As Boolean) As Boolean
             Try
+                Dim trueValue As Boolean = Not What = Download.SavedPosts OrElse (Responser.CookiesExists And ACheck(SavedPostsUserName.Value))
+                If Not trueValue Then Return False
                 Dim dl As List(Of DownDetector.Data) = DownDetector.GetData("reddit")
                 If dl.ListExists Then
                     dl = dl.Take(4).ToList
@@ -76,7 +73,7 @@ Namespace API.Reddit
                                         dl.ListToString(vbCr) & vbCr & vbCr &
                                         "Do you want to continue parsing Reddit data?", "There are outage reports on Reddit"}, vbYesNo) = vbYes Then
                                 UpdateRedGifsToken()
-                                Return True
+                                Return trueValue
                             Else
                                 Return False
                             End If
@@ -84,28 +81,29 @@ Namespace API.Reddit
                     End If
                 End If
                 UpdateRedGifsToken()
-                Return True
+                Return trueValue
             Catch ex As Exception
-                Return ErrorsDescriber.Execute(EDP.SendInLog + EDP.ReturnValue, ex, "[API.Reddit.SiteSettings.Available]", True)
+                Return ErrorsDescriber.Execute(EDP.SendToLog + EDP.ReturnValue, ex, "[API.Reddit.SiteSettings.Available]", True)
             End Try
         End Function
         Private Sub UpdateRedGifsToken()
             DirectCast(Settings(RedGifs.RedGifsSiteKey).Source, RedGifs.SiteSettings).UpdateTokenIfRequired()
         End Sub
-        Friend Overrides Function GetSpecialData(ByVal URL As String, ByVal Path As String, ByVal AskForPath As Boolean) As IEnumerable
-            Dim spf$ = String.Empty
-            Dim f As SFile = GetSpecialDataFile(Path, AskForPath, spf)
-            f = $"{f.PathWithSeparator}OptionalPath\"
-            Return UserData.GetVideoInfo(URL, Responser, f, spf)
-        End Function
         Friend Overrides Sub UserOptions(ByRef Options As Object, ByVal OpenForm As Boolean)
             If Options Is Nothing OrElse Not TypeOf Options Is RedditViewExchange Then Options = New RedditViewExchange
             If OpenForm Then
                 Using f As New RedditViewSettingsForm(Options) : f.ShowDialog() : End Using
             End If
         End Sub
+        Friend Overrides Function GetUserUrl(ByVal User As IPluginContentProvider) As String
+            With DirectCast(User, UserData) : Return String.Format(UrlPatternUser, IIf(.IsChannel, ChannelOption, "user"), .TrueName) : End With
+        End Function
         Friend Overrides Function GetUserPostUrl(ByVal User As UserDataBase, ByVal Media As UserMedia) As String
-            Return $"https://www.reddit.com/comments/{Media.Post.ID.Split("_").LastOrDefault}/"
+            If Not Media.Post.ID.IsEmptyString Then
+                Return $"https://www.reddit.com/comments/{Media.Post.ID.Split("_").LastOrDefault}/"
+            Else
+                Return String.Empty
+            End If
         End Function
     End Class
 End Namespace

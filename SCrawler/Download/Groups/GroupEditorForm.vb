@@ -16,10 +16,7 @@ Namespace DownloadObjects.Groups
             MyGroup = g
             MyDefs = New DefaultFormOptions(Me, Settings.Design)
         End Sub
-        Friend Class NameChecker : Implements IFieldsCheckerProvider
-            Private Property ErrorMessage As String Implements IFieldsCheckerProvider.ErrorMessage
-            Private Property Name As String Implements IFieldsCheckerProvider.Name
-            Private Property TypeError As Boolean Implements IFieldsCheckerProvider.TypeError
+        Friend Class NameChecker : Inherits FieldsCheckerProviderBase
             Private ReadOnly ExistingGroupName As String
             Private ReadOnly Property Source As IEnumerable(Of IGroup)
             Private ReadOnly ParamName As String
@@ -28,21 +25,20 @@ Namespace DownloadObjects.Groups
                 Source = _Source
                 ParamName = Param
             End Sub
-            Private Function Convert(ByVal Value As Object, ByVal DestinationType As Type, ByVal Provider As IFormatProvider,
-                                     Optional ByVal NothingArg As Object = Nothing, Optional ByVal e As ErrorsDescriber = Nothing) As Object Implements ICustomProvider.Convert
+            Public Overrides Function Convert(ByVal Value As Object, ByVal DestinationType As Type, ByVal Provider As IFormatProvider,
+                                              Optional ByVal NothingArg As Object = Nothing, Optional ByVal e As ErrorsDescriber = Nothing) As Object
                 If Not ACheck(Value) Then
                     ErrorMessage = $"{ParamName} name cannot be empty"
+                    HasError = True
                 ElseIf Not ExistingGroupName.IsEmptyString AndAlso CStr(Value) = ExistingGroupName Then
                     Return Value
                 ElseIf Source.Count > 0 AndAlso Source.LongCount(Function(g) g.Name = CStr(Value)) > 0 Then
                     ErrorMessage = $"A {ParamName.ToLower} with the same name already exists"
+                    HasError = True
                 Else
                     Return Value
                 End If
                 Return Nothing
-            End Function
-            Private Function GetFormat(ByVal FormatType As Type) As Object Implements IFormatProvider.GetFormat
-                Throw New NotImplementedException("[GetFormat] is not available in this context")
             End Function
         End Class
         Private Sub GroupEditorForm_Load(sender As Object, e As EventArgs) Handles Me.Load

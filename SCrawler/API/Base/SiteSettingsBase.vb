@@ -6,10 +6,9 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
-Imports PersonalUtilities.Functions.RegularExpressions
-Imports PersonalUtilities.Tools.Web.Clients
-Imports PersonalUtilities.Tools.Web.Cookies
 Imports SCrawler.Plugin
+Imports PersonalUtilities.Tools.Web.Clients
+Imports PersonalUtilities.Functions.RegularExpressions
 Imports Download = SCrawler.Plugin.ISiteSettings.Download
 Namespace API.Base
     Friend MustInherit Class SiteSettingsBase : Implements ISiteSettings, IResponserContainer
@@ -18,6 +17,23 @@ Namespace API.Base
         Friend Overridable ReadOnly Property Image As Image Implements ISiteSettings.Image
         Private Property Logger As ILogProvider = LogConnector Implements ISiteSettings.Logger
         Friend Overridable ReadOnly Property Responser As Responser
+        Friend ReadOnly Property CookiesNetscapeFile As SFile
+        Protected CheckNetscapeCookiesOnEndInit As Boolean = False
+        Private _UseNetscapeCookies As Boolean = False
+        Protected Property UseNetscapeCookies As Boolean
+            Get
+                Return _UseNetscapeCookies
+            End Get
+            Set(ByVal use As Boolean)
+                Dim b As Boolean = Not _UseNetscapeCookies = use
+                _UseNetscapeCookies = use
+                If Not Responser Is Nothing Then
+                    Responser.Cookies.ChangedAllowInternalDrop = Not _UseNetscapeCookies
+                    Responser.Cookies.Changed = False
+                End If
+                If b And _UseNetscapeCookies Then Update_SaveCookiesNetscape()
+            End Set
+        End Property
         Private Property IResponserContainer_Responser As Responser Implements IResponserContainer.Responser
             Get
                 Return Responser
@@ -27,20 +43,15 @@ Namespace API.Base
         Friend MustOverride Function GetInstance(ByVal What As Download) As IPluginContentProvider Implements ISiteSettings.GetInstance
         Friend Sub New(ByVal SiteName As String)
             Site = SiteName
+            CookiesNetscapeFile = $"{SettingsFolderName}\Responser_{Site}_Cookies_Netscape.txt"
         End Sub
         Friend Sub New(ByVal SiteName As String, ByVal CookiesDomain As String)
-            Site = SiteName
-            Responser = New Responser($"{SettingsFolderName}\Responser_{Site}.xml")
+            Me.New(SiteName)
+            Responser = New Responser($"{SettingsFolderName}\Responser_{Site}.xml") With {.DeclaredError = EDP.ThrowException}
             With Responser
-                If .File.Exists Then
-                    If EncryptCookies.CookiesEncrypted Then .CookiesEncryptKey = SettingsCLS.CookieEncryptKey
-                    .LoadSettings()
-                Else
-                    .CookiesDomain = CookiesDomain
-                    .CookiesEncryptKey = SettingsCLS.CookieEncryptKey
-                    .SaveSettings()
-                End If
-                If .CookiesDomain.IsEmptyString Then .CookiesDomain = CookiesDomain
+                .CookiesDomain = CookiesDomain
+                .CookiesEncryptKey = SettingsCLS.CookieEncryptKey
+                If .File.Exists Then .LoadSettings() Else .SaveSettings()
             End With
         End Sub
 #Region "XML"
@@ -51,17 +62,47 @@ Namespace API.Base
         Friend Overridable Sub BeginInit() Implements ISiteSettings.BeginInit
         End Sub
         Friend Overridable Sub EndInit() Implements ISiteSettings.EndInit
-            EncryptCookies.ValidateCookiesEncrypt(Responser)
             If Not DefaultUserAgent.IsEmptyString And Not Responser Is Nothing Then Responser.UserAgent = DefaultUserAgent
+            If CheckNetscapeCookiesOnEndInit Then Update_SaveCookiesNetscape(, True)
         End Sub
+#End Region
+#Region "Update, Edit"
         Friend Overridable Sub BeginUpdate() Implements ISiteSettings.BeginUpdate
         End Sub
         Friend Overridable Sub EndUpdate() Implements ISiteSettings.EndUpdate
         End Sub
+        Protected _SiteEditorFormOpened As Boolean = False
         Friend Overridable Sub BeginEdit() Implements ISiteSettings.BeginEdit
+            _SiteEditorFormOpened = True
         End Sub
         Friend Overridable Sub EndEdit() Implements ISiteSettings.EndEdit
+            If _SiteEditorFormOpened Then DomainsReset()
+            _SiteEditorFormOpened = False
         End Sub
+        Friend Overridable Sub Update() Implements ISiteSettings.Update
+            If _SiteEditorFormOpened Then
+                If UseNetscapeCookies Then Update_SaveCookiesNetscape()
+                DomainsApply()
+            End If
+            If Not Responser Is Nothing Then Responser.SaveSettings()
+        End Sub
+        Protected Sub Update_SaveCookiesNetscape(Optional ByVal Force As Boolean = False, Optional ByVal IsInit As Boolean = False)
+            If Not Responser Is Nothing Then
+                With Responser
+                    If .Cookies.Changed Or Force Or IsInit Then
+                        If IsInit And CookiesNetscapeFile.Exists Then Exit Sub
+                        If .CookiesExists Then .Cookies.SaveNetscapeFile(CookiesNetscapeFile) Else CookiesNetscapeFile.Delete()
+                        .Cookies.Changed = False
+                    End If
+                End With
+            End If
+        End Sub
+#Region "Specialized"
+        Protected Overridable Sub DomainsApply()
+        End Sub
+        Protected Overridable Sub DomainsReset()
+        End Sub
+#End Region
 #End Region
 #Region "Before and After Download"
         Friend Overridable Sub DownloadStarted(ByVal What As Download) Implements ISiteSettings.DownloadStarted
@@ -75,20 +116,15 @@ Namespace API.Base
 #End Region
 #Region "User info"
         Protected UrlPatternUser As String = String.Empty
-        Protected UrlPatternChannel As String = String.Empty
-        Friend Overridable Function GetUserUrl(ByVal User As IPluginContentProvider, ByVal Channel As Boolean) As String Implements ISiteSettings.GetUserUrl
-            If Channel Then
-                If Not UrlPatternChannel.IsEmptyString Then Return String.Format(UrlPatternChannel, User.Name)
-            Else
-                If Not UrlPatternUser.IsEmptyString Then Return String.Format(UrlPatternUser, User.Name)
-            End If
+        Friend Overridable Function GetUserUrl(ByVal User As IPluginContentProvider) As String Implements ISiteSettings.GetUserUrl
+            If Not UrlPatternUser.IsEmptyString Then Return String.Format(UrlPatternUser, User.Name)
             Return String.Empty
         End Function
         Private Function ISiteSettings_GetUserPostUrl(ByVal User As IPluginContentProvider, ByVal Media As IUserMedia) As String Implements ISiteSettings.GetUserPostUrl
             Return GetUserPostUrl(User, Media)
         End Function
         Friend Overridable Function GetUserPostUrl(ByVal User As UserDataBase, ByVal Media As UserMedia) As String
-            Return String.Empty
+            Return Media.URL_BASE.IfNullOrEmpty(Media.URL)
         End Function
         Protected UserRegex As RParams = Nothing
         Friend Overridable Function IsMyUser(ByVal UserURL As String) As ExchangeOptions Implements ISiteSettings.IsMyUser
@@ -99,43 +135,40 @@ Namespace API.Base
                 End If
                 Return Nothing
             Catch ex As Exception
-                Return ErrorsDescriber.Execute(EDP.SendInLog + EDP.ReturnValue, ex, $"[API.Base.SiteSettingsBase.IsMyUser({UserURL})]", New ExchangeOptions)
+                Return ErrorsDescriber.Execute(EDP.SendToLog + EDP.ReturnValue, ex, $"[API.Base.SiteSettingsBase.IsMyUser({UserURL})]", New ExchangeOptions)
             End Try
         End Function
         Protected ImageVideoContains As String = String.Empty
         Friend Overridable Function IsMyImageVideo(ByVal URL As String) As ExchangeOptions Implements ISiteSettings.IsMyImageVideo
             If Not ImageVideoContains.IsEmptyString AndAlso URL.Contains(ImageVideoContains) Then
-                Return New ExchangeOptions With {.Exists = True}
+                Return New ExchangeOptions(Site, String.Empty) With {.Exists = True}
             Else
                 Return Nothing
             End If
         End Function
-        Friend Overridable Function GetSpecialData(ByVal URL As String, ByVal Path As String, ByVal AskForPath As Boolean) As IEnumerable Implements ISiteSettings.GetSpecialData
-            Return Nothing
+        Private Function ISiteSettings_GetSingleMediaInstance(ByVal URL As String, ByVal OutputFile As String) As IDownloadableMedia Implements ISiteSettings.GetSingleMediaInstance
+            Return GetSingleMediaInstance(URL, OutputFile)
         End Function
-        Friend Shared Function GetSpecialDataFile(ByVal Path As String, ByVal AskForPath As Boolean, ByRef SpecFolderObj As String) As SFile
-            Dim f As SFile = Path.CSFileP
-            If f.Name.IsEmptyString Then f.Name = "OutputFile"
-#Disable Warning BC40000
-            If Path.CSFileP.IsEmptyString Or AskForPath Then f = SFile.SaveAs(f, "File destination",,,, EDP.ReturnValue) : SpecFolderObj = f.Path
-#Enable Warning
-            Return f
+        Friend Overridable Function GetSingleMediaInstance(ByVal URL As String, ByVal OutputFile As SFile) As IDownloadableMedia
+            Return New Hosts.DownloadableMediaHost(URL, OutputFile)
         End Function
 #End Region
 #Region "Ready, Available"
+        ''' <returns>True</returns>
         Friend Overridable Function BaseAuthExists() As Boolean
             Return True
         End Function
+        ''' <summary>JOB: leave or remove</summary>
+        ''' <returns>Return BaseAuthExists()</returns>
         Friend Overridable Function Available(ByVal What As Download, ByVal Silent As Boolean) As Boolean Implements ISiteSettings.Available
             Return BaseAuthExists()
         End Function
+        ''' <summary>'DownloadData': before processing</summary>
+        ''' <returns>True</returns>
         Friend Overridable Function ReadyToDownload(ByVal What As Download) As Boolean Implements ISiteSettings.ReadyToDownload
             Return True
         End Function
 #End Region
-        Friend Overridable Sub Update() Implements ISiteSettings.Update
-            If Not Responser Is Nothing Then Responser.SaveSettings()
-        End Sub
         Friend Overridable Sub Reset() Implements ISiteSettings.Reset
         End Sub
         Friend Overridable Sub UserOptions(ByRef Options As Object, ByVal OpenForm As Boolean) Implements ISiteSettings.UserOptions

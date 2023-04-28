@@ -1,0 +1,150 @@
+﻿' Copyright (C) 2023  Andy https://github.com/AAndyProgram
+' This program is free software: you can redistribute it and/or modify
+' it under the terms of the GNU General Public License as published by
+' the Free Software Foundation, either version 3 of the License, or
+' (at your option) any later version.
+'
+' This program is distributed in the hope that it will be useful,
+' but WITHOUT ANY WARRANTY
+Imports System.Threading
+Imports SCrawler.API.Base
+Imports SCrawler.API.YouTube.Objects
+Imports SCrawler.DownloadObjects.STDownloader
+Imports PersonalUtilities.Functions.XML
+Namespace Plugin.Hosts
+    Friend Class DownloadableMediaHost : Inherits YouTubeMediaContainerBase
+        Protected Overrides Property IDownloadableMedia_Instance As IPluginContentProvider
+            Get
+                Return Instance
+            End Get
+            Set(ByVal _Instance As IPluginContentProvider)
+                Instance = _Instance
+            End Set
+        End Property
+        Friend Property Instance As UserDataBase
+        Friend ReadOnly Property ExternalSource As IDownloadableMedia = Nothing
+        Public Overrides Property File As SFile
+            Get
+                Return _File
+            End Get
+            Set(ByVal f As SFile)
+                _File = f
+                FileSetManually = True
+            End Set
+        End Property
+        Friend Sub New(ByVal URL As String, ByVal OutputFile As SFile)
+            Me.URL = URL
+            Me.File = OutputFile
+        End Sub
+        Friend Sub New(ByVal f As SFile)
+            Load(f)
+            If _Exists Then
+                Dim plugin As SettingsHost
+                SiteIcon = Nothing
+                If Not MediaState = UserMediaStates.Downloaded Then
+                    If Not SiteKey.IsEmptyString Then
+                        If SiteKey = API.Gfycat.Envir.SiteKey Then
+                            Instance = New API.Gfycat.Envir
+                        ElseIf SiteKey = API.Imgur.Envir.SiteKey Then
+                            Instance = New API.Imgur.Envir
+                        Else
+                            plugin = Settings(SiteKey)
+                            If plugin Is Nothing Then
+                                _Exists = False
+                            Else
+                                Instance = plugin.GetInstance(ISiteSettings.Download.SingleObject, Nothing, False, False)
+                            End If
+                        End If
+                        If _Exists And Not Instance Is Nothing AndAlso Not Instance.HOST Is Nothing Then SiteIcon = Instance.HOST.Source.Image
+                    Else
+                        _Exists = False
+                    End If
+                Else
+                    plugin = Settings(SiteKey)
+                    If Not plugin Is Nothing Then
+                        Dim i As UserDataBase = plugin.GetInstance(ISiteSettings.Download.SingleObject, Nothing, False, False)
+                        If Not i Is Nothing Then
+                            If Not i.HOST.Source.Image Is Nothing Then
+                                SiteIcon = i.HOST.Source.Image
+                            ElseIf Not i.HOST.Source.Icon Is Nothing Then
+                                SiteIcon = i.HOST.Source.Icon.ToBitmap
+                            End If
+                            i.Dispose()
+                        End If
+                    End If
+                End If
+            End If
+        End Sub
+        Friend Sub New(ByVal Source As IDownloadableMedia)
+            ExternalSource = Source
+            ExchangeData(ExternalSource, Me)
+            If Not ExternalSource Is Nothing Then
+                With ExternalSource
+                    SiteIcon = .SiteIcon
+                    Site = .Site
+                    SiteKey = .SiteKey
+                    _HasError = .HasError
+                    _Exists = .Exists
+                End With
+            End If
+        End Sub
+        Public Overrides Function ToString(ByVal ForMediaItem As Boolean) As String
+            If SiteKey = API.YouTube.YouTubeSiteKey Then
+                Return MyBase.ToString(ForMediaItem)
+            Else
+                Return Title.IfNullOrEmpty(URL)
+            End If
+        End Function
+        Public Overrides Sub Download(ByVal UseCookies As Boolean, ByVal Token As CancellationToken)
+            ExchangeData(Me, ExternalSource)
+            If Not ExternalSource Is Nothing Then
+                With ExternalSource : .Progress = Progress : .Instance = Instance : End With
+            End If
+            Instance.DownloadSingleObject(If(ExternalSource, Me), Token)
+            ExchangeData(ExternalSource, Me)
+            If Not ExternalSource Is Nothing Then
+                With ExternalSource : _HasError = .HasError : _Exists = .Exists : End With
+            End If
+        End Sub
+        Friend Sub ExchangeData(ByVal s As IDownloadableMedia, ByVal d As IDownloadableMedia)
+            If Not s Is Nothing And Not d Is Nothing Then
+                d.ContentType = s.ContentType
+                d.URL = s.URL
+                d.URL_BASE = s.URL_BASE
+                d.MD5 = s.MD5
+                d.File = s.File
+                d.DownloadState = s.DownloadState
+                d.PostID = s.PostID
+                d.PostDate = s.PostDate
+                d.SpecialFolder = s.SpecialFolder
+                d.Attempts = s.Attempts
+                d.ThumbnailUrl = s.ThumbnailUrl
+                d.ThumbnailFile = s.ThumbnailFile
+                d.Title = s.Title
+                d.Size = s.Size
+                d.Duration = s.Duration
+                d.Checked = s.Checked
+            End If
+        End Sub
+        Public Overrides Sub Load(ByVal f As SFile)
+            MyBase.Load(f)
+            If _Exists Then _Exists = File.Exists
+        End Sub
+        Public Overrides Sub Save()
+            If FileSettings.IsEmptyString Then
+                Dim f As SFile = MyFilesCache.NewFile
+                f.Extension = "xml"
+                FileSettings = f
+            End If
+            Using x As New XmlFile With {.AllowSameNames = True}
+                x.AddRange(ToEContainer.Elements)
+                x.Name = "MediaContainer"
+                x.Save(FileSettings)
+            End Using
+        End Sub
+        Protected Overrides Sub Dispose(ByVal disposing As Boolean)
+            If Not disposedValue And disposing Then Instance.DisposeIfReady() : ExternalSource.DisposeIfReady(False)
+            MyBase.Dispose(disposing)
+        End Sub
+    End Class
+End Namespace

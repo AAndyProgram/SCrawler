@@ -1,0 +1,318 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{7C764707-7FD1-469C-A365-94605C193607}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <StartupObject>
+    </StartupObject>
+    <RootNamespace>SCrawler</RootNamespace>
+    <AssemblyName>SCrawler.YouTube</AssemblyName>
+    <FileAlignment>512</FileAlignment>
+    <MyType>Windows</MyType>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DocumentationFile>
+    </DocumentationFile>
+    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <DefineDebug>false</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DocumentationFile>
+    </DocumentationFile>
+    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionExplicit>On</OptionExplicit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionCompare>Binary</OptionCompare>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionStrict>Off</OptionStrict>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionInfer>On</OptionInfer>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <OutputPath>bin\x64\Debug\</OutputPath>
+    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <DefineTrace>true</DefineTrace>
+    <OutputPath>bin\x64\Release\</OutputPath>
+    <Optimize>true</Optimize>
+    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <OutputPath>bin\x86\Debug\</OutputPath>
+    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+    <DefineTrace>true</DefineTrace>
+    <OutputPath>bin\x86\Release\</OutputPath>
+    <Optimize>true</Optimize>
+    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Net.Http" />
+  </ItemGroup>
+  <ItemGroup>
+    <Import Include="Microsoft.VisualBasic" />
+    <Import Include="PersonalUtilities.Functions" />
+    <Import Include="System" />
+    <Import Include="System.Collections" />
+    <Import Include="System.Collections.Generic" />
+    <Import Include="System.Data" />
+    <Import Include="System.Drawing" />
+    <Import Include="System.Diagnostics" />
+    <Import Include="System.Windows.Forms" />
+    <Import Include="System.Linq" />
+    <Import Include="System.Xml.Linq" />
+    <Import Include="System.Threading.Tasks" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Attributes\GridVisibleAttribute.vb" />
+    <Compile Include="Base\TableControlsProcessor.vb" />
+    <Compile Include="Controls\PlayListParserForm.Designer.vb">
+      <DependentUpon>PlayListParserForm.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\PlayListParserForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Downloader\IDownloaderSettings.vb" />
+    <Compile Include="Downloader\Notificator.vb" />
+    <Compile Include="Downloader\MediaItem.Designer.vb">
+      <DependentUpon>MediaItem.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Downloader\MediaItem.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Controls\MusicPlaylistsForm.Designer.vb">
+      <DependentUpon>MusicPlaylistsForm.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\MusicPlaylistsForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Controls\ParsingProgressForm.Designer.vb">
+      <DependentUpon>ParsingProgressForm.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\ParsingProgressForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Controls\PlaylistArrayForm.Designer.vb">
+      <DependentUpon>PlaylistArrayForm.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\PlaylistArrayForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Controls\VideoOption.Designer.vb">
+      <DependentUpon>VideoOption.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\VideoOption.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Declarations.vb" />
+    <Compile Include="Downloader\STDownloaderDeclarations.vb" />
+    <Compile Include="MainModShared.vb" />
+    <Compile Include="Objects\Channel.vb" />
+    <Compile Include="Objects\IYouTubeMediaContainer.vb" />
+    <Compile Include="My Project\AssemblyInfo.vb" />
+    <Compile Include="My Project\Application.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Application.myapp</DependentUpon>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="My Project\Resources.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="My Project\Settings.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <Compile Include="Objects\PlayList.vb" />
+    <Compile Include="Objects\Track.vb" />
+    <Compile Include="Objects\YouTubeMediaContainerBase.vb" />
+    <Compile Include="SiteYouTube.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>SiteYouTube.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Base\Structures.vb" />
+    <Compile Include="Objects\Video.vb" />
+    <Compile Include="Downloader\VideoListForm.Designer.vb">
+      <DependentUpon>VideoListForm.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Downloader\VideoListForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Controls\VideoOptionsForm.Designer.vb">
+      <DependentUpon>VideoOptionsForm.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\VideoOptionsForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Base\YouTubeFunctions.vb" />
+    <Compile Include="Base\YouTubeSettings.vb" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Controls\PlayListParserForm.resx">
+      <DependentUpon>PlayListParserForm.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Downloader\MediaItem.resx">
+      <DependentUpon>MediaItem.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Controls\MusicPlaylistsForm.resx">
+      <DependentUpon>MusicPlaylistsForm.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Controls\ParsingProgressForm.resx">
+      <DependentUpon>ParsingProgressForm.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Controls\PlaylistArrayForm.resx">
+      <DependentUpon>PlaylistArrayForm.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Controls\VideoOption.resx">
+      <DependentUpon>VideoOption.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="My Project\Resources.resx">
+      <Generator>PublicVbMyResourcesResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.vb</LastGenOutput>
+      <CustomToolNamespace>My.Resources</CustomToolNamespace>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SiteYouTube.resx">
+      <CustomToolNamespace>My.Resources</CustomToolNamespace>
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>SiteYouTube.Designer.vb</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Downloader\VideoListForm.resx">
+      <DependentUpon>VideoListForm.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Controls\VideoOptionsForm.resx">
+      <DependentUpon>VideoOptionsForm.vb</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include=".editorconfig" />
+    <None Include="My Project\Application.myapp">
+      <Generator>MyApplicationCodeGenerator</Generator>
+      <LastGenOutput>Application.Designer.vb</LastGenOutput>
+    </None>
+    <None Include="My Project\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <CustomToolNamespace>My</CustomToolNamespace>
+      <LastGenOutput>Settings.Designer.vb</LastGenOutput>
+    </None>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\MyUtilities\PersonalUtilities.Notifications\PersonalUtilities.Notifications.vbproj">
+      <Project>{fc532253-1ab3-4def-a28a-dfdd9a481eb2}</Project>
+      <Name>PersonalUtilities.Notifications</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\MyUtilities\PersonalUtilities\PersonalUtilities.vbproj">
+      <Project>{8405896b-2685-4916-bc93-1fb514c323a9}</Project>
+      <Name>PersonalUtilities</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SCrawler.PluginProvider\SCrawler.PluginProvider.vbproj">
+      <Project>{d4650f6b-5a54-44b6-999b-6c675b7116b1}</Project>
+      <Name>SCrawler.PluginProvider</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Content\Pictures\YouTubeMusicPic_96.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Content\Pictures\YouTubePic_96.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Content\Icons\YouTubeIcon_32.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Content\Icons\YouTubeMusicIcon_32.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{94E38DFF-614B-4CBD-B67C-F211BB35CE8B}" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Content\Pictures\ClockPic_16.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Content\Pictures\LinkPic_32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Content\Pictures\LinkPic_32_2.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Content\Pictures\Hyperlink_32.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Content\Pictures\RulerPic_32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Content\Pictures\ArrowDownPic_Blue_24.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Content\Pictures\AudioMusic_32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Content\Pictures\VideoCamera_32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Content\Pictures\HeartPic_32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Content\Pictures\InfoPic_32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Content\Pictures\SettingsPic_16.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Content\Pictures\ImagePic_32.png" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
+</Project>

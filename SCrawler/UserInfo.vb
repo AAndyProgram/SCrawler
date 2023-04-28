@@ -6,12 +6,11 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
-Imports PersonalUtilities.Functions.XML
-Imports PersonalUtilities.Functions.XML.Base
 Imports SCrawler.API
 Imports SCrawler.API.Base
 Imports SCrawler.Plugin.Hosts
-Imports DownOptions = SCrawler.Plugin.ISiteSettings.Download
+Imports PersonalUtilities.Functions.XML
+Imports PersonalUtilities.Functions.XML.Base
 Partial Friend Module MainMod
     Friend Structure UserInfo : Implements IComparable(Of UserInfo), IEquatable(Of UserInfo), ICloneable, IEContainerProvider
 #Region "XML Names"
@@ -22,7 +21,6 @@ Partial Friend Module MainMod
         Friend Const Name_Model_User As String = "ModelUser"
         Friend Const Name_Model_Collection As String = "ModelCollection"
         Friend Const Name_Merged As String = "Merged"
-        Friend Const Name_IsChannel As String = "IsChannel"
         Friend Const Name_SpecialPath As String = "SpecialPath"
         Friend Const Name_SpecialCollectionPath As String = "SpecialCollectionPath"
         Private Const Name_LastSeen As String = "LastSeen"
@@ -48,7 +46,6 @@ Partial Friend Module MainMod
         Friend UserModel As UsageModel
         Friend CollectionName As String
         Friend CollectionModel As UsageModel
-        Friend IsChannel As Boolean
         Friend [Protected] As Boolean
         Friend ReadOnly Property IsProtected As Boolean
             Get
@@ -56,15 +53,6 @@ Partial Friend Module MainMod
             End Get
         End Property
         Friend LastSeen As Date?
-        Friend ReadOnly Property DownloadOption As DownOptions
-            Get
-                If IsChannel Then
-                    Return DownOptions.Channel
-                Else
-                    Return DownOptions.Main
-                End If
-            End Get
-        End Property
 #End Region
 #Region "Initializers"
         Friend Sub New(ByVal _Name As String, ByVal Host As SettingsHost)
@@ -83,7 +71,6 @@ Partial Friend Module MainMod
             Merged = x.Attribute(Name_Merged).Value.FromXML(Of Boolean)(False)
             SpecialPath = SFile.GetPath(x.Attribute(Name_SpecialPath).Value)
             SpecialCollectionPath = SFile.GetPath(x.Attribute(Name_SpecialCollectionPath).Value)
-            IsChannel = x.Attribute(Name_IsChannel).Value.FromXML(Of Boolean)(False)
             If Not x.Attribute(Name_LastSeen).Value.IsEmptyString Then LastSeen = AConvert(Of Date)(x.Attribute(Name_LastSeen).Value, DateTimeDefaultProvider, Nothing)
             UpdateUserFile()
         End Sub
@@ -92,7 +79,6 @@ Partial Friend Module MainMod
             Site = Reddit.RedditSite
             Plugin = Reddit.RedditSiteKey
             File = c.File
-            IsChannel = True
         End Sub
         Public Shared Widening Operator CType(ByVal x As EContainer) As UserInfo
             Return New UserInfo(x)
@@ -152,7 +138,6 @@ Partial Friend Module MainMod
                                                         New EAttribute(Name_Model_User, CInt(UserModel)),
                                                         New EAttribute(Name_Model_Collection, CInt(CollectionModel)),
                                                         New EAttribute(Name_Merged, Merged.BoolToInteger),
-                                                        New EAttribute(Name_IsChannel, IsChannel.BoolToInteger),
                                                         New EAttribute(Name_SpecialPath, SpecialPath.PathWithSeparator),
                                                         New EAttribute(Name_SpecialCollectionPath, SpecialCollectionPath.PathWithSeparator),
                                                         New EAttribute(Name_LastSeen, AConvert(Of String)(LastSeen, DateTimeDefaultProvider, String.Empty))})
@@ -188,7 +173,6 @@ Partial Friend Module MainMod
                 .CollectionName = CollectionName,
                 .CollectionModel = CollectionModel,
                 .UserModel = UserModel,
-                .IsChannel = IsChannel,
                 .[Protected] = [Protected]
             }
         End Function

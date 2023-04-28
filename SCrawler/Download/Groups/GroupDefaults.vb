@@ -117,7 +117,7 @@ Namespace DownloadObjects.Groups
             Select Case Sender.DefaultButton
                 Case ADB.Edit, ADB.Delete
                     With If(Sender.DefaultButton = ADB.Edit, Labels, LabelsExcluded)
-                        Using f As New LabelsForm(.Self, True)
+                        Using f As New LabelsForm(.Self)
                             If Sender.DefaultButton = ADB.Delete Then f.Text &= " excluded"
                             f.ShowDialog()
                             If f.DialogResult = DialogResult.OK Then

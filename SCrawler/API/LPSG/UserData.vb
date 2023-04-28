@@ -32,6 +32,7 @@ Namespace API.LPSG
 
                 Dim NextPage$
                 Dim r$
+                Dim titleChecked As Boolean = False
                 Dim _LPage As Func(Of String) = Function() If(LatestPage.IsEmptyString, String.Empty, $"page-{LatestPage}")
 
                 Do
@@ -41,6 +42,14 @@ Namespace API.LPSG
                     UserSuspended = False
                     ThrowAny(Token)
                     If Not r.IsEmptyString Then
+                        If UserSiteName.IsEmptyString And Not titleChecked Then
+                            UserSiteName = RegexReplace(r, ContentTitleRegEx)
+                            If Not UserSiteName.IsEmptyString Then
+                                _ForceSaveUserInfo = True
+                                If FriendlyName.IsEmptyString Then FriendlyName = UserSiteName
+                            End If
+                        End If
+                        titleChecked = True
                         NextPage = RegexReplace(r, NextPageRegex)
                         UpdateMediaList(RegexReplace(r, PhotoRegEx), Mode.Internal)
                         UpdateMediaList(RegexReplace(r, PhotoRegExExt), Mode.External)
@@ -61,23 +70,24 @@ Namespace API.LPSG
                 Dim f As SFile
                 Dim u$
                 Dim exists As Boolean
-                Dim r As RParams
+                Dim r As Func(Of String, Integer, String)
+                Dim indx% = 0
                 Dim ude As New ErrorsDescriber(EDP.ReturnValue)
                 For Each url$ In l
                     If Not url.IsEmptyString Then u = SymbolsConverter.Decode(url, {Converters.HTML, Converters.ASCII}, ude) Else u = String.Empty
                     If Not u.IsEmptyString Then
                         exists = Not IsEmptyString(RegexReplace(u, FileExistsRegEx))
                         If m = Mode.Internal Then
-                            r = FileRegEx
+                            r = AddressOf FileRegExF
                         Else
-                            r = FileRegExExt
+                            r = AddressOf FileRegExExtF
                             If Not exists Then
-                                r = FileRegExExt2
-                                exists = Not IsEmptyString(RegexReplace(u, FileRegExExt2))
+                                indx = 1
+                                exists = Not IsEmptyString(FileRegExExtF(u, 1))
                             End If
                         End If
                         If exists Then
-                            f = CStr(RegexReplace(u, r))
+                            f = r.Invoke(u, indx)
                             f.Path = MyFile.CutPath.PathNoSeparator
                             f.Separator = "\"
                             If f.Extension.IsEmptyString Then f.Extension = "jpg"

@@ -9,6 +9,7 @@
 Imports System.Net
 Imports System.Threading
 Imports SCrawler.API.Base
+Imports SCrawler.API.YouTube.Objects
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Tools.Web.Clients
@@ -42,7 +43,7 @@ Namespace API.RedGifs
             Try
                 Dim _page As Func(Of String) = Function() If(Page = 1, String.Empty, $"&page={Page}")
                 URL = $"https://api.redgifs.com/v2/users/{Name}/search?order=recent{_page.Invoke}"
-                Dim r$ = Responser.GetResponse(URL,, EDP.ThrowException)
+                Dim r$ = Responser.GetResponse(URL)
                 Dim postDate$, postID$
                 Dim pTotal% = 0
                 If Not r.IsEmptyString Then
@@ -51,7 +52,7 @@ Namespace API.RedGifs
                             pTotal = j.Value("pages").FromXML(Of Integer)(0)
                             For Each g As EContainer In j("gifs")
                                 postDate = g.Value("createDate")
-                                Select Case CheckDatesLimit(postDate, DateProvider)
+                                Select Case CheckDatesLimit(postDate, UnixDate32Provider)
                                     Case DateResult.Skip : Continue For
                                     Case DateResult.Exit : Exit Sub
                                 End Select
@@ -106,13 +107,13 @@ Namespace API.RedGifs
                     Dim u As UserMedia
                     Dim j As EContainer
                     For i% = 0 To _ContentList.Count - 1
-                        If _ContentList(i).State = UserMedia.States.Missing Then
+                        If _ContentList(i).State = UStates.Missing Then
                             ThrowAny(Token)
                             u = _ContentList(i)
                             If Not u.Post.ID.IsEmptyString Then
                                 url = String.Format(PostDataUrl, u.Post.ID.ToLower)
                                 Try
-                                    r = Responser.GetResponse(url,, EDP.ThrowException)
+                                    r = Responser.GetResponse(url)
                                     If Not r.IsEmptyString Then
                                         j = JsonDocument.Parse(r)
                                         If Not j Is Nothing Then
@@ -207,20 +208,29 @@ Namespace API.RedGifs
                         MyMainLOG = String.Format(_errText, URL)
                         Return m
                     Else
-                        Return ErrorsDescriber.Execute(EDP.SendInLog, ex, String.Format(_errText, URL), m)
+                        Return ErrorsDescriber.Execute(EDP.SendToLog, ex, String.Format(_errText, URL), m)
                     End If
                 End If
             End Try
         End Function
 #End Region
+#Region "Single data downloader"
+        Protected Overrides Sub DownloadSingleObject_GetPosts(ByVal Data As IYouTubeMediaContainer, ByVal Token As CancellationToken)
+            Dim m As UserMedia = GetDataFromUrlId(Data.URL, False, Responser, HOST)
+            If Not m.State = UStates.Missing And Not m.State = DataGone And (m.Type = UTypes.Picture Or m.Type = UTypes.Video) Then
+                m.URL_BASE = MySettings.GetUserPostUrl(Me, m)
+                _TempMediaList.Add(m)
+            End If
+        End Sub
+#End Region
 #Region "Create media"
-        Private Shared Function MediaFromData(ByVal t As UTypes, ByVal _URL As String, ByVal PostID As String,
-                                              ByVal PostDateStr As String, ByVal PostDateDate As Date?, ByVal State As UStates) As UserMedia
+        Private Function MediaFromData(ByVal t As UTypes, ByVal _URL As String, ByVal PostID As String,
+                                       ByVal PostDateStr As String, ByVal PostDateDate As Date?, ByVal State As UStates) As UserMedia
             _URL = LinkFormatterSecure(RegexReplace(_URL.Replace("\", String.Empty), LinkPattern))
             Dim m As New UserMedia(_URL, t) With {.Post = New UserPost With {.ID = PostID}}
             If Not m.URL.IsEmptyString Then m.File = CStr(RegexReplace(m.URL, FilesPattern))
             If Not PostDateStr.IsEmptyString Then
-                m.Post.Date = AConvert(Of Date)(PostDateStr, DateProvider, Nothing)
+                m.Post.Date = AConvert(Of Date)(PostDateStr, UnixDate32Provider, Nothing)
             ElseIf PostDateDate.HasValue Then
                 m.Post.Date = PostDateDate
             Else
@@ -233,8 +243,8 @@ Namespace API.RedGifs
 #Region "Exception"
         Protected Overrides Function DownloadingException(ByVal ex As Exception, ByVal Message As String, Optional ByVal FromPE As Boolean = False,
                                                           Optional ByVal EObj As Object = Nothing) As Integer
-            Dim s As WebExceptionStatus = Responser.Client.Status
-            Dim sc As HttpStatusCode = Responser.Client.StatusCode
+            Dim s As WebExceptionStatus = Responser.Status
+            Dim sc As HttpStatusCode = Responser.StatusCode
             If sc = HttpStatusCode.NotFound Or s = DataGone Then
                 UserExists = False
             ElseIf sc = HttpStatusCode.Unauthorized Then

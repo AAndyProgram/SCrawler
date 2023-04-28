@@ -6,8 +6,8 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
-Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Tools
+Imports PersonalUtilities.Functions.XML
 Namespace DownloadObjects.Groups
     Friend Class DownloadGroupCollection : Implements IEnumerable(Of DownloadGroup), IMyEnumerator(Of DownloadGroup)
         Friend Event Deleted As DownloadGroup.GroupEventHandler

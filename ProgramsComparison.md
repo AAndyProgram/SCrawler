@@ -1,6 +1,55 @@
+# yt-dlp
+
+https://github.com/yt-dlp/yt-dlp/
+
+**Great powerful CLI tool that supports hundreds of sites.**
+
+SCrawler has advanced user management, collections, labels, groups, automatic downloads, a beautiful view, GUI, the ability to add plugins for other sites and much more. Just try it and compare.
+
+# 4K Video Downloader
+
+https://www.4kdownload.com/-plbrz/video-downloader
+
+| Option | SCrawler | 4K Stogram |
+| ---- | ---- | ---- |
+| User managament | **Advanced** | No |
+| Automatic downloads | **Yes** | No |
+| Downloading groups | **Yes** | No |
+| Labeling users | **Yes** | No |
+| Filtering | **Yes** | No |
+| Collections | **Yes** | No |
+| Specific user folders | **Yes** | No |
+| Favorite / Temporary user options | **Yes** | No |
+| Plugins support | **Yes** | No |
+| Download single video | **Unlimited** | 30 videos per day *(unlimited starts from 12 EUR)* |
+| Download videos per channel | **Unlimited** | 5 free *(unlimited starts from 12 EUR)* |
+| Download videos per playlist | **Unlimited** | 10 free *(unlimited starts from 12 EUR)* |
+| Download video subtitles | **Any for free**: single video, playlist, user/channel, album, etc| Free for single video |
+| The number of subtitles you can download for a video | **All of them** | Up to 10 |
+| Convert subtitles to additional formats | **Yes** | No |
+| Support LRC format | **Yes** | No |
+| Select audio codec for audio/video | **Yes** | No |
+| Extract and convert additional audio tracks for video | **Yes** | No |
+| Simultaneous downloads | **Unlimited** | 1 free, 3 for 12 EUR, 7 for 43 EUR|
+| Private YouTube content download | **Free** | Only in paid plans *starts from 12 EUR* |
+| **Paid** | **No** | Yes |
+| **Free options** | **The program is completely free** | Only **30** videos per day, 5 from a channel, 10 from a playlist |
+| Permitted Commercial Use | **Yes** | Starting from 43 EUR |
+| Automatic Subscriptions Update | **Free** | Paid (43 EUR) |
+| Posts and Captions Export | No | Paid (43 EUR) |
+| Advertisements free | **No ADs at all for free** | Paid (43 EUR) |
+| Operating Systems | Windows 10+ | Windows 7+, MacOS 10.13+, Ubuntu x64 |
+| Select want content type to download | **Yes** | No |
+| Instagram support | **Yes** | No |
+| Twitter support | **Yes** | No |
+| Reddit support | **Yes** | No |
+| Other sites support | **Yes** | No |
+| Still supported | Yes | Yes |
+
 # 4K Stogram
 
-https://www.4kdownload.com/products/product-stogram
+<!---https://www.4kdownload.com/products/product-stogram--->
+https://www.4kdownload.com/-ad0p9/stogram
 
 | Option | SCrawler | 4K Stogram |
 | ---- | ---- | ---- |
@@ -27,10 +76,10 @@ https://www.4kdownload.com/products/product-stogram
 | Export and import subscriptions | No | **Yes** |
 | **Paid** | **No** | Yes |
 | **Free options** | **The program is completely free** | Only **ONE** profile downloading and only **200 posts** per day |
-| Permitted Commercial Use | **Yes** | Starting from 43.56 EUR |
-| Automatic Subscriptions Update | **Free** | Paid (43.56 EUR) |
-| Posts and Captions Export | No | Paid (43.56 EUR) |
-| Advertisements free | **No ADs at all for free** | Paid (14.52) |
+| Permitted Commercial Use | **Yes** | Starting from 43 EUR |
+| Automatic Subscriptions Update | **Free** | Paid (43 EUR) |
+| Posts and Captions Export | No | Paid (43 EUR) |
+| Advertisements free | **No ADs at all for free** | Paid (18 EUR) |
 | Operating Systems | Windows 10+ | Windows 7+, MacOS 10.13+, Ubuntu x64 |
 | Select want content type to download | **Yes** | No |
 | Instagram support | Yes | Yes |
@@ -68,7 +117,7 @@ https://github.com/RipMeApp/ripme
 | **Free options** | The program is completely free | The program is completely free, but site limits are not declared |
 | Operating Systems | Windows 10+ | Windows, MacOS, Linux |
 | Select want content type to download | Yes | Yes |
-| Suported sites | 9 internal and any site using plugins | 86+ sites (declared) |
+| Suported sites | 15 internal and any site using plugins | 86+ sites (declared) |
 | Other sites support | **Yes** | No |
 | Still supported | **Yes** | **No (last release date May 4, 2021)** |
 
@@ -76,7 +125,6 @@ https://github.com/RipMeApp/ripme
 
 https://github.com/mikf/gallery-dl
 
-
-**CLI tool**! Configured with JSON files only. Users need to learn complex configuration options, JSON, commands to use that tool. Very difficult to configure.
+**CLI tool**
 
 SCrawler has advanced user management, collections, labels, groups, automatic downloads, a beautiful view, GUI, the ability to add plugins for other sites and much more. Just try it and compare.

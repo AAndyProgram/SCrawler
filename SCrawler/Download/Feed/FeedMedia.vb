@@ -53,7 +53,7 @@ Namespace DownloadObjects
                 End If
             End Set
         End Property
-        Private ReadOnly Property ObjectsPaddingHeight
+        Private ReadOnly Property ObjectsPaddingHeight As Integer
             Get
                 Return TP_MAIN.RowStyles(0).Height + PaddingE.GetOf({TP_MAIN}).Vertical(2)
             End Get
@@ -205,7 +205,7 @@ Namespace DownloadObjects
             Catch tex As Threading.ThreadStateException
                 HasError = True
             Catch ex As Exception
-                ErrorsDescriber.Execute(EDP.SendInLog, ex, $"[DownloadObjects.FeedMedia({File})]")
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, $"[DownloadObjects.FeedMedia({File})]")
                 HasError = True
             End Try
         End Sub
@@ -235,7 +235,7 @@ Namespace DownloadObjects
 #End Region
 #Region "Context"
         Private Sub BTT_CONTEXT_OPEN_MEDIA_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_OPEN_MEDIA.Click
-            File.Open(, EDP.None)
+            File.Open()
         End Sub
         Private Sub BTT_CONTEXT_OPEN_USER_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_OPEN_USER.Click
             If Not UserKey.IsEmptyString Then

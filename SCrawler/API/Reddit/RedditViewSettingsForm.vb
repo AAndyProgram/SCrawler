@@ -18,7 +18,7 @@ Namespace API.Reddit
             MyOptions = opt
             MyDefs = New DefaultFormOptions(Me, Settings.Design)
         End Sub
-        Private Sub ChannelSettingsForm_Load(sender As Object, e As EventArgs) Handles Me.Load
+        Private Sub RedditViewSettingsForm_Load(sender As Object, e As EventArgs) Handles Me.Load
             Try
                 Dim n$ = String.Empty
                 If TypeOf MyOptions Is Channel Then

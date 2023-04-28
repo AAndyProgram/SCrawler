@@ -10,11 +10,7 @@ Imports PersonalUtilities.Functions.RegularExpressions
 Namespace API.TikTok
     Friend Module Declarations
         Friend ReadOnly RegexEnvir As New RegexParseEnvir
-        Friend ReadOnly CheckDateProvider As New CustomProvider(Function(v, d, p, n, e)
-                                                                    With DirectCast(v, Date?)
-                                                                        If .HasValue Then Return .Value Else Return Nothing
-                                                                    End With
-                                                                End Function)
+        Friend ReadOnly CheckDateProvider As New CustomProvider(Function(v) IIf(CType(v, Date?).HasValue, CObj(CType(v, Date?).Value), Nothing))
         Friend Class RegexParseEnvir
             Private ReadOnly UrlIdRegex As RParams = RParams.DMS("http[s]?://[w\.]{0,4}tiktok.com/[^/]+?/video/(\d+)", 1, EDP.ReturnValue)
             Private ReadOnly RegexItemsArrPre As RParams = RParams.DMS("ItemList"":\{""user-post"":\{""list"":\[([^\[]+)\]", 1)
@@ -33,7 +29,7 @@ Namespace API.TikTok
                     End If
                     Return Nothing
                 Catch ex As Exception
-                    Return ErrorsDescriber.Execute(EDP.SendInLog, ex, "[API.TikTok.RegexParseEnvir.GetIDList]")
+                    Return ErrorsDescriber.Execute(EDP.SendToLog, ex, "[API.TikTok.RegexParseEnvir.GetIDList]")
                 End Try
             End Function
             Friend Function GetVideoData(ByVal r As String, ByVal ID As String, ByRef URL As String, ByRef [Date] As Date?) As Boolean
@@ -46,12 +42,12 @@ Namespace API.TikTok
                         Dim u$ = RegexReplace(r, VideoPattern)
                         If Not u.IsEmptyString Then URL = SymbolsConverter.Unicode.Decode(u, EDP.ReturnValue)
                         Dim d$ = RegexReplace(r, DatePattern)
-                        If Not d.IsEmptyString Then [Date] = ADateTime.ParseUnicode(d)
+                        If Not d.IsEmptyString Then [Date] = ADateTime.ParseUnix32(d)
                         Return Not URL.IsEmptyString
                     End If
                     Return False
                 Catch ex As Exception
-                    Return ErrorsDescriber.Execute(EDP.SendInLog, ex, "[API.TikTok.RegexParseEnvir.GetVideoData]", False)
+                    Return ErrorsDescriber.Execute(EDP.SendToLog, ex, "[API.TikTok.RegexParseEnvir.GetVideoData]", False)
                 End Try
             End Function
             Friend Function ExtractPostID(ByVal URL As String) As String

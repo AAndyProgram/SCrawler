@@ -24,6 +24,7 @@ Namespace DownloadObjects
         Private WithEvents BTT_OPEN As Button
         Private ReadOnly PR_MAIN As ProgressBar
         Private ReadOnly LBL_INFO As Label
+        Private ReadOnly Icon As PictureBox
 #End Region
         Private ReadOnly Property Instance As API.Base.ProfileSaved
         Friend ReadOnly Property Job As TDJob
@@ -38,7 +39,21 @@ Namespace DownloadObjects
             TP_CONTROLS = New TableLayoutPanel With {.Margin = New Padding(0), .Dock = DockStyle.Fill}
             PR_MAIN = New ProgressBar With {.Dock = DockStyle.Fill}
             LBL_INFO = New Label With {.Text = String.Empty, .Dock = DockStyle.Fill}
+            Icon = New PictureBox With {
+                .SizeMode = PictureBoxSizeMode.Zoom,
+                .Dock = DockStyle.Fill,
+                .Margin = New Padding(3),
+                .Padding = New Padding(3)
+            }
             CreateButton(BTT_STOP, My.Resources.DeletePic_24)
+            Dim img As Image = Nothing
+            If Not _Job.Host Is Nothing Then
+                With Job.Host.Source
+                    If Not .Icon Is Nothing Then img = .Icon.ToBitmap
+                    If img Is Nothing AndAlso Not .Image Is Nothing Then img = .Image
+                End With
+            End If
+            If Not img Is Nothing Then Icon.Image = img : Icon.InitialImage = img
 
             If Job.Type = Download.Main Then
                 LBL_INFO.Margin = New Padding(3)
@@ -49,15 +64,17 @@ Namespace DownloadObjects
                 End With
                 With TP_CONTROLS
                     .ColumnStyles.Add(New ColumnStyle(SizeType.Absolute, 30))
+                    .ColumnStyles.Add(New ColumnStyle(SizeType.Absolute, 30))
                     .ColumnStyles.Add(New ColumnStyle(SizeType.Absolute, 150))
                     .ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 100))
                     .ColumnCount = .ColumnStyles.Count
                     .RowStyles.Add(New RowStyle(SizeType.Percent, 100))
                     .RowCount = 1
                     With .Controls
-                        .Add(BTT_STOP, 0, 0)
-                        .Add(PR_MAIN, 1, 0)
-                        .Add(LBL_INFO, 2, 0)
+                        If Not img Is Nothing Then .Add(Icon, 0, 0)
+                        .Add(BTT_STOP, 1, 0)
+                        .Add(PR_MAIN, 2, 0)
+                        .Add(LBL_INFO, 3, 0)
                     End With
                 End With
                 TP_MAIN.Controls.Add(TP_CONTROLS, 0, 0)
@@ -71,16 +88,18 @@ Namespace DownloadObjects
                         .Add(New ColumnStyle(SizeType.Absolute, 30))
                         .Add(New ColumnStyle(SizeType.Absolute, 30))
                         .Add(New ColumnStyle(SizeType.Absolute, 30))
+                        .Add(New ColumnStyle(SizeType.Absolute, 30))
                         .Add(New ColumnStyle(SizeType.Percent, 100))
                     End With
-                    .ColumnCount = 4
+                    .ColumnCount = .ColumnStyles.Count
                     .RowStyles.Add(New RowStyle(SizeType.Percent, 50))
                     .RowCount = 1
                     With .Controls
-                        .Add(BTT_START, 0, 0)
-                        .Add(BTT_STOP, 1, 0)
-                        .Add(BTT_OPEN, 2, 0)
-                        .Add(PR_MAIN, 3, 0)
+                        If Not img Is Nothing Then .Add(Icon, 0, 0)
+                        .Add(BTT_START, 1, 0)
+                        .Add(BTT_STOP, 2, 0)
+                        .Add(BTT_OPEN, 3, 0)
+                        .Add(PR_MAIN, 4, 0)
                     End With
                 End With
                 With TP_MAIN
@@ -129,11 +148,13 @@ Namespace DownloadObjects
         End Sub
 #End Region
 #Region "Start, Stop"
-        Friend Sub Start()
-            Job.Start(AddressOf DownloadData)
+        Private _IsMultiple As Boolean = False
+        Friend Sub Start(Optional ByVal Multiple As Boolean = False)
+            _IsMultiple = Multiple
+            Job.StartThread(AddressOf DownloadData)
         End Sub
         Friend Sub [Stop]()
-            Job.Stop()
+            Job.Cancel()
         End Sub
 #End Region
 #Region "SavedPosts downloading"
@@ -144,15 +165,16 @@ Namespace DownloadObjects
                 btte.Invoke(BTT_STOP, True)
                 Job.Progress.InformationTemporary = $"{Job.Host.Name} downloading started"
                 Job.Start()
-                Instance.Download(Job.Token)
+                Instance.Download(Job.Token, _IsMultiple)
                 RaiseEvent DownloadDone(SettingsCLS.NotificationObjects.SavedPosts, $"Downloading saved {Job.Host.Name} posts is completed")
             Catch ex As Exception
                 Job.Progress.InformationTemporary = $"{Job.Host.Name} downloading error"
                 ErrorsDescriber.Execute(EDP.LogMessageValue, ex, {$"{Job.Host.Name} saved posts downloading error", "Saved posts"})
             Finally
+                _IsMultiple = False
                 btte.Invoke(BTT_START, True)
                 btte.Invoke(BTT_STOP, False)
-                Job.Stopped()
+                Job.Finish()
                 If Job.Type = Download.SavedPosts Then Job.Progress.Maximum = 0 : Job.Progress.Value = 0
             End Try
         End Sub
@@ -173,6 +195,7 @@ Namespace DownloadObjects
                     If Not BTT_START Is Nothing Then BTT_START.Dispose()
                     If Not BTT_STOP Is Nothing Then BTT_STOP.Dispose()
                     If Not BTT_OPEN Is Nothing Then BTT_OPEN.Dispose()
+                    If Not Icon Is Nothing Then Icon.Dispose()
                     PR_MAIN.Dispose()
                     LBL_INFO.Dispose()
                     TP_CONTROLS.Controls.Clear()

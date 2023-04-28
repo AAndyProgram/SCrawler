@@ -7,8 +7,11 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports System.Net
+Imports System.Threading
 Imports SCrawler.API.Reddit.M3U8_Declarations
+Imports PersonalUtilities.Tools
 Imports PersonalUtilities.Tools.Web
+Imports PersonalUtilities.Forms.Toolbars
 Imports PersonalUtilities.Functions.RegularExpressions
 Namespace API.Reddit
     Namespace M3U8_Declarations
@@ -19,7 +22,7 @@ Namespace API.Reddit
             ''' <summary>Audio, Video</summary>
             Friend ReadOnly PlayListRegEx_2 As RParams = RParams.DM("(?<=#EXT-X-BYTERANGE.+?[\r\n]{1,2})(.+)(?=[\r\n]{0,2})", 0, RegexReturn.List)
             Friend ReadOnly PlayListAudioRegEx As RParams = RParams.DM("(HLS_AUDIO_(\d+)[^""]+)", 0, RegexReturn.List)
-            Friend ReadOnly DPED As New ErrorsDescriber(EDP.SendInLog + EDP.ReturnValue)
+            Friend ReadOnly DPED As New ErrorsDescriber(EDP.SendToLog + EDP.ReturnValue)
         End Module
     End Namespace
     Friend NotInheritable Class M3U8 : Implements IDisposable
@@ -52,9 +55,12 @@ Namespace API.Reddit
         Private OutFile As SFile
         Private VideoFile As SFile
         Private AudioFile As SFile
-        Private CachePath As SFile
+        Private ReadOnly Cache As CacheKeeper
+        Private ReadOnly CacheFiles As CacheKeeper
+        Private ReadOnly Property Progress As MyProgress
+        Private ReadOnly ProgressExists As Boolean
 #End Region
-        Private Sub New(ByVal URL As String, ByVal OutFile As SFile)
+        Private Sub New(ByVal URL As String, ByVal OutFile As SFile, ByVal Progress As MyProgress)
             PlayListURL = URL
             BaseURL = RegexReplace(URL, BaseUrlPattern)
             Video = New List(Of String)
@@ -62,7 +68,10 @@ Namespace API.Reddit
             Me.OutFile = OutFile
             Me.OutFile.Name = "PlayListFile"
             Me.OutFile.Extension = "mp4"
-            CachePath = $"{OutFile.PathWithSeparator}_Cache\{SFile.GetDirectories($"{OutFile.PathWithSeparator}_Cache\",,, EDP.ReturnValue).ListIfNothing.Count + 1}\"
+            Me.Progress = Progress
+            ProgressExists = Not Me.Progress Is Nothing
+            Cache = New CacheKeeper($"{OutFile.PathWithSeparator}_{Base.M3U8Base.TempCacheFolderName}\")
+            CacheFiles = Cache.NewInstance
         End Sub
 #Region "Internal functions"
 #Region "GetPlaylistUrls"
@@ -78,7 +87,7 @@ Namespace API.Reddit
                         If Not r.IsEmptyString Then
                             Dim l As New List(Of Resolution)
                             If Type = Types.Video Then
-                                l = RegexFields(Of Resolution)(r, {PlayListRegEx_1}, {6, 4})
+                                l = RegexFields(Of Resolution)(r, {PlayListRegEx_1}, {6, 4}, EDP.ReturnValue)
                             Else
                                 Try
                                     l = RegexFields(Of Resolution)(r, {PlayListAudioRegEx}, {1, 2})
@@ -112,41 +121,44 @@ Namespace API.Reddit
         End Function
 #End Region
 #Region "ConcatData"
-        Private Overloads Sub ConcatData()
-            ConcatData(Video, Types.Video, VideoFile)
-            ConcatData(Audio, Types.Audio, AudioFile)
+        Private Overloads Sub ConcatData(ByVal Token As CancellationToken)
+            ConcatData(Video, Types.Video, VideoFile, Token)
+            ConcatData(Audio, Types.Audio, AudioFile, Token)
             MergeFiles()
         End Sub
-        Private Overloads Sub ConcatData(ByVal Urls As List(Of String), ByVal Type As Types, ByRef TFile As SFile)
+        Private Overloads Sub ConcatData(ByVal Urls As List(Of String), ByVal Type As Types, ByRef TFile As SFile, ByVal Token As CancellationToken)
             Try
+                Token.ThrowIfCancellationRequested()
                 If Urls.ListExists Then
-                    Dim ConcatFile As SFile = OutFile
+                    Dim tmpCache As CacheKeeper = CacheFiles.NewInstance
+                    Dim ConcatFile As SFile = CacheFiles
                     If Type = Types.Audio Then
-                        ConcatFile.Name &= "_AUDIO"
+                        ConcatFile.Name &= "AUDIO"
                         ConcatFile.Extension = "aac"
                     Else
-                        If Audio.Count > 0 Then ConcatFile.Name &= "_VIDEO"
+                        If Audio.Count > 0 Then ConcatFile.Name &= "VIDEO"
                         ConcatFile.Extension = "mp4"
                     End If
-                    If CachePath.Exists(SFO.Path) Then
-                        Dim p As New SFileNumbers(ConcatFile.Name,,, New ANumbers With {.Format = ANumbers.Formats.General})
-                        ConcatFile = SFile.Indexed_IndexFile(ConcatFile,, p, EDP.ThrowException)
+                    If tmpCache.Validate Then
                         Dim i%
-                        Dim eFiles As New List(Of SFile)
-                        Dim dFile As SFile = CachePath
+                        Dim dFile As SFile = tmpCache.RootDirectory
+                        If ProgressExists Then Progress.Maximum += Urls.Count
                         dFile.Extension = New SFile(Urls(0)).Extension
                         If dFile.Extension.IsEmptyString Then dFile.Extension = "ts"
                         Using w As New WebClient
                             For i = 0 To Urls.Count - 1
+                                If ProgressExists Then Progress.Perform()
+                                Token.ThrowIfCancellationRequested()
                                 dFile.Name = $"ConPart_{i}"
                                 w.DownloadFile(Urls(i), dFile)
-                                eFiles.Add(dFile)
+                                tmpCache.AddFile(dFile, True)
                             Next
                         End Using
-                        TFile = FFMPEG.ConcatenateFiles(eFiles, Settings.FfmpegFile, ConcatFile, p, DPED)
-                        eFiles.Clear()
+                        TFile = FFMPEG.ConcatenateFiles(tmpCache, Settings.FfmpegFile.File, ConcatFile, Settings.CMDEncoding,, DPED)
                     End If
                 End If
+            Catch oex As OperationCanceledException When Token.IsCancellationRequested
+                Throw oex
             Catch ex As Exception
                 ErrorsDescriber.Execute(DPED, ex, $"[M3U8.Save({Type})]")
             End Try
@@ -154,25 +166,27 @@ Namespace API.Reddit
 #End Region
         Private Sub MergeFiles()
             Try
+                Dim p As SFileNumbers = SFileNumbers.Default(OutFile.Name)
+                Dim f As SFile = SFile.IndexReindex(OutFile,,, p, EDP.ReturnValue)
                 If Not VideoFile.IsEmptyString And Not AudioFile.IsEmptyString Then
-                    Dim p As New SFileNumbers(OutFile.Name,, RParams.DMS("PlayListFile_(\d*)", 1), New ANumbers With {.Format = ANumbers.Formats.General})
-                    OutFile = FFMPEG.MergeFiles({VideoFile, AudioFile}, Settings.FfmpegFile, OutFile, p, DPED)
+                    OutFile = FFMPEG.MergeFiles({VideoFile, AudioFile}, Settings.FfmpegFile.File, f, Settings.CMDEncoding, p, DPED)
                 Else
-                    OutFile = VideoFile
+                    If f.IsEmptyString Then f = OutFile
+                    If Not SFile.Move(VideoFile, f) Then OutFile = VideoFile
                 End If
             Catch ex As Exception
                 ErrorsDescriber.Execute(DPED, ex, $"[M3U8.MergeFiles]")
             End Try
         End Sub
-        Friend Function Download() As SFile
+        Friend Function Download(ByVal Token As CancellationToken) As SFile
             GetPlaylistUrls()
-            ConcatData()
+            ConcatData(Token)
             Return OutFile
         End Function
 #End Region
 #Region "Statics"
-        Friend Shared Function Download(ByVal URL As String, ByVal f As SFile) As SFile
-            Using m As New M3U8(URL, f) : Return m.Download() : End Using
+        Friend Shared Function Download(ByVal URL As String, ByVal f As SFile, ByVal Token As CancellationToken, ByVal Progress As MyProgress) As SFile
+            Using m As New M3U8(URL, f, Progress) : Return m.Download(Token) : End Using
         End Function
 #End Region
 #Region "IDisposable Support"
@@ -182,7 +196,7 @@ Namespace API.Reddit
                 If disposing Then
                     Video.Clear()
                     Audio.Clear()
-                    CachePath.Delete(SFO.Path, SFODelete.None, DPED)
+                    Cache.Dispose()
                 End If
                 disposedValue = True
             End If

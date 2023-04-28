@@ -32,11 +32,12 @@ Namespace API.TikTok
         Friend Overrides Function GetInstance(ByVal What As ISiteSettings.Download) As IPluginContentProvider
             Return New UserData
         End Function
-        Friend Overrides Function GetSpecialData(ByVal URL As String, ByVal Path As String, ByVal AskForPath As Boolean) As IEnumerable
-            Return UserData.GetVideoInfo(URL, Responser)
-        End Function
         Friend Overrides Function BaseAuthExists() As Boolean
             Return Responser.CookiesExists
+        End Function
+        Friend Overrides Function Available(ByVal What As ISiteSettings.Download, ByVal Silent As Boolean) As Boolean
+            'TODO: TikTok disabled
+            Return False
         End Function
     End Class
 End Namespace

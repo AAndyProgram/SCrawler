@@ -8,7 +8,11 @@
 ' but WITHOUT ANY WARRANTY
 Namespace API.Base
     Friend Module Declarations
+        Friend Const UserLabelName As String = "User"
         Friend ReadOnly LNC As New ListAddParams(LAP.NotContainsOnly)
+        Friend ReadOnly UnixDate32Provider As New ADateTime(ADateTime.Formats.Unix32)
+        Friend ReadOnly UnixDate64Provider As New ADateTime(ADateTime.Formats.Unix64)
+        Friend ReadOnly HtmlConverter As Func(Of String, String) = Function(Input) SymbolsConverter.HTML.Decode(Input, EDP.ReturnValue)
         Friend ReadOnly TitleHtmlConverter As Func(Of String, String) =
                Function(Input) SymbolsConverter.HTML.Decode(SymbolsConverter.Convert(Input, EDP.ReturnValue), EDP.ReturnValue).
                                StringRemoveWinForbiddenSymbols().StringTrim()

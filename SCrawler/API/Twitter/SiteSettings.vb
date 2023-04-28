@@ -11,12 +11,25 @@ Imports SCrawler.Plugin
 Imports SCrawler.Plugin.Attributes
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Tools.Web.Clients
-Imports PersonalUtilities.Tools.Web.Cookies
 Namespace API.Twitter
     <Manifest(TwitterSiteKey), SavedPosts, SpecialForm(False)>
     Friend Class SiteSettings : Inherits SiteSettingsBase
+#Region "Token names"
         Friend Const Header_Authorization As String = "authorization"
         Friend Const Header_Token As String = "x-csrf-token"
+#End Region
+#Region "Properties constants"
+        Friend Const GifsSpecialFolder_Text As String = "GIFs special folder"
+        Friend Const GifsSpecialFolder_ToolTip As String = "Put the GIFs in a special folder" & vbCr &
+                                                           "This is a folder name, not an absolute path." & vbCr &
+                                                           "This folder(s) will be created relative to the user's root folder." & vbCr &
+                                                           "Examples:" & vbCr & "SomeFolderName" & vbCr & "SomeFolderName\SomeFolderName2"
+        Friend Const GifsPrefix_Text As String = "GIF prefix"
+        Friend Const GifsPrefix_ToolTip As String = "This prefix will be added to the beginning of the filename"
+        Friend Const GifsDownload_Text As String = "Download GIFs"
+        Friend Const UseMD5Comparison_Text As String = "Use MD5 comparison"
+        Friend Const UseMD5Comparison_ToolTip As String = "Each image will be checked for existence using MD5"
+#End Region
 #Region "Declarations"
         Friend Overrides ReadOnly Property Icon As Icon
             Get
@@ -34,19 +47,13 @@ Namespace API.Twitter
         Private ReadOnly Property Auth As PropertyValue
         <PropertyOption(AllowNull:=False, IsAuth:=True, ControlText:="Token", ControlToolTip:="Set token from [x-csrf-token] response header")>
         Private ReadOnly Property Token As PropertyValue
-        <PropertyOption(IsAuth:=True, ControlText:="Saved posts user", ControlToolTip:="Personal profile username"), PXML>
-        Friend ReadOnly Property SavedPostsUserName As PropertyValue
 #End Region
 #Region "Other properties"
-        <PropertyOption(IsAuth:=False, ControlText:="Download GIFs"), PXML>
+        <PropertyOption(IsAuth:=False, ControlText:=GifsDownload_Text), PXML>
         Friend ReadOnly Property GifsDownload As PropertyValue
-        <PropertyOption(IsAuth:=False, ControlText:="GIFs special folder",
-                        ControlToolTip:="Put the GIFs in a special folder" & vbCr &
-                        "This is a folder name, not an absolute path." & vbCr &
-                        "This folder(s) will be created relative to the user's root folder." & vbCr &
-                        "Examples:" & vbCr & "SomeFolderName" & vbCr & "SomeFolderName\SomeFolderName2"), PXML>
+        <PropertyOption(IsAuth:=False, ControlText:=GifsSpecialFolder_Text, ControlToolTip:=GifsSpecialFolder_ToolTip), PXML>
         Friend ReadOnly Property GifsSpecialFolder As PropertyValue
-        <PropertyOption(IsAuth:=False, ControlText:="GIF prefix", ControlToolTip:="This prefix will be added to the beginning of the filename"), PXML>
+        <PropertyOption(IsAuth:=False, ControlText:=GifsPrefix_Text, ControlToolTip:=GifsPrefix_ToolTip), PXML>
         Friend ReadOnly Property GifsPrefix As PropertyValue
         <Provider(NameOf(GifsSpecialFolder), Interaction:=True), Provider(NameOf(GifsPrefix), Interaction:=True)>
         Private ReadOnly Property GifStringChecker As IFormatProvider
@@ -60,69 +67,18 @@ Namespace API.Twitter
                         v = v.StringRemoveWinForbiddenSymbols
                     Else
                         v = v.StringReplaceSymbols(GetWinForbiddenSymbols.ToList.ListWithRemove("\").ToArray, String.Empty, EDP.ReturnValue)
-                        v = v.StringTrim("\")
                     End If
                 End If
                 Return v
             End Function
             Private Function GetFormat(ByVal FormatType As Type) As Object Implements IFormatProvider.GetFormat
-                Throw New NotImplementedException("[GetFormat] is not available in the context of [TimersChecker]")
+                Throw New NotImplementedException("[GetFormat] is not available in the context of [GifStringProvider]")
             End Function
         End Class
-        <PropertyOption(IsAuth:=False, ControlText:="Use MD5 comparison", ControlToolTip:="Each image will be checked for existence using MD5"), PXML>
+        <PropertyOption(IsAuth:=False, ControlText:=UseMD5Comparison_Text, ControlToolTip:=UseMD5Comparison_ToolTip), PXML>
         Friend ReadOnly Property UseMD5Comparison As PropertyValue
 #End Region
         Friend Overrides ReadOnly Property Responser As Responser
-#End Region
-        Friend Sub New()
-            MyBase.New(TwitterSite)
-            Responser = New Responser($"{SettingsFolderName}\Responser_{Site}.xml")
-
-            Dim a$ = String.Empty
-            Dim t$ = String.Empty
-
-            With Responser
-                If .File.Exists Then
-                    Dim b As Boolean = .CookiesDomain.IsEmptyString
-                    If EncryptCookies.CookiesEncrypted Then .CookiesEncryptKey = SettingsCLS.CookieEncryptKey
-                    .LoadSettings()
-                    a = .Headers.Value(Header_Authorization)
-                    t = .Headers.Value(Header_Token)
-                    .CookiesDomain = "twitter.com"
-                    If b Then .SaveSettings()
-                Else
-                    .ContentType = "application/json"
-                    .Accept = "*/*"
-                    .CookiesDomain = "twitter.com"
-                    .CookiesEncryptKey = SettingsCLS.CookieEncryptKey
-                    .Decoders.Add(SymbolsConverter.Converters.Unicode)
-                    .Headers.Add("sec-ch-ua", " Not;A Brand"";v=""99"", ""Google Chrome"";v=""91"", ""Chromium"";v=""91""")
-                    .Headers.Add("sec-ch-ua-mobile", "?0")
-                    .Headers.Add("sec-fetch-dest", "empty")
-                    .Headers.Add("sec-fetch-mode", "cors")
-                    .Headers.Add("sec-fetch-site", "same-origin")
-                    .Headers.Add(Header_Token, String.Empty)
-                    .Headers.Add("x-twitter-active-user", "yes")
-                    .Headers.Add("x-twitter-auth-type", "OAuth2Session")
-                    .Headers.Add(Header_Authorization, String.Empty)
-                    .SaveSettings()
-                End If
-            End With
-
-            Auth = New PropertyValue(a, GetType(String), Sub(v) ChangeResponserFields(NameOf(Auth), v))
-            Token = New PropertyValue(t, GetType(String), Sub(v) ChangeResponserFields(NameOf(Token), v))
-            SavedPostsUserName = New PropertyValue(String.Empty, GetType(String))
-
-            GifsDownload = New PropertyValue(True)
-            GifsSpecialFolder = New PropertyValue(String.Empty, GetType(String))
-            GifsPrefix = New PropertyValue("GIF_")
-            GifStringChecker = New GifStringProvider
-            UseMD5Comparison = New PropertyValue(False)
-
-            UserRegex = RParams.DMS("[htps:/]{7,8}.*?twitter.com/([^/]+)", 1)
-            UrlPatternUser = "https://twitter.com/{0}"
-            ImageVideoContains = "twitter"
-        End Sub
         Private Sub ChangeResponserFields(ByVal PropName As String, ByVal Value As Object)
             If Not PropName.IsEmptyString Then
                 Dim f$ = String.Empty
@@ -137,15 +93,59 @@ Namespace API.Twitter
                 End If
             End If
         End Sub
+#End Region
+        Friend Sub New()
+            MyBase.New(TwitterSite)
+            Responser = New Responser($"{SettingsFolderName}\Responser_{Site}.xml") With {.DeclaredError = EDP.ThrowException}
+
+            Dim a$ = String.Empty
+            Dim t$ = String.Empty
+
+            With Responser
+                If .File.Exists Then
+                    .CookiesDomain = "twitter.com"
+                    .CookiesEncryptKey = SettingsCLS.CookieEncryptKey
+                    .LoadSettings()
+                    a = .Headers.Value(Header_Authorization)
+                    t = .Headers.Value(Header_Token)
+                Else
+                    .ContentType = "application/json"
+                    .Accept = "*/*"
+                    .CookiesDomain = "twitter.com"
+                    .CookiesEncryptKey = SettingsCLS.CookieEncryptKey
+                    .Decoders.Add(SymbolsConverter.Converters.Unicode)
+                    .Headers.Add("sec-ch-ua", """Chromium"";v=""112"", ""Google Chrome"";v=""112"", ""Not:A-Brand"";v=""99""")
+                    .Headers.Add("sec-ch-ua-mobile", "?0")
+                    .Headers.Add("sec-fetch-dest", "empty")
+                    .Headers.Add("sec-fetch-mode", "cors")
+                    .Headers.Add("sec-fetch-site", "same-origin")
+                    .Headers.Add(Header_Token, String.Empty)
+                    .Headers.Add("x-twitter-active-user", "yes")
+                    .Headers.Add("x-twitter-auth-type", "OAuth2Session")
+                    .Headers.Add(Header_Authorization, String.Empty)
+                    .SaveSettings()
+                End If
+                .Cookies.ChangedAllowInternalDrop = False
+                .Cookies.Changed = False
+            End With
+
+            Auth = New PropertyValue(a, GetType(String), Sub(v) ChangeResponserFields(NameOf(Auth), v))
+            Token = New PropertyValue(t, GetType(String), Sub(v) ChangeResponserFields(NameOf(Token), v))
+
+            GifsDownload = New PropertyValue(True)
+            GifsSpecialFolder = New PropertyValue(String.Empty, GetType(String))
+            GifsPrefix = New PropertyValue("GIF_")
+            GifStringChecker = New GifStringProvider
+            UseMD5Comparison = New PropertyValue(False)
+
+            UserRegex = RParams.DMS("[htps:/]{7,8}.*?twitter.com/([^/]+)", 1)
+            UrlPatternUser = "https://twitter.com/{0}"
+            ImageVideoContains = "twitter"
+            CheckNetscapeCookiesOnEndInit = True
+            UseNetscapeCookies = True
+        End Sub
         Friend Overrides Function GetInstance(ByVal What As ISiteSettings.Download) As IPluginContentProvider
-            If What = ISiteSettings.Download.SavedPosts Then
-                Return New UserData With {.IsSavedPosts = True, .User = New UserInfo With {.Name = CStr(AConvert(Of String)(SavedPostsUserName.Value, String.Empty))}}
-            Else
-                Return New UserData
-            End If
-        End Function
-        Friend Overrides Function GetSpecialData(ByVal URL As String, ByVal Path As String, ByVal AskForPath As Boolean) As IEnumerable
-            Return UserData.GetVideoInfo(URL, Responser)
+            Return New UserData
         End Function
         Friend Overrides Function GetUserPostUrl(ByVal User As UserDataBase, ByVal Media As UserMedia) As String
             Return $"https://twitter.com/{User.Name}/status/{Media.Post.ID}"
@@ -153,11 +153,31 @@ Namespace API.Twitter
         Friend Overrides Function BaseAuthExists() As Boolean
             Return Responser.CookiesExists And ACheck(Token.Value) And ACheck(Auth.Value)
         End Function
-        Friend Overrides Sub UserOptions(ByRef Options As Object, ByVal OpenForm As Boolean)
-            If Options Is Nothing OrElse Not TypeOf Options Is EditorExchangeOptions Then Options = New EditorExchangeOptions(Me)
-            If OpenForm Then
-                Using f As New OptionsForm(Options) : f.ShowDialog() : End Using
+        Friend Overrides Function Available(ByVal What As ISiteSettings.Download, ByVal Silent As Boolean) As Boolean
+            If MyBase.Available(What, Silent) Then
+                If What = ISiteSettings.Download.SavedPosts Then
+                    Return Settings.GalleryDLFile.Exists
+                Else
+                    Return True
+                End If
+            Else
+                Return False
             End If
+        End Function
+        Friend Overrides Sub UserOptions(ByRef Options As Object, ByVal OpenForm As Boolean)
+            If Options Is Nothing OrElse (Not TypeOf Options Is EditorExchangeOptions OrElse
+                                          Not DirectCast(Options, EditorExchangeOptions).SiteKey = TwitterSiteKey) Then _
+               Options = New EditorExchangeOptions(Me)
+            If OpenForm Then
+                Using f As New InternalSettingsForm(Options, Me, False) : f.ShowDialog() : End Using
+            End If
+        End Sub
+        Friend Overrides Sub Update()
+            If _SiteEditorFormOpened Then
+                Dim tf$ = GifsSpecialFolder.Value
+                If Not tf.IsEmptyString Then tf = tf.StringTrim("\") : GifsSpecialFolder.Value = tf
+            End If
+            MyBase.Update()
         End Sub
     End Class
 End Namespace

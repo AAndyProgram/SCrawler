@@ -9,8 +9,9 @@
 *.user
 *.userosscache
 *.sln.docstates
-ffmpeg.exe
+.obsidian/
 ToDo.txt
+ToDo.md
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
@@ -33,10 +34,7 @@ bld/
 [Oo]bj/
 [Ll]og/
 [Ll]ogs/
-ffmpeg/
-cURL/
 Info/
-Hidden/
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/

@@ -49,13 +49,10 @@ Namespace API
             _CollectionName = NewName
             If Count > 0 Then Collections.ForEach(Sub(c) c.CollectionName = NewName)
         End Sub
-        Friend Overrides Property Name As String
+        Friend Overrides ReadOnly Property Name As String
             Get
                 Return CollectionName
             End Get
-            Set(ByVal NewCollectionName As String)
-                CollectionName = NewCollectionName
-            End Set
         End Property
         Friend Overrides Property FriendlyName As String
             Get
@@ -367,7 +364,7 @@ Namespace API
 #End Region
 #Region "Open site, folder"
         Friend Overrides Sub OpenSite(Optional ByVal e As ErrorsDescriber = Nothing)
-            If Not e.Exists Then e = New ErrorsDescriber(EDP.SendInLog)
+            If Not e.Exists Then e = New ErrorsDescriber(EDP.SendToLog)
             If Count > 0 Then Collections.ForEach(Sub(c) c.OpenSite(e))
         End Sub
         Private ReadOnly RealUser As Predicate(Of IUserData) = Function(u) u.UserModel = UsageModel.Default And Not u.HOST.Key = PathPlugin.PluginKey
@@ -575,7 +572,7 @@ Namespace API
                             MainFrameObj.ImageHandler(Me, False)
                             Collections.ListClearDispose
                             Dispose(False)
-                            If Not f.IsEmptyString Then f.Delete(SFO.Path, SFODelete.EmptyOnly + Settings.DeleteMode, EDP.SendInLog)
+                            If Not f.IsEmptyString Then f.Delete(SFO.Path, SFODelete.EmptyOnly + Settings.DeleteMode, EDP.SendToLog)
                             Return 2
                         End If
                     Case 1
@@ -592,7 +589,7 @@ Namespace API
                             If Collections.All(Function(c) c.CollectionName.IsEmptyString) Then
                                 Settings.Users.Remove(Me)
                                 Collections.Clear()
-                                If Not f.IsEmptyString Then f.Delete(SFO.Path, SFODelete.Default + Settings.DeleteMode, EDP.SendInLog)
+                                If Not f.IsEmptyString Then f.Delete(SFO.Path, SFODelete.Default + Settings.DeleteMode, EDP.SendToLog)
                                 Downloader.UserRemove(Me)
                                 MainFrameObj.ImageHandler(Me, False)
                                 Dispose(False)

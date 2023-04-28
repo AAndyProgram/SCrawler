@@ -26,7 +26,7 @@ Namespace API.TikTok
                 Dim PostURL$ = String.Empty
                 Dim r$
                 URL = $"https://www.tiktok.com/@{Name}"
-                r = Responser.GetResponse(URL,, EDP.ThrowException)
+                r = Responser.GetResponse(URL)
                 PostIDs = RegexEnvir.GetIDList(r)
                 If PostIDs.ListExists Then
                     For Each __id$ In PostIDs
@@ -52,28 +52,7 @@ Namespace API.TikTok
         Protected Overrides Sub DownloadContent(ByVal Token As CancellationToken)
             DownloadContentDefault(Token)
         End Sub
-        Friend Shared Function GetVideoInfo(ByVal URL As String, ByVal Responser As Responser, Optional ByVal e As ErrorsDescriber = Nothing) As IEnumerable(Of UserMedia)
-            Try
-                If Not URL.IsEmptyString Then
-                    Dim PostId$ = String.Empty
-                    Dim PostDate As Date? = Nothing
-                    Dim PostURL$ = String.Empty
-                    Dim r$
-                    PostId = RegexEnvir.ExtractPostID(URL)
-                    If Not PostId.IsEmptyString Then
-                        Using resp As Responser = Responser.Copy() : r = resp.GetResponse(URL,, EDP.ThrowException) : End Using
-                        If Not r.IsEmptyString Then
-                            If RegexEnvir.GetVideoData(r, PostId, PostURL, PostDate) Then Return {MediaFromData(PostURL, PostId, PostDate)}
-                        End If
-                    End If
-                End If
-                Return Nothing
-            Catch ex As Exception
-                If Not e.Exists Then e = New ErrorsDescriber(EDP.ShowMainMsg + EDP.SendInLog)
-                Return ErrorsDescriber.Execute(e, ex, $"TikTok standalone downloader: fetch media error ({URL})")
-            End Try
-        End Function
-        Private Shared Function MediaFromData(ByVal _URL As String, ByVal PostID As String, ByVal PostDate As Date?) As UserMedia
+        Private Function MediaFromData(ByVal _URL As String, ByVal PostID As String, ByVal PostDate As Date?) As UserMedia
             _URL = LinkFormatterSecure(RegexReplace(_URL.Replace("\", String.Empty), LinkPattern))
             Dim m As New UserMedia(_URL, UserMedia.Types.Video) With {.Post = New UserPost With {.ID = PostID}}
             If Not m.URL.IsEmptyString Then m.File = $"{PostID}.mp4"

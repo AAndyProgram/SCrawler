@@ -8,8 +8,8 @@
 ' but WITHOUT ANY WARRANTY
 Namespace Plugin
     Public Interface IPluginContentProvider : Inherits IDisposable
-        Event ProgressChanged(ByVal Count As Integer)
-        Event TotalCountChanged(ByVal Count As Integer)
+        Event ProgressChanged(ByVal Value As Integer)
+        Event ProgressMaximumChanged(ByVal Value As Integer, ByVal Add As Boolean)
         Property Thrower As IThrower
         Property LogProvider As ILogProvider
         Property Settings As ISiteSettings
@@ -32,7 +32,8 @@ Namespace Plugin
         Sub ExchangeOptionsSet(ByVal Obj As Object)
         Sub XmlFieldsSet(ByVal Fields As List(Of KeyValuePair(Of String, String)))
         Function XmlFieldsGet() As List(Of KeyValuePair(Of String, String))
-        Sub GetMedia()
-        Sub Download()
+        Sub GetMedia(ByVal Token As Threading.CancellationToken)
+        Sub Download(ByVal Token As Threading.CancellationToken)
+        Sub DownloadSingleObject(ByVal Data As IDownloadableMedia, ByVal Token As Threading.CancellationToken)
     End Interface
 End Namespace

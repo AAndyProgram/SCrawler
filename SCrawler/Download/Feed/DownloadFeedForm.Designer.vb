@@ -99,6 +99,7 @@ Namespace DownloadObjects
             'TP_DATA
             '
             Me.TP_DATA.AutoScroll = True
+            Me.TP_DATA.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink
             Me.TP_DATA.ColumnCount = 1
             Me.TP_DATA.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
             Me.TP_DATA.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))

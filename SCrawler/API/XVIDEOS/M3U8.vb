@@ -7,11 +7,14 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports System.Net
+Imports System.Threading
+Imports PersonalUtilities.Forms.Toolbars
 Namespace API.XVIDEOS
     Friend NotInheritable Class M3U8
         Private Sub New()
         End Sub
-        Friend Shared Function Download(ByVal URL As String, ByVal Appender As String, ByVal f As SFile) As SFile
+        Friend Shared Function Download(ByVal URL As String, ByVal Appender As String, ByVal f As SFile,
+                                        ByVal Token As CancellationToken, ByVal Progress As MyProgress) As SFile
             Try
                 If Not URL.IsEmptyString Then
                     Using w As New WebClient
@@ -19,13 +22,13 @@ Namespace API.XVIDEOS
                         If Not r.IsEmptyString Then
                             Dim l As List(Of String) = ListAddList(Nothing, r.StringFormatLines.StringToList(Of String)(vbNewLine).ListWithRemove(Function(v) v.Trim.StartsWith("#")),
                                                                    New ListAddParams With {.Converter = Function(Input) $"{Appender}/{Input.ToString.Trim}"})
-                            If l.ListExists Then Return Base.M3U8Base.Download(l, f)
+                            If l.ListExists Then Return Base.M3U8Base.Download(l, f,, Token, Progress)
                         End If
                     End Using
                 End If
                 Return Nothing
             Catch ex As Exception
-                ErrorsDescriber.Execute(EDP.SendInLog, ex, $"[M3U8.Download({URL}, {Appender}, {f})]")
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, $"[M3U8.Download({URL}, {Appender}, {f})]")
                 Throw ex
             End Try
         End Function

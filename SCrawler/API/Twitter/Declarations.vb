@@ -16,7 +16,6 @@ Namespace API.Twitter
         Friend ReadOnly DateProvider As ADateTime = GetDateProvider()
         Friend ReadOnly VideoNode As NodeParams() = {New NodeParams("video_info", True, True, True, True, 10)}
         Friend ReadOnly VideoSizeRegEx As RParams = RParams.DMS("\d+x(\d+)", 1, EDP.ReturnValue)
-        Friend ReadOnly UserIdRegEx As RParams = RParams.DMS("user_id.:.(\d+)", 1, EDP.ReturnValue)
         Private Function GetDateProvider() As ADateTime
             Dim n As DateTimeFormatInfo = CultureInfo.GetCultureInfo("en-us").DateTimeFormat.Clone
             n.FullDateTimePattern = "ddd MMM dd HH:mm:ss +ffff yyyy"

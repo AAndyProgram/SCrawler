@@ -6,9 +6,9 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
+Imports PersonalUtilities.Tools
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.XML.Objects
-Imports PersonalUtilities.Tools
 Friend Class LabelsKeeper : Implements ICollection(Of String), IMyEnumerator(Of String), IDisposable
     Friend Event NewLabelAdded()
     Friend Const NoLabeledName As String = "No Label"
@@ -16,7 +16,7 @@ Friend Class LabelsKeeper : Implements ICollection(Of String), IMyEnumerator(Of 
     Friend ReadOnly NoLabel As New ListViewGroup(NoLabeledName, NoLabeledName)
     Private ReadOnly LabelsList As List(Of String)
     Private ReadOnly LabelsFile As SFile = "Settings\Labels.txt"
-    Friend ReadOnly NewLabels As List(Of String)
+    Friend ReadOnly Property NewLabels As List(Of String)
     Friend ReadOnly Property NewLabelsExists As Boolean
         Get
             Return NewLabels.Count > 0
@@ -56,31 +56,35 @@ Friend Class LabelsKeeper : Implements ICollection(Of String), IMyEnumerator(Of 
         NewLabels.Clear()
     End Sub
     Friend Sub Update(Optional ByVal Force As Boolean = False)
+        If LabelsList.Count > 0 AndAlso LabelsList.Contains(NoParsedUser) Then LabelsList.Remove(NoParsedUser)
         If LabelsList.Count > 0 Then
             If NewLabelsExists Or Force Then
-                If LabelsList.Contains(NoParsedUser) Then LabelsList.Remove(NoParsedUser)
                 LabelsList.Sort()
-                TextSaver.SaveTextToFile(LabelsList.ListToString(vbNewLine), LabelsFile, True, False, EDP.SendInLog)
+                TextSaver.SaveTextToFile(LabelsList.ListToString(vbNewLine), LabelsFile, True, False, EDP.SendToLog)
                 If NewLabels.Count > 0 Then NewLabels.Clear()
             End If
         Else
-            LabelsFile.Delete(, Settings.DeleteMode, EDP.SendInLog)
+            LabelsFile.Delete(, SFODelete.DeletePermanently, EDP.None)
         End If
+    End Sub
+    Friend Sub UpdateMainFrameAndUpdate()
+        RaiseEvent NewLabelAdded()
+        Update()
     End Sub
     Friend Overloads Sub Add(ByVal _Item As String) Implements ICollection(Of String).Add
         Add(_Item, True)
     End Sub
     Friend Overloads Sub Add(ByVal _Item As String, ByVal UpdateMainFrame As Boolean)
-        If Not _Item.IsEmptyString And Not LabelsList.Contains(_Item) Then
+        If Not _Item.IsEmptyString AndAlso Not _Item = NoParsedUser AndAlso Not LabelsList.Contains(_Item) Then
             LabelsList.Add(_Item)
             If Not NewLabels.Contains(_Item) Then NewLabels.Add(_Item)
-            If UpdateMainFrame Then RaiseEvent NewLabelAdded()
+            If UpdateMainFrame Then UpdateMainFrameAndUpdate()
         End If
     End Sub
     Friend Sub AddRange(ByVal _Items As IEnumerable(Of String), ByVal UpdateMainFrame As Boolean)
         If _Items.ListExists Then
             For Each i$ In _Items : Add(i, False) : Next
-            If UpdateMainFrame Then RaiseEvent NewLabelAdded()
+            If UpdateMainFrame Then UpdateMainFrameAndUpdate()
         End If
     End Sub
     Friend Function Contains(ByVal _Item As String) As Boolean Implements ICollection(Of String).Contains

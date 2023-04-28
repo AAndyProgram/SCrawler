@@ -12,17 +12,17 @@ Namespace Plugin
         Enum Download As Integer
             Main = 0
             SavedPosts = 1
-            Channel = 2
+            SingleObject = 2
         End Enum
         ReadOnly Property Icon As Icon
         ReadOnly Property Image As Image
         ReadOnly Property Site As String
         Property Logger As ILogProvider
-        Function GetUserUrl(ByVal User As IPluginContentProvider, ByVal Channel As Boolean) As String
+        Function GetUserUrl(ByVal User As IPluginContentProvider) As String
         Function IsMyUser(ByVal UserURL As String) As ExchangeOptions
         Function IsMyImageVideo(ByVal URL As String) As ExchangeOptions
-        Function GetSpecialData(ByVal URL As String, ByVal Path As String, ByVal AskForPath As Boolean) As IEnumerable
         Function GetInstance(ByVal What As Download) As IPluginContentProvider
+        Function GetSingleMediaInstance(ByVal URL As String, ByVal OutputFile As String) As IDownloadableMedia
         Function GetUserPostUrl(ByVal User As IPluginContentProvider, ByVal Media As IUserMedia) As String
 #Region "XML Support"
         Sub Load(ByVal XMLValues As IEnumerable(Of KeyValuePair(Of String, String)))

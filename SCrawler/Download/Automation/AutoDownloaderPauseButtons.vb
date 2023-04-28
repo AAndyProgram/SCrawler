@@ -138,7 +138,7 @@ Namespace DownloadObjects
                                                                         BTT_PAUSE_UNLIMITED, BTT_PAUSE_DISABLE}
 
                     If UpdateBase Then UpdateBaseButton(Not p = PauseModes.Disabled)
-                    If Not VerifyAll OrElse Settings.Automation.All(Function(ByVal plan As AutoDownloader)
+                    If Not VerifyAll OrElse Settings.Automation.All(Function(ByVal plan As AutoDownloader) As Boolean
                                                                         If plan.Mode = AutoDownloader.Modes.None Then
                                                                             Return True
                                                                         Else
@@ -166,7 +166,7 @@ Namespace DownloadObjects
                     cntList.Clear()
                 End With
             Catch ex As Exception
-                ErrorsDescriber.Execute(EDP.SendInLog, ex, "[MainFrame.UpdatePauseButtons]")
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "[MainFrame.UpdatePauseButtons]")
             Finally
                 Select Case Place
                     Case ButtonsPlace.MainFrame : TrayButtons.UpdatePauseButtons(True, True)

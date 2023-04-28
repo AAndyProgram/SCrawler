@@ -130,6 +130,18 @@
   <data name="LPSGPic_32" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Content\Pictures\SitePictures\LPSGPic_32.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="MastodonIcon_48" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Content\Icons\SiteIcons\MastodonIcon_48.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="MastodonPic_48" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Content\Pictures\SitePictures\MastodonPic_48.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="PinterestIcon_32" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Content\Icons\SiteIcons\PinterestIcon_32.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="PinterestPic_48" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Content\Pictures\SitePictures\PinterestPic_48.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="PornHubIcon_16" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Content\Icons\SiteIcons\PornHubIcon_16.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
@@ -147,6 +159,12 @@
   </data>
   <data name="RedGifsPic_32" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Content\Pictures\SitePictures\RedGifsPic_32.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="ThisVidIcon_16" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Content\Icons\SiteIcons\ThisVidIcon_16.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="ThisVidPic_16" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Content\Pictures\SitePictures\ThisVidPic_16.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="TikTokIcon_32" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Content\Icons\SiteIcons\TikTokIcon_32.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>

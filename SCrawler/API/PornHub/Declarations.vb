@@ -23,6 +23,7 @@ Namespace API.PornHub
         Private ReadOnly RegexVideo_Video_Wrong_Option As RParams = RParams.DM("div class=""thumbnail-info-wrapper clearfix.+?[\r\n\s]*?\<span class=""title.+?[\r\n\s]*?\<a href=""([^""]+?)""[\s]+?title=""([^""]*?)""[\w\W\s\r\n]+?", 0, RegexReturn.ListByMatch)
         Friend ReadOnly RegexVideo_Video_Wrong_Fields As RField() = {New RField(New RFieldOption(1, RegexVideo_Video_Wrong_Option)), New RField(New RFieldOption(2, RegexVideo_Video_Wrong_Option))}
         Friend ReadOnly RegexVideo_Video_VideoKey As RParams = RParams.DMS("viewkey=([\w\d]+)", 1, EDP.ReturnValue)
+        Friend ReadOnly RegexVideoPageTitle As RParams = RParams.DMS("meta (property|name)=""[^:]+?:title"" content=""([^""]+)""", 2, EDP.ReturnValue)
 #End Region
 #Region "Declarations M3U8"
         Friend ReadOnly Regex_M3U8_FirstFileRegEx As RParams = RParams.DM(".+?m3u8.*", 0)
@@ -38,6 +39,7 @@ Namespace API.PornHub
         Friend ReadOnly Regex_Photo_PornHub_AlbumPhotoArr As RParams = RParams.DMS("\<a href=""(/photo/\d+)""", 1, RegexReturn.List, EDP.ReturnValue,
                                                                                    CType(Function(Input$) If(Input.IsEmptyString, String.Empty, $"https://www.pornhub.com{Input.Trim}"), Func(Of String, String)))
         Friend ReadOnly Regex_Photo_PornHub_SinglePhoto As RParams = RParams.DMS("(?<!thumbImage.+?)<img src=""(https://[^""]+\d+[^""]+)""", 1, EDP.ReturnValue)
+        Friend ReadOnly Regex_Photo_File As RParams = RParams.DM("\d+\.[\w]{3,4}", 0, EDP.ReturnValue)
 #End Region
     End Module
 End Namespace

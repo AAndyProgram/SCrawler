@@ -11,15 +11,11 @@ Namespace Plugin
         Public UserName As String
         Public SiteName As String
         Public HostKey As String
-        Public IsChannel As Boolean
         Public Exists As Boolean
         Public Sub New(ByVal Site As String, ByVal Name As String)
             UserName = Name
             SiteName = Site
-        End Sub
-        Public Sub New(ByVal Site As String, ByVal Name As String, ByVal IsChannel As Boolean)
-            Me.New(Site, Name)
-            Me.IsChannel = IsChannel
+            Exists = Not String.IsNullOrEmpty(Name) And Not String.IsNullOrWhiteSpace(Name)
         End Sub
     End Structure
 End Namespace

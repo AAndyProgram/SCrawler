@@ -56,7 +56,7 @@ Friend Class ListImagesLoader
                                                                                    End If
                                                                                Catch iex As ArgumentOutOfRangeException
                                                                                Catch ex As Exception
-                                                                                   ErrorsDescriber.Execute(EDP.SendInLog, ex, "[ListImagesLoader.UpdateImages]")
+                                                                                   ErrorsDescriber.Execute(EDP.SendToLog, ex, "[ListImagesLoader.UpdateImages]")
                                                                                End Try
                                                                                If Not ar Is Nothing Then MyList.EndInvoke(ar)
                                                                                UpdateInProgress = False
@@ -76,7 +76,7 @@ Friend Class ListImagesLoader
             If UserDataList.ListExists Then UserDataList.Clear() : Application.DoEvents()
             If If(ImageThread?.IsAlive, False) Then ImageThread.Abort() : Application.DoEvents()
         Catch ex As Exception
-            ErrorsDescriber.Execute(EDP.SendInLog, ex, "[ListImagesLoader.InterruptUpdate]")
+            ErrorsDescriber.Execute(EDP.SendToLog, ex, "[ListImagesLoader.InterruptUpdate]")
         End Try
     End Sub
     Friend Sub Update()
@@ -146,7 +146,7 @@ Friend Class ListImagesLoader
                 MsgBoxE({"User list update aborted. Click the 'Refresh' button to refresh the user list.", "Update user list"}, vbExclamation)
             End If
         Catch ex As Exception
-            ErrorsDescriber.Execute(EDP.SendInLog, ex, "[ListImagesLoader.Update]")
+            ErrorsDescriber.Execute(EDP.SendToLog, ex, "[ListImagesLoader.Update]")
         End Try
     End Sub
     Friend Sub UpdateUser(ByVal User As IUserData, ByVal Add As Boolean)

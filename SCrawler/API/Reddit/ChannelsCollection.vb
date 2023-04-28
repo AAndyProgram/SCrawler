@@ -55,7 +55,7 @@ Namespace API.Reddit
                     Return Nothing
                 End If
             Catch ex As Exception
-                Return ErrorsDescriber.Execute(EDP.SendInLog + EDP.ReturnValue, ex, "[API.Reddit.ChannelsCollection.GetUserFiles]")
+                Return ErrorsDescriber.Execute(EDP.SendToLog + EDP.ReturnValue, ex, "[API.Reddit.ChannelsCollection.GetUserFiles]")
             End Try
         End Function
         Friend Sub UpdateUsersStats()

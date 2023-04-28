@@ -7,16 +7,15 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports SCrawler.API.Base
-Imports SCrawler.API.BaseObjects
 Imports SCrawler.Plugin
 Imports SCrawler.Plugin.Attributes
-Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Tools.Web.Clients
+Imports PersonalUtilities.Functions.RegularExpressions
 Namespace API.Xhamster
     <Manifest(XhamsterSiteKey), SavedPosts, SpecialForm(True), TaskGroup(SettingsCLS.TaskStackNamePornSite)>
-    Friend Class SiteSettings : Inherits SiteSettingsBase : Implements IDomainContainer
+    Friend Class SiteSettings : Inherits SiteSettingsBase
 #Region "Declarations"
-        Friend Overrides ReadOnly Property Icon As Icon Implements IDomainContainer.Icon
+        Friend Overrides ReadOnly Property Icon As Icon
             Get
                 Return My.Resources.SiteResources.XhamsterIcon_32
             End Get
@@ -26,94 +25,45 @@ Namespace API.Xhamster
                 Return My.Resources.SiteResources.XhamsterPic_32
             End Get
         End Property
-#Region "Domains"
-        Private ReadOnly Property IDomainContainer_Site As String Implements IDomainContainer.Site
-            Get
-                Return Site
-            End Get
-        End Property
-        <PXML("Domains")> Private ReadOnly Property SiteDomains As PropertyValue Implements IDomainContainer.DomainsSettingProp
-        Friend ReadOnly Property Domains As List(Of String) Implements IDomainContainer.Domains
-        Private ReadOnly Property DomainsTemp As List(Of String) Implements IDomainContainer.DomainsTemp
-        Private Property DomainsChanged As Boolean = False Implements IDomainContainer.DomainsChanged
-        Friend ReadOnly Property DomainsUpdated As Boolean
-            Get
-                Return DomainsUpdatedBySite
-            End Get
-        End Property
-        Private ReadOnly Property DomainsDefault As String = "xhamster.com" Implements IDomainContainer.DomainsDefault
-#End Region
+        <PXML("Domains")> Private ReadOnly Property SiteDomains As PropertyValue
+        Friend ReadOnly Property Domains As DomainsContainer
         <PropertyOption(ControlText:="Download UHD", ControlToolTip:="Download UHD (4K) content"), PXML>
         Friend Property DownloadUHD As PropertyValue
-        Private Property Initialized As Boolean = False Implements IDomainContainer.Initialized
 #End Region
 #Region "Initializer"
         Friend Sub New()
             MyBase.New("XHamster", "xhamster.com")
 
-            Responser.DeclaredError = EDP.ThrowException
-
-            Domains = New List(Of String)
-            DomainsTemp = New List(Of String)
-            SiteDomains = New PropertyValue(DomainsDefault, GetType(String), Sub(s) UpdateDomains())
+            Domains = New DomainsContainer(Me, "xhamster.com")
+            SiteDomains = New PropertyValue(Domains.DomainsDefault, GetType(String))
+            Domains.DestinationProp = SiteDomains
             DownloadUHD = New PropertyValue(False)
 
-            UrlPatternUser = "https://xhamster.com/users/{0}"
-            UrlPatternChannel = "https://xhamster.com/channels/{0}"
+
+            UrlPatternUser = "https://xhamster.com/{0}/{1}"
             UserRegex = RParams.DMS($"/({UserOption}|{ChannelOption})/([^/]+)(\Z|.*)", 0, RegexReturn.ListByMatch)
             ImageVideoContains = "xhamster"
         End Sub
         Friend Overrides Sub EndInit()
-            Initialized = True
-            DomainContainer.EndInit(Me)
-            DomainsTemp.ListAddList(Domains)
+            Domains.PopulateInitialDomains(SiteDomains.Value)
             MyBase.EndInit()
         End Sub
 #End Region
-#Region "UpdateDomains"
-        Private Property DomainsUpdateInProgress As Boolean = False Implements IDomainContainer.DomainsUpdateInProgress
-        Private Property DomainsUpdatedBySite As Boolean = False Implements IDomainContainer.DomainsUpdatedBySite
-        Friend Overloads Sub UpdateDomains() Implements IDomainContainer.UpdateDomains
-            DomainContainer.UpdateDomains(Me)
+#Region "Domains Support"
+        Protected Overrides Sub DomainsApply()
+            Domains.Apply()
+            MyBase.DomainsApply()
         End Sub
-        Friend Overloads Sub UpdateDomains(ByVal NewDomains As IEnumerable(Of String), ByVal Internal As Boolean)
-            DomainContainer.UpdateDomains(Me, NewDomains, Internal)
-        End Sub
-#End Region
-#Region "Edit"
-        Friend Overrides Sub Update()
-            DomainContainer.Update(Me)
-            Responser.SaveSettings()
-            MyBase.Update()
-        End Sub
-        Friend Overrides Sub EndEdit()
-            DomainContainer.EndEdit(Me)
-            MyBase.EndEdit()
+        Protected Overrides Sub DomainsReset()
+            Domains.Reset()
+            MyBase.DomainsReset()
         End Sub
         Friend Overrides Sub OpenSettingsForm()
-            DomainContainer.OpenSettingsForm(Me)
+            Domains.OpenSettingsForm()
         End Sub
 #End Region
         Friend Overrides Function GetInstance(ByVal What As ISiteSettings.Download) As IPluginContentProvider
-            If What = ISiteSettings.Download.SavedPosts Then
-                Return New UserData With {.IsSavedPosts = True, .User = New UserInfo With {.Name = "xhamster"}}
-            Else
-                Return New UserData
-            End If
-        End Function
-        Friend Overrides Function GetSpecialData(ByVal URL As String, ByVal Path As String, ByVal AskForPath As Boolean) As IEnumerable
-            If Available(ISiteSettings.Download.Main, True) Then
-                Using resp As Responser = Responser.Copy
-                    Dim spf$ = String.Empty
-                    Dim f As SFile = GetSpecialDataFile(Path, AskForPath, spf)
-                    Dim m As UserMedia = UserData.GetVideoInfo(URL, resp, f)
-                    If m.State = UserMedia.States.Downloaded Then
-                        m.SpecialFolder = f
-                        Return {m}
-                    End If
-                End Using
-            End If
-            Return Nothing
+            Return New UserData
         End Function
         Friend Overrides Function Available(ByVal What As ISiteSettings.Download, ByVal Silent As Boolean) As Boolean
             If Settings.UseM3U8 AndAlso MyBase.Available(What, Silent) Then
@@ -126,22 +76,26 @@ Namespace API.Xhamster
                 Return False
             End If
         End Function
-        Friend Overrides Function GetUserPostUrl(ByVal User As UserDataBase, ByVal Media As UserMedia) As String
-            Return Media.URL_BASE
+        Friend Overrides Function GetUserUrl(ByVal User As IPluginContentProvider) As String
+            With DirectCast(User, UserData) : Return String.Format(UrlPatternUser, IIf(.IsChannel, ChannelOption, UserOption), .TrueName) : End With
         End Function
-#Region "Is my user/data"
-        Private Const ChannelOption As String = "channels"
+#Region "IsMyUser, IsMyImageVideo"
+        Friend Const ChannelOption As String = "channels"
         Private Const UserOption As String = "users"
         Friend Overrides Function IsMyUser(ByVal UserURL As String) As ExchangeOptions
-            If Not UserURL.IsEmptyString AndAlso Domains.Count > 0 AndAlso Domains.Exists(Function(d) UserURL.ToLower.Contains(d.ToLower)) Then
+            If Not UserURL.IsEmptyString AndAlso Domains.Domains.Count > 0 AndAlso Domains.Domains.Exists(Function(d) UserURL.ToLower.Contains(d.ToLower)) Then
                 Dim data As List(Of String) = RegexReplace(UserURL, UserRegex)
-                If data.ListExists(3) AndAlso Not data(2).IsEmptyString Then Return New ExchangeOptions(Site, data(2), data(1) = ChannelOption)
+                If data.ListExists(3) AndAlso Not data(2).IsEmptyString Then
+                    Dim n$ = data(2)
+                    If Not data(1).IsEmptyString AndAlso data(1) = ChannelOption Then n &= $"@{data(1)}"
+                    Return New ExchangeOptions(Site, n)
+                End If
             End If
             Return Nothing
         End Function
         Friend Overrides Function IsMyImageVideo(ByVal URL As String) As ExchangeOptions
-            If Not URL.IsEmptyString And Domains.Count > 0 Then
-                If Domains.Exists(Function(d) URL.Contains(d)) Then Return New ExchangeOptions With {.UserName = URL, .Exists = True}
+            If Not URL.IsEmptyString And Domains.Domains.Count > 0 Then
+                If Domains.Domains.Exists(Function(d) URL.Contains(d)) Then Return New ExchangeOptions(Site, URL)
             End If
             Return Nothing
         End Function

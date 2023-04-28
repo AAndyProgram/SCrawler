@@ -68,7 +68,7 @@ Namespace Plugin.Hosts
                     End If
                 End If
             Catch ex As Exception
-                ErrorsDescriber.Execute(EDP.SendInLog, ex, $"[PluginHost.New({AssemblyFile})]")
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, $"[PluginHost.New({AssemblyFile})]")
                 _HasError = True
             End Try
         End Sub
@@ -77,13 +77,17 @@ Namespace Plugin.Hosts
                                           ByRef _Vids As XMLValue(Of Boolean)) As IEnumerable(Of PluginHost)
             Return {New PluginHost(New API.Reddit.SiteSettings, _XML, GlobalPath, _Temp, _Imgs, _Vids),
                     New PluginHost(New API.Twitter.SiteSettings, _XML, GlobalPath, _Temp, _Imgs, _Vids),
+                    New PluginHost(New API.Mastodon.SiteSettings, _XML, GlobalPath, _Temp, _Imgs, _Vids),
                     New PluginHost(New API.Instagram.SiteSettings(_XML, GlobalPath), _XML, GlobalPath, _Temp, _Imgs, _Vids),
                     New PluginHost(New API.RedGifs.SiteSettings, _XML, GlobalPath, _Temp, _Imgs, _Vids),
+                    New PluginHost(New API.YouTube.SiteSettings, _XML, GlobalPath, _Temp, _Imgs, _Vids),
+                    New PluginHost(New API.Pinterest.SiteSettings, _XML, GlobalPath, _Temp, _Imgs, _Vids),
                     New PluginHost(New API.TikTok.SiteSettings, _XML, GlobalPath, _Temp, _Imgs, _Vids),
                     New PluginHost(New API.LPSG.SiteSettings, _XML, GlobalPath, _Temp, _Imgs, _Vids),
                     New PluginHost(New API.PornHub.SiteSettings, _XML, GlobalPath, _Temp, _Imgs, _Vids),
                     New PluginHost(New API.Xhamster.SiteSettings, _XML, GlobalPath, _Temp, _Imgs, _Vids),
                     New PluginHost(New API.XVIDEOS.SiteSettings, _XML, GlobalPath, _Temp, _Imgs, _Vids),
+                    New PluginHost(New API.ThisVid.SiteSettings, _XML, GlobalPath, _Temp, _Imgs, _Vids),
                     New PluginHost(New API.PathPlugin.SiteSettings, _XML, GlobalPath, _Temp, _Imgs, _Vids)}
         End Function
         Friend Shared Function GetPluginsHosts(ByRef _XML As XmlFile, ByVal GlobalPath As SFile,
@@ -100,7 +104,7 @@ Namespace Plugin.Hosts
                 End If
                 Return pList
             Catch ex As Exception
-                ErrorsDescriber.Execute(EDP.SendInLog, ex, $"[PluginHost.GetPluginsHosts({GlobalPath})]")
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, $"[PluginHost.GetPluginsHosts({GlobalPath})]")
                 Return Nothing
             End Try
         End Function

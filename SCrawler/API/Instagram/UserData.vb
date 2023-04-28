@@ -8,13 +8,14 @@
 ' but WITHOUT ANY WARRANTY
 Imports System.Net
 Imports System.Threading
+Imports SCrawler.API.Base
+Imports SCrawler.API.YouTube.Objects
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.XML.Base
 Imports PersonalUtilities.Functions.Messaging
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Tools.Web.Clients
 Imports PersonalUtilities.Tools.Web.Documents.JSON
-Imports SCrawler.API.Base
 Imports UTypes = SCrawler.API.Base.UserMedia.Types
 Namespace API.Instagram
     Friend Class UserData : Inherits UserDataBase
@@ -77,7 +78,7 @@ Namespace API.Instagram
 #End Region
 #Region "Exchange options"
         Friend Overrides Function ExchangeOptionsGet() As Object
-            Return New EditorExchangeOptions(HOST.Source) With {.GetTimeline = GetTimeline, .GetStories = GetStories, .GetTagged = GetTaggedData}
+            Return New EditorExchangeOptions(Me)
         End Function
         Friend Overrides Sub ExchangeOptionsSet(ByVal Obj As Object)
             If Not Obj Is Nothing AndAlso TypeOf Obj Is EditorExchangeOptions Then
@@ -139,7 +140,7 @@ Namespace API.Instagram
                     x = New XmlFile With {.AllowSameNames = True}
                     x.AddRange(PostsKVIDs)
                     x.Name = "Posts"
-                    x.Save(f, EDP.SendInLog)
+                    x.Save(f, EDP.SendToLog)
                     x.Dispose()
                 End If
             End If
@@ -182,7 +183,7 @@ Namespace API.Instagram
                 End If
                 Return String.Empty
             Catch ex As Exception
-                Return ErrorsDescriber.Execute(EDP.SendInLog, ex, $"{ToStringForLog()}: Cannot find post code by ID ({PostID})", String.Empty)
+                Return ErrorsDescriber.Execute(EDP.SendToLog, ex, $"{ToStringForLog()}: Cannot find post code by ID ({PostID})", String.Empty)
             End Try
         End Function
         Private Function GetPostIdBySection(ByVal ID As String, ByVal Section As Sections) As String
@@ -621,7 +622,7 @@ Namespace API.Instagram
                             PostsKVIDs.ListAddValue(PostIDKV, LNC)
                             PostDate = .Value("taken_at")
                             If Not IsSavedPosts Then
-                                Select Case CheckDatesLimit(PostDate, DateProvider)
+                                Select Case CheckDatesLimit(PostDate, UnixDate32Provider)
                                     Case DateResult.Skip : Continue For
                                     Case DateResult.Exit : If Not Pinned Then Return False
                                 End Select
@@ -637,7 +638,7 @@ Namespace API.Instagram
         End Function
 #End Region
 #Region "Code ID converters"
-        Private Shared Function CodeToID(ByVal Code As String) As String
+        Private Function CodeToID(ByVal Code As String) As String
             Const CodeSymbols$ = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
             Try
                 If Not Code.IsEmptyString Then
@@ -652,13 +653,13 @@ Namespace API.Instagram
                     Return String.Empty
                 End If
             Catch ex As Exception
-                Return ErrorsDescriber.Execute(EDP.SendInLog, ex, $"[API.Instagram.UserData.CodeToID({Code})", String.Empty)
+                Return ErrorsDescriber.Execute(EDP.SendToLog, ex, $"[API.Instagram.UserData.CodeToID({Code})", String.Empty)
             End Try
         End Function
 #End Region
 #Region "Obtain Media"
         Private Sub ObtainMedia(ByVal n As EContainer, ByVal PostID As String, Optional ByVal SpecialFolder As String = Nothing,
-                                 Optional ByVal DateObj As String = Nothing)
+                                Optional ByVal DateObj As String = Nothing)
             Try
                 Dim img As Predicate(Of EContainer) = Function(_img) Not _img.Name.IsEmptyString AndAlso _img.Name.StartsWith("image_versions") AndAlso _img.Count > 0
                 Dim vid As Predicate(Of EContainer) = Function(_vid) Not _vid.Name.IsEmptyString AndAlso _vid.Name.StartsWith("video_versions") AndAlso _vid.Count > 0
@@ -737,7 +738,7 @@ Namespace API.Instagram
                     l.Clear()
                 End If
             Catch ex As Exception
-                ErrorsDescriber.Execute(EDP.SendInLog, ex, "API.Instagram.ObtainMedia2")
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "API.Instagram.ObtainMedia2")
             End Try
         End Sub
 #End Region
@@ -898,38 +899,25 @@ Namespace API.Instagram
         End Sub
 #End Region
 #Region "Create media"
-        Private Shared Function MediaFromData(ByVal t As UTypes, ByVal _URL As String, ByVal PostID As String, ByVal PostDate As String,
-                                              Optional ByVal SpecialFolder As String = Nothing) As UserMedia
+        Private Function MediaFromData(ByVal t As UTypes, ByVal _URL As String, ByVal PostID As String, ByVal PostDate As String,
+                                       Optional ByVal SpecialFolder As String = Nothing) As UserMedia
             _URL = LinkFormatterSecure(RegexReplace(_URL.Replace("\", String.Empty), LinkPattern))
             Dim m As New UserMedia(_URL, t) With {.Post = New UserPost With {.ID = PostID}}
             If Not m.URL.IsEmptyString Then m.File = CStr(RegexReplace(m.URL, FilesPattern))
-            If Not PostDate.IsEmptyString Then m.Post.Date = AConvert(Of Date)(PostDate, DateProvider, Nothing) Else m.Post.Date = Nothing
+            If Not PostDate.IsEmptyString Then m.Post.Date = AConvert(Of Date)(PostDate, UnixDate32Provider, Nothing) Else m.Post.Date = Nothing
             m.SpecialFolder = SpecialFolder
             Return m
         End Function
 #End Region
 #Region "Standalone downloader"
-        Friend Shared Function GetVideoInfo(ByVal URL As String, ByVal r As Responser) As IEnumerable(Of UserMedia)
-            Try
-                If Not URL.IsEmptyString AndAlso URL.Contains("instagram.com") Then
-                    Dim PID$ = RegexReplace(URL, RParams.DMS(".*?instagram.com/p/([_\w\d]+)", 1))
-                    If Not PID.IsEmptyString AndAlso Not ACheck(Of Long)(PID) Then PID = CodeToID(PID)
-                    If Not PID.IsEmptyString Then
-                        Using t As New UserData
-                            t.SetEnvironment(Settings(InstagramSiteKey), Nothing, False, False)
-                            t.Responser = New Responser
-                            t.Responser.Copy(r)
-                            t.PostsToReparse.Add(New PostKV With {.ID = PID})
-                            t.DownloadPosts(Nothing)
-                            Return ListAddList(Nothing, t._TempMediaList)
-                        End Using
-                    End If
-                End If
-                Return Nothing
-            Catch ex As Exception
-                Return ErrorsDescriber.Execute(EDP.ShowMainMsg + EDP.SendInLog, ex, $"Instagram standalone downloader: fetch media error ({URL})")
-            End Try
-        End Function
+        Protected Overrides Sub DownloadSingleObject_GetPosts(ByVal Data As IYouTubeMediaContainer, ByVal Token As CancellationToken)
+            Dim PID$ = RegexReplace(Data.URL, RParams.DMS(".*?instagram.com/p/([_\w\d]+)", 1))
+            If Not PID.IsEmptyString AndAlso Not ACheck(Of Long)(PID) Then PID = CodeToID(PID)
+            If Not PID.IsEmptyString Then
+                PostsToReparse.Add(New PostKV With {.ID = PID})
+                DownloadPosts(Token)
+            End If
+        End Sub
 #End Region
 #Region "IDisposable Support"
         Protected Overrides Sub Dispose(ByVal disposing As Boolean)

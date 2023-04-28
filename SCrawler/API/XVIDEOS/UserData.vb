@@ -8,11 +8,11 @@
 ' but WITHOUT ANY WARRANTY
 Imports System.Threading
 Imports SCrawler.API.Base
+Imports SCrawler.API.YouTube.Objects
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Tools.Web.Clients
 Imports PersonalUtilities.Tools.Web.Documents.JSON
-Imports UStates = SCrawler.API.Base.UserMedia.States
 Imports UTypes = SCrawler.API.Base.UserMedia.Types
 Namespace API.XVIDEOS
     Friend Class UserData : Inherits UserDataBase
@@ -24,8 +24,8 @@ Namespace API.XVIDEOS
                 If ParamsArray.ListExists(3) Then
                     ID = ParamsArray(0)
                     URL = ParamsArray(1)
-                    If Not URL.IsEmptyString Then URL = $"https://www.xvideos.com/{URL.StringTrimStart("/")}"
-                    Title = ParamsArray(2)
+                    If Not URL.IsEmptyString Then URL = $"https://www.xvideos.com/{HtmlConverter(URL).StringTrimStart("/")}"
+                    Title = TitleHtmlConverter(ParamsArray(2))
                 End If
                 Return Me
             End Function
@@ -43,6 +43,7 @@ Namespace API.XVIDEOS
         Friend Sub New()
             SeparateVideoFolder = False
             UseInternalM3U8Function = True
+            UseClientTokens = True
         End Sub
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
             If Not Settings.UseM3U8 Then MyMainLOG = $"{ToStringForLog()}: File [ffmpeg.exe] not found" : Exit Sub
@@ -55,6 +56,7 @@ Namespace API.XVIDEOS
         End Sub
         Private Sub DownloadUserVideo(ByVal Token As CancellationToken)
             Dim URL$ = String.Empty
+            Dim isQuickies As Boolean = False
             Try
                 Dim NextPage%, d%
                 Dim limit% = If(DownloadTopCount, -1)
@@ -77,39 +79,43 @@ Namespace API.XVIDEOS
                             URL = $"https://www.xvideos.com/{user}/videos/new/{If(NextPage = 0, String.Empty, NextPage)}"
                         Else 'Quickies
                             URL = $"https://www.xvideos.com/quickies-api/profilevideos/all/none/N/{ID}/{NextPage}"
+                            isQuickies = True
                         End If
+                        If Not j Is Nothing Then j.Dispose()
                         r = Responser.GetResponse(URL,, EDP.ReturnValue)
                         If Not r.IsEmptyString Then
                             If Not EnvirSet Then UserExists = True : UserSuspended = False : EnvirSet = True
-                            j = JsonDocument.Parse(r).XmlIfNothing
-                            With j
-                                If .Contains("videos") Then
-                                    With .Item("videos")
-                                        If .Count > 0 Then
-                                            NextPage += 1
-                                            For Each jj In .Self
-                                                p = New UserMedia With {
-                                                    .Post = jj.Value("id"),
-                                                    .URL = $"https://www.xvideos.com/{jj.Value(n).StringTrimStart("/")}"
-                                                }
-                                                If Not p.Post.ID.IsEmptyString And Not jj.Value(n).IsEmptyString Then
-                                                    If Not _TempPostsList.Contains(p.Post.ID) Then
-                                                        _TempPostsList.Add(p.Post.ID)
-                                                        _TempMediaList.Add(p)
-                                                        d += 1
-                                                        If limit > 0 And d = limit Then Exit Do
-                                                    Else
-                                                        Exit Do
+                            j = JsonDocument.Parse(r)
+                            If Not j Is Nothing Then
+                                With j
+                                    If .Contains("videos") Then
+                                        With .Item("videos")
+                                            If .Count > 0 Then
+                                                NextPage += 1
+                                                For Each jj In .Self
+                                                    p = New UserMedia With {
+                                                        .Post = jj.Value("id"),
+                                                        .URL = $"https://www.xvideos.com/{jj.Value(n).StringTrimStart("/")}"
+                                                    }
+                                                    If Not p.Post.ID.IsEmptyString And Not jj.Value(n).IsEmptyString Then
+                                                        If Not _TempPostsList.Contains(p.Post.ID) Then
+                                                            _TempPostsList.Add(p.Post.ID)
+                                                            _TempMediaList.Add(p)
+                                                            d += 1
+                                                            If limit > 0 And d = limit Then Exit Do
+                                                        Else
+                                                            Exit Do
+                                                        End If
                                                     End If
-                                                End If
-                                            Next
-                                            Continue Do
-                                        End If
-                                    End With
-                                End If
-                            End With
+                                                Next
+                                                Continue Do
+                                            End If
+                                        End With
+                                    End If
+                                    .Dispose()
+                                End With
+                            End If
                         End If
-                        If Not j Is Nothing Then j.Dispose()
                         Exit Do
                     Loop While NextPage < 100
                 Next
@@ -119,18 +125,12 @@ Namespace API.XVIDEOS
                 If _TempMediaList.Count > 0 Then
                     For i% = 0 To _TempMediaList.Count - 1
                         ThrowAny(Token)
-                        _TempMediaList(i) = GetVideoData(_TempMediaList(i), Responser, MySettings.DownloadUHD.Value)
+                        _TempMediaList(i) = GetVideoData(_TempMediaList(i))
                     Next
                     _TempMediaList.RemoveAll(Function(m) m.URL.IsEmptyString)
                 End If
-            Catch oex As OperationCanceledException
-            Catch dex As ObjectDisposedException
             Catch ex As Exception
-                If Responser.StatusCode = Net.HttpStatusCode.NotFound Then
-                    UserExists = False
-                Else
-                    ProcessException(ex, Token, $"data downloading error [{URL}]")
-                End If
+                ProcessException(ex, Token, $"data downloading error [{URL}]",, isQuickies)
             Finally
                 If _TempMediaList.ListExists Then _TempMediaList.RemoveAll(Function(m) m.URL.IsEmptyString)
             End Try
@@ -152,8 +152,16 @@ Namespace API.XVIDEOS
                     URL = $"{MySettings.SavedVideosPlaylist.Value}{If(NextPage = 0, String.Empty, $"/{NextPage}")}"
                     r = Responser.GetResponse(URL,, EDP.ReturnValue)
                     If Responser.HasError Then
-                        If Responser.StatusCode = Net.HttpStatusCode.NotFound And NextPage > 0 Then Exit Do
-                        Throw New Exception(Responser.ErrorText, Responser.ErrorException)
+                        If Responser.StatusCode = Net.HttpStatusCode.NotFound Then
+                            If NextPage = 0 Then
+                                MyMainLOG = $"XVIDEOS saved video playlist {URL} not found."
+                                Exit Sub
+                            Else
+                                Exit Do
+                            End If
+                        Else
+                            Throw New Exception(Responser.ErrorText, Responser.ErrorException)
+                        End If
                     End If
                     NextPage += 1
                     If Not r.IsEmptyString Then
@@ -174,7 +182,7 @@ Namespace API.XVIDEOS
                 If _TempMediaList.Count > 0 Then
                     For i% = 0 To _TempMediaList.Count - 1
                         ThrowAny(Token)
-                        _TempMediaList(i) = GetVideoData(_TempMediaList(i), Responser, MySettings.DownloadUHD.Value)
+                        _TempMediaList(i) = GetVideoData(_TempMediaList(i))
                     Next
                     _TempMediaList.RemoveAll(Function(m) m.URL.IsEmptyString)
                 End If
@@ -182,19 +190,19 @@ Namespace API.XVIDEOS
                 ProcessException(ex, Token, $"data downloading error [{URL}]")
             End Try
         End Sub
-        Private Function GetVideoData(ByVal Media As UserMedia, ByVal resp As Responser, ByVal DownloadUHD As Boolean) As UserMedia
+        Private Function GetVideoData(ByVal Media As UserMedia) As UserMedia
             Try
                 If Not Media.URL.IsEmptyString Then
-                    Dim r$ = resp.GetResponse(Media.URL)
+                    Dim r$ = Responser.GetResponse(Media.URL)
                     If Not r.IsEmptyString Then
                         Dim NewUrl$ = RegexReplace(r, Regex_M3U8)
                         If Not NewUrl.IsEmptyString Then
                             Dim appender$ = RegexReplace(NewUrl, Regex_M3U8_Appender)
                             Dim t$ = If(Media.PictureOption.IsEmptyString, RegexReplace(r, Regex_VideoTitle), Media.PictureOption)
-                            r = resp.GetResponse(NewUrl)
+                            r = Responser.GetResponse(NewUrl)
                             If Not r.IsEmptyString Then
                                 Dim ls As List(Of Sizes) = RegexFields(Of Sizes)(r, {Regex_M3U8_Reparse}, {1, 2})
-                                If ls.ListExists And Not DownloadUHD Then ls.RemoveAll(Function(v) Not v.Value.ValueBetween(1, 1080))
+                                If ls.ListExists And Not MySettings.DownloadUHD.Value Then ls.RemoveAll(Function(v) Not v.Value.ValueBetween(1, 1080))
                                 If ls.ListExists Then
                                     ls.Sort()
                                     NewUrl = $"{appender}/{ls(0).Data.StringTrimStart("/")}"
@@ -228,31 +236,28 @@ Namespace API.XVIDEOS
                 Return Nothing
             End Try
         End Function
-        Friend Function Download(ByVal URL As String, ByVal resp As Responser, ByVal DownloadUHD As Boolean, ByVal ID As String)
-            Dim m As UserMedia = GetVideoData(New UserMedia(URL, UTypes.VideoPre) With {.Post = ID}, resp, DownloadUHD)
-            If Not m.URL.IsEmptyString Then
-                Dim f As SFile = m.File
-                f.Path = MyFile.PathNoSeparator
-                m.State = UStates.Tried
-                Try
-                    f = M3U8.Download(m.URL, m.PictureOption, f)
-                    m.File = f
-                    m.State = UStates.Downloaded
-                Catch ex As Exception
-                    m.State = UStates.Missing
-                End Try
-            End If
-            Return m
-        End Function
         Protected Overrides Sub DownloadContent(ByVal Token As CancellationToken)
             DownloadContentDefault(Token)
         End Sub
-        Protected Overrides Function DownloadM3U8(ByVal URL As String, ByVal Media As UserMedia, ByVal DestinationFile As SFile) As SFile
-            Return M3U8.Download(Media.URL, Media.PictureOption, DestinationFile)
+        Protected Overrides Sub DownloadSingleObject_GetPosts(ByVal Data As IYouTubeMediaContainer, ByVal Token As CancellationToken)
+            Dim m As UserMedia = GetVideoData(New UserMedia(Data.URL, UTypes.VideoPre))
+            If Not m.URL.IsEmptyString Then _TempMediaList.Add(m)
+        End Sub
+        Protected Overrides Function DownloadM3U8(ByVal URL As String, ByVal Media As UserMedia, ByVal DestinationFile As SFile, ByVal Token As CancellationToken) As SFile
+            Return M3U8.Download(Media.URL, Media.PictureOption, DestinationFile, Token, If(UseInternalM3U8Function_UseProgress, Progress, Nothing))
         End Function
         Protected Overrides Function DownloadingException(ByVal ex As Exception, ByVal Message As String, Optional ByVal FromPE As Boolean = False,
                                                           Optional ByVal EObj As Object = Nothing) As Integer
-            Return 0
+            Dim isQuickies As Boolean = False
+            If Not IsNothing(EObj) AndAlso TypeOf EObj Is Boolean Then isQuickies = CBool(EObj)
+            If Responser.StatusCode = Net.HttpStatusCode.NotFound Then
+                UserExists = False
+                Return 1
+            ElseIf isQuickies And Responser.StatusCode = Net.HttpStatusCode.InternalServerError Then
+                Return 1
+            Else
+                Return 0
+            End If
         End Function
     End Class
 End Namespace

@@ -6,32 +6,39 @@
 [![FAQ](https://img.shields.io/badge/FAQ-green)](FAQ.md)
 [![GUIDE](https://img.shields.io/badge/GUIDE-green)](https://github.com/AAndyProgram/SCrawler/wiki)
 [![How to support](https://img.shields.io/badge/HowToSupport-green)](HowToSupport.md)
+:eu:
+:greece:
 
-A program to download photo and video from [any site](#supported-sites) (e.g. Reddit, Twitter, Instagram, TikTok, RedGifs, PornHub, XHamster, XVIDEOS, LPSG).
+A program to download photo and video from [any site](#supported-sites) (e.g. YouTube, YouTube Music, Reddit, Twitter, Mastodon, Instagram, TikTok, RedGifs, PornHub, XHamster, XVIDEOS, ThisVid, LPSG, Pinterest).
 
 **If you like SCrawler, please like the program on [this site](https://alternativeto.net/software/scrawler/about/) and/or [this](https://www.softpedia.com/get/Internet/Download-Managers/Social-networks-crawler.shtml)**
-
-Do you like this program? Consider adding to my coffee fund by making a donation to show your support. :blush:
-
-[![ko-fi](https://www.ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/andyprogram)
-
+<!---Do you like this program? Consider adding to my coffee fund by making a donation to show your support. :blush:
+[![ko-fi](https://www.ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/andyprogram)--->
 **Bitcoin**: BC1Q0NH839FT5TA44DD7L7RLR97XDQAG9V8D6N7XET
 
 ![Main window](ProgramScreenshots/MainWindow.png)
 ![Channels window](ProgramScreenshots/Channels.png)
 
+[**YouTube standalone application:**](https://github.com/AAndyProgram/SCrawler/wiki/YouTube%20downloader)
+
+![YouTube application](ProgramScreenshots/AppYouTube.png)
+
 # What can program do:
 - Download pictures and videos from users' profiles and subreddits:
+  - YouTube videos, shorts, users, artists, playlists, music, tracks;
   - Reddit images, galleries of images, videos, saved posts;
   - Redgifs videos (https://www.redgifs.com/);
   - Twitter images and videos, saved (bookmarked) posts;
+  - Mastodon images and videos, saved (bookmarked) posts;
   - Instagram images and videos, tagged posts, stories, saved posts;
-  - TikTok videos ([limited](https://github.com/AAndyProgram/SCrawler/wiki/Settings#tiktok-limits));
+  - TikTok videos (*currently broken*; [limited](https://github.com/AAndyProgram/SCrawler/wiki/Settings#tiktok-limits));
+  - Pinterest boards, users, saved posts;
   - Imgur images, galleries and videos;
   - Gfycat videos;
   - PornHub images, videos, save (liked) posts;
   - XHamster images, videos, saved posts;
-  - XVIDEOS videos;
+  - XVIDEOS videos, saved posts;
+  - ThiVid images, videos, saved posts;
   - [Other](#supported-sites) supported sites
 - Parse [channel and view data](https://github.com/AAndyProgram/SCrawler/wiki/Channels)
 - Download [saved Reddit, Twitter and Instagram posts](https://github.com/AAndyProgram/SCrawler/wiki/Home#saved-posts)
@@ -52,18 +59,22 @@ Do you like this program? Consider adding to my coffee fund by making a donation
 - ...and many others...
 
 # Supported sites
-
+- **YouTube**
+- **YouTube Music**
 - **Reddit**
 - **Twitter**
+- **Mastodon**
 - **Instagram**
-- **TikTok** ([limited](https://github.com/AAndyProgram/SCrawler/wiki/Settings#tiktok-limits))
+- TikTok (*currently broken*; [limited](https://github.com/AAndyProgram/SCrawler/wiki/Settings#tiktok-limits))
 - RedGifs
+- Pinterest
 - Imgur
 - Gfycat
 - LPSG
 - **PornHub**
 - **XHamster**
 - **XVIDEOS**
+- **ThisVid**
 - [Other sites](Plugins.md)
 
 **[SITES REQUIREMENTS](https://github.com/AAndyProgram/SCrawler/wiki/Settings#sites-requirements)**
@@ -82,7 +93,8 @@ The program parses user posts and compares file names with existing ones to remo
 
 ## How to request a new site
 
-Read [here](CONTRIBUTING.md#how-to-request-a-new-site) about
+<!---Read [here](CONTRIBUTING.md#how-to-request-a-new-site) about--->
+**I'm currently not accepting requests to develop new sites.**
 
 # Requirements
 
@@ -108,12 +120,16 @@ Read [here](CONTRIBUTING.md#how-to-request-a-new-site) about
   - **[SITES REQUIREMENTS](https://github.com/AAndyProgram/SCrawler/wiki/Settings#sites-requirements)**
   - [Reddit](https://github.com/AAndyProgram/SCrawler/wiki/Settings#reddit)
   - [Twitter](https://github.com/AAndyProgram/SCrawler/wiki/Settings#twitter)
+  - [Mastodon](https://github.com/AAndyProgram/SCrawler/wiki/Settings#Mastodon)
   - [Instagram](https://github.com/AAndyProgram/SCrawler/wiki/Settings#instagram)
   - [TikTok](https://github.com/AAndyProgram/SCrawler/wiki/Settings#tiktok)
   - [RedGifs](https://github.com/AAndyProgram/SCrawler/wiki/Settings#redgifs)
+  - [YouTube](https://github.com/AAndyProgram/SCrawler/wiki/Settings#YouTube)
+  - [Pinterest](https://github.com/AAndyProgram/SCrawler/wiki/Settings#Pinterest)
   - [PornHub](https://github.com/AAndyProgram/SCrawler/wiki/Settings#pornhub)
   - [XHamster](https://github.com/AAndyProgram/SCrawler/wiki/Settings#xhamster)
   - [XVIDEOS](https://github.com/AAndyProgram/SCrawler/wiki/Settings#xvideos)
+  - [ThisVid](https://github.com/AAndyProgram/SCrawler/wiki/Settings#ThisVid)
   - [LPSG](https://github.com/AAndyProgram/SCrawler/wiki/Settings#lpsg)
 
 **Full guide you can find [here](https://github.com/AAndyProgram/SCrawler/wiki)**
@@ -142,20 +158,11 @@ The program has an intuitive interface.
 
 Just add a user profile and **click the ```Download``` button**.
 
-Read more about adding users and subreddits [here](https://github.com/AAndyProgram/SCrawler/wiki/Users)
+Read more about adding users and subreddits [here](https://github.com/AAndyProgram/SCrawler/wiki#Add%20user)
 
 ![Add user](ProgramScreenshots/CreateUserClear.png)
 
-# Using program as just video downloader
-
-Create a shortcut for the program. Open shortcut properties. In the ```Shortcut``` tab, in the ```Target``` field, just add the letter ```v``` at the end across the space.
-
-Example: ```D:\Programs\SCrawler\SCrawler.exe v```
-
-![Separate video downloader](ProgramScreenshots/SeparateVideoDownloader.png)
-
 # Contact me
 
-[![matrix](https://img.shields.io/badge/Matrix-%40andyprogram%3Amatrix.org-informational)](https://matrix.to/#/@andyprogram:matrix.org)
-
-[![discord](https://img.shields.io/badge/discord-AndyProgram%233804-yellowgreen)](https://discordapp.com/users/1012768226679206009) AndyProgram#3804
+Matrix (Element): https://matrix.to/#/@andyprogram:matrix.org
+Discord: AndyProgram#3804

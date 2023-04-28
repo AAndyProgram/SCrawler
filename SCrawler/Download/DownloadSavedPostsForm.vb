@@ -60,7 +60,7 @@ Friend Class DownloadSavedPostsForm
         MyView.Dispose(Settings.Design)
     End Sub
     Private Sub [Start]() Handles BTT_DOWN_ALL.Click
-        If JobsList.Count > 0 Then JobsList.ForEach(Sub(j) j.Start())
+        If JobsList.Count > 0 Then JobsList.ForEach(Sub(j) j.Start(True))
     End Sub
     Friend Sub [Stop]() Handles BTT_STOP_ALL.Click
         If JobsList.Count > 0 Then JobsList.ForEach(Sub(j) j.Stop())

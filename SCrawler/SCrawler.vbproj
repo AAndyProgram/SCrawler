@@ -158,34 +158,43 @@
     <Import Include="System.Threading.Tasks" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="API\BaseObjects\DomainEnvir.vb" />
+    <Compile Include="API\BaseObjects\DomainsContainer.vb" />
+    <Compile Include="API\BaseObjects\InternalSettingsForm.Designer.vb">
+      <DependentUpon>InternalSettingsForm.vb</DependentUpon>
+    </Compile>
+    <Compile Include="API\BaseObjects\InternalSettingsForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="API\Base\Declarations.vb" />
     <Compile Include="API\Base\DownDetector.vb" />
+    <Compile Include="API\Base\GDLBatch.vb" />
     <Compile Include="API\Base\M3U8Base.vb" />
     <Compile Include="API\Base\ProfileSaved.vb" />
     <Compile Include="API\Base\SiteSettingsBase.vb" />
     <Compile Include="API\Base\Structures.vb" />
     <Compile Include="API\Instagram\EditorExchangeOptions.vb" />
-    <Compile Include="API\Instagram\OptionsForm.Designer.vb">
-      <DependentUpon>OptionsForm.vb</DependentUpon>
-    </Compile>
-    <Compile Include="API\Instagram\OptionsForm.vb">
-      <SubType>Form</SubType>
-    </Compile>
     <Compile Include="API\LPSG\Declarations.vb" />
     <Compile Include="API\LPSG\SiteSettings.vb" />
     <Compile Include="API\LPSG\UserData.vb" />
+    <Compile Include="API\Mastodon\Credentials.vb" />
+    <Compile Include="API\Mastodon\Declarations.vb" />
+    <Compile Include="API\Mastodon\MastodonDomains.vb" />
+    <Compile Include="API\Mastodon\SettingsForm.Designer.vb">
+      <DependentUpon>SettingsForm.vb</DependentUpon>
+    </Compile>
+    <Compile Include="API\Mastodon\SettingsForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="API\Mastodon\SiteSettings.vb" />
+    <Compile Include="API\Mastodon\UserData.vb" />
     <Compile Include="API\PathPlugin\Declarations.vb" />
     <Compile Include="API\PathPlugin\SiteSettings.vb" />
     <Compile Include="API\PathPlugin\UserData.vb" />
+    <Compile Include="API\Pinterest\Declarations.vb" />
+    <Compile Include="API\Pinterest\SiteSettings.vb" />
+    <Compile Include="API\Pinterest\UserData.vb" />
     <Compile Include="API\PornHub\Declarations.vb" />
     <Compile Include="API\PornHub\M3U8.vb" />
-    <Compile Include="API\PornHub\OptionsForm.Designer.vb">
-      <DependentUpon>OptionsForm.vb</DependentUpon>
-    </Compile>
-    <Compile Include="API\PornHub\OptionsForm.vb">
-      <SubType>Form</SubType>
-    </Compile>
     <Compile Include="API\PornHub\SiteSettings.vb" />
     <Compile Include="API\PornHub\UserData.vb" />
     <Compile Include="API\PornHub\UserExchangeOptions.vb" />
@@ -196,16 +205,14 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="API\Reddit\IRedditView.vb" />
+    <Compile Include="API\ThisVid\Declarations.vb" />
+    <Compile Include="API\ThisVid\SiteSettings.vb" />
+    <Compile Include="API\ThisVid\UserData.vb" />
+    <Compile Include="API\ThisVid\UserExchangeOptions.vb" />
     <Compile Include="API\TikTok\Declarations.vb" />
     <Compile Include="API\TikTok\SiteSettings.vb" />
     <Compile Include="API\TikTok\UserData.vb" />
     <Compile Include="API\Twitter\EditorExchangeOptions.vb" />
-    <Compile Include="API\Twitter\OptionsForm.Designer.vb">
-      <DependentUpon>OptionsForm.vb</DependentUpon>
-    </Compile>
-    <Compile Include="API\Twitter\OptionsForm.vb">
-      <SubType>Form</SubType>
-    </Compile>
     <Compile Include="API\Xhamster\Declarations.vb" />
     <Compile Include="API\Xhamster\M3U8.vb" />
     <Compile Include="API\Xhamster\SiteSettings.vb" />
@@ -214,6 +221,10 @@
     <Compile Include="API\XVIDEOS\M3U8.vb" />
     <Compile Include="API\XVIDEOS\SiteSettings.vb" />
     <Compile Include="API\XVIDEOS\UserData.vb" />
+    <Compile Include="API\YouTube\SiteSettings.vb" />
+    <Compile Include="API\YouTube\UserData.vb" />
+    <Compile Include="API\YouTube\UserExchangeOptions.vb" />
+    <Compile Include="API\YouTube\YTSettings_Internal.vb" />
     <Compile Include="Download\ActiveDownloadingProgress.Designer.vb">
       <DependentUpon>ActiveDownloadingProgress.vb</DependentUpon>
     </Compile>
@@ -272,6 +283,25 @@
     <Compile Include="Download\Automation\SchedulerEditorForm.vb">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="Download\STDownloader\Declarations.vb" />
+    <Compile Include="Download\STDownloader\DownloaderUrlForm.Designer.vb">
+      <DependentUpon>DownloaderUrlForm.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Download\STDownloader\DownloaderUrlForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Download\STDownloader\DownloaderUrlsArrForm.Designer.vb">
+      <DependentUpon>DownloaderUrlsArrForm.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Download\STDownloader\DownloaderUrlsArrForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Download\STDownloader\VideoDownloaderForm.Designer.vb">
+      <DependentUpon>VideoDownloaderForm.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Download\STDownloader\VideoDownloaderForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Download\WebClient2.vb" />
     <Compile Include="Editors\ColorPicker.Designer.vb">
       <DependentUpon>ColorPicker.vb</DependentUpon>
@@ -279,7 +309,6 @@
     <Compile Include="Editors\ColorPicker.vb">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="EncryptCookies.vb" />
     <Compile Include="GlobalSuppressions.vb" />
     <Compile Include="MainFrameObjects.vb" />
     <Compile Include="My Project\Resources.Designer.vb">
@@ -287,6 +316,8 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="PluginsEnvironment\Attributes\Attributes.vb" />
+    <Compile Include="PluginsEnvironment\Hosts\DownloadableMediaHost.vb" />
     <Compile Include="PluginsEnvironment\Hosts\UserDataHost.vb" />
     <Compile Include="API\Base\UserDataBase.vb" />
     <Compile Include="API\Gfycat\Envir.vb" />
@@ -408,12 +439,6 @@
     <Compile Include="UserBan.vb" />
     <Compile Include="UserFinder.vb" />
     <Compile Include="UserImage.vb" />
-    <Compile Include="Download\VideosDownloaderForm.Designer.vb">
-      <DependentUpon>VideosDownloaderForm.vb</DependentUpon>
-    </Compile>
-    <Compile Include="Download\VideosDownloaderForm.vb">
-      <SubType>Form</SubType>
-    </Compile>
     <Compile Include="UserInfo.vb" />
     <Compile Include="UserSearchForm.Designer.vb">
       <DependentUpon>UserSearchForm.vb</DependentUpon>
@@ -423,17 +448,14 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="API\Instagram\OptionsForm.resx">
-      <DependentUpon>OptionsForm.vb</DependentUpon>
+    <EmbeddedResource Include="API\BaseObjects\InternalSettingsForm.resx">
+      <DependentUpon>InternalSettingsForm.vb</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="API\PornHub\OptionsForm.resx">
-      <DependentUpon>OptionsForm.vb</DependentUpon>
+    <EmbeddedResource Include="API\Mastodon\SettingsForm.resx">
+      <DependentUpon>SettingsForm.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="API\Reddit\RedditViewSettingsForm.resx">
       <DependentUpon>RedditViewSettingsForm.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="API\Twitter\OptionsForm.resx">
-      <DependentUpon>OptionsForm.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Channels\ChannelsStatsForm.resx">
       <DependentUpon>ChannelsStatsForm.vb</DependentUpon>
@@ -471,6 +493,15 @@
     <EmbeddedResource Include="Download\Automation\SchedulerEditorForm.resx">
       <DependentUpon>SchedulerEditorForm.vb</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Download\STDownloader\DownloaderUrlForm.resx">
+      <DependentUpon>DownloaderUrlForm.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Download\STDownloader\DownloaderUrlsArrForm.resx">
+      <DependentUpon>DownloaderUrlsArrForm.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Download\STDownloader\VideoDownloaderForm.resx">
+      <DependentUpon>VideoDownloaderForm.vb</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Editors\CollectionEditorForm.resx">
       <DependentUpon>CollectionEditorForm.vb</DependentUpon>
     </EmbeddedResource>
@@ -500,9 +531,6 @@
       <CustomToolNamespace>My.Resources</CustomToolNamespace>
       <SubType>Designer</SubType>
       <LastGenOutput>Resources.Designer.vb</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Download\VideosDownloaderForm.resx">
-      <DependentUpon>VideosDownloaderForm.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="SiteResources.resx">
       <CustomToolNamespace>My.Resources</CustomToolNamespace>
@@ -537,9 +565,6 @@
     <None Include="Content\Pictures\StarPic_24.png" />
     <None Include="Content\Pictures\StartPic_Green_16.png" />
     <None Include="Content\Pictures\StopPic_32.png" />
-    <None Include="cURL\curl-ca-bundle.crt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Include="My Project\app.manifest" />
     <None Include="My Project\Application.myapp">
       <Generator>MyApplicationCodeGenerator</Generator>
@@ -565,6 +590,10 @@
     <ProjectReference Include="..\SCrawler.PluginProvider\SCrawler.PluginProvider.vbproj">
       <Project>{d4650f6b-5a54-44b6-999b-6c675b7116b1}</Project>
       <Name>SCrawler.PluginProvider</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SCrawler.YouTube\SCrawler.YouTube.vbproj">
+      <Project>{7c764707-7fd1-469c-a365-94605c193607}</Project>
+      <Name>SCrawler.YouTube</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
@@ -597,18 +626,10 @@
     <None Include="Content\Pictures\SitePictures\PornHubPic_16.png" />
     <None Include="Content\Icons\SiteIcons\PornHubIcon_16.ico" />
     <None Include="Content\Pictures\TagPic_24.png" />
-    <Content Include="cURL\curl.exe">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="cURL\libcurl-x64.def">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="cURL\libcurl-x64.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="ffmpeg.exe">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <None Include="Content\Pictures\SitePictures\ThisVidPic_16.png" />
+    <None Include="Content\Icons\SiteIcons\ThisVidIcon_16.ico" />
+    <None Include="Content\Pictures\SitePictures\PinterestPic_48.png" />
+    <None Include="Content\Icons\SiteIcons\PinterestIcon_32.ico" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.6.1">
@@ -622,7 +643,12 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="Content\Pictures\SitePictures\MastodonPic_48.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Content\Icons\SiteIcons\MastodonIcon_48.ico" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
   <Import Project="..\packages\VideoLAN.LibVLC.Windows.3.0.17.4\build\VideoLAN.LibVLC.Windows.targets" Condition="Exists('..\packages\VideoLAN.LibVLC.Windows.3.0.17.4\build\VideoLAN.LibVLC.Windows.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

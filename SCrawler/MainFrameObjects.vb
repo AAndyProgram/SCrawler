@@ -8,9 +8,10 @@
 ' but WITHOUT ANY WARRANTY
 Imports SCrawler.API
 Imports SCrawler.API.Base
+Imports SCrawler.DownloadObjects.STDownloader
 Imports PersonalUtilities.Tools.Notifications
 Imports NotifyObj = SCrawler.SettingsCLS.NotificationObjects
-Friend Class MainFrameObjects
+Friend Class MainFrameObjects : Implements INotificator
     Friend ReadOnly Property MF As MainFrame
     Private WithEvents Notificator As NotificationsManager
     Friend ReadOnly Property PauseButtons As DownloadObjects.AutoDownloaderPauseButtons
@@ -63,13 +64,16 @@ Friend Class MainFrameObjects
     End Sub
 #End Region
 #Region "Notifications"
+    Private Sub INotificator_ShowNotification(ByVal Text As String, ByVal Image As SFile) Implements INotificator.ShowNotification
+        If Settings.ProcessNotification(NotifyObj.STDownloader) Then Notification.ShowNotification(Text,, $"{NotificationInternalKey}_{NotifyObj.STDownloader}", Image)
+    End Sub
     Private Const NotificationInternalKey As String = "NotificationInternalKey"
     Friend Sub ShowNotification(ByVal Sender As NotifyObj, ByVal Message As String)
         If Settings.ProcessNotification(Sender) Then
             Using n As New Notification(Message) With {.Key = $"{NotificationInternalKey}_{Sender}"} : n.Show() : End Using
         End If
     End Sub
-    Friend Sub ClearNotifications()
+    Friend Sub ClearNotifications() Implements INotificator.Clear
         Notificator.Clear()
     End Sub
     Private Sub Notificator_OnClicked(ByVal Key As String) Handles Notificator.OnClicked
@@ -80,6 +84,7 @@ Friend Class MainFrameObjects
                 Select Case Key
                     Case $"{NotificationInternalKey}_{NotifyObj.Channels}" : MF.MyChannels.FormShowS()
                     Case $"{NotificationInternalKey}_{NotifyObj.SavedPosts}" : MF.MySavedPosts.FormShowS()
+                    Case $"{NotificationInternalKey}_{NotifyObj.STDownloader}" : VideoDownloader.FormShowS()
                     Case Else : Focus(True)
                 End Select
             ElseIf Settings.Automation Is Nothing OrElse Not Settings.Automation.NotificationClicked(Key, found, activateForm) Then

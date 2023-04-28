@@ -19,8 +19,8 @@ Namespace Plugin.Hosts
         Friend Const LeftOffsetDefault As Integer = 100
         Friend Event OnPropertyUpdateRequested(ByVal Sender As PropertyValueHost)
         Private Event ValueChanged As IPropertyValue.ValueChangedEventHandler Implements IPropertyValue.ValueChanged
-        Private _Type As Type
-        Friend Property [Type] As Type Implements IPropertyValue.Type
+        Protected _Type As Type
+        Friend Overridable Property [Type] As Type Implements IPropertyValue.Type
             Get
                 Return If(ExternalValue?.Type, _Type)
             End Get
@@ -30,7 +30,7 @@ Namespace Plugin.Hosts
         End Property
 #Region "Control"
         Friend Property Control As Control
-        Private ReadOnly ControlNumber As Integer = -1
+        Protected ControlNumber As Integer = -1
         Friend ReadOnly Property ControlHeight As Integer
             Get
                 If Not Control Is Nothing Then
@@ -40,50 +40,73 @@ Namespace Plugin.Hosts
                 End If
             End Get
         End Property
+        Protected Overridable ReadOnly Property Control_ThreeStates As Boolean
+            Get
+                Return Options.ThreeStates
+            End Get
+        End Property
+        Protected Overridable ReadOnly Property Control_ToolTip As String
+            Get
+                Return Options.ControlToolTip
+            End Get
+        End Property
+        Protected Overridable ReadOnly Property Control_Caption As String
+            Get
+                Return Options.ControlText
+            End Get
+        End Property
+        Protected Overridable ReadOnly Property Control_IsInformationLabel As Boolean
+            Get
+                Return Options.IsInformationLabel
+            End Get
+        End Property
+        Protected Overridable ReadOnly Property Control_InfoLabelTextAlign As ContentAlignment
+            Get
+                Return Options.LabelTextAlign
+            End Get
+        End Property
         Friend Sub CreateControl(Optional ByVal TT As ToolTip = Nothing)
-            With Options
-                If .IsInformationLabel Then
-                    Control = New Label
-                    With DirectCast(Control, Label)
-                        .Padding = New PaddingE(Control.Padding) With {.Left = LeftOffset}
-                        .Text = CStr(AConvert(Of String)(Value, String.Empty))
-                        .TextAlign = Options.LabelTextAlign
-                    End With
-                    If Not .ControlToolTip.IsEmptyString And Not TT Is Nothing Then TT.SetToolTip(Control, .ControlToolTip)
-                Else
-                    If Type Is GetType(Boolean) Or .ThreeStates Then
-                        Control = New CheckBox
-                        If Not .ControlToolTip.IsEmptyString And Not TT Is Nothing Then TT.SetToolTip(Control, .ControlToolTip)
-                        DirectCast(Control, CheckBox).ThreeState = .ThreeStates
-                        DirectCast(Control, CheckBox).Text = .ControlText
-                        If .ThreeStates Then
-                            DirectCast(Control, CheckBox).CheckState = CInt(AConvert(Of Integer)(Value, CInt(CheckState.Indeterminate)))
-                        Else
-                            DirectCast(Control, CheckBox).Checked = CBool(AConvert(Of Boolean)(Value, False))
-                        End If
-                        Control.Padding = New PaddingE(Control.Padding) With {.Left = LeftOffset}
+            If Control_IsInformationLabel Then
+                Control = New Label
+                With DirectCast(Control, Label)
+                    .Padding = New PaddingE(Control.Padding) With {.Left = LeftOffset}
+                    .Text = CStr(AConvert(Of String)(Value, String.Empty))
+                    .TextAlign = Control_InfoLabelTextAlign
+                End With
+                If Not Control_ToolTip.IsEmptyString And Not TT Is Nothing Then TT.SetToolTip(Control, Control_ToolTip)
+            Else
+                If Type Is GetType(Boolean) Or Control_ThreeStates Then
+                    Control = New CheckBox
+                    If Not Control_ToolTip.IsEmptyString And Not TT Is Nothing Then TT.SetToolTip(Control, Control_ToolTip)
+                    DirectCast(Control, CheckBox).ThreeState = Control_ThreeStates
+                    DirectCast(Control, CheckBox).Text = Control_Caption
+                    If Control_ThreeStates Then
+                        DirectCast(Control, CheckBox).CheckState = CInt(AConvert(Of Integer)(Value, CInt(CheckState.Indeterminate)))
                     Else
-                        Control = New TextBoxExtended
-                        With DirectCast(Control, TextBoxExtended)
-                            .CaptionText = Options.ControlText
-                            .CaptionToolTipEnabled = Not Options.ControlToolTip.IsEmptyString
-                            .CaptionWidth = LeftOffset
-                            If Not Options.ControlToolTip.IsEmptyString Then .CaptionToolTipText = Options.ControlToolTip : .CaptionToolTipEnabled = True
-                            .Text = CStr(AConvert(Of String)(Value, String.Empty))
-                            With .Buttons
-                                .BeginInit()
-                                If Not Source Is Nothing And Not UpdateMethod Is Nothing Then .Add(New ActionButton(ADB.Refresh))
-                                .Add(ADB.Clear)
-                                .EndInit(True)
-                            End With
-                            AddHandler .ActionOnButtonClick, AddressOf TextBoxClick
-                            If Not ProviderValue Is Nothing AndAlso ProviderValueInteraction Then AddHandler .ActionOnTextChanged, AddressOf TextBoxTextChanged
-                        End With
+                        DirectCast(Control, CheckBox).Checked = CBool(AConvert(Of Boolean)(Value, False))
                     End If
+                    Control.Padding = New PaddingE(Control.Padding) With {.Left = LeftOffset}
+                Else
+                    Control = New TextBoxExtended
+                    With DirectCast(Control, TextBoxExtended)
+                        .CaptionText = Control_Caption
+                        .CaptionToolTipEnabled = Not Control_ToolTip.IsEmptyString
+                        .CaptionWidth = LeftOffset
+                        If Not Control_ToolTip.IsEmptyString Then .CaptionToolTipText = Control_ToolTip : .CaptionToolTipEnabled = True
+                        .Text = CStr(AConvert(Of String)(Value, String.Empty))
+                        With .Buttons
+                            .BeginInit()
+                            If Not Source Is Nothing And Not UpdateMethod Is Nothing Then .Add(New ActionButton(ADB.Refresh))
+                            .Add(ADB.Clear)
+                            .EndInit(True)
+                        End With
+                        AddHandler .ActionOnButtonClick, AddressOf TextBoxClick
+                        If Not ProviderValue Is Nothing AndAlso ProviderValueInteraction Then AddHandler .ActionOnTextChanged, AddressOf TextBoxTextChanged
+                    End With
                 End If
-                Control.Tag = Name
-                Control.Dock = DockStyle.Fill
-            End With
+            End If
+            Control.Tag = Name
+            Control.Dock = DockStyle.Fill
         End Sub
         Friend Sub DisposeControl()
             If Not Control Is Nothing Then Control.Dispose() : Control = Nothing
@@ -103,6 +126,7 @@ Namespace Plugin.Hosts
         Private Sub TextBoxTextChanged(ByVal Sender As Object, ByVal e As EventArgs)
             UpdateProviderPropertyName()
             With DirectCast(Sender, TextBoxExtended)
+                If ProviderValueIsPropertyProvider Then DirectCast(ProviderValue, IPropertyProvider).PropertyName = .Tag
                 Dim s% = .SelectionStart
                 Dim t$ = AConvert(Of String)(.Text, ProviderValue, String.Empty)
                 If Not t = .Text Then .Text = t : .Select(s, 0)
@@ -112,7 +136,7 @@ Namespace Plugin.Hosts
             If Not Control Is Nothing AndAlso Not TypeOf Control Is Label Then
                 If TypeOf Control Is CheckBox Then
                     With DirectCast(Control, CheckBox)
-                        If Options.ThreeStates Then Value = CInt(.CheckState) Else Value = .Checked
+                        If Control_ThreeStates Then Value = CInt(.CheckState) Else Value = .Checked
                     End With
                 Else
                     UpdateProviderPropertyName()
@@ -124,7 +148,7 @@ Namespace Plugin.Hosts
             If Not Control Is Nothing Then
                 If TypeOf Control Is CheckBox Then
                     With DirectCast(Control, CheckBox)
-                        If Options.ThreeStates Then Return CInt(.CheckState) Else Return .Checked
+                        If Control_ThreeStates Then Return CInt(.CheckState) Else Return .Checked
                     End With
                 Else
                     UpdateProviderPropertyName()
@@ -139,12 +163,13 @@ Namespace Plugin.Hosts
         End Sub
 #End Region
 #Region "Compatibility"
-        Private ReadOnly Source As Object
-        Friend ReadOnly Name As String
+        Protected Source As Object 'ReadOnly
+        Protected Member As MemberInfo
+        Friend Overridable ReadOnly Property Name As String
         Private ReadOnly _XmlName As String
         Friend ReadOnly Options As PropertyOption
-        Private _LeftOffset As Integer? = Nothing
-        Friend Property LeftOffset As Integer
+        Protected _LeftOffset As Integer? = Nothing
+        Friend Overridable Property LeftOffset As Integer
             Get
                 If _LeftOffset.HasValue Then
                     Return _LeftOffset
@@ -188,6 +213,8 @@ Namespace Plugin.Hosts
 #End Region
         Friend ReadOnly Exists As Boolean = False
 #Region "Initializer"
+        Protected Sub New()
+        End Sub
         Friend Sub New(ByRef PropertySource As Object, ByVal Member As MemberInfo)
             Source = PropertySource
             Name = Member.Name
@@ -214,9 +241,9 @@ Namespace Plugin.Hosts
         End Sub
 #End Region
 #Region "Value"
-        Private ReadOnly Property ExternalValue As PropertyValue
+        Protected ReadOnly Property ExternalValue As PropertyValue
         Friend ReadOnly Property XValue As IXMLValue
-        Private _Value As Object
+        Protected _Value As Object
         Friend Overloads Property Value As Object Implements IPropertyValue.Value
             Get
                 Return _Value
@@ -229,6 +256,7 @@ Namespace Plugin.Hosts
             Set(ByVal NewValue As Object)
                 _Value = NewValue
                 If Not ExternalValue Is Nothing And Not _ExternalInvoked Then ExternalValue.Value = _Value
+                If ExternalValue Is Nothing And Not Member Is Nothing Then Member.SetMemberValue(Source, NewValue)
                 If UpdateXML And Not XValue Is Nothing Then XValue.Value = NewValue
                 RaiseEvent ValueChanged(_Value)
             End Set

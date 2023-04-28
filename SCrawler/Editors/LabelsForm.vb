@@ -12,6 +12,7 @@ Imports PersonalUtilities.Forms.Controls.Base
 Friend Class LabelsForm
     Private WithEvents MyDefs As DefaultFormOptions
     Friend ReadOnly Property LabelsList As List(Of String)
+    Private ReadOnly NewLabels As List(Of String)
     Private ReadOnly _Source As IEnumerable(Of String) = Nothing
     Private ReadOnly Property Source As IEnumerable(Of String)
         Get
@@ -24,18 +25,18 @@ Friend Class LabelsForm
             End If
         End Get
     End Property
-    Private _AnyLabelAdd As Boolean = False
     Friend Property WithDeleteButton As Boolean = False
     Private ReadOnly AddNoParsed As Boolean = False
-    Friend Sub New(ByVal LabelsArr As IEnumerable(Of String), Optional ByVal AddNoParsed As Boolean = False)
+    Friend Sub New(ByVal LabelsArr As IEnumerable(Of String), Optional ByVal AddNoParsed As Boolean = True)
         InitializeComponent()
         Me.AddNoParsed = AddNoParsed
         LabelsList = New List(Of String)
         LabelsList.ListAddList(LabelsArr)
+        NewLabels = New List(Of String)
         MyDefs = New DefaultFormOptions(Me, Settings.Design)
     End Sub
     Friend Sub New(ByVal Current As IEnumerable(Of String), ByVal Source As IEnumerable(Of String))
-        Me.New(Current)
+        Me.New(Current, False)
         _Source = Source
     End Sub
     Private Sub LabelsForm_Load(sender As Object, e As EventArgs) Handles Me.Load
@@ -68,11 +69,12 @@ Friend Class LabelsForm
     End Sub
     Private Sub LabelsForm_Disposed(sender As Object, e As EventArgs) Handles Me.Disposed
         LabelsList.Clear()
+        NewLabels.Clear()
     End Sub
     Private Sub MyDefs_ButtonOkClick(ByVal Sender As Object, ByVal e As KeyHandleEventArgs) Handles MyDefs.ButtonOkClick
         Try
             LabelsList.ListAddList(CMB_LABELS.Items.CheckedItems.Select(Function(l) CStr(l.Value(0))), LAP.ClearBeforeAdd, LAP.NotContainsOnly)
-            If _Source Is Nothing Then Settings.Labels.Update()
+            If _Source Is Nothing Then Settings.Labels.AddRange(NewLabels, True)
             MyDefs.CloseForm()
         Catch ex As Exception
             ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Label selection")
@@ -91,11 +93,10 @@ Friend Class LabelsForm
     Private Sub AddNewLabel()
         Dim nl$ = InputBoxE("Enter new label name:", "New label")
         If Not nl.IsEmptyString Then
-            If Settings.Labels.Contains(nl) Then
+            If Settings.Labels.Contains(nl) Or NewLabels.Contains(nl) Then
                 MsgBoxE($"Label [{nl}] already exists")
             Else
-                Settings.Labels.Add(nl)
-                _AnyLabelAdd = True
+                NewLabels.Add(nl)
                 CMB_LABELS.Items.Add(nl)
             End If
         End If

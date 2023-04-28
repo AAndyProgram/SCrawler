@@ -16,11 +16,6 @@ Imports PersonalUtilities.Tools.Notifications
 Namespace DownloadObjects
     Friend Class AutoDownloader : Inherits GroupParameters : Implements IIndexable, IEContainerProvider
         Friend Event PauseDisabled()
-        Private Shared ReadOnly Property CachePath As SFile
-            Get
-                Return Settings.CachePath
-            End Get
-        End Property
         Friend Enum Modes As Integer
             None = 0
             [Default] = 1
@@ -106,9 +101,9 @@ Namespace DownloadObjects
                                         uif_orig = uif
                                         If uif.Exists Then
                                             uif_compressed = uif
-                                            uif_compressed.Path = CachePath.Path
+                                            uif_compressed.Path = Settings.Cache.RootDirectory.Path
                                             uif_compressed.Name = $"360_{uif.Name}"
-                                            Using imgR As New ImageRenderer(uif, EDP.SendInLog)
+                                            Using imgR As New ImageRenderer(uif, EDP.SendToLog)
                                                 Try : imgR.FitToWidth(360).Save(uif_compressed) : Catch : End Try
                                             End Using
                                             If uif_compressed.Exists Then uif = uif_compressed
@@ -131,7 +126,7 @@ Namespace DownloadObjects
                         End If
                     End If
                 Catch ex As Exception
-                    ErrorsDescriber.Execute(EDP.SendInLog, ex, "[AutoDownloader.NotifiedUser.ShowNotification]")
+                    ErrorsDescriber.Execute(EDP.SendToLog, ex, "[AutoDownloader.NotifiedUser.ShowNotification]")
                     If Not User Is Nothing Then
                         MainFrameObj.ShowNotification(SettingsCLS.NotificationObjects.AutoDownloader,
                                                       User.ToString & vbNewLine &
@@ -151,7 +146,7 @@ Namespace DownloadObjects
                     ElseIf KeySite = _Key Then
                         User.OpenSite()
                     ElseIf Images.ContainsKey(_Key) Then
-                        Images(_Key).Open(, EDP.None)
+                        Images(_Key).Open()
                     End If
                 Else
                     Return True
@@ -453,7 +448,7 @@ Namespace DownloadObjects
                     Thread.Sleep(500)
                 End While
             Catch ex As Exception
-                ErrorsDescriber.Execute(EDP.SendInLog, ex, "[AutoDownloader.Checker]")
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "[AutoDownloader.Checker]")
             Finally
                 _StopRequested = False
             End Try
@@ -533,7 +528,7 @@ Namespace DownloadObjects
                     End With
                 End If
             Catch ex As Exception
-                ErrorsDescriber.Execute(EDP.SendInLog, ex, "[AutoDownloader.Download]")
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "[AutoDownloader.Download]")
             Finally
                 Keys.Clear()
                 LastDownloadDate = Now

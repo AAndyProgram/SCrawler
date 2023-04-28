@@ -8,6 +8,7 @@
 ' but WITHOUT ANY WARRANTY
 Imports System.Reflection
 Imports SCrawler.API.Base
+Imports SCrawler.API.YouTube.Objects
 Imports SCrawler.Plugin.Attributes
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.XML.Base
@@ -111,6 +112,7 @@ Namespace Plugin.Hosts
                 _Path.Value = NewPath
             End Set
         End Property
+        Friend Const SavedPostsFolderName As String = "!Saved"
         Private ReadOnly _SavedPostsPath As XMLValue(Of SFile)
         Friend Property SavedPostsPath(Optional ByVal GetAny As Boolean = True) As SFile
             Get
@@ -118,7 +120,7 @@ Namespace Plugin.Hosts
                     Return _SavedPostsPath.Value
                 Else
                     If GetAny Then
-                        Return $"{Path.PathNoSeparator}\!Saved\"
+                        Return $"{Path.PathNoSeparator}\{SavedPostsFolderName}\"
                     Else
                         Return Nothing
                     End If
@@ -292,17 +294,6 @@ Namespace Plugin.Hosts
             If s.Exists Then s.SiteName = Name : s.HostKey = Key
             Return s
         End Function
-        Friend Function GetSpecialData(ByVal URL As String, ByVal Path As SFile, ByVal AskForPath As Boolean) As IEnumerable(Of UserMedia)
-            Dim um As IEnumerable = Source.GetSpecialData(URL, Path, AskForPath)
-            If Not um Is Nothing Then
-                If TypeOf um Is IEnumerable(Of UserMedia) Then
-                    Return um
-                ElseIf TypeOf um Is IEnumerable(Of IUserMedia) Then
-                    Return um.ToObjectsList.ListCast(Of UserMedia)(New ListAddParams With {.Converter = Function(v) New UserMedia(DirectCast(v, IUserMedia))})
-                End If
-            End If
-            Return Nothing
-        End Function
         Friend Function GetInstance(ByVal What As Download, ByVal u As UserInfo, Optional ByVal _LoadUserInformation As Boolean = True,
                                     Optional ByVal AttachUserInfo As Boolean = True) As IUserData
             Dim p As IPluginContentProvider = Source.GetInstance(What)
@@ -313,6 +304,27 @@ Namespace Plugin.Hosts
                 Return pp
             Else
                 Throw New ArgumentNullException("IPluginContentProvider", $"Plugin [{Key}] does not provide user instance")
+            End If
+        End Function
+        Friend Function GetSingleMediaInstance(ByVal URL As String, ByVal OutputFile As SFile) As IYouTubeMediaContainer
+            Dim m As IDownloadableMedia = Source.GetSingleMediaInstance(URL, OutputFile)
+            If Not m Is Nothing Then
+                If Not TypeOf m Is YouTubeMediaContainerBase Then m = New DownloadableMediaHost(m)
+                m.Instance = GetInstance(Download.SingleObject, Nothing, False, False)
+                With DirectCast(m, YouTubeMediaContainerBase)
+                    If Not Source.Image Is Nothing Then
+                        .SiteIcon = Source.Image
+                    ElseIf Not Source.Icon Is Nothing Then
+                        .SiteIcon = Source.Icon.ToBitmap
+                    Else
+                        .SiteIcon = Nothing
+                    End If
+                    .SiteKey = Key
+                    .Site = Name
+                End With
+                Return m
+            Else
+                Throw New ArgumentNullException("IDownloadableMedia", $"Plugin [{Key}] does not provide IDownloadableMedia")
             End If
         End Function
         Friend Function GetUserPostUrl(ByVal User As IPluginContentProvider, ByVal Media As IUserMedia) As String

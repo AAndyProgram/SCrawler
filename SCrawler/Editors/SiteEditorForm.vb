@@ -19,22 +19,19 @@ Namespace Editors
         Private ReadOnly LBL_OTHER As Label
         Private WithEvents MyDefs As DefaultFormOptions
         Private WithEvents SpecialButton As Button
+        Private Property Cookies As CookieKeeper
+        Private CookiesChanged As Boolean = False
 #Region "Providers"
-        Private Class SavedPostsChecker : Implements IFieldsCheckerProvider
-            Private Property ErrorMessage As String Implements IFieldsCheckerProvider.ErrorMessage
-            Private Property Name As String Implements IFieldsCheckerProvider.Name
-            Private Property TypeError As Boolean Implements IFieldsCheckerProvider.TypeError
-            Private Function Convert(ByVal Value As Object, ByVal DestinationType As Type, ByVal Provider As IFormatProvider,
-                                     Optional ByVal NothingArg As Object = Nothing, Optional ByVal e As ErrorsDescriber = Nothing) As Object Implements ICustomProvider.Convert
+        Private Class SavedPostsChecker : Inherits FieldsCheckerProviderBase
+            Public Overrides Function Convert(ByVal Value As Object, ByVal DestinationType As Type, ByVal Provider As IFormatProvider,
+                                              Optional ByVal NothingArg As Object = Nothing, Optional ByVal e As ErrorsDescriber = Nothing) As Object
                 If ACheck(Value) AndAlso CStr(Value).Contains("/") Then
                     ErrorMessage = $"Path [{Name}] contains forbidden character ""/"""
+                    HasError = True
                     Return Nothing
                 Else
                     Return Value
                 End If
-            End Function
-            Private Function GetFormat(ByVal FormatType As Type) As Object Implements IFormatProvider.GetFormat
-                Throw New NotImplementedException("[GetFormat] is not available in the context of [SavedPostsChecker]")
             End Function
         End Class
 #End Region
@@ -43,6 +40,7 @@ Namespace Editors
             InitializeComponent()
             MyDefs = New DefaultFormOptions(Me, Settings.Design)
             Host = h
+            If Not Host.Responser Is Nothing Then Cookies = Host.Responser.Cookies.Copy
             LBL_AUTH = New Label With {.Text = "Authorization", .TextAlign = ContentAlignment.MiddleCenter, .Dock = DockStyle.Fill}
             LBL_OTHER = New Label With {.Text = "Other Parameters", .TextAlign = ContentAlignment.MiddleCenter, .Dock = DockStyle.Fill}
             Host.Source.BeginEdit()
@@ -155,6 +153,7 @@ Namespace Editors
             LBL_AUTH.Dispose()
             LBL_OTHER.Dispose()
             Host.Source.EndEdit()
+            If Not Cookies Is Nothing Then Cookies.Dispose()
         End Sub
         Private Sub MyDefs_ButtonOkClick(ByVal Sender As Object, ByVal e As KeyHandleEventArgs) Handles MyDefs.ButtonOkClick
             If MyDefs.MyFieldsChecker.AllParamsOK Then
@@ -185,6 +184,12 @@ Namespace Editors
                     .SavedPostsPath = TXT_PATH_SAVED_POSTS.Text
                     .DownloadSiteData.Value = CH_DOWNLOAD_SITE_DATA.Checked
                     .GetUserMediaOnly.Value = CH_GET_USER_MEDIA_ONLY.Checked
+                    If CookiesChanged And Not Cookies Is Nothing And Not .Responser Is Nothing Then
+                        With .Responser.Cookies
+                            .Clear()
+                            .AddRange(Cookies,, EDP.LogMessageValue)
+                        End With
+                    End If
 
                     If .PropList.Count > 0 Then .PropList.ForEach(Sub(p) If Not p.Options Is Nothing Then p.UpdateValueByControl())
 
@@ -211,27 +216,29 @@ Namespace Editors
         Private Sub TXT_COOKIES_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As EventArgs) Handles TXT_COOKIES.ActionOnButtonClick
             Select Case Sender.DefaultButton
                 Case ADB.Edit
-                    If Not Host.Responser Is Nothing Then
+                    If Not Cookies Is Nothing Then
                         Using f As New CookieListForm With {.DesignXML = Settings.Design, .ShowGrid = False}
-                            f.SetCollection(Host.Responser.Cookies)
+                            f.SetCollection(Cookies)
                             f.ShowDialog()
                             If f.DialogResult = DialogResult.OK Then
-                                f.GetCollection(Host.Responser)
+                                CookiesChanged = True
+                                f.GetCollection(Cookies)
                                 MyDefs.MyOkCancel.EnableOK = True
                             End If
                         End Using
                         SetCookieText()
                     End If
                 Case ADB.Clear
-                    If Not Host.Responser Is Nothing Then
-                        Host.Responser.Cookies.Clear()
+                    If Not Cookies Is Nothing Then
+                        CookiesChanged = True
+                        Cookies.Clear()
                         MyDefs.MyOkCancel.EnableOK = True
                         SetCookieText()
                     End If
             End Select
         End Sub
         Private Sub SetCookieText()
-            If Not Host.Responser Is Nothing Then TXT_COOKIES.Text = $"{Host.Responser.Cookies.Count} cookies"
+            If Not Cookies Is Nothing Then TXT_COOKIES.Text = $"{Cookies.Count} cookies"
         End Sub
         Private Sub SpecialButton_Click(sender As Object, e As EventArgs) Handles SpecialButton.Click
             MyDefs.Detector()

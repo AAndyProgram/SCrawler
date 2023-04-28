@@ -8,8 +8,9 @@
 ' but WITHOUT ANY WARRANTY
 Imports System.Threading
 Imports System.Reflection
-Imports PersonalUtilities.Functions.XML
 Imports SCrawler.API.Base
+Imports SCrawler.API.YouTube.Objects
+Imports PersonalUtilities.Functions.XML
 Imports UStates = SCrawler.Plugin.UserMediaStates
 Imports UTypes = SCrawler.Plugin.UserMediaTypes
 Namespace Plugin.Hosts
@@ -25,7 +26,7 @@ Namespace Plugin.Hosts
             ExternalPlugin = SourceClass
             UseInternalDownloader = Not ExternalPlugin.GetType.GetCustomAttribute(Of Attributes.UseInternalDownloader)() Is Nothing
             AddHandler ExternalPlugin.ProgressChanged, AddressOf ExternalPlugin_ProgressChanged
-            AddHandler ExternalPlugin.TotalCountChanged, AddressOf ExternalPlugin_TotalCountChanged
+            AddHandler ExternalPlugin.ProgressMaximumChanged, AddressOf ExternalPlugin_ProgressMaximumChanged
         End Sub
         Protected Overrides Sub LoadUserInformation_OptionalFields(ByRef Container As XmlFile, ByVal Loading As Boolean)
             If Loading Then
@@ -63,17 +64,20 @@ Namespace Plugin.Hosts
                 If _ContentList.Count > 0 Then ExternalPlugin.ExistingContentList = _ContentList.ListCast(Of IUserMedia)
                 ExternalPlugin.TempPostsList = ListAddList(Nothing, _TempPostsList)
 
-                .GetMedia()
+                .GetMedia(Token)
 
                 _TempPostsList.ListAddList(.TempPostsList, LNC)
                 If .TempMediaList.ListExists Then _TempMediaList.ListAddList(.TempMediaList.Select(Function(tm) New UserMedia(tm)), LNC)
 
-                If Not .Name = Name Then Name = .Name
                 ID = .ID
                 UserDescriptionUpdate(.UserDescription)
                 UserExists = .UserExists
                 UserSuspended = .UserSuspended
             End With
+        End Sub
+        Friend Overrides Sub DownloadSingleObject(ByVal Data As IYouTubeMediaContainer, ByVal Token As CancellationToken)
+            Progress = Data.Progress
+            ExternalPlugin.DownloadSingleObject(If(TryCast(Data, DownloadableMediaHost)?.ExternalSource, Data), Token)
         End Sub
         Protected Overrides Sub DownloadContent(ByVal Token As CancellationToken)
             If UseInternalDownloader Then
@@ -83,7 +87,7 @@ Namespace Plugin.Hosts
                     If .TempMediaList.ListExists Then .TempMediaList.Clear()
                     .TempMediaList = New List(Of IUserMedia)
                     .TempMediaList.ListAddList(_ContentNew)
-                    .Download()
+                    .Download(Token)
                     _ContentNew.Clear()
                     If .TempMediaList.ListExists Then
                         _ContentNew.ListAddList(.TempMediaList.Select(Function(c) New UserMedia(c)))
@@ -101,11 +105,11 @@ Namespace Plugin.Hosts
             HasError = True
             Return 0
         End Function
-        Private Sub ExternalPlugin_ProgressChanged(ByVal Count As Integer)
-            Progress.Perform(Count)
+        Private Sub ExternalPlugin_ProgressChanged(ByVal Value As Integer)
+            Progress.Perform(Value)
         End Sub
-        Private Sub ExternalPlugin_TotalCountChanged(ByVal Count As Integer)
-            Progress.Maximum += Count
+        Private Sub ExternalPlugin_ProgressMaximumChanged(ByVal Value As Integer, ByVal Add As Boolean)
+            Progress.Maximum = Value + If(Add, Progress.Maximum, 0)
         End Sub
         Protected Overrides Sub Dispose(ByVal disposing As Boolean)
             If disposing And Not disposedValue Then

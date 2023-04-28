@@ -1,3 +1,47 @@
+# 2023.4.28.0
+
+*2023-04-28*
+
+- Added
+  - **YouTube**
+  - **YouTube Music**
+  - **Mastodon**
+  - **Pinterest**
+  - **ThisVid**
+  - **YouTube downloader (standalone app)**
+  - Redesigned standalone downloader and update environment
+  - Added icons to download progress
+  - Added icons to saved posts downloader
+  - **Cookies**: new ways to add cookies. You can now export cookies using the browser extension and then import them into SCrawler!
+  - User creation: ability to extract the user's URL from the buffer and apply parameters if found
+  - User creation: simplified way to create new users (`Ctrl+Insert` to create a new user with default parameters from clipboard URL)
+  - Ability to customize the placement of ffmpeg (and other) files
+  - Ability to customize the command line encoding
+  - New notification options for standalone downloader
+  - Reddit: now it can download saved crossposts
+  - RedGifs: added `UserAgent` option
+  - Other improvements
+- Removed
+  - User creation: remove the 'Channel' checkbox because it confuses people
+  - Removed an ability to open SCrawler with `-v` argument
+  - All ways to create users except URL. You can only properly create a user using the user's URL.
+- Plugins
+  - Added `IDownloadableMedia` interface
+  - Removed `Channel` option from all functions and enums
+  - ISiteSettings: added `GetSingleMediaInstance` function
+  - IPluginContentProvider: added `DownloadSingleObject` function
+  - IPluginContentProvider: added tokens to `GetMedia` and `Download` functions
+  - IPluginContentProvider: removed `GetSpecialData` function
+  - UserMediaTypes: added `Audio` and `AudioPre` enums
+- Fixed
+  - LPSG: attachments not downloading (Issue #114)
+  - Twitter: saved posts not downloading (Issue #119)
+  - XVIDEOS: saved posts not downloading
+  - Deleting labels file
+  - PornHub: hide unnecessary errors (Issue #116)
+  - PornHub: photo galleries bug (Issue #115)
+  - Minor bugs
+
 # 2023.3.5.0
 
 *2023-03-05*

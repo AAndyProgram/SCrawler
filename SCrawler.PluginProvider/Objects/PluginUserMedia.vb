@@ -7,12 +7,15 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Namespace Plugin
+    Public Delegate Sub ProgressChange(ByVal Value As Double?, ByVal Maximum As Double?, ByVal Information As String)
     Public Enum UserMediaTypes As Integer
         Undefined = 0
-        [Picture] = 1
-        [Video] = 2
-        [Text] = 3
+        Picture = 1
+        Video = 2
+        Audio = 200
+        Text = 4
         VideoPre = 10
+        AudioPre = 215
         GIF = 50
         m3u8 = 100
     End Enum
@@ -24,12 +27,12 @@ Namespace Plugin
         Missing = 4
     End Enum
     Public Structure PluginUserMedia : Implements IUserMedia
-        Public Property ContentType As Integer Implements IUserMedia.ContentType
+        Public Property ContentType As UserMediaTypes Implements IUserMedia.ContentType
         Public Property URL As String Implements IUserMedia.URL
         Public Property URL_BASE As String Implements IUserMedia.URL_BASE
         Public Property MD5 As String Implements IUserMedia.MD5
         Public Property File As String Implements IUserMedia.File
-        Public Property DownloadState As Integer Implements IUserMedia.DownloadState
+        Public Property DownloadState As UserMediaStates Implements IUserMedia.DownloadState
         Public Property PostID As String Implements IUserMedia.PostID
         Public Property PostDate As Date? Implements IUserMedia.PostDate
         Public Property SpecialFolder As String Implements IUserMedia.SpecialFolder
@@ -37,12 +40,12 @@ Namespace Plugin
         Public Property [Object] As Object Implements IUserMedia.Object
     End Structure
     Public Interface IUserMedia
-        Property ContentType As Integer
+        Property ContentType As UserMediaTypes
         Property URL As String
         Property URL_BASE As String
         Property MD5 As String
         Property File As String
-        Property DownloadState As Integer
+        Property DownloadState As UserMediaStates
         Property PostID As String
         Property PostDate As Date?
         Property SpecialFolder As String

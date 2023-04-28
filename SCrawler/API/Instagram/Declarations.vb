@@ -6,16 +6,15 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
-Imports PersonalUtilities.Functions.RegularExpressions
+Imports PersonalUtilities.Tools.Web.Cookies
 Imports PersonalUtilities.Tools.Web.Clients
 Imports PersonalUtilities.Tools.Web.Clients.EventArguments
-Imports PersonalUtilities.Tools.Web.Cookies
+Imports PersonalUtilities.Functions.RegularExpressions
 Namespace API.Instagram
     Friend Module Declarations
         Friend Const InstagramSite As String = "Instagram"
         Friend Const InstagramSiteKey As String = "AndyProgram_Instagram"
         Friend ReadOnly FilesPattern As RParams = RParams.DMS(".+?([^/\?]+?\.[\w\d]{3,4})(?=(\?|\Z))", 1, EDP.ReturnValue)
-        Friend ReadOnly Property DateProvider As New CustomProvider(Function(v, d, p, n, e) ADateTime.ParseUnicode(v))
         Friend Sub UpdateResponser(ByVal Source As IResponse, ByRef Destination As Responser)
             Const r_wwwClaimName$ = "x-ig-set-www-claim"
             Const r_tokenName$ = "csrftoken"
@@ -46,7 +45,7 @@ Namespace API.Instagram
                 If Not wwwClaim.IsEmptyString Then Destination.Headers.Add(SiteSettings.Header_IG_WWW_CLAIM, wwwClaim)
                 If Not token.IsEmptyString Then Destination.Headers.Add(SiteSettings.Header_CSRF_TOKEN, token)
                 If Not isInternal Then
-                    Destination.Cookies.Update(Source.Cookies, CookieKeeper.UpdateModes.ReplaceByNameAll, False, EDP.SendInLog)
+                    Destination.Cookies.Update(Source.Cookies, CookieKeeper.UpdateModes.ReplaceByNameAll, False, EDP.SendToLog)
                     Destination.SaveSettings()
                 End If
             End If

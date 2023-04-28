@@ -12,9 +12,10 @@ Imports SCrawler.Plugin.Attributes
 Namespace API.PathPlugin
     <Manifest(PluginKey)>
     Friend Class SiteSettings : Inherits SiteSettingsBase
+        Private ReadOnly _Icon As Icon = Nothing
         Friend Overrides ReadOnly Property Icon As Icon
             Get
-                Return PersonalUtilities.Tools.ImageRenderer.GetIcon(PersonalUtilities.My.Resources.FolderOpenPic_Orange_16, EDP.ReturnValue)
+                Return _Icon
             End Get
         End Property
         Friend Overrides ReadOnly Property Image As Image
@@ -24,6 +25,7 @@ Namespace API.PathPlugin
         End Property
         Friend Sub New()
             MyBase.New(PluginName)
+            _Icon = PersonalUtilities.Tools.ImageRenderer.GetIcon(PersonalUtilities.My.Resources.FolderOpenPic_Orange_16, EDP.ReturnValue)
         End Sub
         Friend Overrides Function GetInstance(ByVal What As ISiteSettings.Download) As IPluginContentProvider
             Return New UserData
@@ -42,7 +44,7 @@ Namespace API.PathPlugin
         Friend Overrides Function IsMyImageVideo(ByVal URL As String) As ExchangeOptions
             Return Nothing
         End Function
-        Friend Overrides Function GetUserUrl(ByVal User As IPluginContentProvider, ByVal Channel As Boolean) As String
+        Friend Overrides Function GetUserUrl(ByVal User As IPluginContentProvider) As String
             Return String.Empty
         End Function
     End Class

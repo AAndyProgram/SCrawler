@@ -126,7 +126,7 @@ Namespace DownloadObjects
                     _LatestSelected = -1
                 End If
             Catch ex As Exception
-                ErrorsDescriber.Execute(EDP.SendInLog, ex, "[DownloadedInfoForm.RefillList]")
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "[DownloadedInfoForm.RefillList]")
             Finally
                 UpdateNavigationButtons(Nothing)
             End Try

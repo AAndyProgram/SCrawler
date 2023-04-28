@@ -8,6 +8,7 @@
 ' but WITHOUT ANY WARRANTY
 Imports System.Threading
 Imports SCrawler.API.Base
+Imports SCrawler.API.YouTube.Objects
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Tools.Web.Clients
@@ -136,6 +137,7 @@ Namespace API.PornHub
 #Region "Initializer, loader"
         Friend Sub New()
             UseInternalM3U8Function = True
+            UseClientTokens = True
         End Sub
         Protected Overrides Sub LoadUserInformation_OptionalFields(ByRef Container As XmlFile, ByVal Loading As Boolean)
             With Container
@@ -179,7 +181,11 @@ Namespace API.PornHub
                 Responser.ResetStatus()
                 If PersonType = PersonTypeUser Then Responser.Mode = Responser.Modes.Curl
 
-                If IsSavedPosts Then VideoPageModel = VideoPageModels.Favorite
+                If IsSavedPosts Then
+                    VideoPageModel = VideoPageModels.Favorite
+                    PersonType = PersonTypeUser
+                    NameTrue = MySettings.SavedPostsUserName.Value
+                End If
 
                 Dim page% = 1
                 Dim __continue As Boolean = True
@@ -295,7 +301,7 @@ Namespace API.PornHub
                 If Not r.IsEmptyString Then
                     Dim n$
                     Dim m As UserMedia = Nothing
-                    Dim l As List(Of RegexMatchStruct) = RegexFields(Of RegexMatchStruct)(r, {Regex_Gif_Array}, {1})
+                    Dim l As List(Of RegexMatchStruct) = RegexFields(Of RegexMatchStruct)(r, {Regex_Gif_Array}, {1}, EDP.ReturnValue)
                     Dim l2 As List(Of String) = Nothing
                     Dim l3 As List(Of String) = Nothing
                     If l.ListExists Then l2 = l.Select(Function(ll) $"gif/{ll.Arr(0).Replace("gif", String.Empty)}").ToList
@@ -336,6 +342,10 @@ Namespace API.PornHub
         End Sub
 #End Region
 #Region "Download photo"
+        Private Function CreatePhotoFile(ByVal URL As String, ByVal File As SFile) As SFile
+            Dim pFile$ = RegexReplace(URL, Regex_Photo_File)
+            If Not pFile.IsEmptyString Then Return New SFile(pFile) Else Return File
+        End Function
         Private Const PhotoUrlPattern_ModelHub As String = "https://www.modelhub.com/{0}/photos"
         Private Const PhotoUrlPattern_PornHub As String = "https://www.pornhub.com/{0}/{1}/photos"
         Private Sub DownloadUserPhotos(ByVal Token As CancellationToken)
@@ -365,7 +375,8 @@ Namespace API.PornHub
         Private Function DownloadUserPhotos_ModelHub(ByVal Token As CancellationToken) As Boolean
             Dim URL$ = String.Empty
             Try
-                Dim jErr As New ErrorsDescriber(EDP.SendInLog + EDP.ReturnValue)
+                Dim j As EContainer
+                Dim jErr As New ErrorsDescriber(EDP.SendToLog + EDP.ReturnValue)
                 Dim albumName$
                 If PersonType = PersonTypeModel Then
                     URL = String.Format(PhotoUrlPattern_ModelHub, NameTrue)
@@ -380,15 +391,16 @@ Namespace API.PornHub
                                 albumRegex.Pattern = "<li id=""" & block.AlbumID & """ class=""modelBox"">[\r\n\s]*?<div class=""modelPhoto"">[\r\n\s]*?\<[^\>]*?alt=""([^""]*)"""
                                 albumName = StringTrim(RegexReplace(r, albumRegex))
                                 If albumName.IsEmptyString Then albumName = block.AlbumID
-                                Using j As EContainer = JsonDocument.Parse("{" & block.Data & "}", jErr)
-                                    If Not j Is Nothing Then
-                                        If If(j("urls")?.Count, 0) > 0 Then
-                                            _TempMediaList.ListAddList(j("urls").Select(Function(jj) _
-                                                                       New UserMedia(jj.ItemF({0}).XmlIfNothingValue, UTypes.Picture) With {
-                                                                                     .SpecialFolder = $"Albums\{albumName}\"}), LNC)
-                                        End If
+                                j = JsonDocument.Parse("{" & block.Data & "}", jErr)
+                                If Not j Is Nothing Then
+                                    If If(j("urls")?.Count, 0) > 0 Then
+                                        _TempMediaList.ListAddList(j("urls").Select(Function(jj) _
+                                                                   New UserMedia(jj.ItemF({0}).XmlIfNothingValue, UTypes.Picture) With {
+                                                                                 .SpecialFolder = $"Albums\{albumName}\",
+                                                                                 .File = CreatePhotoFile(.URL, .File)}), LNC)
                                     End If
-                                End Using
+                                    j.Dispose()
+                                End If
                             Next
                             l.Clear()
                         End If
@@ -444,7 +456,9 @@ Namespace API.PornHub
                                 If Not r.IsEmptyString Then
                                     url = RegexReplace(r, Regex_Photo_PornHub_SinglePhoto)
                                     If Not url.IsEmptyString Then _
-                                       _TempMediaList.ListAddValue(New UserMedia(url, UTypes.Picture) With {.SpecialFolder = $"Albums\{AlbumName}\"}, LNC)
+                                       _TempMediaList.ListAddValue(New UserMedia(url, UTypes.Picture) With {
+                                                                   .SpecialFolder = $"Albums\{AlbumName}\",
+                                                                   .File = CreatePhotoFile(url, .File)}, LNC)
                                 End If
                             Catch
                             End Try
@@ -468,7 +482,7 @@ Namespace API.PornHub
                     If r.Contains(HtmlPageNotFoundPhoto) Then Return False
                     Dim urls As List(Of String) = RegexReplace(r, Regex_Photo_PornHub_AlbumPhotoArr)
                     If urls.ListExists Then
-                        Dim NewUrl$
+                        Dim NewUrl$, pFile$
                         Dim m As UserMedia
                         Dim l2 As List(Of UserMedia) = urls.Select(Function(__url) New UserMedia(__url, UTypes.Picture) With {
                                                                                                  .Post = __url.Split("/").LastOrDefault}).ToList
@@ -487,7 +501,8 @@ Namespace API.PornHub
                                             NewUrl = RegexReplace(r, Regex_Photo_PornHub_SinglePhoto)
                                             If Not NewUrl.IsEmptyString Then
                                                 m.URL = NewUrl
-                                                m.File = NewUrl
+                                                pFile = RegexReplace(NewUrl, Regex_Photo_File)
+                                                If Not pFile.IsEmptyString Then m.File = pFile Else m.File = NewUrl
                                                 _TempPostsList.ListAddValue(m.Post.ID, LNC)
                                             Else
                                                 Throw New Exception
@@ -511,13 +526,17 @@ Namespace API.PornHub
 #End Region
 #End Region
 #Region "ReparseVideo"
-        Protected Overrides Sub ReparseVideo(ByVal Token As CancellationToken)
+        Protected Overloads Overrides Sub ReparseVideo(ByVal Token As CancellationToken)
+            ReparseVideo(Token, False)
+        End Sub
+        Protected Overloads Sub ReparseVideo(ByVal Token As CancellationToken, ByVal CreateFileName As Boolean,
+                                             Optional ByRef Data As IYouTubeMediaContainer = Nothing)
             Const ERR_NEW_URL$ = "ERR_NEW_URL"
             Dim URL$ = String.Empty
             Try
                 If _TempMediaList.Count > 0 AndAlso _TempMediaList.Exists(Function(tm) tm.Type = UTypes.VideoPre) Then
                     Dim m As UserMedia
-                    Dim r$, NewUrl$
+                    Dim r$, NewUrl$, tmpName$
                     For i% = _TempMediaList.Count - 1 To 0 Step -1
                         If _TempMediaList(i).Type = UTypes.VideoPre Then
                             m = _TempMediaList(i)
@@ -532,6 +551,14 @@ Namespace API.PornHub
                                     Else
                                         m.URL = NewUrl
                                         m.Type = UTypes.m3u8
+                                        If CreateFileName Then
+                                            tmpName = RegexReplace(r, RegexVideoPageTitle)
+                                            If Not tmpName.IsEmptyString Then
+                                                If Not Data Is Nothing Then Data.Title = tmpName
+                                                m.File.Name = TitleHtmlConverter(tmpName)
+                                                m.File.Extension = "mp4"
+                                            End If
+                                        End If
                                         _TempMediaList(i) = m
                                     End If
                                 Else
@@ -565,7 +592,7 @@ Namespace API.PornHub
                         m = _ContentList(i)
                         If m.State = UserMedia.States.Missing AndAlso Not m.URL_BASE.IsEmptyString Then
                             ThrowAny(Token)
-                            r = Responser.Curl(m.URL_BASE, eCurl)
+                            r = Responser.Curl(m.URL_BASE,, eCurl)
                             If Not r.IsEmptyString Then
                                 Dim NewUrl$ = CreateVideoURL(r)
                                 If Not NewUrl.IsEmptyString Then
@@ -591,12 +618,12 @@ Namespace API.PornHub
         Protected Overrides Sub DownloadContent(ByVal Token As CancellationToken)
             DownloadContentDefault(Token)
         End Sub
-        Protected Overrides Function DownloadM3U8(ByVal URL As String, ByVal Media As UserMedia, ByVal DestinationFile As SFile) As SFile
-            Return M3U8.Download(URL, Responser, DestinationFile)
+        Protected Overrides Function DownloadM3U8(ByVal URL As String, ByVal Media As UserMedia, ByVal DestinationFile As SFile, ByVal Token As CancellationToken) As SFile
+            Return M3U8.Download(URL, Responser, DestinationFile, Token, If(UseInternalM3U8Function_UseProgress, Progress, Nothing))
         End Function
 #End Region
 #Region "CreateVideoURL"
-        Private Shared Function CreateVideoURL(ByVal r As String) As String
+        Private Function CreateVideoURL(ByVal r As String) As String
             Try
                 Dim OutStr$ = String.Empty
                 If Not r.IsEmptyString Then
@@ -619,26 +646,18 @@ Namespace API.PornHub
                 End If
                 Return OutStr
             Catch ex As Exception
-                Return ErrorsDescriber.Execute(EDP.SendInLog, ex, "[API.PornHub.UserData.CreateVideoURL]", String.Empty)
+                Return ErrorsDescriber.Execute(EDP.SendToLog, ex, "[API.PornHub.UserData.CreateVideoURL]", String.Empty)
             End Try
         End Function
 #End Region
-#Region "Standalone downloader"
-        Friend Shared Function GetVideoInfo(ByVal URL As String, ByVal Responser As Responser, ByVal Destination As SFile) As UserMedia
-            Try
-                Dim r$ = Responser.Curl(URL)
-                If Not r.IsEmptyString Then
-                    Dim NewUrl$ = CreateVideoURL(r)
-                    If Not NewUrl.IsEmptyString Then
-                        Dim f As SFile = M3U8.Download(NewUrl, Responser, Destination)
-                        If Not f.IsEmptyString Then Return New UserMedia With {.State = UserMedia.States.Downloaded}
-                    End If
-                End If
-                Return Nothing
-            Catch ex As Exception
-                Return ErrorsDescriber.Execute(EDP.SendInLog + EDP.ReturnValue, ex, $"PornHub standalone download error: [{URL}]", New UserMedia)
-            End Try
-        End Function
+#Region "DownloadSingleObject"
+        Protected Overrides Sub DownloadSingleObject_GetPosts(ByVal Data As IYouTubeMediaContainer, ByVal Token As CancellationToken)
+            _TempMediaList.Add(New UserMedia(Data.URL, UTypes.VideoPre))
+            ReparseVideo(Token, True, Data)
+        End Sub
+        Protected Overrides Sub DownloadSingleObject_PostProcessing(ByVal Data As IYouTubeMediaContainer, Optional ByVal ResetTitle As Boolean = True)
+            MyBase.DownloadSingleObject_PostProcessing(Data, False)
+        End Sub
 #End Region
 #Region "Exceptions"
         Protected Overrides Function DownloadingException(ByVal ex As Exception, ByVal Message As String,

@@ -6,15 +6,15 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
-Imports PersonalUtilities.Forms
-Imports PersonalUtilities.Forms.Controls
-Imports PersonalUtilities.Forms.Controls.Base
-Imports PersonalUtilities.Functions.RegularExpressions
-Imports PersonalUtilities.Tools
 Imports SCrawler.API
 Imports SCrawler.API.Base
 Imports SCrawler.Plugin
 Imports SCrawler.Plugin.Hosts
+Imports PersonalUtilities.Tools
+Imports PersonalUtilities.Forms
+Imports PersonalUtilities.Forms.Controls
+Imports PersonalUtilities.Forms.Controls.Base
+Imports PersonalUtilities.Functions.RegularExpressions
 Imports ADB = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons
 Namespace Editors
     Friend Class UserCreatorForm
@@ -122,16 +122,14 @@ Namespace Editors
         End Sub
 #End Region
 #Region "Form handlers"
-        Private Class CollectionNameFieldProvider : Implements IFieldsCheckerProvider
-            Private Property ErrorMessage As String Implements IFieldsCheckerProvider.ErrorMessage
-            Private Property Name As String Implements IFieldsCheckerProvider.Name
-            Private Property TypeError As Boolean Implements IFieldsCheckerProvider.TypeError
-            Private Function Convert(ByVal Value As Object, ByVal DestinationType As Type, ByVal Provider As IFormatProvider,
-                                     Optional ByVal NothingArg As Object = Nothing, Optional ByVal e As ErrorsDescriber = Nothing) As Object Implements ICustomProvider.Convert
+        Private Class CollectionNameFieldProvider : Inherits FieldsCheckerProviderBase
+            Public Overrides Function Convert(ByVal Value As Object, ByVal DestinationType As Type, ByVal Provider As IFormatProvider,
+                                              Optional ByVal NothingArg As Object = Nothing, Optional ByVal e As ErrorsDescriber = Nothing) As Object
                 If ACheck(Value) Then
                     If Settings.Users.Exists(Function(u) u.IsCollection AndAlso u.CollectionName = CStr(Value) AndAlso
                                                          Not DirectCast(u, UserDataBind).CurrentlyEdited) Then
                         ErrorMessage = $"A collection named [{Value}] already exist"
+                        HasError = True
                         Return Nothing
                     Else
                         Return Value
@@ -140,12 +138,10 @@ Namespace Editors
                     Return Nothing
                 End If
             End Function
-            Private Function GetFormat(ByVal FormatType As Type) As Object Implements IFormatProvider.GetFormat
-                Throw New NotImplementedException("[GetFormat] is not available in the 'CollectionNameFieldProvider'")
-            End Function
         End Class
         Private Sub UserCreatorForm_Load(sender As Object, e As EventArgs) Handles Me.Load
             Try
+                Dim checkBuffer As Boolean = False
                 With MyDef
                     .MyViewInitialize(True)
                     .AddOkCancelToolbar()
@@ -226,6 +222,7 @@ Namespace Editors
                         NameFieldProvider = New CollectionNameFieldProvider
                     Else
                         If User.Name.IsEmptyString Then
+                            checkBuffer = True
                             CH_READY_FOR_DOWN.Checked = True
                             CH_TEMP.Checked = Settings.DefaultTemporary
                             CH_DOWN_IMAGES.Checked = Settings.DefaultDownloadImages
@@ -239,9 +236,7 @@ Namespace Editors
                             Dim i% = Settings.Plugins.FindIndex(Function(p) p.Key = User.Plugin)
                             If i >= 0 Then CMB_SITE.SelectedIndex = i
                             SetParamsBySite()
-                            CH_IS_CHANNEL.Enabled = False
                             CMB_SITE.Enabled = False
-                            CH_IS_CHANNEL.Checked = User.IsChannel
                             If Not UserInstance Is Nothing Then
                                 Text = $"User: {UserInstance.Name}"
                                 If Not UserInstance.FriendlyName.IsEmptyString Then Text &= $" ({UserInstance.FriendlyName})"
@@ -288,6 +283,14 @@ Namespace Editors
                     .MyFieldsChecker.EndLoaderOperations()
                     .EndLoaderOperations()
                 End With
+
+                If checkBuffer Then
+                    Dim tempName$ = BufferText
+                    If Not tempName.IsEmptyString Then
+                        TXT_USER.Text = tempName
+                        If CMB_SITE.SelectedIndex = -1 Then TXT_USER.Text = String.Empty
+                    End If
+                End If
                 FriendlyNameChanged = False
             Catch ex As Exception
                 MyDef.InvokeLoaderError(ex)
@@ -335,7 +338,6 @@ Namespace Editors
                                 .SpecialPath = SpecialPath(s)
                                 .Site = s.Name
                                 .Plugin = s.Key
-                                .IsChannel = CH_IS_CHANNEL.Checked
                                 .UpdateUserFile()
                             End With
                             User = tmpUser
@@ -418,7 +420,6 @@ CloseForm:
                                     s.UserName = s.UserName.CSFileP.Segments.LastOrDefault
                                 End If
                                 CMB_SITE.SelectedIndex = i
-                                CH_IS_CHANNEL.Checked = s.IsChannel
                                 TXT_USER.Text = s.UserName
                                 found = True
                             End If
@@ -426,7 +427,6 @@ CloseForm:
                         If Not found Then
                             CMB_SITE.SelectedIndex = -1
                             CMB_SITE.Clear(ComboBoxExtended.ClearMode.Text)
-                            CH_IS_CHANNEL.Checked = False
                             If Not UserIsCollection Then Icon = My.Resources.UsersIcon_32
                         End If
                     End If
@@ -463,7 +463,6 @@ CloseForm:
             End If
         End Sub
         Private Sub CMB_SITE_ActionSelectedItemChanged(ByVal Sender As Object, ByVal e As EventArgs, ByVal Item As ListViewItem) Handles CMB_SITE.ActionSelectedItemChanged
-            CH_IS_CHANNEL.Checked = False
             MyExchangeOptions = Nothing
             SetParamsBySite()
         End Sub
@@ -506,7 +505,6 @@ CloseForm:
             TXT_USER_FRIENDLY.Enabled = Not CH_ADD_BY_LIST.Checked
         End Sub
         Private Sub CH_AUTO_DETECT_SITE_CheckedChanged(sender As Object, e As EventArgs) Handles CH_AUTO_DETECT_SITE.CheckedChanged
-            CH_IS_CHANNEL.Enabled = Not CH_AUTO_DETECT_SITE.Checked
             CMB_SITE.Enabled = Not CH_AUTO_DETECT_SITE.Checked
             If CH_AUTO_DETECT_SITE.Checked Then
                 BTT_OTHER_SETTINGS.Enabled = False
@@ -543,7 +541,6 @@ CloseForm:
                             Dim tmpUser As UserInfo
                             Dim s As SettingsHost = GetSiteByCheckers()
                             Dim sObj As ExchangeOptions
-                            Dim _IsChannel As Boolean = CH_IS_CHANNEL.Checked
                             Dim Added% = 0
                             Dim Skipped% = 0
                             Dim uid%
@@ -565,7 +562,7 @@ CloseForm:
                                 End If
 
                                 If Not s Is Nothing Then
-                                    tmpUser = New UserInfo(uu, s) With {.SpecialPath = __sf(uu, s), .IsChannel = _IsChannel}
+                                    tmpUser = New UserInfo(uu, s) With {.SpecialPath = __sf(uu, s)}
                                     tmpUser.UpdateUserFile()
                                     uid = -1
                                     If Settings.UsersList.Count > 0 Then uid = Settings.UsersList.IndexOf(tmpUser)
@@ -688,6 +685,23 @@ CloseForm:
                 End If
             End Using
         End Sub
+#End Region
+#Region "TryCreate"
+        Friend Shared Function TryCreate(ByVal URL As String) As UserCreatorForm
+            Try
+                Dim f As New UserCreatorForm
+                f.UserCreatorForm_Load(f, EventArgs.Empty)
+                If f.CMB_SITE.SelectedIndex >= 0 Then
+                    f.MyDef.MyOkCancel.BTT_OK.PerformClick()
+                    Return f
+                Else
+                    f.Dispose()
+                    Return Nothing
+                End If
+            Catch ex As Exception
+                Return ErrorsDescriber.Execute(EDP.SendToLog + EDP.ReturnValue, ex, $"UserCreatorForm.TryCreate({URL})")
+            End Try
+        End Function
 #End Region
     End Class
 End Namespace

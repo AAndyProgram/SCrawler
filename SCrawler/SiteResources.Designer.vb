@@ -107,6 +107,46 @@ Namespace My.Resources
         '''<summary>
         '''  Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
         '''</summary>
+        Friend Shared ReadOnly Property MastodonIcon_48() As System.Drawing.Icon
+            Get
+                Dim obj As Object = ResourceManager.GetObject("MastodonIcon_48", resourceCulture)
+                Return CType(obj,System.Drawing.Icon)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized resource of type System.Drawing.Bitmap.
+        '''</summary>
+        Friend Shared ReadOnly Property MastodonPic_48() As System.Drawing.Bitmap
+            Get
+                Dim obj As Object = ResourceManager.GetObject("MastodonPic_48", resourceCulture)
+                Return CType(obj,System.Drawing.Bitmap)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+        '''</summary>
+        Friend Shared ReadOnly Property PinterestIcon_32() As System.Drawing.Icon
+            Get
+                Dim obj As Object = ResourceManager.GetObject("PinterestIcon_32", resourceCulture)
+                Return CType(obj,System.Drawing.Icon)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized resource of type System.Drawing.Bitmap.
+        '''</summary>
+        Friend Shared ReadOnly Property PinterestPic_48() As System.Drawing.Bitmap
+            Get
+                Dim obj As Object = ResourceManager.GetObject("PinterestPic_48", resourceCulture)
+                Return CType(obj,System.Drawing.Bitmap)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+        '''</summary>
         Friend Shared ReadOnly Property PornHubIcon_16() As System.Drawing.Icon
             Get
                 Dim obj As Object = ResourceManager.GetObject("PornHubIcon_16", resourceCulture)
@@ -160,6 +200,26 @@ Namespace My.Resources
         Friend Shared ReadOnly Property RedGifsPic_32() As System.Drawing.Bitmap
             Get
                 Dim obj As Object = ResourceManager.GetObject("RedGifsPic_32", resourceCulture)
+                Return CType(obj,System.Drawing.Bitmap)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+        '''</summary>
+        Friend Shared ReadOnly Property ThisVidIcon_16() As System.Drawing.Icon
+            Get
+                Dim obj As Object = ResourceManager.GetObject("ThisVidIcon_16", resourceCulture)
+                Return CType(obj,System.Drawing.Icon)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized resource of type System.Drawing.Bitmap.
+        '''</summary>
+        Friend Shared ReadOnly Property ThisVidPic_16() As System.Drawing.Bitmap
+            Get
+                Dim obj As Object = ResourceManager.GetObject("ThisVidPic_16", resourceCulture)
                 Return CType(obj,System.Drawing.Bitmap)
             End Get
         End Property

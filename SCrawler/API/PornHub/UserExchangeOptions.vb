@@ -6,18 +6,24 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
+Imports SCrawler.Plugin.Attributes
 Namespace API.PornHub
     Friend Class UserExchangeOptions
+        <PSetting(Caption:="Download gifs")>
         Friend Property DownloadGifs As Boolean
+        <PSetting(NameOf(SiteSettings.DownloadPhotoOnlyFromModelHub), NameOf(MySettings), Caption:="Download photo only from ModelHub")>
         Friend Property DownloadPhotoOnlyFromModelHub As Boolean
+        Private ReadOnly Property MySettings As SiteSettings
         Friend Sub New(ByVal u As UserData)
             DownloadGifs = u.DownloadGifs
             DownloadPhotoOnlyFromModelHub = u.DownloadPhotoOnlyFromModelHub
+            MySettings = u.HOST.Source
         End Sub
         Friend Sub New(ByVal s As SiteSettings)
             Dim v As CheckState = CInt(s.DownloadGifs.Value)
             DownloadGifs = Not v = CheckState.Unchecked
             DownloadPhotoOnlyFromModelHub = s.DownloadPhotoOnlyFromModelHub.Value
+            MySettings = s
         End Sub
     End Class
 End Namespace

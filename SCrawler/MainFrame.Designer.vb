@@ -47,7 +47,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.MENU_SETTINGS = New System.Windows.Forms.ToolStripDropDownButton()
         Me.BTT_SETTINGS = New System.Windows.Forms.ToolStripMenuItem()
         Me.Toolbar_TOP = New System.Windows.Forms.ToolStrip()
-        Me.BTT_ADD_USER = New System.Windows.Forms.ToolStripButton()
+        Me.BTT_ADD_USER = New PersonalUtilities.Forms.Controls.KeyClick.ToolStripButtonKeyClick()
         Me.BTT_EDIT_USER = New System.Windows.Forms.ToolStripButton()
         Me.BTT_DELETE_USER = New System.Windows.Forms.ToolStripButton()
         Me.BTT_REFRESH = New System.Windows.Forms.ToolStripButton()
@@ -290,7 +290,8 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_ADD_USER.Name = "BTT_ADD_USER"
         Me.BTT_ADD_USER.Size = New System.Drawing.Size(49, 22)
         Me.BTT_ADD_USER.Text = "Add"
-        Me.BTT_ADD_USER.ToolTipText = "Add user (Insert)"
+        Me.BTT_ADD_USER.ToolTipText = "Add user (Insert)" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Ctrl+Insert to add user by URL from buffer without opening for" &
+    "m"
         '
         'BTT_EDIT_USER
         '
@@ -916,7 +917,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
 
     End Sub
     Private WithEvents BTT_SETTINGS As ToolStripMenuItem
-    Private WithEvents BTT_ADD_USER As ToolStripButton
+    Private WithEvents BTT_ADD_USER As PersonalUtilities.Forms.Controls.KeyClick.ToolStripButtonKeyClick
     Private WithEvents BTT_DELETE_USER As ToolStripButton
     Private WithEvents BTT_DOWN_SELECTED As ToolStripKeyMenuItem
     Private WithEvents Toolbar_BOTTOM As StatusStrip

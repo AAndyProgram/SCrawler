@@ -72,7 +72,7 @@ Namespace DownloadObjects
                                           Dim s As Size = Size
                                           Dim ss As Size = Screen.PrimaryScreen.WorkingArea.Size
                                           Dim c% = TP_MAIN.RowStyles.Count - 1
-                                          s.Height = c * RowHeight + LowestValue + (PaddingE.GetOf({TP_MAIN}).Vertical(c) / c).RoundDown - c
+                                          s.Height = c * RowHeight + LowestValue + (PaddingE.GetOf({TP_MAIN}).Vertical(c) / c).RoundDown
                                           If s.Height > ss.Height Then s.Height = ss.Height
                                           MinimumSize = Nothing
                                           Size = s

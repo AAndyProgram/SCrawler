@@ -6,12 +6,12 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
-Imports PersonalUtilities.Functions.XML
-Imports PersonalUtilities.Functions.XML.Base
-Imports PersonalUtilities.Tools
 Imports System.Threading
 Imports SCrawler.API.Base
 Imports SCrawler.Plugin.Hosts
+Imports PersonalUtilities.Tools
+Imports PersonalUtilities.Functions.XML
+Imports PersonalUtilities.Functions.XML.Base
 Imports Download = SCrawler.Plugin.ISiteSettings.Download
 Namespace DownloadObjects
     Friend Class TDownloader : Implements IDisposable
@@ -101,7 +101,7 @@ Namespace DownloadObjects
                     End Using
                 End If
             Catch ex As Exception
-                ErrorsDescriber.Execute(EDP.SendInLog, ex, "[DownloadObjects.TDownloader.FilesSave]")
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "[DownloadObjects.TDownloader.FilesSave]")
             End Try
         End Sub
         Private Sub FilesBackupLastSession()
@@ -109,7 +109,7 @@ Namespace DownloadObjects
                 If Not FilesLastSessionBackedup Then
                     If FilesSessionActual.Exists Then
                         If FilesSessionBackup.Exists Then
-                            Dim f As SFile = SFile.Indexed_IndexFile(FilesSessionBackup)
+                            Dim f As SFile = SFile.IndexReindex(FilesSessionBackup)
                             SFile.Rename(FilesSessionBackup, f)
                             RemoveLogFiles(FilesSessionBackup, 10)
                             FilesSessionBackup.Delete()
@@ -118,7 +118,7 @@ Namespace DownloadObjects
                     End If
                 End If
             Catch ex As Exception
-                ErrorsDescriber.Execute(EDP.SendInLog, ex, "[DownloadObjects.TDownloader.FilesBackupLastSession]")
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "[DownloadObjects.TDownloader.FilesBackupLastSession]")
             Finally
                 FilesLastSessionBackedup = True
             End Try
@@ -244,7 +244,7 @@ Namespace DownloadObjects
                 Token = TokenSource.Token
                 _Working = True
             End Sub
-            Public Overrides Sub Stopped()
+            Public Overrides Sub Finish()
                 _Working = False
                 TokenSource = Nothing
                 Try
@@ -331,7 +331,7 @@ Namespace DownloadObjects
                 MyProgressForm.DisableProgressChange = False
                 Do While Pool.Exists(Function(p) p.Count > 0 Or p.Working)
                     For Each j As Job In Pool
-                        If j.Count > 0 And Not j.Working And Not Suspended Then j.Start(New ThreadStart(Sub() StartDownloading(j)))
+                        If j.Count > 0 And Not j.Working And Not Suspended Then j.StartThread(New ThreadStart(Sub() StartDownloading(j)))
                     Next
                     Thread.Sleep(200)
                 Loop
@@ -384,14 +384,14 @@ Namespace DownloadObjects
                 _Job.Progress.InformationTemporary = pt("Downloading canceled")
             Catch ex As Exception
                 _Job.Progress.InformationTemporary = pt("Downloading error")
-                ErrorsDescriber.Execute(EDP.SendInLog, ex, "TDownloader.Start")
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "TDownloader.Start")
             Finally
                 If _Job.Count > 0 Then _Job.Clear()
-                _Job.Stopped()
+                _Job.Finish()
             End Try
         End Sub
         Friend Sub [Stop]()
-            If Pool.Count > 0 Then Pool.ForEach(Sub(j) If j.Working Then j.Stop())
+            If Pool.Count > 0 Then Pool.ForEach(Sub(j) If j.Working Then j.Cancel())
         End Sub
         Private Sub UpdateJobsLabel()
             RaiseEvent JobsChange(Count)
@@ -456,10 +456,10 @@ Namespace DownloadObjects
                     End If
                 End If
             Catch aoex As ArgumentOutOfRangeException
-                ErrorsDescriber.Execute(EDP.SendInLog, aoex, $"TDownloader.DownloadData: index out of range ({_Job.Count})")
+                ErrorsDescriber.Execute(EDP.SendToLog, aoex, $"TDownloader.DownloadData: index out of range ({_Job.Count})")
             Catch oex As OperationCanceledException When _Job.IsCancellationRequested
             Catch ex As Exception
-                ErrorsDescriber.Execute(EDP.SendInLog, ex, "TDownloader.DownloadData")
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "TDownloader.DownloadData")
             Finally
                 If Settings.UserListUpdateRequired Then _
                 Task.WaitAll(Task.Run(Sub()

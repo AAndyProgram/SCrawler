@@ -313,7 +313,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
             Dim StartIndex% = Settings.Users.Count
             Dim f As SFile
             Dim umo As Boolean = HOST.GetUserMediaOnly
-            Settings.Labels.Add(CannelsLabelName)
+            Settings.Labels.Add(UserData.CannelsLabelName_ChannelsForm)
             Settings.Labels.Add(LabelsKeeper.NoParsedUser)
             Dim rUsers$() = UserBanned(PendingUsers.Select(Function(u) u.ID).ToArray)
             If rUsers.ListExists Then PendingUsers.RemoveAll(Function(u) rUsers.Contains(u))
@@ -336,7 +336,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
                             End With
                             Settings.Users.Add(tmpUser)
                             With Settings.Users.Last
-                                .Labels.Add(CannelsLabelName)
+                                .Labels.Add(UserData.CannelsLabelName_ChannelsForm)
                                 .UpdateUserInformation()
                                 If Settings.FromChannelCopyImageToUser And Not f.IsEmptyString And Not .File.IsEmptyString Then _
                                    CopyFile(ListAddValue(Nothing, New ChannelsCollection.ChannelImage(cn, f)).ListAddList(Settings.Channels.GetUserFiles(.Name), c), .File)
@@ -417,7 +417,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
     Private Async Sub BTT_DOWNLOAD_Click(sender As Object, e As EventArgs) Handles BTT_DOWNLOAD.Click
         Try
             AppendPendingUsers()
-            If Not TokenSource Is Nothing OrElse Not HOST.Source.Available(Plugin.ISiteSettings.Download.Channel, False) Then Exit Sub
+            If Not TokenSource Is Nothing OrElse Not HOST.Source.Available(Plugin.ISiteSettings.Download.Main, False) Then Exit Sub
             Dim InvokeToken As Action = Sub()
                                             If TokenSource Is Nothing Then
                                                 CProgress.Maximum = 0
@@ -471,7 +471,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
         Catch aex As ArgumentException When aex.HelpLink = 1
             ErrorsDescriber.Execute(EDP.ShowAllMsg, aex)
         Catch oex As OperationCanceledException When Token.IsCancellationRequested
-            Dim ee As EDP = EDP.SendInLog
+            Dim ee As EDP = EDP.SendToLog
             If _ShowCancelNotification Then ee += EDP.ShowMainMsg
             ErrorsDescriber.Execute(ee, oex, New MMessage("Downloading operation canceled", "Status...",, MsgBoxStyle.Exclamation))
         Catch ex As Exception
@@ -803,7 +803,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
         Catch aex As ArgumentException When aex.HelpLink = 1
             ErrorsDescriber.Execute(EDP.LogMessageValue, aex)
         Catch ex As Exception
-            ErrorsDescriber.Execute(EDP.SendInLog, ex, "Post searching error")
+            ErrorsDescriber.Execute(EDP.SendToLog, ex, "Post searching error")
         End Try
         Return p
     End Function

@@ -7,9 +7,9 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports SCrawler.API.Base
+Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.Messaging
-Imports PersonalUtilities.Forms
 Imports ADB = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons
 Friend Class UserFinder : Implements IDisposable
     Private Structure SkippedUser
@@ -83,17 +83,9 @@ Friend Class UserFinder : Implements IDisposable
                                 .SpecialCollectionPath = x.Value(UserInfo.Name_SpecialCollectionPath),
                                 .UserModel = x.Value(UserInfo.Name_Model_User).FromXML(Of Integer)(UsageModel.Default),
                                 .CollectionModel = x.Value(UserInfo.Name_Model_Collection).FromXML(Of Integer)(UsageModel.Default),
-                                .CollectionName = x.Value(UserInfo.Name_Collection),
-                                .IsChannel = x.Value(UserInfo.Name_IsChannel).FromXML(Of Boolean)(False)
+                                .CollectionName = x.Value(UserInfo.Name_Collection)
                             }
-                            'TODELETE: UserFinder remove old 'merge' constant
-#Disable Warning BC40000
-                            If x.Contains(UserDataBase.Name_DataMerging) Then
-                                u.Merged = x.Value(UserDataBase.Name_DataMerging).FromXML(Of Boolean)(False)
-                            Else
-                                u.Merged = x.Value(UserInfo.Name_Merged).FromXML(Of Boolean)(False)
-                            End If
-#Enable Warning
+                            u.Merged = x.Value(UserInfo.Name_Merged).FromXML(Of Boolean)(False)
                             FoundUsers.Add(u)
                         Else
                             If x.HasError Then NotRecognized.Add(f)

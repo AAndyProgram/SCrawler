@@ -60,7 +60,7 @@ Namespace API.Base
                 End Using
                 Return l2
             Catch ex As Exception
-                Return ErrorsDescriber.Execute(EDP.SendInLog + EDP.ReturnValue, ex, $"[DownDetector.GetData({Site})]")
+                Return ErrorsDescriber.Execute(EDP.SendToLog + EDP.ReturnValue, ex, $"[DownDetector.GetData({Site})]")
             End Try
         End Function
     End Class

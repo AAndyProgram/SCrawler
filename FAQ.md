@@ -14,11 +14,7 @@ Any other questions I will keep in this file.
 
 A: https://github.com/AAndyProgram/SCrawler/wiki/Settings#how-to-set-up-cookies
 
-----
-
-#### Q: **I can't copy cookies.**
-
-A: Use the mouse. Don't use ```Ctrl+A```!
+<!---**ATTENTION! If you need to use cookies but cannot import them, I highly recommend that you don't use SCrawler and use another program. Don't create issues, discussions, or write to me on Discord. Any issue or discussion about cookies will be deleted immediately without a response. Any user who asks me about cookies on Discord will be banned.**--->
 
 ----
 
@@ -30,21 +26,22 @@ A: This is a GUI program.
 
 #### Q: **Will CLI be added in the future?**
 
-A: I do not think so.
+A: NO.
 
 ----
 
 #### Q: **I want to add "...." site. How to request.**
 
-A: How to request a new site you can read [here](CONTRIBUTING.md#how-to-request-a-new-site)
+<!---A: How to request a new site you can read [here](CONTRIBUTING.md#how-to-request-a-new-site)--->
+**I'm currently not accepting requests to develop new sites.**
 
 ----
 
-#### Q: **Twitter/Instagram download failed.**
+#### Q: **Site download failed.**
 
-A: Check your credentials. Both of these sites require cookies. Check your [Twitter tokens](https://github.com/AAndyProgram/SCrawler/wiki/Settings#how-to-find-twitter-tokens) and [Instagram settings](https://github.com/AAndyProgram/SCrawler/wiki/Settings#instagram). If all settings are set, but nothing works, go to [create a new issue](https://github.com/AAndyProgram/SCrawler/issues). Don't forget to attach the LOG.
+A: Check your credentials and **[SITES REQUIREMENTS](https://github.com/AAndyProgram/SCrawler/wiki/Settings#sites-requirements)**. If all settings are set, but nothing works, go to [create a new issue](https://github.com/AAndyProgram/SCrawler/issues). Don't forget to attach the LOG.
 
-**[SITES REQUIREMENTS](https://github.com/AAndyProgram/SCrawler/wiki/Settings#sites-requirements)**
+**ATTENTION! Issues without URLs will be closed without a response!**
 
 ----
 
@@ -80,7 +77,7 @@ A: The program stored posts IDs in users' folders. For the first time, the progr
 
 #### Q: **How to redownload all data**
 
-A: Double-click on the user you want to redownload. In the opened window open folder setting. Delete the files ending with ```_Data.xml```  and ```_Posts.txt```. Download this user again.
+A: Double-click on the user you want to redownload. In the opened window open folder setting. Delete the files ending with ```_Data.xml```  and ```_Posts.txt```. Restart SCrawler. Download this user again.
 
 ----
 
@@ -116,4 +113,4 @@ A: I can only [suggest](#q-you-lost-me-your-program-is-too-complicated) you find
 
 #### Q: **Can you add a step-by-step guide or video on how to use the program?**
 
-A: **NO**! I will not do it. If you want, you can create a video tutorial and send it to me. Then I add it. All options and what each option does described on the wiki. The wiki also contains a description of all settings and how-to configure them. For complex settings, there is a steep-by-steep guide. Read the [main](README.md) information and [GUIDE](https://github.com/AAndyProgram/SCrawler/wiki/) and you won't have any problems. I have developed a program with an intuitive interface. There is a Settings button, download buttons, a context menu that drops down when a user is clicked, and other controls. Anyone can use it.
+A: **NO! NEVER!** The guide fully covers all the functionality of SCrawler! If you don't respect my work, I don't waste my time. If you want, you can create a video tutorial and send it to me. Then I add it. All options and what each option does described on the wiki. The wiki also contains a description of all settings and how-to configure them. For complex settings, there is a steep-by-steep guide. Read the [main](README.md) information and [GUIDE](https://github.com/AAndyProgram/SCrawler/wiki/) and you won't have any problems. I have developed a program with an intuitive interface. There is a Settings button, download buttons, a context menu that drops down when a user is clicked, and other controls. Anyone can use it.
