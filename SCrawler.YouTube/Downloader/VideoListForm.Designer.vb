@@ -182,7 +182,7 @@ Namespace DownloadObjects.STDownloader
             '
             'BTT_DOWN
             '
-            Me.BTT_DOWN.Image = CType(resources.GetObject("BTT_DOWN.Image"), System.Drawing.Image)
+            Me.BTT_DOWN.Image = Global.SCrawler.My.Resources.Resources.StartPic_Green_16
             Me.BTT_DOWN.ImageTransparentColor = System.Drawing.Color.Magenta
             Me.BTT_DOWN.Name = "BTT_DOWN"
             Me.BTT_DOWN.Size = New System.Drawing.Size(81, 22)
@@ -192,6 +192,7 @@ Namespace DownloadObjects.STDownloader
             'BTT_STOP
             '
             Me.BTT_STOP.AutoToolTip = False
+            Me.BTT_STOP.Enabled = False
             Me.BTT_STOP.Image = CType(resources.GetObject("BTT_STOP.Image"), System.Drawing.Image)
             Me.BTT_STOP.ImageTransparentColor = System.Drawing.Color.Magenta
             Me.BTT_STOP.Name = "BTT_STOP"

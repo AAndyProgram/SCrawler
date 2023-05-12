@@ -19,7 +19,7 @@ A program to download photo and video from [any site](#supported-sites) (e.g. Yo
 ![Main window](ProgramScreenshots/MainWindow.png)
 ![Channels window](ProgramScreenshots/Channels.png)
 
-[**YouTube standalone application:**](https://github.com/AAndyProgram/SCrawler/wiki/YouTube%20downloader)
+[**YouTube standalone application:**](https://github.com/AAndyProgram/SCrawler/wiki/YouTube-downloader)
 
 ![YouTube application](ProgramScreenshots/AppYouTube.png)
 
@@ -38,7 +38,7 @@ A program to download photo and video from [any site](#supported-sites) (e.g. Yo
   - PornHub images, videos, save (liked) posts;
   - XHamster images, videos, saved posts;
   - XVIDEOS videos, saved posts;
-  - ThiVid images, videos, saved posts;
+  - ThisVid images, videos, saved posts;
   - [Other](#supported-sites) supported sites
 - Parse [channel and view data](https://github.com/AAndyProgram/SCrawler/wiki/Channels)
 - Download [saved Reddit, Twitter and Instagram posts](https://github.com/AAndyProgram/SCrawler/wiki/Home#saved-posts)
@@ -158,11 +158,34 @@ The program has an intuitive interface.
 
 Just add a user profile and **click the ```Download``` button**.
 
-Read more about adding users and subreddits [here](https://github.com/AAndyProgram/SCrawler/wiki#Add%20user)
+```mermaid
+stateDiagram
+Start: Add site credentials
+What: What would I like to do
+DownUser: Download user
+DownVideo: Download video
+AUser: Add user (1)
+OVIF: Open standalone downloader (2)
+AVideo: Add video url
+F5: Press 'F5' or click the download button
+[*]-->Start
+Start-->What
+What-->DownUser
+What-->DownVideo
+DownUser-->AUser
+DownVideo-->OVIF
+OVIF-->AVideo
+AVideo-->F5
+AUser-->F5
+F5-->[*]
+```
+1. Press `Insert` or click the `Download` button ([read more here](https://github.com/AAndyProgram/SCrawler/wiki#users-list), [hot keys](https://github.com/AAndyProgram/SCrawler/wiki#hot-keys))
+2. Click the `Download` button, then `Standalone downloader` ([read more here](https://github.com/AAndyProgram/SCrawler/wiki#download-separate-video))
 
 ![Add user](ProgramScreenshots/CreateUserClear.png)
 
 # Contact me
 
 Matrix (Element): https://matrix.to/#/@andyprogram:matrix.org
+
 Discord: AndyProgram#3804

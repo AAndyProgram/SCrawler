@@ -120,7 +120,9 @@ Namespace API.Mastodon
                 If Not r.IsEmptyString Then
                     Using j As EContainer = JsonDocument.Parse(r)
                         If If(j?.Count, 0) > 0 Then
+                            ProgressPre.ChangeMax(j.Count)
                             For Each jj As EContainer In j
+                                ProgressPre.Perform()
                                 With jj
                                     If Not IsSavedPosts And POST.IsEmptyString And Not .Item("account") Is Nothing Then
                                         With .Item("account")
@@ -166,7 +168,7 @@ Namespace API.Mastodon
                                         If If(.Item("media_attachments")?.Count, 0) > 0 Then
                                             s = .Item("media_attachments")
                                         Else
-                                            s = .Item({"reblog", "account"}, "media_attachments")
+                                            s = .Item({"reblog"}, "media_attachments")
                                         End If
                                         If s.ListExists Then
                                             For Each ss In s : ObtainMedia(ss, PostID, PostDate) : Next
@@ -268,7 +270,7 @@ Namespace API.Mastodon
                 If Responser.Status = Net.WebExceptionStatus.NameResolutionFailure Then
                     MyMainLOG = $"User domain ({UserDomain}) not found: {ToStringForLog()}"
                     Return 1
-                ElseIf Responser.StatusCode = Net.HttpStatusCode.NotFound Then
+                ElseIf Responser.StatusCode = Net.HttpStatusCode.NotFound Or Responser.StatusCode = Net.HttpStatusCode.Forbidden Then
                     UserExists = False
                     Return 1
                 ElseIf Responser.StatusCode = Net.HttpStatusCode.Unauthorized Then

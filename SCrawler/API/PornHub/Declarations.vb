@@ -13,9 +13,13 @@ Namespace API.PornHub
         Private ReadOnly UnicodeHexConverter As Func(Of String, String) = Function(Input) SymbolsConverter.UnicodeHex.Decode(Input, EDP.ReturnValue)
 #End Region
 #Region "Declarations video"
-        Friend ReadOnly RegexVideo_FlashVarsBlock As RParams = RParams.DM("(?<=flashvars_\['[nN]ext[vV]ideo'\];[\r\n]*?)(.+?)(?=;flashvars_\d+?)", 0, EDP.ReturnValue)
+        Friend ReadOnly RegexVideo_FlashVarsBlocks As RParams = RParams.DM("(?<=(flashvars_\['[nN]ext[vV]ideo'\]|flashvars_\d+[^ ]+? = media_\d+?);[\r\n]*?)(.+?)(?=;flashvars_\d+?)",
+                                                                           0, RegexReturn.List, EDP.ReturnValue)
+        'TODELETE: PornHub old 'RegexVideo_FlashVarsBlock' declaration
+        'Friend ReadOnly RegexVideo_FlashVarsBlock As RParams = RParams.DM("(?<=flashvars_\['[nN]ext[vV]ideo'\];[\r\n]*?)(.+?)(?=;flashvars_\d+?)", 0, EDP.ReturnValue)
         Friend ReadOnly RegexVideo_FlashVars_Vars As RParams = RParams.DM("var ([\w\d]{10,})=("".+?)(?=(;|\Z))", 0, RegexReturn.List)
         Friend ReadOnly RegexVideo_FlashVars_Compiler As RParams = RParams.DM("(?<=\*/)([\w\d\S]{10,})", 0, RegexReturn.List)
+        Friend ReadOnly RegexVideo_FlashVars_UrlResolution As RParams = RParams.DMS("/(\d+)[^/]+\.mp4", 1, EDP.ReturnValue)
         Friend ReadOnly RegexVideo_Video_All As RParams = RParams.DM("div class=""thumbnail-info-wrapper clearfix.+?[\r\n\s]*?\<span class=""title.+?[\r\n\s]*?\<a href=""([^""]+?)""[\s]+?title=""([^""]*?)""",
                                                                      0, RegexReturn.List, EDP.ReturnValue, UnicodeHexConverter)
         Friend ReadOnly RegexVideo_Video_Wrong As RParams = RParams.DM("div class=""thumbnail-info-wrapper clearfix.+?[\r\n\s]*?\<span class=""title.+?[\r\n\s]*?\<a href=""([^""]+?)""[\s]+?title=""([^""]*?)""[\w\W\s\r\n]+?(?=\<div class=""videoUploaderBlock)",
@@ -26,6 +30,7 @@ Namespace API.PornHub
         Friend ReadOnly RegexVideoPageTitle As RParams = RParams.DMS("meta (property|name)=""[^:]+?:title"" content=""([^""]+)""", 2, EDP.ReturnValue)
 #End Region
 #Region "Declarations M3U8"
+        Friend ReadOnly Regex_M3U8_FilesList As RParams = RParams.DM("RESOLUTION=\d+x(\d+).*?[\r\n]*?(.+?m3u8.*)", 0, RegexReturn.List, EDP.ReturnValue)
         Friend ReadOnly Regex_M3U8_FirstFileRegEx As RParams = RParams.DM(".+?m3u8.*", 0)
         Friend ReadOnly Regex_M3U8_FileUrl As RParams = RParams.DMS("((https://([^/]+)/.+?)([^/]+?m3u8))(.*)", 2, EDP.ReturnValue)
 #End Region

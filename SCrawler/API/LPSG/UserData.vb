@@ -73,7 +73,9 @@ Namespace API.LPSG
                 Dim r As Func(Of String, Integer, String)
                 Dim indx% = 0
                 Dim ude As New ErrorsDescriber(EDP.ReturnValue)
+                ProgressPre.ChangeMax(l.Count)
                 For Each url$ In l
+                    ProgressPre.Perform()
                     If Not url.IsEmptyString Then u = SymbolsConverter.Decode(url, {Converters.HTML, Converters.ASCII}, ude) Else u = String.Empty
                     If Not u.IsEmptyString Then
                         exists = Not IsEmptyString(RegexReplace(u, FileExistsRegEx))

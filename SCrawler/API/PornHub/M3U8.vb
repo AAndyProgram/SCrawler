@@ -16,11 +16,19 @@ Namespace API.PornHub
     Friend NotInheritable Class M3U8
         Private Sub New()
         End Sub
-        Private Shared Function GetUrlsList(ByVal URL As String, ByVal Responser As Responser) As List(Of String)
+        Private Shared Function GetUrlsList(ByVal URL As String, ByVal Responser As Responser, ByVal DownloadUHD As Boolean) As List(Of String)
             Dim appender$ = RegexReplace(URL, Regex_M3U8_FileUrl)
             Dim r$ = Responser.GetResponse(URL)
             If Not r.IsEmptyString Then
-                Dim file$ = RegexReplace(r, Regex_M3U8_FirstFileRegEx)
+                Dim files As List(Of Sizes) = RegexFields(Of Sizes)(r, {Regex_M3U8_FilesList}, {1, 2}, EDP.ReturnValue)
+                Dim file$
+                If files.ListExists Then files.RemoveAll(Function(f) f.Value = 0 Or (Not DownloadUHD And f.Value > 1080))
+                If files.ListExists Then
+                    files.Sort()
+                    file = files(0).Data
+                Else
+                    file = RegexReplace(r, Regex_M3U8_FirstFileRegEx)
+                End If
                 If Not file.IsEmptyString Then
                     Dim NewUrl$ = M3U8Base.CreateUrl(appender, file)
                     If Not NewUrl.IsEmptyString Then
@@ -37,9 +45,9 @@ Namespace API.PornHub
             End If
             Return Nothing
         End Function
-        Friend Shared Function Download(ByVal URL As String, ByVal Responser As Responser, ByVal Destination As SFile,
-                                        ByVal Token As CancellationToken, ByVal Progress As MyProgress) As SFile
-            Return M3U8Base.Download(GetUrlsList(URL, Responser), Destination, Responser, Token, Progress)
+        Friend Shared Function Download(ByVal URL As String, ByVal Responser As Responser, ByVal Destination As SFile, ByVal DownloadUHD As Boolean,
+                                        ByVal Token As CancellationToken, ByVal Progress As MyProgress, ByVal UsePreProgress As Boolean) As SFile
+            Return M3U8Base.Download(GetUrlsList(URL, Responser, DownloadUHD), Destination, Responser, Token, Progress, UsePreProgress)
         End Function
     End Class
 End Namespace

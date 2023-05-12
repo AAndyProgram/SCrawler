@@ -91,8 +91,10 @@ Namespace API.XVIDEOS
                                     If .Contains("videos") Then
                                         With .Item("videos")
                                             If .Count > 0 Then
+                                                ProgressPre.ChangeMax(.Count)
                                                 NextPage += 1
                                                 For Each jj In .Self
+                                                    ProgressPre.Perform()
                                                     p = New UserMedia With {
                                                         .Post = jj.Value("id"),
                                                         .URL = $"https://www.xvideos.com/{jj.Value(n).StringTrimStart("/")}"
@@ -123,7 +125,9 @@ Namespace API.XVIDEOS
                 If Not j Is Nothing Then j.Dispose()
 
                 If _TempMediaList.Count > 0 Then
+                    ProgressPre.ChangeMax(_TempMediaList.Count)
                     For i% = 0 To _TempMediaList.Count - 1
+                        ProgressPre.Perform()
                         ThrowAny(Token)
                         _TempMediaList(i) = GetVideoData(_TempMediaList(i))
                     Next
@@ -180,7 +184,9 @@ Namespace API.XVIDEOS
                 Loop While NextPage < 100 And __continue
 
                 If _TempMediaList.Count > 0 Then
+                    ProgressPre.ChangeMax(_TempMediaList.Count)
                     For i% = 0 To _TempMediaList.Count - 1
+                        ProgressPre.Perform()
                         ThrowAny(Token)
                         _TempMediaList(i) = GetVideoData(_TempMediaList(i))
                     Next
@@ -244,7 +250,7 @@ Namespace API.XVIDEOS
             If Not m.URL.IsEmptyString Then _TempMediaList.Add(m)
         End Sub
         Protected Overrides Function DownloadM3U8(ByVal URL As String, ByVal Media As UserMedia, ByVal DestinationFile As SFile, ByVal Token As CancellationToken) As SFile
-            Return M3U8.Download(Media.URL, Media.PictureOption, DestinationFile, Token, If(UseInternalM3U8Function_UseProgress, Progress, Nothing))
+            Return M3U8.Download(Media.URL, Media.PictureOption, DestinationFile, Token, Progress, Not IsSingleObjectDownload)
         End Function
         Protected Overrides Function DownloadingException(ByVal ex As Exception, ByVal Message As String, Optional ByVal FromPE As Boolean = False,
                                                           Optional ByVal EObj As Object = Nothing) As Integer

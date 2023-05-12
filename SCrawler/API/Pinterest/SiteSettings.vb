@@ -62,8 +62,7 @@ Namespace API.Pinterest
             Return New UserData
         End Function
         Friend Overrides Function Available(ByVal What As ISiteSettings.Download, ByVal Silent As Boolean) As Boolean
-            Return Settings.GalleryDLFile.Exists And (Not What = ISiteSettings.Download.SavedPosts OrElse
-                                                     (Responser.CookiesExists And ACheck(SavedPostsUserName.Value)))
+            Return Settings.GalleryDLFile.Exists And (Not What = ISiteSettings.Download.SavedPosts OrElse ACheck(SavedPostsUserName.Value))
         End Function
 #End Region
 #Region "IsMyUser, IsMyImageVideo, GetUserUrl, GetUserPostUrl"

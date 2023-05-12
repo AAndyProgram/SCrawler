@@ -112,7 +112,9 @@ Namespace API.Xhamster
 
                             With j(listNode)
                                 If .ListExists Then
+                                    ProgressPre.ChangeMax(.Count)
                                     For Each e As EContainer In .Self
+                                        ProgressPre.Perform()
                                         m = ExtractMedia(e, Type)
                                         If Not m.URL.IsEmptyString Then
                                             If m.File.IsEmptyString Then Continue For
@@ -160,7 +162,9 @@ Namespace API.Xhamster
             Try
                 If _TempMediaList.Count > 0 AndAlso _TempMediaList.Exists(Function(tm) tm.Type = UTypes.VideoPre) Then
                     Dim m As UserMedia, m2 As UserMedia
+                    ProgressPre.ChangeMax(_TempMediaList.Count)
                     For i% = _TempMediaList.Count - 1 To 0 Step -1
+                        ProgressPre.Perform()
                         If _TempMediaList(i).Type = UTypes.VideoPre Then
                             m = _TempMediaList(i)
                             If Not m.URL_BASE.IsEmptyString Then
@@ -182,7 +186,8 @@ Namespace API.Xhamster
         End Sub
         Private Overloads Sub ReparsePhoto(ByVal Token As CancellationToken)
             If _TempPhotoData.Count > 0 Then
-                For i% = 0 To _TempPhotoData.Count - 1 : ReparsePhoto(i, 1, Token) : Next
+                ProgressPre.ChangeMax(_TempPhotoData.Count)
+                For i% = 0 To _TempPhotoData.Count - 1 : ProgressPre.Perform() : ReparsePhoto(i, 1, Token) : Next
                 _TempPhotoData.Clear()
             End If
         End Sub
@@ -235,7 +240,9 @@ Namespace API.Xhamster
             Try
                 If ContentMissingExists Then
                     Dim m As UserMedia, m2 As UserMedia
+                    ProgressPre.ChangeMax(_ContentList.Count)
                     For i% = 0 To _ContentList.Count - 1
+                        ProgressPre.Perform()
                         m = _ContentList(i)
                         If m.State = UserMedia.States.Missing AndAlso Not m.URL_BASE.IsEmptyString Then
                             ThrowAny(Token)
@@ -297,7 +304,7 @@ Namespace API.Xhamster
         End Sub
         Protected Overrides Function DownloadM3U8(ByVal URL As String, ByVal Media As UserMedia, ByVal DestinationFile As SFile, ByVal Token As CancellationToken) As SFile
             Media.File = DestinationFile
-            Return M3U8.Download(Media, Responser, MySettings.DownloadUHD.Value, Token, If(UseInternalM3U8Function_UseProgress, Progress, Nothing))
+            Return M3U8.Download(Media, Responser, MySettings.DownloadUHD.Value, Token, Progress, Not IsSingleObjectDownload)
         End Function
 #End Region
 #Region "Create media"

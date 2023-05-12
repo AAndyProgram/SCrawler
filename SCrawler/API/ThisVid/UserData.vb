@@ -129,6 +129,7 @@ Namespace API.ThisVid
         Private Overloads Sub DownloadData(ByVal Page As Integer, ByVal IsPublic As Boolean, ByVal Token As CancellationToken)
             Dim URL$ = String.Empty
             Try
+                ProgressPre.ChangeMax(1)
                 Dim p$ = IIf(Page = 1, String.Empty, $"{Page}/")
                 If IsSavedPosts Then
                     URL = $"https://thisvid.com/my_favourite_videos/{p}"
@@ -136,6 +137,7 @@ Namespace API.ThisVid
                     URL = $"https://thisvid.com/members/{ID}/{IIf(IsPublic, "public", "private")}_videos/{p}"
                 End If
                 ThrowAny(Token)
+                ProgressPre.Perform()
                 Dim r$ = Responser.GetResponse(URL)
                 Dim cBefore% = _TempMediaList.Count
                 If Not r.IsEmptyString Then
@@ -182,7 +184,9 @@ Namespace API.ThisVid
                         __continue = True
                         If albums.ListExists Then
                             If albums.Count < 20 Then __continue = False
+                            ProgressPre.ChangeMax(albums.Count)
                             For Each a As Album In albums
+                                ProgressPre.Perform()
                                 If Not a.URL.IsEmptyString Then
                                     ThrowAny(Token)
                                     r = Responser.GetResponse(a.URL,, rErr)
@@ -191,7 +195,9 @@ Namespace API.ThisVid
                                         If a.Title.IsEmptyString Then a.Title = albumId
                                         images = RegexReplace(r, RegExAlbumImagesList)
                                         If images.ListExists Then
+                                            ProgressPre.ChangeMax(images.Count)
                                             For Each img In images
+                                                ProgressPre.Perform()
                                                 ThrowAny(Token)
                                                 r = Responser.GetResponse(img,, rErr)
                                                 If Not r.IsEmptyString Then
@@ -242,7 +248,9 @@ Namespace API.ThisVid
                     Dim cookieFile As SFile = DirectCast(HOST.Source, SiteSettings).CookiesNetscapeFile
                     Dim command$
                     Dim e As EContainer
+                    ProgressPre.ChangeMax(_TempMediaList.Count)
                     For i% = _TempMediaList.Count - 1 To 0 Step -1
+                        ProgressPre.Perform()
                         u = _TempMediaList(i)
                         If u.Type = UserMedia.Types.VideoPre Then
                             ThrowAny(Token)

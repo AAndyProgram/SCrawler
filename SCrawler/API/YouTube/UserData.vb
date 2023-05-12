@@ -111,6 +111,7 @@ Namespace API.YouTube
 #Region "Download"
         'Playlist reconfiguration implemented only for channels + music
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
+            Dim pr As New YTPreProgress(ProgressPre)
             Try
                 Dim container As IYouTubeMediaContainer = Nothing
                 Dim list As New List(Of IYouTubeMediaContainer)
@@ -154,7 +155,7 @@ Namespace API.YouTube
                     maxDate = Nothing
                     LastDownloadDatePlaylist = nDate(LastDownloadDatePlaylist)
                     url = $"https://{IIf(IsMusic, "music", "www")}.youtube.com/playlist?list={ID}"
-                    container = YouTubeFunctions.Parse(url, YTUseCookies, Token,, True, False,, LastDownloadDatePlaylist)
+                    container = YouTubeFunctions.Parse(url, YTUseCookies, Token, pr, True, False,, LastDownloadDatePlaylist)
                     applySpecFolder.Invoke(String.Empty, False)
                     If fillList.Invoke(LastDownloadDatePlaylist) Then LastDownloadDatePlaylist = If(maxDate, Now)
                 ElseIf YTMediaType = YouTubeMediaType.Channel Then
@@ -162,7 +163,7 @@ Namespace API.YouTube
                         maxDate = Nothing
                         LastDownloadDateVideos = nDate(LastDownloadDateVideos)
                         url = $"https://{IIf(IsMusic, "music", "www")}.youtube.com/{IIf(IsMusic Or IsChannelUser, $"{YouTubeFunctions.UserChannelOption}/", "@")}{ID}"
-                        container = YouTubeFunctions.Parse(url, YTUseCookies, Token,, True, False,, LastDownloadDateVideos)
+                        container = YouTubeFunctions.Parse(url, YTUseCookies, Token, pr, True, False,, LastDownloadDateVideos)
                         applySpecFolder.Invoke(IIf(IsMusic, String.Empty, "Videos"), False)
                         If fillList.Invoke(LastDownloadDateVideos) Then LastDownloadDateVideos = If(maxDate, Now)
                     End If
@@ -170,7 +171,7 @@ Namespace API.YouTube
                         maxDate = Nothing
                         LastDownloadDateShorts = nDate(LastDownloadDateShorts)
                         url = $"https://www.youtube.com/{IIf(IsChannelUser, $"{YouTubeFunctions.UserChannelOption}/", "@")}{ID}/shorts"
-                        container = YouTubeFunctions.Parse(url, YTUseCookies, Token,, True, False,, LastDownloadDateShorts)
+                        container = YouTubeFunctions.Parse(url, YTUseCookies, Token, pr, True, False,, LastDownloadDateShorts)
                         applySpecFolder.Invoke("Shorts", False)
                         If fillList.Invoke(LastDownloadDateShorts) Then LastDownloadDateShorts = If(maxDate, Now)
                     End If
@@ -178,7 +179,7 @@ Namespace API.YouTube
                         maxDate = Nothing
                         LastDownloadDatePlaylist = nDate(LastDownloadDatePlaylist)
                         url = $"https://www.youtube.com/{IIf(IsChannelUser, $"{YouTubeFunctions.UserChannelOption}/", "@")}{ID}/playlists"
-                        container = YouTubeFunctions.Parse(url, YTUseCookies, Token,, True, False,, LastDownloadDatePlaylist)
+                        container = YouTubeFunctions.Parse(url, YTUseCookies, Token, pr, True, False,, LastDownloadDatePlaylist)
                         applySpecFolder.Invoke("Playlists", True)
                         If fillList.Invoke(LastDownloadDatePlaylist) Then LastDownloadDatePlaylist = If(maxDate, Now)
                     End If
@@ -196,6 +197,8 @@ Namespace API.YouTube
                 End If
             Catch ex As Exception
                 ProcessException(ex, Token, "data downloading error")
+            Finally
+                pr.Dispose()
             End Try
         End Sub
         Protected Overrides Sub DownloadContent(ByVal Token As CancellationToken)

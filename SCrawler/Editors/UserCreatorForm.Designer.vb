@@ -105,10 +105,10 @@ Namespace Editors
             'BTT_OTHER_SETTINGS
             '
             Me.BTT_OTHER_SETTINGS.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.BTT_OTHER_SETTINGS.Location = New System.Drawing.Point(2, 2)
+            Me.BTT_OTHER_SETTINGS.Location = New System.Drawing.Point(1, 1)
             Me.BTT_OTHER_SETTINGS.Margin = New System.Windows.Forms.Padding(1)
             Me.BTT_OTHER_SETTINGS.Name = "BTT_OTHER_SETTINGS"
-            Me.BTT_OTHER_SETTINGS.Size = New System.Drawing.Size(101, 24)
+            Me.BTT_OTHER_SETTINGS.Size = New System.Drawing.Size(101, 26)
             Me.BTT_OTHER_SETTINGS.TabIndex = 1
             Me.BTT_OTHER_SETTINGS.Text = "Options (F2)"
             TT_MAIN.SetToolTip(Me.BTT_OTHER_SETTINGS, "Other settings")
@@ -177,7 +177,6 @@ Namespace Editors
             '
             'TP_SITE
             '
-            Me.TP_SITE.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
             Me.TP_SITE.ColumnCount = 2
             Me.TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 103.0!))
             Me.TP_SITE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
@@ -209,10 +208,10 @@ Namespace Editors
             Me.CMB_SITE.Columns.Add(ListColumn1)
             Me.CMB_SITE.Columns.Add(ListColumn2)
             Me.CMB_SITE.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CMB_SITE.Location = New System.Drawing.Point(108, 3)
-            Me.CMB_SITE.Margin = New System.Windows.Forms.Padding(3, 2, 3, 3)
+            Me.CMB_SITE.Location = New System.Drawing.Point(103, 3)
+            Me.CMB_SITE.Margin = New System.Windows.Forms.Padding(0, 3, 3, 3)
             Me.CMB_SITE.Name = "CMB_SITE"
-            Me.CMB_SITE.Size = New System.Drawing.Size(340, 21)
+            Me.CMB_SITE.Size = New System.Drawing.Size(346, 22)
             Me.CMB_SITE.TabIndex = 0
             Me.CMB_SITE.TextBoxBorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
             '

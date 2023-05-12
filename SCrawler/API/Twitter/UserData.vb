@@ -125,36 +125,40 @@ Namespace API.Twitter
                                 End With
                             End If
 
-                            For Each nn In If(IsSavedPosts, w({"globalObjects", "tweets"}).XmlIfNothing, w)
-                                ThrowAny(Token)
-                                If nn.Count > 0 Then
-                                    PostID = nn.Value("id")
-                                    If ID.IsEmptyString Then
-                                        ID = UID(nn)
-                                        If Not ID.IsEmptyString Then UpdateUserInformation()
+                            With If(IsSavedPosts, w({"globalObjects", "tweets"}).XmlIfNothing, w)
+                                ProgressPre.ChangeMax(.Count)
+                                For Each nn In .Self
+                                    ProgressPre.Perform()
+                                    ThrowAny(Token)
+                                    If nn.Count > 0 Then
+                                        PostID = nn.Value("id")
+                                        If ID.IsEmptyString Then
+                                            ID = UID(nn)
+                                            If Not ID.IsEmptyString Then UpdateUserInformation()
+                                        End If
+
+                                        'Date Pattern:
+                                        'Sat Jan 01 01:10:15 +0000 2000
+                                        If nn.Contains("created_at") Then PostDate = nn("created_at").Value Else PostDate = String.Empty
+                                        Select Case CheckDatesLimit(PostDate, Declarations.DateProvider)
+                                            Case DateResult.Skip : Continue For
+                                            Case DateResult.Exit : Exit Sub
+                                        End Select
+
+                                        If Not _TempPostsList.Contains(PostID) Then
+                                            NewPostDetected = True
+                                            _TempPostsList.Add(PostID)
+                                        Else
+                                            ExistsDetected = True
+                                            Continue For
+                                        End If
+
+                                        If Not ParseUserMediaOnly OrElse
+                                           (Not nn.Contains("retweeted_status") OrElse (Not ID.IsEmptyString AndAlso UID(nn("retweeted_status")) = ID)) Then _
+                                           ObtainMedia(nn, PostID, PostDate)
                                     End If
-
-                                    'Date Pattern:
-                                    'Sat Jan 01 01:10:15 +0000 2000
-                                    If nn.Contains("created_at") Then PostDate = nn("created_at").Value Else PostDate = String.Empty
-                                    Select Case CheckDatesLimit(PostDate, Declarations.DateProvider)
-                                        Case DateResult.Skip : Continue For
-                                        Case DateResult.Exit : Exit Sub
-                                    End Select
-
-                                    If Not _TempPostsList.Contains(PostID) Then
-                                        NewPostDetected = True
-                                        _TempPostsList.Add(PostID)
-                                    Else
-                                        ExistsDetected = True
-                                        Continue For
-                                    End If
-
-                                    If Not ParseUserMediaOnly OrElse
-                                       (Not nn.Contains("retweeted_status") OrElse (Not ID.IsEmptyString AndAlso UID(nn("retweeted_status")) = ID)) Then _
-                                       ObtainMedia(nn, PostID, PostDate)
-                                End If
-                            Next
+                                Next
+                            End With
                         End If
                     End Using
 
@@ -174,7 +178,9 @@ Namespace API.Twitter
                     Dim j As EContainer, jj As EContainer
                     Dim jErr As New ErrorsDescriber(EDP.ReturnValue)
                     Dim rPattern As RParams = RParams.DM("(?<=tweet-)(\d+)\Z", 0, EDP.ReturnValue)
+                    ProgressPre.ChangeMax(urls.Count)
                     For Each url$ In urls
+                        ProgressPre.Perform()
                         r = Responser.GetResponse(url)
                         If Not r.IsEmptyString Then
                             j = JsonDocument.Parse(r, jErr)
@@ -187,7 +193,9 @@ Namespace API.Twitter
                     Next
                     If postIds.Count > 0 Then postIds.RemoveAll(Function(pid) pid.IsEmptyString OrElse (_TempPostsList.Contains(pid) Or _DataNames.Contains(pid)))
                     If postIds.Count > 0 Then
+                        ProgressPre.ChangeMax(postIds.Count)
                         For Each __id$ In postIds
+                            ProgressPre.Perform()
                             _TempPostsList.Add(__id)
                             r = Responser.GetResponse(String.Format(SinglePostUrl, __id),, EDP.ReturnValue)
                             If Not r.IsEmptyString Then
@@ -329,7 +337,9 @@ Namespace API.Twitter
                     Dim m As UserMedia
                     Dim r$, PostDate$
                     Dim j As EContainer
+                    ProgressPre.ChangeMax(_ContentList.Count)
                     For i% = 0 To _ContentList.Count - 1
+                        ProgressPre.Perform()
                         If _ContentList(i).State = UStates.Missing Then
                             m = _ContentList(i)
                             If Not m.Post.ID.IsEmptyString Then

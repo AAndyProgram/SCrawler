@@ -14,6 +14,7 @@ Namespace DownloadObjects
 #Region "Events"
         Friend Event DownloadDone As NotificationEventHandler
         Friend Event ProgressMaximumChanged()
+        Friend Event ProgressMaximum0Changed()
 #End Region
 #Region "Declarations"
 #Region "Controls"
@@ -114,10 +115,12 @@ Namespace DownloadObjects
             End If
 
             With Job
-                .Progress = New MyProgress(PR_MAIN, LBL_INFO) With {.ResetProgressOnMaximumChanges = False}
-                With .Progress
+                .Progress = New MyProgressExt(PR_MAIN, LBL_INFO) With {.ResetProgressOnMaximumChanges = False}
+                With DirectCast(.Progress, MyProgressExt)
                     AddHandler .ProgressChanged, AddressOf JobProgress_ProgressChanged
                     AddHandler .MaximumChanged, AddressOf JobProgress_MaximumChanged
+                    AddHandler .Maximum0Changed, AddressOf JobProgress_Maximum0Changed
+                    AddHandler .Progress0Changed, AddressOf JobProgress_Progress0Changed
                 End With
             End With
 
@@ -183,8 +186,18 @@ Namespace DownloadObjects
         Private Sub JobProgress_MaximumChanged(ByVal Sender As Object, ByVal e As ProgressEventArgs)
             RaiseEvent ProgressMaximumChanged()
         End Sub
+        Private Sub JobProgress_Maximum0Changed(ByVal Sender As Object, ByVal e As ProgressEventArgs)
+            RaiseEvent ProgressMaximum0Changed()
+        End Sub
         Private Sub JobProgress_ProgressChanged(ByVal Sender As Object, ByVal e As ProgressEventArgs)
-            If Not Job.Type = Download.SavedPosts Then MainProgress.Perform()
+            If Not Job.Type = Download.SavedPosts Then
+                MainProgress.Value = DirectCast(Sender, MyProgressExt).Value
+                MainProgress.Perform(0)
+            End If
+        End Sub
+        Private Sub JobProgress_Progress0Changed(ByVal Sender As Object, ByVal e As ProgressEventArgs)
+            MainProgress.Value0 = DirectCast(Sender, MyProgressExt).Value0
+            MainProgress.Perform0(0)
         End Sub
 #End Region
 #Region "IDisposable Support"

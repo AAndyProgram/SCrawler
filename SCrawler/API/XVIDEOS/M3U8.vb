@@ -14,7 +14,7 @@ Namespace API.XVIDEOS
         Private Sub New()
         End Sub
         Friend Shared Function Download(ByVal URL As String, ByVal Appender As String, ByVal f As SFile,
-                                        ByVal Token As CancellationToken, ByVal Progress As MyProgress) As SFile
+                                        ByVal Token As CancellationToken, ByVal Progress As MyProgress, ByVal UsePreProgress As Boolean) As SFile
             Try
                 If Not URL.IsEmptyString Then
                     Using w As New WebClient
@@ -22,7 +22,7 @@ Namespace API.XVIDEOS
                         If Not r.IsEmptyString Then
                             Dim l As List(Of String) = ListAddList(Nothing, r.StringFormatLines.StringToList(Of String)(vbNewLine).ListWithRemove(Function(v) v.Trim.StartsWith("#")),
                                                                    New ListAddParams With {.Converter = Function(Input) $"{Appender}/{Input.ToString.Trim}"})
-                            If l.ListExists Then Return Base.M3U8Base.Download(l, f,, Token, Progress)
+                            If l.ListExists Then Return Base.M3U8Base.Download(l, f,, Token, Progress, UsePreProgress)
                         End If
                     End Using
                 End If

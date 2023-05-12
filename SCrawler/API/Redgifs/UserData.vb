@@ -50,7 +50,9 @@ Namespace API.RedGifs
                     Using j As EContainer = JsonDocument.Parse(r).XmlIfNothing
                         If j.Contains("gifs") Then
                             pTotal = j.Value("pages").FromXML(Of Integer)(0)
+                            ProgressPre.ChangeMax(j("gifs").Count)
                             For Each g As EContainer In j("gifs")
+                                ProgressPre.Perform()
                                 postDate = g.Value("createDate")
                                 Select Case CheckDatesLimit(postDate, UnixDate32Provider)
                                     Case DateResult.Skip : Continue For
@@ -102,11 +104,13 @@ Namespace API.RedGifs
         Protected Overrides Sub ReparseMissing(ByVal Token As CancellationToken)
             Dim rList As New List(Of Integer)
             Try
-                If _ContentList.Exists(MissingFinder) Then
+                If ContentMissingExists Then
                     Dim url$, r$
                     Dim u As UserMedia
                     Dim j As EContainer
+                    ProgressPre.ChangeMax(_ContentList.Count)
                     For i% = 0 To _ContentList.Count - 1
+                        ProgressPre.Perform()
                         If _ContentList(i).State = UStates.Missing Then
                             ThrowAny(Token)
                             u = _ContentList(i)

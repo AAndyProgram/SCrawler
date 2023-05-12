@@ -51,7 +51,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_EDIT_USER = New System.Windows.Forms.ToolStripButton()
         Me.BTT_DELETE_USER = New System.Windows.Forms.ToolStripButton()
         Me.BTT_REFRESH = New System.Windows.Forms.ToolStripButton()
-        Me.BTT_SHOW_INFO = New System.Windows.Forms.ToolStripButton()
+        Me.BTT_SHOW_INFO = New PersonalUtilities.Forms.Controls.KeyClick.ToolStripButtonKeyClick()
         Me.BTT_FEED = New System.Windows.Forms.ToolStripButton()
         Me.BTT_CHANNELS = New System.Windows.Forms.ToolStripButton()
         Me.BTT_DOWN_SAVED = New System.Windows.Forms.ToolStripButton()
@@ -327,8 +327,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_SHOW_INFO.Name = "BTT_SHOW_INFO"
         Me.BTT_SHOW_INFO.Size = New System.Drawing.Size(48, 22)
         Me.BTT_SHOW_INFO.Text = "Info"
-        Me.BTT_SHOW_INFO.ToolTipText = "Left-click: open the 'Info' form (show download summary)." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Right click: open the " &
-    "'Missing' form (show information about missing posts)."
+        Me.BTT_SHOW_INFO.ToolTipText = resources.GetString("BTT_SHOW_INFO.ToolTipText")
         '
         'BTT_FEED
         '
@@ -940,7 +939,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
     Private WithEvents BTT_CONTEXT_COL_MERGE As ToolStripMenuItem
     Private WithEvents LBL_JOBS_COUNT As ToolStripStatusLabel
     Private WithEvents BTT_DOWN_VIDEO As ToolStripMenuItem
-    Private WithEvents BTT_SHOW_INFO As ToolStripButton
+    Private WithEvents BTT_SHOW_INFO As PersonalUtilities.Forms.Controls.KeyClick.ToolStripButtonKeyClick
     Private WithEvents BTT_CHANNELS As ToolStripButton
     Private WithEvents LIST_PROFILES As ListView
     Private WithEvents MENU_VIEW As ToolStripDropDownButton

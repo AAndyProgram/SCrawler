@@ -314,5 +314,8 @@
   <ItemGroup>
     <None Include="Content\Pictures\ImagePic_32.png" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Content\Pictures\StartPic_Green_16.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
 </Project>

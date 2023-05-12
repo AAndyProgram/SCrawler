@@ -23,6 +23,7 @@ Namespace API.PornHub
         Private Const Name_NameTrue As String = "NameTrue"
         Private Const Name_VideoPageModel As String = "VideoPageModel"
         Private Const Name_PhotoPageModel As String = "PhotoPageModel"
+        Private Const Name_DownloadUHD As String = "DownloadUHD"
         Private Const Name_DownloadGifs As String = "DownloadGifs"
         Private Const Name_DownloadPhotoOnlyFromModelHub As String = "DownloadPhotoOnlyFromModelHub"
 #End Region
@@ -112,6 +113,7 @@ Namespace API.PornHub
 #Region "Advanced fields"
         Friend Property VideoPageModel As VideoPageModels = VideoPageModels.Undefined
         Private Property PhotoPageModel As PhotoPageModels = PhotoPageModels.Undefined
+        Friend Property DownloadUHD As Boolean = False
         Friend Property DownloadGifs As Boolean
         Friend Property DownloadPhotoOnlyFromModelHub As Boolean = True
 #End Region
@@ -122,6 +124,7 @@ Namespace API.PornHub
         Friend Overrides Sub ExchangeOptionsSet(ByVal Obj As Object)
             If Not Obj Is Nothing AndAlso TypeOf Obj Is UserExchangeOptions Then
                 With DirectCast(Obj, UserExchangeOptions)
+                    DownloadUHD = .DownloadUHD
                     DownloadGifs = .DownloadGifs
                     DownloadPhotoOnlyFromModelHub = .DownloadPhotoOnlyFromModelHub
                 End With
@@ -157,6 +160,7 @@ Namespace API.PornHub
                     NameTrue = .Value(Name_NameTrue)
                     VideoPageModel = .Value(Name_VideoPageModel).FromXML(Of Integer)(VideoPageModels.Undefined)
                     PhotoPageModel = .Value(Name_PhotoPageModel).FromXML(Of Integer)(PhotoPageModels.Undefined)
+                    DownloadUHD = .Value(Name_DownloadUHD).FromXML(Of Boolean)(False)
                     DownloadGifs = .Value(Name_DownloadGifs).FromXML(Of Integer)(False)
                     DownloadPhotoOnlyFromModelHub = .Value(Name_DownloadPhotoOnlyFromModelHub).FromXML(Of Boolean)(True)
                     SetNames.Invoke()
@@ -166,6 +170,7 @@ Namespace API.PornHub
                     .Add(Name_NameTrue, NameTrue)
                     .Add(Name_VideoPageModel, CInt(VideoPageModel))
                     .Add(Name_PhotoPageModel, CInt(PhotoPageModel))
+                    .Add(Name_DownloadUHD, DownloadUHD.BoolToInteger)
                     .Add(Name_DownloadGifs, DownloadGifs.BoolToInteger)
                     .Add(Name_DownloadPhotoOnlyFromModelHub, DownloadPhotoOnlyFromModelHub.BoolToInteger)
                 End If
@@ -224,6 +229,7 @@ Namespace API.PornHub
             Finally
                 Responser.Mode = Responser.Modes.Default
                 Responser.Method = "GET"
+                ProgressPre.Done()
             End Try
         End Sub
 #End Region
@@ -246,6 +252,7 @@ Namespace API.PornHub
             Const VideoUrlPattern$ = "https://www.pornhub.com/{0}/{1}{2}{3}"
             Const HtmlPageNotFoundVideo$ = "<span>Error Page Not Found</span>"
             Dim URL$ = String.Empty
+            ProgressPre.ChangeMax(1)
             Try
                 Dim p$
                 If PersonType = PersonTypeUser Then
@@ -289,6 +296,8 @@ Namespace API.PornHub
                 End If
             Catch ex As Exception
                 Return ProcessException(ex, Token, $"videos downloading error [{URL}]")
+            Finally
+                ProgressPre.Perform()
             End Try
         End Function
 #End Region
@@ -306,11 +315,13 @@ Namespace API.PornHub
                     Dim l3 As List(Of String) = Nothing
                     If l.ListExists Then l2 = l.Select(Function(ll) $"gif/{ll.Arr(0).Replace("gif", String.Empty)}").ToList
                     If l2.ListExists Then
+                        ProgressPre.ChangeMax(l2.Count)
                         For Each gif$ In l2
                             If Not _TempPostsList.Contains(gif) Then
                                 _TempPostsList.Add(gif)
                                 URL = $"https://www.pornhub.com/{gif}"
                                 m = New UserMedia(URL, UTypes.Video) With {.Post = gif, .SpecialFolder = "GIFs\"}
+                                ProgressPre.Perform()
                                 ThrowAny(Token)
                                 Try
                                     r = Responser.GetResponse(URL)
@@ -385,8 +396,10 @@ Namespace API.PornHub
                         Dim l As List(Of PhotoBlock) = RegexFields(Of PhotoBlock)(r, {Regex_Photo_ModelHub_PhotoBlocks}, {1, 2})
                         If l.ListExists Then l.RemoveAll(Function(ll) ll.Data.IsEmptyString)
                         If l.ListExists Then
+                            ProgressPre.ChangeMax(l.Count)
                             Dim albumRegex As RParams = RParams.DMS("", 1, EDP.ReturnValue)
                             For Each block As PhotoBlock In l
+                                ProgressPre.Perform()
                                 If Not _TempPostsList.Contains(block.AlbumID) Then _TempPostsList.Add(block.AlbumID) Else Continue For
                                 albumRegex.Pattern = "<li id=""" & block.AlbumID & """ class=""modelBox"">[\r\n\s]*?<div class=""modelPhoto"">[\r\n\s]*?\<[^\>]*?alt=""([^""]*)"""
                                 albumName = StringTrim(RegexReplace(r, albumRegex))
@@ -421,7 +434,9 @@ Namespace API.PornHub
                     Dim l As List(Of PhotoBlock) = RegexFields(Of PhotoBlock)(r, {Regex_Photo_PornHub_PhotoBlocks}, {2, 1})
                     If l.ListExists Then l.RemoveAll(Function(ll) ll.AlbumID.IsEmptyString)
                     If l.ListExists Then
+                        ProgressPre.ChangeMax(l.Count)
                         For Each block As PhotoBlock In l
+                            ProgressPre.Perform()
                             If Not _TempPostsList.Contains(block.AlbumID) Then _TempPostsList.Add(block.AlbumID) Else Continue For
                             albumName = block.Data
                             If albumName.IsEmptyString Then
@@ -449,7 +464,9 @@ Namespace API.PornHub
                     Dim l As List(Of String) = RegexReplace(r, Regex_Photo_PornHub_AlbumPhotoArr)
                     If l.ListExists Then l.RemoveAll(Function(_url) _url.IsEmptyString)
                     If l.ListExists Then
+                        ProgressPre.ChangeMax(l.Count)
                         For Each url$ In l
+                            ProgressPre.Perform()
                             ThrowAny(Token)
                             Try
                                 r = Responser.GetResponse(url)
@@ -492,7 +509,9 @@ Namespace API.PornHub
                             Dim lBefore% = l2.Count
                             If _TempPostsList.Count > 0 Then l2.RemoveAll(Function(media) _TempPostsList.Contains(media.Post.ID))
                             If l2.Count > 0 Then
+                                ProgressPre.ChangeMax(l2.Count)
                                 For i% = 0 To l2.Count - 1
+                                    ProgressPre.Perform()
                                     m = l2(i)
                                     ThrowAny(Token)
                                     Try
@@ -537,7 +556,9 @@ Namespace API.PornHub
                 If _TempMediaList.Count > 0 AndAlso _TempMediaList.Exists(Function(tm) tm.Type = UTypes.VideoPre) Then
                     Dim m As UserMedia
                     Dim r$, NewUrl$, tmpName$
+                    ProgressPre.ChangeMax(_TempMediaList.Count)
                     For i% = _TempMediaList.Count - 1 To 0 Step -1
+                        ProgressPre.Perform()
                         If _TempMediaList(i).Type = UTypes.VideoPre Then
                             m = _TempMediaList(i)
                             ThrowAny(Token)
@@ -588,7 +609,9 @@ Namespace API.PornHub
                     Dim m As UserMedia
                     Dim r$
                     Dim eCurl As New ErrorsDescriber(EDP.ReturnValue)
+                    ProgressPre.ChangeMax(_ContentList.Count)
                     For i% = 0 To _ContentList.Count - 1
+                        ProgressPre.Perform()
                         m = _ContentList(i)
                         If m.State = UserMedia.States.Missing AndAlso Not m.URL_BASE.IsEmptyString Then
                             ThrowAny(Token)
@@ -619,31 +642,91 @@ Namespace API.PornHub
             DownloadContentDefault(Token)
         End Sub
         Protected Overrides Function DownloadM3U8(ByVal URL As String, ByVal Media As UserMedia, ByVal DestinationFile As SFile, ByVal Token As CancellationToken) As SFile
-            Return M3U8.Download(URL, Responser, DestinationFile, Token, If(UseInternalM3U8Function_UseProgress, Progress, Nothing))
+            Return M3U8.Download(URL, Responser, DestinationFile, DownloadUHD, Token, Progress, Not IsSingleObjectDownload)
         End Function
 #End Region
 #Region "CreateVideoURL"
+        'TODELETE: PornHub old 'CreateVideoURL' function
+        'Private Function CreateVideoURL(ByVal r As String) As String
+        '    Try
+        '        Dim OutStr$ = String.Empty
+        '        If Not r.IsEmptyString Then
+        '            Dim _VarBlock$ = RegexReplace(r, RegexVideo_FlashVarsBlock)
+        '            If Not _VarBlock.IsEmptyString Then
+        '                Dim vars As List(Of FlashVar) = RegexFields(Of FlashVar)(_VarBlock, {RegexVideo_FlashVars_Vars}, {1, 2})
+        '                Dim compiler As List(Of String) = RegexReplace(_VarBlock, RegexVideo_FlashVars_Compiler)
+        '                If vars.ListExists And compiler.ListExists Then
+        '                    Dim v$
+        '                    Dim i%
+        '                    For Each var$ In compiler
+        '                        i = vars.IndexOf(var)
+        '                        If i >= 0 Then
+        '                            v = vars(i).Value
+        '                            If Not v.IsEmptyString Then OutStr &= v
+        '                        End If
+        '                    Next
+        '                End If
+        '            End If
+        '        End If
+        '        Return OutStr
+        '    Catch ex As Exception
+        '        Return ErrorsDescriber.Execute(EDP.SendToLog, ex, "[API.PornHub.UserData.CreateVideoURL]", String.Empty)
+        '    End Try
+        'End Function
         Private Function CreateVideoURL(ByVal r As String) As String
             Try
                 Dim OutStr$ = String.Empty
+                Dim OutList As New List(Of String)
+                Dim tmpUrl$
+                Dim i%
                 If Not r.IsEmptyString Then
-                    Dim _VarBlock$ = RegexReplace(r, RegexVideo_FlashVarsBlock)
-                    If Not _VarBlock.IsEmptyString Then
-                        Dim vars As List(Of FlashVar) = RegexFields(Of FlashVar)(_VarBlock, {RegexVideo_FlashVars_Vars}, {1, 2})
-                        Dim compiler As List(Of String) = RegexReplace(_VarBlock, RegexVideo_FlashVars_Compiler)
-                        If vars.ListExists And compiler.ListExists Then
-                            Dim v$
-                            Dim i%
-                            For Each var$ In compiler
-                                i = vars.IndexOf(var)
-                                If i >= 0 Then
-                                    v = vars(i).Value
-                                    If Not v.IsEmptyString Then OutStr &= v
-                                End If
-                            Next
+                    Dim _VarBlock$, var$, v$
+                    Dim vars As List(Of FlashVar)
+                    Dim compiler As List(Of String)
+                    Dim _VarBlocks As List(Of String) = RegexReplace(r, RegexVideo_FlashVarsBlocks)
+                    If _VarBlocks.ListExists Then
+                        For Each _VarBlock In _VarBlocks
+                            tmpUrl = String.Empty
+                            vars = RegexFields(Of FlashVar)(_VarBlock, {RegexVideo_FlashVars_Vars}, {1, 2})
+                            compiler = RegexReplace(_VarBlock, RegexVideo_FlashVars_Compiler)
+                            If vars.ListExists And compiler.ListExists Then
+                                For Each var In compiler
+                                    i = vars.IndexOf(var)
+                                    If i >= 0 Then
+                                        v = vars(i).Value
+                                        If Not v.IsEmptyString Then tmpUrl &= v
+                                    End If
+                                Next
+                                vars.Clear()
+                                compiler.Clear()
+                            End If
+                            If Not tmpUrl.IsEmptyString Then OutList.Add(tmpUrl)
+                        Next
+                    End If
+                End If
+
+                If outList.Count > 0 Then outList.RemoveAll(Function(u) u.IsEmptyString)
+                If outList.Count > 0 Then
+                    i = OutList.FindIndex(Function(u) u.Contains("urlset"))
+                    If i >= 0 Then
+                        OutStr = OutList(i)
+                    Else
+                        Dim newUrls As New List(Of Sizes)
+                        Dim tmpSize%?
+                        For Each tmpUrl In OutList
+                            tmpSize = AConvert(Of Integer)(RegexReplace(tmpUrl, RegexVideo_FlashVars_UrlResolution), AModes.Var, Nothing)
+                            If tmpSize.HasValue Then newUrls.Add(New Sizes(tmpSize.Value, tmpUrl))
+                        Next
+                        If newUrls.Count > 0 Then
+                            newUrls.Sort()
+                            OutStr = newUrls(0).Data
+                            newUrls.Clear()
+                        Else
+                            OutStr = OutList(0)
                         End If
                     End If
                 End If
+                OutList.Clear()
                 Return OutStr
             Catch ex As Exception
                 Return ErrorsDescriber.Execute(EDP.SendToLog, ex, "[API.PornHub.UserData.CreateVideoURL]", String.Empty)

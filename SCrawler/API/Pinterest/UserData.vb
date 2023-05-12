@@ -113,6 +113,8 @@ Namespace API.Pinterest
                 End If
             Catch ex As Exception
                 ProcessException(ex, Token, $"data downloading error [{URL}]")
+            Finally
+                ProgressPre.Done()
             End Try
         End Sub
 #End Region
@@ -129,7 +131,9 @@ Namespace API.Pinterest
                 Dim urls As List(Of String) = GetDataFromGalleryDL(URL, True)
                 If urls.ListExists Then urls.RemoveAll(Function(__url) Not __url.Contains("BoardsResource/get/"))
                 If urls.ListExists Then
+                    ProgressPre.ChangeMax(urls.Count)
                     For Each URL In urls
+                        ProgressPre.Perform()
                         ThrowAny(Token)
                         r = Responser.GetResponse(URL,, EDP.ReturnValue)
                         If Not r.IsEmptyString Then
@@ -176,14 +180,18 @@ Namespace API.Pinterest
                 Dim l As List(Of String) = GetDataFromGalleryDL(Board.URL, False)
                 If l.ListExists Then l.RemoveAll(Function(ll) Not ll.Contains("BoardFeedResource/get/"))
                 If l.ListExists Then
+                    ProgressPre.ChangeMax(l.Count)
                     For Each bUrl In l
+                        ProgressPre.Perform()
                         ThrowAny(Token)
                         r = Responser.GetResponse(bUrl,, EDP.ReturnValue)
                         If Not r.IsEmptyString Then
                             j = JsonDocument.Parse(r, jErr)
                             If Not j Is Nothing Then
                                 If If(j(rootNode)?.Count, 0) > 0 Then
+                                    ProgressPre.ChangeMax(j(rootNode).Count)
                                     For Each jj In j(rootNode)
+                                        ProgressPre.Perform()
                                         With jj
                                             If .Contains("images") Then
                                                 images = .Item("images").Select(imgSelector).ToList

@@ -224,6 +224,7 @@
     <Compile Include="API\YouTube\SiteSettings.vb" />
     <Compile Include="API\YouTube\UserData.vb" />
     <Compile Include="API\YouTube\UserExchangeOptions.vb" />
+    <Compile Include="API\YouTube\YTPreProgress.vb" />
     <Compile Include="API\YouTube\YTSettings_Internal.vb" />
     <Compile Include="Download\ActiveDownloadingProgress.Designer.vb">
       <DependentUpon>ActiveDownloadingProgress.vb</DependentUpon>
@@ -309,6 +310,12 @@
     <Compile Include="Editors\ColorPicker.vb">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Include="Editors\UsersInfoForm.Designer.vb">
+      <DependentUpon>UsersInfoForm.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Editors\UsersInfoForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="GlobalSuppressions.vb" />
     <Compile Include="MainFrameObjects.vb" />
     <Compile Include="My Project\Resources.Designer.vb">
@@ -316,6 +323,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="MyProgressExt.vb" />
     <Compile Include="PluginsEnvironment\Attributes\Attributes.vb" />
     <Compile Include="PluginsEnvironment\Hosts\DownloadableMediaHost.vb" />
     <Compile Include="PluginsEnvironment\Hosts\UserDataHost.vb" />
@@ -522,6 +530,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Editors\UserCreatorForm.resx">
       <DependentUpon>UserCreatorForm.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Editors\UsersInfoForm.resx">
+      <DependentUpon>UsersInfoForm.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="MainFrame.resx">
       <DependentUpon>MainFrame.vb</DependentUpon>

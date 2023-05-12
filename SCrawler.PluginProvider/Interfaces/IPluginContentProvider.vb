@@ -10,6 +10,8 @@ Namespace Plugin
     Public Interface IPluginContentProvider : Inherits IDisposable
         Event ProgressChanged(ByVal Value As Integer)
         Event ProgressMaximumChanged(ByVal Value As Integer, ByVal Add As Boolean)
+        Event ProgressPreChanged As ProgressChangedEventHandler
+        Event ProgressPreMaximumChanged As ProgressMaximumChangedEventHandler
         Property Thrower As IThrower
         Property LogProvider As ILogProvider
         Property Settings As ISiteSettings

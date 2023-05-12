@@ -140,6 +140,12 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         SearchInDescription = New XMLValue(Of Boolean)("SearchInDescription", False, MyXML, n)
         SearchInLabel = New XMLValue(Of Boolean)("SearchInLabel", False, MyXML, n)
 
+        n = {"Metrics"}
+        UMetrics_What = New XMLValue(Of Integer)("What", -1, MyXML, n)
+        UMetrics_Order = New XMLValue(Of Integer)("Order", SortOrder.Descending, MyXML, n)
+        UMetrics_ShowDrives = New XMLValue(Of Boolean)("ShowDrives", True, MyXML, n)
+        UMetrics_ShowCollections = New XMLValue(Of Boolean)("ShowCollections", True, MyXML, n)
+
         n = {"Defaults"}
         DefaultTemporary = New XMLValue(Of Boolean)("Temporary", False, MyXML, n)
         DefaultDownloadImages = New XMLValue(Of Boolean)("DownloadImages", True, MyXML, n)
@@ -310,7 +316,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
                 End Using
 
                 Dim NeedUpdate As Boolean = False
-                Dim i%, indx% ', c%
+                Dim i%, indx%
                 Dim UsersListInitialCount% = UsersList.Count
                 Dim iUser As UserInfo
                 Dim userFileExists As Boolean, pluginFound As Boolean
@@ -349,9 +355,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
                             End If
 
                             'Check paths
-                            'c = IIf((Not .IncludedInCollection Or (.Merged Or .IsVirtual)) And Not .Plugin = PathPlugin.PluginKey, 1, 2)
-                            'URGENT: changed user file validation
-                            userFileExists = .File.Exists ' SFile.GetPath(.File.CutPath(c - 1).Path).Exists(SFO.Path, False)
+                            userFileExists = .File.Exists
                             If Not pluginFound Or Not userFileExists Then
                                 If Not .IsProtected Then
                                     If userFileExists Then
@@ -704,6 +708,12 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
     Friend ReadOnly Property STDownloader_TakeSnapshot As XMLValue(Of Boolean)
     Friend ReadOnly Property STDownloader_RemoveYTVideosOnClear As XMLValue(Of Boolean)
     Friend ReadOnly Property STDownloader_LoadYTVideos As XMLValue(Of Boolean)
+#End Region
+#Region "User metrics"
+    Friend ReadOnly Property UMetrics_What As XMLValue(Of Integer)
+    Friend ReadOnly Property UMetrics_Order As XMLValue(Of Integer)
+    Friend ReadOnly Property UMetrics_ShowDrives As XMLValue(Of Boolean)
+    Friend ReadOnly Property UMetrics_ShowCollections As XMLValue(Of Boolean)
 #End Region
 #Region "User data"
     Friend ReadOnly Property FromChannelDownloadTop As XMLValue(Of Integer)

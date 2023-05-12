@@ -27,6 +27,8 @@ Namespace Plugin.Hosts
             UseInternalDownloader = Not ExternalPlugin.GetType.GetCustomAttribute(Of Attributes.UseInternalDownloader)() Is Nothing
             AddHandler ExternalPlugin.ProgressChanged, AddressOf ExternalPlugin_ProgressChanged
             AddHandler ExternalPlugin.ProgressMaximumChanged, AddressOf ExternalPlugin_ProgressMaximumChanged
+            AddHandler ExternalPlugin.ProgressPreChanged, AddressOf ExternalPlugin_Progress0Changed
+            AddHandler ExternalPlugin.ProgressPreMaximumChanged, AddressOf ExternalPlugin_Progress0MaximumChanged
         End Sub
         Protected Overrides Sub LoadUserInformation_OptionalFields(ByRef Container As XmlFile, ByVal Loading As Boolean)
             If Loading Then
@@ -110,6 +112,12 @@ Namespace Plugin.Hosts
         End Sub
         Private Sub ExternalPlugin_ProgressMaximumChanged(ByVal Value As Integer, ByVal Add As Boolean)
             Progress.Maximum = Value + If(Add, Progress.Maximum, 0)
+        End Sub
+        Private Sub ExternalPlugin_Progress0Changed(ByVal Value As Integer)
+            ProgressPre.Perform(Value)
+        End Sub
+        Private Sub ExternalPlugin_Progress0MaximumChanged(ByVal Value As Integer, ByVal Add As Boolean)
+            ProgressPre.ChangeMax(Value, Add)
         End Sub
         Protected Overrides Sub Dispose(ByVal disposing As Boolean)
             If disposing And Not disposedValue Then

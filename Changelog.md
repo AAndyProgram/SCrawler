@@ -1,3 +1,21 @@
+# 2023.5.12.0
+
+*2023-05-12*
+
+- Added
+  - Advanced progress (make progress bars more informative)
+  - User metrics calculation
+  - Reddit: improve parsing function
+  - PornHub: add `Download UHD` option
+- Fixed
+  - MD5 GIF hash bug
+  - Mastodon: handle 'Forbidden' error
+  - Mastodon: bug in parsing non-user posts
+  - Pinterest: remove cookies requirement for saved posts
+  - PornHub: resolutions issue
+  - Reddit: missing & broken images bug
+  - Main window: collection pointing bug 
+
 # 2023.4.28.0
 
 *2023-04-28*

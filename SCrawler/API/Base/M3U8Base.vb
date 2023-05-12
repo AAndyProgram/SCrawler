@@ -33,40 +33,55 @@ Namespace API.Base
             End If
         End Function
         Friend Shared Function Download(ByVal URLs As List(Of String), ByVal DestinationFile As SFile, Optional ByVal Responser As Responser = Nothing,
-                                        Optional ByVal Token As CancellationToken = Nothing, Optional ByVal Progress As MyProgress = Nothing) As SFile
+                                        Optional ByVal Token As CancellationToken = Nothing, Optional ByVal Progress As MyProgress = Nothing,
+                                        Optional ByVal UsePreProgress As Boolean = True) As SFile
             Dim Cache As CacheKeeper = Nothing
-            Try
-                If URLs.ListExists Then
-                    Dim ConcatFile As SFile = DestinationFile
-                    If ConcatFile.Name.IsEmptyString Then ConcatFile.Name = "PlayListFile"
-                    ConcatFile.Extension = "mp4"
-                    Cache = New CacheKeeper($"{DestinationFile.PathWithSeparator}_{TempCacheFolderName}\")
-                    Dim cache2 As CacheKeeper = Cache.NewInstance
-                    If cache2.RootDirectory.Exists(SFO.Path) Then
-                        Dim progressExists As Boolean = Not Progress Is Nothing
-                        If progressExists Then Progress.Maximum += URLs.Count
-                        Dim p As SFileNumbers = SFileNumbers.Default(ConcatFile.Name)
-                        ConcatFile = SFile.IndexReindex(ConcatFile,,, p, EDP.ReturnValue)
-                        Dim i%
-                        Dim dFile As SFile = cache2.RootDirectory
-                        dFile.Extension = "ts"
-                        Using w As New DownloadObjects.WebClient2(Responser)
-                            For i = 0 To URLs.Count - 1
-                                If progressExists Then Progress.Perform()
-                                Token.ThrowIfCancellationRequested()
-                                dFile.Name = $"ConPart_{i}"
-                                w.DownloadFile(URLs(i), dFile)
-                                cache2.AddFile(dFile, True)
-                            Next
-                        End Using
-                        DestinationFile = FFMPEG.ConcatenateFiles(cache2, Settings.FfmpegFile.File, ConcatFile, Settings.CMDEncoding, p, EDP.ThrowException)
-                        Return DestinationFile
+            Using tmpPr As New PreProgress(Progress)
+                Try
+                    If URLs.ListExists Then
+                        Dim ConcatFile As SFile = DestinationFile
+                        If ConcatFile.Name.IsEmptyString Then ConcatFile.Name = "PlayListFile"
+                        ConcatFile.Extension = "mp4"
+                        Cache = New CacheKeeper($"{DestinationFile.PathWithSeparator}_{TempCacheFolderName}\")
+                        Dim cache2 As CacheKeeper = Cache.NewInstance
+                        If cache2.RootDirectory.Exists(SFO.Path) Then
+                            Dim progressExists As Boolean = Not Progress Is Nothing
+                            If progressExists Then
+                                If UsePreProgress Then
+                                    tmpPr.ChangeMax(URLs.Count)
+                                Else
+                                    Progress.Maximum += URLs.Count
+                                End If
+                            End If
+                            Dim p As SFileNumbers = SFileNumbers.Default(ConcatFile.Name)
+                            ConcatFile = SFile.IndexReindex(ConcatFile,,, p, EDP.ReturnValue)
+                            Dim i%
+                            Dim dFile As SFile = cache2.RootDirectory
+                            dFile.Extension = "ts"
+                            Using w As New DownloadObjects.WebClient2(Responser)
+                                For i = 0 To URLs.Count - 1
+                                    If progressExists Then
+                                        If UsePreProgress Then
+                                            tmpPr.Perform()
+                                        Else
+                                            Progress.Perform()
+                                        End If
+                                    End If
+                                    Token.ThrowIfCancellationRequested()
+                                    dFile.Name = $"ConPart_{i}"
+                                    w.DownloadFile(URLs(i), dFile)
+                                    cache2.AddFile(dFile, True)
+                                Next
+                            End Using
+                            DestinationFile = FFMPEG.ConcatenateFiles(cache2, Settings.FfmpegFile.File, ConcatFile, Settings.CMDEncoding, p, EDP.ThrowException)
+                            Return DestinationFile
+                        End If
                     End If
-                End If
-                Return Nothing
-            Finally
-                Cache.DisposeIfReady
-            End Try
+                    Return Nothing
+                Finally
+                    Cache.DisposeIfReady
+                End Try
+            End Using
         End Function
     End Class
 End Namespace

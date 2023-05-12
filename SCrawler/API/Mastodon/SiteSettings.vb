@@ -124,6 +124,15 @@ Namespace API.Mastodon
             If _SiteEditorFormOpened Then
                 Dim tf$ = GifsSpecialFolder.Value
                 If Not tf.IsEmptyString Then tf = tf.StringTrim("\") : GifsSpecialFolder.Value = tf
+                Dim md$ = AConvert(Of String)(MyDomain.Value, String.Empty)
+                If Not md.IsEmptyString AndAlso Not Domains.Domains.Contains(md) AndAlso Not Domains.DomainsTemp.Contains(md) Then
+                    If Domains.Changed Then
+                        Domains.DomainsTemp.Add(md)
+                    Else
+                        Domains.Domains.Add(md)
+                        Domains.Save()
+                    End If
+                End If
             End If
             MyBase.Update()
         End Sub

@@ -27,6 +27,7 @@ Public Class MainFrame
     Private MyMissingPosts As MissingPostsForm
     Private MyFeed As DownloadFeedForm
     Private MySearch As UserSearchForm
+    Private MyUserMetrics As UsersInfoForm = Nothing
     Private _UFinit As Boolean = True
 #End Region
 #Region "Initializer"
@@ -57,7 +58,7 @@ Public Class MainFrame
         YouTube.MyCache = Settings.Cache
         YouTube.MyYouTubeSettings = New YouTube.YTSettings_Internal
         UpdateYouTubeSettings()
-        MainProgress = New Toolbars.MyProgress(Toolbar_BOTTOM, PR_MAIN, LBL_STATUS, "Downloading profiles' data") With {
+        MainProgress = New MyProgressExt(Toolbar_BOTTOM, PR_MAIN, LBL_STATUS, "Downloading profiles' data") With {
             .ResetProgressOnMaximumChanges = False, .Visible = False}
         Downloader = New TDownloader
         InfoForm = New DownloadedInfoForm
@@ -158,6 +159,7 @@ Public Class MainFrame
                     VideoDownloader.DisposeIfReady()
                     MySavedPosts.DisposeIfReady()
                     MySearch.DisposeIfReady()
+                    MyUserMetrics.DisposeIfReady()
                     MyView.Dispose(Settings.Design)
                     Settings.Dispose()
                 Else
@@ -401,12 +403,17 @@ CloseResume:
     End Sub
 #End Region
 #Region "Info, Feed, Channels, Saved posts"
-    Private Sub BTT_SHOW_INFO_MouseDown(sender As Object, e As MouseEventArgs) Handles BTT_SHOW_INFO.MouseDown
-        If e.Button = MouseButtons.Right Then
+    Private Sub BTT_SHOW_INFO_KeyClick(ByVal Sender As Object, ByVal e As Controls.KeyClick.KeyClickEventArgs) Handles BTT_SHOW_INFO.KeyClick
+        If e.MouseButton = MouseButtons.Right Then
             If MyMissingPosts Is Nothing Then MyMissingPosts = New MissingPostsForm
             If MyMissingPosts.Visible Then MyMissingPosts.BringToFront() Else MyMissingPosts.Show()
-        ElseIf e.Button = MouseButtons.Left Then
-            InfoForm.FormShow()
+        ElseIf e.MouseButton = MouseButtons.Left Then
+            If e.Control And e.Shift Then
+                If MyUserMetrics Is Nothing Then MyUserMetrics = New UsersInfoForm
+                MyUserMetrics.FormShowS
+            Else
+                InfoForm.FormShow()
+            End If
         End If
     End Sub
     Private Sub ShowFeed() Handles BTT_FEED.Click, BTT_TRAY_FEED_SHOW.Click
@@ -1206,26 +1213,31 @@ CloseResume:
         FocusUser(Key, True)
     End Sub
     Friend Overloads Sub FocusUser(ByVal Key As String, Optional ByVal ActivateMe As Boolean = False)
-        Dim a As Action = Sub()
-                              Dim i% = LIST_PROFILES.Items.IndexOfKey(Key)
-                              If i < 0 Then
-                                  Dim u As IUserData = Settings.GetUser(Key, True)
-                                  If Not u Is Nothing Then
-                                      UserListUpdate(u, True)
-                                      i = LIST_PROFILES.Items.IndexOfKey(u.Key)
+        If Not Key.IsEmptyString Then
+            Dim a As Action = Sub()
+                                  Dim i% = LIST_PROFILES.Items.IndexOfKey(Key)
+                                  If i < 0 Then
+                                      Dim u As IUserData = Settings.GetUser(Key, True)
+                                      If Not u Is Nothing Then
+                                          i = LIST_PROFILES.Items.IndexOfKey(u.Key)
+                                          If i < 0 Then
+                                              UserListUpdate(u, True)
+                                              i = LIST_PROFILES.Items.IndexOfKey(u.Key)
+                                          End If
+                                      End If
                                   End If
-                              End If
-                              If i >= 0 Then
-                                  LIST_PROFILES.Select()
-                                  LIST_PROFILES.SelectedIndices.Clear()
-                                  With LIST_PROFILES.Items(i) : .Selected = True : .Focused = True : End With
-                                  LIST_PROFILES.EnsureVisible(i)
-                                  If ActivateMe Then
-                                      If Visible Then BringToFront() Else Visible = True
+                                  If i >= 0 Then
+                                      LIST_PROFILES.Select()
+                                      LIST_PROFILES.SelectedIndices.Clear()
+                                      With LIST_PROFILES.Items(i) : .Selected = True : .Focused = True : End With
+                                      LIST_PROFILES.EnsureVisible(i)
+                                      If ActivateMe Then
+                                          If Visible Then BringToFront() Else Visible = True
+                                      End If
                                   End If
-                              End If
-                          End Sub
-        If LIST_PROFILES.InvokeRequired Then LIST_PROFILES.Invoke(a) Else a.Invoke
+                              End Sub
+            If LIST_PROFILES.InvokeRequired Then LIST_PROFILES.Invoke(a) Else a.Invoke
+        End If
     End Sub
 #End Region
 #Region "Toolbar bottom"

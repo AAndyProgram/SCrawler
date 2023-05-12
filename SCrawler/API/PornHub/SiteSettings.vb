@@ -25,6 +25,8 @@ Namespace API.PornHub
                 Return My.Resources.SiteResources.PornHubPic_16
             End Get
         End Property
+        <PropertyOption(ControlText:="Download UHD", ControlToolTip:="Download UHD (4K) content"), PXML>
+        Friend Property DownloadUHD As PropertyValue
         <PropertyOption(ControlText:="Download GIF", ControlToolTip:="Default for new users", ThreeStates:=True), PXML>
         Friend ReadOnly Property DownloadGifs As PropertyValue
         <PropertyOption(ControlText:="Download GIFs as mp4", ControlToolTip:="Download gifs in 'mp4' format instead of native 'webm'"), PXML>
@@ -41,6 +43,7 @@ Namespace API.PornHub
             MyBase.New("PornHub", "pornhub.com")
             With Responser : .CurlSslNoRevoke = True : .CurlInsecure = True : End With
 
+            DownloadUHD = New PropertyValue(False)
             DownloadGifsAsMp4 = New PropertyValue(True)
             DownloadGifs = New PropertyValue(CInt(CheckState.Indeterminate), GetType(Integer))
             DownloadPhotoOnlyFromModelHub = New PropertyValue(True)

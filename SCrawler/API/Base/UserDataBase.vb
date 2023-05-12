@@ -146,7 +146,18 @@ Namespace API.Base
                 Return HOST.Name
             End Get
         End Property
+        Private _Progress As MyProgress
         Friend Property Progress As MyProgress
+            Get
+                Return _Progress
+            End Get
+            Set(ByVal p As MyProgress)
+                _Progress = p
+                If Not ProgressPre Is Nothing Then ProgressPre.Reset() : ProgressPre.Dispose()
+                ProgressPre = New PreProgress(_Progress)
+            End Set
+        End Property
+        Protected Property ProgressPre As PreProgress = Nothing
 #End Region
 #Region "User name, ID, exist, suspend"
         Friend User As UserInfo
@@ -566,6 +577,8 @@ BlockNullPicture:
 #Region "Plugins Support"
         Protected Event ProgressChanged As IPluginContentProvider.ProgressChangedEventHandler Implements IPluginContentProvider.ProgressChanged
         Protected Event ProgressMaximumChanged As IPluginContentProvider.ProgressMaximumChangedEventHandler Implements IPluginContentProvider.ProgressMaximumChanged
+        Protected Event ProgressPreChanged As IPluginContentProvider.ProgressChangedEventHandler Implements IPluginContentProvider.ProgressPreChanged
+        Protected Event ProgressPreMaximumChanged As IPluginContentProvider.ProgressMaximumChangedEventHandler Implements IPluginContentProvider.ProgressPreMaximumChanged
         Private Property IPluginContentProvider_Settings As ISiteSettings Implements IPluginContentProvider.Settings
             Get
                 Return HOST.Source
@@ -911,6 +924,7 @@ BlockNullPicture:
         Private _PictureExists As Boolean
         Private _EnvirInvokeUserUpdated As Boolean = False
         Protected Sub EnvirDownloadSet()
+            ProgressPre.Reset()
             UpdateDataFiles()
             _DownloadInProgress = True
             _DescriptionChecked = False
@@ -962,10 +976,12 @@ BlockNullPicture:
                 If Not DownloadMissingOnly Then
                     ThrowAny(Token)
                     DownloadDataF(Token)
+                    ProgressPre.Done()
                     ThrowAny(Token)
-                    If Settings.ReparseMissingInTheRoutine Then ReparseMissing(Token) : ThrowAny(Token)
+                    If Settings.ReparseMissingInTheRoutine Then ReparseMissing(Token) : ProgressPre.Done() : ThrowAny(Token)
                 Else
                     ReparseMissing(Token)
+                    ProgressPre.Done()
                 End If
 
                 If _TempMediaList.Count > 0 Then
@@ -976,9 +992,10 @@ BlockNullPicture:
                 End If
 
                 ReparseVideo(Token)
+                ProgressPre.Done()
                 ThrowAny(Token)
 
-                If UseMD5Comparison Then ValidateMD5(Token) : ThrowAny(Token)
+                If UseMD5Comparison Then ValidateMD5(Token) : ProgressPre.Done() : ThrowAny(Token)
 
                 If _TempPostsList.Count > 0 And Not DownloadMissingOnly And __SaveData Then _
                    TextSaver.SaveTextToFile(_TempPostsList.ListToString(Environment.NewLine), MyFilePosts, True,, EDP.None)
@@ -1031,6 +1048,7 @@ BlockNullPicture:
                 DownloadMissingOnly = False
                 _ForceSaveUserData = False
                 _ForceSaveUserInfo = False
+                ProgressPre.Done()
             End Try
         End Sub
         Protected Sub UpdateDataFiles()
@@ -1064,8 +1082,6 @@ BlockNullPicture:
                 If Not HOST Is Nothing AndAlso Not HOST.Responser Is Nothing Then Responser.Copy(HOST.Responser)
                 SeparateVideoFolder = False
                 IsSingleObjectDownload = True
-                UseInternalDownloadFileFunction_UseProgress = True
-                UseInternalM3U8Function_UseProgress = True
                 DownloadSingleObject_GetPosts(Data, Token)
                 DownloadSingleObject_CreateMedia(Data, Token)
                 DownloadSingleObject_Download(Data, Token)
@@ -1157,15 +1173,17 @@ BlockNullPicture:
                                     ImgFormat = GetImageFormat(__data.File)
                                 End If
                                 If ImgFormat Is Nothing Then ImgFormat = Imaging.ImageFormat.Jpeg
-                                If IsUrl Then
-                                    hash = ByteArrayToString(GetMD5(SFile.GetBytesFromNet(__data.URL_BASE.IfNullOrEmpty(__data.URL), ErrMD5), ImgFormat, ErrMD5))
+                                If IsUrl And Not __isGif Then
+                                    hash = ByteArrayToString(GetMD5(SFile.GetBytesFromNet(__data.URL.IfNullOrEmpty(__data.URL_BASE), ErrMD5), ImgFormat, ErrMD5))
+                                ElseIf IsUrl And __isGif Then
+                                    hash = ByteArrayToString(GetMD5FromBytes(SFile.GetBytesFromNet(__data.URL.IfNullOrEmpty(__data.URL_BASE), ErrMD5), ErrMD5))
                                 Else
                                     hash = ByteArrayToString(GetMD5(SFile.GetBytes(__data.File, ErrMD5), ImgFormat, ErrMD5))
                                 End If
                                 If hash.IsEmptyString And Not __isGif Then
                                     If ImgFormat Is Imaging.ImageFormat.Jpeg Then ImgFormat = Imaging.ImageFormat.Png Else ImgFormat = Imaging.ImageFormat.Jpeg
                                     If IsUrl Then
-                                        hash = ByteArrayToString(GetMD5(SFile.GetBytesFromNet(__data.URL_BASE.IfNullOrEmpty(__data.URL), ErrMD5), ImgFormat, ErrMD5))
+                                        hash = ByteArrayToString(GetMD5(SFile.GetBytesFromNet(__data.URL.IfNullOrEmpty(__data.URL_BASE), ErrMD5), ImgFormat, ErrMD5))
                                     Else
                                         hash = ByteArrayToString(GetMD5(SFile.GetBytes(__data.File, ErrMD5), ImgFormat, ErrMD5))
                                     End If
@@ -1186,7 +1204,9 @@ BlockNullPicture:
                                 _ForceSaveUserInfo = True
                                 If existingFiles.Count > 0 Then
                                     Dim h$
+                                    ProgressPre.ChangeMax(existingFiles.Count)
                                     For i = existingFiles.Count - 1 To 0 Step -1
+                                        ProgressPre.Perform()
                                         h = __getMD5(New UserMedia With {.File = existingFiles(i)}, False)
                                         If Not h.IsEmptyString Then
                                             If hashList.ContainsKey(h) Then
@@ -1200,8 +1220,10 @@ BlockNullPicture:
                                     Next
                                 End If
                             End If
+                            ProgressPre.ChangeMax(_ContentList.Count)
                             For i = 0 To _ContentList.Count - 1
                                 data = _ContentList(i)
+                                ProgressPre.Perform()
                                 If (data.Type = UTypes.GIF Or data.Type = UTypes.Picture) Then
                                     If data.MD5.IsEmptyString Then
                                         ThrowAny(Token)
@@ -1215,8 +1237,10 @@ BlockNullPicture:
                                 End If
                             Next
                             If existingFiles.Count > 0 Then
+                                ProgressPre.ChangeMax(existingFiles.Count)
                                 For i = 0 To existingFiles.Count - 1
                                     f = existingFiles(i)
+                                    ProgressPre.Perform()
                                     data = New UserMedia(f.File) With {
                                         .State = UStates.Downloaded,
                                         .Type = IIf(f.Extension = "gif", UTypes.GIF, UTypes.Picture),
@@ -1238,7 +1262,9 @@ BlockNullPicture:
                         End With
                     End If
 
+                    ProgressPre.ChangeMax(_TempMediaList.Count)
                     For i = _TempMediaList.Count - 1 To 0 Step -1
+                        ProgressPre.Perform()
                         If limit > 0 And itemsCount >= limit Then
                             _TempMediaList.RemoveAt(i)
                         Else
@@ -1262,6 +1288,8 @@ BlockNullPicture:
             Catch iex As ArgumentOutOfRangeException When Disposed
             Catch ex As Exception
                 ProcessException(ex, Token, "ValidateMD5",, VALIDATE_MD5_ERROR)
+            Finally
+                ProgressPre.Done()
             End Try
         End Sub
 #End Region
@@ -1434,13 +1462,11 @@ BlockNullPicture:
             End Try
         End Sub
         Protected UseInternalM3U8Function As Boolean = False
-        Protected UseInternalM3U8Function_UseProgress As Boolean = False
         Protected Overridable Function DownloadM3U8(ByVal URL As String, ByVal Media As UserMedia, ByVal DestinationFile As SFile,
                                                     ByVal Token As CancellationToken) As SFile
             Return Nothing
         End Function
         Protected UseInternalDownloadFileFunction As Boolean = False
-        Protected UseInternalDownloadFileFunction_UseProgress As Boolean = False
         Protected Overridable Function DownloadFile(ByVal URL As String, ByVal Media As UserMedia, ByVal DestinationFile As SFile,
                                                     ByVal Token As CancellationToken) As SFile
             Return Nothing
@@ -1798,6 +1824,7 @@ BlockNullPicture:
                     LatestData.Clear()
                     _TempMediaList.Clear()
                     _TempPostsList.Clear()
+                    If Not ProgressPre Is Nothing Then ProgressPre.Reset() : ProgressPre.Dispose()
                     If Not Responser Is Nothing Then Responser.Dispose()
                     If Not BTT_CONTEXT_DOWN Is Nothing Then BTT_CONTEXT_DOWN.Dispose()
                     If Not BTT_CONTEXT_EDIT Is Nothing Then BTT_CONTEXT_EDIT.Dispose()

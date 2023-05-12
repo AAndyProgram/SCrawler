@@ -75,8 +75,8 @@ Namespace API.Xhamster
             End Try
         End Function
         Friend Shared Function Download(ByVal Media As UserMedia, ByVal Responser As Responser, ByVal UHD As Boolean,
-                                        ByVal Token As CancellationToken, ByVal Progress As MyProgress) As SFile
-            Return M3U8Base.Download(ObtainUrls(Media.URL, Responser, UHD), Media.File, Responser, Token, Progress)
+                                        ByVal Token As CancellationToken, ByVal Progress As MyProgress, ByVal UsePreProgress As Boolean) As SFile
+            Return M3U8Base.Download(ObtainUrls(Media.URL, Responser, UHD), Media.File, Responser, Token, Progress, UsePreProgress)
         End Function
     End Class
 End Namespace

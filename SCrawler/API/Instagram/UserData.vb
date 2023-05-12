@@ -207,19 +207,21 @@ Namespace API.Instagram
                 If dt.Invoke And Not LastCursor.IsEmptyString Then
                     s = IIf(IsSavedPosts, Sections.SavedPosts, Sections.Timeline)
                     DownloadData(LastCursor, s, Token)
+                    ProgressPre.Done()
                     ThrowAny(Token)
                     If Not HasError Then FirstLoadingDone = True
                 End If
                 If dt.Invoke And Not HasError Then
                     s = IIf(IsSavedPosts, Sections.SavedPosts, Sections.Timeline)
                     DownloadData(String.Empty, s, Token)
+                    ProgressPre.Done()
                     ThrowAny(Token)
                     If Not HasError Then FirstLoadingDone = True
                 End If
                 If FirstLoadingDone Then LastCursor = String.Empty
                 If Not IsSavedPosts AndAlso MySiteSettings.BaseAuthExists() Then
-                    If CBool(MySiteSettings.DownloadStories.Value) And GetStories Then s = Sections.Stories : DownloadData(String.Empty, s, Token)
-                    If CBool(MySiteSettings.DownloadTagged.Value) And ACheck(MySiteSettings.HashTagged.Value) And GetTaggedData Then s = Sections.Tagged : DownloadData(String.Empty, s, Token)
+                    If CBool(MySiteSettings.DownloadStories.Value) And GetStories Then s = Sections.Stories : DownloadData(String.Empty, s, Token) : ProgressPre.Done()
+                    If CBool(MySiteSettings.DownloadTagged.Value) And ACheck(MySiteSettings.HashTagged.Value) And GetTaggedData Then s = Sections.Tagged : DownloadData(String.Empty, s, Token) : ProgressPre.Done()
                 End If
                 If WaitNotificationMode = WNM.SkipTemp Or WaitNotificationMode = WNM.SkipCurrent Then WaitNotificationMode = WNM.Notify
             Catch eex As ExitException
@@ -229,7 +231,22 @@ Namespace API.Instagram
             Finally
                 E560Thrown = False
                 UpdateResponser()
+                ValidateExtension()
                 If Not errorFound Then LoadSavePostsKV(False)
+            End Try
+        End Sub
+        Private Sub ValidateExtension()
+            Try
+                Const heic$ = "heic"
+                If _TempMediaList.Count > 0 AndAlso _TempMediaList.Exists(Function(mm) mm.File.Extension = heic) Then
+                    Dim m As UserMedia
+                    For i% = 0 To _TempMediaList.Count - 1
+                        m = _TempMediaList(i)
+                        If m.Type = UTypes.Picture AndAlso Not m.File.Extension.IsEmptyString AndAlso m.File.Extension = heic Then _
+                           m.File.Extension = "jpg" : _TempMediaList(i) = m
+                    Next
+                End If
+            Catch ex As Exception
             End Try
         End Sub
         Private Sub UpdateResponser()
@@ -470,7 +487,9 @@ Namespace API.Instagram
                                                     HasNextPage = False
                                                 End If
                                                 If If(.Item("edges")?.Count, 0) > 0 Then
+                                                    ProgressPre.ChangeMax(.Item("edges").Count)
                                                     For Each nn In .Item("edges")
+                                                        ProgressPre.Perform()
                                                         PostIDKV = New PostKV(Section)
                                                         If nn.Count > 0 AndAlso nn(0).Count > 0 Then
                                                             With nn(0)
@@ -527,6 +546,7 @@ Namespace API.Instagram
             Dim URL$ = String.Empty
             Dim dValue% = 1
             Dim _Index% = 0
+            If PostsToReparse.Count > 0 Then ProgressPre.ChangeMax(PostsToReparse.Count)
             Try
                 Do While dValue = 1
                     ThrowAny(Token)
@@ -538,7 +558,9 @@ Namespace API.Instagram
                         Dim j As EContainer, jj As EContainer
                         If PostsToReparse.Count > 0 And _Index <= PostsToReparse.Count - 1 Then
                             Dim e As New ErrorsDescriber(EDP.ThrowException)
+                            If Index > 0 Then ProgressPre.ChangeMax(1)
                             For i% = _Index To PostsToReparse.Count - 1
+                                ProgressPre.Perform()
                                 _Index = i
                                 URL = $"https://www.instagram.com/api/v1/media/{PostsToReparse(i).ID}/info/"
                                 ThrowAny(Token)
@@ -611,7 +633,9 @@ Namespace API.Instagram
                         Case Else : SpecFolder = String.Empty
                     End Select
                 End If
+                ProgressPre.ChangeMax(Items.Count)
                 For Each nn In Items
+                    ProgressPre.Perform()
                     With nn
                         PostIDKV = New PostKV(.Value("code"), .Value("id"), Section)
                         Pinned = .Contains("timeline_pinned_user_ids")
@@ -799,7 +823,9 @@ Namespace API.Instagram
                     If Not r.IsEmptyString Then
                         Using j As EContainer = JsonDocument.Parse(r).XmlIfNothing
                             If j.Contains("reels") Then
+                                ProgressPre.ChangeMax(j("reels").Count)
                                 For Each jj In j("reels")
+                                    ProgressPre.Perform()
                                     i += 1
                                     sFolder = jj.Value("title").StringRemoveWinForbiddenSymbols
                                     storyID = jj.Value("id").Replace("highlight:", String.Empty)

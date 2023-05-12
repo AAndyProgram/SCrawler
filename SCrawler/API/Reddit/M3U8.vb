@@ -59,8 +59,10 @@ Namespace API.Reddit
         Private ReadOnly CacheFiles As CacheKeeper
         Private ReadOnly Property Progress As MyProgress
         Private ReadOnly ProgressExists As Boolean
+        Private ReadOnly Property ProgressPre As PreProgress
+        Private ReadOnly UsePreProgress As Boolean
 #End Region
-        Private Sub New(ByVal URL As String, ByVal OutFile As SFile, ByVal Progress As MyProgress)
+        Private Sub New(ByVal URL As String, ByVal OutFile As SFile, ByVal Progress As MyProgress, ByVal UsePreProgress As Boolean)
             PlayListURL = URL
             BaseURL = RegexReplace(URL, BaseUrlPattern)
             Video = New List(Of String)
@@ -70,6 +72,8 @@ Namespace API.Reddit
             Me.OutFile.Extension = "mp4"
             Me.Progress = Progress
             ProgressExists = Not Me.Progress Is Nothing
+            ProgressPre = New PreProgress(Progress)
+            Me.UsePreProgress = UsePreProgress
             Cache = New CacheKeeper($"{OutFile.PathWithSeparator}_{Base.M3U8Base.TempCacheFolderName}\")
             CacheFiles = Cache.NewInstance
         End Sub
@@ -142,12 +146,24 @@ Namespace API.Reddit
                     If tmpCache.Validate Then
                         Dim i%
                         Dim dFile As SFile = tmpCache.RootDirectory
-                        If ProgressExists Then Progress.Maximum += Urls.Count
+                        If ProgressExists Then
+                            If UsePreProgress Then
+                                ProgressPre.ChangeMax(Urls.Count)
+                            Else
+                                Progress.Maximum += Urls.Count
+                            End If
+                        End If
                         dFile.Extension = New SFile(Urls(0)).Extension
                         If dFile.Extension.IsEmptyString Then dFile.Extension = "ts"
                         Using w As New WebClient
                             For i = 0 To Urls.Count - 1
-                                If ProgressExists Then Progress.Perform()
+                                If ProgressExists Then
+                                    If UsePreProgress Then
+                                        ProgressPre.Perform()
+                                    Else
+                                        Progress.Perform()
+                                    End If
+                                End If
                                 Token.ThrowIfCancellationRequested()
                                 dFile.Name = $"ConPart_{i}"
                                 w.DownloadFile(Urls(i), dFile)
@@ -185,8 +201,9 @@ Namespace API.Reddit
         End Function
 #End Region
 #Region "Statics"
-        Friend Shared Function Download(ByVal URL As String, ByVal f As SFile, ByVal Token As CancellationToken, ByVal Progress As MyProgress) As SFile
-            Using m As New M3U8(URL, f, Progress) : Return m.Download(Token) : End Using
+        Friend Shared Function Download(ByVal URL As String, ByVal f As SFile, ByVal Token As CancellationToken,
+                                        ByVal Progress As MyProgress, ByVal UsePreProgress As Boolean) As SFile
+            Using m As New M3U8(URL, f, Progress, UsePreProgress) : Return m.Download(Token) : End Using
         End Function
 #End Region
 #Region "IDisposable Support"
@@ -197,6 +214,7 @@ Namespace API.Reddit
                     Video.Clear()
                     Audio.Clear()
                     Cache.Dispose()
+                    ProgressPre.Dispose()
                 End If
                 disposedValue = True
             End If

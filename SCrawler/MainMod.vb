@@ -90,7 +90,7 @@ Friend Module MainMod
         End Sub
     End Class
 #End Region
-    Friend Property MainProgress As MyProgress
+    Friend Property MainProgress As MyProgressExt
     Friend Function GetLviGroupName(ByVal Host As SettingsHost, ByVal IsCollection As Boolean) As ListViewGroup()
         Dim l As New List(Of ListViewGroup)
         Dim t$

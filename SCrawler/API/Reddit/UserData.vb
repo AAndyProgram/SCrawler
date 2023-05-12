@@ -14,6 +14,7 @@ Imports SCrawler.API.YouTube.Objects
 Imports SCrawler.Plugin.Hosts
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.RegularExpressions
+Imports PersonalUtilities.Tools.ImageRenderer
 Imports PersonalUtilities.Tools.Web.Clients
 Imports PersonalUtilities.Tools.Web.Documents.JSON
 Imports UStates = SCrawler.API.Base.UserMedia.States
@@ -222,6 +223,7 @@ Namespace API.Reddit
                 GetUserInfo()
                 DownloadDataUser(String.Empty, Token)
             End If
+            ProgressPre.Done()
         End Sub
 #End Region
 #Region "Download Functions (User, Channel)"
@@ -247,7 +249,6 @@ Namespace API.Reddit
                     Dim ExistsDetected As Boolean = False
                     Dim IsCrossPost As Predicate(Of EContainer) = Function(e) Not e.Value(Node_CrosspostRootId).IsEmptyString Or Not e.Value(Node_CrosspostParentId).IsEmptyString Or Not e.Value(Node_CrosspostParent).IsEmptyString
                     Dim CheckNode As Predicate(Of EContainer) = Function(e) Not ParseUserMediaOnly OrElse If(e("author")?.Value, "/").ToLower.Equals(TrueName.StringToLower)
-                    Dim UPicType As Func(Of String, UTypes) = Function(input) IIf(input = "image", UTypes.Picture, UTypes.GIF)
                     Dim _PostID As Func(Of String) = Function() PostTmp.IfNullOrEmpty(PostID)
 
                     URL = $"https://gateway.reddit.com/desktopapi/v1/user/{TrueName}/posts?rtj=only&allow_quarantined=true&allow_over18=1&include=identity&after={POST}&dist=25&sort={View}&t={Period}&layout=classic"
@@ -258,7 +259,9 @@ Namespace API.Reddit
                             If w.Count > 0 Then
                                 n = w.GetNode(JsonNodesJson)
                                 If Not n Is Nothing AndAlso n.Count > 0 Then
+                                    ProgressPre.ChangeMax(n.Count)
                                     For Each nn In n
+                                        ProgressPre.Perform()
                                         ThrowAny(Token)
                                         If nn.Count > 0 Then
                                             If CheckNode(nn) Then
@@ -340,7 +343,9 @@ Namespace API.Reddit
                             If w.Count > 0 Then
                                 n = w.GetNode(ChannelJsonNodes)
                                 If Not n Is Nothing AndAlso n.Count > 0 Then
+                                    ProgressPre.ChangeMax(n.Count)
                                     For Each nn In n
+                                        ProgressPre.Perform()
                                         ThrowAny(Token)
                                         s = nn.ItemF({eCount})
                                         If If(s?.Count, 0) > 0 Then
@@ -467,8 +472,40 @@ Namespace API.Reddit
                         Select Case t
                             Case "gallery" : If DownloadGallery(.Self, PostID, PostDate) Then _TotalPostsDownloaded += 1 Else added = False
                             Case "image", "gifvideo"
+
+                                Dim resolution As Sizes = Nothing
+                                Dim content As Sizes = Nothing
+                                Dim chosenVal$ = String.Empty
+                                ParseResolutions(e("media"), e("preview"), resolution)
                                 If .Contains("content") Then
-                                    _TempMediaList.ListAddValue(MediaFromData(UPicType(t), .Value("content"), PostID, PostDate, UserID), LNC)
+                                    content = CreateSize(.Self, "content")
+                                    If content.HasError Or content.Data.IsEmptyString Then content = Nothing
+                                End If
+
+                                If UPicType(t) = UTypes.Picture Then
+                                    If Not content.Data.IsEmptyString Then
+                                        If Not resolution.Data.IsEmptyString Then
+                                            If content.Value >= resolution.Value AndAlso TryImage(content.Data) Then
+                                                chosenVal = content.Data
+                                            Else
+                                                chosenVal = resolution.Data
+                                            End If
+                                        Else
+                                            chosenVal = content.Data
+                                        End If
+                                    Else
+                                        chosenVal = resolution.Data
+                                    End If
+                                Else
+                                    If Not resolution.Data.IsEmptyString Then
+                                        chosenVal = resolution.Data
+                                    ElseIf Not content.Data.IsEmptyString Then
+                                        chosenVal = content.Data
+                                    End If
+                                End If
+
+                                If Not chosenVal.IsEmptyString Then
+                                    _TempMediaList.ListAddValue(MediaFromData(UPicType(t), chosenVal, PostID, PostDate, UserID), LNC)
                                     _TotalPostsDownloaded += 1
                                 Else
                                     added = False
@@ -512,15 +549,17 @@ Namespace API.Reddit
                             added = ParseContainer(e.ItemF({"crosspost_parent_list", 0}), PostID, PostDate, UserID, True)
                         Else
                             Dim tPostId$ = e.Value(Node_CrosspostParent).IfNullOrEmpty(e.Value(Node_CrosspostParentId)).IfNullOrEmpty(e.Value(Node_CrosspostRootId))
-                            Dim r$ = Responser.GetResponse($"https://www.reddit.com/comments/{tPostId.Split("_").LastOrDefault}/.json",, EDP.ReturnValue)
-                            If Not r.IsEmptyString Then
-                                Using j As EContainer = JsonDocument.Parse(r, EDP.ReturnValue)
-                                    If j.ListExists Then
-                                        With j.ItemF({0, "data", "children", 0, "data"})
-                                            If .ListExists Then added = ParseContainer(.Self, PostID, PostDate, UserID, False)
-                                        End With
-                                    End If
-                                End Using
+                            If Not PostID.IsEmptyString Then
+                                Dim r$ = Responser.GetResponse($"https://www.reddit.com/comments/{tPostId.Split("_").LastOrDefault}/.json",, EDP.ReturnValue)
+                                If Not r.IsEmptyString Then
+                                    Using j As EContainer = JsonDocument.Parse(r, EDP.ReturnValue)
+                                        If j.ListExists Then
+                                            With j.ItemF({0, "data", "children", 0, "data"})
+                                                If .ListExists Then added = ParseContainer(.Self, PostID, PostDate, UserID, False)
+                                            End With
+                                        End If
+                                    End Using
+                                End If
                             End If
                         End If
                     End If
@@ -556,6 +595,19 @@ Namespace API.Reddit
             Else
                 Return False
             End If
+        End Function
+        Private Function TryImage(ByVal URL As String) As Boolean
+            Try
+                Dim img As Image = GetImage(SFile.GetBytesFromNet(URL, EDP.ThrowException), EDP.ThrowException)
+                If Not img Is Nothing Then
+                    img.Dispose()
+                    Return True
+                Else
+                    Return False
+                End If
+            Catch
+                Return False
+            End Try
         End Function
 #End Region
 #Region "Download Base Functions"
@@ -640,32 +692,53 @@ Namespace API.Reddit
                 If Not Node Is Nothing Then
                     Dim n As EContainer = Node.ItemF({"preview", "images", 0})
                     Dim DestNode$() = Nothing
-                    If If(n?.Count, 0) > 0 Then
-                        If If(n("resolutions")?.Count, 0) > 0 Then
-                            DestNode = {"resolutions"}
-                        ElseIf If(n({"variants", "nsfw", "resolutions"})?.Count, 0) > 0 Then
-                            DestNode = {"variants", "nsfw", "resolutions"}
-                        End If
-                        If Not DestNode Is Nothing Then
-                            With n(DestNode)
-                                Dim sl As List(Of Sizes) = .Select(Function(e) New Sizes(e.Value("width"), e.Value("url"))).
-                                                            ListWithRemove(Function(ss) ss.HasError Or ss.Data.IsEmptyString)
-                                If sl.ListExists Then
-                                    Dim s As Sizes
-                                    sl.Sort()
-                                    s = sl.First
-                                    sl.Clear()
-                                    Return s.Data
-                                End If
-                            End With
-                        End If
-                    End If
+                    If If(n?.Count, 0) > 0 Then Return ParseResolutions(n)
                 End If
                 Return String.Empty
             Catch ex As Exception
                 ProcessException(ex, Nothing, "reddit video preview parsing error", False)
                 Return String.Empty
             End Try
+        End Function
+        Private Function ParseResolutions(ByVal Node As EContainer, Optional ByVal PreviewNode As EContainer = Nothing,
+                                          Optional ByRef SResult As Sizes = Nothing) As String
+            Try
+                If If(Node?.Count, 0) > 0 Then
+                    Dim DestNode$() = Nothing
+                    If If(Node("resolutions")?.Count, 0) > 0 Then
+                        DestNode = {"resolutions"}
+                    ElseIf If(Node({"variants", "nsfw", "resolutions"})?.Count, 0) > 0 Then
+                        DestNode = {"variants", "nsfw", "resolutions"}
+                    End If
+                    If Not DestNode Is Nothing Then
+                        With Node(DestNode)
+                            Dim sl As List(Of Sizes) = .Select(Function(e) CreateSize(e)).
+                                                        ListWithRemove(Function(ss) ss.HasError Or ss.Data.IsEmptyString)
+                            If If(PreviewNode?.Count, 0) > 0 Then
+                                Dim sp As Sizes = CreateSize(PreviewNode)
+                                If Not sp.HasError And Not sp.Data.IsEmptyString Then
+                                    If sl Is Nothing Then sl = New List(Of Sizes)
+                                    sl.Add(sp)
+                                End If
+                            End If
+                            If sl.ListExists Then
+                                Dim s As Sizes
+                                sl.Sort()
+                                s = sl.First
+                                sl.Clear()
+                                SResult = s
+                                Return s.Data
+                            End If
+                        End With
+                    End If
+                End If
+                Return String.Empty
+            Catch ex As Exception
+                Return String.Empty
+            End Try
+        End Function
+        Private Function CreateSize(ByVal Node As EContainer, Optional ByVal UrlNodeName As String = "url") As Sizes
+            Return New Sizes(Node.Value("width"), Node.Value(UrlNodeName))
         End Function
 #End Region
 #Region "ReparseVideo"
@@ -681,8 +754,10 @@ Namespace API.Reddit
                     Dim RedGifsHost As SettingsHost = Settings(RedGifs.RedGifsSiteKey)
                     Dim _repeatForRedgifs As Boolean
                     RedGifsResponser = RedGifsHost.Responser.Copy
+                    ProgressPre.ChangeMax(_TempMediaList.Count)
                     For i% = _TempMediaList.Count - 1 To 0 Step -1
                         ThrowAny(Token)
+                        ProgressPre.Perform()
                         If _TempMediaList(i).Type = UTypes.VideoPre Or _TempMediaList(i).Type = v2 Then
                             m = _TempMediaList(i)
                             If _TempMediaList(i).Type = UTypes.VideoPre Then
@@ -728,6 +803,7 @@ Namespace API.Reddit
                 ProcessException(ex, Token, "video reparsing error", False)
             Finally
                 If Not RedGifsResponser Is Nothing Then RedGifsResponser.Dispose()
+                ProgressPre.Done()
             End Try
         End Sub
 #End Region
@@ -744,8 +820,10 @@ Namespace API.Reddit
                     Dim r$
                     Dim j As EContainer
                     Dim lastCount%, li%
+                    ProgressPre.ChangeMax(_ContentList.Count)
                     For i% = 0 To _ContentList.Count - 1
                         m = _ContentList(i)
+                        ProgressPre.Perform()
                         If m.State = UStates.Missing AndAlso Not m.Post.ID.IsEmptyString Then
                             ThrowAny(Token)
                             r = Responser.GetResponse($"https://www.reddit.com/comments/{m.Post.ID.Split("_").LastOrDefault}/.json",, EDP.ReturnValue)
@@ -781,6 +859,7 @@ Namespace API.Reddit
                     For i% = rList.Count - 1 To 0 Step -1 : _ContentList.RemoveAt(rList(i)) : Next
                     rList.Clear()
                 End If
+                ProgressPre.Done()
             End Try
         End Sub
 #End Region
@@ -804,17 +883,13 @@ Namespace API.Reddit
             _URL = LinkFormatterSecure(RegexReplace(_URL.Replace("\", String.Empty), LinkPattern))
             Dim m As New UserMedia(_URL, t) With {.Post = New UserPost With {.ID = PostID, .UserID = _UserID}}
             If t = UTypes.Picture Or t = UTypes.GIF Then m.File = CreateFileFromUrl(m.URL) Else m.File = Nothing
-            If ReplacePreview And m.URL.Contains("preview") Then m.URL = $"https://i.redd.it/{m.File.File}"
+            If ReplacePreview And m.URL.Contains("preview") And Not t = UTypes.Picture Then m.URL = $"https://i.redd.it/{m.File.File}"
             If Not PostDate.IsEmptyString Then m.Post.Date = AConvert(Of Date)(PostDate, DateTrueProvider(IsChannel), Nothing) Else m.Post.Date = Nothing
             Return m
         End Function
         Private Function TryFile(ByVal URL As String) As Boolean
             Try
-                If Not URL.IsEmptyString AndAlso URL.StringContains({".jpg", ".png", ".jpeg"}) Then
-                    Return Not CreateFileFromUrl(URL).IsEmptyString
-                Else
-                    Return False
-                End If
+                Return Not URL.IsEmptyString AndAlso Not CreateFileFromUrl(URL).IsEmptyString
             Catch ex As Exception
                 Return False
             End Try
@@ -861,7 +936,7 @@ Namespace API.Reddit
             Return URL.Contains(SiteRedGifsKey)
         End Function
         Protected Overrides Function DownloadM3U8(ByVal URL As String, ByVal Media As UserMedia, ByVal DestinationFile As SFile, ByVal Token As CancellationToken) As SFile
-            Return M3U8.Download(URL, DestinationFile, Token, IIf(IsSingleObjectDownload, Progress, Nothing))
+            Return M3U8.Download(URL, DestinationFile, Token, Progress, Not IsSingleObjectDownload)
         End Function
         Protected Overrides Function ChangeFileNameByProvider(ByVal f As SFile, ByVal m As UserMedia) As SFile
             If Not IsChannel Or Not SaveToCache Then
