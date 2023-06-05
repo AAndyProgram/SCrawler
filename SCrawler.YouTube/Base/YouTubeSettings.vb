@@ -94,12 +94,12 @@ Namespace API.YouTube.Base
         End Property
 #End Region
 #Region "Defaults"
+        <Browsable(True), GridVisible, XMLVN({"Defaults"}), Category("Defaults"), DisplayName("Replace modification date"),
+            Description("Set the file date to the date the video was added (website) (if available). Default: false.")>
+        Public ReadOnly Property ReplaceModificationDate As XMLValue(Of Boolean)
         <Browsable(True), GridVisible, XMLVN({"Defaults"}), Category("Defaults"), DisplayName("Use cookies"),
             Description("By default, use cookies when downloading from YouTube.")>
         Public ReadOnly Property DefaultUseCookies As XMLValue(Of Boolean)
-        <Browsable(True), GridVisible(False), XMLVN({"Defaults"}, 100), Category("Defaults"), DisplayName("Items limit"),
-            Description("Number of items displayed in the list.")>
-        Public ReadOnly Property ItemsListLimit As XMLValue(Of Integer)
         <Browsable(True), GridVisible(False), XMLVN({"Defaults"}), Category("Defaults"),
             DisplayName("Auto remove"), Description("Automatically remove downloaded items from the list.")>
         Public ReadOnly Property RemoveDownloadedAutomatically As XMLValue(Of Boolean)

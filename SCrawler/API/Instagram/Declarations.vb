@@ -46,6 +46,7 @@ Namespace API.Instagram
                 If Not token.IsEmptyString Then Destination.Headers.Add(SiteSettings.Header_CSRF_TOKEN, token)
                 If Not isInternal Then
                     Destination.Cookies.Update(Source.Cookies, CookieKeeper.UpdateModes.ReplaceByNameAll, False, EDP.SendToLog)
+                    Destination.Cookies.Update(EDP.SendToLog)
                     Destination.SaveSettings()
                 End If
             End If

@@ -452,9 +452,9 @@ CloseResume:
         Downloader.AddRange(Settings.GetUsers(UserExistsPredicate), e.IncludeInTheFeed)
     End Sub
     Private Sub BTT_DOWN_SITE_FULL_KeyClick(sender As Object, e As MyKeyEventArgs) Handles BTT_DOWN_SITE_FULL.KeyClick
-        DownloadSiteFull(False, e.IncludeInTheFeed)
+        DownloadSiteFull(False, e.IncludeInTheFeed, e.Shift)
     End Sub
-    Private Sub DownloadSiteFull(ByVal ReadyForDownloadOnly As Boolean, ByVal IncludeInTheFeed As Boolean)
+    Private Sub DownloadSiteFull(ByVal ReadyForDownloadOnly As Boolean, ByVal IncludeInTheFeed As Boolean, Optional ByVal IgnoreExists As Boolean = False)
         Using f As New SiteSelectionForm(Settings.LatestDownloadedSites.ValuesList)
             f.ShowDialog()
             If f.DialogResult = DialogResult.OK Then
@@ -462,7 +462,7 @@ CloseResume:
                 Settings.LatestDownloadedSites.AddRange(f.SelectedSites)
                 Settings.LatestDownloadedSites.Update()
                 If f.SelectedSites.Count > 0 Then
-                    Downloader.AddRange(Settings.GetUsers(Function(u) f.SelectedSites.Contains(u.Site) And u.Exists And
+                    Downloader.AddRange(Settings.GetUsers(Function(u) f.SelectedSites.Contains(u.Site) And (u.Exists Or IgnoreExists) And
                                                                       (Not ReadyForDownloadOnly Or u.ReadyForDownload)), IncludeInTheFeed)
                 End If
             End If
@@ -513,7 +513,7 @@ CloseResume:
         TrayIcon.ContextMenuStrip.Hide()
         MainFrameObj.PauseButtons.UpdatePauseButtons()
     End Sub
-    Private Sub BTT_DOWN_VIDEO_Click(sender As Object, e As EventArgs) Handles BTT_DOWN_VIDEO.Click
+    Private Sub BTT_DOWN_VIDEO_Click(sender As Object, e As EventArgs) Handles BTT_DOWN_VIDEO.Click, BTT_TRAY_DOWNLOADER.Click
         VideoDownloader.FormShow()
     End Sub
     Private Sub BTT_DOWN_STOP_Click(sender As Object, e As EventArgs) Handles BTT_DOWN_STOP.Click

@@ -122,6 +122,8 @@ Namespace Editors
             Me.CH_NAME_SITE_FRIENDLY = New System.Windows.Forms.CheckBox()
             Me.CH_STD = New System.Windows.Forms.CheckBox()
             Me.CH_STD_EVERY = New System.Windows.Forms.CheckBox()
+            Me.CH_STD_YT_LOAD = New System.Windows.Forms.CheckBox()
+            Me.CH_STD_YT_REMOVE = New System.Windows.Forms.CheckBox()
             Me.TXT_CHANNELS_ROWS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_CHANNELS_COLUMNS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.CH_DOWN_IMAGES_NATIVE = New System.Windows.Forms.CheckBox()
@@ -157,8 +159,7 @@ Namespace Editors
             Me.TAB_MAIN = New System.Windows.Forms.TabControl()
             Me.TAB_ENVIR = New System.Windows.Forms.TabPage()
             Me.CONTAINER_MAIN = New System.Windows.Forms.ToolStripContainer()
-            Me.CH_STD_YT_LOAD = New System.Windows.Forms.CheckBox()
-            Me.CH_STD_YT_REMOVE = New System.Windows.Forms.CheckBox()
+            Me.CH_UICON_UP = New System.Windows.Forms.CheckBox()
             TP_BASIS = New System.Windows.Forms.TableLayoutPanel()
             TP_IMAGES = New System.Windows.Forms.TableLayoutPanel()
             TP_FILE_NAME = New System.Windows.Forms.TableLayoutPanel()
@@ -508,13 +509,13 @@ Namespace Editors
             TP_FILE_NAME.Controls.Add(Me.OPT_FILE_NAME_ADD_DATE, 2, 0)
             TP_FILE_NAME.Controls.Add(Me.CH_FILE_NAME_CHANGE, 0, 0)
             TP_FILE_NAME.Dock = System.Windows.Forms.DockStyle.Fill
-            TP_FILE_NAME.Location = New System.Drawing.Point(1, 53)
+            TP_FILE_NAME.Location = New System.Drawing.Point(1, 79)
             TP_FILE_NAME.Margin = New System.Windows.Forms.Padding(0)
             TP_FILE_NAME.Name = "TP_FILE_NAME"
             TP_FILE_NAME.RowCount = 1
             TP_FILE_NAME.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
             TP_FILE_NAME.Size = New System.Drawing.Size(574, 30)
-            TP_FILE_NAME.TabIndex = 2
+            TP_FILE_NAME.TabIndex = 3
             '
             'OPT_FILE_NAME_REPLACE
             '
@@ -566,14 +567,14 @@ Namespace Editors
             TP_FILE_PATTERNS.Controls.Add(Me.OPT_FILE_DATE_START, 3, 0)
             TP_FILE_PATTERNS.Controls.Add(Me.OPT_FILE_DATE_END, 4, 0)
             TP_FILE_PATTERNS.Dock = System.Windows.Forms.DockStyle.Fill
-            TP_FILE_PATTERNS.Location = New System.Drawing.Point(1, 84)
+            TP_FILE_PATTERNS.Location = New System.Drawing.Point(1, 110)
             TP_FILE_PATTERNS.Margin = New System.Windows.Forms.Padding(0)
             TP_FILE_PATTERNS.Name = "TP_FILE_PATTERNS"
             TP_FILE_PATTERNS.RowCount = 1
             TP_FILE_PATTERNS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
             TP_FILE_PATTERNS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 29.0!))
             TP_FILE_PATTERNS.Size = New System.Drawing.Size(574, 30)
-            TP_FILE_PATTERNS.TabIndex = 3
+            TP_FILE_PATTERNS.TabIndex = 4
             '
             'CH_FILE_DATE
             '
@@ -880,10 +881,10 @@ Namespace Editors
             '
             Me.CH_DOWN_REPARSE_MISSING.AutoSize = True
             Me.CH_DOWN_REPARSE_MISSING.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_DOWN_REPARSE_MISSING.Location = New System.Drawing.Point(4, 202)
+            Me.CH_DOWN_REPARSE_MISSING.Location = New System.Drawing.Point(4, 228)
             Me.CH_DOWN_REPARSE_MISSING.Name = "CH_DOWN_REPARSE_MISSING"
             Me.CH_DOWN_REPARSE_MISSING.Size = New System.Drawing.Size(568, 19)
-            Me.CH_DOWN_REPARSE_MISSING.TabIndex = 7
+            Me.CH_DOWN_REPARSE_MISSING.TabIndex = 8
             Me.CH_DOWN_REPARSE_MISSING.Text = "Trying to download missing posts using regular download"
             TT_MAIN.SetToolTip(Me.CH_DOWN_REPARSE_MISSING, "If missing posts exist, the missing posts will attempt to be downloaded via user " &
         "download")
@@ -924,6 +925,34 @@ Namespace Editors
             Me.CH_STD_EVERY.Text = "Standalone downloader (every download)"
             TT_MAIN.SetToolTip(Me.CH_STD_EVERY, "Show notifications when download in standalone downloader is complete")
             Me.CH_STD_EVERY.UseVisualStyleBackColor = True
+            '
+            'CH_STD_YT_LOAD
+            '
+            Me.CH_STD_YT_LOAD.AutoSize = True
+            Me.CH_STD_YT_LOAD.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_STD_YT_LOAD.Location = New System.Drawing.Point(4, 166)
+            Me.CH_STD_YT_LOAD.Name = "CH_STD_YT_LOAD"
+            Me.CH_STD_YT_LOAD.Padding = New System.Windows.Forms.Padding(100, 0, 0, 0)
+            Me.CH_STD_YT_LOAD.Size = New System.Drawing.Size(568, 19)
+            Me.CH_STD_YT_LOAD.TabIndex = 6
+            Me.CH_STD_YT_LOAD.Text = "Load downloaded YouTube videos to the form"
+            TT_MAIN.SetToolTip(Me.CH_STD_YT_LOAD, "If checked, downloaded YouTube videos will be loaded to the form. Otherwise, all " &
+        "downloaded data will be loaded to the form except YouTube data.")
+            Me.CH_STD_YT_LOAD.UseVisualStyleBackColor = True
+            '
+            'CH_STD_YT_REMOVE
+            '
+            Me.CH_STD_YT_REMOVE.AutoSize = True
+            Me.CH_STD_YT_REMOVE.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_STD_YT_REMOVE.Location = New System.Drawing.Point(4, 192)
+            Me.CH_STD_YT_REMOVE.Name = "CH_STD_YT_REMOVE"
+            Me.CH_STD_YT_REMOVE.Padding = New System.Windows.Forms.Padding(100, 0, 0, 0)
+            Me.CH_STD_YT_REMOVE.Size = New System.Drawing.Size(568, 19)
+            Me.CH_STD_YT_REMOVE.TabIndex = 7
+            Me.CH_STD_YT_REMOVE.Text = "Clear YouTube videos when clearing the list"
+            TT_MAIN.SetToolTip(Me.CH_STD_YT_REMOVE, "If checked, YouTube videos will also be removed from the list. This action will a" &
+        "lso affect the standalone 'YouTubeDownloader' app.")
+            Me.CH_STD_YT_REMOVE.UseVisualStyleBackColor = True
             '
             'TP_CHANNELS_IMGS
             '
@@ -1265,18 +1294,20 @@ Namespace Editors
             TP_DOWNLOADING.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
             TP_DOWNLOADING.ColumnCount = 1
             TP_DOWNLOADING.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_DOWNLOADING.Controls.Add(TP_FILE_NAME, 0, 2)
-            TP_DOWNLOADING.Controls.Add(TP_FILE_PATTERNS, 0, 3)
-            TP_DOWNLOADING.Controls.Add(Me.TXT_SCRIPT, 0, 4)
+            TP_DOWNLOADING.Controls.Add(TP_FILE_NAME, 0, 3)
+            TP_DOWNLOADING.Controls.Add(TP_FILE_PATTERNS, 0, 4)
+            TP_DOWNLOADING.Controls.Add(Me.TXT_SCRIPT, 0, 5)
             TP_DOWNLOADING.Controls.Add(Me.CH_UDESCR_UP, 0, 0)
-            TP_DOWNLOADING.Controls.Add(Me.TXT_DOWN_COMPLETE_SCRIPT, 0, 5)
-            TP_DOWNLOADING.Controls.Add(TP_MISSING_DATA, 0, 6)
-            TP_DOWNLOADING.Controls.Add(Me.CH_DOWN_REPARSE_MISSING, 0, 7)
+            TP_DOWNLOADING.Controls.Add(Me.TXT_DOWN_COMPLETE_SCRIPT, 0, 6)
+            TP_DOWNLOADING.Controls.Add(TP_MISSING_DATA, 0, 7)
+            TP_DOWNLOADING.Controls.Add(Me.CH_DOWN_REPARSE_MISSING, 0, 8)
             TP_DOWNLOADING.Controls.Add(Me.CH_UNAME_UP, 0, 1)
+            TP_DOWNLOADING.Controls.Add(Me.CH_UICON_UP, 0, 2)
             TP_DOWNLOADING.Dock = System.Windows.Forms.DockStyle.Fill
             TP_DOWNLOADING.Location = New System.Drawing.Point(0, 0)
             TP_DOWNLOADING.Name = "TP_DOWNLOADING"
-            TP_DOWNLOADING.RowCount = 9
+            TP_DOWNLOADING.RowCount = 10
+            TP_DOWNLOADING.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_DOWNLOADING.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_DOWNLOADING.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_DOWNLOADING.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 30.0!))
@@ -1305,12 +1336,12 @@ Namespace Editors
             Me.TXT_SCRIPT.CaptionWidth = 120.0R
             Me.TXT_SCRIPT.ChangeControlsEnableOnCheckedChange = False
             Me.TXT_SCRIPT.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_SCRIPT.Location = New System.Drawing.Point(4, 118)
+            Me.TXT_SCRIPT.Location = New System.Drawing.Point(4, 144)
             Me.TXT_SCRIPT.Name = "TXT_SCRIPT"
             Me.TXT_SCRIPT.PlaceholderEnabled = True
             Me.TXT_SCRIPT.PlaceholderText = "Enter script path here..."
             Me.TXT_SCRIPT.Size = New System.Drawing.Size(568, 22)
-            Me.TXT_SCRIPT.TabIndex = 4
+            Me.TXT_SCRIPT.TabIndex = 5
             '
             'TXT_DOWN_COMPLETE_SCRIPT
             '
@@ -1320,12 +1351,12 @@ Namespace Editors
             Me.TXT_DOWN_COMPLETE_SCRIPT.CaptionToolTipText = "This command will be executed after all downloads are completed"
             Me.TXT_DOWN_COMPLETE_SCRIPT.CaptionWidth = 120.0R
             Me.TXT_DOWN_COMPLETE_SCRIPT.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_DOWN_COMPLETE_SCRIPT.Location = New System.Drawing.Point(4, 147)
+            Me.TXT_DOWN_COMPLETE_SCRIPT.Location = New System.Drawing.Point(4, 173)
             Me.TXT_DOWN_COMPLETE_SCRIPT.Name = "TXT_DOWN_COMPLETE_SCRIPT"
             Me.TXT_DOWN_COMPLETE_SCRIPT.PlaceholderEnabled = True
             Me.TXT_DOWN_COMPLETE_SCRIPT.PlaceholderText = "Enter command here..."
             Me.TXT_DOWN_COMPLETE_SCRIPT.Size = New System.Drawing.Size(568, 22)
-            Me.TXT_DOWN_COMPLETE_SCRIPT.TabIndex = 5
+            Me.TXT_DOWN_COMPLETE_SCRIPT.TabIndex = 6
             '
             'TP_MISSING_DATA
             '
@@ -1336,14 +1367,14 @@ Namespace Editors
             TP_MISSING_DATA.Controls.Add(Me.CH_ADD_MISSING_TO_LOG, 0, 0)
             TP_MISSING_DATA.Controls.Add(Me.CH_ADD_MISSING_ERROS_TO_LOG, 1, 0)
             TP_MISSING_DATA.Dock = System.Windows.Forms.DockStyle.Fill
-            TP_MISSING_DATA.Location = New System.Drawing.Point(1, 173)
+            TP_MISSING_DATA.Location = New System.Drawing.Point(1, 199)
             TP_MISSING_DATA.Margin = New System.Windows.Forms.Padding(0)
             TP_MISSING_DATA.Name = "TP_MISSING_DATA"
             TP_MISSING_DATA.RowCount = 1
             TP_MISSING_DATA.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
             TP_MISSING_DATA.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 24.0!))
             TP_MISSING_DATA.Size = New System.Drawing.Size(574, 25)
-            TP_MISSING_DATA.TabIndex = 6
+            TP_MISSING_DATA.TabIndex = 7
             '
             'CH_UNAME_UP
             '
@@ -1352,7 +1383,7 @@ Namespace Editors
             Me.CH_UNAME_UP.Location = New System.Drawing.Point(4, 30)
             Me.CH_UNAME_UP.Name = "CH_UNAME_UP"
             Me.CH_UNAME_UP.Size = New System.Drawing.Size(568, 19)
-            Me.CH_UNAME_UP.TabIndex = 7
+            Me.CH_UNAME_UP.TabIndex = 1
             Me.CH_UNAME_UP.Text = "Update user site name every time"
             Me.CH_UNAME_UP.UseVisualStyleBackColor = True
             '
@@ -1843,33 +1874,16 @@ Namespace Editors
             Me.CONTAINER_MAIN.TabIndex = 0
             Me.CONTAINER_MAIN.TopToolStripPanelVisible = False
             '
-            'CH_STD_YT_LOAD
+            'CH_UICON_UP
             '
-            Me.CH_STD_YT_LOAD.AutoSize = True
-            Me.CH_STD_YT_LOAD.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_STD_YT_LOAD.Location = New System.Drawing.Point(4, 166)
-            Me.CH_STD_YT_LOAD.Name = "CH_STD_YT_LOAD"
-            Me.CH_STD_YT_LOAD.Padding = New System.Windows.Forms.Padding(100, 0, 0, 0)
-            Me.CH_STD_YT_LOAD.Size = New System.Drawing.Size(568, 19)
-            Me.CH_STD_YT_LOAD.TabIndex = 6
-            Me.CH_STD_YT_LOAD.Text = "Load downloaded YouTube videos to the form"
-            TT_MAIN.SetToolTip(Me.CH_STD_YT_LOAD, "If checked, downloaded YouTube videos will be loaded to the form. Otherwise, all " &
-        "downloaded data will be loaded to the form except YouTube data.")
-            Me.CH_STD_YT_LOAD.UseVisualStyleBackColor = True
-            '
-            'CH_STD_YT_REMOVE
-            '
-            Me.CH_STD_YT_REMOVE.AutoSize = True
-            Me.CH_STD_YT_REMOVE.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_STD_YT_REMOVE.Location = New System.Drawing.Point(4, 192)
-            Me.CH_STD_YT_REMOVE.Name = "CH_STD_YT_REMOVE"
-            Me.CH_STD_YT_REMOVE.Padding = New System.Windows.Forms.Padding(100, 0, 0, 0)
-            Me.CH_STD_YT_REMOVE.Size = New System.Drawing.Size(568, 19)
-            Me.CH_STD_YT_REMOVE.TabIndex = 7
-            Me.CH_STD_YT_REMOVE.Text = "Clear YouTube videos when clearing the list"
-            TT_MAIN.SetToolTip(Me.CH_STD_YT_REMOVE, "If checked, YouTube videos will also be removed from the list. This action will a" &
-        "lso affect the standalone 'YouTubeDownloader' app.")
-            Me.CH_STD_YT_REMOVE.UseVisualStyleBackColor = True
+            Me.CH_UICON_UP.AutoSize = True
+            Me.CH_UICON_UP.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_UICON_UP.Location = New System.Drawing.Point(4, 56)
+            Me.CH_UICON_UP.Name = "CH_UICON_UP"
+            Me.CH_UICON_UP.Size = New System.Drawing.Size(568, 19)
+            Me.CH_UICON_UP.TabIndex = 2
+            Me.CH_UICON_UP.Text = "Update user icon and banner every time (where supported)"
+            Me.CH_UICON_UP.UseVisualStyleBackColor = True
             '
             'GlobalSettingsForm
             '
@@ -2041,5 +2055,6 @@ Namespace Editors
         Private WithEvents CH_STD_UPDATE_YT_PATH As CheckBox
         Private WithEvents CH_STD_YT_LOAD As CheckBox
         Private WithEvents CH_STD_YT_REMOVE As CheckBox
+        Private WithEvents CH_UICON_UP As CheckBox
     End Class
 End Namespace

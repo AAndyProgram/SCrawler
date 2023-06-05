@@ -277,6 +277,7 @@ Namespace DownloadObjects.STDownloader
 #Region "Context buttons' handlers"
         Public Sub AddToQueue()
             ControlInvokeFast(Me, Sub()
+                                      Pending = True
                                       BTT_DOWN.Visible = False
                                       SEP_DOWN.Visible = False
                                   End Sub, EDP.None)
@@ -300,6 +301,8 @@ Namespace DownloadObjects.STDownloader
                 Throw oex
             Catch ex As Exception
                 ErrorsDescriber.Execute(EDP.SendToLog, ex, $"MediaItem.Download:{vbCr}{MyContainer.ToString}{vbCr}{MyContainer.URL})")
+            Finally
+                Pending = False
             End Try
         End Sub
 #End Region

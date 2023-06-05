@@ -6,19 +6,17 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
-Imports System.Net
 Imports System.Threading
 Imports SCrawler.API.Base
 Imports SCrawler.API.YouTube.Objects
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.RegularExpressions
-Imports PersonalUtilities.Tools.Web.Clients
+Imports PersonalUtilities.Tools
 Imports PersonalUtilities.Tools.Web.Documents.JSON
 Imports UStates = SCrawler.API.Base.UserMedia.States
 Imports UTypes = SCrawler.API.Base.UserMedia.Types
 Namespace API.Twitter
     Friend Class UserData : Inherits UserDataBase
-        Protected SinglePostUrl As String = "https://api.twitter.com/1.1/statuses/show.json?id={0}&tweet_mode=extended"
 #Region "XML names"
         Private Const Name_GifsDownload As String = "GifsDownload"
         Private Const Name_GifsSpecialFolder As String = "GifsSpecialFolder"
@@ -29,6 +27,19 @@ Namespace API.Twitter
         Friend Property GifsSpecialFolder As String = String.Empty
         Friend Property GifsPrefix As String = String.Empty
         Private ReadOnly _DataNames As List(Of String)
+        Private ReadOnly Property MySettings As SiteSettings
+            Get
+                Return HOST.Source
+            End Get
+        End Property
+        Private FileNameProvider As ANumbers = Nothing
+        Private Sub ResetFileNameProvider(Optional ByVal GroupSize As Integer? = Nothing)
+            FileNameProvider = New ANumbers With {.FormatOptions = ANumbers.Options.FormatNumberGroup + ANumbers.Options.Groups}
+            FileNameProvider.GroupSize = If(GroupSize, 3)
+        End Sub
+        Private Function RenameGdlFile(ByVal Input As SFile, ByVal i As Integer) As SFile
+            Return SFile.Rename(Input, $"{Input.PathWithSeparator}{i.NumToString(FileNameProvider)}.{Input.Extension}",, EDP.ThrowException)
+        End Function
 #End Region
 #Region "Exchange options"
         Friend Overrides Function ExchangeOptionsGet() As Object
@@ -79,134 +90,157 @@ Namespace API.Twitter
                 DownloadData_SavedPosts(Token)
             Else
                 If _ContentList.Count > 0 Then _DataNames.ListAddList(_ContentList.Select(Function(c) c.File.File), LAP.ClearBeforeAdd, LAP.NotContainsOnly)
-                DownloadData(String.Empty, Token)
+                DownloadData_Timeline(Token)
             End If
         End Sub
-        Private Overloads Sub DownloadData(ByVal POST As String, ByVal Token As CancellationToken)
+        Private Sub DownloadData_Timeline(ByVal Token As CancellationToken)
             Dim URL$ = String.Empty
+            Dim tCache As CacheKeeper = Nothing
             Try
                 Dim PostID$ = String.Empty
-                Dim PostDate$
+                Dim PostDate$, tmpUserId$
+                Dim j As EContainer
                 Dim nn As EContainer
                 Dim NewPostDetected As Boolean = False
                 Dim ExistsDetected As Boolean = False
 
-                Dim UID As Func(Of EContainer, String) = Function(e) e.XmlIfNothing.Item({"user", "id"}).XmlIfNothingValue
-
-                URL = $"https://api.twitter.com/1.1/statuses/user_timeline.json?screen_name={Name}&count=200&exclude_replies=false&include_rts=1&tweet_mode=extended"
-                If Not POST.IsEmptyString Then URL &= $"&max_id={POST}"
-
-                ThrowAny(Token)
-                Dim r$ = Responser.GetResponse(URL)
-                If Not r.IsEmptyString Then
-                    Using w As EContainer = JsonDocument.Parse(r)
-                        If w.ListExists Then
-
-                            If POST.IsEmptyString And Not w.ItemF({0, "user"}) Is Nothing Then
-                                With w.ItemF({0, "user"})
-                                    If .Value("screen_name").StringToLower = Name.ToLower Then
-                                        UserSiteNameUpdate(.Value("name"))
-                                        UserDescriptionUpdate(.Value("description"))
-                                        Dim __getImage As Action(Of String) = Sub(ByVal img As String)
-                                                                                  If Not img.IsEmptyString Then
-                                                                                      Dim __imgFile As SFile = UrlFile(img, True)
-                                                                                      If Not __imgFile.Name.IsEmptyString Then
-                                                                                          If __imgFile.Extension.IsEmptyString Then __imgFile.Extension = "jpg"
-                                                                                          __imgFile.Path = MyFile.CutPath.Path
-                                                                                          If Not __imgFile.Exists Then GetWebFile(img, __imgFile, EDP.None)
-                                                                                      End If
-                                                                                  End If
-                                                                              End Sub
-                                        Dim icon$ = .Value("profile_image_url_https")
-                                        If Not icon.IsEmptyString Then icon = icon.Replace("_normal", String.Empty)
-                                        __getImage.Invoke(.Value("profile_banner_url"))
-                                        __getImage.Invoke(icon)
+                tCache = New CacheKeeper($"{DownloadContentDefault_GetRootDir()}\_tCache\")
+                If tCache.RootDirectory.Exists(SFO.Path, False) Then tCache.RootDirectory.Delete(SFO.Path, SFODelete.DeletePermanently, EDP.ReturnValue)
+                tCache.Validate()
+                Dim f As SFile = GetTimelineFromGalleryDL(tCache.RootDirectory, Token)
+                If Not f.IsEmptyString Then
+                    ThrowAny(Token)
+                    Dim timelineFiles As List(Of SFile) = SFile.GetFiles(f, "*.txt",, EDP.ReturnValue)
+                    If timelineFiles.ListExists Then
+                        Dim i%
+                        ResetFileNameProvider(Math.Max(timelineFiles.Count.ToString.Length, 2))
+                        'rename files
+                        For i = 0 To timelineFiles.Count - 1 : timelineFiles(i) = RenameGdlFile(timelineFiles(i), i) : Next
+                        'parse files
+                        For i = 0 To timelineFiles.Count - 1
+                            j = JsonDocument.Parse(timelineFiles(i).GetText)
+                            If Not j Is Nothing Then
+                                If i = 0 Then
+                                    Dim resValue$ = j.Value({"data", "user", "result"}, "__typename").StringTrim.StringToLower
+                                    If resValue.IsEmptyString Then
+                                        UserExists = False
+                                        j.Dispose()
+                                        Exit Sub
+                                    ElseIf resValue = "userunavailable" Then
+                                        UserSuspended = True
+                                        j.Dispose()
+                                        Exit Sub
+                                    Else
+                                        With j({"data", "user", "result"})
+                                            If .ListExists Then
+                                                If ID.IsEmptyString Then
+                                                    ID = .Value("rest_id")
+                                                    If Not ID.IsEmptyString Then _ForceSaveUserInfo = True
+                                                End If
+                                                With .Item({"legacy"})
+                                                    If .ListExists Then
+                                                        If .Value("screen_name").StringToLower = Name.ToLower Then
+                                                            UserSiteNameUpdate(.Value("name"))
+                                                            UserDescriptionUpdate(.Value("description"))
+                                                            Dim __getImage As Action(Of String) = Sub(ByVal img As String)
+                                                                                                      If Not img.IsEmptyString Then
+                                                                                                          Dim __imgFile As SFile = UrlFile(img, True)
+                                                                                                          If Not __imgFile.Name.IsEmptyString Then
+                                                                                                              If __imgFile.Extension.IsEmptyString Then __imgFile.Extension = "jpg"
+                                                                                                              __imgFile.Path = MyFile.CutPath.Path
+                                                                                                              If Not __imgFile.Exists Then GetWebFile(img, __imgFile, EDP.None)
+                                                                                                              If __imgFile.Exists Then IconBannerDownloaded = True
+                                                                                                          End If
+                                                                                                      End If
+                                                                                                  End Sub
+                                                            Dim icon$ = .Value("profile_image_url_https")
+                                                            If Not icon.IsEmptyString Then icon = icon.Replace("_normal", String.Empty)
+                                                            If DownloadIconBanner Then
+                                                                __getImage.Invoke(.Value("profile_banner_url"))
+                                                                __getImage.Invoke(icon)
+                                                            End If
+                                                        End If
+                                                    End If
+                                                End With
+                                            End If
+                                        End With
                                     End If
-                                End With
+                                Else
+                                    With j({"globalObjects", "tweets"})
+                                        If .ListExists Then
+                                            ProgressPre.ChangeMax(.Count)
+                                            For Each nn In .Self
+                                                ProgressPre.Perform()
+                                                If nn.Count > 0 Then
+                                                    PostID = nn.Value("id")
+
+                                                    'Date Pattern:
+                                                    'Sat Jan 01 01:10:15 +0000 2000
+                                                    If nn.Contains("created_at") Then PostDate = nn("created_at").Value Else PostDate = String.Empty
+                                                    Select Case CheckDatesLimit(PostDate, Declarations.DateProvider)
+                                                        Case DateResult.Skip : Continue For
+                                                        Case DateResult.Exit : Exit Sub
+                                                    End Select
+
+                                                    If Not _TempPostsList.Contains(PostID) Then
+                                                        NewPostDetected = True
+                                                        _TempPostsList.Add(PostID)
+                                                    Else
+                                                        ExistsDetected = True
+                                                        Continue For
+                                                    End If
+
+                                                    tmpUserId = nn.ItemF({"extended_entities", "media", 0, "source_user_id"}).
+                                                                XmlIfNothingValue.IfNullOrEmpty(nn.Value("user_id")).IfNullOrEmpty("/")
+
+                                                    If Not ParseUserMediaOnly OrElse (Not ID.IsEmptyString AndAlso tmpUserId = ID) Then _
+                                                       ObtainMedia(nn, PostID, PostDate)
+                                                End If
+                                            Next
+                                        End If
+                                    End With
+                                End If
+                                j.Dispose()
                             End If
-
-                            With If(IsSavedPosts, w({"globalObjects", "tweets"}).XmlIfNothing, w)
-                                ProgressPre.ChangeMax(.Count)
-                                For Each nn In .Self
-                                    ProgressPre.Perform()
-                                    ThrowAny(Token)
-                                    If nn.Count > 0 Then
-                                        PostID = nn.Value("id")
-                                        If ID.IsEmptyString Then
-                                            ID = UID(nn)
-                                            If Not ID.IsEmptyString Then UpdateUserInformation()
-                                        End If
-
-                                        'Date Pattern:
-                                        'Sat Jan 01 01:10:15 +0000 2000
-                                        If nn.Contains("created_at") Then PostDate = nn("created_at").Value Else PostDate = String.Empty
-                                        Select Case CheckDatesLimit(PostDate, Declarations.DateProvider)
-                                            Case DateResult.Skip : Continue For
-                                            Case DateResult.Exit : Exit Sub
-                                        End Select
-
-                                        If Not _TempPostsList.Contains(PostID) Then
-                                            NewPostDetected = True
-                                            _TempPostsList.Add(PostID)
-                                        Else
-                                            ExistsDetected = True
-                                            Continue For
-                                        End If
-
-                                        If Not ParseUserMediaOnly OrElse
-                                           (Not nn.Contains("retweeted_status") OrElse (Not ID.IsEmptyString AndAlso UID(nn("retweeted_status")) = ID)) Then _
-                                           ObtainMedia(nn, PostID, PostDate)
-                                    End If
-                                Next
-                            End With
-                        End If
-                    End Using
-
-                    If POST.IsEmptyString And ExistsDetected Then Exit Sub
-                    If Not PostID.IsEmptyString And NewPostDetected Then DownloadData(PostID, Token)
+                        Next
+                    End If
                 End If
             Catch ex As Exception
                 ProcessException(ex, Token, $"data downloading error [{URL}]")
+            Finally
+                If Not tCache Is Nothing Then tCache.Dispose()
             End Try
         End Sub
         Private Sub DownloadData_SavedPosts(ByVal Token As CancellationToken)
             Try
-                Dim urls As List(Of String) = GetBookmarksUrlsFromGalleryDL()
-                If urls.ListExists Then
-                    Dim postIds As New List(Of String)
-                    Dim r$
+                Dim f As SFile = GetDataFromGalleryDL("https://twitter.com/i/bookmarks", Settings.Cache, True, Token)
+                Dim files As List(Of SFile) = SFile.GetFiles(f, "*.txt")
+                If files.ListExists Then
+                    ResetFileNameProvider(Math.Max(files.Count.ToString.Length, 3))
+                    Dim id$
                     Dim j As EContainer, jj As EContainer
                     Dim jErr As New ErrorsDescriber(EDP.ReturnValue)
-                    Dim rPattern As RParams = RParams.DM("(?<=tweet-)(\d+)\Z", 0, EDP.ReturnValue)
-                    ProgressPre.ChangeMax(urls.Count)
-                    For Each url$ In urls
-                        ProgressPre.Perform()
-                        r = Responser.GetResponse(url)
-                        If Not r.IsEmptyString Then
-                            j = JsonDocument.Parse(r, jErr)
-                            If Not j Is Nothing Then
-                                jj = j.ItemF({"data", "bookmark_timeline_v2", "timeline", "instructions", 0, "entries"})
-                                If If(jj?.Count, 0) > 0 Then postIds.ListAddList(jj.Select(Function(jj2) CStr(RegexReplace(jj2.Value("entryId"), rPattern))), LNC)
-                                j.Dispose()
-                            End If
+                    For i% = 0 To files.Count - 1
+                        f = RenameGdlFile(files(i), i)
+                        j = JsonDocument.Parse(f.GetText, jErr)
+                        If Not j Is Nothing Then
+                            With j.ItemF({"data", 0, "timeline", "instructions", 0, "entries"})
+                                If .ListExists Then
+                                    ProgressPre.ChangeMax(.Count)
+                                    For Each jj In .Self
+                                        ProgressPre.Perform()
+                                        With jj({"content", "itemContent", "tweet_results", "result", "legacy"})
+                                            If .ListExists Then
+                                                id = .Value("id_str")
+                                                If _TempPostsList.Contains(id) Then j.Dispose() : Exit Sub Else ObtainMedia(.Self, id, .Value("created_at"))
+                                            End If
+                                        End With
+                                    Next
+                                End If
+                            End With
+                            j.Dispose()
                         End If
                     Next
-                    If postIds.Count > 0 Then postIds.RemoveAll(Function(pid) pid.IsEmptyString OrElse (_TempPostsList.Contains(pid) Or _DataNames.Contains(pid)))
-                    If postIds.Count > 0 Then
-                        ProgressPre.ChangeMax(postIds.Count)
-                        For Each __id$ In postIds
-                            ProgressPre.Perform()
-                            _TempPostsList.Add(__id)
-                            r = Responser.GetResponse(String.Format(SinglePostUrl, __id),, EDP.ReturnValue)
-                            If Not r.IsEmptyString Then
-                                j = JsonDocument.Parse(r, jErr)
-                                If Not j Is Nothing Then
-                                    If j.Count > 0 Then ObtainMedia(j, __id, j.Value("created_at"))
-                                    j.Dispose()
-                                End If
-                            End If
-                        Next
-                    End If
                 End If
             Catch ex As Exception
                 ProcessException(ex, Token, "data downloading error (Saved Posts)")
@@ -215,21 +249,22 @@ Namespace API.Twitter
 #End Region
 #Region "Obtain media"
         Private Sub ObtainMedia(ByVal e As EContainer, ByVal PostID As String, ByVal PostDate As String, Optional ByVal State As UStates = UStates.Unknown)
-            If Not CheckVideoNode(e, PostID, PostDate, State) Then
-                Dim s As EContainer = e.ItemF({"extended_entities", "media"})
-                If s Is Nothing OrElse s.Count = 0 Then s = e.ItemF({"retweeted_status", "extended_entities", "media"})
-                If If(s?.Count, 0) > 0 Then
-                    For Each m In s
-                        If m.Contains("media_url") Then
-                            Dim dName$ = UrlFile(m("media_url").Value)
+            Dim s As EContainer = e.ItemF({"extended_entities", "media"})
+            If s Is Nothing OrElse s.Count = 0 Then s = e.ItemF({"retweeted_status", "extended_entities", "media"})
+            If If(s?.Count, 0) > 0 Then
+                Dim mUrl$
+                For Each m As EContainer In s
+                    If Not CheckVideoNode(m, PostID, PostDate, State) Then
+                        mUrl = m.Value("media_url").IfNullOrEmpty(m.Value("media_url_https"))
+                        If Not mUrl.IsEmptyString Then
+                            Dim dName$ = UrlFile(mUrl)
                             If Not dName.IsEmptyString AndAlso Not _DataNames.Contains(dName) Then
                                 _DataNames.Add(dName)
-                                _TempMediaList.ListAddValue(MediaFromData(m("media_url").Value,
-                                                                          PostID, PostDate, GetPictureOption(m), State, UTypes.Picture), LNC)
+                                _TempMediaList.ListAddValue(MediaFromData(mUrl, PostID, PostDate, GetPictureOption(m), State, UTypes.Picture), LNC)
                             End If
                         End If
-                    Next
-                End If
+                    End If
+                Next
             End If
         End Sub
         Private Function CheckVideoNode(ByVal w As EContainer, ByVal PostID As String, ByVal PostDate As String,
@@ -260,34 +295,32 @@ Namespace API.Twitter
                 Dim url$, ff$
                 Dim f As SFile
                 Dim m As UserMedia
-                With w({"extended_entities", "media"})
-                    If .ListExists Then
-                        For Each n As EContainer In .Self
-                            If n.Value("type") = "animated_gif" Then
-                                With n({"video_info", "variants"})
-                                    If .ListExists Then
-                                        With .ItemF({gifUrl})
-                                            If .ListExists Then
-                                                url = .Value("url")
-                                                ff = UrlFile(url)
-                                                If Not ff.IsEmptyString Then
-                                                    If GifsDownload And Not _DataNames.Contains(ff) Then
-                                                        m = MediaFromData(url, PostID, PostDate,, State, UTypes.Video)
-                                                        f = m.File
-                                                        If Not f.IsEmptyString And Not GifsPrefix.IsEmptyString Then f.Name = $"{GifsPrefix}{f.Name}" : m.File = f
-                                                        If Not GifsSpecialFolder.IsEmptyString Then m.SpecialFolder = $"{GifsSpecialFolder}*"
-                                                        _TempMediaList.ListAddValue(m, LNC)
-                                                    End If
-                                                    Return True
+                If w.ListExists Then
+                    For Each n As EContainer In w
+                        If n.Value("type") = "animated_gif" Then
+                            With n({"video_info", "variants"})
+                                If .ListExists Then
+                                    With .ItemF({gifUrl})
+                                        If .ListExists Then
+                                            url = .Value("url")
+                                            ff = UrlFile(url)
+                                            If Not ff.IsEmptyString Then
+                                                If GifsDownload And Not _DataNames.Contains(ff) Then
+                                                    m = MediaFromData(url, PostID, PostDate,, State, UTypes.Video)
+                                                    f = m.File
+                                                    If Not f.IsEmptyString And Not GifsPrefix.IsEmptyString Then f.Name = $"{GifsPrefix}{f.Name}" : m.File = f
+                                                    If Not GifsSpecialFolder.IsEmptyString Then m.SpecialFolder = $"{GifsSpecialFolder}*"
+                                                    _TempMediaList.ListAddValue(m, LNC)
                                                 End If
+                                                Return True
                                             End If
-                                        End With
-                                    End If
-                                End With
-                            End If
-                        Next
-                    End If
-                End With
+                                        End If
+                                    End With
+                                End If
+                            End With
+                        End If
+                    Next
+                End If
                 Return False
             Catch ex As Exception
                 LogError(ex, "[API.Twitter.UserData.CheckForGif]")
@@ -295,64 +328,153 @@ Namespace API.Twitter
             End Try
         End Function
         Private Function GetVideoNodeURL(ByVal w As EContainer) As String
-            Dim v As EContainer = w.GetNode(VideoNode)
-            If v.ListExists Then
-                Dim l As New List(Of Sizes)
-                Dim u$
-                Dim nn As EContainer
-                For Each n As EContainer In v
-                    If n.Count > 0 Then
-                        For Each nn In n
-                            If nn("content_type").XmlIfNothingValue("none").Contains("mp4") AndAlso nn.Contains("url") Then
-                                u = nn.Value("url")
+            With w({"video_info", "variants"})
+                If .ListExists Then
+                    Dim l As New List(Of Sizes)
+                    Dim u$
+                    For Each n As EContainer In .Self
+                        If n.Count > 0 Then
+                            If n("content_type").XmlIfNothingValue("none").Contains("mp4") AndAlso n.Contains("url") Then
+                                u = n.Value("url")
                                 l.Add(New Sizes(RegexReplace(u, VideoSizeRegEx), u))
                             End If
-                        Next
-                    End If
-                Next
-                If l.Count > 0 Then l.RemoveAll(Function(s) s.HasError)
-                If l.Count > 0 Then l.Sort() : Return l(0).Data
-            End If
+                        End If
+                    Next
+                    If l.Count > 0 Then l.RemoveAll(Function(s) s.HasError)
+                    If l.Count > 0 Then l.Sort() : Return l(0).Data
+                End If
+            End With
             Return String.Empty
         End Function
 #End Region
 #Region "Gallery-DL Support"
-        Private Function GetBookmarksUrlsFromGalleryDL() As List(Of String)
-            Dim command$ = $"gallery-dl --verbose --simulate --cookies ""{DirectCast(HOST.Source, SiteSettings).CookiesNetscapeFile}"" https://twitter.com/i/bookmarks"
+        Private Class TwitterGDL : Inherits GDL.GDLBatch
+            Private Property Token As CancellationToken
+            Friend Sub New(ByVal Dir As SFile, ByVal _Token As CancellationToken)
+                MyBase.New
+                Commands.Clear()
+                ChangeDirectory(Dir)
+                Token = _Token
+            End Sub
+            Protected Overrides Async Function Validate(ByVal Value As String) As Task
+                If Not ProcessKilled AndAlso Await Task.Run(Function() Token.IsCancellationRequested OrElse IdExists(Value)) Then Kill()
+            End Function
+            Private Function IdExists(ByVal Value As String) As Boolean
+                Try
+                    Value = Value.StringTrim
+                    If Not Value.IsEmptyString AndAlso (Value.StartsWith("*") Or Value.StartsWith(".\gallery-dl\")) Then
+                        Dim id$ = Value.Split("\").Last.Split(".").First.Split("_").First
+                        If Not id.IsEmptyString Then Return TempPostsList.Contains(id)
+                    End If
+                Catch ex As Exception
+                End Try
+                Return False
+            End Function
+        End Class
+        Private Function GetDataFromGalleryDL(ByVal URL As String, ByVal Cache As CacheKeeper, ByVal UseTempPostList As Boolean,
+                                              Optional ByVal Token As CancellationToken = Nothing) As SFile
+            Dim command$ = $"""{Settings.GalleryDLFile}"" --verbose --no-download --no-skip --cookies ""{MySettings.CookiesNetscapeFile}"" --write-pages "
             Try
-                Using batch As New GDL.GDLBatch With {.TempPostsList = _TempPostsList} : Return GDL.GetUrlsFromGalleryDl(batch, command) : End Using
-            Catch ex As Exception
-                HasError = True
-                LogError(ex, $"GetJson({command})")
+                Dim dir As SFile = Cache.NewPath
+                If dir.Exists(SFO.Path,, EDP.ThrowException) Then
+                    Using batch As New TwitterGDL(dir, Token)
+                        If UseTempPostList Then
+                            batch.TempPostsList = _TempPostsList
+                            command &= GdlGetIdFilterString()
+                        End If
+                        command &= URL
+                        '#If DEBUG Then
+                        '                        Debug.WriteLine(command)
+                        '#End If
+                        batch.Execute(command)
+                    End Using
+                    Return dir
+                End If
                 Return Nothing
+            Catch ex As Exception
+                Return ErrorsDescriber.Execute(EDP.SendToLog, ex, $"{ToStringForLog()}: GetDataFromGalleryDL({command})")
             End Try
+        End Function
+        Private Function GetTimelineFromGalleryDL(ByVal Cache As CacheKeeper, ByVal Token As CancellationToken) As SFile
+            Dim command$ = String.Empty
+            Try
+                Dim conf As SFile = $"{Cache.NewPath.PathWithSeparator}TwitterGdlConfig.conf"
+                Dim confText$ = "{""extractor"":{""cookies"": """ & MySettings.CookiesNetscapeFile.ToString.Replace("\", "/") &
+                                """,""cookies-update"": false,""twitter"":{""cards"": false,""conversations"": false,""pinned"": false,""quoted"": false,""replies"": true,""retweets"": true,""strategy"": null,""text-tweets"": false,""twitpic"": false,""unique"": true,""users"": ""timeline"",""videos"": true}}}"
+                If conf.Exists(SFO.Path, True, EDP.ThrowException) Then TextSaver.SaveTextToFile(confText, conf)
+                If Not conf.Exists Then Throw New IO.FileNotFoundException("Can't find Twitter GDL config file", conf)
+
+                command = $"""{Settings.GalleryDLFile}"" --verbose --no-download --no-skip --config ""{conf}"" --write-pages "
+                command &= GdlGetIdFilterString()
+                command &= $"https://twitter.com/search?q=from:{Name}+include:nativeretweets"
+                Dim dir As SFile = Cache.NewPath
+                dir.Exists(SFO.Path, True, EDP.ThrowException)
+                '#If DEBUG Then
+                '                Debug.WriteLine(command)
+                '#End If
+                Using tgdl As New TwitterGDL(dir, Token) With {.TempPostsList = _TempPostsList} : tgdl.Execute(command) : End Using
+                Return dir
+            Catch ex As Exception
+                Return ErrorsDescriber.Execute(EDP.SendToLog, ex, $"{ToStringForLog()}: GetTimelineFromGalleryDL({command})")
+            End Try
+        End Function
+        Private Function GdlGetIdFilterString() As String
+            Return If(_TempPostsList.Count > 0, $"--filter ""int(tweet_id) > {_TempPostsList.Last} or abort()"" ", String.Empty)
         End Function
 #End Region
 #Region "ReparseMissing"
         Protected Overrides Sub ReparseMissing(ByVal Token As CancellationToken)
+            Const SinglePostPattern$ = "https://twitter.com/{0}/status/{1}"
             Dim rList As New List(Of Integer)
             Dim URL$ = String.Empty
+            Dim cache As CacheKeeper = Nothing
             Try
                 If ContentMissingExists Then
                     Dim m As UserMedia
-                    Dim r$, PostDate$
+                    Dim PostDate$
                     Dim j As EContainer
+                    Dim f As SFile
+                    Dim i%, ii%
+                    Dim files As List(Of SFile)
+                    ResetFileNameProvider()
+                    If IsSingleObjectDownload Then
+                        cache = Settings.Cache
+                    Else
+                        cache = New CacheKeeper(DownloadContentDefault_GetRootDir.CSFilePS)
+                    End If
                     ProgressPre.ChangeMax(_ContentList.Count)
-                    For i% = 0 To _ContentList.Count - 1
+                    For i = 0 To _ContentList.Count - 1
                         ProgressPre.Perform()
                         If _ContentList(i).State = UStates.Missing Then
                             m = _ContentList(i)
-                            If Not m.Post.ID.IsEmptyString Then
+                            If Not m.Post.ID.IsEmptyString Or (IsSingleObjectDownload And Not m.URL_BASE.IsEmptyString) Then
                                 ThrowAny(Token)
-                                URL = String.Format(SinglePostUrl, m.Post.ID)
-                                r = Responser.GetResponse(URL,, EDP.ReturnValue)
-                                If Not r.IsEmptyString Then
-                                    j = JsonDocument.Parse(r)
-                                    If Not j Is Nothing Then
-                                        PostDate = String.Empty
-                                        If j.Contains("created_at") Then PostDate = j("created_at").Value Else PostDate = String.Empty
-                                        ObtainMedia(j, m.Post.ID, PostDate, UStates.Missing)
-                                        rList.Add(i)
+                                If IsSingleObjectDownload Then
+                                    URL = m.URL_BASE
+                                Else
+                                    URL = String.Format(SinglePostPattern, Name, m.Post.ID)
+                                End If
+                                f = GetDataFromGalleryDL(URL, cache, Favorite, Token)
+                                If Not f.IsEmptyString Then
+                                    files = SFile.GetFiles(f, "*.txt")
+                                    If files.ListExists Then
+                                        For ii = 0 To files.Count - 1
+                                            f = RenameGdlFile(files(ii), ii)
+                                            j = JsonDocument.Parse(f.GetText)
+                                            If Not j Is Nothing Then
+                                                With j.ItemF({"data", 0, "instructions", 0, "entries", 0,
+                                                             "content", "itemContent", "tweet_results", "result", "legacy"})
+                                                    If .ListExists Then
+                                                        PostDate = String.Empty
+                                                        If .Contains("created_at") Then PostDate = .Value("created_at") Else PostDate = String.Empty
+                                                        ObtainMedia(.Self, m.Post.ID, PostDate, UStates.Missing)
+                                                        rList.Add(i)
+                                                    End If
+                                                End With
+                                                j.Dispose()
+                                            End If
+                                        Next
+                                        files.Clear()
                                     End If
                                 End If
                             End If
@@ -362,6 +484,7 @@ Namespace API.Twitter
             Catch ex As Exception
                 ProcessException(ex, Token, $"ReparseMissing error [{URL}]")
             Finally
+                If Not cache Is Nothing And Not IsSingleObjectDownload Then cache.Dispose()
                 If rList.Count > 0 Then
                     For i% = rList.Count - 1 To 0 Step -1 : _ContentList.RemoveAt(i) : Next
                     rList.Clear()
@@ -371,15 +494,8 @@ Namespace API.Twitter
 #End Region
 #Region "DownloadSingleObject"
         Protected Overrides Sub DownloadSingleObject_GetPosts(ByVal Data As IYouTubeMediaContainer, ByVal Token As CancellationToken)
-            Dim PostID$ = RegexReplace(Data.URL, RParams.DM("(?<=/)\d+", 0))
-            If Not PostID.IsEmptyString Then
-                Dim r$ = Responser.GetResponse(String.Format(SinglePostUrl, PostID),, EDP.ReturnValue)
-                If Not r.IsEmptyString Then
-                    Using j As EContainer = JsonDocument.Parse(r)
-                        If j.ListExists Then ObtainMedia(j, j.Value("id"), j.Value("created_at"))
-                    End Using
-                End If
-            End If
+            _ContentList.Add(New UserMedia(Data.URL) With {.State = UStates.Missing})
+            ReparseMissing(Token)
         End Sub
 #End Region
 #Region "Picture options"
@@ -459,26 +575,7 @@ Namespace API.Twitter
 #Region "Exception"
         Protected Overrides Function DownloadingException(ByVal ex As Exception, ByVal Message As String, Optional ByVal FromPE As Boolean = False,
                                                           Optional ByVal EObj As Object = Nothing) As Integer
-            If AEquals(EObj, VALIDATE_MD5_ERROR) Then
-                If Not FromPE Then LogError(ex, Message)
-                Return 0
-            Else
-                With Responser
-                    If .StatusCode = HttpStatusCode.NotFound Then
-                        UserExists = False
-                    ElseIf .StatusCode = HttpStatusCode.Unauthorized Then
-                        UserSuspended = True
-                    ElseIf .StatusCode = HttpStatusCode.BadRequest Then
-                        MyMainLOG = "Twitter has invalid credentials"
-                    ElseIf .StatusCode = HttpStatusCode.ServiceUnavailable Or .StatusCode = HttpStatusCode.InternalServerError Then
-                        MyMainLOG = $"[{CInt(.StatusCode)}] Twitter is currently unavailable ({ToString()})"
-                    Else
-                        If Not FromPE Then LogError(ex, Message) : HasError = True
-                        Return 0
-                    End If
-                End With
-            End If
-            Return 1
+            Return 0
         End Function
 #End Region
 #Region "IDisposable support"

@@ -427,11 +427,14 @@ Namespace API.Reddit
                                                                                      If f.Extension.IsEmptyString Then f.Extension = "jpg"
                                                                                      f.Path = dir.Path
                                                                                      If Not f.Exists Then GetWebFile(img, f, EDP.ReturnValue)
+                                                                                     If f.Exists Then IconBannerDownloaded = True
                                                                                  End If
                                                                              End If
                                                                          End Sub
-                                    __getFile.Invoke(.Value("icon_img"))
-                                    __getFile.Invoke(.Value("banner_img"))
+                                    If DownloadIconBanner Then
+                                        __getFile.Invoke(.Value("icon_img"))
+                                        __getFile.Invoke(.Value("banner_img"))
+                                    End If
                                 End With
                             End If
                         End Using

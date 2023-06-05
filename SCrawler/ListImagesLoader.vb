@@ -122,6 +122,8 @@ Friend Class ListImagesLoader
                                     UserDataList.Clear()
                                     UpdateInProgress = False
                                 End If
+                            Else
+                                UpdateInProgress = False
                             End If
                         Else
                             Dim t As New List(Of Task)

@@ -143,7 +143,8 @@ Namespace DownloadObjects.STDownloader
             Me.BTT_ADD.Size = New System.Drawing.Size(184, 22)
             Me.BTT_ADD.Tag = "a"
             Me.BTT_ADD.Text = "Add (Ins)"
-            Me.BTT_ADD.ToolTipText = "Click to add." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Ctrl+click to use cookies for download (if supported)."
+            Me.BTT_ADD.ToolTipText = "Click to add." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Ctrl+click to use cookies for download (if supported)." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Shift to a" &
+    "dd without downloading."
             '
             'BTT_ADD_PLS_ARR
             '
@@ -154,7 +155,8 @@ Namespace DownloadObjects.STDownloader
             Me.BTT_ADD_PLS_ARR.Size = New System.Drawing.Size(184, 22)
             Me.BTT_ADD_PLS_ARR.Tag = "pls"
             Me.BTT_ADD_PLS_ARR.Text = "Add playlist array"
-            Me.BTT_ADD_PLS_ARR.ToolTipText = "Click to add." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Ctrl+click to use cookies for download (if supported)."
+            Me.BTT_ADD_PLS_ARR.ToolTipText = "Click to add." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Ctrl+click to use cookies for download (if supported)." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Shift to a" &
+    "dd without downloading."
             '
             'BTT_ADD_NO_SHORTS
             '
@@ -166,7 +168,7 @@ Namespace DownloadObjects.STDownloader
             Me.BTT_ADD_NO_SHORTS.Tag = "ans"
             Me.BTT_ADD_NO_SHORTS.Text = "Add (without Shorts)"
             Me.BTT_ADD_NO_SHORTS.ToolTipText = "Download all videos except 'Shorts'." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Click to add." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Ctrl+click to use cookies fo" &
-    "r download (if supported)."
+    "r download (if supported)." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Shift to add without downloading."
             '
             'BTT_ADD_SHORTS_ONLY
             '
@@ -178,7 +180,7 @@ Namespace DownloadObjects.STDownloader
             Me.BTT_ADD_SHORTS_ONLY.Tag = "as"
             Me.BTT_ADD_SHORTS_ONLY.Text = "Add (Shorts only)"
             Me.BTT_ADD_SHORTS_ONLY.ToolTipText = "Download only 'Shorts' videos." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Click to add." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Ctrl+click to use cookies for down" &
-    "load (if supported)."
+    "load (if supported)." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Shift to add without downloading."
             '
             'BTT_DOWN
             '
@@ -187,7 +189,7 @@ Namespace DownloadObjects.STDownloader
             Me.BTT_DOWN.Name = "BTT_DOWN"
             Me.BTT_DOWN.Size = New System.Drawing.Size(81, 22)
             Me.BTT_DOWN.Text = "Download"
-            Me.BTT_DOWN.ToolTipText = "Download pending items"
+            Me.BTT_DOWN.ToolTipText = "Download pending items (F5)"
             '
             'BTT_STOP
             '

@@ -440,7 +440,7 @@ Namespace API.YouTube.Objects
             End Get
         End Property
         Protected _Exists As Boolean = True
-        Public ReadOnly Property Exists As Boolean Implements IDownloadableMedia.Exists
+        Public Overridable ReadOnly Property Exists As Boolean Implements IDownloadableMedia.Exists
             Get
                 If Not _Exists Then
                     Return False
@@ -643,6 +643,7 @@ Namespace API.YouTube.Objects
                     End If
                     If Not cmd.IsEmptyString Then
                         cmd = $"yt-dlp -f ""{cmd}"""
+                        If Not MyYouTubeSettings.ReplaceModificationDate Then cmd &= " --no-mtime"
                         cmd.StringAppend(formats, " ")
                         cmd.StringAppend(subs, " ")
                         cmd.StringAppend(YouTubeFunctions.GetCookiesCommand(WithCookies, YouTubeCookieNetscapeFile), " ")
@@ -864,6 +865,7 @@ Namespace API.YouTube.Objects
                                 .Information = $"Download {MediaType}"
                             End With
                         End If
+                        .MainProcessName = "yt-dlp"
                         .FileExchanger = MyCache.NewInstance(Of BatchFileExchanger)(CachePath, EDP.ReturnValue)
                         .FileExchanger.DeleteCacheOnDispose = True
                         .AddCommand("chcp 65001")

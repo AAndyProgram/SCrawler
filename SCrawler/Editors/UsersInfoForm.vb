@@ -492,12 +492,22 @@ Namespace Editors
             If Not info.IsEmptyString Then MsgBoxE({info, "User information"})
         End Sub
         Private Sub CONTEXT_BTT_OPEN_FOLDER_Click(sender As Object, e As EventArgs) Handles CONTEXT_BTT_OPEN_FOLDER.Click
-            Dim u As UserOpt = GetUserFromList()
-            If Not u Is Nothing Then u.User.OpenFolder()
+            OpenUserFolder()
         End Sub
         Private Sub CONTEXT_BTT_OPEN_SITE_Click(sender As Object, e As EventArgs) Handles CONTEXT_BTT_OPEN_SITE.Click
             Dim u As UserOpt = GetUserFromList()
             If Not u Is Nothing Then u.User.OpenSite()
+        End Sub
+#End Region
+#Region "List handlers"
+        Private Sub LIST_DATA_MouseDoubleClick(sender As Object, e As MouseEventArgs) Handles LIST_DATA.MouseDoubleClick
+            OpenUserFolder()
+        End Sub
+#End Region
+#Region "Functions"
+        Private Sub OpenUserFolder()
+            Dim u As UserOpt = GetUserFromList()
+            If Not u Is Nothing Then u.User.OpenFolder()
         End Sub
 #End Region
     End Class

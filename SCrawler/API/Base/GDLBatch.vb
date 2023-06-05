@@ -72,15 +72,22 @@ Namespace API.Base.GDL
         Friend Const UrlTextStart As String = UrlLibStart & " https"
         Friend Sub New()
             MyBase.New(True)
+            MainProcessName = "gallery-dl"
             ChangeDirectory(Settings.GalleryDLFile.File)
         End Sub
+        Public Overrides Sub Create()
+            If TempPostsList Is Nothing Then TempPostsList = New List(Of String)
+            MyBase.Create()
+        End Sub
         Protected Overrides Async Sub OutputDataReceiver(ByVal Sender As Object, ByVal e As DataReceivedEventArgs)
-            MyBase.OutputDataReceiver(Sender, e)
-            Await Validate(e.Data)
+            If Not ProcessKilled Then
+                MyBase.OutputDataReceiver(Sender, e)
+                Await Validate(e.Data)
+            End If
         End Sub
         Protected Overridable Async Function Validate(ByVal Value As String) As Task
-            If Await Task.Run(Of Boolean)(Function() Not Value.IsEmptyString AndAlso
-                                                     TempPostsList.Exists(Function(v) Value.Contains(v))) Then Kill(EDP.None)
+            If Not ProcessKilled AndAlso Await Task.Run(Of Boolean)(Function() Not Value.IsEmptyString AndAlso
+                                                                               TempPostsList.Exists(Function(v) Value.Contains(v))) Then Kill()
         End Function
     End Class
 End Namespace

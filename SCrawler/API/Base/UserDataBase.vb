@@ -126,6 +126,7 @@ Namespace API.Base
         Private Const Name_ReadyForDownload As String = "ReadyForDownload"
         Private Const Name_DownloadImages As String = "DownloadImages"
         Private Const Name_DownloadVideos As String = "DownloadVideos"
+        Private Const Name_IconBannerDownloaded As String = "IconBannerDownloaded"
 
         Private Const Name_VideoCount As String = "VideoCount"
         Private Const Name_PicturesCount As String = "PicturesCount"
@@ -434,6 +435,18 @@ BlockNullPicture:
         Friend Property DownloadImages As Boolean = True Implements IUserData.DownloadImages
         Friend Property DownloadVideos As Boolean = True Implements IUserData.DownloadVideos
         Friend Property DownloadMissingOnly As Boolean = False Implements IUserData.DownloadMissingOnly
+        Private _IconBannerDownloaded As Boolean = False
+        Friend WriteOnly Property IconBannerDownloaded As Boolean
+            Set(ByVal IsDownloaded As Boolean)
+                If Not _IconBannerDownloaded = IsDownloaded Then _ForceSaveUserInfo = True
+                _IconBannerDownloaded = IsDownloaded
+            End Set
+        End Property
+        Friend ReadOnly Property DownloadIconBanner As Boolean
+            Get
+                Return Not _IconBannerDownloaded Or Settings.UpdateUserIconBannerEveryTime
+            End Get
+        End Property
 #End Region
 #Region "Content"
         Protected ReadOnly _ContentList As List(Of UserMedia)
@@ -751,6 +764,7 @@ BlockNullPicture:
                         ReadyForDownload = x.Value(Name_ReadyForDownload).FromXML(Of Boolean)(True)
                         DownloadImages = x.Value(Name_DownloadImages).FromXML(Of Boolean)(True)
                         DownloadVideos = x.Value(Name_DownloadVideos).FromXML(Of Boolean)(True)
+                        _IconBannerDownloaded = x.Value(Name_IconBannerDownloaded).FromXML(Of Boolean)(False)
                         DownloadedVideos(True) = x.Value(Name_VideoCount).FromXML(Of Integer)(0)
                         DownloadedPictures(True) = x.Value(Name_PicturesCount).FromXML(Of Integer)(0)
                         LastUpdated = AConvert(Of Date)(x.Value(Name_LastUpdated), ADateTime.Formats.BaseDateTime, Nothing)
@@ -799,6 +813,7 @@ BlockNullPicture:
                     x.Add(Name_ReadyForDownload, ReadyForDownload.BoolToInteger)
                     x.Add(Name_DownloadImages, DownloadImages.BoolToInteger)
                     x.Add(Name_DownloadVideos, DownloadVideos.BoolToInteger)
+                    x.Add(Name_IconBannerDownloaded, _IconBannerDownloaded.BoolToInteger)
                     x.Add(Name_VideoCount, DownloadedVideos(True))
                     x.Add(Name_PicturesCount, DownloadedPictures(True))
                     x.Add(Name_LastUpdated, AConvert(Of String)(LastUpdated, ADateTime.Formats.BaseDateTime, String.Empty))
@@ -934,12 +949,12 @@ BlockNullPicture:
             _EnvirUserExists = UserExists
             _EnvirUserSuspended = UserSuspended
             _EnvirChanged = False
+            _EnvirInvokeUserUpdated = False
             UserExists = True
             UserSuspended = False
             DownloadedPictures(False) = 0
             DownloadedVideos(False) = 0
             _PictureExists = Settings.ViewModeIsPicture AndAlso Not GetPicture(Of Image)(False) Is Nothing
-            _EnvirInvokeUserUpdated = False
         End Sub
         Private Sub EnvirChanged(ByVal NewValue As Object, <CallerMemberName> Optional ByVal Caller As String = Nothing)
             If _DownloadInProgress Then
@@ -997,8 +1012,10 @@ BlockNullPicture:
 
                 If UseMD5Comparison Then ValidateMD5(Token) : ProgressPre.Done() : ThrowAny(Token)
 
-                If _TempPostsList.Count > 0 And Not DownloadMissingOnly And __SaveData Then _
-                   TextSaver.SaveTextToFile(_TempPostsList.ListToString(Environment.NewLine), MyFilePosts, True,, EDP.None)
+                If _TempPostsList.Count > 0 And Not DownloadMissingOnly And __SaveData Then
+                    If _TempPostsList.Count > 1000 Then _TempPostsList.ListAddList(_TempPostsList.ListTake(-2, 1000, EDP.ReturnValue).ListReverse, LAP.ClearBeforeAdd)
+                    TextSaver.SaveTextToFile(_TempPostsList.ListToString(Environment.NewLine), MyFilePosts, True,, EDP.None)
+                End If
                 _ContentNew.ListAddList(_TempMediaList, LAP.ClearBeforeAdd)
                 DownloadContent(Token)
                 ThrowIfDisposed()
@@ -1079,7 +1096,8 @@ BlockNullPicture:
                 Progress = Data.Progress
                 If Not Responser Is Nothing Then Responser.Dispose()
                 Responser = New Responser
-                If Not HOST Is Nothing AndAlso Not HOST.Responser Is Nothing Then Responser.Copy(HOST.Responser)
+                If Not HOST Is Nothing AndAlso HOST.Available(ISiteSettings.Download.SingleObject, True) AndAlso
+                   Not HOST.Responser Is Nothing Then Responser.Copy(HOST.Responser)
                 SeparateVideoFolder = False
                 IsSingleObjectDownload = True
                 DownloadSingleObject_GetPosts(Data, Token)
@@ -1338,6 +1356,16 @@ BlockNullPicture:
                         Dim f As SFile
                         Dim v As UserMedia
                         Dim fileNumProvider As SFileNumbers = SFileNumbers.Default
+                        Dim __deleteFile As Action(Of SFile, String) = Sub(ByVal FileToDelete As SFile, ByVal FileUrl As String)
+                                                                           Try
+                                                                               If FileToDelete.Exists Then FileToDelete.Delete(,, EDP.ThrowException)
+                                                                           Catch file_io_ex As IOException
+                                                                               MyMainLOG = "File download aborted. You should download the following file again." & vbCr &
+                                                                                           $"File: {FileToDelete}{vbCr}URL: {FileUrl}"
+                                                                           Catch file_del_ex As Exception
+                                                                               ErrorsDescriber.Execute(EDP.SendToLog, file_del_ex)
+                                                                           End Try
+                                                                       End Sub
 
                         Using w As New OptionalWebClient(Me)
                             If vsf Then CSFileP($"{MyDir}\Video\").Exists(SFO.Path)
@@ -1426,7 +1454,9 @@ BlockNullPicture:
                                         DownloadContentDefault_PostProcessing(v, f, Token)
                                         dCount += 1
                                     Catch woex As OperationCanceledException When Token.IsCancellationRequested
-                                        If f.Exists Then f.Delete()
+                                        'TODELETE: UserDataBase.DownloadContentDefault: remove file when 'OperationCanceledException'
+                                        'If f.Exists Then f.Delete(,, EDP.SendToLog)
+                                        __deleteFile.Invoke(f, v.URL_BASE)
                                         v.State = UStates.Missing
                                         v.Attempts += 1
                                         _ContentNew(i) = v

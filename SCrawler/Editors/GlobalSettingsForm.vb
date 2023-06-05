@@ -89,6 +89,7 @@ Namespace Editors
                         'Downloading
                         CH_UDESCR_UP.Checked = .UpdateUserDescriptionEveryTime
                         CH_UNAME_UP.Checked = .UserSiteNameUpdateEveryTime
+                        CH_UICON_UP.Checked = .UpdateUserIconBannerEveryTime
                         TXT_SCRIPT.Checked = .ScriptData.Attribute
                         TXT_SCRIPT.Text = .ScriptData.Value
                         TXT_DOWN_COMPLETE_SCRIPT.Text = .DownloadsCompleteCommand
@@ -244,6 +245,7 @@ Namespace Editors
                     'Downloading
                     .UpdateUserDescriptionEveryTime.Value = CH_UDESCR_UP.Checked
                     .UserSiteNameUpdateEveryTime.Value = CH_UNAME_UP.Checked
+                    .UpdateUserIconBannerEveryTime.Value = CH_UICON_UP.Checked
                     .ScriptData.Value = TXT_SCRIPT.Text
                     .ScriptData.Attribute.Value = TXT_SCRIPT.Checked
                     .DownloadsCompleteCommand.Value = TXT_DOWN_COMPLETE_SCRIPT.Text

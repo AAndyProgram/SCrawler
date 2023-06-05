@@ -13,6 +13,7 @@ Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Tools.Web.Documents.JSON
 Imports UTypes = SCrawler.API.Base.UserMedia.Types
+Imports UStates = SCrawler.API.Base.UserMedia.States
 Namespace API.Mastodon
     Friend Class UserData : Inherits Twitter.UserData
 #Region "XML names"
@@ -136,11 +137,14 @@ Namespace API.Mastodon
                                                                                                   If __imgFile.Extension.IsEmptyString Then __imgFile.Extension = "jpg"
                                                                                                   __imgFile.Path = MyFile.CutPath.Path
                                                                                                   If Not __imgFile.Exists Then GetWebFile(img, __imgFile, EDP.None)
+                                                                                                  If __imgFile.Exists Then IconBannerDownloaded = True
                                                                                               End If
                                                                                           End If
                                                                                       End Sub
-                                                __getImage.Invoke(.Value("header").IfNullOrEmpty(.Value("header_static")))
-                                                __getImage.Invoke(.Value("avatar").IfNullOrEmpty(.Value("avatar_static")))
+                                                If DownloadIconBanner Then
+                                                    __getImage.Invoke(.Value("header").IfNullOrEmpty(.Value("header_static")))
+                                                    __getImage.Invoke(.Value("avatar").IfNullOrEmpty(.Value("avatar_static")))
+                                                End If
                                             End If
                                         End With
                                     End If
@@ -235,8 +239,44 @@ Namespace API.Mastodon
             Return $"https://{Domain}/api/v1/statuses/" & "{0}"
         End Function
         Protected Overrides Sub ReparseMissing(ByVal Token As CancellationToken)
-            SinglePostUrl = GetSinglePostPattern(MyCredentials.Domain)
-            MyBase.ReparseMissing(Token)
+            Dim rList As New List(Of Integer)
+            Dim URL$ = String.Empty
+            Try
+                If ContentMissingExists Then
+                    Dim SinglePostUrl$ = GetSinglePostPattern(MyCredentials.Domain)
+                    Dim m As UserMedia
+                    Dim r$, PostDate$
+                    Dim j As EContainer
+                    ProgressPre.ChangeMax(_ContentList.Count)
+                    For i% = 0 To _ContentList.Count - 1
+                        ProgressPre.Perform()
+                        If _ContentList(i).State = UStates.Missing Then
+                            m = _ContentList(i)
+                            If Not m.Post.ID.IsEmptyString Then
+                                ThrowAny(Token)
+                                URL = String.Format(SinglePostUrl, m.Post.ID)
+                                r = Responser.GetResponse(URL,, EDP.ReturnValue)
+                                If Not r.IsEmptyString Then
+                                    j = JsonDocument.Parse(r)
+                                    If Not j Is Nothing Then
+                                        PostDate = String.Empty
+                                        If j.Contains("created_at") Then PostDate = j("created_at").Value Else PostDate = String.Empty
+                                        ObtainMedia(j, m.Post.ID, PostDate, UStates.Missing)
+                                        rList.Add(i)
+                                    End If
+                                End If
+                            End If
+                        End If
+                    Next
+                End If
+            Catch ex As Exception
+                ProcessException(ex, Token, $"ReparseMissing error [{URL}]")
+            Finally
+                If rList.Count > 0 Then
+                    For i% = rList.Count - 1 To 0 Step -1 : _ContentList.RemoveAt(i) : Next
+                    rList.Clear()
+                End If
+            End Try
         End Sub
 #End Region
 #Region "DownloadSingleObject"

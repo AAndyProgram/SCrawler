@@ -81,7 +81,13 @@ Namespace DownloadObjects.STDownloader
             If Not MyYouTubeSettings Is Nothing Then MyYouTubeSettings.Close()
         End Sub
         Private Sub VideoListForm_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
-            If e.KeyCode = Keys.Insert Then BTT_ADD.PerformClick() : e.Handled = True
+            Dim b As Boolean = True
+            Select Case e.KeyCode
+                Case Keys.Insert : BTT_ADD.PerformClick()
+                Case Keys.F5 : BTT_DOWN.PerformClick()
+                Case Else : b = False
+            End Select
+            If b Then e.Handled = True
         End Sub
 #End Region
 #Region "Refill, save list"
@@ -230,83 +236,74 @@ Namespace DownloadObjects.STDownloader
                                                                                                                                     BTT_ADD_NO_SHORTS.KeyClick, BTT_ADD_SHORTS_ONLY.KeyClick
             Dim pForm As ParsingProgressForm = Nothing
             Try
-                Dim canProcess As Boolean = True
-                If TP_CONTROLS.Controls.Count >= MyYouTubeSettings.ItemsListLimit Then canProcess = TP_CONTROLS.Controls.Cast(Of MediaItem).ListExists(ControlsDownloaded)
-                If canProcess Then
-                    Dim useCookies As Boolean = MyYouTubeSettings.DefaultUseCookies
-                    If e.Control Then useCookies = True
-                    Dim useCookiesParse As Boolean? = Nothing
-                    If useCookies Then useCookiesParse = True
+                Dim useCookies As Boolean = MyYouTubeSettings.DefaultUseCookies
+                Dim disableDown As Boolean = e.Shift
+                If e.Control Then useCookies = True
+                Dim useCookiesParse As Boolean? = Nothing
+                If useCookies Then useCookiesParse = True
 
-                    Dim c As IYouTubeMediaContainer = Nothing
-                    Dim url$ = String.Empty
-                    Dim GetDefault As Boolean = True
-                    Dim GetShorts As Boolean = True
+                Dim c As IYouTubeMediaContainer = Nothing
+                Dim url$ = String.Empty
+                Dim GetDefault As Boolean = True
+                Dim GetShorts As Boolean = True
 
-                    If Sender.Tag = "pls" Then
-                        Using pf As New PlaylistArrayForm With {.DesignXML = DesignXML}
-                            pf.ShowDialog()
-                            If pf.DialogResult = DialogResult.OK Then
-                                With pf.URLs
-                                    If .Count > 0 Then
-                                        pForm = New ParsingProgressForm
-                                        pForm.Show()
-                                        pForm.SetInitialValues(.Count, "Parsing playlists...")
-                                        Dim containers As New List(Of IYouTubeMediaContainer)
-                                        For Each u$ In .Self : containers.Add(YouTubeFunctions.Parse(u, useCookiesParse, pForm.Token, pForm.MyProgress, True, False)) : pForm.MyProgress.Perform() : Next
-                                        pForm.Dispose()
-                                        If containers.Count > 0 Then containers.ListDisposeRemoveAll(Function(cc) cc.HasError Or Not cc.Exists)
-                                        If containers.Count > 0 Then
-                                            c = New Channel With {.UserTitle = IIf(pf.IsOneArtist, containers(0).UserTitle, "Playlists")}
-                                            c.Elements.AddRange(containers)
-                                        End If
+                If Sender.Tag = "pls" Then
+                    Using pf As New PlaylistArrayForm With {.DesignXML = DesignXML}
+                        pf.ShowDialog()
+                        If pf.DialogResult = DialogResult.OK Then
+                            With pf.URLs
+                                If .Count > 0 Then
+                                    pForm = New ParsingProgressForm
+                                    pForm.Show()
+                                    pForm.SetInitialValues(.Count, "Parsing playlists...")
+                                    Dim containers As New List(Of IYouTubeMediaContainer)
+                                    For Each u$ In .Self : containers.Add(YouTubeFunctions.Parse(u, useCookiesParse, pForm.Token, pForm.MyProgress, True, False)) : pForm.MyProgress.Perform() : Next
+                                    pForm.Dispose()
+                                    If containers.Count > 0 Then containers.ListDisposeRemoveAll(Function(cc) cc.HasError Or Not cc.Exists)
+                                    If containers.Count > 0 Then
+                                        c = New Channel With {.UserTitle = IIf(pf.IsOneArtist, containers(0).UserTitle, "Playlists")}
+                                        c.Elements.AddRange(containers)
                                     End If
-                                End With
-                            End If
-                        End Using
-                    Else
-                        Select Case CStr(Sender.Tag)
-                            Case "ans" : GetShorts = False
-                            Case "as" : GetDefault = False : GetShorts = True
-                        End Select
-                        url = BufferText
-                        If url.IsEmptyString OrElse Not YouTubeFunctions.IsMyUrl(url) Then url = InputBoxE("Enter a valid URL to the YouTube video:", "YouTube link")
-                    End If
-
-                    If Not c Is Nothing OrElse YouTubeFunctions.IsMyUrl(url) Then
-                        If c Is Nothing Then
-                            pForm = New ParsingProgressForm
-                            pForm.Show()
-                            pForm.SetInitialValues(1, "Parsing data...")
-                            c = YouTubeFunctions.Parse(url, useCookiesParse, pForm.Token, pForm.MyProgress, GetDefault, GetShorts)
-                            pForm.Dispose()
-                        End If
-                        If Not c Is Nothing Then
-                            Dim f As Form
-                            Select Case c.ObjectType
-                                Case YouTubeMediaType.Single : f = New VideoOptionsForm(c)
-                                Case YouTubeMediaType.Channel, YouTubeMediaType.PlayList
-                                    If c.IsMusic Then
-                                        f = New MusicPlaylistsForm(c)
-                                    Else
-                                        f = New VideoOptionsForm(c)
-                                    End If
-                                Case Else : c.Dispose() : Throw New ArgumentException($"Object type {c.ObjectType} not implemented", "IYouTubeMediaContainer.ObjectType")
-                            End Select
-                            If Not f Is Nothing Then
-                                If TypeOf f Is IDesignXMLContainer Then DirectCast(f, IDesignXMLContainer).DesignXML = DesignXML
-                                f.ShowDialog()
-                                If f.DialogResult = DialogResult.OK Then
-                                    If TP_CONTROLS.Controls.Count >= MyYouTubeSettings.ItemsListLimit Then _
-                                       RemoveControls(TP_CONTROLS.Controls.Cast(Of MediaItem).LastOrDefault(ControlsDownloaded))
-                                    ControlCreateAndAdd(c)
                                 End If
-                                f.Dispose()
-                            End If
+                            End With
+                        End If
+                    End Using
+                Else
+                    Select Case CStr(Sender.Tag)
+                        Case "ans" : GetShorts = False
+                        Case "as" : GetDefault = False : GetShorts = True
+                    End Select
+                    url = BufferText
+                    If url.IsEmptyString OrElse Not YouTubeFunctions.IsMyUrl(url) Then url = InputBoxE("Enter a valid URL to the YouTube video:", "YouTube link")
+                End If
+
+                If Not c Is Nothing OrElse YouTubeFunctions.IsMyUrl(url) Then
+                    If c Is Nothing Then
+                        pForm = New ParsingProgressForm
+                        pForm.Show()
+                        pForm.SetInitialValues(1, "Parsing data...")
+                        c = YouTubeFunctions.Parse(url, useCookiesParse, pForm.Token, pForm.MyProgress, GetDefault, GetShorts)
+                        pForm.Dispose()
+                    End If
+                    If Not c Is Nothing Then
+                        Dim f As Form
+                        Select Case c.ObjectType
+                            Case YouTubeMediaType.Single : f = New VideoOptionsForm(c)
+                            Case YouTubeMediaType.Channel, YouTubeMediaType.PlayList
+                                If c.IsMusic Then
+                                    f = New MusicPlaylistsForm(c)
+                                Else
+                                    f = New VideoOptionsForm(c)
+                                End If
+                            Case Else : c.Dispose() : Throw New ArgumentException($"Object type {c.ObjectType} not implemented", "IYouTubeMediaContainer.ObjectType")
+                        End Select
+                        If Not f Is Nothing Then
+                            If TypeOf f Is IDesignXMLContainer Then DirectCast(f, IDesignXMLContainer).DesignXML = DesignXML
+                            f.ShowDialog()
+                            If f.DialogResult = DialogResult.OK Then ControlCreateAndAdd(c, disableDown)
+                            f.Dispose()
                         End If
                     End If
-                Else
-                    MsgBoxE({$"Number of items to download exceeded!{vbCr}Reduce the number of items or increase the limit.", "New download"}, vbCritical)
                 End If
             Catch oex As OperationCanceledException
             Catch dex As ObjectDisposedException
@@ -425,8 +422,10 @@ Namespace DownloadObjects.STDownloader
             UpdateLogButton()
         End Sub
         Protected Sub AddToDownload(ByRef Item As MediaItem, ByVal RunThread As Boolean)
-            If MyJob.Count = 0 OrElse Not MyJob.Items.Exists(Function(i) i.MyContainer.GetHashCode) Then
-                Item.Pending = True
+            Dim hc% = Item.MyContainer.GetHashCode
+            If MyJob.Count = 0 OrElse Not MyJob.Items.Exists(Function(i) i.MyContainer.GetHashCode = hc) Then
+                'TODELETE: YT video downloader 'Item.Pending'
+                'Item.Pending = True
                 MyJob.Add(Item)
                 Item.AddToQueue()
                 If RunThread Then StartDownloading()
@@ -475,7 +474,10 @@ Namespace DownloadObjects.STDownloader
                         Task.WaitAll(t.ToArray)
                         MyProgress.Perform(t.Count)
                         If Indexes.Count > 0 Then
-                            For i = Indexes.Count - 1 To 0 Step -1 : MyJob.Items.RemoveAt(Indexes(i)) : Next
+                            For i = Indexes.Count - 1 To 0 Step -1
+                                MyJob.Item(Indexes(i)).Pending = False
+                                MyJob.Items.RemoveAt(Indexes(i))
+                            Next
                         End If
                         t.Clear()
                     End If

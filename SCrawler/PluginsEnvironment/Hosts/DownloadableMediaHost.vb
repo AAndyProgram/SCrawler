@@ -23,6 +23,15 @@ Namespace Plugin.Hosts
         End Property
         Friend Property Instance As UserDataBase
         Friend ReadOnly Property ExternalSource As IDownloadableMedia = Nothing
+        Public Overrides ReadOnly Property Exists As Boolean
+            Get
+                If SiteKey = API.YouTube.YouTubeSiteKey Then
+                    Return MyBase.Exists
+                Else
+                    Return _Exists
+                End If
+            End Get
+        End Property
         Public Overrides Property File As SFile
             Get
                 Return _File
@@ -128,7 +137,7 @@ Namespace Plugin.Hosts
         End Sub
         Public Overrides Sub Load(ByVal f As SFile)
             MyBase.Load(f)
-            If _Exists Then _Exists = File.Exists
+            If _Exists Then _Exists = Not MediaState = UserMediaStates.Downloaded OrElse File.Exists
         End Sub
         Public Overrides Sub Save()
             If FileSettings.IsEmptyString Then
@@ -142,6 +151,9 @@ Namespace Plugin.Hosts
                 x.Save(FileSettings)
             End Using
         End Sub
+        Public Overrides Function GetHashCode() As Integer
+            Return URL.GetHashCode
+        End Function
         Protected Overrides Sub Dispose(ByVal disposing As Boolean)
             If Not disposedValue And disposing Then Instance.DisposeIfReady() : ExternalSource.DisposeIfReady(False)
             MyBase.Dispose(disposing)

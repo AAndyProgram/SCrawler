@@ -70,33 +70,54 @@ Namespace API.Instagram
         End Class
 #End Region
 #Region "Authorization properties"
-        <PropertyOption(ControlText:="Hash", ControlToolTip:="Instagram session hash for tagged posts", IsAuth:=True), PXML("InstaHash"), ControlNumber(0)>
-        Friend ReadOnly Property HashTagged As PropertyValue
-        <PropertyOption(ControlText:="x-csrftoken", IsAuth:=True, AllowNull:=False), ControlNumber(2)>
-        Friend ReadOnly Property CSRF_TOKEN As PropertyValue
-        <PropertyOption(ControlText:="x-ig-app-id", IsAuth:=True, AllowNull:=False), ControlNumber(3)>
-        Friend Property IG_APP_ID As PropertyValue
-        <PropertyOption(ControlText:="x-ig-www-claim", IsAuth:=True, AllowNull:=True), ControlNumber(4)>
-        Friend Property IG_WWW_CLAIM As PropertyValue
-        Friend Overrides Function BaseAuthExists() As Boolean
-            Return Responser.CookiesExists And ACheck(IG_APP_ID.Value) And ACheck(CSRF_TOKEN.Value)
-        End Function
         Private Const Header_IG_APP_ID As String = "x-ig-app-id"
         Friend Const Header_IG_WWW_CLAIM As String = "x-ig-www-claim"
         Friend Const Header_CSRF_TOKEN As String = "x-csrftoken"
+        Private Const Header_ASBD_ID As String = "X-Asbd-Id"
+        Private ReadOnly Header_Browser As New HttpHeader("Sec-Ch-Ua", """Google Chrome"";v=""113"", ""Chromium"";v=""113"", ""Not-A.Brand"";v=""24""")
+        Private ReadOnly Header_BrowserExt As New HttpHeader("Sec-Ch-Ua-Full-Version-List", """Google Chrome"";v=""113.0.5672.127"", ""Chromium"";v=""113.0.5672.127"", ""Not-A.Brand"";v=""24.0.0.0""")
+        Private ReadOnly Header_Platform As New HttpHeader("Sec-Ch-Ua-Platform-Version", """10.0.0""")
+        <PropertyOption(ControlText:="Hash", ControlToolTip:="Instagram session hash for tagged posts", IsAuth:=True), PXML("InstaHash"), ControlNumber(0)>
+        Friend ReadOnly Property HashTagged As PropertyValue
+        <PropertyOption(ControlText:="x-csrftoken", IsAuth:=True, AllowNull:=False), ControlNumber(2)>
+        Friend ReadOnly Property HH_CSRF_TOKEN As PropertyValue
+        <PropertyOption(ControlText:="x-ig-app-id", IsAuth:=True, AllowNull:=False), ControlNumber(3)>
+        Friend Property HH_IG_APP_ID As PropertyValue
+        <PropertyOption(ControlText:="x-asbd-id", IsAuth:=True, AllowNull:=True), ControlNumber(4)>
+        Friend Property HH_ASBD_ID As PropertyValue
+        <PropertyOption(ControlText:="x-ig-www-claim", IsAuth:=True, AllowNull:=True), ControlNumber(5)>
+        Friend Property HH_IG_WWW_CLAIM As PropertyValue
+        <PropertyOption(ControlText:="sec-ch-ua", IsAuth:=True, AllowNull:=True), ControlNumber(6)>
+        Private Property HH_BROWSER As PropertyValue
+        <PropertyOption(ControlText:="sec-ch-ua-full", ControlToolTip:="sec-ch-ua-full-version-list", IsAuth:=True, AllowNull:=True), ControlNumber(7)>
+        Private Property HH_BROWSER_EXT As PropertyValue
+        <PropertyOption(ControlText:="sec-ch-ua-platform-ver", ControlToolTip:="sec-ch-ua-platform-version", IsAuth:=True, AllowNull:=True), ControlNumber(8)>
+        Private Property HH_PLATFORM As PropertyValue
+        <PropertyOption(ControlText:="UserAgent", IsAuth:=True, AllowNull:=True), ControlNumber(9)>
+        Private Property HH_USER_AGENT As PropertyValue
+        Friend Overrides Function BaseAuthExists() As Boolean
+            Return Responser.CookiesExists And ACheck(HH_IG_APP_ID.Value) And ACheck(HH_CSRF_TOKEN.Value)
+        End Function
         Private _FieldsChangerSuspended As Boolean = False
         Private Sub ChangeResponserFields(ByVal PropName As String, ByVal Value As Object)
             If Not _FieldsChangerSuspended And Not PropName.IsEmptyString Then
                 Dim f$ = String.Empty
+                Dim isUserAgent As Boolean = False
                 Select Case PropName
-                    Case NameOf(IG_APP_ID) : f = Header_IG_APP_ID
-                    Case NameOf(IG_WWW_CLAIM) : f = Header_IG_WWW_CLAIM
-                    Case NameOf(CSRF_TOKEN) : f = Header_CSRF_TOKEN
+                    Case NameOf(HH_IG_APP_ID) : f = Header_IG_APP_ID
+                    Case NameOf(HH_ASBD_ID) : f = Header_ASBD_ID
+                    Case NameOf(HH_IG_WWW_CLAIM) : f = Header_IG_WWW_CLAIM
+                    Case NameOf(HH_CSRF_TOKEN) : f = Header_CSRF_TOKEN
+                    Case NameOf(HH_BROWSER) : f = Header_Browser.Name
+                    Case NameOf(HH_BROWSER_EXT) : f = Header_BrowserExt.Name
+                    Case NameOf(HH_PLATFORM) : f = Header_Platform.Name
+                    Case NameOf(HH_USER_AGENT) : isUserAgent = True
                 End Select
                 If Not f.IsEmptyString Then
                     Responser.Headers.Remove(f)
                     If Not CStr(Value).IsEmptyString Then Responser.Headers.Add(f, CStr(Value))
-                    Responser.SaveSettings()
+                ElseIf isUserAgent Then
+                    Responser.UserAgent = CStr(Value)
                 End If
             End If
         End Sub
@@ -192,13 +213,53 @@ Namespace API.Instagram
             Dim app_id$ = String.Empty
             Dim www_claim$ = String.Empty
             Dim token$ = String.Empty
+            Dim asbd$ = String.Empty
+            Dim browser$ = String.Empty
+            Dim browserExt$ = String.Empty
+            Dim platform$ = String.Empty
+            Dim useragent$ = String.Empty
+
+            Dim __UpdateHeader As Action(Of HttpHeader, Boolean) = Sub(ByVal h As HttpHeader, ByVal UpdateValueIfEmpty As Boolean)
+                                                                       With Responser.Headers
+                                                                           Dim i% = .IndexOf(h)
+                                                                           Dim hh As HttpHeader
+                                                                           If i >= 0 Then
+                                                                               hh = .Item(i)
+                                                                               If hh.Value.IsEmptyString And UpdateValueIfEmpty Then hh.Value = h.Value
+                                                                           Else
+                                                                               hh = h
+                                                                           End If
+                                                                           .Add(hh)
+                                                                       End With
+                                                                   End Sub
 
             With Responser
-                If .Headers.Count > 0 Then
-                    token = .Headers.Value(Header_CSRF_TOKEN)
-                    app_id = .Headers.Value(Header_IG_APP_ID)
-                    www_claim = .Headers.Value(Header_IG_WWW_CLAIM)
-                End If
+                .Accept = "*/*"
+                useragent = .UserAgent
+                With .Headers
+                    If .Count > 0 Then
+                        token = .Value(Header_CSRF_TOKEN)
+                        app_id = .Value(Header_IG_APP_ID)
+                        www_claim = .Value(Header_IG_WWW_CLAIM)
+                        asbd = .Value(Header_ASBD_ID)
+                        browser = .Value(Header_Browser.Name)
+                        browserExt = .Value(Header_BrowserExt.Name)
+                        platform = .Value(Header_Platform.Name)
+                    End If
+                    .Add("Dnt", 1)
+                    __UpdateHeader(Header_Browser, browser.IsEmptyString)
+                    browser = .Value(Header_Browser.Name)
+                    __UpdateHeader(Header_BrowserExt, browserExt.IsEmptyString)
+                    browserExt = .Value(Header_BrowserExt.Name)
+                    .Add("Sec-Ch-Ua-Mobile", "?0")
+                    .Add("Sec-Ch-Ua-Platform", """Windows""")
+                    __UpdateHeader(Header_Platform, platform.IsEmptyString)
+                    platform = .Value(Header_Platform.Name)
+                    .Add("Sec-Fetch-Dest", "empty")
+                    .Add("Sec-Fetch-Mode", "cors")
+                    .Add("Sec-Fetch-Site", "same-origin")
+                    .Add("X-Requested-With", "XMLHttpRequest")
+                End With
                 .CookiesExtractMode = Responser.CookiesExtractModes.Response
                 .CookiesUpdateMode = CookieKeeper.UpdateModes.ReplaceByNameAll
                 .CookiesExtractedAutoSave = False
@@ -207,9 +268,14 @@ Namespace API.Instagram
             Dim n() As String = {SettingsCLS.Name_Node_Sites, Site.ToString}
 
             HashTagged = New PropertyValue(String.Empty, GetType(String))
-            CSRF_TOKEN = New PropertyValue(token, GetType(String), Sub(v) ChangeResponserFields(NameOf(CSRF_TOKEN), v))
-            IG_APP_ID = New PropertyValue(app_id, GetType(String), Sub(v) ChangeResponserFields(NameOf(IG_APP_ID), v))
-            IG_WWW_CLAIM = New PropertyValue(www_claim.IfNullOrEmpty(0), GetType(String), Sub(v) ChangeResponserFields(NameOf(IG_WWW_CLAIM), v))
+            HH_CSRF_TOKEN = New PropertyValue(token, GetType(String), Sub(v) ChangeResponserFields(NameOf(HH_CSRF_TOKEN), v))
+            HH_IG_APP_ID = New PropertyValue(app_id, GetType(String), Sub(v) ChangeResponserFields(NameOf(HH_IG_APP_ID), v))
+            HH_ASBD_ID = New PropertyValue(asbd, GetType(String), Sub(v) ChangeResponserFields(NameOf(HH_ASBD_ID), v))
+            HH_IG_WWW_CLAIM = New PropertyValue(www_claim.IfNullOrEmpty(0), GetType(String), Sub(v) ChangeResponserFields(NameOf(HH_IG_WWW_CLAIM), v))
+            HH_BROWSER = New PropertyValue(browser, GetType(String), Sub(v) ChangeResponserFields(NameOf(HH_BROWSER), v))
+            HH_BROWSER_EXT = New PropertyValue(browserExt, GetType(String), Sub(v) ChangeResponserFields(NameOf(HH_BROWSER_EXT), v))
+            HH_PLATFORM = New PropertyValue(platform, GetType(String), Sub(v) ChangeResponserFields(NameOf(HH_PLATFORM), v))
+            HH_USER_AGENT = New PropertyValue(useragent, GetType(String), Sub(v) ChangeResponserFields(NameOf(HH_USER_AGENT), v))
 
             DownloadTimeline = New PropertyValue(True)
             DownloadStories = New PropertyValue(True)
@@ -275,7 +341,7 @@ Namespace API.Instagram
         Private _NextTagged As Boolean = True
         Friend Overrides Sub DownloadStarted(ByVal What As Download)
             ActiveJobs += 1
-            If LastDownloadDate.Value.AddMinutes(120) < Now Or Not ACheck(IG_WWW_CLAIM.Value) Then IG_WWW_CLAIM.Value = "0"
+            If LastDownloadDate.Value.AddMinutes(120) < Now Or Not ACheck(HH_IG_WWW_CLAIM.Value) Then HH_IG_WWW_CLAIM.Value = "0"
         End Sub
         Friend Overrides Sub BeforeStartDownload(ByVal User As Object, ByVal What As Download)
             With DirectCast(User, UserData)
@@ -299,8 +365,8 @@ Namespace API.Instagram
                 LastDownloadDate.Value = Now
                 LastRequestsCount.Value = .RequestsCount
                 _FieldsChangerSuspended = True
-                IG_WWW_CLAIM.Value = Responser.Headers.Value(Header_IG_WWW_CLAIM)
-                CSRF_TOKEN.Value = Responser.Headers.Value(Header_CSRF_TOKEN)
+                HH_IG_WWW_CLAIM.Value = Responser.Headers.Value(Header_IG_WWW_CLAIM)
+                HH_CSRF_TOKEN.Value = Responser.Headers.Value(Header_CSRF_TOKEN)
                 _FieldsChangerSuspended = False
             End With
         End Sub

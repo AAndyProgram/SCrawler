@@ -196,8 +196,10 @@ Namespace DownloadObjects
             End If
         End Sub
         Private Sub JobProgress_Progress0Changed(ByVal Sender As Object, ByVal e As ProgressEventArgs)
-            MainProgress.Value0 = DirectCast(Sender, MyProgressExt).Value0
-            MainProgress.Perform0(0)
+            If Not Job.Type = Download.SavedPosts Then
+                MainProgress.Value0 = DirectCast(Sender, MyProgressExt).Value0
+                MainProgress.Perform0(0)
+            End If
         End Sub
 #End Region
 #Region "IDisposable Support"

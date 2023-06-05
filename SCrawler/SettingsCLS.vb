@@ -238,6 +238,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         FromChannelDownloadTopUse = New XMLValue(Of Boolean)("FromChannelDownloadTopUse", False, MyXML, n)
         FromChannelCopyImageToUser = New XMLValue(Of Boolean)("FromChannelCopyImageToUser", True, MyXML, n)
         UpdateUserDescriptionEveryTime = New XMLValue(Of Boolean)("UpdateUserDescriptionEveryTime", True, MyXML, n)
+        UpdateUserIconBannerEveryTime = New XMLValue(Of Boolean)("UpdateUserIconBannerEveryTime", True, MyXML, n)
         ScriptData = New XMLValueAttribute(Of String, Boolean)("ScriptData", "Use",,, MyXML, n)
 
         n = {"Users", "FileName"}
@@ -720,6 +721,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
     Friend ReadOnly Property FromChannelDownloadTopUse As XMLValue(Of Boolean)
     Friend ReadOnly Property FromChannelCopyImageToUser As XMLValue(Of Boolean)
     Friend ReadOnly Property UpdateUserDescriptionEveryTime As XMLValue(Of Boolean)
+    Friend ReadOnly Property UpdateUserIconBannerEveryTime As XMLValue(Of Boolean)
 #Region "File naming"
     Friend ReadOnly Property FileAddDateToFileName As XMLValue(Of Boolean)
     Friend ReadOnly Property FileAddTimeToFileName As XMLValue(Of Boolean)

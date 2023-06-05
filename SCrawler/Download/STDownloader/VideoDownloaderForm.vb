@@ -43,7 +43,7 @@ Namespace DownloadObjects.STDownloader
                 Return ErrorsDescriber.Execute(EDP.SendToLog, ex, "VideoListForm.LoadData_GetFiles", New List(Of IYouTubeMediaContainer))
             End Try
         End Function
-        Protected Overrides Sub BTT_ADD_KeyClick(ByVal Sender As ToolStripMenuItemKeyClick, ByVal e As KeyClickEventArgs)
+        Protected Overrides Sub BTT_ADD_KeyClick(ByVal Sender As ToolStripMenuItemKeyClick, ByVal e As KeyClickEventArgs) Handles BTT_ADD_URLS_ARR.KeyClick
             Dim __tag$ = UniversalFunctions.IfNullOrEmpty(Of Object)(Sender.Tag, String.Empty)
             If Not __tag = "a" And Not __tag = UrlsArrTag Then
                 MyBase.BTT_ADD_KeyClick(Sender, e)
@@ -51,6 +51,7 @@ Namespace DownloadObjects.STDownloader
                 Dim url$ = String.Empty
                 Try
                     url = BufferText
+                    Dim disableDown As Boolean = e.Shift
                     Dim output As SFile = Settings.LatestSavingPath
                     Dim isArr As Boolean = __tag = UrlsArrTag
                     Dim formOpened As Boolean = False
@@ -152,7 +153,7 @@ Namespace DownloadObjects.STDownloader
                         If media Is Nothing Then
                             MsgBoxE({$"The URL you entered is not recognized by existing plugins.{vbCr}{url}", "Download video"}, vbCritical)
                         Else
-                            ControlCreateAndAdd(media)
+                            ControlCreateAndAdd(media, disableDown)
                         End If
                     End If
                 Catch ex As Exception

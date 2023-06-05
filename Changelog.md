@@ -1,3 +1,22 @@
+# 2023.6.5.0
+
+*2023-06-05*
+
+- Added
+  - **Instagram**: add additional authorization headers
+  - Setting to prevent user icon and banner from downloading (Request #129)
+  - Add standalone downloader to tray context menu
+  - YouTube downloader: added `Replace modification date` property
+  - Minor improvements
+- Fixed
+  - Fascist **Twitter**: posts not downloading (new API)
+  - Main window: refill bug when the number of filtered profiles = 0
+  - Standalone downloader: new items are not added to the queue
+  - Standalone downloader: bug when not downloaded videos do not appear in the list when loading the program
+  - Standalone downloader: add videos array not working
+  - Saved posts: remove main progress perform when downloading saved posts
+  - Minor bugs
+
 # 2023.5.12.0
 
 *2023-05-12*

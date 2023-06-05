@@ -12,7 +12,7 @@ Imports SCrawler.Plugin.Attributes
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Tools.Web.Clients
 Namespace API.Twitter
-    <Manifest(TwitterSiteKey), SavedPosts, SpecialForm(False)>
+    <Manifest(TwitterSiteKey), SavedPosts, SeparatedTasks, SpecialForm(False)>
     Friend Class SiteSettings : Inherits SiteSettingsBase
 #Region "Token names"
         Friend Const Header_Authorization As String = "authorization"
@@ -41,19 +41,20 @@ Namespace API.Twitter
                 Return My.Resources.SiteResources.TwitterPic_400
             End Get
         End Property
-#Region "Auth"
-        <PropertyOption(AllowNull:=False, IsAuth:=True, ControlText:="Authorization",
-                        ControlToolTip:="Set authorization from [authorization] response header. This field must start from [Bearer] key word")>
-        Private ReadOnly Property Auth As PropertyValue
-        <PropertyOption(AllowNull:=False, IsAuth:=True, ControlText:="Token", ControlToolTip:="Set token from [x-csrf-token] response header")>
-        Private ReadOnly Property Token As PropertyValue
-#End Region
+        'TODELETE: twitter headers
+        '#Region "Auth"
+        '        <PropertyOption(AllowNull:=False, IsAuth:=False, ControlText:="Authorization",
+        '                        ControlToolTip:="Set authorization from [authorization] response header. This field must start from [Bearer] key word")>
+        '        Private ReadOnly Property Auth As PropertyValue
+        '        <PropertyOption(AllowNull:=False, IsAuth:=False, ControlText:="Token", ControlToolTip:="Set token from [x-csrf-token] response header")>
+        '        Private ReadOnly Property Token As PropertyValue
+        '#End Region
 #Region "Other properties"
-        <PropertyOption(IsAuth:=False, ControlText:=GifsDownload_Text), PXML>
+        <PropertyOption(ControlText:=GifsDownload_Text), PXML>
         Friend ReadOnly Property GifsDownload As PropertyValue
-        <PropertyOption(IsAuth:=False, ControlText:=GifsSpecialFolder_Text, ControlToolTip:=GifsSpecialFolder_ToolTip), PXML>
+        <PropertyOption(ControlText:=GifsSpecialFolder_Text, ControlToolTip:=GifsSpecialFolder_ToolTip), PXML>
         Friend ReadOnly Property GifsSpecialFolder As PropertyValue
-        <PropertyOption(IsAuth:=False, ControlText:=GifsPrefix_Text, ControlToolTip:=GifsPrefix_ToolTip), PXML>
+        <PropertyOption(ControlText:=GifsPrefix_Text, ControlToolTip:=GifsPrefix_ToolTip), PXML>
         Friend ReadOnly Property GifsPrefix As PropertyValue
         <Provider(NameOf(GifsSpecialFolder), Interaction:=True), Provider(NameOf(GifsPrefix), Interaction:=True)>
         Private ReadOnly Property GifStringChecker As IFormatProvider
@@ -75,68 +76,52 @@ Namespace API.Twitter
                 Throw New NotImplementedException("[GetFormat] is not available in the context of [GifStringProvider]")
             End Function
         End Class
-        <PropertyOption(IsAuth:=False, ControlText:=UseMD5Comparison_Text, ControlToolTip:=UseMD5Comparison_ToolTip), PXML>
+        <PropertyOption(ControlText:=UseMD5Comparison_Text, ControlToolTip:=UseMD5Comparison_ToolTip), PXML>
         Friend ReadOnly Property UseMD5Comparison As PropertyValue
+        <PXML, PropertyOption(ControlText:="Concurrent downloads", ControlToolTip:="The number of concurrent downloads.", LeftOffset:=120), TaskCounter>
+        Friend ReadOnly Property ConcurrentDownloads As PropertyValue
 #End Region
-        Friend Overrides ReadOnly Property Responser As Responser
-        Private Sub ChangeResponserFields(ByVal PropName As String, ByVal Value As Object)
-            If Not PropName.IsEmptyString Then
-                Dim f$ = String.Empty
-                Select Case PropName
-                    Case NameOf(Auth) : f = Header_Authorization
-                    Case NameOf(Token) : f = Header_Token
-                End Select
-                If Not f.IsEmptyString Then
-                    Responser.Headers.Remove(f)
-                    If Not CStr(Value).IsEmptyString Then Responser.Headers.Add(f, CStr(Value))
-                    Responser.SaveSettings()
-                End If
-            End If
-        End Sub
+        'TODELETE: twitter headers
+        'Private Sub ChangeResponserFields(ByVal PropName As String, ByVal Value As Object)
+        '    If Not PropName.IsEmptyString Then
+        '        Dim f$ = String.Empty
+        '        Select Case PropName
+        '            Case NameOf(Auth) : f = Header_Authorization
+        '            Case NameOf(Token) : f = Header_Token
+        '        End Select
+        '        If Not f.IsEmptyString Then
+        '            Responser.Headers.Remove(f)
+        '            If Not CStr(Value).IsEmptyString Then Responser.Headers.Add(f, CStr(Value))
+        '            Responser.SaveSettings()
+        '        End If
+        '    End If
+        'End Sub
 #End Region
         Friend Sub New()
-            MyBase.New(TwitterSite)
-            Responser = New Responser($"{SettingsFolderName}\Responser_{Site}.xml") With {.DeclaredError = EDP.ThrowException}
+            MyBase.New(TwitterSite, "twitter.com")
 
-            Dim a$ = String.Empty
-            Dim t$ = String.Empty
+            'TODELETE: twitter headers
+            'Dim a$ = String.Empty
+            'Dim t$ = String.Empty
 
             With Responser
-                If .File.Exists Then
-                    .CookiesDomain = "twitter.com"
-                    .CookiesEncryptKey = SettingsCLS.CookieEncryptKey
-                    .LoadSettings()
-                    a = .Headers.Value(Header_Authorization)
-                    t = .Headers.Value(Header_Token)
-                Else
-                    .ContentType = "application/json"
-                    .Accept = "*/*"
-                    .CookiesDomain = "twitter.com"
-                    .CookiesEncryptKey = SettingsCLS.CookieEncryptKey
-                    .Decoders.Add(SymbolsConverter.Converters.Unicode)
-                    .Headers.Add("sec-ch-ua", """Chromium"";v=""112"", ""Google Chrome"";v=""112"", ""Not:A-Brand"";v=""99""")
-                    .Headers.Add("sec-ch-ua-mobile", "?0")
-                    .Headers.Add("sec-fetch-dest", "empty")
-                    .Headers.Add("sec-fetch-mode", "cors")
-                    .Headers.Add("sec-fetch-site", "same-origin")
-                    .Headers.Add(Header_Token, String.Empty)
-                    .Headers.Add("x-twitter-active-user", "yes")
-                    .Headers.Add("x-twitter-auth-type", "OAuth2Session")
-                    .Headers.Add(Header_Authorization, String.Empty)
-                    .SaveSettings()
-                End If
+                'TODELETE: twitter headers
+                'a = .Headers.Value(Header_Authorization)
+                't = .Headers.Value(Header_Token)
                 .Cookies.ChangedAllowInternalDrop = False
                 .Cookies.Changed = False
             End With
 
-            Auth = New PropertyValue(a, GetType(String), Sub(v) ChangeResponserFields(NameOf(Auth), v))
-            Token = New PropertyValue(t, GetType(String), Sub(v) ChangeResponserFields(NameOf(Token), v))
+            'TODELETE: twitter headers
+            'Auth = New PropertyValue(a, GetType(String), Sub(v) ChangeResponserFields(NameOf(Auth), v))
+            'Token = New PropertyValue(t, GetType(String), Sub(v) ChangeResponserFields(NameOf(Token), v))
 
             GifsDownload = New PropertyValue(True)
             GifsSpecialFolder = New PropertyValue(String.Empty, GetType(String))
             GifsPrefix = New PropertyValue("GIF_")
             GifStringChecker = New GifStringProvider
             UseMD5Comparison = New PropertyValue(False)
+            ConcurrentDownloads = New PropertyValue(1)
 
             UserRegex = RParams.DMS("[htps:/]{7,8}.*?twitter.com/([^/]+)", 1)
             UrlPatternUser = "https://twitter.com/{0}"
@@ -151,18 +136,10 @@ Namespace API.Twitter
             Return $"https://twitter.com/{User.Name}/status/{Media.Post.ID}"
         End Function
         Friend Overrides Function BaseAuthExists() As Boolean
-            Return Responser.CookiesExists And ACheck(Token.Value) And ACheck(Auth.Value)
+            Return Responser.CookiesExists
         End Function
         Friend Overrides Function Available(ByVal What As ISiteSettings.Download, ByVal Silent As Boolean) As Boolean
-            If MyBase.Available(What, Silent) Then
-                If What = ISiteSettings.Download.SavedPosts Then
-                    Return Settings.GalleryDLFile.Exists
-                Else
-                    Return True
-                End If
-            Else
-                Return False
-            End If
+            Return Settings.GalleryDLFile.Exists And BaseAuthExists()
         End Function
         Friend Overrides Sub UserOptions(ByRef Options As Object, ByVal OpenForm As Boolean)
             If Options Is Nothing OrElse (Not TypeOf Options Is EditorExchangeOptions OrElse

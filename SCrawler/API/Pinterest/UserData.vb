@@ -270,11 +270,11 @@ Namespace API.Pinterest
                 If IsBoardsRequested Then
                     If ErrorOutputData.Count > 0 Then
                         If Await Task.Run(Of Boolean)(Function() ErrorOutputData.Exists(Function(ee) Not ee.IsEmptyString AndAlso
-                                                                                                     ee.StartsWith(UrlTextStart))) Then Kill(EDP.None)
+                                                                                                     ee.StartsWith(UrlTextStart))) Then Kill()
                     End If
                 Else
                     If Await Task.Run(Of Boolean)(Function() Not Value.IsEmptyString AndAlso
-                                                             Source._TempPostsList.Exists(Function(v) Value.Contains(v))) Then Kill(EDP.None)
+                                                             Source._TempPostsList.Exists(Function(v) Value.Contains(v))) Then Kill()
                 End If
             End Function
         End Class
