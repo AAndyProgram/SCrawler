@@ -54,7 +54,7 @@ Namespace Editors
             'CONTAINER_MAIN.ContentPanel
             '
             CONTAINER_MAIN.ContentPanel.Controls.Add(Me.TP_MAIN)
-            CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(544, 218)
+            CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(544, 243)
             CONTAINER_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
             CONTAINER_MAIN.LeftToolStripPanelVisible = False
             CONTAINER_MAIN.Location = New System.Drawing.Point(0, 0)
@@ -84,7 +84,7 @@ Namespace Editors
             Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            Me.TP_MAIN.Size = New System.Drawing.Size(544, 218)
+            Me.TP_MAIN.Size = New System.Drawing.Size(544, 243)
             Me.TP_MAIN.TabIndex = 0
             '
             'TXT_PATH
@@ -135,7 +135,7 @@ Namespace Editors
             Me.TP_SITE_PROPS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             Me.TP_SITE_PROPS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             Me.TP_SITE_PROPS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            Me.TP_SITE_PROPS.Size = New System.Drawing.Size(538, 78)
+            Me.TP_SITE_PROPS.Size = New System.Drawing.Size(538, 103)
             Me.TP_SITE_PROPS.TabIndex = 5
             '
             'TXT_PATH_SAVED_POSTS

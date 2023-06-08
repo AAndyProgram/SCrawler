@@ -81,6 +81,14 @@ Namespace API.YouTube.Controls
 
                 If Not .UserTitle.IsEmptyString Then
                     Text = .UserTitle
+                    If .ObjectType = Base.YouTubeMediaType.PlayList Then
+                        If Not .PlaylistTitle.IsEmptyString AndAlso Not .PlaylistTitle = .UserTitle Then
+                            Text &= $" - { .PlaylistTitle}"
+                        ElseIf Not .Title.IsEmptyString AndAlso Not .Title = .UserTitle Then
+                            Text &= $" - { .Title}"
+                        End If
+                    End If
+                    If Not TXT_OUTPUT_PATH.IsEmptyString AndAlso Not TXT_OUTPUT_PATH.Text.Contains(.UserTitle) Then TXT_OUTPUT_PATH.Text = $"{TXT_OUTPUT_PATH.Text.TrimEnd("\")}\{ .UserTitle}\"
                 ElseIf Not .PlaylistTitle.IsEmptyString Then
                     Text = .PlaylistTitle
                 End If

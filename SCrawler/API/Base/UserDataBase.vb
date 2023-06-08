@@ -1038,7 +1038,6 @@ BlockNullPicture:
                         _ContentList.Clear()
                         CreatedByChannel = False
                     End If
-                    If Not UserExists Then ReadyForDownload = False
                     UpdateUserInformation()
                     If _CollectionButtonsExists AndAlso _EnvirChanged Then UpdateButtonsColor()
                 ElseIf _ForceSaveUserInfo Then

@@ -1040,6 +1040,14 @@ Namespace API.YouTube.Objects
         End Sub
 #End Region
 #Region "Save"
+        Private Function GetThumbnails() As IEnumerable(Of SFile)
+            If HasElements Then
+                Return ListAddList(Of SFile)(New List(Of SFile)({ThumbnailFile}),
+                                             Elements.SelectMany(Function(ee As YouTubeMediaContainerBase) ee.GetThumbnails))
+            Else
+                Return {ThumbnailFile}
+            End If
+        End Function
         Public Overridable Sub Save() Implements IDownloadableMedia.Save
             Try
                 Dim fSettings As SFile = FileSettings
@@ -1068,6 +1076,11 @@ Namespace API.YouTube.Objects
                 Else
                     If CachePath.Exists(SFO.Path, False) Then CachePath.Delete(SFO.Path, SFODelete.DeletePermanently, EDP.None)
                     CachePath = Nothing
+                    If ThumbnailFile.IsEmptyString And HasElements Then
+                        With ListAddList(Nothing, GetThumbnails, LAP.NotContainsOnly).ListWithRemove(Function(tf) tf.IsEmptyString)
+                            If .ListExists Then _ThumbnailFile = .FirstOrDefault(Function(tf) tf.Exists)
+                        End With
+                    End If
                 End If
 
                 Using x As New XmlFile With {.AllowSameNames = True}

@@ -90,6 +90,11 @@ Namespace Editors
                         End If
 
                         If .PropList.Count > 0 Then
+                            With TP_SITE_PROPS
+                                With .RowStyles : .RemoveAt(.Count - 1) : End With
+                                .RowCount -= 1
+                            End With
+
                             Dim laAdded As Boolean = False
                             Dim loAdded As Boolean = False
                             Dim pArr() As Boolean
@@ -134,6 +139,19 @@ Namespace Editors
                         CH_GET_USER_MEDIA_ONLY.Padding = New PaddingE(CH_GET_USER_MEDIA_ONLY.Padding) With {.Left = offset}
                         If c > 0 Or h <> 0 Then
                             Dim ss As New Size(Size.Width, Size.Height + h + c)
+                            Dim minScrh% = Screen.AllScreens.Min(Function(scr) scr.WorkingArea.Height)
+
+                            If ss.Height >= minScrh - 20 Then
+                                ss.Height = minScrh - 40
+                                With TP_SITE_PROPS
+                                    .AutoScroll = True
+                                    Dim p As Padding = .Padding
+                                    p.Right = 3
+                                    .Padding = p
+                                    .PerformLayout()
+                                End With
+                            End If
+
                             MinimumSize = ss
                             Size = ss
                             MaximumSize = ss

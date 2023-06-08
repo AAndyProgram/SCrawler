@@ -115,31 +115,36 @@ Namespace DownloadObjects.STDownloader
             Me.New
             Const d$ = " " & ChrW(183) & " "
             MyContainer = Container
-            MyContainer.Progress = MyProgress
-            If MyContainer.HasElements Then FileOption = SFO.Path Else FileOption = SFO.File
-            If Not MyContainer.SiteKey = YouTubeSiteKey Then
-                BTT_DOWN_AGAIN.Visible = False
-                SEP_DOWN_AGAIN.Visible = False
-            End If
+            With MyContainer
+                .Progress = MyProgress
+                If .HasElements Then FileOption = SFO.Path Else FileOption = SFO.File
+                If .DownloadState = Plugin.UserMediaStates.Downloaded AndAlso
+                   (.ObjectType = Base.YouTubeMediaType.Channel Or .ObjectType = Base.YouTubeMediaType.PlayList) AndAlso FileOption = SFO.File AndAlso
+                   Not .File.Exists AndAlso .File.Exists(SFO.Path, False) Then FileOption = SFO.Path
+                If Not .SiteKey = YouTubeSiteKey Then
+                    BTT_DOWN_AGAIN.Visible = False
+                    SEP_DOWN_AGAIN.Visible = False
+                End If
 
-            ICON_SITE.Image = MyContainer.SiteIcon
-            LBL_TIME.Text = AConvert(Of String)(Container.Duration, TimeToStringProvider, String.Empty)
-            LBL_TITLE.Text = Container.ToString(True)
-            If Not Container.SiteKey = YouTubeSiteKey And Container.ContentType = Plugin.UserMediaTypes.Picture Then
-                LBL_INFO.Text = Container.File.Extension.StringToUpper
-            ElseIf Not Container.IsMusic Then
-                If Container.Height > 0 Then
-                    LBL_INFO.Text = $"{Container.File.Extension.StringToUpper}{d}{Container.Height}p"
+                ICON_SITE.Image = .SiteIcon
+                LBL_TIME.Text = AConvert(Of String)(.Duration, TimeToStringProvider, String.Empty)
+                LBL_TITLE.Text = .ToString(True)
+                If Not .SiteKey = YouTubeSiteKey And .ContentType = Plugin.UserMediaTypes.Picture Then
+                    LBL_INFO.Text = .File.Extension.StringToUpper
+                ElseIf Not .IsMusic Then
+                    If .Height > 0 Then
+                        LBL_INFO.Text = $"{ .File.Extension.StringToUpper}{d}{ .Height}p"
+                    Else
+                        LBL_INFO.Text = .File.Extension.StringToUpper
+                    End If
                 Else
-                    LBL_INFO.Text = Container.File.Extension.StringToUpper
+                    If .Bitrate > 0 Then
+                        LBL_INFO.Text = $"{ .File.Extension.StringToUpper}{d}{ .Bitrate}k"
+                    Else
+                        LBL_INFO.Text = .File.Extension.StringToUpper
+                    End If
                 End If
-            Else
-                If Container.Bitrate > 0 Then
-                    LBL_INFO.Text = $"{Container.File.Extension.StringToUpper}{d}{Container.Bitrate}k"
-                Else
-                    LBL_INFO.Text = Container.File.Extension.StringToUpper
-                End If
-            End If
+            End With
             UpdateMediaIcon()
         End Sub
 #End Region
