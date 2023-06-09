@@ -18,11 +18,21 @@ Imports UTypes = SCrawler.API.Base.UserMedia.Types
 Namespace API.Twitter
     Friend Class UserData : Inherits UserDataBase
 #Region "XML names"
+        Private Const Name_FirstDownloadComplete As String = "FirstDownloadComplete"
+        Private Const Name_DownloadModel As String = "DownloadModel"
         Private Const Name_GifsDownload As String = "GifsDownload"
         Private Const Name_GifsSpecialFolder As String = "GifsSpecialFolder"
         Private Const Name_GifsPrefix As String = "GifsPrefix"
 #End Region
 #Region "Declarations"
+        Friend Enum DownloadModels As Integer
+            Undefined = 0
+            Media = 1
+            Profile = 2
+            Search = 5
+        End Enum
+        Private FirstDownloadComplete As Boolean = False
+        Friend Property DownloadModel As DownloadModels = DownloadModels.Undefined
         Friend Property GifsDownload As Boolean = True
         Friend Property GifsSpecialFolder As String = String.Empty
         Friend Property GifsPrefix As String = String.Empty
@@ -53,6 +63,10 @@ Namespace API.Twitter
                     GifsPrefix = .GifsPrefix
                     UseMD5Comparison = .UseMD5Comparison
                     RemoveExistingDuplicates = .RemoveExistingDuplicates
+                    DownloadModel = DownloadModels.Undefined
+                    If .DownloadModelMedia Then DownloadModel += DownloadModels.Media
+                    If .DownloadModelProfile Then DownloadModel += DownloadModels.Profile
+                    If .DownloadModelSearch Then DownloadModel += DownloadModels.Search
                 End With
             End If
         End Sub
@@ -62,25 +76,48 @@ Namespace API.Twitter
             _DataNames = New List(Of String)
         End Sub
         Protected Overrides Sub LoadUserInformation_OptionalFields(ByRef Container As XmlFile, ByVal Loading As Boolean)
-            If Loading Then
-                GifsDownload = Container.Value(Name_GifsDownload).FromXML(Of Boolean)(True)
-                GifsSpecialFolder = Container.Value(Name_GifsSpecialFolder)
-                If Not Container.Contains(Name_GifsPrefix) Then
-                    GifsPrefix = "GIF_"
+            With Container
+                If Loading Then
+                    If .Contains(Name_FirstDownloadComplete) Then
+                        FirstDownloadComplete = .Value(Name_FirstDownloadComplete).FromXML(Of Boolean)(False)
+                        DownloadModel = .Value(Name_DownloadModel).FromXML(Of Integer)(DownloadModels.Undefined)
+                    Else
+                        FirstDownloadComplete = DownloadedVideos(True) + DownloadedPictures(True) > 0
+                        If .Contains(Name_DownloadModel) Then
+                            DownloadModel = .Value(Name_DownloadModel).FromXML(Of Integer)(DownloadModels.Undefined)
+                        Else
+                            If FirstDownloadComplete Then
+                                If ParseUserMediaOnly Then
+                                    DownloadModel = DownloadModels.Media
+                                Else
+                                    DownloadModel = DownloadModels.Media + DownloadModels.Profile + DownloadModels.Search
+                                End If
+                            Else
+                                DownloadModel = DownloadModels.Undefined
+                            End If
+                        End If
+                    End If
+                    GifsDownload = .Value(Name_GifsDownload).FromXML(Of Boolean)(True)
+                    GifsSpecialFolder = .Value(Name_GifsSpecialFolder)
+                    If Not .Contains(Name_GifsPrefix) Then
+                        GifsPrefix = "GIF_"
+                    Else
+                        GifsPrefix = .Value(Name_GifsPrefix)
+                    End If
+                    UseMD5Comparison = .Value(Name_UseMD5Comparison).FromXML(Of Boolean)(False)
+                    RemoveExistingDuplicates = .Value(Name_RemoveExistingDuplicates).FromXML(Of Boolean)(False)
+                    StartMD5Checked = .Value(Name_StartMD5Checked).FromXML(Of Boolean)(False)
                 Else
-                    GifsPrefix = Container.Value(Name_GifsPrefix)
+                    .Add(Name_FirstDownloadComplete, FirstDownloadComplete.BoolToInteger)
+                    .Add(Name_DownloadModel, CInt(DownloadModel))
+                    .Add(Name_GifsDownload, GifsDownload.BoolToInteger)
+                    .Add(Name_GifsSpecialFolder, GifsSpecialFolder)
+                    .Add(Name_GifsPrefix, GifsPrefix)
+                    .Add(Name_UseMD5Comparison, UseMD5Comparison.BoolToInteger)
+                    .Add(Name_RemoveExistingDuplicates, RemoveExistingDuplicates.BoolToInteger)
+                    .Add(Name_StartMD5Checked, StartMD5Checked.BoolToInteger)
                 End If
-                UseMD5Comparison = Container.Value(Name_UseMD5Comparison).FromXML(Of Boolean)(False)
-                RemoveExistingDuplicates = Container.Value(Name_RemoveExistingDuplicates).FromXML(Of Boolean)(False)
-                StartMD5Checked = Container.Value(Name_StartMD5Checked).FromXML(Of Boolean)(False)
-            Else
-                Container.Add(Name_GifsDownload, GifsDownload.BoolToInteger)
-                Container.Add(Name_GifsSpecialFolder, GifsSpecialFolder)
-                Container.Add(Name_GifsPrefix, GifsPrefix)
-                Container.Add(Name_UseMD5Comparison, UseMD5Comparison.BoolToInteger)
-                Container.Add(Name_RemoveExistingDuplicates, RemoveExistingDuplicates.BoolToInteger)
-                Container.Add(Name_StartMD5Checked, StartMD5Checked.BoolToInteger)
-            End If
+            End With
         End Sub
 #End Region
 #Region "Download functions"
@@ -262,7 +299,20 @@ Namespace API.Twitter
                             End If
                         End If
                     Next
+                    dirs.Clear()
                 End If
+                ThrowAny(Token)
+                If Not FirstDownloadComplete Then
+                    _ForceSaveUserInfo = True
+                    If DownloadModel = DownloadModels.Undefined Then
+                        If ParseUserMediaOnly Then
+                            DownloadModel = DownloadModels.Media
+                        Else
+                            DownloadModel = DownloadModels.Media + DownloadModels.Profile + DownloadModels.Search
+                        End If
+                    End If
+                End If
+                FirstDownloadComplete = True
             Catch ex As Exception
                 ProcessException(ex, Token, $"data downloading error [{URL}]")
             Finally
@@ -459,7 +509,8 @@ Namespace API.Twitter
         Private Function GetTimelineFromGalleryDL(ByVal Cache As CacheKeeper, ByVal Token As CancellationToken) As List(Of SFile)
             Dim command$ = String.Empty
             Try
-                Dim conf As SFile = $"{Cache.NewPath.PathWithSeparator}TwitterGdlConfig.conf"
+                Dim confCache As CacheKeeper = Cache.NewInstance(Of BatchFileExchanger)
+                Dim conf As SFile = $"{confCache.RootDirectory.PathWithSeparator}TwitterGdlConfig.conf"
                 Dim confText$ = "{""extractor"":{""cookies"": """ & MySettings.CookiesNetscapeFile.ToString.Replace("\", "/") &
                                 """,""cookies-update"": false,""twitter"":{""cards"": false,""conversations"": true,""pinned"": false,""quoted"": false,""replies"": true,""retweets"": true,""strategy"": null,""text-tweets"": false,""twitpic"": false,""unique"": true,""users"": ""timeline"",""videos"": true}}}"
                 If conf.Exists(SFO.Path, True, EDP.ThrowException) Then TextSaver.SaveTextToFile(confText, conf)
@@ -468,8 +519,19 @@ Namespace API.Twitter
                 Dim outList As New List(Of SFile)
                 Dim rootDir As CacheKeeper = Cache.NewInstance
                 Dim dir As SFile
+                Dim dm As List(Of DownloadModels) = EnumExtract(Of DownloadModels)(DownloadModel).ListIfNothing
+                Dim process As Boolean
+                Dim bProcess As Boolean = DownloadModel = DownloadModels.Undefined Or Not FirstDownloadComplete
 
-                Using tgdl As New TwitterGDL(Nothing, Token) With {.TempPostsList = _TempPostsList, .AutoClear = True, .AutoReset = True}
+                Using tgdl As New TwitterGDL(Nothing, Token) With {
+                    .TempPostsList = _TempPostsList,
+                    .AutoClear = True,
+                    .AutoReset = True,
+                    .CommandPermanent = $"chcp {BatchExecutor.UnicodeEncoding}",
+                    .FileExchanger = confCache
+                }
+                    tgdl.FileExchanger.DeleteCacheOnDispose = False
+                    tgdl.FileExchanger.DeleteRootOnDispose = False
                     For i As Byte = 0 To 2
                         dir = rootDir.NewPath
                         dir.Exists(SFO.Path, True, EDP.ThrowException)
@@ -478,20 +540,25 @@ Namespace API.Twitter
                         command = $"""{Settings.GalleryDLFile}"" --verbose --no-download --no-skip --config ""{conf}"" --write-pages "
                         command &= GdlGetIdFilterString()
                         Select Case i
-                            Case 0 : command &= $"https://twitter.com/{Name}/media"
-                            Case 1 : command &= $"https://twitter.com/{Name}"
-                            Case 2 : command &= $"https://twitter.com/search?q=from:{Name}+include:nativeretweets"
+                            Case 0 : command &= $"https://twitter.com/{Name}/media" : process = bProcess Or dm.Contains(DownloadModels.Media)
+                            Case 1 : command &= $"https://twitter.com/{Name}" : process = bProcess Or dm.Contains(DownloadModels.Profile)
+                            Case 2 : command &= $"https://twitter.com/search?q=from:{Name}+include:nativeretweets" : process = bProcess Or dm.Contains(DownloadModels.Search)
+                            Case Else : process = False
                         End Select
                         '#If DEBUG Then
                         'Debug.WriteLine(command)
                         '#End If
-                        tgdl.Execute(command)
+                        ThrowAny(Token)
+                        If process Then tgdl.Execute(command)
+                        ThrowAny(Token)
                     Next
                 End Using
+                dm.Clear()
 
                 Return outList
             Catch ex As Exception
-                Return ErrorsDescriber.Execute(EDP.SendToLog, ex, $"{ToStringForLog()}: GetTimelineFromGalleryDL({command})")
+                ProcessException(ex, Token, $"{ToStringForLog()}: GetTimelineFromGalleryDL({command})")
+                Return Nothing
             End Try
         End Function
         Private Function GdlGetIdFilterString() As String

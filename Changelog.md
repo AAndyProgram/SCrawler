@@ -1,12 +1,21 @@
+# 2023.6.9.0
+
+*2023-06-09*
+
+- Fixed
+  - YouTube: opening paths to downloaded playlists and channels
+  - Twitter: make the algorithm faster
+  - Make progress more informative
+
 # 2023.6.8.0
 
 *2023-06-08*
 
 - Added
-  - YouTube: append artist name to music playlist output path
+  - YouTube: append artist name to music playlist output path
   - YouTube: save thumbnail path for playlist and channel
 - Fixed
-  - YouTube: opening paths to downloaded playlists and channels
+  - YouTube: opening paths to downloaded playlists and channels
   - Twitter: profile not fully downloaded
   - Corrected form size for small monitors (Issue #136)
 

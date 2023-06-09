@@ -154,7 +154,8 @@ Namespace API.Base
                     Dim tmpObj As Object
 
                     members = GetObjectMembers(MyObject, Function(m) (m.MemberType = MemberTypes.Field Or m.MemberType = MemberTypes.Property) AndAlso
-                                                                     Not m.GetCustomAttribute(Of PSettingAttribute) Is Nothing)
+                                                                     Not m.GetCustomAttribute(Of PSettingAttribute) Is Nothing,, True,
+                                                                     New FComparer(Of MemberInfo)(Function(mm1, mm2) mm1.Name = mm2.Name))
                     providersMembersSettings = GetObjectMembers(MySettingsInstance, providersPredicate)
                     providersMembersObj = GetObjectMembers(MyObject, providersPredicate)
 

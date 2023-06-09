@@ -8,7 +8,7 @@
 ' but WITHOUT ANY WARRANTY
 Imports System.Runtime.CompilerServices
 Namespace Plugin.Attributes
-    Public Enum SettingAddress : Both : Settings : User : End Enum
+    Public Enum SettingAddress : Both : Settings : User : None : End Enum
     Public Class PSettingAttribute : Inherits Attribute
         Public Number As Integer = 0
         Friend ReadOnly Name As String

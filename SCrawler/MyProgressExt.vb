@@ -114,62 +114,71 @@ Friend Class MyProgressExt : Inherits MyProgress
             End If
         End RaiseEvent
     End Event
+    Private WithEvents PR_PRE As MyProgress
+    Private Sub PR_PRE_ProgressChanged(ByVal Sender As Object, ByVal e As ProgressEventArgs) Handles PR_PRE.ProgressChanged
+        RaiseEvent Progress0Changed(Sender, e)
+    End Sub
+    Private Sub PR_PRE_MaximumChanged(ByVal Sender As Object, ByVal e As ProgressEventArgs) Handles PR_PRE.MaximumChanged
+        RaiseEvent Maximum0Changed(Sender, e)
+    End Sub
     Friend Sub New()
         _Progress0ChangedEventHandlers = New List(Of EventHandler(Of ProgressEventArgs))
         _Maximum0ChangedEventHandlers = New List(Of EventHandler(Of ProgressEventArgs))
     End Sub
-    Friend Sub New(ByRef StatusStrip As StatusStrip, ByRef ProgressBar As ToolStripProgressBar, ByRef Label As ToolStripStatusLabel,
+    Friend Sub New(ByRef StatusStrip As StatusStrip, ByRef ProgressBar As ToolStripProgressBar, ByRef ProgressBarPre As ToolStripProgressBar, ByRef Label As ToolStripStatusLabel,
                    Optional ByVal Information As String = Nothing)
         MyBase.New(StatusStrip, ProgressBar, Label, Information)
+        PR_PRE = New MyProgress(StatusStrip, ProgressBarPre, Nothing) With {.PerformMod = 10, .ResetProgressOnMaximumChanges = False}
         _Progress0ChangedEventHandlers = New List(Of EventHandler(Of ProgressEventArgs))
         _Maximum0ChangedEventHandlers = New List(Of EventHandler(Of ProgressEventArgs))
     End Sub
-    Friend Sub New(ByRef ProgressBar As ProgressBar, ByRef Label As Label, Optional ByVal Information As String = Nothing)
+    Friend Sub New(ByRef ProgressBar As ProgressBar, ByRef ProgressBarPre As ProgressBar, ByRef Label As Label, Optional ByVal Information As String = Nothing)
         MyBase.New(ProgressBar, Label, Information)
+        PR_PRE = New MyProgress(ProgressBarPre, Nothing) With {.PerformMod = 10, .ResetProgressOnMaximumChanges = False}
         _Progress0ChangedEventHandlers = New List(Of EventHandler(Of ProgressEventArgs))
         _Maximum0ChangedEventHandlers = New List(Of EventHandler(Of ProgressEventArgs))
     End Sub
-    Private _Maximum0 As Double = 0
     Friend Property Maximum0 As Double
         Get
-            Return _Maximum0
+            Return PR_PRE.Maximum
         End Get
         Set(ByVal v As Double)
-            Dim b As Boolean = Not _Maximum0 = v
-            _Maximum0 = v
-            If ResetProgressOnMaximumChanges Then Value0 = 0
-            If b Then RaiseEvent Maximum0Changed(Me, Nothing)
+            PR_PRE.Maximum = v
         End Set
     End Property
-    Friend Property Value0 As Double = 0
+    Friend Property Value0 As Double
+        Get
+            Return PR_PRE.Value
+        End Get
+        Set(ByVal v As Double)
+            PR_PRE.Value = v
+        End Set
+    End Property
     Friend Sub Perform0(Optional ByVal Value As Double = 1)
-        Value0 += Value
-        If Perform(0, 10, False, False) Then RaiseEvent Progress0Changed(Me, Nothing)
+        PR_PRE.Perform(Value)
     End Sub
-    Public Overloads Overrides Sub Perform(Optional ByVal Value As Double = 1)
-        If Perform(Value, PerformMod, True, True) Then OnProgressChanged()
-    End Sub
-    Public Overloads Function Perform(ByVal Value As Double, ByVal pm As Integer, ByVal SetText As Boolean, ByVal InvokeProgressChangeHandler As Boolean) As Boolean
-        Me.Value += Value
-        If Me.Value < 0 Then Me.Value = 0
-        Dim v# = Me.Value + Value0
-        Dim m# = Maximum + Maximum0
-        If pm = 0 OrElse (v Mod pm) = 0 OrElse v = m Then PerformImpl(GetPercentage(v, m), SetText, InvokeProgressChangeHandler) : Return True
-        Return False
-    End Function
     Public Overrides Sub Done()
-        Value0 = Maximum0
+        PR_PRE.Done()
         MyBase.Done()
     End Sub
     Public Overrides Sub Reset()
         MyBase.Reset()
-        Value0 = 0
-        Maximum0 = 0
+        PR_PRE.Done()
     End Sub
+    Public Overrides Property Visible(Optional ByVal ProgressBar As Boolean = True, Optional ByVal Label As Boolean = True) As Boolean
+        Get
+            Return MyBase.Visible(ProgressBar, Label)
+        End Get
+        Set(ByVal _Visible As Boolean)
+            MyBase.Visible(ProgressBar, Label) = _Visible
+            PR_PRE.Visible(ProgressBar, Label) = _Visible
+        End Set
+    End Property
     Protected Overrides Sub Dispose(ByVal disposing As Boolean)
         If Not disposedValue And disposing Then
             _Progress0ChangedEventHandlers.Clear()
             _Maximum0ChangedEventHandlers.Clear()
+            PR_PRE.Dispose()
         End If
         MyBase.Dispose(disposing)
     End Sub

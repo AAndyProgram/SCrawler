@@ -58,7 +58,7 @@ Public Class MainFrame
         YouTube.MyCache = Settings.Cache
         YouTube.MyYouTubeSettings = New YouTube.YTSettings_Internal
         UpdateYouTubeSettings()
-        MainProgress = New MyProgressExt(Toolbar_BOTTOM, PR_MAIN, LBL_STATUS, "Downloading profiles' data") With {
+        MainProgress = New MyProgressExt(Toolbar_BOTTOM, PR_MAIN, PR_PRE, LBL_STATUS, "Downloading profiles' data") With {
             .ResetProgressOnMaximumChanges = False, .Visible = False}
         Downloader = New TDownloader
         InfoForm = New DownloadedInfoForm

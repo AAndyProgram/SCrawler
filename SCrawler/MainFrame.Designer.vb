@@ -92,6 +92,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_DONATE = New System.Windows.Forms.ToolStripButton()
         Me.Toolbar_BOTTOM = New System.Windows.Forms.StatusStrip()
         Me.BTT_PR_INFO = New System.Windows.Forms.ToolStripStatusLabel()
+        Me.PR_PRE = New System.Windows.Forms.ToolStripProgressBar()
         Me.PR_MAIN = New System.Windows.Forms.ToolStripProgressBar()
         Me.LBL_JOBS_COUNT = New System.Windows.Forms.ToolStripStatusLabel()
         Me.LBL_STATUS = New System.Windows.Forms.ToolStripStatusLabel()
@@ -122,10 +123,10 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_TRAY_SILENT_MODE = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_TRAY_FEED_SHOW = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_TRAY_CHANNELS = New System.Windows.Forms.ToolStripMenuItem()
+        Me.BTT_TRAY_DOWNLOADER = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_TRAY_SHOW_HIDE = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_TRAY_CLOSE = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_TRAY_CLOSE_NO_SCRIPT = New System.Windows.Forms.ToolStripMenuItem()
-        Me.BTT_TRAY_DOWNLOADER = New System.Windows.Forms.ToolStripMenuItem()
         SEP_1 = New System.Windows.Forms.ToolStripSeparator()
         SEP_2 = New System.Windows.Forms.ToolStripSeparator()
         CONTEXT_SEP_1 = New System.Windows.Forms.ToolStripSeparator()
@@ -633,7 +634,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         '
         'Toolbar_BOTTOM
         '
-        Me.Toolbar_BOTTOM.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_PR_INFO, Me.PR_MAIN, Me.LBL_JOBS_COUNT, Me.LBL_STATUS})
+        Me.Toolbar_BOTTOM.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_PR_INFO, Me.PR_PRE, Me.PR_MAIN, Me.LBL_JOBS_COUNT, Me.LBL_STATUS})
         Me.Toolbar_BOTTOM.Location = New System.Drawing.Point(0, 439)
         Me.Toolbar_BOTTOM.Name = "Toolbar_BOTTOM"
         Me.Toolbar_BOTTOM.Size = New System.Drawing.Size(934, 22)
@@ -646,6 +647,12 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_PR_INFO.Name = "BTT_PR_INFO"
         Me.BTT_PR_INFO.Padding = New System.Windows.Forms.Padding(0, 0, 3, 0)
         Me.BTT_PR_INFO.Size = New System.Drawing.Size(19, 17)
+        '
+        'PR_PRE
+        '
+        Me.PR_PRE.Name = "PR_PRE"
+        Me.PR_PRE.Size = New System.Drawing.Size(100, 16)
+        Me.PR_PRE.Visible = False
         '
         'PR_MAIN
         '
@@ -865,6 +872,13 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_TRAY_CHANNELS.Size = New System.Drawing.Size(170, 22)
         Me.BTT_TRAY_CHANNELS.Text = "Channels"
         '
+        'BTT_TRAY_DOWNLOADER
+        '
+        Me.BTT_TRAY_DOWNLOADER.Image = Global.SCrawler.My.Resources.Resources.ArrowDownPic_Blue_24
+        Me.BTT_TRAY_DOWNLOADER.Name = "BTT_TRAY_DOWNLOADER"
+        Me.BTT_TRAY_DOWNLOADER.Size = New System.Drawing.Size(170, 22)
+        Me.BTT_TRAY_DOWNLOADER.Text = "Downloader"
+        '
         'BTT_TRAY_SHOW_HIDE
         '
         Me.BTT_TRAY_SHOW_HIDE.Image = Global.SCrawler.My.Resources.Resources.ApplicationPic_16
@@ -892,13 +906,6 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_TRAY_CLOSE_NO_SCRIPT.Text = "Close (no script)"
         Me.BTT_TRAY_CLOSE_NO_SCRIPT.ToolTipText = "Close the program without executing the script"
         Me.BTT_TRAY_CLOSE_NO_SCRIPT.Visible = False
-        '
-        'BTT_TRAY_DOWNLOADER
-        '
-        Me.BTT_TRAY_DOWNLOADER.Image = Global.SCrawler.My.Resources.Resources.ArrowDownPic_Blue_24
-        Me.BTT_TRAY_DOWNLOADER.Name = "BTT_TRAY_DOWNLOADER"
-        Me.BTT_TRAY_DOWNLOADER.Size = New System.Drawing.Size(170, 22)
-        Me.BTT_TRAY_DOWNLOADER.Text = "Downloader"
         '
         'MainFrame
         '
@@ -1005,4 +1012,5 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
     Friend WithEvents MENU_DOWN_ALL As ToolStripDropDownButton
     Private WithEvents BTT_TRAY_CHANNELS As ToolStripMenuItem
     Private WithEvents BTT_TRAY_DOWNLOADER As ToolStripMenuItem
+    Private WithEvents PR_PRE As ToolStripProgressBar
 End Class

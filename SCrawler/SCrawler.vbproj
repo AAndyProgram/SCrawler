@@ -178,6 +178,7 @@
     <Compile Include="API\LPSG\UserData.vb" />
     <Compile Include="API\Mastodon\Credentials.vb" />
     <Compile Include="API\Mastodon\Declarations.vb" />
+    <Compile Include="API\Mastodon\EditorExchangeOptions.vb" />
     <Compile Include="API\Mastodon\MastodonDomains.vb" />
     <Compile Include="API\Mastodon\SettingsForm.Designer.vb">
       <DependentUpon>SettingsForm.vb</DependentUpon>

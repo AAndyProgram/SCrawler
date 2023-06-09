@@ -139,9 +139,9 @@ Namespace API.Mastodon
 #End Region
 #Region "UserOptions"
         Friend Overrides Sub UserOptions(ByRef Options As Object, ByVal OpenForm As Boolean)
-            If Options Is Nothing OrElse (Not TypeOf Options Is Twitter.EditorExchangeOptions OrElse
-                                          Not DirectCast(Options, Twitter.EditorExchangeOptions).SiteKey = MastodonSiteKey) Then _
-               Options = New Twitter.EditorExchangeOptions(Me) With {.SiteKey = MastodonSiteKey}
+            If Options Is Nothing OrElse (Not TypeOf Options Is EditorExchangeOptions OrElse
+                                          Not DirectCast(Options, EditorExchangeOptions).SiteKey = MastodonSiteKey) Then _
+               Options = New EditorExchangeOptions(Me) With {.SiteKey = MastodonSiteKey}
             If OpenForm Then
                 Using f As New InternalSettingsForm(Options, Me, False) : f.ShowDialog() : End Using
             End If

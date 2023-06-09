@@ -24,6 +24,7 @@ Namespace DownloadObjects
         Private WithEvents BTT_STOP As Button
         Private WithEvents BTT_OPEN As Button
         Private ReadOnly PR_MAIN As ProgressBar
+        Private ReadOnly PR_PRE As ProgressBar
         Private ReadOnly LBL_INFO As Label
         Private ReadOnly Icon As PictureBox
 #End Region
@@ -39,6 +40,7 @@ Namespace DownloadObjects
             TP_MAIN.ColumnCount = 1
             TP_CONTROLS = New TableLayoutPanel With {.Margin = New Padding(0), .Dock = DockStyle.Fill}
             PR_MAIN = New ProgressBar With {.Dock = DockStyle.Fill}
+            PR_PRE = New ProgressBar With {.Dock = DockStyle.Fill}
             LBL_INFO = New Label With {.Text = String.Empty, .Dock = DockStyle.Fill}
             Icon = New PictureBox With {
                 .SizeMode = PictureBoxSizeMode.Zoom,
@@ -66,7 +68,8 @@ Namespace DownloadObjects
                 With TP_CONTROLS
                     .ColumnStyles.Add(New ColumnStyle(SizeType.Absolute, 30))
                     .ColumnStyles.Add(New ColumnStyle(SizeType.Absolute, 30))
-                    .ColumnStyles.Add(New ColumnStyle(SizeType.Absolute, 150))
+                    .ColumnStyles.Add(New ColumnStyle(SizeType.Absolute, 75))
+                    .ColumnStyles.Add(New ColumnStyle(SizeType.Absolute, 75)) '150
                     .ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 100))
                     .ColumnCount = .ColumnStyles.Count
                     .RowStyles.Add(New RowStyle(SizeType.Percent, 100))
@@ -74,8 +77,9 @@ Namespace DownloadObjects
                     With .Controls
                         If Not img Is Nothing Then .Add(Icon, 0, 0)
                         .Add(BTT_STOP, 1, 0)
-                        .Add(PR_MAIN, 2, 0)
-                        .Add(LBL_INFO, 3, 0)
+                        .Add(PR_PRE, 2, 0)
+                        .Add(PR_MAIN, 3, 0)
+                        .Add(LBL_INFO, 4, 0)
                     End With
                 End With
                 TP_MAIN.Controls.Add(TP_CONTROLS, 0, 0)
@@ -90,7 +94,8 @@ Namespace DownloadObjects
                         .Add(New ColumnStyle(SizeType.Absolute, 30))
                         .Add(New ColumnStyle(SizeType.Absolute, 30))
                         .Add(New ColumnStyle(SizeType.Absolute, 30))
-                        .Add(New ColumnStyle(SizeType.Percent, 100))
+                        .Add(New ColumnStyle(SizeType.Percent, 50))
+                        .Add(New ColumnStyle(SizeType.Percent, 50)) '100
                     End With
                     .ColumnCount = .ColumnStyles.Count
                     .RowStyles.Add(New RowStyle(SizeType.Percent, 50))
@@ -100,7 +105,8 @@ Namespace DownloadObjects
                         .Add(BTT_START, 1, 0)
                         .Add(BTT_STOP, 2, 0)
                         .Add(BTT_OPEN, 3, 0)
-                        .Add(PR_MAIN, 4, 0)
+                        .Add(PR_PRE, 4, 0)
+                        .Add(PR_MAIN, 5, 0)
                     End With
                 End With
                 With TP_MAIN
@@ -115,7 +121,7 @@ Namespace DownloadObjects
             End If
 
             With Job
-                .Progress = New MyProgressExt(PR_MAIN, LBL_INFO) With {.ResetProgressOnMaximumChanges = False}
+                .Progress = New MyProgressExt(PR_MAIN, PR_PRE, LBL_INFO) With {.ResetProgressOnMaximumChanges = False}
                 With DirectCast(.Progress, MyProgressExt)
                     AddHandler .ProgressChanged, AddressOf JobProgress_ProgressChanged
                     AddHandler .MaximumChanged, AddressOf JobProgress_MaximumChanged
@@ -197,7 +203,7 @@ Namespace DownloadObjects
         End Sub
         Private Sub JobProgress_Progress0Changed(ByVal Sender As Object, ByVal e As ProgressEventArgs)
             If Not Job.Type = Download.SavedPosts Then
-                MainProgress.Value0 = DirectCast(Sender, MyProgressExt).Value0
+                MainProgress.Value0 = DirectCast(Job.Progress, MyProgressExt).Value0
                 MainProgress.Perform0(0)
             End If
         End Sub

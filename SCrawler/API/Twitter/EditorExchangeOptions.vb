@@ -7,6 +7,7 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports SCrawler.Plugin.Attributes
+Imports DModels = SCrawler.API.Twitter.UserData.DownloadModels
 Namespace API.Twitter
     Friend Class EditorExchangeOptions
         Private Const DefaultOffset As Integer = 100
@@ -23,6 +24,18 @@ Namespace API.Twitter
                   ToolTip:="Existing files will be checked for duplicates and duplicates removed." & vbCr &
                            "Works only on the first activation 'Use MD5 comparison'.", LeftOffset:=DefaultOffset)>
         Friend Property RemoveExistingDuplicates As Boolean = False
+        <PSetting(Address:=SettingAddress.User,
+                  Caption:="Download model 'Media'",
+                  ToolTip:="Download the data using the 'https://twitter.com/UserName/media' command.", LeftOffset:=DefaultOffset)>
+        Friend Overridable Property DownloadModelMedia As Boolean = False
+        <PSetting(Address:=SettingAddress.User,
+                  Caption:="Download model 'Profile'",
+                  ToolTip:="Download the data using the 'https://twitter.com/UserName' command.", LeftOffset:=DefaultOffset)>
+        Friend Overridable Property DownloadModelProfile As Boolean = False
+        <PSetting(Address:=SettingAddress.User,
+                  Caption:="Download model 'Search'",
+                  ToolTip:="Download the data using the 'https://twitter.com/search?q=from:UserName+include:nativeretweets' command.", LeftOffset:=DefaultOffset)>
+        Friend Overridable Property DownloadModelSearch As Boolean = False
         Private ReadOnly Property MySettings As Object
         Friend Sub New(ByVal s As SiteSettings)
             GifsDownload = s.GifsDownload.Value
@@ -44,6 +57,14 @@ Namespace API.Twitter
             GifsPrefix = u.GifsPrefix
             UseMD5Comparison = u.UseMD5Comparison
             RemoveExistingDuplicates = u.RemoveExistingDuplicates
+            If Not TypeOf u Is Mastodon.UserData Then
+                Dim dm As DModels() = EnumExtract(Of DModels)(u.DownloadModel)
+                If dm.ListExists Then
+                    DownloadModelMedia = dm.Contains(DModels.Media)
+                    DownloadModelProfile = dm.Contains(DModels.Profile)
+                    DownloadModelSearch = dm.Contains(DModels.Search)
+                End If
+            End If
             MySettings = u.HOST.Source
         End Sub
     End Class

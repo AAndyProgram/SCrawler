@@ -380,7 +380,7 @@ Namespace DownloadObjects.STDownloader
                         m.Show()
                     End If
                 Else
-                    If MyContainer.File.Exists(SFO.Path, False) Then MyContainer.File.Open(SFO.Path,, EDP.ShowMainMsg) Else m.Show()
+                    If MyContainer.File.Exists(SFO.Path, False) Then GlobalOpenPath(MyContainer.File, EDP.ShowMainMsg) Else m.Show()
                 End If
             End If
             OnDoubleClick(e)
