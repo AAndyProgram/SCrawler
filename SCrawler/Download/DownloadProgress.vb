@@ -13,8 +13,7 @@ Namespace DownloadObjects
     Friend Class DownloadProgress : Implements IDisposable
 #Region "Events"
         Friend Event DownloadDone As NotificationEventHandler
-        Friend Event ProgressMaximumChanged()
-        Friend Event ProgressMaximum0Changed()
+        Friend Event ProgressChanged(ByVal Main As Boolean, ByVal IsMaxValue As Boolean, ByVal IsDone As Boolean)
 #End Region
 #Region "Declarations"
 #Region "Controls"
@@ -127,6 +126,8 @@ Namespace DownloadObjects
                     AddHandler .MaximumChanged, AddressOf JobProgress_MaximumChanged
                     AddHandler .Maximum0Changed, AddressOf JobProgress_Maximum0Changed
                     AddHandler .Progress0Changed, AddressOf JobProgress_Progress0Changed
+                    AddHandler .ProgressCompleted, AddressOf JobProgress_Done
+                    AddHandler .Progress0Completed, AddressOf JobProgress_Done0
                 End With
             End With
 
@@ -190,22 +191,22 @@ Namespace DownloadObjects
 #End Region
 #Region "Progress, Jobs count"
         Private Sub JobProgress_MaximumChanged(ByVal Sender As Object, ByVal e As ProgressEventArgs)
-            RaiseEvent ProgressMaximumChanged()
+            If Not Job.Type = Download.SavedPosts Then RaiseEvent ProgressChanged(True, True, False)
         End Sub
         Private Sub JobProgress_Maximum0Changed(ByVal Sender As Object, ByVal e As ProgressEventArgs)
-            RaiseEvent ProgressMaximum0Changed()
+            If Not Job.Type = Download.SavedPosts Then RaiseEvent ProgressChanged(False, True, False)
         End Sub
         Private Sub JobProgress_ProgressChanged(ByVal Sender As Object, ByVal e As ProgressEventArgs)
-            If Not Job.Type = Download.SavedPosts Then
-                MainProgress.Value = DirectCast(Sender, MyProgressExt).Value
-                MainProgress.Perform(0)
-            End If
+            If Not Job.Type = Download.SavedPosts Then MainProgress.Perform()
         End Sub
         Private Sub JobProgress_Progress0Changed(ByVal Sender As Object, ByVal e As ProgressEventArgs)
-            If Not Job.Type = Download.SavedPosts Then
-                MainProgress.Value0 = DirectCast(Job.Progress, MyProgressExt).Value0
-                MainProgress.Perform0(0)
-            End If
+            If Not Job.Type = Download.SavedPosts Then MainProgress.Perform0()
+        End Sub
+        Private Sub JobProgress_Done(ByVal Sender As Object, ByVal e As ProgressEventArgs)
+            If Not Job.Type = Download.SavedPosts Then RaiseEvent ProgressChanged(True, False, True)
+        End Sub
+        Private Sub JobProgress_Done0(ByVal Sender As Object, ByVal e As ProgressEventArgs)
+            If Not Job.Type = Download.SavedPosts Then RaiseEvent ProgressChanged(False, False, True)
         End Sub
 #End Region
 #Region "IDisposable Support"

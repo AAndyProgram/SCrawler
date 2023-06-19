@@ -237,6 +237,7 @@ Namespace DownloadObjects.STDownloader
             Dim pForm As ParsingProgressForm = Nothing
             Try
                 Dim useCookies As Boolean = MyYouTubeSettings.DefaultUseCookies
+                Dim sTag$ = If(Sender?.Tag, String.Empty)
                 Dim disableDown As Boolean = e.Shift
                 If e.Control Then useCookies = True
                 Dim useCookiesParse As Boolean? = Nothing
@@ -247,21 +248,28 @@ Namespace DownloadObjects.STDownloader
                 Dim GetDefault As Boolean = True
                 Dim GetShorts As Boolean = True
 
-                If Sender.Tag = "pls" Then
+                If sTag = "pls" Then
                     Using pf As New PlaylistArrayForm With {.DesignXML = DesignXML}
                         pf.ShowDialog()
                         If pf.DialogResult = DialogResult.OK Then
                             With pf.URLs
                                 If .Count > 0 Then
-                                    pForm = New ParsingProgressForm
-                                    pForm.Show()
+                                    pForm = New ParsingProgressForm(.Count)
+                                    pForm.Show(Me)
                                     pForm.SetInitialValues(.Count, "Parsing playlists...")
                                     Dim containers As New List(Of IYouTubeMediaContainer)
-                                    For Each u$ In .Self : containers.Add(YouTubeFunctions.Parse(u, useCookiesParse, pForm.Token, pForm.MyProgress, True, False)) : pForm.MyProgress.Perform() : Next
+                                    For Each u$ In .Self
+                                        containers.Add(YouTubeFunctions.Parse(u, useCookiesParse, pForm.Token, pForm.MyProgress, True, False))
+                                        pForm.NextPlaylist()
+                                        pForm.MyProgress.Perform()
+                                    Next
                                     pForm.Dispose()
                                     If containers.Count > 0 Then containers.ListDisposeRemoveAll(Function(cc) cc.HasError Or Not cc.Exists)
                                     If containers.Count > 0 Then
-                                        c = New Channel With {.UserTitle = IIf(pf.IsOneArtist, containers(0).UserTitle, "Playlists")}
+                                        c = New Channel With {
+                                            .UserTitle = IIf(pf.IsOneArtist, containers(0).UserTitle, "Playlists"),
+                                            .IsMusic = containers.Any(Function(cc) cc.IsMusic)
+                                        }
                                         c.Elements.AddRange(containers)
                                     End If
                                 End If
@@ -269,7 +277,7 @@ Namespace DownloadObjects.STDownloader
                         End If
                     End Using
                 Else
-                    Select Case CStr(Sender.Tag)
+                    Select Case sTag
                         Case "ans" : GetShorts = False
                         Case "as" : GetDefault = False : GetShorts = True
                     End Select
@@ -280,7 +288,7 @@ Namespace DownloadObjects.STDownloader
                 If Not c Is Nothing OrElse YouTubeFunctions.IsMyUrl(url) Then
                     If c Is Nothing Then
                         pForm = New ParsingProgressForm
-                        pForm.Show()
+                        pForm.Show(Me)
                         pForm.SetInitialValues(1, "Parsing data...")
                         c = YouTubeFunctions.Parse(url, useCookiesParse, pForm.Token, pForm.MyProgress, GetDefault, GetShorts)
                         pForm.Dispose()

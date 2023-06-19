@@ -9,6 +9,7 @@
 Imports System.ComponentModel
 Imports SCrawler.API.YouTube
 Imports PersonalUtilities.Forms
+Imports PersonalUtilities.Forms.Controls.KeyClick
 Public Class MainFrame
     Private WithEvents MyActivator As FormActivator
     Public Sub New()
@@ -66,6 +67,12 @@ CloseResume:
     Private Sub BTT_TRAY_CLOSE_Click(sender As Object, e As EventArgs) Handles BTT_TRAY_CLOSE.Click
         If CheckForClose(False) Then _IgnoreCloseConfirm = True : _IgnoreTrayOptions = True : Close()
     End Sub
+    Private Sub MyActivator_TrayIconClick(ByVal Sender As Object, ByVal e As KeyClickEventArgs) Handles MyActivator.TrayIconClick
+        If e.MouseButton = MouseButtons.Left And e.Control Then
+            BTT_ADD_KeyClick(Nothing, New KeyClickEventArgs)
+            e.Handled = Not MyYouTubeSettings.ShowFormDownTrayClick
+        End If
+    End Sub
     Private Function CheckForClose(ByVal _Ignore As Boolean) As Boolean
         If MyYouTubeSettings.ExitConfirm And Not _Ignore Then
             Return MsgBoxE({"Do you want to close the program?", "Closing the program"}, MsgBoxStyle.YesNo) = MsgBoxResult.Yes
@@ -76,6 +83,9 @@ CloseResume:
     Protected Overrides Sub BTT_SETTINGS_Click(sender As Object, e As EventArgs)
         MyBase.BTT_SETTINGS_Click(sender, e)
         TRAY_ICON.Visible = MyYouTubeSettings.CloseToTray
+    End Sub
+    Protected Overrides Sub BTT_ADD_KeyClick(ByVal Sender As ToolStripMenuItemKeyClick, ByVal e As KeyClickEventArgs) Handles CONTEXT_BTT_ADD.KeyClick
+        MyBase.BTT_ADD_KeyClick(Sender, e)
     End Sub
     Protected Overrides Sub MyJob_Started(ByVal Sender As Object, ByVal e As EventArgs)
         TRAY_ICON.Icon = My.Resources.ArrowDownIcon_Orange_24

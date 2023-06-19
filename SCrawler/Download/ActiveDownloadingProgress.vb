@@ -62,8 +62,7 @@ Namespace DownloadObjects
                                                   .RowStyles.Add(New RowStyle(SizeType.Absolute, RowHeight))
                                                   .RowCount += 1
                                                   JobsList.Add(New DownloadProgress(j))
-                                                  AddHandler JobsList.Last.ProgressMaximumChanged, AddressOf Jobs_ProgressMaximumChanged
-                                                  AddHandler JobsList.Last.ProgressMaximum0Changed, AddressOf Jobs_ProgressMaximum0Changed
+                                                  AddHandler JobsList.Last.ProgressChanged, AddressOf Jobs_ProgressChanged
                                                   .Controls.Add(JobsList.Last.Get, 0, .RowStyles.Count - 1)
                                               End With
                                           Next
@@ -84,16 +83,18 @@ Namespace DownloadObjects
                               End Sub
             If TP_MAIN.InvokeRequired Then TP_MAIN.Invoke(a) Else a.Invoke
         End Sub
-        Private Sub Jobs_ProgressMaximumChanged()
+        Private Sub Jobs_ProgressChanged(ByVal Main As Boolean, ByVal IsMaxValue As Boolean, ByVal IsDone As Boolean)
             If JobsList.Count > 0 And Not DisableProgressChange Then
-                MainProgress.Maximum = JobsList.Sum(Function(j) CLng(j.Job.Progress.Maximum))
-                MainProgress.Value = Math.Max(JobsList.Sum(Function(j) CLng(j.Job.Progress.Value)) - 1, 0)
-                If MainProgress.Value > 0 Then MainProgress.Perform()
+                If Main Then
+                    MainProgress.Maximum = JobsList.Sum(Function(j) CLng(j.Job.Progress.Maximum))
+                    MainProgress.Value = Math.Max(JobsList.Sum(Function(j) CLng(j.Job.Progress.Value)) - 1, 0)
+                    If MainProgress.Value > 0 Then MainProgress.Perform()
+                Else
+                    MainProgress.Maximum0 = JobsList.Sum(Function(j) CLng(DirectCast(j.Job.Progress, MyProgressExt).Maximum0))
+                    MainProgress.Value0 = Math.Max(JobsList.Sum(Function(j) CLng(DirectCast(j.Job.Progress, MyProgressExt).Value0)) - 1, 0)
+                    If MainProgress.Value0 > 0 Then MainProgress.Perform0()
+                End If
             End If
-        End Sub
-        Private Sub Jobs_ProgressMaximum0Changed()
-            If JobsList.Count > 0 And Not DisableProgressChange Then _
-               MainProgress.Maximum0 = JobsList.Sum(Function(j) CLng(DirectCast(j.Job.Progress, MyProgressExt).Maximum0))
         End Sub
     End Class
 End Namespace

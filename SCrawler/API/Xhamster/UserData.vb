@@ -10,6 +10,7 @@ Imports System.Threading
 Imports SCrawler.API.Base
 Imports SCrawler.API.YouTube.Objects
 Imports PersonalUtilities.Functions.XML
+Imports PersonalUtilities.Functions.XML.Base
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Tools.Web.Clients
 Imports PersonalUtilities.Tools.Web.Documents.JSON
@@ -287,8 +288,11 @@ Namespace API.Xhamster
             End Try
         End Function
         Private Overloads Function GetM3U8(ByRef m As UserMedia, ByVal j As EContainer) As Boolean
-            Dim url$ = j.Value({"xplayerSettings", "sources", "hls"}, "url")
-            If Not url.IsEmptyString Then m.URL = url : m.Type = UTypes.m3u8 : Return True
+            Dim node As EContainer = j({"xplayerSettings", "sources", "hls"})
+            If node.ListExists Then
+                Dim url$ = node.GetNode({New NodeParams("url", True, True, True, True, 2)})
+                If Not url.IsEmptyString Then m.URL = url : m.Type = UTypes.m3u8 : Return True
+            End If
             Return False
         End Function
 #End Region

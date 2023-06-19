@@ -21,41 +21,23 @@ Friend Class PreProgress : Implements IDisposable
             ProgressExists = True
         End If
     End Sub
-    Private _Maximum As Integer = 0
     Friend Sub ChangeMax(ByVal Value As Integer, Optional ByVal Add As Boolean = True)
         If Ready Then
             If Add Then
-                _Maximum += Value
                 If Value > 0 Then Progress.Maximum0 += Value
             Else
-                _Maximum = Value
                 Progress.Maximum0 = Value
             End If
         End If
     End Sub
-    Private CumulVal As Integer = 0
     Friend Sub Perform(Optional ByVal Value As Integer = 1)
-        If Ready Then
-            CumulVal += Value
-            Progress.Perform0(Value)
-        End If
+        If Ready Then Progress.Perform0(Value)
     End Sub
     Friend Sub Reset()
-        _Maximum = 0
-        CumulVal = 0
+        If Ready Then Progress.Reset0()
     End Sub
     Friend Sub Done()
-        If Ready Then
-            Dim v# = _Maximum - CumulVal
-            If v > 0 Then
-                With Progress
-                    If v + .Value0 > .Maximum0 Then v = .Maximum0 - .Value0
-                    If v < 0 Then v = 0
-                    .Perform0(v)
-                    Reset()
-                End With
-            End If
-        End If
+        If Ready Then Progress.Done0()
     End Sub
 #Region "IDisposable Support"
     Private disposedValue As Boolean = False
@@ -85,14 +67,7 @@ Friend Class MyProgressExt : Inherits MyProgress
             _Progress0ChangedEventHandlers.Remove(h)
         End RemoveHandler
         RaiseEvent(ByVal Sender As Object, ByVal e As ProgressEventArgs)
-            If _Progress0ChangedEventHandlers.Count > 0 Then
-                Try
-                    For i% = 0 To _Progress0ChangedEventHandlers.Count - 1
-                        Try : _Progress0ChangedEventHandlers(i).Invoke(Sender, e) : Catch : End Try
-                    Next
-                Catch
-                End Try
-            End If
+            InvokeHandlers(_Progress0ChangedEventHandlers, Sender, e)
         End RaiseEvent
     End Event
     Private ReadOnly _Maximum0ChangedEventHandlers As List(Of EventHandler(Of ProgressEventArgs))
@@ -104,14 +79,19 @@ Friend Class MyProgressExt : Inherits MyProgress
             _Maximum0ChangedEventHandlers.Remove(h)
         End RemoveHandler
         RaiseEvent(ByVal Sender As Object, ByVal e As ProgressEventArgs)
-            If _Maximum0ChangedEventHandlers.Count > 0 Then
-                Try
-                    For i% = 0 To _Maximum0ChangedEventHandlers.Count - 1
-                        Try : _Maximum0ChangedEventHandlers(i).Invoke(Sender, e) : Catch : End Try
-                    Next
-                Catch
-                End Try
-            End If
+            InvokeHandlers(_Maximum0ChangedEventHandlers, Sender, e)
+        End RaiseEvent
+    End Event
+    Private ReadOnly _Progress0CompletedEventHandlers As List(Of EventHandler(Of ProgressEventArgs))
+    Friend Custom Event Progress0Completed As EventHandler(Of ProgressEventArgs)
+        AddHandler(ByVal h As EventHandler(Of ProgressEventArgs))
+            If Not _Progress0CompletedEventHandlers.Contains(h) Then _Progress0CompletedEventHandlers.Add(h)
+        End AddHandler
+        RemoveHandler(ByVal h As EventHandler(Of ProgressEventArgs))
+            _Progress0CompletedEventHandlers.Remove(h)
+        End RemoveHandler
+        RaiseEvent(ByVal Sender As Object, ByVal e As ProgressEventArgs)
+            InvokeHandlers(_Progress0CompletedEventHandlers, Sender, e)
         End RaiseEvent
     End Event
     Private WithEvents PR_PRE As MyProgress
@@ -121,9 +101,13 @@ Friend Class MyProgressExt : Inherits MyProgress
     Private Sub PR_PRE_MaximumChanged(ByVal Sender As Object, ByVal e As ProgressEventArgs) Handles PR_PRE.MaximumChanged
         RaiseEvent Maximum0Changed(Sender, e)
     End Sub
+    Private Sub PR_PRE_ProgressCompleted(ByVal Sender As Object, ByVal e As ProgressEventArgs) Handles PR_PRE.ProgressCompleted
+        RaiseEvent Progress0Completed(Sender, e)
+    End Sub
     Friend Sub New()
         _Progress0ChangedEventHandlers = New List(Of EventHandler(Of ProgressEventArgs))
         _Maximum0ChangedEventHandlers = New List(Of EventHandler(Of ProgressEventArgs))
+        _Progress0CompletedEventHandlers = New List(Of EventHandler(Of ProgressEventArgs))
     End Sub
     Friend Sub New(ByRef StatusStrip As StatusStrip, ByRef ProgressBar As ToolStripProgressBar, ByRef ProgressBarPre As ToolStripProgressBar, ByRef Label As ToolStripStatusLabel,
                    Optional ByVal Information As String = Nothing)
@@ -131,12 +115,14 @@ Friend Class MyProgressExt : Inherits MyProgress
         PR_PRE = New MyProgress(StatusStrip, ProgressBarPre, Nothing) With {.PerformMod = 10, .ResetProgressOnMaximumChanges = False}
         _Progress0ChangedEventHandlers = New List(Of EventHandler(Of ProgressEventArgs))
         _Maximum0ChangedEventHandlers = New List(Of EventHandler(Of ProgressEventArgs))
+        _Progress0CompletedEventHandlers = New List(Of EventHandler(Of ProgressEventArgs))
     End Sub
     Friend Sub New(ByRef ProgressBar As ProgressBar, ByRef ProgressBarPre As ProgressBar, ByRef Label As Label, Optional ByVal Information As String = Nothing)
         MyBase.New(ProgressBar, Label, Information)
         PR_PRE = New MyProgress(ProgressBarPre, Nothing) With {.PerformMod = 10, .ResetProgressOnMaximumChanges = False}
         _Progress0ChangedEventHandlers = New List(Of EventHandler(Of ProgressEventArgs))
         _Maximum0ChangedEventHandlers = New List(Of EventHandler(Of ProgressEventArgs))
+        _Progress0CompletedEventHandlers = New List(Of EventHandler(Of ProgressEventArgs))
     End Sub
     Friend Property Maximum0 As Double
         Get
@@ -161,9 +147,15 @@ Friend Class MyProgressExt : Inherits MyProgress
         PR_PRE.Done()
         MyBase.Done()
     End Sub
-    Public Overrides Sub Reset()
-        MyBase.Reset()
+    Friend Sub Done0()
         PR_PRE.Done()
+    End Sub
+    Public Overrides Sub Reset()
+        PR_PRE.Reset()
+        MyBase.Reset()
+    End Sub
+    Friend Sub Reset0()
+        PR_PRE.Reset()
     End Sub
     Public Overrides Property Visible(Optional ByVal ProgressBar As Boolean = True, Optional ByVal Label As Boolean = True) As Boolean
         Get
@@ -178,6 +170,7 @@ Friend Class MyProgressExt : Inherits MyProgress
         If Not disposedValue And disposing Then
             _Progress0ChangedEventHandlers.Clear()
             _Maximum0ChangedEventHandlers.Clear()
+            _Progress0CompletedEventHandlers.Clear()
             PR_PRE.Dispose()
         End If
         MyBase.Dispose(disposing)

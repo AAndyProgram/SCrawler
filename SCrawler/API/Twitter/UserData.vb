@@ -186,7 +186,8 @@ Namespace API.Twitter
                         Return True
                     End Function
 
-                tCache = New CacheKeeper($"{DownloadContentDefault_GetRootDir()}\_tCache\")
+                tCache = New CacheKeeper($"{DownloadContentDefault_GetRootDir()}\_tCache\") With {
+                    .CacheDeleteError = New ErrorsDescriber(EDP.None) With {.Action = Sub(ee, eex, msg, obj) Settings.Cache.AddPath(tCache)}}
                 If tCache.RootDirectory.Exists(SFO.Path, False) Then tCache.RootDirectory.Delete(SFO.Path, SFODelete.DeletePermanently, EDP.ReturnValue)
                 tCache.Validate()
 

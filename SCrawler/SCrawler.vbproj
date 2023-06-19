@@ -188,6 +188,9 @@
     </Compile>
     <Compile Include="API\Mastodon\SiteSettings.vb" />
     <Compile Include="API\Mastodon\UserData.vb" />
+    <Compile Include="API\OnlyFans\Declarations.vb" />
+    <Compile Include="API\OnlyFans\SiteSettings.vb" />
+    <Compile Include="API\OnlyFans\UserData.vb" />
     <Compile Include="API\PathPlugin\Declarations.vb" />
     <Compile Include="API\PathPlugin\SiteSettings.vb" />
     <Compile Include="API\PathPlugin\UserData.vb" />
@@ -660,6 +663,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Content\Icons\SiteIcons\MastodonIcon_48.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Content\Pictures\SitePictures\OnlyFansPic_32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Content\Icons\SiteIcons\OnlyFansIcon_32.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
   <Import Project="..\packages\VideoLAN.LibVLC.Windows.3.0.17.4\build\VideoLAN.LibVLC.Windows.targets" Condition="Exists('..\packages\VideoLAN.LibVLC.Windows.3.0.17.4\build\VideoLAN.LibVLC.Windows.targets')" />

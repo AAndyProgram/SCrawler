@@ -1,3 +1,23 @@
+# 2023.6.19.0
+
+*2023-06-19*
+
+- Added
+  - **OnlyFans**
+  - YouTube: make the playlists parsing progress more informative
+  - YouTube: add `Add` button to tray
+  - YouTube: add `Ctrl+Click` on tray icon to add download
+  - YouTube: add setting `Download on click in tray: show form`
+  - Minor improvements to progress bars
+  - Other improvements
+- Fixed
+  - YouTube: incorrect sorting algorithm
+  - LPSG: some files didn't download
+  - Reddit: downloaded gifs are static (Issue #141)
+  - xHamster: videos are not downloading or downloading incorrectly (Issue #144)
+  - Progress bar bugs
+  - Minor bugs
+
 # 2023.6.9.0
 
 *2023-06-09*

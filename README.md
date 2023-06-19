@@ -11,7 +11,7 @@
 :eu:
 :greece:
 
-A program to download photo and video from [any site](#supported-sites) (e.g. YouTube, YouTube Music, Reddit, Twitter, Mastodon, Instagram, TikTok, RedGifs, PornHub, XHamster, XVIDEOS, ThisVid, LPSG, Pinterest).
+A program to download photo and video from [any site](#supported-sites) (e.g. YouTube, YouTube Music, OnlyFans, Reddit, Twitter, Mastodon, Instagram, TikTok, RedGifs, PornHub, XHamster, XVIDEOS, ThisVid, LPSG, Pinterest).
 
 **If you like SCrawler, please like the program on [this site](https://alternativeto.net/software/scrawler/about/) and/or [this](https://www.softpedia.com/get/Internet/Download-Managers/Social-networks-crawler.shtml)**
 <!---Do you like this program? Consider adding to my coffee fund by making a donation to show your support. :blush:
@@ -31,6 +31,7 @@ A program to download photo and video from [any site](#supported-sites) (e.g. Yo
   - Reddit images, galleries of images, videos, saved posts;
   - Redgifs videos (https://www.redgifs.com/);
   - Twitter images and videos, saved (bookmarked) posts;
+  - OnlyFans images and videos, saved (bookmarked) posts;
   - Mastodon images and videos, saved (bookmarked) posts;
   - Instagram images and videos, tagged posts, stories, saved posts;
   - TikTok videos (*currently broken*; [limited](https://github.com/AAndyProgram/SCrawler/wiki/Settings#tiktok-limits));
@@ -65,6 +66,7 @@ A program to download photo and video from [any site](#supported-sites) (e.g. Yo
 - **YouTube Music**
 - **Reddit**
 - **Twitter**
+- **OnlyFans**
 - **Mastodon**
 - **Instagram**
 - TikTok (*currently broken*; [limited](https://github.com/AAndyProgram/SCrawler/wiki/Settings#tiktok-limits))
@@ -122,6 +124,7 @@ The program parses user posts and compares file names with existing ones to remo
   - **[SITES REQUIREMENTS](https://github.com/AAndyProgram/SCrawler/wiki/Settings#sites-requirements)**
   - [Reddit](https://github.com/AAndyProgram/SCrawler/wiki/Settings#reddit)
   - [Twitter](https://github.com/AAndyProgram/SCrawler/wiki/Settings#twitter)
+  - [OnlyFans](https://github.com/AAndyProgram/SCrawler/wiki/Settings#onlyfans)
   - [Mastodon](https://github.com/AAndyProgram/SCrawler/wiki/Settings#Mastodon)
   - [Instagram](https://github.com/AAndyProgram/SCrawler/wiki/Settings#instagram)
   - [TikTok](https://github.com/AAndyProgram/SCrawler/wiki/Settings#tiktok)

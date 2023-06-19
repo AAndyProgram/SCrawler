@@ -117,7 +117,7 @@ https://github.com/RipMeApp/ripme
 | **Free options** | The program is completely free | The program is completely free, but site limits are not declared |
 | Operating Systems | Windows 10+ | Windows, MacOS, Linux |
 | Select want content type to download | Yes | Yes |
-| Suported sites | 15 internal and any site using plugins | 86+ sites (declared) |
+| Suported sites | 15+ internal and any site using plugins | 86+ sites (declared) |
 | Other sites support | **Yes** | No |
 | Still supported | **Yes** | **No (last release date May 4, 2021)** |
 

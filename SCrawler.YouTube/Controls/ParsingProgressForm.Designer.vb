@@ -82,7 +82,6 @@ Namespace API.YouTube.Controls
             Me.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide
             Me.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent
             Me.Text = "Parsing progress"
-            Me.TopMost = True
             TP_MAIN.ResumeLayout(False)
             TP_MAIN.PerformLayout()
             Me.ResumeLayout(False)

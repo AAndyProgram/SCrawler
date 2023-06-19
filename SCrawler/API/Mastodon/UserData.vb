@@ -261,8 +261,9 @@ Namespace API.Mastodon
                                     If Not j Is Nothing Then
                                         PostDate = String.Empty
                                         If j.Contains("created_at") Then PostDate = j("created_at").Value Else PostDate = String.Empty
-                                        ObtainMedia(j, m.Post.ID, PostDate, UStates.Missing)
+                                        ObtainMedia(j, m.Post.ID, PostDate, m.URL_BASE)
                                         rList.Add(i)
+                                        j.Dispose()
                                     End If
                                 End If
                             End If

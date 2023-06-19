@@ -585,12 +585,32 @@ Namespace API.Reddit
                             End If
                         End If
                         If Not added And e.Contains("preview") Then
-                            tmpUrl = If(e.ItemF({"preview", "images", eCount, "source", "url"})?.Value, String.Empty)
-                            If Not tmpUrl.IsEmptyString Then
-                                _TempMediaList.ListAddValue(MediaFromData(UTypes.Picture, tmpUrl, PostID, PostDate, UserID), LNC)
-                                _TotalPostsDownloaded += 1
-                                added = True
-                            End If
+                            With e.ItemF({"preview", "images", eCount})
+                                If .ListExists Then
+                                    tmpType = UTypes.Undefined
+                                    tmpUrl = String.Empty
+                                    Dim sv$ = .Value({"source"}, "url")
+                                    If Not sv.IsEmptyString AndAlso sv.Contains(".gif") Then
+                                        tmpUrl = .Value({"variants", "gif", "source"}, "url")
+                                        If Not tmpUrl.IsEmptyString Then tmpType = UTypes.GIF
+                                    End If
+                                    If tmpUrl.IsEmptyString Then
+                                        tmpUrl = .Value({"variants", "mp4", "source"}, "url")
+                                        If Not tmpUrl.IsEmptyString Then tmpType = UTypes.Video
+                                    End If
+                                    If tmpUrl.IsEmptyString Then
+                                        tmpUrl = .Value({"source"}, "url")
+                                        If Not tmpUrl.IsEmptyString Then tmpType = UTypes.Picture
+                                    End If
+                                    If Not tmpUrl.IsEmptyString And Not tmpType = UTypes.Undefined Then
+                                        Dim m As UserMedia = MediaFromData(tmpType, tmpUrl, PostID, PostDate, UserID)
+                                        If tmpType = UTypes.Video Then m.File.Extension = "mp4"
+                                        _TempMediaList.ListAddValue(m, LNC)
+                                        _TotalPostsDownloaded += 1
+                                        added = True
+                                    End If
+                                End If
+                            End With
                         End If
                     End If
                 End If

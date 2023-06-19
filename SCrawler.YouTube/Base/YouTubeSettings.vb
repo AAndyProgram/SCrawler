@@ -152,6 +152,9 @@ Namespace API.YouTube.Base
         <Browsable(True), GridVisible(False), XMLVN({"Defaults"}, False), Category("Defaults"), DisplayName("Confirm exit"),
             Description("Exit confirmation when closing the program.")>
         Public ReadOnly Property ExitConfirm As XMLValue(Of Boolean)
+        <Browsable(True), GridVisible(False), XMLVN({"Defaults"}), Category("Defaults"), DisplayName("Download on click in tray: show form"),
+            Description("Show main window when download by clicking (Ctrl+Click) the tray icon. Default: false")>
+        Public ReadOnly Property ShowFormDownTrayClick As XMLValue(Of Boolean)
 #End Region
 #Region "Defaults Video"
         <Browsable(True), GridVisible, XMLVN({"DefaultsVideo"}, "MKV"), Category("Defaults Video"), DisplayName("Default format"),

@@ -22,17 +22,8 @@ Imports UMStates = SCrawler.Plugin.UserMediaStates
 Imports CollectionModes = PersonalUtilities.Functions.XML.Objects.IXMLValuesCollection.Modes
 Namespace API.YouTube.Objects
     Public Class ContainerDateComparer : Implements IComparer(Of IYouTubeMediaContainer)
-        Private ReadOnly NullDateValue As New Date
         Public Function Compare(ByVal x As IYouTubeMediaContainer, ByVal y As IYouTubeMediaContainer) As Integer Implements IComparer(Of IYouTubeMediaContainer).Compare
-            If x.DateDownloaded = NullDateValue And y.DateDownloaded = NullDateValue Then
-                Return x.DateCreated.CompareTo(y.DateCreated) * -1
-            ElseIf x.DateDownloaded = NullDateValue Then
-                Return -1
-            ElseIf y.DateDownloaded = NullDateValue Then
-                Return 1
-            Else
-                Return x.DateDownloaded.CompareTo(y.DateDownloaded) * -1
-            End If
+            Return x.DateCreated.CompareTo(y.DateCreated) * -1
         End Function
     End Class
     Public MustInherit Class YouTubeMediaContainerBase : Implements IYouTubeMediaContainer

@@ -19,7 +19,10 @@ Namespace API.LPSG
         Friend ReadOnly Property NextPageRegex As RParams = RParams.DMS("<link rel=""next"" href=""(.+?/page-(\d+))""", 2)
         Private Const FileUrlRegexDefault As String = "([^/]+?)(jpg|jpeg|gif|png|webm)"
         Private ReadOnly InputFReplacer As New ErrorsDescriber(EDP.ReturnValue)
-        Private ReadOnly InputForbidRemover As Func(Of String, String) = Function(Input) If(Input.IsEmptyString, Input, Input.StringRemoveWinForbiddenSymbols(, InputFReplacer))
+        Private ReadOnly InputForbidRemover As Func(Of String, String) = Function(Input) If(Input.IsEmptyString,
+                                                                                            Input,
+                                                                                            Input.StringRemoveWinForbiddenSymbols(, InputFReplacer)).
+                                                                                            IfNullOrEmpty($"{Settings.Cache.NewFile.Name}.file")
         Private ReadOnly FileRegEx As RParams = RParams.DMS(FileUrlRegexDefault, 0, RegexReturn.ListByMatch, InputFReplacer)
 #Disable Warning IDE0060
         Friend Function FileRegExF(ByVal Input As String, ByVal Index As Integer) As String
@@ -28,7 +31,8 @@ Namespace API.LPSG
                 Dim l As List(Of String) = RegexReplace(Input, FileRegEx)
                 If l.ListExists(3) Then
                     Dim ext$ = l(2)
-                    Dim f$ = l(1).StringTrim("-", ".")
+                    Dim f$ = l(1).StringTrim("-", ".").StringRemoveWinForbiddenSymbols
+                    If f.IsEmptyString Then f = Settings.Cache.NewFile.Name
                     Input = $"{f}.{ext}"
                 End If
             End If

@@ -17,9 +17,27 @@ Namespace API.YouTube.Controls
                 Return TokenSource.Token
             End Get
         End Property
-        Public Sub New()
+        Private ReadOnly CountMax As Integer
+        Private CountCurrent As Integer = 1
+        Friend Sub NextPlaylist()
+            CountCurrent += 1
+            MyProgress.InformationTemporary(True) = InfoStr
+            MyProgress.Information = InfoStr
+        End Sub
+        Private ReadOnly Property InfoStr As String
+            Get
+                Const MainMsg$ = "Data parsing in progress"
+                If CountMax > 1 Then
+                    Return $"{MainMsg} [{CountCurrent - 1}/{CountMax}]"
+                Else
+                    Return MainMsg
+                End If
+            End Get
+        End Property
+        Public Sub New(Optional ByVal _Count As Integer = 1)
             InitializeComponent()
-            MyProgress = New MyProgress(PR_MAIN, LBL_MAIN, "Data parsing in progress") With {.ResetProgressOnMaximumChanges = False}
+            CountMax = _Count
+            MyProgress = New MyProgress(PR_MAIN, LBL_MAIN, InfoStr) With {.ResetProgressOnMaximumChanges = False}
             TokenSource = New CancellationTokenSource
         End Sub
         Public Sub SetInitialValues(ByVal Count As Integer, ByVal Info As String)
