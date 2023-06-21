@@ -18,6 +18,8 @@ A program to download photo and video from [any site](#supported-sites) (e.g. Yo
 [![ko-fi](https://www.ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/andyprogram)--->
 **Bitcoin**: BC1Q0NH839FT5TA44DD7L7RLR97XDQAG9V8D6N7XET
 
+[![](https://www.softpedia.com/_img/softpedia_100_free.png?2023_1)](https://www.softpedia.com/get/Internet/Download-Managers/Social-networks-crawler.shtml#status)
+
 ![Main window](ProgramScreenshots/MainWindow.png)
 ![Channels window](ProgramScreenshots/Channels.png)
 
