@@ -195,4 +195,8 @@ F5-->[*]
 
 Matrix (Element): https://matrix.to/#/@andyprogram:matrix.org
 
-Discord: andyprogram
+Discord (contact the developer): andyprogram
+
+Discord server: https://discord.gg/uFNUXvFFmg
+
+[Wire](https://account.wire.com/user-profile/?id=93985052-cf2c-4b72-ac75-bbe3231cf544): @andyprogram
