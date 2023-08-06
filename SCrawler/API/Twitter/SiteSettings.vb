@@ -11,50 +11,48 @@ Imports SCrawler.Plugin
 Imports SCrawler.Plugin.Attributes
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Tools.Web.Clients
+Imports DN = SCrawler.API.Base.DeclaredNames
 Namespace API.Twitter
     <Manifest(TwitterSiteKey), SavedPosts, SeparatedTasks, SpecialForm(False)>
     Friend Class SiteSettings : Inherits SiteSettingsBase
-#Region "Token names"
-        Friend Const Header_Authorization As String = "authorization"
-        Friend Const Header_Token As String = "x-csrf-token"
-#End Region
-#Region "Properties constants"
-        Friend Const GifsSpecialFolder_Text As String = "GIFs special folder"
-        Friend Const GifsSpecialFolder_ToolTip As String = "Put the GIFs in a special folder" & vbCr &
-                                                           "This is a folder name, not an absolute path." & vbCr &
-                                                           "This folder(s) will be created relative to the user's root folder." & vbCr &
-                                                           "Examples:" & vbCr & "SomeFolderName" & vbCr & "SomeFolderName\SomeFolderName2"
-        Friend Const GifsPrefix_Text As String = "GIF prefix"
-        Friend Const GifsPrefix_ToolTip As String = "This prefix will be added to the beginning of the filename"
-        Friend Const GifsDownload_Text As String = "Download GIFs"
-        Friend Const UseMD5Comparison_Text As String = "Use MD5 comparison"
-        Friend Const UseMD5Comparison_ToolTip As String = "Each image will be checked for existence using MD5"
-#End Region
 #Region "Declarations"
         Friend Overrides ReadOnly Property Icon As Icon
             Get
                 Return My.Resources.SiteResources.TwitterIcon_32
             End Get
         End Property
+        Private ReadOnly _Image As Image
         Friend Overrides ReadOnly Property Image As Image
             Get
-                Return My.Resources.SiteResources.TwitterPic_400
+                Return _Image
             End Get
         End Property
-        'TODELETE: twitter headers
-        '#Region "Auth"
-        '        <PropertyOption(AllowNull:=False, IsAuth:=False, ControlText:="Authorization",
-        '                        ControlToolTip:="Set authorization from [authorization] response header. This field must start from [Bearer] key word")>
-        '        Private ReadOnly Property Auth As PropertyValue
-        '        <PropertyOption(AllowNull:=False, IsAuth:=False, ControlText:="Token", ControlToolTip:="Set token from [x-csrf-token] response header")>
-        '        Private ReadOnly Property Token As PropertyValue
-        '#End Region
 #Region "Other properties"
-        <PropertyOption(ControlText:=GifsDownload_Text), PXML>
+        <PropertyOption(ControlText:="Use the appropriate model",
+                        ControlToolTip:="Use the appropriate model for new users." & vbCr &
+                        "If disabled, all download models will be used for the first download. " &
+                        "Next, the appropriate download model will be automatically selected." & vbCr &
+                        "Otherwise the appropriate download model will be selected right from the start."), PXML>
+        Friend ReadOnly Property UseAppropriateModel As PropertyValue
+#Region "End points"
+        <PropertyOption(ControlText:="New endpoint: search", ControlToolTip:="Use new endpoint argument (-o search-endpoint=graphql) for the search model."), PXML>
+        Friend Property UseNewEndPointSearch As PropertyValue
+        <PropertyOption(ControlText:="New endpoint: profiles", ControlToolTip:="Use new endpoint argument (-o search-endpoint=graphql) for the profile models."), PXML>
+        Friend Property UseNewEndPointProfiles As PropertyValue
+#End Region
+#Region "Limits"
+        <PropertyOption(ControlText:="Abort on limit", ControlToolTip:="Abort twitter downloading when limit is reached"), PXML>
+        Friend Property AbortOnLimit As PropertyValue
+        <PropertyOption(ControlText:="Download already parsed", ControlToolTip:="Download already parsed content on abort"), PXML>
+        Friend Property DownloadAlreadyParsed As PropertyValue
+#End Region
+        <PropertyOption(ControlText:="Media Model: allow non-user tweets", ControlToolTip:="Allow downloading non-user tweets in the media-model."), PXML>
+        Friend ReadOnly Property MediaModelAllowNonUserTweets As PropertyValue
+        <PropertyOption(ControlText:=DN.GifsDownloadCaption), PXML>
         Friend ReadOnly Property GifsDownload As PropertyValue
-        <PropertyOption(ControlText:=GifsSpecialFolder_Text, ControlToolTip:=GifsSpecialFolder_ToolTip), PXML>
+        <PropertyOption(ControlText:=DN.GifsSpecialFolderCaption, ControlToolTip:=DN.GifsSpecialFolderToolTip), PXML>
         Friend ReadOnly Property GifsSpecialFolder As PropertyValue
-        <PropertyOption(ControlText:=GifsPrefix_Text, ControlToolTip:=GifsPrefix_ToolTip), PXML>
+        <PropertyOption(ControlText:=DN.GifsPrefixCaption, ControlToolTip:=DN.GifsPrefixToolTip), PXML>
         Friend ReadOnly Property GifsPrefix As PropertyValue
         <Provider(NameOf(GifsSpecialFolder), Interaction:=True), Provider(NameOf(GifsPrefix), Interaction:=True)>
         Private ReadOnly Property GifStringChecker As IFormatProvider
@@ -76,52 +74,38 @@ Namespace API.Twitter
                 Throw New NotImplementedException("[GetFormat] is not available in the context of [GifStringProvider]")
             End Function
         End Class
-        <PropertyOption(ControlText:=UseMD5Comparison_Text, ControlToolTip:=UseMD5Comparison_ToolTip), PXML>
+        <PropertyOption(ControlText:=DN.UseMD5ComparisonCaption, ControlToolTip:=DN.UseMD5ComparisonToolTip), PXML>
         Friend ReadOnly Property UseMD5Comparison As PropertyValue
-        <PXML, PropertyOption(ControlText:="Concurrent downloads", ControlToolTip:="The number of concurrent downloads.", LeftOffset:=120), TaskCounter>
+        <PropertyOption(ControlText:=DN.ConcurrentDownloadsCaption,
+                        ControlToolTip:=DN.ConcurrentDownloadsToolTip, AllowNull:=False, LeftOffset:=120), PXML, TaskCounter>
         Friend ReadOnly Property ConcurrentDownloads As PropertyValue
+        <Provider(NameOf(ConcurrentDownloads), FieldsChecker:=True)>
+        Private ReadOnly Property MyConcurrentDownloadsProvider As IFormatProvider
 #End Region
-        'TODELETE: twitter headers
-        'Private Sub ChangeResponserFields(ByVal PropName As String, ByVal Value As Object)
-        '    If Not PropName.IsEmptyString Then
-        '        Dim f$ = String.Empty
-        '        Select Case PropName
-        '            Case NameOf(Auth) : f = Header_Authorization
-        '            Case NameOf(Token) : f = Header_Token
-        '        End Select
-        '        If Not f.IsEmptyString Then
-        '            Responser.Headers.Remove(f)
-        '            If Not CStr(Value).IsEmptyString Then Responser.Headers.Add(f, CStr(Value))
-        '            Responser.SaveSettings()
-        '        End If
-        '    End If
-        'End Sub
 #End Region
         Friend Sub New()
             MyBase.New(TwitterSite, "twitter.com")
 
-            'TODELETE: twitter headers
-            'Dim a$ = String.Empty
-            'Dim t$ = String.Empty
+            _Image = My.Resources.SiteResources.TwitterIcon_32.ToBitmap
 
             With Responser
-                'TODELETE: twitter headers
-                'a = .Headers.Value(Header_Authorization)
-                't = .Headers.Value(Header_Token)
                 .Cookies.ChangedAllowInternalDrop = False
                 .Cookies.Changed = False
             End With
 
-            'TODELETE: twitter headers
-            'Auth = New PropertyValue(a, GetType(String), Sub(v) ChangeResponserFields(NameOf(Auth), v))
-            'Token = New PropertyValue(t, GetType(String), Sub(v) ChangeResponserFields(NameOf(Token), v))
-
+            UseAppropriateModel = New PropertyValue(True)
+            UseNewEndPointSearch = New PropertyValue(True)
+            UseNewEndPointProfiles = New PropertyValue(True)
+            AbortOnLimit = New PropertyValue(True)
+            DownloadAlreadyParsed = New PropertyValue(True)
+            MediaModelAllowNonUserTweets = New PropertyValue(False)
             GifsDownload = New PropertyValue(True)
             GifsSpecialFolder = New PropertyValue(String.Empty, GetType(String))
             GifsPrefix = New PropertyValue("GIF_")
             GifStringChecker = New GifStringProvider
             UseMD5Comparison = New PropertyValue(False)
             ConcurrentDownloads = New PropertyValue(1)
+            MyConcurrentDownloadsProvider = New ConcurrentDownloadsProvider
 
             UserRegex = RParams.DMS("[htps:/]{7,8}.*?twitter.com/([^/]+)", 1)
             UrlPatternUser = "https://twitter.com/{0}"
@@ -141,6 +125,11 @@ Namespace API.Twitter
         Friend Overrides Function Available(ByVal What As ISiteSettings.Download, ByVal Silent As Boolean) As Boolean
             Return Settings.GalleryDLFile.Exists And BaseAuthExists()
         End Function
+        Friend Property LIMIT_ABORT As Boolean = False
+        Friend Overrides Sub DownloadDone(ByVal What As ISiteSettings.Download)
+            LIMIT_ABORT = False
+            MyBase.DownloadDone(What)
+        End Sub
         Friend Overrides Sub UserOptions(ByRef Options As Object, ByVal OpenForm As Boolean)
             If Options Is Nothing OrElse (Not TypeOf Options Is EditorExchangeOptions OrElse
                                           Not DirectCast(Options, EditorExchangeOptions).SiteKey = TwitterSiteKey) Then _

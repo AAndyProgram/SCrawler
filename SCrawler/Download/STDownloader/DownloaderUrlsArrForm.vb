@@ -8,6 +8,7 @@
 ' but WITHOUT ANY WARRANTY
 Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Forms.Controls.Base
+Imports ADB = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons
 Namespace DownloadObjects.STDownloader
     Friend Class DownloaderUrlsArrForm
         Private WithEvents MyDefs As DefaultFormOptions
@@ -25,14 +26,16 @@ Namespace DownloadObjects.STDownloader
                 End If
             End Get
         End Property
-        Friend Sub New()
+        Friend Sub New(ByVal InitialList As IEnumerable(Of String))
             InitializeComponent()
             MyDefs = New DefaultFormOptions(Me, Settings.Design)
+            If InitialList.ListExists Then TXT_URLS.Text = InitialList.ListToString(vbNewLine)
         End Sub
         Private Sub MyForm_Load(sender As Object, e As EventArgs) Handles Me.Load
             With MyDefs
                 .MyViewInitialize()
                 .AddOkCancelToolbar()
+                Settings.DownloadLocations.PopulateComboBox(TXT_OUTPUT)
                 TXT_OUTPUT.Text = Settings.LatestSavingPath.Value.PathWithSeparator
                 If TXT_OUTPUT.Text.IsEmptyString Then TXT_OUTPUT.Text = Application.StartupPath.CSFileP.PathWithSeparator
                 .MyFieldsChecker = New FieldsChecker
@@ -41,17 +44,26 @@ Namespace DownloadObjects.STDownloader
                     .EndLoaderOperations()
                 End With
                 .EndLoaderOperations()
+                .MyOkCancel.EnableOK = True
             End With
+        End Sub
+        Private Sub DownloaderUrlsArrForm_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
+            Dim b As Boolean = True
+            If e.KeyCode = Keys.O And e.Control Then
+                Settings.DownloadLocations.ChooseNewLocation(TXT_OUTPUT, False, Settings.STDownloader_OutputPathAskForName)
+            ElseIf e.KeyCode = Keys.O And e.Alt Then
+                Settings.DownloadLocations.ChooseNewLocation(TXT_OUTPUT, True, Settings.STDownloader_OutputPathAskForName)
+            Else
+                b = False
+            End If
+            If b Then e.Handled = True
         End Sub
         Private Sub MyDefs_ButtonOkClick(ByVal Sender As Object, ByVal e As KeyHandleEventArgs) Handles MyDefs.ButtonOkClick
             If MyDefs.MyFieldsChecker.AllParamsOK Then MyDefs.CloseForm()
         End Sub
         Private Sub TXT_OUTPUT_ActionOnButtonClick(ByVal Sender As Object, ByVal e As ActionButtonEventArgs) Handles TXT_OUTPUT.ActionOnButtonClick
-            If e.DefaultButton = ActionButton.DefaultButtons.Open Then
-                Dim f As SFile = TXT_OUTPUT.Text.CSFileP
-                f = SFile.SelectPath(f, "Select a folder for files", EDP.ReturnValue)
-                If Not f.IsEmptyString Then TXT_OUTPUT.Text = f.PathWithSeparator
-            End If
+            If Sender.DefaultButton = ADB.Open Or Sender.DefaultButton = ADB.Add Then _
+               Settings.DownloadLocations.ChooseNewLocation(TXT_OUTPUT, Sender.DefaultButton = ADB.Add, Settings.STDownloader_OutputPathAskForName)
         End Sub
     End Class
 End Namespace

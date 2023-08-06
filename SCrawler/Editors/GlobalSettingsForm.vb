@@ -33,10 +33,14 @@ Namespace Editors
                         TXT_MAX_JOBS_USERS.Value = .MaxUsersJobsCount.Value
                         TXT_MAX_JOBS_CHANNELS.Value = .ChannelsMaxJobsCount.Value
                         CH_CHECK_VER_START.Checked = .CheckUpdatesAtStart
+                        TXT_PRG_TITLE.Text = .ProgramText
+                        TXT_PRG_DESCR.Text = .ProgramDescription
                         TXT_USER_AGENT.Text = .UserAgent
                         TXT_IMGUR_CLIENT_ID.Text = .ImgurClientID
                         TXT_USER_LIST_IMAGE.Text = .UserListImage.Value
                         COLORS_USERLIST.ColorsSet(.UserListBackColor, .UserListForeColor, SystemColors.Window, SystemColors.WindowText)
+                        COLORS_SUBSCRIPTIONS.ColorsSet(.MainFrameUsersSubscriptionsColorBack, .MainFrameUsersSubscriptionsColorFore,
+                                                       SystemColors.Window, SystemColors.WindowText)
                         CH_SHOW_GROUPS.Checked = .ShowGroups
                         CH_USERS_GROUPING.Checked = .UseGrouping
                         'Environment
@@ -83,9 +87,13 @@ Namespace Editors
                         CMB_STD_OPEN_DBL.EndUpdate(True)
                         CMB_STD_OPEN_DBL.SelectedIndex = [Enum].GetValues(GetType(StdDblClck)).ToObjectsList(Of StdDblClck).ToList.IndexOf(.STDownloader_OnItemDoubleClick.Value)
                         CH_STD_TAKESNAP.Checked = .STDownloader_TakeSnapshot
+                        CH_STD_SNAP_KEEP_WITH_FILES.Checked = .STDownloader_SnapshotsKeepWithFiles
+                        CH_STD_SNAP_CACHE_PERMANENT.Checked = .STDownloader_SnapShotsCachePermamnent
                         CH_STD_UPDATE_YT_PATH.Checked = .STDownloader_UpdateYouTubeOutputPath
                         CH_STD_YT_LOAD.Checked = .STDownloader_LoadYTVideos
                         CH_STD_YT_REMOVE.Checked = .STDownloader_RemoveYTVideosOnClear
+                        CH_STD_YT_OUTPUT_ASK_NAME.Checked = .STDownloader_OutputPathAskForName
+                        CH_STD_YT_OUTPUT_AUTO_ADD.Checked = .STDownloader_OutputPathAutoAddPaths
                         'Downloading
                         CH_UDESCR_UP.Checked = .UpdateUserDescriptionEveryTime
                         CH_UNAME_UP.Checked = .UserSiteNameUpdateEveryTime
@@ -125,6 +133,8 @@ Namespace Editors
                         CH_FEED_ADD_SESSION.Checked = .FeedAddSessionToCaption
                         CH_FEED_ADD_DATE.Checked = .FeedAddDateToCaption
                         CH_FEED_STORE_SESSION_DATA.Checked = .FeedStoreSessionsData
+                        CH_FEED_OPEN_LAST_MODE.Checked = .FeedOpenLastMode
+                        CH_FEED_SHOW_FRIENDLY.Checked = .FeedShowFriendlyNames
                     End With
                     .MyFieldsChecker = New FieldsChecker
                     With .MyFieldsCheckerE
@@ -191,11 +201,14 @@ Namespace Editors
                     .MaxUsersJobsCount.Value = CInt(TXT_MAX_JOBS_USERS.Value)
                     .ChannelsMaxJobsCount.Value = TXT_MAX_JOBS_CHANNELS.Value
                     .CheckUpdatesAtStart.Value = CH_CHECK_VER_START.Checked
+                    .ProgramText.Value = TXT_PRG_TITLE.Text
+                    .ProgramDescription.Value = TXT_PRG_DESCR.Text
                     .UserAgent.Value = TXT_USER_AGENT.Text
                     DefaultUserAgent = TXT_USER_AGENT.Text
                     .ImgurClientID.Value = TXT_IMGUR_CLIENT_ID.Text
                     .UserListImage.Value = TXT_USER_LIST_IMAGE.Text
                     COLORS_USERLIST.ColorsGet(.UserListBackColor, .UserListForeColor)
+                    COLORS_SUBSCRIPTIONS.ColorsGet(.MainFrameUsersSubscriptionsColorBack, .MainFrameUsersSubscriptionsColorFore)
                     .ShowGroups.Value = CH_SHOW_GROUPS.Checked
                     .UseGrouping.Value = CH_USERS_GROUPING.Checked
                     'Environment
@@ -239,9 +252,13 @@ Namespace Editors
                     .STDownloader_RemoveDownloadedAutomatically.Value = CH_STD_AUTO_REMOVE.Checked
                     .STDownloader_OnItemDoubleClick.Value = CInt(CMB_STD_OPEN_DBL.Value)
                     .STDownloader_TakeSnapshot.Value = CH_STD_TAKESNAP.Checked
+                    .STDownloader_SnapshotsKeepWithFiles.Value = CH_STD_SNAP_KEEP_WITH_FILES.Checked
+                    .STDownloader_SnapShotsCachePermamnent.Value = CH_STD_SNAP_CACHE_PERMANENT.Checked
                     .STDownloader_UpdateYouTubeOutputPath.Value = CH_STD_UPDATE_YT_PATH.Checked
                     .STDownloader_LoadYTVideos.Value = CH_STD_YT_LOAD.Checked
                     .STDownloader_RemoveYTVideosOnClear.Value = CH_STD_YT_REMOVE.Checked
+                    .STDownloader_OutputPathAskForName.Value = CH_STD_YT_OUTPUT_ASK_NAME.Checked
+                    .STDownloader_OutputPathAutoAddPaths.Value = CH_STD_YT_OUTPUT_AUTO_ADD.Checked
                     'Downloading
                     .UpdateUserDescriptionEveryTime.Value = CH_UDESCR_UP.Checked
                     .UserSiteNameUpdateEveryTime.Value = CH_UNAME_UP.Checked
@@ -282,6 +299,8 @@ Namespace Editors
                     .FeedAddSessionToCaption.Value = CH_FEED_ADD_SESSION.Checked
                     .FeedAddDateToCaption.Value = CH_FEED_ADD_DATE.Checked
                     .FeedStoreSessionsData.Value = CH_FEED_STORE_SESSION_DATA.Checked
+                    .FeedOpenLastMode.Value = CH_FEED_OPEN_LAST_MODE.Checked
+                    .FeedShowFriendlyNames.Value = CH_FEED_SHOW_FRIENDLY.Checked
                     FeedParametersChanged = .FeedDataRows.ChangesDetected Or .FeedDataColumns.ChangesDetected Or
                                             .FeedEndless.ChangesDetected Or .FeedStoreSessionsData.ChangesDetected Or
                                             .FeedBackColor.ChangesDetected Or .FeedForeColor.ChangesDetected Or
@@ -363,6 +382,19 @@ Namespace Editors
         End Sub
         Private Sub TXT_CMD_ENCODING_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As ActionButtonEventArgs) Handles TXT_CMD_ENCODING.ActionOnButtonClick
             If Sender.DefaultButton = ADB.Refresh Then TXT_CMD_ENCODING.Text = SettingsCLS.DefaultCmdEncoding
+        End Sub
+        Private Sub BTT_RESET_DOWNLOAD_LOCATIONS_Click(sender As Object, e As EventArgs) Handles BTT_RESET_DOWNLOAD_LOCATIONS.Click
+            Try
+                Const msgTitle$ = "Reset download locations"
+                If Settings.DownloadLocations.Count = 0 Then
+                    MsgBoxE({"There are no saved download locations.", msgTitle})
+                ElseIf MsgBoxE({$"Are you sure you want to delete all ({Settings.DownloadLocations.Count}) download locations?", msgTitle},
+                               vbExclamation + vbYesNo) = vbYes Then
+                    Settings.DownloadLocations.Clear()
+                    MsgBoxE({"All download locations deleted.", msgTitle})
+                End If
+            Catch
+            End Try
         End Sub
     End Class
 End Namespace

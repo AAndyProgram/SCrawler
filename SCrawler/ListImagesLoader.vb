@@ -199,9 +199,12 @@ Friend Class ListImagesLoader
             ElseIf CheckUserCollection(User) Then
                 .BackColor = Color.LightSkyBlue
                 .ForeColor = Color.MidnightBlue
+            ElseIf User.IsSubscription Then
+                .BackColor = If(User.BackColor, Settings.MainFrameUsersSubscriptionsColorBack.Value)
+                .ForeColor = If(User.ForeColor, Settings.MainFrameUsersSubscriptionsColorFore.Value)
             Else
-                .BackColor = Settings.UserListBackColorF
-                .ForeColor = Settings.UserListForeColorF
+                .BackColor = If(User.BackColor, Settings.UserListBackColorF)
+                .ForeColor = If(User.ForeColor, Settings.UserListForeColorF)
             End If
         End With
         Return LVI

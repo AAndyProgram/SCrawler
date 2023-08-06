@@ -52,6 +52,7 @@ Namespace API.YouTube.Controls
                 End If
                 LBL_DEFINITION.Text = $"{m.Height}p"
                 LBL_CODECS.Text = $"{m.Extension.StringToUpper}{d}{m.Codec.StringToUpper}{d}{m.FPS}fps{d}{m.Bitrate}k"
+                If Not m.Protocol.IsEmptyString Then LBL_CODECS.Text &= $" ({m.Protocol})"
                 If Not SelectedAudio.ID.IsEmptyString Then LBL_CODECS.Text &= $" / {SelectedAudio.Extension}{d}{SelectedAudio.Codec}{d}{SelectedAudio.Bitrate}k"
             End If
 

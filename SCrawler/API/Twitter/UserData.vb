@@ -20,6 +20,8 @@ Namespace API.Twitter
 #Region "XML names"
         Private Const Name_FirstDownloadComplete As String = "FirstDownloadComplete"
         Private Const Name_DownloadModel As String = "DownloadModel"
+        Private Const Name_DownloadModelForceApply As String = "DownloadModelForceApply"
+        Private Const Name_MediaModelAllowNonUserTweets As String = "MediaModelAllowNonUserTweets"
         Private Const Name_GifsDownload As String = "GifsDownload"
         Private Const Name_GifsSpecialFolder As String = "GifsSpecialFolder"
         Private Const Name_GifsPrefix As String = "GifsPrefix"
@@ -32,7 +34,9 @@ Namespace API.Twitter
             Search = 5
         End Enum
         Private FirstDownloadComplete As Boolean = False
+        Friend Property DownloadModelForceApply As Boolean = False
         Friend Property DownloadModel As DownloadModels = DownloadModels.Undefined
+        Friend Property MediaModelAllowNonUserTweets As Boolean = False
         Friend Property GifsDownload As Boolean = True
         Friend Property GifsSpecialFolder As String = String.Empty
         Friend Property GifsPrefix As String = String.Empty
@@ -64,6 +68,8 @@ Namespace API.Twitter
                     UseMD5Comparison = .UseMD5Comparison
                     RemoveExistingDuplicates = .RemoveExistingDuplicates
                     DownloadModel = DownloadModels.Undefined
+                    DownloadModelForceApply = .DownloadModelForceApply
+                    MediaModelAllowNonUserTweets = .MediaModelAllowNonUserTweets
                     If .DownloadModelMedia Then DownloadModel += DownloadModels.Media
                     If .DownloadModelProfile Then DownloadModel += DownloadModels.Profile
                     If .DownloadModelSearch Then DownloadModel += DownloadModels.Search
@@ -78,6 +84,7 @@ Namespace API.Twitter
         Protected Overrides Sub LoadUserInformation_OptionalFields(ByRef Container As XmlFile, ByVal Loading As Boolean)
             With Container
                 If Loading Then
+                    DownloadModelForceApply = .Value(Name_DownloadModelForceApply).FromXML(Of Boolean)(False)
                     If .Contains(Name_FirstDownloadComplete) Then
                         FirstDownloadComplete = .Value(Name_FirstDownloadComplete).FromXML(Of Boolean)(False)
                         DownloadModel = .Value(Name_DownloadModel).FromXML(Of Integer)(DownloadModels.Undefined)
@@ -87,6 +94,7 @@ Namespace API.Twitter
                             DownloadModel = .Value(Name_DownloadModel).FromXML(Of Integer)(DownloadModels.Undefined)
                         Else
                             If FirstDownloadComplete Then
+                                DownloadModelForceApply = False
                                 If ParseUserMediaOnly Then
                                     DownloadModel = DownloadModels.Media
                                 Else
@@ -107,8 +115,10 @@ Namespace API.Twitter
                     UseMD5Comparison = .Value(Name_UseMD5Comparison).FromXML(Of Boolean)(False)
                     RemoveExistingDuplicates = .Value(Name_RemoveExistingDuplicates).FromXML(Of Boolean)(False)
                     StartMD5Checked = .Value(Name_StartMD5Checked).FromXML(Of Boolean)(False)
+                    MediaModelAllowNonUserTweets = .Value(Name_MediaModelAllowNonUserTweets).FromXML(Of Boolean)(False)
                 Else
                     .Add(Name_FirstDownloadComplete, FirstDownloadComplete.BoolToInteger)
+                    .Add(Name_DownloadModelForceApply, DownloadModelForceApply.BoolToInteger)
                     .Add(Name_DownloadModel, CInt(DownloadModel))
                     .Add(Name_GifsDownload, GifsDownload.BoolToInteger)
                     .Add(Name_GifsSpecialFolder, GifsSpecialFolder)
@@ -116,18 +126,29 @@ Namespace API.Twitter
                     .Add(Name_UseMD5Comparison, UseMD5Comparison.BoolToInteger)
                     .Add(Name_RemoveExistingDuplicates, RemoveExistingDuplicates.BoolToInteger)
                     .Add(Name_StartMD5Checked, StartMD5Checked.BoolToInteger)
+                    .Add(Name_MediaModelAllowNonUserTweets, MediaModelAllowNonUserTweets.BoolToInteger)
                 End If
             End With
         End Sub
 #End Region
 #Region "Download functions"
+        Private Function GetContainerSubnodes() As List(Of String())
+            Return New List(Of String()) From {
+                {{"content", "itemContent", "tweet_results", "result", "legacy"}},
+                {{"content", "itemContent", "tweet_results", "result", "tweet", "legacy"}}
+            }
+        End Function
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
-            If IsSavedPosts Then
-                If _ContentList.Count > 0 Then _DataNames.ListAddList(_ContentList.Select(Function(c) c.Post.ID), LAP.ClearBeforeAdd, LAP.NotContainsOnly)
-                DownloadData_SavedPosts(Token)
+            If MySettings.LIMIT_ABORT Then
+                TwitterLimitException.LogMessage(ToStringForLog, True)
             Else
-                If _ContentList.Count > 0 Then _DataNames.ListAddList(_ContentList.Select(Function(c) c.File.File), LAP.ClearBeforeAdd, LAP.NotContainsOnly)
-                DownloadData_Timeline(Token)
+                If IsSavedPosts Then
+                    If _ContentList.Count > 0 Then _DataNames.ListAddList(_ContentList.Select(Function(c) c.Post.ID), LAP.ClearBeforeAdd, LAP.NotContainsOnly)
+                    DownloadData_SavedPosts(Token)
+                Else
+                    If _ContentList.Count > 0 Then _DataNames.ListAddList(_ContentList.Select(Function(c) c.File.File), LAP.ClearBeforeAdd, LAP.NotContainsOnly)
+                    DownloadData_Timeline(Token)
+                End If
             End If
         End Sub
         Private Sub DownloadData_Timeline(ByVal Token As CancellationToken)
@@ -139,6 +160,8 @@ Namespace API.Twitter
                 Dim PostDate$, tmpUserId$
                 Dim i%
                 Dim dirIndx% = -1
+                Dim nodes As List(Of String()) = GetContainerSubnodes()
+                Dim node$()
                 Dim timelineNode As Predicate(Of EContainer) = Function(ee) ee.Value("type").StringToLower = "timelineaddentries"
                 Dim pinNode As Predicate(Of EContainer) = Function(ee) ee.Value("type").StringToLower = "timelinepinentry"
                 Dim entriesNode As Predicate(Of EContainer) = Function(ee) ee.Name = "entries" Or ee.Name = entry
@@ -150,13 +173,15 @@ Namespace API.Twitter
 
                 Dim __parseContainer As Func(Of EContainer, Boolean) =
                     Function(ByVal ee As EContainer) As Boolean
-                        If dirIndx <= 1 Then
-                            nn = ee({"content", "itemContent", "tweet_results", "result", "legacy"})
-                        Else
-                            nn = ee
+                        nn = Nothing
+                        If dirIndx > 1 Then nn = ee
+                        If Not nn.ListExists Then
+                            For Each node In nodes
+                                nn = ee(node)
+                                If nn.ListExists Then Exit For
+                            Next
                         End If
 
-                        If Not nn.ListExists Then nn = ee({"content", "itemContent", "tweet_results", "result", "tweet", "legacy"})
                         If nn.ListExists Then
                             PostID = nn.Value("id_str").IfNullOrEmpty(nn.Value("id"))
 
@@ -181,15 +206,14 @@ Namespace API.Twitter
                             If tmpUserId.IsEmptyString Then tmpUserId = nn.ItemF({"extended_entities", "media", 0, sourceIdPredicate}).XmlIfNothingValue.
                                                                                 IfNullOrEmpty(nn.Value("user_id")).IfNullOrEmpty(nn.Value("user_id_str")).IfNullOrEmpty("/")
 
-                            If Not ParseUserMediaOnly OrElse (Not ID.IsEmptyString AndAlso tmpUserId = ID) Then ObtainMedia(nn, PostID, PostDate)
+                            If Not ParseUserMediaOnly OrElse
+                               (dirIndx = 0 AndAlso MediaModelAllowNonUserTweets) OrElse
+                               (Not ID.IsEmptyString AndAlso tmpUserId = ID) Then ObtainMedia(nn, PostID, PostDate)
                         End If
                         Return True
                     End Function
 
-                tCache = New CacheKeeper($"{DownloadContentDefault_GetRootDir()}\_tCache\") With {
-                    .CacheDeleteError = New ErrorsDescriber(EDP.None) With {.Action = Sub(ee, eex, msg, obj) Settings.Cache.AddPath(tCache)}}
-                If tCache.RootDirectory.Exists(SFO.Path, False) Then tCache.RootDirectory.Delete(SFO.Path, SFODelete.DeletePermanently, EDP.ReturnValue)
-                tCache.Validate()
+                tCache = CreateCache()
 
                 Dim dirs As List(Of SFile) = GetTimelineFromGalleryDL(tCache, Token)
                 If dirs.ListExists Then
@@ -313,7 +337,9 @@ Namespace API.Twitter
                         End If
                     End If
                 End If
+                DownloadModelForceApply = False
                 FirstDownloadComplete = True
+            Catch limit_ex As TwitterLimitException
             Catch ex As Exception
                 ProcessException(ex, Token, $"data downloading error [{URL}]")
             Finally
@@ -328,6 +354,8 @@ Namespace API.Twitter
                 If files.ListExists Then
                     ResetFileNameProvider(Math.Max(files.Count.ToString.Length, 3))
                     Dim id$
+                    Dim nodes As List(Of String()) = GetContainerSubnodes()
+                    Dim node$()
                     Dim j As EContainer, jj As EContainer
                     Dim jErr As New ErrorsDescriber(EDP.ReturnValue)
                     For i% = 0 To files.Count - 1
@@ -339,19 +367,24 @@ Namespace API.Twitter
                                     ProgressPre.ChangeMax(.Count)
                                     For Each jj In .Self
                                         ProgressPre.Perform()
-                                        With jj({"content", "itemContent", "tweet_results", "result", "legacy"})
-                                            If .ListExists Then
-                                                id = .Value("id_str")
-                                                If _TempPostsList.Contains(id) Then j.Dispose() : Exit Sub Else ObtainMedia(.Self, id, .Value("created_at"))
-                                            End If
-                                        End With
+                                        For Each node In nodes
+                                            With jj(node)
+                                                If .ListExists Then
+                                                    id = .Value("id_str")
+                                                    If _TempPostsList.Contains(id) Then j.Dispose() : Exit Sub Else ObtainMedia(.Self, id, .Value("created_at"))
+                                                    Exit For
+                                                End If
+                                            End With
+                                        Next
                                     Next
                                 End If
                             End With
                             j.Dispose()
                         End If
                     Next
+                    nodes.Clear()
                 End If
+            Catch limit_ex As TwitterLimitException
             Catch ex As Exception
                 ProcessException(ex, Token, "data downloading error (Saved Posts)")
             End Try
@@ -408,30 +441,28 @@ Namespace API.Twitter
                 Dim f As SFile
                 Dim m As UserMedia
                 If w.ListExists Then
-                    For Each n As EContainer In w
-                        If n.Value("type") = "animated_gif" Then
-                            With n({"video_info", "variants"})
-                                If .ListExists Then
-                                    With .ItemF({gifUrl})
-                                        If .ListExists Then
-                                            url = .Value("url")
-                                            ff = UrlFile(url)
-                                            If Not ff.IsEmptyString Then
-                                                If GifsDownload And Not _DataNames.Contains(ff) Then
-                                                    m = MediaFromData(url, PostID, PostDate,, State, UTypes.Video)
-                                                    f = m.File
-                                                    If Not f.IsEmptyString And Not GifsPrefix.IsEmptyString Then f.Name = $"{GifsPrefix}{f.Name}" : m.File = f
-                                                    If Not GifsSpecialFolder.IsEmptyString Then m.SpecialFolder = $"{GifsSpecialFolder}*"
-                                                    _TempMediaList.ListAddValue(m, LNC)
-                                                End If
-                                                Return True
+                    If w.Value("type") = "animated_gif" Then
+                        With w({"video_info", "variants"})
+                            If .ListExists Then
+                                With .ItemF({gifUrl})
+                                    If .ListExists Then
+                                        url = .Value("url")
+                                        ff = UrlFile(url)
+                                        If Not ff.IsEmptyString Then
+                                            If GifsDownload And Not _DataNames.Contains(ff) Then
+                                                m = MediaFromData(url, PostID, PostDate,, State, UTypes.Video)
+                                                f = m.File
+                                                If Not f.IsEmptyString And Not GifsPrefix.IsEmptyString Then f.Name = $"{GifsPrefix}{f.Name}" : m.File = f
+                                                If Not GifsSpecialFolder.IsEmptyString Then m.SpecialFolder = $"{GifsSpecialFolder}*"
+                                                _TempMediaList.ListAddValue(m, LNC)
                                             End If
+                                            Return True
                                         End If
-                                    End With
-                                End If
-                            End With
-                        End If
-                    Next
+                                    End If
+                                End With
+                            End If
+                        End With
+                    End If
                 End If
                 Return False
             Catch ex As Exception
@@ -460,13 +491,22 @@ Namespace API.Twitter
         End Function
 #End Region
 #Region "Gallery-DL Support"
+        Private Class TwitterLimitException : Inherits Exception
+            Friend Sub New(ByVal User As String, ByVal Skipped As Boolean)
+                LogMessage(User, Skipped)
+            End Sub
+            Friend Shared Sub LogMessage(ByVal User As String, ByVal Skipped As Boolean)
+                MyMainLOG = $"{User}: twitter limit reached.{IIf(Skipped, "Data has not been downloaded", String.Empty)}"
+            End Sub
+        End Class
         Private Class TwitterGDL : Inherits GDL.GDLBatch
-            Private Property Token As CancellationToken
-            Friend Sub New(ByVal Dir As SFile, ByVal _Token As CancellationToken)
-                MyBase.New
+            Private ReadOnly KillOnLimit As Boolean
+            Friend LimitReached As Boolean = False
+            Friend Sub New(ByVal Dir As SFile, ByVal _Token As CancellationToken, ByVal _KillOnLimit As Boolean)
+                MyBase.New(_Token)
                 Commands.Clear()
                 If Not Dir.IsEmptyString Then ChangeDirectory(Dir)
-                Token = _Token
+                KillOnLimit = _KillOnLimit
             End Sub
             Protected Overrides Async Function Validate(ByVal Value As String) As Task
                 If Not ProcessKilled AndAlso Await Task.Run(Function() Token.IsCancellationRequested OrElse IdExists(Value)) Then Kill()
@@ -482,14 +522,27 @@ Namespace API.Twitter
                 End Try
                 Return False
             End Function
+            Protected Overrides Async Sub ErrorDataReceiver(ByVal Sender As Object, ByVal e As DataReceivedEventArgs)
+                Await Task.Run(Sub() CheckForLimit(e.Data))
+            End Sub
+            Private Sub CheckForLimit(ByVal Value As String)
+                If Token.IsCancellationRequested Or (KillOnLimit AndAlso Not ProcessKilled AndAlso
+                   Not Value.IsEmptyString AndAlso Value.ToLower.Contains("for rate limit reset")) Then
+                    LimitReached = True
+                    Kill()
+                End If
+            End Sub
         End Class
         Private Function GetDataFromGalleryDL(ByVal URL As String, ByVal Cache As CacheKeeper, ByVal UseTempPostList As Boolean,
                                               Optional ByVal Token As CancellationToken = Nothing) As SFile
-            Dim command$ = $"""{Settings.GalleryDLFile}"" --verbose --no-download --no-skip --cookies ""{MySettings.CookiesNetscapeFile}"" --write-pages "
+            Dim command$ = String.Empty
             Try
+                Dim conf As SFile = GdlCreateConf(Cache.NewPath)
+                command = $"""{Settings.GalleryDLFile}"" --verbose --no-download --no-skip --config ""{conf}"" --write-pages "
+                command &= GdlGetIdFilterString()
                 Dim dir As SFile = Cache.NewPath
                 If dir.Exists(SFO.Path,, EDP.ThrowException) Then
-                    Using batch As New TwitterGDL(dir, Token)
+                    Using batch As New TwitterGDL(dir, Token, MySettings.AbortOnLimit.Value)
                         If UseTempPostList Then
                             batch.TempPostsList = _TempPostsList
                             command &= GdlGetIdFilterString()
@@ -499,10 +552,22 @@ Namespace API.Twitter
                         'Debug.WriteLine(command)
                         '#End If
                         batch.Execute(command)
+                        If batch.LimitReached Then
+                            If CBool(MySettings.DownloadAlreadyParsed.Value) And
+                               SFile.GetFiles(dir, "*.txt", IO.SearchOption.AllDirectories, EDP.ReturnValue).Count > 0 Then
+                                MySettings.LIMIT_ABORT = True
+                                Return dir
+                            Else
+                                Throw New TwitterLimitException(ToStringForLog, False)
+                            End If
+                        End If
                     End Using
                     Return dir
                 End If
                 Return Nothing
+            Catch limit_ex As TwitterLimitException
+                MySettings.LIMIT_ABORT = True
+                Throw limit_ex
             Catch ex As Exception
                 Return ErrorsDescriber.Execute(EDP.SendToLog, ex, $"{ToStringForLog()}: GetDataFromGalleryDL({command})")
             End Try
@@ -511,20 +576,23 @@ Namespace API.Twitter
             Dim command$ = String.Empty
             Try
                 Dim confCache As CacheKeeper = Cache.NewInstance(Of BatchFileExchanger)
-                Dim conf As SFile = $"{confCache.RootDirectory.PathWithSeparator}TwitterGdlConfig.conf"
-                Dim confText$ = "{""extractor"":{""cookies"": """ & MySettings.CookiesNetscapeFile.ToString.Replace("\", "/") &
-                                """,""cookies-update"": false,""twitter"":{""cards"": false,""conversations"": true,""pinned"": false,""quoted"": false,""replies"": true,""retweets"": true,""strategy"": null,""text-tweets"": false,""twitpic"": false,""unique"": true,""users"": ""timeline"",""videos"": true}}}"
-                If conf.Exists(SFO.Path, True, EDP.ThrowException) Then TextSaver.SaveTextToFile(confText, conf)
-                If Not conf.Exists Then Throw New IO.FileNotFoundException("Can't find Twitter GDL config file", conf)
+                Dim conf As SFile = GdlCreateConf(confCache.RootDirectory)
+
+                If DownloadModel = DownloadModels.Undefined And Not FirstDownloadComplete And DownloadModelForceApply Then
+                    If ParseUserMediaOnly Then
+                        DownloadModel = DownloadModels.Media
+                    Else
+                        DownloadModel = DownloadModels.Media + DownloadModels.Profile + DownloadModels.Search
+                    End If
+                End If
 
                 Dim outList As New List(Of SFile)
                 Dim rootDir As CacheKeeper = Cache.NewInstance
                 Dim dir As SFile
                 Dim dm As List(Of DownloadModels) = EnumExtract(Of DownloadModels)(DownloadModel).ListIfNothing
                 Dim process As Boolean
-                Dim bProcess As Boolean = DownloadModel = DownloadModels.Undefined Or Not FirstDownloadComplete
 
-                Using tgdl As New TwitterGDL(Nothing, Token) With {
+                Using tgdl As New TwitterGDL(Nothing, Token, MySettings.AbortOnLimit.Value) With {
                     .TempPostsList = _TempPostsList,
                     .AutoClear = True,
                     .AutoReset = True,
@@ -541,22 +609,36 @@ Namespace API.Twitter
                         command = $"""{Settings.GalleryDLFile}"" --verbose --no-download --no-skip --config ""{conf}"" --write-pages "
                         command &= GdlGetIdFilterString()
                         Select Case i
-                            Case 0 : command &= $"https://twitter.com/{Name}/media" : process = bProcess Or dm.Contains(DownloadModels.Media)
-                            Case 1 : command &= $"https://twitter.com/{Name}" : process = bProcess Or dm.Contains(DownloadModels.Profile)
-                            Case 2 : command &= $"https://twitter.com/search?q=from:{Name}+include:nativeretweets" : process = bProcess Or dm.Contains(DownloadModels.Search)
+                            Case 0 : command &= $"https://twitter.com/{Name}/media" : process = dm.Contains(DownloadModels.Media)
+                            Case 1 : command &= $"https://twitter.com/{Name}" : process = dm.Contains(DownloadModels.Profile)
+                            Case 2 : command &= $"-o search-endpoint=graphql https://twitter.com/search?q=from:{Name}+include:nativeretweets" : process = dm.Contains(DownloadModels.Search)
                             Case Else : process = False
                         End Select
                         '#If DEBUG Then
                         'Debug.WriteLine(command)
                         '#End If
                         ThrowAny(Token)
-                        If process Then tgdl.Execute(command)
+                        If process Then
+                            tgdl.Execute(command)
+                            If tgdl.LimitReached Then
+                                If CBool(MySettings.DownloadAlreadyParsed.Value) And
+                                   SFile.GetFiles(rootDir, "*.txt", IO.SearchOption.AllDirectories, EDP.ReturnValue).Count > 0 Then
+                                    MySettings.LIMIT_ABORT = True
+                                    Exit For
+                                Else
+                                    Throw New TwitterLimitException(ToStringForLog, False)
+                                End If
+                            End If
+                        End If
                         ThrowAny(Token)
                     Next
                 End Using
                 dm.Clear()
 
                 Return outList
+            Catch limit_ex As TwitterLimitException
+                MySettings.LIMIT_ABORT = True
+                Throw limit_ex
             Catch ex As Exception
                 ProcessException(ex, Token, $"{ToStringForLog()}: GetTimelineFromGalleryDL({command})")
                 Return Nothing
@@ -564,6 +646,20 @@ Namespace API.Twitter
         End Function
         Private Function GdlGetIdFilterString() As String
             Return If(_TempPostsList.Count > 0, $"--filter ""int(tweet_id) > {_TempPostsList.Last} or abort()"" ", String.Empty)
+        End Function
+        Private Function GdlCreateConf(ByVal Path As SFile) As SFile
+            Try
+                Dim conf As SFile = $"{Path.PathWithSeparator}TwitterGdlConfig.conf"
+                Dim confText$ = "{""extractor"":{""cookies"": """ & MySettings.CookiesNetscapeFile.ToString.Replace("\", "/") &
+                                """,""cookies-update"": false,""twitter"":{""tweet-endpoint"": ""detail"",""cards"": false,""conversations"": true,""pinned"": false,""quoted"": false,""replies"": true,""retweets"": true,""strategy"": null,""text-tweets"": false,""twitpic"": false,""unique"": true,""users"": ""timeline"",""videos"": true}}}"
+                If conf.Exists(SFO.Path, True, EDP.ThrowException) Then TextSaver.SaveTextToFile(confText, conf)
+                If Not conf.Exists Then Throw New IO.FileNotFoundException("Can't find Twitter GDL config file", conf)
+                Return conf
+            Catch file_ex As IO.FileNotFoundException
+                Throw file_ex
+            Catch ex As Exception
+                Return ErrorsDescriber.Execute(EDP.SendToLog, ex, "gallery-dl configuration file creating error", New SFile)
+            End Try
         End Function
 #End Region
 #Region "ReparseMissing"
@@ -576,7 +672,9 @@ Namespace API.Twitter
                 If ContentMissingExists Then
                     Dim m As UserMedia
                     Dim PostDate$
-                    Dim j As EContainer
+                    Dim nodes As List(Of String()) = GetContainerSubnodes()
+                    Dim node$()
+                    Dim j As EContainer, n As EContainer
                     Dim f As SFile
                     Dim i%, ii%
                     Dim files As List(Of SFile)
@@ -585,6 +683,7 @@ Namespace API.Twitter
                         cache = Settings.Cache
                     Else
                         cache = New CacheKeeper(DownloadContentDefault_GetRootDir.CSFilePS)
+                        cache.CacheDeleteError = CacheDeletionError(cache)
                     End If
                     ProgressPre.ChangeMax(_ContentList.Count)
                     For i = 0 To _ContentList.Count - 1
@@ -598,7 +697,7 @@ Namespace API.Twitter
                                 Else
                                     URL = String.Format(SinglePostPattern, Name, m.Post.ID)
                                 End If
-                                f = GetDataFromGalleryDL(URL, cache, Favorite, Token)
+                                f = GetDataFromGalleryDL(URL, cache, False, Token)
                                 If Not f.IsEmptyString Then
                                     files = SFile.GetFiles(f, "*.txt")
                                     If files.ListExists Then
@@ -606,13 +705,20 @@ Namespace API.Twitter
                                             f = RenameGdlFile(files(ii), ii)
                                             j = JsonDocument.Parse(f.GetText)
                                             If Not j Is Nothing Then
-                                                With j.ItemF({"data", 0, "instructions", 0, "entries", 0,
-                                                             "content", "itemContent", "tweet_results", "result", "legacy"})
+                                                With j.ItemF({"data", 0, "instructions", 0, "entries"})
                                                     If .ListExists Then
-                                                        PostDate = String.Empty
-                                                        If .Contains("created_at") Then PostDate = .Value("created_at") Else PostDate = String.Empty
-                                                        ObtainMedia(.Self, m.Post.ID, PostDate, UStates.Missing)
-                                                        rList.Add(i)
+                                                        For Each n In .Self
+                                                            For Each node In nodes
+                                                                With n(node)
+                                                                    If .ListExists Then
+                                                                        PostDate = String.Empty
+                                                                        If .Contains("created_at") Then PostDate = .Value("created_at") Else PostDate = String.Empty
+                                                                        ObtainMedia(.Self, m.Post.ID, PostDate, UStates.Missing)
+                                                                        rList.ListAddValue(i, LNC)
+                                                                    End If
+                                                                End With
+                                                            Next
+                                                        Next
                                                     End If
                                                 End With
                                                 j.Dispose()
@@ -630,7 +736,7 @@ Namespace API.Twitter
             Finally
                 If Not cache Is Nothing And Not IsSingleObjectDownload Then cache.Dispose()
                 If rList.Count > 0 Then
-                    For i% = rList.Count - 1 To 0 Step -1 : _ContentList.RemoveAt(i) : Next
+                    For i% = rList.Count - 1 To 0 Step -1 : _ContentList.RemoveAt(rList(i)) : Next
                     rList.Clear()
                 End If
             End Try

@@ -80,7 +80,7 @@ Namespace DownloadObjects
                     If Not AutoDownloaderSource Is Nothing And Settings.ProcessNotification(SettingsCLS.NotificationObjects.AutoDownloader) Then
                         If AutoDownloaderSource.ShowNotifications Then
                             If Not User Is Nothing Then
-                                Dim Text$ = $"{User.Site} - {User.Name}{vbNewLine}" &
+                                Dim Text$ = $"{IIf(User.IsSubscription, "[Subscription] ", String.Empty)}{User.Site} - {User.Name}{vbNewLine}" &
                                             $"Downloaded: {User.DownloadedPictures(False)} images, {User.DownloadedVideos(False)} videos"
                                 Dim Title$
                                 If Not User.CollectionName.IsEmptyString Then
@@ -96,7 +96,7 @@ Namespace DownloadObjects
                                     Dim uifKey$ = String.Empty
                                     If AutoDownloaderSource.ShowPictureUser Then uPic = DirectCast(User, UserDataBase).GetUserPictureToastAddress
                                     If AutoDownloaderSource.ShowPictureUser AndAlso uPic.Exists Then Notify.Images = {New ToastImage(uPic)}
-                                    If AutoDownloaderSource.ShowPictureDownloaded And User.DownloadedPictures(False) > 0 Then
+                                    If AutoDownloaderSource.ShowPictureDownloaded And User.DownloadedPictures(False) > 0 And Not User.IsSubscription Then
                                         uif = DirectCast(User, UserDataBase).GetLastImageAddress
                                         uif_orig = uif
                                         If uif.Exists Then
@@ -129,7 +129,7 @@ Namespace DownloadObjects
                     ErrorsDescriber.Execute(EDP.SendToLog, ex, "[AutoDownloader.NotifiedUser.ShowNotification]")
                     If Not User Is Nothing Then
                         MainFrameObj.ShowNotification(SettingsCLS.NotificationObjects.AutoDownloader,
-                                                      User.ToString & vbNewLine &
+                                                      If(User.IsSubscription, "[Subscription] ", String.Empty) & User.ToString & vbNewLine &
                                                       $"Downloaded: {User.DownloadedPictures(False)} images, {User.DownloadedVideos(False)} videos" &
                                                       If(User.HasError, vbNewLine & "With errors", String.Empty))
                     End If
@@ -142,7 +142,11 @@ Namespace DownloadObjects
                     ElseIf Key = _Key Then
                         Return True
                     ElseIf KeyFolder = _Key Then
-                        User.OpenFolder()
+                        If User.IsSubscription Then
+                            Return True
+                        Else
+                            User.OpenFolder()
+                        End If
                     ElseIf KeySite = _Key Then
                         User.OpenSite()
                     ElseIf Images.ContainsKey(_Key) Then
@@ -216,6 +220,7 @@ Namespace DownloadObjects
         Private ReadOnly LastDownloadDateXML As Date? = Nothing
         Private _LastDownloadDate As Date = Now.AddYears(-1)
         Private _LastDownloadDateChanged As Boolean = False
+        Private _LastDownloadDateSkip As Date? = Nothing
         Friend Property LastDownloadDate As Date
             Get
                 Return _LastDownloadDate
@@ -227,10 +232,11 @@ Namespace DownloadObjects
         End Property
         Private ReadOnly Property NextExecutionDate As Date
             Get
+                Dim lds As Date = If(_LastDownloadDateSkip, Date.MinValue)
                 If _PauseValue.HasValue Then
-                    Return {LastDownloadDate.AddMinutes(Timer), _StartTime.AddMinutes(StartupDelay), _PauseValue.Value}.Max
+                    Return {LastDownloadDate.AddMinutes(Timer), _StartTime.AddMinutes(StartupDelay), _PauseValue.Value, lds}.Max
                 Else
-                    Return {LastDownloadDate.AddMinutes(Timer), _StartTime.AddMinutes(StartupDelay)}.Max
+                    Return {LastDownloadDate.AddMinutes(Timer), _StartTime.AddMinutes(StartupDelay), lds}.Max
                 End If
             End Get
         End Property
@@ -411,21 +417,33 @@ Namespace DownloadObjects
         Friend Sub [Stop]()
             If Working Then _StopRequested = True
         End Sub
-        Friend Sub Skip()
+        Friend Overloads Sub Skip()
             If LastDownloadDate.AddMinutes(Timer) <= Now Then
-                LastDownloadDate = Now.AddMinutes(Timer)
+                _LastDownloadDateSkip = Now.AddMinutes(Timer)
             Else
-                LastDownloadDate = LastDownloadDate.AddMinutes(Timer)
+                _LastDownloadDateSkip = LastDownloadDate.AddMinutes(Timer)
             End If
         End Sub
+        Friend Overloads Sub Skip(ByVal Minutes As Integer)
+            _LastDownloadDateSkip = If(_LastDownloadDateSkip, Now).AddMinutes(Minutes)
+        End Sub
+        Friend Overloads Sub Skip(ByVal ToDate As Date)
+            _LastDownloadDateSkip = ToDate
+        End Sub
+        Friend Sub SkipReset()
+            _LastDownloadDateSkip = Nothing
+        End Sub
+        Friend Sub ForceStart()
+            _ForceStartRequested = True
+        End Sub
+        Private _ForceStartRequested As Boolean = False
         Private _SpecialDelayUse As Boolean = False
         Private _SpecialDelayTime As Date? = Nothing
         Private Sub Checker()
             Try
                 Dim _StartDownload As Boolean
                 While (Not _StopRequested Or Downloader.Working) And Not Mode = Modes.None
-                    If LastDownloadDate.AddMinutes(Timer) < Now And _StartTime.AddMinutes(StartupDelay) < Now And
-                       Not IsPaused And Not _StopRequested And Not Mode = Modes.None Then
+                    If ((NextExecutionDate < Now And Not IsPaused) Or _ForceStartRequested) And Not _StopRequested And Not Mode = Modes.None Then
                         If Downloader.Working Then
                             _SpecialDelayUse = True
                         Else
@@ -434,9 +452,7 @@ Namespace DownloadObjects
                                 _SpecialDelayUse = False
                                 _SpecialDelayTime = Nothing
                                 _StartDownload = False
-                                If Settings.Automation.Count = 1 Then
-                                    _StartDownload = True
-                                ElseIf Index = -1 Then
+                                If Settings.Automation.Count = 1 Or _ForceStartRequested Or Index = -1 Then
                                     _StartDownload = True
                                 Else
                                     _StartDownload = NextExecutionDate.AddMilliseconds(1000 * (Index + 1)).Ticks <= Now.Ticks
@@ -467,6 +483,7 @@ Namespace DownloadObjects
                 Dim GName$
                 Dim i%
                 Dim DownloadedUsersCount% = 0
+                Dim DownloadedSubscriptionsCount% = 0
                 Dim simple As Boolean = ShowSimpleNotification And ShowNotifications
                 Dim notify As Action = Sub()
                                            Try
@@ -476,7 +493,11 @@ Namespace DownloadObjects
                                                            With .Item(indx)
                                                                If Keys.Contains(.Key) Then
                                                                    If simple Then
-                                                                       DownloadedUsersCount += 1
+                                                                       If .IsSubscription Then
+                                                                           DownloadedSubscriptionsCount += 1
+                                                                       Else
+                                                                           DownloadedUsersCount += 1
+                                                                       End If
                                                                    Else
                                                                        ShowNotification(.Self)
                                                                    End If
@@ -501,9 +522,27 @@ Namespace DownloadObjects
                                                                          End If
                                                                      End Function
                         Dim CheckSites As Predicate(Of IUserData) = Function(u) SitesExcluded.Count = 0 OrElse Not SitesExcluded.Contains(u.Site)
-                        users.ListAddList(Settings.GetUsers(Function(u) UserExistsPredicate(u) And CheckLabels.Invoke(u) And CheckSites.Invoke(u)))
+                        Dim ExistsPredicate As Predicate(Of IUserData)
+                        If Subscriptions Then
+                            If SubscriptionsOnly Then
+                                ExistsPredicate = UserExistsSubscriptionsPredicate
+                            Else
+                                ExistsPredicate = UserExistsPredicate
+                            End If
+                        Else
+                            ExistsPredicate = UserExistsNonSubscriptionsPredicate
+                        End If
+                        users.ListAddList(Settings.GetUsers(Function(u) ExistsPredicate(u) And CheckLabels.Invoke(u) And CheckSites.Invoke(u)))
+                        If UsersCount <> 0 And users.Count > 0 Then
+                            users = users.ListTake(If(UsersCount > 0, -1, -2), Math.Abs(UsersCount))
+                            If UsersCount < 0 Then users = users.ListReverse
+                        End If
                     Case Modes.Default
-                        Using g As New GroupParameters : users.ListAddList(DownloadGroup.GetUsers(g, True)) : End Using
+                        Using g As New GroupParameters
+                            g.LabelsExcluded.ListAddList(LabelsExcluded)
+                            g.SitesExcluded.ListAddList(SitesExcluded)
+                            users.ListAddList(DownloadGroup.GetUsers(g, True))
+                        End Using
                     Case Modes.Specified : users.ListAddList(DownloadGroup.GetUsers(Me, True))
                     Case Modes.Groups
                         If Groups.Count > 0 And Settings.Groups.Count > 0 Then
@@ -522,9 +561,13 @@ Namespace DownloadObjects
                         While .Working Or .Count > 0 : notify.Invoke() : Thread.Sleep(200) : End While
                         .AutoDownloaderWorking = False
                         notify.Invoke
-                        If simple And DownloadedUsersCount > 0 Then _
-                           MainFrameObj.ShowNotification(SettingsCLS.NotificationObjects.AutoDownloader,
-                                                         $"{DownloadedUsersCount} user(s) downloaded with scheduler plan '{Name}'")
+                        If simple And DownloadedUsersCount + DownloadedSubscriptionsCount > 0 Then
+                            Dim msg$ = String.Empty
+                            If DownloadedUsersCount > 0 Then msg = $"{DownloadedUsersCount} user(s) "
+                            If DownloadedSubscriptionsCount > 0 Then msg &= $"{IIf(DownloadedUsersCount > 0, "and ", String.Empty)}{DownloadedSubscriptionsCount} subscription(s) "
+                            msg &= $"downloaded with scheduler plan '{Name}'"
+                            MainFrameObj.ShowNotification(SettingsCLS.NotificationObjects.AutoDownloader, msg)
+                        End If
                     End With
                 End If
             Catch ex As Exception
@@ -534,6 +577,8 @@ Namespace DownloadObjects
                 LastDownloadDate = Now
                 Update()
                 _Downloading = False
+                _ForceStartRequested = False
+                _LastDownloadDateSkip = Nothing
             End Try
         End Sub
         Private Sub ShowNotification(ByVal u As IUserData)

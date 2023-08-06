@@ -40,20 +40,21 @@ A program to download photo and video from [any site](#supported-sites) (e.g. Yo
   - Pinterest boards, users, saved posts;
   - Imgur images, galleries and videos;
   - Gfycat videos;
-  - PornHub images, videos, save (liked) posts;
-  - XHamster images, videos, saved posts;
-  - XVIDEOS videos, saved posts;
-  - ThisVid images, videos, saved posts;
+  - PornHub images, videos, save (liked) posts, search queries, search categories;
+  - XHamster images, videos, saved posts, search queries, search categories, search tags;
+  - XVIDEOS videos, saved posts, search queries, search categories;
+  - ThisVid images, videos, saved posts, search queries, search categories, search tags;
   - [Other](#supported-sites) supported sites
-- Parse [channel and view data](https://github.com/AAndyProgram/SCrawler/wiki/Channels)
-- Download [saved Reddit, Twitter and Instagram posts](https://github.com/AAndyProgram/SCrawler/wiki/Home#saved-posts)
+- Parse [Reddit channel and view data](https://github.com/AAndyProgram/SCrawler/wiki/Channels)
+- Download [saved posts](https://github.com/AAndyProgram/SCrawler/wiki/Home#saved-posts)
 - Add users from parsed channel
 - **Advanced user management**
 - **Automation** ([downloading data automatically](https://github.com/AAndyProgram/SCrawler/wiki/Settings#automation) every ```X``` minutes)
-- **Feed** ([feed](https://github.com/AAndyProgram/SCrawler/wiki#feed) of downloaded media files)
+- **Feed** ([feed](https://github.com/AAndyProgram/SCrawler/wiki#feed) of downloaded media files and subscriptions posts)
 - Labeling users
 - Create [download groups](https://github.com/AAndyProgram/SCrawler/wiki/Settings#download-groups)
 - Adding users to favorites and temporary
+- Adding users and search queries in the **Subscription** mode (download post preview, but do not download the media file)
 - [Filter exists users](https://github.com/AAndyProgram/SCrawler/wiki#view) by label or group
 - Selection of media types you want to download (images only, videos only, both)
 - [Download a special video](https://github.com/AAndyProgram/SCrawler/wiki#download-separate-video), image or gallery
@@ -71,7 +72,7 @@ A program to download photo and video from [any site](#supported-sites) (e.g. Yo
 - **OnlyFans**
 - **Mastodon**
 - **Instagram**
-- TikTok (*currently broken*; [limited](https://github.com/AAndyProgram/SCrawler/wiki/Settings#tiktok-limits))
+- TikTok
 - RedGifs
 - Pinterest
 - Imgur
@@ -192,6 +193,8 @@ F5-->[*]
 ![Add user](ProgramScreenshots/CreateUserClear.png)
 
 # Contact me
+
+[e-mail](mailto:andyprogram@proton.me): andyprogram@proton.me
 
 Matrix (Element): https://matrix.to/#/@andyprogram:matrix.org
 

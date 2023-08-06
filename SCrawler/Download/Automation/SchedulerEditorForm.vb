@@ -12,8 +12,13 @@ Namespace DownloadObjects
     Friend Class SchedulerEditorForm
 #Region "Declarations"
         Private WithEvents MyDefs As DefaultFormOptions
-        Private WithEvents BTT_SKIP As ToolStripButton
+        Private ReadOnly MENU_SKIP As ToolStripDropDownButton
+        Private WithEvents BTT_SKIP As ToolStripMenuItem
+        Private WithEvents BTT_SKIP_MIN As ToolStripMenuItem
+        Private WithEvents BTT_SKIP_DATE As ToolStripMenuItem
+        Private WithEvents BTT_SKIP_RESET As ToolStripMenuItem
         Private WithEvents BTT_START As ToolStripButton
+        Private WithEvents BTT_START_FORCE As ToolStripButton
         Private WithEvents BTT_PAUSE As ToolStripDropDownButton
         Private WithEvents PauseArr As AutoDownloaderPauseButtons
 #End Region
@@ -21,17 +26,51 @@ Namespace DownloadObjects
         Friend Sub New()
             InitializeComponent()
             MyDefs = New DefaultFormOptions(Me, Settings.Design)
-            BTT_SKIP = New ToolStripButton With {
+            MENU_SKIP = New ToolStripDropDownButton With {
                 .Text = "Skip",
-                .ToolTipText = "Skip next run",
+                .ToolTipText = String.Empty,
+                .AutoToolTip = False,
+                .DisplayStyle = ToolStripItemDisplayStyle.Text
+            }
+            BTT_SKIP = New ToolStripMenuItem With {
+                .Text = "Skip",
+                .ToolTipText = "Delay for the number of minutes configured in the task",
                 .AutoToolTip = True,
                 .DisplayStyle = ToolStripItemDisplayStyle.Text
             }
+            BTT_SKIP_MIN = New ToolStripMenuItem With {
+                .Text = "Delay for minutes",
+                .ToolTipText = "Delay for a specific number of minutes",
+                .AutoToolTip = True,
+                .DisplayStyle = ToolStripItemDisplayStyle.Text,
+                .Tag = "m"
+            }
+            BTT_SKIP_DATE = New ToolStripMenuItem With {
+                .Text = "Delay by date/time",
+                .ToolTipText = String.Empty,
+                .AutoToolTip = False,
+                .DisplayStyle = ToolStripItemDisplayStyle.Text,
+                .Tag = "d"
+            }
+            BTT_SKIP_RESET = New ToolStripMenuItem With {
+                .Text = "Delay reset",
+                .ToolTipText = "Reset the delay you set earlier",
+                .AutoToolTip = True,
+                .DisplayStyle = ToolStripItemDisplayStyle.Text,
+                .Tag = "r"
+            }
+            MENU_SKIP.DropDownItems.AddRange({BTT_SKIP, BTT_SKIP_MIN, BTT_SKIP_DATE, New ToolStripSeparator, BTT_SKIP_RESET})
             BTT_START = New ToolStripButton With {
                 .Text = "Start",
                 .Image = My.Resources.StartPic_Green_16,
                 .ToolTipText = "Run selected plan",
                 .AutoToolTip = True
+            }
+            BTT_START_FORCE = New ToolStripButton With {
+                .Text = "Start (force)",
+                .ToolTipText = "Force start of the current task",
+                .AutoToolTip = True,
+                .Image = My.Resources.StartPic_Green_16
             }
             BTT_PAUSE = New ToolStripDropDownButton With {
                 .Text = "Pause",
@@ -47,7 +86,7 @@ Namespace DownloadObjects
         Private Sub SchedulerEditorForm_Load(sender As Object, e As EventArgs) Handles Me.Load
             With MyDefs
                 .MyViewInitialize()
-                .AddEditToolbarPlus({BTT_START, BTT_SKIP, BTT_PAUSE})
+                .AddEditToolbarPlus({New ToolStripSeparator, BTT_START, BTT_START_FORCE, MENU_SKIP, BTT_PAUSE})
                 PauseArr.AddButtons(BTT_PAUSE, .MyEditToolbar.ToolStrip)
                 Refill()
                 .EndLoaderOperations(False)
@@ -138,10 +177,38 @@ Namespace DownloadObjects
                 Refill()
             End If
         End Sub
-        Private Sub BTT_SKIP_Click(sender As Object, e As EventArgs) Handles BTT_SKIP.Click
+        Private Sub BTT_START_FORCE_Click(sender As Object, e As EventArgs) Handles BTT_START_FORCE.Click
             If _LatestSelected.ValueBetween(0, LIST_PLANS.Items.Count - 1) Then
-                Settings.Automation(_LatestSelected).Skip()
-                Refill()
+                With Settings.Automation(_LatestSelected)
+                    If .Working Then .ForceStart() : Refill()
+                End With
+            End If
+        End Sub
+        Private Sub BTT_SKIP_Click(ByVal Sender As ToolStripMenuItem, ByVal e As EventArgs) Handles BTT_SKIP.Click, BTT_SKIP_MIN.Click, BTT_SKIP_DATE.Click, BTT_SKIP_RESET.Click
+            If _LatestSelected.ValueBetween(0, LIST_PLANS.Items.Count - 1) Then
+                Dim mode$ = AConvert(Of String)(Sender.Tag, String.Empty)
+                Select Case mode
+                    Case String.Empty
+                        Settings.Automation(_LatestSelected).Skip()
+                        Refill()
+                    Case "m"
+                        Dim mins% = AConvert(Of Integer)(InputBoxE("Enter a number of minutes you want to delay:", Sender.Text, 60), -1)
+                        If mins > 0 Then Settings.Automation(_LatestSelected).Skip(mins) : Refill()
+                    Case "d"
+                        Dim d As Date? = Nothing
+                        Using f As New DateTimeSelectionForm(DateTimeSelectionForm.Modes.Date +
+                                                             DateTimeSelectionForm.Modes.Time +
+                                                             DateTimeSelectionForm.Modes.Start, Settings.Design) With {
+                            .MyDateStart = Now.AddMinutes(60)
+                        }
+                            f.ShowDialog()
+                            If f.DialogResult = DialogResult.OK Then d = f.MyDateStart
+                        End Using
+                        If d.HasValue Then Settings.Automation(_LatestSelected).Skip(d.Value) : Refill()
+                    Case "r"
+                        Settings.Automation(_LatestSelected).SkipReset()
+                        Refill()
+                End Select
             End If
         End Sub
         Private Sub PauseArr_Updating() Handles PauseArr.Updating

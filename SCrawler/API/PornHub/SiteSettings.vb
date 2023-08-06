@@ -27,6 +27,14 @@ Namespace API.PornHub
         End Property
         <PropertyOption(ControlText:="Download UHD", ControlToolTip:="Download UHD (4K) content"), PXML>
         Friend Property DownloadUHD As PropertyValue
+        <PropertyOption(ControlText:="Download uploaded", ControlToolTip:="Download uploaded videos"), PXML>
+        Friend Property DownloadUploaded As PropertyValue
+        <PropertyOption(ControlText:="Download tagged", ControlToolTip:="Download tagged videos"), PXML>
+        Friend Property DownloadTagged As PropertyValue
+        <PropertyOption(ControlText:="Download private", ControlToolTip:="Download private videos"), PXML>
+        Friend Property DownloadPrivate As PropertyValue
+        <PropertyOption(ControlText:="Download favorite", ControlToolTip:="Download favorite videos"), PXML>
+        Friend Property DownloadFavorite As PropertyValue
         <PropertyOption(ControlText:="Download GIF", ControlToolTip:="Default for new users", ThreeStates:=True), PXML>
         Friend ReadOnly Property DownloadGifs As PropertyValue
         <PropertyOption(ControlText:="Download GIFs as mp4", ControlToolTip:="Download gifs in 'mp4' format instead of native 'webm'"), PXML>
@@ -35,7 +43,7 @@ Namespace API.PornHub
                         ControlToolTip:="Download photo only from ModelHub. Prornstar photos hosted on PornHub itself will not be downloaded." & vbCr &
                                         "Attention! Downloading photos hosted on PornHub is a very heavy job."), PXML>
         Friend ReadOnly Property DownloadPhotoOnlyFromModelHub As PropertyValue
-        <PropertyOption(ControlText:="Saved posts user", ControlToolTip:="Personal profile username"), PXML>
+        <PropertyOption(ControlText:=DeclaredNames.SavedPostsUserNameCaption, ControlToolTip:=DeclaredNames.SavedPostsUserNameToolTip), PXML>
         Friend ReadOnly Property SavedPostsUserName As PropertyValue
 #End Region
 #Region "Initializer"
@@ -44,14 +52,19 @@ Namespace API.PornHub
             With Responser : .CurlSslNoRevoke = True : .CurlInsecure = True : End With
 
             DownloadUHD = New PropertyValue(False)
+            DownloadUploaded = New PropertyValue(True)
+            DownloadTagged = New PropertyValue(False)
+            DownloadPrivate = New PropertyValue(False)
+            DownloadFavorite = New PropertyValue(False)
             DownloadGifsAsMp4 = New PropertyValue(True)
             DownloadGifs = New PropertyValue(CInt(CheckState.Indeterminate), GetType(Integer))
             DownloadPhotoOnlyFromModelHub = New PropertyValue(True)
             SavedPostsUserName = New PropertyValue(String.Empty, GetType(String))
 
+            _SubscriptionsAllowed = True
             UrlPatternUser = "https://www.pornhub.com/{0}/{1}"
-            UserRegex = RParams.DMS("pornhub.com/([^/]+)/([^/]+).*?", 0, RegexReturn.ListByMatch)
-            ImageVideoContains = "pornhub"
+            UserRegex = RParams.DMS("pornhub.com/(model|user[s]?|pornstar|channel[s]?)/([^/]+).*?", 0, RegexReturn.ListByMatch)
+            ImageVideoContains = "pornhub.com"
         End Sub
 #End Region
 #Region "GetInstance"
@@ -67,11 +80,17 @@ Namespace API.PornHub
         End Function
 #End Region
 #Region "IsMyUser"
+        Private ReadOnly NonUserRegex As RParams = RParams.DM("(?<=pornhub.com/)((.+?)(?=[\?&]{1}page=\d+)|(.+))", 0, EDP.ReturnValue)
         Friend Overrides Function IsMyUser(ByVal UserURL As String) As ExchangeOptions
             Try
-                If Not UserURL.IsEmptyString Then
+                If Not UserURL.IsEmptyString AndAlso UserURL.ToLower.Contains("pornhub.com") Then
                     Dim alist As List(Of String) = RegexReplace(UserURL.ToLower, UserRegex)
-                    If alist.ListExists(3) Then Return New ExchangeOptions(Site, $"{alist(1)}_{alist(2)}")
+                    If alist.ListExists(3) Then
+                        Return New ExchangeOptions(Site, $"{alist(1)}_{alist(2)}")
+                    Else
+                        Dim opt$ = RegexReplace(UserURL, NonUserRegex)
+                        If Not opt.IsEmptyString Then Return New ExchangeOptions(Site, opt.StringRemoveWinForbiddenSymbols) With {.Options = opt}
+                    End If
                 End If
                 Return Nothing
             Catch ex As Exception
@@ -81,7 +100,13 @@ Namespace API.PornHub
 #End Region
 #Region "GetUserUrl"
         Friend Overrides Function GetUserUrl(ByVal User As IPluginContentProvider) As String
-            With DirectCast(User, UserData) : Return String.Format(UrlPatternUser, .PersonType, .NameTrue) : End With
+            With DirectCast(User, UserData)
+                If .IsUser Then
+                    Return String.Format(UrlPatternUser, .PersonType, .NameTrue)
+                Else
+                    Return .GetNonUserUrl(0)
+                End If
+            End With
         End Function
 #End Region
 #Region "User options"

@@ -11,11 +11,13 @@ Imports SCrawler.API.Base
 Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Forms.Toolbars
 Imports PersonalUtilities.Functions.Messaging
+Imports ECI = PersonalUtilities.Forms.Toolbars.EditToolbar.ControlItem
 Namespace DownloadObjects
     Friend Class MissingPostsForm
 #Region "Declarations"
         Private WithEvents MyDefs As DefaultFormOptions
         Private ReadOnly MUsers As List(Of IUserData)
+        Private WithEvents BTT_DELETE_ALL As ToolStripButton
         Private WithEvents BTT_DOWN_ALL As ToolStripButton
         Private WithEvents BTT_INFO As ToolStripButton
 #End Region
@@ -24,6 +26,13 @@ Namespace DownloadObjects
             InitializeComponent()
             MUsers = New List(Of IUserData)
             MyDefs = New DefaultFormOptions(Me, Settings.Design)
+            BTT_DELETE_ALL = New ToolStripButton With {
+                .Text = "Delete ALL",
+                .ToolTipText = String.Empty,
+                .AutoToolTip = False,
+                .Image = PersonalUtilities.My.Resources.DeletePic_Red_24,
+                .DisplayStyle = ToolStripItemDisplayStyle.ImageAndText
+            }
             BTT_DOWN_ALL = New ToolStripButton With {
                 .Text = "Download ALL",
                 .ToolTipText = String.Empty,
@@ -44,7 +53,7 @@ Namespace DownloadObjects
         Private Sub MissingPostsForm_Load(sender As Object, e As EventArgs) Handles Me.Load
             With MyDefs
                 .MyViewInitialize()
-                .AddEditToolbarPlus({EditToolbar.ControlItem.Separator, BTT_DOWN_ALL, BTT_INFO})
+                .AddEditToolbar({ECI.Update, ECI.Separator, ECI.Delete, BTT_DELETE_ALL, ECI.Separator, BTT_DOWN_ALL, BTT_INFO})
                 .EndLoaderOperations(False)
             End With
             RefillList()
@@ -258,11 +267,17 @@ Namespace DownloadObjects
                 ErrorsDescriber.Execute(EDP.SendToLog, ex, $"[DownloadObjects.MissingPostsForm.FindUser]")
             End Try
         End Sub
-        Private Sub DeletePost() Handles MyDefs.ButtonDeleteClickE, BTT_DELETE.Click
+        Private Sub DeletePost(ByVal Sender As Object, ByVal e As EventArgs) Handles MyDefs.ButtonDeleteClickE, BTT_DELETE.Click, BTT_DELETE_ALL.Click
             Const MsgTitle$ = "Remove missing posts"
             Dim UsersToUpdate As New List(Of UserDataBase)
             Try
-                Dim data As List(Of ListViewItem) = LIST_DATA.SelectedItems.ToObjectsList.ListCast(Of ListViewItem)
+                Dim data As List(Of ListViewItem)
+                Dim isAll As Boolean = Sender Is BTT_DELETE_ALL
+                If isAll Then
+                    data = LIST_DATA.Items.ToObjectsList.ListCast(Of ListViewItem)
+                Else
+                    data = LIST_DATA.SelectedItems.ToObjectsList.ListCast(Of ListViewItem)
+                End If
                 If data.ListExists Then
                     Dim lp As New ListAddParams(LAP.NotContainsOnly)
                     Dim usersCount% = ListAddList(Nothing, data.Select(Function(d) d.Group.Header), LAP.NotContainsOnly).ListIfNothing.Count
@@ -288,7 +303,7 @@ Namespace DownloadObjects
                         MsgBoxE({"Operation canceled", MsgTitle})
                     End If
                 Else
-                    MsgBoxE({"No selected posts", MsgTitle})
+                    MsgBoxE({IIf(isAll, "No posts found to delete", "No selected posts"), MsgTitle})
                 End If
             Catch ex As Exception
                 ErrorsDescriber.Execute(EDP.SendToLog, ex, "[DownloadObjects.MissingPostsForm.DeletePost]")

@@ -24,6 +24,8 @@ Namespace API.Twitter
                   ToolTip:="Existing files will be checked for duplicates and duplicates removed." & vbCr &
                            "Works only on the first activation 'Use MD5 comparison'.", LeftOffset:=DefaultOffset)>
         Friend Property RemoveExistingDuplicates As Boolean = False
+        <PSetting(NameOf(SiteSettings.MediaModelAllowNonUserTweets), NameOf(MySettings), LeftOffset:=DefaultOffset)>
+        Friend Overridable Property MediaModelAllowNonUserTweets As Boolean = False
         <PSetting(Address:=SettingAddress.User,
                   Caption:="Download model 'Media'",
                   ToolTip:="Download the data using the 'https://twitter.com/UserName/media' command.", LeftOffset:=DefaultOffset)>
@@ -36,12 +38,18 @@ Namespace API.Twitter
                   Caption:="Download model 'Search'",
                   ToolTip:="Download the data using the 'https://twitter.com/search?q=from:UserName+include:nativeretweets' command.", LeftOffset:=DefaultOffset)>
         Friend Overridable Property DownloadModelSearch As Boolean = False
+        <PSetting(Address:=SettingAddress.User,
+                  Caption:="Force apply",
+                  ToolTip:="Force overrides the default parameters for the first download." & vbCr & "Applies to first download only.", LeftOffset:=DefaultOffset)>
+        Friend Overridable Property DownloadModelForceApply As Boolean = False
         Private ReadOnly Property MySettings As Object
         Friend Sub New(ByVal s As SiteSettings)
             GifsDownload = s.GifsDownload.Value
             GifsSpecialFolder = s.GifsSpecialFolder.Value
             GifsPrefix = s.GifsPrefix.Value
             UseMD5Comparison = s.UseMD5Comparison.Value
+            DownloadModelForceApply = s.UseAppropriateModel.Value
+            MediaModelAllowNonUserTweets = s.MediaModelAllowNonUserTweets.Value
             MySettings = s
         End Sub
         Friend Sub New(ByVal s As Mastodon.SiteSettings)
@@ -57,7 +65,9 @@ Namespace API.Twitter
             GifsPrefix = u.GifsPrefix
             UseMD5Comparison = u.UseMD5Comparison
             RemoveExistingDuplicates = u.RemoveExistingDuplicates
+            MediaModelAllowNonUserTweets = u.MediaModelAllowNonUserTweets
             If Not TypeOf u Is Mastodon.UserData Then
+                DownloadModelForceApply = u.DownloadModelForceApply
                 Dim dm As DModels() = EnumExtract(Of DModels)(u.DownloadModel)
                 If dm.ListExists Then
                     DownloadModelMedia = dm.Contains(DModels.Media)

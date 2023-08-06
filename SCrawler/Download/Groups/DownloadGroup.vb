@@ -144,6 +144,17 @@ Namespace DownloadObjects.Groups
                             (.Temporary = CheckState.Indeterminate Or user.Temporary = CBool(.Temporary)) And
                             (.Favorite = CheckState.Indeterminate Or (user.Favorite = CBool(.Favorite))) And
                             (Not UseReadyOption Or .ReadyForDownloadIgnore Or user.ReadyForDownload = .ReadyForDownload) And user.Exists
+                        Dim CheckSubscription As Predicate(Of IUserData) = Function(ByVal user As IUserData) As Boolean
+                                                                               If .Subscriptions Then
+                                                                                   If .SubscriptionsOnly Then
+                                                                                       Return user.IsSubscription = True
+                                                                                   Else
+                                                                                       Return True
+                                                                                   End If
+                                                                               Else
+                                                                                   Return user.IsSubscription = False
+                                                                               End If
+                                                                           End Function
                         Dim CheckLabelsExcluded As Predicate(Of IUserData) = Function(ByVal user As IUserData) As Boolean
                                                                                  If .LabelsExcluded.Count = 0 Then
                                                                                      Return True
@@ -165,7 +176,16 @@ Namespace DownloadObjects.Groups
                         Dim CheckSites As Predicate(Of IUserData) = Function(user) _
                             (.Sites.Count = 0 OrElse .Sites.Contains(user.Site)) AndAlso
                             (.SitesExcluded.Count = 0 OrElse Not .SitesExcluded.Contains(user.Site))
-                        Return Settings.GetUsers(Function(user) CheckLabels.Invoke(user) AndAlso CheckSites.Invoke(user) AndAlso CheckParams.Invoke(user))
+                        Dim users As IEnumerable(Of IUserData) =
+                            Settings.GetUsers(Function(user) CheckLabels.Invoke(user) AndAlso CheckSites.Invoke(user) AndAlso
+                                                             CheckParams.Invoke(user) AndAlso CheckSubscription.Invoke(user))
+                        If .UsersCount = 0 Or Not users.ListExists Then
+                            Return users
+                        Else
+                            users = users.ListTake(If(.UsersCount > 0, -1, -2), Math.Abs(.UsersCount))
+                            If .UsersCount < 0 Then users = users.ListReverse
+                            Return users
+                        End If
                     End With
                 Else
                     Return Nothing

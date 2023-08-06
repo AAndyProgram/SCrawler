@@ -55,8 +55,8 @@ Namespace API.Mastodon
                 If setDef Then MyCredentials = New Credentials With {.Domain = UserDomain, .Bearer = MySettings.Auth.Value, .Csrf = MySettings.Token.Value}
             End With
             With MyCredentials
-                Responser.Headers.Add(Twitter.SiteSettings.Header_Authorization, .Bearer)
-                Responser.Headers.Add(Twitter.SiteSettings.Header_Token, .Csrf)
+                Responser.Headers.Add(DeclaredNames.Header_Authorization, .Bearer)
+                Responser.Headers.Add(DeclaredNames.Header_CSRFToken, .Csrf)
             End With
         End Sub
 #End Region
@@ -274,7 +274,7 @@ Namespace API.Mastodon
                 ProcessException(ex, Token, $"ReparseMissing error [{URL}]")
             Finally
                 If rList.Count > 0 Then
-                    For i% = rList.Count - 1 To 0 Step -1 : _ContentList.RemoveAt(i) : Next
+                    For i% = rList.Count - 1 To 0 Step -1 : _ContentList.RemoveAt(rList(i)) : Next
                     rList.Clear()
                 End If
             End Try

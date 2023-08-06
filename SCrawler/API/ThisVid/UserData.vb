@@ -18,7 +18,11 @@ Namespace API.ThisVid
 #Region "XML names"
         Private Const Name_DownloadPublic As String = "DownloadPublic"
         Private Const Name_DownloadPrivate As String = "DownloadPrivate"
+        Private Const Name_DownloadFavourite As String = "DownloadFavourite"
         Private Const Name_DifferentFolders As String = "DifferentFolders"
+        Private Const Name_TrueName As String = "TrueName"
+        Private Const Name_SiteMode As String = "SiteMode"
+        Private Const Name_Arguments As String = "Arguments"
 #End Region
 #Region "Structures"
         Private Structure Album : Implements IRegExCreator
@@ -34,21 +38,127 @@ Namespace API.ThisVid
         End Structure
 #End Region
 #Region "Declarations"
+        Friend Overrides ReadOnly Property FeedIsUser As Boolean
+            Get
+                Return IsUser
+            End Get
+        End Property
         Friend Property DownloadPublic As Boolean = True
         Friend Property DownloadPrivate As Boolean = True
+        Friend Property DownloadFavourite As Boolean = False
         Friend Property DifferentFolders As Boolean = True
+        Friend Property TrueName As String = String.Empty
+        Friend Property SiteMode As SiteModes = SiteModes.User
+        Private Property Arguments As String = String.Empty
+        Friend Overrides ReadOnly Property SpecialLabels As IEnumerable(Of String)
+            Get
+                Return {SearchRequestLabelName}
+            End Get
+        End Property
+        Friend Property QueryString As String
+            Get
+                If SiteMode = SiteModes.User Then
+                    Return String.Empty
+                Else
+                    Return GetNonUserUrl(0)
+                End If
+            End Get
+            Set(ByVal q As String)
+                UpdateUserOptions(True, q)
+            End Set
+        End Property
+        Friend ReadOnly Property IsUser As Boolean
+            Get
+                Return SiteMode = SiteModes.User
+            End Get
+        End Property
+        Private ReadOnly Property MySettings As SiteSettings
+            Get
+                Return DirectCast(HOST.Source, SiteSettings)
+            End Get
+        End Property
 #End Region
 #Region "Loaders"
+        Private Function UpdateUserOptions(Optional ByVal Force As Boolean = False, Optional ByVal NewUrl As String = Nothing) As Boolean
+            If Not Force OrElse (Not SiteMode = SiteModes.User AndAlso Not NewUrl.IsEmptyString AndAlso MyFileSettings.Exists) Then
+                Dim eObj As Plugin.ExchangeOptions = Nothing
+                If Force Then eObj = MySettings.IsMyUser(NewUrl)
+                If (Force And Not eObj.UserName.IsEmptyString) Or (Not Force And TrueName.IsEmptyString) Then
+                    Dim n$() = If(Force, eObj.UserName, Name).Split("@")
+                    If n.ListExists(2) Then
+
+                        If Force And SiteMode = SiteModes.User Then Return False
+
+                        Dim __TrueName$, __Arguments$
+                        Dim __Mode As SiteModes
+                        Dim __ForceApply As Boolean = False
+                        Dim opt$() = If(Force, eObj.Options, Options).Split("@")
+                        __Mode = CInt(n(0))
+                        If opt.Length > 1 Then
+                            __Arguments = opt.ListTake(0, 100, EDP.ReturnValue).ListToString(String.Empty)
+                        Else
+                            __Arguments = String.Empty
+                        End If
+                        __TrueName = n(1)
+
+                        If Force AndAlso (Not TrueName = __TrueName Or Not SiteMode = __Mode) Then
+                            If ValidateChangeSearchOptions(ToStringForLog, $"{__Mode}: {__TrueName}", $"{SiteMode}: {TrueName}") Then
+                                __ForceApply = True
+                            Else
+                                Return False
+                            End If
+                        End If
+
+                        Arguments = __Arguments
+                        Options = If(Force, eObj.Options, Options)
+                        If Not Force Then
+                            TrueName = __TrueName
+                            SiteMode = __Mode
+                            Settings.Labels.Add(SearchRequestLabelName)
+                            Labels.ListAddValue(SearchRequestLabelName, LNC)
+                            Labels.Sort()
+                            UserSiteName = $"{SiteMode}: {TrueName}"
+                            If FriendlyName.IsEmptyString Then FriendlyName = UserSiteName
+                        ElseIf Force And __ForceApply Then
+                            TrueName = __TrueName
+                            SiteMode = __Mode
+                        End If
+                        Return True
+                    Else
+                        SiteMode = SiteModes.User
+                        TrueName = Name
+                    End If
+                End If
+            End If
+            Return False
+        End Function
         Protected Overrides Sub LoadUserInformation_OptionalFields(ByRef Container As XmlFile, ByVal Loading As Boolean)
             With Container
                 If Loading Then
                     DownloadPublic = .Value(Name_DownloadPublic).FromXML(Of Boolean)(True)
                     DownloadPrivate = .Value(Name_DownloadPrivate).FromXML(Of Boolean)(True)
+                    DownloadFavourite = .Value(Name_DownloadFavourite).FromXML(Of Boolean)(False)
                     DifferentFolders = .Value(Name_DifferentFolders).FromXML(Of Boolean)(True)
+                    TrueName = .Value(Name_TrueName)
+                    SiteMode = .Value(Name_SiteMode).FromXML(Of Integer)(SiteModes.User)
+                    Arguments = .Value(Name_Arguments)
+                    UpdateUserOptions()
                 Else
+                    If UpdateUserOptions() Then
+                        .Value(Name_LabelsName) = LabelsString
+                        .Value(Name_UserSiteName) = UserSiteName
+                        .Value(Name_FriendlyName) = FriendlyName
+                    End If
                     .Add(Name_DownloadPublic, DownloadPublic.BoolToInteger)
                     .Add(Name_DownloadPrivate, DownloadPrivate.BoolToInteger)
+                    .Add(Name_DownloadFavourite, DownloadFavourite.BoolToInteger)
                     .Add(Name_DifferentFolders, DifferentFolders.BoolToInteger)
+                    .Add(Name_TrueName, TrueName)
+                    .Add(Name_SiteMode, CInt(SiteMode))
+                    .Add(Name_Arguments, Arguments)
+
+                    'Debug.WriteLine(GetNonUserUrl(0))
+                    'Debug.WriteLine(GetNonUserUrl(2))
                 End If
             End With
         End Sub
@@ -60,7 +170,9 @@ Namespace API.ThisVid
                 With DirectCast(Obj, UserExchangeOptions)
                     DownloadPublic = .DownloadPublic
                     DownloadPrivate = .DownloadPrivate
+                    DownloadFavourite = .DownloadFavourite
                     DifferentFolders = .DifferentFolders
+                    QueryString = .QueryString
                 End With
             End If
         End Sub
@@ -111,37 +223,73 @@ Namespace API.ThisVid
         End Function
 #End Region
 #Region "Download functions"
+        Private AddedCount As Integer = 0
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
+            AddedCount = 0
+            Responser.Cookies.ChangedAllowInternalDrop = False
+            Responser.Cookies.Changed = False
             If ID.IsEmptyString Then ID = Name
-            If IsValid() Then
+            If Not IsUser OrElse IsValid() Then
                 If IsSavedPosts Then
-                    DownloadData(1, True, Token)
+                    DownloadData(1, 0, Token)
                     DownloadData_Images(Token)
                 Else
-                    If DownloadVideos Then
-                        If DownloadPublic Then DownloadData(1, True, Token)
-                        If DownloadPrivate Then DownloadData(1, False, Token)
+                    If IsUser Then
+                        If DownloadVideos Then
+                            If DownloadPublic Then DownloadData(1, 0, Token)
+                            If DownloadPrivate Then DownloadData(1, 1, Token)
+                            If DownloadFavourite Then DownloadData(1, 2, Token)
+                        End If
+                        If DownloadImages And Not IsSubscription Then DownloadData_Images(Token)
+                    Else
+                        DownloadData(1, 0, Token)
                     End If
-                    If DownloadImages Then DownloadData_Images(Token)
                 End If
             End If
+            If Responser.Cookies.Changed Then MySettings.UpdateCookies(Responser) : Responser.Cookies.Changed = False
         End Sub
-        Private Overloads Sub DownloadData(ByVal Page As Integer, ByVal IsPublic As Boolean, ByVal Token As CancellationToken)
+        Friend Function GetNonUserUrl(ByVal Page As Integer) As String
+            Dim url$ = String.Empty
+            Select Case SiteMode
+                Case SiteModes.Tags
+                    url = $"https://thisvid.com/{SiteSettings.P_Tags}/{TrueName}/"
+                    If Not Arguments.IsEmptyString Then url &= $"{Arguments}/"
+                    If Page > 1 Then url &= $"{Page}/"
+                Case SiteModes.Categories
+                    url = $"https://thisvid.com/{SiteSettings.P_Categories}/{TrueName}/"
+                    If Not Arguments.IsEmptyString Then url &= $"{Arguments}/"
+                    If Page > 1 Then url &= $"{Page}/"
+                Case SiteModes.Search
+                    If Not Arguments.IsEmptyString Then
+                        url = $"https://thisvid.com/{Arguments}/"
+                        If Page > 1 Then url &= $"{Page}/"
+                        url &= $"?q={TrueName}/"
+                    End If
+            End Select
+            Return url
+        End Function
+        Private Overloads Sub DownloadData(ByVal Page As Integer, ByVal Model As Byte, ByVal Token As CancellationToken)
             Dim URL$ = String.Empty
             Try
                 ProgressPre.ChangeMax(1)
+                Dim limit% = If(DownloadTopCount, -1)
                 Dim p$ = IIf(Page = 1, String.Empty, $"{Page}/")
                 If IsSavedPosts Then
                     URL = $"https://thisvid.com/my_favourite_videos/{p}"
+                ElseIf IsUser Then
+                    URL = $"https://thisvid.com/members/{ID}/{Interaction.Switch(Model = 0, "public", Model = 1, "private", Model = 2, "favourite")}_videos/{p}"
                 Else
-                    URL = $"https://thisvid.com/members/{ID}/{IIf(IsPublic, "public", "private")}_videos/{p}"
+                    URL = GetNonUserUrl(Page)
+                    If URL.IsEmptyString Then Throw New ArgumentNullException With {.HelpLink = 1}
                 End If
                 ThrowAny(Token)
                 ProgressPre.Perform()
                 Dim r$ = Responser.GetResponse(URL)
                 Dim cBefore% = _TempMediaList.Count
                 If Not r.IsEmptyString Then
-                    Dim __SpecialFolder$ = IIf(DifferentFolders, IIf(IsPublic, "Public", "Private"), String.Empty)
+                    Dim __SpecialFolder$ = If(DifferentFolders And Not IsSavedPosts And IsUser,
+                                              Interaction.Switch(Model = 0, "Public", Model = 1, "Private", Model = 2, "Favourite"),
+                                              String.Empty)
                     Dim l As List(Of String) = RegexReplace(r, If(IsSavedPosts, RegExVideoListSavedPosts, RegExVideoList))
                     If l.ListExists Then
                         For Each u$ In l
@@ -149,6 +297,8 @@ Namespace API.ThisVid
                                 If Not _TempPostsList.Contains(u) Then
                                     _TempPostsList.Add(u)
                                     _TempMediaList.Add(New UserMedia(u) With {.Type = UserMedia.Types.VideoPre, .SpecialFolder = __SpecialFolder})
+                                    AddedCount += 1
+                                    If limit > 0 And AddedCount >= limit Then Exit Sub
                                 Else
                                     Exit Sub
                                 End If
@@ -156,7 +306,8 @@ Namespace API.ThisVid
                         Next
                     End If
                 End If
-                If Not cBefore = _TempMediaList.Count Then DownloadData(Page + 1, IsPublic, Token)
+                If Not cBefore = _TempMediaList.Count And (IsUser Or Page < 1000) Then DownloadData(Page + 1, Model, Token)
+            Catch aex As ArgumentNullException When aex.HelpLink = 1
             Catch ex As Exception
                 ProcessException(ex, Token, $"videos downloading error [{URL}]")
             End Try
@@ -239,53 +390,104 @@ Namespace API.ThisVid
 #End Region
 #Region "ReparseVideo"
         Protected Overrides Sub ReparseVideo(ByVal Token As CancellationToken)
+            If IsSubscription Then
+                ReparseVideoSubscriptions(Token)
+            Else
+                Try
+                    If _TempMediaList.Count > 0 Then
+                        Dim u As UserMedia
+                        Dim dirCmd$ = String.Empty
+                        Dim f As SFile = Settings.YtdlpFile.File
+                        Dim n$
+                        Dim cookieFile As SFile = MySettings.CookiesNetscapeFile
+                        Dim command$
+                        Dim e As EContainer
+                        ProgressPre.ChangeMax(_TempMediaList.Count)
+                        For i% = _TempMediaList.Count - 1 To 0 Step -1
+                            ProgressPre.Perform()
+                            u = _TempMediaList(i)
+                            If u.Type = UserMedia.Types.VideoPre Then
+                                ThrowAny(Token)
+                                command = $"""{f}"" --verbose --dump-json "
+                                If cookieFile.Exists Then command &= $"--no-cookies-from-browser --cookies ""{cookieFile}"" "
+                                command &= u.URL
+                                e = GetJson(command)
+                                If Not e Is Nothing Then
+                                    u.URL = e.Value("url")
+                                    u.Post = New UserPost(e.Value("id"), ADateTime.ParseUnix32(e.Value("epoch")))
+                                    If u.Post.Date.HasValue Then
+                                        Select Case CheckDatesLimit(u.Post.Date.Value, Nothing)
+                                            Case DateResult.Skip : _TempPostsList.ListAddValue(u.Post.ID, LNC) : _TempMediaList.RemoveAt(i) : Continue For
+                                            Case DateResult.Exit : Exit Sub
+                                        End Select
+                                    End If
+                                    n = TitleHtmlConverter(e.Value("title"))
+                                    If Not n.IsEmptyString Then n = n.Replace("ThisVid.com", String.Empty).StringTrim.StringTrimEnd("-").StringTrim
+                                    If n.IsEmptyString Then n = u.Post.ID
+                                    If n.IsEmptyString Then n = "VideoFile"
+                                    u.File = $"{n}.mp4"
+                                    If u.URL.IsEmptyString OrElse (Not u.Post.ID.IsEmptyString AndAlso _TempPostsList.Contains(u.Post.ID)) Then
+                                        _TempMediaList.RemoveAt(i)
+                                    Else
+                                        u.Type = UserMedia.Types.Video
+                                        _TempPostsList.Add(u.Post.ID)
+                                        _TempMediaList(i) = u
+                                    End If
+                                    e.Dispose()
+                                End If
+                            End If
+                        Next
+                    End If
+                Catch ex As Exception
+                    ProcessException(ex, Token, "video reparsing error")
+                End Try
+            End If
+        End Sub
+        Private Sub ReparseVideoSubscriptions(ByVal Token As CancellationToken)
             Try
                 If _TempMediaList.Count > 0 Then
                     Dim u As UserMedia
-                    Dim dirCmd$ = String.Empty
-                    Dim f As SFile = Settings.YtdlpFile.File
-                    Dim n$
-                    Dim cookieFile As SFile = DirectCast(HOST.Source, SiteSettings).CookiesNetscapeFile
-                    Dim command$
-                    Dim e As EContainer
-                    ProgressPre.ChangeMax(_TempMediaList.Count)
+                    Dim n$, r$
+                    Dim c% = 0
+                    Progress.Maximum += _TempMediaList.Count
                     For i% = _TempMediaList.Count - 1 To 0 Step -1
-                        ProgressPre.Perform()
+                        Progress.Perform()
                         u = _TempMediaList(i)
                         If u.Type = UserMedia.Types.VideoPre Then
-                            ThrowAny(Token)
-                            command = $"""{f}"" --verbose --dump-json "
-                            If cookieFile.Exists Then command &= $"--no-cookies-from-browser --cookies ""{cookieFile}"" "
-                            command &= u.URL
-                            e = GetJson(command)
-                            If Not e Is Nothing Then
-                                u.URL = e.Value("url")
-                                u.Post = New UserPost(e.Value("id"), ADateTime.ParseUnix32(e.Value("epoch")))
-                                If u.Post.Date.HasValue Then
-                                    Select Case CheckDatesLimit(u.Post.Date.Value, Nothing)
-                                        Case DateResult.Skip : _TempPostsList.ListAddValue(u.Post.ID, LNC) : _TempMediaList.RemoveAt(i) : Continue For
-                                        Case DateResult.Exit : Exit Sub
-                                    End Select
+                            If Not DownloadTopCount.HasValue OrElse c <= DownloadTopCount.Value Then
+                                ThrowAny(Token)
+                                r = Responser.GetResponse(u.URL,, EDP.ReturnValue)
+                                If Not r.IsEmptyString Then
+                                    n = TitleHtmlConverter(RegexReplace(r, RegExVideoTitle))
+                                    u.Post.ID = u.URL
+                                    If Not n.IsEmptyString Then n = n.Replace("ThisVid.com", String.Empty).StringTrim.StringTrimEnd("-").StringTrim
+                                    If n.IsEmptyString Then n = TitleHtmlConverter(u.URL.Replace("https://thisvid.com/videos/", String.Empty).StringTrim.StringTrimEnd("-").StringTrim)
+                                    If n.IsEmptyString Then n = "VideoFile"
+                                    u.File = $"{n}.mp4"
+                                    u.PictureOption = n
+                                    u.URL = RegexReplace(r, Regex_VideosThumb_OG_IMAGE)
+                                    If u.URL.IsEmptyString Then u.URL = RegexReplace(r, RegExVideosThumb1)
+                                    If u.URL.IsEmptyString Then u.URL = RegexReplace(r, RegExVideosThumb2)
+                                    If Not u.URL.IsEmptyString Then
+                                        u.URL = LinkFormatterSecure(u.URL)
+                                        u.Type = UserMedia.Types.Video
+                                        _TempPostsList.Add(u.Post.ID)
+                                        _TempMediaList(i) = u
+                                        c += 1
+                                    Else
+                                        _TempMediaList.RemoveAt(i)
+                                    End If
                                 End If
-                                n = TitleHtmlConverter(e.Value("title"))
-                                If Not n.IsEmptyString Then n = n.Replace("ThisVid.com", String.Empty).StringTrim.StringTrimEnd("-").StringTrim
-                                If n.IsEmptyString Then n = u.Post.ID
-                                If n.IsEmptyString Then n = "VideoFile"
-                                u.File = $"{n}.mp4"
-                                If u.URL.IsEmptyString OrElse (Not u.Post.ID.IsEmptyString AndAlso _TempPostsList.Contains(u.Post.ID)) Then
-                                    _TempMediaList.RemoveAt(i)
-                                Else
-                                    u.Type = UserMedia.Types.Video
-                                    _TempPostsList.Add(u.Post.ID)
-                                    _TempMediaList(i) = u
-                                End If
-                                e.Dispose()
+                            Else
+                                _TempMediaList.RemoveAt(i)
                             End If
                         End If
                     Next
                 End If
             Catch ex As Exception
-                ProcessException(ex, Token, "video reparsing error")
+                ProcessException(ex, Token, "subscriptions video reparsing error")
+            Finally
+                If Responser.Cookies.Changed Then MySettings.UpdateCookies(Responser) : Responser.Cookies.Changed = False
             End Try
         End Sub
 #End Region

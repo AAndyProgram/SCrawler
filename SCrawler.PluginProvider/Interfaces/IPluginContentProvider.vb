@@ -17,6 +17,7 @@ Namespace Plugin
         Property Settings As ISiteSettings
         Property Name As String
         Property ID As String
+        Property Options As String
         Property ParseUserMediaOnly As Boolean
         Property UserDescription As String
         Property ExistingContentList As List(Of IUserMedia)
@@ -25,6 +26,7 @@ Namespace Plugin
         Property UserExists As Boolean
         Property UserSuspended As Boolean
         Property IsSavedPosts As Boolean
+        Property IsSubscription As Boolean
         Property SeparateVideoFolder As Boolean
         Property DataPath As String
         Property PostsNumberLimit As Integer?

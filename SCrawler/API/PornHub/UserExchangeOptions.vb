@@ -8,9 +8,17 @@
 ' but WITHOUT ANY WARRANTY
 Imports SCrawler.Plugin.Attributes
 Namespace API.PornHub
-    Friend Class UserExchangeOptions
+    Friend Class UserExchangeOptions : Inherits Xhamster.UserExchangeOptions
         <PSetting(NameOf(SiteSettings.DownloadUHD), NameOf(MySettings))>
         Friend Property DownloadUHD As Boolean
+        <PSetting(NameOf(SiteSettings.DownloadUploaded), NameOf(MySettings))>
+        Friend Property DownloadUploaded As Boolean
+        <PSetting(NameOf(SiteSettings.DownloadTagged), NameOf(MySettings))>
+        Friend Property DownloadTagged As Boolean
+        <PSetting(NameOf(SiteSettings.DownloadPrivate), NameOf(MySettings))>
+        Friend Property DownloadPrivate As Boolean
+        <PSetting(NameOf(SiteSettings.DownloadFavorite), NameOf(MySettings))>
+        Friend Property DownloadFavorite As Boolean
         <PSetting(Caption:="Download gifs")>
         Friend Property DownloadGifs As Boolean
         <PSetting(NameOf(SiteSettings.DownloadPhotoOnlyFromModelHub), NameOf(MySettings), Caption:="Download photo only from ModelHub")>
@@ -18,13 +26,22 @@ Namespace API.PornHub
         Private ReadOnly Property MySettings As SiteSettings
         Friend Sub New(ByVal u As UserData)
             DownloadUHD = u.DownloadUHD
+            DownloadUploaded = u.DownloadUploaded
+            DownloadTagged = u.DownloadTagged
+            DownloadPrivate = u.DownloadPrivate
+            DownloadFavorite = u.DownloadFavorite
             DownloadGifs = u.DownloadGifs
             DownloadPhotoOnlyFromModelHub = u.DownloadPhotoOnlyFromModelHub
+            QueryString = u.QueryString
             MySettings = u.HOST.Source
         End Sub
         Friend Sub New(ByVal s As SiteSettings)
             Dim v As CheckState = CInt(s.DownloadGifs.Value)
             DownloadUHD = s.DownloadUHD.Value
+            DownloadUploaded = s.DownloadUploaded.Value
+            DownloadTagged = s.DownloadTagged.Value
+            DownloadPrivate = s.DownloadPrivate.Value
+            DownloadFavorite = s.DownloadFavorite.Value
             DownloadGifs = Not v = CheckState.Unchecked
             DownloadPhotoOnlyFromModelHub = s.DownloadPhotoOnlyFromModelHub.Value
             MySettings = s

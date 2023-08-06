@@ -12,7 +12,7 @@ Imports SCrawler.Plugin.Attributes
 Imports PersonalUtilities.Tools.Web.Clients
 Imports PersonalUtilities.Functions.RegularExpressions
 Namespace API.Xhamster
-    <Manifest(XhamsterSiteKey), SavedPosts, SpecialForm(True), TaskGroup(SettingsCLS.TaskStackNamePornSite)>
+    <Manifest(XhamsterSiteKey), SavedPosts, SpecialForm(True), SpecialForm(False), TaskGroup(SettingsCLS.TaskStackNamePornSite)>
     Friend Class SiteSettings : Inherits SiteSettingsBase
 #Region "Declarations"
         Friend Overrides ReadOnly Property Icon As Icon
@@ -39,7 +39,7 @@ Namespace API.Xhamster
             Domains.DestinationProp = SiteDomains
             DownloadUHD = New PropertyValue(False)
 
-
+            _SubscriptionsAllowed = True
             UrlPatternUser = "https://xhamster.com/{0}/{1}"
             UserRegex = RParams.DMS($"/({UserOption}|{ChannelOption})/([^/]+)(\Z|.*)", 0, RegexReturn.ListByMatch)
             ImageVideoContains = "xhamster"
@@ -77,18 +77,60 @@ Namespace API.Xhamster
             End If
         End Function
         Friend Overrides Function GetUserUrl(ByVal User As IPluginContentProvider) As String
-            With DirectCast(User, UserData) : Return String.Format(UrlPatternUser, IIf(.IsChannel, ChannelOption, UserOption), .TrueName) : End With
+            With DirectCast(User, UserData)
+                If Not .SiteMode = SiteModes.User Then
+                    Return .GetNonUserUrl(0)
+                Else
+                    Return String.Format(UrlPatternUser, IIf(.IsChannel, ChannelOption, UserOption), .TrueName)
+                End If
+            End With
         End Function
 #Region "IsMyUser, IsMyImageVideo"
         Friend Const ChannelOption As String = "channels"
         Private Const UserOption As String = "users"
+        Friend Const P_Search As String = "search"
+        Friend Const P_Tags As String = "tags"
+        Friend Const P_Categories As String = "categories"
+        Friend Const P_Pornstars = "pornstars"
+        Private ReadOnly NonUsersRegex As RParams = RParams.DM("https?://[^/]+/((gay)/|(shemale)/|)(pornstars|tags|categories|search)/([^/\?]+)[/\?]?(.*)", 0,
+                                                               RegexReturn.ListByMatch, EDP.ReturnValue)
+        Private ReadOnly PageRemover_1 As RParams = RParams.DM("[\?&]?[Pp]age=\d+", 0, RegexReturn.Replace, EDP.ReturnValue,
+                                                               CType(Function(input) String.Empty, Func(Of String, String)))
+        Private ReadOnly PageRemover_2 As RParams = RParams.DM("/\d+\?", 0, RegexReturn.Replace, EDP.ReturnValue,
+                                                               CType(Function(input) "?", Func(Of String, String)))
         Friend Overrides Function IsMyUser(ByVal UserURL As String) As ExchangeOptions
             If Not UserURL.IsEmptyString AndAlso Domains.Domains.Count > 0 AndAlso Domains.Domains.Exists(Function(d) UserURL.ToLower.Contains(d.ToLower)) Then
+                Dim n$, opt$
                 Dim data As List(Of String) = RegexReplace(UserURL, UserRegex)
                 If data.ListExists(3) AndAlso Not data(2).IsEmptyString Then
-                    Dim n$ = data(2)
+                    n = data(2)
                     If Not data(1).IsEmptyString AndAlso data(1) = ChannelOption Then n &= $"@{data(1)}"
                     Return New ExchangeOptions(Site, n)
+                Else
+                    data = RegexReplace(UserURL, NonUsersRegex)
+                    If data.ListExists(7) AndAlso Not data(5).IsEmptyString Then
+                        n = data(5).StringRemoveWinForbiddenSymbols
+                        If Not n.IsEmptyString And Not data(4).IsEmptyString Then
+                            Dim mode As SiteModes
+                            Select Case data(4)
+                                Case P_Search : mode = SiteModes.Search
+                                Case P_Tags : mode = SiteModes.Tags
+                                Case P_Categories : mode = SiteModes.Categories
+                                Case P_Pornstars : mode = SiteModes.Pornstars
+                                Case Else : Return Nothing
+                            End Select
+                            n = $"{CInt(mode)}@{n}"
+                            Dim tmpOpt$ = data(6)
+
+                            If Not tmpOpt.IsEmptyString Then
+                                tmpOpt = RegexReplace(tmpOpt, PageRemover_1)
+                                tmpOpt = RegexReplace(tmpOpt, PageRemover_2)
+                            End If
+                            'mode@gay@tags@arguments@query
+                            opt = $"{CInt(mode)}@{data(2)}@{data(4)}@{tmpOpt}@{data(5)}"
+                            Return New ExchangeOptions(Site, n) With {.Options = opt}
+                        End If
+                    End If
                 End If
             End If
             Return Nothing
@@ -99,6 +141,14 @@ Namespace API.Xhamster
             End If
             Return Nothing
         End Function
+#End Region
+#Region "UserOptions"
+        Friend Overrides Sub UserOptions(ByRef Options As Object, ByVal OpenForm As Boolean)
+            If Options Is Nothing OrElse Not TypeOf Options Is UserExchangeOptions Then Options = New UserExchangeOptions
+            If OpenForm Then
+                Using f As New InternalSettingsForm(Options, Me, False) : f.ShowDialog() : End Using
+            End If
+        End Sub
 #End Region
     End Class
 End Namespace

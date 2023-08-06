@@ -12,7 +12,7 @@ Imports SCrawler.Plugin.Attributes
 Imports PersonalUtilities.Tools.Web.Clients
 Imports PersonalUtilities.Functions.RegularExpressions
 Namespace API.XVIDEOS
-    <Manifest(XvideosSiteKey), SavedPosts, SpecialForm(True), TaskGroup(SettingsCLS.TaskStackNamePornSite)>
+    <Manifest(XvideosSiteKey), SavedPosts, SpecialForm(True), SpecialForm(False), TaskGroup(SettingsCLS.TaskStackNamePornSite)>
     Friend Class SiteSettings : Inherits SiteSettingsBase
 #Region "Declarations"
         Friend Overrides ReadOnly Property Icon As Icon
@@ -44,6 +44,8 @@ Namespace API.XVIDEOS
             Domains.DestinationProp = SiteDomains
             DownloadUHD = New PropertyValue(False)
             SavedVideosPlaylist = New PropertyValue(String.Empty, GetType(String))
+
+            _SubscriptionsAllowed = True
             UrlPatternUser = "https://xvideos.com/{0}"
         End Sub
         Friend Overrides Sub EndInit()
@@ -81,21 +83,19 @@ Namespace API.XVIDEOS
         End Function
 #End Region
 #Region "User: get, check"
-        Friend Function GetUserUrlPart(ByVal User As UserData) As String
-            Dim __user$ = User.Name.Split("_").FirstOrDefault
-            __user &= $"/{User.Name.Replace($"{__user}_", String.Empty)}"
-            Return __user
-        End Function
         Friend Overrides Function GetUserUrl(ByVal User As IPluginContentProvider) As String
-            Return String.Format(UrlPatternUser, GetUserUrlPart(User))
+            Return DirectCast(User, UserData).GetUserUrl(0)
         End Function
 #End Region
 #Region "IsMyUser, IsMyImageVideo"
         Private Const UserRegexDefault As String = "/(profiles|[\w]*?[-]{0,1}channels)/([^/]+)(\Z|.*?)"
         Private Const URD As String = ".*?{0}{1}"
+        Private ReadOnly AbstractRegex As RParams = RParams.DM("[^/]+", 0, RegexReturn.List, EDP.ReturnValue)
+        Private ReadOnly SearchRegex As RParams = RParams.DMS("\?k=([^&]+)&?((.*)(&p=\d+)|(.*))", 0, RegexReturn.ListByMatch, EDP.ReturnValue)
         Friend Overrides Function IsMyUser(ByVal UserURL As String) As ExchangeOptions
             If Not UserURL.IsEmptyString Then
-                If Domains.Count > 0 Then
+                UserURL = UserURL.ToLower
+                If Domains.Count > 0 AndAlso Domains.Domains.Exists(Function(d) UserURL.Contains(d)) Then
                     Dim uName$, uOpt$, fStr$
                     Dim uErr As New ErrorsDescriber(EDP.ReturnValue)
                     For i% = 0 To Domains.Count - 1
@@ -103,9 +103,41 @@ Namespace API.XVIDEOS
                         uName = RegexReplace(UserURL, RParams.DMS(fStr, 2, uErr))
                         If Not uName.IsEmptyString Then
                             uOpt = RegexReplace(UserURL, RParams.DMS(fStr, 1))
-                            If Not uOpt.IsEmptyString Then Return New ExchangeOptions(Site, $"{uOpt}_{uName}")
+                            If Not uOpt.IsEmptyString Then Return New ExchangeOptions(Site, $"{uOpt}@{uName}")
                         End If
                     Next
+
+                    Dim absList As List(Of String) = RegexReplace(UserURL, AbstractRegex)
+                    If absList.ListExists(3) AndAlso Not absList(2).IsEmptyString Then
+                        If absList(2) = "c" Then
+                            If absList.Count > 3 AndAlso Not absList.Last.IsEmptyString AndAlso IsNumeric(absList.Last) Then absList.RemoveAt(absList.Count - 1)
+                            If absList.Count > 3 Then
+                                uName = $"{CInt(SiteModes.Categories)}@{absList.Last}"
+                                uOpt = $"{absList.Last}@"
+                                absList.RemoveAt(absList.Count - 1)
+                                If absList.Count > 3 Then uOpt &= absList.ListTake(2, absList.Count).ListToString("/")
+                                Return New ExchangeOptions(Site, uName) With {.Options = uOpt}
+                            End If
+                        ElseIf absList(2) = "tags" And absList.Count >= 4 Then
+                            If Not absList.Last.IsEmptyString AndAlso IsNumeric(absList.Last) Then absList.RemoveAt(absList.Count - 1)
+                            If absList.Count > 3 Then
+                                uOpt = String.Empty
+                                uName = absList.Last
+                                absList.RemoveAt(absList.Count - 1)
+                                If absList.Count > 3 Then uOpt = absList.ListTake(2, 100, EDP.ReturnValue).ListToString("/").StringTrimStart("/").StringTrimEnd("/")
+                                uOpt = $"{uName}@{uOpt}"
+                                uName = $"{CInt(SiteModes.Tags)}@{uName.StringRemoveWinForbiddenSymbols}"
+                                Return New ExchangeOptions(Site, uName) With {.Options = uOpt}
+                            End If
+                        ElseIf absList.Count = 3 And Not absList(2).IsEmptyString Then
+                            absList = RegexReplace(absList(2), SearchRegex)
+                            If absList.ListExists(6) AndAlso Not absList(1).IsEmptyString Then
+                                uName = $"{CInt(SiteModes.Search)}@{absList(1).StringRemoveWinForbiddenSymbols}"
+                                uOpt = $"{absList(1)}@{absList(3).IfNullOrEmpty(absList(5))}"
+                                Return New ExchangeOptions(Site, uName) With {.Options = uOpt}
+                            End If
+                        End If
+                    End If
                 End If
             End If
             Return Nothing
@@ -116,6 +148,14 @@ Namespace API.XVIDEOS
             End If
             Return Nothing
         End Function
+#End Region
+#Region "UserOptions"
+        Friend Overrides Sub UserOptions(ByRef Options As Object, ByVal OpenForm As Boolean)
+            If Options Is Nothing OrElse Not TypeOf Options Is UserExchangeOptions Then Options = New UserExchangeOptions
+            If OpenForm Then
+                Using f As New InternalSettingsForm(Options, Me, False) : f.ShowDialog() : End Using
+            End If
+        End Sub
 #End Region
     End Class
 End Namespace

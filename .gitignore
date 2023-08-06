@@ -10,8 +10,7 @@
 *.userosscache
 *.sln.docstates
 .obsidian/
-ToDo.txt
-ToDo.md
+BugReporterFormDiscordWebHook.vb
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

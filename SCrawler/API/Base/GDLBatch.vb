@@ -66,12 +66,12 @@ Namespace API.Base.GDL
             Return urls
         End Function
     End Module
-    Friend Class GDLBatch : Inherits BatchExecutor
+    Friend Class GDLBatch : Inherits TokenBatch
         Friend Property TempPostsList As List(Of String)
         Friend Const UrlLibStart As String = "[urllib3.connectionpool][debug]"
         Friend Const UrlTextStart As String = UrlLibStart & " https"
-        Friend Sub New()
-            MyBase.New(True)
+        Friend Sub New(ByVal _Token As Threading.CancellationToken)
+            MyBase.New(_Token)
             MainProcessName = "gallery-dl"
             ChangeDirectory(Settings.GalleryDLFile.File)
         End Sub
@@ -86,8 +86,9 @@ Namespace API.Base.GDL
             End If
         End Sub
         Protected Overridable Async Function Validate(ByVal Value As String) As Task
-            If Not ProcessKilled AndAlso Await Task.Run(Of Boolean)(Function() Not Value.IsEmptyString AndAlso
-                                                                               TempPostsList.Exists(Function(v) Value.Contains(v))) Then Kill()
+            If Not ProcessKilled AndAlso Await Task.Run(Of Boolean)(Function() Token.IsCancellationRequested OrElse
+                                                                               (Not Value.IsEmptyString AndAlso
+                                                                               TempPostsList.Exists(Function(v) Value.Contains(v)))) Then Kill()
         End Function
     End Class
 End Namespace

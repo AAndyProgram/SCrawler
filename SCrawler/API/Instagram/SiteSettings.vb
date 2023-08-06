@@ -74,9 +74,9 @@ Namespace API.Instagram
         Friend Const Header_IG_WWW_CLAIM As String = "x-ig-www-claim"
         Friend Const Header_CSRF_TOKEN As String = "x-csrftoken"
         Private Const Header_ASBD_ID As String = "X-Asbd-Id"
-        Private ReadOnly Header_Browser As New HttpHeader("Sec-Ch-Ua", """Google Chrome"";v=""113"", ""Chromium"";v=""113"", ""Not-A.Brand"";v=""24""")
-        Private ReadOnly Header_BrowserExt As New HttpHeader("Sec-Ch-Ua-Full-Version-List", """Google Chrome"";v=""113.0.5672.127"", ""Chromium"";v=""113.0.5672.127"", ""Not-A.Brand"";v=""24.0.0.0""")
-        Private ReadOnly Header_Platform As New HttpHeader("Sec-Ch-Ua-Platform-Version", """10.0.0""")
+        Private Const Header_Browser As String = "Sec-Ch-Ua"
+        Private Const Header_BrowserExt As String = "Sec-Ch-Ua-Full-Version-List"
+        Private Const Header_Platform As String = "Sec-Ch-Ua-Platform-Version"
         <PropertyOption(ControlText:="Hash", ControlToolTip:="Instagram session hash for tagged posts", IsAuth:=True), PXML("InstaHash"), ControlNumber(0)>
         Friend ReadOnly Property HashTagged As PropertyValue
         <PropertyOption(ControlText:="x-csrftoken", IsAuth:=True, AllowNull:=False), ControlNumber(2)>
@@ -108,9 +108,9 @@ Namespace API.Instagram
                     Case NameOf(HH_ASBD_ID) : f = Header_ASBD_ID
                     Case NameOf(HH_IG_WWW_CLAIM) : f = Header_IG_WWW_CLAIM
                     Case NameOf(HH_CSRF_TOKEN) : f = Header_CSRF_TOKEN
-                    Case NameOf(HH_BROWSER) : f = Header_Browser.Name
-                    Case NameOf(HH_BROWSER_EXT) : f = Header_BrowserExt.Name
-                    Case NameOf(HH_PLATFORM) : f = Header_Platform.Name
+                    Case NameOf(HH_BROWSER) : f = Header_Browser
+                    Case NameOf(HH_BROWSER_EXT) : f = Header_BrowserExt
+                    Case NameOf(HH_PLATFORM) : f = Header_Platform
                     Case NameOf(HH_USER_AGENT) : isUserAgent = True
                 End Select
                 If Not f.IsEmptyString Then
@@ -219,20 +219,6 @@ Namespace API.Instagram
             Dim platform$ = String.Empty
             Dim useragent$ = String.Empty
 
-            Dim __UpdateHeader As Action(Of HttpHeader, Boolean) = Sub(ByVal h As HttpHeader, ByVal UpdateValueIfEmpty As Boolean)
-                                                                       With Responser.Headers
-                                                                           Dim i% = .IndexOf(h)
-                                                                           Dim hh As HttpHeader
-                                                                           If i >= 0 Then
-                                                                               hh = .Item(i)
-                                                                               If hh.Value.IsEmptyString And UpdateValueIfEmpty Then hh.Value = h.Value
-                                                                           Else
-                                                                               hh = h
-                                                                           End If
-                                                                           .Add(hh)
-                                                                       End With
-                                                                   End Sub
-
             With Responser
                 .Accept = "*/*"
                 useragent = .UserAgent
@@ -242,19 +228,13 @@ Namespace API.Instagram
                         app_id = .Value(Header_IG_APP_ID)
                         www_claim = .Value(Header_IG_WWW_CLAIM)
                         asbd = .Value(Header_ASBD_ID)
-                        browser = .Value(Header_Browser.Name)
-                        browserExt = .Value(Header_BrowserExt.Name)
-                        platform = .Value(Header_Platform.Name)
+                        browser = .Value(Header_Browser)
+                        browserExt = .Value(Header_BrowserExt)
+                        platform = .Value(Header_Platform)
                     End If
                     .Add("Dnt", 1)
-                    __UpdateHeader(Header_Browser, browser.IsEmptyString)
-                    browser = .Value(Header_Browser.Name)
-                    __UpdateHeader(Header_BrowserExt, browserExt.IsEmptyString)
-                    browserExt = .Value(Header_BrowserExt.Name)
                     .Add("Sec-Ch-Ua-Mobile", "?0")
                     .Add("Sec-Ch-Ua-Platform", """Windows""")
-                    __UpdateHeader(Header_Platform, platform.IsEmptyString)
-                    platform = .Value(Header_Platform.Name)
                     .Add("Sec-Fetch-Dest", "empty")
                     .Add("Sec-Fetch-Mode", "cors")
                     .Add("Sec-Fetch-Site", "same-origin")
@@ -301,6 +281,7 @@ Namespace API.Instagram
             LastRequestsCountLabel = New PropertyValue(LastRequestsCountLabelStr.Invoke(LastRequestsCount.Value))
             AddHandler LastRequestsCount.ValueChanged, Sub(sender, e) LastRequestsCountLabel.Value = LastRequestsCountLabelStr.Invoke(DirectCast(sender, XMLValue(Of Integer)).ValueF.Value)
 
+            _AllowUserAgentUpdate = False
             UrlPatternUser = "https://www.instagram.com/{0}/"
             UserRegex = RParams.DMS("[htps:/]{7,8}.*?instagram.com/([^/]+)", 1)
             ImageVideoContains = "instagram.com"

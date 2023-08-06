@@ -114,7 +114,7 @@ Namespace DownloadObjects
         Private Sub ChangeEnabled() Handles OPT_DISABLED.CheckedChanged, OPT_ALL.CheckedChanged, OPT_DEFAULT.CheckedChanged,
                                             OPT_SPEC.CheckedChanged, OPT_GROUP.CheckedChanged,
                                             CH_NOTIFY.CheckedChanged, CH_NOTIFY_SIMPLE.CheckedChanged
-            DEF_GROUP.Enabled(OPT_ALL.Checked Or OPT_DEFAULT.Checked Or OPT_SPEC.Checked) = OPT_SPEC.Checked
+            DEF_GROUP.Enabled(OPT_ALL.Checked Or OPT_DEFAULT.Checked Or OPT_SPEC.Checked, OPT_ALL.Checked) = OPT_SPEC.Checked
             TXT_GROUPS.Enabled = OPT_GROUP.Checked
             TXT_TIMER.Enabled = Not OPT_DISABLED.Checked
             NUM_DELAY.Enabled = Not OPT_DISABLED.Checked

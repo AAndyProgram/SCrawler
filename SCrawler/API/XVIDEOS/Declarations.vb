@@ -18,5 +18,8 @@ Namespace API.XVIDEOS
         Friend ReadOnly Regex_M3U8_Appender As RParams = RParams.DM("(.+)(?=/.+?\.m3u8.*?)", 0)
         Friend ReadOnly Regex_SavedVideosPlaylist As RParams = RParams.DM("\<div id=""video.+?data-id=""(\d+).+?a href=""([^""]+)"".+?title=""([^""]*)""",
                                                                           0, RegexReturn.List, EDP.ReturnValue)
+
+        Friend ReadOnly Regex_VideoThumbBig As RParams = RParams.DMS("html5player.setThumbUrl\d+\('([^']+)'\)", 1, EDP.ReturnValue)
+        Friend ReadOnly Regex_VideoThumbSmall As RParams = RParams.DMS("html5player.setThumbUrl\('([^']+)'\)", 1, EDP.ReturnValue)
     End Module
 End Namespace

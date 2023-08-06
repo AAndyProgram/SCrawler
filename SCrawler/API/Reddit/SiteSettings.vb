@@ -9,12 +9,16 @@
 Imports SCrawler.API.Base
 Imports SCrawler.Plugin
 Imports SCrawler.Plugin.Attributes
+Imports PersonalUtilities.Tools.Web.Clients
+Imports PersonalUtilities.Tools.Web.Documents.JSON
+Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports DownDetector = SCrawler.API.Base.DownDetector
 Imports Download = SCrawler.Plugin.ISiteSettings.Download
 Namespace API.Reddit
     <Manifest(RedditSiteKey), SavedPosts, SpecialForm(False)>
     Friend Class SiteSettings : Inherits SiteSettingsBase
+#Region "Icons"
         Friend Overrides ReadOnly Property Icon As Icon
             Get
                 Return My.Resources.SiteResources.RedditIcon_128
@@ -25,36 +29,85 @@ Namespace API.Reddit
                 Return My.Resources.SiteResources.RedditPic_512
             End Get
         End Property
-        <PropertyOption(ControlText:="Saved posts user", ControlToolTip:="Personal profile username"), PXML>
+#End Region
+#Region "Declarations"
+#Region "Authorization"
+        <PropertyOption(ControlText:="Login", ControlToolTip:="Your authorization username", IsAuth:=True), PXML>
+        Friend ReadOnly Property AuthUserName As PropertyValue
+        <PropertyOption(ControlText:="Password", ControlToolTip:="Your authorization password", IsAuth:=True), PXML>
+        Friend ReadOnly Property AuthPassword As PropertyValue
+        <PropertyOption(ControlText:="Client ID", ControlToolTip:="Your registered app client ID", IsAuth:=True), PXML>
+        Friend ReadOnly Property ApiClientID As PropertyValue
+        <PropertyOption(ControlText:="Client Secret", ControlToolTip:="Your registered app client secret", IsAuth:=True), PXML>
+        Friend ReadOnly Property ApiClientSecret As PropertyValue
+        <PropertyOption(ControlText:="Bearer token",
+                        ControlToolTip:="Bearer token (can be null)." & vbCr &
+                                        "If you are using cookies to download the timeline, it is highly recommended that you add a token." & vbCr &
+                                        "You can find different tokens in the responses. Make sure that bearer token belongs to Reddit and not RedGifs." & vbCr &
+                                        "There is not need to add a token if you are not using cookies to download the timeline.", IsAuth:=True)>
+        Friend ReadOnly Property BearerToken As PropertyValue
+#Region "TokenUpdateInterval"
+        <PropertyOption(ControlText:="Token refresh interval", ControlToolTip:="Interval (in minutes) to refresh the token",
+                        AllowNull:=False, LeftOffset:=120, IsAuth:=True), PXML>
+        Friend ReadOnly Property TokenUpdateInterval As PropertyValue
+        <Provider(NameOf(TokenUpdateInterval), FieldsChecker:=True)>
+        Private ReadOnly Property TokenUpdateIntervalProvider As IFormatProvider
+#End Region
+        <PXML> Private ReadOnly Property BearerTokenDateUpdate As PropertyValue
+        <PropertyOption(ControlText:="Use the token to download the timeline", IsAuth:=True), PXML>
+        Friend ReadOnly Property UseTokenForTimelines As PropertyValue
+        <PropertyOption(ControlText:="Use the token to download saved posts", IsAuth:=True), PXML>
+        Friend ReadOnly Property UseTokenForSavedPosts As PropertyValue
+        <PropertyOption(ControlText:="Use cookies to download the timeline", IsAuth:=True), PXML>
+        Friend ReadOnly Property UseCookiesForTimelines As PropertyValue
+        <PropertyOption(ControlText:=DeclaredNames.SavedPostsUserNameCaption, ControlToolTip:=DeclaredNames.SavedPostsUserNameToolTip, IsAuth:=True), PXML>
         Friend ReadOnly Property SavedPostsUserName As PropertyValue
-        <PropertyOption(ControlText:="Use M3U8", ControlToolTip:="Use M3U8 or mp4 for Reddit videos"), PXML>
+#End Region
+#Region "Other"
+        <PropertyOption(ControlText:="Use M3U8", ControlToolTip:="Use M3U8 or mp4 for Reddit videos", IsAuth:=False), PXML>
         Friend ReadOnly Property UseM3U8 As PropertyValue
+#End Region
+#End Region
+#Region "Initializer"
         Friend Sub New()
             MyBase.New(RedditSite, "reddit.com")
+
+            Dim token$
             With Responser
                 Dim d% = .Decoders.Count
                 .Decoders.ListAddList({SymbolsConverter.Converters.Unicode, SymbolsConverter.Converters.HTML}, LAP.NotContainsOnly)
-                If d <> .Decoders.Count Then .SaveSettings()
+                token = .Headers.Value(DeclaredNames.Header_Authorization)
             End With
+
+            AuthUserName = New PropertyValue(String.Empty, GetType(String))
+            AuthPassword = New PropertyValue(String.Empty, GetType(String))
+            ApiClientID = New PropertyValue(String.Empty, GetType(String))
+            ApiClientSecret = New PropertyValue(String.Empty, GetType(String))
+            BearerToken = New PropertyValue(token, GetType(String), Sub(v) Responser.Headers.Add(DeclaredNames.Header_Authorization, v))
+            TokenUpdateInterval = New PropertyValue(60 * 12)
+            TokenUpdateIntervalProvider = New TokenRefreshIntervalProvider
+            BearerTokenDateUpdate = New PropertyValue(Now.AddYears(-1))
+            UseTokenForTimelines = New PropertyValue(False)
+            UseTokenForSavedPosts = New PropertyValue(False)
+            UseCookiesForTimelines = New PropertyValue(False)
             SavedPostsUserName = New PropertyValue(String.Empty, GetType(String))
+
             UseM3U8 = New PropertyValue(True)
+
             UrlPatternUser = "https://www.reddit.com/{0}/{1}/"
             ImageVideoContains = "reddit.com"
             UserRegex = RParams.DM("[htps:/]{7,8}.*?reddit.com/([user]{1,4})/([^/]+)", 0, RegexReturn.ListByMatch, EDP.ReturnValue)
         End Sub
+#End Region
+#Region "GetInstance"
         Friend Overrides Function GetInstance(ByVal What As Download) As IPluginContentProvider
             Return New UserData
         End Function
-        Friend Const ChannelOption As String = "r"
-        Friend Overrides Function IsMyUser(ByVal UserURL As String) As ExchangeOptions
-            Dim l As List(Of String) = RegexReplace(UserURL, UserRegex)
-            If l.ListExists(3) Then
-                Dim n$ = l(2)
-                If Not l(1).IsEmptyString AndAlso l(1) = ChannelOption Then n &= $"@{ChannelOption}"
-                Return New ExchangeOptions(Site, n)
-            Else
-                Return Nothing
-            End If
+#End Region
+#Region "Available, UpdateRedGifsToken"
+        Friend Property SessionInterrupted As Boolean = False
+        Friend Overrides Function ReadyToDownload(ByVal What As Download) As Boolean
+            If What = Download.Main Then Return Not SessionInterrupted Else Return True
         End Function
         Friend Overrides Function Available(ByVal What As Download, ByVal Silent As Boolean) As Boolean
             Try
@@ -72,29 +125,40 @@ Namespace API.Reddit
                                         avg.NumToString(New ANumbers With {.FormatOptions = ANumbers.Options.GroupIntegral}) & " outage reports:" & vbCr &
                                         dl.ListToString(vbCr) & vbCr & vbCr &
                                         "Do you want to continue parsing Reddit data?", "There are outage reports on Reddit"}, vbYesNo) = vbYes Then
-                                UpdateRedGifsToken()
-                                Return trueValue
+                                If trueValue Then UpdateRedGifsToken()
+                                Return trueValue AndAlso UpdateTokenIfRequired()
                             Else
                                 Return False
                             End If
                         End If
                     End If
                 End If
-                UpdateRedGifsToken()
-                Return trueValue
+                If trueValue Then UpdateRedGifsToken()
+                Return trueValue AndAlso UpdateTokenIfRequired()
             Catch ex As Exception
                 Return ErrorsDescriber.Execute(EDP.SendToLog + EDP.ReturnValue, ex, "[API.Reddit.SiteSettings.Available]", True)
             End Try
         End Function
+        Friend Overrides Sub DownloadDone(ByVal What As Download)
+            SessionInterrupted = False
+            MyBase.DownloadDone(What)
+        End Sub
         Private Sub UpdateRedGifsToken()
             DirectCast(Settings(RedGifs.RedGifsSiteKey).Source, RedGifs.SiteSettings).UpdateTokenIfRequired()
         End Sub
-        Friend Overrides Sub UserOptions(ByRef Options As Object, ByVal OpenForm As Boolean)
-            If Options Is Nothing OrElse Not TypeOf Options Is RedditViewExchange Then Options = New RedditViewExchange
-            If OpenForm Then
-                Using f As New RedditViewSettingsForm(Options) : f.ShowDialog() : End Using
+#End Region
+#Region "IsMyUser, GetUserUrl, GetUserPostUrl"
+        Friend Const ChannelOption As String = "r"
+        Friend Overrides Function IsMyUser(ByVal UserURL As String) As ExchangeOptions
+            Dim l As List(Of String) = RegexReplace(UserURL, UserRegex)
+            If l.ListExists(3) Then
+                Dim n$ = l(2)
+                If Not l(1).IsEmptyString AndAlso l(1) = ChannelOption Then n &= $"@{ChannelOption}"
+                Return New ExchangeOptions(Site, n)
+            Else
+                Return Nothing
             End If
-        End Sub
+        End Function
         Friend Overrides Function GetUserUrl(ByVal User As IPluginContentProvider) As String
             With DirectCast(User, UserData) : Return String.Format(UrlPatternUser, IIf(.IsChannel, ChannelOption, "user"), .TrueName) : End With
         End Function
@@ -105,5 +169,90 @@ Namespace API.Reddit
                 Return String.Empty
             End If
         End Function
+#End Region
+#Region "UserOptions"
+        Friend Overrides Sub UserOptions(ByRef Options As Object, ByVal OpenForm As Boolean)
+            If Options Is Nothing OrElse Not TypeOf Options Is RedditViewExchange Then Options = New RedditViewExchange
+            If OpenForm Then
+                Using f As New RedditViewSettingsForm(Options) : f.ShowDialog() : End Using
+            End If
+        End Sub
+#End Region
+#Region "BeginEdit, Update"
+        Private _OldTokenValue As String = String.Empty
+        Friend Overrides Sub BeginEdit()
+            _OldTokenValue = BearerToken.Value
+            MyBase.BeginEdit()
+        End Sub
+        Friend Overrides Sub Update()
+            If _SiteEditorFormOpened Then
+                Dim newTokenValue$ = BearerToken.Value
+                If Not newTokenValue.IsEmptyString AndAlso Not newTokenValue = _OldTokenValue Then BearerTokenDateUpdate.Value = Now
+            End If
+            MyBase.Update()
+        End Sub
+#End Region
+#Region "Token"
+        <PropertiesDataChecker({NameOf(AuthUserName), NameOf(AuthPassword), NameOf(ApiClientID), NameOf(ApiClientSecret)})>
+        Private Function TokenPropertiesChecker(ByVal p As IEnumerable(Of PropertyData)) As Boolean
+            If p.ListExists Then
+                Dim wrong As New List(Of String)
+                For i% = 0 To p.Count - 1
+                    If CStr(p(i).Value).IsEmptyString Then wrong.Add(p(i).Name)
+                Next
+                If wrong.Count > 0 Then
+                    MsgBoxE({$"You have not completed the following fields: {wrong.ListToString}." & vbCr &
+                            "To use OAuth authorization, all authorization fields must be filled in.", "Validate token fields"}, vbCritical)
+                    Return False
+                Else
+                    Return True
+                End If
+            End If
+            Return False
+        End Function
+        Private Function UpdateTokenIfRequired() As Boolean
+            If (CBool(UseTokenForTimelines.Value) Or CBool(UseTokenForSavedPosts.Value)) AndAlso
+               {AuthUserName.Value, AuthPassword.Value, ApiClientID.Value, ApiClientSecret.Value}.All(Function(v$) Not v.IsEmptyString) Then
+                If CDate(BearerTokenDateUpdate.Value).AddMinutes(TokenUpdateInterval.Value) <= Now Then Return UpdateToken()
+            End If
+            Return True
+        End Function
+        Private Overloads Function UpdateToken() As Boolean
+            Return UpdateToken(AuthUserName.Value, AuthPassword.Value, ApiClientID.Value, ApiClientSecret.Value)
+        End Function
+        <PropertyUpdater(NameOf(BearerToken), {NameOf(AuthUserName), NameOf(AuthPassword), NameOf(ApiClientID), NameOf(ApiClientSecret)})>
+        Private Overloads Function UpdateToken(ByVal UserName As String, ByVal Password As String, ByVal ClientID As String, ByVal ClientSecret As String) As Boolean
+            Try
+                Dim result As Boolean = True
+                If {UserName, Password, ClientID, ClientSecret}.All(Function(v) Not v.IsEmptyString) Then
+                    result = False
+                    Dim r$ = String.Empty
+                    Using resp As New Responser With {
+                        .Mode = Responser.Modes.Curl,
+                        .Method = "POST",
+                        .CurlArgumentsLeft = $"-d ""grant_type=password&username={UserName}&password={Password}"" --user ""{ClientID}:{ClientSecret}"""
+                    }
+                        r = resp.GetResponse("https://www.reddit.com/api/v1/access_token")
+                    End Using
+                    If Not r.IsEmptyString Then
+                        Using j As EContainer = JsonDocument.Parse(r)
+                            If j.ListExists Then
+                                Dim newToken$ = j.Value("access_token")
+                                If Not newToken.IsEmptyString Then
+                                    BearerToken.Value = $"Bearer {newToken}"
+                                    BearerTokenDateUpdate.Value = Now
+                                    Responser.SaveSettings()
+                                    result = True
+                                End If
+                            End If
+                        End Using
+                    End If
+                End If
+                Return result
+            Catch ex As Exception
+                Return ErrorsDescriber.Execute(EDP.SendToLog + EDP.ReturnValue, ex, "[Reddit.SiteSettings.UpdateToken]", False)
+            End Try
+        End Function
+#End Region
     End Class
 End Namespace

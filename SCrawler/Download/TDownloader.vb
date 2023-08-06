@@ -22,6 +22,7 @@ Namespace DownloadObjects
         Friend Event SendNotification As NotificationEventHandler
         Friend Event Reconfigured()
         Friend Event FeedFilesChanged(ByVal Added As Boolean)
+        Friend Event UserDownloadStateChanged As UserDownloadStateChangedEventHandler
 #End Region
 #Region "Declarations"
 #Region "Files"
@@ -124,6 +125,8 @@ Namespace DownloadObjects
             End Try
         End Sub
 #End Region
+        Friend ReadOnly Property ActiveDownloading As List(Of IUserData)
+        Friend Property QueueFormOpening As Boolean = False
         Friend ReadOnly Property Downloaded As List(Of IUserData)
         Private ReadOnly NProv As IFormatProvider
 #End Region
@@ -272,6 +275,7 @@ Namespace DownloadObjects
 #Region "Initializer"
         Friend Sub New()
             Files = New List(Of UserMediaD)
+            ActiveDownloading = New List(Of IUserData)
             Downloaded = New List(Of IUserData)
             NProv = New ANumbers With {.FormatOptions = ANumbers.Options.GroupIntegral}
             Pool = New List(Of Job)
@@ -406,6 +410,9 @@ Namespace DownloadObjects
                     Dim Keys As New List(Of String)
                     Dim h As Boolean = False
                     Dim host As SettingsHost = Nothing
+                    Dim waitQueueForm As Action = Sub()
+                                                      While QueueFormOpening : Thread.Sleep(100) : End While
+                                                  End Sub
                     For Each _Item As IUserData In _Job.Items
                         If Not _Item.Disposed Then
                             Keys.Add(_Item.Key)
@@ -413,8 +420,11 @@ Namespace DownloadObjects
                             If host.Source.ReadyToDownload(Download.Main) Then
                                 host.BeforeStartDownload(_Item, Download.Main)
                                 _Job.ThrowIfCancellationRequested()
+                                waitQueueForm.Invoke
                                 DirectCast(_Item, UserDataBase).Progress = _Job.Progress
                                 t.Add(Task.Run(Sub() _Item.DownloadData(Token)))
+                                ActiveDownloading.Add(_Item)
+                                RaiseEvent UserDownloadStateChanged(_Item, True)
                                 i += 1
                                 If i >= limit Then Exit For
                             End If
@@ -431,11 +441,14 @@ Namespace DownloadObjects
                         Dim dcc As Boolean = False
                         If Keys.Count > 0 Then
                             For Each k$ In Keys
+                                waitQueueForm.Invoke
                                 i = _Job.Items.FindIndex(Function(ii) ii.Key = k)
                                 If i >= 0 Then
                                     With _Job.Items(i)
                                         If DirectCast(.Self, UserDataBase).ContentMissingExists Then MissingPostsDetected = True
-                                        host.AfterDownload(_Job.Items(i), Download.Main)
+                                        If ActiveDownloading.Count > 0 AndAlso ActiveDownloading.Contains(.Self) Then ActiveDownloading.Remove(.Self)
+                                        RaiseEvent UserDownloadStateChanged(.Self, False)
+                                        host.AfterDownload(.Self, Download.Main)
                                         If Not .Disposed AndAlso Not .IsCollection AndAlso .DownloadedTotal(False) > 0 Then
                                             If Not Downloaded.Contains(.Self) Then Downloaded.Add(Settings.GetUser(.Self))
                                             With DirectCast(.Self, UserDataBase)
@@ -518,6 +531,7 @@ Namespace DownloadObjects
                     [Stop]()
                     Pool.ListClearDispose
                     Files.Clear()
+                    ActiveDownloading.Clear()
                     Downloaded.Clear()
                 End If
                 disposedValue = True

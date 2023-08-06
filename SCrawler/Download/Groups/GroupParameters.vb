@@ -18,6 +18,9 @@ Namespace DownloadObjects.Groups
         Property Favorite As CheckState
         Property ReadyForDownload As Boolean
         Property ReadyForDownloadIgnore As Boolean
+        Property Subscriptions As Boolean
+        Property SubscriptionsOnly As Boolean
+        Property UsersCount As Integer
     End Interface
     Friend Class GroupParameters : Implements IGroup, IDisposable
         Protected Const Name_Name As String = "Name"
@@ -25,6 +28,9 @@ Namespace DownloadObjects.Groups
         Protected Const Name_Favorite As String = "Favorite"
         Protected Const Name_ReadyForDownload As String = "RFD"
         Protected Const Name_ReadyForDownloadIgnore As String = "RFDI"
+        Protected Const Name_Subscriptions As String = "Subscriptions"
+        Protected Const Name_SubscriptionsOnly As String = "SubscriptionsOnly"
+        Protected Const Name_UsersCount As String = "UsersCount"
         Protected Const Name_Labels As String = "Labels"
         Protected Const Name_Labels_Excluded As String = "LabelsExcluded"
         Protected Const Name_Sites As String = "Sites"
@@ -38,6 +44,9 @@ Namespace DownloadObjects.Groups
         Friend Property Favorite As CheckState = CheckState.Indeterminate Implements IGroup.Favorite
         Friend Property ReadyForDownload As Boolean = True Implements IGroup.ReadyForDownload
         Friend Property ReadyForDownloadIgnore As Boolean = False Implements IGroup.ReadyForDownloadIgnore
+        Friend Property Subscriptions As Boolean = False Implements IGroup.Subscriptions
+        Friend Property SubscriptionsOnly As Boolean = False Implements IGroup.SubscriptionsOnly
+        Friend Property UsersCount As Integer = 0 Implements IGroup.UsersCount
         Friend Sub New()
             Labels = New List(Of String)
             LabelsExcluded = New List(Of String)
@@ -50,6 +59,9 @@ Namespace DownloadObjects.Groups
             Favorite = e.Value(Name_Favorite).FromXML(Of Integer)(CInt(CheckState.Indeterminate))
             ReadyForDownload = e.Value(Name_ReadyForDownload).FromXML(Of Boolean)(True)
             ReadyForDownloadIgnore = e.Value(Name_ReadyForDownloadIgnore).FromXML(Of Boolean)(False)
+            Subscriptions = e.Value(Name_Subscriptions).FromXML(Of Boolean)(False)
+            SubscriptionsOnly = e.Value(Name_SubscriptionsOnly).FromXML(Of Boolean)(False)
+            UsersCount = e.Value(Name_UsersCount).FromXML(Of Integer)(0)
 
             Dim l As New ListAddParams(LAP.NotContainsOnly)
             If Not e.Value(Name_Labels).IsEmptyString Then Labels.ListAddList(e.Value(Name_Labels).Split("|"), l)
@@ -63,6 +75,9 @@ Namespace DownloadObjects.Groups
                         New EContainer(Name_Favorite, CInt(Favorite)),
                         New EContainer(Name_ReadyForDownload, ReadyForDownload.BoolToInteger),
                         New EContainer(Name_ReadyForDownloadIgnore, ReadyForDownloadIgnore.BoolToInteger),
+                        New EContainer(Name_Subscriptions, Subscriptions.BoolToInteger),
+                        New EContainer(Name_SubscriptionsOnly, SubscriptionsOnly.BoolToInteger),
+                        New EContainer(Name_UsersCount, UsersCount),
                         New EContainer(Name_Labels, Labels.ListToString("|")),
                         New EContainer(Name_Labels_Excluded, LabelsExcluded.ListToString("|")),
                         New EContainer(Name_Sites, Sites.ListToString("|")),

@@ -41,6 +41,7 @@ Namespace API.YouTube
             DownloadShorts = New PropertyValue(False)
             DownloadPlaylists = New PropertyValue(False)
             UseCookies = New PropertyValue(False)
+            _SubscriptionsAllowed = True
         End Sub
 #End Region
 #Region "GetInstance"

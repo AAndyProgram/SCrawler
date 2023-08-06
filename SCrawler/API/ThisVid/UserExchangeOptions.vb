@@ -8,24 +8,29 @@
 ' but WITHOUT ANY WARRANTY
 Imports SCrawler.Plugin.Attributes
 Namespace API.ThisVid
-    Friend Class UserExchangeOptions
+    Friend Class UserExchangeOptions : Inherits Xhamster.UserExchangeOptions
         <PSetting(Caption:="Download public videos")>
         Friend Property DownloadPublic As Boolean = True
         <PSetting(Caption:="Download private videos")>
         Friend Property DownloadPrivate As Boolean = True
+        <PSetting(Caption:="Download favourite videos")>
+        Friend Property DownloadFavourite As Boolean = False
         <PSetting(NameOf(SiteSettings.DifferentFolders), NameOf(MySettings), Caption:="Different video folders")>
         Friend Property DifferentFolders As Boolean = True
         Private ReadOnly Property MySettings As SiteSettings
         Friend Sub New(ByVal s As SiteSettings)
             DownloadPublic = s.DownloadPublic.Value
             DownloadPrivate = s.DownloadPrivate.Value
+            DownloadFavourite = s.DownloadFavourite.Value
             DifferentFolders = s.DifferentFolders.Value
             MySettings = s
         End Sub
         Friend Sub New(ByVal u As UserData)
             DownloadPublic = u.DownloadPublic
             DownloadPrivate = u.DownloadPrivate
+            DownloadFavourite = u.DownloadFavourite
             DifferentFolders = u.DifferentFolders
+            QueryString = u.QueryString
             MySettings = u.HOST.Source
         End Sub
     End Class

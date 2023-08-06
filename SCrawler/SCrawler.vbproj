@@ -113,11 +113,11 @@
     <ApplicationManifest>My Project\app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="LibVLCSharp, Version=3.6.6.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\LibVLCSharp.3.6.6\lib\net40\LibVLCSharp.dll</HintPath>
+    <Reference Include="LibVLCSharp, Version=3.7.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\LibVLCSharp.3.7.0\lib\net40\LibVLCSharp.dll</HintPath>
     </Reference>
-    <Reference Include="LibVLCSharp.WinForms, Version=3.6.6.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\LibVLCSharp.WinForms.3.6.6\lib\net40\LibVLCSharp.WinForms.dll</HintPath>
+    <Reference Include="LibVLCSharp.WinForms, Version=3.7.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\LibVLCSharp.WinForms.3.7.0\lib\net40\LibVLCSharp.WinForms.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Threading.Tasks, Version=1.0.12.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Bcl.Async.1.0.168\lib\net40\Microsoft.Threading.Tasks.dll</HintPath>
@@ -166,12 +166,15 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="API\Base\Declarations.vb" />
+    <Compile Include="API\Base\DeclaredNames.vb" />
     <Compile Include="API\Base\DownDetector.vb" />
     <Compile Include="API\Base\GDLBatch.vb" />
+    <Compile Include="API\Base\IUserData.vb" />
     <Compile Include="API\Base\M3U8Base.vb" />
     <Compile Include="API\Base\ProfileSaved.vb" />
     <Compile Include="API\Base\SiteSettingsBase.vb" />
     <Compile Include="API\Base\Structures.vb" />
+    <Compile Include="API\Base\TokenBatch.vb" />
     <Compile Include="API\Instagram\EditorExchangeOptions.vb" />
     <Compile Include="API\LPSG\Declarations.vb" />
     <Compile Include="API\LPSG\SiteSettings.vb" />
@@ -191,6 +194,7 @@
     <Compile Include="API\OnlyFans\Declarations.vb" />
     <Compile Include="API\OnlyFans\SiteSettings.vb" />
     <Compile Include="API\OnlyFans\UserData.vb" />
+    <Compile Include="API\OnlyFans\UserExchangeOptions.vb" />
     <Compile Include="API\PathPlugin\Declarations.vb" />
     <Compile Include="API\PathPlugin\SiteSettings.vb" />
     <Compile Include="API\PathPlugin\UserData.vb" />
@@ -202,6 +206,7 @@
     <Compile Include="API\PornHub\SiteSettings.vb" />
     <Compile Include="API\PornHub\UserData.vb" />
     <Compile Include="API\PornHub\UserExchangeOptions.vb" />
+    <Compile Include="API\Reddit\IChannelLimits.vb" />
     <Compile Include="API\Reddit\RedditViewSettingsForm.Designer.vb">
       <DependentUpon>RedditViewSettingsForm.vb</DependentUpon>
     </Compile>
@@ -216,15 +221,18 @@
     <Compile Include="API\TikTok\Declarations.vb" />
     <Compile Include="API\TikTok\SiteSettings.vb" />
     <Compile Include="API\TikTok\UserData.vb" />
+    <Compile Include="API\TikTok\UserExchangeOptions.vb" />
     <Compile Include="API\Twitter\EditorExchangeOptions.vb" />
     <Compile Include="API\Xhamster\Declarations.vb" />
     <Compile Include="API\Xhamster\M3U8.vb" />
     <Compile Include="API\Xhamster\SiteSettings.vb" />
     <Compile Include="API\Xhamster\UserData.vb" />
+    <Compile Include="API\Xhamster\UserExchangeOptions.vb" />
     <Compile Include="API\XVIDEOS\Declarations.vb" />
     <Compile Include="API\XVIDEOS\M3U8.vb" />
     <Compile Include="API\XVIDEOS\SiteSettings.vb" />
     <Compile Include="API\XVIDEOS\UserData.vb" />
+    <Compile Include="API\XVIDEOS\UserExchangeOptions.vb" />
     <Compile Include="API\YouTube\SiteSettings.vb" />
     <Compile Include="API\YouTube\UserData.vb" />
     <Compile Include="API\YouTube\UserExchangeOptions.vb" />
@@ -307,12 +315,24 @@
     <Compile Include="Download\STDownloader\VideoDownloaderForm.vb">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="Download\UserDownloadQueueForm.Designer.vb">
+      <DependentUpon>UserDownloadQueueForm.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Download\UserDownloadQueueForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Download\WebClient2.vb" />
     <Compile Include="Editors\ColorPicker.Designer.vb">
       <DependentUpon>ColorPicker.vb</DependentUpon>
     </Compile>
     <Compile Include="Editors\ColorPicker.vb">
       <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Editors\GlobalLocationsChooserForm.Designer.vb">
+      <DependentUpon>GlobalLocationsChooserForm.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Editors\GlobalLocationsChooserForm.vb">
+      <SubType>Form</SubType>
     </Compile>
     <Compile Include="Editors\UsersInfoForm.Designer.vb">
       <DependentUpon>UsersInfoForm.vb</DependentUpon>
@@ -514,11 +534,17 @@
     <EmbeddedResource Include="Download\STDownloader\VideoDownloaderForm.resx">
       <DependentUpon>VideoDownloaderForm.vb</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Download\UserDownloadQueueForm.resx">
+      <DependentUpon>UserDownloadQueueForm.vb</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Editors\CollectionEditorForm.resx">
       <DependentUpon>CollectionEditorForm.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Editors\ColorPicker.resx">
       <DependentUpon>ColorPicker.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Editors\GlobalLocationsChooserForm.resx">
+      <DependentUpon>GlobalLocationsChooserForm.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Editors\GlobalSettingsForm.resx">
       <DependentUpon>GlobalSettingsForm.vb</DependentUpon>
@@ -618,7 +644,6 @@
     <None Include="Content\Pictures\SitePictures\RedditPic_512.png" />
     <None Include="Content\Pictures\SitePictures\RedGifsPic_32.png" />
     <None Include="Content\Pictures\SitePictures\TikTokPic_192.png" />
-    <None Include="Content\Pictures\SitePictures\TwitterPic_400.png" />
     <None Include="Content\Pictures\SitePictures\XvideosPic_32.png" />
     <None Include="Content\Icons\GroupByIcon_16.ico" />
     <None Include="Content\Icons\RainbowIcon_48.ico" />
@@ -670,14 +695,17 @@
   <ItemGroup>
     <None Include="Content\Icons\SiteIcons\OnlyFansIcon_32.ico" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Content\Pictures\BrushToolPic_16.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
-  <Import Project="..\packages\VideoLAN.LibVLC.Windows.3.0.17.4\build\VideoLAN.LibVLC.Windows.targets" Condition="Exists('..\packages\VideoLAN.LibVLC.Windows.3.0.17.4\build\VideoLAN.LibVLC.Windows.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\VideoLAN.LibVLC.Windows.3.0.17.4\build\VideoLAN.LibVLC.Windows.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\VideoLAN.LibVLC.Windows.3.0.17.4\build\VideoLAN.LibVLC.Windows.targets'))" />
     <Error Condition="!Exists('..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets'))" />
+    <Error Condition="!Exists('..\packages\VideoLAN.LibVLC.Windows.3.0.18\build\VideoLAN.LibVLC.Windows.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\VideoLAN.LibVLC.Windows.3.0.18\build\VideoLAN.LibVLC.Windows.targets'))" />
   </Target>
   <Import Project="..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets" Condition="Exists('..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets')" />
+  <Import Project="..\packages\VideoLAN.LibVLC.Windows.3.0.18\build\VideoLAN.LibVLC.Windows.targets" Condition="Exists('..\packages\VideoLAN.LibVLC.Windows.3.0.18\build\VideoLAN.LibVLC.Windows.targets')" />
 </Project>

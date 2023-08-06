@@ -19,26 +19,68 @@ Imports UTypes = SCrawler.API.Base.UserMedia.Types
 Imports UStates = SCrawler.API.Base.UserMedia.States
 Namespace API.OnlyFans
     Friend Class UserData : Inherits UserDataBase
+#Region "XML names"
+        Private Const Name_MediaDownloadHighlights As String = "DownloadHighlights"
+        Private Const Name_MediaDownloadChatMedia As String = "DownloadChatMedia"
+#End Region
 #Region "Declarations"
         Friend Property CCookie As CookieKeeper = Nothing
         Private Const HeaderSign As String = "Sign"
         Private Const HeaderTime As String = "Time"
+        Private ReadOnly HighlightsList As List(Of String)
+        Friend Property MediaDownloadHighlights As Boolean = True
+        Friend Property MediaDownloadChatMedia As Boolean = True
         Private ReadOnly Property MySettings As SiteSettings
             Get
                 Return HOST.Source
             End Get
         End Property
+#End Region
+#Region "Load"
         Protected Overrides Sub LoadUserInformation_OptionalFields(ByRef Container As XmlFile, ByVal Loading As Boolean)
+            With Container
+                If Loading Then
+                    MediaDownloadHighlights = .Value(Name_MediaDownloadHighlights).FromXML(Of Boolean)(True)
+                    MediaDownloadChatMedia = .Value(Name_MediaDownloadChatMedia).FromXML(Of Boolean)(True)
+                Else
+                    .Add(Name_MediaDownloadHighlights, MediaDownloadHighlights.BoolToInteger)
+                    .Add(Name_MediaDownloadChatMedia, MediaDownloadChatMedia.BoolToInteger)
+                End If
+            End With
+        End Sub
+#End Region
+#Region "Exchange"
+        Friend Overrides Function ExchangeOptionsGet() As Object
+            Return New UserExchangeOptions(Me)
+        End Function
+        Friend Overrides Sub ExchangeOptionsSet(ByVal Obj As Object)
+            If Not Obj Is Nothing AndAlso TypeOf Obj Is UserExchangeOptions Then
+                With DirectCast(Obj, UserExchangeOptions)
+                    MediaDownloadHighlights = .DownloadHighlights
+                    MediaDownloadChatMedia = .DownloadChatMedia
+                End With
+            End If
+        End Sub
+#End Region
+#Region "Initializer"
+        Friend Sub New()
+            HighlightsList = New List(Of String)
         End Sub
 #End Region
 #Region "Download functions"
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
-            If Not CCookie Is Nothing Then CCookie.Dispose()
-            CCookie = Responser.Cookies.Copy
-            Responser.Cookies.Clear()
-            AddHandler Responser.ResponseReceived, AddressOf OnResponseReceived
-            UpdateCookieHeader()
-            DownloadData(IIf(IsSavedPosts, 0, String.Empty), Token)
+            If Not MySettings.SessionAborted Then
+                If Not CCookie Is Nothing Then CCookie.Dispose()
+                CCookie = Responser.Cookies.Copy
+                Responser.Cookies.Clear()
+                AddHandler Responser.ResponseReceived, AddressOf OnResponseReceived
+                UpdateCookieHeader()
+                DownloadTimeline(IIf(IsSavedPosts, 0, String.Empty), Token)
+                If Not IsSavedPosts Then
+                    If MediaDownloadHighlights Then DownloadHighlights(Token)
+                    If MediaDownloadChatMedia Then DownloadChatMedia(0, Token)
+                End If
+            End If
         End Sub
         Private Sub OnResponseReceived(ByVal Sender As Object, ByVal e As WebDataResponse)
             If e.CookiesExists Then
@@ -49,9 +91,11 @@ Namespace API.OnlyFans
         Private Sub UpdateCookieHeader()
             Responser.Headers.Add("Cookie", CCookie.ToString(False))
         End Sub
+        Friend Const A_HIGHLIGHT As String = "HL"
+        Friend Const A_MESSAGE As String = "MSG"
         Private Const BaseUrlPattern As String = "https://onlyfans.com{0}"
-        Private Overloads Sub DownloadData(ByVal Cursor As String, ByVal Token As CancellationToken)
-
+#Region "Download timeline"
+        Private Overloads Sub DownloadTimeline(ByVal Cursor As String, ByVal Token As CancellationToken)
             Dim url$ = String.Empty
             Dim _complete As Boolean = True
             Do
@@ -122,15 +166,148 @@ Namespace API.OnlyFans
 
                     If hasMore Then
                         If IsSavedPosts Then tmpCursor = CInt(Cursor.IfNullOrEmpty(0)) + 10
-                        DownloadData(tmpCursor, Token)
+                        DownloadTimeline(tmpCursor, Token)
                     End If
                 Catch ex As Exception
-                    If ProcessException(ex, Token, $"data downloading error [{url}]") = 2 Then _complete = False
+                    _complete = Not ProcessException(ex, Token, $"data downloading error [{url}]") = 2
                 End Try
             Loop While Not _complete
         End Sub
+#End Region
+#Region "Download highlights"
+        Private Overloads Sub DownloadHighlights(ByVal Token As CancellationToken)
+            HighlightsList.Clear()
+            DownloadHighlights(0, Token)
+            If HighlightsList.Count > 0 Then HighlightsList.ForEach(Sub(hl) DownloadHighlightMedia(hl, Token))
+        End Sub
+        Private Overloads Sub DownloadHighlights(ByVal Cursor As Integer, ByVal Token As CancellationToken)
+            Dim url$ = String.Empty
+            Dim _complete As Boolean = True
+            Do
+                Try
+                    Dim hasMore As Boolean = False
+                    Dim path$ = $"/api2/v2/users/{ID}/stories/highlights?limit=5&offset={Cursor}"
+                    If UpdateSignature(path) Then
+                        url = String.Format(BaseUrlPattern, path)
+                        ThrowAny(Token)
+                        Dim r$ = Responser.GetResponse(url)
+                        If Not r.IsEmptyString Then
+                            Using j As EContainer = JsonDocument.Parse(r)
+                                If j.ListExists Then
+                                    hasMore = j.Value("hasMore").FromXML(Of Boolean)(False)
+                                    With j("list")
+                                        If .ListExists Then
+                                            HighlightsList.AddRange(.Select(Function(e) e.Value("id")))
+                                        Else
+                                            hasMore = False
+                                        End If
+                                    End With
+                                End If
+                            End Using
+                        End If
+                    End If
+                    If hasMore Then DownloadHighlights(Cursor + 5, Token)
+                Catch ex As Exception
+                    _complete = Not ProcessException(ex, Token, $"highlights downloading error [{url}]") = 2
+                End Try
+            Loop While Not _complete
+        End Sub
+        Private Sub DownloadHighlightMedia(ByVal HLID As String, ByVal Token As CancellationToken)
+            Dim url$ = String.Empty
+            Dim _complete As Boolean = True
+            Do
+                Try
+                    Dim specFolder$, postID$, postDate$
+                    Dim media As List(Of UserMedia)
+                    Dim result As Boolean
+                    Dim path$ = $"/api2/v2/stories/highlights/{HLID}"
+                    If UpdateSignature(path) Then
+                        url = String.Format(BaseUrlPattern, path)
+                        ThrowAny(Token)
+                        Dim r$ = Responser.GetResponse(url)
+                        If Not r.IsEmptyString Then
+                            Using j As EContainer = JsonDocument.Parse(r)
+                                If j.ListExists Then
+                                    specFolder = j.Value("title").StringRemoveWinForbiddenSymbols.IfNullOrEmpty(HLID)
+                                    specFolder &= "*"
+                                    With j("stories")
+                                        If .ListExists Then
+                                            ProgressPre.ChangeMax(.Count)
+                                            For Each m As EContainer In .Self
+                                                ProgressPre.Perform()
+                                                postID = $"{A_HIGHLIGHT}_{HLID}_{m.Value("id")}"
+                                                postDate = m.Value("createdAt")
+                                                If Not _TempPostsList.Contains(postID) Then
+                                                    _TempPostsList.Add(postID)
+                                                Else
+                                                    Exit Sub
+                                                End If
+                                                result = False
+                                                media = TryCreateMedia(m, postID, postDate, result, True, specFolder)
+                                                If result Then _TempMediaList.ListAddList(media, LNC)
+                                            Next
+                                        End If
+                                    End With
+                                End If
+                            End Using
+                        End If
+                    End If
+                Catch ex As Exception
+                    _complete = Not ProcessException(ex, Token, $"highlights downloading error [{url}]") = 2
+                End Try
+            Loop While Not _complete
+        End Sub
+#End Region
+#Region "Download chat media"
+        Private Sub DownloadChatMedia(ByVal Cursor As Integer, ByVal Token As CancellationToken)
+            Dim url$ = String.Empty
+            Dim _complete As Boolean = True
+            Do
+                Try
+                    Dim hasMore As Boolean = False
+                    Dim postID$, postDate$
+                    Dim media As List(Of UserMedia)
+                    Dim result As Boolean
+                    Dim path$ = $"/api2/v2/chats/{ID}/media/?opened=1&limit=20&skip_users=all"
+                    If Cursor > 0 Then path &= $"&offset={Cursor}"
+                    If UpdateSignature(path) Then
+                        url = String.Format(BaseUrlPattern, path)
+                        ThrowAny(Token)
+                        Dim r$ = Responser.GetResponse(url)
+                        If Not r.IsEmptyString Then
+                            Using j As EContainer = JsonDocument.Parse(r)
+                                If j.ListExists Then
+                                    hasMore = j.Value("hasMore").FromXML(Of Boolean)(False)
+                                    With j("list")
+                                        If .ListExists Then
+                                            For Each m As EContainer In .Self
+                                                postID = $"{A_MESSAGE}_{m.Value("id")}"
+                                                postDate = m.Value("createdAt")
+                                                If Not _TempPostsList.Contains(postID) Then
+                                                    _TempPostsList.Add(postID)
+                                                Else
+                                                    Exit Sub
+                                                End If
+                                                result = False
+                                                media = TryCreateMedia(m, postID, postDate, result,, "Chats*")
+                                                If result Then _TempMediaList.ListAddList(media, LNC)
+                                            Next
+                                        End If
+                                    End With
+                                End If
+                            End Using
+                        End If
+                    End If
+                    If hasMore Then DownloadChatMedia(Cursor + 20, Token)
+                Catch ex As Exception
+                    _complete = Not ProcessException(ex, Token, $"chats downloading error [{url}]") = 2
+                End Try
+            Loop While Not _complete
+        End Sub
+#End Region
         Private Function TryCreateMedia(ByVal n As EContainer, ByVal PostID As String, Optional ByVal PostDate As String = Nothing,
-                                        Optional ByRef Result As Boolean = False) As List(Of UserMedia)
+                                        Optional ByRef Result As Boolean = False, Optional ByVal IsHL As Boolean = False,
+                                        Optional ByVal SpecFolder As String = Nothing) As List(Of UserMedia)
             Dim postUrl$, ext$
             Dim t As UTypes
             Dim mList As New List(Of UserMedia)
@@ -138,7 +315,11 @@ Namespace API.OnlyFans
             With n("media")
                 If .ListExists Then
                     For Each m In .Self
-                        postUrl = m.Value({"source"}, "source").IfNullOrEmpty(m.Value("full"))
+                        If IsHL Then
+                            postUrl = m.Value({"files", "source"}, "url")
+                        Else
+                            postUrl = m.Value({"source"}, "source").IfNullOrEmpty(m.Value("full"))
+                        End If
                         Select Case m.Value("type")
                             Case "photo" : t = UTypes.Picture : ext = "jpg"
                             Case "video" : t = UTypes.Video : ext = "mp4"
@@ -146,7 +327,9 @@ Namespace API.OnlyFans
                         End Select
                         If Not t = UTypes.Undefined And Not postUrl.IsEmptyString Then
                             Dim media As New UserMedia(postUrl, t) With {
-                                        .Post = New UserPost(PostID, AConvert(Of Date)(PostDate, DateProvider, Nothing))}
+                                .Post = New UserPost(PostID, AConvert(Of Date)(PostDate, DateProvider, Nothing)),
+                                .SpecialFolder = SpecFolder
+                            }
                             media.File.Extension = ext
                             Result = True
                             mList.Add(media)
@@ -157,6 +340,7 @@ Namespace API.OnlyFans
             Return mList
         End Function
         Private Sub GetUserID()
+            Const brTag$ = "<br />"
             Dim path$ = $"/api2/v2/users/{Name}"
             Dim url$ = String.Format(BaseUrlPattern, path)
             Try
@@ -168,7 +352,9 @@ Namespace API.OnlyFans
                                 ID = j.Value("id")
                                 If Not ID.IsEmptyString Then _ForceSaveUserInfo = True
                                 UserSiteNameUpdate(j.Value("name"))
-                                UserDescriptionUpdate(j.Value("about"))
+                                Dim descr$ = j.Value("about")
+                                If Not descr.IsEmptyString Then descr = descr.Replace(brTag, String.Empty)
+                                UserDescriptionUpdate(descr)
                                 Dim a As Action(Of String) = Sub(ByVal address As String)
                                                                  If Not address.IsEmptyString Then
                                                                      Dim f As SFile = address
@@ -232,7 +418,7 @@ Namespace API.OnlyFans
                 ProcessException(ex, Token, $"ReparseMissing error [{URL}]")
             Finally
                 If rList.Count > 0 Then
-                    For i% = rList.Count - 1 To 0 Step -1 : _ContentList.RemoveAt(i) : Next
+                    For i% = rList.Count - 1 To 0 Step -1 : _ContentList.RemoveAt(rList(i)) : Next
                     rList.Clear()
                 End If
             End Try
@@ -347,6 +533,10 @@ Namespace API.OnlyFans
             ElseIf Responser.StatusCode = Net.HttpStatusCode.NotFound Then
                 UserExists = False
                 Return 1
+            ElseIf Responser.StatusCode = Net.HttpStatusCode.GatewayTimeout Or Responser.StatusCode = 429 Then
+                If Responser.StatusCode = 429 Then MyMainLOG = $"[429] OnlyFans too many requests ({ToStringForLog()})"
+                MySettings.SessionAborted = True
+                Return 1
             Else
                 Return 0
             End If
@@ -354,7 +544,7 @@ Namespace API.OnlyFans
 #End Region
 #Region "IDisposable Support"
         Protected Overrides Sub Dispose(ByVal disposing As Boolean)
-            If Not disposedValue And disposing Then CCookie.DisposeIfReady(False) : CCookie = Nothing
+            If Not disposedValue And disposing Then CCookie.DisposeIfReady(False) : CCookie = Nothing : HighlightsList.Clear()
             MyBase.Dispose(disposing)
         End Sub
 #End Region

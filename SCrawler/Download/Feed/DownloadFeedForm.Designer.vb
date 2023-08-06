@@ -23,15 +23,25 @@ Namespace DownloadObjects
         <System.Diagnostics.DebuggerStepThrough()>
         Private Sub InitializeComponent()
             Dim SEP_1 As System.Windows.Forms.ToolStripSeparator
+            Dim SEP_2 As System.Windows.Forms.ToolStripSeparator
+            Dim MENU_VIEW As System.Windows.Forms.ToolStripDropDownButton
+            Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(DownloadFeedForm))
+            Me.OPT_DEFAULT = New System.Windows.Forms.ToolStripMenuItem()
+            Me.OPT_SUBSCRIPTIONS = New System.Windows.Forms.ToolStripMenuItem()
             Me.ToolbarTOP = New System.Windows.Forms.ToolStrip()
             Me.MENU_LOAD_SESSION = New System.Windows.Forms.ToolStripDropDownButton()
             Me.BTT_LOAD_SESSION_LAST = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_LOAD_SESSION_CHOOSE = New System.Windows.Forms.ToolStripMenuItem()
             Me.SEP_0 = New System.Windows.Forms.ToolStripSeparator()
+            Me.MENU_DOWN = New System.Windows.Forms.ToolStripDropDownButton()
+            Me.BTT_DOWN_ALL = New System.Windows.Forms.ToolStripMenuItem()
+            Me.BTT_DOWN_SELECTED = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_REFRESH = New System.Windows.Forms.ToolStripButton()
             Me.BTT_CLEAR = New System.Windows.Forms.ToolStripButton()
             Me.TP_DATA = New System.Windows.Forms.TableLayoutPanel()
             SEP_1 = New System.Windows.Forms.ToolStripSeparator()
+            SEP_2 = New System.Windows.Forms.ToolStripSeparator()
+            MENU_VIEW = New System.Windows.Forms.ToolStripDropDownButton()
             Me.ToolbarTOP.SuspendLayout()
             Me.SuspendLayout()
             '
@@ -40,10 +50,37 @@ Namespace DownloadObjects
             SEP_1.Name = "SEP_1"
             SEP_1.Size = New System.Drawing.Size(6, 25)
             '
+            'SEP_2
+            '
+            SEP_2.Name = "SEP_2"
+            SEP_2.Size = New System.Drawing.Size(6, 25)
+            '
+            'MENU_VIEW
+            '
+            MENU_VIEW.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image
+            MENU_VIEW.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.OPT_DEFAULT, Me.OPT_SUBSCRIPTIONS})
+            MENU_VIEW.Image = CType(resources.GetObject("MENU_VIEW.Image"), System.Drawing.Image)
+            MENU_VIEW.ImageTransparentColor = System.Drawing.Color.Magenta
+            MENU_VIEW.Name = "MENU_VIEW"
+            MENU_VIEW.Size = New System.Drawing.Size(29, 22)
+            MENU_VIEW.Text = "View"
+            '
+            'OPT_DEFAULT
+            '
+            Me.OPT_DEFAULT.Name = "OPT_DEFAULT"
+            Me.OPT_DEFAULT.Size = New System.Drawing.Size(145, 22)
+            Me.OPT_DEFAULT.Text = "Downloads"
+            '
+            'OPT_SUBSCRIPTIONS
+            '
+            Me.OPT_SUBSCRIPTIONS.Name = "OPT_SUBSCRIPTIONS"
+            Me.OPT_SUBSCRIPTIONS.Size = New System.Drawing.Size(145, 22)
+            Me.OPT_SUBSCRIPTIONS.Text = "Subscriptions"
+            '
             'ToolbarTOP
             '
             Me.ToolbarTOP.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden
-            Me.ToolbarTOP.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.MENU_LOAD_SESSION, Me.SEP_0, Me.BTT_REFRESH, Me.BTT_CLEAR, SEP_1})
+            Me.ToolbarTOP.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.MENU_LOAD_SESSION, Me.SEP_0, MENU_VIEW, SEP_1, Me.MENU_DOWN, Me.BTT_REFRESH, Me.BTT_CLEAR, SEP_2})
             Me.ToolbarTOP.Location = New System.Drawing.Point(0, 0)
             Me.ToolbarTOP.Name = "ToolbarTOP"
             Me.ToolbarTOP.Size = New System.Drawing.Size(484, 25)
@@ -77,6 +114,33 @@ Namespace DownloadObjects
             '
             Me.SEP_0.Name = "SEP_0"
             Me.SEP_0.Size = New System.Drawing.Size(6, 25)
+            '
+            'MENU_DOWN
+            '
+            Me.MENU_DOWN.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image
+            Me.MENU_DOWN.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_DOWN_ALL, Me.BTT_DOWN_SELECTED})
+            Me.MENU_DOWN.Image = Global.SCrawler.My.Resources.Resources.StartPic_Green_16
+            Me.MENU_DOWN.ImageTransparentColor = System.Drawing.Color.Magenta
+            Me.MENU_DOWN.Name = "MENU_DOWN"
+            Me.MENU_DOWN.Size = New System.Drawing.Size(29, 22)
+            Me.MENU_DOWN.Text = "Download"
+            Me.MENU_DOWN.Visible = False
+            '
+            'BTT_DOWN_ALL
+            '
+            Me.BTT_DOWN_ALL.Image = Global.SCrawler.My.Resources.Resources.StartPic_Green_16
+            Me.BTT_DOWN_ALL.Name = "BTT_DOWN_ALL"
+            Me.BTT_DOWN_ALL.Size = New System.Drawing.Size(180, 22)
+            Me.BTT_DOWN_ALL.Tag = "a"
+            Me.BTT_DOWN_ALL.Text = "Download ALL"
+            '
+            'BTT_DOWN_SELECTED
+            '
+            Me.BTT_DOWN_SELECTED.Image = Global.SCrawler.My.Resources.Resources.StartPic_Green_16
+            Me.BTT_DOWN_SELECTED.Name = "BTT_DOWN_SELECTED"
+            Me.BTT_DOWN_SELECTED.Size = New System.Drawing.Size(180, 22)
+            Me.BTT_DOWN_SELECTED.Tag = "s"
+            Me.BTT_DOWN_SELECTED.Text = "Download selected"
             '
             'BTT_REFRESH
             '
@@ -141,14 +205,18 @@ Namespace DownloadObjects
             Me.PerformLayout()
 
         End Sub
-
-        Private WithEvents ToolbarTOP As ToolStrip
-        Private WithEvents TP_DATA As TableLayoutPanel
         Private WithEvents BTT_REFRESH As ToolStripButton
         Private WithEvents BTT_CLEAR As ToolStripButton
         Private WithEvents MENU_LOAD_SESSION As ToolStripDropDownButton
         Private WithEvents BTT_LOAD_SESSION_LAST As ToolStripMenuItem
         Private WithEvents BTT_LOAD_SESSION_CHOOSE As ToolStripMenuItem
         Private WithEvents SEP_0 As ToolStripSeparator
+        Private WithEvents ToolbarTOP As ToolStrip
+        Private WithEvents TP_DATA As TableLayoutPanel
+        Private WithEvents OPT_DEFAULT As ToolStripMenuItem
+        Private WithEvents OPT_SUBSCRIPTIONS As ToolStripMenuItem
+        Private WithEvents MENU_DOWN As ToolStripDropDownButton
+        Private WithEvents BTT_DOWN_ALL As ToolStripMenuItem
+        Private WithEvents BTT_DOWN_SELECTED As ToolStripMenuItem
     End Class
 End Namespace

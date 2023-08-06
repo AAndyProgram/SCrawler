@@ -26,6 +26,7 @@ Namespace API.Instagram
         Private Const Name_GetStories As String = "GetStories"
         Private Const Name_GetTagged As String = "GetTaggedData"
         Private Const Name_TaggedChecked As String = "TaggedChecked"
+        Private Const Name_NameTrue As String = "NameTrue"
 #End Region
 #Region "Declarations"
         Private Structure PostKV : Implements IEContainerProvider
@@ -75,6 +76,13 @@ Namespace API.Instagram
         Friend Property GetTimeline As Boolean = True
         Friend Property GetStories As Boolean
         Friend Property GetTaggedData As Boolean
+        Private _NameTrue As String = String.Empty
+        Private ReadOnly Property NameTrue As String
+            Get
+                Return _NameTrue.IfNullOrEmpty(Name)
+            End Get
+        End Property
+        Private UserNameRequested As Boolean = False
 #End Region
 #Region "Exchange options"
         Friend Overrides Function ExchangeOptionsGet() As Object
@@ -96,21 +104,25 @@ Namespace API.Instagram
             PostsToReparse = New List(Of PostKV)
         End Sub
         Protected Overrides Sub LoadUserInformation_OptionalFields(ByRef Container As XmlFile, ByVal Loading As Boolean)
-            If Loading Then
-                LastCursor = Container.Value(Name_LastCursor)
-                FirstLoadingDone = Container.Value(Name_FirstLoadingDone).FromXML(Of Boolean)(False)
-                GetTimeline = Container.Value(Name_GetTimeline).FromXML(Of Boolean)(CBool(MySiteSettings.GetTimeline.Value))
-                GetStories = Container.Value(Name_GetStories).FromXML(Of Boolean)(CBool(MySiteSettings.GetStories.Value))
-                GetTaggedData = Container.Value(Name_GetTagged).FromXML(Of Boolean)(CBool(MySiteSettings.GetTagged.Value))
-                TaggedChecked = Container.Value(Name_TaggedChecked).FromXML(Of Boolean)(False)
-            Else
-                Container.Add(Name_LastCursor, LastCursor)
-                Container.Add(Name_FirstLoadingDone, FirstLoadingDone.BoolToInteger)
-                Container.Add(Name_GetTimeline, GetTimeline.BoolToInteger)
-                Container.Add(Name_GetStories, GetStories.BoolToInteger)
-                Container.Add(Name_GetTagged, GetTaggedData.BoolToInteger)
-                Container.Add(Name_TaggedChecked, TaggedChecked.BoolToInteger)
-            End If
+            With Container
+                If Loading Then
+                    LastCursor = .Value(Name_LastCursor)
+                    FirstLoadingDone = .Value(Name_FirstLoadingDone).FromXML(Of Boolean)(False)
+                    GetTimeline = .Value(Name_GetTimeline).FromXML(Of Boolean)(CBool(MySiteSettings.GetTimeline.Value))
+                    GetStories = .Value(Name_GetStories).FromXML(Of Boolean)(CBool(MySiteSettings.GetStories.Value))
+                    GetTaggedData = .Value(Name_GetTagged).FromXML(Of Boolean)(CBool(MySiteSettings.GetTagged.Value))
+                    TaggedChecked = .Value(Name_TaggedChecked).FromXML(Of Boolean)(False)
+                    _NameTrue = .Value(Name_NameTrue)
+                Else
+                    .Add(Name_LastCursor, LastCursor)
+                    .Add(Name_FirstLoadingDone, FirstLoadingDone.BoolToInteger)
+                    .Add(Name_GetTimeline, GetTimeline.BoolToInteger)
+                    .Add(Name_GetStories, GetStories.BoolToInteger)
+                    .Add(Name_GetTagged, GetTaggedData.BoolToInteger)
+                    .Add(Name_TaggedChecked, TaggedChecked.BoolToInteger)
+                    .Add(Name_NameTrue, _NameTrue)
+                End If
+            End With
         End Sub
 #End Region
 #Region "Download data"
@@ -195,6 +207,7 @@ Namespace API.Instagram
         End Function
         Private _DownloadingInProgress As Boolean = False
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
+            UserNameRequested = False
             Dim s As Sections = Sections.Timeline
             Dim errorFound As Boolean = False
             Try
@@ -413,13 +426,13 @@ Namespace API.Instagram
                         'Check environment
                         If Not IsSavedPosts Then
                             If ID.IsEmptyString Then GetUserId()
-                            If ID.IsEmptyString Then Throw New ArgumentException("User ID is not detected", "ID")
+                            If ID.IsEmptyString Then Throw New Plugin.ExitException("can't get user ID")
                         End If
 
                         'Create query
                         Select Case Section
                             Case Sections.Timeline
-                                URL = $"https://www.instagram.com/api/v1/feed/user/{Name}/username/?count=50" &
+                                URL = $"https://www.instagram.com/api/v1/feed/user/{NameTrue}/username/?count=50" &
                                         If(Cursor.IsEmptyString, String.Empty, $"&max_id={Cursor}")
                                 ENode = Nothing
                             Case Sections.SavedPosts
@@ -766,16 +779,18 @@ Namespace API.Instagram
             End Try
         End Sub
 #End Region
-#Region "GetUserId"
+#Region "GetUserId, GetUserName"
         Private Sub GetUserId()
             Dim __idFound As Boolean = False
             Try
-                Dim r$ = Responser.GetResponse($"https://i.instagram.com/api/v1/users/web_profile_info/?username={Name}",, EDP.ThrowException)
+                RequestsCount += 1
+                Dim r$ = Responser.GetResponse($"https://i.instagram.com/api/v1/users/web_profile_info/?username={NameTrue}",, EDP.ThrowException)
                 If Not r.IsEmptyString Then
                     Using j As EContainer = JsonDocument.Parse(r)
                         If Not j Is Nothing AndAlso j.Contains({"data", "user"}) Then
                             With j({"data", "user"})
                                 ID = .Value("id")
+                                _ForceSaveUserData = True
                                 __idFound = True
                                 UserSiteNameUpdate(.Value("full_name"))
                                 Dim descr$ = .Value("biography")
@@ -800,11 +815,43 @@ Namespace API.Instagram
                     If Responser.StatusCode = HttpStatusCode.NotFound Or Responser.StatusCode = HttpStatusCode.BadRequest Then
                         Throw ex
                     Else
-                        LogError(ex, "get Instagram user id")
+                        LogError(ex, "get Instagram user ID")
                     End If
                 End If
             End Try
         End Sub
+        Private Function GetUserNameById() As Boolean
+            UserNameRequested = True
+            Try
+                If Not ID.IsEmptyString Then
+                    RequestsCount += 1
+                    Dim r$ = Responser.GetResponse($"https://i.instagram.com/api/v1/users/{ID}/info/",, EDP.ReturnValue)
+                    If Not r.IsEmptyString Then
+                        Using j As EContainer = JsonDocument.Parse(r, EDP.ReturnValue)
+                            If j.ListExists Then
+                                Dim newName$ = j.Value({"user"}, "username")
+                                If Not newName.IsEmptyString Then
+                                    Dim oldName$ = NameTrue
+                                    If Not newName = oldName Then
+                                        MyMainLOG = $"{ToStringForLog()}: username changed from '{oldName}' to '{newName}'"
+                                        _NameTrue = newName
+                                        Dim descr$ = $"Username changed from '{oldName}' to '{newName}' ({Now.ToStringDate(ADateTime.Formats.BaseDateTime)})!"
+                                        descr.StringAppendLine(UserDescription)
+                                        UserDescription = descr
+                                        _ForceSaveUserData = True
+                                    End If
+                                    Return True
+                                End If
+                            End If
+                        End Using
+                    End If
+                End If
+                Return False
+            Catch ex As Exception
+                LogError(ex, "get Instagram user name by ID")
+                Return False
+            End Try
+        End Function
 #End Region
 #Region "Pinned stories"
         Private Sub GetStoriesData(ByRef StoriesList As List(Of String), ByVal Token As CancellationToken)
@@ -887,7 +934,7 @@ Namespace API.Instagram
         Protected Overrides Function DownloadingException(ByVal ex As Exception, ByVal Message As String, Optional ByVal FromPE As Boolean = False,
                                                           Optional ByVal s As Object = Nothing) As Integer
             If Responser.StatusCode = HttpStatusCode.NotFound Then
-                UserExists = False
+                If Not UserNameRequested AndAlso GetUserNameById() Then Return 1 Else UserExists = False
             ElseIf Responser.StatusCode = HttpStatusCode.BadRequest Then
                 HasError = True
                 MyMainLOG = $"Instagram credentials have expired [{CInt(Responser.StatusCode)}]: {ToStringForLog()} [{s}]"
@@ -906,7 +953,7 @@ Namespace API.Instagram
             ElseIf Responser.StatusCode = 560 Then
                 MySiteSettings.SkipUntilNextSession = True
             Else
-                MyMainLOG = $"Instagram hash requested [{CInt(Responser.StatusCode)}]: {ToString()} [{s}]"
+                MyMainLOG = $"Something is wrong. Your credentials may have expired [{CInt(Responser.StatusCode)}]: {ToString()} [{s}]"
                 DisableSection(s)
                 If Not FromPE Then LogError(ex, Message) : HasError = True
                 Return 0

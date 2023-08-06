@@ -22,7 +22,7 @@ Imports UTypes = SCrawler.API.Base.UserMedia.Types
 Imports CView = SCrawler.API.Reddit.IRedditView.View
 Imports CPeriod = SCrawler.API.Reddit.IRedditView.Period
 Namespace API.Reddit
-    Friend Class UserData : Inherits UserDataBase : Implements IChannelData, IRedditView
+    Friend Class UserData : Inherits UserDataBase : Implements IChannelLimits, IRedditView
 #Region "XML names"
         Private Const Name_TrueName As String = "TrueName"
 #End Region
@@ -46,6 +46,11 @@ Namespace API.Reddit
         End Property
         Friend Property IsChannel As Boolean = False
         Friend Property TrueName As String = String.Empty
+        Friend Overrides ReadOnly Property SpecialLabels As IEnumerable(Of String)
+            Get
+                Return {CannelsLabelName, CannelsLabelName_ChannelsForm, UserLabelName}
+            End Get
+        End Property
 #End Region
 #Region "Channels Support"
 #Region "IChannelLimits Support"
@@ -70,9 +75,9 @@ Namespace API.Reddit
 #End Region
         Friend Property ChannelInfo As Channel
         Private ReadOnly ChannelPostsNames As List(Of String)
-        Friend Property SkipExistsUsers As Boolean = False Implements IChannelData.SkipExistsUsers
+        Friend Property SkipExistsUsers As Boolean = False
         Private ReadOnly _ExistsUsersNames As List(Of String)
-        Friend Property SaveToCache As Boolean = False Implements IChannelData.SaveToCache
+        Friend Property SaveToCache As Boolean = False
         Friend Function GetNewChannelPosts() As IEnumerable(Of UserPost)
             If _ContentNew.Count > 0 Then Return (From c As UserMedia In _ContentNew
                                                   Where Not c.Post.CachedFile.IsEmptyString And c.State = UStates.Downloaded
@@ -127,7 +132,7 @@ Namespace API.Reddit
         End Sub
 #End Region
 #Region "Load and Update user info"
-        Private Sub UpdateNames()
+        Private Function UpdateNames() As Boolean
             If TrueName.IsEmptyString Then
                 Dim n$() = Name.Split("@")
                 If n.ListExists Then
@@ -145,9 +150,11 @@ Namespace API.Reddit
                     Settings.Labels.Add(l)
                     Labels.ListAddValue(l, LNC)
                     Labels.Sort()
+                    Return True
                 End If
             End If
-        End Sub
+            Return False
+        End Function
         Protected Overrides Sub LoadUserInformation_OptionalFields(ByRef Container As XmlFile, ByVal Loading As Boolean)
             With Container
                 If Loading Then
@@ -157,7 +164,7 @@ Namespace API.Reddit
                     TrueName = .Value(Name_TrueName)
                     UpdateNames()
                 Else
-                    UpdateNames()
+                    If UpdateNames() Then .Value(Name_LabelsName) = LabelsString
                     .Add(Name_ViewMode, CInt(ViewMode))
                     .Add(Name_ViewPeriod, CInt(ViewPeriod))
                     .Add(Name_IsChannel, IsChannel.BoolToInteger)
@@ -198,6 +205,15 @@ Namespace API.Reddit
             End If
         End Sub
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
+            With MySiteSettings
+                If IsSavedPosts Then
+                    If Not CBool(.UseTokenForSavedPosts.Value) Then Responser.Headers.Remove(DeclaredNames.Header_Authorization)
+                Else
+                    If Not CBool(.UseCookiesForTimelines.Value) Then Responser.Cookies.Clear()
+                    If Not CBool(.UseTokenForTimelines.Value) Then Responser.Headers.Remove(DeclaredNames.Header_Authorization)
+                End If
+            End With
+
             _TotalPostsDownloaded = 0
             If IsSavedPosts Then
                 Responser.DecodersError = EDP.ReturnValue
@@ -302,7 +318,7 @@ Namespace API.Reddit
                             End If
                         End Using
                         If POST.IsEmptyString And ExistsDetected Then Exit Sub
-                        If Not PostID.IsEmptyString And NewPostDetected Then DownloadDataUser(PostID, Token)
+                        If Not _PostID().IsEmptyString And NewPostDetected Then DownloadDataUser(_PostID(), Token)
                     End If
                     _completed = True
                 Catch ex As Exception
@@ -979,8 +995,13 @@ Namespace API.Reddit
                     UserSuspended = True
                 ElseIf .StatusCode = HttpStatusCode.BadGateway Or .StatusCode = HttpStatusCode.ServiceUnavailable Then
                     MyMainLOG = $"[{CInt(Responser.StatusCode)}] Reddit is currently unavailable ({ToString()})"
+                    Throw New Plugin.ExitException With {.Silent = True}
                 ElseIf .StatusCode = HttpStatusCode.GatewayTimeout Then
                     Return 1
+                ElseIf .StatusCode = HttpStatusCode.Unauthorized Then
+                    MyMainLOG = $"[{CInt(Responser.StatusCode)}] Reddit credentials expired ({ToString()})"
+                    MySiteSettings.SessionInterrupted = True
+                    Throw New Plugin.ExitException With {.Silent = True}
                 ElseIf .StatusCode = HttpStatusCode.InternalServerError Then
                     If Not IsNothing(EObj) AndAlso IsNumeric(EObj) AndAlso CInt(EObj) = HttpStatusCode.InternalServerError Then Return 1
                     Return HttpStatusCode.InternalServerError

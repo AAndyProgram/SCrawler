@@ -25,25 +25,12 @@ Namespace API.Pinterest
                 Return My.Resources.SiteResources.PinterestPic_48
             End Get
         End Property
-        Private Class ConcurrentDownloadsValidator : Inherits FieldsCheckerProviderBase
-            Public Overrides Function Convert(ByVal Value As Object, ByVal DestinationType As Type, ByVal Provider As IFormatProvider,
-                                              Optional ByVal NothingArg As Object = Nothing, Optional ByVal e As ErrorsDescriber = Nothing) As Object
-                Dim v% = AConvert(Of Integer)(Value, -1)
-                Dim defV% = Settings.MaxUsersJobsCount
-                If v.ValueBetween(1, defV) Then
-                    Return Value
-                Else
-                    ErrorMessage = $"The number of concurrent downloads must be greater than 0 and equal to or less than {defV} (global limit)."
-                    HasError = True
-                    Return Nothing
-                End If
-            End Function
-        End Class
-        <Provider(NameOf(ConcurrentDownloads), FieldsChecker:=True)>
-        Private ReadOnly Property ConcurrentDownloadsProvider As IFormatProvider
-        <PXML, PropertyOption(ControlText:="Concurrent downloads", ControlToolTip:="The number of concurrent downloads.", LeftOffset:=120), TaskCounter>
+        <PropertyOption(ControlText:=DeclaredNames.ConcurrentDownloadsCaption,
+                        ControlToolTip:=DeclaredNames.ConcurrentDownloadsToolTip, AllowNull:=False, LeftOffset:=120), PXML, TaskCounter>
         Friend ReadOnly Property ConcurrentDownloads As PropertyValue
-        <PXML, PropertyOption(ControlText:="Saved posts user", ControlToolTip:="Personal profile username")>
+        <Provider(NameOf(ConcurrentDownloads), FieldsChecker:=True)>
+        Private ReadOnly Property MyConcurrentDownloadsProvider As IFormatProvider
+        <PropertyOption(ControlText:=DeclaredNames.SavedPostsUserNameCaption, ControlToolTip:=DeclaredNames.SavedPostsUserNameToolTip), PXML>
         Friend ReadOnly Property SavedPostsUserName As PropertyValue
 #End Region
 #Region "Initializer"
@@ -51,7 +38,7 @@ Namespace API.Pinterest
             MyBase.New("Pinterest", "pinterest.com")
             SavedPostsUserName = New PropertyValue(String.Empty, GetType(String))
             ConcurrentDownloads = New PropertyValue(1)
-            ConcurrentDownloadsProvider = New ConcurrentDownloadsValidator
+            MyConcurrentDownloadsProvider = New ConcurrentDownloadsProvider
             CheckNetscapeCookiesOnEndInit = True
             UseNetscapeCookies = True
             UserRegex = RParams.DMS("https?://w{0,3}.?[^/]*?.?pinterest.com/([^/]+)/?(?(_)|([^/]*))", 0, RegexReturn.ListByMatch, EDP.ReturnValue)

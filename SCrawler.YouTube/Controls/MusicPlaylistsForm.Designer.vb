@@ -41,6 +41,10 @@ Namespace API.YouTube.Controls
             Dim ActionButton6 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim ActionButton7 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim ActionButton8 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton9 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton10 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ListColumn1 As PersonalUtilities.Forms.Controls.Base.ListColumn = New PersonalUtilities.Forms.Controls.Base.ListColumn()
+            Dim ListColumn2 As PersonalUtilities.Forms.Controls.Base.ListColumn = New PersonalUtilities.Forms.Controls.Base.ListColumn()
             Dim TT_MAIN As System.Windows.Forms.ToolTip
             Me.BTT_DOWN = New System.Windows.Forms.Button()
             Me.BTT_CANCEL = New System.Windows.Forms.Button()
@@ -53,7 +57,7 @@ Namespace API.YouTube.Controls
             Me.CMB_FORMATS = New System.Windows.Forms.ComboBox()
             Me.TXT_SUBS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.CH_DOWN_LYRICS = New System.Windows.Forms.CheckBox()
-            Me.TXT_OUTPUT_PATH = New PersonalUtilities.Forms.Controls.TextBoxExtended()
+            Me.TXT_OUTPUT_PATH = New PersonalUtilities.Forms.Controls.ComboBoxExtended()
             TP_MAIN = New System.Windows.Forms.TableLayoutPanel()
             TP_BUTTONS = New System.Windows.Forms.TableLayoutPanel()
             TP_PLS = New System.Windows.Forms.TableLayoutPanel()
@@ -408,18 +412,41 @@ Namespace API.YouTube.Controls
             ActionButton7.BackgroundImage = CType(resources.GetObject("ActionButton7.BackgroundImage"), System.Drawing.Image)
             ActionButton7.Name = "Open"
             ActionButton7.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Open
+            ActionButton7.ToolTipText = "Choose a new location (Ctrl+O)"
             ActionButton8.BackgroundImage = CType(resources.GetObject("ActionButton8.BackgroundImage"), System.Drawing.Image)
-            ActionButton8.Name = "Clear"
-            ActionButton8.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
+            ActionButton8.Name = "Add"
+            ActionButton8.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Add
+            ActionButton8.ToolTipText = "Choose a new location and add it to the list (Alt+O)"
+            ActionButton9.BackgroundImage = CType(resources.GetObject("ActionButton9.BackgroundImage"), System.Drawing.Image)
+            ActionButton9.Name = "Clear"
+            ActionButton9.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
+            ActionButton10.BackgroundImage = CType(resources.GetObject("ActionButton10.BackgroundImage"), System.Drawing.Image)
+            ActionButton10.Name = "ArrowDown"
+            ActionButton10.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.ArrowDown
             Me.TXT_OUTPUT_PATH.Buttons.Add(ActionButton7)
             Me.TXT_OUTPUT_PATH.Buttons.Add(ActionButton8)
+            Me.TXT_OUTPUT_PATH.Buttons.Add(ActionButton9)
+            Me.TXT_OUTPUT_PATH.Buttons.Add(ActionButton10)
+            Me.TXT_OUTPUT_PATH.CaptionMode = PersonalUtilities.Forms.Controls.Base.ICaptionControl.Modes.Label
             Me.TXT_OUTPUT_PATH.CaptionText = "Output path"
+            Me.TXT_OUTPUT_PATH.CaptionVisible = True
             Me.TXT_OUTPUT_PATH.CaptionWidth = 112.0R
+            ListColumn1.Name = "COL_NAME"
+            ListColumn1.Text = "Name"
+            ListColumn1.Width = -1
+            ListColumn2.DisplayMember = True
+            ListColumn2.Name = "COL_VALUE"
+            ListColumn2.Text = "Value"
+            ListColumn2.ValueMember = True
+            ListColumn2.Visible = False
+            Me.TXT_OUTPUT_PATH.Columns.Add(ListColumn1)
+            Me.TXT_OUTPUT_PATH.Columns.Add(ListColumn2)
             Me.TXT_OUTPUT_PATH.Dock = System.Windows.Forms.DockStyle.Fill
             Me.TXT_OUTPUT_PATH.Location = New System.Drawing.Point(3, 59)
             Me.TXT_OUTPUT_PATH.Name = "TXT_OUTPUT_PATH"
             Me.TXT_OUTPUT_PATH.Size = New System.Drawing.Size(428, 22)
             Me.TXT_OUTPUT_PATH.TabIndex = 2
+            Me.TXT_OUTPUT_PATH.TextBoxBorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
             '
             'MusicPlaylistsForm
             '
@@ -464,6 +491,6 @@ Namespace API.YouTube.Controls
         Private WithEvents CMB_FORMATS As ComboBox
         Private WithEvents SPLITTER_MAIN As SplitContainer
         Private WithEvents CH_DOWN_LYRICS As CheckBox
-        Private WithEvents TXT_OUTPUT_PATH As PersonalUtilities.Forms.Controls.TextBoxExtended
+        Private WithEvents TXT_OUTPUT_PATH As PersonalUtilities.Forms.Controls.ComboBoxExtended
     End Class
 End Namespace

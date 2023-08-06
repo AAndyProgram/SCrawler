@@ -58,7 +58,7 @@ Namespace API.YouTube.Base
         ''' <summary>Kb</summary>
         Public Size As Double
         Public Codec As String
-        Public Info As String
+        Public Protocol As String
         Public URL As String
         Public Property Index As Integer Implements IIndexable.Index
         Private Function SetIndex(ByVal Obj As Object, ByVal Index As Integer) As Object Implements IIndexable.SetIndex

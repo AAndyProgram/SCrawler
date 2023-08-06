@@ -12,7 +12,7 @@ Namespace API.PathPlugin
         Private Const DOWNLOAD_ERROR As String = "The path plugin only provides user paths."
         Friend Overrides Property UserExists As Boolean
             Get
-                Return FileExists
+                Return DownloadContentDefault_GetRootDir.CSFileP.Exists(SFO.Path, False)
             End Get
             Set(ByVal e As Boolean)
                 MyBase.UserExists = e

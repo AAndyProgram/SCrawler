@@ -275,16 +275,6 @@ Namespace My.Resources
         End Property
         
         '''<summary>
-        '''  Looks up a localized resource of type System.Drawing.Bitmap.
-        '''</summary>
-        Friend Shared ReadOnly Property TwitterPic_400() As System.Drawing.Bitmap
-            Get
-                Dim obj As Object = ResourceManager.GetObject("TwitterPic_400", resourceCulture)
-                Return CType(obj,System.Drawing.Bitmap)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
         '''</summary>
         Friend Shared ReadOnly Property XhamsterIcon_32() As System.Drawing.Icon

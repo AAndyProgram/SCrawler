@@ -107,6 +107,7 @@
     <Compile Include="Objects\ExchangeOptions.vb" />
     <Compile Include="ObjectInterfaces\ILogProvider.vb" />
     <Compile Include="Interfaces\IPluginContentProvider.vb" />
+    <Compile Include="Objects\ExitException.vb" />
     <Compile Include="Objects\PluginUserMedia.vb" />
     <Compile Include="Interfaces\ISiteSettings.vb" />
     <Compile Include="ObjectInterfaces\IThrower.vb" />

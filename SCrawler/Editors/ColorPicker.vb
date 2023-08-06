@@ -92,9 +92,17 @@ Namespace Editors
                 ForeColorImpl = Nothing
             End If
         End Sub
+        Friend Sub ColorsSetUser(ByVal b As Color?, ByVal f As Color?)
+            BackColorImpl = b
+            ForeColorImpl = f
+        End Sub
         Friend Sub ColorsGet(ByRef b As XMLValue(Of Color), ByRef f As XMLValue(Of Color))
             If BackColorImpl.HasValue Then b.Value = BackColorImpl.Value Else b.ValueF = Nothing
             If ForeColorImpl.HasValue Then f.Value = ForeColorImpl.Value Else f.ValueF = Nothing
+        End Sub
+        Friend Sub ColorsGetUser(ByRef b As Color?, ByRef f As Color?)
+            b = BackColorImpl
+            f = ForeColorImpl
         End Sub
 #End Region
 #Region "Buttons handlers"

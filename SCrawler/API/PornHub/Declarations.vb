@@ -6,6 +6,7 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
+Imports System.Text.RegularExpressions
 Imports PersonalUtilities.Functions.RegularExpressions
 Namespace API.PornHub
     Friend Module Declarations
@@ -15,17 +16,11 @@ Namespace API.PornHub
 #Region "Declarations video"
         Friend ReadOnly RegexVideo_FlashVarsBlocks As RParams = RParams.DM("(?<=(flashvars_\['[nN]ext[vV]ideo'\]|flashvars_\d+[^ ]+? = media_\d+?);[\r\n]*?)(.+?)(?=;flashvars_\d+?)",
                                                                            0, RegexReturn.List, EDP.ReturnValue)
-        'TODELETE: PornHub old 'RegexVideo_FlashVarsBlock' declaration
-        'Friend ReadOnly RegexVideo_FlashVarsBlock As RParams = RParams.DM("(?<=flashvars_\['[nN]ext[vV]ideo'\];[\r\n]*?)(.+?)(?=;flashvars_\d+?)", 0, EDP.ReturnValue)
         Friend ReadOnly RegexVideo_FlashVars_Vars As RParams = RParams.DM("var ([\w\d]{10,})=("".+?)(?=(;|\Z))", 0, RegexReturn.List)
         Friend ReadOnly RegexVideo_FlashVars_Compiler As RParams = RParams.DM("(?<=\*/)([\w\d\S]{10,})", 0, RegexReturn.List)
         Friend ReadOnly RegexVideo_FlashVars_UrlResolution As RParams = RParams.DMS("/(\d+)[^/]+\.mp4", 1, EDP.ReturnValue)
-        Friend ReadOnly RegexVideo_Video_All As RParams = RParams.DM("div class=""thumbnail-info-wrapper clearfix.+?[\r\n\s]*?\<span class=""title.+?[\r\n\s]*?\<a href=""([^""]+?)""[\s]+?title=""([^""]*?)""",
-                                                                     0, RegexReturn.List, EDP.ReturnValue, UnicodeHexConverter)
-        Friend ReadOnly RegexVideo_Video_Wrong As RParams = RParams.DM("div class=""thumbnail-info-wrapper clearfix.+?[\r\n\s]*?\<span class=""title.+?[\r\n\s]*?\<a href=""([^""]+?)""[\s]+?title=""([^""]*?)""[\w\W\s\r\n]+?(?=\<div class=""videoUploaderBlock)",
-                                                                       0, RegexReturn.List, EDP.ReturnValue, UnicodeHexConverter)
-        Private ReadOnly RegexVideo_Video_Wrong_Option As RParams = RParams.DM("div class=""thumbnail-info-wrapper clearfix.+?[\r\n\s]*?\<span class=""title.+?[\r\n\s]*?\<a href=""([^""]+?)""[\s]+?title=""([^""]*?)""[\w\W\s\r\n]+?", 0, RegexReturn.ListByMatch)
-        Friend ReadOnly RegexVideo_Video_Wrong_Fields As RField() = {New RField(New RFieldOption(1, RegexVideo_Video_Wrong_Option)), New RField(New RFieldOption(2, RegexVideo_Video_Wrong_Option))}
+        Friend ReadOnly RegexUserVideos As RParams = RParams.DM("(\<li class=""pcVideoListItem)((?:(?!/li\>).)*?)(\<div.class=.private-vid-title((?:(?!/li\>).)*?)|)(\<a.href=.([^""]+?)"".title=.([^""]*?)"")(((?:(?!/li\>).)+?)(\<div class=.videoUploaderBlock)|)((?:(?!/li\>).)*?)(\</li\>)",
+                                                                0, RegexOptions.Singleline, RegexReturn.List, EDP.ReturnValue, UnicodeHexConverter)
         Friend ReadOnly RegexVideo_Video_VideoKey As RParams = RParams.DMS("viewkey=([\w\d]+)", 1, EDP.ReturnValue)
         Friend ReadOnly RegexVideoPageTitle As RParams = RParams.DMS("meta (property|name)=""[^:]+?:title"" content=""([^""]+)""", 2, EDP.ReturnValue)
 #End Region

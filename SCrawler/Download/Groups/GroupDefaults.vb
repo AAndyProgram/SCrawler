@@ -13,10 +13,14 @@ Namespace DownloadObjects.Groups
     Public Class GroupDefaults : Inherits TableLayoutPanel
         Private ReadOnly TP_1 As TableLayoutPanel
         Private ReadOnly TP_2 As TableLayoutPanel
+        Private ReadOnly TP_3 As TableLayoutPanel
         Private ReadOnly CH_TEMPORARY As CheckBox
         Private ReadOnly CH_FAV As CheckBox
         Private ReadOnly CH_READY_FOR_DOWN As CheckBox
         Private ReadOnly CH_READY_FOR_DOWN_IGNORE As CheckBox
+        Private ReadOnly CH_SUBSCRIPTIONS As CheckBox
+        Private ReadOnly CH_SUBSCRIPTIONS_ONLY As CheckBox
+        Private WithEvents NUM_USERS_COUNT As TextBoxExtended
         Private WithEvents TXT_LABELS As TextBoxExtended
         Private WithEvents TXT_SITES As TextBoxExtended
         Friend WithEvents TXT_NAME As TextBoxExtended
@@ -48,6 +52,32 @@ Namespace DownloadObjects.Groups
             FillTP(TP_1, CH_TEMPORARY, CH_FAV)
             TP_2 = New TableLayoutPanel With {.CellBorderStyle = TableLayoutPanelCellBorderStyle.Single, .Margin = New Padding(0), .Dock = DockStyle.Fill}
             FillTP(TP_2, CH_READY_FOR_DOWN, CH_READY_FOR_DOWN_IGNORE)
+
+            CH_SUBSCRIPTIONS = New CheckBox With {.Text = "Subscriptions", .Name = "CH_SUBSCRIPTIONS", .Checked = False, .Dock = DockStyle.Fill}
+            CH_SUBSCRIPTIONS_ONLY = New CheckBox With {.Text = "Subscriptions only", .Name = "CH_SUBSCRIPTIONS_ONLY", .Checked = False, .Dock = DockStyle.Fill}
+            TP_3 = New TableLayoutPanel With {.CellBorderStyle = TableLayoutPanelCellBorderStyle.Single, .Margin = New Padding(0), .Dock = DockStyle.Fill}
+            FillTP(TP_3, CH_SUBSCRIPTIONS, CH_SUBSCRIPTIONS_ONLY)
+
+            NUM_USERS_COUNT = New TextBoxExtended
+            With NUM_USERS_COUNT
+                .BeginInit()
+                .CaptionText = "Users"
+                .CaptionToolTipText = "The number of users that to be downloaded." & vbCr &
+                                      "The number is 0 = all users." & vbCr &
+                                      "Number greater than 0 = number of users from the beginning to the end of the list." & vbCr &
+                                      "Number less than 0 = number of users from end to the beginning of the list."
+                .CaptionToolTipEnabled = True
+                .CaptionWidth = 50
+                .ControlMode = TextBoxExtended.ControlModes.NumericUpDown
+                .NumberMinimum = Integer.MinValue
+                .NumberMaximum = Integer.MaxValue
+                .NumberUpDownAlign = LeftRightAlignment.Left
+                .Dock = DockStyle.Fill
+                .Buttons.Add(New ActionButton(ADB.Clear) With {.ToolTipText = "Reset value"})
+                .ClearTextByButtonClear = False
+                .Value = 0
+                .EndInit()
+            End With
         End Sub
         Private Sub InitTextBox(ByRef TXT As TextBoxExtended, ByVal Caption As String, ByVal Buttons As ActionButton())
             TXT = New TextBoxExtended
@@ -76,6 +106,9 @@ Namespace DownloadObjects.Groups
             CH_FAV.Dispose()
             CH_READY_FOR_DOWN.Dispose()
             CH_READY_FOR_DOWN_IGNORE.Dispose()
+            CH_SUBSCRIPTIONS.Dispose()
+            CH_SUBSCRIPTIONS_ONLY.Dispose()
+            NUM_USERS_COUNT.Dispose()
             TXT_LABELS.Dispose()
             With TP_1
                 .Controls.Clear()
@@ -84,6 +117,12 @@ Namespace DownloadObjects.Groups
                 .Dispose()
             End With
             With TP_2
+                .Controls.Clear()
+                .RowStyles.Clear()
+                .ColumnStyles.Clear()
+                .Dispose()
+            End With
+            With TP_3
                 .Controls.Clear()
                 .RowStyles.Clear()
                 .ColumnStyles.Clear()
@@ -98,11 +137,13 @@ Namespace DownloadObjects.Groups
                 CellBorderStyle = TableLayoutPanelCellBorderStyle.Single
                 ColumnCount = 1
                 ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 100))
-                RowCount = 7
+                RowCount = 9
                 RowStyles.Add(New RowStyle(SizeType.Absolute, 25))
                 RowStyles.Add(New RowStyle(SizeType.Absolute, 28))
                 RowStyles.Add(New RowStyle(SizeType.Absolute, 25))
                 RowStyles.Add(New RowStyle(SizeType.Absolute, 25))
+                RowStyles.Add(New RowStyle(SizeType.Absolute, 25))
+                RowStyles.Add(New RowStyle(SizeType.Absolute, 28))
                 RowStyles.Add(New RowStyle(SizeType.Absolute, 28))
                 RowStyles.Add(New RowStyle(SizeType.Absolute, 28))
                 RowStyles.Add(New RowStyle(SizeType.Percent, 100))
@@ -110,8 +151,13 @@ Namespace DownloadObjects.Groups
             Controls.Add(TXT_NAME, 0, 1)
             Controls.Add(TP_1, 0, 2)
             Controls.Add(TP_2, 0, 3)
-            Controls.Add(TXT_LABELS, 0, 4)
-            Controls.Add(TXT_SITES, 0, 5)
+            Controls.Add(TP_3, 0, 4)
+            Controls.Add(NUM_USERS_COUNT, 0, 5)
+            Controls.Add(TXT_LABELS, 0, 6)
+            Controls.Add(TXT_SITES, 0, 7)
+        End Sub
+        Private Sub NUM_USERS_COUNT_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As ActionButtonEventArgs) Handles NUM_USERS_COUNT.ActionOnButtonClick
+            If Sender.DefaultButton = ADB.Clear Then NUM_USERS_COUNT.Value = 0
         End Sub
         Private Sub TXT_LABELS_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As ActionButtonEventArgs) Handles TXT_LABELS.ActionOnButtonClick
             Select Case Sender.DefaultButton
@@ -163,6 +209,9 @@ Namespace DownloadObjects.Groups
                     .Favorite = CH_FAV.CheckState
                     .ReadyForDownload = CH_READY_FOR_DOWN.Checked
                     .ReadyForDownloadIgnore = CH_READY_FOR_DOWN_IGNORE.Checked
+                    .Subscriptions = CH_SUBSCRIPTIONS.Checked
+                    .SubscriptionsOnly = CH_SUBSCRIPTIONS_ONLY.Checked
+                    .UsersCount = NUM_USERS_COUNT.Value
                     .Labels.Clear()
                     .Labels.ListAddList(Labels)
                     .LabelsExcluded.Clear()
@@ -182,6 +231,9 @@ Namespace DownloadObjects.Groups
                     CH_FAV.CheckState = .Favorite
                     CH_READY_FOR_DOWN.Checked = .ReadyForDownload
                     CH_READY_FOR_DOWN_IGNORE.Checked = .ReadyForDownloadIgnore
+                    CH_SUBSCRIPTIONS.Checked = .Subscriptions
+                    CH_SUBSCRIPTIONS_ONLY.Checked = .SubscriptionsOnly
+                    NUM_USERS_COUNT.Value = .UsersCount
 
                     Labels.ListAddList(.Labels)
                     LabelsExcluded.ListAddList(.LabelsExcluded)
@@ -195,7 +247,8 @@ Namespace DownloadObjects.Groups
         End Sub
         Private _Enabled As Boolean = True
         Private _JustExcludeOptions As Boolean = False
-        Friend Overloads Property Enabled(Optional ByVal LeaveExcludeOptions As Boolean = False) As Boolean
+        Friend Overloads Property Enabled(Optional ByVal LeaveExcludeOptions As Boolean = False,
+                                          Optional ByVal LeaveSubscriptionsAndUsersCount As Boolean = False) As Boolean
             Get
                 Return _Enabled
             End Get
@@ -204,6 +257,8 @@ Namespace DownloadObjects.Groups
                 _JustExcludeOptions = False
                 TP_1.Enabled = e
                 TP_2.Enabled = e
+                TP_3.Enabled = e Or LeaveSubscriptionsAndUsersCount
+                NUM_USERS_COUNT.Enabled = e Or LeaveSubscriptionsAndUsersCount
                 If e Then
                     TXT_LABELS.Enabled = True
                     TXT_SITES.Enabled = True

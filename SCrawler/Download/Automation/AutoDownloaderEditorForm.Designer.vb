@@ -66,13 +66,13 @@ Namespace DownloadObjects
             'CONTAINER_MAIN.ContentPanel
             '
             CONTAINER_MAIN.ContentPanel.Controls.Add(Me.DEF_GROUP)
-            CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(476, 308)
+            CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(476, 363)
             CONTAINER_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
             CONTAINER_MAIN.LeftToolStripPanelVisible = False
             CONTAINER_MAIN.Location = New System.Drawing.Point(0, 0)
             CONTAINER_MAIN.Name = "CONTAINER_MAIN"
             CONTAINER_MAIN.RightToolStripPanelVisible = False
-            CONTAINER_MAIN.Size = New System.Drawing.Size(476, 333)
+            CONTAINER_MAIN.Size = New System.Drawing.Size(476, 388)
             CONTAINER_MAIN.TabIndex = 0
             CONTAINER_MAIN.TopToolStripPanelVisible = False
             '
@@ -81,20 +81,22 @@ Namespace DownloadObjects
             Me.DEF_GROUP.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
             Me.DEF_GROUP.ColumnCount = 1
             Me.DEF_GROUP.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            Me.DEF_GROUP.Controls.Add(Me.TXT_GROUPS, 0, 6)
             Me.DEF_GROUP.Controls.Add(TP_MODE, 0, 0)
-            Me.DEF_GROUP.Controls.Add(Me.TXT_TIMER, 0, 8)
-            Me.DEF_GROUP.Controls.Add(Me.LBL_LAST_TIME_UP, 0, 10)
-            Me.DEF_GROUP.Controls.Add(Me.NUM_DELAY, 0, 9)
-            Me.DEF_GROUP.Controls.Add(TP_NOTIFY, 0, 7)
+            Me.DEF_GROUP.Controls.Add(Me.TXT_GROUPS, 0, 8)
+            Me.DEF_GROUP.Controls.Add(TP_NOTIFY, 0, 9)
+            Me.DEF_GROUP.Controls.Add(Me.TXT_TIMER, 0, 10)
+            Me.DEF_GROUP.Controls.Add(Me.NUM_DELAY, 0, 11)
+            Me.DEF_GROUP.Controls.Add(Me.LBL_LAST_TIME_UP, 0, 12)
             Me.DEF_GROUP.Dock = System.Windows.Forms.DockStyle.Fill
             Me.DEF_GROUP.Location = New System.Drawing.Point(0, 0)
             Me.DEF_GROUP.Name = "DEF_GROUP"
-            Me.DEF_GROUP.RowCount = 12
+            Me.DEF_GROUP.RowCount = 14
             Me.DEF_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             Me.DEF_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             Me.DEF_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             Me.DEF_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            Me.DEF_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            Me.DEF_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             Me.DEF_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             Me.DEF_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             Me.DEF_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
@@ -104,7 +106,7 @@ Namespace DownloadObjects
             Me.DEF_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             Me.DEF_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
             Me.DEF_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
-            Me.DEF_GROUP.Size = New System.Drawing.Size(476, 308)
+            Me.DEF_GROUP.Size = New System.Drawing.Size(476, 363)
             Me.DEF_GROUP.TabIndex = 0
             '
             'TXT_GROUPS
@@ -118,7 +120,7 @@ Namespace DownloadObjects
             Me.TXT_GROUPS.CaptionText = "Groups"
             Me.TXT_GROUPS.CaptionWidth = 50.0R
             Me.TXT_GROUPS.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_GROUPS.Location = New System.Drawing.Point(4, 169)
+            Me.TXT_GROUPS.Location = New System.Drawing.Point(4, 195)
             Me.TXT_GROUPS.Name = "TXT_GROUPS"
             Me.TXT_GROUPS.Size = New System.Drawing.Size(468, 22)
             Me.TXT_GROUPS.TabIndex = 1
@@ -222,7 +224,7 @@ Namespace DownloadObjects
             Me.TXT_TIMER.CaptionToolTipText = "Timer (in minutes)"
             Me.TXT_TIMER.CaptionWidth = 50.0R
             Me.TXT_TIMER.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_TIMER.Location = New System.Drawing.Point(4, 227)
+            Me.TXT_TIMER.Location = New System.Drawing.Point(4, 282)
             Me.TXT_TIMER.Name = "TXT_TIMER"
             Me.TXT_TIMER.Size = New System.Drawing.Size(468, 22)
             Me.TXT_TIMER.TabIndex = 3
@@ -232,7 +234,7 @@ Namespace DownloadObjects
             Me.LBL_LAST_TIME_UP.AutoSize = True
             Me.LBL_LAST_TIME_UP.Dock = System.Windows.Forms.DockStyle.Fill
             Me.LBL_LAST_TIME_UP.Font = New System.Drawing.Font("Microsoft Sans Serif", 8.25!, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, CType(204, Byte))
-            Me.LBL_LAST_TIME_UP.Location = New System.Drawing.Point(4, 282)
+            Me.LBL_LAST_TIME_UP.Location = New System.Drawing.Point(4, 337)
             Me.LBL_LAST_TIME_UP.Name = "LBL_LAST_TIME_UP"
             Me.LBL_LAST_TIME_UP.Size = New System.Drawing.Size(468, 25)
             Me.LBL_LAST_TIME_UP.TabIndex = 5
@@ -251,7 +253,7 @@ Namespace DownloadObjects
             Me.NUM_DELAY.ClearTextByButtonClear = False
             Me.NUM_DELAY.ControlMode = PersonalUtilities.Forms.Controls.TextBoxExtended.ControlModes.NumericUpDown
             Me.NUM_DELAY.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.NUM_DELAY.Location = New System.Drawing.Point(4, 256)
+            Me.NUM_DELAY.Location = New System.Drawing.Point(4, 311)
             Me.NUM_DELAY.Name = "NUM_DELAY"
             Me.NUM_DELAY.NumberMaximum = New Decimal(New Integer() {1440, 0, 0, 0})
             Me.NUM_DELAY.NumberUpDownAlign = System.Windows.Forms.LeftRightAlignment.Left
@@ -271,7 +273,7 @@ Namespace DownloadObjects
             TP_NOTIFY.Controls.Add(Me.CH_SHOW_PIC_USER, 3, 0)
             TP_NOTIFY.Controls.Add(Me.CH_NOTIFY_SIMPLE, 1, 0)
             TP_NOTIFY.Dock = System.Windows.Forms.DockStyle.Fill
-            TP_NOTIFY.Location = New System.Drawing.Point(1, 195)
+            TP_NOTIFY.Location = New System.Drawing.Point(1, 250)
             TP_NOTIFY.Margin = New System.Windows.Forms.Padding(0)
             TP_NOTIFY.Name = "TP_NOTIFY"
             TP_NOTIFY.RowCount = 1
@@ -331,15 +333,15 @@ Namespace DownloadObjects
             '
             Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
             Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-            Me.ClientSize = New System.Drawing.Size(476, 333)
+            Me.ClientSize = New System.Drawing.Size(476, 388)
             Me.Controls.Add(CONTAINER_MAIN)
             Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle
             Me.Icon = Global.SCrawler.My.Resources.Resources.ArrowDownIcon_Blue_24
             Me.KeyPreview = True
             Me.MaximizeBox = False
-            Me.MaximumSize = New System.Drawing.Size(492, 372)
+            Me.MaximumSize = New System.Drawing.Size(492, 427)
             Me.MinimizeBox = False
-            Me.MinimumSize = New System.Drawing.Size(492, 372)
+            Me.MinimumSize = New System.Drawing.Size(492, 427)
             Me.Name = "AutoDownloaderEditorForm"
             Me.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide
             Me.Text = "AutoDownloader settings"

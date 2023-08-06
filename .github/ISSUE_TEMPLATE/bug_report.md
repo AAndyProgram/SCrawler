@@ -30,7 +30,9 @@ A clear and concise description of what you expected to happen.
 **Screenshots**
 If applicable, add screenshots to help explain your problem.
 
-**Release information (please complete the following information):**
+**Release information:**
+
+**Please complete the following information or replace the following text with data copied from SCrawler (click the top right info button in the main window, then the `Environment` button, then the `Copy` button, and paste the copied text here).**
  - OS: [e.g. Windows 10, Windows 11]
  - Architecture: [e.g. x86, x64]
  - Version: [e.g. 2023.3.5.0]
@@ -38,6 +40,7 @@ If applicable, add screenshots to help explain your problem.
  - ffmpeg version (command `ffmpeg -version`):
  - yt-dlp version (command `yt-dlp --version`):
  - gallery-dl version (command `gallery-dl --version`):
+ - cURL version (command `curl --version`):
 
 **Additional context**
 Add any other context about the problem here.

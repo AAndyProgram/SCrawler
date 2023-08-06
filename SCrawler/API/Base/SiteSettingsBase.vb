@@ -15,6 +15,13 @@ Namespace API.Base
         Friend ReadOnly Property Site As String Implements ISiteSettings.Site
         Friend Overridable ReadOnly Property Icon As Icon Implements ISiteSettings.Icon
         Friend Overridable ReadOnly Property Image As Image Implements ISiteSettings.Image
+        Protected _AllowUserAgentUpdate As Boolean = True
+        Protected _SubscriptionsAllowed As Boolean = False
+        Friend ReadOnly Property SubscriptionsAllowed As Boolean Implements ISiteSettings.SubscriptionsAllowed
+            Get
+                Return _SubscriptionsAllowed
+            End Get
+        End Property
         Private Property Logger As ILogProvider = LogConnector Implements ISiteSettings.Logger
         Friend Overridable ReadOnly Property Responser As Responser
         Friend ReadOnly Property CookiesNetscapeFile As SFile
@@ -62,7 +69,7 @@ Namespace API.Base
         Friend Overridable Sub BeginInit() Implements ISiteSettings.BeginInit
         End Sub
         Friend Overridable Sub EndInit() Implements ISiteSettings.EndInit
-            If Not DefaultUserAgent.IsEmptyString And Not Responser Is Nothing Then Responser.UserAgent = DefaultUserAgent
+            If _AllowUserAgentUpdate And Not DefaultUserAgent.IsEmptyString And Not Responser Is Nothing Then Responser.UserAgent = DefaultUserAgent
             If CheckNetscapeCookiesOnEndInit Then Update_SaveCookiesNetscape(, True)
         End Sub
 #End Region
@@ -82,6 +89,11 @@ Namespace API.Base
         Friend Overridable Sub Update() Implements ISiteSettings.Update
             If _SiteEditorFormOpened Then
                 If UseNetscapeCookies Then Update_SaveCookiesNetscape()
+                If Not Responser Is Nothing Then
+                    With Responser.Headers
+                        If .Count > 0 Then .ListDisposeRemove(Function(h) h.Value.IsEmptyString)
+                    End With
+                End If
                 DomainsApply()
             End If
             If Not Responser Is Nothing Then Responser.SaveSettings()
@@ -105,12 +117,30 @@ Namespace API.Base
 #End Region
 #End Region
 #Region "Before and After Download"
+        ''' <summary>
+        ''' PRE<br/>
+        ''' DownloadStarted<br/>
+        ''' <br/>
+        ''' BEFORE<br/>
+        ''' Available<br/>
+        ''' <br/>
+        ''' IN<br/>
+        ''' ReadyToDownload<br/>
+        ''' BeforeStartDownload<br/>
+        ''' AfterDownload<br/>
+        ''' <br/>
+        ''' AFTER<br/>
+        ''' DownloadDone
+        ''' </summary>
         Friend Overridable Sub DownloadStarted(ByVal What As Download) Implements ISiteSettings.DownloadStarted
         End Sub
+        ''' <inheritdoc cref="DownloadStarted(Download)"/>
         Friend Overridable Sub BeforeStartDownload(ByVal User As Object, ByVal What As Download) Implements ISiteSettings.BeforeStartDownload
         End Sub
+        ''' <inheritdoc cref="DownloadStarted(Download)"/>
         Friend Overridable Sub AfterDownload(ByVal User As Object, ByVal What As Download) Implements ISiteSettings.AfterDownload
         End Sub
+        ''' <inheritdoc cref="DownloadStarted(Download)"/>
         Friend Overridable Sub DownloadDone(ByVal What As Download) Implements ISiteSettings.DownloadDone
         End Sub
 #End Region
@@ -158,13 +188,13 @@ Namespace API.Base
         Friend Overridable Function BaseAuthExists() As Boolean
             Return True
         End Function
-        ''' <summary>JOB: leave or remove</summary>
         ''' <returns>Return BaseAuthExists()</returns>
+        ''' <inheritdoc cref="DownloadStarted(Download)"/>
         Friend Overridable Function Available(ByVal What As Download, ByVal Silent As Boolean) As Boolean Implements ISiteSettings.Available
             Return BaseAuthExists()
         End Function
-        ''' <summary>'DownloadData': before processing</summary>
         ''' <returns>True</returns>
+        ''' <inheritdoc cref="DownloadStarted(Download)"/>
         Friend Overridable Function ReadyToDownload(ByVal What As Download) As Boolean Implements ISiteSettings.ReadyToDownload
             Return True
         End Function

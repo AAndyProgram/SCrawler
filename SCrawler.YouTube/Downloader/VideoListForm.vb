@@ -50,7 +50,11 @@ Namespace DownloadObjects.STDownloader
             End If
 
             If AppMode Then
-                If Now.Month.ValueBetween(6, 8) Then Text = "SCrawler: Happy LGBT Pride Month! :-)"
+                If Now.Month.ValueBetween(6, 8) Then
+                    Text = "SCrawler: Happy LGBT Pride Month! :-)"
+                ElseIf Not MyYouTubeSettings Is Nothing AndAlso Not MyYouTubeSettings.ProgramText.IsEmptyString Then
+                    Text = MyYouTubeSettings.ProgramText
+                End If
                 MyNotificator = New YTNotificator(Me)
                 MyDownloaderSettings = MyYouTubeSettings
             End If
@@ -64,6 +68,7 @@ Namespace DownloadObjects.STDownloader
                 BTT_LOG.Visible = False
                 BTT_INFO.Visible = False
                 BTT_DONATE.Visible = False
+                BTT_BUG_REPORT.Visible = False
             End If
             MyProgress.Visible = False
             LoadData()
@@ -96,7 +101,7 @@ Namespace DownloadObjects.STDownloader
             If c.ListExists Then
                 c.Sort(New ContainerDateComparer)
                 SuspendLayout()
-                For i% = c.Count - 1 To 0 Step -1 : ControlCreateAndAdd(c(i), True, i = 0) : Next
+                For i% = c.Count - 1 To 0 Step -1 : ControlCreateAndAdd(c(i), True, i = 0, True) : Next
                 ResumeLayout(False)
                 PerformLayout()
             End If
@@ -121,11 +126,11 @@ Namespace DownloadObjects.STDownloader
 #End Region
 #Region "Controls"
         Protected Sub ControlCreateAndAdd(ByVal Container As IYouTubeMediaContainer, Optional ByVal DisableDownload As Boolean = False,
-                                          Optional ByVal PerformClick As Boolean = True)
+                                          Optional ByVal PerformClick As Boolean = True, Optional ByVal IsLoading As Boolean = False)
             ControlInvokeFast(TP_CONTROLS, Sub()
                                                With TP_CONTROLS
                                                    .SuspendLayout()
-                                                   If DisableDownload Or Not MyDownloaderSettings.DownloadAutomatically Then Container.Save()
+                                                   If Not IsLoading And (DisableDownload Or Not MyDownloaderSettings.DownloadAutomatically) Then Container.Save()
                                                    '.AutoScroll = True
                                                    '.HorizontalScroll.Visible = False
                                                    .RowStyles.Insert(0, New RowStyle(SizeType.Absolute, 60))
@@ -337,13 +342,13 @@ Namespace DownloadObjects.STDownloader
             MyJob.Cancel()
         End Sub
         Private Sub BTT_DELETE_Click(sender As Object, e As EventArgs) Handles BTT_DELETE.Click
-            RemoveControls(ControlsChecked)
+            RemoveControls(ControlsChecked, True)
         End Sub
         Protected Overridable Sub BTT_CLEAR_DONE_Click(sender As Object, e As EventArgs) Handles BTT_CLEAR_DONE.Click
-            RemoveControls(ControlsDownloaded)
+            RemoveControls(ControlsDownloaded, False)
         End Sub
         Protected Overridable Sub BTT_CLEAR_ALL_Click(sender As Object, e As EventArgs) Handles BTT_CLEAR_ALL.Click
-            RemoveControls()
+            RemoveControls(, False)
         End Sub
         Private Sub BTT_LOG_Click(sender As Object, e As EventArgs) Handles BTT_LOG.Click
             MyMainLOG_ShowForm(DesignXML,,,, AddressOf UpdateLogButton)
@@ -351,20 +356,23 @@ Namespace DownloadObjects.STDownloader
         Friend Sub UpdateLogButton()
             If AppMode Then MyMainLOG_UpdateLogButton(BTT_LOG, TOOLBAR_TOP)
         End Sub
+        Private Sub BTT_BUG_REPORT_Click(sender As Object, e As EventArgs) Handles BTT_BUG_REPORT.Click
+            Try
+                With MyYouTubeSettings
+                    Using f As New Editors.BugReporterForm(MyCache, .DesignXml, .ProgramText, My.Application.Info.Version,
+                                                           True, .Self, .ProgramDescription) : f.ShowDialog() : End Using
+                End With
+            Catch
+            End Try
+        End Sub
         Private Sub BTT_DONATE_Click(sender As Object, e As EventArgs) Handles BTT_DONATE.Click
             Try : Process.Start("https://github.com/AAndyProgram/SCrawler/blob/main/HowToSupport.md") : Catch : End Try
         End Sub
         Private Sub BTT_INFO_Click(sender As Object, e As EventArgs) Handles BTT_INFO.Click
-            Try
-                MsgBoxE({$"YouTube Downloader v{My.Application.Info.Version}" & vbCr &
-                         $"Address: https://github.com/AAndyProgram/SCrawler" & vbCr &
-                         "Created by Greek LGBT person Andy (Gay)",
-                         "Program information"},,,,
-                        {"OK", New MsgBoxButton("Go to site") With {.CallBack = Sub(r, n, b) Process.Start("https://github.com/AAndyProgram/SCrawler/releases")}})
-            Catch
-            End Try
+            ShowProgramInfo(MyYouTubeSettings.ProgramText.Value.IfNullOrEmpty("YouTube Downloader"),
+                            My.Application.Info.Version, False, True, MyYouTubeSettings, True,, False, MyYouTubeSettings.ProgramDescription)
         End Sub
-        Protected Overloads Sub RemoveControls(Optional ByVal Predicate As Predicate(Of MediaItem) = Nothing)
+        Protected Overloads Sub RemoveControls(Optional ByVal Predicate As Predicate(Of MediaItem) = Nothing, Optional ByVal RemoveFiles As Boolean = False)
             ControlInvokeFast(TP_CONTROLS, Sub()
                                                With TP_CONTROLS
                                                    If .Controls.Count > 0 Then
@@ -379,7 +387,7 @@ Namespace DownloadObjects.STDownloader
                                                            For i = rCnt.Count - 1 To 0 Step -1
                                                                cnt = .Controls(rCnt(i))
                                                                .Controls.RemoveAt(rCnt(i))
-                                                               If Not cnt.MyContainer Is Nothing Then cnt.MyContainer.Delete(False)
+                                                               If Not cnt.MyContainer Is Nothing Then cnt.MyContainer.Delete(RemoveFiles) : cnt.MyContainer.Dispose()
                                                                cnt.Dispose()
                                                            Next
                                                        End If
@@ -395,19 +403,24 @@ Namespace DownloadObjects.STDownloader
                                                UpdateScrolls(Nothing, Nothing)
                                            End Sub, EDP.None)
         End Sub
-        Private Overloads Sub RemoveControls(ByVal CNT As MediaItem)
+        Private Overloads Sub RemoveControls(ByVal CNT As MediaItem, Optional ByVal RemoveFiles As Boolean = False)
             ControlInvokeFast(TP_CONTROLS, Sub()
-                                               If Not CNT Is Nothing Then TP_CONTROLS.Controls.Remove(CNT) : OffsetControls()
+                                               If Not CNT Is Nothing Then
+                                                   If Not CNT.MyContainer Is Nothing Then CNT.MyContainer.Delete(RemoveFiles) : CNT.MyContainer.Dispose()
+                                                   TP_CONTROLS.Controls.Remove(CNT)
+                                                   OffsetControls()
+                                                   CNT.Dispose()
+                                               End If
                                            End Sub, EDP.None)
         End Sub
 #End Region
 #Region "Media controls' handlers"
         Private Sub MediaControl_FileDownloaded(ByVal Sender As MediaItem, ByVal Container As IYouTubeMediaContainer)
             If MyDownloaderSettings.ShowNotifications Then MyNotificator.ShowNotification(Container.ToString(), Container.ThumbnailFile)
-            If MyDownloaderSettings.RemoveDownloadedAutomatically Then RemoveControls(Sender)
+            If MyDownloaderSettings.RemoveDownloadedAutomatically Then RemoveControls(Sender, False)
         End Sub
         Private Sub MediaControl_Removal(ByVal Sender As MediaItem, ByVal Container As IYouTubeMediaContainer)
-            RemoveControls(Sender)
+            RemoveControls(Sender, False)
         End Sub
         Private Sub MediaControl_DownloadAgain(ByVal Sender As MediaItem, ByVal Container As IYouTubeMediaContainer)
             If Not Container.URL.IsEmptyString Then BufferText = Container.URL : BTT_ADD.PerformClick()
@@ -432,8 +445,6 @@ Namespace DownloadObjects.STDownloader
         Protected Sub AddToDownload(ByRef Item As MediaItem, ByVal RunThread As Boolean)
             Dim hc% = Item.MyContainer.GetHashCode
             If MyJob.Count = 0 OrElse Not MyJob.Items.Exists(Function(i) i.MyContainer.GetHashCode = hc) Then
-                'TODELETE: YT video downloader 'Item.Pending'
-                'Item.Pending = True
                 MyJob.Add(Item)
                 Item.AddToQueue()
                 If RunThread Then StartDownloading()
@@ -457,25 +468,39 @@ Namespace DownloadObjects.STDownloader
                 MyJob.Start()
                 Const nf As ANumbers.Formats = ANumbers.Formats.Number
                 Dim t As New List(Of Task)
-                Dim i%
+                Dim i%, iAbs%
                 Dim __item As MediaItem
                 Dim Indexes As New List(Of Integer)
+                Dim IndexesToRemove As New List(Of Integer)
                 Dim maxJobCount% = MyDownloaderSettings.MaxJobsCount
                 If maxJobCount <= 0 Then maxJobCount = 1
                 MyProgress.Visible = True
                 MyProgress.Maximum = MyJob.Count
                 Do While MyJob.Count > 0 And Not MyJob.IsCancellationRequested
                     i = -1
+                    iAbs = -1
                     Indexes.Clear()
+                    IndexesToRemove.Clear()
                     For Each __item In MyJob.Items
-                        i += 1
-                        If i <= maxJobCount - 1 Then
-                            Indexes.Add(i)
-                            t.Add(Task.Run(Sub() __item.Download(MyJob.Token)))
+                        iAbs += 1
+                        If Not __item.IsDisposed And Not If(__item.MyContainer?.DownloadState, Plugin.UserMediaStates.Unknown) = Plugin.UserMediaStates.Downloaded Then
+                            i += 1
+                            If i <= maxJobCount - 1 Then
+                                Indexes.Add(iAbs)
+                                t.Add(Task.Run(Sub() __item.Download(MyJob.Token)))
+                            Else
+                                Exit For
+                            End If
                         Else
-                            Exit For
+                            IndexesToRemove.Add(iAbs)
                         End If
                     Next
+                    If IndexesToRemove.Count > 0 Then
+                        For i = IndexesToRemove.Count - 1 To 0 Step -1
+                            If Not MyJob.Items(IndexesToRemove(i)).IsDisposed Then MyJob.Items(IndexesToRemove(i)).Pending = False
+                            MyJob.Items.RemoveAt(IndexesToRemove(i))
+                        Next
+                    End If
                     If t.Count > 0 Then
                         MyProgress.Information = $"Downloading {t.Count.NumToString(nf, PNumProv)}/{MyJob.Count.NumToString(nf, PNumProv)}"
                         MyProgress.InformationTemporary = MyProgress.Information
@@ -491,6 +516,7 @@ Namespace DownloadObjects.STDownloader
                     End If
                 Loop
                 Indexes.Clear()
+                IndexesToRemove.Clear()
                 MyProgress.Done()
                 MyProgress.InformationTemporary = "Download completed"
             Catch aoex As ArgumentOutOfRangeException

@@ -1,3 +1,91 @@
+# 2023.8.6.0
+
+*2023-08-06*
+
+- Added
+  - The ability to remove user data and/or download history for redownload
+  - **Subscription** mode
+  - Settings to change the program title and information in the program information
+  - Settings for saving video thumbnail along with the file or in the cache (temporary cache or permanent cache)
+  - A bug report form to create a bug report or say something nice to the developer :blush:
+  - Prevent adding site-specific labels when adding to a collection
+  - Ability to select custom user highlighting in the main window and feed.
+  - Add a notification to the log if the user is not found on the site
+  - Added visualization of users download queue
+  - Ability to set more than one global paths
+  - Improve user paths changing: now you can also simply move the user/collection to another global location
+  - Ability to move multiple user/collection to another location
+  - Download groups: added `Subscription` options
+  - Download groups: the ability to set the number of users to download
+  - Auto downloader: new group options
+  - Auto downloader: additional skip options
+  - Auto downloader: added force start
+  - Feed: press `Ctrl+G` to go to a specific page
+  - Feed: added site icon to post
+  - Feed: always using `Friendly name` instead of `UserName` if it exists
+  - Missing posts: the ability to delete all missing posts
+  - Standalone downloader: add the ability to store download locations and quickly select after
+  - Standalone downloader: add `Ctrl+O` hotkey to select destination path
+  - Standalone downloader: add `Alt+O` hotkey to select destination path and save it to download locations
+  - User editor: ability to hide/show site-specific labels in collection editing mode
+  - Main window: filters by subscription and user
+  - Instagram: if the user is not found on the site, SCrawler will check for a new user name
+  - OnlyFans: handling of `504` and `429` errors
+  - OnlyFans: the `sec-ch-ua` header is now optional
+  - OnlyFans: ability to download 'Highlights" and media from chats
+  - PathPlugin: incorrect detection of path existence
+  - PornHub: completely rewritten videos parser
+  - PornHub: now you choose which videos you want to download (uploaded, tagged, private, favorites)
+  - PornHub: subscription mode
+  - PornHub: ability to download search queries and search categories
+  - Reddit: ability to set the number of concurrent downloads
+  - Reddit: added bearer token (optional)
+  - Reddit: added OAuth authorization (optional)
+  - Reddit: options to use the bearer token for the timeline and/or saved posts
+  - Reddit: option to disable the use of cookies for the timeline
+  - ThisVid: now you can also download user's favorite videos
+  - ThisVid: ability to download search queries, search categories and search tags
+  - ThisVid: subscription mode
+  - Twitter: new options: `Use the appropriate model`, `New endpoint: search`, `New endpoint: profiles`, `Abort on limit`, `Download already parsed` and `Media Model: allow non-user tweets`
+  - Twitter: new user option `Force apply`
+  - xHamster: ability to download search queries, search categories and search tags
+  - xHamster: subscription mode
+  - xHamster: pornstars download
+  - XVideos: ability to download search queries, search categories and search tags
+  - XVideos: subscription mode
+  - YouTube: added `Output path: ask for a name` and `Output path: auto add` settings
+  - YouTube: added the ability to store download locations and quickly select after
+  - YouTube: subscription mode
+  - Plugins.Attributes: added `DependentFields` attribute
+  - Plugins.Attributes: replace `Dependencies` with `Arguments` (`PropertyUpdater` attribute)
+  - Plugins.IPluginContentProvider: added `Options` and `IsSubscription` properties
+  - Plugins.ISiteSettings: added `SubscriptionsAllowed` property
+  - Plugins.ExchangeOptions: added `Options` field
+  - Plugins: added `ExitException`
+  - Other improvements
+- Updated
+  - gallery-dl up to version 1.25.8
+  - yt-dlp up to version 2023.07.06
+  - LibVLCSharp up to 3.7.0
+  - VideoLAN up to 3.0.18
+- Fixed
+  - **TikTok** supported again!
+  - Auto downloader: excluded labels and sites in default mode are not respected
+  - Download info: does not remember the last size and location
+  - Download info: hide unnecessary error
+  - Feed: `webm` photos not showing
+  - Search users: incorrect search by name
+  - OnlyFans: incorrect parsing of username containing dots
+  - OnlyFans: incorrect error handler
+  - Reddit: Handling error 502 (Reddit data not downloading)
+  - RedGifs: incorrect behavior when updating token
+  - Twitter: gifs are not downloading
+  - xHamster: some channels cannot be downloaded or are not fully downloaded
+  - YouTube: re-saving elements when loading a video list
+  - YouTube: files were not deleted when the delete button was clicked
+  - YouTube: a bug that caused the video to redownload
+  - Minor bugs
+
 # 2023.6.19.0
 
 *2023-06-19*

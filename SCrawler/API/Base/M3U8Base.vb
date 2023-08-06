@@ -43,6 +43,7 @@ Namespace API.Base
                         If ConcatFile.Name.IsEmptyString Then ConcatFile.Name = "PlayListFile"
                         ConcatFile.Extension = "mp4"
                         Cache = New CacheKeeper($"{DestinationFile.PathWithSeparator}_{TempCacheFolderName}\")
+                        Cache.CacheDeleteError = CacheDeletionError(Cache)
                         Dim cache2 As CacheKeeper = Cache.NewInstance
                         If cache2.RootDirectory.Exists(SFO.Path) Then
                             Dim progressExists As Boolean = Not Progress Is Nothing

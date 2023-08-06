@@ -16,6 +16,13 @@ Imports PersonalUtilities.Tools.Web.Documents.JSON
 Imports UTypes = SCrawler.API.Base.UserMedia.Types
 Namespace API.XVIDEOS
     Friend Class UserData : Inherits UserDataBase
+#Region "XML names"
+        Private Const Name_SiteMode As String = "SiteMode"
+        Private Const Name_TrueName As String = "TrueName"
+        Private Const Name_Arguments As String = "Arguments"
+        Private Const Name_PersonType As String = "PersonType"
+#End Region
+#Region "Structures"
         Private Structure PlayListVideo : Implements IRegExCreator
             Friend ID As String
             Friend URL As String
@@ -33,22 +40,170 @@ Namespace API.XVIDEOS
                 Return New UserMedia(URL, UTypes.VideoPre) With {.Object = Me, .PictureOption = Title, .Post = ID}
             End Function
         End Structure
+#End Region
+#Region "Declarations"
+        Friend Overrides ReadOnly Property FeedIsUser As Boolean
+            Get
+                Return SiteMode = SiteModes.User
+            End Get
+        End Property
+        Private Property SiteMode As SiteModes = SiteModes.User
+        Private Property TrueName As String = String.Empty
+        Private Property Arguments As String = String.Empty
+        Private Property PersonType As String = String.Empty
+        Friend Overrides ReadOnly Property SpecialLabels As IEnumerable(Of String)
+            Get
+                Return {SearchRequestLabelName}
+            End Get
+        End Property
+        Friend Property QueryString As String
+            Get
+                If SiteMode = SiteModes.User Then
+                    Return String.Empty
+                Else
+                    Return GetUserUrl(0)
+                End If
+            End Get
+            Set(ByVal q As String)
+                UpdateUserOptions(True, q)
+            End Set
+        End Property
         Private ReadOnly Property MySettings As SiteSettings
             Get
                 Return DirectCast(HOST.Source, SiteSettings)
             End Get
         End Property
-        Protected Overrides Sub LoadUserInformation_OptionalFields(ByRef Container As XmlFile, ByVal Loading As Boolean)
+#End Region
+#Region "Load"
+        Friend Overrides Function ExchangeOptionsGet() As Object
+            Return New UserExchangeOptions(Me)
+        End Function
+        Friend Overrides Sub ExchangeOptionsSet(ByVal Obj As Object)
+            If Not Obj Is Nothing AndAlso TypeOf Obj Is UserExchangeOptions Then QueryString = DirectCast(Obj, UserExchangeOptions).QueryString
         End Sub
+        Private Function UpdateUserOptions(Optional ByVal Force As Boolean = False, Optional ByVal NewUrl As String = Nothing) As Boolean
+            If Not Force OrElse (Not SiteMode = SiteModes.User AndAlso Not NewUrl.IsEmptyString AndAlso MyFileSettings.Exists) Then
+                Dim eObj As Plugin.ExchangeOptions = Nothing
+                If Force Then eObj = MySettings.IsMyUser(NewUrl)
+                If (Force And Not eObj.UserName.IsEmptyString) Or (Not Force And TrueName.IsEmptyString) Then
+                    Dim n$() = If(Force, eObj.UserName, Name).Split("@")
+                    If n.ListExists(2) Then
+                        Dim opt$ = If(Force, eObj.Options, Options)
+                        If opt.IsEmptyString AndAlso Not IsNumeric(n(0)) Then
+                            If Not Force Then
+                                PersonType = n(0)
+                                TrueName = If(Force, eObj.UserName, Name).Replace($"{PersonType}@", String.Empty)
+                            End If
+                        ElseIf Not opt.IsEmptyString Then
+                            Dim n2$() = opt.Split("@")
+                            Dim __SiteMode As SiteModes = CInt(n(0))
+                            Dim __TrueName$ = n2.FirstOrDefault
+                            Dim __Arguments$ = opt.Replace($"{__TrueName}@", String.Empty)
+                            Dim __ForceApply As Boolean = False
+
+                            If Force AndAlso (Not TrueName = __TrueName Or Not SiteMode = __SiteMode) Then
+                                If ValidateChangeSearchOptions(ToStringForLog, $"{__SiteMode}: {__TrueName}", $"{SiteMode}: {TrueName}") Then
+                                    __ForceApply = True
+                                Else
+                                    Return False
+                                End If
+                            End If
+
+                            Arguments = __Arguments
+                            Options = opt
+                            If Not Force Then
+                                SiteMode = __SiteMode
+                                TrueName = __TrueName
+                                UserSiteName = $"{SiteMode}: {TrueName}"
+                                If FriendlyName.IsEmptyString Then FriendlyName = UserSiteName
+                                Settings.Labels.Add(SearchRequestLabelName)
+                                Labels.ListAddValue(SearchRequestLabelName, LNC)
+                                Labels.Sort()
+                            ElseIf Force And __ForceApply Then
+                                SiteMode = __SiteMode
+                                TrueName = __TrueName
+                            End If
+
+                            Return True
+                        End If
+                    End If
+                End If
+            End If
+            Return False
+        End Function
+        Protected Overrides Sub LoadUserInformation_OptionalFields(ByRef Container As XmlFile, ByVal Loading As Boolean)
+            With Container
+                If Loading Then
+                    SiteMode = .Value(Name_SiteMode).FromXML(Of Integer)(SiteModes.User)
+                    TrueName = .Value(Name_TrueName)
+                    Arguments = .Value(Name_Arguments)
+                    PersonType = .Value(Name_PersonType)
+                    If PersonType.IsEmptyString And TrueName.IsEmptyString And Not Name.IsEmptyString Then
+                        If Not Name.Contains("@") Then
+                            Dim n$() = Name.Split("_")
+                            PersonType = n(0)
+                            TrueName = Name.Replace($"{PersonType}_", String.Empty)
+                        End If
+                    End If
+                    UpdateUserOptions()
+                Else
+                    If UpdateUserOptions() Then
+                        .Value(Name_LabelsName) = LabelsString
+                        .Value(Name_UserSiteName) = UserSiteName
+                        .Value(Name_FriendlyName) = FriendlyName
+                    End If
+                    .Add(Name_SiteMode, CInt(SiteMode))
+                    .Add(Name_TrueName, TrueName)
+                    .Add(Name_Arguments, Arguments)
+                    .Add(Name_PersonType, PersonType)
+
+                    'Debug.WriteLine(GetUserUrl(0))
+                    'Debug.WriteLine(GetUserUrl(2))
+                End If
+            End With
+        End Sub
+#End Region
+#Region "Initializer"
         Friend Sub New()
             SeparateVideoFolder = False
             UseInternalM3U8Function = True
             UseClientTokens = True
         End Sub
+#End Region
+        Friend Function GetUserUrl(ByVal Page As Integer) As String
+            Dim url$ = String.Empty
+            If SiteMode = SiteModes.User Then
+                url = $"https://xvideos.com/{PersonType}/{TrueName}"
+            ElseIf SiteMode = SiteModes.Categories Then
+                url = "https://xvideos.com/c/"
+                If Not Arguments.IsEmptyString Then url &= $"{Arguments}/"
+                url &= TrueName
+                If Page > 1 Then url &= $"/{Page - 1}"
+            ElseIf SiteMode = SiteModes.Tags Then
+                url = "https://www.xvideos.com/tags/"
+                If Not Arguments.IsEmptyString Then url &= $"{Arguments}/"
+                url &= $"{TrueName}/"
+                If Page > 1 Then url &= Page - 1
+            ElseIf SiteMode = SiteModes.Search Then
+                url = $"https://www.xvideos.com/?k={TrueName}"
+                If Not Arguments.IsEmptyString Then url &= $"&{Arguments}"
+                If Page > 1 Then url &= $"&p={Page - 1}"
+            End If
+            Return url
+        End Function
+        Private Sub Wait429(ByVal Round As Integer)
+            If (Round Mod 5) = 0 Then
+                Thread.Sleep(5000 + (Round / 5).RoundDown)
+            Else
+                Thread.Sleep(1000)
+            End If
+        End Sub
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
             If Not Settings.UseM3U8 Then MyMainLOG = $"{ToStringForLog()}: File [ffmpeg.exe] not found" : Exit Sub
             If IsSavedPosts Then
                 If Not ACheck(MySettings.SavedVideosPlaylist.Value) Then Throw New ArgumentNullException("SavedVideosPlaylist", "Playlist of saved videos cannot be null")
+                DownloadSavedVideos(Token)
+            ElseIf Not SiteMode = SiteModes.User Then
                 DownloadSavedVideos(Token)
             Else
                 DownloadUserVideo(Token)
@@ -59,11 +214,11 @@ Namespace API.XVIDEOS
             Dim isQuickies As Boolean = False
             Try
                 Dim NextPage%, d%
+                Dim round% = 0
                 Dim limit% = If(DownloadTopCount, -1)
                 Dim r$, n$
                 Dim j As EContainer = Nothing
                 Dim jj As EContainer
-                Dim user$ = MySettings.GetUserUrlPart(Me)
                 Dim p As UserMedia
                 Dim EnvirSet As Boolean = False
 
@@ -74,9 +229,12 @@ Namespace API.XVIDEOS
                     d = 0
                     n = IIf(i = 0, "u", "url")
                     Do
+                        round += 1
+                        Wait429(round)
                         ThrowAny(Token)
                         If i = 0 Then
-                            URL = $"https://www.xvideos.com/{user}/videos/new/{If(NextPage = 0, String.Empty, NextPage)}"
+                            URL = GetUserUrl(0)
+                            URL &= $"/videos/new/{If(NextPage = 0, String.Empty, NextPage)}"
                         Else 'Quickies
                             URL = $"https://www.xvideos.com/quickies-api/profilevideos/all/none/N/{ID}/{NextPage}"
                             isQuickies = True
@@ -95,10 +253,7 @@ Namespace API.XVIDEOS
                                                 NextPage += 1
                                                 For Each jj In .Self
                                                     ProgressPre.Perform()
-                                                    p = New UserMedia With {
-                                                        .Post = jj.Value("id"),
-                                                        .URL = $"https://www.xvideos.com/{jj.Value(n).StringTrimStart("/")}"
-                                                    }
+                                                    p = New UserMedia($"https://www.xvideos.com/{jj.Value(n).StringTrimStart("/")}") With {.Post = jj.Value("id")}
                                                     If Not p.Post.ID.IsEmptyString And Not jj.Value(n).IsEmptyString Then
                                                         If Not _TempPostsList.Contains(p.Post.ID) Then
                                                             _TempPostsList.Add(p.Post.ID)
@@ -124,10 +279,19 @@ Namespace API.XVIDEOS
 
                 If Not j Is Nothing Then j.Dispose()
 
+                If limit > 0 And _TempMediaList.Count >= limit Then _TempMediaList.ListAddList(_TempMediaList.ListTake(-1, limit), LAP.ClearBeforeAdd)
                 If _TempMediaList.Count > 0 Then
-                    ProgressPre.ChangeMax(_TempMediaList.Count)
+                    If IsSubscription Then
+                        Progress.Maximum += _TempMediaList.Count
+                    Else
+                        ProgressPre.ChangeMax(_TempMediaList.Count)
+                    End If
                     For i% = 0 To _TempMediaList.Count - 1
-                        ProgressPre.Perform()
+                        If IsSubscription Then
+                            Progress.Perform()
+                        Else
+                            ProgressPre.Perform()
+                        End If
                         ThrowAny(Token)
                         _TempMediaList(i) = GetVideoData(_TempMediaList(i))
                     Next
@@ -140,25 +304,40 @@ Namespace API.XVIDEOS
             End Try
         End Sub
         Private Sub GetUserID()
-            Dim r$ = Responser.GetResponse($"https://www.xvideos.com/{MySettings.GetUserUrlPart(Me)}",, EDP.ReturnValue)
+            Dim r$ = Responser.GetResponse(GetUserUrl(0),, EDP.ReturnValue)
             If Not r.IsEmptyString Then ID = RegexReplace(r, RParams.DMS("""id_user"":(\d+)", 1, EDP.ReturnValue))
         End Sub
         Private Sub DownloadSavedVideos(ByVal Token As CancellationToken)
             Dim URL$ = MySettings.SavedVideosPlaylist.Value
             Try
-                Dim NextPage% = 0
+                Dim NextPage% = IIf(SiteMode = SiteModes.User, -1, 0)
+                Dim startPage% = NextPage
                 Dim __continue As Boolean = True
                 Dim r$
+                Dim round% = 0
                 Dim data As List(Of PlayListVideo)
-                Dim i%
+                Dim cBefore%
+
+                Dim limit% = If(DownloadTopCount, -1)
                 Do
+                    round += 1
+                    Wait429(round)
                     ThrowAny(Token)
-                    URL = $"{MySettings.SavedVideosPlaylist.Value}{If(NextPage = 0, String.Empty, $"/{NextPage}")}"
+                    NextPage += 1
+                    cBefore = _TempMediaList.Count
+
+                    If SiteMode = SiteModes.User Then
+                        URL = $"{MySettings.SavedVideosPlaylist.Value}{If(NextPage = 0, String.Empty, $"/{NextPage}")}"
+                    Else
+                        URL = GetUserUrl(NextPage)
+                    End If
+
                     r = Responser.GetResponse(URL,, EDP.ReturnValue)
+
                     If Responser.HasError Then
                         If Responser.StatusCode = Net.HttpStatusCode.NotFound Then
-                            If NextPage = 0 Then
-                                MyMainLOG = $"XVIDEOS saved video playlist {URL} not found."
+                            If NextPage = startPage Then
+                                If SiteMode = SiteModes.User Then MyMainLOG = $"XVIDEOS saved video playlist {URL} not found."
                                 Exit Sub
                             Else
                                 Exit Do
@@ -167,26 +346,32 @@ Namespace API.XVIDEOS
                             Throw New Exception(Responser.ErrorText, Responser.ErrorException)
                         End If
                     End If
-                    NextPage += 1
+
                     If Not r.IsEmptyString Then
                         data = RegexFields(Of PlayListVideo)(r, {Regex_SavedVideosPlaylist}, {1, 2, 3}, EDP.ReturnValue)
                         If data.ListExists Then
                             If data.RemoveAll(Function(d) _TempPostsList.Contains(d.ID)) > 0 Then __continue = False
                             If data.ListExists Then
                                 _TempPostsList.ListAddList(data.Select(Function(d) d.ID), LNC)
-                                i = _TempMediaList.Count
                                 _TempMediaList.ListAddList(data.Select(Function(d) d.ToUserMedia()), LNC)
-                                If _TempMediaList.Count = i Or Not __continue Then Exit Do Else Continue Do
                             End If
                         End If
                     End If
-                    Exit Do
-                Loop While NextPage < 100 And __continue
+                Loop While NextPage < 100 And __continue And _TempMediaList.Count > cBefore And (limit < 0 Or _TempMediaList.Count < limit)
 
+                If limit > 0 And _TempMediaList.Count >= limit Then _TempMediaList.ListAddList(_TempMediaList.ListTake(-1, limit), LAP.ClearBeforeAdd)
                 If _TempMediaList.Count > 0 Then
-                    ProgressPre.ChangeMax(_TempMediaList.Count)
+                    If SiteMode = SiteModes.User Then
+                        ProgressPre.ChangeMax(_TempMediaList.Count)
+                    Else
+                        Progress.Maximum += _TempMediaList.Count
+                    End If
                     For i% = 0 To _TempMediaList.Count - 1
-                        ProgressPre.Perform()
+                        If SiteMode = SiteModes.User Then
+                            ProgressPre.Perform()
+                        Else
+                            Progress.Perform()
+                        End If
                         ThrowAny(Token)
                         _TempMediaList(i) = GetVideoData(_TempMediaList(i))
                     Next
@@ -205,31 +390,50 @@ Namespace API.XVIDEOS
                         If Not NewUrl.IsEmptyString Then
                             Dim appender$ = RegexReplace(NewUrl, Regex_M3U8_Appender)
                             Dim t$ = If(Media.PictureOption.IsEmptyString, RegexReplace(r, Regex_VideoTitle), Media.PictureOption)
-                            r = Responser.GetResponse(NewUrl)
-                            If Not r.IsEmptyString Then
-                                Dim ls As List(Of Sizes) = RegexFields(Of Sizes)(r, {Regex_M3U8_Reparse}, {1, 2})
-                                If ls.ListExists And Not MySettings.DownloadUHD.Value Then ls.RemoveAll(Function(v) Not v.Value.ValueBetween(1, 1080))
-                                If ls.ListExists Then
-                                    ls.Sort()
-                                    NewUrl = $"{appender}/{ls(0).Data.StringTrimStart("/")}"
-                                    ls.Clear()
-                                    Dim pID$ = Media.Post.ID
-                                    If pID.IsEmptyString Then pID = RegexReplace(r, Regex_VideoID)
-                                    If pID.IsEmptyString Then pID = "0"
-
-                                    t = t.StringRemoveWinForbiddenSymbols.StringTrim
-                                    If t.IsEmptyString Then
-                                        t = pID
+                            If IsSubscription Then
+                                Dim thumb$ = RegexReplace(r, Regex_VideoThumbBig)
+                                If thumb.IsEmptyString Then thumb = RegexReplace(r, Regex_VideoThumbSmall)
+                                If thumb.IsEmptyString Then thumb = RegexReplace(r, Regex_VideosThumb_OG_IMAGE)
+                                If Not thumb.IsEmptyString Then
+                                    Media.URL = thumb
+                                    If Not t.IsEmptyString Then
+                                        Media.PictureOption = t
+                                        Media.File = $"{t}.mp4"
                                     Else
-                                        If t.Length > 100 Then t = Left(t, 100)
+                                        Media.PictureOption = "Video"
+                                        Media.File = "Video.mp4"
                                     End If
-                                    If Not NewUrl.IsEmptyString Then
-                                        Return New UserMedia(NewUrl, UTypes.m3u8) With {
-                                            .Post = pID,
-                                            .URL_BASE = Media.URL,
-                                            .File = $"{t}.mp4",
-                                            .PictureOption = appender
-                                        }
+                                    Return Media
+                                Else
+                                    Return Nothing
+                                End If
+                            Else
+                                r = Responser.GetResponse(NewUrl)
+                                If Not r.IsEmptyString Then
+                                    Dim ls As List(Of Sizes) = RegexFields(Of Sizes)(r, {Regex_M3U8_Reparse}, {1, 2})
+                                    If ls.ListExists And Not MySettings.DownloadUHD.Value Then ls.RemoveAll(Function(v) Not v.Value.ValueBetween(1, 1080))
+                                    If ls.ListExists Then
+                                        ls.Sort()
+                                        NewUrl = $"{appender}/{ls(0).Data.StringTrimStart("/")}"
+                                        ls.Clear()
+                                        Dim pID$ = Media.Post.ID
+                                        If pID.IsEmptyString Then pID = RegexReplace(r, Regex_VideoID)
+                                        If pID.IsEmptyString Then pID = "0"
+
+                                        t = t.StringRemoveWinForbiddenSymbols.StringTrim
+                                        If t.IsEmptyString Then
+                                            t = pID
+                                        Else
+                                            If t.Length > 100 Then t = Left(t, 100)
+                                        End If
+                                        If Not NewUrl.IsEmptyString Then
+                                            Return New UserMedia(NewUrl, UTypes.m3u8) With {
+                                                .Post = pID,
+                                                .URL_BASE = Media.URL,
+                                                .File = $"{t}.mp4",
+                                                .PictureOption = appender
+                                            }
+                                        End If
                                     End If
                                 End If
                             End If

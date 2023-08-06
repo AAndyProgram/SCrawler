@@ -16,6 +16,7 @@ Namespace DownloadObjects
     Public Class FeedMedia
 #Region "Events"
         Friend Event MediaDeleted(ByVal Sender As Object)
+        Friend Event MediaDownload As EventHandler
 #End Region
 #Region "Declarations"
         Private Const VideoHeight As Integer = 450
@@ -55,17 +56,22 @@ Namespace DownloadObjects
         End Property
         Private ReadOnly Property ObjectsPaddingHeight As Integer
             Get
-                Return TP_MAIN.RowStyles(0).Height + PaddingE.GetOf({TP_MAIN}).Vertical(2)
+                Return TP_MAIN.RowStyles(0).Height + TP_MAIN.RowStyles(1).Height + PaddingE.GetOf({TP_MAIN}).Vertical(3)
             End Get
         End Property
         Private ReadOnly UserKey As String
-        Private ReadOnly Post As UserMedia
-        Friend ReadOnly Property Checked As Boolean
+        Friend ReadOnly Post As UserMedia
+        Private ReadOnly Media As UserMediaD
+        Friend Property Checked As Boolean
             Get
                 Return CH_CHECKED.Checked
             End Get
+            Set(ByVal c As Boolean)
+                If Not CH_CHECKED.Checked = c Then ControlInvokeFast(CH_CHECKED, Sub() CH_CHECKED.Checked = c)
+            End Set
         End Property
         Friend ReadOnly Property Information As String
+        Private ReadOnly Property IsSubscription As Boolean = False
         Private Function GetImageResize(ByVal Width As Integer, ByVal Height As Integer) As Size
             If Height > 0 Then
                 Dim h% = Height = ObjectsPaddingHeight
@@ -101,46 +107,123 @@ Namespace DownloadObjects
             End If
         End Sub
         Private Sub ApplyColors()
-            If Settings.FeedBackColor.Exists Then
-                BackColor = Settings.FeedBackColor
-                LBL_INFO.BackColor = Settings.FeedBackColor
+            Dim b As Color? = Nothing, f As Color? = Nothing
+            If Not Media.User Is Nothing Then
+                If Media.User.BackColor.HasValue Then b = Media.User.BackColor
+                If Media.User.ForeColor.HasValue Then f = Media.User.ForeColor
             End If
-            If Settings.FeedForeColor.Exists Then
-                ForeColor = Settings.FeedForeColor
-                LBL_INFO.ForeColor = Settings.FeedForeColor
+            If Not b.HasValue And Settings.FeedBackColor.Exists Then b = Settings.FeedBackColor.Value
+            If Not f.HasValue And Settings.FeedForeColor.Exists Then f = Settings.FeedForeColor.Value
+            If b.HasValue Then
+                BackColor = b.Value
+                LBL_INFO.BackColor = b.Value
+                If Not LBL_TITLE.IsDisposed Then LBL_TITLE.BackColor = b.Value
+            End If
+            If f.HasValue Then
+                ForeColor = f.Value
+                LBL_INFO.ForeColor = f.Value
+                If Not LBL_TITLE.IsDisposed Then LBL_TITLE.ForeColor = f.Value
             End If
         End Sub
+#End Region
+#Region "Converter"
+        Private Const ExtWebp As String = "webp"
+        Private Const ExtJpg As String = "jpg"
+        Private Function ConvertWebp(ByVal file As SFile, Optional ByVal NewCacheDir As Boolean = False) As SFile
+            If file.Extension = ExtWebp Then
+                If Settings.FfmpegFile.Exists Then
+                    Dim dir As SFile
+                    If NewCacheDir Then dir = Settings.Cache.NewPath Else dir = Settings.Cache
+                    Dim f As SFile = file
+                    f.Path = dir.Path
+                    f.Extension = ExtJpg
+                    Using imgBatch As New BatchExecutor
+                        With imgBatch
+                            .ChangeDirectory(dir)
+                            .Execute($"""{Settings.FfmpegFile}"" -i ""{file}"" ""{f}""")
+                        End With
+                    End Using
+                    If f.Exists Then Return f
+                End If
+            Else
+                Return file
+            End If
+            Return Nothing
+        End Function
 #End Region
 #Region "Initializers"
         Public Sub New()
             InitializeComponent()
         End Sub
-        Friend Sub New(ByVal Media As UserMediaD, ByVal Width As Integer, ByVal Height As Integer, ByVal Handler As MediaDeletedEventHandler)
+        Friend Sub New(ByVal Media As UserMediaD, ByVal Width As Integer, ByVal Height As Integer)
             Try
                 InitializeComponent()
-                File = Media.Data.File
-                If Not File.Exists And Media.Data.Type = UserMedia.Types.Video Then File.Path = $"{File.Path.CSFilePS}Video"
-                If Not File.Exists Then
+                Me.Media = Media
+                IsSubscription = If(Media.User?.IsSubscription, False)
+
+                If IsSubscription Then
+                    LBL_TITLE.Text = Media.Data.PictureOption.IfNullOrEmpty(Media.Data.File.Name)
+                    If LBL_TITLE.Text.IsEmptyString Then
+                        TP_MAIN.Controls.Remove(LBL_TITLE)
+                        LBL_TITLE.Dispose()
+                        TP_MAIN.RowStyles(1).Height = 0
+                    End If
+
+                    BTT_CONTEXT_DOWN.Visible = True
+                    CONTEXT_SEP_0.Visible = True
+                    BTT_CONTEXT_OPEN_USER.Visible = False
+                    CONTEXT_SEP_3.Visible = False
+                    BTT_CONTEXT_DELETE.Visible = False
+
+                    If Not Media.Data.URL.IsEmptyString Then
+                        Dim ext$ = Media.Data.URL.CSFile.Extension
+                        Dim imgFile As New SFile With {.Path = Settings.Cache.RootDirectory.Path}
+                        With Media.User
+                            imgFile.Name = $"{IIf(.IncludedInCollection, "{.CollectionName}", String.Empty)}{ .Site}{ .Name}_"
+                            imgFile.Name &= (CLng(Media.Data.URL.GetHashCode) + CLng(Media.Data.File.GetHashCode)).ToString
+                            imgFile.Extension = ExtJpg
+                            If Not imgFile.Exists AndAlso Not ext.IsEmptyString AndAlso ext.ToLower = ExtWebp Then imgFile.Extension = ExtWebp
+                        End With
+                        If Not imgFile.Exists Then
+                            Settings.Cache.Validate()
+                            GetWebFile(Media.Data.URL, imgFile, EDP.None)
+                            If imgFile.Exists Then File = ConvertWebp(imgFile)
+                        Else
+                            File = imgFile
+                        End If
+                    End If
+                Else
+                    TP_MAIN.Controls.Remove(LBL_TITLE)
+                    LBL_TITLE.Dispose()
+                    TP_MAIN.RowStyles(1).Height = 0
+                    File = Media.Data.File
+                    If Not File.Exists And Media.Data.Type = UserMedia.Types.Video Then File.Path = $"{File.Path.CSFilePS}Video"
+                End If
+
+                If Not File.Exists And Not IsSubscription Then
                     If Not Media.Data.SpecialFolder.IsEmptyString Then
                         File.Path = $"{File.Path.CSFilePS}{Media.Data.SpecialFolder}".CSFileP
                         If Not File.Exists And Media.Data.Type = UserMedia.Types.Video Then File.Path = $"{File.Path.CSFilePS}Video"
                     End If
                 End If
+
                 If File.Exists Then
                     Information = $"Type: {Media.Data.Type}"
                     Information.StringAppendLine($"File: {File.File}")
                     Information.StringAppendLine($"Address: {File}")
                     Information.StringAppendLine($"Downloaded: {Media.Date.ToStringDate(ADateTime.Formats.BaseDateTime)}")
                     If Media.Data.Post.Date.HasValue Then Information.StringAppendLine($"Posted: {Media.Data.Post.Date.Value.ToStringDate(ADateTime.Formats.BaseDateTime)}")
-                    Dim infoType As UserMedia.Types = Media.Data.Type
+                    Dim infoType As UserMedia.Types = If(IsSubscription, UserMedia.Types.Picture, Media.Data.Type)
                     Dim h%
                     Dim s As Size
 
                     Post = Media.Data
 
-                    Select Case Media.Data.Type
+                    Select Case infoType
                         Case UserMedia.Types.Picture, UserMedia.Types.GIF
-                            MyImage = New ImageRenderer(File)
+                            Dim tmpMediaFile As SFile = ConvertWebp(File, True)
+                            If tmpMediaFile.IsEmptyString Then Throw New ArgumentNullException With {.HelpLink = 1}
+                            MyImage = New ImageRenderer(tmpMediaFile)
                             Dim a As AnchorStyles = AnchorStyles.Top + If(Height > 0, 0, AnchorStyles.Left)
                             s = GetImageResize(Width, Height)
                             h = s.Height
@@ -158,14 +241,14 @@ Namespace DownloadObjects
                                 .Padding = New Padding(0),
                                 .ContextMenuStrip = CONTEXT_DATA
                             }
-                            TP_MAIN.Controls.Add(MyPicture, 0, 1)
+                            TP_MAIN.Controls.Add(MyPicture, 0, 2)
                             BTT_CONTEXT_OPEN_MEDIA.Text &= " picture"
                             BTT_CONTEXT_DELETE.Text &= " picture"
                         Case UserMedia.Types.Video, UserMedia.Types.m3u8
                             infoType = UserMedia.Types.Video
                             MyVideo = New FeedVideo(File) With {.Tag = File, .Dock = DockStyle.Fill, .ContextMenuStrip = CONTEXT_DATA}
                             If MyVideo.HasError Then HasError = True
-                            TP_MAIN.Controls.Add(MyVideo, 0, 1)
+                            TP_MAIN.Controls.Add(MyVideo, 0, 2)
                             BTT_CONTEXT_OPEN_MEDIA.Text &= " video"
                             BTT_CONTEXT_DELETE.Text &= " video"
                             h = VideoHeight
@@ -181,22 +264,33 @@ Namespace DownloadObjects
                             If .IncludedInCollection Then Information.StringAppendLine($"User collection: { .CollectionName}")
                             Information.StringAppendLine($"User site: { .Site}")
                             Information.StringAppendLine($"User name: {IIf(Not .FriendlyName.IsEmptyString And Not .IncludedInCollection, .FriendlyName, .Name)}")
-                            If .Site = API.Instagram.InstagramSite Then BTT_CONTEXT_OPEN_USER_POST.Visible = False
                             If .IncludedInCollection Then info &= $"[{ .CollectionName}]: "
-                            info &= $"{ .Site} - {IIf(Not .FriendlyName.IsEmptyString And Not .IncludedInCollection, .FriendlyName, .Name)}"
+                            If Settings.FeedShowFriendlyNames Or Not DirectCast(.Self, UserDataBase).FeedIsUser Then
+                                info &= $"{ .Site} - { .FriendlyName.IfNullOrEmpty(.Name)}"
+                            Else
+                                info &= $"{ .Site} - {IIf(Not .FriendlyName.IsEmptyString And Not .IncludedInCollection, .FriendlyName, .Name)}"
+                            End If
                         End With
                     End If
 
                     If Settings.FeedAddSessionToCaption Then info = $"[{Media.Session}] {info}"
                     If Settings.FeedAddDateToCaption Then info &= $" ({Media.Date.ToStringDate(ADateTime.Formats.BaseDateTime)})"
                     LBL_INFO.Text = info
+                    If Not Media.User Is Nothing AndAlso Not Media.User.HOST Is Nothing Then
+                        With Media.User.HOST.Source
+                            If Not .Image Is Nothing Then
+                                ICON_SITE.Image = .Image
+                            ElseIf Not .Icon Is Nothing Then
+                                ICON_SITE.Image = .Icon.ToBitmap
+                            End If
+                        End With
+                    End If
 
                     s = New Size(Width, h + ObjectsPaddingHeight)
                     Size = s
                     MinimumSize = s
                     MaximumSize = s
                     ApplyColors()
-                    If Not Handler Is Nothing Then AddHandler Me.MediaDeleted, Handler
                 Else
                     Throw New ArgumentNullException With {.HelpLink = 1}
                 End If
@@ -222,9 +316,14 @@ Namespace DownloadObjects
             If e.Button = MouseButtons.Left Then ControlInvoke(CH_CHECKED, Sub() CH_CHECKED.Checked = Not CH_CHECKED.Checked)
         End Sub
         Private Sub LBL_INFO_DoubleClick(sender As Object, e As EventArgs) Handles LBL_INFO.DoubleClick
-            If Not UserKey.IsEmptyString Then
+            If Not UserKey.IsEmptyString And Not IsSubscription Then
                 Dim u As IUserData = Settings.GetUser(UserKey)
                 If Not u Is Nothing Then u.OpenFolder()
+            End If
+        End Sub
+        Private Sub LBL_TITLE_MouseDoubleClick(sender As Object, e As MouseEventArgs) Handles LBL_TITLE.MouseDoubleClick
+            If Not Post.URL_BASE.IsEmptyString Then
+                Try : Process.Start(Post.URL_BASE) : Catch : End Try
             End If
         End Sub
 #End Region
@@ -234,6 +333,9 @@ Namespace DownloadObjects
         End Sub
 #End Region
 #Region "Context"
+        Private Sub BTT_CONTEXT_DOWN_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_DOWN.Click
+            RaiseEvent MediaDownload(Me, EventArgs.Empty)
+        End Sub
         Private Sub BTT_CONTEXT_OPEN_MEDIA_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_OPEN_MEDIA.Click
             File.Open()
         End Sub
@@ -251,14 +353,17 @@ Namespace DownloadObjects
         End Sub
         Private Sub BTT_CONTEXT_OPEN_USER_POST_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_OPEN_USER_POST.Click
             Try
-                If Not UserKey.IsEmptyString And Not Post.Post.ID.IsEmptyString Then
-                    Dim u As IUserData = Settings.GetUser(UserKey)
-                    If Not u Is Nothing Then
-                        Dim url$ = UserDataBase.GetPostUrl(u, Post)
-                        If Not url.IsEmptyString Then
-                            Try : Process.Start(url) : Catch : End Try
-                        End If
+                Dim url$ = String.Empty
+                If IsSubscription Then
+                    url = Post.URL_BASE
+                Else
+                    If Not UserKey.IsEmptyString And Not Post.Post.ID.IsEmptyString Then
+                        Dim u As IUserData = Settings.GetUser(UserKey)
+                        If Not u Is Nothing Then url = UserDataBase.GetPostUrl(u, Post)
                     End If
+                End If
+                If Not url.IsEmptyString Then
+                    Try : Process.Start(url) : Catch : End Try
                 End If
             Catch ex As Exception
                 ErrorsDescriber.Execute(EDP.LogMessageValue, ex, $"[FeedMedia.OpenPost({UserKey}, {Post.Post.ID})]")

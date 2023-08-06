@@ -113,6 +113,7 @@ Namespace API.YouTube
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
             Dim pr As New YTPreProgress(ProgressPre)
             Try
+                If IsSubscription And IsMusic Then Exit Sub
                 Dim container As IYouTubeMediaContainer = Nothing
                 Dim list As New List(Of IYouTubeMediaContainer)
                 Dim url$ = String.Empty
@@ -191,8 +192,9 @@ Namespace API.YouTube
                         If Settings.UserSiteNameUpdateEveryTime Or UserSiteName.IsEmptyString Then UserSiteName = .UserTitle
                         If FriendlyName.IsEmptyString Then FriendlyName = UserSiteName
                     End With
-                    _TempMediaList.AddRange(list.Select(Function(c) New UserMedia(c)))
+                    _TempMediaList.AddRange(list.Select(Function(c) New UserMedia(c) With {.URL = If(IsSubscription, c.ThumbnailUrlMedia, .URL)}))
                     _TempPostsList.ListAddList(_TempMediaList.Select(Function(m) m.Post.ID), LNC)
+                    If IsSubscription Then _TempMediaList.RemoveAll(Function(m) m.URL.IsEmptyString)
                     list.Clear()
                 End If
             Catch ex As Exception

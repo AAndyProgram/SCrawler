@@ -29,6 +29,10 @@ Namespace API.YouTube.Controls
             Dim ICON_LINK As System.Windows.Forms.PictureBox
             Dim TP_FOOTER As System.Windows.Forms.TableLayoutPanel
             Dim TP_DESTINATION As System.Windows.Forms.TableLayoutPanel
+            Dim ActionButton1 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(VideoOptionsForm))
+            Dim ListColumn1 As PersonalUtilities.Forms.Controls.Base.ListColumn = New PersonalUtilities.Forms.Controls.Base.ListColumn()
+            Dim ListColumn2 As PersonalUtilities.Forms.Controls.Base.ListColumn = New PersonalUtilities.Forms.Controls.Base.ListColumn()
             Dim TP_OK_CANCEL As System.Windows.Forms.TableLayoutPanel
             Dim LB_SEP_1 As System.Windows.Forms.Label
             Dim LB_SEP_2 As System.Windows.Forms.Label
@@ -37,8 +41,6 @@ Namespace API.YouTube.Controls
             Dim LBL_FORMAT As System.Windows.Forms.Label
             Dim LBL_SUBS_FORMAT As System.Windows.Forms.Label
             Dim TT_MAIN As System.Windows.Forms.ToolTip
-            Dim ActionButton1 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
-            Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(VideoOptionsForm))
             Dim ActionButton2 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim ActionButton3 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim ActionButton4 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
@@ -47,12 +49,13 @@ Namespace API.YouTube.Controls
             Dim ActionButton7 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim ActionButton8 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim ActionButton9 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton10 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Me.ICON_VIDEO = New System.Windows.Forms.PictureBox()
             Me.LBL_TITLE = New System.Windows.Forms.Label()
             Me.TP_HEADER_INFO_2 = New System.Windows.Forms.TableLayoutPanel()
             Me.LBL_TIME = New System.Windows.Forms.Label()
             Me.LBL_URL = New System.Windows.Forms.LinkLabel()
-            Me.TXT_FILE = New System.Windows.Forms.TextBox()
+            Me.TXT_FILE = New PersonalUtilities.Forms.Controls.ComboBoxExtended()
             Me.BTT_BROWSE = New System.Windows.Forms.Button()
             Me.BTT_DOWN = New System.Windows.Forms.Button()
             Me.BTT_CANCEL = New System.Windows.Forms.Button()
@@ -93,6 +96,7 @@ Namespace API.YouTube.Controls
             CType(ICON_LINK, System.ComponentModel.ISupportInitialize).BeginInit()
             TP_FOOTER.SuspendLayout()
             TP_DESTINATION.SuspendLayout()
+            CType(Me.TXT_FILE, System.ComponentModel.ISupportInitialize).BeginInit()
             TP_OK_CANCEL.SuspendLayout()
             TP_WHAT.SuspendLayout()
             Me.TP_HEADER_BASE.SuspendLayout()
@@ -267,12 +271,27 @@ Namespace API.YouTube.Controls
             '
             'TXT_FILE
             '
+            ActionButton1.BackgroundImage = CType(resources.GetObject("ActionButton1.BackgroundImage"), System.Drawing.Image)
+            ActionButton1.Name = "ArrowDown"
+            ActionButton1.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.ArrowDown
+            Me.TXT_FILE.Buttons.Add(ActionButton1)
+            ListColumn1.Name = "COL_NAME"
+            ListColumn1.Text = "Name"
+            ListColumn1.Width = -1
+            ListColumn2.DisplayMember = True
+            ListColumn2.Name = "COL_VALUE"
+            ListColumn2.Text = "Value"
+            ListColumn2.ValueMember = True
+            ListColumn2.Visible = False
+            Me.TXT_FILE.Columns.Add(ListColumn1)
+            Me.TXT_FILE.Columns.Add(ListColumn2)
             Me.TXT_FILE.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_FILE.Location = New System.Drawing.Point(3, 3)
+            Me.TXT_FILE.Location = New System.Drawing.Point(1, 1)
+            Me.TXT_FILE.Margin = New System.Windows.Forms.Padding(1)
             Me.TXT_FILE.Name = "TXT_FILE"
-            Me.TXT_FILE.Size = New System.Drawing.Size(503, 20)
+            Me.TXT_FILE.Size = New System.Drawing.Size(507, 22)
             Me.TXT_FILE.TabIndex = 0
-            Me.TXT_FILE.WordWrap = False
+            Me.TXT_FILE.TextBoxBorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
             '
             'BTT_BROWSE
             '
@@ -283,7 +302,7 @@ Namespace API.YouTube.Controls
             Me.BTT_BROWSE.Size = New System.Drawing.Size(74, 22)
             Me.BTT_BROWSE.TabIndex = 1
             Me.BTT_BROWSE.Text = "Browse"
-            TT_MAIN.SetToolTip(Me.BTT_BROWSE, "Choose an output file")
+            TT_MAIN.SetToolTip(Me.BTT_BROWSE, "Choose an output file (Right click for add a new location to the list)")
             Me.BTT_BROWSE.UseVisualStyleBackColor = True
             '
             'TP_OK_CANCEL
@@ -473,21 +492,21 @@ Namespace API.YouTube.Controls
             '
             'TXT_SUBS
             '
-            ActionButton1.BackgroundImage = CType(resources.GetObject("ActionButton1.BackgroundImage"), System.Drawing.Image)
-            ActionButton1.Name = "Open"
-            ActionButton1.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Open
-            ActionButton1.ToolTipText = "Choose subtitles"
             ActionButton2.BackgroundImage = CType(resources.GetObject("ActionButton2.BackgroundImage"), System.Drawing.Image)
-            ActionButton2.Name = "Refresh"
-            ActionButton2.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Refresh
-            ActionButton2.ToolTipText = "Reset subtitles to initial selected"
+            ActionButton2.Name = "Open"
+            ActionButton2.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Open
+            ActionButton2.ToolTipText = "Choose subtitles"
             ActionButton3.BackgroundImage = CType(resources.GetObject("ActionButton3.BackgroundImage"), System.Drawing.Image)
-            ActionButton3.Name = "Clear"
-            ActionButton3.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
-            ActionButton3.ToolTipText = "Clear subtitles selection (don't download subtitles)"
-            Me.TXT_SUBS.Buttons.Add(ActionButton1)
+            ActionButton3.Name = "Refresh"
+            ActionButton3.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Refresh
+            ActionButton3.ToolTipText = "Reset subtitles to initial selected"
+            ActionButton4.BackgroundImage = CType(resources.GetObject("ActionButton4.BackgroundImage"), System.Drawing.Image)
+            ActionButton4.Name = "Clear"
+            ActionButton4.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
+            ActionButton4.ToolTipText = "Clear subtitles selection (don't download subtitles)"
             Me.TXT_SUBS.Buttons.Add(ActionButton2)
             Me.TXT_SUBS.Buttons.Add(ActionButton3)
+            Me.TXT_SUBS.Buttons.Add(ActionButton4)
             Me.TXT_SUBS.CaptionText = "Subtitles"
             Me.TXT_SUBS.CaptionToolTipEnabled = True
             Me.TXT_SUBS.CaptionToolTipText = "The selected subtitles will also be downloaded"
@@ -611,24 +630,24 @@ Namespace API.YouTube.Controls
             '
             'TXT_SUBS_ADDIT
             '
-            ActionButton4.BackgroundImage = CType(resources.GetObject("ActionButton4.BackgroundImage"), System.Drawing.Image)
-            ActionButton4.Enabled = False
-            ActionButton4.Name = "Open"
-            ActionButton4.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Open
-            ActionButton4.ToolTipText = "Choose additional formats"
             ActionButton5.BackgroundImage = CType(resources.GetObject("ActionButton5.BackgroundImage"), System.Drawing.Image)
             ActionButton5.Enabled = False
-            ActionButton5.Name = "Refresh"
-            ActionButton5.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Refresh
-            ActionButton5.ToolTipText = "Fill in additional formats from the defaults"
+            ActionButton5.Name = "Open"
+            ActionButton5.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Open
+            ActionButton5.ToolTipText = "Choose additional formats"
             ActionButton6.BackgroundImage = CType(resources.GetObject("ActionButton6.BackgroundImage"), System.Drawing.Image)
             ActionButton6.Enabled = False
-            ActionButton6.Name = "Clear"
-            ActionButton6.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
-            ActionButton6.ToolTipText = "Remove all additional formats"
-            Me.TXT_SUBS_ADDIT.Buttons.Add(ActionButton4)
+            ActionButton6.Name = "Refresh"
+            ActionButton6.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Refresh
+            ActionButton6.ToolTipText = "Fill in additional formats from the defaults"
+            ActionButton7.BackgroundImage = CType(resources.GetObject("ActionButton7.BackgroundImage"), System.Drawing.Image)
+            ActionButton7.Enabled = False
+            ActionButton7.Name = "Clear"
+            ActionButton7.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
+            ActionButton7.ToolTipText = "Remove all additional formats"
             Me.TXT_SUBS_ADDIT.Buttons.Add(ActionButton5)
             Me.TXT_SUBS_ADDIT.Buttons.Add(ActionButton6)
+            Me.TXT_SUBS_ADDIT.Buttons.Add(ActionButton7)
             Me.TXT_SUBS_ADDIT.CaptionMode = PersonalUtilities.Forms.Controls.Base.ICaptionControl.Modes.CheckBox
             Me.TXT_SUBS_ADDIT.CaptionText = "Additional subtitle formats"
             Me.TXT_SUBS_ADDIT.CaptionToolTipEnabled = True
@@ -646,24 +665,24 @@ Namespace API.YouTube.Controls
             '
             'TXT_EXTRA_AUDIO_FORMATS
             '
-            ActionButton7.BackgroundImage = CType(resources.GetObject("ActionButton7.BackgroundImage"), System.Drawing.Image)
-            ActionButton7.Enabled = False
-            ActionButton7.Name = "Open"
-            ActionButton7.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Open
-            ActionButton7.ToolTipText = "Choose additional formats"
             ActionButton8.BackgroundImage = CType(resources.GetObject("ActionButton8.BackgroundImage"), System.Drawing.Image)
             ActionButton8.Enabled = False
-            ActionButton8.Name = "Refresh"
-            ActionButton8.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Refresh
-            ActionButton8.ToolTipText = "Fill in additional formats from the defaults"
+            ActionButton8.Name = "Open"
+            ActionButton8.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Open
+            ActionButton8.ToolTipText = "Choose additional formats"
             ActionButton9.BackgroundImage = CType(resources.GetObject("ActionButton9.BackgroundImage"), System.Drawing.Image)
             ActionButton9.Enabled = False
-            ActionButton9.Name = "Clear"
-            ActionButton9.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
-            ActionButton9.ToolTipText = "Choose additional formats"
-            Me.TXT_EXTRA_AUDIO_FORMATS.Buttons.Add(ActionButton7)
+            ActionButton9.Name = "Refresh"
+            ActionButton9.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Refresh
+            ActionButton9.ToolTipText = "Fill in additional formats from the defaults"
+            ActionButton10.BackgroundImage = CType(resources.GetObject("ActionButton10.BackgroundImage"), System.Drawing.Image)
+            ActionButton10.Enabled = False
+            ActionButton10.Name = "Clear"
+            ActionButton10.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
+            ActionButton10.ToolTipText = "Choose additional formats"
             Me.TXT_EXTRA_AUDIO_FORMATS.Buttons.Add(ActionButton8)
             Me.TXT_EXTRA_AUDIO_FORMATS.Buttons.Add(ActionButton9)
+            Me.TXT_EXTRA_AUDIO_FORMATS.Buttons.Add(ActionButton10)
             Me.TXT_EXTRA_AUDIO_FORMATS.CaptionMode = PersonalUtilities.Forms.Controls.Base.ICaptionControl.Modes.CheckBox
             Me.TXT_EXTRA_AUDIO_FORMATS.CaptionText = "Additional audio formats"
             Me.TXT_EXTRA_AUDIO_FORMATS.CaptionToolTipEnabled = True
@@ -704,7 +723,7 @@ Namespace API.YouTube.Controls
             CType(ICON_LINK, System.ComponentModel.ISupportInitialize).EndInit()
             TP_FOOTER.ResumeLayout(False)
             TP_DESTINATION.ResumeLayout(False)
-            TP_DESTINATION.PerformLayout()
+            CType(Me.TXT_FILE, System.ComponentModel.ISupportInitialize).EndInit()
             TP_OK_CANCEL.ResumeLayout(False)
             TP_WHAT.ResumeLayout(False)
             TP_WHAT.PerformLayout()
@@ -740,7 +759,7 @@ Namespace API.YouTube.Controls
         Private WithEvents CMB_SUBS_FORMAT As ComboBox
         Private WithEvents TXT_SUBS_ADDIT As PersonalUtilities.Forms.Controls.TextBoxExtended
         Private WithEvents TXT_EXTRA_AUDIO_FORMATS As PersonalUtilities.Forms.Controls.TextBoxExtended
-        Private WithEvents TXT_FILE As TextBox
+        Private WithEvents TXT_FILE As PersonalUtilities.Forms.Controls.ComboBoxExtended
         Private WithEvents BTT_BROWSE As Button
         Private WithEvents BTT_DOWN As Button
         Private WithEvents BTT_CANCEL As Button

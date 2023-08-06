@@ -19,10 +19,38 @@ Namespace API.Xhamster
     Friend Class UserData : Inherits UserDataBase
 #Region "XML names"
         Private Const Name_TrueName As String = "TrueName"
+        Private Const Name_Gender As String = "Gender"
+        Private Const Name_SiteMode As String = "SiteMode"
+        Private Const Name_Arguments As String = "Arguments"
 #End Region
 #Region "Declarations"
+        Friend Overrides ReadOnly Property FeedIsUser As Boolean
+            Get
+                Return SiteMode = SiteModes.User
+            End Get
+        End Property
         Friend Property IsChannel As Boolean = False
         Friend Property TrueName As String = String.Empty
+        Friend Property Gender As String = String.Empty
+        Friend Property SiteMode As SiteModes = SiteModes.User
+        Friend Property Arguments As String = String.Empty
+        Friend Overrides ReadOnly Property SpecialLabels As IEnumerable(Of String)
+            Get
+                Return {SearchRequestLabelName}
+            End Get
+        End Property
+        Friend Property QueryString As String
+            Get
+                If SiteMode = SiteModes.User Then
+                    Return String.Empty
+                Else
+                    Return GetNonUserUrl(0)
+                End If
+            End Get
+            Set(ByVal q As String)
+                UpdateUserOptions(True, q)
+            End Set
+        End Property
         Private ReadOnly Property MySettings As SiteSettings
             Get
                 Return DirectCast(HOST.Source, SiteSettings)
@@ -32,34 +60,105 @@ Namespace API.Xhamster
             Friend IsPhoto As Boolean
         End Structure
         Private ReadOnly _TempPhotoData As List(Of UserMedia)
+        Private Function UpdateUserOptions(Optional ByVal Force As Boolean = False, Optional ByVal NewUrl As String = Nothing) As Boolean
+            If Not Force OrElse (Not SiteMode = SiteModes.User AndAlso Not NewUrl.IsEmptyString AndAlso MyFileSettings.Exists) Then
+                Dim eObj As Plugin.ExchangeOptions = Nothing
+                If Force Then eObj = MySettings.IsMyUser(NewUrl)
+                If (Force And Not eObj.UserName.IsEmptyString) Or (Not Force And TrueName.IsEmptyString) Then
+                    Dim n$() = If(Force, eObj.UserName, Name).Split("@")
+                    If n.ListExists Then
+                        If n.Length = 2 And If(Force, eObj.Options, Options).IsEmptyString Then
+                            If Force Then Return False
+                            TrueName = n(0)
+                            IsChannel = True
+                        ElseIf IsChannel Then
+                            If Force Then Return False
+                            TrueName = Name
+                        ElseIf Not If(Force, eObj.Options, Options).IsEmptyString Then
+                            Dim __TrueName$, __Arguments$, __Gender$
+                            Dim __Mode As SiteModes
+                            Dim __ForceApply As Boolean = False
+                            Dim n2 As List(Of String) = If(Force, eObj.Options, Options).Split("@").ListIfNothing
+                            If n2.ListExists Then
+                                IsChannel = False
+                                __Mode = CInt(n2(0))
+                                __Gender = n2(1)
+                                __Arguments = n2(3)
+                                __TrueName = n2.ListTake(3, 100, EDP.ReturnValue).ListToString(String.Empty)
+
+                                If Force AndAlso (Not TrueName = __TrueName Or Not SiteMode = __Mode Or Not Gender = __Gender) Then
+                                    If ValidateChangeSearchOptions(ToStringForLog,
+                                                                   $"{__Mode}{IIf(__Gender.IsEmptyString, String.Empty, $" ({__Gender})")}: {__TrueName}",
+                                                                   $"{SiteMode}{IIf(Gender.IsEmptyString, String.Empty, $" ({Gender})")}: {TrueName}") Then
+                                        __ForceApply = True
+                                    Else
+                                        Return False
+                                    End If
+                                End If
+
+                                Arguments = __Arguments
+                                Options = If(Force, eObj.Options, Options)
+                                If Not Force Then
+                                    TrueName = __TrueName
+                                    SiteMode = __Mode
+                                    Gender = __Gender
+
+                                    UserSiteName = $"{SiteMode}: {TrueName}"
+                                    If FriendlyName.IsEmptyString Then FriendlyName = UserSiteName
+                                    Settings.Labels.Add(SearchRequestLabelName)
+                                    Labels.ListAddValue(SearchRequestLabelName, LNC)
+                                    Labels.Sort()
+                                ElseIf Force And __ForceApply Then
+                                    TrueName = __TrueName
+                                    SiteMode = __Mode
+                                    Gender = __Gender
+                                End If
+
+                                Return True
+                            Else
+                                If Force Then Return False
+                                UserExists = False
+                            End If
+                        Else
+                            If Force Then Return False
+                            TrueName = n(0)
+                        End If
+                    End If
+                End If
+            End If
+            Return False
+        End Function
         Protected Overrides Sub LoadUserInformation_OptionalFields(ByRef Container As XmlFile, ByVal Loading As Boolean)
-            Dim setNames As Action = Sub()
-                                         If TrueName.IsEmptyString Then
-                                             Dim n$() = Name.Split("@")
-                                             If n.ListExists Then
-                                                 If n.Length = 2 Then
-                                                     TrueName = n(0)
-                                                     IsChannel = True
-                                                 ElseIf IsChannel Then
-                                                     TrueName = Name
-                                                 Else
-                                                     TrueName = n(0)
-                                                 End If
-                                             End If
-                                         End If
-                                     End Sub
             With Container
                 If Loading Then
                     IsChannel = .Value(Name_IsChannel).FromXML(Of Boolean)(False)
                     TrueName = .Value(Name_TrueName)
-                    setNames.Invoke
+                    Gender = .Value(Name_Gender)
+                    SiteMode = .Value(Name_SiteMode).FromXML(Of Integer)(SiteModes.User)
+                    Arguments = .Value(Name_Arguments)
+                    UpdateUserOptions()
                 Else
-                    setNames.Invoke
+                    If UpdateUserOptions() Then
+                        .Value(Name_LabelsName) = LabelsString
+                        .Value(Name_UserSiteName) = UserSiteName
+                        .Value(Name_FriendlyName) = FriendlyName
+                    End If
                     .Add(Name_IsChannel, IsChannel.BoolToInteger)
                     .Add(Name_TrueName, TrueName)
-                    setNames.Invoke
+                    .Add(Name_Gender, Gender)
+                    .Add(Name_SiteMode, CInt(SiteMode))
+                    .Add(Name_Arguments, Arguments)
+
+                    'Debug.WriteLine(GetNonUserUrl(0))
+                    'Debug.WriteLine(GetNonUserUrl(2))
                 End If
             End With
+        End Sub
+        Friend Overrides Function ExchangeOptionsGet() As Object
+            Return New UserExchangeOptions(Me)
+        End Function
+        Friend Overrides Sub ExchangeOptionsSet(ByVal Obj As Object)
+            If Not Obj Is Nothing AndAlso TypeOf Obj Is UserExchangeOptions Then QueryString = DirectCast(Obj, UserExchangeOptions).QueryString
         End Sub
 #End Region
 #Region "Initializer"
@@ -69,11 +168,56 @@ Namespace API.Xhamster
             _TempPhotoData = New List(Of UserMedia)
         End Sub
 #End Region
-#Region "Download base functions"
+#Region "Download functions"
+        Friend Function GetNonUserUrl(ByVal Page As Integer) As String
+            If SiteMode = SiteModes.User Then
+                Return String.Empty
+            Else
+                Dim url$ = "https://xhamster.com/"
+                If Not Gender.IsEmptyString Then url &= $"{Gender}/"
+                Select Case SiteMode
+                    Case SiteModes.Tags : url &= SiteSettings.P_Tags
+                    Case SiteModes.Categories : url &= SiteSettings.P_Categories
+                    Case SiteModes.Search : url &= SiteSettings.P_Search
+                    Case SiteModes.Pornstars : url &= SiteSettings.P_Pornstars
+                    Case Else : Return String.Empty
+                End Select
+                url &= $"/{TrueName}"
+
+                Dim args$ = Arguments
+                If Page > 1 Then
+                    If args.IsEmptyString Then
+                        If SiteMode = SiteModes.Search Then
+                            args = $"?page={Page}"
+                        Else
+                            args = $"/{Page}"
+                        End If
+                    Else
+                        If SiteMode = SiteModes.Search Then
+                            args = $"?{args}&page={Page}"
+                        Else
+                            If args.Contains("?") Then
+                                args = $"/{args.Replace("?", $"/{Page}?")}"
+                            Else
+                                args = $"/{args.StringTrimEnd("/")}/{Page}"
+                            End If
+                        End If
+                    End If
+                Else
+                    If Not args.IsEmptyString Then args = $"{IIf(SiteMode = SiteModes.Search, "?", "/")}{args}"
+                End If
+
+                url &= args
+
+                Return url
+            End If
+        End Function
+        Private SearchPostsCount As Integer = 0
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
             _TempPhotoData.Clear()
+            SearchPostsCount = 0
             If DownloadVideos Then DownloadData(1, True, Token)
-            If Not IsChannel And DownloadImages Then
+            If Not IsChannel And DownloadImages And Not IsSubscription Then
                 DownloadData(1, False, Token)
                 ReparsePhoto(Token)
             End If
@@ -85,19 +229,35 @@ Namespace API.Xhamster
                 Dim Type As UTypes = IIf(IsVideo, UTypes.VideoPre, UTypes.Picture)
                 Dim mPages$ = IIf(IsVideo, "maxVideoPages", "maxPhotoPages")
                 Dim listNode$()
+                Dim containerNodes As New List(Of String())
                 Dim skipped As Boolean = False
+                Dim limit% = If(DownloadTopCount, -1)
                 Dim cBefore% = _TempMediaList.Count
                 Dim m As UserMedia
+                Dim checkLimit As Func(Of Boolean) = Function() limit > 0 And SearchPostsCount >= limit And IsVideo
 
                 If IsSavedPosts Then
                     URL = $"https://xhamster.com/my/favorites/{IIf(IsVideo, "videos", "photos-and-galleries")}{IIf(Page = 1, String.Empty, $"/{Page}")}"
-                    listNode = If(IsVideo, {"favoriteVideoListComponent", "models"}, {"favoritesGalleriesAndPhotosCollection"})
+                    containerNodes.Add(If(IsVideo, {"favoriteVideoListComponent", "models"}, {"favoritesGalleriesAndPhotosCollection"}))
                 ElseIf IsChannel Then
                     URL = $"https://xhamster.com/channels/{TrueName}/newest{IIf(Page = 1, String.Empty, $"/{Page}")}"
-                    listNode = {"trendingVideoListComponent", "models"}
+                    containerNodes.Add({"trendingVideoListComponent", "models"})
+                    containerNodes.Add({"pagesCategoryComponent", "trendingVideoListProps", "models"})
+                ElseIf SiteMode = SiteModes.Search Then
+                    URL = GetNonUserUrl(Page)
+                    containerNodes.Add({"searchResult", "models"})
+                ElseIf SiteMode = SiteModes.Tags Or SiteMode = SiteModes.Categories Or SiteMode = SiteModes.Pornstars Then
+                    URL = GetNonUserUrl(Page)
+                    If SiteMode = SiteModes.Pornstars Then
+                        containerNodes.Add({"trendingVideoListComponent", "models"})
+                        containerNodes.Add({"pagesCategoryComponent", "trendingVideoListProps", "models"})
+                    Else
+                        containerNodes.Add({"pagesCategoryComponent", "trendingVideoListProps", "models"})
+                        containerNodes.Add({"trendingVideoListComponent", "models"})
+                    End If
                 Else
                     URL = $"https://xhamster.com/users/{TrueName}/{IIf(IsVideo, "videos", "photos")}{IIf(Page = 1, String.Empty, $"/{Page}")}"
-                    listNode = {If(IsVideo, "userVideoCollection", "userGalleriesCollection")}
+                    containerNodes.Add({If(IsVideo, "userVideoCollection", "userGalleriesCollection")})
                 End If
                 ThrowAny(Token)
 
@@ -111,47 +271,54 @@ Namespace API.Xhamster
 
                             MaxPage = j.Value(mPages).FromXML(Of Integer)(-1)
 
-                            With j(listNode)
-                                If .ListExists Then
-                                    ProgressPre.ChangeMax(.Count)
-                                    For Each e As EContainer In .Self
-                                        ProgressPre.Perform()
-                                        m = ExtractMedia(e, Type)
-                                        If Not m.URL.IsEmptyString Then
-                                            If m.File.IsEmptyString Then Continue For
+                            For Each listNode In containerNodes
+                                With j(listNode)
+                                    If .ListExists Then
+                                        ProgressPre.ChangeMax(.Count)
+                                        For Each e As EContainer In .Self
+                                            ProgressPre.Perform()
+                                            m = ExtractMedia(e, Type)
+                                            If Not m.URL.IsEmptyString Then
+                                                If m.File.IsEmptyString Then Continue For
 
-                                            If m.Post.Date.HasValue Then
-                                                Select Case CheckDatesLimit(m.Post.Date.Value, Nothing)
-                                                    Case DateResult.Skip : skipped = True : Continue For
-                                                    Case DateResult.Exit : Exit Sub
-                                                End Select
-                                            End If
+                                                If m.Post.Date.HasValue Then
+                                                    Select Case CheckDatesLimit(m.Post.Date.Value, Nothing)
+                                                        Case DateResult.Skip : skipped = True : Continue For
+                                                        Case DateResult.Exit : Exit Sub
+                                                    End Select
+                                                End If
 
-                                            If IsVideo AndAlso Not _TempPostsList.Contains(m.Post.ID) Then
-                                                _TempPostsList.Add(m.Post.ID)
-                                                _TempMediaList.ListAddValue(m, LNC)
-                                            ElseIf Not IsVideo Then
-                                                If DirectCast(m.Object, ExchObj).IsPhoto Then
-                                                    If Not m.Post.ID.IsEmptyString AndAlso Not _TempPostsList.Contains(m.Post.ID) Then
-                                                        _TempPostsList.Add(m.Post.ID)
-                                                        _TempMediaList.ListAddValue(m, LNC)
+                                                If IsVideo AndAlso Not _TempPostsList.Contains(m.Post.ID) Then
+                                                    _TempPostsList.Add(m.Post.ID)
+                                                    _TempMediaList.ListAddValue(m, LNC)
+                                                    SearchPostsCount += 1
+                                                    If checkLimit.Invoke Then Exit Sub
+                                                ElseIf Not IsVideo Then
+                                                    If DirectCast(m.Object, ExchObj).IsPhoto Then
+                                                        If Not m.Post.ID.IsEmptyString AndAlso Not _TempPostsList.Contains(m.Post.ID) Then
+                                                            _TempPostsList.Add(m.Post.ID)
+                                                            _TempMediaList.ListAddValue(m, LNC)
+                                                        End If
+                                                    Else
+                                                        _TempPhotoData.ListAddValue(m, LNC)
                                                     End If
                                                 Else
-                                                    _TempPhotoData.ListAddValue(m, LNC)
+                                                    Exit Sub
                                                 End If
-                                            Else
-                                                Exit Sub
                                             End If
-                                        End If
-                                    Next
-                                End If
-                            End With
+                                        Next
+                                        Exit For
+                                    End If
+                                End With
+                            Next
                         End If
                     End Using
                 End If
 
+                containerNodes.Clear()
+
                 If (Not _TempMediaList.Count = cBefore Or skipped) And
-                   (IsChannel Or (MaxPage > 0 And Page < MaxPage)) Then DownloadData(Page + 1, IsVideo, Token)
+                   (IsChannel Or (MaxPage > 0 And Page < MaxPage) Or (Not SiteMode = SiteModes.User And Page < 1000)) Then DownloadData(Page + 1, IsVideo, Token)
             Catch ex As Exception
                 ProcessException(ex, Token, $"data downloading error [{URL}]")
             End Try
@@ -159,30 +326,64 @@ Namespace API.Xhamster
 #End Region
 #Region "Reparse video, photo"
         Protected Overrides Sub ReparseVideo(ByVal Token As CancellationToken)
-            Dim URL$ = String.Empty
+            If IsSubscription Then
+                ReparseVideoSubscriptions(Token)
+            Else
+                Try
+                    If _TempMediaList.Count > 0 AndAlso _TempMediaList.Exists(Function(tm) tm.Type = UTypes.VideoPre) Then
+                        Dim m As UserMedia, m2 As UserMedia
+                        ProgressPre.ChangeMax(_TempMediaList.Count)
+                        For i% = _TempMediaList.Count - 1 To 0 Step -1
+                            ProgressPre.Perform()
+                            If _TempMediaList(i).Type = UTypes.VideoPre Then
+                                m = _TempMediaList(i)
+                                If Not m.URL_BASE.IsEmptyString Then
+                                    m2 = Nothing
+                                    If GetM3U8(m2, m.URL_BASE) Then
+                                        m2.URL_BASE = m.URL_BASE
+                                        _TempMediaList(i) = m2
+                                    Else
+                                        m.State = UserMedia.States.Missing
+                                        _TempMediaList(i) = m
+                                    End If
+                                End If
+                            End If
+                        Next
+                    End If
+                Catch ex As Exception
+                    ProcessException(ex, Token, "video reparsing error", False)
+                End Try
+            End If
+        End Sub
+        Private Sub ReparseVideoSubscriptions(ByVal Token As CancellationToken)
             Try
                 If _TempMediaList.Count > 0 AndAlso _TempMediaList.Exists(Function(tm) tm.Type = UTypes.VideoPre) Then
                     Dim m As UserMedia, m2 As UserMedia
-                    ProgressPre.ChangeMax(_TempMediaList.Count)
+                    Dim c% = 0
+                    Progress.Maximum += _TempMediaList.Count
                     For i% = _TempMediaList.Count - 1 To 0 Step -1
-                        ProgressPre.Perform()
+                        Progress.Perform()
                         If _TempMediaList(i).Type = UTypes.VideoPre Then
-                            m = _TempMediaList(i)
-                            If Not m.URL_BASE.IsEmptyString Then
-                                m2 = Nothing
-                                If GetM3U8(m2, m.URL_BASE) Then
-                                    m2.URL_BASE = m.URL_BASE
-                                    _TempMediaList(i) = m2
-                                Else
-                                    m.State = UserMedia.States.Missing
-                                    _TempMediaList(i) = m
+                            If Not DownloadTopCount.HasValue OrElse c <= DownloadTopCount.Value Then
+                                m = _TempMediaList(i)
+                                If Not m.URL_BASE.IsEmptyString Then
+                                    m2 = Nothing
+                                    If GetM3U8(m2, m.URL_BASE) Then
+                                        m2.URL_BASE = m.URL_BASE
+                                        _TempMediaList(i) = m2
+                                        c += 1
+                                    Else
+                                        _TempMediaList.RemoveAt(i)
+                                    End If
                                 End If
+                            Else
+                                _TempMediaList.RemoveAt(i)
                             End If
                         End If
                     Next
                 End If
             Catch ex As Exception
-                ProcessException(ex, Token, "video reparsing error", False)
+                ProcessException(ex, Token, "subscriptions video reparsing error", False)
             End Try
         End Sub
         Private Overloads Sub ReparsePhoto(ByVal Token As CancellationToken)
@@ -277,7 +478,16 @@ Namespace API.Xhamster
                             If j.ListExists Then
                                 m = ExtractMedia(j("videoModel"), UTypes.VideoPre)
                                 m.URL_BASE = URL
-                                Return GetM3U8(m, j)
+                                If IsSubscription Then
+                                    With j("videoModel")
+                                        If .ListExists Then
+                                            m.URL = .Value("thumbURL").IfNullOrEmpty(.Value("previewThumbURL"))
+                                            Return Not m.URL.IsEmptyString
+                                        End If
+                                    End With
+                                Else
+                                    Return GetM3U8(m, j)
+                                End If
                             End If
                         End Using
                     End If

@@ -28,7 +28,7 @@ Namespace API.RedGifs
                 Return My.Resources.SiteResources.RedGifsPic_32
             End Get
         End Property
-        <PropertyOption(ControlToolTip:="Bearer token", AllowNull:=False), ControlNumber(1)>
+        <PropertyOption(ControlToolTip:="Bearer token", AllowNull:=False), DependentFields(NameOf(UserAgent)), ControlNumber(1)>
         Friend ReadOnly Property Token As PropertyValue
         <PropertyOption, ControlNumber(2)>
         Private ReadOnly Property UserAgent As PropertyValue
@@ -38,22 +38,6 @@ Namespace API.RedGifs
         <PropertyOption(ControlText:="Token refresh interval", ControlToolTip:="Interval (in minutes) to refresh the token", AllowNull:=False, LeftOffset:=120),
             PXML, ControlNumber(0)>
         Friend ReadOnly Property TokenUpdateInterval As PropertyValue
-        Private Class TokenIntervalProvider : Inherits FieldsCheckerProviderBase
-            Public Overrides Function Convert(ByVal Value As Object, ByVal DestinationType As Type, ByVal Provider As IFormatProvider,
-                                              Optional ByVal NothingArg As Object = Nothing, Optional ByVal e As ErrorsDescriber = Nothing) As Object
-                TypeError = False
-                ErrorMessage = String.Empty
-                If Not ACheck(Of Integer)(Value) Then
-                    TypeError = True
-                ElseIf CInt(Value) > 0 Then
-                    Return Value
-                Else
-                    ErrorMessage = $"The value of [{Name}] field must be greater than or equal to 1"
-                    HasError = True
-                End If
-                Return Nothing
-            End Function
-        End Class
         <Provider(NameOf(TokenUpdateInterval), FieldsChecker:=True)>
         Private ReadOnly Property TokenUpdateIntervalProvider As IFormatProvider
 #End Region
@@ -64,7 +48,6 @@ Namespace API.RedGifs
             Dim t$ = String.Empty
             With Responser
                 .Mode = Responser.Modes.WebClient
-                If Not .UserAgentExists Then .UserAgent = ParserUserAgent
                 .ClientWebUseCookies = False
                 .ClientWebUseHeaders = True
                 t = .Headers.Value(TokenName)
@@ -73,7 +56,8 @@ Namespace API.RedGifs
             UserAgent = New PropertyValue(Responser.UserAgent, GetType(String), Sub(v) UpdateResponse(NameOf(UserAgent), v))
             TokenLastDateUpdated = New PropertyValue(Now.AddYears(-1), GetType(Date))
             TokenUpdateInterval = New PropertyValue(60 * 12, GetType(Integer))
-            TokenUpdateIntervalProvider = New TokenIntervalProvider
+            TokenUpdateIntervalProvider = New TokenRefreshIntervalProvider
+            _AllowUserAgentUpdate = False
             UrlPatternUser = "https://www.redgifs.com/users/{0}/"
             UserRegex = RParams.DMS("[htps:/]{7,8}.*?redgifs.com/users/([^/]+)", 1)
             ImageVideoContains = "redgifs"

@@ -33,7 +33,7 @@ Namespace API
         End Property
         Friend Property CurrentlyEdited As Boolean = False
         Private _CollectionName As String = String.Empty
-        Friend Overrides Property CollectionName As String
+        Friend Overrides ReadOnly Property CollectionName As String
             Get
                 If Count > 0 Then
                     Return Collections(0).CollectionName
@@ -41,14 +41,29 @@ Namespace API
                     Return _CollectionName
                 End If
             End Get
-            Set(ByVal NewName As String)
-                ChangeCollectionName(NewName, True)
-            End Set
         End Property
-        Friend Overrides Sub ChangeCollectionName(ByVal NewName As String, ByVal UpdateSettings As Boolean)
-            _CollectionName = NewName
-            If Count > 0 Then Collections.ForEach(Sub(c) c.CollectionName = NewName)
+        Friend Sub ChangeVirtualCollectionName(ByVal NewName As String)
+            If Count > 0 And Not NewName.IsEmptyString Then
+                Dim u As UserInfo
+                For Each user As UserDataBase In Collections
+                    u = user.User
+                    u.CollectionName = NewName
+                    u.UpdateUserFile()
+                    user.User = u
+                    Settings.UpdateUsersList(u)
+                Next
+            End If
         End Sub
+        Private _CollectionPath As SFile = Nothing
+        Friend Overrides ReadOnly Property CollectionPath As SFile
+            Get
+                If Count > 0 And Not IsVirtual Then
+                    Dim _RealUser As UserDataBase = GetRealUser()
+                    If Not _RealUser Is Nothing Then Return _RealUser.User.SpecialCollectionPath
+                End If
+                Return _CollectionPath
+            End Get
+        End Property
         Friend Overrides ReadOnly Property Name As String
             Get
                 Return CollectionName
@@ -185,6 +200,43 @@ Namespace API
                 UpdateUserInformation()
             End Set
         End Property
+        Friend Overrides Property BackColor As Color?
+            Get
+                If Count > 0 Then
+                    With Collections.Select(Function(u) u.BackColor)
+                        If .All(Function(c) c.HasValue) Then
+                            Dim cc As Color = Collections(0).BackColor.Value
+                            If .All(Function(c) c.Value = cc) Then Return cc
+                        End If
+                    End With
+                End If
+                Return Nothing
+            End Get
+            Set(ByVal b As Color?)
+                If Count > 0 Then Collections.ForEach(Sub(c) c.BackColor = b)
+            End Set
+        End Property
+        Friend Overrides Property ForeColor As Color?
+            Get
+                If Count > 0 Then
+                    With Collections.Select(Function(u) u.ForeColor)
+                        If .All(Function(c) c.HasValue) Then
+                            Dim cc As Color = Collections(0).ForeColor.Value
+                            If .All(Function(c) c.Value = cc) Then Return cc
+                        End If
+                    End With
+                End If
+                Return Nothing
+            End Get
+            Set(ByVal f As Color?)
+                If Count > 0 Then Collections.ForEach(Sub(c) c.ForeColor = f)
+            End Set
+        End Property
+        Friend Overrides ReadOnly Property IsSubscription As Boolean
+            Get
+                Return Count > 0 AndAlso Collections.All(Function(u) u.IsSubscription)
+            End Get
+        End Property
         Friend Overrides Property ReadyForDownload As Boolean
             Get
                 Return Count > 0 AndAlso Collections(0).ReadyForDownload
@@ -200,6 +252,16 @@ Namespace API
                 Else
                     Return New List(Of String)
                 End If
+            End Get
+        End Property
+        Friend Overrides ReadOnly Property SpecialLabels As IEnumerable(Of String)
+            Get
+                If Count > 0 Then
+                    With Collections.SelectMany(Function(u As UserDataBase) u.SpecialLabels)
+                        If .ListExists Then Return .Distinct
+                    End With
+                End If
+                Return New String() {}
             End Get
         End Property
         Friend Overrides Function GetUserInformation() As String
@@ -268,6 +330,15 @@ Namespace API
                 End If
             End Get
         End Property
+        Friend ReadOnly Property ContextErase As ToolStripMenuItem()
+            Get
+                If Count > 0 Then
+                    Return Collections.Select(Function(c) DirectCast(c, UserDataBase).BTT_CONTEXT_ERASE).ToArray
+                Else
+                    Return New ToolStripMenuItem() {}
+                End If
+            End Get
+        End Property
         Friend ReadOnly Property ContextPath As ToolStripMenuItem()
             Get
                 If Count > 0 Then
@@ -293,9 +364,10 @@ Namespace API
             _IsCollection = True
             Collections = New List(Of IUserData)
         End Sub
-        Friend Sub New(ByVal _Name As String)
+        Friend Sub New(ByVal _Name As String, Optional ByVal _Path As SFile = Nothing)
             Me.New
-            CollectionName = _Name
+            _CollectionName = _Name
+            _CollectionPath = _Path
         End Sub
 #End Region
 #Region "Load, Update"
@@ -384,18 +456,13 @@ Namespace API
             Catch
             End Try
         End Sub
-        Friend Function GetRealUserFile() As SFile
+        Friend Function GetRealUser() As IUserData
             Dim i% = -1
             If Count > 0 Then i = Collections.FindIndex(RealUser)
-            If i >= 0 Then Return Collections(i).File Else Return Nothing
+            Return If(i >= 0, Collections(i), Nothing)
         End Function
-        Friend Function GetRealUserSpecialCollectionPath()
-            Dim _SpecialCollectionPath As SFile = Nothing
-            If Count > 0 And Not IsVirtual Then
-                Dim _RealUser As UserDataBase = Collections.Find(RealUser)
-                If Not _RealUser Is Nothing Then _SpecialCollectionPath = _RealUser.User.SpecialCollectionPath
-            End If
-            Return _SpecialCollectionPath
+        Friend Function GetRealUserFile() As SFile
+            Return If(GetRealUser()?.File, New SFile)
         End Function
 #End Region
 #Region "ICollection Support"
@@ -431,7 +498,7 @@ Namespace API
         ''' <exception cref="InvalidOperationException"></exception>
         Friend Overloads Sub Add(ByVal _Item As IUserData) Implements ICollection(Of IUserData).Add
             With _Item
-                If .MoveFiles(CollectionName, GetRealUserSpecialCollectionPath()) Then
+                If .MoveFiles(CollectionName, CollectionPath) Then
                     If Not _Item.IsVirtual And DataMerging Then DirectCast(.Self, UserDataBase).MergeData()
                     Collections.Add(_Item)
                     With Collections.Last
@@ -480,12 +547,7 @@ Namespace API
             End Try
         End Sub
         Private Sub ConsolidateLabels()
-            If Count > 1 Then
-                Dim l As New List(Of String)
-                Dim lp As New ListAddParams(LAP.ClearBeforeAdd)
-                l.ListAddList(Collections.SelectMany(Function(c) c.Labels), LNC)
-                Collections.ForEach(Sub(c) c.Labels.ListAddList(l, lp))
-            End If
+            UpdateLabels(Me, ListAddList(Nothing, Labels.ListWithRemove(SpecialLabels)), 1, True)
         End Sub
         Private Sub ConsolidateScripts()
             If Count > 1 AndAlso ScriptUse Then Collections.ForEach(Sub(c) c.ScriptUse = True)
@@ -520,7 +582,14 @@ Namespace API
             End If
         End Sub
 #End Region
-#Region "Remove, Delete"
+#Region "Erase, Remove, Delete"
+        Friend Overrides Function EraseData(ByVal Mode As IUserData.EraseMode) As Boolean
+            If Count > 0 Then
+                Return Collections.All(Function(u) u.EraseData(Mode))
+            Else
+                Return True
+            End If
+        End Function
         Friend Function Remove(ByVal _Item As IUserData) As Boolean Implements ICollection(Of IUserData).Remove
             If DataMerging Then
                 MsgBoxE($"Collection [{CollectionName}] data is already merged" & vbCr &

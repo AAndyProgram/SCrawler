@@ -48,11 +48,13 @@ Namespace Plugin.Hosts
                 .LogProvider = LogConnector
                 .Name = Name
                 .ID = ID
+                .Options = Options
                 .ParseUserMediaOnly = ParseUserMediaOnly
                 .UserDescription = UserDescription
                 .UserExists = .UserExists
                 .UserSuspended = UserSuspended
                 .IsSavedPosts = IsSavedPosts
+                .IsSubscription = IsSubscription
                 .SeparateVideoFolder = SeparateVideoFolderF
                 .DataPath = MyFile.CutPath.PathNoSeparator
                 .PostsNumberLimit = DownloadTopCount

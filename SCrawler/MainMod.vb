@@ -9,9 +9,7 @@
 Imports System.Runtime.CompilerServices
 Imports PersonalUtilities.Functions.XML.Objects
 Imports PersonalUtilities.Functions.RegularExpressions
-Imports PersonalUtilities.Forms.Toolbars
 Imports PersonalUtilities.Tools
-Imports PersonalUtilities.Tools.Web
 Imports SCrawler.API.Base
 Imports SCrawler.Plugin.Hosts
 Imports SCrawler.DownloadObjects
@@ -21,6 +19,8 @@ Friend Module MainMod
     Friend ReadOnly LinkPattern As RParams = RParams.DMS("[htps:]{0,6}[/]{0,2}(.+)", 1)
     Friend ReadOnly FilesPattern As RParams = RParams.DM("[^\./]+?\.\w+", 1, EDP.ReturnValue)
     Friend Delegate Sub NotificationEventHandler(ByVal Sender As SettingsCLS.NotificationObjects, ByVal Message As String)
+    Friend Delegate Sub UserDownloadStateChangedEventHandler(ByVal User As IUserData, ByVal IsDownloading As Boolean)
+    Friend Delegate Function PathMoverHandler(ByVal User As UserInfo, ByVal DestinationPattern As SFile) As SFile
     Friend Const LVI_TempOption As String = "Temp"
     Friend Const LVI_FavOption As String = "Favorite"
     Friend Const LVI_CollectionOption As String = "Collection"
@@ -68,6 +68,14 @@ Friend Module MainMod
         [Default] = 0
         Virtual = 1
     End Enum
+    Friend Enum PathCreationModel As Integer
+        Undefined = -1
+        Path = 1
+        Path_UserName = 2
+        Path_UserSite_UserName = 3
+        DefaultUser = Path_UserSite_UserName
+        Collection = 4
+    End Enum
     Friend Downloader As TDownloader
     Friend InfoForm As DownloadedInfoForm
     Friend VideoDownloader As STDownloader.VideoDownloaderForm
@@ -77,6 +85,8 @@ Friend Module MainMod
     Friend ReadOnly DateTimeDefaultProvider As New ADateTime(ADateTime.Formats.BaseDateTime)
     Friend ReadOnly FeedVideoLengthProvider As New ADateTime("hh\:mm\:ss") With {.TimeParseMode = ADateTime.TimeModes.TimeSpan}
     Friend ReadOnly UserExistsPredicate As New FPredicate(Of IUserData)(Function(u) u.Exists)
+    Friend ReadOnly UserExistsSubscriptionsPredicate As New FPredicate(Of IUserData)(Function(u) u.Exists And u.IsSubscription)
+    Friend ReadOnly UserExistsNonSubscriptionsPredicate As New FPredicate(Of IUserData)(Function(u) u.Exists And Not u.IsSubscription)
     Friend ReadOnly LogConnector As New LogHost
     Friend DefaultUserAgent As String = String.Empty
 #Region "File name operations"
@@ -91,6 +101,11 @@ Friend Module MainMod
     End Class
 #End Region
     Friend Property MainProgress As MyProgressExt
+    Friend Sub ShowOperationCanceledMsg(Optional ByVal MsgTitle As String = Nothing)
+        Dim m As New MMessage("Operation canceled")
+        If Not MsgTitle.IsEmptyString Then m.Title = MsgTitle
+        m.Show()
+    End Sub
     Friend Function GetLviGroupName(ByVal Host As SettingsHost, ByVal IsCollection As Boolean) As ListViewGroup()
         Dim l As New List(Of ListViewGroup)
         Dim t$
@@ -125,8 +140,11 @@ Friend Module MainMod
         End If
     End Function
     Friend Sub CheckVersion(ByVal Force As Boolean)
-        If Settings.CheckUpdatesAtStart Or Force Then _
-           GitHub.DefaultVersionChecker(My.Application.Info.Version, "AAndyProgram", "SCrawler",
-                                        Settings.LatestVersion.Value, Settings.ShowNewVersionNotification.Value, Force)
+        With Settings
+            If .CheckUpdatesAtStart Or Force Then
+                ShowProgramInfo(.ProgramText.Value.IfNullOrEmpty("SCrawler"), My.Application.Info.Version, True, Force, .Self, False,
+                                .LatestVersion.Value, .ShowNewVersionNotification.Value, .ProgramDescription)
+            End If
+        End With
     End Sub
 End Module

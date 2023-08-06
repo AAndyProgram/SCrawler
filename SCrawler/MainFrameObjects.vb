@@ -62,6 +62,9 @@ Friend Class MainFrameObjects : Implements INotificator
     Friend Sub UpdateLogButton()
         MyMainLOG_UpdateLogButton(MF.BTT_LOG, MF.Toolbar_TOP)
     End Sub
+    Friend Function GetUserListProvider(ByVal WithCollections As Boolean) As IFormatProvider
+        Return MF.GetUserListProvider(WithCollections)
+    End Function
 #End Region
 #Region "Notifications"
     Private Sub INotificator_ShowNotification(ByVal Text As String, ByVal Image As SFile) Implements INotificator.ShowNotification

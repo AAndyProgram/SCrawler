@@ -12,11 +12,12 @@ Imports SCrawler.Plugin.Hosts
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.XML.Base
 Partial Friend Module MainMod
-    Friend Structure UserInfo : Implements IComparable(Of UserInfo), IEquatable(Of UserInfo), ICloneable, IEContainerProvider
+    Friend Structure UserInfo : Implements IComparable(Of UserInfo), IEquatable(Of UserInfo), IEContainerProvider
 #Region "XML Names"
         Friend Const Name_UserNode As String = "User"
         Friend Const Name_Site As String = "Site"
         Friend Const Name_Plugin As String = "Plugin"
+        Friend Const Name_IsSubscription As String = "IsSubscription"
         Friend Const Name_Collection As String = "Collection"
         Friend Const Name_Model_User As String = "ModelUser"
         Friend Const Name_Model_Collection As String = "ModelCollection"
@@ -30,6 +31,7 @@ Partial Friend Module MainMod
         Friend Site As String
         Friend Plugin As String
         Friend File As SFile
+        Friend IsSubscription As Boolean
         Friend SpecialPath As SFile
         Friend SpecialCollectionPath As SFile
         Friend Merged As Boolean
@@ -65,6 +67,7 @@ Partial Friend Module MainMod
             Name = x.Value
             Site = x.Attribute(Name_Site).Value
             Plugin = x.Attribute(Name_Plugin).Value
+            IsSubscription = x.Attribute(Name_IsSubscription).Value.FromXML(Of Boolean)(False)
             CollectionName = x.Attribute(Name_Collection).Value
             CollectionModel = x.Attribute(Name_Model_Collection).Value.FromXML(Of Integer)(UsageModel.Default)
             UserModel = x.Attribute(Name_Model_User).Value.FromXML(Of Integer)(UsageModel.Default)
@@ -101,6 +104,7 @@ Partial Friend Module MainMod
         End Function
 #End Region
 #Region "FilePath"
+        Friend Const CollectionUserPathPattern As String = "{0}\{1}_{2}\"
         Friend Sub UpdateUserFile()
             File = New SFile With {
                 .Separator = "\",
@@ -109,23 +113,39 @@ Partial Friend Module MainMod
                 .Name = $"{UserDataBase.UserFileAppender}_{Site}_{Name}"
             }
         End Sub
+        Friend Function GetCollectionRootPath() As SFile
+            If IncludedInCollection And Not IsVirtual Then
+                Dim ColPath$ = If(SpecialCollectionPath.IsEmptyString, Settings.CollectionsPathF, SpecialCollectionPath).PathNoSeparator
+                If SpecialCollectionPath.IsEmptyString Then ColPath &= $"\{CollectionName}"
+                Return ColPath.CSFileP
+            Else
+                Return Nothing
+            End If
+        End Function
         Private Function GetFilePathByParams() As String
             If [Protected] Then Return String.Empty
-            Dim ColPath$ = If(SpecialCollectionPath.IsEmptyString, Settings.CollectionsPathF, SpecialCollectionPath).PathNoSeparator
-            If SpecialCollectionPath.IsEmptyString Then ColPath &= $"\{CollectionName}"
-            If Not SpecialPath.IsEmptyString Then
-                Return $"{SpecialPath.PathWithSeparator}{SettingsFolderName}"
-            ElseIf Merged And IncludedInCollection Then
-                Return $"{ColPath}\{SettingsFolderName}"
-            Else
-                If IncludedInCollection And Not IsVirtual Then
-                    Return $"{ColPath}\{Site}_{Name}\{SettingsFolderName}"
-                ElseIf Not Settings(Plugin) Is Nothing Then
-                    Return $"{Settings(Plugin).Path.PathNoSeparator}\{Name}\{SettingsFolderName}"
+            If IsSubscription Then
+                If Not Settings(Plugin) Is Nothing Then
+                    Return $"{Application.StartupPath.CSFilePSN}\{SettingsFolderName}\Subscriptions\{Settings(Plugin).Key}\{Name}\{SettingsFolderName}"
                 Else
-                    Dim s$ = Site.ToLower
-                    Dim i% = Settings.Plugins.FindIndex(Function(p) p.Name.ToLower = s)
-                    If i >= 0 Then Return $"{Settings.Plugins(i).Settings.Path.PathNoSeparator}\{Name}\{SettingsFolderName}" Else Return String.Empty
+                    Return String.Empty
+                End If
+            Else
+                Dim ColPath$ = GetCollectionRootPath().PathNoSeparator
+                If Not SpecialPath.IsEmptyString Then
+                    Return $"{SpecialPath.PathWithSeparator}{SettingsFolderName}"
+                ElseIf Merged And IncludedInCollection Then
+                    Return $"{ColPath}\{SettingsFolderName}"
+                Else
+                    If IncludedInCollection And Not IsVirtual Then
+                        Return $"{String.Format(CollectionUserPathPattern, ColPath, Site, Name)}{SettingsFolderName}"
+                    ElseIf Not Settings(Plugin) Is Nothing Then
+                        Return $"{Settings(Plugin).Path.PathNoSeparator}\{Name}\{SettingsFolderName}"
+                    Else
+                        Dim s$ = Site.ToLower
+                        Dim i% = Settings.Plugins.FindIndex(Function(p) p.Name.ToLower = s)
+                        If i >= 0 Then Return $"{Settings.Plugins(i).Settings.Path.PathNoSeparator}\{Name}\{SettingsFolderName}" Else Return String.Empty
+                    End If
                 End If
             End If
         End Function
@@ -134,6 +154,7 @@ Partial Friend Module MainMod
         Friend Function ToEContainer(Optional ByVal e As ErrorsDescriber = Nothing) As EContainer Implements IEContainerProvider.ToEContainer
             Return New EContainer(Name_UserNode, Name, {New EAttribute(Name_Site, Site),
                                                         New EAttribute(Name_Plugin, Plugin),
+                                                        New EAttribute(Name_IsSubscription, IsSubscription.BoolToInteger),
                                                         New EAttribute(Name_Collection, CollectionName),
                                                         New EAttribute(Name_Model_User, CInt(UserModel)),
                                                         New EAttribute(Name_Model_Collection, CInt(CollectionModel)),
@@ -155,26 +176,10 @@ Partial Friend Module MainMod
 #Region "IEquatable Support"
         Friend Overloads Function Equals(ByVal Other As UserInfo) As Boolean Implements IEquatable(Of UserInfo).Equals
             Return Site.StringToLower = Other.Site.StringToLower And Name.StringToLower = Other.Name.StringToLower And
-                   (Not Plugin = PathPlugin.PluginKey Or SpecialPath = Other.SpecialPath)
+                   IsSubscription = Other.IsSubscription And (Not Plugin = PathPlugin.PluginKey Or SpecialPath = Other.SpecialPath)
         End Function
         Public Overloads Overrides Function Equals(ByVal Obj As Object) As Boolean
             Return Equals(DirectCast(Obj, UserInfo))
-        End Function
-#End Region
-#Region "ICloneable Support"
-        Friend Function Clone() As Object Implements ICloneable.Clone
-            Return New UserInfo With {
-                .Name = Name,
-                .Site = Site,
-                .Plugin = Plugin,
-                .File = File,
-                .SpecialPath = SpecialPath,
-                .Merged = Merged,
-                .CollectionName = CollectionName,
-                .CollectionModel = CollectionModel,
-                .UserModel = UserModel,
-                .[Protected] = [Protected]
-            }
         End Function
 #End Region
     End Structure

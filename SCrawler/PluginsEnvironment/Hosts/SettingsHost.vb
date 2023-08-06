@@ -132,17 +132,6 @@ Namespace Plugin.Hosts
         End Property
         Friend ReadOnly Property GetUserMediaOnly As XMLValue(Of Boolean)
 #End Region
-#Region "Host internal functions"
-        Private Sub PropHost_OnPropertyUpdateRequested(ByVal Sender As PropertyValueHost)
-            If Sender.UpdateDependencies.ListExists Then
-                Settings.BeginUpdate()
-                For Each p As PropertyValueHost In PropList
-                    If Sender.UpdateDependencies.Contains(p.Name) Then p.UpdateValueByControl()
-                Next
-                Settings.EndUpdate()
-            End If
-        End Sub
-#End Region
         Friend Sub New(ByVal Plugin As ISiteSettings, ByRef _XML As XmlFile, ByVal GlobalPath As SFile,
                        ByRef _Temp As XMLValue(Of Boolean), ByRef _Imgs As XMLValue(Of Boolean), ByRef _Vids As XMLValue(Of Boolean))
             Source = Plugin
@@ -188,10 +177,11 @@ Namespace Plugin.Hosts
                 Dim Updaters As New List(Of MemberInfo)
                 Dim Providers As New List(Of MemberInfo)
                 Dim PropCheckers As New List(Of MemberInfo)
+
                 Dim m As MemberInfo
                 For Each m In Members
                     If m.MemberType = MemberTypes.Property Then
-                        PropList.Add(New PropertyValueHost(Source, m))
+                        PropList.Add(New PropertyValueHost(Me, Source, m))
                         With DirectCast(m, PropertyInfo)
                             If .PropertyType Is GetType(Responser) AndAlso m.GetCustomAttribute(Of DoNotUse)() Is Nothing Then _ResponserGetMethod = .GetMethod
                         End With
@@ -218,7 +208,7 @@ Namespace Plugin.Hosts
                     For Each m In Updaters
                         up = m.GetCustomAttribute(Of PropertyUpdater)()
                         i = PropList.FindIndex(Function(p) p.Name = up.Name)
-                        If i >= 0 Then PropList(i).SetUpdateMethod(DirectCast(m, MethodInfo), up.Dependencies)
+                        If i >= 0 Then PropList(i).SetUpdateMethod(DirectCast(m, MethodInfo), up.Arguments)
                     Next
                     Updaters.Clear()
                 End If
@@ -252,6 +242,7 @@ Namespace Plugin.Hosts
                     Next
                     PropCheckers.Clear()
                 End If
+                PropList.ForEach(Sub(p) p.SetDependents(PropList))
             End If
 
             _Path = New XMLValue(Of SFile)("Path",, _XML, n, New XMLToFilePathProvider)
@@ -277,7 +268,6 @@ Namespace Plugin.Hosts
                 For Each p As PropertyValueHost In PropList
                     p.SetXmlEnvironment(_XML, n)
                     p.LeftOffset = MaxOffset
-                    AddHandler p.OnPropertyUpdateRequested, AddressOf PropHost_OnPropertyUpdateRequested
                 Next
             End If
 

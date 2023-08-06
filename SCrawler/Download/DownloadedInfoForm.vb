@@ -16,7 +16,6 @@ Namespace DownloadObjects
 #End Region
 #Region "Declarations"
         Private MyView As FormView
-        Private ReadOnly LParams As New ListAddParams(LAP.IgnoreICopier) With {.Error = EDP.None}
         Private Opened As Boolean = False
         Friend ReadOnly Property ReadyToOpen As Boolean
             Get
@@ -35,12 +34,29 @@ Namespace DownloadObjects
                 Settings.InfoViewMode.Value = CInt(SMode)
             End Set
         End Property
-        Private ReadOnly _TempUsersList As List(Of IUserData)
+        Private ReadOnly _UsersListSession As List(Of IUserData)
+        Private ReadOnly _UsersListAll As List(Of IUserData)
+        Private ReadOnly Property Current As List(Of IUserData)
+            Get
+                Return If(ViewMode = ViewModes.All, _UsersListAll, _UsersListSession)
+            End Get
+        End Property
+        Private Overloads ReadOnly Property SelectedUser As IUserData
+            Get
+                If ViewMode = ViewModes.All Then
+                    If _LatestSelected.ValueBetween(0, _UsersListAll.Count - 1) Then Return _UsersListAll(_LatestSelected)
+                Else
+                    If _LatestSelected.ValueBetween(0, _UsersListSession.Count - 1) Then Return _UsersListSession(_LatestSelected)
+                End If
+                Return Nothing
+            End Get
+        End Property
 #End Region
 #Region "Initializer"
         Public Sub New()
             InitializeComponent()
-            _TempUsersList = New List(Of IUserData)
+            _UsersListSession = New List(Of IUserData)
+            _UsersListAll = New List(Of IUserData)
             If Settings.InfoViewMode.Value = CInt(ViewModes.All) Then
                 MENU_VIEW_SESSION.Checked = False
                 MENU_VIEW_ALL.Checked = True
@@ -48,6 +64,8 @@ Namespace DownloadObjects
                 MENU_VIEW_SESSION.Checked = True
                 MENU_VIEW_ALL.Checked = False
             End If
+            OPT_DEFAULT.Checked = Settings.InfoViewDefault
+            OPT_SUBSCRIPTIONS.Checked = Not Settings.InfoViewDefault
             Settings.InfoViewMode.Value = ViewMode
             RefillList()
         End Sub
@@ -56,8 +74,8 @@ Namespace DownloadObjects
         Private Sub DownloadedInfoForm_Load(sender As Object, e As EventArgs) Handles Me.Load
             Try
                 If MyView Is Nothing Then
-                    MyView = New FormView(Me)
-                    MyView.Import(Settings.Design)
+                    MyView = New FormView(Me, Settings.Design)
+                    MyView.Import()
                     MyView.SetFormSize()
                 End If
                 BTT_CLEAR.Visible = ViewMode = ViewModes.Session
@@ -72,8 +90,9 @@ Namespace DownloadObjects
             Hide()
         End Sub
         Private Sub DownloadedInfoForm_Disposed(sender As Object, e As EventArgs) Handles Me.Disposed
-            If Not MyView Is Nothing Then MyView.Dispose(Settings.Design)
-            _TempUsersList.Clear()
+            MyView.DisposeIfReady()
+            _UsersListSession.Clear()
+            _UsersListAll.Clear()
         End Sub
         Private Sub DownloadedInfoForm_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
             Dim b As Boolean = True
@@ -98,25 +117,36 @@ Namespace DownloadObjects
         End Class
         Private Sub RefillList() Handles BTT_REFRESH.Click
             Try
-                _TempUsersList.Clear()
                 Dim lClear As Action = Sub() LIST_DOWN.Items.Clear()
                 If LIST_DOWN.InvokeRequired Then LIST_DOWN.Invoke(lClear) Else lClear.Invoke
                 If ViewMode = ViewModes.Session Then
-                    _TempUsersList.ListAddList(Downloader.Downloaded, LParams)
+                    With Downloader.Downloaded
+                        If .Count > 0 Then
+                            With .Select(Function(u) Settings.GetUser(u, False)).Reverse
+                                If _UsersListSession.Count > 0 Then _UsersListSession.ListWithRemove(.Self)
+                                If _UsersListSession.Count > 0 Then
+                                    _UsersListSession.InsertRange(0, .Self)
+                                Else
+                                    _UsersListSession.AddRange(.Self)
+                                End If
+                            End With
+                        End If
+                    End With
                 Else
-                    _TempUsersList.ListAddList(Settings.Users.SelectMany(Of IUserData) _
-                                              (Function(u) If(u.IsCollection, DirectCast(u, API.UserDataBind).Collections, {u})), LParams)
+                    _UsersListAll.ListAddList(Settings.GetUsers(Function(u) True), LAP.ClearBeforeAdd)
+                    If _UsersListAll.Count > 0 Then _UsersListAll.Sort(New UsersDateOrder)
                 End If
-                If _TempUsersList.Count > 0 Then
-                    _TempUsersList.Sort(New UsersDateOrder)
-                    For Each user As IUserData In _TempUsersList
+                Dim isDefault As Boolean = OPT_DEFAULT.Checked
+                If Current.Count > 0 Then Current.RemoveAll(Function(u) u.IsSubscription = isDefault)
+                If Current.Count > 0 Then
+                    For Each user As IUserData In Current
                         If LIST_DOWN.InvokeRequired Then
                             LIST_DOWN.Invoke(Sub() LIST_DOWN.Items.Add(user.DownloadedInformation))
                         Else
                             LIST_DOWN.Items.Add(user.DownloadedInformation)
                         End If
                     Next
-                    If _LatestSelected >= 0 AndAlso _LatestSelected <= LIST_DOWN.Items.Count - 1 Then
+                    If _LatestSelected.ValueBetween(0, LIST_DOWN.Items.Count - 1) Then
                         Dim aSel As Action = Sub() LIST_DOWN.SelectedIndex = _LatestSelected
                         If LIST_DOWN.InvokeRequired Then LIST_DOWN.Invoke(aSel) Else aSel.Invoke
                     Else
@@ -125,6 +155,7 @@ Namespace DownloadObjects
                 Else
                     _LatestSelected = -1
                 End If
+            Catch ies As InvalidOperationException
             Catch ex As Exception
                 ErrorsDescriber.Execute(EDP.SendToLog, ex, "[DownloadedInfoForm.RefillList]")
             Finally
@@ -133,34 +164,40 @@ Namespace DownloadObjects
         End Sub
 #End Region
 #Region "Toolbar controls"
-        Private Sub MENU_VIEW_SESSION_Click(sender As Object, e As EventArgs) Handles MENU_VIEW_SESSION.Click
-            MENU_VIEW_SESSION.Checked = True
-            MENU_VIEW_ALL.Checked = False
-            ViewMode = ViewModes.Session
-            BTT_CLEAR.Visible = True
-            RefillList()
+        Private Sub MENU_VIEW_Click(ByVal Sender As ToolStripMenuItem, ByVal e As EventArgs) Handles MENU_VIEW_SESSION.Click, MENU_VIEW_ALL.Click
+            Dim __refill As Boolean = False
+            Dim clicked As ToolStripMenuItem = Sender
+            Dim other As ToolStripMenuItem = If(Sender Is MENU_VIEW_SESSION, MENU_VIEW_ALL, MENU_VIEW_SESSION)
+            If other.Checked Then
+                clicked.Checked = True
+                other.Checked = False
+                __refill = True
+            Else
+                clicked.Checked = False
+            End If
+            ViewMode = IIf(MENU_VIEW_SESSION.Checked, ViewModes.Session, ViewModes.All)
+            ControlInvokeFast(ToolbarTOP, BTT_CLEAR, Sub() BTT_CLEAR.Visible = ViewMode = ViewModes.Session)
+            If __refill Then RefillList()
         End Sub
-        Private Sub MENU_VIEW_ALL_Click(sender As Object, e As EventArgs) Handles MENU_VIEW_ALL.Click
-            MENU_VIEW_SESSION.Checked = False
-            MENU_VIEW_ALL.Checked = True
-            ViewMode = ViewModes.All
-            BTT_CLEAR.Visible = False
-            RefillList()
+        Private Sub OPT_Click(ByVal Sender As ToolStripMenuItem, ByVal e As EventArgs) Handles OPT_DEFAULT.Click, OPT_SUBSCRIPTIONS.Click
+            Dim __refill As Boolean = False
+            Dim clicked As ToolStripMenuItem = Sender
+            Dim other As ToolStripMenuItem = If(Sender Is OPT_DEFAULT, OPT_SUBSCRIPTIONS, OPT_DEFAULT)
+            If other.Checked Then
+                clicked.Checked = True
+                other.Checked = False
+                __refill = True
+            Else
+                clicked.Checked = False
+            End If
+            Settings.InfoViewDefault.Value = OPT_DEFAULT.Checked
+            If __refill Then RefillList()
         End Sub
         Private Sub BTT_FIND_Click(sender As Object, e As EventArgs) Handles BTT_FIND.Click
-            Try
-                If _LatestSelected.ValueBetween(0, LIST_DOWN.Items.Count - 1) AndAlso _LatestSelected.ValueBetween(0, Downloader.Downloaded.Count - 1) Then
-                    Dim u As IUserData = Settings.GetUser(_TempUsersList(_LatestSelected), True)
-                    If Not u Is Nothing Then RaiseEvent UserFind(u.Key)
-                End If
-            Catch ex As Exception
-            End Try
+            Try : RaiseEvent UserFind(If(Settings.GetUser(SelectedUser, True)?.Key, String.Empty)) : Catch : End Try
         End Sub
         Private Sub BTT_CLEAR_Click(sender As Object, e As EventArgs) Handles BTT_CLEAR.Click
-            If LIST_DOWN.Items.Count > 0 Then
-                Downloader.Downloaded.Clear()
-                RefillList()
-            End If
+            If LIST_DOWN.Items.Count > 0 Then Downloader.Downloaded.Clear() : RefillList()
         End Sub
 #End Region
 #Region "List handlers"
@@ -171,8 +208,8 @@ Namespace DownloadObjects
         End Sub
         Private Sub LIST_DOWN_MouseDoubleClick(sender As Object, e As MouseEventArgs) Handles LIST_DOWN.MouseDoubleClick
             Try
-                If _LatestSelected.ValueBetween(0, _TempUsersList.Count - 1) AndAlso
-                   Not DirectCast(_TempUsersList(_LatestSelected), UserDataBase).Disposed Then _TempUsersList(_LatestSelected).OpenFolder()
+                Dim u As IUserData = SelectedUser
+                If Not If(u?.Disposed, True) Then u.OpenFolder()
             Catch
             End Try
         End Sub
@@ -191,17 +228,12 @@ Namespace DownloadObjects
                     u = _LatestSelected > 0
                     d = _LatestSelected < .Items.Count - 1
                 End If
-                Dim a As Action = Sub()
-                                      BTT_UP.Enabled = u
-                                      BTT_DOWN.Enabled = d
-                                  End Sub
-                If ToolbarTOP.InvokeRequired Then ToolbarTOP.Invoke(a) Else a.Invoke
-                a = Nothing
-                If Offset.HasValue AndAlso .Items.Count > 0 AndAlso
-                   (_LatestSelected + Offset.Value).ValueBetween(0, .Items.Count - 1) Then a = Sub() .SelectedIndex = _LatestSelected + Offset.Value
-                If Not a Is Nothing Then
-                    If LIST_DOWN.InvokeRequired Then LIST_DOWN.Invoke(a) Else a.Invoke
-                End If
+                ControlInvokeFast(ToolbarTOP, BTT_UP, Sub()
+                                                          BTT_UP.Enabled = u
+                                                          BTT_DOWN.Enabled = d
+                                                      End Sub, EDP.None)
+                If Offset.HasValue AndAlso .Items.Count > 0 AndAlso (_LatestSelected + Offset.Value).ValueBetween(0, .Items.Count - 1) Then _
+                   ControlInvokeFast(LIST_DOWN, Sub() .SelectedIndex = _LatestSelected + Offset.Value, EDP.None)
             End With
         End Sub
 #End Region

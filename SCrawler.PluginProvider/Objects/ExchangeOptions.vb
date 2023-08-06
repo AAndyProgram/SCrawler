@@ -11,6 +11,7 @@ Namespace Plugin
         Public UserName As String
         Public SiteName As String
         Public HostKey As String
+        Public Options As String
         Public Exists As Boolean
         Public Sub New(ByVal Site As String, ByVal Name As String)
             UserName = Name

@@ -16,9 +16,15 @@ Imports PersonalUtilities.Forms.Controls.Base
 Imports ADB = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons
 Namespace Plugin.Hosts
     Friend Class PropertyValueHost : Implements IPropertyValue, IComparable(Of PropertyValueHost)
-        Friend Const LeftOffsetDefault As Integer = 100
-        Friend Event OnPropertyUpdateRequested(ByVal Sender As PropertyValueHost)
+#Region "Events"
         Private Event ValueChanged As IPropertyValue.ValueChangedEventHandler Implements IPropertyValue.ValueChanged
+#End Region
+#Region "Declarations"
+        Private ReadOnly Keeper As SettingsHost
+        Protected Source As Object 'ReadOnly
+        Protected Member As MemberInfo
+        Friend ReadOnly Options As PropertyOption
+        Friend Overridable ReadOnly Property Name As String
         Protected _Type As Type
         Friend Overridable Property [Type] As Type Implements IPropertyValue.Type
             Get
@@ -28,6 +34,11 @@ Namespace Plugin.Hosts
                 _Type = t
             End Set
         End Property
+        Friend ReadOnly IsTaskCounter As Boolean
+        Friend ReadOnly Exists As Boolean = False
+#Region "XML"
+        Private ReadOnly _XmlName As String
+#End Region
 #Region "Control"
         Friend Property Control As Control
         Protected ControlNumber As Integer = -1
@@ -39,6 +50,20 @@ Namespace Plugin.Hosts
                     Return 0
                 End If
             End Get
+        End Property
+        Friend Const LeftOffsetDefault As Integer = 100
+        Protected _LeftOffset As Integer? = Nothing
+        Friend Overridable Property LeftOffset As Integer
+            Get
+                If _LeftOffset.HasValue Then
+                    Return _LeftOffset
+                Else
+                    Return If(Options?.LeftOffset, LeftOffsetDefault)
+                End If
+            End Get
+            Set(ByVal NewOffset As Integer)
+                _LeftOffset = NewOffset
+            End Set
         End Property
         Protected Overridable ReadOnly Property Control_ThreeStates As Boolean
             Get
@@ -91,7 +116,11 @@ Namespace Plugin.Hosts
                     With DirectCast(Control, TextBoxExtended)
                         .CaptionText = Control_Caption
                         .CaptionToolTipEnabled = Not Control_ToolTip.IsEmptyString
-                        .CaptionWidth = LeftOffset
+                        If LeftOffset > 0 Then
+                            .CaptionWidth = LeftOffset
+                        Else
+                            Using l As New Label : .CaptionWidth = .CaptionText.MeasureTextDefault(l.Font).Width : End Using
+                        End If
                         If Not Control_ToolTip.IsEmptyString Then .CaptionToolTipText = Control_ToolTip : .CaptionToolTipEnabled = True
                         .Text = CStr(AConvert(Of String)(Value, String.Empty))
                         With .Buttons
@@ -114,9 +143,19 @@ Namespace Plugin.Hosts
         Private Sub TextBoxClick(ByVal Sender As ActionButton, ByVal e As EventArgs)
             Try
                 If Sender.DefaultButton = ADB.Refresh AndAlso Not Source Is Nothing AndAlso Not UpdateMethod Is Nothing Then
-                    If CBool(UpdateMethod.Invoke(Source, Nothing)) Then
-                        RaiseEvent OnPropertyUpdateRequested(Me)
+                    Dim args As Object = Nothing
+                    Dim i%
+                    If UpdateMethodArguments.ListExists Then
+                        Dim a As New List(Of String)
+                        For Each arg$ In UpdateMethodArguments
+                            i = Keeper.PropList.FindIndex(Function(p) Not p Is Me And p.Name = arg)
+                            If i >= 0 Then a.Add(AConvert(Of String)(Keeper.PropList(i).GetControlValue(), String.Empty)) Else a.Add(String.Empty)
+                        Next
+                        If a.Count > 0 Then args = a.ToArray
+                    End If
+                    If CBool(UpdateMethod.Invoke(Source, args)) Then
                         DirectCast(Control, TextBoxExtended).Text = CStr(AConvert(Of String)(Value, String.Empty))
+                        If Dependents.Count > 0 Then Dependents.ForEach(Sub(d) d.UpdateDependence())
                     End If
                 End If
             Catch ex As Exception
@@ -158,29 +197,7 @@ Namespace Plugin.Hosts
                 Return Nothing
             End If
         End Function
-        Private Sub UpdateProviderPropertyName()
-            If ProviderValueIsPropertyProvider Then DirectCast(ProviderValue, IPropertyProvider).PropertyName = Name
-        End Sub
 #End Region
-#Region "Compatibility"
-        Protected Source As Object 'ReadOnly
-        Protected Member As MemberInfo
-        Friend Overridable ReadOnly Property Name As String
-        Private ReadOnly _XmlName As String
-        Friend ReadOnly Options As PropertyOption
-        Protected _LeftOffset As Integer? = Nothing
-        Friend Overridable Property LeftOffset As Integer
-            Get
-                If _LeftOffset.HasValue Then
-                    Return _LeftOffset
-                Else
-                    Return If(Options?.LeftOffset, LeftOffsetDefault)
-                End If
-            End Get
-            Set(ByVal NewOffset As Integer)
-                _LeftOffset = NewOffset
-            End Set
-        End Property
 #Region "Providers"
         Friend Property ProviderFieldsChecker As IFormatProvider
         Private Property ProviderValue As IFormatProvider
@@ -195,27 +212,37 @@ Namespace Plugin.Hosts
                 ProviderValueInteraction = Instance.Interaction
             End If
         End Sub
+        Private Sub UpdateProviderPropertyName()
+            If ProviderValueIsPropertyProvider Then DirectCast(ProviderValue, IPropertyProvider).PropertyName = Name
+        End Sub
 #End Region
+#Region "Updaters, Checkers"
         Friend PropertiesChecking As String()
         Friend PropertiesCheckingMethod As MethodInfo
         Private UpdateMethod As MethodInfo
-        Private _UpdateDependencies As String() = Nothing
-        Friend ReadOnly Property UpdateDependencies As String()
-            Get
-                Return _UpdateDependencies
-            End Get
-        End Property
-        Friend Sub SetUpdateMethod(ByVal m As MethodInfo, ByVal Dependencies As String())
+        Private UpdateMethodArguments As String()
+        Friend Sub SetUpdateMethod(ByVal m As MethodInfo, ByVal _UpdateMethodArguments As String())
             UpdateMethod = m
-            _UpdateDependencies = Dependencies
+            UpdateMethodArguments = _UpdateMethodArguments
         End Sub
-        Friend ReadOnly IsTaskCounter As Boolean
 #End Region
-        Friend ReadOnly Exists As Boolean = False
+#Region "Dependents"
+        Private ReadOnly DependentNames As New List(Of String)
+        Private ReadOnly Dependents As New List(Of PropertyValueHost)
+        Private Sub UpdateDependence()
+            If TypeOf Control Is CheckBox Then
+                DirectCast(Control, CheckBox).Checked = CBool(AConvert(Of Boolean)(Value, False))
+            Else
+                DirectCast(Control, TextBoxExtended).Text = CStr(AConvert(Of String)(Value, String.Empty))
+            End If
+        End Sub
+#End Region
+#End Region
 #Region "Initializer"
         Protected Sub New()
         End Sub
-        Friend Sub New(ByRef PropertySource As Object, ByVal Member As MemberInfo)
+        Friend Sub New(ByRef Keeper As SettingsHost, ByRef PropertySource As Object, ByVal Member As MemberInfo)
+            Me.Keeper = Keeper
             Source = PropertySource
             Name = Member.Name
 
@@ -229,6 +256,7 @@ Namespace Plugin.Hosts
                 IsTaskCounter = Not Member.GetCustomAttribute(Of TaskCounter)() Is Nothing
                 _XmlName = If(Member.GetCustomAttribute(Of PXML)()?.ElementName, String.Empty)
                 If Not _XmlName.IsEmptyString Then XValue = CreateXMLValueInstance([Type], True)
+                DependentNames.ListAddList(Member.GetCustomAttribute(Of DependentFields)?.Fields, LAP.NotContainsOnly)
                 Exists = True
             End If
         End Sub
@@ -237,6 +265,13 @@ Namespace Plugin.Hosts
             If Not _XmlName.IsEmptyString And Not XValue Is Nothing Then
                 XValue.SetEnvironment(_XmlName, _Value, Container, _Nodes, If(ProviderValue, FormatProvider))
                 Value(False) = XValue.Value
+            End If
+        End Sub
+        Friend Sub SetDependents(ByVal Props As List(Of PropertyValueHost))
+            If DependentNames.Count > 0 And Props.Count > 0 Then
+                For Each prop As PropertyValueHost In Props
+                    If DependentNames.Contains(prop.Name) Then Dependents.Add(prop)
+                Next
             End If
         End Sub
 #End Region

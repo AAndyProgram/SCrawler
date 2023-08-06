@@ -75,6 +75,7 @@ Namespace API.Reddit
             ProgressPre = New PreProgress(Progress)
             Me.UsePreProgress = UsePreProgress
             Cache = New CacheKeeper($"{OutFile.PathWithSeparator}_{Base.M3U8Base.TempCacheFolderName}\")
+            Cache.CacheDeleteError = Base.CacheDeletionError(Cache)
             CacheFiles = Cache.NewInstance
         End Sub
 #Region "Internal functions"

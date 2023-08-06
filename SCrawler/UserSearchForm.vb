@@ -24,14 +24,14 @@ Friend Class UserSearchForm
         Friend Sub New(ByVal User As IUserData, ByVal Mode As Modes)
             Key = User.Key
             IsCollection = User.IsCollection
-            Text = $"[{IIf(IsCollection, "C", "U")}] "
+            Me.Mode = Mode
+            Text = $"[{Mode.ToString.First.ToString.ToUpper}] [{IIf(IsCollection, "C", "U")}] "
             If IsCollection Then
                 Text &= $"[{User.CollectionName}] "
             Else
                 If User.IncludedInCollection Then Text &= $"[{User.CollectionName}] "
                 Text &= $"[{User.Site}] [{User.Name}]"
             End If
-            Me.Mode = Mode
         End Sub
         Private Function CompareTo(ByVal Other As SearchResult) As Integer Implements IComparable(Of SearchResult).CompareTo
             If CInt(Mode).CompareTo(CInt(Other.Mode)) = 0 Then
@@ -41,7 +41,9 @@ Friend Class UserSearchForm
             End If
         End Function
         Public Overrides Function Equals(ByVal Obj As Object) As Boolean
-            With DirectCast(Obj, SearchResult) : Return Key = .Key And Mode = .Mode : End With
+            'TODO: [UserSearchForm]: updated equal function
+            With DirectCast(Obj, SearchResult) : Return Key = .Key : End With
+            'With DirectCast(Obj, SearchResult) : Return Key = .Key And Mode = .Mode : End With
         End Function
     End Structure
     Public Sub New()
@@ -125,7 +127,7 @@ Friend Class UserSearchForm
                                 If .Count > 0 Then
                                     For i = 0 To .Count - 1
                                         With .Item(i)
-                                            If Not __isUrl AndAlso __name AndAlso .Self.Name.ToLower = t Then Results.ListAddValue(New SearchResult(.Self, SearchResult.Modes.Name), RLP)
+                                            If Not __isUrl AndAlso __name AndAlso .Self.Name.ToLower.Contains(t) Then Results.ListAddValue(New SearchResult(.Self, SearchResult.Modes.Name), RLP)
                                             _addValue(.Self, SearchResult.Modes.URL, _p_url)
                                             _addValue(.Self, SearchResult.Modes.Description, _p_descr)
                                             _addValue(.Self, SearchResult.Modes.Label, _p_labels)

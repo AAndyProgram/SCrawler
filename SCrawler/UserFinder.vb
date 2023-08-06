@@ -83,7 +83,8 @@ Friend Class UserFinder : Implements IDisposable
                                 .SpecialCollectionPath = x.Value(UserInfo.Name_SpecialCollectionPath),
                                 .UserModel = x.Value(UserInfo.Name_Model_User).FromXML(Of Integer)(UsageModel.Default),
                                 .CollectionModel = x.Value(UserInfo.Name_Model_Collection).FromXML(Of Integer)(UsageModel.Default),
-                                .CollectionName = x.Value(UserInfo.Name_Collection)
+                                .CollectionName = x.Value(UserInfo.Name_Collection),
+                                .IsSubscription = x.Value(UserInfo.Name_IsSubscription).FromXML(Of Boolean)(False)
                             }
                             u.Merged = x.Value(UserInfo.Name_Merged).FromXML(Of Boolean)(False)
                             FoundUsers.Add(u)

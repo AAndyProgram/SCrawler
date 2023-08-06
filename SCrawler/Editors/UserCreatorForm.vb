@@ -80,8 +80,26 @@ Namespace Editors
                 Return TXT_SCRIPT.Text
             End Get
         End Property
+        Friend ReadOnly Property IsSubscription As Boolean
+            Get
+                Return CMB_SITE.Checked
+            End Get
+        End Property
+        Private _UserBackColor As Color? = Nothing
+        Friend ReadOnly Property UserBackColor As Color?
+            Get
+                Return _UserBackColor
+            End Get
+        End Property
+        Private _UserForeColor As Color? = Nothing
+        Friend ReadOnly Property UserForeColor As Color?
+            Get
+                Return _UserForeColor
+            End Get
+        End Property
         Private FriendlyNameIsSiteName As Boolean = False
         Private FriendlyNameChanged As Boolean = False
+        Friend Property Options As String = String.Empty
 #End Region
 #Region "Exchange, Path, Labels"
         Friend Property MyExchangeOptions As Object = Nothing
@@ -99,7 +117,9 @@ Namespace Editors
                 End If
             End Get
         End Property
+        Private SpecialPathHandler As PathMoverHandler = Nothing
         Friend ReadOnly Property UserLabels As List(Of String)
+        Private LabelsIncludeSpecial As Boolean = False
 #End Region
 #Region "Initializers"
         ''' <summary>Create new user</summary>
@@ -146,6 +166,7 @@ Namespace Editors
                     .MyViewInitialize(True)
                     .AddOkCancelToolbar()
                     CH_AUTO_DETECT_SITE.Enabled = False
+                    Settings.GlobalLocations.PopulateComboBox(TXT_SPEC_FOLDER)
                     With CMB_SITE
                         .BeginUpdate()
                         .Items.AddRange(Settings.Plugins.Select(Function(p) New ListItem({p.Key, p.Name})))
@@ -155,6 +176,9 @@ Namespace Editors
                     Dim NameFieldProvider As IFormatProvider = Nothing
 
                     If UserIsCollection Then
+                        CMB_SITE.CaptionEnabled = False
+                        CMB_SITE.Checked = False
+
                         Icon = If(ImageRenderer.GetIcon(My.Resources.DBPic_32, EDP.ReturnValue), Icon)
                         Text = $"Collection: {UserInstance.CollectionName}"
 
@@ -163,6 +187,7 @@ Namespace Editors
                         TXT_USER.Buttons.AddRange({ADB.Refresh, ADB.Clear})
                         TXT_USER.Buttons.UpdateButtonsPositions()
                         TXT_SPEC_FOLDER.Buttons.Clear()
+                        TXT_SPEC_FOLDER.Buttons.LeaveDefaultButtons = False
                         TXT_SPEC_FOLDER.TextBoxReadOnly = True
                         TXT_SPEC_FOLDER.Buttons.UpdateButtonsPositions()
 
@@ -177,6 +202,7 @@ Namespace Editors
                                 .Add(New RowStyle(SizeType.Absolute, 28))
                                 .Add(New RowStyle(SizeType.Absolute, 28))
                                 .Add(New RowStyle(SizeType.Absolute, 26))
+                                .Add(New RowStyle(SizeType.Absolute, 26))
                                 .Add(New RowStyle(SizeType.Percent, 100))
                             End With
                             .RowCount = .RowStyles.Count
@@ -187,7 +213,8 @@ Namespace Editors
                                 .Add(TP_DOWN_IMG_VID, 0, 3)
                                 .Add(TP_READY_USERMEDIA, 0, 4)
                                 .Add(TXT_LABELS, 0, 5)
-                                .Add(TXT_DESCR, 0, 6)
+                                .Add(COLOR_USER, 0, 6)
+                                .Add(TXT_DESCR, 0, 7)
                             End With
                             .Refresh()
                             .Update()
@@ -214,9 +241,12 @@ Namespace Editors
                             CH_DOWN_VIDEOS.CheckState = state(.Item(0).DownloadVideos, Function(p, v) p.DownloadVideos = v)
                             CH_READY_FOR_DOWN.CheckState = state(.Item(0).ReadyForDownload, Function(p, v) p.ReadyForDownload = v)
                             CH_PARSE_USER_MEDIA.CheckState = state(.Item(0).ParseUserMediaOnly, Function(p, v) p.ParseUserMediaOnly = v)
+                            _UserBackColor = .BackColor
+                            _UserForeColor = .ForeColor
+                            COLOR_USER.ColorsSetUser(.BackColor, .ForeColor)
                             TXT_DESCR.Text = .GetUserInformation.StringFormatLines
-                            UserLabels.ListAddList(.Labels)
-                            If UserLabels.ListExists Then TXT_LABELS.Text = UserLabels.ListToString
+                            UpdateSpecificLabels(True)
+                            TXT_LABELS.Buttons.Insert(0, New ActionButton(ADB.Refresh) With {.ToolTipText = "Show/hide site-specific labels"})
                         End With
 
                         NameFieldProvider = New CollectionNameFieldProvider
@@ -235,14 +265,16 @@ Namespace Editors
                             TXT_SPEC_FOLDER.Text = User.SpecialPath
                             Dim i% = Settings.Plugins.FindIndex(Function(p) p.Key = User.Plugin)
                             If i >= 0 Then CMB_SITE.SelectedIndex = i
+                            CMB_SITE.Checked = User.IsSubscription
                             SetParamsBySite()
-                            CMB_SITE.Enabled = False
                             If Not UserInstance Is Nothing Then
+                                CMB_SITE.Enabled = False
                                 Text = $"User: {UserInstance.Name}"
                                 If Not UserInstance.FriendlyName.IsEmptyString Then Text &= $" ({UserInstance.FriendlyName})"
                                 TXT_USER.Enabled = False
                                 TXT_SPEC_FOLDER.TextBoxReadOnly = True
                                 TXT_SPEC_FOLDER.Buttons.Clear()
+                                TXT_SPEC_FOLDER.Buttons.LeaveDefaultButtons = False
                                 TXT_SPEC_FOLDER.Buttons.UpdateButtonsPositions()
                                 With UserInstance
                                     If .HOST.Key = PathPlugin.PluginKey Then TXT_SPEC_FOLDER.Enabled = False
@@ -263,6 +295,7 @@ Namespace Editors
                                     CH_READY_FOR_DOWN.Checked = .ReadyForDownload
                                     CH_DOWN_IMAGES.Checked = .DownloadImages
                                     CH_DOWN_VIDEOS.Checked = .DownloadVideos
+                                    COLOR_USER.ColorsSetUser(.BackColor, .ForeColor)
                                     TXT_SCRIPT.Checked = .ScriptUse
                                     TXT_SCRIPT.Text = .ScriptData
                                     TXT_DESCR.Text = .Description.StringFormatLines
@@ -312,6 +345,7 @@ Namespace Editors
 #End Region
 #Region "Ok, Cancel"
         Private Sub MyDef_ButtonOkClick(ByVal Sender As Object, ByVal e As KeyHandleEventArgs) Handles MyDef.ButtonOkClick
+            Const msgTitle$ = "Create user"
             If UserIsCollection Then
                 If MyDef.MyFieldsChecker.AllParamsOK Then
                     With UserInstance
@@ -321,7 +355,23 @@ Namespace Editors
                         If Not CH_DOWN_VIDEOS.CheckState = CheckState.Indeterminate Then .DownloadVideos = CH_DOWN_VIDEOS.Checked
                         If Not CH_READY_FOR_DOWN.CheckState = CheckState.Indeterminate Then .ReadyForDownload = CH_READY_FOR_DOWN.Checked
                         If Not CH_PARSE_USER_MEDIA.CheckState = CheckState.Indeterminate Then .ParseUserMediaOnly = CH_PARSE_USER_MEDIA.Checked
-                        DirectCast(UserInstance, UserDataBind).Collections.ForEach(Sub(u) u.Labels.ListAddList(UserLabels, LAP.ClearBeforeAdd, LAP.NotContainsOnly))
+
+                        Dim __ubc As Color? = Nothing, __ufc As Color? = Nothing
+                        COLOR_USER.ColorsGetUser(__ubc, __ufc)
+                        Dim __cConv As Func(Of Color?, String) =
+                            Function(__inputColor) If(__inputColor.HasValue, CStr(AConvert(Of String)(__inputColor.Value, String.Empty)), String.Empty)
+                        If Not __cConv(UserBackColor) = __cConv(__ubc) Or Not __cConv(UserForeColor) = __cConv(__ufc) Then
+                            If MsgBoxE({"Are you sure you want to apply the new colors to all users in the collection?", msgTitle}, vbYesNo + vbExclamation) = vbYes Then
+                                .BackColor = __ubc
+                                .ForeColor = __ufc
+                            End If
+                        End If
+
+                        If Not .Labels.ListEquals(UserLabels) Then _
+                           UserDataBase.UpdateLabels(.Self, UserLabels, 1,
+                                                     Not DirectCast(.Self, UserDataBase).SpecialLabels.ListExists OrElse
+                                                     UserDataBase.UpdateLabelsKeepSpecial(1))
+
                         CollectionName = TXT_USER.Text
                         .UpdateUserInformation()
                     End With
@@ -332,63 +382,74 @@ Namespace Editors
                     If MyDef.MyFieldsChecker.AllParamsOK Then
                         Dim s As SettingsHost = GetSiteByCheckers()
                         If Not s Is Nothing Then
-                            Dim tmpUser As UserInfo = User.Clone
-                            With tmpUser
-                                .Name = TXT_USER.Text
-                                .SpecialPath = SpecialPath(s)
-                                .Site = s.Name
-                                .Plugin = s.Key
-                                .UpdateUserFile()
-                            End With
-                            User = tmpUser
-                            Dim ScriptText$ = TXT_SCRIPT.Text
-                            If Not ScriptText.IsEmptyString Then
-                                Dim f As SFile = ScriptText
-                                If Not SFile.IsDirectory(ScriptText) And Not UserInstance Is Nothing Then
-                                    With DirectCast(UserInstance, UserDataBase) : f.Path = .MyFile.Path : End With
-                                End If
-                                TXT_SCRIPT.Text = f
-                            End If
-                            If Not UserInstance Is Nothing Then
-                                With DirectCast(UserInstance, UserDataBase)
-                                    .User = User
-                                    Dim setFriendly As Boolean = True
-                                    If FriendlyNameIsSiteName Then
-                                        If Not FriendlyNameChanged Then
-                                            setFriendly = False
-                                        Else
-                                            setFriendly = MsgBoxE({"Are you sure you want to set the site name as the friendly name?" & vbCr &
-                                                                   $"Friendly name: { .FriendlyNameOrig}" & vbCr &
-                                                                   $"Site name: { .UserSiteName}" & vbCr &
-                                                                   $"Your choice: {TXT_USER_FRIENDLY.Text}", "Friendly name change"}, vbExclamation,,,
-                                                                   {"Confirm", New Messaging.MsgBoxButton("Decline", "Friendly name will not be changed")}) = 0
-                                        End If
-                                    End If
-                                    If setFriendly Then .FriendlyName = TXT_USER_FRIENDLY.Text
-                                    .Favorite = CH_FAV.Checked
-                                    .Temporary = CH_TEMP.Checked
-                                    .ReadyForDownload = CH_READY_FOR_DOWN.Checked
-                                    .DownloadImages = CH_DOWN_IMAGES.Checked
-                                    .DownloadVideos = CH_DOWN_VIDEOS.Checked
-                                    .UserDescription = TXT_DESCR.Text
-                                    If Not MyExchangeOptions Is Nothing Then .ExchangeOptionsSet(MyExchangeOptions)
-                                    Dim l As New ListAddParams(LAP.NotContainsOnly + LAP.ClearBeforeAdd)
-                                    If .IsCollection Then
-                                        With DirectCast(UserInstance, UserDataBind)
-                                            If .Count > 0 Then .Collections.ForEach(Sub(c) c.Labels.ListAddList(UserLabels, l))
-                                        End With
-                                    Else
-                                        .Labels.ListAddList(UserLabels, LAP.NotContainsOnly, LAP.ClearBeforeAdd)
-                                    End If
-                                    .ParseUserMediaOnly = CH_PARSE_USER_MEDIA.Checked
-                                    .ScriptUse = TXT_SCRIPT.Checked
-                                    .ScriptData = TXT_SCRIPT.Text
-                                    .UpdateUserInformation()
+                            If IsSubscription And Not s.Source.SubscriptionsAllowed Then
+                                MsgBoxE({$"Subscription mode for site [{s.Name}] is not allowed", msgTitle}, vbCritical)
+                                Exit Sub
+                            Else
+                                COLOR_USER.ColorsGetUser(_UserBackColor, _UserForeColor)
+                                Dim tmpUser As UserInfo = User
+                                With tmpUser
+                                    .Name = TXT_USER.Text
+                                    .Site = s.Name
+                                    .Plugin = s.Key
+                                    .IsSubscription = IsSubscription
+                                    Dim sp As SFile = SpecialPath(s)
+                                    If Not sp.IsEmptyString AndAlso Not SpecialPathHandler Is Nothing And UserInstance Is Nothing Then _
+                                       sp = SpecialPathHandler.Invoke(.Self, sp)
+                                    .SpecialPath = sp
+                                    .UpdateUserFile()
                                 End With
+                                User = tmpUser
+                                Dim ScriptText$ = TXT_SCRIPT.Text
+                                If Not ScriptText.IsEmptyString Then
+                                    Dim f As SFile = ScriptText
+                                    If Not SFile.IsDirectory(ScriptText) And Not UserInstance Is Nothing Then
+                                        With DirectCast(UserInstance, UserDataBase) : f.Path = .MyFile.Path : End With
+                                    End If
+                                    TXT_SCRIPT.Text = f
+                                End If
+                                If Not UserInstance Is Nothing Then
+                                    With DirectCast(UserInstance, UserDataBase)
+                                        .User = User
+                                        Dim setFriendly As Boolean = True
+                                        If FriendlyNameIsSiteName Then
+                                            If Not FriendlyNameChanged Then
+                                                setFriendly = False
+                                            Else
+                                                setFriendly = MsgBoxE({"Are you sure you want to set the site name as the friendly name?" & vbCr &
+                                                                       $"Friendly name: { .FriendlyNameOrig}" & vbCr &
+                                                                       $"Site name: { .UserSiteName}" & vbCr &
+                                                                       $"Your choice: {TXT_USER_FRIENDLY.Text}", "Friendly name change"}, vbExclamation,,,
+                                                                       {"Confirm", New Messaging.MsgBoxButton("Decline", "Friendly name will not be changed")}) = 0
+                                            End If
+                                        End If
+                                        If setFriendly Then .FriendlyName = TXT_USER_FRIENDLY.Text
+                                        .Favorite = CH_FAV.Checked
+                                        .Temporary = CH_TEMP.Checked
+                                        .ReadyForDownload = CH_READY_FOR_DOWN.Checked
+                                        .DownloadImages = CH_DOWN_IMAGES.Checked
+                                        .DownloadVideos = CH_DOWN_VIDEOS.Checked
+                                        COLOR_USER.ColorsGetUser(.BackColor, .ForeColor)
+                                        .UserDescription = TXT_DESCR.Text
+                                        If Not MyExchangeOptions Is Nothing Then .ExchangeOptionsSet(MyExchangeOptions)
+                                        Dim l As New ListAddParams(LAP.NotContainsOnly + LAP.ClearBeforeAdd)
+                                        If .IsCollection Then
+                                            With DirectCast(UserInstance, UserDataBind)
+                                                If .Count > 0 Then .Collections.ForEach(Sub(c) c.Labels.ListAddList(UserLabels, l))
+                                            End With
+                                        Else
+                                            .Labels.ListAddList(UserLabels, LAP.NotContainsOnly, LAP.ClearBeforeAdd)
+                                        End If
+                                        .ParseUserMediaOnly = CH_PARSE_USER_MEDIA.Checked
+                                        .ScriptUse = TXT_SCRIPT.Checked
+                                        .ScriptData = TXT_SCRIPT.Text
+                                        .UpdateUserInformation()
+                                    End With
+                                End If
+                                GoTo CloseForm
                             End If
-                            GoTo CloseForm
                         Else
-                            MsgBoxE("User site not selected", MsgBoxStyle.Exclamation)
+                            MsgBoxE({"User site not selected", msgTitle}, MsgBoxStyle.Exclamation)
                         End If
                     End If
                 Else
@@ -409,6 +470,7 @@ CloseForm:
             Try
                 If Not _TextChangeInvoked And Not UserIsCollection Then
                     _TextChangeInvoked = True
+                    Options = String.Empty
                     If Not CH_ADD_BY_LIST.Checked Then
                         Dim s As ExchangeOptions = GetSiteByText(TXT_USER.Text)
                         Dim found As Boolean = False
@@ -421,6 +483,7 @@ CloseForm:
                                 End If
                                 CMB_SITE.SelectedIndex = i
                                 TXT_USER.Text = s.UserName
+                                Options = s.Options
                                 found = True
                             End If
                         End If
@@ -479,10 +542,27 @@ CloseForm:
         End Sub
         Private Sub TXT_SPEC_FOLDER_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As EventArgs) Handles TXT_SPEC_FOLDER.ActionOnButtonClick
             If Sender.DefaultButton = ADB.Open Then
-                Dim f As SFile = Nothing
-                If Not TXT_SPEC_FOLDER.Text.IsEmptyString Then f = $"{TXT_SPEC_FOLDER.Text}\"
-                f = SFile.SelectPath(f)
-                If Not f.IsEmptyString Then TXT_SPEC_FOLDER.Text = f.PathWithSeparator
+                Using ff As New GlobalLocationsChooserForm With {.MyInitialLocation = TXT_SPEC_FOLDER.Text}
+                    ff.ShowDialog()
+                    If ff.DialogResult = DialogResult.OK And Not ff.MyDestination.Path.IsEmptyString Then
+                        Settings.GlobalLocations.PopulateComboBox(TXT_SPEC_FOLDER)
+                        Dim i% = Settings.GlobalLocations.IndexOf(ff.MyDestination)
+                        If i.ValueBetween(0, TXT_SPEC_FOLDER.Count - 1) Then TXT_SPEC_FOLDER.SelectedIndex = i
+                        TXT_SPEC_FOLDER.Text = ff.MyDestination.Path
+                        SpecialPathHandler = ff.MyModelHandler
+                    End If
+                End Using
+            End If
+        End Sub
+        Private Sub TXT_SPEC_FOLDER_ActionOnTextChanged(sender As Object, e As EventArgs) Handles TXT_SPEC_FOLDER.ActionOnTextChanged
+            SpecialPathHandler = Nothing
+        End Sub
+        Private Sub TXT_SPEC_FOLDER_ActionSelectedItemChanged(ByVal Sender As Object, ByVal e As EventArgs, ByVal Item As ListViewItem) Handles TXT_SPEC_FOLDER.ActionSelectedItemChanged
+            Dim i% = TXT_SPEC_FOLDER.SelectedIndex
+            If i.ValueBetween(0, Settings.GlobalLocations.Count - 1) Then
+                SpecialPathHandler = GlobalLocationsChooserForm.ModelHandler(Settings.GlobalLocations(i).Model)
+            Else
+                SpecialPathHandler = Nothing
             End If
         End Sub
         Private Sub CH_TEMP_CheckedChanged(sender As Object, e As EventArgs) Handles CH_TEMP.CheckedChanged
@@ -517,7 +597,20 @@ CloseForm:
             Select Case Sender.DefaultButton
                 Case ADB.Open : ChangeLabels()
                 Case ADB.Clear : UserLabels.Clear()
+                Case ADB.Refresh : UpdateSpecificLabels(False)
             End Select
+        End Sub
+        Private Sub UpdateSpecificLabels(ByVal IsInit As Boolean)
+            If DirectCast(UserInstance, UserDataBase).SpecialLabels.ListExists Then
+                If Not IsInit Then LabelsIncludeSpecial = Not LabelsIncludeSpecial
+                UserLabelName.Clone()
+                UserLabels.ListAddList(UserInstance.Labels, LAP.NotContainsOnly)
+                If Not LabelsIncludeSpecial Then UserLabels.ListWithRemove(DirectCast(UserInstance, UserDataBase).SpecialLabels)
+                If UserLabels.Count > 0 Then UserLabels.Sort()
+                TXT_LABELS.Text = UserLabels.ListToString
+            Else
+                If Not IsInit Then MsgBoxE({"Users in this collection do not have site-specific labels", "Change labels view"}, vbExclamation)
+            End If
         End Sub
         Private Sub TXT_SCRIPT_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As EventArgs) Handles TXT_SCRIPT.ActionOnButtonClick
             SettingsCLS.ScriptTextBoxButtonClick(TXT_SCRIPT, Sender)
@@ -535,17 +628,27 @@ CloseForm:
                         If u.ListExists Then
                             Dim NonIdentified As New List(Of String)
                             Dim UsersForCreate As New List(Of UserInfo)
+                            Dim UsersForCreate_Options As New List(Of String)
                             Dim BannedUsers() As String = Nothing
                             Dim uu$
                             Dim ulabels As List(Of String) = ListAddList(Nothing, UserLabels).ListAddValue(LabelsKeeper.NoParsedUser, LAP.NotContainsOnly)
                             Dim tmpUser As UserInfo
                             Dim s As SettingsHost = GetSiteByCheckers()
-                            Dim sObj As ExchangeOptions
+                            Dim sObj As ExchangeOptions = Nothing
                             Dim Added% = 0
                             Dim Skipped% = 0
                             Dim uid%
-                            Dim sf As Func(Of SettingsHost, String) = Function(__s) SpecialPath(__s).PathWithSeparator
-                            Dim __sf As Func(Of String, SettingsHost, SFile) = Function(Input, __s) IIf(sf(__s).IsEmptyString, Nothing, New SFile($"{sf(__s)}{Input}\"))
+                            Dim __getUserSpecialPath As Func(Of UserInfo, SettingsHost, SFile) =
+                                Function(ByVal __user As UserInfo, ByVal __s As SettingsHost) As SFile
+                                    Dim sp As SFile = SpecialPath(__s).PathWithSeparator
+                                    If sp.IsEmptyString Then
+                                        Return Nothing
+                                    ElseIf Not SpecialPathHandler Is Nothing Then
+                                        Return SpecialPathHandler.Invoke(__user, sp)
+                                    Else
+                                        Return $"{sp}{__user.Name}\"
+                                    End If
+                                End Function
 
                             Settings.Labels.Add(LabelsKeeper.NoParsedUser)
 
@@ -559,15 +662,19 @@ CloseForm:
                                     Else
                                         s = Nothing
                                     End If
+                                ElseIf i = 0 Then
+                                    sObj = GetSiteByText(uu)
                                 End If
 
-                                If Not s Is Nothing Then
-                                    tmpUser = New UserInfo(uu, s) With {.SpecialPath = __sf(uu, s)}
+                                If Not s Is Nothing AndAlso (Not IsSubscription OrElse s.Source.SubscriptionsAllowed) Then
+                                    tmpUser = New UserInfo(uu, s)
+                                    tmpUser.SpecialPath = __getUserSpecialPath(tmpUser, s)
                                     tmpUser.UpdateUserFile()
                                     uid = -1
                                     If Settings.UsersList.Count > 0 Then uid = Settings.UsersList.IndexOf(tmpUser)
                                     If uid < 0 And Not UsersForCreate.Contains(tmpUser) Then
                                         UsersForCreate.Add(tmpUser)
+                                        UsersForCreate_Options.Add(sObj.Options)
                                     Else
                                         Skipped += 1
                                     End If
@@ -585,6 +692,7 @@ CloseForm:
                                         If StartIndex = -1 Then StartIndex = Settings.Users.Count
                                         Settings.Users.Add(UserDataBase.GetInstance(tmpUser, False))
                                         With Settings.Users.Last
+                                            .Options = sObj.Options
                                             .FriendlyName = TXT_USER_FRIENDLY.Text
                                             .Favorite = CH_FAV.Checked
                                             .Temporary = CH_TEMP.Checked

@@ -14,7 +14,7 @@ Imports PersonalUtilities.Tools.Web.Clients
 Imports PersonalUtilities.Tools.Web.Cookies
 Imports PersonalUtilities.Functions.RegularExpressions
 Namespace API.OnlyFans
-    <Manifest("AndyProgram_OnlyFans"), SavedPosts, SeparatedTasks(1)>
+    <Manifest("AndyProgram_OnlyFans"), SavedPosts, SpecialForm(False), SeparatedTasks(1)>
     Friend Class SiteSettings : Inherits SiteSettingsBase
 #Region "Icon"
         Friend Overrides ReadOnly Property Icon As Icon
@@ -29,6 +29,13 @@ Namespace API.OnlyFans
         End Property
 #End Region
 #Region "Declarations"
+#Region "Options"
+        <PropertyOption(ControlText:="Download highlights", ControlToolTip:="Download profile highlights if they exists"), PXML>
+        Friend Property DownloadHighlights As PropertyValue
+        <PropertyOption(ControlText:="Download chat", ControlToolTip:="Download unlocked chat media"), PXML>
+        Friend Property DownloadChatMedia As PropertyValue
+#End Region
+#Region "Headers"
         Private Const HeaderBrowser As String = "sec-ch-ua"
         Private Const HeaderUserID As String = "User-Id"
         Private Const HeaderXBC As String = "X-Bc"
@@ -39,7 +46,7 @@ Namespace API.OnlyFans
         Private ReadOnly Property HH_X_BC As PropertyValue
         <PropertyOption(ControlText:=HeaderAppToken, AllowNull:=False)>
         Private ReadOnly Property HH_APP_TOKEN As PropertyValue
-        <PropertyOption(ControlText:=HeaderBrowser, AllowNull:=False)>
+        <PropertyOption(ControlText:=HeaderBrowser, ControlToolTip:="Can be null", AllowNull:=True)>
         Private ReadOnly Property HH_BROWSER As PropertyValue
         <PropertyOption(AllowNull:=False)>
         Private ReadOnly Property UserAgent As PropertyValue
@@ -59,6 +66,8 @@ Namespace API.OnlyFans
                 Responser.UserAgent = Value
             End If
         End Sub
+#End Region
+#Region "Rules"
         <PXML("LastDateUpdated")> Private ReadOnly Property LastDateUpdated_XML As PropertyValue
         Friend Property LastDateUpdated As Date
             Get
@@ -80,6 +89,7 @@ Namespace API.OnlyFans
                         ControlToolTip:="Overwrite 'Dynamic rules' with this URL" & vbCr &
                                         "Change this value only if you know what you are doing."), PXML>
         Friend ReadOnly Property DynamicRules As PropertyValue
+#End Region
 #End Region
 #Region "Initializer"
         Friend Sub New()
@@ -110,13 +120,16 @@ Namespace API.OnlyFans
                 UserAgent = New PropertyValue(IIf(.UserAgentExists, .UserAgent, String.Empty), GetType(String), Sub(v) UpdateHeader(NameOf(UserAgent), v))
             End With
 
+            DownloadHighlights = New PropertyValue(True)
+            DownloadChatMedia = New PropertyValue(True)
+
             LastDateUpdated_XML = New PropertyValue(Now.AddYears(-1), GetType(Date))
             UseOldAuthRules = New PropertyValue(False)
             DynamicRulesUpdateInterval = New PropertyValue(60 * 24)
             DynamicRulesUpdateIntervalProvider = New FieldsCheckerProviderSimple(Function(v) IIf(AConvert(Of Integer)(v, 0) > 0, v, Nothing),
                                                                                  "The value of [{0}] field must be greater than 0")
             DynamicRules = New PropertyValue(String.Empty, GetType(String))
-            UserRegex = RParams.DMS("onlyfans.com/(\w+)", 1, EDP.ReturnValue)
+            UserRegex = RParams.DMS("onlyfans.com/([\w\._]+)", 1, EDP.ReturnValue)
             UrlPatternUser = "https://onlyfans.com/{0}"
             ImageVideoContains = "onlyfans.com"
         End Sub
@@ -134,7 +147,7 @@ Namespace API.OnlyFans
 #End Region
 #Region "Download"
         Friend Overrides Function BaseAuthExists() As Boolean
-            Return Responser.CookiesExists And {HH_USER_ID, HH_X_BC, HH_APP_TOKEN, HH_BROWSER, UserAgent}.All(Function(v) ACheck(v.Value))
+            Return Responser.CookiesExists And {HH_USER_ID, HH_X_BC, HH_APP_TOKEN, UserAgent}.All(Function(v) ACheck(v.Value))
         End Function
         Friend Overrides Function ReadyToDownload(ByVal What As ISiteSettings.Download) As Boolean
             Return BaseAuthExists() And Not SessionAborted
@@ -149,17 +162,36 @@ Namespace API.OnlyFans
             If Responser.Cookies.Changed Then Responser.SaveCookies() : Responser.Cookies.Changed = False
         End Sub
 #End Region
-#Region "GetUserUrl, GetUserPostUrl"
+#Region "GetUserUrl, GetUserPostUrl, UserOptions"
         Friend Overrides Function GetUserUrl(ByVal User As IPluginContentProvider) As String
             Return String.Format(UrlPatternUser, If(User.ID.IsEmptyString, User.Name, $"u{User.ID}"))
         End Function
         Friend Overrides Function GetUserPostUrl(ByVal User As UserDataBase, ByVal Media As UserMedia) As String
             If Not Media.Post.ID.IsEmptyString Then
-                Return String.Format("https://onlyfans.com/{0}/{1}", Media.Post.ID, If(User.ID.IsEmptyString, User.Name, $"u{User.ID}"))
+                Dim post$() = Media.Post.ID.Split("_")
+                Dim p$ = String.Empty
+                If post.ListExists Then
+                    If post(0) = UserData.A_MESSAGE Then
+                        If Not User.ID.IsEmptyString Then Return $"https://onlyfans.com/my/chats/chat/{User.ID}/"
+                    ElseIf Not post(0) = UserData.A_HIGHLIGHT Then
+                        p = post(0)
+                    End If
+                End If
+                If p.IsEmptyString Then
+                    Return GetUserUrl(User)
+                Else
+                    Return String.Format("https://onlyfans.com/{0}/{1}", p, If(User.ID.IsEmptyString, User.Name, $"u{User.ID}"))
+                End If
             Else
                 Return String.Empty
             End If
         End Function
+        Friend Overrides Sub UserOptions(ByRef Options As Object, ByVal OpenForm As Boolean)
+            If Options Is Nothing OrElse Not TypeOf Options Is UserExchangeOptions Then Options = New UserExchangeOptions(Me)
+            If OpenForm Then
+                Using f As New InternalSettingsForm(Options, Me, False) : f.ShowDialog() : End Using
+            End If
+        End Sub
 #End Region
     End Class
 End Namespace

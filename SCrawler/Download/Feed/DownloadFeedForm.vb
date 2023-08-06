@@ -23,10 +23,17 @@ Namespace DownloadObjects
         Private DataRows As Integer = 10
         Private DataColumns As Integer = 1
         Private FeedEndless As Boolean = False
-        Private ReadOnly FileNotExist As New FPredicate(Of UserMediaD)(Function(d) Not d.Data.File.Exists)
+        Private ReadOnly FilterSubscriptions As New FPredicate(Of UserMediaD)(Function(d) If(d.User?.IsSubscription, False))
+        Private ReadOnly FilterUsers As New FPredicate(Of UserMediaD)(Function(d) Not FilterSubscriptions.Invoke(d))
+        Private ReadOnly FileNotExist As New FPredicate(Of UserMediaD)(Function(d) Not d.Data.File.Exists And Not FilterSubscriptions.Invoke(d))
         Private BttRefreshToolTipText As String = "Refresh data list"
         Private CenterImage As Boolean = False
         Private NumberOfVisibleImages As Integer = 1
+        Private ReadOnly Property IsSubscription As Boolean
+            Get
+                Return OPT_SUBSCRIPTIONS.Checked
+            End Get
+        End Property
 #End Region
 #Region "Initializer"
         Friend Sub New()
@@ -56,6 +63,15 @@ Namespace DownloadObjects
                     .AddThisToolbar()
                 End With
                 ToolbarTOP.Items.AddRange({New ToolStripSeparator, BTT_DELETE_SELECTED})
+                With Settings
+                    If .FeedOpenLastMode Then
+                        If .FeedLastModeSubscriptions Then OPT_SUBSCRIPTIONS.Checked = True Else OPT_DEFAULT.Checked = True
+                    Else
+                        OPT_DEFAULT.Checked = True
+                        Settings.FeedLastModeSubscriptions.Value = False
+                    End If
+                End With
+                MENU_DOWN.Visible = OPT_SUBSCRIPTIONS.Checked
                 UpdateSettings()
                 RefillList()
                 .EndLoaderOperations(False)
@@ -72,7 +88,15 @@ Namespace DownloadObjects
             DataList.Clear()
         End Sub
         Private Sub DownloadFeedForm_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
-            If e.KeyCode = Keys.F5 Then RefillList() : e.Handled = True
+            Dim b As Boolean = True
+            If e.KeyCode = Keys.F5 Then
+                RefillList()
+            ElseIf e.Control And e.KeyCode = Keys.G Then
+                MyRange.GoToF()
+            Else
+                b = False
+            End If
+            If b Then e.Handled = True
         End Sub
 #End Region
 #Region "Settings"
@@ -143,8 +167,11 @@ Namespace DownloadObjects
         Private Sub RefillList(Optional ByVal RefillDataList As Boolean = True)
             DataPopulated = False
             If RefillDataList Then
-                Try : Downloader.Files.RemoveAll(FileNotExist) : Catch : End Try
-                DataList.ListAddList(Downloader.Files, LAP.ClearBeforeAdd, LAP.NotContainsOnly)
+                If Not IsSubscription Then
+                    Try : Downloader.Files.RemoveAll(FileNotExist) : Catch : End Try
+                End If
+                DataList.Clear()
+                DataList.ListAddList(Downloader.Files.Where(If(IsSubscription, FilterSubscriptions, FilterUsers)), LAP.NotContainsOnly)
             End If
             MyRange.Source = DataList
             ControlInvokeFast(ToolbarTOP, BTT_REFRESH, Sub() BTT_REFRESH.ToolTipText = BttRefreshToolTipText)
@@ -173,6 +200,14 @@ Namespace DownloadObjects
                 Dim m As New MMessage("Saved sessions not selected", "Sessions",, vbExclamation)
                 Dim x As XmlFile
                 Dim lcr As New ListAddParams(LAP.NotContainsOnly + LAP.IgnoreICopier)
+                Dim __clearList As Action = Sub()
+                                                If IsSubscription Then
+                                                    DataList.RemoveAll(FilterUsers)
+                                                Else
+                                                    DataList.RemoveAll(FilterSubscriptions)
+                                                    DataList.RemoveAll(FileNotExist)
+                                                End If
+                                            End Sub
                 If Not GetLast AndAlso f.Exists(SFO.Path, False) Then fList = SFile.GetFiles(f, "*.xml",, EDP.ReturnValue)
                 If Not GetLast AndAlso fList.ListExists Then
                     Using chooser As New SimpleListForm(Of SFile)(fList, Settings.Design) With {
@@ -192,7 +227,7 @@ Namespace DownloadObjects
                                     If x.Count > 0 Then DataList.ListAddList(x, lcr)
                                     x.Dispose()
                                 Next
-                                DataList.RemoveAll(FileNotExist)
+                                __clearList.Invoke
                                 RefillList(False)
                             Else
                                 MsgBoxE(m)
@@ -206,6 +241,7 @@ Namespace DownloadObjects
                     x.LoadData()
                     If x.Count > 0 Then DataList.Clear() : DataList.ListAddList(x, lcr)
                     x.Dispose()
+                    __clearList.Invoke
                     RefillList(False)
                 Else
                     m.Text = "Saved sessions not found"
@@ -214,6 +250,49 @@ Namespace DownloadObjects
                 If fList.ListExists Then fList.Clear()
             Catch ex As Exception
                 ErrorsDescriber.Execute(EDP.SendToLog, ex, $"[DownloadObjects.DownloadFeedForm.SessionChooser({GetLast})]")
+            End Try
+        End Sub
+        Private Sub OPT_Click(ByVal Sender As ToolStripMenuItem, ByVal e As EventArgs) Handles OPT_DEFAULT.Click, OPT_SUBSCRIPTIONS.Click
+            Dim __refill As Boolean = False
+            ControlInvokeFast(ToolbarTOP, Sender,
+                              Sub()
+                                  Dim clicked As ToolStripMenuItem = Sender
+                                  Dim other As ToolStripMenuItem = If(Sender Is OPT_DEFAULT, OPT_SUBSCRIPTIONS, OPT_DEFAULT)
+                                  If other.Checked Then
+                                      __refill = True
+                                      clicked.Checked = True
+                                      other.Checked = False
+                                  Else
+                                      clicked.Checked = False
+                                  End If
+                                  Settings.FeedLastModeSubscriptions.Value = OPT_SUBSCRIPTIONS.Checked
+                                  MENU_DOWN.Visible = OPT_SUBSCRIPTIONS.Checked
+                              End Sub, EDP.None)
+            If __refill Then RefillList()
+        End Sub
+#End Region
+#Region "Download"
+        Private Sub FeedMedia_Download(ByVal Sender As Object, ByVal e As EventArgs) Handles BTT_DOWN_ALL.Click, BTT_DOWN_SELECTED.Click
+            Try
+                Dim urls As New List(Of String)
+                If TypeOf Sender Is FeedMedia Then
+                    urls.Add(DirectCast(Sender, FeedMedia).Post.URL_BASE)
+                ElseIf TypeOf Sender Is ToolStripMenuItem Then
+                    Dim all As Boolean = CStr(AConvert(Of String)(DirectCast(Sender, ToolStripMenuItem).Tag, String.Empty)).StringToLower = "a"
+                    ControlInvokeFast(TP_DATA, Sub()
+                                                   urls.ListAddList((From m As FeedMedia In TP_DATA.Controls
+                                                                     Where m.Checked Or all
+                                                                     Select m.Post.URL_BASE).ListIfNothing)
+                                                   TP_DATA.Controls.Cast(Of FeedMedia).ToList.ForEach(Sub(cnt) cnt.Checked = False)
+                                               End Sub)
+                End If
+                If urls.Count > 0 Then
+                    VideoDownloader.FormShow
+                    VideoDownloader.ADD_URLS_EXTERNAL(urls)
+                    urls.Clear()
+                End If
+            Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Download subscription media")
             End Try
         End Sub
 #End Region
@@ -370,10 +449,11 @@ Namespace DownloadObjects
                     RefillInProgress = True
                     AllowTopScroll = False
                     ScrollSuspended = True
+                    Dim __isSubscriptions As Boolean = IsSubscription
                     Dim d As List(Of UserMediaD) = MyRange.Current
                     Dim d2 As List(Of UserMediaD)
                     Dim i%
-                    If d.ListExists And d.All(FileNotExist) Then
+                    If d.ListExists AndAlso Not IsSubscription AndAlso d.All(FileNotExist) Then
                         i = Sender.CurrentIndex
                         Sender.HandlersSuspended = True
                         RefillList()
@@ -390,14 +470,20 @@ Namespace DownloadObjects
                         ClearTable()
                         If Sender.CurrentIndex > 0 And FeedEndless Then
                             d2 = DirectCast(MyRange.Switcher, RangeSwitcher(Of UserMediaD)).Item(Sender.CurrentIndex - 1).
-                                 Where(Function(md) Not FileNotExist.Predicate(md)).ListTake(-2, DataColumns, EDP.ReturnValue).ListIfNothing
+                                 Where(Function(md) __isSubscriptions OrElse Not FileNotExist.Predicate(md)).ListTake(-2, DataColumns, EDP.ReturnValue).ListIfNothing
                             If d2.Count > 0 Then d.InsertRange(0, d2) : d2.Clear()
                         End If
                         Dim w% = GetWidth()
                         Dim h% = GetHeight()
                         Dim p As New TPCELL(DataRows, DataColumns)
                         Dim fmList As New List(Of FeedMedia)
-                        d.ForEach(Sub(de) fmList.Add(New FeedMedia(de, w, h, AddressOf FeedMedia_MediaDeleted)))
+                        d.ForEach(Sub(ByVal de As UserMediaD)
+                                      fmList.Add(New FeedMedia(de, w, h))
+                                      With fmList.Last
+                                          AddHandler .MediaDeleted, AddressOf FeedMedia_MediaDeleted
+                                          AddHandler .MediaDownload, AddressOf FeedMedia_Download
+                                      End With
+                                  End Sub)
                         If fmList.Count > 0 Then fmList.ListDisposeRemoveAll(Function(fm) fm Is Nothing OrElse fm.HasError)
                         If fmList.Count > 0 Then
                             For i = 0 To fmList.Count - 1
@@ -448,6 +534,7 @@ Namespace DownloadObjects
         End Function
         Private Sub DownloadFeedForm_ResizeEnd(sender As Object, e As EventArgs) Handles Me.ResizeEnd
             ResizeGrid()
+            UpdateButton()
         End Sub
         Private Sub DownloadFeedForm_SizeChanged(sender As Object, e As EventArgs) Handles Me.SizeChanged
             If Not LastWinState = WindowState And Not If(MyDefs?.Initializing, True) Then LastWinState = WindowState : ResizeGrid()
@@ -479,6 +566,11 @@ Namespace DownloadObjects
                                            End If
                                        End With
                                    End Sub)
+        End Sub
+        Private Sub UpdateButton()
+            ControlInvokeFast(ToolbarTOP, MENU_DOWN, Sub() MENU_DOWN.DisplayStyle = IIf(Width >= 540,
+                                                                                        ToolStripItemDisplayStyle.ImageAndText,
+                                                                                        ToolStripItemDisplayStyle.Image), EDP.None)
         End Sub
 #End Region
 #Region "Scroll"

@@ -28,8 +28,12 @@ Namespace DownloadObjects.STDownloader
             Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(DownloaderUrlForm))
             Dim ActionButton2 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim ActionButton3 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton4 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton5 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ListColumn1 As PersonalUtilities.Forms.Controls.Base.ListColumn = New PersonalUtilities.Forms.Controls.Base.ListColumn()
+            Dim ListColumn2 As PersonalUtilities.Forms.Controls.Base.ListColumn = New PersonalUtilities.Forms.Controls.Base.ListColumn()
             Me.TXT_URL = New PersonalUtilities.Forms.Controls.TextBoxExtended()
-            Me.TXT_PATH = New PersonalUtilities.Forms.Controls.TextBoxExtended()
+            Me.TXT_PATH = New PersonalUtilities.Forms.Controls.ComboBoxExtended()
             CONTAINER_MAIN = New System.Windows.Forms.ToolStripContainer()
             TP_MAIN = New System.Windows.Forms.TableLayoutPanel()
             CONTAINER_MAIN.ContentPanel.SuspendLayout()
@@ -92,20 +96,44 @@ Namespace DownloadObjects.STDownloader
             ActionButton2.BackgroundImage = CType(resources.GetObject("ActionButton2.BackgroundImage"), System.Drawing.Image)
             ActionButton2.Name = "Open"
             ActionButton2.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Open
+            ActionButton2.ToolTipText = "Choose a new location (Ctrl+O)"
             ActionButton3.BackgroundImage = CType(resources.GetObject("ActionButton3.BackgroundImage"), System.Drawing.Image)
-            ActionButton3.Name = "Clear"
-            ActionButton3.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
+            ActionButton3.Name = "Add"
+            ActionButton3.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Add
+            ActionButton3.ToolTipText = "Choose a new location and add it to the list (Alt+O)"
+            ActionButton4.BackgroundImage = CType(resources.GetObject("ActionButton4.BackgroundImage"), System.Drawing.Image)
+            ActionButton4.Name = "Clear"
+            ActionButton4.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
+            ActionButton5.BackgroundImage = CType(resources.GetObject("ActionButton5.BackgroundImage"), System.Drawing.Image)
+            ActionButton5.Name = "ArrowDown"
+            ActionButton5.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.ArrowDown
             Me.TXT_PATH.Buttons.Add(ActionButton2)
             Me.TXT_PATH.Buttons.Add(ActionButton3)
+            Me.TXT_PATH.Buttons.Add(ActionButton4)
+            Me.TXT_PATH.Buttons.Add(ActionButton5)
+            Me.TXT_PATH.CaptionMode = PersonalUtilities.Forms.Controls.Base.ICaptionControl.Modes.Label
             Me.TXT_PATH.CaptionText = "Output"
             Me.TXT_PATH.CaptionToolTipEnabled = True
             Me.TXT_PATH.CaptionToolTipText = "Output path"
+            Me.TXT_PATH.CaptionVisible = True
             Me.TXT_PATH.CaptionWidth = 40.0R
+            ListColumn1.Name = "COL_NAME"
+            ListColumn1.Text = "Name"
+            ListColumn1.Width = -1
+            ListColumn2.DisplayMember = True
+            ListColumn2.Name = "COL_VALUE"
+            ListColumn2.Text = "Value"
+            ListColumn2.ValueMember = True
+            ListColumn2.Visible = False
+            Me.TXT_PATH.Columns.Add(ListColumn1)
+            Me.TXT_PATH.Columns.Add(ListColumn2)
             Me.TXT_PATH.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.TXT_PATH.ListAutoCompleteMode = PersonalUtilities.Forms.Controls.ComboBoxExtended.AutoCompleteModes.Disabled
             Me.TXT_PATH.Location = New System.Drawing.Point(4, 33)
             Me.TXT_PATH.Name = "TXT_PATH"
             Me.TXT_PATH.Size = New System.Drawing.Size(476, 22)
             Me.TXT_PATH.TabIndex = 1
+            Me.TXT_PATH.TextBoxBorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
             '
             'DownloaderUrlForm
             '
@@ -134,6 +162,6 @@ Namespace DownloadObjects.STDownloader
 
         End Sub
         Private WithEvents TXT_URL As PersonalUtilities.Forms.Controls.TextBoxExtended
-        Private WithEvents TXT_PATH As PersonalUtilities.Forms.Controls.TextBoxExtended
+        Private WithEvents TXT_PATH As PersonalUtilities.Forms.Controls.ComboBoxExtended
     End Class
 End Namespace

@@ -38,6 +38,12 @@ Namespace API.Pinterest
         Friend Property TrueUserName As String
         Friend Property TrueBoardName As String
         Friend Property IsUser As Boolean
+        Private Const BoardLabelName As String = "Board"
+        Friend Overrides ReadOnly Property SpecialLabels As IEnumerable(Of String)
+            Get
+                Return {UserLabelName, BoardLabelName}
+            End Get
+        End Property
 #End Region
 #Region "Load"
         Private Function ReconfUserName() As Boolean
@@ -48,12 +54,12 @@ Namespace API.Pinterest
                     IsUser = True
                     If n.Length > 1 Then TrueBoardName = n(1) : IsUser = False
                     If Not IsSavedPosts And Not IsSingleObjectDownload Then
-                        Dim l$ = IIf(IsUser, UserLabelName, "Board")
+                        Dim l$ = IIf(IsUser, UserLabelName, BoardLabelName)
                         Settings.Labels.Add(l)
                         Labels.ListAddValue(l, LNC)
                         Labels.Sort()
+                        Return True
                     End If
-                    Return True
                 End If
             End If
             Return False
@@ -66,7 +72,7 @@ Namespace API.Pinterest
                     IsUser = .Value(Name_IsUser).FromXML(Of Boolean)(False)
                     ReconfUserName()
                 Else
-                    If ReconfUserName() Then .Value(Name_LabelsName) = Labels.ListToString("|", EDP.ReturnValue)
+                    If ReconfUserName() Then .Value(Name_LabelsName) = LabelsString
                     .Add(Name_TrueUserName, TrueUserName)
                     .Add(Name_TrueBoardName, TrueBoardName)
                     .Add(Name_IsUser, IsUser.BoolToInteger)
@@ -128,7 +134,7 @@ Namespace API.Pinterest
                 Dim j As EContainer, jj As EContainer
                 Dim rootNode$() = {"resource_response", "data"}
                 Dim jErr As New ErrorsDescriber(EDP.SendToLog + EDP.ReturnValue)
-                Dim urls As List(Of String) = GetDataFromGalleryDL(URL, True)
+                Dim urls As List(Of String) = GetDataFromGalleryDL(URL, True, Token)
                 If urls.ListExists Then urls.RemoveAll(Function(__url) Not __url.Contains("BoardsResource/get/"))
                 If urls.ListExists Then
                     ProgressPre.ChangeMax(urls.Count)
@@ -177,7 +183,7 @@ Namespace API.Pinterest
                 Dim images As List(Of Sizes)
                 Dim imgSelector As Func(Of EContainer, Sizes) = Function(img) New Sizes(img.Value("width"), img.Value("url"))
                 Dim fullData As Predicate(Of EContainer) = Function(e) e.Count > 5
-                Dim l As List(Of String) = GetDataFromGalleryDL(Board.URL, False)
+                Dim l As List(Of String) = GetDataFromGalleryDL(Board.URL, False, Token)
                 If l.ListExists Then l.RemoveAll(Function(ll) Not ll.Contains("BoardFeedResource/get/"))
                 If l.ListExists Then
                     ProgressPre.ChangeMax(l.Count)
@@ -253,8 +259,8 @@ Namespace API.Pinterest
         Private Class GDLBatch : Inherits GDL.GDLBatch
             Private ReadOnly Property Source As UserData
             Private ReadOnly IsBoardsRequested As Boolean
-            Friend Sub New(ByRef s As UserData, ByVal IsBoardsRequested As Boolean)
-                MyBase.New
+            Friend Sub New(ByRef s As UserData, ByVal IsBoardsRequested As Boolean, ByVal _Token As CancellationToken)
+                MyBase.New(_Token)
                 Source = s
                 Me.IsBoardsRequested = IsBoardsRequested
             End Sub
@@ -269,22 +275,24 @@ Namespace API.Pinterest
             Protected Overrides Async Function Validate(ByVal Value As String) As Task
                 If IsBoardsRequested Then
                     If ErrorOutputData.Count > 0 Then
-                        If Await Task.Run(Of Boolean)(Function() ErrorOutputData.Exists(Function(ee) Not ee.IsEmptyString AndAlso
+                        If Await Task.Run(Of Boolean)(Function() Token.IsCancellationRequested OrElse
+                                                                 ErrorOutputData.Exists(Function(ee) Not ee.IsEmptyString AndAlso
                                                                                                      ee.StartsWith(UrlTextStart))) Then Kill()
                     End If
                 Else
-                    If Await Task.Run(Of Boolean)(Function() Not Value.IsEmptyString AndAlso
-                                                             Source._TempPostsList.Exists(Function(v) Value.Contains(v))) Then Kill()
+                    If Await Task.Run(Of Boolean)(Function() Token.IsCancellationRequested OrElse
+                                                             (Not Value.IsEmptyString AndAlso
+                                                             Source._TempPostsList.Exists(Function(v) Value.Contains(v)))) Then Kill()
                 End If
             End Function
         End Class
-        Private Function GetDataFromGalleryDL(ByVal URL As String, ByVal IsBoardsRequested As Boolean) As List(Of String)
+        Private Function GetDataFromGalleryDL(ByVal URL As String, ByVal IsBoardsRequested As Boolean, ByVal Token As CancellationToken) As List(Of String)
             Dim command$ = $"gallery-dl --verbose --simulate "
             Try
                 If Not URL.IsEmptyString Then
                     If MySettings.CookiesNetscapeFile.Exists Then command &= $"--cookies ""{MySettings.CookiesNetscapeFile}"" "
                     command &= URL
-                    Using batch As New GDLBatch(Me, IsBoardsRequested)
+                    Using batch As New GDLBatch(Me, IsBoardsRequested, Token)
                         Return GetUrlsFromGalleryDl(batch, command)
                     End Using
                 End If

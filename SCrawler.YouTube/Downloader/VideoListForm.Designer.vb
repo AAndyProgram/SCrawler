@@ -47,6 +47,7 @@ Namespace DownloadObjects.STDownloader
             Me.BTT_LOG = New System.Windows.Forms.ToolStripButton()
             Me.BTT_INFO = New System.Windows.Forms.ToolStripButton()
             Me.BTT_DONATE = New System.Windows.Forms.ToolStripButton()
+            Me.BTT_BUG_REPORT = New System.Windows.Forms.ToolStripButton()
             SEP_2 = New System.Windows.Forms.ToolStripSeparator()
             SEP_3 = New System.Windows.Forms.ToolStripSeparator()
             MENU_ADD_SEP_1 = New System.Windows.Forms.ToolStripSeparator()
@@ -104,7 +105,7 @@ Namespace DownloadObjects.STDownloader
             'TOOLBAR_TOP
             '
             Me.TOOLBAR_TOP.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden
-            Me.TOOLBAR_TOP.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_SETTINGS, Me.SEP_1, Me.MENU_ADD, SEP_2, Me.BTT_DOWN, Me.BTT_STOP, SEP_3, Me.BTT_DELETE, Me.BTT_CLEAR_DONE, Me.BTT_CLEAR_ALL, Me.SEP_LOG, Me.BTT_LOG, Me.BTT_INFO, Me.BTT_DONATE})
+            Me.TOOLBAR_TOP.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_SETTINGS, Me.SEP_1, Me.MENU_ADD, SEP_2, Me.BTT_DOWN, Me.BTT_STOP, SEP_3, Me.BTT_DELETE, Me.BTT_CLEAR_DONE, Me.BTT_CLEAR_ALL, Me.SEP_LOG, Me.BTT_LOG, Me.BTT_INFO, Me.BTT_DONATE, Me.BTT_BUG_REPORT})
             Me.TOOLBAR_TOP.Location = New System.Drawing.Point(0, 0)
             Me.TOOLBAR_TOP.Name = "TOOLBAR_TOP"
             Me.TOOLBAR_TOP.Size = New System.Drawing.Size(584, 25)
@@ -262,6 +263,16 @@ Namespace DownloadObjects.STDownloader
             Me.BTT_DONATE.Size = New System.Drawing.Size(23, 22)
             Me.BTT_DONATE.ToolTipText = "Support"
             '
+            'BTT_BUG_REPORT
+            '
+            Me.BTT_BUG_REPORT.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right
+            Me.BTT_BUG_REPORT.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image
+            Me.BTT_BUG_REPORT.Image = Global.SCrawler.My.Resources.Resources.MailPic_16
+            Me.BTT_BUG_REPORT.ImageTransparentColor = System.Drawing.Color.Magenta
+            Me.BTT_BUG_REPORT.Name = "BTT_BUG_REPORT"
+            Me.BTT_BUG_REPORT.Size = New System.Drawing.Size(23, 22)
+            Me.BTT_BUG_REPORT.Text = "Bug report"
+            '
             'VideoListForm
             '
             Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
@@ -305,5 +316,6 @@ Namespace DownloadObjects.STDownloader
         Protected WithEvents BTT_ADD_SHORTS_ONLY As PersonalUtilities.Forms.Controls.KeyClick.ToolStripMenuItemKeyClick
         Protected WithEvents MENU_ADD As ToolStripDropDownButton
         Protected WithEvents BTT_DOWN As ToolStripButton
+        Private WithEvents BTT_BUG_REPORT As ToolStripButton
     End Class
 End Namespace

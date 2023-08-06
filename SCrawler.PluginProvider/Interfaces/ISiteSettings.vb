@@ -17,6 +17,7 @@ Namespace Plugin
         ReadOnly Property Icon As Icon
         ReadOnly Property Image As Image
         ReadOnly Property Site As String
+        ReadOnly Property SubscriptionsAllowed As Boolean
         Property Logger As ILogProvider
         Function GetUserUrl(ByVal User As IPluginContentProvider) As String
         Function IsMyUser(ByVal UserURL As String) As ExchangeOptions

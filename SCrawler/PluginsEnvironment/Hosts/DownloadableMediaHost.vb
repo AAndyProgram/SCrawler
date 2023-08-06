@@ -145,11 +145,13 @@ Namespace Plugin.Hosts
                 f.Extension = "xml"
                 FileSettings = f
             End If
-            Using x As New XmlFile With {.AllowSameNames = True}
-                x.AddRange(ToEContainer.Elements)
-                x.Name = "MediaContainer"
-                x.Save(FileSettings)
-            End Using
+            If NeedToSave() Then
+                Using x As New XmlFile With {.AllowSameNames = True}
+                    x.AddRange(ToEContainer.Elements)
+                    x.Name = "MediaContainer"
+                    x.Save(FileSettings)
+                End Using
+            End If
         End Sub
         Public Overrides Function GetHashCode() As Integer
             Return URL.GetHashCode

@@ -13,7 +13,7 @@ Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Tools.Web.Clients
 Imports PersonalUtilities.Tools.Web.Documents.JSON
-Imports TS = SCrawler.API.Twitter.SiteSettings
+Imports DN = SCrawler.API.Base.DeclaredNames
 Namespace API.Mastodon
     <Manifest(MastodonSiteKey), SavedPosts, SpecialForm(True), SpecialForm(False)>
     Friend Class SiteSettings : Inherits SiteSettingsBase
@@ -46,8 +46,8 @@ Namespace API.Mastodon
             If Not PropName.IsEmptyString Then
                 Dim f$ = String.Empty
                 Select Case PropName
-                    Case NameOf(Auth) : f = TS.Header_Authorization
-                    Case NameOf(Token) : f = TS.Header_Token
+                    Case NameOf(Auth) : f = DN.Header_Authorization
+                    Case NameOf(Token) : f = DN.Header_CSRFToken
                 End Select
                 If Not f.IsEmptyString Then
                     Responser.Headers.Remove(f)
@@ -58,15 +58,15 @@ Namespace API.Mastodon
         End Sub
 #End Region
 #Region "Other properties"
-        <PropertyOption(IsAuth:=False, ControlText:=TS.GifsDownload_Text), PXML>
+        <PropertyOption(IsAuth:=False, ControlText:=DN.GifsDownloadCaption), PXML>
         Friend ReadOnly Property GifsDownload As PropertyValue
-        <PropertyOption(IsAuth:=False, ControlText:=TS.GifsSpecialFolder_Text, ControlToolTip:=TS.GifsSpecialFolder_ToolTip), PXML>
+        <PropertyOption(IsAuth:=False, ControlText:=DN.GifsSpecialFolderCaption, ControlToolTip:=DN.GifsSpecialFolderToolTip), PXML>
         Friend ReadOnly Property GifsSpecialFolder As PropertyValue
-        <PropertyOption(IsAuth:=False, ControlText:=TS.GifsPrefix_Text, ControlToolTip:=TS.GifsPrefix_ToolTip), PXML>
+        <PropertyOption(IsAuth:=False, ControlText:=DN.GifsPrefixCaption, ControlToolTip:=DN.GifsPrefixToolTip), PXML>
         Friend ReadOnly Property GifsPrefix As PropertyValue
         <Provider(NameOf(GifsSpecialFolder), Interaction:=True), Provider(NameOf(GifsPrefix), Interaction:=True)>
         Private ReadOnly Property GifStringChecker As IFormatProvider
-        <PropertyOption(IsAuth:=False, ControlText:=TS.UseMD5Comparison_Text, ControlToolTip:=TS.UseMD5Comparison_ToolTip), PXML>
+        <PropertyOption(IsAuth:=False, ControlText:=DN.UseMD5ComparisonCaption, ControlToolTip:=DN.UseMD5ComparisonToolTip), PXML>
         Friend ReadOnly Property UseMD5Comparison As PropertyValue
         <PropertyOption(IsAuth:=False, ControlText:="User related to my domain",
                         ControlToolTip:="Open user profiles and user posts through my domain."), PXML>
@@ -82,13 +82,13 @@ Namespace API.Mastodon
             Domains.DestinationProp = SiteDomains
             DomainsLastUpdateDate = New PropertyValue(Now.AddYears(-1))
 
-            Auth = New PropertyValue(Responser.Headers.Value(TS.Header_Authorization), GetType(String), Sub(v) ChangeResponserFields(NameOf(Auth), v))
-            Token = New PropertyValue(Responser.Headers.Value(TS.Header_Token), GetType(String), Sub(v) ChangeResponserFields(NameOf(Token), v))
+            Auth = New PropertyValue(Responser.Headers.Value(DN.Header_Authorization), GetType(String), Sub(v) ChangeResponserFields(NameOf(Auth), v))
+            Token = New PropertyValue(Responser.Headers.Value(DN.Header_CSRFToken), GetType(String), Sub(v) ChangeResponserFields(NameOf(Token), v))
 
             GifsDownload = New PropertyValue(True)
             GifsSpecialFolder = New PropertyValue(String.Empty, GetType(String))
             GifsPrefix = New PropertyValue("GIF_")
-            GifStringChecker = New TS.GifStringProvider
+            GifStringChecker = New API.Twitter.SiteSettings.GifStringProvider
             UseMD5Comparison = New PropertyValue(False)
             MyDomain = New PropertyValue(String.Empty, GetType(String))
             UserRelatedToMyDomain = New PropertyValue(False)

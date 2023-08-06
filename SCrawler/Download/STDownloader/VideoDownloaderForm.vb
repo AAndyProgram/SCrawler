@@ -13,19 +13,32 @@ Imports PersonalUtilities.Forms.Controls.KeyClick
 Namespace DownloadObjects.STDownloader
     Friend Class VideoDownloaderForm
         Private WithEvents BTT_ADD_URLS_ARR As ToolStripMenuItemKeyClick
+        Private WithEvents BTT_ADD_URLS_EXTERNAL As ToolStripMenuItemKeyClick
         Private Const UrlsArrTag As String = "URLS_ARR"
+        Private Const TAG_EXTERNAL As String = "EXTERNAL"
         Private ReadOnly ControlNonYT As New FPredicate(Of MediaItem)(Function(i) Not i.MyContainer.SiteKey = API.YouTube.YouTubeSiteKey)
         Private ReadOnly ControlsDownloadedNonYT As New FPredicate(Of MediaItem)(Function(i) i.MyContainer.MediaState = Plugin.UserMediaStates.Downloaded And ControlNonYT.Invoke(i))
+        Private ReadOnly Property ExternalUrlsTemp As List(Of String)
         Public Sub New()
             InitializeComponent()
+            ExternalUrlsTemp = New List(Of String)
             AppMode = False
             Icon = My.Resources.ArrowDownIcon_Blue_24
             BTT_ADD_PLS_ARR.Text = $"YouTube: {BTT_ADD_PLS_ARR.Text}"
             BTT_ADD_NO_SHORTS.Text = $"YouTube: {BTT_ADD_NO_SHORTS.Text}"
             BTT_ADD_SHORTS_ONLY.Text = $"YouTube: {BTT_ADD_SHORTS_ONLY.Text}"
             BTT_ADD_URLS_ARR = New ToolStripMenuItemKeyClick("Add an array of URLs", PersonalUtilities.My.Resources.PlusPic_Green_24) With {.Tag = UrlsArrTag}
+            BTT_ADD_URLS_EXTERNAL = New ToolStripMenuItemKeyClick With {.Tag = TAG_EXTERNAL}
             MENU_ADD.DropDownItems.Insert(1, BTT_ADD_URLS_ARR)
             Text = "Video downloader"
+        End Sub
+        Protected Overrides Sub VideoListForm_Disposed(sender As Object, e As EventArgs)
+            ExternalUrlsTemp.Clear()
+            MyBase.VideoListForm_Disposed(sender, e)
+        End Sub
+        Friend Sub ADD_URLS_EXTERNAL(ByVal UrlsList As IEnumerable(Of String))
+            ExternalUrlsTemp.ListAddList(UrlsList, LAP.ClearBeforeAdd, LAP.NotContainsOnly)
+            If ExternalUrlsTemp.Count > 0 Then BTT_ADD_URLS_EXTERNAL.PerformClick()
         End Sub
         Protected Overrides Function LoadData_GetFiles() As List(Of IYouTubeMediaContainer)
             Try
@@ -43,17 +56,19 @@ Namespace DownloadObjects.STDownloader
                 Return ErrorsDescriber.Execute(EDP.SendToLog, ex, "VideoListForm.LoadData_GetFiles", New List(Of IYouTubeMediaContainer))
             End Try
         End Function
-        Protected Overrides Sub BTT_ADD_KeyClick(ByVal Sender As ToolStripMenuItemKeyClick, ByVal e As KeyClickEventArgs) Handles BTT_ADD_URLS_ARR.KeyClick
+        Protected Overrides Sub BTT_ADD_KeyClick(ByVal Sender As ToolStripMenuItemKeyClick, ByVal e As KeyClickEventArgs) Handles BTT_ADD_URLS_ARR.KeyClick,
+                                                                                                                                  BTT_ADD_URLS_EXTERNAL.KeyClick
             Dim __tag$ = UniversalFunctions.IfNullOrEmpty(Of Object)(Sender.Tag, String.Empty)
-            If Not __tag = "a" And Not __tag = UrlsArrTag Then
+            If Not __tag = "a" And Not __tag = UrlsArrTag And Not __tag = TAG_EXTERNAL Then
                 MyBase.BTT_ADD_KeyClick(Sender, e)
             Else
                 Dim url$ = String.Empty
                 Try
-                    url = BufferText
+                    Dim isExternal As Boolean = __tag = TAG_EXTERNAL
+                    If Not isExternal Then url = BufferText
                     Dim disableDown As Boolean = e.Shift
                     Dim output As SFile = Settings.LatestSavingPath
-                    Dim isArr As Boolean = __tag = UrlsArrTag
+                    Dim isArr As Boolean = (__tag = UrlsArrTag Or (isExternal And ExternalUrlsTemp.Count > 1))
                     Dim formOpened As Boolean = False
                     Dim media As IYouTubeMediaContainer
                     Dim formValues As Func(Of DialogResult) = Function() As DialogResult
@@ -67,6 +82,8 @@ Namespace DownloadObjects.STDownloader
                                                                           Settings.LatestSavingPath.Value = output
                                                                           If Settings.STDownloader_UpdateYouTubeOutputPath Then _
                                                                              API.YouTube.MyYouTubeSettings.OutputPath.Value = output
+                                                                          If Settings.STDownloader_OutputPathAutoAddPaths Then _
+                                                                             Settings.DownloadLocations.Add(output, False)
                                                                           Return DialogResult.OK
                                                                       Else
                                                                           Return DialogResult.Cancel
@@ -103,22 +120,26 @@ Namespace DownloadObjects.STDownloader
                     If output.IsEmptyString Then output = API.YouTube.MyYouTubeSettings.OutputPath
 
                     If isArr Then
-                        Dim urls As List(Of String)
+                        Dim urls As List(Of String) = Nothing
                         Dim cntAdded As Boolean = False
-                        Using fa As New DownloaderUrlsArrForm
+                        If isExternal Then urls = New List(Of String)(ExternalUrlsTemp)
+                        Using fa As New DownloaderUrlsArrForm(urls)
                             fa.ShowDialog()
                             If fa.DialogResult = DialogResult.OK Then
                                 urls = fa.URLs.ToList
                                 output = fa.OutputPath
+                                If Settings.STDownloader_UpdateYouTubeOutputPath Then API.YouTube.MyYouTubeSettings.OutputPath.Value = output
+                                If Settings.STDownloader_OutputPathAutoAddPaths Then Settings.DownloadLocations.Add(output, False)
                             Else
                                 Exit Sub
                             End If
                         End Using
                         If urls.ListExists Then
                             urls.ListForEach(Function(uu, ii) uu.StringTrim,, False)
-                            urls.RemoveAll(Function(uu) url.IsEmptyString OrElse Not url.StartsWith("http") OrElse Not canProcessUrl(uu, False))
+                            urls.RemoveAll(Function(uu) uu.IsEmptyString OrElse Not uu.StartsWith("http") OrElse Not canProcessUrl(uu, False))
                         End If
                         If urls.ListExists Then
+                            output.Exists(SFO.Path, True)
                             For Each url In urls
                                 If Not TryYouTube.Invoke Then
                                     media = FindSource(url, output)
@@ -131,6 +152,7 @@ Namespace DownloadObjects.STDownloader
                             MsgBoxE({"There are no valid URLs in the list", "Add URLs array"}, vbCritical)
                         End If
                     Else
+                        If isExternal Then url = ExternalUrlsTemp.FirstOrDefault
                         If formValues.Invoke = DialogResult.Cancel Then Exit Sub
                         If canProcessUrl(url, True) Then
                             If TryYouTube.Invoke Then Exit Sub
@@ -153,11 +175,14 @@ Namespace DownloadObjects.STDownloader
                         If media Is Nothing Then
                             MsgBoxE({$"The URL you entered is not recognized by existing plugins.{vbCr}{url}", "Download video"}, vbCritical)
                         Else
+                            output.Exists(SFO.Path, True)
                             ControlCreateAndAdd(media, disableDown)
                         End If
                     End If
                 Catch ex As Exception
                     ErrorsDescriber.Execute(EDP.LogMessageValue, ex, $"Error when trying to download video from URL: [{url}]")
+                Finally
+                    ExternalUrlsTemp.Clear()
                 End Try
             End If
         End Sub
@@ -181,14 +206,14 @@ Namespace DownloadObjects.STDownloader
             If Settings.STDownloader_RemoveYTVideosOnClear Then
                 MyBase.BTT_CLEAR_DONE_Click(sender, e)
             Else
-                RemoveControls(ControlsDownloadedNonYT)
+                RemoveControls(ControlsDownloadedNonYT, False)
             End If
         End Sub
         Protected Overrides Sub BTT_CLEAR_ALL_Click(sender As Object, e As EventArgs)
             If Settings.STDownloader_RemoveYTVideosOnClear Then
                 MyBase.BTT_CLEAR_ALL_Click(sender, e)
             Else
-                RemoveControls(ControlNonYT)
+                RemoveControls(ControlNonYT, False)
             End If
         End Sub
         Protected Overrides Sub MyJob_Finished(ByVal Sender As Object, ByVal e As EventArgs)

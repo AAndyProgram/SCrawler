@@ -47,6 +47,8 @@ Namespace API.YouTube.Controls
                 MyView.SetFormSize()
             End If
 
+            MyYouTubeSettings.DownloadLocations.PopulateComboBox(TXT_FILE)
+
             If Not MyContainer Is Nothing Then
                 With MyContainer
                     Dim i%
@@ -299,7 +301,7 @@ Namespace API.YouTube.Controls
                         .FileSetManually = True
                         .UpdateInfoFields()
                         '#If DEBUG Then
-                        '                        Debug.WriteLine(.Command(False))
+                        'Debug.WriteLine(.Command(False))
                         '#End If
                     Else
                         If OPT_AUDIO.Checked Then
@@ -312,6 +314,7 @@ Namespace API.YouTube.Controls
                 End With
 
                 If MyYouTubeSettings.OutputPathAutoChange Then MyYouTubeSettings.OutputPath.Value = f
+                If MyDownloaderSettings.OutputPathAutoAddPaths Then MyYouTubeSettings.DownloadLocations.Add(f, False)
 
                 DialogResult = DialogResult.OK
                 Close()
@@ -430,7 +433,7 @@ Namespace API.YouTube.Controls
         End Sub
 #End Region
 #Region "Footer"
-        Private Sub BTT_BROWSE_Click(sender As Object, e As EventArgs) Handles BTT_BROWSE.Click
+        Private Sub BTT_BROWSE_MouseClick(sender As Object, e As MouseEventArgs) Handles BTT_BROWSE.MouseClick
             Dim f As SFile
 #Disable Warning BC40000
             If MyContainer.HasElements Then
@@ -444,7 +447,13 @@ Namespace API.YouTube.Controls
                 f = SFile.SaveAs(f, "Select the destination of the video file",,, sPattern, EDP.ReturnValue)
             End If
 #Enable Warning
-            If Not f.IsEmptyString Then TXT_FILE.Text = f
+            If Not f.IsEmptyString Then
+                If e.Button = MouseButtons.Right Then
+                    MyYouTubeSettings.DownloadLocations.Add(f, MyDownloaderSettings.OutputPathAskForName)
+                    MyYouTubeSettings.DownloadLocations.PopulateComboBox(TXT_FILE, f)
+                End If
+                TXT_FILE.Text = f
+            End If
         End Sub
 #End Region
 #End Region

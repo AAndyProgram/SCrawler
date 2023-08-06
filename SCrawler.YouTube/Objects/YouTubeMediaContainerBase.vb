@@ -65,6 +65,7 @@ Namespace API.YouTube.Objects
             End Set
         End Property
         Protected _MediaState As UMStates = UMStates.Unknown
+        Protected _MediaStateOnLoad As UMStates = UMStates.Unknown
         <XMLEC> Public Property MediaState As UMStates Implements IYouTubeMediaContainer.MediaState, IUserMedia.DownloadState
             Get
                 If _MediaState = UMStates.Unknown And HasElements Then
@@ -591,7 +592,9 @@ Namespace API.YouTube.Objects
                     Bitrate = 0
                     _MediaType = UMTypes.Undefined
                     If SelectedVideoIndex >= 0 Then
-                        cmd.StringAppend($"bv*[format_id={SelectedVideo.ID}]")
+                        'URGENT: 2023.3.4 -> 2023.7.6
+                        'cmd.StringAppend($"bv*[format_id={SelectedVideo.ID}]")
+                        cmd.StringAppend(SelectedVideo.ID)
                         _Size = SelectedVideo.Size
                         _MediaType = UMTypes.Video
                         Height = SelectedVideo.Height
@@ -602,7 +605,9 @@ Namespace API.YouTube.Objects
                     End If
                     If SelectedAudioIndex >= 0 Then
                         Dim atCodec$
-                        cmd.StringAppend($"ba*[format_id={SelectedAudio.ID}]", "+")
+                        'URGENT: 2023.3.4 -> 2023.7.6
+                        'cmd.StringAppend($"ba*[format_id={SelectedAudio.ID}]", "+")
+                        cmd.StringAppend(SelectedAudio.ID, "+")
                         If OutputAudioCodec.StringToLower = ac3 Then
                             PostProcessing_AudioAC3 = True
                             formats.StringAppend($"--audio-format {aac}", " ")
@@ -633,7 +638,9 @@ Namespace API.YouTube.Objects
                         subs = $"--write-subs --write-auto-subs --sub-format {OutputSubtitlesFormat.StringToLower} --sub-langs ""{subs}"" --convert-subs {OutputSubtitlesFormat.StringToLower}"
                     End If
                     If Not cmd.IsEmptyString Then
-                        cmd = $"yt-dlp -f ""{cmd}"""
+                        'URGENT: 2023.3.4 -> 2023.7.6
+                        'cmd = $"yt-dlp -f ""{cmd}"""
+                        cmd = $"yt-dlp -f {cmd}"
                         If Not MyYouTubeSettings.ReplaceModificationDate Then cmd &= " --no-mtime"
                         cmd.StringAppend(formats, " ")
                         cmd.StringAppend(subs, " ")
@@ -1017,6 +1024,7 @@ Namespace API.YouTube.Objects
                         Dim fc As SFile = x.Value(Name_CachePath).CSFileP
                         If fc.Exists(SFO.Path, False) AndAlso SFile.GetFiles(fc, "*.json",, EDP.ReturnValue).Count > 0 Then Parse(Nothing, fc, IsMusic)
                         XMLPopulateData(Me, x)
+                        _MediaStateOnLoad = _MediaState
                         _Exists = True
                         If If(x(Name_CheckedElements)?.Count, 0) > 0 Then ApplyElementCheckedValue(x(Name_CheckedElements))
                         If ArrayMaxResolution <> -10 Then SetMaxResolution(ArrayMaxResolution)
@@ -1031,6 +1039,9 @@ Namespace API.YouTube.Objects
         End Sub
 #End Region
 #Region "Save"
+        Protected Function NeedToSave() As Boolean
+            Return Not _MediaStateOnLoad = _MediaState And Not FileSettings.Exists
+        End Function
         Private Function GetThumbnails() As IEnumerable(Of SFile)
             If HasElements Then
                 Return ListAddList(Of SFile)(New List(Of SFile)({ThumbnailFile}),
@@ -1041,46 +1052,50 @@ Namespace API.YouTube.Objects
         End Function
         Public Overridable Sub Save() Implements IDownloadableMedia.Save
             Try
-                Dim fSettings As SFile = FileSettings
-                If fSettings.IsEmptyString Then fSettings = MyCacheSettings.NewFile
-                Dim f As SFile = fSettings
+                If NeedToSave() Then
+                    Dim fSettings As SFile = FileSettings
+                    If fSettings.IsEmptyString Then fSettings = MyCacheSettings.NewFile
+                    Dim f As SFile = fSettings
 
-                If Not MediaState = UMStates.Downloaded Then
-                    If CachePath.Exists(SFO.Path, False) AndAlso Not CachePath.Path.Contains(MyCacheSettings.RootDirectory.Path) Then
-                        f = $"{f.PathWithSeparator}{f.Name}\"
-                        If f.Exists(SFO.Path) Then
-                            Dim files As List(Of SFile) = SFile.GetFiles(CachePath, "*.json", IO.SearchOption.AllDirectories, EDP.ReturnValue)
-                            If files.ListExists Then
-                                CachePath = f
-                                Dim fd As SFile = f
-                                fd.Extension = "json"
-                                For Each f In files
-                                    fd.Name = f.Name
-                                    SFile.Move(f, fd)
-                                Next
-                            Else
-                                If CachePath.Exists(SFO.Path, False) Then CachePath.Delete(SFO.Path, SFODelete.DeletePermanently, EDP.None)
-                                CachePath = Nothing
+                    If Not MediaState = UMStates.Downloaded Then
+                        If CachePath.Exists(SFO.Path, False) AndAlso Not CachePath.Path.Contains(MyCacheSettings.RootDirectory.Path) Then
+                            f = $"{f.PathWithSeparator}{f.Name}\"
+                            If f.Exists(SFO.Path) Then
+                                Dim files As List(Of SFile) = SFile.GetFiles(CachePath, "*.json", IO.SearchOption.AllDirectories, EDP.ReturnValue)
+                                If files.ListExists Then
+                                    CachePath = f
+                                    Dim fd As SFile = f
+                                    fd.Extension = "json"
+                                    For Each f In files
+                                        fd.Name = f.Name
+                                        SFile.Move(f, fd)
+                                    Next
+                                Else
+                                    If CachePath.Exists(SFO.Path, False) Then CachePath.Delete(SFO.Path, SFODelete.DeletePermanently, EDP.None)
+                                    CachePath = Nothing
+                                End If
                             End If
                         End If
+                    Else
+                        If CachePath.Exists(SFO.Path, False) Then CachePath.Delete(SFO.Path, SFODelete.DeletePermanently, EDP.None)
+                        CachePath = Nothing
+                        If ThumbnailFile.IsEmptyString And HasElements Then
+                            With ListAddList(Nothing, GetThumbnails, LAP.NotContainsOnly).ListWithRemove(Function(tf) tf.IsEmptyString)
+                                If .ListExists Then _ThumbnailFile = .FirstOrDefault(Function(tf) tf.Exists)
+                            End With
+                        End If
                     End If
-                Else
-                    If CachePath.Exists(SFO.Path, False) Then CachePath.Delete(SFO.Path, SFODelete.DeletePermanently, EDP.None)
-                    CachePath = Nothing
-                    If ThumbnailFile.IsEmptyString And HasElements Then
-                        With ListAddList(Nothing, GetThumbnails, LAP.NotContainsOnly).ListWithRemove(Function(tf) tf.IsEmptyString)
-                            If .ListExists Then _ThumbnailFile = .FirstOrDefault(Function(tf) tf.Exists)
-                        End With
-                    End If
-                End If
 
-                Using x As New XmlFile With {.AllowSameNames = True}
-                    fSettings.Extension = "xml"
-                    FileSettings = fSettings
-                    x.AddRange(ToEContainer.Elements)
-                    x.Name = "MediaContainer"
-                    x.Save(fSettings)
-                End Using
+                    Using x As New XmlFile With {.AllowSameNames = True}
+                        fSettings.Extension = "xml"
+                        FileSettings = fSettings
+                        If NeedToSave() Then
+                            x.AddRange(ToEContainer.Elements)
+                            x.Name = "MediaContainer"
+                            x.Save(fSettings)
+                        End If
+                    End Using
+                End If
             Catch ex As Exception
                 ErrorsDescriber.Execute(EDP.SendToLog, ex, $"YouTubeMediaContainerBase.Save({FileSettings})")
             End Try
@@ -1244,25 +1259,27 @@ Namespace API.YouTube.Objects
                     obj.Height = AConvert(Of Integer)(ee.Value("height"), NumberProvider, -1)
                     obj.FPS = AConvert(Of Double)(ee.Value("fps"), NumberProvider, -1)
                     obj.Bitrate = AConvert(Of Double)(ee.Value("tbr"), NumberProvider, -1)
+                    obj.Protocol = ee.Value("protocol")
+                    If Not obj.Protocol.IsEmptyString Then obj.Protocol = obj.Protocol.Split("_").FirstOrDefault
                     nValue = AConvert(Of Double)(ee.Value("filesize"), NumberProvider, -1)
                     If nValue > 0 Then obj.Size = (nValue / 1024).RoundVal(2)
+                    If obj.Size <= 0 Then
+                        nValue = AConvert(Of Double)(ee.Value("filesize_approx"), NumberProvider, -1)
+                        If nValue > 0 Then obj.Size = (nValue / 1024).RoundVal(2)
+                    End If
+                    If obj.Size <= 0 And obj.Bitrate > 0 And Duration.TotalSeconds > 0 Then _
+                       obj.Size = (obj.Bitrate / 8 * Duration.TotalSeconds).RoundVal(2)
+
                     sValue = ee.Value("vcodec")
                     If validCodecValue(sValue) Then
                         obj.Type = UMTypes.Video
                         obj.Codec = sValue.Split(".").First
-                        If validCodecValue(ee.Value("acodec")) Then
-                            obj.Type = av
-                            If obj.Size <= 0 Then
-                                nValue = AConvert(Of Double)(ee.Value("filesize_approx"), NumberProvider, -1)
-                                If nValue > 0 Then obj.Size = (nValue / 1024).RoundVal(2)
-                            End If
-                        End If
+                        If validCodecValue(ee.Value("acodec")) Then obj.Type = av
                     Else
                         sValue = ee.Value("acodec")
                         If validCodecValue(sValue) Then
                             obj.Type = UMTypes.Audio
                             obj.Codec = sValue.Split(".").First
-                            obj.Bitrate = AConvert(Of Double)(ee.Value("tbr"), NumberProvider, -1)
                         Else
                             Continue For
                         End If
@@ -1292,6 +1309,7 @@ Namespace API.YouTube.Objects
                             Next
                         End If
                     End Sub
+                If MediaObjects.Count > 0 And Not MyYouTubeSettings.DefaultVideoIncludeNullSize Then MediaObjects.RemoveAll(Function(mo) mo.Size <= 0)
                 If MediaObjects.Count > 0 Then DupRemover.Invoke(UMTypes.Audio)
                 If MediaObjects.Count > 0 Then DupRemover.Invoke(UMTypes.Video)
                 If MediaObjects.Count > 0 Then

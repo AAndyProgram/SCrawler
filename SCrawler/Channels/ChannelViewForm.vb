@@ -336,7 +336,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
                             End With
                             Settings.Users.Add(tmpUser)
                             With Settings.Users.Last
-                                .Labels.Add(UserData.CannelsLabelName_ChannelsForm)
+                                .Labels.ListAddList({UserData.CannelsLabelName_ChannelsForm, LabelsKeeper.NoParsedUser})
                                 .UpdateUserInformation()
                                 If Settings.FromChannelCopyImageToUser And Not f.IsEmptyString And Not .File.IsEmptyString Then _
                                    CopyFile(ListAddValue(Nothing, New ChannelsCollection.ChannelImage(cn, f)).ListAddList(Settings.Channels.GetUserFiles(.Name), c), .File)

@@ -13,6 +13,7 @@ Imports System.ComponentModel
 Imports System.Runtime.CompilerServices
 Imports SCrawler.Plugin
 Imports SCrawler.Plugin.Hosts
+Imports PersonalUtilities.Functions.Messaging
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.XML.Objects
 Imports PersonalUtilities.Functions.RegularExpressions
@@ -51,6 +52,28 @@ Namespace API.Base
         Friend Sub RemoveUpdateHandlers()
             UserUpdatedEventHandlers.Clear()
         End Sub
+        Private ReadOnly UserDownloadStateChangedEventHandlers As List(Of UserDownloadStateChangedEventHandler)
+        Friend Custom Event UserDownloadStateChanged As UserDownloadStateChangedEventHandler
+            AddHandler(ByVal h As UserDownloadStateChangedEventHandler)
+                If Not UserDownloadStateChangedEventHandlers.Contains(h) Then UserDownloadStateChangedEventHandlers.Add(h)
+            End AddHandler
+            RemoveHandler(ByVal h As UserDownloadStateChangedEventHandler)
+                UserDownloadStateChangedEventHandlers.Remove(h)
+            End RemoveHandler
+            RaiseEvent(ByVal User As IUserData, ByVal IsDownloading As Boolean)
+                Try
+                    If UserDownloadStateChangedEventHandlers.Count > 0 Then
+                        For i% = 0 To UserDownloadStateChangedEventHandlers.Count - 1
+                            Try : UserDownloadStateChangedEventHandlers(i).Invoke(User, IsDownloading) : Catch : End Try
+                        Next
+                    End If
+                Catch
+                End Try
+            End RaiseEvent
+        End Event
+        Private Sub OnUserDownloadStateChanged(ByVal IsDownloading As Boolean)
+            RaiseEvent UserDownloadStateChanged(Me, IsDownloading)
+        End Sub
 #End Region
 #Region "Collection buttons"
         Private _CollectionButtonsExists As Boolean = False
@@ -58,6 +81,7 @@ Namespace API.Base
         Friend WithEvents BTT_CONTEXT_DOWN As ToolStripKeyMenuItem
         Friend WithEvents BTT_CONTEXT_EDIT As ToolStripMenuItem
         Friend WithEvents BTT_CONTEXT_DELETE As ToolStripMenuItem
+        Friend WithEvents BTT_CONTEXT_ERASE As ToolStripMenuItem
         Friend WithEvents BTT_CONTEXT_OPEN_PATH As ToolStripMenuItem
         Friend WithEvents BTT_CONTEXT_OPEN_SITE As ToolStripMenuItem
         Friend Sub CreateButtons()
@@ -75,6 +99,7 @@ Namespace API.Base
             BTT_CONTEXT_DOWN = New ToolStripKeyMenuItem(tn, i) With {.Name = tnn("DOWN"), .Tag = Me}
             BTT_CONTEXT_EDIT = New ToolStripMenuItem(tn, i) With {.Name = tnn("EDIT"), .Tag = Me}
             BTT_CONTEXT_DELETE = New ToolStripMenuItem(tn, i) With {.Name = tnn("DELETE"), .Tag = Me}
+            BTT_CONTEXT_ERASE = New ToolStripMenuItem(tn, i) With {.Name = tnn("ERASE"), .Tag = Me}
             BTT_CONTEXT_OPEN_PATH = New ToolStripMenuItem(tn, i) With {.Name = tnn("PATH"), .Tag = Me}
             BTT_CONTEXT_OPEN_SITE = New ToolStripMenuItem(tn, i) With {.Name = tnn("SITE"), .Tag = Me}
             UpdateButtonsColor()
@@ -91,7 +116,8 @@ Namespace API.Base
                 cb = MyColor.EditBack
                 cf = MyColor.EditFore
             End If
-            For Each b As ToolStripMenuItem In {BTT_CONTEXT_DOWN, BTT_CONTEXT_EDIT, BTT_CONTEXT_DELETE, BTT_CONTEXT_OPEN_PATH, BTT_CONTEXT_OPEN_SITE}
+            For Each b As ToolStripMenuItem In {BTT_CONTEXT_DOWN, BTT_CONTEXT_EDIT, BTT_CONTEXT_DELETE, BTT_CONTEXT_ERASE,
+                                                BTT_CONTEXT_OPEN_PATH, BTT_CONTEXT_OPEN_SITE}
                 If Not b Is Nothing Then b.BackColor = cb : b.ForeColor = cf
             Next
             If _UserInformationLoaded Then _CollectionButtonsColorsSet = True
@@ -111,12 +137,16 @@ Namespace API.Base
         Private Const Name_UserExists As String = "UserExists"
         Private Const Name_UserSuspended As String = "UserSuspended"
         Protected Const Name_FriendlyName As String = "FriendlyName"
-        Private Const Name_UserSiteName As String = "UserSiteName"
+        Protected Const Name_UserSiteName As String = "UserSiteName"
         Protected Const Name_UserID As String = "UserID"
-        Private Const Name_Description As String = "Description"
+        Protected Const Name_Options As String = "Options"
+        Protected Const Name_Description As String = "Description"
         Private Const Name_ParseUserMediaOnly As String = "ParseUserMediaOnly"
+        Private Const Name_IsSubscription As String = UserInfo.Name_IsSubscription
         Private Const Name_Temporary As String = "Temporary"
         Private Const Name_Favorite As String = "Favorite"
+        Private Const Name_BackColor As String = "BackColor"
+        Private Const Name_ForeColor As String = "ForeColor"
         Private Const Name_CreatedByChannel As String = "CreatedByChannel"
 
         Private Const Name_SeparateVideoFolder As String = "SeparateVideoFolder"
@@ -142,7 +172,7 @@ Namespace API.Base
 #Region "Declarations"
 #Region "Host, Site, Progress"
         Friend Property HOST As SettingsHost Implements IUserData.HOST
-        Friend ReadOnly Property Site As String Implements IContentProvider.Site
+        Friend ReadOnly Property Site As String Implements IUserData.Site
             Get
                 Return HOST.Name
             End Get
@@ -160,7 +190,7 @@ Namespace API.Base
         End Property
         Protected Property ProgressPre As PreProgress = Nothing
 #End Region
-#Region "User name, ID, exist, suspend"
+#Region "User name, ID, exist, suspend, options"
         Friend User As UserInfo
         Friend Property IsSavedPosts As Boolean Implements IPluginContentProvider.IsSavedPosts
         Private _UserExists As Boolean = True
@@ -190,14 +220,14 @@ Namespace API.Base
             Set(ByVal NewName As String)
             End Set
         End Property
-        Friend Overridable ReadOnly Property Name As String Implements IContentProvider.Name
+        Friend Overridable ReadOnly Property Name As String Implements IUserData.Name
             Get
                 Return User.Name
             End Get
         End Property
-        Friend Overridable Property ID As String = String.Empty Implements IContentProvider.ID, IPluginContentProvider.ID
+        Friend Overridable Property ID As String = String.Empty Implements IUserData.ID, IPluginContentProvider.ID
         Protected _FriendlyName As String = String.Empty
-        Friend Overridable Property FriendlyName As String Implements IContentProvider.FriendlyName
+        Friend Overridable Property FriendlyName As String Implements IUserData.FriendlyName
             Get
                 If Settings.UserSiteNameAsFriendly Then
                     Return _FriendlyName.IfNullOrEmpty(UserSiteName)
@@ -251,9 +281,15 @@ Namespace API.Base
                 Return UserModel = UsageModel.Virtual
             End Get
         End Property
+        Friend Property Options As String = String.Empty Implements IUserData.Options, IPluginContentProvider.Options
+        Friend Overridable ReadOnly Property FeedIsUser As Boolean
+            Get
+                Return True
+            End Get
+        End Property
 #End Region
 #Region "Description"
-        Friend Property UserDescription As String = String.Empty Implements IContentProvider.Description, IPluginContentProvider.UserDescription
+        Friend Property UserDescription As String = String.Empty Implements IUserData.Description, IPluginContentProvider.UserDescription
         Protected _DescriptionEveryTime As Boolean = False
         Protected _DescriptionChecked As Boolean = False
         Protected Function UserDescriptionNeedToUpdate() As Boolean
@@ -270,9 +306,9 @@ Namespace API.Base
             End If
         End Sub
 #End Region
-#Region "Favorite, Temporary"
+#Region "Favorite, Temporary, Colors"
         Protected _Favorite As Boolean = False
-        Friend Overridable Property Favorite As Boolean Implements IContentProvider.Favorite
+        Friend Overridable Property Favorite As Boolean Implements IUserData.Favorite
             Get
                 Return _Favorite
             End Get
@@ -282,13 +318,31 @@ Namespace API.Base
             End Set
         End Property
         Protected _Temporary As Boolean = False
-        Friend Overridable Property Temporary As Boolean Implements IContentProvider.Temporary
+        Friend Overridable Property Temporary As Boolean Implements IUserData.Temporary
             Get
                 Return _Temporary
             End Get
             Set(ByVal Temp As Boolean)
                 _Temporary = Temp
                 If _Temporary Then _Favorite = False
+            End Set
+        End Property
+        Private _BackColor As Color? = Nothing
+        Friend Overridable Property BackColor As Color? Implements IUserData.BackColor
+            Get
+                Return _BackColor
+            End Get
+            Set(ByVal b As Color?)
+                _BackColor = b
+            End Set
+        End Property
+        Private _ForeColor As Color? = Nothing
+        Friend Overridable Property ForeColor As Color? Implements IUserData.ForeColor
+            Get
+                Return _ForeColor
+            End Get
+            Set(ByVal f As Color?)
+                _ForeColor = f
             End Set
         End Property
 #End Region
@@ -405,32 +459,106 @@ BlockNullPicture:
                 Return _IsCollection
             End Get
         End Property
-        Friend Overridable Property CollectionName As String Implements IUserData.CollectionName
+        Friend Overridable ReadOnly Property CollectionName As String Implements IUserData.CollectionName
             Get
                 Return User.CollectionName
             End Get
-            Set(ByVal NewCollection As String)
-                ChangeCollectionName(NewCollection, True)
-            End Set
+        End Property
+        Friend Overridable ReadOnly Property CollectionPath As SFile Implements IUserData.CollectionPath
+            Get
+                Return User.GetCollectionRootPath
+            End Get
         End Property
         Friend ReadOnly Property IncludedInCollection As Boolean Implements IUserData.IncludedInCollection
             Get
                 Return User.IncludedInCollection
             End Get
         End Property
-        Friend Overridable Sub ChangeCollectionName(ByVal NewName As String, ByVal UpdateSettings As Boolean)
-            Dim u As UserInfo = User
-            u.CollectionName = NewName
-            u.UpdateUserFile()
-            User = u
-            If UpdateSettings Then Settings.UpdateUsersList(User)
-        End Sub
         Friend Overridable ReadOnly Property Labels As List(Of String) Implements IUserData.Labels
+        Protected ReadOnly Property LabelsString As String
+            Get
+                Return Labels.ListToString("|", EDP.ReturnValue)
+            End Get
+        End Property
+        Friend Overridable ReadOnly Property SpecialLabels As IEnumerable(Of String)
+            Get
+                Return New String() {}
+            End Get
+        End Property
+        ''' <summary>
+        ''' 0 add<br/>
+        ''' 1 replace<br/>
+        ''' 2 remove
+        ''' </summary>
+        ''' <returns>true = w/special</returns>
+        Friend Shared Function UpdateLabelsKeepSpecial(ByVal Mode As Byte) As Boolean
+            Dim m As New MMessage("", "Update labels",, vbQuestion + vbYesNo) With {.DefaultButton = 0, .CancelButton = 0}
+            Select Case Mode
+                Case 0 : m.Text = "Do you want to exclude site-specific labels from adding?"
+                Case 1, 2 : m.Text = "Do you want to keep site-specific labels?"
+                Case Else : Return False
+            End Select
+            Return m.Show = vbYes
+        End Function
+        ''' <inheritdoc cref="UpdateLabelsKeepSpecial(Byte)"/>
+        Friend Shared Sub UpdateLabels(ByVal User As UserDataBase, ByVal NewLabels As IEnumerable(Of String), ByVal Mode As Byte, ByVal KeepSpecial As Boolean)
+            Try
+                If User.IsCollection Then
+                    With DirectCast(User, UserDataBind)
+                        If .Count > 0 Then .Collections.ForEach(Sub(u) UpdateLabels(u, NewLabels, Mode, KeepSpecial))
+                    End With
+                Else
+                    Dim nl As List(Of String)
+                    If NewLabels.ListExists Then nl = NewLabels.ToList Else nl = New List(Of String)
+
+                    Dim lex As List(Of String) = User.SpecialLabels.ToList
+                    If lex.ListExists Then
+                        If User.Labels.Count = 0 Or Not KeepSpecial Then
+                            lex.Clear()
+                        Else
+                            lex.ListDisposeRemove(Function(l) Not User.Labels.Contains(l))
+                        End If
+                    End If
+
+                    Select Case Mode
+                        Case 0 'add
+                            If KeepSpecial Then nl.ListAddList(lex, LNC)
+                            User.Labels.ListAddList(nl, LNC)
+                        Case 1 'replace
+                            If KeepSpecial Then
+                                nl.ListAddList(lex, LNC)
+                            Else
+                                nl.ListWithRemove(lex)
+                            End If
+                            User.Labels.Clear()
+                            User.Labels.ListAddList(nl, LNC)
+                        Case 2 'remove
+                            If KeepSpecial Then nl.ListWithRemove(lex)
+                            User.Labels.ListWithRemove(nl)
+                    End Select
+
+                    If User.Labels.Count > 0 Then User.Labels.Sort()
+                End If
+            Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "[UserDataBase.UpdateLabels]")
+            End Try
+        End Sub
 #End Region
 #Region "Downloading"
         Protected _DataLoaded As Boolean = False
         Protected _DataParsed As Boolean = False
         Friend Property ParseUserMediaOnly As Boolean = False Implements IUserData.ParseUserMediaOnly, IPluginContentProvider.ParseUserMediaOnly
+        Friend Overridable ReadOnly Property IsSubscription As Boolean Implements IUserData.IsSubscription
+            Get
+                Return User.IsSubscription
+            End Get
+        End Property
+        Private Property IPluginContentProvider_IsSubscription As Boolean Implements IPluginContentProvider.IsSubscription
+            Get
+                Return IsSubscription
+            End Get
+            Set : End Set
+        End Property
         Friend Overridable Property ReadyForDownload As Boolean = True Implements IUserData.ReadyForDownload
         Friend Property DownloadImages As Boolean = True Implements IUserData.DownloadImages
         Friend Property DownloadVideos As Boolean = True Implements IUserData.DownloadVideos
@@ -636,7 +764,7 @@ BlockNullPicture:
         Friend ReadOnly Property LVIKey As String Implements IUserData.Key
             Get
                 If Not _IsCollection Then
-                    Return $"{Site.ToString.ToUpper}_{Name}"
+                    Return $"{IIf(IsSubscription, "SSSS", String.Empty)}{Site.ToString.ToUpper}_{Name}"
                 Else
                     Return $"CCCC_{CollectionName}"
                 End If
@@ -652,6 +780,8 @@ BlockNullPicture:
         Friend Overridable ReadOnly Property FitToAddParams As Boolean Implements IUserData.FitToAddParams
             Get
                 With Settings
+                    If IsSubscription And Not .MainFrameUsersShowSubscriptions Then Return False
+                    If Not IsSubscription And Not .MainFrameUsersShowDefaults Then Return False
                     If LastUpdated.HasValue And Not .ViewDateMode.Value = ShowingDates.Off Then
                         Dim f As Date = If(.ViewDateFrom.HasValue, .ViewDateFrom.Value.Date, Date.MinValue.Date)
                         Dim t As Date = If(.ViewDateTo.HasValue, .ViewDateTo.Value.Date, Date.MaxValue.Date)
@@ -705,6 +835,7 @@ BlockNullPicture:
             _TempPostsList = New List(Of String)
             Labels = New List(Of String)
             UserUpdatedEventHandlers = New List(Of IUserData.UserUpdatedEventHandler)
+            UserDownloadStateChangedEventHandlers = New List(Of UserDownloadStateChangedEventHandler)
             If InvokeImageHandler Then MainFrameObj.ImageHandler(Me)
         End Sub
         Friend Sub SetEnvironment(ByRef h As SettingsHost, ByVal u As UserInfo, ByVal _LoadUserInformation As Boolean,
@@ -753,12 +884,25 @@ BlockNullPicture:
                         UserExists = x.Value(Name_UserExists).FromXML(Of Boolean)(True)
                         UserSuspended = x.Value(Name_UserSuspended).FromXML(Of Boolean)(False)
                         ID = x.Value(Name_UserID)
+                        Options = x.Value(Name_Options)
                         _FriendlyName = x.Value(Name_FriendlyName)
                         UserSiteName = x.Value(Name_UserSiteName)
                         UserDescription = x.Value(Name_Description)
                         ParseUserMediaOnly = x.Value(Name_ParseUserMediaOnly).FromXML(Of Boolean)(False)
                         Temporary = x.Value(Name_Temporary).FromXML(Of Boolean)(False)
                         Favorite = x.Value(Name_Favorite).FromXML(Of Boolean)(False)
+
+                        If Not x.Value(Name_BackColor).IsEmptyString Then
+                            BackColor = AConvert(Of Color)(x.Value(Name_BackColor), Nothing, EDP.ReturnValue)
+                        Else
+                            BackColor = Nothing
+                        End If
+                        If Not x.Value(Name_ForeColor).IsEmptyString Then
+                            ForeColor = AConvert(Of Color)(x.Value(Name_ForeColor), Nothing, EDP.ReturnValue)
+                        Else
+                            ForeColor = Nothing
+                        End If
+
                         CreatedByChannel = x.Value(Name_CreatedByChannel).FromXML(Of Boolean)(False)
                         SeparateVideoFolder = AConvert(Of Boolean)(x.Value(Name_SeparateVideoFolder), AModes.Var, Nothing)
                         ReadyForDownload = x.Value(Name_ReadyForDownload).FromXML(Of Boolean)(True)
@@ -771,7 +915,6 @@ BlockNullPicture:
                         ScriptUse = x.Value(Name_ScriptUse).FromXML(Of Boolean)(False)
                         ScriptData = x.Value(Name_ScriptData)
                         DataMerging = x.Value(Name_Merged).FromXML(Of Boolean)(False)
-                        ChangeCollectionName(x.Value(Name_CollectionName), False)
                         Labels.ListAddList(x.Value(Name_LabelsName).StringToList(Of String, List(Of String))("|", EDP.ReturnValue), LAP.NotContainsOnly, LAP.ClearBeforeAdd)
                         LoadUserInformation_OptionalFields(x, True)
                     End Using
@@ -798,12 +941,18 @@ BlockNullPicture:
                     x.Add(Name_UserExists, UserExists.BoolToInteger)
                     x.Add(Name_UserSuspended, UserSuspended.BoolToInteger)
                     x.Add(Name_UserID, ID)
+                    x.Add(Name_Options, Options)
                     x.Add(Name_FriendlyName, _FriendlyName)
                     x.Add(Name_UserSiteName, UserSiteName)
                     x.Add(Name_Description, UserDescription)
                     x.Add(Name_ParseUserMediaOnly, ParseUserMediaOnly.BoolToInteger)
+                    x.Add(Name_IsSubscription, IsSubscription.BoolToInteger)
                     x.Add(Name_Temporary, Temporary.BoolToInteger)
                     x.Add(Name_Favorite, Favorite.BoolToInteger)
+
+                    x.Add(Name_BackColor, CStr(AConvert(Of String)(BackColor, String.Empty, EDP.ReturnValue)))
+                    x.Add(Name_ForeColor, CStr(AConvert(Of String)(ForeColor, String.Empty, EDP.ReturnValue)))
+
                     x.Add(Name_CreatedByChannel, CreatedByChannel.BoolToInteger)
                     If SeparateVideoFolder.HasValue Then
                         x.Add(Name_SeparateVideoFolder, SeparateVideoFolder.Value.BoolToInteger)
@@ -820,7 +969,7 @@ BlockNullPicture:
                     x.Add(Name_ScriptUse, ScriptUse.BoolToInteger)
                     x.Add(Name_ScriptData, ScriptData)
                     x.Add(Name_CollectionName, CollectionName)
-                    x.Add(Name_LabelsName, Labels.ListToString("|", EDP.ReturnValue))
+                    x.Add(Name_LabelsName, LabelsString)
                     x.Add(Name_Merged, DataMerging.BoolToInteger)
 
                     LoadUserInformation_OptionalFields(x, False)
@@ -867,7 +1016,7 @@ BlockNullPicture:
 #End Region
 #End Region
 #Region "Open site, folder"
-        Friend Overridable Sub OpenSite(Optional ByVal e As ErrorsDescriber = Nothing) Implements IContentProvider.OpenSite
+        Friend Overridable Sub OpenSite(Optional ByVal e As ErrorsDescriber = Nothing) Implements IUserData.OpenSite
             Try
                 Dim URL$ = HOST.Source.GetUserUrl(Me)
                 If Not URL.IsEmptyString Then Process.Start(URL)
@@ -927,6 +1076,13 @@ BlockNullPicture:
         End Function
 #End Region
 #Region "Download functions and options"
+        Private __DOWNLOAD_IN_PROGRESS As Boolean = False
+        Friend ReadOnly Property DownloadInProgress As Boolean
+            Get
+                Return __DOWNLOAD_IN_PROGRESS
+            End Get
+        End Property
+        Friend PersonalToken As CancellationToken
         Protected Responser As Responser
         Protected UseResponserClient As Boolean = False
         Protected UseClientTokens As Boolean = False
@@ -935,10 +1091,12 @@ BlockNullPicture:
         Private _DownloadInProgress As Boolean = False
         Private _EnvirUserExists As Boolean
         Private _EnvirUserSuspended As Boolean
+        Private _EnvirCreatedByChannel As Boolean
         Private _EnvirChanged As Boolean = False
         Private _PictureExists As Boolean
         Private _EnvirInvokeUserUpdated As Boolean = False
         Protected Sub EnvirDownloadSet()
+            PersonalToken = Nothing
             ProgressPre.Reset()
             UpdateDataFiles()
             _DownloadInProgress = True
@@ -948,6 +1106,7 @@ BlockNullPicture:
             _ForceSaveUserInfo = False
             _EnvirUserExists = UserExists
             _EnvirUserSuspended = UserSuspended
+            _EnvirCreatedByChannel = CreatedByChannel
             _EnvirChanged = False
             _EnvirInvokeUserUpdated = False
             UserExists = True
@@ -965,7 +1124,9 @@ BlockNullPicture:
                 End Select
             End If
         End Sub
-        Friend Overridable Sub DownloadData(ByVal Token As CancellationToken) Implements IContentProvider.DownloadData
+        Friend Overridable Sub DownloadData(ByVal Token As CancellationToken) Implements IUserData.DownloadData
+            __DOWNLOAD_IN_PROGRESS = True
+            OnUserDownloadStateChanged(True)
             Dim Canceled As Boolean = False
             _ExternalCompatibilityToken = Token
             Try
@@ -981,14 +1142,14 @@ BlockNullPicture:
                 _TempMediaList.Clear()
                 _TempPostsList.Clear()
                 LatestData.Clear()
-                Dim __SaveData As Boolean = Not CreatedByChannel Or Not Settings.FromChannelDownloadTopUse
+                Dim __isChannelsSupport As Boolean = CreatedByChannel And Settings.FromChannelDownloadTopUse
 
                 LoadContentInformation()
 
                 If MyFilePosts.Exists Then _TempPostsList.ListAddList(File.ReadAllLines(MyFilePosts))
                 If _ContentList.Count > 0 Then _TempPostsList.ListAddList(_ContentList.Select(Function(u) u.Post.ID), LNC)
 
-                If Not DownloadMissingOnly Then
+                If Not DownloadMissingOnly Or IsSubscription Then
                     ThrowAny(Token)
                     DownloadDataF(Token)
                     ProgressPre.Done()
@@ -1010,22 +1171,37 @@ BlockNullPicture:
                 ProgressPre.Done()
                 ThrowAny(Token)
 
-                If UseMD5Comparison Then ValidateMD5(Token) : ProgressPre.Done() : ThrowAny(Token)
+                If UseMD5Comparison And Not IsSubscription Then ValidateMD5(Token) : ProgressPre.Done() : ThrowAny(Token)
 
-                If _TempPostsList.Count > 0 And Not DownloadMissingOnly And __SaveData Then
+                If _TempPostsList.Count > 0 And Not DownloadMissingOnly And Not __isChannelsSupport Then
                     If _TempPostsList.Count > 1000 Then _TempPostsList.ListAddList(_TempPostsList.ListTake(-2, 1000, EDP.ReturnValue).ListReverse, LAP.ClearBeforeAdd)
                     TextSaver.SaveTextToFile(_TempPostsList.ListToString(Environment.NewLine), MyFilePosts, True,, EDP.None)
                 End If
-                _ContentNew.ListAddList(_TempMediaList, LAP.ClearBeforeAdd)
-                DownloadContent(Token)
-                ThrowIfDisposed()
 
-                If IncludeInTheFeed Then LatestData.ListAddList(_ContentNew.Where(_downContent), LNC)
+                _ContentNew.ListAddList(_TempMediaList, LAP.ClearBeforeAdd)
+                If IsSubscription Then
+                    _ContentNew.ListAddList(_ContentNew.ListForEachCopy(Function(ByVal tmpC As UserMedia, ByVal ii As Integer) As UserMedia
+                                                                            tmpC.State = UStates.Downloaded
+                                                                            If tmpC.Type = UTypes.Picture Or tmpC.Type = UTypes.GIF Then
+                                                                                DownloadedPictures(False) += 1
+                                                                            Else
+                                                                                DownloadedVideos(False) += 1
+                                                                            End If
+                                                                            Return tmpC
+                                                                        End Function))
+                Else
+                    DownloadContent(Token)
+                    ThrowIfDisposed()
+                End If
+
+                CreatedByChannel = False
+
+                If IncludeInTheFeed Or IsSubscription Then LatestData.ListAddList(_ContentNew.Where(_downContent), LNC)
                 Dim mcb& = If(ContentMissingExists, _ContentList.LongCount(Function(c) MissingFinder(c)), 0)
                 _ContentList.ListAddList(_ContentNew.Where(Function(c) _downContent(c) Or MissingFinder(c)), LNC)
                 Dim mca& = If(ContentMissingExists, _ContentList.LongCount(Function(c) MissingFinder(c)), 0)
                 If DownloadedTotal(False) > 0 Or _EnvirChanged Or Not mcb = mca Or _ForceSaveUserData Then
-                    If __SaveData Then
+                    If Not __isChannelsSupport Then
                         LastUpdated = Now
                         RunScript()
                         DownloadedPictures(True) = SFile.GetFiles(MyFile.CutPath, "*.jpg|*.jpeg|*.png|*.gif|*.webm",, EDP.ReturnValue).Count
@@ -1040,13 +1216,22 @@ BlockNullPicture:
                     End If
                     UpdateUserInformation()
                     If _CollectionButtonsExists AndAlso _EnvirChanged Then UpdateButtonsColor()
-                ElseIf _ForceSaveUserInfo Then
+                ElseIf _ForceSaveUserInfo Or __isChannelsSupport Or Not _EnvirCreatedByChannel = CreatedByChannel Then
                     UpdateUserInformation()
                 End If
                 ThrowIfDisposed()
                 If Not _PictureExists Or _EnvirInvokeUserUpdated Then OnUserUpdated()
-            Catch oex As OperationCanceledException When Token.IsCancellationRequested
+            Catch oex As OperationCanceledException When Token.IsCancellationRequested Or PersonalToken.IsCancellationRequested
                 MyMainLOG = $"{ToStringForLog()}: downloading canceled"
+                Canceled = True
+            Catch exit_ex As ExitException
+                If Not exit_ex.Silent Then
+                    If exit_ex.SimpleLogLine Then
+                        MyMainLOG = $"{ToStringForLog()}: downloading canceled (exit) ({exit_ex.Message})"
+                    Else
+                        ErrorsDescriber.Execute(EDP.SendToLog, exit_ex, $"{ToStringForLog()}: downloading canceled (exit)")
+                    End If
+                End If
                 Canceled = True
             Catch dex As ObjectDisposedException When Disposed
                 Canceled = True
@@ -1054,6 +1239,7 @@ BlockNullPicture:
                 LogError(ex, "downloading data error")
                 HasError = True
             Finally
+                If Not UserExists Then MyMainLOG = $"User '{ToStringForLog()}' not found on the site"
                 If Not Responser Is Nothing Then Responser.Dispose() : Responser = Nothing
                 If Not Canceled Then _DataParsed = True
                 _ContentNew.Clear()
@@ -1065,6 +1251,8 @@ BlockNullPicture:
                 _ForceSaveUserData = False
                 _ForceSaveUserInfo = False
                 ProgressPre.Done()
+                __DOWNLOAD_IN_PROGRESS = False
+                OnUserDownloadStateChanged(False)
             End Try
         End Sub
         Protected Sub UpdateDataFiles()
@@ -1087,6 +1275,13 @@ BlockNullPicture:
             End If
         End Sub
         Protected MustOverride Sub DownloadDataF(ByVal Token As CancellationToken)
+        Protected Function CreateCache() As CacheKeeper
+            Dim Cache As New CacheKeeper($"{DownloadContentDefault_GetRootDir()}\_tCache\")
+            Cache.CacheDeleteError = CacheDeletionError(Cache)
+            If Cache.RootDirectory.Exists(SFO.Path, False) Then Cache.RootDirectory.Delete(SFO.Path, SFODelete.DeletePermanently, EDP.ReturnValue)
+            Cache.Validate()
+            Return Cache
+        End Function
 #Region "DownloadSingleObject"
         Protected IsSingleObjectDownload As Boolean = False
         Friend Overridable Sub DownloadSingleObject(ByVal Data As YouTube.Objects.IYouTubeMediaContainer, ByVal Token As CancellationToken) Implements IUserData.DownloadSingleObject
@@ -1124,7 +1319,12 @@ BlockNullPicture:
                         DirectCast(Data, IDownloadableMedia).ThumbnailFile = _ContentNew(0).File
                     ElseIf Settings.STDownloader_TakeSnapshot And Settings.FfmpegFile.Exists And Not Settings.STDownloader_RemoveDownloadedAutomatically Then
                         Dim f As SFile = _ContentNew(0).File
-                        Dim ff As SFile = f
+                        Dim ff As SFile
+                        If Settings.STDownloader_SnapshotsKeepWithFiles Then
+                            ff = f
+                        Else
+                            ff = Settings.CacheSnapshots(Settings.STDownloader_SnapShotsCachePermamnent).NewFile
+                        End If
                         ff.Name &= "_thumb"
                         ff.Extension = "jpg"
                         f = Web.FFMPEG.TakeSnapshot(f, ff, Settings.FfmpegFile, TimeSpan.FromSeconds(1),,, EDP.LogMessageValue)
@@ -1423,6 +1623,7 @@ BlockNullPicture:
                                         If __isVideo Then fileNumProvider.FileName = f.Name : f = SFile.IndexReindex(f,,, fileNumProvider)
 
                                         __interrupt = False
+                                        If IsSingleObjectDownload Then f.Exists(SFO.Path, True)
                                         If v.Type = UTypes.m3u8 And UseInternalM3U8Function Then
                                             f = DownloadM3U8(v.URL, v, f, Token)
                                             If f.IsEmptyString Then Throw New Exception("M3U8 download failed")
@@ -1519,8 +1720,10 @@ BlockNullPicture:
         Protected Function ProcessException(ByVal ex As Exception, ByVal Token As CancellationToken, ByVal Message As String,
                                             Optional ByVal RDE As Boolean = True, Optional ByVal EObj As Object = Nothing,
                                             Optional ByVal ThrowEx As Boolean = True) As Integer
-            If Not ((TypeOf ex Is OperationCanceledException And Token.IsCancellationRequested) Or
-                    (TypeOf ex Is ObjectDisposedException And Disposed)) Then
+            If TypeOf ex Is ExitException Then
+                Throw ex
+            ElseIf Not ((TypeOf ex Is OperationCanceledException And (Token.IsCancellationRequested Or PersonalToken.IsCancellationRequested)) Or
+                        (TypeOf ex Is ObjectDisposedException And Disposed)) Then
                 If RDE Then
                     Dim v% = DownloadingException(ex, Message, True, EObj)
                     If v = 0 Then LogError(ex, Message) : HasError = True
@@ -1579,7 +1782,67 @@ BlockNullPicture:
         End Sub
 #End Region
 #End Region
-#Region "Delete, Move, Merge, Copy"
+#Region "Erase, Delete, Move, Merge, Copy"
+        Friend Shared Function GetEraseMode(ByVal Users As IEnumerable(Of IUserData)) As IUserData.EraseMode
+            Dim mode As IUserData.EraseMode = IUserData.EraseMode.None
+            If Users.ListExists Then
+                Dim m As New MMessage("The data of the following users will be erased:" & vbCr & vbCr, "Erase data",
+                                      {New MsgBoxButton("History and Data", "All files (images and videos) will be deleted; download history will be deleted."),
+                                       New MsgBoxButton("Data", "All files (images and videos) will be deleted; download history will not be affected."),
+                                       New MsgBoxButton("History", "All files (images and videos) will not be affected; download history will be deleted."),
+                                       New MsgBoxButton("Cancel")
+                                      }, MsgBoxStyle.Exclamation) With {.ButtonsPerRow = 4}
+                Dim collectionsCount% = Users.Count(Function(u) u.IsCollection)
+                m.Text &= Users.ListToStringE(vbNewLine, MainFrameObj.GetUserListProvider(collectionsCount > 0))
+                m.Text &= vbCr.StringDup(2)
+                If collectionsCount > 0 Then
+                    If collectionsCount = 1 And Users.Count = 1 Then
+                        m.Text &= $"THIS USER IS A COLLECTION OF {DirectCast(Users(0), UserDataBind).Count} USERS. THE DATA WILL BE ERASED FOR ALL OF THEM."
+                    Else
+                        m.Text &= "ONE OR MORE USERS IN THE LIST IS A COLLECTION. THE DATA WILL BE ERASED FOR EACH USER OF EACH COLLECTION."
+                    End If
+                    m.Text &= vbCr.StringDup(2)
+                End If
+                m.Text &= "Are you sure you want to erase the data?"
+                Select Case m.Show
+                    Case 0 : mode = IUserData.EraseMode.Data + IUserData.EraseMode.History
+                    Case 1 : mode = IUserData.EraseMode.Data
+                    Case 2 : mode = IUserData.EraseMode.History
+                End Select
+            End If
+            Return mode
+        End Function
+        Friend Overridable Function EraseData(ByVal Mode As IUserData.EraseMode) As Boolean Implements IUserData.EraseData
+            Try
+                Dim result As Boolean = False
+                If Not Mode = IUserData.EraseMode.None And Not DataMerging Then
+                    Dim m() As IUserData.EraseMode = Mode.EnumExtract(Of IUserData.EraseMode)
+                    If m.ListExists Then
+                        Dim e As New ErrorsDescriber(EDP.ReturnValue)
+                        If m.Contains(IUserData.EraseMode.History) Then
+                            If MyFilePosts.Delete(SFO.File, SFODelete.DeleteToRecycleBin, e) Then result = True
+                            If MyFileData.Delete(SFO.File, SFODelete.DeleteToRecycleBin, e) Then result = True
+                            If result Then
+                                _TempPostsList.Clear()
+                                _TempMediaList.Clear()
+                                _ContentNew.Clear()
+                                _ContentList.Clear()
+                            End If
+                        End If
+                        If m.Contains(IUserData.EraseMode.Data) Then
+                            Dim files As List(Of SFile) = SFile.GetFiles(DownloadContentDefault_GetRootDir.CSFileP,, SearchOption.AllDirectories, e)
+                            If files.ListExists Then files.RemoveAll(Function(f) Not f.Extension.IsEmptyString AndAlso (f.Extension = "txt" Or f.Extension = "xml"))
+                            If files.ListExists Then files.ForEach(Sub(f) f.Delete(SFO.File, Settings.DeleteMode, e))
+                            LatestData.Clear()
+                            result = True
+                        End If
+                    End If
+                End If
+                Return result
+            Catch ex As Exception
+                Return ErrorsDescriber.Execute(EDP.SendToLog + EDP.ReturnValue, ex, $"EraseData({CInt(Mode)}): {ToStringForLog()}", False)
+            End Try
+        End Function
         Friend Overridable Function Delete(Optional ByVal Multiple As Boolean = False, Optional ByVal CollectionValue As Integer = -1) As Integer Implements IUserData.Delete
             Dim f As SFile = SFile.GetPath(MyFile.CutPath.Path)
             If f.Exists(SFO.Path, False) AndAlso (User.Merged OrElse f.Delete(SFO.Path, Settings.DeleteMode)) Then
@@ -1601,7 +1864,8 @@ BlockNullPicture:
             Try
                 Dim f As SFile
                 Dim v As Boolean = IsVirtual
-                If IncludedInCollection Then
+
+                If IncludedInCollection And __CollectionName.IsEmptyString And __SpecialCollectionPath.IsEmptyString Then
                     Settings.Users.Add(Me)
                     Removed = False
                     User.CollectionName = String.Empty
@@ -1634,7 +1898,8 @@ BlockNullPicture:
                         f.Delete(SFO.Path, Settings.DeleteMode, EDP.ThrowException)
                     End If
                     f.CutPath.Exists(SFO.Path)
-                    Directory.Move(UserBefore.File.CutPath(, EDP.ThrowException).Path, f.Path)
+                    SFile.Move(UserBefore.File.CutPath(, EDP.ThrowException), f, SFO.Path,,
+                               SFODelete.EmptyOnly + SFODelete.DeleteToRecycleBin + SFODelete.OnCancelThrowException, EDP.ThrowException)
                     If Not ScriptData.IsEmptyString AndAlso ScriptData.Contains(UserBefore.File.PathNoSeparator) Then _
                        ScriptData = ScriptData.Replace(UserBefore.File.PathNoSeparator, MyFile.PathNoSeparator)
                 End If
@@ -1772,10 +2037,11 @@ BlockNullPicture:
         ''' <exception cref="ObjectDisposedException"></exception>
         Friend Overridable Overloads Sub ThrowAny(ByVal Token As CancellationToken)
             Token.ThrowIfCancellationRequested()
+            PersonalToken.ThrowIfCancellationRequested()
             ThrowIfDisposed()
         End Sub
 #End Region
-        Protected Function ToStringForLog() As String
+        Friend Function ToStringForLog() As String
             Return $"{IIf(IncludedInCollection, $"[{CollectionName}] - ", String.Empty)}[{Site}] - {Name}"
         End Function
         Public Overrides Function ToString() As String
@@ -1806,6 +2072,21 @@ BlockNullPicture:
             End Using
         End Sub
         Private Sub BTT_CONTEXT_DELETE_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_DELETE.Click
+        End Sub
+        Private Sub BTT_CONTEXT_ERASE_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_ERASE.Click
+            Const msgTitle$ = "Erase data"
+            Try
+                Dim m As IUserData.EraseMode = GetEraseMode({Me})
+                If Not m = IUserData.EraseMode.None Then
+                    If EraseData(m) Then
+                        MsgBoxE({"User data has been erased.", msgTitle})
+                    Else
+                        MsgBoxE({"User data has not been erased.", msgTitle}, vbExclamation)
+                    End If
+                End If
+            Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.LogMessageValue, ex, msgTitle)
+            End Try
         End Sub
         Private Sub BTT_CONTEXT_OPEN_PATH_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_OPEN_PATH.Click
             OpenFolder()
@@ -1858,6 +2139,7 @@ BlockNullPicture:
                     If Not BTT_CONTEXT_DOWN Is Nothing Then BTT_CONTEXT_DOWN.Dispose()
                     If Not BTT_CONTEXT_EDIT Is Nothing Then BTT_CONTEXT_EDIT.Dispose()
                     If Not BTT_CONTEXT_DELETE Is Nothing Then BTT_CONTEXT_DELETE.Dispose()
+                    If Not BTT_CONTEXT_ERASE Is Nothing Then BTT_CONTEXT_ERASE.Dispose()
                     If Not BTT_CONTEXT_OPEN_PATH Is Nothing Then BTT_CONTEXT_OPEN_PATH.Dispose()
                     If Not BTT_CONTEXT_OPEN_SITE Is Nothing Then BTT_CONTEXT_OPEN_SITE.Dispose()
                     UserUpdatedEventHandlers.Clear()
@@ -1875,85 +2157,4 @@ BlockNullPicture:
         End Sub
 #End Region
     End Class
-#Region "Base interfaces"
-    Friend Interface IContentProvider
-        ReadOnly Property Site As String
-        ReadOnly Property Name As String
-        Property ID As String
-        Property FriendlyName As String
-        Property Description As String
-        Property Favorite As Boolean
-        Property Temporary As Boolean
-        Sub OpenSite(Optional ByVal e As ErrorsDescriber = Nothing)
-        Sub DownloadData(ByVal Token As CancellationToken)
-        Sub DownloadSingleObject(ByVal Data As YouTube.Objects.IYouTubeMediaContainer, ByVal Token As CancellationToken)
-    End Interface
-    Friend Interface IUserData : Inherits IContentProvider, IComparable(Of UserDataBase), IComparable, IEquatable(Of UserDataBase), IIndexable, IDisposable
-        Event UserUpdated(ByVal User As IUserData)
-        Property ParseUserMediaOnly As Boolean
-#Region "Images"
-        Function GetPicture() As Image
-        Sub SetPicture(ByVal f As SFile)
-#End Region
-#Region "Collection support"
-        ReadOnly Property IsCollection As Boolean
-        Property CollectionName As String
-        ReadOnly Property IncludedInCollection As Boolean
-        ReadOnly Property UserModel As UsageModel
-        ReadOnly Property CollectionModel As UsageModel
-        ReadOnly Property IsVirtual As Boolean
-        ReadOnly Property Labels As List(Of String)
-#End Region
-        Property Exists As Boolean
-        Property Suspended As Boolean
-        Property ReadyForDownload As Boolean
-        Property HOST As SettingsHost
-        Property [File] As SFile
-        Property FileExists As Boolean
-        Property DownloadedPictures(ByVal Total As Boolean) As Integer
-        Property DownloadedVideos(ByVal Total As Boolean) As Integer
-        ReadOnly Property DownloadedTotal(Optional ByVal Total As Boolean = True) As Integer
-        ReadOnly Property DownloadedInformation As String
-        Property HasError As Boolean
-        ReadOnly Property FitToAddParams As Boolean
-        ReadOnly Property Key As String
-        Property DownloadImages As Boolean
-        Property DownloadVideos As Boolean
-        Property DownloadMissingOnly As Boolean
-        Property ScriptUse As Boolean
-        Property ScriptData As String
-        Function GetLVI(ByVal Destination As ListView) As ListViewItem
-        Function GetLVIGroup(ByVal Destination As ListView) As ListViewGroup
-        Sub LoadUserInformation()
-        Sub UpdateUserInformation()
-        ''' <summary>
-        ''' 0 - Nothing removed<br/>
-        ''' 1 - User removed<br/>
-        ''' 2 - Collection removed<br/>
-        ''' 3 - Collection split
-        ''' </summary>
-        Function Delete(Optional ByVal Multiple As Boolean = False, Optional ByVal CollectionValue As Integer = -1) As Integer
-        Function MoveFiles(ByVal CollectionName As String, ByVal SpecialCollectionPath As SFile) As Boolean
-        Function CopyFiles(ByVal DestinationPath As SFile, Optional ByVal e As ErrorsDescriber = Nothing) As Boolean
-        Sub OpenFolder()
-        Property DownloadTopCount As Integer?
-        Property DownloadDateFrom As Date?
-        Property DownloadDateTo As Date?
-        Sub SetEnvironment(ByRef h As SettingsHost, ByVal u As UserInfo, ByVal _LoadUserInformation As Boolean,
-                           Optional ByVal AttachUserInfo As Boolean = True)
-        ReadOnly Property Disposed As Boolean
-    End Interface
-    Friend Interface IChannelLimits
-        Property AutoGetLimits As Boolean
-        Property DownloadLimitCount As Integer?
-        Property DownloadLimitPost As String
-        Property DownloadLimitDate As Date?
-        Overloads Sub SetLimit(Optional ByVal Post As String = "", Optional ByVal Count As Integer? = Nothing, Optional ByVal [Date] As Date? = Nothing)
-        Overloads Sub SetLimit(ByVal Source As IChannelLimits)
-    End Interface
-    Friend Interface IChannelData : Inherits IContentProvider, IChannelLimits
-        Property SkipExistsUsers As Boolean
-        Property SaveToCache As Boolean
-    End Interface
-#End Region
 End Namespace

@@ -67,7 +67,6 @@ Partial Public Class MainFrame : Inherits SCrawler.DownloadObjects.STDownloader.
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.ClientSize = New System.Drawing.Size(1008, 729)
         Me.Name = "MainFrame"
-        Me.Text = "SCrawler: Happy LGBT Pride Month! :-)"
         Me.TRAY_CONTEXT.ResumeLayout(False)
         Me.ResumeLayout(False)
         Me.PerformLayout()

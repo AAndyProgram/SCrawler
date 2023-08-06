@@ -44,6 +44,16 @@ Namespace Plugin.Attributes
             Name = PropertyName
         End Sub
     End Class
+    ''' <summary>Set the dependent fields that need to be updated when this property is changed internally.</summary>
+    <AttributeUsage(AttributeTargets.Property, AllowMultiple:=False, Inherited:=False)> Public NotInheritable Class DependentFields : Inherits Attribute
+        Public ReadOnly Fields As String()
+        Public Sub New(ByVal Field As String)
+            Fields = {Field}
+        End Sub
+        Public Sub New(ByVal Fields As String())
+            Me.Fields = Fields
+        End Sub
+    End Class
     ''' <summary>Store property value in settings XML file</summary>
     <AttributeUsage(AttributeTargets.Property, AllowMultiple:=False, Inherited:=False)> Public NotInheritable Class PXML : Inherits Attribute
         Public ReadOnly ElementName As String
@@ -59,16 +69,16 @@ Namespace Plugin.Attributes
     ''' <summary>Special property updater</summary>
     <AttributeUsage(AttributeTargets.Method, AllowMultiple:=True, Inherited:=False)> Public NotInheritable Class PropertyUpdater : Inherits Attribute
         Public ReadOnly Name As String
-        Public ReadOnly Dependencies As String()
+        Public ReadOnly Arguments As String()
         ''' <inheritdoc cref="PropertyUpdater.New(String, String())"/>
         Public Sub New(ByVal UpdatingPropertyName As String)
             Name = UpdatingPropertyName
         End Sub
         ''' <summary>Initialize a new PropertyUpdater attribute</summary>
         ''' <param name="UpdatingPropertyName">The name of the property to be updated</param>
-        Public Sub New(ByVal UpdatingPropertyName As String, ByVal Dependent As String())
+        Public Sub New(ByVal UpdatingPropertyName As String, ByVal Arguments As String())
             Name = UpdatingPropertyName
-            Dependencies = Dependent
+            Me.Arguments = Arguments
         End Sub
     End Class
     ''' <summary>Plugin key</summary>

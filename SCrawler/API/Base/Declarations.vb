@@ -6,9 +6,12 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
+Imports PersonalUtilities.Forms
+Imports PersonalUtilities.Functions.RegularExpressions
 Namespace API.Base
     Friend Module Declarations
         Friend Const UserLabelName As String = "User"
+        Friend Const SearchRequestLabelName As String = "Search request"
         Friend ReadOnly LNC As New ListAddParams(LAP.NotContainsOnly)
         Friend ReadOnly UnixDate32Provider As New ADateTime(ADateTime.Formats.Unix32)
         Friend ReadOnly UnixDate64Provider As New ADateTime(ADateTime.Formats.Unix64)
@@ -16,5 +19,58 @@ Namespace API.Base
         Friend ReadOnly TitleHtmlConverter As Func(Of String, String) =
                Function(Input) SymbolsConverter.HTML.Decode(SymbolsConverter.Convert(Input, EDP.ReturnValue), EDP.ReturnValue).
                                StringRemoveWinForbiddenSymbols().StringTrim()
+        Friend ReadOnly Regex_VideosThumb_OG_IMAGE As RParams = RParams.DMS("meta.property=.og.image..content=""([^""]+)""", 1, EDP.ReturnValue)
+        Friend Class ConcurrentDownloadsProvider : Inherits FieldsCheckerProviderBase
+            Public Overrides Sub Reset()
+                ErrorMessage = String.Empty
+                MyBase.Reset()
+            End Sub
+            Public Overrides Function Convert(ByVal Value As Object, ByVal DestinationType As Type, ByVal Provider As IFormatProvider,
+                                              Optional ByVal NothingArg As Object = Nothing, Optional ByVal e As ErrorsDescriber = Nothing) As Object
+                Dim v% = AConvert(Of Integer)(Value, -1)
+                Dim defV% = Settings.MaxUsersJobsCount
+                If v.ValueBetween(1, defV) Then
+                    Return Value
+                Else
+                    HasError = True
+                    If ACheck(Of Integer)(Value) Then
+                        ErrorMessage = $"The number of concurrent downloads must be greater than 0 and equal to or less than {defV} (global limit)."
+                    Else
+                        TypeError = True
+                    End If
+                    Return Nothing
+                End If
+            End Function
+        End Class
+        Friend Class TokenRefreshIntervalProvider : Inherits FieldsCheckerProviderBase
+            Public Overrides Sub Reset()
+                ErrorMessage = String.Empty
+                MyBase.Reset()
+            End Sub
+            Public Overrides Function Convert(ByVal Value As Object, ByVal DestinationType As Type, ByVal Provider As IFormatProvider,
+                                              Optional ByVal NothingArg As Object = Nothing, Optional ByVal e As ErrorsDescriber = Nothing) As Object
+                Dim v% = AConvert(Of Integer)(Value, -1)
+                If v > 0 Then
+                    Return Value
+                ElseIf Not ACheck(Of Integer)(Value) Then
+                    TypeError = True
+                Else
+                    ErrorMessage = $"The value of [{Name}] field must be greater than or equal to 1"
+                End If
+                HasError = True
+                Return Nothing
+            End Function
+        End Class
+        Friend ReadOnly Property CacheDeletionError(ByVal RootPath As SFile) As ErrorsDescriber
+            Get
+                Return New ErrorsDescriber(EDP.None) With {.Action = Sub(ee, eex, msg, obj) Settings.Cache.AddPath(RootPath)}
+            End Get
+        End Property
+        Friend Function ValidateChangeSearchOptions(ByVal User As String, ByVal NewQuery As String, ByVal CurrentQuery As String) As Boolean
+            Return MsgBoxE({$"Are you sure you want to change the query for user '{User}'?{vbCr}" &
+                            "It is highly recommended to add a new user with this query instead of changing current one." & vbCr &
+                            $"Current query: [{CurrentQuery}]{vbCr}New query: [{NewQuery}]",
+                            "Changing a query"}, vbExclamation,,, {"Process", "Cancel"}) = 0
+        End Function
     End Module
 End Namespace

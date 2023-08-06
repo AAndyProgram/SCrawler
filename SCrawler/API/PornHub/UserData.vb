@@ -21,11 +21,15 @@ Namespace API.PornHub
 #Region "XML names"
         Private Const Name_PersonType As String = "PersonType"
         Private Const Name_NameTrue As String = "NameTrue"
-        Private Const Name_VideoPageModel As String = "VideoPageModel"
         Private Const Name_PhotoPageModel As String = "PhotoPageModel"
         Private Const Name_DownloadUHD As String = "DownloadUHD"
+        Private Const Name_DownloadUploaded As String = "DownloadUploaded"
+        Private Const Name_DownloadTagged As String = "DownloadTagged"
+        Private Const Name_DownloadPrivate As String = "DownloadPrivate"
+        Private Const Name_DownloadFavorite As String = "DownloadFavorite"
         Private Const Name_DownloadGifs As String = "DownloadGifs"
         Private Const Name_DownloadPhotoOnlyFromModelHub As String = "DownloadPhotoOnlyFromModelHub"
+        Private Const Name_IsUser As String = "IsUser"
 #End Region
 #Region "Structures"
         Private Structure FlashVar : Implements IRegExCreator
@@ -50,18 +54,31 @@ Namespace API.PornHub
             Friend URL As String
             Friend ID As String
             Friend Title As String
-            Friend Function ToUserMedia() As UserMedia
+            Friend Type As VideoTypes
+            Friend Function ToUserMedia(Optional ByVal SpecialFolder As String = Nothing) As UserMedia
                 Return New UserMedia(URL, UTypes.VideoPre) With {
                     .File = If(Title.IsEmptyString, .File, New SFile($"{Title}.mp4")),
-                    .Post = ID
+                    .Post = ID,
+                    .SpecialFolder = SpecialFolder
                 }
             End Function
             Private Function CreateFromArray(ByVal ParamsArray() As String) As Object Implements IRegExCreator.CreateFromArray
-                If ParamsArray.ListExists Then
+                If ParamsArray.ListExists(4) Then
                     URL = ParamsArray(0)
                     ID = RegexReplace(URL, RegexVideo_Video_VideoKey)
-                    URL = String.Format(UrlPattern, URL.TrimStart("/"))
-                    Title = TitleHtmlConverter(ParamsArray(1))
+                    If ID.IsEmptyString Then
+                        URL = String.Empty
+                    Else
+                        URL = String.Format(UrlPattern, URL.TrimStart("/"))
+                        Title = TitleHtmlConverter(ParamsArray(1))
+                        If Not ParamsArray(2).IsEmptyString Then
+                            Type = VideoTypes.Private
+                        ElseIf Not ParamsArray(3).IsEmptyString Then
+                            Type = VideoTypes.Tagged
+                        Else
+                            Type = VideoTypes.Uploaded
+                        End If
+                    End If
                 End If
                 Return Me
             End Function
@@ -82,21 +99,24 @@ Namespace API.PornHub
         End Structure
 #End Region
 #Region "Enums"
-        Friend Enum VideoPageModels As Integer
-            [Default] = 0
-            ConcatPage = 1
-            Favorite = 2
-            Undefined = -1
-        End Enum
         Private Enum PhotoPageModels As Integer
             Undefined = 0
             PornHubPage = 1
             ModelHubPage = 2
         End Enum
+        Private Enum VideoTypes
+            Undefined
+            Uploaded
+            [Private]
+            Tagged
+            Favorite
+        End Enum
 #End Region
 #Region "Constants"
         Private Const PersonTypeModel As String = "model"
-        Friend Const PersonTypeUser As String = "users"
+        Private Const PersonTypeUser As String = "users"
+        Private Const PersonTypePornstar As String = "pornstar"
+        Private Const PersonTypeCannel As String = "channels"
 #End Region
 #Region "Person"
         Friend Property PersonType As String
@@ -111,11 +131,37 @@ Namespace API.PornHub
         End Property
 #End Region
 #Region "Advanced fields"
-        Friend Property VideoPageModel As VideoPageModels = VideoPageModels.Undefined
+        Friend Overrides ReadOnly Property FeedIsUser As Boolean
+            Get
+                Return IsUser
+            End Get
+        End Property
         Private Property PhotoPageModel As PhotoPageModels = PhotoPageModels.Undefined
         Friend Property DownloadUHD As Boolean = False
+        Friend Property DownloadUploaded As Boolean = True
+        Friend Property DownloadTagged As Boolean = False
+        Friend Property DownloadPrivate As Boolean = False
+        Friend Property DownloadFavorite As Boolean = False
         Friend Property DownloadGifs As Boolean
         Friend Property DownloadPhotoOnlyFromModelHub As Boolean = True
+        Friend Property IsUser As Boolean = True
+        Friend Property QueryString As String
+            Get
+                If IsUser Then
+                    Return String.Empty
+                Else
+                    Return GetNonUserUrl(0)
+                End If
+            End Get
+            Set(ByVal q As String)
+                UpdateUserOptions(True, q)
+            End Set
+        End Property
+        Friend Overrides ReadOnly Property SpecialLabels As IEnumerable(Of String)
+            Get
+                Return {SearchRequestLabelName}
+            End Get
+        End Property
 #End Region
 #Region "ExchangeOptions"
         Friend Overrides Function ExchangeOptionsGet() As Object
@@ -125,8 +171,13 @@ Namespace API.PornHub
             If Not Obj Is Nothing AndAlso TypeOf Obj Is UserExchangeOptions Then
                 With DirectCast(Obj, UserExchangeOptions)
                     DownloadUHD = .DownloadUHD
+                    DownloadUploaded = .DownloadUploaded
+                    DownloadTagged = .DownloadTagged
+                    DownloadPrivate = .DownloadPrivate
+                    DownloadFavorite = .DownloadFavorite
                     DownloadGifs = .DownloadGifs
                     DownloadPhotoOnlyFromModelHub = .DownloadPhotoOnlyFromModelHub
+                    QueryString = .QueryString
                 End With
             End If
         End Sub
@@ -136,96 +187,131 @@ Namespace API.PornHub
                 Return DirectCast(HOST.Source, SiteSettings)
             End Get
         End Property
+        Private ReadOnly LastPageIDs As List(Of String)
 #End Region
-#Region "Initializer, loader"
+#Region "Initializer"
         Friend Sub New()
+            LastPageIDs = New List(Of String)
             UseInternalM3U8Function = True
             UseClientTokens = True
         End Sub
+#End Region
+#Region "Loader"
+        Private Function UpdateUserOptions(Optional ByVal Force As Boolean = False, Optional ByVal NewUrl As String = Nothing) As Boolean
+
+            If Not Force OrElse (Not IsUser AndAlso Not NewUrl.IsEmptyString AndAlso MyFileSettings.Exists) Then
+                Dim eObj As Plugin.ExchangeOptions = Nothing
+                If Force Then eObj = MySettings.IsMyUser(NewUrl)
+                If (Force And Not eObj.UserName.IsEmptyString) Or (Not Force And Not Name.IsEmptyString And NameTrue.IsEmptyString) Then
+                    If Not If(Force, eObj.Options, Options).IsEmptyString Then
+                        If IsUser And Force Then
+                            Return False
+                        Else
+                            IsUser = False
+                            Options = If(Force, eObj.Options, Options)
+                            NameTrue = Options
+                            If Not Force Then
+                                Settings.Labels.Add(SearchRequestLabelName)
+                                Labels.ListAddValue(SearchRequestLabelName, LNC)
+                                Labels.Sort()
+                                Return True
+                            End If
+                        End If
+                    Else
+                        IsUser = True
+                        Dim n$() = Name.Split("_")
+                        If n.ListExists(2) Then
+                            NameTrue = Name.Replace($"{n(0)}_", String.Empty)
+                            PersonType = n(0)
+                        End If
+                    End If
+                End If
+            End If
+            Return False
+        End Function
         Protected Overrides Sub LoadUserInformation_OptionalFields(ByRef Container As XmlFile, ByVal Loading As Boolean)
             With Container
-                Dim SetNames As Action = Sub()
-                                             If Not Name.IsEmptyString And NameTrue.IsEmptyString Then
-                                                 Dim n$() = Name.Split("_")
-                                                 If n.ListExists(2) Then
-                                                     NameTrue = Name.Replace($"{n(0)}_", String.Empty)
-                                                     PersonType = n(0)
-                                                     If (PersonType = PersonTypeModel Or PersonType = PersonTypeUser) And
-                                                        VideoPageModel = VideoPageModels.Undefined Then VideoPageModel = VideoPageModels.Default
-                                                 End If
-                                             End If
-                                         End Sub
                 If Loading Then
                     PersonType = .Value(Name_PersonType)
                     NameTrue = .Value(Name_NameTrue)
-                    VideoPageModel = .Value(Name_VideoPageModel).FromXML(Of Integer)(VideoPageModels.Undefined)
                     PhotoPageModel = .Value(Name_PhotoPageModel).FromXML(Of Integer)(PhotoPageModels.Undefined)
                     DownloadUHD = .Value(Name_DownloadUHD).FromXML(Of Boolean)(False)
+                    DownloadUploaded = .Value(Name_DownloadUploaded).FromXML(Of Boolean)(True)
+                    DownloadTagged = .Value(Name_DownloadTagged).FromXML(Of Boolean)(False)
+                    DownloadPrivate = .Value(Name_DownloadPrivate).FromXML(Of Boolean)(False)
+                    DownloadFavorite = .Value(Name_DownloadFavorite).FromXML(Of Boolean)(False)
                     DownloadGifs = .Value(Name_DownloadGifs).FromXML(Of Integer)(False)
                     DownloadPhotoOnlyFromModelHub = .Value(Name_DownloadPhotoOnlyFromModelHub).FromXML(Of Boolean)(True)
-                    SetNames.Invoke()
+                    IsUser = .Value(Name_IsUser).FromXML(Of Boolean)(True)
+                    UpdateUserOptions()
                 Else
-                    SetNames.Invoke()
+                    If UpdateUserOptions() Then .Value(Name_LabelsName) = LabelsString
                     .Add(Name_PersonType, PersonType)
                     .Add(Name_NameTrue, NameTrue)
-                    .Add(Name_VideoPageModel, CInt(VideoPageModel))
                     .Add(Name_PhotoPageModel, CInt(PhotoPageModel))
                     .Add(Name_DownloadUHD, DownloadUHD.BoolToInteger)
+                    .Add(Name_DownloadUploaded, DownloadUploaded.BoolToInteger)
+                    .Add(Name_DownloadTagged, DownloadTagged.BoolToInteger)
+                    .Add(Name_DownloadPrivate, DownloadPrivate.BoolToInteger)
+                    .Add(Name_DownloadFavorite, DownloadFavorite.BoolToInteger)
                     .Add(Name_DownloadGifs, DownloadGifs.BoolToInteger)
                     .Add(Name_DownloadPhotoOnlyFromModelHub, DownloadPhotoOnlyFromModelHub.BoolToInteger)
+                    .Add(Name_IsUser, IsUser.BoolToInteger)
+
+                    'Debug.WriteLine(GetNonUserUrl(0))
+                    'Debug.WriteLine(GetNonUserUrl(2))
                 End If
             End With
         End Sub
 #End Region
 #Region "Downloading"
 #Region "Download override"
-        Private Const DataDownloaded As Integer = -10
-        Private Const DataDownloaded_NotFound As Integer = -20
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
             Try
                 Responser.ResetStatus()
-                If PersonType = PersonTypeUser Then Responser.Mode = Responser.Modes.Curl
 
                 If IsSavedPosts Then
-                    VideoPageModel = VideoPageModels.Favorite
                     PersonType = PersonTypeUser
                     NameTrue = MySettings.SavedPostsUserName.Value
                 End If
 
-                Dim page% = 1
-                Dim __continue As Boolean = True
-                Dim __videoDone As Boolean = False
-                Dim d%
+                Dim limit% = If(DownloadTopCount, -1)
                 If DownloadVideos Then
-                    If PersonType = PersonTypeUser Then Responser.Mode = Responser.Modes.Curl : Responser.Method = "POST"
-                    If VideoPageModel = VideoPageModels.Undefined Then
-                        __continue = False
-                        d = DownloadUserVideos(page, Token)
-                        Select Case d
-                            Case DataDownloaded : __continue = True : page += 1
-                            Case 1 : VideoPageModel = VideoPageModels.ConcatPage
-                            Case EXCEPTION_OPERATION_CANCELED : ThrowAny(Token)
-                            Case DataDownloaded_NotFound : __videoDone = True
-                        End Select
-                        If Not __continue And Not __videoDone Then
-                            d = DownloadUserVideos(page, Token)
-                            Select Case d
-                                Case DataDownloaded : __continue = True : page += 1
-                                Case 1 : VideoPageModel = VideoPageModels.Undefined
-                                Case EXCEPTION_OPERATION_CANCELED : ThrowAny(Token)
-                                Case DataDownloaded_NotFound : __videoDone = True
-                            End Select
+
+                    If IsSavedPosts Or Not IsUser Or PersonType = PersonTypeUser Then
+                        DownloadUserVideos(1, VideoTypes.Favorite, False, Token)
+                    Else
+                        If DownloadUploaded Then
+                            LastPageIDs.Clear()
+                            DownloadUserVideos(1, VideoTypes.Uploaded, False, Token)
+                        End If
+                        If DownloadTagged Then
+                            LastPageIDs.Clear()
+                            Dim lBefore% = _TempMediaList.Count
+                            DownloadUserVideos(1, VideoTypes.Tagged, False, Token)
+                            If PersonType = PersonTypePornstar And lBefore = _TempMediaList.Count Then
+                                LastPageIDs.Clear()
+                                DownloadUserVideos(1, VideoTypes.Tagged, True, Token)
+                            End If
+                        End If
+                        If DownloadPrivate Then
+                            LastPageIDs.Clear()
+                            DownloadUserVideos(1, VideoTypes.Private, False, Token)
+                        End If
+                        If DownloadFavorite Then
+                            LastPageIDs.Clear()
+                            DownloadUserVideos(1, VideoTypes.Favorite, False, Token)
                         End If
                     End If
-                    If __continue And Not __videoDone Then
-                        Do While DownloadUserVideos(page, Token) = DataDownloaded And page < 100 : page += 1 : Loop
+
+                    If _TempMediaList.Count > 0 Then
+                        _TempMediaList.RemoveAll(Function(m) Not m.Type = UTypes.m3u8 And Not m.Type = UTypes.VideoPre)
+                        If limit > 0 And _TempMediaList.Count > limit Then _TempMediaList.ListAddList(_TempMediaList.ListTake(-1, limit), LAP.ClearBeforeAdd)
                     End If
-                    If _TempMediaList.Count > 0 Then _TempMediaList.RemoveAll(Function(m) Not m.Type = UTypes.m3u8 And Not m.Type = UTypes.VideoPre)
                 End If
 
-                Responser.Method = "GET"
-                If DownloadGifs And Not IsSavedPosts Then DownloadUserGifs(Token)
-                If DownloadImages Then DownloadUserPhotos(Token)
+                If DownloadGifs And Not IsSavedPosts And Not IsSubscription And IsUser Then DownloadUserGifs(Token)
+                If DownloadImages And Not IsSubscription And IsUser Then DownloadUserPhotos(Token)
             Finally
                 Responser.Mode = Responser.Modes.Default
                 Responser.Method = "GET"
@@ -234,72 +320,100 @@ Namespace API.PornHub
         End Sub
 #End Region
 #Region "Download video"
-        Private ReadOnly Property VideoPageType As String
-            Get
-                Select Case VideoPageModel
-                    Case VideoPageModels.Default : Return "/videos/upload"
-                    Case VideoPageModels.Favorite : Return "/videos/favorites/"
-                    Case Else : Return String.Empty
-                End Select
-            End Get
-        End Property
-        Private ReadOnly Property VideoPageAppender As String
-            Get
-                Return If(PersonType = PersonTypeUser, "ajax?o=newest&page=", String.Empty)
-            End Get
-        End Property
-        Private Overloads Function DownloadUserVideos(ByVal Page As Integer, ByVal Token As CancellationToken) As Integer
-            Const VideoUrlPattern$ = "https://www.pornhub.com/{0}/{1}{2}{3}"
-            Const HtmlPageNotFoundVideo$ = "<span>Error Page Not Found</span>"
+        Friend Function GetNonUserUrl(ByVal Page As Integer) As String
+            If IsUser Then
+                Return String.Empty
+            Else
+                Dim url$ = $"https://www.pornhub.com/{Options}"
+                If Page > 1 Then
+                    If url.Contains("?") Then
+                        url &= $"&page={Page}"
+                    Else
+                        url = url.TrimEnd("/")
+                        url &= $"?page={Page}"
+                    End If
+                End If
+                Return url
+            End If
+        End Function
+        Private Sub DownloadUserVideos(ByVal Page As Integer, ByVal Type As VideoTypes, ByVal SecondMode As Boolean, ByVal Token As CancellationToken)
             Dim URL$ = String.Empty
             ProgressPre.ChangeMax(1)
             Try
-                Dim p$
-                If PersonType = PersonTypeUser Then
-                    p = Page
+                Dim specFolder$ = String.Empty
+                Dim tryNextPage As Boolean = False
+                Dim limit% = If(DownloadTopCount, -1)
+                If IsUser Then
+                    URL = $"https://www.pornhub.com/{PersonType}/{NameTrue}"
+                    If Type = VideoTypes.Uploaded Then
+                        URL &= "/videos/upload"
+                    ElseIf Type = VideoTypes.Tagged Then
+                        If Not SecondMode Then URL &= "/videos"
+                        specFolder = "Tagged"
+                    ElseIf Type = VideoTypes.Private Then
+                        URL &= "/videos/private"
+                        specFolder = "Private"
+                    ElseIf Type = VideoTypes.Favorite Then
+                        URL &= "/videos/favorites"
+                        If Not PersonType = PersonTypeUser Then specFolder = "Favorite"
+                    Else
+                        Throw New ArgumentException($"Type '{Type}' is not implemented in the video download function", "Type")
+                    End If
+                    If Page > 1 Then URL &= $"?page={Page}"
                 Else
-                    p = IIf(Page = 1, String.Empty, $"?page={Page}")
+                    URL = GetNonUserUrl(Page)
                 End If
 
-                URL = $"{String.Format(VideoUrlPattern, PersonType, NameTrue, VideoPageType, VideoPageAppender)}{p}"
                 ThrowAny(Token)
 
+                'Debug.WriteLine(URL)
                 Dim r$ = Responser.GetResponse(URL)
                 If Not r.IsEmptyString Then
-                    If PersonType = PersonTypeUser And r.Contains(HtmlPageNotFoundVideo) Then Return DataDownloaded_NotFound
-                    Dim l As List(Of UserVideo) = RegexFields(Of UserVideo)(r, {RegexVideo_Video_All}, {1, 2})
-                    Dim lw As List(Of UserVideo) = Nothing
-                    If Not PersonType = PersonTypeUser Then lw = RegexFields(Of UserVideo)(r, {RegexVideo_Video_Wrong}, RegexVideo_Video_Wrong_Fields)
+                    Dim l As List(Of UserVideo) = RegexFields(Of UserVideo)(r, {RegexUserVideos}, {6, 7, 3, 10})
+                    If l.ListExists Then l = l.ListTake(3, l.Count).ToList
                     If l.ListExists Then
-                        If lw.ListExists Then l.ListWithRemove(lw)
+                        If IsUser Then
+                            If Type = VideoTypes.Favorite Then
+                                l.RemoveAll(Function(uv) uv.Type = VideoTypes.Private)
+                            ElseIf Not PersonType = PersonTypeCannel Then
+                                l.RemoveAll(Function(uv) Not uv.Type = Type)
+                            End If
+                        End If
+                        If l.Count > 0 Then l.RemoveAll(Function(uv) uv.ID.IsEmptyString Or uv.URL.IsEmptyString)
                         If l.Count > 0 Then
                             Dim lBefore% = l.Count
+                            Dim nonLastPageDetected As Boolean = False
+                            Dim newLastPageIDs As New List(Of String)
                             l.RemoveAll(Function(ByVal uv As UserVideo) As Boolean
                                             If Not _TempPostsList.Contains(uv.ID) Then
                                                 _TempPostsList.Add(uv.ID)
+                                                newLastPageIDs.Add(uv.ID)
                                                 Return False
                                             Else
+                                                If Not LastPageIDs.Contains(uv.ID) Then nonLastPageDetected = True
+                                                'Debug.WriteLine($"[REMOVED]: {uv.Title}")
                                                 Return True
                                             End If
                                         End Function)
-                            If l.Count > 0 Then _TempMediaList.ListAddList(l.Select(Function(uv) uv.ToUserMedia))
-                            If l.Count = lBefore And l.Count > 0 Then Return DataDownloaded
+                            'Debug.WriteLineIf(l.Count > 0, l.Select(Function(ll) ll.Title).ListToString(vbNewLine))
+                            If l.Count > 0 Then _TempMediaList.ListAddList(l.Select(Function(uv) uv.ToUserMedia(specFolder)))
+                            LastPageIDs.Clear()
+                            If newLastPageIDs.Count > 0 Then LastPageIDs.AddRange(newLastPageIDs) : newLastPageIDs.Clear()
+                            If l.Count > 0 AndAlso (l.Count = lBefore Or Not nonLastPageDetected) AndAlso
+                               Not (limit > 0 And _TempMediaList.Count >= limit) Then tryNextPage = True
                         End If
                     End If
                 End If
-                Return DataDownloaded_NotFound
+
+                If tryNextPage Then DownloadUserVideos(Page + 1, Type, SecondMode, Token)
             Catch regex_ex As RegexFieldsTextBecameNullException
-                If PersonType = PersonTypeUser Or IsSavedPosts Then
-                    Return DataDownloaded_NotFound
-                Else
-                    Return ProcessException(regex_ex, Token, $"videos downloading error [{URL}]")
-                End If
+                If Not IsSavedPosts Then MyMainLOG = $"{ToStringForLog()}: videos not found. You may need to update your credentials."
             Catch ex As Exception
-                Return ProcessException(ex, Token, $"videos downloading error [{URL}]")
+                ProcessException(ex, Token, $"videos downloading error [{URL}]")
             Finally
                 ProgressPre.Perform()
             End Try
-        End Function
+        End Sub
 #End Region
 #Region "Download GIF"
         Private Sub DownloadUserGifs(ByVal Token As CancellationToken)
@@ -393,7 +507,7 @@ Namespace API.PornHub
                     URL = String.Format(PhotoUrlPattern_ModelHub, NameTrue)
                     Dim r$ = Responser.GetResponse(URL)
                     If Not r.IsEmptyString Then
-                        Dim l As List(Of PhotoBlock) = RegexFields(Of PhotoBlock)(r, {Regex_Photo_ModelHub_PhotoBlocks}, {1, 2})
+                        Dim l As List(Of PhotoBlock) = RegexFields(Of PhotoBlock)(r, {Regex_Photo_ModelHub_PhotoBlocks}, {1, 2}, EDP.ReturnValue)
                         If l.ListExists Then l.RemoveAll(Function(ll) ll.Data.IsEmptyString)
                         If l.ListExists Then
                             ProgressPre.ChangeMax(l.Count)
@@ -431,7 +545,7 @@ Namespace API.PornHub
                 Dim page%
                 Dim r$ = Responser.GetResponse(String.Format(PhotoUrlPattern_PornHub, PersonType, NameTrue))
                 If Not r.IsEmptyString Then
-                    Dim l As List(Of PhotoBlock) = RegexFields(Of PhotoBlock)(r, {Regex_Photo_PornHub_PhotoBlocks}, {2, 1})
+                    Dim l As List(Of PhotoBlock) = RegexFields(Of PhotoBlock)(r, {Regex_Photo_PornHub_PhotoBlocks}, {2, 1}, EDP.ReturnValue)
                     If l.ListExists Then l.RemoveAll(Function(ll) ll.AlbumID.IsEmptyString)
                     If l.ListExists Then
                         ProgressPre.ChangeMax(l.Count)
@@ -539,17 +653,21 @@ Namespace API.PornHub
                 End If
                 Return False
             Catch ex As Exception
-                Return ProcessException(ex, Token, $"photos downloading error [{URL}]")
+                Return ProcessException(ex, Token, $"photos downloading error [{URL}]") = 1
             End Try
         End Function
 #End Region
 #End Region
 #Region "ReparseVideo"
         Protected Overloads Overrides Sub ReparseVideo(ByVal Token As CancellationToken)
-            ReparseVideo(Token, False)
+            If IsSubscription Then
+                ReparseVideoSubscriptions(Token)
+            Else
+                ReparseVideo(Token, False)
+            End If
         End Sub
-        Protected Overloads Sub ReparseVideo(ByVal Token As CancellationToken, ByVal CreateFileName As Boolean,
-                                             Optional ByRef Data As IYouTubeMediaContainer = Nothing)
+        Private Overloads Sub ReparseVideo(ByVal Token As CancellationToken, ByVal CreateFileName As Boolean,
+                                           Optional ByRef Data As IYouTubeMediaContainer = Nothing)
             Const ERR_NEW_URL$ = "ERR_NEW_URL"
             Dim URL$ = String.Empty
             Try
@@ -600,6 +718,54 @@ Namespace API.PornHub
                 ProcessException(ex, Token, "video reparsing error", False)
             End Try
         End Sub
+        Private Sub ReparseVideoSubscriptions(ByVal Token As CancellationToken)
+            Try
+                If _TempMediaList.Count > 0 AndAlso _TempMediaList.Exists(Function(tm) tm.Type = UTypes.VideoPre) Then
+                    Dim m As UserMedia
+                    Dim r$, URL$, tmpName$, thumb$
+                    Dim c% = 0
+                    Dim rErr As New ErrorsDescriber(EDP.ReturnValue)
+                    Progress.Maximum += _TempMediaList.Count
+                    For i% = _TempMediaList.Count - 1 To 0 Step -1
+                        Progress.Perform()
+                        If _TempMediaList(i).Type = UTypes.VideoPre Then
+                            If Not DownloadTopCount.HasValue OrElse c <= DownloadTopCount.Value Then
+                                m = _TempMediaList(i)
+                                ThrowAny(Token)
+                                Try
+                                    URL = m.URL_BASE
+                                    r = Responser.GetResponse(URL,, rErr)
+                                    If Not r.IsEmptyString Then
+                                        m.Type = UTypes.m3u8
+
+                                        thumb = RegexReplace(r, Regex_VideosThumb_OG_IMAGE)
+                                        If Not thumb.IsEmptyString Then m.URL = thumb
+
+                                        tmpName = RegexReplace(r, RegexVideoPageTitle)
+                                        If Not tmpName.IsEmptyString Then
+                                            m.File.Name = TitleHtmlConverter(tmpName)
+                                            m.File.Extension = "mp4"
+                                            m.PictureOption = tmpName
+                                        End If
+
+                                        _TempMediaList(i) = m
+                                        c += 1
+                                    Else
+                                        _TempMediaList.RemoveAt(i)
+                                    End If
+                                Catch mid_ex As Exception
+                                    _TempMediaList.RemoveAt(i)
+                                End Try
+                            Else
+                                _TempMediaList.RemoveAt(i)
+                            End If
+                        End If
+                    Next
+                End If
+            Catch ex As Exception
+                ProcessException(ex, Token, "subscriptions video reparsing error", False)
+            End Try
+        End Sub
 #End Region
 #Region "ReparseMissing"
         Protected Overrides Sub ReparseMissing(ByVal Token As CancellationToken)
@@ -646,33 +812,6 @@ Namespace API.PornHub
         End Function
 #End Region
 #Region "CreateVideoURL"
-        'TODELETE: PornHub old 'CreateVideoURL' function
-        'Private Function CreateVideoURL(ByVal r As String) As String
-        '    Try
-        '        Dim OutStr$ = String.Empty
-        '        If Not r.IsEmptyString Then
-        '            Dim _VarBlock$ = RegexReplace(r, RegexVideo_FlashVarsBlock)
-        '            If Not _VarBlock.IsEmptyString Then
-        '                Dim vars As List(Of FlashVar) = RegexFields(Of FlashVar)(_VarBlock, {RegexVideo_FlashVars_Vars}, {1, 2})
-        '                Dim compiler As List(Of String) = RegexReplace(_VarBlock, RegexVideo_FlashVars_Compiler)
-        '                If vars.ListExists And compiler.ListExists Then
-        '                    Dim v$
-        '                    Dim i%
-        '                    For Each var$ In compiler
-        '                        i = vars.IndexOf(var)
-        '                        If i >= 0 Then
-        '                            v = vars(i).Value
-        '                            If Not v.IsEmptyString Then OutStr &= v
-        '                        End If
-        '                    Next
-        '                End If
-        '            End If
-        '        End If
-        '        Return OutStr
-        '    Catch ex As Exception
-        '        Return ErrorsDescriber.Execute(EDP.SendToLog, ex, "[API.PornHub.UserData.CreateVideoURL]", String.Empty)
-        '    End Try
-        'End Function
         Private Function CreateVideoURL(ByVal r As String) As String
             Try
                 Dim OutStr$ = String.Empty
@@ -705,8 +844,8 @@ Namespace API.PornHub
                     End If
                 End If
 
-                If outList.Count > 0 Then outList.RemoveAll(Function(u) u.IsEmptyString)
-                If outList.Count > 0 Then
+                If OutList.Count > 0 Then OutList.RemoveAll(Function(u) u.IsEmptyString)
+                If OutList.Count > 0 Then
                     i = OutList.FindIndex(Function(u) u.Contains("urlset"))
                     If i >= 0 Then
                         OutStr = OutList(i)
@@ -728,6 +867,9 @@ Namespace API.PornHub
                 End If
                 OutList.Clear()
                 Return OutStr
+            Catch regex_ex As RegexFieldsTextBecameNullException
+                MyMainLOG = $"{ToStringForLog()}: something is wrong when parsing flashvars.{vbCr}{regex_ex.Message}"
+                Return String.Empty
             Catch ex As Exception
                 Return ErrorsDescriber.Execute(EDP.SendToLog, ex, "[API.PornHub.UserData.CreateVideoURL]", String.Empty)
             End Try
@@ -753,6 +895,12 @@ Namespace API.PornHub
                 Return 0
             End If
         End Function
+#End Region
+#Region "IDisposable Support"
+        Protected Overrides Sub Dispose(ByVal disposing As Boolean)
+            If Not disposedValue And disposing Then LastPageIDs.Clear()
+            MyBase.Dispose(disposing)
+        End Sub
 #End Region
     End Class
 End Namespace

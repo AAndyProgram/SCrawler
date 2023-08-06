@@ -34,13 +34,36 @@ Namespace API.YouTube.Base
         <Browsable(False)> Friend ReadOnly Property DesignXml As XmlFile
         <Browsable(False)> Private Property Mode As GridUpdateModes = GridUpdateModes.OnConfirm Implements IGridValuesContainer.Mode
         <Browsable(False), XMLVV(-1)> Friend ReadOnly Property PlaylistFormSplitterDistance As XMLValue(Of Integer)
+        <Browsable(False)> Friend ReadOnly Property DownloadLocations As DownloadLocationsCollection
 #Region "Environment"
-        <Browsable(True), GridVisible(False), XMLVN({"Environment"}), Category("Environment"), DisplayName("Path to yt-dlp.exe"),
+#Region "Programs"
+        <Browsable(True), GridVisible(False), XMLVN({"Environment"}), Category("Environment programs"), DisplayName("Path to yt-dlp.exe"),
             Description("Path to yt-dlp.exe file")>
         Public ReadOnly Property YTDLP As XMLValue(Of SFile)
-        <Browsable(True), GridVisible(False), XMLVN({"Environment"}), Category("Environment"), DisplayName("Path to ffmpeg.exe"),
+        <Browsable(True), GridVisible(False), XMLVN({"Environment"}), Category("Environment programs"), DisplayName("Path to ffmpeg.exe"),
             Description("Path to ffmpeg.exe file")>
         Public ReadOnly Property FFMPEG As XMLValue(Of SFile)
+        <Browsable(False)> Private ReadOnly Property ENVIR_FFMPEG As SFile Implements IDownloaderSettings.ENVIR_FFMPEG
+            Get
+                Return FFMPEG
+            End Get
+        End Property
+        <Browsable(False)> Private ReadOnly Property ENVIR_YTDLP As SFile Implements IDownloaderSettings.ENVIR_YTDLP
+            Get
+                Return YTDLP
+            End Get
+        End Property
+        <Browsable(False)> Private ReadOnly Property ENVIR_GDL As SFile Implements IDownloaderSettings.ENVIR_GDL
+            Get
+                Return Nothing
+            End Get
+        End Property
+        <Browsable(False)> Private ReadOnly Property ENVIR_CURL As SFile Implements IDownloaderSettings.ENVIR_CURL
+            Get
+                Return Nothing
+            End Get
+        End Property
+#End Region
         <Browsable(True), GridVisible(False), Category("Environment"), Description("YouTube cookies"), GridCollectionForm(GetType(CookieListForm2)),
             EditorBrowsable(EditorBrowsableState.Never), DesignerSerializationVisibility(DesignerSerializationVisibility.Content)>
         Public ReadOnly Property Cookies As CookieKeeper
@@ -62,6 +85,22 @@ Namespace API.YouTube.Base
         <Browsable(True), GridVisible(False), XMLVN({"Environment"}), Category("Environment"), DisplayName("Output path auto change"),
             Description("Automatically change the output path when a new destination is selected in the opening forms.")>
         Public ReadOnly Property OutputPathAutoChange As XMLValue(Of Boolean)
+        <Browsable(True), GridVisible(False), XMLVN({"Environment"}, True), Category("Environment"), DisplayName("Output path: ask for a name"),
+            Description("Ask for a name when adding a new output path to the list.")>
+        Public ReadOnly Property OutputPathAskForName As XMLValue(Of Boolean)
+        Private ReadOnly Property IDownloaderSettings_OutputPathAskForName As Boolean Implements IDownloaderSettings.OutputPathAskForName
+            Get
+                Return OutputPathAskForName
+            End Get
+        End Property
+        <Browsable(True), GridVisible(False), XMLVN({"Environment"}, True), Category("Environment"), DisplayName("Output path: auto add"),
+            Description("Add new paths to the list automatically.")>
+        Public ReadOnly Property OutputPathAutoAddPaths As XMLValue(Of Boolean)
+        Private ReadOnly Property IDownloaderSettings_OutputPathAutoAddPaths As Boolean Implements IDownloaderSettings.OutputPathAutoAddPaths
+            Get
+                Return OutputPathAutoAddPaths
+            End Get
+        End Property
         <Browsable(True), GridVisible(False), XMLVN({"Environment"}, DoubleClickBehavior.Folder), Category("Environment"), DisplayName("On item double click"),
             Description("What should program open when you double-click on an item...")>
         Public ReadOnly Property OnItemDoubleClick As XMLValue(Of DoubleClickBehavior)
@@ -155,6 +194,12 @@ Namespace API.YouTube.Base
         <Browsable(True), GridVisible(False), XMLVN({"Defaults"}), Category("Defaults"), DisplayName("Download on click in tray: show form"),
             Description("Show main window when download by clicking (Ctrl+Click) the tray icon. Default: false")>
         Public ReadOnly Property ShowFormDownTrayClick As XMLValue(Of Boolean)
+        <Browsable(True), GridVisible(False), XMLVN({"Defaults"}), Category("Defaults"), DisplayName("Program title"),
+            Description("Change the title of the main window if you need to")>
+        Friend ReadOnly Property ProgramText As XMLValue(Of String)
+        <Browsable(True), GridVisible(False), XMLVN({"Defaults"}), Category("Defaults"), DisplayName("Program description"),
+            Description("Add some additional info to the program info if you need")>
+        Friend ReadOnly Property ProgramDescription As XMLValue(Of String)
 #End Region
 #Region "Defaults Video"
         <Browsable(True), GridVisible, XMLVN({"DefaultsVideo"}, "MKV"), Category("Defaults Video"), DisplayName("Default format"),
@@ -167,6 +212,9 @@ Namespace API.YouTube.Base
         <Browsable(True), GridVisible, XMLVN({"DefaultsVideo"}, 1080), Category("Defaults Video"), DisplayName("Default definition"),
             Description("The default maximum video resolution. -1 for max definition")>
         Public ReadOnly Property DefaultVideoDefinition As XMLValue(Of Integer)
+        <Browsable(True), GridVisible, XMLVN({"DefaultsVideo"}), Category("Defaults Video"), DisplayName("Include zero size formats"),
+            Description("Include formats with zero size (or undefined size).")>
+        Public ReadOnly Property DefaultVideoIncludeNullSize As XMLValue(Of Boolean)
 #End Region
 #Region "Defaults Audio"
         <Browsable(True), GridVisible, XMLVN({"DefaultsAudio"}, "AAC"), Category("Defaults Audio"), DisplayName("Default codec"),
@@ -233,6 +281,8 @@ Namespace API.YouTube.Base
 #End Region
 #Region "Initializer"
         Public Sub New()
+            DownloadLocations = New DownloadLocationsCollection
+            DownloadLocations.Load(False, True)
             XML = New XmlFile(YouTubeSettingsFile,, False) With {.AutoUpdateFile = True}
             XML.LoadData(EDP.None)
             DesignXml = New XmlFile("Settings\DesignDownloader.xml", Protector.Modes.All, False)

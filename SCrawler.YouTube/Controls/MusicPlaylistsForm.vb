@@ -8,6 +8,7 @@
 ' but WITHOUT ANY WARRANTY
 Imports System.ComponentModel
 Imports SCrawler.API.YouTube.Objects
+Imports SCrawler.DownloadObjects.STDownloader
 Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Forms.Controls
 Imports PersonalUtilities.Forms.Controls.Base
@@ -49,6 +50,8 @@ Namespace API.YouTube.Controls
                 MyView.Import()
                 MyView.SetFormSize()
             End If
+
+            MyYouTubeSettings.DownloadLocations.PopulateComboBox(TXT_OUTPUT_PATH)
 
             CMB_FORMATS.Items.AddRange(AvailableAudioFormats)
             If MyYouTubeSettings.PlaylistFormSplitterDistance > 0 Then SPLITTER_MAIN.SplitterDistancePercentageSet(MyYouTubeSettings.PlaylistFormSplitterDistance)
@@ -101,6 +104,17 @@ Namespace API.YouTube.Controls
         Private Sub MusicPlaylistsForm_Closing(sender As Object, e As CancelEventArgs) Handles Me.Closing
             MyYouTubeSettings.PlaylistFormSplitterDistance.Value = SPLITTER_MAIN.SplitterDistancePercentageGet
             MyView.DisposeIfReady()
+        End Sub
+        Private Sub MusicPlaylistsForm_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
+            Dim b As Boolean = True
+            If e.KeyCode = Keys.O And e.Control Then
+                MyYouTubeSettings.DownloadLocations.ChooseNewLocation(TXT_OUTPUT_PATH, False, MyDownloaderSettings.OutputPathAskForName)
+            ElseIf e.KeyCode = Keys.O And e.Alt Then
+                MyYouTubeSettings.DownloadLocations.ChooseNewLocation(TXT_OUTPUT_PATH, True, MyDownloaderSettings.OutputPathAskForName)
+            Else
+                b = False
+            End If
+            If b Then e.Handled = True
         End Sub
 #End Region
 #Region "Form text"
@@ -159,10 +173,8 @@ Namespace API.YouTube.Controls
             End With
         End Sub
         Private Sub TXT_OUTPUT_PATH_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As ActionButtonEventArgs) Handles TXT_OUTPUT_PATH.ActionOnButtonClick
-            If Sender.DefaultButton = ADB.Open Then
-                Dim f As SFile = SFile.SelectPath(TXT_OUTPUT_PATH.Text, "Select files destination", EDP.ReturnValue)
-                If Not f.IsEmptyString Then TXT_OUTPUT_PATH.Text = f
-            End If
+            If Sender.DefaultButton = ADB.Open Or Sender.DefaultButton = ADB.Add Then _
+               MyYouTubeSettings.DownloadLocations.ChooseNewLocation(TXT_OUTPUT_PATH, Sender.DefaultButton = ADB.Add, MyDownloaderSettings.OutputPathAskForName)
         End Sub
 #End Region
 #Region "Lists' handlers"
@@ -256,6 +268,7 @@ Namespace API.YouTube.Controls
                     If Not TXT_FORMATS_ADDIT.Checked Then .PostProcessing_OutputAudioFormats.Clear()
                     .File = TXT_OUTPUT_PATH.Text.CSFileP
                     If MyYouTubeSettings.OutputPathAutoChange Then MyYouTubeSettings.OutputPath.Value = .File
+                    If MyDownloaderSettings.OutputPathAutoAddPaths Then MyYouTubeSettings.DownloadLocations.Add(.File, False)
                 End With
                 DialogResult = DialogResult.OK
                 Close()

@@ -12,6 +12,13 @@ Imports PersonalUtilities.Functions.XML.Base
 Imports PersonalUtilities.Functions.RegularExpressions
 Namespace API.Base
     Friend Module Structures
+        Friend Enum SiteModes As Integer
+            User = 0
+            Search = 1
+            Tags = 2
+            Categories = 3
+            Pornstars = 4
+        End Enum
         Friend Structure UserMedia : Implements IUserMedia, IEquatable(Of UserMedia), IEContainerProvider
 #Region "XML Names"
             Friend Const Name_MediaNode As String = "MediaData"
@@ -182,6 +189,7 @@ Namespace API.Base
                     End With
                 End If
 
+                'TODO: UserMedia.SpecialFolder
                 SpecialFolder = e.Attribute(Name_SpecialFolder).Value
                 If Not SpecialFolder.IsEmptyString Then upath &= $"{SpecialFolder}\"
                 If vp.HasValue AndAlso vp.Value Then upath &= $"Video\"

@@ -9,9 +9,11 @@
 Imports SCrawler.Plugin.Attributes
 Namespace API.Mastodon
     Friend Class EditorExchangeOptions : Inherits Twitter.EditorExchangeOptions
+        <PSetting(Address:=SettingAddress.None)> Friend Overrides Property MediaModelAllowNonUserTweets As Boolean
         <PSetting(Address:=SettingAddress.None)> Friend Overrides Property DownloadModelMedia As Boolean
         <PSetting(Address:=SettingAddress.None)> Friend Overrides Property DownloadModelProfile As Boolean
         <PSetting(Address:=SettingAddress.None)> Friend Overrides Property DownloadModelSearch As Boolean
+        <PSetting(Address:=SettingAddress.None)> Friend Overrides Property DownloadModelForceApply As Boolean
         Friend Sub New(ByVal s As SiteSettings)
             MyBase.New(s)
         End Sub

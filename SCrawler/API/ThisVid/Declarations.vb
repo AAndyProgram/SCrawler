@@ -18,5 +18,9 @@ Namespace API.ThisVid
         Friend ReadOnly RegExAlbumID As RParams = RParams.DMS("albumId:.'(\d+)'", 1)
         Friend ReadOnly RegExAlbumImagesList As RParams = RParams.DMS("""([^""]+?image\d+/?)""", 1, RegexReturn.List, EDP.ReturnValue)
         Friend ReadOnly RegExAlbumImageUrl As RParams = RParams.DMS("\<img src=""(https?://media.thisvid.com/contents/albums/[^""]+?)""", 1, EDP.ReturnValue)
+
+        Friend ReadOnly RegExVideosThumb1 As RParams = RParams.DMS("preview_url:\s*'([^""']+)'", 1, EDP.ReturnValue)
+        Friend ReadOnly RegExVideosThumb2 As RParams = RParams.DMS("preview_url1:\s*'([^""']+)'", 1, EDP.ReturnValue)
+        Friend ReadOnly RegExVideoTitle As RParams = RParams.DMS("meta property=.og:title..content=""([^""]*)""", 1, EDP.ReturnValue)
     End Module
 End Namespace
