@@ -36,7 +36,7 @@ A program to download photo and video from [any site](#supported-sites) (e.g. Yo
   - OnlyFans images and videos, saved (bookmarked) posts;
   - Mastodon images and videos, saved (bookmarked) posts;
   - Instagram images and videos, tagged posts, stories, saved posts;
-  - TikTok videos (*currently broken*; [limited](https://github.com/AAndyProgram/SCrawler/wiki/Settings#tiktok-limits));
+  - TikTok videos;
   - Pinterest boards, users, saved posts;
   - Imgur images, galleries and videos;
   - Gfycat videos;
