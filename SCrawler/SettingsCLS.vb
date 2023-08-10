@@ -125,6 +125,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
     Friend Property Channels As Reddit.ChannelsCollection
     Friend ReadOnly Property Labels As LabelsKeeper
     Friend ReadOnly Property Groups As Groups.DownloadGroupCollection
+    Friend ReadOnly Property AdvancedFilter As Groups.DownloadGroup
     Friend ReadOnly Property LastCollections As List(Of String)
     Friend ReadOnly Property DownloadLocations As STDownloader.DownloadLocationsCollection
     Friend ReadOnly Property GlobalLocations As STDownloader.DownloadLocationsCollection
@@ -327,6 +328,9 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         Labels = New LabelsKeeper(MyXML)
         Groups = New Groups.DownloadGroupCollection
         Labels.AddRange(Groups.GetGroupsLabels, False)
+        AdvancedFilter = New Groups.DownloadGroup
+        AdvancedFilter.LoadFromFile($"{SettingsFolderName}\AdvancedFilter.xml")
+        Labels.AddRange({AdvancedFilter}.GetGroupsLabels, False)
 
         MyXML.EndUpdate()
         If MyXML.ChangesDetected Then MyXML.Sort() : MyXML.UpdateData()

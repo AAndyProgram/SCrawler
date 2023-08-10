@@ -64,6 +64,7 @@ Partial Friend Class LabelsForm : Inherits System.Windows.Forms.Form
         Me.CMB_LABELS.Buttons.Add(ActionButton2)
         Me.CMB_LABELS.Buttons.Add(ActionButton3)
         Me.CMB_LABELS.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.CMB_LABELS.Lines = New String(-1) {}
         Me.CMB_LABELS.ListCheckBoxes = True
         Me.CMB_LABELS.ListDropDownStyle = PersonalUtilities.Forms.Controls.ComboBoxExtended.ListMode.Simple
         Me.CMB_LABELS.ListGridVisible = True

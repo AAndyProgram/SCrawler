@@ -246,7 +246,7 @@ Namespace Editors
                             COLOR_USER.ColorsSetUser(.BackColor, .ForeColor)
                             TXT_DESCR.Text = .GetUserInformation.StringFormatLines
                             UpdateSpecificLabels(True)
-                            TXT_LABELS.Buttons.Insert(0, New ActionButton(ADB.Refresh) With {.ToolTipText = "Show/hide site-specific labels"})
+                            If .SpecialLabels.ListExists Then TXT_LABELS.Buttons.Insert(0, New ActionButton(ADB.Refresh) With {.ToolTipText = "Show/hide site-specific labels"})
                         End With
 
                         NameFieldProvider = New CollectionNameFieldProvider
@@ -601,16 +601,16 @@ CloseForm:
             End Select
         End Sub
         Private Sub UpdateSpecificLabels(ByVal IsInit As Boolean)
+            UserLabels.ListAddList(UserInstance.Labels, LAP.NotContainsOnly)
             If DirectCast(UserInstance, UserDataBase).SpecialLabels.ListExists Then
                 If Not IsInit Then LabelsIncludeSpecial = Not LabelsIncludeSpecial
-                UserLabelName.Clone()
-                UserLabels.ListAddList(UserInstance.Labels, LAP.NotContainsOnly)
                 If Not LabelsIncludeSpecial Then UserLabels.ListWithRemove(DirectCast(UserInstance, UserDataBase).SpecialLabels)
                 If UserLabels.Count > 0 Then UserLabels.Sort()
-                TXT_LABELS.Text = UserLabels.ListToString
             Else
                 If Not IsInit Then MsgBoxE({"Users in this collection do not have site-specific labels", "Change labels view"}, vbExclamation)
             End If
+            TXT_LABELS.Clear()
+            TXT_LABELS.Text = UserLabels.ListToString
         End Sub
         Private Sub TXT_SCRIPT_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As EventArgs) Handles TXT_SCRIPT.ActionOnButtonClick
             SettingsCLS.ScriptTextBoxButtonClick(TXT_SCRIPT, Sender)

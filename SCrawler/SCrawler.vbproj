@@ -176,6 +176,10 @@
     <Compile Include="API\Base\Structures.vb" />
     <Compile Include="API\Base\TokenBatch.vb" />
     <Compile Include="API\Instagram\EditorExchangeOptions.vb" />
+    <Compile Include="API\JustForFans\Declarations.vb" />
+    <Compile Include="API\JustForFans\M3U8.vb" />
+    <Compile Include="API\JustForFans\SiteSettings.vb" />
+    <Compile Include="API\JustForFans\UserData.vb" />
     <Compile Include="API\LPSG\Declarations.vb" />
     <Compile Include="API\LPSG\SiteSettings.vb" />
     <Compile Include="API\LPSG\UserData.vb" />
@@ -697,6 +701,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Content\Pictures\BrushToolPic_16.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Content\Pictures\SitePictures\JFFPic_76.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Content\Icons\SiteIcons\JFFIcon_64.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

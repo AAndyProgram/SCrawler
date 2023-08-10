@@ -11,6 +11,8 @@ Namespace DownloadObjects.Groups
     Friend Class GroupEditorForm
         Private WithEvents MyDefs As DefaultFormOptions
         Friend Property MyGroup As DownloadGroup
+        Friend Property DownloadMode As Boolean = False
+        Friend Property FilterMode As Boolean = False
         Friend Sub New(ByRef g As DownloadGroup)
             InitializeComponent()
             MyGroup = g
@@ -50,12 +52,27 @@ Namespace DownloadObjects.Groups
                         DEFS_GROUP.Set(MyGroup)
                         Text &= $" { .Name}"
                     End With
+                ElseIf DownloadMode Then
+                    Text = "Download options"
+                ElseIf FilterMode Then
+                    Text = "Filter options"
                 Else
                     Text = "New Group"
                 End If
                 .MyFieldsChecker = New FieldsChecker
-                .MyFieldsCheckerE.AddControl(Of String)(DEFS_GROUP.TXT_NAME, DEFS_GROUP.TXT_NAME.CaptionText,,
-                                                        New NameChecker(If(MyGroup?.Name, String.Empty), Settings.Groups, "Group"))
+                If DownloadMode Or FilterMode Then
+                    DEFS_GROUP.HideName()
+                    Dim s As Size = Size
+                    s.Height -= 31
+                    MaximumSize = Nothing
+                    MinimumSize = Nothing
+                    Size = s
+                    MinimumSize = s
+                    MaximumSize = s
+                Else
+                    .MyFieldsCheckerE.AddControl(Of String)(DEFS_GROUP.TXT_NAME, DEFS_GROUP.TXT_NAME.CaptionText,,
+                                                            New NameChecker(If(MyGroup?.Name, String.Empty), Settings.Groups, "Group"))
+                End If
                 .MyFieldsChecker.EndLoaderOperations()
                 .EndLoaderOperations()
             End With

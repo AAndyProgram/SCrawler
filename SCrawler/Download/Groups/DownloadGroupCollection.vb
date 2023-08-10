@@ -83,7 +83,7 @@ Namespace DownloadObjects.Groups
             End Using
         End Sub
         Friend Function DownloadGroupIfExists(ByVal Index As Integer) As Boolean
-            If Index.ValueBetween(0, Count - 1) Then Item(Index).DownloadUsers(True) : Return True Else Return False
+            If Index.ValueBetween(0, Count - 1) Then Item(Index).DownloadUsers() : Return True Else Return False
         End Function
         Friend Function IndexOf(ByVal Name As String) As Integer
             If Count > 0 Then

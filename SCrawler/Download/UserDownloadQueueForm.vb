@@ -154,7 +154,7 @@ Namespace DownloadObjects
                 If Not lu.User Is Nothing AndAlso
                    MsgBoxE({$"Are you sure you want to stop downloading the following user?{vbCr}{lu}", msgTitle}, vbExclamation + vbYesNo) = vbYes Then
                     Dim token As New CancellationTokenSource
-                    lu.User.PersonalToken = token.Token
+                    lu.User.TokenPersonal = token.Token
                     token.Cancel()
                     Tokens.Add(token)
                     MsgBoxE({"Cancel user download processed.", msgTitle})

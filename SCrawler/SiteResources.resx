@@ -124,6 +124,12 @@
   <data name="InstagramPic_76" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Content\Pictures\SitePictures\InstagramPic_76.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="JFFIcon_64" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Content\Icons\SiteIcons\JFFIcon_64.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="JFFPic_76" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Content\Pictures\SitePictures\JFFPic_76.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="LPSGIcon_48" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Content\Icons\SiteIcons\LPSGIcon_48.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>

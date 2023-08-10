@@ -53,6 +53,7 @@ Friend Module MainMod
         NoLabels = 1000
         Deleted = 10000
         Suspended = 12000
+        AdvancedFilter = 100000
     End Enum
     Friend Enum ShowingDates As Integer
         [Off] = 0

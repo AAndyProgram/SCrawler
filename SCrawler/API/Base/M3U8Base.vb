@@ -34,7 +34,7 @@ Namespace API.Base
         End Function
         Friend Shared Function Download(ByVal URLs As List(Of String), ByVal DestinationFile As SFile, Optional ByVal Responser As Responser = Nothing,
                                         Optional ByVal Token As CancellationToken = Nothing, Optional ByVal Progress As MyProgress = Nothing,
-                                        Optional ByVal UsePreProgress As Boolean = True) As SFile
+                                        Optional ByVal UsePreProgress As Boolean = True, Optional ByVal ExistingCache As CacheKeeper = Nothing) As SFile
             Dim Cache As CacheKeeper = Nothing
             Using tmpPr As New PreProgress(Progress)
                 Try
@@ -42,8 +42,12 @@ Namespace API.Base
                         Dim ConcatFile As SFile = DestinationFile
                         If ConcatFile.Name.IsEmptyString Then ConcatFile.Name = "PlayListFile"
                         ConcatFile.Extension = "mp4"
-                        Cache = New CacheKeeper($"{DestinationFile.PathWithSeparator}_{TempCacheFolderName}\")
-                        Cache.CacheDeleteError = CacheDeletionError(Cache)
+                        If ExistingCache Is Nothing Then
+                            Cache = New CacheKeeper($"{DestinationFile.PathWithSeparator}_{TempCacheFolderName}\")
+                            Cache.CacheDeleteError = CacheDeletionError(Cache)
+                        Else
+                            Cache = ExistingCache
+                        End If
                         Dim cache2 As CacheKeeper = Cache.NewInstance
                         If cache2.RootDirectory.Exists(SFO.Path) Then
                             Dim progressExists As Boolean = Not Progress Is Nothing

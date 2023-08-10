@@ -483,19 +483,32 @@ CloseResume:
         DownloadSiteFull(False, e.IncludeInTheFeed, True, e.Shift)
     End Sub
 #End Region
+    Private Sub BTT_DOWN_SPEC_KeyClick(ByVal Sender As Object, ByVal e As MyKeyEventArgs) Handles BTT_DOWN_SPEC.KeyClick
+        Dim group As Groups.DownloadGroup = Nothing
+        Using f As New Groups.GroupEditorForm(Nothing) With {.DownloadMode = True}
+            f.ShowDialog()
+            If f.DialogResult = DialogResult.OK AndAlso Not f.MyGroup Is Nothing Then group = f.MyGroup
+        End Using
+        If Not group Is Nothing Then group.DownloadUsers(e.IncludeInTheFeed,, e.Shift) : group.Dispose()
+    End Sub
     Private Sub DownloadSiteFull(ByVal ReadyForDownloadOnly As Boolean, ByVal IncludeInTheFeed As Boolean,
                                  ByVal Subscription As Boolean, Optional ByVal IgnoreExists As Boolean = False)
         Using f As New SiteSelectionForm(Settings.LatestDownloadedSites.ValuesList)
             f.ShowDialog()
-            If f.DialogResult = DialogResult.OK Then
+            If f.DialogResult = DialogResult.OK AndAlso f.SelectedSites.Count > 0 Then
                 Settings.LatestDownloadedSites.Clear()
                 Settings.LatestDownloadedSites.AddRange(f.SelectedSites)
                 Settings.LatestDownloadedSites.Update()
-                If f.SelectedSites.Count > 0 Then
-                    Downloader.AddRange(Settings.GetUsers(Function(u) f.SelectedSites.Contains(u.Site) And (u.Exists Or IgnoreExists) And
-                                                                      u.IsSubscription = Subscription And
-                                                                      (Not ReadyForDownloadOnly Or u.ReadyForDownload)), IncludeInTheFeed)
-                End If
+                Using g As New Groups.DownloadGroup
+                    g.Sites.AddRange(f.SelectedSites)
+                    g.ReadyForDownload = True
+                    g.ReadyForDownloadIgnore = Not ReadyForDownloadOnly
+                    If Subscription Then
+                        g.Subscriptions = True
+                        g.SubscriptionsOnly = True
+                    End If
+                    g.DownloadUsers(IncludeInTheFeed, ReadyForDownloadOnly, IgnoreExists)
+                End Using
             End If
         End Using
     End Sub
@@ -679,6 +692,7 @@ CloseResume:
         BTT_SHOW_LABELS.Checked = m = ShowingModes.Labels
         BTT_SHOW_NO_LABELS.Checked = m = ShowingModes.NoLabels
         BTT_SHOW_SHOW_GROUPS.Checked = Settings.ShowGroupsInsteadLabels
+        BTT_SHOW_FILTER_ADV.Checked = m = ShowingModes.AdvancedFilter
         SetExcludedButtonChecker()
         With Settings
             If Not m = ShowingModes.Labels Then .Labels.Current.Clear() : .Labels.Current.Update()
@@ -705,6 +719,19 @@ CloseResume:
             End If
         End Using
     End Function
+    Private Sub BTT_SHOW_FILTER_ADV_Click(sender As Object, e As EventArgs) Handles BTT_SHOW_FILTER_ADV.Click
+        Try
+            Using g As New Groups.GroupEditorForm(Settings.AdvancedFilter) With {.FilterMode = True}
+                g.ShowDialog()
+                If g.DialogResult = DialogResult.OK Then
+                    Settings.AdvancedFilter.UpdateFile()
+                    SetShowButtonsCheckers(ShowingModes.AdvancedFilter, True)
+                End If
+            End Using
+        Catch ex As Exception
+            ErrorsDescriber.Execute(EDP.SendToLog, ex, "Changing advanced filter options")
+        End Try
+    End Sub
 #End Region
 #Region "5 - view dates"
     Private Sub BTT_SHOW_LIMIT_DATES_NOT_IN_Click(ByVal Sender As ToolStripMenuItem, ByVal e As EventArgs) Handles BTT_SHOW_LIMIT_DATES_NOT.Click,

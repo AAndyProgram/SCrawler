@@ -156,6 +156,10 @@ Namespace DownloadObjects.Groups
             Controls.Add(TXT_LABELS, 0, 6)
             Controls.Add(TXT_SITES, 0, 7)
         End Sub
+        Friend Sub HideName()
+            Controls.Remove(TXT_NAME)
+            RowStyles(1).Height = 0
+        End Sub
         Private Sub NUM_USERS_COUNT_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As ActionButtonEventArgs) Handles NUM_USERS_COUNT.ActionOnButtonClick
             If Sender.DefaultButton = ADB.Clear Then NUM_USERS_COUNT.Value = 0
         End Sub

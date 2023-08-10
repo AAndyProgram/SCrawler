@@ -203,6 +203,7 @@ Namespace Editors
             Me.KeyPreview = True
             Me.MinimumSize = New System.Drawing.Size(600, 290)
             Me.Name = "GlobalLocationsChooserForm"
+            Me.ShowInTaskbar = False
             Me.Text = "Choose a new location"
             CONTAINER_MAIN.ContentPanel.ResumeLayout(False)
             CONTAINER_MAIN.ResumeLayout(False)

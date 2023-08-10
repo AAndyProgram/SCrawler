@@ -541,9 +541,9 @@ Namespace DownloadObjects
                         Using g As New GroupParameters
                             g.LabelsExcluded.ListAddList(LabelsExcluded)
                             g.SitesExcluded.ListAddList(SitesExcluded)
-                            users.ListAddList(DownloadGroup.GetUsers(g, True))
+                            users.ListAddList(DownloadGroup.GetUsers(g))
                         End Using
-                    Case Modes.Specified : users.ListAddList(DownloadGroup.GetUsers(Me, True))
+                    Case Modes.Specified : users.ListAddList(DownloadGroup.GetUsers(Me))
                     Case Modes.Groups
                         If Groups.Count > 0 And Settings.Groups.Count > 0 Then
                             For Each GName In Groups

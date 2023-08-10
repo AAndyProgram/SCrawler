@@ -39,7 +39,7 @@ Namespace Editors
             'CONTAINER_MAIN.ContentPanel
             '
             CONTAINER_MAIN.ContentPanel.Controls.Add(Me.CMB_SITES)
-            CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(284, 251)
+            CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(284, 276)
             CONTAINER_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
             CONTAINER_MAIN.LeftToolStripPanelVisible = False
             CONTAINER_MAIN.Location = New System.Drawing.Point(0, 0)
@@ -62,13 +62,14 @@ Namespace Editors
             ListColumn1.Width = -1
             Me.CMB_SITES.Columns.Add(ListColumn1)
             Me.CMB_SITES.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CMB_SITES.Lines = New String(-1) {}
             Me.CMB_SITES.ListCheckBoxes = True
             Me.CMB_SITES.ListDropDownStyle = PersonalUtilities.Forms.Controls.ComboBoxExtended.ListMode.Simple
             Me.CMB_SITES.ListGridVisible = True
             Me.CMB_SITES.ListMultiSelect = True
             Me.CMB_SITES.Location = New System.Drawing.Point(0, 0)
             Me.CMB_SITES.Name = "CMB_SITES"
-            Me.CMB_SITES.Size = New System.Drawing.Size(286, 252)
+            Me.CMB_SITES.Size = New System.Drawing.Size(286, 277)
             Me.CMB_SITES.TabIndex = 0
             '
             'SiteSelectionForm

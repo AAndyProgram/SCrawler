@@ -89,7 +89,8 @@ Namespace Plugin.Hosts
                     New PluginHost(New API.XVIDEOS.SiteSettings, _XML, GlobalPath, _Temp, _Imgs, _Vids),
                     New PluginHost(New API.ThisVid.SiteSettings, _XML, GlobalPath, _Temp, _Imgs, _Vids),
                     New PluginHost(New API.PathPlugin.SiteSettings, _XML, GlobalPath, _Temp, _Imgs, _Vids),
-                    New PluginHost(New API.OnlyFans.SiteSettings, _XML, GlobalPath, _Temp, _Imgs, _Vids)}
+                    New PluginHost(New API.OnlyFans.SiteSettings, _XML, GlobalPath, _Temp, _Imgs, _Vids),
+                    New PluginHost(New API.JustForFans.SiteSettings, _XML, GlobalPath, _Temp, _Imgs, _Vids)}
         End Function
         Friend Shared Function GetPluginsHosts(ByRef _XML As XmlFile, ByVal GlobalPath As SFile,
                                                ByRef _Temp As XMLValue(Of Boolean), ByRef _Imgs As XMLValue(Of Boolean),

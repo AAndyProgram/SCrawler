@@ -87,6 +87,26 @@ Namespace My.Resources
         '''<summary>
         '''  Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
         '''</summary>
+        Friend Shared ReadOnly Property JFFIcon_64() As System.Drawing.Icon
+            Get
+                Dim obj As Object = ResourceManager.GetObject("JFFIcon_64", resourceCulture)
+                Return CType(obj,System.Drawing.Icon)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized resource of type System.Drawing.Bitmap.
+        '''</summary>
+        Friend Shared ReadOnly Property JFFPic_76() As System.Drawing.Bitmap
+            Get
+                Dim obj As Object = ResourceManager.GetObject("JFFPic_76", resourceCulture)
+                Return CType(obj,System.Drawing.Bitmap)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+        '''</summary>
         Friend Shared ReadOnly Property LPSGIcon_48() As System.Drawing.Icon
             Get
                 Dim obj As Object = ResourceManager.GetObject("LPSGIcon_48", resourceCulture)

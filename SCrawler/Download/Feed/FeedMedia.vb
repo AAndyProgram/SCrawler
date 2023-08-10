@@ -279,9 +279,9 @@ Namespace DownloadObjects
                     If Not Media.User Is Nothing AndAlso Not Media.User.HOST Is Nothing Then
                         With Media.User.HOST.Source
                             If Not .Image Is Nothing Then
-                                ICON_SITE.Image = .Image
+                                ICON_SITE.Image = .Image.Clone
                             ElseIf Not .Icon Is Nothing Then
-                                ICON_SITE.Image = .Icon.ToBitmap
+                                ICON_SITE.Image = .Icon.Clone.ToBitmap
                             End If
                         End With
                     End If

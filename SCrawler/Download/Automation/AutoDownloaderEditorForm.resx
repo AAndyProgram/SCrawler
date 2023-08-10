@@ -120,6 +120,15 @@
   <metadata name="CONTAINER_MAIN.GenerateMember" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>False</value>
   </metadata>
+  <metadata name="TP_MODE.GenerateMember" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>False</value>
+  </metadata>
+  <metadata name="TT_MAIN.GenerateMember" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>False</value>
+  </metadata>
+  <metadata name="TT_MAIN.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>17, 17</value>
+  </metadata>
   <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
   <data name="ActionButton1.BackgroundImage" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
@@ -187,15 +196,14 @@
         AFuc5QFgn6ClHh5iOQVAKNixyucB8NY0vG9JOzzyhrdq5IRgAAAAAElFTkSuQmCC
 </value>
   </data>
-  <metadata name="TP_MODE.GenerateMember" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+  <metadata name="TP_NOTIFY.GenerateMember" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>False</value>
   </metadata>
-  <metadata name="TT_MAIN.GenerateMember" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>False</value>
-  </metadata>
-  <metadata name="TT_MAIN.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-    <value>17, 17</value>
-  </metadata>
+  <data name="CH_NOTIFY_SIMPLE.ToolTip" xml:space="preserve">
+    <value>Show a simple notification instead of a user notification.
+This means that if any user data has been downloaded with the plan, a simple notification will be shown with the number of users downloaded.
+The 'Image' and 'User icon' parameters will be ignored.</value>
+  </data>
   <data name="ActionButton3.BackgroundImage" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGOfPtRkwAAACBjSFJNAAB6
@@ -227,13 +235,5 @@
         qbbz73/VOTc/qsy89kWx+9h7qbQpJwS1bbOAscGGrB6EUTggLOqf16C55ft/HlnNAFZOXgVWdi4FRgYG
         VnR1MIwhwMTCyqEQ37qEmZVDFF0OE/9nAACtFF4Ey6OP+wAAAABJRU5ErkJggg==
 </value>
-  </data>
-  <metadata name="TP_NOTIFY.GenerateMember" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>False</value>
-  </metadata>
-  <data name="CH_NOTIFY_SIMPLE.ToolTip" xml:space="preserve">
-    <value>Show a simple notification instead of a user notification.
-This means that if any user data has been downloaded with the plan, a simple notification will be shown with the number of users downloaded.
-The 'Image' and 'User icon' parameters will be ignored.</value>
   </data>
 </root>

@@ -751,7 +751,6 @@ BlockNullPicture:
         End Function
         Friend Overridable Sub ExchangeOptionsSet(ByVal Obj As Object) Implements IPluginContentProvider.ExchangeOptionsSet
         End Sub
-        Private _ExternalCompatibilityToken As CancellationToken
 #End Region
 #Region "IIndexable Support"
         Friend Property Index As Integer = 0 Implements IIndexable.Index
@@ -1082,7 +1081,8 @@ BlockNullPicture:
                 Return __DOWNLOAD_IN_PROGRESS
             End Get
         End Property
-        Friend PersonalToken As CancellationToken
+        Private TokenQueue As CancellationToken
+        Friend TokenPersonal As CancellationToken
         Protected Responser As Responser
         Protected UseResponserClient As Boolean = False
         Protected UseClientTokens As Boolean = False
@@ -1096,7 +1096,7 @@ BlockNullPicture:
         Private _PictureExists As Boolean
         Private _EnvirInvokeUserUpdated As Boolean = False
         Protected Sub EnvirDownloadSet()
-            PersonalToken = Nothing
+            TokenPersonal = Nothing
             ProgressPre.Reset()
             UpdateDataFiles()
             _DownloadInProgress = True
@@ -1128,7 +1128,7 @@ BlockNullPicture:
             __DOWNLOAD_IN_PROGRESS = True
             OnUserDownloadStateChanged(True)
             Dim Canceled As Boolean = False
-            _ExternalCompatibilityToken = Token
+            TokenQueue = Token
             Try
                 EnvirDownloadSet()
                 If Not Responser Is Nothing Then Responser.Dispose()
@@ -1191,6 +1191,7 @@ BlockNullPicture:
                                                                         End Function))
                 Else
                     DownloadContent(Token)
+                    DownloadedPictures(False) += 1
                     ThrowIfDisposed()
                 End If
 
@@ -1221,7 +1222,7 @@ BlockNullPicture:
                 End If
                 ThrowIfDisposed()
                 If Not _PictureExists Or _EnvirInvokeUserUpdated Then OnUserUpdated()
-            Catch oex As OperationCanceledException When Token.IsCancellationRequested Or PersonalToken.IsCancellationRequested
+            Catch oex As OperationCanceledException When Token.IsCancellationRequested Or TokenPersonal.IsCancellationRequested
                 MyMainLOG = $"{ToStringForLog()}: downloading canceled"
                 Canceled = True
             Catch exit_ex As ExitException
@@ -1288,6 +1289,7 @@ BlockNullPicture:
             Try
                 Data.DownloadState = UserMediaStates.Tried
                 Progress = Data.Progress
+                If Not Progress Is Nothing Then Progress.ResetProgressOnMaximumChanges = False
                 If Not Responser Is Nothing Then Responser.Dispose()
                 Responser = New Responser
                 If Not HOST Is Nothing AndAlso HOST.Available(ISiteSettings.Download.SingleObject, True) AndAlso
@@ -1722,7 +1724,7 @@ BlockNullPicture:
                                             Optional ByVal ThrowEx As Boolean = True) As Integer
             If TypeOf ex Is ExitException Then
                 Throw ex
-            ElseIf Not ((TypeOf ex Is OperationCanceledException And (Token.IsCancellationRequested Or PersonalToken.IsCancellationRequested)) Or
+            ElseIf Not ((TypeOf ex Is OperationCanceledException And (Token.IsCancellationRequested Or TokenPersonal.IsCancellationRequested Or TokenQueue.IsCancellationRequested)) Or
                         (TypeOf ex Is ObjectDisposedException And Disposed)) Then
                 If RDE Then
                     Dim v% = DownloadingException(ex, Message, True, EObj)
@@ -2031,13 +2033,14 @@ BlockNullPicture:
         End Sub
         ''' <inheritdoc cref="ThrowAny(CancellationToken)"/>
         Private Overloads Sub ThrowAny() Implements IThrower.ThrowAny
-            ThrowAny(_ExternalCompatibilityToken)
+            ThrowAny(TokenQueue)
         End Sub
         ''' <exception cref="OperationCanceledException"></exception>
         ''' <exception cref="ObjectDisposedException"></exception>
         Friend Overridable Overloads Sub ThrowAny(ByVal Token As CancellationToken)
             Token.ThrowIfCancellationRequested()
-            PersonalToken.ThrowIfCancellationRequested()
+            TokenQueue.ThrowIfCancellationRequested()
+            TokenPersonal.ThrowIfCancellationRequested()
             ThrowIfDisposed()
         End Sub
 #End Region

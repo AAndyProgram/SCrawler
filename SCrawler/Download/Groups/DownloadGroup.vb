@@ -25,6 +25,7 @@ Namespace DownloadObjects.Groups
         Private ReadOnly SEP_1 As ToolStripSeparator
         Private WithEvents BTT_MENU As ToolStripMenuItem
 #End Region
+        Private File As SFile = Nothing
         Friend Property NameBefore As String = String.Empty
         Private _Key As String = String.Empty
         Friend ReadOnly Property Key As String
@@ -111,7 +112,7 @@ Namespace DownloadObjects.Groups
 #End Region
 #Region "Buttons"
         Private Sub BTT_MENU_Click(sender As Object, e As EventArgs) Handles BTT_MENU.Click
-            DownloadUsers(True)
+            DownloadUsers()
         End Sub
         Private Sub BTT_EDIT_Click(sender As Object, e As EventArgs) Handles BTT_EDIT.Click
             Using f As New GroupEditorForm(Me)
@@ -126,24 +127,39 @@ Namespace DownloadObjects.Groups
             End If
         End Sub
         Private Sub BTT_DOWNLOAD_Click(sender As Object, e As EventArgs) Handles BTT_DOWNLOAD.Click
-            DownloadUsers(True)
+            DownloadUsers()
         End Sub
         Private Sub BTT_DOWNLOAD_FULL_Click(sender As Object, e As EventArgs) Handles BTT_DOWNLOAD_FULL.Click
-            DownloadUsers(False)
+            DownloadUsers(, False)
         End Sub
 #End Region
 #Region "Get users"
         Friend Overloads Function GetUsers() As IEnumerable(Of IUserData)
-            Return GetUsers(Me, True)
+            Return GetUsers(Me)
         End Function
-        Friend Overloads Shared Function GetUsers(ByVal Instance As IGroup, ByVal UseReadyOption As Boolean) As IEnumerable(Of IUserData)
+        Friend Overloads Shared Function GetUsers(ByVal Instance As IGroup, Optional ByVal UseReadyOption As Boolean = True,
+                                                  Optional ByVal IncludeNonExistentUsers As Boolean = False,
+                                                  Optional ByVal OnlyNonExistentUsers As Boolean = False) As IEnumerable(Of IUserData)
             Try
                 If Settings.Users.Count > 0 Then
                     With Instance
+                        Dim CheckUserExists As Predicate(Of IUserData) = Function(ByVal user As IUserData) As Boolean
+                                                                             If user.Exists Then
+                                                                                 If IncludeNonExistentUsers And OnlyNonExistentUsers Then
+                                                                                     Return False
+                                                                                 Else
+                                                                                     Return True
+                                                                                 End If
+                                                                             ElseIf IncludeNonExistentUsers Then
+                                                                                 Return True
+                                                                             Else
+                                                                                 Return False
+                                                                             End If
+                                                                         End Function
                         Dim CheckParams As Predicate(Of IUserData) = Function(user) _
                             (.Temporary = CheckState.Indeterminate Or user.Temporary = CBool(.Temporary)) And
                             (.Favorite = CheckState.Indeterminate Or (user.Favorite = CBool(.Favorite))) And
-                            (Not UseReadyOption Or .ReadyForDownloadIgnore Or user.ReadyForDownload = .ReadyForDownload) And user.Exists
+                            (Not UseReadyOption Or .ReadyForDownloadIgnore Or user.ReadyForDownload = .ReadyForDownload) And CheckUserExists.Invoke(user)
                         Dim CheckSubscription As Predicate(Of IUserData) = Function(ByVal user As IUserData) As Boolean
                                                                                If .Subscriptions Then
                                                                                    If .SubscriptionsOnly Then
@@ -196,12 +212,14 @@ Namespace DownloadObjects.Groups
         End Function
 #End Region
 #Region "Download users"
-        Friend Sub DownloadUsers(ByVal UseReadyOption As Boolean)
+        Friend Sub DownloadUsers(Optional ByVal IncludeInTheFeed As Boolean = True, Optional ByVal UseReadyOption As Boolean = True,
+                                 Optional ByVal IncludeNonExistentUsers As Boolean = False,
+                                 Optional ByVal OnlyNonExistentUsers As Boolean = False)
             Try
                 If Settings.Users.Count > 0 Then
-                    Dim u As IEnumerable(Of IUserData) = GetUsers(Me, UseReadyOption)
+                    Dim u As IEnumerable(Of IUserData) = GetUsers(Me, UseReadyOption, IncludeNonExistentUsers, OnlyNonExistentUsers)
                     If u.ListExists Then
-                        Downloader.AddRange(u, True)
+                        Downloader.AddRange(u, IncludeInTheFeed)
                     Else
                         MsgBoxE({$"No users found for group [{Name}].", "No users found"}, vbExclamation)
                     End If
@@ -209,6 +227,21 @@ Namespace DownloadObjects.Groups
             Catch ex As Exception
                 ErrorsDescriber.Execute(EDP.SendToLog, ex, "[DownloadGroup.DownloadUsers]")
             End Try
+        End Sub
+#End Region
+#Region "Advanced filter support"
+        Friend Sub LoadFromFile(ByVal f As SFile)
+            File = f
+            If f.Exists Then
+                Using x As New XmlFile(f) With {.XmlReadOnly = True} : Import(x) : End Using
+            End If
+        End Sub
+        Friend Sub UpdateFile()
+            Using x As New XmlFile
+                Export(x)
+                x.Name = "AdvancedFilter"
+                x.Save(File)
+            End Using
         End Sub
 #End Region
 #Region "IEContainerProvider Support"
