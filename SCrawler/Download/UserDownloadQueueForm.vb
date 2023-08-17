@@ -12,10 +12,9 @@ Imports SCrawler.API.Base
 Imports PersonalUtilities.Forms
 Namespace DownloadObjects
     Friend Class UserDownloadQueueForm
-        Private ReadOnly MyVew As FormView
+        Private MyVew As FormView
         Private ReadOnly Tokens As List(Of CancellationTokenSource)
         Private Structure ListUser
-            Friend ReadOnly User As UserDataBase
             Friend IsDownloading As Boolean
             Private ReadOnly _UserString As String
             Private ReadOnly Property UserString As String
@@ -25,11 +24,10 @@ Namespace DownloadObjects
             End Property
             Friend ReadOnly Key As String
             Friend Sub New(ByVal _User As IUserData)
-                User = _User
                 Key = _User.Key
                 IsDownloading = True
-                _UserString = DirectCast(User, UserDataBase).ToStringForLog()
-                If Not User.FriendlyName.IsEmptyString Then _UserString &= $" ({User.FriendlyName})"
+                _UserString = DirectCast(_User, UserDataBase).ToStringForLog()
+                If Not _User.FriendlyName.IsEmptyString Then _UserString &= $" ({_User.FriendlyName})"
             End Sub
             Public Shared Widening Operator CType(ByVal _User As UserDataBase) As ListUser
                 Return New ListUser(_User)
@@ -47,31 +45,16 @@ Namespace DownloadObjects
         End Structure
         Public Sub New()
             InitializeComponent()
-            MyVew = New FormView(Me, Settings.Design)
             Tokens = New List(Of CancellationTokenSource)
         End Sub
         Private Sub UserDownloadQueueForm_Load(sender As Object, e As EventArgs) Handles Me.Load
             Try
-                MyVew.Import()
-                MyVew.SetFormSize()
-                With Downloader
-                    .QueueFormOpening = True
-                    If .ActiveDownloading.Count > 0 Then
-                        For Each user As UserDataBase In .ActiveDownloading
-                            ApplyHandlers(user, user.DownloadInProgress)
-                            LIST_QUEUE.Items.Add(New ListUser(user))
-                        Next
-                    End If
-                    AddHandler .UserDownloadStateChanged, AddressOf Downloader_UserDownloadStateChanged
-                    AddHandler .Downloading, AddressOf Downloader_Downloading
-                    .QueueFormOpening = False
-                End With
-            Catch aoutex As ArgumentOutOfRangeException
-            Catch iex As IndexOutOfRangeException
-            Catch ex As Exception
-                ErrorsDescriber.Execute(EDP.SendToLog + EDP.ShowMainMsg, ex, "Error when opening user download queue form")
-            Finally
-                Downloader.QueueFormOpening = False
+                If MyVew Is Nothing Then
+                    MyVew = New FormView(Me, Settings.Design)
+                    MyVew.Import()
+                    MyVew.SetFormSize()
+                End If
+            Catch
             End Try
         End Sub
         Private Sub UserDownloadQueueForm_Closing(sender As Object, e As CancelEventArgs) Handles Me.Closing
@@ -79,7 +62,7 @@ Namespace DownloadObjects
             Hide()
         End Sub
         Private Sub UserDownloadQueueForm_Disposed(sender As Object, e As EventArgs) Handles Me.Disposed
-            MyVew.Dispose()
+            MyVew.DisposeIfReady
             Tokens.ListClearDispose
         End Sub
         Private Sub UserDownloadQueueForm_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
@@ -93,45 +76,44 @@ Namespace DownloadObjects
             End If
             If b Then e.Handled = True
         End Sub
-        Private Sub Downloader_Downloading(ByVal Value As Boolean)
-            ControlInvokeFast(LIST_QUEUE, Sub() If Not Value Then LIST_QUEUE.Items.Clear() : Tokens.ListClearDispose, EDP.None)
+        Friend Sub Downloader_Downloading(ByVal Value As Boolean)
+            If Not Value Then ControlInvokeFast(LIST_QUEUE, Sub()
+                                                                LIST_QUEUE.Items.Clear()
+                                                                Tokens.ListClearDispose
+                                                            End Sub, EDP.None)
         End Sub
-        Private Async Sub Downloader_UserDownloadStateChanged(ByVal User As IUserData, ByVal IsDownloading As Boolean)
-            Await Task.Run(Sub()
-                               Try
-                                   ControlInvokeFast(LIST_QUEUE, Sub()
-                                                                     Dim u As New ListUser(User)
-                                                                     ApplyHandlers(User, IsDownloading)
-                                                                     If IsDownloading Then
-                                                                         LIST_QUEUE.Items.Add(u)
-                                                                     Else
-                                                                         LIST_QUEUE.Items.Remove(u)
-                                                                     End If
-                                                                     LIST_QUEUE.Refresh()
-                                                                 End Sub)
-                               Catch ex As Exception
-                               End Try
-                           End Sub)
+        Friend Sub Downloader_UserDownloadStateChanged(ByVal User As IUserData, ByVal IsDownloading As Boolean)
+            Try
+                ControlInvokeFast(LIST_QUEUE, Sub()
+                                                  Dim u As New ListUser(User)
+                                                  ApplyHandlers(User, IsDownloading)
+                                                  If IsDownloading Then
+                                                      LIST_QUEUE.Items.Add(u)
+                                                  Else
+                                                      LIST_QUEUE.Items.Remove(u)
+                                                  End If
+                                                  LIST_QUEUE.Refresh()
+                                              End Sub)
+            Catch ex As Exception
+            End Try
         End Sub
-        Private Async Sub User_UserDownloadStateChanged(ByVal User As IUserData, ByVal IsDownloading As Boolean)
-            Await Task.Run(Sub()
-                               Try
-                                   ControlInvokeFast(LIST_QUEUE,
-                                                     Sub()
-                                                         Dim lu As New ListUser(User)
-                                                         Dim i% = LIST_QUEUE.Items.IndexOf(lu)
-                                                         If i >= 0 Then
-                                                             lu = LIST_QUEUE.Items(i)
-                                                             If Not lu.User Is Nothing And Not lu.IsDownloading = IsDownloading Then
-                                                                 lu.IsDownloading = IsDownloading
-                                                                 LIST_QUEUE.Items(i) = lu
-                                                                 LIST_QUEUE.Refresh()
-                                                             End If
-                                                         End If
-                                                     End Sub)
-                               Catch
-                               End Try
-                           End Sub)
+        Private Sub User_UserDownloadStateChanged(ByVal User As IUserData, ByVal IsDownloading As Boolean)
+            Try
+                ControlInvokeFast(LIST_QUEUE,
+                                  Sub()
+                                      Dim lu As New ListUser(User)
+                                      Dim i% = LIST_QUEUE.Items.IndexOf(lu)
+                                      If i >= 0 Then
+                                          lu = LIST_QUEUE.Items(i)
+                                          If Not lu.Key.IsEmptyString And Not lu.IsDownloading = IsDownloading Then
+                                              lu.IsDownloading = IsDownloading
+                                              LIST_QUEUE.Items(i) = lu
+                                              LIST_QUEUE.Refresh()
+                                          End If
+                                      End If
+                                  End Sub)
+            Catch
+            End Try
         End Sub
         Private Sub ApplyHandlers(ByVal User As IUserData, ByVal IsDownloading As Boolean)
             Try
@@ -151,13 +133,15 @@ Namespace DownloadObjects
             Const msgTitle$ = "Stop user download"
             Try
                 Dim lu As ListUser = GetUserSelectedUser()
-                If Not lu.User Is Nothing AndAlso
+                If Not lu.Key.IsEmptyString AndAlso
                    MsgBoxE({$"Are you sure you want to stop downloading the following user?{vbCr}{lu}", msgTitle}, vbExclamation + vbYesNo) = vbYes Then
                     Dim token As New CancellationTokenSource
-                    lu.User.TokenPersonal = token.Token
-                    token.Cancel()
-                    Tokens.Add(token)
-                    MsgBoxE({"Cancel user download processed.", msgTitle})
+                    Dim u As IUserData = Settings.GetUser(lu.Key)
+                    If Not u Is Nothing Then
+                        DirectCast(u, UserDataBase).TokenPersonal = token.Token
+                        token.Cancel()
+                        Tokens.Add(token)
+                    End If
                 End If
             Catch ex As Exception
             End Try

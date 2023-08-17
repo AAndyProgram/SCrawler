@@ -140,7 +140,7 @@ Namespace API.Twitter
         End Function
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
             If MySettings.LIMIT_ABORT Then
-                TwitterLimitException.LogMessage(ToStringForLog, True)
+                Throw New TwitterLimitException(Me)
             Else
                 If IsSavedPosts Then
                     If _ContentList.Count > 0 Then _DataNames.ListAddList(_ContentList.Select(Function(c) c.Post.ID), LAP.ClearBeforeAdd, LAP.NotContainsOnly)
@@ -340,6 +340,7 @@ Namespace API.Twitter
                 DownloadModelForceApply = False
                 FirstDownloadComplete = True
             Catch limit_ex As TwitterLimitException
+                Throw limit_ex
             Catch ex As Exception
                 ProcessException(ex, Token, $"data downloading error [{URL}]")
             Finally
@@ -491,12 +492,10 @@ Namespace API.Twitter
         End Function
 #End Region
 #Region "Gallery-DL Support"
-        Private Class TwitterLimitException : Inherits Exception
-            Friend Sub New(ByVal User As String, ByVal Skipped As Boolean)
-                LogMessage(User, Skipped)
-            End Sub
-            Friend Shared Sub LogMessage(ByVal User As String, ByVal Skipped As Boolean)
-                MyMainLOG = $"{User}: twitter limit reached.{IIf(Skipped, "Data has not been downloaded", String.Empty)}"
+        Private Class TwitterLimitException : Inherits Plugin.ExitException
+            Friend Sub New(ByVal User As UserData)
+                Silent = True
+                User.MySettings.LimitSkippedUsers.Add(User)
             End Sub
         End Class
         Private Class TwitterGDL : Inherits GDL.GDLBatch
@@ -558,7 +557,7 @@ Namespace API.Twitter
                                 MySettings.LIMIT_ABORT = True
                                 Return dir
                             Else
-                                Throw New TwitterLimitException(ToStringForLog, False)
+                                Throw New TwitterLimitException(Me)
                             End If
                         End If
                     End Using
@@ -626,7 +625,7 @@ Namespace API.Twitter
                                     MySettings.LIMIT_ABORT = True
                                     Exit For
                                 Else
-                                    Throw New TwitterLimitException(ToStringForLog, False)
+                                    Throw New TwitterLimitException(Me)
                                 End If
                             End If
                         End If

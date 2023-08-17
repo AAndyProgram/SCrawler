@@ -33,16 +33,19 @@ Namespace Editors
                         TXT_MAX_JOBS_USERS.Value = .MaxUsersJobsCount.Value
                         TXT_MAX_JOBS_CHANNELS.Value = .ChannelsMaxJobsCount.Value
                         CH_CHECK_VER_START.Checked = .CheckUpdatesAtStart
-                        TXT_PRG_TITLE.Text = .ProgramText
-                        TXT_PRG_DESCR.Text = .ProgramDescription
                         TXT_USER_AGENT.Text = .UserAgent
                         TXT_IMGUR_CLIENT_ID.Text = .ImgurClientID
+                        CH_SHOW_GROUPS.Checked = .ShowGroups
+                        CH_USERS_GROUPING.Checked = .UseGrouping
+                        'Design
+                        TXT_PRG_TITLE.Text = .ProgramText
+                        TXT_PRG_DESCR.Text = .ProgramDescription
                         TXT_USER_LIST_IMAGE.Text = .UserListImage.Value
                         COLORS_USERLIST.ColorsSet(.UserListBackColor, .UserListForeColor, SystemColors.Window, SystemColors.WindowText)
                         COLORS_SUBSCRIPTIONS.ColorsSet(.MainFrameUsersSubscriptionsColorBack, .MainFrameUsersSubscriptionsColorFore,
                                                        SystemColors.Window, SystemColors.WindowText)
-                        CH_SHOW_GROUPS.Checked = .ShowGroups
-                        CH_USERS_GROUPING.Checked = .UseGrouping
+                        COLORS_SUBSCRIPTIONS_USERS.ColorsSet(.MainFrameUsersSubscriptionsColorBack_USERS, .MainFrameUsersSubscriptionsColorFore_USERS,
+                                                             SystemColors.Window, SystemColors.WindowText)
                         'Environment
                         TXT_FFMPEG.Text = .FfmpegFile.File
                         TXT_CURL.Text = .CurlFile.File
@@ -201,16 +204,18 @@ Namespace Editors
                     .MaxUsersJobsCount.Value = CInt(TXT_MAX_JOBS_USERS.Value)
                     .ChannelsMaxJobsCount.Value = TXT_MAX_JOBS_CHANNELS.Value
                     .CheckUpdatesAtStart.Value = CH_CHECK_VER_START.Checked
-                    .ProgramText.Value = TXT_PRG_TITLE.Text
-                    .ProgramDescription.Value = TXT_PRG_DESCR.Text
                     .UserAgent.Value = TXT_USER_AGENT.Text
                     DefaultUserAgent = TXT_USER_AGENT.Text
                     .ImgurClientID.Value = TXT_IMGUR_CLIENT_ID.Text
+                    .ShowGroups.Value = CH_SHOW_GROUPS.Checked
+                    .UseGrouping.Value = CH_USERS_GROUPING.Checked
+                    'Design
+                    .ProgramText.Value = TXT_PRG_TITLE.Text
+                    .ProgramDescription.Value = TXT_PRG_DESCR.Text
                     .UserListImage.Value = TXT_USER_LIST_IMAGE.Text
                     COLORS_USERLIST.ColorsGet(.UserListBackColor, .UserListForeColor)
                     COLORS_SUBSCRIPTIONS.ColorsGet(.MainFrameUsersSubscriptionsColorBack, .MainFrameUsersSubscriptionsColorFore)
-                    .ShowGroups.Value = CH_SHOW_GROUPS.Checked
-                    .UseGrouping.Value = CH_USERS_GROUPING.Checked
+                    COLORS_SUBSCRIPTIONS_USERS.ColorsGet(.MainFrameUsersSubscriptionsColorBack_USERS, .MainFrameUsersSubscriptionsColorFore_USERS)
                     'Environment
                     .FfmpegFile.File = TXT_FFMPEG.Text
                     .CurlFile.File = TXT_CURL.Text

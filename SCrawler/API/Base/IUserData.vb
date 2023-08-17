@@ -31,6 +31,7 @@ Namespace API.Base
         Sub DownloadSingleObject(ByVal Data As YouTube.Objects.IYouTubeMediaContainer, ByVal Token As CancellationToken)
         Property ParseUserMediaOnly As Boolean
         ReadOnly Property IsSubscription As Boolean
+        ReadOnly Property IsUser As Boolean
 #Region "Images"
         Function GetPicture() As Image
         Sub SetPicture(ByVal f As SFile)

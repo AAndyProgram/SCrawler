@@ -553,6 +553,11 @@ BlockNullPicture:
                 Return User.IsSubscription
             End Get
         End Property
+        Friend Overridable ReadOnly Property IsUser As Boolean Implements IUserData.IsUser
+            Get
+                Return True
+            End Get
+        End Property
         Private Property IPluginContentProvider_IsSubscription As Boolean Implements IPluginContentProvider.IsSubscription
             Get
                 Return IsSubscription
@@ -1191,7 +1196,6 @@ BlockNullPicture:
                                                                         End Function))
                 Else
                     DownloadContent(Token)
-                    DownloadedPictures(False) += 1
                     ThrowIfDisposed()
                 End If
 
@@ -1240,9 +1244,10 @@ BlockNullPicture:
                 LogError(ex, "downloading data error")
                 HasError = True
             Finally
-                If Not UserExists Then MyMainLOG = $"User '{ToStringForLog()}' not found on the site"
+                If Not UserExists Then AddNonExistingUserToLog($"User '{ToStringForLog()}' not found on the site")
                 If Not Responser Is Nothing Then Responser.Dispose() : Responser = Nothing
                 If Not Canceled Then _DataParsed = True
+                TokenPersonal = Nothing
                 _ContentNew.Clear()
                 _DownloadInProgress = False
                 DownloadTopCount = Nothing
@@ -2137,6 +2142,7 @@ BlockNullPicture:
                     LatestData.Clear()
                     _TempMediaList.Clear()
                     _TempPostsList.Clear()
+                    TokenPersonal = Nothing
                     If Not ProgressPre Is Nothing Then ProgressPre.Reset() : ProgressPre.Dispose()
                     If Not Responser Is Nothing Then Responser.Dispose()
                     If Not BTT_CONTEXT_DOWN Is Nothing Then BTT_CONTEXT_DOWN.Dispose()

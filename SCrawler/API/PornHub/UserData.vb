@@ -144,7 +144,12 @@ Namespace API.PornHub
         Friend Property DownloadFavorite As Boolean = False
         Friend Property DownloadGifs As Boolean
         Friend Property DownloadPhotoOnlyFromModelHub As Boolean = True
-        Friend Property IsUser As Boolean = True
+        Private _IsUser As Boolean = True
+        Friend Overrides ReadOnly Property IsUser As Boolean
+            Get
+                Return _IsUser
+            End Get
+        End Property
         Friend Property QueryString As String
             Get
                 If IsUser Then
@@ -207,7 +212,7 @@ Namespace API.PornHub
                         If IsUser And Force Then
                             Return False
                         Else
-                            IsUser = False
+                            _IsUser = False
                             Options = If(Force, eObj.Options, Options)
                             NameTrue = Options
                             If Not Force Then
@@ -218,7 +223,7 @@ Namespace API.PornHub
                             End If
                         End If
                     Else
-                        IsUser = True
+                        _IsUser = True
                         Dim n$() = Name.Split("_")
                         If n.ListExists(2) Then
                             NameTrue = Name.Replace($"{n(0)}_", String.Empty)
@@ -242,7 +247,7 @@ Namespace API.PornHub
                     DownloadFavorite = .Value(Name_DownloadFavorite).FromXML(Of Boolean)(False)
                     DownloadGifs = .Value(Name_DownloadGifs).FromXML(Of Integer)(False)
                     DownloadPhotoOnlyFromModelHub = .Value(Name_DownloadPhotoOnlyFromModelHub).FromXML(Of Boolean)(True)
-                    IsUser = .Value(Name_IsUser).FromXML(Of Boolean)(True)
+                    _IsUser = .Value(Name_IsUser).FromXML(Of Boolean)(True)
                     UpdateUserOptions()
                 Else
                     If UpdateUserOptions() Then .Value(Name_LabelsName) = LabelsString

@@ -522,7 +522,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_DOWN_SPEC.Image = Global.SCrawler.My.Resources.Resources.StartPic_Green_16
         Me.BTT_DOWN_SPEC.Name = "BTT_DOWN_SPEC"
         Me.BTT_DOWN_SPEC.Size = New System.Drawing.Size(221, 22)
-        Me.BTT_DOWN_SPEC.Text = "Download (special)"
+        Me.BTT_DOWN_SPEC.Text = "Download (advanced)"
         Me.BTT_DOWN_SPEC.ToolTipText = "Filter the users you want to download and download them." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Shift+Click to download" &
     ", including non-existent users." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Ctrl+Shift+Click to download, excluding from th" &
     "e feed, including non-existent users."
@@ -710,9 +710,11 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         '
         'BTT_SHOW_FILTER_ADV
         '
+        Me.BTT_SHOW_FILTER_ADV.AutoToolTip = True
         Me.BTT_SHOW_FILTER_ADV.Name = "BTT_SHOW_FILTER_ADV"
         Me.BTT_SHOW_FILTER_ADV.Size = New System.Drawing.Size(231, 22)
         Me.BTT_SHOW_FILTER_ADV.Text = "Advanced filter"
+        Me.BTT_SHOW_FILTER_ADV.ToolTipText = "Advanced filter of users you want to display"
         '
         'BTT_SHOW_LIMIT_DATES_NOT
         '

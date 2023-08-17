@@ -68,12 +68,15 @@ Public Class MainFrame
             .ResetProgressOnMaximumChanges = False, .Visible = False}
         Downloader = New TDownloader
         InfoForm = New DownloadedInfoForm
+        DownloadQueue = New UserDownloadQueueForm
         MyProgressForm = New ActiveDownloadingProgress
         Downloader.ReconfPool()
         AddHandler Downloader.JobsChange, AddressOf Downloader_UpdateJobsCount
         AddHandler Downloader.Downloading, AddressOf Downloader_Downloading
         AddHandler Downloader.DownloadCountChange, AddressOf InfoForm.Downloader_DownloadCountChange
         AddHandler Downloader.SendNotification, AddressOf MainFrameObj.ShowNotification
+        AddHandler Downloader.UserDownloadStateChanged, AddressOf DownloadQueue.Downloader_UserDownloadStateChanged
+        AddHandler Downloader.Downloading, AddressOf DownloadQueue.Downloader_Downloading
         AddHandler InfoForm.UserFind, AddressOf FocusUser
         Settings.LoadUsers()
         MyView = New FormView(Me)
@@ -419,7 +422,7 @@ CloseResume:
         InfoForm.FormShow()
     End Sub
     Private Sub MENU_INFO_SHOW_QUEUE_Click(sender As Object, e As EventArgs) Handles MENU_INFO_SHOW_QUEUE.Click
-        DownloadQueue.FormShow(EDP.LogMessageValue)
+        DownloadQueue.FormShow()
     End Sub
     Private Sub MENU_INFO_SHOW_MISSING_Click(sender As Object, e As EventArgs) Handles MENU_INFO_SHOW_MISSING.Click
         If MyMissingPosts Is Nothing Then MyMissingPosts = New MissingPostsForm

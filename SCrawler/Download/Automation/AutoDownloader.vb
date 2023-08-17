@@ -297,9 +297,11 @@ Namespace DownloadObjects
             Groups = New List(Of String)
             UserKeys = New List(Of NotifiedUser)
             _IsNewPlan = IsNewPlan
+            Initialization = False
         End Sub
         Friend Sub New(ByVal x As EContainer)
             Me.New
+            Initialization = True
             Mode = x.Value(Name_Mode).FromXML(Of Integer)(Modes.None)
             Import(x)
             If Name.IsEmptyString Then Name = "Default"

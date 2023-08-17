@@ -61,7 +61,6 @@ Namespace DownloadObjects
         End Property
         Private ReadOnly UserKey As String
         Friend ReadOnly Post As UserMedia
-        Private ReadOnly Media As UserMediaD
         Friend Property Checked As Boolean
             Get
                 Return CH_CHECKED.Checked
@@ -106,11 +105,15 @@ Namespace DownloadObjects
                 Me.Width = Width
             End If
         End Sub
-        Private Sub ApplyColors()
+        Private Sub ApplyColors(ByVal Media As UserMediaD)
             Dim b As Color? = Nothing, f As Color? = Nothing
             If Not Media.User Is Nothing Then
                 If Media.User.BackColor.HasValue Then b = Media.User.BackColor
                 If Media.User.ForeColor.HasValue Then f = Media.User.ForeColor
+                If Media.User.IsSubscription And Media.User.IsUser Then
+                    If Not b.HasValue And Settings.MainFrameUsersSubscriptionsColorBack_USERS.Exists Then b = Settings.MainFrameUsersSubscriptionsColorBack_USERS.Value
+                    If Not f.HasValue And Settings.MainFrameUsersSubscriptionsColorFore_USERS.Exists Then b = Settings.MainFrameUsersSubscriptionsColorFore_USERS.Value
+                End If
             End If
             If Not b.HasValue And Settings.FeedBackColor.Exists Then b = Settings.FeedBackColor.Value
             If Not f.HasValue And Settings.FeedForeColor.Exists Then f = Settings.FeedForeColor.Value
@@ -158,7 +161,6 @@ Namespace DownloadObjects
         Friend Sub New(ByVal Media As UserMediaD, ByVal Width As Integer, ByVal Height As Integer)
             Try
                 InitializeComponent()
-                Me.Media = Media
                 IsSubscription = If(Media.User?.IsSubscription, False)
 
                 If IsSubscription Then
@@ -179,8 +181,9 @@ Namespace DownloadObjects
                         Dim ext$ = Media.Data.URL.CSFile.Extension
                         Dim imgFile As New SFile With {.Path = Settings.Cache.RootDirectory.Path}
                         With Media.User
-                            imgFile.Name = $"{IIf(.IncludedInCollection, "{.CollectionName}", String.Empty)}{ .Site}{ .Name}_"
+                            imgFile.Name = $"{IIf(.IncludedInCollection, .CollectionName, String.Empty)}{ .Site}{ .Name}_"
                             imgFile.Name &= (CLng(Media.Data.URL.GetHashCode) + CLng(Media.Data.File.GetHashCode)).ToString
+                            imgFile.Name = imgFile.Name.StringRemoveWinForbiddenSymbols
                             imgFile.Extension = ExtJpg
                             If Not imgFile.Exists AndAlso Not ext.IsEmptyString AndAlso ext.ToLower = ExtWebp Then imgFile.Extension = ExtWebp
                         End With
@@ -279,9 +282,9 @@ Namespace DownloadObjects
                     If Not Media.User Is Nothing AndAlso Not Media.User.HOST Is Nothing Then
                         With Media.User.HOST.Source
                             If Not .Image Is Nothing Then
-                                ICON_SITE.Image = .Image.Clone
+                                ICON_SITE.Image = .Image
                             ElseIf Not .Icon Is Nothing Then
-                                ICON_SITE.Image = .Icon.Clone.ToBitmap
+                                ICON_SITE.Image = .Icon.ToBitmap
                             End If
                         End With
                     End If
@@ -290,7 +293,7 @@ Namespace DownloadObjects
                     Size = s
                     MinimumSize = s
                     MaximumSize = s
-                    ApplyColors()
+                    ApplyColors(Media)
                 Else
                     Throw New ArgumentNullException With {.HelpLink = 1}
                 End If

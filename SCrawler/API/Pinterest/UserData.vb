@@ -37,7 +37,7 @@ Namespace API.Pinterest
         End Property
         Friend Property TrueUserName As String
         Friend Property TrueBoardName As String
-        Friend Property IsUser As Boolean
+        Friend Property IsUser_NB As Boolean
         Private Const BoardLabelName As String = "Board"
         Friend Overrides ReadOnly Property SpecialLabels As IEnumerable(Of String)
             Get
@@ -51,10 +51,10 @@ Namespace API.Pinterest
                 Dim n$() = Name.Split("@")
                 If n.ListExists Then
                     TrueUserName = n(0)
-                    IsUser = True
-                    If n.Length > 1 Then TrueBoardName = n(1) : IsUser = False
+                    IsUser_NB = True
+                    If n.Length > 1 Then TrueBoardName = n(1) : IsUser_NB = False
                     If Not IsSavedPosts And Not IsSingleObjectDownload Then
-                        Dim l$ = IIf(IsUser, UserLabelName, BoardLabelName)
+                        Dim l$ = IIf(IsUser_NB, UserLabelName, BoardLabelName)
                         Settings.Labels.Add(l)
                         Labels.ListAddValue(l, LNC)
                         Labels.Sort()
@@ -69,13 +69,13 @@ Namespace API.Pinterest
                 If Loading Then
                     TrueUserName = .Value(Name_TrueUserName)
                     TrueBoardName = .Value(Name_TrueBoardName)
-                    IsUser = .Value(Name_IsUser).FromXML(Of Boolean)(False)
+                    IsUser_NB = .Value(Name_IsUser).FromXML(Of Boolean)(False)
                     ReconfUserName()
                 Else
                     If ReconfUserName() Then .Value(Name_LabelsName) = LabelsString
                     .Add(Name_TrueUserName, TrueUserName)
                     .Add(Name_TrueBoardName, TrueBoardName)
-                    .Add(Name_IsUser, IsUser.BoolToInteger)
+                    .Add(Name_IsUser, IsUser_NB.BoolToInteger)
                 End If
             End With
         End Sub
@@ -85,7 +85,7 @@ Namespace API.Pinterest
             Dim URL$ = String.Empty
             Try
                 If IsSavedPosts Then
-                    IsUser = True
+                    IsUser_NB = True
                     TrueUserName = MySettings.SavedPostsUserName.Value
                     If TrueUserName.IsEmptyString Then Throw New ArgumentNullException("SavedPostsUserName", "Saved posts user not set")
                 End If
@@ -94,7 +94,7 @@ Namespace API.Pinterest
                 Dim b$ = TrueBoardName
                 If Not b.IsEmptyString Then b &= "/"
                 URL = $"https://www.pinterest.com/{TrueUserName}/{b}"
-                If IsUser Then
+                If IsUser_NB Then
                     boards = GetBoards(Token)
                 Else
                     boards = New List(Of BoardInfo) From {New BoardInfo With {.URL = URL, .ID = ID, .Title = UserSiteName}}
@@ -107,7 +107,7 @@ Namespace API.Pinterest
                         boards(i) = board
                     Next
                     With boards.First
-                        If IsUser Then
+                        If IsUser_NB Then
                             If ID.IsEmptyString Then ID = .UserID
                             UserSiteNameUpdate(.UserTitle)
                         Else
@@ -175,7 +175,7 @@ Namespace API.Pinterest
                 Dim r$
                 Dim j As EContainer, jj As EContainer
                 Dim u As UserMedia
-                Dim folder$ = If(IsUser, Board.Title.IfNullOrEmpty(Board.ID), String.Empty)
+                Dim folder$ = If(IsUser_NB, Board.Title.IfNullOrEmpty(Board.ID), String.Empty)
                 Dim titleExists As Boolean = Not Board.Title.IsEmptyString
                 Dim i% = -1
                 Dim jErr As New ErrorsDescriber(EDP.SendToLog + EDP.ReturnValue)
@@ -216,7 +216,7 @@ Namespace API.Pinterest
                                                         End If
                                                         Board.UserID = .Value({"board", "owner"}, "id")
                                                         Board.UserTitle = TitleHtmlConverter(.Value({"board", "owner"}, "full_name"))
-                                                        If Not titleExists And IsUser Then
+                                                        If Not titleExists And IsUser_NB Then
                                                             If Not Board.Title.IsEmptyString Then
                                                                 folder = Board.Title
                                                             ElseIf Not Board.ID.IsEmptyString Then
@@ -322,7 +322,7 @@ Namespace API.Pinterest
                 If Not TrueBoardName.IsEmptyString Then Data.Title &= $"/{TrueBoardName}"
             End If
             Dim additPath$ = TitleHtmlConverter(UserSiteName)
-            If additPath.IsEmptyString Then additPath = IIf(IsUser, TrueUserName, TrueBoardName)
+            If additPath.IsEmptyString Then additPath = IIf(IsUser_NB, TrueUserName, TrueBoardName)
             If Not additPath.IsEmptyString Then
                 Dim f As SFile = User.File
                 f.Path = f.PathWithSeparator & additPath

@@ -90,6 +90,13 @@ Friend Module MainMod
     Friend ReadOnly UserExistsNonSubscriptionsPredicate As New FPredicate(Of IUserData)(Function(u) u.Exists And Not u.IsSubscription)
     Friend ReadOnly LogConnector As New LogHost
     Friend DefaultUserAgent As String = String.Empty
+#Region "NonExistingUsersLog"
+    Friend ReadOnly NonExistingUsersLog As New TextSaver($"LOGs\NonExistingUsers.txt") With {.LogMode = True, .AutoSave = True}
+    Friend Sub AddNonExistingUserToLog(ByVal Message As String)
+        MyMainLOG = Message
+        NonExistingUsersLog.AppendLine(Message)
+    End Sub
+#End Region
 #Region "File name operations"
     Friend FileDateAppenderProvider As IFormatProvider
     ''' <summary>File, Date</summary>

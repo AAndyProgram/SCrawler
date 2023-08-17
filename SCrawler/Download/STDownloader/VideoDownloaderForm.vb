@@ -121,7 +121,6 @@ Namespace DownloadObjects.STDownloader
 
                     If isArr Then
                         Dim urls As List(Of String) = Nothing
-                        Dim cntAdded As Boolean = False
                         If isExternal Then urls = New List(Of String)(ExternalUrlsTemp)
                         Using fa As New DownloaderUrlsArrForm(urls)
                             fa.ShowDialog()
@@ -143,10 +142,9 @@ Namespace DownloadObjects.STDownloader
                             For Each url In urls
                                 If Not TryYouTube.Invoke Then
                                     media = FindSource(url, output)
-                                    If Not media Is Nothing Then ControlCreateAndAdd(media, True) : cntAdded = True
+                                    If Not media Is Nothing Then ControlCreateAndAdd(media, disableDown)
                                 End If
                             Next
-                            If cntAdded And Settings.STDownloader_DownloadAutomatically Then BTT_DOWN.PerformClick()
                             urls.Clear()
                         Else
                             MsgBoxE({"There are no valid URLs in the list", "Add URLs array"}, vbCritical)

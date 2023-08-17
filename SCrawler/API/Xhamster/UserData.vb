@@ -34,6 +34,11 @@ Namespace API.Xhamster
         Friend Property Gender As String = String.Empty
         Friend Property SiteMode As SiteModes = SiteModes.User
         Friend Property Arguments As String = String.Empty
+        Friend Overrides ReadOnly Property IsUser As Boolean
+            Get
+                Return SiteMode = SiteModes.User Or SiteMode = SiteModes.Pornstars
+            End Get
+        End Property
         Friend Overrides ReadOnly Property SpecialLabels As IEnumerable(Of String)
             Get
                 Return {SearchRequestLabelName}

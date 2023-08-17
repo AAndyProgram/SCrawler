@@ -67,7 +67,7 @@ Namespace API.ThisVid
                 UpdateUserOptions(True, q)
             End Set
         End Property
-        Friend ReadOnly Property IsUser As Boolean
+        Friend Overrides ReadOnly Property IsUser As Boolean
             Get
                 Return SiteMode = SiteModes.User
             End Get

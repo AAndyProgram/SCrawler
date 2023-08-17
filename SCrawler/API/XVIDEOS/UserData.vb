@@ -51,6 +51,11 @@ Namespace API.XVIDEOS
         Private Property TrueName As String = String.Empty
         Private Property Arguments As String = String.Empty
         Private Property PersonType As String = String.Empty
+        Friend Overrides ReadOnly Property IsUser As Boolean
+            Get
+                Return SiteMode = SiteModes.User
+            End Get
+        End Property
         Friend Overrides ReadOnly Property SpecialLabels As IEnumerable(Of String)
             Get
                 Return {SearchRequestLabelName}

@@ -87,6 +87,7 @@ Namespace API.Twitter
             MyBase.New(TwitterSite, "twitter.com")
 
             _Image = My.Resources.SiteResources.TwitterIcon_32.ToBitmap
+            LimitSkippedUsers = New List(Of UserDataBase)
 
             With Responser
                 .Cookies.ChangedAllowInternalDrop = False
@@ -126,7 +127,19 @@ Namespace API.Twitter
             Return Settings.GalleryDLFile.Exists And BaseAuthExists()
         End Function
         Friend Property LIMIT_ABORT As Boolean = False
+        Friend ReadOnly Property LimitSkippedUsers As List(Of UserDataBase)
         Friend Overrides Sub DownloadDone(ByVal What As ISiteSettings.Download)
+            If LimitSkippedUsers.Count > 0 Then
+                With LimitSkippedUsers
+                    If .Count = 1 Then
+                        MyMainLOG = $"{ .Item(0).ToStringForLog}: twitter limit reached. Data has not been downloaded."
+                    Else
+                        MyMainLOG = "The following twitter users have not been downloaded (twitter limit reached):" & vbNewLine &
+                                    .ListToStringE(vbNewLine, New CustomProvider(Function(v As UserDataBase) $"{v.Name} ({v.ToStringForLog})"))
+                    End If
+                    .Clear()
+                End With
+            End If
             LIMIT_ABORT = False
             MyBase.DownloadDone(What)
         End Sub

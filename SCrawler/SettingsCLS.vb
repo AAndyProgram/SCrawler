@@ -203,8 +203,14 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
 
         MainFrameUsersShowDefaults = New XMLValue(Of Boolean)("UsersShowDefaults", True, MyXML)
         MainFrameUsersShowSubscriptions = New XMLValue(Of Boolean)("UsersShowSubscriptions", True, MyXML)
+
         MainFrameUsersSubscriptionsColorBack = New XMLValue(Of Color)("UsersSubscriptionsColorBack", MyColor.OkBack, MyXML)
         MainFrameUsersSubscriptionsColorFore = New XMLValue(Of Color)("UsersSubscriptionsColorFore", MyColor.OkFore, MyXML)
+        MainFrameUsersSubscriptionsColorBack_USERS = New XMLValue(Of Color)
+        MainFrameUsersSubscriptionsColorBack_USERS.SetExtended("UsersSubscriptionsColorBack_USERS",, MyXML)
+        MainFrameUsersSubscriptionsColorFore_USERS = New XMLValue(Of Color)
+        MainFrameUsersSubscriptionsColorFore_USERS.SetExtended("UsersSubscriptionsColorFore_USERS",, MyXML)
+
         FastProfilesLoading = New XMLValue(Of Boolean)("FastProfilesLoading", True, MyXML)
         MaxLargeImageHeight = New XMLValue(Of Integer)("MaxLargeImageHeight", 150, MyXML)
         MaxSmallImageHeight = New XMLValue(Of Integer)("MaxSmallImageHeight", 15, MyXML)
@@ -808,6 +814,8 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
     Friend ReadOnly Property MainFrameUsersShowSubscriptions As XMLValue(Of Boolean)
     Friend ReadOnly Property MainFrameUsersSubscriptionsColorBack As XMLValue(Of Color)
     Friend ReadOnly Property MainFrameUsersSubscriptionsColorFore As XMLValue(Of Color)
+    Friend ReadOnly Property MainFrameUsersSubscriptionsColorBack_USERS As XMLValue(Of Color)
+    Friend ReadOnly Property MainFrameUsersSubscriptionsColorFore_USERS As XMLValue(Of Color)
     Friend ReadOnly Property FastProfilesLoading As XMLValue(Of Boolean)
     Friend ReadOnly Property MaxLargeImageHeight As XMLValue(Of Integer)
     Friend ReadOnly Property MaxSmallImageHeight As XMLValue(Of Integer)

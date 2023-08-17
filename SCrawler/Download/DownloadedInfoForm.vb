@@ -123,7 +123,7 @@ Namespace DownloadObjects
                     With Downloader.Downloaded
                         If .Count > 0 Then
                             With .Select(Function(u) Settings.GetUser(u, False)).Reverse
-                                If _UsersListSession.Count > 0 Then _UsersListSession.ListWithRemove(.Self)
+                                If _UsersListSession.Count > 0 Then _UsersListSession.ListWithRemove(.Self, New ListAddParams With {.DisableDispose = True})
                                 If _UsersListSession.Count > 0 Then
                                     _UsersListSession.InsertRange(0, .Self)
                                 Else

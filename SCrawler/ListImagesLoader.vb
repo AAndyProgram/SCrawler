@@ -223,14 +223,31 @@ Friend Class ListImagesLoader
                 .BackColor = Color.LightSkyBlue
                 .ForeColor = Color.MidnightBlue
             ElseIf User.IsSubscription Then
-                .BackColor = If(User.BackColor, Settings.MainFrameUsersSubscriptionsColorBack.Value)
-                .ForeColor = If(User.ForeColor, Settings.MainFrameUsersSubscriptionsColorFore.Value)
+                .BackColor = GetSubscriptionColor(User, True)
+                .ForeColor = GetSubscriptionColor(User, False)
             Else
                 .BackColor = If(User.BackColor, Settings.UserListBackColorF)
                 .ForeColor = If(User.ForeColor, Settings.UserListForeColorF)
             End If
         End With
         Return LVI
+    End Function
+    Private Shared Function GetSubscriptionColor(ByVal User As IUserData, ByVal GetBackColor As Boolean) As Color
+        Dim uc As Color? = If(GetBackColor, User.BackColor, User.ForeColor)
+        If Not uc.HasValue Then
+            Dim sc As Color = If(GetBackColor, Settings.MainFrameUsersSubscriptionsColorBack.Value, Settings.MainFrameUsersSubscriptionsColorFore.Value)
+            Dim scu As Color? = Nothing
+            If User.IsUser Then
+                If GetBackColor Then
+                    If Settings.MainFrameUsersSubscriptionsColorBack_USERS.Exists Then scu = Settings.MainFrameUsersSubscriptionsColorBack_USERS.Value
+                Else
+                    If Settings.MainFrameUsersSubscriptionsColorFore_USERS.Exists Then scu = Settings.MainFrameUsersSubscriptionsColorFore_USERS.Value
+                End If
+            End If
+            Return If(scu, sc)
+        Else
+            Return uc.Value
+        End If
     End Function
     Private Shared Function CheckUserCollection(ByVal User As IUserData) As Boolean
         If User.IsCollection Then

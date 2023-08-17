@@ -526,6 +526,7 @@ Namespace DownloadObjects.STDownloader
                 MyProgress.InformationTemporary = "Download error"
                 ErrorsDescriber.Execute(EDP.SendToLog, ex, "[VideoListForm.DownloadData]")
             Finally
+                MyProgress.Visible(, False) = False
                 MyJob.Finish()
                 EnableDownloadButtons(False)
             End Try
