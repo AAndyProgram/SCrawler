@@ -71,6 +71,7 @@ Namespace API.TikTok
                     TitleUseNative = .Value(Name_TitleUseNative).FromXML(Of Boolean)(True)
                     TitleAddVideoID = .Value(Name_TitleAddVideoID).FromXML(Of Boolean)(True)
                     LastDownloadDate = AConvert(Of Date)(.Value(Name_LastDownloadDate), ADateTime.Formats.BaseDateTime, Nothing)
+                    If Not LastDownloadDate.HasValue Then LastDownloadDate = LastUpdated
                 Else
                     .Add(Name_RemoveTagsFromTitle, RemoveTagsFromTitle.BoolToInteger)
                     .Add(Name_TitleUseNative, TitleUseNative.BoolToInteger)
@@ -109,12 +110,20 @@ Namespace API.TikTok
                     End With
 
                     If LastDownloadDate.HasValue Then
-                        If dateAfter.HasValue And Not DownloadDateFrom.HasValue Then
+                        If Not DownloadDateTo.HasValue And Not DownloadDateFrom.HasValue Then
+                            If LastDownloadDate.Value.AddDays(1) <= Now Then
+                                dateAfter = LastDownloadDate.Value
+                            Else
+                                dateAfter = LastDownloadDate.Value.AddDays(-1)
+                            End If
+                            dateBefore = Nothing
+                        ElseIf dateAfter.HasValue And Not DownloadDateFrom.HasValue Then
                             If (LastDownloadDate.Value - dateAfter.Value).TotalDays > 1 Then dateAfter = dateAfter.Value.AddDays(1)
                         End If
                     End If
 
-                    Using b As New TokenBatch(Token)
+                    Using b As New YTDLP.YTDLPBatch(Token) With {.TempPostsList = _TempPostsList}
+                        b.Commands.Clear()
                         b.ChangeDirectory(cache)
                         b.Encoding = BatchExecutor.UnicodeEncoding
                         b.Execute(CreateYTCommand(cache.RootDirectory, URL, False, dateBefore, dateAfter))
@@ -163,6 +172,7 @@ Namespace API.TikTok
                             End If
                         Next
                     End If
+                    If _TempMediaList.Count > 0 Then LastDownloadDate = Now
                 Catch ex As Exception
                     ProcessException(ex, Token, $"data downloading error [{URL}]")
                 End Try
@@ -210,6 +220,9 @@ Namespace API.TikTok
                     command &= "-o %(id)s"
                 End If
             End If
+            '#If DEBUG Then
+            'Debug.WriteLine(command)
+            '#End If
             Return command
         End Function
 #End Region

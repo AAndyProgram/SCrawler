@@ -1829,12 +1829,6 @@ BlockNullPicture:
                         If m.Contains(IUserData.EraseMode.History) Then
                             If MyFilePosts.Delete(SFO.File, SFODelete.DeleteToRecycleBin, e) Then result = True
                             If MyFileData.Delete(SFO.File, SFODelete.DeleteToRecycleBin, e) Then result = True
-                            If result Then
-                                _TempPostsList.Clear()
-                                _TempMediaList.Clear()
-                                _ContentNew.Clear()
-                                _ContentList.Clear()
-                            End If
                         End If
                         If m.Contains(IUserData.EraseMode.Data) Then
                             Dim files As List(Of SFile) = SFile.GetFiles(DownloadContentDefault_GetRootDir.CSFileP,, SearchOption.AllDirectories, e)
@@ -1842,6 +1836,12 @@ BlockNullPicture:
                             If files.ListExists Then files.ForEach(Sub(f) f.Delete(SFO.File, Settings.DeleteMode, e))
                             LatestData.Clear()
                             result = True
+                        End If
+                        If result Then
+                            _TempPostsList.Clear()
+                            _TempMediaList.Clear()
+                            _ContentNew.Clear()
+                            _ContentList.Clear()
                         End If
                     End If
                 End If

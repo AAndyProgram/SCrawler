@@ -10,10 +10,15 @@ Imports System.Threading
 Imports PersonalUtilities.Tools
 Namespace API.Base
     Friend Class TokenBatch : Inherits BatchExecutor
+        Friend Property TempPostsList As List(Of String)
         Protected ReadOnly Token As CancellationToken
         Friend Sub New(ByVal _Token As CancellationToken)
             MyBase.New(True)
             Token = _Token
+        End Sub
+        Public Overrides Sub Create()
+            If TempPostsList Is Nothing Then TempPostsList = New List(Of String)
+            MyBase.Create()
         End Sub
         Protected Overrides Async Sub OutputDataReceiver(ByVal Sender As Object, ByVal e As DataReceivedEventArgs)
             MyBase.OutputDataReceiver(Sender, e)
@@ -23,5 +28,10 @@ Namespace API.Base
             MyBase.ErrorDataReceiver(Sender, e)
             Await Task.Run(Sub() If Token.IsCancellationRequested Then Kill())
         End Sub
+        Protected Overridable Async Function Validate(ByVal Value As String) As Task
+            If Not ProcessKilled AndAlso Await Task.Run(Of Boolean)(Function() Token.IsCancellationRequested OrElse
+                                                                               (Not Value.IsEmptyString AndAlso
+                                                                               TempPostsList.Exists(Function(v) Value.Contains(v)))) Then Kill()
+        End Function
     End Class
 End Namespace

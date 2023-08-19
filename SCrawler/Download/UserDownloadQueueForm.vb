@@ -77,10 +77,13 @@ Namespace DownloadObjects
             If b Then e.Handled = True
         End Sub
         Friend Sub Downloader_Downloading(ByVal Value As Boolean)
-            If Not Value Then ControlInvokeFast(LIST_QUEUE, Sub()
-                                                                LIST_QUEUE.Items.Clear()
-                                                                Tokens.ListClearDispose
-                                                            End Sub, EDP.None)
+            Try
+                If Not Value Then ControlInvokeFast(LIST_QUEUE, Sub()
+                                                                    LIST_QUEUE.Items.Clear()
+                                                                    Tokens.ListClearDispose
+                                                                End Sub, EDP.None)
+            Catch
+            End Try
         End Sub
         Friend Sub Downloader_UserDownloadStateChanged(ByVal User As IUserData, ByVal IsDownloading As Boolean)
             Try
@@ -93,8 +96,8 @@ Namespace DownloadObjects
                                                       LIST_QUEUE.Items.Remove(u)
                                                   End If
                                                   LIST_QUEUE.Refresh()
-                                              End Sub)
-            Catch ex As Exception
+                                              End Sub, EDP.None)
+            Catch
             End Try
         End Sub
         Private Sub User_UserDownloadStateChanged(ByVal User As IUserData, ByVal IsDownloading As Boolean)
@@ -111,7 +114,7 @@ Namespace DownloadObjects
                                               LIST_QUEUE.Refresh()
                                           End If
                                       End If
-                                  End Sub)
+                                  End Sub, EDP.None)
             Catch
             End Try
         End Sub
@@ -143,22 +146,23 @@ Namespace DownloadObjects
                         Tokens.Add(token)
                     End If
                 End If
-            Catch ex As Exception
+            Catch
             End Try
         End Sub
         Private Sub FindUser()
-            Try
-                MainFrameObj.FocusUser(GetUserSelectedUser().Key, True)
-            Catch ex As Exception
-            End Try
+            Try : MainFrameObj.FocusUser(GetUserSelectedUser().Key, True) : Catch : End Try
         End Sub
         Private Function GetUserSelectedUser() As ListUser
-            Dim lu As ListUser = Nothing
-            ControlInvokeFast(LIST_QUEUE, Sub()
-                                              Dim sIndx% = LIST_QUEUE.SelectedIndex
-                                              If sIndx >= 0 Then lu = LIST_QUEUE.Items(sIndx)
-                                          End Sub)
-            Return lu
+            Try
+                Dim lu As ListUser = Nothing
+                ControlInvokeFast(LIST_QUEUE, Sub()
+                                                  Dim sIndx% = LIST_QUEUE.SelectedIndex
+                                                  If sIndx >= 0 Then lu = LIST_QUEUE.Items(sIndx)
+                                              End Sub, EDP.None)
+                Return lu
+            Catch
+                Return Nothing
+            End Try
         End Function
     End Class
 End Namespace

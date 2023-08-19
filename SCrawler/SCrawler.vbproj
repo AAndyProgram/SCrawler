@@ -168,13 +168,14 @@
     <Compile Include="API\Base\Declarations.vb" />
     <Compile Include="API\Base\DeclaredNames.vb" />
     <Compile Include="API\Base\DownDetector.vb" />
-    <Compile Include="API\Base\GDLBatch.vb" />
+    <Compile Include="API\Base\GDL.vb" />
     <Compile Include="API\Base\IUserData.vb" />
     <Compile Include="API\Base\M3U8Base.vb" />
     <Compile Include="API\Base\ProfileSaved.vb" />
     <Compile Include="API\Base\SiteSettingsBase.vb" />
     <Compile Include="API\Base\Structures.vb" />
     <Compile Include="API\Base\TokenBatch.vb" />
+    <Compile Include="API\Base\YTDLP.vb" />
     <Compile Include="API\Instagram\EditorExchangeOptions.vb" />
     <Compile Include="API\JustForFans\Declarations.vb" />
     <Compile Include="API\JustForFans\M3U8.vb" />

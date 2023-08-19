@@ -83,7 +83,7 @@ Namespace API.RedGifs
             If Not j Is Nothing Then
                 With j("urls")
                     If .ListExists Then
-                        Dim u$ = If(.Item("hd"), .Item("sd")).XmlIfNothingValue
+                        Dim u$ = .Value("hd").IfNullOrEmpty(.Value("sd"))
                         If Not u.IsEmptyString Then
                             Dim ut As UTypes = UTypes.Undefined
                             'Type 1: video
