@@ -106,7 +106,7 @@ The program parses user posts and compares file names with existing ones to remo
 # Requirements
 
 - Windows 10, 11 with NET Framework 4.6.1 or higher (v4.6.1 must be installed). You can check version compatibility with this [tool](Tools/NET.FrameworkVersion.ps1).
-- **[SITES REQUIREMENTS](https://github.com/AAndyProgram/SCrawler/wiki/Settings#sites-requirements)**
+- **[SITES REQUIREMENTS](https://thisvid.com/videos/satanic-popperbate-4/)**
 
 # Guide
 
