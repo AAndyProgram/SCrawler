@@ -1,3 +1,22 @@
+# 2023.8.27.0
+
+*2023-08-27*
+
+- Added
+  - **JustForFans**
+  - Advanced download (`Download` - `Download (advanced)`)
+  - Advanced filter (`View` - `Advanced filter`)
+  - Auto downloader: cloning plans
+  - Feed: add button to go to custom page
+  - Special log for non-existent users
+  - Twitter: group 'limit' notifications
+  - Ability to set custom color for subscription users
+  - Other improvements
+- Fixed
+  - Auto downloader: new plan date display bug
+  - Auto downloader: downloading stuck
+  - Minor bugs
+
 # 2023.8.6.0
 
 *2023-08-06*

@@ -218,39 +218,57 @@ Namespace API.Reddit
             Return True
         End Function
         Private Overloads Function UpdateToken() As Boolean
-            Return UpdateToken(AuthUserName.Value, AuthPassword.Value, ApiClientID.Value, ApiClientSecret.Value)
+            Return UpdateToken(AuthUserName.Value, AuthPassword.Value, ApiClientID.Value, ApiClientSecret.Value, EDP.SendToLog + EDP.ReturnValue)
         End Function
         <PropertyUpdater(NameOf(BearerToken), {NameOf(AuthUserName), NameOf(AuthPassword), NameOf(ApiClientID), NameOf(ApiClientSecret)})>
         Private Overloads Function UpdateToken(ByVal UserName As String, ByVal Password As String, ByVal ClientID As String, ByVal ClientSecret As String) As Boolean
+            Return UpdateToken(UserName, Password, ClientID, ClientSecret, EDP.LogMessageValue)
+        End Function
+        Private Overloads Function UpdateToken(ByVal UserName As String, ByVal Password As String, ByVal ClientID As String, ByVal ClientSecret As String, ByVal e As ErrorsDescriber) As Boolean
             Try
                 Dim result As Boolean = True
                 If {UserName, Password, ClientID, ClientSecret}.All(Function(v) Not v.IsEmptyString) Then
                     result = False
                     Dim r$ = String.Empty
-                    Using resp As New Responser With {
-                        .Mode = Responser.Modes.Curl,
-                        .Method = "POST",
-                        .CurlArgumentsLeft = $"-d ""grant_type=password&username={UserName}&password={Password}"" --user ""{ClientID}:{ClientSecret}"""
-                    }
-                        r = resp.GetResponse("https://www.reddit.com/api/v1/access_token")
-                    End Using
-                    If Not r.IsEmptyString Then
-                        Using j As EContainer = JsonDocument.Parse(r)
-                            If j.ListExists Then
-                                Dim newToken$ = j.Value("access_token")
-                                If Not newToken.IsEmptyString Then
-                                    BearerToken.Value = $"Bearer {newToken}"
-                                    BearerTokenDateUpdate.Value = Now
-                                    Responser.SaveSettings()
-                                    result = True
-                                End If
-                            End If
+                    Dim c% = 0
+                    Dim _found As Boolean
+                    Do
+                        c += 1
+                        Using resp As New Responser With {
+                            .Method = "POST",
+                            .ProcessExceptionDecision = Function(status, obj, ee) If(status.StatusCode = 429, EDP.ReturnValue, ee)
+                        }
+                            With resp
+                                With .PayLoadValues
+                                    .Add("grant_type", "password")
+                                    .Add("username", UserName)
+                                    .Add("password", Password)
+                                End With
+                                .CredentialsUserName = ClientID
+                                .CredentialsPassword = ClientSecret
+                                .PreAuthenticate = True
+                            End With
+                            r = resp.GetResponse("https://www.reddit.com/api/v1/access_token",, EDP.ThrowException)
                         End Using
-                    End If
+                        If Not r.IsEmptyString Then
+                            Using j As EContainer = JsonDocument.Parse(r)
+                                If j.ListExists Then
+                                    _found = True
+                                    Dim newToken$ = j.Value("access_token")
+                                    If Not newToken.IsEmptyString Then
+                                        BearerToken.Value = $"Bearer {newToken}"
+                                        BearerTokenDateUpdate.Value = Now
+                                        Responser.SaveSettings()
+                                        result = True
+                                    End If
+                                End If
+                            End Using
+                        End If
+                    Loop While c < 5 And Not _found
                 End If
                 Return result
             Catch ex As Exception
-                Return ErrorsDescriber.Execute(EDP.SendToLog + EDP.ReturnValue, ex, "[Reddit.SiteSettings.UpdateToken]", False)
+                Return ErrorsDescriber.Execute(e, ex, "[Reddit.SiteSettings.UpdateToken]", False)
             End Try
         End Function
 #End Region

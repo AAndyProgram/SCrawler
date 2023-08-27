@@ -324,6 +324,24 @@ Namespace DownloadObjects
             Initialization = False
         End Sub
 #End Region
+#Region "ICopier Support"
+        Friend Overrides Function Copy() As Object
+            Dim newObj As New AutoDownloader(True)
+            newObj.Copy(Me)
+            With newObj
+                .Name = String.Empty
+                ._Mode = _Mode
+                .Groups.ListAddList(Groups, LAP.ClearBeforeAdd)
+                .Timer = Timer
+                .StartupDelay = StartupDelay
+                .ShowNotifications = ShowNotifications
+                .ShowPictureDownloaded = ShowPictureDownloaded
+                .ShowPictureUser = ShowPictureUser
+                .ShowSimpleNotification = ShowSimpleNotification
+            End With
+            Return newObj
+        End Function
+#End Region
 #Region "Groups Support"
         Friend Sub GROUPS_Updated(ByVal Sender As DownloadGroup)
             If Groups.Count > 0 Then

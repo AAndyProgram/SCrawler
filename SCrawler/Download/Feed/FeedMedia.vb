@@ -112,7 +112,7 @@ Namespace DownloadObjects
                 If Media.User.ForeColor.HasValue Then f = Media.User.ForeColor
                 If Media.User.IsSubscription And Media.User.IsUser Then
                     If Not b.HasValue And Settings.MainFrameUsersSubscriptionsColorBack_USERS.Exists Then b = Settings.MainFrameUsersSubscriptionsColorBack_USERS.Value
-                    If Not f.HasValue And Settings.MainFrameUsersSubscriptionsColorFore_USERS.Exists Then b = Settings.MainFrameUsersSubscriptionsColorFore_USERS.Value
+                    If Not f.HasValue And Settings.MainFrameUsersSubscriptionsColorFore_USERS.Exists Then f = Settings.MainFrameUsersSubscriptionsColorFore_USERS.Value
                 End If
             End If
             If Not b.HasValue And Settings.FeedBackColor.Exists Then b = Settings.FeedBackColor.Value

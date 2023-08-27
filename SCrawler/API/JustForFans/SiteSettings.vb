@@ -30,10 +30,9 @@ Namespace API.JustForFans
         Friend ReadOnly Property UserID As PropertyValue
         <PropertyOption, PXML>
         Friend ReadOnly Property UserHash4 As PropertyValue
-        <PropertyOption(ControlText:="Accept", ControlToolTip:="Header 'Accept'"), PXML>
+        <PropertyOption(ControlText:="Accept", ControlToolTip:="Header 'Accept'")>
         Friend ReadOnly Property HeaderAccept As PropertyValue
-        <PropertyOption, PXML>
-        Friend ReadOnly Property UserAgent As PropertyValue
+        <PropertyOption> Friend ReadOnly Property UserAgent As PropertyValue
         Private Sub UpdateHeader(ByVal HeaderName As String, ByVal HeaderValue As String)
             Select Case HeaderName
                 Case NameOf(HeaderAccept) : If HeaderValue.IsEmptyString Then Responser.Accept = Nothing Else Responser.Accept = HeaderValue

@@ -225,7 +225,7 @@ Namespace Editors
 #End Region
 #End Region
 #Region "Initializer"
-        Friend Sub New()
+        Public Sub New()
             InitializeComponent()
             MyView = New FormView(Me, Settings.Design)
             MyProgress = New MyProgress(Toolbar_BOTTOM, PR_MAIN, LBL_STATUS)

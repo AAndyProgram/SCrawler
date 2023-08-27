@@ -8,10 +8,12 @@
 ' but WITHOUT ANY WARRANTY
 Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Forms.Toolbars
+Imports ECI = PersonalUtilities.Forms.Toolbars.EditToolbar.ControlItem
 Namespace DownloadObjects
     Friend Class SchedulerEditorForm
 #Region "Declarations"
         Private WithEvents MyDefs As DefaultFormOptions
+        Private WithEvents BTT_CLONE As ToolStripButton
         Private ReadOnly MENU_SKIP As ToolStripDropDownButton
         Private WithEvents BTT_SKIP As ToolStripMenuItem
         Private WithEvents BTT_SKIP_MIN As ToolStripMenuItem
@@ -26,6 +28,13 @@ Namespace DownloadObjects
         Friend Sub New()
             InitializeComponent()
             MyDefs = New DefaultFormOptions(Me, Settings.Design)
+            BTT_CLONE = New ToolStripButton With {
+                .Text = "Clone",
+                .DisplayStyle = ToolStripItemDisplayStyle.ImageAndText,
+                .Image = My.Resources.PlusPic_24,
+                .ToolTipText = "Create a copy of the selected plan",
+                .AutoToolTip = True
+            }
             MENU_SKIP = New ToolStripDropDownButton With {
                 .Text = "Skip",
                 .ToolTipText = String.Empty,
@@ -86,7 +95,7 @@ Namespace DownloadObjects
         Private Sub SchedulerEditorForm_Load(sender As Object, e As EventArgs) Handles Me.Load
             With MyDefs
                 .MyViewInitialize()
-                .AddEditToolbarPlus({New ToolStripSeparator, BTT_START, BTT_START_FORCE, MENU_SKIP, BTT_PAUSE})
+                .AddEditToolbar({ECI.Add, BTT_CLONE, ECI.Edit, ECI.Delete, ECI.Update, ECI.Separator, BTT_START, BTT_START_FORCE, MENU_SKIP, BTT_PAUSE})
                 PauseArr.AddButtons(BTT_PAUSE, .MyEditToolbar.ToolStrip)
                 Refill()
                 .EndLoaderOperations(False)
@@ -118,17 +127,24 @@ Namespace DownloadObjects
             End Try
         End Sub
 #Region "Add, Edit, Delete"
-        Private Sub MyDefs_ButtonAddClick(ByVal Sender As Object, ByVal e As EditToolbarEventArgs) Handles MyDefs.ButtonAddClick
-            Dim a As New AutoDownloader(True)
-            Using f As New AutoDownloaderEditorForm(a)
-                f.ShowDialog()
-                If f.DialogResult = DialogResult.OK Then
-                    Settings.Automation.Add(a)
-                    Refill()
-                Else
-                    a.Dispose()
-                End If
-            End Using
+        Private Sub MyDefs_ButtonAddClick(ByVal Sender As Object, ByVal e As EventArgs) Handles MyDefs.ButtonAddClick, BTT_CLONE.Click
+            Dim a As AutoDownloader = Nothing
+            If Sender Is BTT_CLONE Then
+                If _LatestSelected.ValueBetween(0, Settings.Automation.Count - 1) Then a = Settings.Automation(_LatestSelected).Copy
+            Else
+                a = New AutoDownloader(True)
+            End If
+            If Not a Is Nothing Then
+                Using f As New AutoDownloaderEditorForm(a)
+                    f.ShowDialog()
+                    If f.DialogResult = DialogResult.OK Then
+                        Settings.Automation.Add(a)
+                        Refill()
+                    Else
+                        a.Dispose()
+                    End If
+                End Using
+            End If
         End Sub
         Private Sub Edit() Handles MyDefs.ButtonEditClick
             If _LatestSelected.ValueBetween(0, LIST_PLANS.Items.Count - 1) Then

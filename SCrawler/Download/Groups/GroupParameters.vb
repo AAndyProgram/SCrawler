@@ -22,7 +22,7 @@ Namespace DownloadObjects.Groups
         Property SubscriptionsOnly As Boolean
         Property UsersCount As Integer
     End Interface
-    Friend Class GroupParameters : Implements IGroup, IDisposable
+    Friend Class GroupParameters : Implements IGroup, IDisposable, ICopier
         Protected Const Name_Name As String = "Name"
         Protected Const Name_Temporary As String = "Temporary"
         Protected Const Name_Favorite As String = "Favorite"
@@ -53,6 +53,28 @@ Namespace DownloadObjects.Groups
             Sites = New List(Of String)
             SitesExcluded = New List(Of String)
         End Sub
+#Region "ICopier Support"
+        Friend Overridable Overloads Function Copy() As Object Implements ICopier.Copy
+            Return (New GroupParameters).Copy(Me)
+        End Function
+        Friend Overridable Overloads Function Copy(ByVal Source As Object) As Object Implements ICopier.Copy
+            With DirectCast(Source, GroupParameters)
+                Name = .Name
+                Labels.ListAddList(.Labels, LAP.ClearBeforeAdd)
+                LabelsExcluded.ListAddList(.LabelsExcluded, LAP.ClearBeforeAdd)
+                Sites.ListAddList(.Sites, LAP.ClearBeforeAdd)
+                SitesExcluded.ListAddList(.SitesExcluded, LAP.ClearBeforeAdd)
+                Temporary = .Temporary
+                Favorite = .Favorite
+                ReadyForDownload = .ReadyForDownload
+                ReadyForDownloadIgnore = .ReadyForDownloadIgnore
+                Subscriptions = .Subscriptions
+                SubscriptionsOnly = .SubscriptionsOnly
+                UsersCount = .UsersCount
+            End With
+            Return Source
+        End Function
+#End Region
         Protected Sub Import(ByVal e As EContainer)
             Name = e.Value(Name_Name)
             Temporary = e.Value(Name_Temporary).FromXML(Of Integer)(CInt(CheckState.Indeterminate))

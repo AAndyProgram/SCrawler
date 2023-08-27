@@ -58,8 +58,10 @@ Namespace DownloadObjects
                 LastWinState = WindowState
                 With MyRange
                     .AutoToolTip = True
+                    .Buttons = {RCI.First, RCI.Previous, RCI.Label, RCI.Next, RCI.Last, RCI.Separator, RCI.GoTo}
                     .ButtonKey(RCI.Previous) = Keys.F3
                     .ButtonKey(RCI.Next) = Keys.F4
+                    .ButtonKey(RCI.GoTo) = New ButtonKey(Keys.G, True)
                     .AddThisToolbar()
                 End With
                 ToolbarTOP.Items.AddRange({New ToolStripSeparator, BTT_DELETE_SELECTED})
@@ -88,15 +90,7 @@ Namespace DownloadObjects
             DataList.Clear()
         End Sub
         Private Sub DownloadFeedForm_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
-            Dim b As Boolean = True
-            If e.KeyCode = Keys.F5 Then
-                RefillList()
-            ElseIf e.Control And e.KeyCode = Keys.G Then
-                MyRange.GoToF()
-            Else
-                b = False
-            End If
-            If b Then e.Handled = True
+            If e.KeyCode = Keys.F5 Then RefillList() : e.Handled = True
         End Sub
 #End Region
 #Region "Settings"

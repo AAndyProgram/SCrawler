@@ -418,20 +418,20 @@ CloseResume:
     End Sub
 #End Region
 #Region "Info, Feed, Channels, Saved posts"
+#Region "Info"
     Private Sub MENU_INFO_SHOW_INFO_Click(sender As Object, e As EventArgs) Handles MENU_INFO_SHOW_INFO.Click
-        InfoForm.FormShow()
+        InfoForm.FormShow(EDP.LogMessageValue)
     End Sub
     Private Sub MENU_INFO_SHOW_QUEUE_Click(sender As Object, e As EventArgs) Handles MENU_INFO_SHOW_QUEUE.Click
-        DownloadQueue.FormShow()
+        DownloadQueue.FormShow(EDP.LogMessageValue)
     End Sub
     Private Sub MENU_INFO_SHOW_MISSING_Click(sender As Object, e As EventArgs) Handles MENU_INFO_SHOW_MISSING.Click
-        If MyMissingPosts Is Nothing Then MyMissingPosts = New MissingPostsForm
-        If MyMissingPosts.Visible Then MyMissingPosts.BringToFront() Else MyMissingPosts.Show()
+        MyMissingPosts.FormShow(EDP.LogMessageValue)
     End Sub
     Private Sub MENU_INFO_SHOW_USER_METRICS_Click(sender As Object, e As EventArgs) Handles MENU_INFO_SHOW_USER_METRICS.Click
-        If MyUserMetrics Is Nothing Then MyUserMetrics = New UsersInfoForm
-        MyUserMetrics.FormShowS
+        MyUserMetrics.FormShow(EDP.LogMessageValue)
     End Sub
+#End Region
     Private Sub ShowFeed() Handles BTT_FEED.Click, BTT_TRAY_FEED_SHOW.Click
         If MyFeed Is Nothing Then MyFeed = New DownloadFeedForm : AddHandler Downloader.FeedFilesChanged, AddressOf MyFeed.Downloader_FilesChanged
         If MyFeed.Visible Then MyFeed.BringToFront() Else MyFeed.Show()

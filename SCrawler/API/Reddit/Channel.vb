@@ -270,13 +270,14 @@ Namespace API.Reddit
                     End With
                     Dim b% = Posts.Count
                     Posts.ListAddList(d.GetNewChannelPosts(), LNC)
-                    If Posts.Count - b > 0 Then CountOfLoadedPostsPerSession.Add(Posts.Count - b)
+                    If Posts.Count - b > 0 Then _Saved = False : CountOfLoadedPostsPerSession.Add(Posts.Count - b)
                     Posts.Sort()
                     LatestParsedDate = If(Posts.FirstOrDefault(Function(pp) pp.Date.HasValue).Date, LatestParsedDate)
                     UpdateUsersStats()
                 End Using
             Catch oex As OperationCanceledException When Token.IsCancellationRequested
             Finally
+                SaveUnsaved()
                 _Downloading = False
             End Try
         End Sub
@@ -344,14 +345,13 @@ Namespace API.Reddit
                 Using x As New XmlFile(f, Protector.Modes.All, False) With {.XmlReadOnly = True, .AllowSameNames = True}
                     x.LoadData()
                     If x.Count > 0 Then
-                        Dim XMLDateProvider As New ADateTime(ADateTime.Formats.BaseDateTime)
                         Dim lc As New ListAddParams(LAP.ClearBeforeAdd)
                         Name = x.Value(Name_Name)
                         ID = x.Value(Name_ID)
                         ViewMode = x.Value(Name_ViewMode).FromXML(Of Integer)(CInt(View.[New]))
                         ViewPeriod = x.Value(Name_ViewPeriod).FromXML(Of Integer)(CInt(Period.All))
                         If FilePosts.Exists Then PostsNames.ListAddList(FilePosts.GetText.StringToList(Of String)("|"), LNC)
-                        LatestParsedDate = AConvert(Of Date)(x.Value(Name_Date), XMLDateProvider, Nothing)
+                        LatestParsedDate = AConvert(Of Date)(x.Value(Name_Date), DateTimeDefaultProvider, Nothing)
                         CountOfAddedUsers.ListAddList(x.Value(Name_UsersAdded).StringToList(Of Integer)("|"), lc)
                         CountOfLoadedPostsPerSession.ListAddList(x.Value(Name_PostsDownloaded).StringToList(Of Integer)("|"), lc)
                         ChannelExistentUserNames.ListAddList(x.Value(Name_UsersExistent).StringToList(Of String)("|"), LNC)
@@ -359,7 +359,7 @@ Namespace API.Reddit
                             With x(Name_PostsNode).XmlIfNothing
                                 If .Count > 0 Then .ForEach(Sub(ee) PostsLatest.Add(New UserPost With {
                                                                         .ID = ee.Attribute(Name_ID),
-                                                                        .[Date] = AConvert(Of Date)(ee.Attribute(Name_Date).Value, XMLDateProvider, Nothing)}))
+                                                                        .[Date] = AConvert(Of Date)(ee.Attribute(Name_Date).Value, DateTimeDefaultProvider, Nothing)}))
                             End With
                         End If
                     End If
@@ -367,45 +367,53 @@ Namespace API.Reddit
             End If
             Return True
         End Function
+        Private _Saved As Boolean = True
+        Friend Function SaveUnsaved() As Boolean
+            Return _Saved OrElse Save()
+        End Function
         Friend Overloads Function Save(Optional ByVal f As SFile = Nothing, Optional ByVal e As ErrorsDescriber = Nothing) As Boolean Implements ILoaderSaver.Save
-            Dim XMLDateProvider As New ADateTime(ADateTime.Formats.BaseDateTime)
-            UpdateUsersStats()
-            If Not ViewMode = View.New Then
-                Dim l As New List(Of String)
-                If Posts.Count > 0 Or PostsLatest.Count > 0 Then l.ListAddList((From p In PostsAll Where Not p.ID.IsEmptyString Select p.ID), LNC)
-                l.ListAddList(PostsNames, LNC)
-                If l.Count > 0 Then TextSaver.SaveTextToFile(l.ListToString("|"), FilePosts, True,, EDP.SendToLog)
-            End If
-            Using x As New XmlFile With {.AllowSameNames = True, .Name = "Channel"}
-                x.Add(Name_Name, Name)
-                x.Add(Name_ID, ID)
-                x.Add(Name_ViewMode, CInt(ViewMode))
-                x.Add(Name_ViewPeriod, CInt(ViewPeriod))
-                x.Add(Name_UsersAdded, CountOfAddedUsers.ListToString("|"))
-                x.Add(Name_PostsDownloaded, CountOfLoadedPostsPerSession.ListToString("|"))
-                x.Add(Name_UsersExistent, ChannelExistentUserNames.ListToString("|"))
-                If Posts.Count > 0 Or PostsLatest.Count > 0 Then
-                    Dim tmpPostList As List(Of UserPost) = Nothing
-                    tmpPostList.ListAddList(Posts).ListAddList(PostsLatest)
-                    tmpPostList.Sort()
-                    LatestParsedDate = tmpPostList.FirstOrDefault(Function(pd) pd.Date.HasValue).Date
-                    x.Add(Name_Date, AConvert(Of String)(LatestParsedDate, XMLDateProvider, String.Empty))
-                    x.Add(Name_PostsNode, String.Empty)
-                    With x(Name_PostsNode)
-                        tmpPostList.Take(200).ToList.ForEach(Sub(p) .Add(New EContainer("Post",
-                                                                                  String.Empty,
-                                                                                  {
-                                                                                    New EAttribute(Name_ID, p.ID),
-                                                                                    New EAttribute(Name_Date, AConvert(Of String)(p.Date, XMLDateProvider, String.Empty))
-                                                                                  })
-                                                                  )
-                                                      )
-                    End With
-                    tmpPostList.Clear()
+            Try
+                UpdateUsersStats()
+                If Not ViewMode = View.New Then
+                    Dim l As New List(Of String)
+                    If Posts.Count > 0 Or PostsLatest.Count > 0 Then l.ListAddList((From p In PostsAll Where Not p.ID.IsEmptyString Select p.ID), LNC)
+                    l.ListAddList(PostsNames, LNC)
+                    If l.Count > 0 Then TextSaver.SaveTextToFile(l.ListToString("|"), FilePosts, True,, EDP.SendToLog)
                 End If
-                x.Save(File)
-            End Using
-            Return True
+                Using x As New XmlFile With {.AllowSameNames = True, .Name = "Channel"}
+                    x.Add(Name_Name, Name)
+                    x.Add(Name_ID, ID)
+                    x.Add(Name_ViewMode, CInt(ViewMode))
+                    x.Add(Name_ViewPeriod, CInt(ViewPeriod))
+                    x.Add(Name_UsersAdded, CountOfAddedUsers.ListToString("|"))
+                    x.Add(Name_PostsDownloaded, CountOfLoadedPostsPerSession.ListToString("|"))
+                    x.Add(Name_UsersExistent, ChannelExistentUserNames.ListToString("|"))
+                    If Posts.Count > 0 Or PostsLatest.Count > 0 Then
+                        Dim tmpPostList As List(Of UserPost) = Nothing
+                        tmpPostList.ListAddList(Posts).ListAddList(PostsLatest)
+                        tmpPostList.Sort()
+                        LatestParsedDate = tmpPostList.FirstOrDefault(Function(pd) pd.Date.HasValue).Date
+                        x.Add(Name_Date, AConvert(Of String)(LatestParsedDate, DateTimeDefaultProvider, String.Empty))
+                        x.Add(Name_PostsNode, String.Empty)
+                        With x(Name_PostsNode)
+                            tmpPostList.Take(200).ToList.ForEach(Sub(p) .Add(New EContainer("Post",
+                                                                                      String.Empty,
+                                                                                      {
+                                                                                        New EAttribute(Name_ID, p.ID),
+                                                                                        New EAttribute(Name_Date, AConvert(Of String)(p.Date, DateTimeDefaultProvider, String.Empty))
+                                                                                      })
+                                                                      )
+                                                          )
+                        End With
+                        tmpPostList.Clear()
+                    End If
+                    _Saved = x.Save(File)
+                End Using
+                Return True
+            Catch ex As Exception
+                If Not e.Exists Then e = EDP.ReturnValue
+                Return ErrorsDescriber.Execute(e, ex, "API.Reddit.Channel.Save", _Saved)
+            End Try
         End Function
 #End Region
 #Region "IDisposable Support"

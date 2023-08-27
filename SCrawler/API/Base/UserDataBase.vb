@@ -1448,7 +1448,7 @@ BlockNullPicture:
                             For i = 0 To _ContentList.Count - 1
                                 data = _ContentList(i)
                                 ProgressPre.Perform()
-                                If (data.Type = UTypes.GIF Or data.Type = UTypes.Picture) Then
+                                If data.Type = UTypes.GIF Or data.Type = UTypes.Picture Then
                                     If data.MD5.IsEmptyString Then
                                         ThrowAny(Token)
                                         eIndx = existingFiles.FindIndex(eFinder)
