@@ -23,17 +23,19 @@ Namespace API.YouTube.Base
         Public Shared Function IsMyUrl(ByVal URL As String) As Boolean
             Return Not Info_GetUrlType(URL) = YouTubeMediaType.Undefined
         End Function
-        Public Shared Function Info_GetUrlType(ByVal URL As String, Optional ByRef IsMusic As Boolean = False,
+        Public Shared Function Info_GetUrlType(ByVal URL As String, Optional ByRef IsMusic As Boolean = False, Optional ByRef IsShorts As Boolean = False,
                                                Optional ByRef IsChannelUser As Boolean = False, Optional ByRef Id As String = Nothing) As YouTubeMediaType
             If Not URL.IsEmptyString Then
                 IsMusic = URL.Contains("music.youtube.com")
                 IsChannelUser = False
+                IsShorts = False
                 Dim data As List(Of String) = RegexReplace(URL, RParams.DMS(UrlTypePattern, 0, RegexReturn.ListByMatch, EDP.ReturnValue))
                 If data.ListExists Then
                     If data.Count >= 6 Then Id = data(5)
                     If data.Count >= 3 And Not data(2).IsEmptyString Then
                         Select Case data(2).ToLower
                             Case "watch" : Return YouTubeMediaType.Single
+                            Case "shorts" : IsShorts = True : Return YouTubeMediaType.Single
                             Case "playlist" : Return YouTubeMediaType.PlayList
                             Case UserChannelOption, "@" : IsChannelUser = data(2).ToLower = UserChannelOption : Return YouTubeMediaType.Channel
                         End Select
@@ -64,8 +66,8 @@ Namespace API.YouTube.Base
             Dim urlOrig$ = URL
             URL = RegexReplace(URL, TrueUrlRegEx)
             If URL.IsEmptyString Then Throw New ArgumentNullException("URL", $"Can't get true URL from [{urlOrig}]")
-            Dim isMusic As Boolean = False
-            Dim objType As YouTubeMediaType = Info_GetUrlType(URL, isMusic)
+            Dim isMusic As Boolean = False, isShorts As Boolean = False
+            Dim objType As YouTubeMediaType = Info_GetUrlType(URL, isMusic, isShorts)
             If Not objType = YouTubeMediaType.Undefined Then
                 Dim __GetDefault As Boolean = If(GetDefault, True)
                 Dim __GetShorts As Boolean = If(GetShorts, True)
@@ -105,7 +107,7 @@ Namespace API.YouTube.Base
 
                 If result Then
                     container.Parse(Nothing, _CachePathDefault, isMusic, Token, Progress)
-                    If Not container.HasError Then container.URL = URL : Return container
+                    If Not container.HasError Then container.URL = URL : container.IsShorts = isShorts : Return container
                 End If
                 container.Dispose()
             End If

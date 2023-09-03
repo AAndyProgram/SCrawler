@@ -112,7 +112,7 @@ Namespace API.YouTube.Objects
             End Set
         End Property
         <XMLEC(Name_IsMusic)> Public Property IsMusic As Boolean = False Implements IYouTubeMediaContainer.IsMusic
-        <XMLEC> Public Property IsShorts As Boolean = False
+        <XMLEC> Public Property IsShorts As Boolean = False Implements IYouTubeMediaContainer.IsShorts
         <XMLEC> Public Property ID As String Implements IYouTubeMediaContainer.ID, IUserMedia.PostID
         <XMLEC> Public Property Title As String Implements IDownloadableMedia.Title
         <XMLEC> Public Property Description As String Implements IYouTubeMediaContainer.Description

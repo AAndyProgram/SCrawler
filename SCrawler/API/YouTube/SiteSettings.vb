@@ -82,7 +82,7 @@ Namespace API.YouTube
             Dim isMusic As Boolean = False
             Dim id$ = String.Empty
             Dim isChannelUser As Boolean = False
-            Dim t As YouTubeMediaType = YouTubeFunctions.Info_GetUrlType(UserURL, isMusic, isChannelUser, id)
+            Dim t As YouTubeMediaType = YouTubeFunctions.Info_GetUrlType(UserURL, isMusic,, isChannelUser, id)
             If Not t = YouTubeMediaType.Undefined And Not t = YouTubeMediaType.Single And Not id.IsEmptyString Then
                 Return New ExchangeOptions(Site, $"{id}@{CInt(t) + IIf(isMusic, UserMedia.Types.Audio, 0) + IIf(isChannelUser, ChannelUserInt, 0)}")
             End If
