@@ -24,6 +24,7 @@ Namespace API.Instagram
         Private Const Name_FirstLoadingDone As String = "FirstLoadingDone"
         Private Const Name_GetTimeline As String = "GetTimeline"
         Private Const Name_GetStories As String = "GetStories"
+        Private Const Name_GetStoriesUser As String = "GetStoriesUser"
         Private Const Name_GetTagged As String = "GetTaggedData"
         Private Const Name_TaggedChecked As String = "TaggedChecked"
         Private Const Name_NameTrue As String = "NameTrue"
@@ -75,6 +76,7 @@ Namespace API.Instagram
         Private FirstLoadingDone As Boolean = False
         Friend Property GetTimeline As Boolean = True
         Friend Property GetStories As Boolean
+        Friend Property GetStoriesUser As Boolean
         Friend Property GetTaggedData As Boolean
         Private _NameTrue As String = String.Empty
         Private ReadOnly Property NameTrue As String
@@ -83,6 +85,31 @@ Namespace API.Instagram
             End Get
         End Property
         Private UserNameRequested As Boolean = False
+#End Region
+#Region "Loader"
+        Protected Overrides Sub LoadUserInformation_OptionalFields(ByRef Container As XmlFile, ByVal Loading As Boolean)
+            With Container
+                If Loading Then
+                    LastCursor = .Value(Name_LastCursor)
+                    FirstLoadingDone = .Value(Name_FirstLoadingDone).FromXML(Of Boolean)(False)
+                    GetTimeline = .Value(Name_GetTimeline).FromXML(Of Boolean)(CBool(MySiteSettings.GetTimeline.Value))
+                    GetStories = .Value(Name_GetStories).FromXML(Of Boolean)(CBool(MySiteSettings.GetStories.Value))
+                    GetStoriesUser = .Value(Name_GetStoriesUser).FromXML(Of Boolean)(MySiteSettings.GetStoriesUser.Value)
+                    GetTaggedData = .Value(Name_GetTagged).FromXML(Of Boolean)(CBool(MySiteSettings.GetTagged.Value))
+                    TaggedChecked = .Value(Name_TaggedChecked).FromXML(Of Boolean)(False)
+                    _NameTrue = .Value(Name_NameTrue)
+                Else
+                    .Add(Name_LastCursor, LastCursor)
+                    .Add(Name_FirstLoadingDone, FirstLoadingDone.BoolToInteger)
+                    .Add(Name_GetTimeline, GetTimeline.BoolToInteger)
+                    .Add(Name_GetStories, GetStories.BoolToInteger)
+                    .Add(Name_GetStoriesUser, GetStoriesUser.BoolToInteger)
+                    .Add(Name_GetTagged, GetTaggedData.BoolToInteger)
+                    .Add(Name_TaggedChecked, TaggedChecked.BoolToInteger)
+                    .Add(Name_NameTrue, _NameTrue)
+                End If
+            End With
+        End Sub
 #End Region
 #Region "Exchange options"
         Friend Overrides Function ExchangeOptionsGet() As Object
@@ -93,36 +120,16 @@ Namespace API.Instagram
                 With DirectCast(Obj, EditorExchangeOptions)
                     GetTimeline = .GetTimeline
                     GetStories = .GetStories
+                    GetStoriesUser = .GetStoriesUser
                     GetTaggedData = .GetTagged
                 End With
             End If
         End Sub
 #End Region
-#Region "Initializer, loader"
+#Region "Initializer"
         Friend Sub New()
             PostsKVIDs = New List(Of PostKV)
             PostsToReparse = New List(Of PostKV)
-        End Sub
-        Protected Overrides Sub LoadUserInformation_OptionalFields(ByRef Container As XmlFile, ByVal Loading As Boolean)
-            With Container
-                If Loading Then
-                    LastCursor = .Value(Name_LastCursor)
-                    FirstLoadingDone = .Value(Name_FirstLoadingDone).FromXML(Of Boolean)(False)
-                    GetTimeline = .Value(Name_GetTimeline).FromXML(Of Boolean)(CBool(MySiteSettings.GetTimeline.Value))
-                    GetStories = .Value(Name_GetStories).FromXML(Of Boolean)(CBool(MySiteSettings.GetStories.Value))
-                    GetTaggedData = .Value(Name_GetTagged).FromXML(Of Boolean)(CBool(MySiteSettings.GetTagged.Value))
-                    TaggedChecked = .Value(Name_TaggedChecked).FromXML(Of Boolean)(False)
-                    _NameTrue = .Value(Name_NameTrue)
-                Else
-                    .Add(Name_LastCursor, LastCursor)
-                    .Add(Name_FirstLoadingDone, FirstLoadingDone.BoolToInteger)
-                    .Add(Name_GetTimeline, GetTimeline.BoolToInteger)
-                    .Add(Name_GetStories, GetStories.BoolToInteger)
-                    .Add(Name_GetTagged, GetTaggedData.BoolToInteger)
-                    .Add(Name_TaggedChecked, TaggedChecked.BoolToInteger)
-                    .Add(Name_NameTrue, _NameTrue)
-                End If
-            End With
         End Sub
 #End Region
 #Region "Download data"
@@ -234,6 +241,7 @@ Namespace API.Instagram
                 If FirstLoadingDone Then LastCursor = String.Empty
                 If Not IsSavedPosts AndAlso MySiteSettings.BaseAuthExists() Then
                     If CBool(MySiteSettings.DownloadStories.Value) And GetStories Then s = Sections.Stories : DownloadData(String.Empty, s, Token) : ProgressPre.Done()
+                    If CBool(MySiteSettings.DownloadStoriesUser.Value) And GetStoriesUser Then s = Sections.UserStories : DownloadData(String.Empty, s, Token) : ProgressPre.Done()
                     If CBool(MySiteSettings.DownloadTagged.Value) And ACheck(MySiteSettings.HashTagged.Value) And GetTaggedData Then s = Sections.Tagged : DownloadData(String.Empty, s, Token) : ProgressPre.Done()
                 End If
                 If WaitNotificationMode = WNM.SkipTemp Or WaitNotificationMode = WNM.SkipCurrent Then WaitNotificationMode = WNM.Notify
@@ -275,7 +283,7 @@ Namespace API.Instagram
         Private Sub Responser_ResponseReceived(ByVal Sender As Object, ByVal e As EventArguments.WebDataResponse)
             Declarations.UpdateResponser(e, Responser)
         End Sub
-        Private Enum Sections : Timeline : Tagged : Stories : SavedPosts : End Enum
+        Private Enum Sections : Timeline : Tagged : Stories : UserStories : SavedPosts : End Enum
         Private Const StoriesFolder As String = "Stories"
         Private Const TaggedFolder As String = "Tagged"
 #Region "429 bypass"
@@ -455,7 +463,7 @@ Namespace API.Instagram
                                     ThrowAny(Token)
                                 End If
                                 If StoriesList.ListExists Then
-                                    GetStoriesData(StoriesList, Token)
+                                    GetStoriesData(StoriesList, False, Token)
                                     MySiteSettings.TooManyRequests(False)
                                     RequestsCount += 1
                                 End If
@@ -464,6 +472,11 @@ Namespace API.Instagram
                                 Else
                                     Throw New ExitException
                                 End If
+                            Case Sections.UserStories
+                                GetStoriesData(Nothing, True, Token)
+                                MySiteSettings.TooManyRequests(False)
+                                RequestsCount += 1
+                                Throw New ExitException
                         End Select
 
                         'Get response
@@ -854,17 +867,21 @@ Namespace API.Instagram
         End Function
 #End Region
 #Region "Pinned stories"
-        Private Sub GetStoriesData(ByRef StoriesList As List(Of String), ByVal Token As CancellationToken)
+        Private Sub GetStoriesData(ByRef StoriesList As List(Of String), ByVal GetUserStory As Boolean, ByVal Token As CancellationToken)
             Const ReqUrl$ = "https://i.instagram.com/api/v1/feed/reels_media/?{0}"
-            Dim tmpList As IEnumerable(Of String)
+            Dim tmpList As IEnumerable(Of String) = Nothing
             Dim qStr$, r$, sFolder$, storyID$, pid$
             Dim i% = -1
             Dim jj As EContainer, s As EContainer
             ThrowAny(Token)
-            If StoriesList.ListExists Then
-                tmpList = StoriesList.Take(5)
-                If tmpList.ListExists Then
-                    qStr = String.Format(ReqUrl, tmpList.Select(Function(q) $"reel_ids=highlight:{q}").ListToString("&"))
+            If StoriesList.ListExists Or GetUserStory Then
+                If Not GetUserStory Then tmpList = StoriesList.Take(5)
+                If tmpList.ListExists Or GetUserStory Then
+                    If GetUserStory Then
+                        qStr = $"https://www.instagram.com/api/v1/feed/reels_media/?reel_ids={ID}"
+                    Else
+                        qStr = String.Format(ReqUrl, tmpList.Select(Function(q) $"reel_ids=highlight:{q}").ListToString("&"))
+                    End If
                     r = Responser.GetResponse(qStr,, EDP.ThrowException)
                     ThrowAny(Token)
                     If Not r.IsEmptyString Then
@@ -876,9 +893,13 @@ Namespace API.Instagram
                                     i += 1
                                     sFolder = jj.Value("title").StringRemoveWinForbiddenSymbols
                                     storyID = jj.Value("id").Replace("highlight:", String.Empty)
-                                    If sFolder.IsEmptyString Then sFolder = $"Story_{storyID}"
-                                    If sFolder.IsEmptyString Then sFolder = $"Story_{i}"
-                                    sFolder = $"{StoriesFolder}\{sFolder}"
+                                    If GetUserStory Then
+                                        sFolder = $"{StoriesFolder} (user)"
+                                    Else
+                                        If sFolder.IsEmptyString Then sFolder = $"Story_{storyID}"
+                                        If sFolder.IsEmptyString Then sFolder = $"Story_{i}"
+                                        sFolder = $"{StoriesFolder}\{sFolder}"
+                                    End If
                                     If Not storyID.IsEmptyString Then storyID &= ":"
                                     With jj("items").XmlIfNothing
                                         If .Count > 0 Then
@@ -896,7 +917,7 @@ Namespace API.Instagram
                             End If
                         End Using
                     End If
-                    StoriesList.RemoveRange(0, tmpList.Count)
+                    If Not GetUserStory Then StoriesList.RemoveRange(0, tmpList.Count)
                 End If
             End If
         End Sub
@@ -965,6 +986,10 @@ Namespace API.Instagram
                 Dim s As Sections = DirectCast(Section, Sections)
                 Select Case s
                     Case Sections.Timeline : MySiteSettings.DownloadTimeline.Value = False
+                    Case Sections.Stories, Sections.UserStories
+                        MySiteSettings.DownloadTimeline.Value = False
+                        MySiteSettings.DownloadStories.Value = False
+                        MySiteSettings.DownloadStoriesUser.Value = False
                     Case Else : MySiteSettings.DownloadTagged.Value = False
                 End Select
                 MyMainLOG = $"[{s}] downloading is disabled until you update your credentials".ToUpper

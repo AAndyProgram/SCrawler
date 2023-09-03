@@ -139,11 +139,13 @@ Namespace API.Instagram
         Friend ReadOnly Property GetTimeline As PropertyValue
         <PropertyOption(ControlText:="Get stories", ControlToolTip:="Default value for new users"), PXML, ControlNumber(24)>
         Friend ReadOnly Property GetStories As PropertyValue
-        <PropertyOption(ControlText:="Get tagged photos", ControlToolTip:="Default value for new users"), PXML, ControlNumber(25)>
+        <PropertyOption(ControlText:="Get stories: user", ControlToolTip:="Default value for new users"), PXML, ControlNumber(25)>
+        Friend ReadOnly Property GetStoriesUser As PropertyValue
+        <PropertyOption(ControlText:="Get tagged photos", ControlToolTip:="Default value for new users"), PXML, ControlNumber(26)>
         Friend ReadOnly Property GetTagged As PropertyValue
         <PropertyOption(ControlText:="Tagged notify limit",
                         ControlToolTip:="If the number of tagged posts exceeds this number you will be notified." & vbCr &
-                        "-1 to disable"), PXML, ControlNumber(26)>
+                        "-1 to disable"), PXML, ControlNumber(27)>
         Friend ReadOnly Property TaggedNotifyLimit As PropertyValue
         <Provider(NameOf(TaggedNotifyLimit), FieldsChecker:=True)>
         Private ReadOnly Property TaggedNotifyLimitProvider As IFormatProvider
@@ -153,7 +155,9 @@ Namespace API.Instagram
         Friend ReadOnly Property DownloadTimeline As PropertyValue
         <PropertyOption(ControlText:="Download stories", ControlToolTip:="Download stories"), PXML, ControlNumber(11)>
         Friend ReadOnly Property DownloadStories As PropertyValue
-        <PropertyOption(ControlText:="Download tagged", ControlToolTip:="Download tagged posts"), PXML, ControlNumber(12)>
+        <PropertyOption(ControlText:="Download stories: user", ControlToolTip:="Download stories (user)"), PXML, ControlNumber(12)>
+        Friend ReadOnly Property DownloadStoriesUser As PropertyValue
+        <PropertyOption(ControlText:="Download tagged", ControlToolTip:="Download tagged posts"), PXML, ControlNumber(13)>
         Friend ReadOnly Property DownloadTagged As PropertyValue
 #End Region
 #Region "429 bypass"
@@ -259,6 +263,7 @@ Namespace API.Instagram
 
             DownloadTimeline = New PropertyValue(True)
             DownloadStories = New PropertyValue(True)
+            DownloadStoriesUser = New PropertyValue(True)
             DownloadTagged = New PropertyValue(False)
 
             RequestsWaitTimer = New PropertyValue(1000)
@@ -270,6 +275,7 @@ Namespace API.Instagram
 
             GetTimeline = New PropertyValue(True)
             GetStories = New PropertyValue(False)
+            GetStoriesUser = New PropertyValue(False)
             GetTagged = New PropertyValue(False)
             TaggedNotifyLimit = New PropertyValue(200)
             TaggedNotifyLimitProvider = New TaggedNotifyLimitChecker

@@ -1371,7 +1371,7 @@ BlockNullPicture:
 #Region "MD5 support"
         Protected Const VALIDATE_MD5_ERROR As String = "VALIDATE_MD5_ERROR"
         Friend Property UseMD5Comparison As Boolean = False
-        Protected Property StartMD5Checked As Boolean = True
+        Protected Property StartMD5Checked As Boolean = False
         Friend Property RemoveExistingDuplicates As Boolean = False
         Protected Overridable Sub ValidateMD5(ByVal Token As CancellationToken)
             Try
