@@ -19,7 +19,9 @@ Namespace DownloadObjects
             RaiseEvent PauseDisabled()
         End Sub
         Private ReadOnly Plans As List(Of AutoDownloader)
-        Private ReadOnly File As SFile = $"Settings\AutoDownload.xml"
+        Friend Const FileNameDefault As String = "AutoDownload"
+        Friend ReadOnly FileDefault As SFile = $"{SettingsFolderName}\{FileNameDefault}.xml"
+        Friend File As SFile = Nothing
         Private ReadOnly PlanWorking As Predicate(Of AutoDownloader) = Function(Plan) Plan.Working
         Private ReadOnly PlanDownloading As Predicate(Of AutoDownloader) = Function(Plan) Plan.Downloading
         Private ReadOnly PlansWaiter As Action(Of Predicate(Of AutoDownloader)) = Sub(ByVal Predicate As Predicate(Of AutoDownloader))
@@ -27,20 +29,9 @@ Namespace DownloadObjects
                                                                                   End Sub
         Friend Sub New()
             Plans = New List(Of AutoDownloader)
-            If File.Exists Then
-                Using x As New XmlFile(File,, False) With {.AllowSameNames = True}
-                    x.LoadData()
-                    If x.Contains(Name_Plan) Then
-                        For Each e In x : Plans.Add(New AutoDownloader(e)) : Next
-                    Else
-                        Plans.Add(New AutoDownloader(x))
-                    End If
-                End Using
-            End If
-            If Plans.Count > 0 Then Plans.ForEach(Sub(p)
-                                                      p.Source = Me
-                                                      AddHandler p.PauseDisabled, AddressOf OnPauseDisabled
-                                                  End Sub) : Plans.ListReindex
+            File = Settings.AutomationFile.Value.IfNullOrEmpty(FileDefault)
+            If Not File.Exists Then File = FileDefault
+            Reset(File)
         End Sub
         Default Friend ReadOnly Property Item(ByVal Index As Integer) As AutoDownloader Implements IMyEnumerator(Of AutoDownloader).MyEnumeratorObject
             Get
@@ -96,6 +87,40 @@ Namespace DownloadObjects
             Catch
             End Try
         End Sub
+        Friend Function Reset(ByVal f As SFile) As Boolean
+            Dim __pause As PauseModes = Pause
+            If Plans.Count > 0 Then
+                If Not Plans.Exists(PlanWorking) Then
+                    Pause = PauseModes.Unlimited
+                    If Plans.Exists(PlanWorking) Then
+                        MsgBoxE({$"Some plans are already being worked.{vbCr}Wait for the plans to complete their work and try again.",
+                                 "Change scheduler"}, vbCritical)
+                        If __pause = PauseModes.Until Then __pause = PauseModes.Unlimited
+                        Pause = __pause
+                        Return False
+                    End If
+                End If
+                [Stop]()
+                If _UpdateRequired Then Update()
+                Plans.ListClearDispose(,, EDP.LogMessageValue)
+            End If
+            If f.Exists Then
+                File = f
+                Using x As New XmlFile(File,, False) With {.AllowSameNames = True}
+                    x.LoadData()
+                    If x.Contains(Name_Plan) Then
+                        For Each e In x : Plans.Add(New AutoDownloader(e)) : Next
+                    Else
+                        Plans.Add(New AutoDownloader(x))
+                    End If
+                End Using
+                If Plans.Count > 0 Then Plans.ForEach(Sub(ByVal p As AutoDownloader)
+                                                          p.Source = Me
+                                                          AddHandler p.PauseDisabled, AddressOf OnPauseDisabled
+                                                      End Sub) : Plans.ListReindex
+            End If
+            Return True
+        End Function
 #Region "Groups Support"
         Friend Sub GROUPS_Updated(ByVal Sender As DownloadGroup)
             If Count > 0 Then Plans.ForEach(Sub(p) p.GROUPS_Updated(Sender))

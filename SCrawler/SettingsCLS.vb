@@ -130,6 +130,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
     Friend ReadOnly Property DownloadLocations As STDownloader.DownloadLocationsCollection
     Friend ReadOnly Property GlobalLocations As STDownloader.DownloadLocationsCollection
     Friend Property Automation As Scheduler
+    Friend ReadOnly Property AutomationFile As XMLValue(Of SFile)
     Friend ReadOnly Property BlackList As List(Of UserBan)
     Private ReadOnly BlackListFile As SFile = $"{SettingsFolderName}\BlackList.txt"
     Private ReadOnly UsersSettingsFile As SFile = $"{SettingsFolderName}\Users.xml"
@@ -170,6 +171,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
 
         SeparateVideoFolder = New XMLValue(Of Boolean)("SeparateVideoFolder", True, MyXML)
         CollectionsPath = New XMLValue(Of String)("CollectionsPath", CollectionsFolderName, MyXML)
+        AutomationFile = New XMLValue(Of SFile)("AutomationFile",, MyXML)
 
         UserAgent = New XMLValue(Of String)("UserAgent",, MyXML)
         If Not UserAgent.IsEmptyString Then DefaultUserAgent = UserAgent
