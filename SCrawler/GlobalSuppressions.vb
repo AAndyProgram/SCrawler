@@ -9,3 +9,4 @@ Imports System.Diagnostics.CodeAnalysis
 <Assembly: SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification:="<Pending>", Scope:="member", Target:="~F:SCrawler.MainFrame.DownloadQueue")>
 <Assembly: SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification:="<Pending>", Scope:="member", Target:="~F:SCrawler.MainFrame.MyMissingPosts")>
 <Assembly: SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification:="<Pending>", Scope:="member", Target:="~F:SCrawler.MainFrame.MyUserMetrics")>
+<Assembly: SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification:="<Pending>", Scope:="member", Target:="~M:SCrawler.DownloadObjects.AutoDownloaderPauseButtons.UpdatePauseButtons_Handler(SCrawler.DownloadObjects.AutoDownloader.PauseModes)")>

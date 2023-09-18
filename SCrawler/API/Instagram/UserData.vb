@@ -637,10 +637,8 @@ Namespace API.Instagram
                             NextCursor = .Value("next_max_id")
                             If .Contains("items") Then nodes = (From ee As EContainer In .Item("items") Where ee.Count > 0 Select ee(0))
                         End With
-                        If nodes.ListExists Then
-                            DefaultParser(nodes, Sections.SavedPosts, Token)
-                            If HasNextPage And Not NextCursor.IsEmptyString Then SavedPostsDownload(NextCursor, Token)
-                        End If
+                        If nodes.ListExists AndAlso DefaultParser(nodes, Sections.SavedPosts, Token) AndAlso
+                           HasNextPage AndAlso Not NextCursor.IsEmptyString Then SavedPostsDownload(NextCursor, Token)
                     End If
                 End Using
             End If
@@ -954,15 +952,15 @@ Namespace API.Instagram
         ''' </summary>
         Protected Overrides Function DownloadingException(ByVal ex As Exception, ByVal Message As String, Optional ByVal FromPE As Boolean = False,
                                                           Optional ByVal s As Object = Nothing) As Integer
-            If Responser.StatusCode = HttpStatusCode.NotFound Then
+            If Responser.StatusCode = HttpStatusCode.NotFound Then '404
                 If Not UserNameRequested AndAlso GetUserNameById() Then Return 1 Else UserExists = False
-            ElseIf Responser.StatusCode = HttpStatusCode.BadRequest Then
+            ElseIf Responser.StatusCode = HttpStatusCode.BadRequest Then '400
                 HasError = True
                 MyMainLOG = $"Instagram credentials have expired [{CInt(Responser.StatusCode)}]: {ToStringForLog()} [{s}]"
                 DisableSection(s)
-            ElseIf Responser.StatusCode = HttpStatusCode.Forbidden And s = Sections.Tagged Then
+            ElseIf Responser.StatusCode = HttpStatusCode.Forbidden And s = Sections.Tagged Then '403
                 Return 3
-            ElseIf Responser.StatusCode = 429 Then
+            ElseIf Responser.StatusCode = 429 Then '429
                 With MySiteSettings
                     Dim WaiterExists As Boolean = .LastApplyingValue.HasValue
                     .TooManyRequests(True)
@@ -971,10 +969,10 @@ Namespace API.Instagram
                 Caught429 = True
                 MyMainLOG = $"Number of requests before error 429: {RequestsCount}"
                 Return 1
-            ElseIf Responser.StatusCode = 560 Then
+            ElseIf Responser.StatusCode = 560 Or Responser.StatusCode = HttpStatusCode.InternalServerError Then '560, 500
                 MySiteSettings.SkipUntilNextSession = True
             Else
-                MyMainLOG = $"Something is wrong. Your credentials may have expired [{CInt(Responser.StatusCode)}]: {ToString()} [{s}]"
+                MyMainLOG = $"Something is wrong. Your credentials may have expired [{CInt(Responser.StatusCode)}/{CInt(Responser.Status)}]: {ToString()} [{s}]"
                 DisableSection(s)
                 If Not FromPE Then LogError(ex, Message) : HasError = True
                 Return 0

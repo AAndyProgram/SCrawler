@@ -63,7 +63,7 @@ Namespace DownloadObjects
             Me.KeyPreview = True
             Me.MinimumSize = New System.Drawing.Size(430, 380)
             Me.Name = "SchedulerEditorForm"
-            Me.ShowIcon = False
+            Me.ShowIcon = True
             Me.ShowInTaskbar = False
             Me.Text = "Scheduler"
             CONTAINER_MAIN.ContentPanel.ResumeLayout(False)

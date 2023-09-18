@@ -104,12 +104,45 @@ Namespace API.Reddit
             Return New UserData
         End Function
 #End Region
-#Region "Available, UpdateRedGifsToken"
+#Region "DownloadStarted, ReadyToDownload, Available, DownloadDone, UpdateRedGifsToken"
+        Private ____DownloadStarted As Boolean = False
+        Friend Overrides Sub DownloadStarted(ByVal What As Download)
+            If What = Download.Main Then ____DownloadStarted = True
+            MyBase.DownloadStarted(What)
+        End Sub
         Friend Property SessionInterrupted As Boolean = False
         Friend Overrides Function ReadyToDownload(ByVal What As Download) As Boolean
-            If What = Download.Main Then Return Not SessionInterrupted Else Return True
+            If What = Download.Main Then
+                Dim result As Boolean = Not SessionInterrupted
+                If result Then
+                    If ____DownloadStarted And ____AvailableRequested Then
+                        ____AvailableResult = AvailableImpl(What, ____AvailableSilent)
+                        ____AvailableChecked = True
+                        ____AvailableRequested = False
+                        result = ____AvailableResult
+                    ElseIf ____AvailableChecked Then
+                        result = ____AvailableResult
+                    End If
+                End If
+                Return result
+            Else
+                Return True
+            End If
         End Function
+        Private ____AvailableRequested As Boolean = False
+        Private ____AvailableSilent As Boolean = True
+        Private ____AvailableChecked As Boolean = False
+        Private ____AvailableResult As Boolean = False
         Friend Overrides Function Available(ByVal What As Download, ByVal Silent As Boolean) As Boolean
+            If What = Download.Main And ____DownloadStarted Then
+                ____AvailableRequested = True
+                ____AvailableSilent = Silent
+                Return True
+            Else
+                Return AvailableImpl(What, Silent)
+            End If
+        End Function
+        Private Function AvailableImpl(ByVal What As Download, ByVal Silent As Boolean) As Boolean
             Try
                 Dim trueValue As Boolean = Not What = Download.SavedPosts OrElse (Responser.CookiesExists And ACheck(SavedPostsUserName.Value))
                 If Not trueValue Then Return False
@@ -141,6 +174,11 @@ Namespace API.Reddit
         End Function
         Friend Overrides Sub DownloadDone(ByVal What As Download)
             SessionInterrupted = False
+            ____DownloadStarted = False
+            ____AvailableRequested = False
+            ____AvailableChecked = False
+            ____AvailableSilent = True
+            ____AvailableResult = False
             MyBase.DownloadDone(What)
         End Sub
         Private Sub UpdateRedGifsToken()

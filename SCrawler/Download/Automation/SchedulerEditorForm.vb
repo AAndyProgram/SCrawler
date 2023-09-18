@@ -8,6 +8,7 @@
 ' but WITHOUT ANY WARRANTY
 Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Forms.Toolbars
+Imports PersonalUtilities.Tools
 Imports ECI = PersonalUtilities.Forms.Toolbars.EditToolbar.ControlItem
 Imports ADB = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons
 Namespace DownloadObjects
@@ -98,6 +99,7 @@ Namespace DownloadObjects
             }
             PauseArr = New AutoDownloaderPauseButtons(AutoDownloaderPauseButtons.ButtonsPlace.Scheduler) With {
                        .MainFrameButtonsInstance = MainFrameObj.PauseButtons}
+            Icon = ImageRenderer.GetIcon(My.Resources.ScriptPic_32, EDP.ReturnValue)
         End Sub
 #End Region
 #Region "Form handlers"
@@ -243,13 +245,14 @@ Namespace DownloadObjects
                                     Else
                                         f = $"{SettingsFolderName}\{Scheduler.FileNameDefault}_{selectedName.StringRemoveWinForbiddenSymbols}.xml"
                                     End If
-                                    If Not Settings.Automation.File = f AndAlso Settings.Automation.Reset(f) Then
+                                    If Not Settings.Automation.File = f AndAlso Settings.Automation.Reset(f, False) Then
                                         Settings.Automation.File = f
                                         If selectedName = defName Then
                                             Settings.AutomationFile.Value = Nothing
                                         Else
                                             Settings.AutomationFile.Value = f
                                         End If
+                                        PauseArr.UpdatePauseButtons()
                                         Refill()
                                         If Not .DataSource.Count = l.Count Then
                                             For i = l.Count - 1 To 0 Step -1
@@ -261,6 +264,7 @@ Namespace DownloadObjects
                             End If
                         End With
                     End Using
+                    l.Clear()
                 Else
                     MsgBoxE({"There are no plans created", msgTitle}, vbExclamation)
                 End If

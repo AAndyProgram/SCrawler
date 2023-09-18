@@ -507,8 +507,9 @@ Namespace API
                             .Temporary = Temporary
                             .Favorite = Favorite
                             .ReadyForDownload = ReadyForDownload
-                            ConsolidateLabels()
+                            ConsolidateLabels(_Item)
                             ConsolidateScripts()
+                            ConsolidateColors(_Item)
                             .UpdateUserInformation()
                         End If
                         MainFrameObj.ImageHandler(_Item, False)
@@ -546,11 +547,21 @@ Namespace API
             Catch ex As Exception
             End Try
         End Sub
-        Private Sub ConsolidateLabels()
-            UpdateLabels(Me, ListAddList(Nothing, Labels.ListWithRemove(SpecialLabels)), 1, True)
+        Private Sub ConsolidateLabels(ByVal Destination As UserDataBase)
+            UpdateLabels(If(Destination, Me), ListAddList(Nothing, Labels.ListWithRemove(SpecialLabels)), 1, True)
         End Sub
         Private Sub ConsolidateScripts()
             If Count > 1 AndAlso ScriptUse Then Collections.ForEach(Sub(c) c.ScriptUse = True)
+        End Sub
+        Private Sub ConsolidateColors(ByVal Destination As UserDataBase)
+            If Count > 0 And Not Destination.ForeColor.HasValue And Not Destination.BackColor.HasValue Then
+                Dim b As Color? = BackColor
+                Dim f As Color? = ForeColor
+                If b.HasValue AndAlso Not Collections.All(Function(u) Not u Is Destination AndAlso u.BackColor.HasValue AndAlso u.BackColor.Value = b.Value) Then b = Nothing
+                If f.HasValue AndAlso Not Collections.All(Function(u) Not u Is Destination AndAlso u.ForeColor.HasValue AndAlso u.ForeColor.Value = f.Value) Then f = Nothing
+                If b.HasValue Then Destination.BackColor = b
+                If f.HasValue Then Destination.ForeColor = f
+            End If
         End Sub
 #End Region
 #Region "Move, Merge"

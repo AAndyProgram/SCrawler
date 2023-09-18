@@ -122,7 +122,7 @@ Public Class MainFrame
             .Automation = New Scheduler
             AddHandler .Groups.Updated, AddressOf .Automation.GROUPS_Updated
             AddHandler .Groups.Deleted, AddressOf .Automation.GROUPS_Deleted
-            AddHandler .Automation.PauseDisabled, AddressOf MainFrameObj.PauseButtons.UpdatePauseButtons
+            AddHandler .Automation.PauseChanged, AddressOf MainFrameObj.PauseButtons.UpdatePauseButtons_Handler
             If .Automation.Count > 0 Then .Labels.AddRange(.Automation.GetGroupsLabels, False) : .Labels.Update()
             _UFinit = False
             Await .Automation.Start(True)

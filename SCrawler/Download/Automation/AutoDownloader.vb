@@ -15,7 +15,7 @@ Imports PersonalUtilities.Tools
 Imports PersonalUtilities.Tools.Notifications
 Namespace DownloadObjects
     Friend Class AutoDownloader : Inherits GroupParameters : Implements IIndexable, IEContainerProvider
-        Friend Event PauseDisabled()
+        Friend Event PauseChanged(ByVal Value As PauseModes)
         Friend Enum Modes As Integer
             None = 0
             [Default] = 1
@@ -412,6 +412,7 @@ Namespace DownloadObjects
                     Case PauseModes.Until : _PauseValue = DateLimit
                     Case Else : _PauseValue = Nothing
                 End Select
+                RaiseEvent PauseChanged(p)
             End Set
         End Property
         Private ReadOnly Property IsPaused As Boolean
@@ -423,7 +424,7 @@ Namespace DownloadObjects
                         Else
                             _Pause = PauseModes.Disabled
                             _PauseValue = Nothing
-                            RaiseEvent PauseDisabled()
+                            RaiseEvent PauseChanged(_Pause)
                             Return False
                         End If
                     Else
