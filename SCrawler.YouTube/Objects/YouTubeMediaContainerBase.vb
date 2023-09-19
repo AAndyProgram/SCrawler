@@ -1309,9 +1309,29 @@ Namespace API.YouTube.Objects
                             Next
                         End If
                     End Sub
+                Dim protocolCleaner As Action =
+                    Sub()
+                        If Not MyYouTubeSettings.DefaultProtocol.Value = Protocols.Undefined And
+                           Not MyYouTubeSettings.DefaultProtocol.Value = Protocols.Any Then
+                            Dim data As New List(Of MediaObject)(MediaObjects.Where(Function(mo) mo.ProtocolType = MyYouTubeSettings.DefaultProtocol.Value))
+                            If data.ListExists Then
+                                Dim dRem As Protocols = IIf(MyYouTubeSettings.DefaultProtocol.Value = Protocols.https, Protocols.m3u8, Protocols.https)
+                                Dim d As MediaObject
+                                Dim dr As New FPredicate(Of MediaObject)(Function(mo) mo.Height = d.Height And mo.ProtocolType = dRem)
+                                For Each d In data
+                                    If MediaObjects.Count = 0 Then
+                                        Exit For
+                                    ElseIf MediaObjects.LongCount(dr) > 0 Then
+                                        MediaObjects.RemoveAll(dr)
+                                    End If
+                                Next
+                            End If
+                        End If
+                    End Sub
                 If MediaObjects.Count > 0 And Not MyYouTubeSettings.DefaultVideoIncludeNullSize Then MediaObjects.RemoveAll(Function(mo) mo.Size <= 0)
                 If MediaObjects.Count > 0 Then DupRemover.Invoke(UMTypes.Audio)
                 If MediaObjects.Count > 0 Then DupRemover.Invoke(UMTypes.Video)
+                If MediaObjects.Count > 0 Then protocolCleaner.Invoke
                 If MediaObjects.Count > 0 Then
                     MediaObjects.Sort()
                     SelectedAudioIndex = MediaObjects.FindIndex(Function(mo) mo.Type = UMTypes.Audio)

@@ -6,6 +6,10 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
+Imports System.Drawing.Design
+Imports System.ComponentModel
+Imports PersonalUtilities.Tools.Grid.Attributes
+Imports PersonalUtilities.Tools.Grid.EnumObjects
 Namespace API.YouTube.Base
     Public Structure Thumbnail : Implements IIndexable, IComparable(Of Thumbnail)
         Public ID As String
@@ -47,6 +51,14 @@ Namespace API.YouTube.Base
         Channel = 2
         PlayList = 3
     End Enum
+    <Editor(GetType(EnumDropDownEditor), GetType(UITypeEditor))>
+    Public Enum Protocols As Integer
+        <EnumValue(ExcludeFromList:=True)>
+        Undefined = -1
+        Any = 0
+        https = 1
+        m3u8 = 2
+    End Enum
     Public Structure MediaObject : Implements IIndexable, IComparable(Of MediaObject)
         Public Type As Plugin.UserMediaTypes
         Public ID As String
@@ -59,6 +71,17 @@ Namespace API.YouTube.Base
         Public Size As Double
         Public Codec As String
         Public Protocol As String
+        Public ReadOnly Property ProtocolType As Protocols
+            Get
+                If Not Protocol.IsEmptyString Then
+                    Select Case Protocol.StringToLower.StringTrim
+                        Case "http", "https" : Return Protocols.https
+                        Case "m3u8" : Return Protocols.m3u8
+                    End Select
+                End If
+                Return Protocols.Undefined
+            End Get
+        End Property
         Public URL As String
         Public Property Index As Integer Implements IIndexable.Index
         Private Function SetIndex(ByVal Obj As Object, ByVal Index As Integer) As Object Implements IIndexable.SetIndex

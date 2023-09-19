@@ -139,6 +139,9 @@ Namespace API.YouTube.Base
         <Browsable(True), GridVisible, XMLVN({"Defaults"}), Category("Defaults"), DisplayName("Use cookies"),
             Description("By default, use cookies when downloading from YouTube.")>
         Public ReadOnly Property DefaultUseCookies As XMLValue(Of Boolean)
+        <Browsable(True), GridVisible, XMLVN({"Defaults"}, Protocols.Any), Category("Defaults"), DisplayName("Protocol"),
+            Description("Priority download protocol. Default: 'Any'")>
+        Public ReadOnly Property DefaultProtocol As XMLValue(Of Protocols)
         <Browsable(True), GridVisible(False), XMLVN({"Defaults"}), Category("Defaults"),
             DisplayName("Auto remove"), Description("Automatically remove downloaded items from the list.")>
         Public ReadOnly Property RemoveDownloadedAutomatically As XMLValue(Of Boolean)
