@@ -1,3 +1,19 @@
+# 2023.9.20.0
+
+*2023-09-20*
+
+- Added
+  - **Instagram: user active (non-pinned) stories (Issue #17)**
+  - Reddit: reduce the number of token updates (refresh the token if there are Reddit users in the download queue)
+  - YouTube (standalone app): priority download protocol *(`Settings` - `Defaults` - `Protocol`)* (you can now select the default protocol you want to download media on: `Any`, `https`, `m3u8`))
+  - Automation: ability to change schedulers (`Download` - `Automation` - `Script icon`)
+  - Collections: update colors for the added user
+- Fixed
+  - YouTube: can't detect `shorts` links
+  - Incorrect MD5 validation initial value
+  - Instagram: handle error 500
+  - Collections: update labels only for the added user
+
 # 2023.8.27.0
 
 *2023-08-27*
