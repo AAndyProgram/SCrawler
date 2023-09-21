@@ -818,6 +818,15 @@ Namespace API.PornHub
 #End Region
 #Region "CreateVideoURL"
         Private Function CreateVideoURL(ByVal r As String) As String
+            If r.IsEmptyString Then
+                Return String.Empty
+            Else
+                Dim u$ = CreateVideoURL_FlashVars(r)
+                If u.IsEmptyString Then u = CreateVideoURL_MediaDef(r)
+                Return u
+            End If
+        End Function
+        Private Function CreateVideoURL_FlashVars(ByVal r As String) As String
             Try
                 Dim OutStr$ = String.Empty
                 Dim OutList As New List(Of String)
@@ -876,7 +885,26 @@ Namespace API.PornHub
                 MyMainLOG = $"{ToStringForLog()}: something is wrong when parsing flashvars.{vbCr}{regex_ex.Message}"
                 Return String.Empty
             Catch ex As Exception
-                Return ErrorsDescriber.Execute(EDP.SendToLog, ex, "[API.PornHub.UserData.CreateVideoURL]", String.Empty)
+                Return ErrorsDescriber.Execute(EDP.SendToLog, ex, "[API.PornHub.UserData.CreateVideoURL_FlashVars]", String.Empty)
+            End Try
+        End Function
+        Private Function CreateVideoURL_MediaDef(ByVal r As String) As String
+            Try
+                Dim result$ = String.Empty
+                If Not r.IsEmptyString Then
+                    Dim script$ = RegexReplace(r, RegexVideo_MediaDef)
+                    If Not script.IsEmptyString Then
+                        Using j As EContainer = JsonDocument.Parse(script)
+                            If j.ListExists Then
+                                Dim s As List(Of Sizes) = j.Select(Function(jj) New Sizes(jj.Value("quality"), jj.Value("videoUrl"))).ToList
+                                If s.ListExists Then s.Sort() : result = s(0).Data
+                            End If
+                        End Using
+                    End If
+                End If
+                Return result
+            Catch ex As Exception
+                Return ErrorsDescriber.Execute(EDP.SendToLog, ex, "[API.PornHub.UserData.CreateVideoURL_MediaDef]", String.Empty)
             End Try
         End Function
 #End Region

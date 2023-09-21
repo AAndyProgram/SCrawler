@@ -1,3 +1,10 @@
+# 2023.9.21.0
+
+*2023-09-21*
+
+- Fixed
+  - PornHub: videos are not downloading
+
 # 2023.9.20.0
 
 *2023-09-20*
