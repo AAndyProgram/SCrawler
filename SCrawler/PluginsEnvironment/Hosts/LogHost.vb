@@ -13,8 +13,8 @@ Namespace Plugin.Hosts
         End Sub
         Friend Sub Add(ByVal ex As Exception, ByVal Message As String,
                        Optional ByVal ShowMainMsg As Boolean = False, Optional ByVal ShowErrorMsg As Boolean = False,
-                       Optional ByVal SendInLog As Boolean = True) Implements ILogProvider.Add
-            ErrorsDescriber.Execute(New ErrorsDescriber(ShowMainMsg, ShowErrorMsg, SendInLog), ex, Message)
+                       Optional ByVal SendToLog As Boolean = True) Implements ILogProvider.Add
+            ErrorsDescriber.Execute(New ErrorsDescriber(ShowMainMsg, ShowErrorMsg, SendToLog), ex, Message)
         End Sub
     End Class
 End Namespace

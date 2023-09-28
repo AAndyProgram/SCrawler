@@ -249,7 +249,7 @@ Namespace API.RedGifs
                                                           Optional ByVal EObj As Object = Nothing) As Integer
             Dim s As WebExceptionStatus = Responser.Status
             Dim sc As HttpStatusCode = Responser.StatusCode
-            If sc = HttpStatusCode.NotFound Or s = DataGone Then
+            If sc = HttpStatusCode.NotFound Or s = DataGone Or sc = DataGone Then
                 UserExists = False
             ElseIf sc = HttpStatusCode.Unauthorized Then
                 MyMainLOG = $"RedGifs credentials have expired [{CInt(sc)}]: {ToStringForLog()}"

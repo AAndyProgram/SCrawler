@@ -203,17 +203,21 @@ Namespace API.Mastodon
 #Region "UpdateServersList"
         Private Sub UpdateServersList()
             Try
-                Dim r$ = GetWebString("https://api.joinmastodon.org/servers?language=&category=&region=&ownership=&registrations=",, EDP.ThrowException)
-                If Not r.IsEmptyString Then
-                    Dim j As EContainer = JsonDocument.Parse(r, EDP.ReturnValue)
-                    If If(j?.Count, 0) > 0 Then
-                        Domains.Domains.ListAddList(j.Select(Function(e) e.Value("domain")), LAP.NotContainsOnly, EDP.ReturnValue)
-                        Domains.Domains.Sort()
-                        Domains.Save()
-                        j.Dispose()
+                Using resp As New Responser With {
+                    .ProcessExceptionDecision = Function(rr, obj, e) If(rr.StatusCode = Net.HttpStatusCode.ServiceUnavailable,
+                                                                        EDP.ReturnValue, EDP.ThrowException)}
+                    Dim r$ = resp.GetResponse("https://api.joinmastodon.org/servers?language=&category=&region=&ownership=&registrations=")
+                    If Not r.IsEmptyString Then
+                        Dim j As EContainer = JsonDocument.Parse(r, EDP.ReturnValue)
+                        If If(j?.Count, 0) > 0 Then
+                            Domains.Domains.ListAddList(j.Select(Function(e) e.Value("domain")), LAP.NotContainsOnly, EDP.ReturnValue)
+                            Domains.Domains.Sort()
+                            Domains.Save()
+                            j.Dispose()
+                        End If
+                        DomainsLastUpdateDate.Value = Now
                     End If
-                End If
-                DomainsLastUpdateDate.Value = Now
+                End Using
             Catch ex As Exception
                 ErrorsDescriber.Execute(EDP.SendToLog, ex, "[API.Mastodon.SiteSettings.UpdateServersList]")
             End Try

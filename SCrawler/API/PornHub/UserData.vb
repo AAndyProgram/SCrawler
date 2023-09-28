@@ -896,8 +896,8 @@ Namespace API.PornHub
                     If Not script.IsEmptyString Then
                         Using j As EContainer = JsonDocument.Parse(script)
                             If j.ListExists Then
-                                Dim s As List(Of Sizes) = j.Select(Function(jj) New Sizes(jj.Value("quality"), jj.Value("videoUrl"))).ToList
-                                If s.ListExists Then s.Sort() : result = s(0).Data
+                                Dim s As List(Of Sizes) = j.Select(Function(jj) New Sizes(jj.Value("quality"), jj.Value("videoUrl"))).ListWithRemove(Function(d) d.HasError Or d.Data.IsEmptyString)
+                                If s.ListExists Then s.Sort() : result = s(0).Data : s.Clear()
                             End If
                         End Using
                     End If
