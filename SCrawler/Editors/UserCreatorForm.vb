@@ -120,6 +120,7 @@ Namespace Editors
         Private SpecialPathHandler As PathMoverHandler = Nothing
         Friend ReadOnly Property UserLabels As List(Of String)
         Private LabelsIncludeSpecial As Boolean = False
+        Private LabelsChanged As Boolean = False
 #End Region
 #Region "Initializers"
         ''' <summary>Create new user</summary>
@@ -327,6 +328,8 @@ Namespace Editors
                 FriendlyNameChanged = False
             Catch ex As Exception
                 MyDef.InvokeLoaderError(ex)
+            Finally
+                LabelsChanged = False
             End Try
         End Sub
         Private Sub UserCreatorForm_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
@@ -367,7 +370,7 @@ Namespace Editors
                             End If
                         End If
 
-                        If Not .Labels.ListEquals(UserLabels) Then _
+                        If LabelsChanged Then _
                            UserDataBase.UpdateLabels(.Self, UserLabels, 1,
                                                      Not DirectCast(.Self, UserDataBase).SpecialLabels.ListExists OrElse
                                                      UserDataBase.UpdateLabelsKeepSpecial(1))
@@ -596,7 +599,7 @@ CloseForm:
         Private Sub TXT_LABELS_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As EventArgs) Handles TXT_LABELS.ActionOnButtonClick
             Select Case Sender.DefaultButton
                 Case ADB.Open : ChangeLabels()
-                Case ADB.Clear : UserLabels.Clear()
+                Case ADB.Clear : UserLabels.Clear() : LabelsChanged = True
                 Case ADB.Refresh : UpdateSpecificLabels(False)
             End Select
         End Sub
@@ -784,8 +787,10 @@ CloseForm:
             Using fl As New LabelsForm(UserLabels)
                 fl.ShowDialog()
                 If fl.DialogResult = DialogResult.OK Then
+                    LabelsChanged = True
                     UserLabels.ListAddList(fl.LabelsList, LAP.NotContainsOnly, LAP.ClearBeforeAdd)
                     If UserLabels.ListExists Then
+                        UserLabels.Sort()
                         TXT_LABELS.Text = UserLabels.ListToString
                     Else
                         TXT_LABELS.Clear()
