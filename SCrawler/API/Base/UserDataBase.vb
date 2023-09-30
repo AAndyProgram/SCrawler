@@ -1829,6 +1829,7 @@ BlockNullPicture:
                         If m.Contains(IUserData.EraseMode.History) Then
                             If MyFilePosts.Delete(SFO.File, SFODelete.DeleteToRecycleBin, e) Then result = True
                             If MyFileData.Delete(SFO.File, SFODelete.DeleteToRecycleBin, e) Then result = True
+                            EraseData_AdditionalDataFiles()
                         End If
                         If m.Contains(IUserData.EraseMode.Data) Then
                             Dim files As List(Of SFile) = SFile.GetFiles(DownloadContentDefault_GetRootDir.CSFileP,, SearchOption.AllDirectories, e)
@@ -1850,6 +1851,8 @@ BlockNullPicture:
                 Return ErrorsDescriber.Execute(EDP.SendToLog + EDP.ReturnValue, ex, $"EraseData({CInt(Mode)}): {ToStringForLog()}", False)
             End Try
         End Function
+        Protected Overridable Sub EraseData_AdditionalDataFiles()
+        End Sub
         Friend Overridable Function Delete(Optional ByVal Multiple As Boolean = False, Optional ByVal CollectionValue As Integer = -1) As Integer Implements IUserData.Delete
             Dim f As SFile = SFile.GetPath(MyFile.CutPath.Path)
             If f.Exists(SFO.Path, False) AndAlso (User.Merged OrElse f.Delete(SFO.Path, Settings.DeleteMode)) Then
@@ -2026,8 +2029,8 @@ BlockNullPicture:
         End Function
 #End Region
 #Region "Errors functions"
-        Protected Sub LogError(ByVal ex As Exception, ByVal Message As String)
-            ErrorsDescriber.Execute(EDP.SendToLog, ex, $"{ToStringForLog()}: {Message}")
+        Protected Sub LogError(ByVal ex As Exception, ByVal Message As String, Optional ByVal e As ErrorsDescriber = Nothing)
+            ErrorsDescriber.Execute(If(e.Exists, e, New ErrorsDescriber(EDP.SendToLog)), ex, $"{ToStringForLog()}: {Message}")
         End Sub
         Protected Sub ErrorDownloading(ByVal f As SFile, ByVal URL As String)
             If Not f.Exists Then MyMainLOG = $"Error downloading from [{URL}] to [{f}]"
@@ -2040,9 +2043,13 @@ BlockNullPicture:
         Private Overloads Sub ThrowAny() Implements IThrower.ThrowAny
             ThrowAny(TokenQueue)
         End Sub
+        ''' <summary><c>ThrowAnyImpl(Token)</c></summary>
         ''' <exception cref="OperationCanceledException"></exception>
         ''' <exception cref="ObjectDisposedException"></exception>
         Friend Overridable Overloads Sub ThrowAny(ByVal Token As CancellationToken)
+            ThrowAnyImpl(Token)
+        End Sub
+        Protected Sub ThrowAnyImpl(ByVal Token As CancellationToken)
             Token.ThrowIfCancellationRequested()
             TokenQueue.ThrowIfCancellationRequested()
             TokenPersonal.ThrowIfCancellationRequested()

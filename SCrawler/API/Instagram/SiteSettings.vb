@@ -70,13 +70,14 @@ Namespace API.Instagram
         End Class
 #End Region
 #Region "Authorization properties"
-        Private Const Header_IG_APP_ID As String = "x-ig-app-id"
+        Friend Const Header_IG_APP_ID As String = "x-ig-app-id"
         Friend Const Header_IG_WWW_CLAIM As String = "x-ig-www-claim"
         Friend Const Header_CSRF_TOKEN As String = "x-csrftoken"
-        Private Const Header_ASBD_ID As String = "X-Asbd-Id"
-        Private Const Header_Browser As String = "Sec-Ch-Ua"
-        Private Const Header_BrowserExt As String = "Sec-Ch-Ua-Full-Version-List"
-        Private Const Header_Platform As String = "Sec-Ch-Ua-Platform-Version"
+        Friend Const Header_CSRF_TOKEN_COOKIE As String = "csrftoken"
+        Friend Const Header_ASBD_ID As String = "X-Asbd-Id"
+        Friend Const Header_Browser As String = "Sec-Ch-Ua"
+        Friend Const Header_BrowserExt As String = "Sec-Ch-Ua-Full-Version-List"
+        Friend Const Header_Platform As String = "Sec-Ch-Ua-Platform-Version"
         <PropertyOption(ControlText:="Hash", ControlToolTip:="Instagram session hash for tagged posts", IsAuth:=True), PXML("InstaHash"), ControlNumber(0)>
         Friend ReadOnly Property HashTagged As PropertyValue
         <PropertyOption(ControlText:="x-csrftoken", IsAuth:=True, AllowNull:=False), ControlNumber(2)>
@@ -365,13 +366,16 @@ Namespace API.Instagram
             SkipUntilNextSession = False
         End Sub
 #End Region
-#Region "UserOptions, GetUserPostUrl"
+#Region "UserOptions, GetUserUrl, GetUserPostUrl"
         Friend Overrides Sub UserOptions(ByRef Options As Object, ByVal OpenForm As Boolean)
             If Options Is Nothing OrElse Not TypeOf Options Is EditorExchangeOptions Then Options = New EditorExchangeOptions(Me)
             If OpenForm Then
                 Using f As New InternalSettingsForm(Options, Me, False) : f.ShowDialog() : End Using
             End If
         End Sub
+        Friend Overrides Function GetUserUrl(ByVal User As IPluginContentProvider) As String
+            Return String.Format(UrlPatternUser, DirectCast(User, UserData).NameTrue)
+        End Function
         Friend Overrides Function GetUserPostUrl(ByVal User As UserDataBase, ByVal Media As UserMedia) As String
             Try
                 Dim code$ = DirectCast(User, UserData).GetPostCodeById(Media.Post.ID)

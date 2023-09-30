@@ -223,6 +223,8 @@
     <Compile Include="API\ThisVid\SiteSettings.vb" />
     <Compile Include="API\ThisVid\UserData.vb" />
     <Compile Include="API\ThisVid\UserExchangeOptions.vb" />
+    <Compile Include="API\ThreadsNet\SiteSettings.vb" />
+    <Compile Include="API\ThreadsNet\UserData.vb" />
     <Compile Include="API\TikTok\Declarations.vb" />
     <Compile Include="API\TikTok\SiteSettings.vb" />
     <Compile Include="API\TikTok\UserData.vb" />
@@ -708,6 +710,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Content\Icons\SiteIcons\JFFIcon_64.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Content\Icons\SiteIcons\ThreadsIcon_192.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

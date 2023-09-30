@@ -17,7 +17,7 @@ Namespace API.Instagram
         Friend ReadOnly FilesPattern As RParams = RParams.DMS(".+?([^/\?]+?\.[\w\d]{3,4})(?=(\?|\Z))", 1, EDP.ReturnValue)
         Friend Sub UpdateResponser(ByVal Source As IResponse, ByRef Destination As Responser)
             Const r_wwwClaimName$ = "x-ig-set-www-claim"
-            Const r_tokenName$ = "csrftoken"
+            Const r_tokenName$ = SiteSettings.Header_CSRF_TOKEN_COOKIE
             If Not Source Is Nothing Then
                 Dim isInternal As Boolean = TypeOf Source Is WebDataResponse
                 Dim wwwClaimName$, tokenName$

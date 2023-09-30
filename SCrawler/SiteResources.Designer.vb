@@ -267,6 +267,16 @@ Namespace My.Resources
         '''<summary>
         '''  Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
         '''</summary>
+        Friend Shared ReadOnly Property ThreadsIcon_192() As System.Drawing.Icon
+            Get
+                Dim obj As Object = ResourceManager.GetObject("ThreadsIcon_192", resourceCulture)
+                Return CType(obj,System.Drawing.Icon)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+        '''</summary>
         Friend Shared ReadOnly Property TikTokIcon_32() As System.Drawing.Icon
             Get
                 Dim obj As Object = ResourceManager.GetObject("TikTokIcon_32", resourceCulture)
