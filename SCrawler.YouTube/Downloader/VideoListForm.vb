@@ -247,6 +247,8 @@ Namespace DownloadObjects.STDownloader
                 If e.Control Then useCookies = True
                 Dim useCookiesParse As Boolean? = Nothing
                 If useCookies Then useCookiesParse = True
+                Dim standardizeUrls As Boolean = MyYouTubeSettings.StandardizeURLs
+                Dim standardize As Func(Of String, String) = Function(input) If(standardizeUrls, YouTubeFunctions.StandardizeURL(input), input)
 
                 Dim c As IYouTubeMediaContainer = Nothing
                 Dim url$ = String.Empty
@@ -264,7 +266,7 @@ Namespace DownloadObjects.STDownloader
                                     pForm.SetInitialValues(.Count, "Parsing playlists...")
                                     Dim containers As New List(Of IYouTubeMediaContainer)
                                     For Each u$ In .Self
-                                        containers.Add(YouTubeFunctions.Parse(u, useCookiesParse, pForm.Token, pForm.MyProgress, True, False))
+                                        containers.Add(YouTubeFunctions.Parse(standardize(u), useCookiesParse, pForm.Token, pForm.MyProgress, True, False))
                                         pForm.NextPlaylist()
                                         pForm.MyProgress.Perform()
                                     Next
@@ -295,7 +297,7 @@ Namespace DownloadObjects.STDownloader
                         pForm = New ParsingProgressForm
                         pForm.Show(Me)
                         pForm.SetInitialValues(1, "Parsing data...")
-                        c = YouTubeFunctions.Parse(url, useCookiesParse, pForm.Token, pForm.MyProgress, GetDefault, GetShorts)
+                        c = YouTubeFunctions.Parse(standardize(url), useCookiesParse, pForm.Token, pForm.MyProgress, GetDefault, GetShorts)
                         pForm.Dispose()
                     End If
                     If Not c Is Nothing Then

@@ -1226,7 +1226,7 @@ BlockNullPicture:
                 End If
                 ThrowIfDisposed()
                 If Not _PictureExists Or _EnvirInvokeUserUpdated Then OnUserUpdated()
-            Catch oex As OperationCanceledException When Token.IsCancellationRequested Or TokenPersonal.IsCancellationRequested
+            Catch oex As OperationCanceledException When Token.IsCancellationRequested Or TokenPersonal.IsCancellationRequested Or TokenQueue.IsCancellationRequested
                 MyMainLOG = $"{ToStringForLog()}: downloading canceled"
                 Canceled = True
             Catch exit_ex As ExitException

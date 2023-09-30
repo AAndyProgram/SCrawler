@@ -133,6 +133,9 @@ Namespace API.YouTube.Base
         End Property
 #End Region
 #Region "Defaults"
+        <Browsable(True), GridVisible, XMLVN({"Defaults"}, True), Category("Defaults"), DisplayName("Standardize URLs"),
+            Description("Standardize URLs by eliminating unwanted strings. Default: true.")>
+        Public ReadOnly Property StandardizeURLs As XMLValue(Of Boolean)
         <Browsable(True), GridVisible, XMLVN({"Defaults"}), Category("Defaults"), DisplayName("Replace modification date"),
             Description("Set the file date to the date the video was added (website) (if available). Default: false.")>
         Public ReadOnly Property ReplaceModificationDate As XMLValue(Of Boolean)

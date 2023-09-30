@@ -20,6 +20,29 @@ Namespace API.YouTube.Base
         Public Const UrlTypePattern As String = "(?<=https?://[^/]*?youtube.com/)((@|[^\?/&]+))([/\?]{0,1}(list=|v=|)([^\?/&]*))(?=(\S+|\Z|))"
         Private Sub New()
         End Sub
+        Public Shared Function StandardizeURL(ByVal URL As String) As String
+            Try
+                Dim isMusic As Boolean = False, isShorts As Boolean = False
+                If Info_GetUrlType(URL, isMusic, isShorts) = YouTubeMediaType.Single Then
+                    If Not isMusic And Not isShorts Then
+                        Dim videoOptionRegex As RParams = RParams.DMS("[\?&]v=([^\?&]+)", 1, EDP.ReturnValue)
+                        Dim data As List(Of String) = RegexReplace(URL, RParams.DMS(UrlTypePattern, 0, RegexReturn.ListByMatch, EDP.ReturnValue))
+                        Dim val$ = String.Empty
+                        If data.ListExists Then
+                            For Each d$ In data
+                                val = RegexReplace(d, videoOptionRegex)
+                                If Not val.IsEmptyString Then Exit For
+                            Next
+                            data.Clear()
+                        End If
+                        If Not val.IsEmptyString Then Return $"https://www.youtube.com/watch?v={val}"
+                    End If
+                End If
+                Return URL
+            Catch ex As Exception
+                Return URL
+            End Try
+        End Function
         Public Shared Function IsMyUrl(ByVal URL As String) As Boolean
             Return Not Info_GetUrlType(URL) = YouTubeMediaType.Undefined
         End Function

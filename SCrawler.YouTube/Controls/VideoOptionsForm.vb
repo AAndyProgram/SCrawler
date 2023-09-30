@@ -433,7 +433,7 @@ Namespace API.YouTube.Controls
         End Sub
 #End Region
 #Region "Footer"
-        Private Sub BTT_BROWSE_MouseClick(sender As Object, e As MouseEventArgs) Handles BTT_BROWSE.MouseClick
+        Private Sub BTT_BROWSE_MouseDown(sender As Object, e As MouseEventArgs) Handles BTT_BROWSE.MouseDown
             Dim f As SFile
 #Disable Warning BC40000
             If MyContainer.HasElements Then
