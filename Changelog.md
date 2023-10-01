@@ -1,3 +1,18 @@
+# 2023.10.1.0
+
+*2023-10-01*
+
+- Added
+  - **Threads.net**
+  - YouTube: add URL standardization
+- Fixed
+  - UserEditor: disable updating labels if they haven't changed
+  - Collections: incorrect updating of colors and labels when adding a new user
+  - RedGifs: incorrect handling of error 410
+  - Mastodon: hide error 503
+  - JustForFans: some profiles won't download
+  - Minor bugs
+
 # 2023.9.21.0
 
 *2023-09-21*

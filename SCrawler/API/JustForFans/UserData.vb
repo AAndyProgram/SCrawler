@@ -238,6 +238,8 @@ Namespace API.JustForFans
 
                                 _DownloadedPostsCount += 1
                                 _TempMediaList.ListAddList(post.GetUserMedia(FileSerialInstance), LNC)
+
+                                If _Limit > 0 And _DownloadedPostsCount >= _Limit Then Exit For
                             End If
                         Next
                     End If
@@ -250,11 +252,12 @@ Namespace API.JustForFans
         End Sub
         Private Sub GetUserID()
             Try
-                Dim r$, hash$, new_id$
+                Dim r$, hash$, new_id$, profilePic$
                 If ID.IsEmptyString Then
                     r = Responser.GetResponse($"https://justfor.fans/{Name}")
                     If Not r.IsEmptyString Then
                         hash = RegexReplace(r, RegexUser)
+                        profilePic = RegexReplace(r, RParams.DMS("<img class=.mainProfilePic..+?src=""([^""]+)", 1, EDP.ReturnValue))
                         If Not hash.IsEmptyString Then
                             r = Responser.GetResponse($"https://justfor.fans/ajax/getAssetCount.php?User={Name}&Ver={hash}")
                             If Not r.IsEmptyString Then
@@ -262,8 +265,14 @@ Namespace API.JustForFans
                                     If j.ListExists Then
                                         new_id = j.Value("UserID")
                                         If Not new_id.IsEmptyString Then
-                                            new_id = RegexReplace(new_id, RParams.DM("\D", 0, RegexReturn.Replace, CType(Function(input$) String.Empty, Func(Of String, String))))
-                                            If Not new_id.IsEmptyString Then ID = new_id : _ForceSaveUserInfo = True
+                                            new_id = RegexReplace(new_id, RParams.DM("\D", -1, RegexReturn.Replace,
+                                                                                     CType(Function(input$) String.Empty, Func(Of String, String)),
+                                                                                     String.Empty, EDP.ReturnValue))
+                                            If Not new_id.IsEmptyString Then
+                                                ID = new_id
+                                                _ForceSaveUserInfo = True
+                                                If Not profilePic.IsEmptyString Then GetWebFile(profilePic, $"{DownloadContentDefault_GetRootDir.CSFilePS}ProfilePic.jpg", EDP.None)
+                                            End If
                                         End If
                                     End If
                                 End Using

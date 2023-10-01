@@ -11,7 +11,7 @@
 :eu:
 :greece:
 
-A program to download photo and video from [any site](#supported-sites) (e.g. YouTube, YouTube Music, OnlyFans, Reddit, Twitter, Mastodon, Instagram, TikTok, RedGifs, JustForFans, PornHub, XHamster, XVIDEOS, ThisVid, LPSG, Pinterest).
+A program to download photo and video from [any site](#supported-sites) (e.g. YouTube, YouTube Music, OnlyFans, Reddit, Twitter, Mastodon, Instagram, Threads, TikTok, RedGifs, JustForFans, PornHub, XHamster, XVIDEOS, ThisVid, LPSG, Pinterest).
 
 **If you like SCrawler, please like the program on [this site](https://alternativeto.net/software/scrawler/about/) and/or [this](https://www.softpedia.com/get/Internet/Download-Managers/Social-networks-crawler.shtml)**
 <!---Do you like this program? Consider adding to my coffee fund by making a donation to show your support. :blush:
@@ -37,6 +37,7 @@ A program to download photo and video from [any site](#supported-sites) (e.g. Yo
   - JustForFans images and videos, saved (bookmarked) posts;
   - Mastodon images and videos, saved (bookmarked) posts;
   - Instagram images and videos, tagged posts, stories, saved posts;
+  - Threads images and videos;
   - TikTok videos;
   - Pinterest boards, users, saved posts;
   - Imgur images, galleries and videos;
@@ -73,6 +74,7 @@ A program to download photo and video from [any site](#supported-sites) (e.g. Yo
 - **OnlyFans**
 - **Mastodon**
 - **Instagram**
+- **Threads**
 - JustForFans
 - TikTok
 - RedGifs
@@ -124,6 +126,7 @@ First, the program downloads the full profile. After the program downloads only 
   - [OnlyFans](https://github.com/AAndyProgram/SCrawler/wiki/Settings#onlyfans)
   - [Mastodon](https://github.com/AAndyProgram/SCrawler/wiki/Settings#mastodon)
   - [Instagram](https://github.com/AAndyProgram/SCrawler/wiki/Settings#instagram)
+  - [Threads](https://github.com/AAndyProgram/SCrawler/wiki/Settings#threads)
   - [JustForFans](https://github.com/AAndyProgram/SCrawler/wiki/Settings#justforfans)
   - [TikTok](https://github.com/AAndyProgram/SCrawler/wiki/Settings#tiktok)
   - [RedGifs](https://github.com/AAndyProgram/SCrawler/wiki/Settings#redgifs)
