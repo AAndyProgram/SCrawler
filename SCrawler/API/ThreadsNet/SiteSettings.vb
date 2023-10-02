@@ -136,7 +136,7 @@ Namespace API.ThreadsNet
                     .Changed = False
                     csrf = If(.FirstOrDefault(Function(c) c.Name.StringToLower = IG.Header_CSRF_TOKEN_COOKIE)?.Value, String.Empty)
                 End If
-                If Not csrf.IsEmptyString AndAlso Not AEquals(Of String)(csrf, HH_CSRF_TOKEN.Value) Then HH_CSRF_TOKEN.Value = csrf
+                If Not csrf.IsEmptyString AndAlso Not AEquals(Of String)(csrf, HH_CSRF_TOKEN.Value) Then HH_CSRF_TOKEN.Value = csrf : Responser.SaveSettings()
             End With
         End Sub
 #End Region

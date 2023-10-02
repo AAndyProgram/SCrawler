@@ -84,6 +84,7 @@ Friend Module MainMod
     Friend MyProgressForm As ActiveDownloadingProgress
     Friend MainFrameObj As MainFrameObjects
     Friend ReadOnly DateTimeDefaultProvider As New ADateTime(ADateTime.Formats.BaseDateTime)
+    Friend ReadOnly SessionDateTimeProvider As New ADateTime("yyyyMMdd_HHmmss")
     Friend ReadOnly FeedVideoLengthProvider As New ADateTime("hh\:mm\:ss") With {.TimeParseMode = ADateTime.TimeModes.TimeSpan}
     Friend ReadOnly UserExistsPredicate As New FPredicate(Of IUserData)(Function(u) u.Exists)
     Friend ReadOnly UserExistsSubscriptionsPredicate As New FPredicate(Of IUserData)(Function(u) u.Exists And u.IsSubscription)

@@ -113,7 +113,7 @@ Namespace Editors
             Me.CH_DOWN_OPEN_PROGRESS_SUSPEND = New System.Windows.Forms.CheckBox()
             Me.CH_ADD_MISSING_TO_LOG = New System.Windows.Forms.CheckBox()
             Me.CH_ADD_MISSING_ERROS_TO_LOG = New System.Windows.Forms.CheckBox()
-            Me.CH_FEED_STORE_SESSION_DATA = New System.Windows.Forms.CheckBox()
+            Me.NUM_FEED_STORE_SESSION_DATA = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.CH_NOTIFY_SHOW_BASE = New System.Windows.Forms.CheckBox()
             Me.CH_NOTIFY_SILENT = New System.Windows.Forms.CheckBox()
             Me.CH_NOTIFY_PROFILES = New System.Windows.Forms.CheckBox()
@@ -216,6 +216,7 @@ Namespace Editors
             CType(Me.TXT_USER_AGENT, System.ComponentModel.ISupportInitialize).BeginInit()
             TP_FILE_NAME.SuspendLayout()
             TP_FILE_PATTERNS.SuspendLayout()
+            CType(Me.NUM_FEED_STORE_SESSION_DATA, System.ComponentModel.ISupportInitialize).BeginInit()
             TP_CHANNELS_IMGS.SuspendLayout()
             CType(Me.TXT_CHANNELS_ROWS, System.ComponentModel.ISupportInitialize).BeginInit()
             CType(Me.TXT_CHANNELS_COLUMNS, System.ComponentModel.ISupportInitialize).BeginInit()
@@ -315,7 +316,6 @@ Namespace Editors
             Me.TXT_GLOBAL_PATH.CaptionToolTipEnabled = True
             Me.TXT_GLOBAL_PATH.CaptionToolTipText = "Root path for storing users' data"
             Me.TXT_GLOBAL_PATH.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_GLOBAL_PATH.Lines = New String(-1) {}
             Me.TXT_GLOBAL_PATH.Location = New System.Drawing.Point(4, 4)
             Me.TXT_GLOBAL_PATH.Name = "TXT_GLOBAL_PATH"
             Me.TXT_GLOBAL_PATH.Size = New System.Drawing.Size(562, 22)
@@ -345,7 +345,6 @@ Namespace Editors
             Me.TXT_IMAGE_LARGE.CaptionToolTipText = "Maximum large image size by height"
             Me.TXT_IMAGE_LARGE.ControlMode = PersonalUtilities.Forms.Controls.TextBoxExtended.ControlModes.NumericUpDown
             Me.TXT_IMAGE_LARGE.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_IMAGE_LARGE.Lines = New String(-1) {}
             Me.TXT_IMAGE_LARGE.Location = New System.Drawing.Point(3, 3)
             Me.TXT_IMAGE_LARGE.Name = "TXT_IMAGE_LARGE"
             Me.TXT_IMAGE_LARGE.NumberMaximum = New Decimal(New Integer() {256, 0, 0, 0})
@@ -362,7 +361,6 @@ Namespace Editors
             Me.TXT_IMAGE_SMALL.CaptionToolTipText = "Maximum small image size by height"
             Me.TXT_IMAGE_SMALL.ControlMode = PersonalUtilities.Forms.Controls.TextBoxExtended.ControlModes.NumericUpDown
             Me.TXT_IMAGE_SMALL.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_IMAGE_SMALL.Lines = New String(-1) {}
             Me.TXT_IMAGE_SMALL.Location = New System.Drawing.Point(287, 3)
             Me.TXT_IMAGE_SMALL.Name = "TXT_IMAGE_SMALL"
             Me.TXT_IMAGE_SMALL.NumberMaximum = New Decimal(New Integer() {256, 0, 0, 0})
@@ -381,7 +379,6 @@ Namespace Editors
             Me.TXT_COLLECTIONS_PATH.CaptionToolTipEnabled = True
             Me.TXT_COLLECTIONS_PATH.CaptionToolTipText = "Set collections folder name (name only)"
             Me.TXT_COLLECTIONS_PATH.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_COLLECTIONS_PATH.Lines = New String(-1) {}
             Me.TXT_COLLECTIONS_PATH.Location = New System.Drawing.Point(4, 62)
             Me.TXT_COLLECTIONS_PATH.Name = "TXT_COLLECTIONS_PATH"
             Me.TXT_COLLECTIONS_PATH.Size = New System.Drawing.Size(562, 22)
@@ -398,7 +395,6 @@ Namespace Editors
             Me.TXT_MAX_JOBS_USERS.CaptionWidth = 50.0R
             Me.TXT_MAX_JOBS_USERS.ControlMode = PersonalUtilities.Forms.Controls.TextBoxExtended.ControlModes.NumericUpDown
             Me.TXT_MAX_JOBS_USERS.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_MAX_JOBS_USERS.Lines = New String(-1) {}
             Me.TXT_MAX_JOBS_USERS.Location = New System.Drawing.Point(4, 91)
             Me.TXT_MAX_JOBS_USERS.Name = "TXT_MAX_JOBS_USERS"
             Me.TXT_MAX_JOBS_USERS.NumberMinimum = New Decimal(New Integer() {1, 0, 0, 0})
@@ -418,7 +414,6 @@ Namespace Editors
             Me.TXT_MAX_JOBS_CHANNELS.CaptionWidth = 50.0R
             Me.TXT_MAX_JOBS_CHANNELS.ControlMode = PersonalUtilities.Forms.Controls.TextBoxExtended.ControlModes.NumericUpDown
             Me.TXT_MAX_JOBS_CHANNELS.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_MAX_JOBS_CHANNELS.Lines = New String(-1) {}
             Me.TXT_MAX_JOBS_CHANNELS.Location = New System.Drawing.Point(4, 120)
             Me.TXT_MAX_JOBS_CHANNELS.Name = "TXT_MAX_JOBS_CHANNELS"
             Me.TXT_MAX_JOBS_CHANNELS.NumberMinimum = New Decimal(New Integer() {1, 0, 0, 0})
@@ -445,7 +440,6 @@ Namespace Editors
             Me.TXT_IMGUR_CLIENT_ID.Buttons.Add(ActionButton6)
             Me.TXT_IMGUR_CLIENT_ID.CaptionText = "Imgur Client ID"
             Me.TXT_IMGUR_CLIENT_ID.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_IMGUR_CLIENT_ID.Lines = New String(-1) {}
             Me.TXT_IMGUR_CLIENT_ID.Location = New System.Drawing.Point(4, 204)
             Me.TXT_IMGUR_CLIENT_ID.Name = "TXT_IMGUR_CLIENT_ID"
             Me.TXT_IMGUR_CLIENT_ID.Size = New System.Drawing.Size(562, 22)
@@ -489,7 +483,6 @@ Namespace Editors
             Me.TXT_USER_AGENT.CaptionToolTipEnabled = True
             Me.TXT_USER_AGENT.CaptionToolTipText = "Default user agent to use in requests"
             Me.TXT_USER_AGENT.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_USER_AGENT.Lines = New String(-1) {}
             Me.TXT_USER_AGENT.Location = New System.Drawing.Point(4, 175)
             Me.TXT_USER_AGENT.Name = "TXT_USER_AGENT"
             Me.TXT_USER_AGENT.Size = New System.Drawing.Size(562, 22)
@@ -788,17 +781,26 @@ Namespace Editors
             TT_MAIN.SetToolTip(Me.CH_ADD_MISSING_ERROS_TO_LOG, resources.GetString("CH_ADD_MISSING_ERROS_TO_LOG.ToolTip"))
             Me.CH_ADD_MISSING_ERROS_TO_LOG.UseVisualStyleBackColor = True
             '
-            'CH_FEED_STORE_SESSION_DATA
+            'NUM_FEED_STORE_SESSION_DATA
             '
-            Me.CH_FEED_STORE_SESSION_DATA.AutoSize = True
-            Me.CH_FEED_STORE_SESSION_DATA.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_FEED_STORE_SESSION_DATA.Location = New System.Drawing.Point(4, 166)
-            Me.CH_FEED_STORE_SESSION_DATA.Name = "CH_FEED_STORE_SESSION_DATA"
-            Me.CH_FEED_STORE_SESSION_DATA.Size = New System.Drawing.Size(568, 19)
-            Me.CH_FEED_STORE_SESSION_DATA.TabIndex = 6
-            Me.CH_FEED_STORE_SESSION_DATA.Text = "Store session data"
-            TT_MAIN.SetToolTip(Me.CH_FEED_STORE_SESSION_DATA, "If checked, session data will be stored in an xml file.")
-            Me.CH_FEED_STORE_SESSION_DATA.UseVisualStyleBackColor = True
+            Me.NUM_FEED_STORE_SESSION_DATA.CaptionCheckAlign = System.Drawing.ContentAlignment.MiddleLeft
+            Me.NUM_FEED_STORE_SESSION_DATA.CaptionMode = PersonalUtilities.Forms.Controls.Base.ICaptionControl.Modes.CheckBox
+            Me.NUM_FEED_STORE_SESSION_DATA.CaptionText = "Store session data"
+            Me.NUM_FEED_STORE_SESSION_DATA.CaptionTextAlign = System.Drawing.ContentAlignment.MiddleLeft
+            Me.NUM_FEED_STORE_SESSION_DATA.CaptionToolTipEnabled = True
+            Me.NUM_FEED_STORE_SESSION_DATA.CaptionToolTipText = "If checked, session data will be stored in an xml file." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "The number indicates the" &
+    " number of sessions to be saved." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "-1 to save all sessions"
+            Me.NUM_FEED_STORE_SESSION_DATA.CaptionWidth = 115.0R
+            Me.NUM_FEED_STORE_SESSION_DATA.ControlMode = PersonalUtilities.Forms.Controls.TextBoxExtended.ControlModes.NumericUpDown
+            Me.NUM_FEED_STORE_SESSION_DATA.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.NUM_FEED_STORE_SESSION_DATA.Location = New System.Drawing.Point(4, 166)
+            Me.NUM_FEED_STORE_SESSION_DATA.Name = "NUM_FEED_STORE_SESSION_DATA"
+            Me.NUM_FEED_STORE_SESSION_DATA.NumberMaximum = New Decimal(New Integer() {100000, 0, 0, 0})
+            Me.NUM_FEED_STORE_SESSION_DATA.NumberMinimum = New Decimal(New Integer() {1, 0, 0, -2147483648})
+            Me.NUM_FEED_STORE_SESSION_DATA.NumberUpDownAlign = System.Windows.Forms.LeftRightAlignment.Left
+            Me.NUM_FEED_STORE_SESSION_DATA.Size = New System.Drawing.Size(568, 22)
+            Me.NUM_FEED_STORE_SESSION_DATA.TabIndex = 6
+            Me.NUM_FEED_STORE_SESSION_DATA.Text = "20"
             '
             'CH_NOTIFY_SHOW_BASE
             '
@@ -955,7 +957,7 @@ Namespace Editors
             '
             Me.CH_FEED_OPEN_LAST_MODE.AutoSize = True
             Me.CH_FEED_OPEN_LAST_MODE.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_FEED_OPEN_LAST_MODE.Location = New System.Drawing.Point(4, 192)
+            Me.CH_FEED_OPEN_LAST_MODE.Location = New System.Drawing.Point(4, 195)
             Me.CH_FEED_OPEN_LAST_MODE.Name = "CH_FEED_OPEN_LAST_MODE"
             Me.CH_FEED_OPEN_LAST_MODE.Size = New System.Drawing.Size(568, 19)
             Me.CH_FEED_OPEN_LAST_MODE.TabIndex = 7
@@ -1051,7 +1053,6 @@ Namespace Editors
             Me.TXT_CHANNELS_ROWS.CaptionToolTipText = "How many lines of images should be shown in the channels form"
             Me.TXT_CHANNELS_ROWS.ControlMode = PersonalUtilities.Forms.Controls.TextBoxExtended.ControlModes.NumericUpDown
             Me.TXT_CHANNELS_ROWS.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_CHANNELS_ROWS.Lines = New String(-1) {}
             Me.TXT_CHANNELS_ROWS.Location = New System.Drawing.Point(3, 3)
             Me.TXT_CHANNELS_ROWS.Name = "TXT_CHANNELS_ROWS"
             Me.TXT_CHANNELS_ROWS.Size = New System.Drawing.Size(278, 22)
@@ -1066,7 +1067,6 @@ Namespace Editors
             Me.TXT_CHANNELS_COLUMNS.CaptionToolTipText = "How many columns of images should be shown in the channels form"
             Me.TXT_CHANNELS_COLUMNS.ControlMode = PersonalUtilities.Forms.Controls.TextBoxExtended.ControlModes.NumericUpDown
             Me.TXT_CHANNELS_COLUMNS.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_CHANNELS_COLUMNS.Lines = New String(-1) {}
             Me.TXT_CHANNELS_COLUMNS.Location = New System.Drawing.Point(287, 3)
             Me.TXT_CHANNELS_COLUMNS.Name = "TXT_CHANNELS_COLUMNS"
             Me.TXT_CHANNELS_COLUMNS.Size = New System.Drawing.Size(278, 22)
@@ -1174,7 +1174,6 @@ Namespace Editors
             Me.TXT_CHANNEL_USER_POST_LIMIT.CaptionWidth = 50.0R
             Me.TXT_CHANNEL_USER_POST_LIMIT.ControlMode = PersonalUtilities.Forms.Controls.TextBoxExtended.ControlModes.NumericUpDown
             Me.TXT_CHANNEL_USER_POST_LIMIT.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_CHANNEL_USER_POST_LIMIT.Lines = New String(-1) {}
             Me.TXT_CHANNEL_USER_POST_LIMIT.Location = New System.Drawing.Point(4, 33)
             Me.TXT_CHANNEL_USER_POST_LIMIT.Name = "TXT_CHANNEL_USER_POST_LIMIT"
             Me.TXT_CHANNEL_USER_POST_LIMIT.NumberMaximum = New Decimal(New Integer() {1000, 0, 0, 0})
@@ -1237,7 +1236,6 @@ Namespace Editors
             Me.TXT_FOLDER_CMD.CaptionToolTipText = "The command to open a folder."
             Me.TXT_FOLDER_CMD.Dock = System.Windows.Forms.DockStyle.Fill
             Me.TXT_FOLDER_CMD.LeaveDefaultButtons = True
-            Me.TXT_FOLDER_CMD.Lines = New String(-1) {}
             Me.TXT_FOLDER_CMD.Location = New System.Drawing.Point(4, 160)
             Me.TXT_FOLDER_CMD.Name = "TXT_FOLDER_CMD"
             Me.TXT_FOLDER_CMD.PlaceholderEnabled = True
@@ -1281,7 +1279,6 @@ Namespace Editors
             Me.TXT_CLOSE_SCRIPT.CaptionToolTipText = "This command will be executed when SCrawler is closed"
             Me.TXT_CLOSE_SCRIPT.Dock = System.Windows.Forms.DockStyle.Fill
             Me.TXT_CLOSE_SCRIPT.LeaveDefaultButtons = True
-            Me.TXT_CLOSE_SCRIPT.Lines = New String(-1) {}
             Me.TXT_CLOSE_SCRIPT.Location = New System.Drawing.Point(4, 189)
             Me.TXT_CLOSE_SCRIPT.Name = "TXT_CLOSE_SCRIPT"
             Me.TXT_CLOSE_SCRIPT.PlaceholderEnabled = True
@@ -1414,7 +1411,6 @@ Namespace Editors
             Me.TXT_SCRIPT.CaptionWidth = 120.0R
             Me.TXT_SCRIPT.ChangeControlsEnableOnCheckedChange = False
             Me.TXT_SCRIPT.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_SCRIPT.Lines = New String(-1) {}
             Me.TXT_SCRIPT.Location = New System.Drawing.Point(4, 144)
             Me.TXT_SCRIPT.Name = "TXT_SCRIPT"
             Me.TXT_SCRIPT.PlaceholderEnabled = True
@@ -1430,7 +1426,6 @@ Namespace Editors
             Me.TXT_DOWN_COMPLETE_SCRIPT.CaptionToolTipText = "This command will be executed after all downloads are completed"
             Me.TXT_DOWN_COMPLETE_SCRIPT.CaptionWidth = 120.0R
             Me.TXT_DOWN_COMPLETE_SCRIPT.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_DOWN_COMPLETE_SCRIPT.Lines = New String(-1) {}
             Me.TXT_DOWN_COMPLETE_SCRIPT.Location = New System.Drawing.Point(4, 173)
             Me.TXT_DOWN_COMPLETE_SCRIPT.Name = "TXT_DOWN_COMPLETE_SCRIPT"
             Me.TXT_DOWN_COMPLETE_SCRIPT.PlaceholderEnabled = True
@@ -1496,7 +1491,7 @@ Namespace Editors
             TP_FEED.Controls.Add(Me.CH_FEED_ENDLESS, 0, 3)
             TP_FEED.Controls.Add(Me.CH_FEED_ADD_SESSION, 0, 4)
             TP_FEED.Controls.Add(Me.CH_FEED_ADD_DATE, 0, 5)
-            TP_FEED.Controls.Add(Me.CH_FEED_STORE_SESSION_DATA, 0, 6)
+            TP_FEED.Controls.Add(Me.NUM_FEED_STORE_SESSION_DATA, 0, 6)
             TP_FEED.Controls.Add(Me.TXT_FEED_CENTER_IMAGE, 0, 1)
             TP_FEED.Controls.Add(Me.COLORS_FEED, 0, 2)
             TP_FEED.Controls.Add(Me.CH_FEED_OPEN_LAST_MODE, 0, 7)
@@ -1511,7 +1506,7 @@ Namespace Editors
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
-            TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
@@ -1542,7 +1537,6 @@ Namespace Editors
             Me.TXT_FEED_ROWS.CaptionToolTipText = "How many lines of images should be shown in the feed form"
             Me.TXT_FEED_ROWS.ControlMode = PersonalUtilities.Forms.Controls.TextBoxExtended.ControlModes.NumericUpDown
             Me.TXT_FEED_ROWS.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_FEED_ROWS.Lines = New String(-1) {}
             Me.TXT_FEED_ROWS.Location = New System.Drawing.Point(3, 3)
             Me.TXT_FEED_ROWS.Name = "TXT_FEED_ROWS"
             Me.TXT_FEED_ROWS.NumberMaximum = New Decimal(New Integer() {50, 0, 0, 0})
@@ -1559,7 +1553,6 @@ Namespace Editors
             Me.TXT_FEED_COLUMNS.CaptionToolTipText = "How many columns of images should be shown in the feed form"
             Me.TXT_FEED_COLUMNS.ControlMode = PersonalUtilities.Forms.Controls.TextBoxExtended.ControlModes.NumericUpDown
             Me.TXT_FEED_COLUMNS.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_FEED_COLUMNS.Lines = New String(-1) {}
             Me.TXT_FEED_COLUMNS.Location = New System.Drawing.Point(290, 3)
             Me.TXT_FEED_COLUMNS.Name = "TXT_FEED_COLUMNS"
             Me.TXT_FEED_COLUMNS.NumberMaximum = New Decimal(New Integer() {20, 0, 0, 0})
@@ -1613,7 +1606,6 @@ Namespace Editors
             Me.TXT_FEED_CENTER_IMAGE.CaptionWidth = 50.0R
             Me.TXT_FEED_CENTER_IMAGE.ControlMode = PersonalUtilities.Forms.Controls.TextBoxExtended.ControlModes.NumericUpDown
             Me.TXT_FEED_CENTER_IMAGE.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_FEED_CENTER_IMAGE.Lines = New String(-1) {}
             Me.TXT_FEED_CENTER_IMAGE.Location = New System.Drawing.Point(4, 33)
             Me.TXT_FEED_CENTER_IMAGE.Margin = New System.Windows.Forms.Padding(3, 3, 2, 3)
             Me.TXT_FEED_CENTER_IMAGE.Name = "TXT_FEED_CENTER_IMAGE"
@@ -1639,7 +1631,7 @@ Namespace Editors
             '
             Me.CH_FEED_SHOW_FRIENDLY.AutoSize = True
             Me.CH_FEED_SHOW_FRIENDLY.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_FEED_SHOW_FRIENDLY.Location = New System.Drawing.Point(4, 218)
+            Me.CH_FEED_SHOW_FRIENDLY.Location = New System.Drawing.Point(4, 221)
             Me.CH_FEED_SHOW_FRIENDLY.Name = "CH_FEED_SHOW_FRIENDLY"
             Me.CH_FEED_SHOW_FRIENDLY.Size = New System.Drawing.Size(568, 19)
             Me.CH_FEED_SHOW_FRIENDLY.TabIndex = 8
@@ -1722,7 +1714,6 @@ Namespace Editors
             Me.TXT_YTDLP.CaptionToolTipText = "Path to yt-dlp.exe file"
             Me.TXT_YTDLP.CaptionWidth = 80.0R
             Me.TXT_YTDLP.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_YTDLP.Lines = New String(-1) {}
             Me.TXT_YTDLP.Location = New System.Drawing.Point(4, 62)
             Me.TXT_YTDLP.Name = "TXT_YTDLP"
             Me.TXT_YTDLP.Size = New System.Drawing.Size(568, 22)
@@ -1744,7 +1735,6 @@ Namespace Editors
             Me.TXT_FFMPEG.CaptionToolTipText = "Path to ffmpeg.exe file"
             Me.TXT_FFMPEG.CaptionWidth = 80.0R
             Me.TXT_FFMPEG.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_FFMPEG.Lines = New String(-1) {}
             Me.TXT_FFMPEG.Location = New System.Drawing.Point(4, 4)
             Me.TXT_FFMPEG.Name = "TXT_FFMPEG"
             Me.TXT_FFMPEG.Size = New System.Drawing.Size(568, 22)
@@ -1766,7 +1756,6 @@ Namespace Editors
             Me.TXT_CURL.CaptionToolTipText = "Path to curl.exe file"
             Me.TXT_CURL.CaptionWidth = 80.0R
             Me.TXT_CURL.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_CURL.Lines = New String(-1) {}
             Me.TXT_CURL.Location = New System.Drawing.Point(4, 33)
             Me.TXT_CURL.Name = "TXT_CURL"
             Me.TXT_CURL.Size = New System.Drawing.Size(568, 22)
@@ -1787,7 +1776,6 @@ Namespace Editors
             Me.TXT_GALLERYDL.CaptionToolTipText = "Path to gallery-dl.exe file"
             Me.TXT_GALLERYDL.CaptionWidth = 80.0R
             Me.TXT_GALLERYDL.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_GALLERYDL.Lines = New String(-1) {}
             Me.TXT_GALLERYDL.Location = New System.Drawing.Point(4, 91)
             Me.TXT_GALLERYDL.Name = "TXT_GALLERYDL"
             Me.TXT_GALLERYDL.Size = New System.Drawing.Size(568, 22)
@@ -1809,7 +1797,6 @@ Namespace Editors
             Me.TXT_CMD_ENCODING.CaptionToolTipText = "Command line encoding"
             Me.TXT_CMD_ENCODING.CaptionWidth = 80.0R
             Me.TXT_CMD_ENCODING.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_CMD_ENCODING.Lines = New String(-1) {}
             Me.TXT_CMD_ENCODING.Location = New System.Drawing.Point(4, 120)
             Me.TXT_CMD_ENCODING.Name = "TXT_CMD_ENCODING"
             Me.TXT_CMD_ENCODING.Size = New System.Drawing.Size(568, 22)
@@ -1870,7 +1857,6 @@ Namespace Editors
             Me.TXT_STD_MAX_JOBS_COUNT.CaptionToolTipText = "Maximum number of jobs"
             Me.TXT_STD_MAX_JOBS_COUNT.ControlMode = PersonalUtilities.Forms.Controls.TextBoxExtended.ControlModes.NumericUpDown
             Me.TXT_STD_MAX_JOBS_COUNT.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_STD_MAX_JOBS_COUNT.Lines = New String(-1) {}
             Me.TXT_STD_MAX_JOBS_COUNT.Location = New System.Drawing.Point(4, 4)
             Me.TXT_STD_MAX_JOBS_COUNT.Name = "TXT_STD_MAX_JOBS_COUNT"
             Me.TXT_STD_MAX_JOBS_COUNT.NumberMaximum = New Decimal(New Integer() {10, 0, 0, 0})
@@ -1925,7 +1911,6 @@ Namespace Editors
             Me.CMB_STD_OPEN_DBL.Columns.Add(ListColumn1)
             Me.CMB_STD_OPEN_DBL.Columns.Add(ListColumn2)
             Me.CMB_STD_OPEN_DBL.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CMB_STD_OPEN_DBL.Lines = New String(-1) {}
             Me.CMB_STD_OPEN_DBL.Location = New System.Drawing.Point(4, 85)
             Me.CMB_STD_OPEN_DBL.Name = "CMB_STD_OPEN_DBL"
             Me.CMB_STD_OPEN_DBL.Size = New System.Drawing.Size(568, 22)
@@ -2000,7 +1985,6 @@ Namespace Editors
             Me.TXT_PRG_TITLE.CaptionToolTipEnabled = True
             Me.TXT_PRG_TITLE.CaptionToolTipText = "Change the title of the main window if you need to"
             Me.TXT_PRG_TITLE.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_PRG_TITLE.Lines = New String(-1) {}
             Me.TXT_PRG_TITLE.Location = New System.Drawing.Point(4, 4)
             Me.TXT_PRG_TITLE.Name = "TXT_PRG_TITLE"
             Me.TXT_PRG_TITLE.Size = New System.Drawing.Size(568, 22)
@@ -2016,7 +2000,6 @@ Namespace Editors
             Me.TXT_PRG_DESCR.CaptionToolTipEnabled = True
             Me.TXT_PRG_DESCR.CaptionToolTipText = "Add some additional info to the program info if you need"
             Me.TXT_PRG_DESCR.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_PRG_DESCR.Lines = New String(-1) {}
             Me.TXT_PRG_DESCR.Location = New System.Drawing.Point(4, 33)
             Me.TXT_PRG_DESCR.Name = "TXT_PRG_DESCR"
             Me.TXT_PRG_DESCR.Size = New System.Drawing.Size(568, 22)
@@ -2036,7 +2019,6 @@ Namespace Editors
             Me.TXT_USER_LIST_IMAGE.CaptionToolTipEnabled = True
             Me.TXT_USER_LIST_IMAGE.CaptionToolTipText = "Background image for user list"
             Me.TXT_USER_LIST_IMAGE.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_USER_LIST_IMAGE.Lines = New String(-1) {}
             Me.TXT_USER_LIST_IMAGE.Location = New System.Drawing.Point(4, 62)
             Me.TXT_USER_LIST_IMAGE.Name = "TXT_USER_LIST_IMAGE"
             Me.TXT_USER_LIST_IMAGE.Size = New System.Drawing.Size(568, 22)
@@ -2156,6 +2138,7 @@ Namespace Editors
             TP_FILE_NAME.PerformLayout()
             TP_FILE_PATTERNS.ResumeLayout(False)
             TP_FILE_PATTERNS.PerformLayout()
+            CType(Me.NUM_FEED_STORE_SESSION_DATA, System.ComponentModel.ISupportInitialize).EndInit()
             TP_CHANNELS_IMGS.ResumeLayout(False)
             CType(Me.TXT_CHANNELS_ROWS, System.ComponentModel.ISupportInitialize).EndInit()
             CType(Me.TXT_CHANNELS_COLUMNS, System.ComponentModel.ISupportInitialize).EndInit()
@@ -2268,7 +2251,7 @@ Namespace Editors
         Private WithEvents CH_FEED_ENDLESS As CheckBox
         Private WithEvents CH_FEED_ADD_SESSION As CheckBox
         Private WithEvents CH_FEED_ADD_DATE As CheckBox
-        Private WithEvents CH_FEED_STORE_SESSION_DATA As CheckBox
+        Private WithEvents NUM_FEED_STORE_SESSION_DATA As PersonalUtilities.Forms.Controls.TextBoxExtended
         Private WithEvents CH_NOTIFY_SILENT As CheckBox
         Private WithEvents CH_NOTIFY_SAVED_POSTS As CheckBox
         Private WithEvents CH_NOTIFY_PROFILES As CheckBox

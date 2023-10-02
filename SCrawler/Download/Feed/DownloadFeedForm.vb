@@ -181,6 +181,9 @@ Namespace DownloadObjects
             ClearTable()
             RefillList()
         End Sub
+        Private Sub BTT_LOAD_SESSION_CURRENT_Click(sender As Object, e As EventArgs) Handles BTT_LOAD_SESSION_CURRENT.Click
+            RefillList()
+        End Sub
         Private Sub BTT_LOAD_SESSION_LAST_Click(sender As Object, e As EventArgs) Handles BTT_LOAD_SESSION_LAST.Click
             SessionChooser(True)
         End Sub
@@ -189,6 +192,7 @@ Namespace DownloadObjects
         End Sub
         Private Sub SessionChooser(ByVal GetLast As Boolean)
             Try
+                Downloader.ClearSessions()
                 Dim f As SFile = TDownloader.SessionsPath.CSFileP
                 Dim fList As List(Of SFile) = Nothing
                 Dim m As New MMessage("Saved sessions not selected", "Sessions",, vbExclamation)
@@ -202,13 +206,23 @@ Namespace DownloadObjects
                                                     DataList.RemoveAll(FileNotExist)
                                                 End If
                                             End Sub
-                If Not GetLast AndAlso f.Exists(SFO.Path, False) Then fList = SFile.GetFiles(f, "*.xml",, EDP.ReturnValue)
+                Dim __getFiles As Func(Of Boolean) = Function() As Boolean
+                                                         If f.Exists(SFO.Path, False) Then fList = SFile.GetFiles(f, "*.xml",, EDP.ReturnValue)
+                                                         If fList.ListExists Then
+                                                             fList.Reverse()
+                                                             Return True
+                                                         Else
+                                                             Return False
+                                                         End If
+                                                     End Function
+                If Not GetLast Then __getFiles.Invoke
                 If Not GetLast AndAlso fList.ListExists Then
                     Using chooser As New SimpleListForm(Of SFile)(fList, Settings.Design) With {
                         .FormText = "Sessions",
                         .Icon = My.Resources.ArrowDownIcon_Blue_24,
                         .Mode = SimpleListFormModes.CheckedItems,
-                        .Provider = New CustomProvider(Function(v, d, p, n, ee) DirectCast(v, SFile).File)
+                        .Provider = New CustomProvider(Function(v As SFile) AConvert(Of String)(AConvert(Of Date)(v.Name, SessionDateTimeProvider, v.Name),
+                                                                                                DateTimeDefaultProvider, v.Name))
                     }
                         chooser.ClearButtons()
                         If chooser.ShowDialog = DialogResult.OK Then
@@ -230,8 +244,13 @@ Namespace DownloadObjects
                             MsgBoxE(m)
                         End If
                     End Using
-                ElseIf Downloader.FilesSessionActual.Exists Then
-                    x = New XmlFile(Downloader.FilesSessionActual,, False) With {.AllowSameNames = True, .XmlReadOnly = True}
+                ElseIf Downloader.FilesSessionActual(False).Exists OrElse __getFiles.Invoke Then
+                    If Downloader.FilesSessionActual(False).Exists Then
+                        f = Downloader.FilesSessionActual(False)
+                    Else
+                        f = fList(0)
+                    End If
+                    x = New XmlFile(f,, False) With {.AllowSameNames = True, .XmlReadOnly = True}
                     x.LoadData()
                     If x.Count > 0 Then DataList.Clear() : DataList.ListAddList(x, lcr)
                     x.Dispose()

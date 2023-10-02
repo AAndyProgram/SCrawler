@@ -135,7 +135,8 @@ Namespace Editors
                         CH_FEED_ENDLESS.Checked = .FeedEndless
                         CH_FEED_ADD_SESSION.Checked = .FeedAddSessionToCaption
                         CH_FEED_ADD_DATE.Checked = .FeedAddDateToCaption
-                        CH_FEED_STORE_SESSION_DATA.Checked = .FeedStoreSessionsData
+                        NUM_FEED_STORE_SESSION_DATA.Checked = .FeedStoreSessionsData
+                        NUM_FEED_STORE_SESSION_DATA.Value = .FeedStoredSessionsNumber.Value
                         CH_FEED_OPEN_LAST_MODE.Checked = .FeedOpenLastMode
                         CH_FEED_SHOW_FRIENDLY.Checked = .FeedShowFriendlyNames
                     End With
@@ -303,7 +304,8 @@ Namespace Editors
                     .FeedEndless.Value = CH_FEED_ENDLESS.Checked
                     .FeedAddSessionToCaption.Value = CH_FEED_ADD_SESSION.Checked
                     .FeedAddDateToCaption.Value = CH_FEED_ADD_DATE.Checked
-                    .FeedStoreSessionsData.Value = CH_FEED_STORE_SESSION_DATA.Checked
+                    .FeedStoreSessionsData.Value = NUM_FEED_STORE_SESSION_DATA.Checked
+                    .FeedStoredSessionsNumber.Value = NUM_FEED_STORE_SESSION_DATA.Value
                     .FeedOpenLastMode.Value = CH_FEED_OPEN_LAST_MODE.Checked
                     .FeedShowFriendlyNames.Value = CH_FEED_SHOW_FRIENDLY.Checked
                     FeedParametersChanged = .FeedDataRows.ChangesDetected Or .FeedDataColumns.ChangesDetected Or

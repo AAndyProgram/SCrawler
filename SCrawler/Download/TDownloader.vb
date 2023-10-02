@@ -88,14 +88,20 @@ Namespace DownloadObjects
         Friend ReadOnly Property Files As List(Of UserMediaD)
         Friend Property FilesChanged As Boolean = False
         Private ReadOnly FilesLP As New ListAddParams(LAP.NotContainsOnly)
-        Private FilesLastSessionBackedup As Boolean = False
         Friend Const SessionsPath As String = "Settings\Sessions\"
-        Friend ReadOnly FilesSessionActual As SFile = $"{SessionsPath}Latest.xml"
-        Private ReadOnly FilesSessionBackup As SFile = $"{SessionsPath}Latest_Backup.xml"
+        Private _FilesSessionCleared As Boolean = False
+        Private _FilesSessionActual As SFile = Nothing
+        Friend ReadOnly Property FilesSessionActual(Optional ByVal GenerateFileName As Boolean = True) As SFile
+            Get
+                If _FilesSessionActual.IsEmptyString And GenerateFileName Then _
+                   _FilesSessionActual = $"{SessionsPath}{AConvert(Of String)(Now, SessionDateTimeProvider)}.xml"
+                Return _FilesSessionActual
+            End Get
+        End Property
         Private Sub FilesSave()
             Try
                 If Settings.FeedStoreSessionsData And Files.Count > 0 Then
-                    FilesBackupLastSession()
+                    ClearSessions()
                     Using x As New XmlFile With {.Name = "Session", .AllowSameNames = True}
                         x.AddRange(Files)
                         x.Save(FilesSessionActual)
@@ -105,25 +111,42 @@ Namespace DownloadObjects
                 ErrorsDescriber.Execute(EDP.SendToLog, ex, "[DownloadObjects.TDownloader.FilesSave]")
             End Try
         End Sub
-        Private Sub FilesBackupLastSession()
+        Friend Sub ClearSessions()
             Try
-                If Not FilesLastSessionBackedup Then
-                    If FilesSessionActual.Exists Then
-                        If FilesSessionBackup.Exists Then
-                            Dim f As SFile = SFile.IndexReindex(FilesSessionBackup)
-                            SFile.Rename(FilesSessionBackup, f)
-                            RemoveLogFiles(FilesSessionBackup, 10)
-                            FilesSessionBackup.Delete()
-                        End If
-                        SFile.Rename(FilesSessionActual, FilesSessionBackup)
+                If Not _FilesSessionCleared Then
+                    _FilesSessionCleared = True
+                    Dim files As List(Of SFile) = SFile.GetFiles(SessionsPath.CSFileP, "*.xml",, EDP.ReturnValue)
+                    If RenameOldFileNames(files) Then files = SFile.GetFiles(SessionsPath.CSFileP, "*.xml",, EDP.ReturnValue)
+                    Dim filesCount% = Settings.FeedStoredSessionsNumber
+                    If files.ListExists And filesCount > 0 Then
+                        Dim fe As New ErrorsDescriber(EDP.None)
+                        Do While files.Count > filesCount : files(0).Delete(,, fe) : files.RemoveAt(0) : Loop
                     End If
                 End If
             Catch ex As Exception
-                ErrorsDescriber.Execute(EDP.SendToLog, ex, "[DownloadObjects.TDownloader.FilesBackupLastSession]")
-            Finally
-                FilesLastSessionBackedup = True
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "[DownloadObjects.TDownloader.ClearSessions]")
             End Try
         End Sub
+        Private Function RenameOldFileNames(ByVal files As List(Of SFile)) As Boolean
+            Dim result As Boolean = False
+            Try
+                If files.ListExists AndAlso files.Exists(Function(ff) ff.Name.StringToLower.StartsWith("latest")) Then
+                    Dim d As Date
+                    Dim fileCurrent As SFile, fileNew As SFile
+                    For Each fileCurrent In files
+                        If fileCurrent.Name.StringToLower.StartsWith("latest") Then
+                            d = IO.File.GetLastWriteTime(fileCurrent)
+                            fileNew = fileCurrent
+                            fileNew.Name = AConvert(Of String)(d, SessionDateTimeProvider)
+                            SFile.Rename(fileCurrent, fileNew,, EDP.None)
+                            result = True
+                        End If
+                    Next
+                End If
+            Catch
+            End Try
+            Return result
+        End Function
 #End Region
         Friend ReadOnly Property Downloaded As List(Of IUserData)
         Private ReadOnly NProv As IFormatProvider

@@ -39,6 +39,7 @@ Namespace DownloadObjects
             Me.BTT_REFRESH = New System.Windows.Forms.ToolStripButton()
             Me.BTT_CLEAR = New System.Windows.Forms.ToolStripButton()
             Me.TP_DATA = New System.Windows.Forms.TableLayoutPanel()
+            Me.BTT_LOAD_SESSION_CURRENT = New System.Windows.Forms.ToolStripMenuItem()
             SEP_1 = New System.Windows.Forms.ToolStripSeparator()
             SEP_2 = New System.Windows.Forms.ToolStripSeparator()
             MENU_VIEW = New System.Windows.Forms.ToolStripDropDownButton()
@@ -89,7 +90,7 @@ Namespace DownloadObjects
             'MENU_LOAD_SESSION
             '
             Me.MENU_LOAD_SESSION.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image
-            Me.MENU_LOAD_SESSION.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_LOAD_SESSION_LAST, Me.BTT_LOAD_SESSION_CHOOSE})
+            Me.MENU_LOAD_SESSION.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_LOAD_SESSION_CURRENT, Me.BTT_LOAD_SESSION_LAST, Me.BTT_LOAD_SESSION_CHOOSE})
             Me.MENU_LOAD_SESSION.Image = Global.SCrawler.My.Resources.Resources.ArrowDownPic_Blue_24
             Me.MENU_LOAD_SESSION.ImageTransparentColor = System.Drawing.Color.Magenta
             Me.MENU_LOAD_SESSION.Name = "MENU_LOAD_SESSION"
@@ -130,7 +131,7 @@ Namespace DownloadObjects
             '
             Me.BTT_DOWN_ALL.Image = Global.SCrawler.My.Resources.Resources.StartPic_Green_16
             Me.BTT_DOWN_ALL.Name = "BTT_DOWN_ALL"
-            Me.BTT_DOWN_ALL.Size = New System.Drawing.Size(180, 22)
+            Me.BTT_DOWN_ALL.Size = New System.Drawing.Size(174, 22)
             Me.BTT_DOWN_ALL.Tag = "a"
             Me.BTT_DOWN_ALL.Text = "Download ALL"
             '
@@ -138,7 +139,7 @@ Namespace DownloadObjects
             '
             Me.BTT_DOWN_SELECTED.Image = Global.SCrawler.My.Resources.Resources.StartPic_Green_16
             Me.BTT_DOWN_SELECTED.Name = "BTT_DOWN_SELECTED"
-            Me.BTT_DOWN_SELECTED.Size = New System.Drawing.Size(180, 22)
+            Me.BTT_DOWN_SELECTED.Size = New System.Drawing.Size(174, 22)
             Me.BTT_DOWN_SELECTED.Tag = "s"
             Me.BTT_DOWN_SELECTED.Text = "Download selected"
             '
@@ -185,6 +186,13 @@ Namespace DownloadObjects
             Me.TP_DATA.Size = New System.Drawing.Size(484, 436)
             Me.TP_DATA.TabIndex = 1
             '
+            'BTT_LOAD_SESSION_CURRENT
+            '
+            Me.BTT_LOAD_SESSION_CURRENT.Image = Global.SCrawler.My.Resources.Resources.ArrowDownPic_Blue_24
+            Me.BTT_LOAD_SESSION_CURRENT.Name = "BTT_LOAD_SESSION_CURRENT"
+            Me.BTT_LOAD_SESSION_CURRENT.Size = New System.Drawing.Size(189, 22)
+            Me.BTT_LOAD_SESSION_CURRENT.Text = "Load current session"
+            '
             'DownloadFeedForm
             '
             Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
@@ -218,5 +226,6 @@ Namespace DownloadObjects
         Private WithEvents MENU_DOWN As ToolStripDropDownButton
         Private WithEvents BTT_DOWN_ALL As ToolStripMenuItem
         Private WithEvents BTT_DOWN_SELECTED As ToolStripMenuItem
+        Private WithEvents BTT_LOAD_SESSION_CURRENT As ToolStripMenuItem
     End Class
 End Namespace
