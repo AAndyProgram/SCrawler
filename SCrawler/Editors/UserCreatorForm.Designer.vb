@@ -174,7 +174,6 @@ Namespace Editors
             Me.TXT_USER.CaptionToolTipEnabled = True
             Me.TXT_USER.CaptionToolTipText = "You must enter the user's URL in this field."
             Me.TXT_USER.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_USER.Lines = New String(-1) {}
             Me.TXT_USER.Location = New System.Drawing.Point(4, 4)
             Me.TXT_USER.Name = "TXT_USER"
             Me.TXT_USER.PlaceholderEnabled = True
@@ -225,7 +224,6 @@ Namespace Editors
             Me.CMB_SITE.Columns.Add(ListColumn1)
             Me.CMB_SITE.Columns.Add(ListColumn2)
             Me.CMB_SITE.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CMB_SITE.Lines = New String(-1) {}
             Me.CMB_SITE.Location = New System.Drawing.Point(0, 3)
             Me.CMB_SITE.Margin = New System.Windows.Forms.Padding(0, 3, 3, 3)
             Me.CMB_SITE.Name = "CMB_SITE"
@@ -303,7 +301,6 @@ Namespace Editors
             Me.TXT_DESCR.Dock = System.Windows.Forms.DockStyle.Fill
             Me.TXT_DESCR.GroupBoxed = True
             Me.TXT_DESCR.GroupBoxText = "Description"
-            Me.TXT_DESCR.Lines = New String(-1) {}
             Me.TXT_DESCR.Location = New System.Drawing.Point(4, 317)
             Me.TXT_DESCR.Multiline = True
             Me.TXT_DESCR.Name = "TXT_DESCR"
@@ -314,7 +311,6 @@ Namespace Editors
             '
             Me.TXT_USER_FRIENDLY.CaptionText = "Friendly name"
             Me.TXT_USER_FRIENDLY.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_USER_FRIENDLY.Lines = New String(-1) {}
             Me.TXT_USER_FRIENDLY.Location = New System.Drawing.Point(4, 33)
             Me.TXT_USER_FRIENDLY.Name = "TXT_USER_FRIENDLY"
             Me.TXT_USER_FRIENDLY.Size = New System.Drawing.Size(446, 22)
@@ -371,7 +367,6 @@ Namespace Editors
             Me.TXT_LABELS.CaptionText = "Labels"
             Me.TXT_LABELS.CaptionWidth = 50.0R
             Me.TXT_LABELS.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_LABELS.Lines = New String(-1) {}
             Me.TXT_LABELS.Location = New System.Drawing.Point(4, 235)
             Me.TXT_LABELS.Margin = New System.Windows.Forms.Padding(3, 2, 3, 3)
             Me.TXT_LABELS.Name = "TXT_LABELS"
@@ -437,7 +432,6 @@ Namespace Editors
             Me.TXT_SPEC_FOLDER.CaptionText = "Special path"
             Me.TXT_SPEC_FOLDER.CaptionVisible = True
             Me.TXT_SPEC_FOLDER.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_SPEC_FOLDER.Lines = New String(-1) {}
             Me.TXT_SPEC_FOLDER.Location = New System.Drawing.Point(4, 62)
             Me.TXT_SPEC_FOLDER.Name = "TXT_SPEC_FOLDER"
             Me.TXT_SPEC_FOLDER.Size = New System.Drawing.Size(446, 22)
@@ -460,7 +454,6 @@ Namespace Editors
             Me.TXT_SCRIPT.CaptionToolTipText = "Execute script after downloading this user"
             Me.TXT_SCRIPT.CaptionWidth = 65.0R
             Me.TXT_SCRIPT.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_SCRIPT.Lines = New String(-1) {}
             Me.TXT_SCRIPT.Location = New System.Drawing.Point(4, 289)
             Me.TXT_SCRIPT.Margin = New System.Windows.Forms.Padding(3, 2, 3, 3)
             Me.TXT_SCRIPT.Name = "TXT_SCRIPT"

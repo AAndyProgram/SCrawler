@@ -276,6 +276,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         STDownloader_OutputPathUseYT = New XMLValue(Of Boolean)("OutputPathUseYT", False, MyXML, n)
         STDownloader_OutputPathAskForName = New XMLValue(Of Boolean)("OutputPathAskForName", True, MyXML, n)
         STDownloader_OutputPathAutoAddPaths = New XMLValue(Of Boolean)("OutputPathAutoAddPaths", True, MyXML, n)
+        STDownloader_CreateUrlFiles = New XMLValue(Of Boolean)("CreateUrlFiles", False, MyXML, n)
         DownloadLocations = New STDownloader.DownloadLocationsCollection
         DownloadLocations.Load(False, STDownloader_OutputPathUseYT)
 
@@ -790,6 +791,12 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
     Private ReadOnly Property IDownloaderSettings_OutputPathAutoAddPaths As Boolean Implements IDownloaderSettings.OutputPathAutoAddPaths
         Get
             Return STDownloader_OutputPathAutoAddPaths
+        End Get
+    End Property
+    Friend ReadOnly Property STDownloader_CreateUrlFiles As XMLValue(Of Boolean)
+    Private ReadOnly Property IDownloaderSettings_CreateUrlFiles As Boolean Implements IDownloaderSettings.CreateUrlFiles
+        Get
+            Return STDownloader_CreateUrlFiles
         End Get
     End Property
 #End Region

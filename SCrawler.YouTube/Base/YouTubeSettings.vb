@@ -132,6 +132,19 @@ Namespace API.YouTube.Base
             End Set
         End Property
 #End Region
+#Region "Info"
+        <Browsable(True), GridVisible, XMLVN({"Info"}), Category("Info"), DisplayName("Create URL files"),
+            Description("Create local URL files to link to the original page. Default: false.")>
+        Public ReadOnly Property CreateUrlFiles As XMLValue(Of Boolean)
+        Private ReadOnly Property IDownloaderSettings_CreateUrlFiles As Boolean Implements IDownloaderSettings.CreateUrlFiles
+            Get
+                Return CreateUrlFiles
+            End Get
+        End Property
+        <Browsable(True), GridVisible, XMLVN({"Info"}), Category("Info"), DisplayName("Create description files"),
+            Description("Create video description files. Default: false.")>
+        Public ReadOnly Property CreateDescriptionFiles As XMLValue(Of Boolean)
+#End Region
 #Region "Defaults"
         <Browsable(True), GridVisible, XMLVN({"Defaults"}, True), Category("Defaults"), DisplayName("Standardize URLs"),
             Description("Standardize URLs by eliminating unwanted strings. Default: true.")>

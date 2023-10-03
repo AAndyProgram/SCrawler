@@ -709,6 +709,19 @@ Namespace API.YouTube.Objects
         End Sub
 #End Region
 #Region "Download"
+        Protected Shared Sub CreateUrlFile(ByVal URL As String, ByVal File As SFile)
+            Try
+                File.Extension = "url"
+                Using t As New TextSaver(File)
+                    t.AppendLine("[InternetShortcut]")
+                    t.AppendLine("IDList=")
+                    t.AppendLine($"URL={URL}")
+                    t.AppendLine()
+                    t.Save(EDP.None)
+                End Using
+            Catch ex As Exception
+            End Try
+        End Sub
         Private ReadOnly DownloadProgressPattern As RParams = RParams.DMS("\[download\]\s*([\d\.,]+)", 1, EDP.ReturnValue)
         Public Property Progress As MyProgress Implements IYouTubeMediaContainer.Progress
         Private Property IDownloadableMedia_Progress As Object Implements IDownloadableMedia.Progress
@@ -807,6 +820,13 @@ Namespace API.YouTube.Objects
             Try
                 Dim url$ = $"https://{IIf(IsMusic, "music", "www")}.youtube.com/playlist?list={PlsId}"
                 Dim r$
+                If DownloadObjects.STDownloader.MyDownloaderSettings.CreateUrlFiles Then
+                    Dim ff As SFile = f
+                    ff.Name = "album"
+                    ff.Extension = "url"
+                    CreateUrlFile(url, ff)
+                    If ff.Exists Then Files.Add(ff)
+                End If
                 Using resp As New Responser
                     If UseCookies And MyYouTubeSettings.Cookies.Count > 0 Then resp.Cookies.AddRange(MyYouTubeSettings.Cookies,, EDP.SendToLog)
                     r = resp.GetResponse(url,, EDP.ReturnValue)
@@ -882,6 +902,21 @@ Namespace API.YouTube.Objects
                         End If
                         If Not File.Exists Then _File.Name = File.File
                         If File.Exists Then
+
+                            If DownloadObjects.STDownloader.MyDownloaderSettings.CreateUrlFiles Then
+                                Dim fileUrl As SFile = File
+                                fileUrl.Extension = "url"
+                                CreateUrlFile(URL, fileUrl)
+                                If fileUrl.Exists Then Files.Add(fileUrl)
+                            End If
+
+                            If MyYouTubeSettings.CreateDescriptionFiles And Not Description.IsEmptyString Then
+                                Dim fileDesr As SFile = File
+                                fileDesr.Extension = "txt"
+                                TextSaver.SaveTextToFile(Description, fileDesr,,, EDP.None)
+                                If fileDesr.Exists Then Files.Add(fileDesr)
+                            End If
+
                             If PlaylistCount > 0 And Not CoverDownloaded And Not PlaylistID.IsEmptyString Then DownloadPlaylistCover(PlaylistID, File, UseCookies)
                             If prExists Then Progress.InformationTemporary = $"Download {MediaType}: post processing"
                             _ThumbnailFile = File

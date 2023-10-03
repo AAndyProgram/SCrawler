@@ -97,6 +97,7 @@ Namespace Editors
                         CH_STD_YT_REMOVE.Checked = .STDownloader_RemoveYTVideosOnClear
                         CH_STD_YT_OUTPUT_ASK_NAME.Checked = .STDownloader_OutputPathAskForName
                         CH_STD_YT_OUTPUT_AUTO_ADD.Checked = .STDownloader_OutputPathAutoAddPaths
+                        CH_STD_YT_CREATE_URL.Checked = .STDownloader_CreateUrlFiles
                         'Downloading
                         CH_UDESCR_UP.Checked = .UpdateUserDescriptionEveryTime
                         CH_UNAME_UP.Checked = .UserSiteNameUpdateEveryTime
@@ -265,6 +266,7 @@ Namespace Editors
                     .STDownloader_RemoveYTVideosOnClear.Value = CH_STD_YT_REMOVE.Checked
                     .STDownloader_OutputPathAskForName.Value = CH_STD_YT_OUTPUT_ASK_NAME.Checked
                     .STDownloader_OutputPathAutoAddPaths.Value = CH_STD_YT_OUTPUT_AUTO_ADD.Checked
+                    .STDownloader_CreateUrlFiles.Value = CH_STD_YT_CREATE_URL.Checked
                     'Downloading
                     .UpdateUserDescriptionEveryTime.Value = CH_UDESCR_UP.Checked
                     .UserSiteNameUpdateEveryTime.Value = CH_UNAME_UP.Checked
