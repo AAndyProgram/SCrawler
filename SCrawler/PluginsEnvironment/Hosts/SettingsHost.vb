@@ -331,6 +331,7 @@ Namespace Plugin.Hosts
                 End If
                 Return _AvailableValue
             Else
+                If Not Silent Then MsgBoxE({$"Downloading data for the site {Name} has been disabled by you.", $"{Name} downloading disabled"}, vbExclamation)
                 Return False
             End If
         End Function

@@ -1060,7 +1060,11 @@ Namespace API.YouTube.Objects
                         If fc.Exists(SFO.Path, False) AndAlso SFile.GetFiles(fc, "*.json",, EDP.ReturnValue).Count > 0 Then Parse(Nothing, fc, IsMusic)
                         XMLPopulateData(Me, x)
                         _MediaStateOnLoad = _MediaState
-                        _Exists = True
+                        If Me.MediaState = UMStates.Downloaded Then
+                            _Exists = File.Exists(IIf(ObjectType = YouTubeMediaType.Single, SFO.File, SFO.Path), False)
+                        Else
+                            _Exists = True
+                        End If
                         If If(x(Name_CheckedElements)?.Count, 0) > 0 Then ApplyElementCheckedValue(x(Name_CheckedElements))
                         If ArrayMaxResolution <> -10 Then SetMaxResolution(ArrayMaxResolution)
                     End Using

@@ -238,7 +238,7 @@ Namespace API.Reddit
                 For i% = 0 To p.Count - 1
                     If CStr(p(i).Value).IsEmptyString Then wrong.Add(p(i).Name)
                 Next
-                If wrong.Count > 0 Then
+                If wrong.Count > 0 And wrong.Count <> 4 Then
                     MsgBoxE({$"You have not completed the following fields: {wrong.ListToString}." & vbCr &
                             "To use OAuth authorization, all authorization fields must be filled in.", "Validate token fields"}, vbCritical)
                     Return False

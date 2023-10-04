@@ -433,6 +433,27 @@ Namespace API.YouTube.Controls
         End Sub
 #End Region
 #Region "Footer"
+        Private _FilePathBeforeItemChange As SFile = Nothing
+        Private Sub TXT_FILE_ActionSelectedItemBeforeChanged(ByVal Sender As Object, ByVal e As EventArgs, ByVal Item As ListViewItem) Handles TXT_FILE.ActionSelectedItemBeforeChanged
+            If Not TXT_FILE.Text.IsEmptyString Then _FilePathBeforeItemChange = TXT_FILE.Text Else _FilePathBeforeItemChange = Nothing
+        End Sub
+        Private Sub TXT_FILE_ActionSelectedItemChanged(ByVal Sender As Object, ByVal e As EventArgs, ByVal Item As ListViewItem) Handles TXT_FILE.ActionSelectedItemChanged
+            Try
+                If Not MyContainer.HasElements Then
+                    Dim currentPath As SFile = _FilePathBeforeItemChange
+                    Dim newPath As SFile = TXT_FILE.Text.CSFileP
+                    If Not currentPath.File.IsEmptyString Then
+                        newPath.Name = currentPath.Name
+                        newPath.Extension = currentPath.Extension
+                        TXT_FILE.Text = newPath
+                    End If
+                End If
+            Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "[API.YouTube.Controls.VideoOptionsForm.ChangeDestinationPath]")
+            Finally
+                _FilePathBeforeItemChange = Nothing
+            End Try
+        End Sub
         Private Sub BTT_BROWSE_MouseDown(sender As Object, e As MouseEventArgs) Handles BTT_BROWSE.MouseDown
             Dim f As SFile
 #Disable Warning BC40000

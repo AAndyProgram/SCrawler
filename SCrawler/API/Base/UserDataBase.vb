@@ -1305,6 +1305,10 @@ BlockNullPicture:
                 DownloadSingleObject_CreateMedia(Data, Token)
                 DownloadSingleObject_Download(Data, Token)
                 DownloadSingleObject_PostProcessing(Data)
+            Catch oex As OperationCanceledException When Token.IsCancellationRequested
+                Data.DownloadState = UserMediaStates.Missing
+                ErrorsDescriber.Execute(EDP.SendToLog, oex, $"{Site} download canceled: {Data.URL}")
+            Catch dex As ObjectDisposedException When Disposed
             Catch ex As Exception
                 Data.DownloadState = UserMediaStates.Missing
                 ErrorsDescriber.Execute(EDP.SendToLog, ex, $"{Site} single data downloader error: {Data.URL}")

@@ -303,32 +303,40 @@ Namespace DownloadObjects
         End Sub
 #End Region
 #Region "Pool"
-        Friend Sub ReconfPool()
-            If Pool.Count = 0 OrElse Not Pool.Exists(Function(j) j.Working Or j.Count > 0) Then
-                Dim i%
-                Pool.ListClearDispose
-                If Settings.Plugins.Count > 0 Then
-                    Pool.Add(New Job(Download.Main))
-                    For Each p As PluginHost In Settings.Plugins
-                        If p.Settings.IsSeparatedTasks Then
-                            Pool.Add(New Job(Download.Main))
-                            Pool.Last.AddHost(p.Settings)
-                        ElseIf Not p.Settings.TaskGroupName.IsEmptyString Then
-                            i = -1
-                            If Pool.Count > 0 Then i = Pool.FindIndex(Function(pt) pt.GroupName = p.Settings.TaskGroupName)
-                            If i >= 0 Then
-                                Pool(i).AddHost(p.Settings)
-                            Else
-                                Pool.Add(New Job(Download.Main, p.Settings.TaskGroupName))
+        Friend Sub ReconfPool(Optional ByVal Round As Integer = 0)
+            Try
+                If Pool.Count = 0 OrElse Not Pool.Exists(Function(j) j.Working Or j.Count > 0) Then
+                    Dim i%
+                    Pool.ListClearDispose
+                    If Settings.Plugins.Count > 0 Then
+                        Pool.Add(New Job(Download.Main))
+                        For Each p As PluginHost In Settings.Plugins
+                            If p.Settings.IsSeparatedTasks Then
+                                Pool.Add(New Job(Download.Main))
                                 Pool.Last.AddHost(p.Settings)
+                            ElseIf Not p.Settings.TaskGroupName.IsEmptyString Then
+                                i = -1
+                                If Pool.Count > 0 Then i = Pool.FindIndex(Function(pt) pt.GroupName = p.Settings.TaskGroupName)
+                                If i >= 0 Then
+                                    Pool(i).AddHost(p.Settings)
+                                Else
+                                    Pool.Add(New Job(Download.Main, p.Settings.TaskGroupName))
+                                    Pool.Last.AddHost(p.Settings)
+                                End If
+                            Else
+                                Pool(0).AddHost(p.Settings)
                             End If
-                        Else
-                            Pool(0).AddHost(p.Settings)
-                        End If
-                    Next
+                        Next
+                    End If
+                    RaiseEvent Reconfigured()
                 End If
-                RaiseEvent Reconfigured()
-            End If
+            Catch ex As Exception
+                If Round = 0 Then
+                    ReconfPool(Round + 1)
+                Else
+                    Throw ex
+                End If
+            End Try
         End Sub
 #End Region
 #Region "Thread"
