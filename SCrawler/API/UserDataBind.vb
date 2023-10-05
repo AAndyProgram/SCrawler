@@ -71,17 +71,9 @@ Namespace API
         End Property
         Friend Overrides Property FriendlyName As String
             Get
-                If Count > 0 Then
-                    Return Collections(0).FriendlyName
-                Else
-                    Return String.Empty
-                End If
+                Return CollectionName
             End Get
             Set(ByVal NewName As String)
-                If Count > 0 Then Collections.ForEach(Sub(c)
-                                                          c.FriendlyName = NewName
-                                                          c.UpdateUserInformation()
-                                                      End Sub)
             End Set
         End Property
         Friend Overrides Property UserExists As Boolean
@@ -500,12 +492,14 @@ Namespace API
             With _Item
                 If .MoveFiles(CollectionName, CollectionPath) Then
                     If Not .Self.IsVirtual And DataMerging Then DirectCast(.Self, UserDataBase).MergeData()
+
                     ConsolidateLabels(.Self)
                     ConsolidateScripts(.Self)
                     ConsolidateColors(.Self)
-                    Collections.Add(.Self)
-                    With Collections.Last
 
+                    Collections.Add(.Self)
+
+                    With Collections.Last
                         If _CollectionName.IsEmptyString Then _CollectionName = .CollectionName
                         .Temporary = Temporary
                         .Favorite = Favorite
@@ -548,7 +542,7 @@ Namespace API
             End Try
         End Sub
         Private Sub ConsolidateLabels(ByVal Destination As UserDataBase)
-            UpdateLabels(If(Destination, Me), ListAddList(Nothing, Labels.ListWithRemove(SpecialLabels)), 1, True)
+            If Count > 0 Then UpdateLabels(Destination, ListAddList(Nothing, Labels.ListWithRemove(SpecialLabels)), 0, True)
         End Sub
         Private Sub ConsolidateScripts(ByVal Destination As UserDataBase)
             If Count > 0 AndAlso ScriptUse Then

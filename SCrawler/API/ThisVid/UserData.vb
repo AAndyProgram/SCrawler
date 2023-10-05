@@ -180,6 +180,7 @@ Namespace API.ThisVid
 #Region "Initializer"
         Friend Sub New()
             UseClientTokens = True
+            PagePosts = New List(Of String)
         End Sub
 #End Region
 #Region "Validation"
@@ -223,8 +224,10 @@ Namespace API.ThisVid
         End Function
 #End Region
 #Region "Download functions"
+        Private ReadOnly PagePosts As List(Of String)
         Private AddedCount As Integer = 0
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
+            PagePosts.Clear()
             AddedCount = 0
             Responser.Cookies.ChangedAllowInternalDrop = False
             Responser.Cookies.Changed = False
@@ -299,11 +302,16 @@ Namespace API.ThisVid
                                     _TempMediaList.Add(New UserMedia(u) With {.Type = UserMedia.Types.VideoPre, .SpecialFolder = __SpecialFolder})
                                     AddedCount += 1
                                     If limit > 0 And AddedCount >= limit Then Exit Sub
+                                ElseIf PagePosts.Count > 0 AndAlso PagePosts.Contains(u) Then
+                                    Continue For
                                 Else
                                     Exit Sub
                                 End If
                             End If
                         Next
+                        PagePosts.Clear()
+                        PagePosts.AddRange(l)
+                        l.Clear()
                     End If
                 End If
                 If Not cBefore = _TempMediaList.Count And (IsUser Or Page < 1000) Then DownloadData(Page + 1, Model, Token)
@@ -537,6 +545,12 @@ Namespace API.ThisVid
                 Return 0
             End If
         End Function
+#End Region
+#Region "IDisposable Support"
+        Protected Overrides Sub Dispose(ByVal disposing As Boolean)
+            If Not disposedValue And disposing Then PagePosts.Clear()
+            MyBase.Dispose(disposing)
+        End Sub
 #End Region
     End Class
 End Namespace

@@ -2116,7 +2116,11 @@ BlockNullPicture:
 #End Region
 #Region "IComparable Support"
         Friend Overridable Function CompareTo(ByVal Other As UserDataBase) As Integer Implements IComparable(Of UserDataBase).CompareTo
-            Return Name.CompareTo(Other.Name)
+            If IsCollection Then
+                Return Name.CompareTo(Other.Name)
+            Else
+                Return FriendlyName.IfNullOrEmpty(Name).StringTrim.CompareTo(Other.FriendlyName.IfNullOrEmpty(Other.Name).StringTrim)
+            End If
         End Function
         Friend Overridable Function CompareTo(ByVal Obj As Object) As Integer Implements IComparable.CompareTo
             If Not Obj Is Nothing AndAlso TypeOf Obj Is UserDataBase Then
