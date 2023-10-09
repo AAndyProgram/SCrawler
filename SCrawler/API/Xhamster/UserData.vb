@@ -456,6 +456,8 @@ Namespace API.Xhamster
                             m2 = Nothing
                             If GetM3U8(m2, m.URL_BASE) Then
                                 m2.URL_BASE = m.URL_BASE
+                                m2.State = UserMedia.States.Missing
+                                m2.Attempts = m.Attempts
                                 _TempMediaList.ListAddValue(m2, LNC)
                                 rList.Add(i)
                             End If

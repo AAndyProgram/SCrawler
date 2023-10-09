@@ -74,10 +74,10 @@ Namespace API.RedGifs
 #Region "Media obtain, extract"
         Private Sub ObtainMedia(ByVal j As EContainer, ByVal PostID As String,
                                 Optional ByVal PostDateStr As String = Nothing, Optional ByVal PostDateDate As Date? = Nothing,
-                                Optional ByVal State As UStates = UStates.Unknown)
+                                Optional ByVal State As UStates = UStates.Unknown, Optional ByVal Attempts As Integer = 0)
             Dim tMedia As UserMedia = ExtractMedia(j)
             If Not tMedia.Type = UTypes.Undefined Then _
-               _TempMediaList.ListAddValue(MediaFromData(tMedia.Type, tMedia.URL, PostID, PostDateStr, PostDateDate, State))
+               _TempMediaList.ListAddValue(MediaFromData(tMedia.Type, tMedia.URL, PostID, PostDateStr, PostDateDate, State, Attempts))
         End Sub
         Private Shared Function ExtractMedia(ByVal j As EContainer) As UserMedia
             If Not j Is Nothing Then
@@ -122,7 +122,7 @@ Namespace API.RedGifs
                                         j = JsonDocument.Parse(r)
                                         If Not j Is Nothing Then
                                             If If(j("gif")?.Count, 0) > 0 Then
-                                                ObtainMedia(j("gif"), u.Post.ID,, u.Post.Date, UStates.Missing)
+                                                ObtainMedia(j("gif"), u.Post.ID,, u.Post.Date, UStates.Missing, u.Attempts)
                                                 rList.Add(i)
                                             End If
                                         End If
@@ -229,7 +229,7 @@ Namespace API.RedGifs
 #End Region
 #Region "Create media"
         Private Function MediaFromData(ByVal t As UTypes, ByVal _URL As String, ByVal PostID As String,
-                                       ByVal PostDateStr As String, ByVal PostDateDate As Date?, ByVal State As UStates) As UserMedia
+                                       ByVal PostDateStr As String, ByVal PostDateDate As Date?, ByVal State As UStates, Optional ByVal Attempts As Integer = 0) As UserMedia
             _URL = LinkFormatterSecure(RegexReplace(_URL.Replace("\", String.Empty), LinkPattern))
             Dim m As New UserMedia(_URL, t) With {.Post = New UserPost With {.ID = PostID}}
             If Not m.URL.IsEmptyString Then m.File = CStr(RegexReplace(m.URL, FilesPattern))
@@ -241,6 +241,7 @@ Namespace API.RedGifs
                 m.Post.Date = Nothing
             End If
             m.State = State
+            m.Attempts = Attempts
             Return m
         End Function
 #End Region

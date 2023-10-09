@@ -82,7 +82,7 @@ Namespace API.JustForFans
             End If
         End Sub
         Friend Overrides Function Available(ByVal What As ISiteSettings.Download, ByVal Silent As Boolean) As Boolean
-            Return Responser.CookiesExists And ACheck(UserID.Value) And ACheck(UserHash4.Value)
+            Return Settings.FfmpegFile.Exists And Responser.CookiesExists And ACheck(UserID.Value) And ACheck(UserHash4.Value)
         End Function
     End Class
 End Namespace

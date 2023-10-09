@@ -24,6 +24,7 @@ Namespace API.JustForFans
         Private DestinationFile As SFile
         Private ReadOnly Thrower As Plugin.IThrower
         Private ReadOnly Responser As Responser
+        Private ReadOnly ResponserInternal As Boolean
         Private Const R_VIDEO_REGEX_PATTERN As String = "(#EXT-X-STREAM-INF)(.+)(RESOLUTION=\d+x)(\d+)(.+""\s*)(\S+)(\s*)"
         Private ReadOnly REGEX_AUDIO_URL As RParams = RParams.DMS("EXT-X-MEDIA.*?URI=.([^""]+)"".*?TYPE=""AUDIO""", 1, EDP.ReturnValue)
         Private ReadOnly REGEX_PLS_FILES As RParams = RParams.DM("EXT-X-MAP:URI=""([^""]+)""|EXTINF.+?[\r\n]{1,2}(.+)", 0, RegexReturn.List, EDP.ReturnValue)
@@ -37,20 +38,24 @@ Namespace API.JustForFans
         Private ReadOnly ProgressPre As PreProgress
         Private ReadOnly ProgressExists As Boolean
         Private ReadOnly UsePreProgress As Boolean
+        Private Property Token As CancellationToken
 #End Region
 #Region "Initializer"
         Private Sub New(ByVal m As UserMedia, ByVal Destination As SFile, ByVal Resp As Responser, ByVal _Thrower As Plugin.IThrower,
-                        ByVal _Progress As MyProgress, ByVal _UsePreProgress As Boolean)
+                        ByVal _Progress As MyProgress, ByVal _UsePreProgress As Boolean, ByVal _Token As CancellationToken)
             Media = m
             DataVideo = New List(Of String)
             DataAudio = New List(Of String)
             DestinationFile = Destination
             Thrower = _Thrower
-            Responser = Resp
+            'Responser = Resp
+            Responser = New Responser
+            ResponserInternal = True
             Progress = _Progress
             ProgressExists = Not Progress Is Nothing
             If ProgressExists Then ProgressPre = New PreProgress(Progress)
             UsePreProgress = _UsePreProgress
+            Token = _Token
             Cache = New CacheKeeper($"{DestinationFile.PathWithSeparator}_{M3U8Base.TempCacheFolderName}\")
             With Cache
                 .CacheDeleteError = CacheDeletionError(Cache)
@@ -101,49 +106,15 @@ Namespace API.JustForFans
                 If Not r.IsEmptyString Then
                     Dim data As List(Of RegexMatchStruct) = RegexFields(Of RegexMatchStruct)(r, {REGEX_PLS_FILES}, {1, 2}, EDP.ReturnValue)
                     If data.ListExists Then
-                        Dim appender$ = URL.Replace(URL.Split("/").LastOrDefault, String.Empty)
-                        With (From d As RegexMatchStruct In data
-                              Where Not d.Arr(0).IfNullOrEmpty(d.Arr(1)).IsEmptyString
-                              Select M3U8Base.CreateUrl(appender, d.Arr(0).IfNullOrEmpty(d.Arr(1)))).ToList
-                            If .ListExists Then
-                                File = $"{Cache.RootDirectory.PathWithSeparator}{IIf(IsAudio, "AUDIO.aac", "VIDEO.mp4")}"
-                                Dim tmpCache As CacheKeeper = Cache.NewInstance
-                                Dim tmpFile As SFile = .Item(0)
-                                If tmpFile.Extension.IsEmptyString Then tmpFile.Extension = "ts"
-                                tmpFile.Path = tmpCache.RootDirectory.Path
-                                tmpFile.Separator = "\"
-
-                                Dim cFile As SFile = tmpFile
-                                cFile.Name = "all"
-
-                                tmpCache.Validate()
-
-                                Using bat As New TextSaver
-                                    Using b As New BatchExecutor(True) With {.Encoding = Settings.CMDEncoding}
-                                        AddHandler b.OutputDataReceived, AddressOf Batch_OutputDataReceived
-                                        bat.AppendLine($"chcp {BatchExecutor.UnicodeEncoding}")
-                                        bat.AppendLine(BatchExecutor.GetDirectoryCommand(tmpCache))
-                                        ProgressChangeMax(.Count * 2 + 1)
-                                        For i = 0 To .Count - 1
-                                            tmpFile.Name = $"ConPart_{i}"
-                                            Thrower.ThrowAny()
-                                            Responser.DownloadFile(.Item(i), tmpFile)
-                                            ProgressPerform()
-                                            tmpCache.AddFile(tmpFile, True)
-                                            bat.AppendLine($"type {tmpFile.File} >> {cFile.File}")
-                                        Next
-
-                                        bat.AppendLine($"""{Settings.FfmpegFile}"" -i {cFile.File} -c copy ""{File}""")
-
-                                        Dim batFile As SFile = bat.SaveAs($"{tmpCache.RootDirectory.PathWithSeparator}command.bat")
-
-                                        b.Execute($"""{batFile}""")
-
-                                        If Not File.Exists Then File = Nothing
-                                    End Using
-                                End Using
-                            End If
-                        End With
+                        File = $"{Cache.RootDirectory.PathWithSeparator}{IIf(IsAudio, "AUDIO.aac", "VIDEO.mp4")}"
+                        Using b As New TokenBatch(Token) With {.Encoding = Settings.CMDEncoding, .MainProcessName = "ffmpeg"}
+                            AddHandler b.ErrorDataReceived, AddressOf Batch_OutputDataReceived
+                            ProgressChangeMax(data.Count)
+                            b.ChangeDirectory(Cache.RootDirectory)
+                            b.Execute($"""{Settings.FfmpegFile}"" -i {URL} -vcodec copy -strict -2 ""{File}""")
+                            Token.ThrowIfCancellationRequested()
+                            If Not File.Exists Then File = Nothing
+                        End Using
                     End If
                 End If
             Catch oex As OperationCanceledException
@@ -155,8 +126,72 @@ Namespace API.JustForFans
                                         $"API.JustForFans.M3U8.GetFiles({IIf(IsAudio, "audio", "video")}):{vbCr}URL: {URL}{vbCr}File: {File}")
             End Try
         End Sub
+        'TODELETE: JFF.M3U8.GetFiles_OLD 20231008
+        'Private Sub GetFiles_OLD(ByVal URL As String, ByRef File As SFile, ByVal IsAudio As Boolean)
+        '    Try
+        '        Dim r$ = Responser.GetResponse(URL)
+        '        If Not r.IsEmptyString Then
+        '            Dim data As List(Of RegexMatchStruct) = RegexFields(Of RegexMatchStruct)(r, {REGEX_PLS_FILES}, {1, 2}, EDP.ReturnValue)
+        '            If data.ListExists Then
+        '                Dim appender$ = URL.Replace(URL.Split("/").LastOrDefault, String.Empty)
+        '                With (From d As RegexMatchStruct In data
+        '                      Where Not d.Arr(0).IfNullOrEmpty(d.Arr(1)).IsEmptyString
+        '                      Select M3U8Base.CreateUrl(appender, d.Arr(0).IfNullOrEmpty(d.Arr(1)).Trim)).ToList
+        '                    If .ListExists Then
+        '                        File = $"{Cache.RootDirectory.PathWithSeparator}{IIf(IsAudio, "AUDIO.aac", "VIDEO.mp4")}"
+        '                        Dim tmpCache As CacheKeeper = Cache.NewInstance
+        '                        Dim tmpFile As SFile = .Item(0)
+        '                        If tmpFile.Extension.IsEmptyString Then tmpFile.Extension = "ts"
+        '                        tmpFile.Path = tmpCache.RootDirectory.Path
+        '                        tmpFile.Separator = "\"
+
+        '                        Dim cFile As SFile = tmpFile
+        '                        cFile.Name = "all"
+
+        '                        tmpCache.Validate()
+
+        '                        Using bat As New TextSaver
+        '                            Using b As New BatchExecutor(True) With {.Encoding = Settings.CMDEncoding}
+        '                                AddHandler b.OutputDataReceived, AddressOf Batch_OutputDataReceived
+        '                                bat.AppendLine($"chcp {BatchExecutor.UnicodeEncoding}")
+        '                                bat.AppendLine(BatchExecutor.GetDirectoryCommand(tmpCache))
+        '                                ProgressChangeMax(.Count * 2 + 1)
+        '                                Using w As New WebClient
+        '                                    For i = 0 To .Count - 1
+        '                                        tmpFile.Name = $"ConPart_{i}"
+        '                                        Thrower.ThrowAny()
+        '                                        'Responser.DownloadFile(.Item(i), tmpFile)
+        '                                        w.DownloadFile(.Item(i), tmpFile)
+        '                                        ProgressPerform()
+        '                                        tmpCache.AddFile(tmpFile, True)
+        '                                        bat.AppendLine($"type {tmpFile.File} >> {cFile.File}")
+        '                                    Next
+        '                                End Using
+
+        '                                bat.AppendLine($"""{Settings.FfmpegFile}"" -i {cFile.File} -c copy ""{File}""")
+
+        '                                Dim batFile As SFile = bat.SaveAs($"{tmpCache.RootDirectory.PathWithSeparator}command.bat")
+
+        '                                b.Execute($"""{batFile}""")
+
+        '                                If Not File.Exists Then File = Nothing
+        '                            End Using
+        '                        End Using
+        '                    End If
+        '                End With
+        '            End If
+        '        End If
+        '    Catch oex As OperationCanceledException
+        '        Throw oex
+        '    Catch dex As ObjectDisposedException
+        '        Throw dex
+        '    Catch ex As Exception
+        '        ErrorsDescriber.Execute(EDP.SendToLog + EDP.ThrowException, ex,
+        '                                $"API.JustForFans.M3U8.GetFiles({IIf(IsAudio, "audio", "video")}):{vbCr}URL: {URL}{vbCr}File: {File}")
+        '    End Try
+        'End Sub
         Private Async Sub Batch_OutputDataReceived(ByVal Sender As Object, ByVal e As DataReceivedEventArgs)
-            Await Task.Run(Sub() ProgressPerform())
+            Await Task.Run(Sub() If Not e.Data.IsEmptyString AndAlso e.Data.Contains("] Opening") Then ProgressPerform())
         End Sub
         Private Sub MergeFiles()
             Try
@@ -194,8 +229,8 @@ Namespace API.JustForFans
 #End Region
 #Region "Static Download"
         Friend Shared Function Download(ByVal Media As UserMedia, ByVal DestinationFile As SFile, ByVal Resp As Responser, ByVal Thrower As Plugin.IThrower,
-                                        ByVal Progress As MyProgress, ByVal UsePreProgress As Boolean) As SFile
-            Using m As New M3U8(Media, DestinationFile, Resp, Thrower, Progress, UsePreProgress)
+                                        ByVal Progress As MyProgress, ByVal UsePreProgress As Boolean, ByVal _Token As CancellationToken) As SFile
+            Using m As New M3U8(Media, DestinationFile, Resp, Thrower, Progress, UsePreProgress, _Token)
                 m.Download()
                 If m.DestinationFile.Exists Then Return m.DestinationFile Else Return Nothing
             End Using
@@ -210,6 +245,7 @@ Namespace API.JustForFans
                     DataAudio.Clear()
                     ProgressPre.DisposeIfReady
                     Cache.Dispose()
+                    If ResponserInternal Then Responser.DisposeIfReady
                 End If
                 disposedValue = True
             End If

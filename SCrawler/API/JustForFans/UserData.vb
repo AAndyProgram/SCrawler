@@ -168,7 +168,8 @@ Namespace API.JustForFans
 #Region "Initializer"
         Friend Sub New()
             UseInternalM3U8Function = True
-            UseResponserClient = True
+            'TODELETE: UseResponserClient 20231008
+            'UseResponserClient = True
         End Sub
 #End Region
 #Region "Download functions"
@@ -176,10 +177,13 @@ Namespace API.JustForFans
         Private _Limit As Integer = -1
         Private FileSerialInstance As FileSerial
         Private _UserHash4 As String = String.Empty
+        Private Sub InitializeFileSerial()
+            If FileSerialInstance Is Nothing Then FileSerialInstance = New FileSerial(DownloadContentDefault_GetRootDir())
+        End Sub
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
             Try
                 _UserHash4 = MySettings.UserHash4.Value
-                FileSerialInstance = New FileSerial(DownloadContentDefault_GetRootDir())
+                InitializeFileSerial()
                 Responser.Cookies.Changed = False
                 If Not ResponserNoHandlers Is Nothing Then ResponserNoHandlers.Dispose() : ResponserNoHandlers = Nothing
                 ResponserNoHandlers = Responser.Copy
@@ -233,7 +237,7 @@ Namespace API.JustForFans
 
                                 Select Case CheckDatesLimit(post.PostDate, Nothing)
                                     Case DateResult.Skip : Continue For
-                                    Case DateResult.Exit : Exit Sub
+                                    Case DateResult.Exit : If post.Pinned Then Continue For Else Exit Sub
                                 End Select
 
                                 _DownloadedPostsCount += 1
@@ -290,8 +294,14 @@ Namespace API.JustForFans
             Dim rList As New List(Of Integer)
             Try
                 If ContentMissingExists Then
+                    InitializeFileSerial()
                     Dim r$
                     Dim m As UserMedia
+                    Dim stateRefill As Func(Of UserMedia, Integer, UserMedia) = Function(ByVal input As UserMedia, ii As Integer) As UserMedia
+                                                                                    input.State = UserMedia.States.Missing
+                                                                                    input.Attempts = m.Attempts
+                                                                                    Return input
+                                                                                End Function
                     Dim p As PostBlock
                     Dim rErr As New ErrorsDescriber(EDP.ReturnValue)
                     For i% = 0 To _ContentList.Count - 1
@@ -304,7 +314,7 @@ Namespace API.JustForFans
                                     If .ListExists Then
                                         rList.Add(i)
                                         For Each p In .Self
-                                            If p.Valid Then _TempMediaList.ListAddList(p.GetUserMedia(FileSerialInstance), LNC)
+                                            If p.Valid Then _TempMediaList.ListAddList(p.GetUserMedia(FileSerialInstance).ListForEachCopy(stateRefill, True), LNC)
                                         Next
                                     End If
                                 End With
@@ -327,7 +337,7 @@ Namespace API.JustForFans
             DownloadContentDefault(Token)
         End Sub
         Protected Overrides Function DownloadM3U8(ByVal URL As String, ByVal Media As UserMedia, ByVal DestinationFile As SFile, ByVal Token As CancellationToken) As SFile
-            Return M3U8.Download(Media, DestinationFile, ResponserNoHandlers, Me, Progress, Not IsSingleObjectDownload)
+            Return M3U8.Download(Media, DestinationFile, ResponserNoHandlers, Me, Progress, Not IsSingleObjectDownload, Token)
         End Function
 #End Region
 #Region "DownloadSingleObject"

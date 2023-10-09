@@ -392,7 +392,8 @@ Namespace API.Twitter
         End Sub
 #End Region
 #Region "Obtain media"
-        Private Sub ObtainMedia(ByVal e As EContainer, ByVal PostID As String, ByVal PostDate As String, Optional ByVal State As UStates = UStates.Unknown)
+        Private Sub ObtainMedia(ByVal e As EContainer, ByVal PostID As String, ByVal PostDate As String, Optional ByVal State As UStates = UStates.Unknown,
+                                Optional ByVal Attempts As Integer = 0)
             Dim s As EContainer = e({"extended_entities", "media"})
             If If(s?.Count, 0) = 0 Then s = e({"retweeted_status", "extended_entities", "media"})
             If If(s?.Count, 0) = 0 Then s = e({"retweeted_status_result", "result", "legacy", "extended_entities", "media"})
@@ -406,7 +407,7 @@ Namespace API.Twitter
                             Dim dName$ = UrlFile(mUrl)
                             If Not dName.IsEmptyString AndAlso Not _DataNames.Contains(dName) Then
                                 _DataNames.Add(dName)
-                                _TempMediaList.ListAddValue(MediaFromData(mUrl, PostID, PostDate, GetPictureOption(m), State, UTypes.Picture), LNC)
+                                _TempMediaList.ListAddValue(MediaFromData(mUrl, PostID, PostDate, GetPictureOption(m), State, UTypes.Picture, Attempts), LNC)
                             End If
                         End If
                     End If
@@ -712,7 +713,7 @@ Namespace API.Twitter
                                                                     If .ListExists Then
                                                                         PostDate = String.Empty
                                                                         If .Contains("created_at") Then PostDate = .Value("created_at") Else PostDate = String.Empty
-                                                                        ObtainMedia(.Self, m.Post.ID, PostDate, UStates.Missing)
+                                                                        ObtainMedia(.Self, m.Post.ID, PostDate, UStates.Missing, m.Attempts)
                                                                         rList.ListAddValue(i, LNC)
                                                                     End If
                                                                 End With
@@ -804,7 +805,8 @@ Namespace API.Twitter
         Private Function MediaFromData(ByVal _URL As String, ByVal PostID As String, ByVal PostDate As String,
                                        Optional ByVal _PictureOption As String = Nothing,
                                        Optional ByVal State As UStates = UStates.Unknown,
-                                       Optional ByVal Type As UTypes = UTypes.Undefined) As UserMedia
+                                       Optional ByVal Type As UTypes = UTypes.Undefined,
+                                       Optional ByVal Attempts As Integer = 0) As UserMedia
             _URL = LinkFormatterSecure(RegexReplace(_URL.Replace("\", String.Empty), LinkPattern))
             Dim m As New UserMedia(_URL) With {.PictureOption = _PictureOption, .Post = New UserPost With {.ID = PostID}, .Type = Type}
             If Not m.URL.IsEmptyString Then m.File = CStr(RegexReplace(m.URL, FilesPattern))
@@ -813,6 +815,7 @@ Namespace API.Twitter
             End If
             If Not PostDate.IsEmptyString Then m.Post.Date = AConvert(Of Date)(PostDate, Declarations.DateProvider, Nothing) Else m.Post.Date = Nothing
             m.State = State
+            m.Attempts = Attempts
             Return m
         End Function
 #End Region

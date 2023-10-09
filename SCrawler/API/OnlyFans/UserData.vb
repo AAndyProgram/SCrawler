@@ -380,6 +380,11 @@ Namespace API.OnlyFans
             Try
                 If ContentMissingExists Then
                     Dim m As UserMedia
+                    Dim stateRefill As Func(Of UserMedia, Integer, UserMedia) = Function(ByVal input As UserMedia, ii As Integer) As UserMedia
+                                                                                    input.State = UStates.Missing
+                                                                                    input.Attempts = m.Attempts
+                                                                                    Return input
+                                                                                End Function
                     Dim mList As List(Of UserMedia)
                     Dim mediaResult As Boolean
                     Dim r$, path$, postDate$
@@ -402,7 +407,7 @@ Namespace API.OnlyFans
                                             mediaResult = False
                                             mList = TryCreateMedia(j, m.Post.ID, postDate, mediaResult)
                                             If mediaResult Then
-                                                _TempMediaList.ListAddList(mList, LNC)
+                                                _TempMediaList.ListAddList(mList.ListForEachCopy(stateRefill, True), LNC)
                                                 rList.Add(i)
                                                 mList.Clear()
                                             End If

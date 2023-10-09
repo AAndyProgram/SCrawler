@@ -17,6 +17,7 @@ Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Tools.Web.Clients
 Imports PersonalUtilities.Tools.Web.Documents.JSON
 Imports UTypes = SCrawler.API.Base.UserMedia.Types
+Imports UStates = SCrawler.API.Base.UserMedia.States
 Namespace API.Instagram
     Friend Class UserData : Inherits UserDataBase
 #Region "XML Names"
@@ -665,7 +666,8 @@ Namespace API.Instagram
         Protected DefaultParser_IgnorePass As Boolean = False
         Protected DefaultParser_PostUrlCreator As Func(Of PostKV, String) = Function(post) $"https://www.instagram.com/p/{post.Code}/"
         Protected Function DefaultParser(ByVal Items As IEnumerable(Of EContainer), ByVal Section As Sections, ByVal Token As CancellationToken,
-                                         Optional ByVal SpecFolder As String = Nothing) As Boolean
+                                         Optional ByVal SpecFolder As String = Nothing, Optional ByVal State As UStates = UStates.Unknown,
+                                         Optional ByVal Attempts As Integer = 0) As Boolean
             ThrowAny(Token)
             If Items.Count > 0 Then
                 Dim PostIDKV As PostKV
@@ -699,7 +701,7 @@ Namespace API.Instagram
                                 End Select
                             End If
                             before = _TempMediaList.Count
-                            ObtainMedia(.Self, PostIDKV.ID, SpecFolder, PostDate,, PostOriginUrl)
+                            ObtainMedia(.Self, PostIDKV.ID, SpecFolder, PostDate,, PostOriginUrl, State, Attempts)
                             If Not before = _TempMediaList.Count Then _TotalPostsParsed += 1
                             If _Limit > 0 And _TotalPostsParsed >= _Limit Then Return False
                         End If
@@ -737,7 +739,8 @@ Namespace API.Instagram
         Protected ObtainMedia_AllowAbstract As Boolean = False
         Protected Sub ObtainMedia(ByVal n As EContainer, ByVal PostID As String, Optional ByVal SpecialFolder As String = Nothing,
                                   Optional ByVal DateObj As String = Nothing, Optional ByVal InitialType As Integer = -1,
-                                  Optional ByVal PostOriginUrl As String = Nothing)
+                                  Optional ByVal PostOriginUrl As String = Nothing,
+                                  Optional ByVal State As UStates = UStates.Unknown, Optional ByVal Attempts As Integer = 0)
             Try
                 Dim wrongData As Predicate(Of Sizes) = Function(_ss) _ss.HasError Or _ss.Data.IsEmptyString
                 Dim img As Predicate(Of EContainer) = Function(_img) Not _img.Name.IsEmptyString AndAlso _img.Name.StartsWith("image_versions") AndAlso _img.Count > 0
@@ -798,7 +801,7 @@ Namespace API.Instagram
                                                 If l.Count > 0 Then l.RemoveAll(wrongData)
                                                 If l.Count > 0 Then
                                                     l.Sort()
-                                                    _TempMediaList.ListAddValue(MediaFromData(UTypes.Picture, l.First.Data, PostID, DateObj, SpecialFolder, PostOriginUrl), LNC)
+                                                    _TempMediaList.ListAddValue(MediaFromData(UTypes.Picture, l.First.Data, PostID, DateObj, SpecialFolder, PostOriginUrl, State, Attempts), LNC)
                                                     l.Clear()
                                                 End If
                                             End If
@@ -815,7 +818,7 @@ Namespace API.Instagram
                                             If l.Count > 0 Then l.RemoveAll(wrongData)
                                             If l.Count > 0 Then
                                                 l.Sort()
-                                                _TempMediaList.ListAddValue(MediaFromData(UTypes.Video, l.First.Data, PostID, DateObj, SpecialFolder, PostOriginUrl), LNC)
+                                                _TempMediaList.ListAddValue(MediaFromData(UTypes.Video, l.First.Data, PostID, DateObj, SpecialFolder, PostOriginUrl, State, Attempts), LNC)
                                                 l.Clear()
                                             End If
                                         End If
@@ -1049,12 +1052,14 @@ Namespace API.Instagram
 #End Region
 #Region "Create media"
         Private Function MediaFromData(ByVal t As UTypes, ByVal _URL As String, ByVal PostID As String, ByVal PostDate As String,
-                                       Optional ByVal SpecialFolder As String = Nothing, Optional ByVal PostOriginUrl As String = Nothing) As UserMedia
+                                       Optional ByVal SpecialFolder As String = Nothing, Optional ByVal PostOriginUrl As String = Nothing,
+                                       Optional ByVal State As UStates = UStates.Unknown, Optional ByVal Attempts As Integer = 0) As UserMedia
             _URL = LinkFormatterSecure(RegexReplace(_URL.Replace("\", String.Empty), LinkPattern))
             Dim m As New UserMedia(_URL, t) With {.URL_BASE = PostOriginUrl.IfNullOrEmpty(_URL), .Post = New UserPost With {.ID = PostID}}
             If Not m.URL.IsEmptyString Then m.File = CStr(RegexReplace(m.URL, FilesPattern))
             If Not PostDate.IsEmptyString Then m.Post.Date = AConvert(Of Date)(PostDate, UnixDate32Provider, Nothing) Else m.Post.Date = Nothing
             m.SpecialFolder = SpecialFolder
+            If State = UStates.Missing Then m.State = UStates.Missing : m.Attempts = Attempts
             Return m
         End Function
 #End Region

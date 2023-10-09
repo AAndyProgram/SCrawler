@@ -190,7 +190,8 @@ Namespace API.Mastodon
                 ProcessException(ex, Token, $"data downloading error{IIf(IsSavedPosts, " (Saved Posts)", String.Empty)} [{URL}]")
             End Try
         End Sub
-        Private Sub ObtainMedia(ByVal e As EContainer, ByVal PostID As String, ByVal PostDate As String, Optional ByVal BaseUrl As String = Nothing)
+        Private Sub ObtainMedia(ByVal e As EContainer, ByVal PostID As String, ByVal PostDate As String, Optional ByVal BaseUrl As String = Nothing,
+                                Optional ByVal SourceMedia As UserMedia = Nothing)
             Dim t As UTypes = UTypes.Undefined
             Select Case e.Value("type")
                 Case "video" : t = UTypes.Video
@@ -207,7 +208,13 @@ Namespace API.Mastodon
                         If Not GifsSpecialFolder.IsEmptyString Then m.SpecialFolder = GifsSpecialFolder
                         If Not GifsPrefix.IsEmptyString Then m.File.Name = $"{GifsPrefix}{m.File.Name}"
                     End If
-                    If Not m.URL.IsEmptyString Then _TempMediaList.ListAddValue(m, LNC)
+                    If Not m.URL.IsEmptyString Then
+                        If SourceMedia.State = UStates.Missing Then
+                            m.State = UStates.Missing
+                            m.Attempts = SourceMedia.Attempts
+                        End If
+                        _TempMediaList.ListAddValue(m, LNC)
+                    End If
                 End If
             End If
         End Sub
@@ -261,7 +268,7 @@ Namespace API.Mastodon
                                     If Not j Is Nothing Then
                                         PostDate = String.Empty
                                         If j.Contains("created_at") Then PostDate = j("created_at").Value Else PostDate = String.Empty
-                                        ObtainMedia(j, m.Post.ID, PostDate, m.URL_BASE)
+                                        ObtainMedia(j, m.Post.ID, PostDate, m.URL_BASE, m)
                                         rList.Add(i)
                                         j.Dispose()
                                     End If

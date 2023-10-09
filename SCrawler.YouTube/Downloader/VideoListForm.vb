@@ -343,8 +343,12 @@ Namespace DownloadObjects.STDownloader
             ControlInvoke(TOOLBAR_TOP, BTT_STOP, Sub() BTT_STOP.Enabled = False, EDP.SendToLog)
             MyJob.Cancel()
         End Sub
+#Region "Delete / Clear"
         Private Sub BTT_DELETE_Click(sender As Object, e As EventArgs) Handles BTT_DELETE.Click
             RemoveControls(ControlsChecked, True)
+        End Sub
+        Private Sub BTT_CLEAR_SELECTED_Click(sender As Object, e As EventArgs) Handles BTT_CLEAR_SELECTED.Click
+            RemoveControls(ControlsChecked, False)
         End Sub
         Protected Overridable Sub BTT_CLEAR_DONE_Click(sender As Object, e As EventArgs) Handles BTT_CLEAR_DONE.Click
             RemoveControls(ControlsDownloaded, False)
@@ -352,6 +356,7 @@ Namespace DownloadObjects.STDownloader
         Protected Overridable Sub BTT_CLEAR_ALL_Click(sender As Object, e As EventArgs) Handles BTT_CLEAR_ALL.Click
             RemoveControls(, False)
         End Sub
+#End Region
         Private Sub BTT_LOG_Click(sender As Object, e As EventArgs) Handles BTT_LOG.Click
             MyMainLOG_ShowForm(DesignXML,,,, AddressOf UpdateLogButton)
         End Sub

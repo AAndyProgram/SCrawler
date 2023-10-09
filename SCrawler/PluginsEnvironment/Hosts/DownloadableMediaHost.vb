@@ -41,6 +41,11 @@ Namespace Plugin.Hosts
                 FileSetManually = True
             End Set
         End Property
+        Public Overrides Sub Delete(ByVal RemoveFiles As Boolean)
+            MyBase.Delete(RemoveFiles)
+            If Not RemoveFiles And Not Settings.STDownloader_SnapshotsKeepWithFiles And Settings.STDownloader_SnapShotsCachePermamnent Then _
+               ThumbnailFile.Delete(SFO.File, SFODelete.DeleteToRecycleBin, EDP.None)
+        End Sub
         Friend Sub New(ByVal URL As String, ByVal OutputFile As SFile)
             Me.URL = URL
             Me.File = OutputFile

@@ -877,6 +877,8 @@ Namespace API.Reddit
                                                     For li = IIf(lastCount < 0, 0, lastCount) To _TempMediaList.Count - 1
                                                         m2 = _TempMediaList(i)
                                                         m2.Post.Date = m.Post.Date
+                                                        m2.State = UStates.Missing
+                                                        m2.Attempts = m.Attempts
                                                         _TempMediaList(i) = m2
                                                     Next
                                                 End If
