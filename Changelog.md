@@ -1,3 +1,29 @@
+# 2023.10.10.0
+
+*2023-10-10*
+
+- Added
+  - Notification if the user has disabled downloading from the site
+  - Standalone downloader: new setting `Create URL files`
+  - Changed the sessions naming method to be more intuitive
+  - Settings that allow the user to change the number of saved session (`Settings` - `Feed` - `Store session data`)
+  - **YouTube: new settings `Create URL files` and `Create description files`**
+  - YouTube: added the `Clear selected` button
+  - YouTube: group the `Clear and remove` buttons in the menu
+- Fixed
+  - Reddit: unable to save settings without OAuth data
+  - JustForFans: rewritten m3u8 downloader
+  - JustForFans: downloading of missing posts
+  - JustForFans: download to the date
+  - JustForFans: corrupted files
+  - Threads: new token is not saved if it was received during download
+  - ThisVid: parsing stops when new videos are added
+  - YouTube: file name is missing when destination is changed by selecting one of the saved locations
+  - YouTube: missing files still appear in the list
+  - Collections: labels are removed when creating a new collection
+  - Standalone downloader: cached thumbnail is not removed when item is removed from the list
+  - Minor bugs
+
 # 2023.10.1.0
 
 *2023-10-01*

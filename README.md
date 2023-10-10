@@ -4,6 +4,7 @@
 
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/AAndyProgram/SCrawler)](https://github.com/AAndyProgram/SCrawler/releases/latest)
 [![GitHub license](https://img.shields.io/github/license/AAndyProgram/SCrawler)](https://github.com/AAndyProgram/SCrawler/blob/main/LICENSE)
+[![Discord](https://img.shields.io/discord/1124032649682493462?logo=discord)](https://discord.gg/uFNUXvFFmg)
 [![GitHub all releases](https://img.shields.io/github/downloads/aandyprogram/scrawler/total?label=Total%20downloads)](https://github.com/AAndyProgram/SCrawler/releases)
 [![FAQ](https://img.shields.io/badge/FAQ-green)](FAQ.md)
 [![GUIDE](https://img.shields.io/badge/GUIDE-green)](https://github.com/AAndyProgram/SCrawler/wiki)
