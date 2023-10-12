@@ -180,7 +180,7 @@ Namespace API.ThisVid
 #Region "Initializer"
         Friend Sub New()
             UseClientTokens = True
-            PagePosts = New List(Of String)
+            SessionPosts = New List(Of String)
         End Sub
 #End Region
 #Region "Validation"
@@ -224,10 +224,10 @@ Namespace API.ThisVid
         End Function
 #End Region
 #Region "Download functions"
-        Private ReadOnly PagePosts As List(Of String)
+        Private ReadOnly SessionPosts As List(Of String)
         Private AddedCount As Integer = 0
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
-            PagePosts.Clear()
+            SessionPosts.Clear()
             AddedCount = 0
             Responser.Cookies.ChangedAllowInternalDrop = False
             Responser.Cookies.Changed = False
@@ -289,6 +289,7 @@ Namespace API.ThisVid
                 ProgressPre.Perform()
                 Dim r$ = Responser.GetResponse(URL)
                 Dim cBefore% = _TempMediaList.Count
+                Dim prevPostsFound As Boolean = False, newPostsFound As Boolean = False
                 If Not r.IsEmptyString Then
                     Dim __SpecialFolder$ = If(DifferentFolders And Not IsSavedPosts And IsUser,
                                               Interaction.Switch(Model = 0, "Public", Model = 1, "Private", Model = 2, "Favourite"),
@@ -301,20 +302,22 @@ Namespace API.ThisVid
                                     _TempPostsList.Add(u)
                                     _TempMediaList.Add(New UserMedia(u) With {.Type = UserMedia.Types.VideoPre, .SpecialFolder = __SpecialFolder})
                                     AddedCount += 1
+                                    newPostsFound = True
                                     If limit > 0 And AddedCount >= limit Then Exit Sub
-                                ElseIf PagePosts.Count > 0 AndAlso PagePosts.Contains(u) Then
+                                ElseIf SessionPosts.Count > 0 AndAlso SessionPosts.Contains(u) Then
+                                    prevPostsFound = True
                                     Continue For
                                 Else
                                     Exit Sub
                                 End If
                             End If
                         Next
-                        PagePosts.Clear()
-                        PagePosts.AddRange(l)
+                        SessionPosts.ListAddList(l, LNC)
                         l.Clear()
                     End If
                 End If
-                If Not cBefore = _TempMediaList.Count And (IsUser Or Page < 1000) Then DownloadData(Page + 1, Model, Token)
+                If (Not IsUser And prevPostsFound And Not newPostsFound And Page < 1000) Or
+                   (Not cBefore = _TempMediaList.Count And (IsUser Or Page < 1000)) Then DownloadData(Page + 1, Model, Token)
             Catch aex As ArgumentNullException When aex.HelpLink = 1
             Catch ex As Exception
                 ProcessException(ex, Token, $"videos downloading error [{URL}]")
@@ -548,7 +551,7 @@ Namespace API.ThisVid
 #End Region
 #Region "IDisposable Support"
         Protected Overrides Sub Dispose(ByVal disposing As Boolean)
-            If Not disposedValue And disposing Then PagePosts.Clear()
+            If Not disposedValue And disposing Then SessionPosts.Clear()
             MyBase.Dispose(disposing)
         End Sub
 #End Region
