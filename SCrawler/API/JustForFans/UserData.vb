@@ -297,7 +297,7 @@ Namespace API.JustForFans
                     InitializeFileSerial()
                     Dim r$
                     Dim m As UserMedia
-                    Dim stateRefill As Func(Of UserMedia, Integer, UserMedia) = Function(ByVal input As UserMedia, ii As Integer) As UserMedia
+                    Dim stateRefill As Func(Of UserMedia, Integer, UserMedia) = Function(ByVal input As UserMedia, ByVal ii As Integer) As UserMedia
                                                                                     input.State = UserMedia.States.Missing
                                                                                     input.Attempts = m.Attempts
                                                                                     Return input

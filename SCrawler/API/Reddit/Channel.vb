@@ -18,7 +18,7 @@ Imports Period = SCrawler.API.Reddit.IRedditView.Period
 Namespace API.Reddit
     Friend Class Channel : Implements ICollection(Of UserPost), IEquatable(Of Channel), IComparable(Of Channel),
             IRangeSwitcherContainer(Of UserPost), ILoaderSaver, IMyEnumerator(Of UserPost), IChannelLimits, IRedditView, IDisposable
-#Region "XML Nodes' Names"
+#Region "XML Names"
         Private Const Name_Name As String = "Name"
         Private Const Name_ID As String = "ID"
         Private Const Name_Date As String = "Date"
@@ -88,10 +88,14 @@ Namespace API.Reddit
         End Property
         Friend Property ViewMode As View = View.New Implements IRedditView.ViewMode
         Friend Property ViewPeriod As Period = Period.All Implements IRedditView.ViewPeriod
+        Friend Property RedGifsAccount As String = String.Empty Implements IRedditView.RedGifsAccount
+        Friend Property RedditAccount As String = String.Empty Implements IRedditView.RedditAccount
         Friend Sub SetView(ByVal Options As IRedditView) Implements IRedditView.SetView
             If Not Options Is Nothing Then
                 ViewMode = Options.ViewMode
                 ViewPeriod = Options.ViewPeriod
+                RedditAccount = Options.RedditAccount
+                RedGifsAccount = Options.RedGifsAccount
             End If
         End Sub
 #Region "Statistics support"
@@ -215,7 +219,17 @@ Namespace API.Reddit
         End Sub
         Friend Property AutoGetLimits As Boolean = True Implements IChannelLimits.AutoGetLimits
 #End Region
+        Private _HOST As SettingsHost
         Friend ReadOnly Property HOST As SettingsHost
+            Get
+                _HOST = Settings(RedditSiteKey, RedditAccount)
+                If _HOST Is Nothing Then
+                    MyMainLOG = $"Reddit account '{RedditAccount}' for channel '{Name}' not found in the accounts. The default account will be used."
+                    _HOST = Settings(RedditSiteKey).Default
+                End If
+                Return _HOST
+            End Get
+        End Property
         Friend Sub New()
             Posts = New List(Of UserPost)
             PostsLatest = New List(Of UserPost)
@@ -223,7 +237,6 @@ Namespace API.Reddit
             CountOfAddedUsers = New List(Of Integer)
             CountOfLoadedPostsPerSession = New List(Of Integer)
             ChannelExistentUserNames = New List(Of String)
-            HOST = Settings(RedditSiteKey)
         End Sub
         Friend Sub New(ByVal f As SFile)
             Me.New
@@ -350,6 +363,8 @@ Namespace API.Reddit
                         ID = x.Value(Name_ID)
                         ViewMode = x.Value(Name_ViewMode).FromXML(Of Integer)(CInt(View.[New]))
                         ViewPeriod = x.Value(Name_ViewPeriod).FromXML(Of Integer)(CInt(Period.All))
+                        RedGifsAccount = x.Value(Name_RedGifsAccount)
+                        RedditAccount = x.Value(Name_RedditAccount)
                         If FilePosts.Exists Then PostsNames.ListAddList(FilePosts.GetText.StringToList(Of String)("|"), LNC)
                         LatestParsedDate = AConvert(Of Date)(x.Value(Name_Date), DateTimeDefaultProvider, Nothing)
                         CountOfAddedUsers.ListAddList(x.Value(Name_UsersAdded).StringToList(Of Integer)("|"), lc)
@@ -388,6 +403,8 @@ Namespace API.Reddit
                     x.Add(Name_UsersAdded, CountOfAddedUsers.ListToString("|"))
                     x.Add(Name_PostsDownloaded, CountOfLoadedPostsPerSession.ListToString("|"))
                     x.Add(Name_UsersExistent, ChannelExistentUserNames.ListToString("|"))
+                    x.Add(Name_RedGifsAccount, RedGifsAccount)
+                    x.Add(Name_RedditAccount, RedditAccount)
                     If Posts.Count > 0 Or PostsLatest.Count > 0 Then
                         Dim tmpPostList As List(Of UserPost) = Nothing
                         tmpPostList.ListAddList(Posts).ListAddList(PostsLatest)

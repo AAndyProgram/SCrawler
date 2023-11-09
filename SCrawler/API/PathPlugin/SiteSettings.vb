@@ -12,19 +12,8 @@ Imports SCrawler.Plugin.Attributes
 Namespace API.PathPlugin
     <Manifest(PluginKey)>
     Friend Class SiteSettings : Inherits SiteSettingsBase
-        Private ReadOnly _Icon As Icon = Nothing
-        Friend Overrides ReadOnly Property Icon As Icon
-            Get
-                Return _Icon
-            End Get
-        End Property
-        Friend Overrides ReadOnly Property Image As Image
-            Get
-                Return PersonalUtilities.My.Resources.FolderOpenPic_Orange_16
-            End Get
-        End Property
         Friend Sub New()
-            MyBase.New(PluginName)
+            MyBase.New(PluginName,, PersonalUtilities.My.Resources.FolderOpenPic_Orange_16)
             _Icon = PersonalUtilities.Tools.ImageRenderer.GetIcon(PersonalUtilities.My.Resources.FolderOpenPic_Orange_16, EDP.ReturnValue)
         End Sub
         Friend Overrides Function GetInstance(ByVal What As ISiteSettings.Download) As IPluginContentProvider

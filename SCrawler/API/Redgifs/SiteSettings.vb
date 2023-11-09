@@ -18,33 +18,23 @@ Namespace API.RedGifs
     <Manifest(RedGifsSiteKey)>
     Friend Class SiteSettings : Inherits SiteSettingsBase
 #Region "Declarations"
-        Friend Overrides ReadOnly Property Icon As Icon
-            Get
-                Return My.Resources.SiteResources.RedGifsIcon_32
-            End Get
-        End Property
-        Friend Overrides ReadOnly Property Image As Image
-            Get
-                Return My.Resources.SiteResources.RedGifsPic_32
-            End Get
-        End Property
-        <PropertyOption(ControlToolTip:="Bearer token", AllowNull:=False), DependentFields(NameOf(UserAgent)), ControlNumber(1)>
+        <PropertyOption(ControlToolTip:="Bearer token", AllowNull:=False), DependentFields(NameOf(UserAgent)), ControlNumber(1), PClonable(Clone:=False)>
         Friend ReadOnly Property Token As PropertyValue
-        <PropertyOption, ControlNumber(2)>
+        <PropertyOption, ControlNumber(2), PClonable>
         Private ReadOnly Property UserAgent As PropertyValue
         <PXML> Friend ReadOnly Property TokenLastDateUpdated As PropertyValue
         Private Const TokenName As String = "authorization"
 #Region "TokenUpdateInterval"
         <PropertyOption(ControlText:="Token refresh interval", ControlToolTip:="Interval (in minutes) to refresh the token", AllowNull:=False, LeftOffset:=120),
-            PXML, ControlNumber(0)>
+            PXML, ControlNumber(0), PClonable>
         Friend ReadOnly Property TokenUpdateInterval As PropertyValue
         <Provider(NameOf(TokenUpdateInterval), FieldsChecker:=True)>
         Private ReadOnly Property TokenUpdateIntervalProvider As IFormatProvider
 #End Region
 #End Region
 #Region "Initializer"
-        Friend Sub New()
-            MyBase.New(RedGifsSite, "redgifs.com")
+        Friend Sub New(ByVal AccName As String, ByVal Temp As Boolean)
+            MyBase.New(RedGifsSite, "redgifs.com", AccName, Temp, My.Resources.SiteResources.RedGifsIcon_32, My.Resources.SiteResources.RedGifsPic_32)
             Dim t$ = String.Empty
             With Responser
                 .Mode = Responser.Modes.WebClient

@@ -18,27 +18,15 @@ Imports Download = SCrawler.Plugin.ISiteSettings.Download
 Namespace API.Reddit
     <Manifest(RedditSiteKey), SavedPosts, SpecialForm(False)>
     Friend Class SiteSettings : Inherits SiteSettingsBase
-#Region "Icons"
-        Friend Overrides ReadOnly Property Icon As Icon
-            Get
-                Return My.Resources.SiteResources.RedditIcon_128
-            End Get
-        End Property
-        Friend Overrides ReadOnly Property Image As Image
-            Get
-                Return My.Resources.SiteResources.RedditPic_512
-            End Get
-        End Property
-#End Region
 #Region "Declarations"
 #Region "Authorization"
-        <PropertyOption(ControlText:="Login", ControlToolTip:="Your authorization username", IsAuth:=True), PXML>
+        <PropertyOption(ControlText:="Login", ControlToolTip:="Your authorization username", IsAuth:=True), PXML, PClonable(Clone:=False)>
         Friend ReadOnly Property AuthUserName As PropertyValue
-        <PropertyOption(ControlText:="Password", ControlToolTip:="Your authorization password", IsAuth:=True), PXML>
+        <PropertyOption(ControlText:="Password", ControlToolTip:="Your authorization password", IsAuth:=True), PXML, PClonable(Clone:=False)>
         Friend ReadOnly Property AuthPassword As PropertyValue
-        <PropertyOption(ControlText:="Client ID", ControlToolTip:="Your registered app client ID", IsAuth:=True), PXML>
+        <PropertyOption(ControlText:="Client ID", ControlToolTip:="Your registered app client ID", IsAuth:=True), PXML, PClonable(Clone:=False)>
         Friend ReadOnly Property ApiClientID As PropertyValue
-        <PropertyOption(ControlText:="Client Secret", ControlToolTip:="Your registered app client secret", IsAuth:=True), PXML>
+        <PropertyOption(ControlText:="Client Secret", ControlToolTip:="Your registered app client secret", IsAuth:=True), PXML, PClonable(Clone:=False)>
         Friend ReadOnly Property ApiClientSecret As PropertyValue
         <PropertyOption(ControlText:="Bearer token",
                         ControlToolTip:="Bearer token (can be null)." & vbCr &
@@ -48,29 +36,29 @@ Namespace API.Reddit
         Friend ReadOnly Property BearerToken As PropertyValue
 #Region "TokenUpdateInterval"
         <PropertyOption(ControlText:="Token refresh interval", ControlToolTip:="Interval (in minutes) to refresh the token",
-                        AllowNull:=False, LeftOffset:=120, IsAuth:=True), PXML>
+                        AllowNull:=False, LeftOffset:=120, IsAuth:=True), PXML, PClonable>
         Friend ReadOnly Property TokenUpdateInterval As PropertyValue
         <Provider(NameOf(TokenUpdateInterval), FieldsChecker:=True)>
         Private ReadOnly Property TokenUpdateIntervalProvider As IFormatProvider
 #End Region
-        <PXML> Private ReadOnly Property BearerTokenDateUpdate As PropertyValue
-        <PropertyOption(ControlText:="Use the token to download the timeline", IsAuth:=True), PXML>
+        <PXML, PClonable> Private ReadOnly Property BearerTokenDateUpdate As PropertyValue
+        <PropertyOption(ControlText:="Use the token to download the timeline", IsAuth:=True), PXML, PClonable>
         Friend ReadOnly Property UseTokenForTimelines As PropertyValue
-        <PropertyOption(ControlText:="Use the token to download saved posts", IsAuth:=True), PXML>
+        <PropertyOption(ControlText:="Use the token to download saved posts", IsAuth:=True), PXML, PClonable>
         Friend ReadOnly Property UseTokenForSavedPosts As PropertyValue
-        <PropertyOption(ControlText:="Use cookies to download the timeline", IsAuth:=True), PXML>
+        <PropertyOption(ControlText:="Use cookies to download the timeline", IsAuth:=True), PXML, PClonable>
         Friend ReadOnly Property UseCookiesForTimelines As PropertyValue
-        <PropertyOption(ControlText:=DeclaredNames.SavedPostsUserNameCaption, ControlToolTip:=DeclaredNames.SavedPostsUserNameToolTip, IsAuth:=True), PXML>
+        <PropertyOption(ControlText:=DeclaredNames.SavedPostsUserNameCaption, ControlToolTip:=DeclaredNames.SavedPostsUserNameToolTip, IsAuth:=True), PXML, PClonable(Clone:=False)>
         Friend ReadOnly Property SavedPostsUserName As PropertyValue
 #End Region
 #Region "Other"
-        <PropertyOption(ControlText:="Use M3U8", ControlToolTip:="Use M3U8 or mp4 for Reddit videos", IsAuth:=False), PXML>
+        <PropertyOption(ControlText:="Use M3U8", ControlToolTip:="Use M3U8 or mp4 for Reddit videos", IsAuth:=False), PXML, PClonable>
         Friend ReadOnly Property UseM3U8 As PropertyValue
 #End Region
 #End Region
 #Region "Initializer"
-        Friend Sub New()
-            MyBase.New(RedditSite, "reddit.com")
+        Friend Sub New(ByVal AccName As String, ByVal Temp As Boolean)
+            MyBase.New(RedditSite, "reddit.com", AccName, Temp, My.Resources.SiteResources.RedditIcon_128, My.Resources.SiteResources.RedditPic_512)
 
             Dim token$
             With Responser
@@ -144,6 +132,7 @@ Namespace API.Reddit
         End Function
         Private Function AvailableImpl(ByVal What As Download, ByVal Silent As Boolean) As Boolean
             Try
+                AvailableText = String.Empty
                 Dim trueValue As Boolean = Not What = Download.SavedPosts OrElse (Responser.CookiesExists And ACheck(SavedPostsUserName.Value))
                 If Not trueValue Then Return False
                 Dim dl As List(Of DownDetector.Data) = DownDetector.GetData("reddit")
@@ -151,13 +140,13 @@ Namespace API.Reddit
                     dl = dl.Take(4).ToList
                     Dim avg% = dl.Average(Function(d) d.Value)
                     If avg > 100 Then
+                        AvailableText = "Over the past hour, Reddit has received an average of " &
+                                        avg.NumToString(New ANumbers With {.FormatOptions = ANumbers.Options.GroupIntegral}) & " outage reports:" & vbCr &
+                                        dl.ListToString(vbCr)
                         If Silent Then
                             Return False
                         Else
-                            If MsgBoxE({"Over the past hour, Reddit has received an average of " &
-                                        avg.NumToString(New ANumbers With {.FormatOptions = ANumbers.Options.GroupIntegral}) & " outage reports:" & vbCr &
-                                        dl.ListToString(vbCr) & vbCr & vbCr &
-                                        "Do you want to continue parsing Reddit data?", "There are outage reports on Reddit"}, vbYesNo) = vbYes Then
+                            If MsgBoxE({$"{AvailableText}{vbCr}{vbCr}Do you want to continue parsing Reddit data?", "There are outage reports on Reddit"}, vbYesNo) = vbYes Then
                                 If trueValue Then UpdateRedGifsToken()
                                 Return trueValue AndAlso UpdateTokenIfRequired()
                             Else
@@ -182,7 +171,7 @@ Namespace API.Reddit
             MyBase.DownloadDone(What)
         End Sub
         Private Sub UpdateRedGifsToken()
-            DirectCast(Settings(RedGifs.RedGifsSiteKey).Source, RedGifs.SiteSettings).UpdateTokenIfRequired()
+            Settings(RedGifs.RedGifsSiteKey).ListForEach(Sub(h, i) DirectCast(h.Source, RedGifs.SiteSettings).UpdateTokenIfRequired())
         End Sub
 #End Region
 #Region "IsMyUser, GetUserUrl, GetUserPostUrl"
@@ -212,7 +201,7 @@ Namespace API.Reddit
         Friend Overrides Sub UserOptions(ByRef Options As Object, ByVal OpenForm As Boolean)
             If Options Is Nothing OrElse Not TypeOf Options Is RedditViewExchange Then Options = New RedditViewExchange
             If OpenForm Then
-                Using f As New RedditViewSettingsForm(Options) : f.ShowDialog() : End Using
+                Using f As New RedditViewSettingsForm(Options, True) : f.ShowDialog() : End Using
             End If
         End Sub
 #End Region

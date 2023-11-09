@@ -15,32 +15,22 @@ Imports PersonalUtilities.Functions.RegularExpressions
 Namespace API.JustForFans
     <Manifest("AndyProgram_JustForFans"), SavedPosts, SeparatedTasks(1)>
     Friend Class SiteSettings : Inherits SiteSettingsBase
-        Friend Overrides ReadOnly Property Icon As Icon
-            Get
-                Return My.Resources.SiteResources.JFFIcon_64
-            End Get
-        End Property
-        Friend Overrides ReadOnly Property Image As Image
-            Get
-                Return My.Resources.SiteResources.JFFPic_76
-            End Get
-        End Property
         Friend Const UserHash4_CookieName As String = "userhash4"
-        <PropertyOption(ControlText:="User ID", AllowNull:=False), PXML>
+        <PropertyOption(ControlText:="User ID", AllowNull:=False), PXML, PClonable(Clone:=False)>
         Friend ReadOnly Property UserID As PropertyValue
-        <PropertyOption, PXML>
+        <PropertyOption, PXML, PClonable(Clone:=False)>
         Friend ReadOnly Property UserHash4 As PropertyValue
-        <PropertyOption(ControlText:="Accept", ControlToolTip:="Header 'Accept'")>
+        <PropertyOption(ControlText:="Accept", ControlToolTip:="Header 'Accept'"), PClonable>
         Friend ReadOnly Property HeaderAccept As PropertyValue
-        <PropertyOption> Friend ReadOnly Property UserAgent As PropertyValue
+        <PropertyOption, PClonable> Friend ReadOnly Property UserAgent As PropertyValue
         Private Sub UpdateHeader(ByVal HeaderName As String, ByVal HeaderValue As String)
             Select Case HeaderName
                 Case NameOf(HeaderAccept) : If HeaderValue.IsEmptyString Then Responser.Accept = Nothing Else Responser.Accept = HeaderValue
                 Case NameOf(UserAgent) : If Not HeaderValue.IsEmptyString Then Responser.UserAgent = HeaderValue
             End Select
         End Sub
-        Friend Sub New()
-            MyBase.New("JustForFans", "justfor.fans")
+        Friend Sub New(ByVal AccName As String, ByVal Temp As Boolean)
+            MyBase.New("JustForFans", "justfor.fans", AccName, Temp, My.Resources.SiteResources.JFFIcon_64, My.Resources.SiteResources.JFFPic_76)
 
             With Responser
                 .CookiesExtractMode = Responser.CookiesExtractModes.Any

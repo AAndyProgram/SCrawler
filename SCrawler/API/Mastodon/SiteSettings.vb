@@ -18,29 +18,34 @@ Namespace API.Mastodon
     <Manifest(MastodonSiteKey), SavedPosts, SpecialForm(True), SpecialForm(False)>
     Friend Class SiteSettings : Inherits SiteSettingsBase
 #Region "Declarations"
-        Friend Overrides ReadOnly Property Icon As Icon
-            Get
-                Return My.Resources.SiteResources.MastodonIcon_48
-            End Get
-        End Property
-        Friend Overrides ReadOnly Property Image As Image
-            Get
-                Return My.Resources.SiteResources.MastodonPic_48
-            End Get
-        End Property
 #Region "Domains"
-        <PXML("Domains")> Private ReadOnly Property SiteDomains As PropertyValue
-        Friend ReadOnly Property Domains As MastodonDomains
-        <PXML> Private ReadOnly Property DomainsLastUpdateDate As PropertyValue
+        <PXML("Domains"), PClonable> Private ReadOnly Property SiteDomains As PropertyValue
+        Private Shadows ReadOnly Property DefaultInstance As SiteSettings
+            Get
+                Return MyBase.DefaultInstance
+            End Get
+        End Property
+        Private ReadOnly _Domains As DomainsContainer
+        Friend ReadOnly Property Domains As DomainsContainer
+            Get
+                Return If(DefaultInstance?.Domains, _Domains)
+            End Get
+        End Property
+        <PXML("DomainsLastUpdateDate")> Private ReadOnly Property Base_DomainsLastUpdateDate As PropertyValue
+        Private ReadOnly Property DomainsLastUpdateDate As PropertyValue
+            Get
+                Return If(DefaultInstance?.DomainsLastUpdateDate, Base_DomainsLastUpdateDate)
+            End Get
+        End Property
 #End Region
 #Region "Auth"
         <PropertyOption(IsAuth:=True, AllowNull:=False, ControlText:="My domain",
-                        ControlToolTip:="Your account domain without 'https://' (for example, 'mastodon.social')"), PXML>
+                        ControlToolTip:="Your account domain without 'https://' (for example, 'mastodon.social')"), PXML, PClonable(Clone:=False)>
         Friend ReadOnly Property MyDomain As PropertyValue
         <PropertyOption(AllowNull:=False, IsAuth:=True, ControlText:="Authorization",
-                        ControlToolTip:="Set authorization from [authorization] response header. This field must start from [Bearer] key word")>
+                        ControlToolTip:="Set authorization from [authorization] response header. This field must start from [Bearer] key word"), PClonable(Clone:=False)>
         Friend ReadOnly Property Auth As PropertyValue
-        <PropertyOption(AllowNull:=False, IsAuth:=True, ControlText:="Token", ControlToolTip:="Set token from [x-csrf-token] response header")>
+        <PropertyOption(AllowNull:=False, IsAuth:=True, ControlText:="Token", ControlToolTip:="Set token from [x-csrf-token] response header"), PClonable(Clone:=False)>
         Friend ReadOnly Property Token As PropertyValue
         Private Sub ChangeResponserFields(ByVal PropName As String, ByVal Value As Object)
             If Not PropName.IsEmptyString Then
@@ -58,29 +63,29 @@ Namespace API.Mastodon
         End Sub
 #End Region
 #Region "Other properties"
-        <PropertyOption(IsAuth:=False, ControlText:=DN.GifsDownloadCaption), PXML>
+        <PropertyOption(IsAuth:=False, ControlText:=DN.GifsDownloadCaption), PXML, PClonable>
         Friend ReadOnly Property GifsDownload As PropertyValue
-        <PropertyOption(IsAuth:=False, ControlText:=DN.GifsSpecialFolderCaption, ControlToolTip:=DN.GifsSpecialFolderToolTip), PXML>
+        <PropertyOption(IsAuth:=False, ControlText:=DN.GifsSpecialFolderCaption, ControlToolTip:=DN.GifsSpecialFolderToolTip), PXML, PClonable>
         Friend ReadOnly Property GifsSpecialFolder As PropertyValue
-        <PropertyOption(IsAuth:=False, ControlText:=DN.GifsPrefixCaption, ControlToolTip:=DN.GifsPrefixToolTip), PXML>
+        <PropertyOption(IsAuth:=False, ControlText:=DN.GifsPrefixCaption, ControlToolTip:=DN.GifsPrefixToolTip), PXML, PClonable>
         Friend ReadOnly Property GifsPrefix As PropertyValue
         <Provider(NameOf(GifsSpecialFolder), Interaction:=True), Provider(NameOf(GifsPrefix), Interaction:=True)>
         Private ReadOnly Property GifStringChecker As IFormatProvider
-        <PropertyOption(IsAuth:=False, ControlText:=DN.UseMD5ComparisonCaption, ControlToolTip:=DN.UseMD5ComparisonToolTip), PXML>
+        <PropertyOption(IsAuth:=False, ControlText:=DN.UseMD5ComparisonCaption, ControlToolTip:=DN.UseMD5ComparisonToolTip), PXML, PClonable>
         Friend ReadOnly Property UseMD5Comparison As PropertyValue
         <PropertyOption(IsAuth:=False, ControlText:="User related to my domain",
-                        ControlToolTip:="Open user profiles and user posts through my domain."), PXML>
+                        ControlToolTip:="Open user profiles and user posts through my domain."), PXML, PClonable>
         Friend ReadOnly Property UserRelatedToMyDomain As PropertyValue
 #End Region
 #End Region
 #Region "Initializer"
-        Friend Sub New()
-            MyBase.New("Mastodon", "mastodon.social")
+        Friend Sub New(ByVal AccName As String, ByVal Temp As Boolean)
+            MyBase.New("Mastodon", "mastodon.social", AccName, Temp, My.Resources.SiteResources.MastodonIcon_48, My.Resources.SiteResources.MastodonPic_48)
 
-            Domains = New MastodonDomains(Me, "mastodon.social")
+            _Domains = New DomainsContainer(Me, "mastodon.social")
             SiteDomains = New PropertyValue(Domains.DomainsDefault, GetType(String))
             Domains.DestinationProp = SiteDomains
-            DomainsLastUpdateDate = New PropertyValue(Now.AddYears(-1))
+            Base_DomainsLastUpdateDate = New PropertyValue(Now.AddYears(-1))
 
             Auth = New PropertyValue(Responser.Headers.Value(DN.Header_Authorization), GetType(String), Sub(v) ChangeResponserFields(NameOf(Auth), v))
             Token = New PropertyValue(Responser.Headers.Value(DN.Header_CSRFToken), GetType(String), Sub(v) ChangeResponserFields(NameOf(Token), v))
@@ -182,20 +187,32 @@ Namespace API.Mastodon
 #End Region
 #Region "IsMyUser, IsMyImageVideo"
         Private Const UserRegexDefault As String = "https?://{0}/@([^/@]+)@?([^/]*)"
-        Friend Overrides Function IsMyUser(ByVal UserURL As String) As ExchangeOptions
+        Friend Overloads Overrides Function IsMyUser(ByVal UserURL As String) As ExchangeOptions
             If Domains.Count > 0 Then
-                Dim l As List(Of String)
+                Dim e As ExchangeOptions
+                If ACheck(MyDomain.Value) Then
+                    e = IsMyUser(UserURL, MyDomain.Value)
+                    If Not e.SiteName.IsEmptyString Then Return e
+                End If
                 For Each domain$ In Domains
-                    UserRegex.Pattern = String.Format(UserRegexDefault, domain)
-                    l = RegexReplace(UserURL, UserRegex)
-                    If l.ListExists(2) Then Return New ExchangeOptions(Site, $"{l(2).IfNullOrEmpty(domain)}@{l(1)}")
+                    e = IsMyUser(UserURL, domain)
+                    If Not e.SiteName.IsEmptyString Then Return e
                 Next
             End If
             Return Nothing
         End Function
+        Private Overloads Function IsMyUser(ByVal UserURL As String, ByVal Domain As String) As ExchangeOptions
+            UserRegex.Pattern = String.Format(UserRegexDefault, Domain)
+            Dim l As List(Of String) = RegexReplace(UserURL, UserRegex)
+            If l.ListExists(2) Then Return New ExchangeOptions(Site, $"{l(2).IfNullOrEmpty(Domain)}@{l(1)}") Else Return Nothing
+        End Function
         Friend Overrides Function IsMyImageVideo(ByVal URL As String) As ExchangeOptions
             If Not URL.IsEmptyString And Domains.Count > 0 Then
-                If Domains.Domains.Exists(Function(d) URL.Contains(d)) Then Return New ExchangeOptions(Site, URL) With {.Exists = True}
+                Dim urlDomain$ = RegexReplace(URL, RParams.DM("[^/]+", 1, EDP.ReturnValue, String.Empty))
+                If Not urlDomain.IsEmptyString Then
+                    urlDomain = urlDomain.StringToLower
+                    If Domains.Domains.Exists(Function(d) urlDomain = d.StringToLower) Then Return New ExchangeOptions(Site, URL) With {.Exists = True}
+                End If
             End If
             Return Nothing
         End Function
@@ -221,6 +238,12 @@ Namespace API.Mastodon
             Catch ex As Exception
                 ErrorsDescriber.Execute(EDP.SendToLog, ex, "[API.Mastodon.SiteSettings.UpdateServersList]")
             End Try
+        End Sub
+#End Region
+#Region "IDisposable Support"
+        Protected Overrides Sub Dispose(ByVal disposing As Boolean)
+            If Not disposedValue And disposing Then _Domains.Dispose()
+            MyBase.Dispose(disposing)
         End Sub
 #End Region
     End Class

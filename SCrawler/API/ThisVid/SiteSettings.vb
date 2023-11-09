@@ -16,31 +16,21 @@ Namespace API.ThisVid
     <Manifest(ThisVidSiteKey), SeparatedTasks(1), SpecialForm(False), SavedPosts>
     Friend Class SiteSettings : Inherits SiteSettingsBase
 #Region "Declarations"
-        Friend Overrides ReadOnly Property Icon As Icon
-            Get
-                Return My.Resources.SiteResources.ThisVidIcon_16
-            End Get
-        End Property
-        Friend Overrides ReadOnly Property Image As Image
-            Get
-                Return My.Resources.SiteResources.ThisVidPic_16
-            End Get
-        End Property
-        <PXML, PropertyOption(ControlText:="Public videos", ControlToolTip:="Download public videos")>
+        <PXML, PropertyOption(ControlText:="Public videos", ControlToolTip:="Download public videos"), PClonable>
         Friend ReadOnly Property DownloadPublic As PropertyValue
-        <PXML, PropertyOption(ControlText:="Private videos", ControlToolTip:="Download private videos")>
+        <PXML, PropertyOption(ControlText:="Private videos", ControlToolTip:="Download private videos"), PClonable>
         Friend ReadOnly Property DownloadPrivate As PropertyValue
-        <PXML, PropertyOption(ControlText:="Favourite videos", ControlToolTip:="Download favourite videos")>
+        <PXML, PropertyOption(ControlText:="Favourite videos", ControlToolTip:="Download favourite videos"), PClonable>
         Friend ReadOnly Property DownloadFavourite As PropertyValue
         <PXML, PropertyOption(ControlText:="Different folders",
                               ControlToolTip:="Use different folders to store video files." & vbCr &
                                               "If true, then public videos will be stored in the 'Public' folder, private - in the 'Private' folder." & vbCr &
-                                              "If false, all videos will be stored in the 'Video' folder.")>
+                                              "If false, all videos will be stored in the 'Video' folder."), PClonable>
         Friend ReadOnly Property DifferentFolders As PropertyValue
 #End Region
 #Region "Initializer"
-        Friend Sub New()
-            MyBase.New("ThisVid", "thisvid.com")
+        Friend Sub New(ByVal AccName As String, ByVal Temp As Boolean)
+            MyBase.New("ThisVid", "thisvid.com", AccName, Temp, My.Resources.SiteResources.ThisVidIcon_16, My.Resources.SiteResources.ThisVidPic_16)
             With Responser
                 .CookiesExtractMode = Responser.CookiesExtractModes.Any
                 .CookiesUpdateMode = CookieKeeper.UpdateModes.ReplaceByNameAll

@@ -15,31 +15,31 @@ Namespace API.XVIDEOS
     <Manifest(XvideosSiteKey), SavedPosts, SpecialForm(True), SpecialForm(False), TaskGroup(SettingsCLS.TaskStackNamePornSite)>
     Friend Class SiteSettings : Inherits SiteSettingsBase
 #Region "Declarations"
-        Friend Overrides ReadOnly Property Icon As Icon
+        <PXML("Domains"), PClonable> Private ReadOnly Property SiteDomains As PropertyValue
+        Private Shadows ReadOnly Property DefaultInstance As SiteSettings
             Get
-                Return My.Resources.SiteResources.XvideosIcon_48
+                Return MyBase.DefaultInstance
             End Get
         End Property
-        Friend Overrides ReadOnly Property Image As Image
-            Get
-                Return My.Resources.SiteResources.XvideosPic_32
-            End Get
-        End Property
-        <PXML("Domains")> Private ReadOnly Property SiteDomains As PropertyValue
+        Private ReadOnly _Domains As DomainsContainer
         Friend ReadOnly Property Domains As DomainsContainer
-        <PropertyOption(ControlText:="Download UHD", ControlToolTip:="Download UHD (4K) content"), PXML>
+            Get
+                Return If(DefaultInstance?.Domains, _Domains)
+            End Get
+        End Property
+        <PropertyOption(ControlText:="Download UHD", ControlToolTip:="Download UHD (4K) content"), PXML, PClonable>
         Friend Property DownloadUHD As PropertyValue
         <PropertyOption(ControlText:="Playlist of saved videos",
                         ControlToolTip:="Your personal videos playlist to download as 'saved posts'. " & vbCr &
                                         "This playlist must be private (Visibility = 'Only me'). It also required cookies." & vbCr &
                                         "This playlist must be entered by pattern: https://www.xvideos.com/favorite/01234567/playlistname.",
-                        LeftOffset:=130), PXML>
+                        LeftOffset:=130), PXML, PClonable(Clone:=False)>
         Friend ReadOnly Property SavedVideosPlaylist As PropertyValue
 #End Region
 #Region "Initializer"
-        Friend Sub New()
-            MyBase.New("XVIDEOS", "www.xvideos.com")
-            Domains = New DomainsContainer(Me, "xvideos.com|xnxx.com")
+        Friend Sub New(ByVal AccName As String, ByVal Temp As Boolean)
+            MyBase.New("XVIDEOS", "www.xvideos.com", AccName, Temp, My.Resources.SiteResources.XvideosIcon_48, My.Resources.SiteResources.XvideosPic_32)
+            _Domains = New DomainsContainer(Me, "xvideos.com|xnxx.com")
             SiteDomains = New PropertyValue(Domains.DomainsDefault, GetType(String))
             Domains.DestinationProp = SiteDomains
             DownloadUHD = New PropertyValue(False)
@@ -155,6 +155,12 @@ Namespace API.XVIDEOS
             If OpenForm Then
                 Using f As New InternalSettingsForm(Options, Me, False) : f.ShowDialog() : End Using
             End If
+        End Sub
+#End Region
+#Region "IDisposable Support"
+        Protected Overrides Sub Dispose(ByVal disposing As Boolean)
+            If Not disposedValue And disposing Then _Domains.Dispose()
+            MyBase.Dispose(disposing)
         End Sub
 #End Region
     End Class

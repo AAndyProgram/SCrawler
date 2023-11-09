@@ -25,7 +25,7 @@ Friend Class DownloadSavedPostsForm
         If Settings.Plugins.Count > 0 Then
             Dim j As TDownloader.Job
             For Each p As PluginHost In Settings.Plugins
-                If p.Settings.IsSavedPostsCompatible Then
+                If p.Settings.Default.IsSavedPostsCompatible Then
                     j = New TDownloader.Job(Plugin.ISiteSettings.Download.SavedPosts)
                     j.AddHost(p.Settings)
                     JobsList.Add(New DownloadProgress(j))

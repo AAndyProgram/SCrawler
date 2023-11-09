@@ -39,8 +39,8 @@ Namespace API.Gfycat
             If Not urlVideo.IsEmptyString Then
                 If urlVideo.Contains("redgifs.com") Then
                     _IsRedGifs = True
-                    DirectCast(Settings(RedGifs.RedGifsSiteKey).Source, RedGifs.SiteSettings).UpdateTokenIfRequired()
-                    Dim newData As IYouTubeMediaContainer = Settings(RedGifs.RedGifsSiteKey).GetSingleMediaInstance(urlVideo, Data.File)
+                    DirectCast(Settings(RedGifs.RedGifsSiteKey).Default.Source, RedGifs.SiteSettings).UpdateTokenIfRequired()
+                    Dim newData As IYouTubeMediaContainer = Settings(RedGifs.RedGifsSiteKey).Default.GetSingleMediaInstance(urlVideo, Data.File)
                     If Not newData Is Nothing Then
                         newData.Progress = Data.Progress
                         newData.Download(Data.UseCookies, Token)
@@ -49,7 +49,7 @@ Namespace API.Gfycat
                         With DirectCast(Data, YouTubeMediaContainerBase)
                             .Site = RedGifs.RedGifsSite
                             .SiteKey = RedGifs.RedGifsSiteKey
-                            .SiteIcon = Settings(RedGifs.RedGifsSiteKey).Source.Image
+                            .SiteIcon = Settings(RedGifs.RedGifsSiteKey).Default.Source.Image
                         End With
                     Else
                         Throw New Exception($"Unable to get RedGifs instance{vbCr}{Data.URL}{vbCr}{urlVideo}")

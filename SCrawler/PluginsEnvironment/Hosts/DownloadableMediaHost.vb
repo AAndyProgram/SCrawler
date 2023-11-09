@@ -53,7 +53,7 @@ Namespace Plugin.Hosts
         Friend Sub New(ByVal f As SFile)
             Load(f)
             If _Exists Then
-                Dim plugin As SettingsHost
+                Dim plugin As SettingsHostCollection
                 SiteIcon = Nothing
                 If Not MediaState = UserMediaStates.Downloaded Then
                     If Not SiteKey.IsEmptyString Then
@@ -66,7 +66,8 @@ Namespace Plugin.Hosts
                             If plugin Is Nothing Then
                                 _Exists = False
                             Else
-                                Instance = plugin.GetInstance(ISiteSettings.Download.SingleObject, Nothing, False, False)
+                                Instance = plugin(AccountName, True).GetInstance(ISiteSettings.Download.SingleObject, Nothing, False, False)
+                                Instance.AccountName = AccountName
                             End If
                         End If
                         If _Exists And Not Instance Is Nothing AndAlso Not Instance.HOST Is Nothing Then SiteIcon = Instance.HOST.Source.Image
@@ -76,8 +77,9 @@ Namespace Plugin.Hosts
                 Else
                     plugin = Settings(SiteKey)
                     If Not plugin Is Nothing Then
-                        Dim i As UserDataBase = plugin.GetInstance(ISiteSettings.Download.SingleObject, Nothing, False, False)
+                        Dim i As UserDataBase = plugin(AccountName, True).GetInstance(ISiteSettings.Download.SingleObject, Nothing, False, False)
                         If Not i Is Nothing Then
+                            i.AccountName = AccountName
                             If Not i.HOST.Source.Image Is Nothing Then
                                 SiteIcon = i.HOST.Source.Image
                             ElseIf Not i.HOST.Source.Icon Is Nothing Then
@@ -97,6 +99,7 @@ Namespace Plugin.Hosts
                     SiteIcon = .SiteIcon
                     Site = .Site
                     SiteKey = .SiteKey
+                    AccountName = .AccountName
                     _HasError = .HasError
                     _Exists = .Exists
                 End With
@@ -140,6 +143,7 @@ Namespace Plugin.Hosts
                 d.Size = s.Size
                 d.Duration = s.Duration
                 d.Checked = s.Checked
+                d.AccountName = s.AccountName
             End If
         End Sub
         Public Overrides Sub Load(ByVal f As SFile)

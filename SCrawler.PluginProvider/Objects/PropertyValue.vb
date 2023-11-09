@@ -11,6 +11,7 @@ Namespace Plugin
         Public Event ValueChanged As IPropertyValue.ValueChangedEventHandler Implements IPropertyValue.ValueChanged
         Public Property [Type] As Type Implements IPropertyValue.Type
         Public Property OnChangeFunction As IPropertyValue.ValueChangedEventHandler
+        Private _Initialization As Boolean = False
         ''' <inheritdoc cref="PropertyValue.New(Object, Type, ByRef IPropertyValue.ValueChangedEventHandler)"/>
         ''' <exception cref="ArgumentNullException"></exception>
         Public Sub New(ByVal InitValue As Object)
@@ -41,10 +42,25 @@ Namespace Plugin
             End Get
             Set(ByVal NewValue As Object)
                 _Value = NewValue
-                If Not OnChangeFunction Is Nothing Then OnChangeFunction.Invoke(Value)
-                RaiseEvent ValueChanged(_Value)
+                If Not _Initialization Then
+                    If Not OnChangeFunction Is Nothing Then OnChangeFunction.Invoke(Value)
+                    RaiseEvent ValueChanged(_Value)
+                End If
             End Set
         End Property
+        Public Sub BeginInit()
+            _Initialization = True
+        End Sub
+        Public Sub EndInit()
+            _Initialization = False
+        End Sub
+        Public Sub Clone(ByVal Source As PropertyValue)
+            _Initialization = True
+            Type = Source.Type
+            OnChangeFunction = Source.OnChangeFunction
+            _Value = Source._Value
+            _Initialization = False
+        End Sub
     End Class
     Public Interface IPropertyValue
         ''' <summary>Event for internal exchange</summary>

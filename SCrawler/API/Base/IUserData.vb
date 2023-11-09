@@ -50,6 +50,8 @@ Namespace API.Base
         Property Suspended As Boolean
         Property ReadyForDownload As Boolean
         Property HOST As SettingsHost
+        Property HostStatic As Boolean
+        Property AccountName As String
         Property [File] As SFile
         Property FileExists As Boolean
         Property DownloadedPictures(ByVal Total As Boolean) As Integer

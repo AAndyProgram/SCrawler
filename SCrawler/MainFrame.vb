@@ -22,6 +22,7 @@ Public Class MainFrame
     Private MyView As FormView
     Private WithEvents MyActivator As FormActivator
     Private WithEvents BTT_IMPORT_USERS As ToolStripMenuItem
+    Private WithEvents BTT_NEW_PROFILE As ToolStripMenuItem
     Friend MyChannels As ChannelViewForm
     Friend MySavedPosts As DownloadSavedPostsForm
     Private MyMissingPosts As MissingPostsForm
@@ -43,7 +44,10 @@ Public Class MainFrame
                 Next
             End If
         End With
-        BTT_IMPORT_USERS = New ToolStripMenuItem With {.Text = "Import", .Image = My.Resources.UsersIcon_32.ToBitmap}
+        BTT_IMPORT_USERS = New ToolStripMenuItem("Import", My.Resources.UsersIcon_32.ToBitmap)
+        BTT_NEW_PROFILE = New ToolStripMenuItem("Add new profile", My.Resources.PlusPic_24)
+        MENU_SETTINGS.DropDownItems.Insert(MENU_SETTINGS.DropDownItems.Count - 2, New ToolStripSeparator)
+        MENU_SETTINGS.DropDownItems.Insert(MENU_SETTINGS.DropDownItems.Count - 2, BTT_NEW_PROFILE)
         MENU_SETTINGS.DropDownItems.AddRange({New ToolStripSeparator, BTT_IMPORT_USERS})
         BTT_BUG_REPORT.Image = My.Resources.MailPic_16
     End Sub
@@ -87,7 +91,7 @@ Public Class MainFrame
         With LIST_PROFILES.Groups
             .AddRange(GetLviGroupName(Nothing, True)) 'collections
             If Settings.Plugins.Count > 0 Then
-                For Each h As SettingsHost In Settings.Plugins.Select(Function(hh) hh.Settings) : .AddRange(GetLviGroupName(h, False)) : Next
+                For Each h As SettingsHost In Settings.Plugins.Select(Function(hh) hh.Settings.Default) : .AddRange(GetLviGroupName(h, False)) : Next
             End If
             If Settings.Labels.Count > 0 Then Settings.Labels.ToList.ForEach(Sub(l) .Add(New ListViewGroup(l, l)))
             .Add(Settings.Labels.NoLabel)
@@ -311,6 +315,21 @@ CloseResume:
             If Not .FFMPEG.Value.Exists And Settings.FfmpegFile.Exists Then .FFMPEG.Value = Settings.FfmpegFile.File
             If .OutputPath.IsEmptyString And Not Settings.LatestSavingPath.IsEmptyString Then .OutputPath.Value = Settings.LatestSavingPath.Value
         End With
+    End Sub
+    Private Sub BTT_NEW_PROFILE_Click(sender As Object, e As EventArgs) Handles BTT_NEW_PROFILE.Click
+        Try
+            Using f As New SimpleListForm(Of PluginHost)(Settings.Plugins, Settings.Design) With {
+                .DesignXMLNodeName = "PluginsChooserForm",
+                .Mode = SimpleListFormModes.SelectedItems,
+                .MultiSelect = False,
+                .FormText = "Available plugins",
+                .Icon = My.Resources.SettingsIcon_48
+            }
+                If f.ShowDialog = DialogResult.OK AndAlso f.DataResult.Count > 0 Then f.DataResult.First.Settings.CreateAbstract()
+            End Using
+        Catch ex As Exception
+            ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "MainFrame.CreateNewProfile]")
+        End Try
     End Sub
     Private Sub BTT_IMPORT_USERS_Click(sender As Object, e As EventArgs) Handles BTT_IMPORT_USERS.Click
         Const MsgTitle$ = "Import users"
@@ -1662,8 +1681,8 @@ ResumeDownloadingOperation:
                         If user.IsCollection And Not user.CollectionName = f.CollectionName Then
                             If Not user.IsVirtual AndAlso Downloader.Working Then
                                 MsgBoxE({"Some users are currently downloading." & vbCr &
-                                             "You cannot change collection name while downloading." & vbCr &
-                                             "Wait until the download is complete.", MsgTitle}, vbCritical)
+                                         "You cannot change collection name while downloading." & vbCr &
+                                         "Wait until the download is complete.", MsgTitle}, vbCritical)
                                 Exit Sub
                             Else
                                 If Not user.IsVirtual Then

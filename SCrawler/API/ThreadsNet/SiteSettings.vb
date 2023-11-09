@@ -17,31 +17,20 @@ Namespace API.ThreadsNet
     <Manifest("AndyProgram_ThreadsNet"), SeparatedTasks(1)>
     Friend Class SiteSettings : Inherits SiteSettingsBase
 #Region "Declarations"
-        Friend Overrides ReadOnly Property Icon As Icon
-            Get
-                Return My.Resources.SiteResources.ThreadsIcon_192
-            End Get
-        End Property
-        Private ReadOnly _Image As Image
-        Friend Overrides ReadOnly Property Image As Image
-            Get
-                Return _Image
-            End Get
-        End Property
 #Region "Authorization"
-        <PropertyOption(ControlText:="x-csrftoken", AllowNull:=False)>
+        <PropertyOption(ControlText:="x-csrftoken", AllowNull:=False), PClonable(Clone:=False)>
         Friend ReadOnly Property HH_CSRF_TOKEN As PropertyValue
-        <PropertyOption(ControlText:="x-ig-app-id", AllowNull:=False)>
+        <PropertyOption(ControlText:="x-ig-app-id", AllowNull:=False), PClonable>
         Friend Property HH_IG_APP_ID As PropertyValue
-        <PropertyOption(ControlText:="x-asbd-id", AllowNull:=True)>
+        <PropertyOption(ControlText:="x-asbd-id", AllowNull:=True), PClonable>
         Friend Property HH_ASBD_ID As PropertyValue
-        <PropertyOption(ControlText:="sec-ch-ua", AllowNull:=True)>
+        <PropertyOption(ControlText:="sec-ch-ua", AllowNull:=True), PClonable>
         Private Property HH_BROWSER As PropertyValue
-        <PropertyOption(ControlText:="sec-ch-ua-full", ControlToolTip:="sec-ch-ua-full-version-list", AllowNull:=True)>
+        <PropertyOption(ControlText:="sec-ch-ua-full", ControlToolTip:="sec-ch-ua-full-version-list", AllowNull:=True), PClonable>
         Private Property HH_BROWSER_EXT As PropertyValue
-        <PropertyOption(ControlText:="sec-ch-ua-platform-ver", ControlToolTip:="sec-ch-ua-platform-version", AllowNull:=True, LeftOffset:=120)>
+        <PropertyOption(ControlText:="sec-ch-ua-platform-ver", ControlToolTip:="sec-ch-ua-platform-version", AllowNull:=True, LeftOffset:=120), PClonable>
         Private Property HH_PLATFORM As PropertyValue
-        <PropertyOption(ControlText:="UserAgent")>
+        <PropertyOption(ControlText:="UserAgent"), PClonable>
         Private ReadOnly Property HH_USER_AGENT As PropertyValue
         Private Sub ChangeResponserFields(ByVal PropName As String, ByVal Value As Object)
             If Not PropName.IsEmptyString Then
@@ -67,10 +56,9 @@ Namespace API.ThreadsNet
 #End Region
 #End Region
 #Region "Initializer"
-        Friend Sub New()
-            MyBase.New("Threads", "threads.net")
+        Friend Sub New(ByVal AccName As String, ByVal Temp As Boolean)
+            MyBase.New("Threads", "threads.net", AccName, Temp, My.Resources.SiteResources.ThreadsIcon_192, My.Resources.SiteResources.ThreadsIcon_192.ToBitmap)
             _AllowUserAgentUpdate = False
-            _Image = My.Resources.SiteResources.ThreadsIcon_192.ToBitmap
 
             Dim app_id$ = String.Empty
             Dim token$ = String.Empty

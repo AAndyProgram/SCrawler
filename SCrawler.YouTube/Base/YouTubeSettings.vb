@@ -35,6 +35,7 @@ Namespace API.YouTube.Base
         <Browsable(False)> Private Property Mode As GridUpdateModes = GridUpdateModes.OnConfirm Implements IGridValuesContainer.Mode
         <Browsable(False), XMLVV(-1)> Friend ReadOnly Property PlaylistFormSplitterDistance As XMLValue(Of Integer)
         <Browsable(False)> Friend ReadOnly Property DownloadLocations As DownloadLocationsCollection
+        <Browsable(False)> Public Overridable Property AccountName As String
 #Region "Environment"
 #Region "Programs"
         <Browsable(True), GridVisible(False), XMLVN({"Environment"}), Category("Environment programs"), DisplayName("Path to yt-dlp.exe"),
@@ -300,9 +301,17 @@ Namespace API.YouTube.Base
 #End Region
 #Region "Initializer"
         Public Sub New()
+            Me.New(String.Empty)
+        End Sub
+        Public Sub New(ByVal AccountName As String)
+            Me.AccountName = AccountName
             DownloadLocations = New DownloadLocationsCollection
             DownloadLocations.Load(False, True)
-            XML = New XmlFile(YouTubeSettingsFile,, False) With {.AutoUpdateFile = True}
+            Dim acc$ = String.Empty
+            If Not AccountName.IsEmptyString Then acc = $"_{AccountName}"
+            Dim f As SFile = YouTubeSettingsFile
+            f.Name &= acc
+            XML = New XmlFile(f,, False) With {.AutoUpdateFile = True}
             XML.LoadData(EDP.None)
             DesignXml = New XmlFile("Settings\DesignDownloader.xml", Protector.Modes.All, False)
             DesignXml.LoadData(EDP.None)
@@ -310,7 +319,9 @@ Namespace API.YouTube.Base
             AddHandler ShowNotificationsEveryDownload.TempValueChanged, AddressOf ShowNotificationsEveryDownload_TempValueChanged
             Cookies = New CookieKeeper
             Grid.Abstract.DesignerXmlSource.Add(New Grid.Abstract.DesignerXmlData(GetType(CookieListForm2), DesignXml, "CookiesListForm"))
-            If YouTubeCookieNetscapeFile.Exists Then Cookies.AddRange(CookieKeeper.ParseNetscapeText(YouTubeCookieNetscapeFile.GetText(EDP.ReturnValue), EDP.None),, EDP.None)
+            f = YouTubeCookieNetscapeFile
+            f.Name &= acc
+            If f.Exists Then Cookies.AddRange(CookieKeeper.ParseNetscapeText(f.GetText(EDP.ReturnValue), EDP.None),, EDP.None)
             If Not YTDLP.Value.Exists Then YTDLP.Value = ProgramPath("yt-dlp.exe")
             If Not FFMPEG.Value.Exists Then FFMPEG.Value = ProgramPath("ffmpeg.exe")
             If Not OutputPath.Value.Exists(SFO.Path, False) Then OutputPath.Value = YouTubeDownloadPathDefault

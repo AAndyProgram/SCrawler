@@ -6,16 +6,21 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
+Imports SCrawler.Plugin.Hosts
 Imports PersonalUtilities.Forms
+Imports PersonalUtilities.Forms.Controls
+Imports PersonalUtilities.Forms.Controls.Base
 Imports CView = SCrawler.API.Reddit.IRedditView.View
 Imports CPeriod = SCrawler.API.Reddit.IRedditView.Period
 Namespace API.Reddit
     Friend Class RedditViewSettingsForm
         Private WithEvents MyDefs As DefaultFormOptions
         Private ReadOnly Property MyOptions As IRedditView
-        Friend Sub New(ByRef opt As IRedditView)
+        Private ReadOnly Property IsUserSettings As Boolean
+        Friend Sub New(ByRef opt As IRedditView, ByVal _IsUserSettings As Boolean)
             InitializeComponent()
             MyOptions = opt
+            IsUserSettings = _IsUserSettings
             MyDefs = New DefaultFormOptions(Me, Settings.Design)
         End Sub
         Private Sub RedditViewSettingsForm_Load(sender As Object, e As EventArgs) Handles Me.Load
@@ -44,11 +49,51 @@ Namespace API.Reddit
                         Case Else : OPT_PERIOD_ALL.Checked = True
                     End Select
                     ChangePeriodEnabled()
+
+                    PopulateCMB(Settings(RedditSiteKey), CMB_REDDIT_ACC, MyOptions.RedditAccount)
+                    PopulateCMB(Settings(RedGifs.RedGifsSiteKey), CMB_REDGIFS_ACC, MyOptions.RedGifsAccount)
+                    If IsUserSettings Then
+                        TP_MAIN.Controls.Remove(CMB_REDDIT_ACC)
+                        TP_MAIN.RowStyles(2).Height = 0
+                        TP_MAIN.Refresh()
+                        Dim s As Size = Size
+                        s.Height -= 28
+                        MaximumSize = Nothing
+                        MinimumSize = Nothing
+                        Size = s
+                        MinimumSize = s
+                        MaximumSize = s
+                        Refresh()
+                    End If
+
                     .EndLoaderOperations()
                 End With
             Catch ex As Exception
                 MyDefs.InvokeLoaderError(ex)
             End Try
+        End Sub
+        Private Sub PopulateCMB(ByVal Plugin As SettingsHostCollection, ByRef CMB As ComboBoxExtended, ByVal Acc As String)
+            With CMB
+                Dim indx% = 0
+                .BeginUpdate()
+                If Plugin.Count = 1 Then
+                    .Text = SettingsHost.NameAccountNameDefault
+                    .LeaveDefaultButtons = False
+                    .Buttons.Clear()
+                    .Buttons.UpdateButtonsPositions(True)
+                    .CaptionWidth -= 1
+                Else
+                    Dim data As List(Of String) = Plugin.Select(Function(h) h.AccountName.IfNullOrEmpty(SettingsHost.NameAccountNameDefault)).ToList
+                    If Not Acc.IsEmptyString Then
+                        indx = data.IndexOf(Acc)
+                        If indx = -1 Then indx = 0
+                    End If
+                    .Items.AddRange(data.Select(Function(d) New ListItem(d)))
+                End If
+                .EndUpdate(True)
+                If .Count > 0 Then .SelectedIndex = indx
+                .Enabled = .Count > 1
+            End With
         End Sub
         Private Sub MyDefs_ButtonOkClick(ByVal Sender As Object, ByVal e As KeyHandleEventArgs) Handles MyDefs.ButtonOkClick
             With MyOptions
@@ -65,6 +110,8 @@ Namespace API.Reddit
                     Case OPT_PERIOD_YEAR.Checked : .ViewPeriod = CPeriod.Year
                     Case Else : .ViewPeriod = CPeriod.All
                 End Select
+                .RedGifsAccount = CMB_REDGIFS_ACC.Text
+                If Not IsUserSettings Then .RedditAccount = CMB_REDDIT_ACC.Text
             End With
             MyDefs.CloseForm()
         End Sub

@@ -13,27 +13,17 @@ Imports PersonalUtilities.Functions.RegularExpressions
 Namespace API.TikTok
     <Manifest("AndyProgram_TikTok"), SpecialForm(False), SeparatedTasks(1)>
     Friend Class SiteSettings : Inherits SiteSettingsBase
-        Friend Overrides ReadOnly Property Icon As Icon
-            Get
-                Return My.Resources.SiteResources.TikTokIcon_32
-            End Get
-        End Property
-        Friend Overrides ReadOnly Property Image As Image
-            Get
-                Return My.Resources.SiteResources.TikTokPic_192
-            End Get
-        End Property
-        <PropertyOption(ControlText:="Remove tags from title"), PXML>
+        <PropertyOption(ControlText:="Remove tags from title"), PXML, PClonable>
         Friend Property RemoveTagsFromTitle As PropertyValue
-        <PropertyOption(ControlText:="Use native title", ControlToolTip:="Use a user-created video title for the filename instead of the video ID."), PXML>
+        <PropertyOption(ControlText:="Use native title", ControlToolTip:="Use a user-created video title for the filename instead of the video ID."), PXML, PClonable>
         Friend Property TitleUseNative As PropertyValue
         <PropertyOption(ControlText:="Use native title in standalone downloader",
-                        ControlToolTip:="Use a user-created video title for the filename instead of the video ID."), PXML>
+                        ControlToolTip:="Use a user-created video title for the filename instead of the video ID."), PXML, PClonable>
         Friend Property TitleUseNativeSTD As PropertyValue
-        <PropertyOption(ControlText:="Add video ID to video title"), PXML>
+        <PropertyOption(ControlText:="Add video ID to video title"), PXML, PClonable>
         Friend Property TitleAddVideoID As PropertyValue
-        Friend Sub New()
-            MyBase.New("TikTok", "www.tiktok.com")
+        Friend Sub New(ByVal AccName As String, ByVal Temp As Boolean)
+            MyBase.New("TikTok", "www.tiktok.com", AccName, Temp, My.Resources.SiteResources.TikTokIcon_32, My.Resources.SiteResources.TikTokPic_192)
             RemoveTagsFromTitle = New PropertyValue(False)
             TitleUseNative = New PropertyValue(True)
             TitleUseNativeSTD = New PropertyValue(False)

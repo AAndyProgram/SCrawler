@@ -11,7 +11,7 @@ Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Tools
 Imports ADB = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons
 Namespace API.Base
-    Friend Class DomainsContainer : Implements IEnumerable(Of String), IMyEnumerator(Of String)
+    Friend Class DomainsContainer : Implements IEnumerable(Of String), IMyEnumerator(Of String), IDisposable
         Friend Event DomainsUpdated(ByVal Sender As DomainsContainer)
         Friend ReadOnly Property Domains As List(Of String)
         Friend ReadOnly Property DomainsTemp As List(Of String)
@@ -98,11 +98,33 @@ Namespace API.Base
                 End If
             End Using
         End Sub
+#Region "IEnumerable Support"
         Private Function GetEnumerator() As IEnumerator(Of String) Implements IEnumerable(Of String).GetEnumerator
             Return New MyEnumerator(Of String)(Me)
         End Function
         Private Function IEnumerable_GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
             Return GetEnumerator()
         End Function
+#End Region
+#Region "IDisposable Support"
+        Private disposedValue As Boolean = False
+        Protected Overridable Overloads Sub Dispose(ByVal disposing As Boolean)
+            If Not disposedValue Then
+                If disposing Then
+                    Domains.Clear()
+                    DomainsTemp.Clear()
+                End If
+                disposedValue = True
+            End If
+        End Sub
+        Protected Overrides Sub Finalize()
+            Dispose(False)
+            MyBase.Finalize()
+        End Sub
+        Friend Overloads Sub Dispose() Implements IDisposable.Dispose
+            Dispose(True)
+            GC.SuppressFinalize(Me)
+        End Sub
+#End Region
     End Class
 End Namespace

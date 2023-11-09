@@ -109,6 +109,7 @@ Namespace Editors
                         CH_ADD_MISSING_TO_LOG.Checked = .AddMissingToLog
                         CH_ADD_MISSING_ERROS_TO_LOG.Checked = .AddMissingErrorsToLog
                         CH_DOWN_REPARSE_MISSING.Checked = .ReparseMissingInTheRoutine
+                        CH_USE_DEF_ACC.Checked = .UseDefaultAccountIfMissing
                         'Downloading: file names
                         CH_FILE_NAME_CHANGE.Checked = Not .FileReplaceNameByDate.Value = FileNameReplaceMode.None
                         OPT_FILE_NAME_REPLACE.Checked = .FileReplaceNameByDate.Value = FileNameReplaceMode.Replace
@@ -278,6 +279,7 @@ Namespace Editors
                     .AddMissingToLog.Value = CH_ADD_MISSING_TO_LOG.Checked
                     .AddMissingErrorsToLog.Value = CH_ADD_MISSING_ERROS_TO_LOG.Checked
                     .ReparseMissingInTheRoutine.Value = CH_DOWN_REPARSE_MISSING.Checked
+                    .UseDefaultAccountIfMissing.Value = CH_USE_DEF_ACC.Checked
                     'Downloading: file names
                     If CH_FILE_NAME_CHANGE.Checked Then
                         .FileReplaceNameByDate.Value = If(OPT_FILE_NAME_REPLACE.Checked, FileNameReplaceMode.Replace, FileNameReplaceMode.Add)

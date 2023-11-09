@@ -15,7 +15,7 @@ Imports PersonalUtilities.Forms.Controls
 Imports PersonalUtilities.Forms.Controls.Base
 Imports ADB = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons
 Namespace Plugin.Hosts
-    Friend Class PropertyValueHost : Implements IPropertyValue, IComparable(Of PropertyValueHost)
+    Friend Class PropertyValueHost : Implements IPropertyValue, IComparable(Of PropertyValueHost), IDisposable
 #Region "Events"
         Private Event ValueChanged As IPropertyValue.ValueChangedEventHandler Implements IPropertyValue.ValueChanged
 #End Region
@@ -309,6 +309,36 @@ Namespace Plugin.Hosts
         Private Function CompareTo(ByVal Other As PropertyValueHost) As Integer Implements IComparable(Of PropertyValueHost).CompareTo
             Return ControlNumber.CompareTo(Other.ControlNumber)
         End Function
+#End Region
+#Region "IDisposable Support"
+        Protected disposedValue As Boolean = False
+        Protected Overridable Overloads Sub Dispose(ByVal disposing As Boolean)
+            If Not disposedValue Then
+                If disposing Then
+                    Source = Nothing
+                    Member = Nothing
+                    ProviderFieldsChecker = Nothing
+                    ProviderValue = Nothing
+                    PropertiesChecking = Nothing
+                    PropertiesCheckingMethod = Nothing
+                    UpdateMethod = Nothing
+                    UpdateMethodArguments = Nothing
+                    XValue.DisposeIfReady
+                    DisposeControl()
+                    DependentNames.Clear()
+                    Dependents.Clear()
+                End If
+                disposedValue = True
+            End If
+        End Sub
+        Protected Overrides Sub Finalize()
+            Dispose(False)
+            MyBase.Finalize()
+        End Sub
+        Friend Overloads Sub Dispose() Implements IDisposable.Dispose
+            Dispose(True)
+            GC.SuppressFinalize(Me)
+        End Sub
 #End Region
     End Class
 End Namespace

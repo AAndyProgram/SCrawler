@@ -154,7 +154,7 @@ Namespace DownloadObjects
 #Region "Working, Count"
         Friend ReadOnly Property Working As Boolean
             Get
-                Return Pool.Count > 0 AndAlso Pool.Exists(Function(j) j.Working)
+                Return _PoolReconfiguration Or (Pool.Count > 0 AndAlso Pool.Exists(Function(j) j.Working)) Or If(CheckerThread?.IsAlive, False)
             End Get
         End Property
         Friend ReadOnly Property Count As Integer
@@ -180,13 +180,13 @@ Namespace DownloadObjects
 #End Region
 #Region "Jobs"
         Friend Class Job : Inherits JobThread(Of IUserData)
-            Private ReadOnly Hosts As List(Of SettingsHost)
+            Private ReadOnly Hosts As List(Of SettingsHostCollection)
             Private ReadOnly Keys As List(Of String)
             Private ReadOnly RemovingKeys As List(Of String)
             Friend ReadOnly Property [Type] As Download
             Friend ReadOnly Property IsSeparated As Boolean
                 Get
-                    Return Hosts.Count = 1 AndAlso Hosts(0).IsSeparatedTasks
+                    Return Hosts.Count = 1 AndAlso Hosts(0).Default.IsSeparatedTasks
                 End Get
             End Property
             Friend ReadOnly Property Name As String
@@ -195,23 +195,28 @@ Namespace DownloadObjects
                 End Get
             End Property
             Friend ReadOnly Property GroupName As String
-            Friend ReadOnly Property TaskCount As Integer
+            Friend ReadOnly Property TaskCount(ByVal AccountName As String) As Integer
                 Get
-                    Return Hosts(0).TaskCount
+                    Return Hosts(0)(AccountName).TaskCount
                 End Get
             End Property
-            Friend ReadOnly Property Host As SettingsHost
+            Friend ReadOnly Property HostCollection As SettingsHostCollection
+                Get
+                    Return Hosts(0)
+                End Get
+            End Property
+            Friend ReadOnly Property Host(ByVal AccountName As String) As SettingsHost
                 Get
                     If Hosts.Count > 0 Then
                         Dim k$ = Hosts(0).Key
                         Dim i% = Settings.Plugins.FindIndex(Function(p) p.Key = k)
-                        If i >= 0 Then Return Settings.Plugins(i).Settings
+                        If i >= 0 Then Return Settings.Plugins(i).Settings(AccountName)
                     End If
                     Return Nothing
                 End Get
             End Property
             Friend Sub New(ByVal JobType As Download)
-                Hosts = New List(Of SettingsHost)
+                Hosts = New List(Of SettingsHostCollection)
                 RemovingKeys = New List(Of String)
                 Keys = New List(Of String)
                 [Type] = JobType
@@ -236,28 +241,41 @@ Namespace DownloadObjects
                 End With
                 Return False
             End Function
-            Friend Sub AddHost(ByRef h As SettingsHost)
+            Friend Sub AddHost(ByRef h As SettingsHostCollection)
                 Hosts.Add(h)
                 Keys.Add(h.Key)
             End Sub
             Friend Function UserHost(ByVal User As IUserData) As SettingsHost
                 Dim i% = Keys.IndexOf(DirectCast(User, UserDataBase).User.Plugin)
-                If i >= 0 Then Return Hosts(i) Else Throw New KeyNotFoundException($"Plugin key [{DirectCast(User, UserDataBase).User.Plugin}] not found")
+                If i >= 0 Then Return Hosts(i)(User.AccountName) Else Throw New KeyNotFoundException($"Plugin key [{DirectCast(User, UserDataBase).User.Plugin}] not found")
             End Function
             Friend Function Available(ByVal Silent As Boolean) As Boolean
                 If Hosts.Count > 0 Then
                     Dim k$
+                    Dim h As SettingsHostCollection
+                    Dim hList As IEnumerable(Of String)
                     For i% = Hosts.Count - 1 To 0 Step -1
-                        If Not Hosts(i).Available(Type, Silent) Then
-                            k = Hosts(i).Key
-                            If Not RemovingKeys.Contains(k) Then RemovingKeys.Add(k)
-                            Hosts(i).DownloadDone(Type)
-                            Hosts.RemoveAt(i)
-                            Keys.RemoveAt(i)
-                            If Items.Count > 0 Then Items.RemoveAll(Function(u) DirectCast(u, UserDataBase).HOST.Key = k)
+                        h = Hosts(i)
+                        k = h.Key
+                        hList = Nothing
+                        If Items.Count > 0 Then
+                            hList = (From u As UserDataBase In Items
+                                     Where u.HOST.Key = k
+                                     Select u.HOST.AccountName.IfNullOrEmpty(SettingsHost.NameAccountNameDefault)).Distinct
+                            If Not h.Available(Type, Silent,, hList, True) Then
+                                If Not RemovingKeys.Contains(k) Then RemovingKeys.Add(k)
+                                h.DownloadDone(Type)
+                                Hosts.RemoveAt(i)
+                                Keys.RemoveAt(i)
+                                If Items.Count > 0 Then Items.RemoveAll(Function(u) DirectCast(u, UserDataBase).HOST.Key = k)
+                            ElseIf h.CountUnavailable > 0 AndAlso Items.Count > 0 Then
+                                Items.RemoveAll(Function(u) DirectCast(u, UserDataBase).HOST.Key = k And Not h.AvailablePartial(u.AccountName))
+                            End If
+                        Else
+                            Hosts.Clear()
                         End If
                     Next
-                    Return Hosts.Count > 0
+                    Return Hosts.Count > 0 And Items.Count > 0
                 Else
                     Return False
                 End If
@@ -303,7 +321,12 @@ Namespace DownloadObjects
         End Sub
 #End Region
 #Region "Pool"
-        Friend Sub ReconfPool(Optional ByVal Round As Integer = 0)
+        Private _PoolReconfiguration As Boolean = False
+        Friend Overloads Sub ReconfPool()
+            _PoolReconfiguration = True
+            Try : ReconfPool(0) : Finally : _PoolReconfiguration = False : End Try
+        End Sub
+        Friend Overloads Sub ReconfPool(ByVal Round As Integer)
             Try
                 If Pool.Count = 0 OrElse Not Pool.Exists(Function(j) j.Working Or j.Count > 0) Then
                     Dim i%
@@ -311,16 +334,16 @@ Namespace DownloadObjects
                     If Settings.Plugins.Count > 0 Then
                         Pool.Add(New Job(Download.Main))
                         For Each p As PluginHost In Settings.Plugins
-                            If p.Settings.IsSeparatedTasks Then
+                            If p.Settings.Default.IsSeparatedTasks Then
                                 Pool.Add(New Job(Download.Main))
                                 Pool.Last.AddHost(p.Settings)
-                            ElseIf Not p.Settings.TaskGroupName.IsEmptyString Then
+                            ElseIf Not p.Settings.Default.TaskGroupName.IsEmptyString Then
                                 i = -1
-                                If Pool.Count > 0 Then i = Pool.FindIndex(Function(pt) pt.GroupName = p.Settings.TaskGroupName)
+                                If Pool.Count > 0 Then i = Pool.FindIndex(Function(pt) pt.GroupName = p.Settings.Default.TaskGroupName)
                                 If i >= 0 Then
                                     Pool(i).AddHost(p.Settings)
                                 Else
-                                    Pool.Add(New Job(Download.Main, p.Settings.TaskGroupName))
+                                    Pool.Add(New Job(Download.Main, p.Settings.Default.TaskGroupName))
                                     Pool.Last.AddHost(p.Settings)
                                 End If
                             Else
@@ -331,11 +354,7 @@ Namespace DownloadObjects
                     RaiseEvent Reconfigured()
                 End If
             Catch ex As Exception
-                If Round = 0 Then
-                    ReconfPool(Round + 1)
-                Else
-                    Throw ex
-                End If
+                If Round = 0 Then ReconfPool(Round + 1) Else Throw ex
             End Try
         End Sub
 #End Region
@@ -429,28 +448,58 @@ Namespace DownloadObjects
         Private Sub UpdateJobsLabel()
             RaiseEvent JobsChange(Count)
         End Sub
+        Friend Structure HostLimit
+            Friend Key As String
+            Friend Limit As Integer
+            Friend Value As Integer
+            Public Shared Widening Operator CType(ByVal Host As SettingsHost) As HostLimit
+                Return New HostLimit With {.Key = Host.KeyDownloader, .Limit = Host.TaskCount, .Value = 0}
+            End Operator
+            Friend Function [Next]() As HostLimit
+                Value += 1
+                Return Me
+            End Function
+            Public Overrides Function Equals(ByVal Obj As Object) As Boolean
+                Return Key = CType(Obj, HostLimit).Key
+            End Function
+        End Structure
         Private Sub DownloadData(ByRef _Job As Job, ByVal Token As CancellationToken)
             Try
                 If _Job.Count > 0 Then
                     Const nf As ANumbers.Formats = ANumbers.Formats.Number
                     Dim t As New List(Of Task)
                     Dim i% = 0
-                    Dim limit% = _Job.TaskCount
+                    Dim limit As HostLimit
+                    Dim limitIndex%
+                    Dim limits As New List(Of HostLimit)
                     Dim Keys As New List(Of String)
                     Dim h As Boolean = False
                     Dim host As SettingsHost = Nothing
+                    Dim hostAvailable As Boolean
                     For Each _Item As IUserData In _Job.Items
                         If Not _Item.Disposed Then
-                            Keys.Add(_Item.Key)
                             host = _Job.UserHost(_Item)
-                            If host.Source.ReadyToDownload(Download.Main) Then
-                                host.BeforeStartDownload(_Item, Download.Main)
-                                _Job.ThrowIfCancellationRequested()
-                                DirectCast(_Item, UserDataBase).Progress = _Job.Progress
-                                t.Add(Task.Run(Sub() _Item.DownloadData(Token)))
-                                RaiseEvent UserDownloadStateChanged(_Item, True)
-                                i += 1
-                                If i >= limit Then Exit For
+                            hostAvailable = DirectCast(_Item, UserDataBase).HostCollection.AvailablePartial(_Item.AccountName)
+                            Keys.Add(_Item.Key)
+                            If hostAvailable Then
+                                limit = host
+                                If Not limits.Contains(limit) Then
+                                    limits.Add(limit)
+                                    limitIndex = limits.Count - 1
+                                Else
+                                    limitIndex = limits.IndexOf(limit)
+                                    limit = limits(limitIndex)
+                                End If
+                                If host.Source.ReadyToDownload(Download.Main) Then
+                                    host.BeforeStartDownload(_Item, Download.Main)
+                                    _Job.ThrowIfCancellationRequested()
+                                    DirectCast(_Item, UserDataBase).Progress = _Job.Progress
+                                    t.Add(Task.Run(Sub() _Item.DownloadData(Token)))
+                                    RaiseEvent UserDownloadStateChanged(_Item, True)
+                                    limit = limit.Next
+                                    limits(limitIndex) = limit
+                                    If limit.Value >= limit.Limit Then Exit For
+                                End If
                             End If
                         End If
                     Next
@@ -470,6 +519,7 @@ Namespace DownloadObjects
                                     With _Job.Items(i)
                                         If DirectCast(.Self, UserDataBase).ContentMissingExists Then MissingPostsDetected = True
                                         RaiseEvent UserDownloadStateChanged(.Self, False)
+                                        host = _Job.UserHost(.Self)
                                         host.AfterDownload(.Self, Download.Main)
                                         If Not .Disposed AndAlso Not .IsCollection AndAlso .DownloadedTotal(False) > 0 Then
                                             If Not Downloaded.Contains(.Self) Then Downloaded.Add(Settings.GetUser(.Self))

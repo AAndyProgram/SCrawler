@@ -126,6 +126,7 @@ Namespace API.Base
 #Region "XML Declarations"
         Private Const Name_Site As String = UserInfo.Name_Site
         Private Const Name_Plugin As String = UserInfo.Name_Plugin
+        Private Const Name_AccountName As String = UserInfo.Name_AccountName
         Protected Const Name_IsChannel As String = "IsChannel"
         Friend Const Name_UserName As String = "UserName"
         Private Const Name_Model_User As String = UserInfo.Name_Model_User
@@ -171,7 +172,48 @@ Namespace API.Base
 #End Region
 #Region "Declarations"
 #Region "Host, Site, Progress"
+        Friend Property HostCollection As SettingsHostCollection
+        Private Function HostObtainCollection() As Boolean
+            If HostCollection Is Nothing Then
+                Dim k$ = If(_HOST?.Key, _HostKey)
+                If Not k.IsEmptyString Then HostCollection = Settings(k)
+            End If
+            Return Not HostCollection Is Nothing
+        End Function
+        Private _HOST As SettingsHost
+        Private _HostKey As String = String.Empty
+        Private _HostObtained As Boolean = False
         Friend Property HOST As SettingsHost Implements IUserData.HOST
+            Get
+                If _HostObtained Or HostStatic Then
+                    Return _HOST
+                ElseIf HostObtainCollection() Then
+                    _HOST = HostCollection(AccountName)
+                    _HostObtained = Not _HOST Is Nothing
+                    Return _HOST
+                Else
+                    Return Nothing
+                End If
+            End Get
+            Set(ByVal h As SettingsHost)
+                _HOST = h
+                _HostKey = h.Key
+            End Set
+        End Property
+        Private Sub ResetHost()
+            _HostObtained = False
+        End Sub
+        Friend Property HostStatic As Boolean = False Implements IUserData.HostStatic
+        Private _AccountName As String = String.Empty
+        Friend Overridable Property AccountName As String Implements IUserData.AccountName, IPluginContentProvider.AccountName
+            Get
+                Return _AccountName.IfNullOrEmpty(User.AccountName)
+            End Get
+            Set(ByVal name As String)
+                If Not _AccountName = name Then ResetHost()
+                _AccountName = name
+            End Set
+        End Property
         Friend ReadOnly Property Site As String Implements IUserData.Site
             Get
                 Return HOST.Name
@@ -845,6 +887,7 @@ BlockNullPicture:
         Friend Sub SetEnvironment(ByRef h As SettingsHost, ByVal u As UserInfo, ByVal _LoadUserInformation As Boolean,
                                   Optional ByVal AttachUserInfo As Boolean = True) Implements IUserData.SetEnvironment
             HOST = h
+            HostObtainCollection()
             If AttachUserInfo Then
                 User = u
                 If _LoadUserInformation Then LoadUserInformation()
@@ -853,7 +896,7 @@ BlockNullPicture:
         ''' <exception cref="ArgumentOutOfRangeException"></exception>
         Friend Shared Function GetInstance(ByVal u As UserInfo, Optional ByVal _LoadUserInformation As Boolean = True) As IUserData
             If Not u.Plugin.IsEmptyString Then
-                Return Settings(u.Plugin).GetInstance(ISiteSettings.Download.Main, u, _LoadUserInformation)
+                Return Settings(u.Plugin).Default.GetInstance(ISiteSettings.Download.Main, u, _LoadUserInformation)
             Else
                 Throw New ArgumentOutOfRangeException("Plugin", $"Plugin [{u.Plugin}] information does not recognized by loader")
             End If
@@ -865,7 +908,7 @@ BlockNullPicture:
                     With DirectCast(u, UserDataBase)
                         If Not .User.Plugin.IsEmptyString Then
                             uName = .User.Name
-                            Return Settings(.User.Plugin).GetUserPostUrl(.Self, PostData)
+                            Return Settings(.User.Plugin).Default.GetUserPostUrl(.Self, PostData)
                         End If
                     End With
                 End If
@@ -937,6 +980,7 @@ BlockNullPicture:
                 Using x As New XmlFile With {.Name = "User"}
                     x.Add(Name_Site, Site)
                     x.Add(Name_Plugin, HOST.Key)
+                    x.Add(Name_AccountName, AccountName)
                     x.Add(Name_UserName, User.Name)
                     x.Add(Name_Model_User, CInt(UserModel))
                     x.Add(Name_Model_Collection, CInt(CollectionModel))
@@ -1130,11 +1174,13 @@ BlockNullPicture:
             End If
         End Sub
         Friend Overridable Sub DownloadData(ByVal Token As CancellationToken) Implements IUserData.DownloadData
+            ResetHost()
             __DOWNLOAD_IN_PROGRESS = True
             OnUserDownloadStateChanged(True)
             Dim Canceled As Boolean = False
             TokenQueue = Token
             Try
+                If HOST Is Nothing Then Throw New ExitException($"Host '{AccountName}' not found")
                 EnvirDownloadSet()
                 If Not Responser Is Nothing Then Responser.Dispose()
                 Responser = New Responser
@@ -1291,7 +1337,12 @@ BlockNullPicture:
 #Region "DownloadSingleObject"
         Protected IsSingleObjectDownload As Boolean = False
         Friend Overridable Sub DownloadSingleObject(ByVal Data As YouTube.Objects.IYouTubeMediaContainer, ByVal Token As CancellationToken) Implements IUserData.DownloadSingleObject
+            Dim URL$ = String.Empty
             Try
+                ResetHost()
+                URL = Data.URL
+                AccountName = Data.AccountName
+                If HOST Is Nothing Then Throw New ExitException($"Host '{AccountName}' not found")
                 Data.DownloadState = UserMediaStates.Tried
                 Progress = Data.Progress
                 If Not Progress Is Nothing Then Progress.ResetProgressOnMaximumChanges = False
@@ -1307,11 +1358,19 @@ BlockNullPicture:
                 DownloadSingleObject_PostProcessing(Data)
             Catch oex As OperationCanceledException When Token.IsCancellationRequested
                 Data.DownloadState = UserMediaStates.Missing
-                ErrorsDescriber.Execute(EDP.SendToLog, oex, $"{Site} download canceled: {Data.URL}")
+                ErrorsDescriber.Execute(EDP.SendToLog, oex, $"{Site} download canceled: {URL}")
             Catch dex As ObjectDisposedException When Disposed
+            Catch exit_ex As ExitException
+                If Not exit_ex.Silent Then
+                    If exit_ex.SimpleLogLine Then
+                        MyMainLOG = $"{URL}: downloading canceled (exit) ({exit_ex.Message})"
+                    Else
+                        ErrorsDescriber.Execute(EDP.SendToLog, exit_ex, $"{URL}: downloading canceled (exit)")
+                    End If
+                End If
             Catch ex As Exception
                 Data.DownloadState = UserMediaStates.Missing
-                ErrorsDescriber.Execute(EDP.SendToLog, ex, $"{Site} single data downloader error: {Data.URL}")
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, $"{Site} single data downloader error: {URL}")
             End Try
         End Sub
         Protected Overridable Sub DownloadSingleObject_CreateMedia(ByVal Data As YouTube.Objects.IYouTubeMediaContainer, ByVal Token As CancellationToken)

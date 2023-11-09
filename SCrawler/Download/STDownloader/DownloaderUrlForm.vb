@@ -14,6 +14,11 @@ Namespace DownloadObjects.STDownloader
         Private WithEvents MyDefs As DefaultFormOptions
         Friend Property URL As String
         Friend Property OutputPath As SFile
+        Friend ReadOnly Property AccountName As String
+            Get
+                Return CMB_ACCOUNT.Text
+            End Get
+        End Property
         Friend Sub New()
             InitializeComponent()
             MyDefs = New DefaultFormOptions(Me, Settings.Design)
@@ -26,6 +31,7 @@ Namespace DownloadObjects.STDownloader
                 Settings.DownloadLocations.PopulateComboBox(TXT_PATH)
                 TXT_PATH.Text = Settings.LatestSavingPath.Value
                 If TXT_PATH.Text.IsEmptyString Then TXT_PATH.Text = Application.StartupPath.CSFileP.PathWithSeparator
+                TXT_URL_ActionOnTextChanged()
                 .MyFieldsChecker = New FieldsChecker
                 With .MyFieldsCheckerE
                     .AddControl(Of String)(TXT_URL, TXT_URL.CaptionText)
@@ -53,6 +59,36 @@ Namespace DownloadObjects.STDownloader
                 OutputPath = TXT_PATH.Text.CSFileP
                 MyDefs.CloseForm()
             End If
+        End Sub
+        Friend Shared Function GetMediaPluginKey(ByVal URL As String) As String
+            If Not URL.IsEmptyString Then
+                Return Settings.Plugins.Select(Function(p) p.Settings.IsMyImageVideo(URL).HostKey).FirstOrDefault(Function(p) Not p.IsEmptyString)
+            Else
+                Return String.Empty
+            End If
+        End Function
+        Private Sub TXT_URL_ActionOnTextChanged() Handles TXT_URL.ActionOnTextChanged
+            Try
+                With CMB_ACCOUNT
+                    .BeginUpdate()
+                    .Items.Clear()
+                    .Text = String.Empty
+                    If Not TXT_URL.Text.IsEmptyString Then
+                        Dim plugin$ = Settings.Plugins.Select(Function(p) p.Settings.IsMyImageVideo(TXT_URL.Text).HostKey).FirstOrDefault(Function(p) Not p.IsEmptyString)
+                        If Not plugin.IsEmptyString Then _
+                           CMB_ACCOUNT.Items.AddRange(Settings(plugin).Select(Function(p) New ListItem(p.AccountName.IfNullOrEmpty(
+                                                                                                       SCrawler.Plugin.Hosts.SettingsHost.NameAccountNameDefault))))
+                    End If
+                    .LeaveDefaultButtons = .Items.Count > 1
+                    .Buttons.UpdateButtonsPositions()
+                    .EndUpdate()
+                    If .Items.Count > 0 Then .SelectedIndex = 0
+                    .Enabled = .Items.Count > 1
+                End With
+            Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "[STDownloader.DownloaderUrlForm.TXT_URL_ActionOnTextChanged]")
+                MainFrameObj.UpdateLogButton()
+            End Try
         End Sub
         Private Sub TXT_PATH_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As ActionButtonEventArgs) Handles TXT_PATH.ActionOnButtonClick
             If Sender.DefaultButton = ADB.Open Or Sender.DefaultButton = ADB.Add Then _

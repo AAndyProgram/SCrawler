@@ -111,6 +111,7 @@ Namespace API.YouTube.Objects
                 _SiteKey = Key
             End Set
         End Property
+        <XMLEC> Public Property AccountName As String = String.Empty Implements IDownloadableMedia.AccountName
         <XMLEC(Name_IsMusic)> Public Property IsMusic As Boolean = False Implements IYouTubeMediaContainer.IsMusic
         <XMLEC> Public Property IsShorts As Boolean = False Implements IYouTubeMediaContainer.IsShorts
         <XMLEC> Public Property ID As String Implements IYouTubeMediaContainer.ID, IUserMedia.PostID

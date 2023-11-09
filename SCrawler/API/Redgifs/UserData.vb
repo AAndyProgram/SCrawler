@@ -166,16 +166,19 @@ Namespace API.RedGifs
             End If
         End Function
         Friend Shared Function GetDataFromUrlId(ByVal Obj As String, ByVal ObjIsID As Boolean, ByVal Responser As Responser,
-                                                ByVal Host As Plugin.Hosts.SettingsHost) As UserMedia
+                                                ByVal Host As Plugin.Hosts.SettingsHost, ByVal AccountName As String) As UserMedia
             Dim URL$ = String.Empty
             Try
                 If Obj.IsEmptyString Then Return Nothing
                 If Not ObjIsID Then
                     Obj = GetVideoIdFromUrl(Obj)
-                    If Not Obj.IsEmptyString Then Return GetDataFromUrlId(Obj, True, Responser, Host)
+                    If Not Obj.IsEmptyString Then Return GetDataFromUrlId(Obj, True, Responser, Host, AccountName)
                 Else
-                    If Host Is Nothing Then Host = Settings(RedGifsSiteKey)
-                    If Host.Source.Available(Plugin.ISiteSettings.Download.Main, True) Then
+                    If Host Is Nothing Then
+                        Host = Settings(RedGifsSiteKey, AccountName)
+                        If Host Is Nothing Then Host = Settings(RedGifsSiteKey).Default
+                    End If
+                    If Not Host Is Nothing AndAlso Host.Source.Available(Plugin.ISiteSettings.Download.Main, True) Then
                         If Responser Is Nothing Then Responser = Host.Responser.Copy
                         URL = String.Format(PostDataUrl, Obj.ToLower)
                         Dim r$ = Responser.GetResponse(URL,, EDP.ThrowException)
@@ -220,7 +223,7 @@ Namespace API.RedGifs
 #End Region
 #Region "Single data downloader"
         Protected Overrides Sub DownloadSingleObject_GetPosts(ByVal Data As IYouTubeMediaContainer, ByVal Token As CancellationToken)
-            Dim m As UserMedia = GetDataFromUrlId(Data.URL, False, Responser, HOST)
+            Dim m As UserMedia = GetDataFromUrlId(Data.URL, False, Responser, HOST, AccountName)
             If Not m.State = UStates.Missing And Not m.State = DataGone And (m.Type = UTypes.Picture Or m.Type = UTypes.Video) Then
                 m.URL_BASE = MySettings.GetUserPostUrl(Me, m)
                 _TempMediaList.Add(m)

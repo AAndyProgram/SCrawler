@@ -14,6 +14,7 @@ Namespace Plugin
         ReadOnly Property SiteIcon As Drawing.Image
         ReadOnly Property Site As String
         ReadOnly Property SiteKey As String
+        Property AccountName As String
         Property ThumbnailUrl As String
         Property ThumbnailFile As String
         Property Title As String

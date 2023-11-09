@@ -12,18 +12,8 @@ Imports PersonalUtilities.Functions.RegularExpressions
 Namespace API.LPSG
     <Manifest("AndyProgram_LPSG")>
     Friend Class SiteSettings : Inherits Base.SiteSettingsBase
-        Friend Overrides ReadOnly Property Icon As Icon
-            Get
-                Return My.Resources.SiteResources.LPSGIcon_48
-            End Get
-        End Property
-        Friend Overrides ReadOnly Property Image As Image
-            Get
-                Return My.Resources.SiteResources.LPSGPic_32
-            End Get
-        End Property
-        Friend Sub New()
-            MyBase.New("LPSG", "www.lpsg.com")
+        Friend Sub New(ByVal AccName As String, ByVal Temp As Boolean)
+            MyBase.New("LPSG", "www.lpsg.com", AccName, Temp, My.Resources.SiteResources.LPSGIcon_48, My.Resources.SiteResources.LPSGPic_32)
             UrlPatternUser = "https://www.lpsg.com/threads/{0}/"
             UserRegex = RParams.DMS(".+?lpsg.com/threads/[^/]+?\.(\d+)", 1, EDP.ReturnValue)
         End Sub

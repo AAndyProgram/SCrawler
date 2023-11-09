@@ -380,7 +380,7 @@ Namespace API.OnlyFans
             Try
                 If ContentMissingExists Then
                     Dim m As UserMedia
-                    Dim stateRefill As Func(Of UserMedia, Integer, UserMedia) = Function(ByVal input As UserMedia, ii As Integer) As UserMedia
+                    Dim stateRefill As Func(Of UserMedia, Integer, UserMedia) = Function(ByVal input As UserMedia, ByVal ii As Integer) As UserMedia
                                                                                     input.State = UStates.Missing
                                                                                     input.Attempts = m.Attempts
                                                                                     Return input

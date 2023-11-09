@@ -32,8 +32,10 @@ Namespace DownloadObjects.STDownloader
             Dim ListColumn1 As PersonalUtilities.Forms.Controls.Base.ListColumn = New PersonalUtilities.Forms.Controls.Base.ListColumn()
             Dim ListColumn2 As PersonalUtilities.Forms.Controls.Base.ListColumn = New PersonalUtilities.Forms.Controls.Base.ListColumn()
             Dim FRM_URLS As System.Windows.Forms.GroupBox
+            Dim ActionButton5 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Me.TXT_OUTPUT = New PersonalUtilities.Forms.Controls.ComboBoxExtended()
             Me.TXT_URLS = New System.Windows.Forms.RichTextBox()
+            Me.CMB_ACCOUNT = New PersonalUtilities.Forms.Controls.ComboBoxExtended()
             CONTAINER_MAIN = New System.Windows.Forms.ToolStripContainer()
             TP_MAIN = New System.Windows.Forms.TableLayoutPanel()
             FRM_URLS = New System.Windows.Forms.GroupBox()
@@ -42,6 +44,7 @@ Namespace DownloadObjects.STDownloader
             TP_MAIN.SuspendLayout()
             CType(Me.TXT_OUTPUT, System.ComponentModel.ISupportInitialize).BeginInit()
             FRM_URLS.SuspendLayout()
+            CType(Me.CMB_ACCOUNT, System.ComponentModel.ISupportInitialize).BeginInit()
             Me.SuspendLayout()
             '
             'CONTAINER_MAIN
@@ -50,7 +53,7 @@ Namespace DownloadObjects.STDownloader
             'CONTAINER_MAIN.ContentPanel
             '
             CONTAINER_MAIN.ContentPanel.Controls.Add(TP_MAIN)
-            CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(384, 261)
+            CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(384, 236)
             CONTAINER_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
             CONTAINER_MAIN.LeftToolStripPanelVisible = False
             CONTAINER_MAIN.Location = New System.Drawing.Point(0, 0)
@@ -64,16 +67,17 @@ Namespace DownloadObjects.STDownloader
             '
             TP_MAIN.ColumnCount = 1
             TP_MAIN.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_MAIN.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
             TP_MAIN.Controls.Add(Me.TXT_OUTPUT, 0, 0)
-            TP_MAIN.Controls.Add(FRM_URLS, 0, 1)
+            TP_MAIN.Controls.Add(FRM_URLS, 0, 2)
+            TP_MAIN.Controls.Add(Me.CMB_ACCOUNT, 0, 1)
             TP_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
             TP_MAIN.Location = New System.Drawing.Point(0, 0)
             TP_MAIN.Name = "TP_MAIN"
-            TP_MAIN.RowCount = 2
+            TP_MAIN.RowCount = 3
+            TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_MAIN.Size = New System.Drawing.Size(384, 261)
+            TP_MAIN.Size = New System.Drawing.Size(384, 236)
             TP_MAIN.TabIndex = 0
             '
             'TXT_OUTPUT
@@ -120,10 +124,10 @@ Namespace DownloadObjects.STDownloader
             '
             FRM_URLS.Controls.Add(Me.TXT_URLS)
             FRM_URLS.Dock = System.Windows.Forms.DockStyle.Fill
-            FRM_URLS.Location = New System.Drawing.Point(3, 31)
+            FRM_URLS.Location = New System.Drawing.Point(3, 59)
             FRM_URLS.Name = "FRM_URLS"
-            FRM_URLS.Size = New System.Drawing.Size(378, 227)
-            FRM_URLS.TabIndex = 1
+            FRM_URLS.Size = New System.Drawing.Size(378, 174)
+            FRM_URLS.TabIndex = 2
             FRM_URLS.TabStop = False
             FRM_URLS.Text = "URLs (new line as delimiter)"
             '
@@ -133,9 +137,28 @@ Namespace DownloadObjects.STDownloader
             Me.TXT_URLS.Dock = System.Windows.Forms.DockStyle.Fill
             Me.TXT_URLS.Location = New System.Drawing.Point(3, 16)
             Me.TXT_URLS.Name = "TXT_URLS"
-            Me.TXT_URLS.Size = New System.Drawing.Size(372, 208)
+            Me.TXT_URLS.Size = New System.Drawing.Size(372, 155)
             Me.TXT_URLS.TabIndex = 0
             Me.TXT_URLS.Text = ""
+            '
+            'CMB_ACCOUNT
+            '
+            ActionButton5.BackgroundImage = CType(resources.GetObject("ActionButton5.BackgroundImage"), System.Drawing.Image)
+            ActionButton5.Name = "ArrowDown"
+            ActionButton5.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.ArrowDown
+            Me.CMB_ACCOUNT.Buttons.Add(ActionButton5)
+            Me.CMB_ACCOUNT.CaptionMode = PersonalUtilities.Forms.Controls.Base.ICaptionControl.Modes.Label
+            Me.CMB_ACCOUNT.CaptionText = "Account"
+            Me.CMB_ACCOUNT.CaptionToolTipEnabled = True
+            Me.CMB_ACCOUNT.CaptionToolTipText = "Select an account to download media array"
+            Me.CMB_ACCOUNT.CaptionVisible = True
+            Me.CMB_ACCOUNT.CaptionWidth = 50.0R
+            Me.CMB_ACCOUNT.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CMB_ACCOUNT.Location = New System.Drawing.Point(3, 31)
+            Me.CMB_ACCOUNT.Name = "CMB_ACCOUNT"
+            Me.CMB_ACCOUNT.Size = New System.Drawing.Size(378, 22)
+            Me.CMB_ACCOUNT.TabIndex = 1
+            Me.CMB_ACCOUNT.TextBoxBorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
             '
             'DownloaderUrlsArrForm
             '
@@ -155,10 +178,12 @@ Namespace DownloadObjects.STDownloader
             TP_MAIN.ResumeLayout(False)
             CType(Me.TXT_OUTPUT, System.ComponentModel.ISupportInitialize).EndInit()
             FRM_URLS.ResumeLayout(False)
+            CType(Me.CMB_ACCOUNT, System.ComponentModel.ISupportInitialize).EndInit()
             Me.ResumeLayout(False)
 
         End Sub
         Private WithEvents TXT_OUTPUT As PersonalUtilities.Forms.Controls.ComboBoxExtended
         Private WithEvents TXT_URLS As RichTextBox
+        Private WithEvents CMB_ACCOUNT As PersonalUtilities.Forms.Controls.ComboBoxExtended
     End Class
 End Namespace

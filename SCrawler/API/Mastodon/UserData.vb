@@ -38,22 +38,7 @@ Namespace API.Mastodon
         End Property
         Private MyCredentials As Credentials
         Private Sub ResetCredentials()
-            MyCredentials = Nothing
-            With MySettings
-                Dim setDef As Boolean = True
-                If Not IsSavedPosts Then
-                    If ACheck(.MyDomain.Value) AndAlso UserDomain = .MyDomain.Value Then
-                        setDef = True
-                    ElseIf .Domains.Credentials.Count > 0 Then
-                        Dim i% = .Domains.Credentials.IndexOf(UserDomain)
-                        If i >= 0 Then
-                            MyCredentials = .Domains.Credentials(i)
-                            setDef = Not MyCredentials.Exists
-                        End If
-                    End If
-                End If
-                If setDef Then MyCredentials = New Credentials With {.Domain = UserDomain, .Bearer = MySettings.Auth.Value, .Csrf = MySettings.Token.Value}
-            End With
+            MyCredentials = New Credentials With {.Domain = MySettings.MyDomain.Value, .Bearer = MySettings.Auth.Value, .Csrf = MySettings.Token.Value}
             With MyCredentials
                 Responser.Headers.Add(DeclaredNames.Header_Authorization, .Bearer)
                 Responser.Headers.Add(DeclaredNames.Header_CSRFToken, .Csrf)

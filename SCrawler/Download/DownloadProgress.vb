@@ -49,8 +49,8 @@ Namespace DownloadObjects
             }
             CreateButton(BTT_STOP, My.Resources.DeletePic_24)
             Dim img As Image = Nothing
-            If Not _Job.Host Is Nothing Then
-                With Job.Host.Source
+            If Not _Job.Host(String.Empty) Is Nothing Then
+                With Job.Host(String.Empty).Source
                     If Not .Icon Is Nothing Then img = .Icon.ToBitmap
                     If img Is Nothing AndAlso Not .Image Is Nothing Then img = .Image
                 End With
@@ -131,8 +131,8 @@ Namespace DownloadObjects
                 End With
             End With
 
-            If Job.Type = Download.SavedPosts And Not Job.Progress Is Nothing Then Job.Progress.InformationTemporary = Job.Host.Name
-            Instance = New API.Base.ProfileSaved(Job.Host, Job.Progress)
+            If Job.Type = Download.SavedPosts And Not Job.Progress Is Nothing Then Job.Progress.InformationTemporary = Job.HostCollection.Name
+            Instance = New API.Base.ProfileSaved(Job.HostCollection, Job.Progress)
         End Sub
         Private Sub CreateButton(ByRef BTT As Button, ByVal Img As Image)
             BTT = New Button With {
@@ -154,7 +154,7 @@ Namespace DownloadObjects
             [Stop]()
         End Sub
         Private Sub BTT_OPEN_Click(sender As Object, e As EventArgs) Handles BTT_OPEN.Click
-            GlobalOpenPath(Job.Host.SavedPostsPath)
+            GlobalOpenPath(If(Job.HostCollection.FirstOrDefault(Function(h) h.DownloadSavedPosts), Job.HostCollection.Default).SavedPostsPath)
         End Sub
 #End Region
 #Region "Start, Stop"
@@ -173,13 +173,13 @@ Namespace DownloadObjects
             Try
                 btte.Invoke(BTT_START, False)
                 btte.Invoke(BTT_STOP, True)
-                Job.Progress.InformationTemporary = $"{Job.Host.Name} downloading started"
+                Job.Progress.InformationTemporary = $"{Job.HostCollection.Name} downloading started"
                 Job.Start()
                 Instance.Download(Job.Token, _IsMultiple)
-                RaiseEvent DownloadDone(SettingsCLS.NotificationObjects.SavedPosts, $"Downloading saved {Job.Host.Name} posts is completed")
+                RaiseEvent DownloadDone(SettingsCLS.NotificationObjects.SavedPosts, $"Downloading saved {Job.HostCollection.Name} posts is completed")
             Catch ex As Exception
-                Job.Progress.InformationTemporary = $"{Job.Host.Name} downloading error"
-                ErrorsDescriber.Execute(EDP.LogMessageValue, ex, {$"{Job.Host.Name} saved posts downloading error", "Saved posts"})
+                Job.Progress.InformationTemporary = $"{Job.HostCollection.Name} downloading error"
+                ErrorsDescriber.Execute(EDP.LogMessageValue, ex, {$"{Job.HostCollection.Name} saved posts downloading error", "Saved posts"})
             Finally
                 _IsMultiple = False
                 btte.Invoke(BTT_START, True)

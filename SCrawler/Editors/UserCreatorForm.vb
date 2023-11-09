@@ -254,12 +254,13 @@ Namespace Editors
                     Else
                         If User.Name.IsEmptyString Then
                             checkBuffer = True
+                            TXT_USER.CaptionText = "User URL"
                             CH_READY_FOR_DOWN.Checked = True
                             CH_TEMP.Checked = Settings.DefaultTemporary
                             CH_DOWN_IMAGES.Checked = Settings.DefaultDownloadImages
                             CH_DOWN_VIDEOS.Checked = Settings.DefaultDownloadVideos
                             TXT_SCRIPT.Checked = Settings.ScriptData.Attribute
-                            SetParamsBySite()
+                            SetParamsBySite(True)
                         Else
                             TP_ADD_BY_LIST.Enabled = False
                             TXT_USER.Text = User.Name
@@ -267,7 +268,13 @@ Namespace Editors
                             Dim i% = Settings.Plugins.FindIndex(Function(p) p.Key = User.Plugin)
                             If i >= 0 Then CMB_SITE.SelectedIndex = i
                             CMB_SITE.Checked = User.IsSubscription
-                            SetParamsBySite()
+                            SetParamsBySite(True)
+                            If i >= 0 Then
+                                With Settings.Plugins(i).Settings
+                                    i = .IndexOf(User.AccountName)
+                                    If i >= 0 And CMB_ACCOUNT.Items.Count > 0 Then CMB_ACCOUNT.SelectedIndex = i
+                                End With
+                            End If
                             If Not UserInstance Is Nothing Then
                                 CMB_SITE.Enabled = False
                                 Text = $"User: {UserInstance.Name}"
@@ -383,7 +390,10 @@ Namespace Editors
             Else
                 If Not CH_ADD_BY_LIST.Checked Then
                     If MyDef.MyFieldsChecker.AllParamsOK Then
-                        Dim s As SettingsHost = GetSiteByCheckers()
+                        Dim s As SettingsHost = Nothing
+                        With GetSiteByCheckers()
+                            If Not .Self Is Nothing Then s = .Self()(CMB_ACCOUNT.Text, True)
+                        End With
                         If Not s Is Nothing Then
                             If IsSubscription And Not s.Source.SubscriptionsAllowed Then
                                 MsgBoxE({$"Subscription mode for site [{s.Name}] is not allowed", msgTitle}, vbCritical)
@@ -395,6 +405,7 @@ Namespace Editors
                                     .Name = TXT_USER.Text
                                     .Site = s.Name
                                     .Plugin = s.Key
+                                    .AccountName = CMB_ACCOUNT.Text
                                     .IsSubscription = IsSubscription
                                     Dim sp As SFile = SpecialPath(s)
                                     If Not sp.IsEmptyString AndAlso Not SpecialPathHandler Is Nothing And UserInstance Is Nothing Then _
@@ -530,13 +541,16 @@ CloseForm:
         End Sub
         Private Sub CMB_SITE_ActionSelectedItemChanged(ByVal Sender As Object, ByVal e As EventArgs, ByVal Item As ListViewItem) Handles CMB_SITE.ActionSelectedItemChanged
             MyExchangeOptions = Nothing
-            SetParamsBySite()
+            SetParamsBySite(True)
         End Sub
         Private Sub CMB_SITE_ActionOnTextChanged(sender As Object, e As EventArgs) Handles CMB_SITE.ActionOnTextChanged
             If CMB_SITE.Text.IsEmptyString And Not UserIsCollection Then CMB_SITE.SelectedIndex = -1 : Icon = My.Resources.UsersIcon_32
         End Sub
         Private Sub BTT_OTHER_SETTINGS_Click(sender As Object, e As EventArgs) Handles BTT_OTHER_SETTINGS.Click
-            Dim s As SettingsHost = GetSiteByCheckers()
+            Dim s As SettingsHost = Nothing
+            With GetSiteByCheckers()
+                If Not .Self Is Nothing Then s = .Self()(CMB_ACCOUNT.Text, True)
+            End With
             If Not s Is Nothing Then
                 s.Source.UserOptions(MyExchangeOptions, True)
                 MyDef.ChangesDetected = True
@@ -568,6 +582,10 @@ CloseForm:
                 SpecialPathHandler = Nothing
             End If
         End Sub
+        Private _AccountsRefilling As Boolean = False
+        Private Sub CMB_ACCOUNT_ActionSelectedItemChanged(ByVal Sender As Object, ByVal e As EventArgs, ByVal Item As ListViewItem) Handles CMB_ACCOUNT.ActionSelectedItemChanged
+            If Not _AccountsRefilling Then SetParamsBySite(False)
+        End Sub
         Private Sub CH_TEMP_CheckedChanged(sender As Object, e As EventArgs) Handles CH_TEMP.CheckedChanged
             If CH_TEMP.Checked Then CH_FAV.Checked = False : CH_READY_FOR_DOWN.Checked = False
         End Sub
@@ -582,7 +600,7 @@ CloseForm:
                 TXT_DESCR.GroupBoxText = "Description"
                 CH_AUTO_DETECT_SITE.Checked = False
                 CH_AUTO_DETECT_SITE.Enabled = False
-                SetParamsBySite()
+                SetParamsBySite(False)
             End If
             TXT_USER.Enabled = Not CH_ADD_BY_LIST.Checked
             TXT_USER_FRIENDLY.Enabled = Not CH_ADD_BY_LIST.Checked
@@ -620,7 +638,7 @@ CloseForm:
         End Sub
 #End Region
 #Region "Functions"
-        Private Function GetSiteByCheckers() As SettingsHost
+        Private Function GetSiteByCheckers() As SettingsHostCollection
             Return If(CMB_SITE.SelectedIndex >= 0, Settings(CStr(CMB_SITE.Items(CMB_SITE.SelectedIndex).Value(0))), Nothing)
         End Function
         Private Function CreateUsersByList() As Boolean
@@ -636,7 +654,7 @@ CloseForm:
                             Dim uu$
                             Dim ulabels As List(Of String) = ListAddList(Nothing, UserLabels).ListAddValue(LabelsKeeper.NoParsedUser, LAP.NotContainsOnly)
                             Dim tmpUser As UserInfo
-                            Dim s As SettingsHost = GetSiteByCheckers()
+                            Dim s As SettingsHost = GetSiteByCheckers().Default
                             Dim sObj As ExchangeOptions = Nothing
                             Dim Added% = 0
                             Dim Skipped% = 0
@@ -660,7 +678,7 @@ CloseForm:
                                 If CH_AUTO_DETECT_SITE.Checked Then
                                     sObj = GetSiteByText(uu)
                                     If Not sObj.UserName.IsEmptyString Then
-                                        s = Settings(sObj.HostKey)
+                                        s = Settings(sObj.HostKey).Default
                                         uu = sObj.UserName
                                     Else
                                         s = Nothing
@@ -746,13 +764,18 @@ CloseForm:
         Private Function GetSiteByText(ByRef TXT As String) As ExchangeOptions
             Dim s As ExchangeOptions
             For Each p As PluginHost In Settings.Plugins
-                s = p.Settings.IsMyUser(TXT)
+                s = p.Settings.Default.IsMyUser(TXT)
                 If Not s.UserName.IsEmptyString Then Return s
             Next
             Return Nothing
         End Function
-        Private Sub SetParamsBySite()
-            Dim s As SettingsHost = GetSiteByCheckers()
+        Private Sub SetParamsBySite(ByVal RefillAccs As Boolean)
+            Dim sc As SettingsHostCollection = GetSiteByCheckers()
+            Dim s As SettingsHost = Nothing
+            If Not sc Is Nothing Then
+                If RefillAccs Then RefillAccounts(sc)
+                s = sc(CMB_ACCOUNT.Text)
+            End If
             If Not s Is Nothing Then
                 With s
                     CH_TEMP.Checked = .Temporary
@@ -782,6 +805,40 @@ CloseForm:
                 BTT_OTHER_SETTINGS.Enabled = False
                 If Not UserIsCollection Then Icon = My.Resources.UsersIcon_32
             End If
+        End Sub
+        Private Sub RefillAccounts(ByVal sc As SettingsHostCollection)
+            Try
+                If Not sc Is Nothing And Not UserIsCollection Then
+                    _AccountsRefilling = True
+                    CMB_ACCOUNT.BeginUpdate()
+
+                    With CMB_ACCOUNT
+                        .BeginUpdate()
+                        .Text = String.Empty
+                        .Items.Clear()
+                        If sc.Count = 1 Then
+                            .Text = SettingsHost.NameAccountNameDefault
+                            .LeaveDefaultButtons = False
+                            .Buttons.Clear()
+                        Else
+                            .LeaveDefaultButtons = True
+                            .Items.AddRange(sc.Select(Function(s) New ListItem(s.AccountName.IfNullOrEmpty(SettingsHost.NameAccountNameDefault))))
+                        End If
+                        .Buttons.UpdateButtonsPositions(True)
+                        .EndUpdate(True)
+                        If .Items.Count > 0 Then
+                            .Enabled = True
+                            .SelectedIndex = 0
+                        Else
+                            .Enabled = False
+                        End If
+                    End With
+                End If
+            Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "[UserCreatorForm.RefillAccounts]")
+            Finally
+                _AccountsRefilling = False
+            End Try
         End Sub
         Private Sub ChangeLabels()
             Using fl As New LabelsForm(UserLabels)

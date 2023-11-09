@@ -44,6 +44,7 @@ Namespace Plugin.Hosts
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
             With ExternalPlugin
                 .Settings = HOST.Source
+                .AccountName = AccountName
                 .Thrower = Me
                 .LogProvider = LogConnector
                 .Name = Name

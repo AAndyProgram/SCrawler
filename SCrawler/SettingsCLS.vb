@@ -197,6 +197,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         UserSiteNameAsFriendly = New XMLValue(Of Boolean)("UserSiteNameAsFriendly", False, MyXML, n)
         UserSiteNameUpdateEveryTime = New XMLValue(Of Boolean)("UserSiteNameUpdateEveryTime", False, MyXML, n)
         CMDEncoding = New XMLValue(Of Integer)("CMDEncoding", DefaultCmdEncoding, MyXML, n)
+        UseDefaultAccountIfMissing = New XMLValue(Of Boolean)("UseDefaultAccountIfMissing", True, MyXML, n)
 
         Plugins.AddRange(PluginHost.GetMyHosts(MyXML, GlobalPath.Value, DefaultTemporary, DefaultDownloadImages, DefaultDownloadVideos))
         Dim tmpPluginList As IEnumerable(Of PluginHost) = PluginHost.GetPluginsHosts(MyXML, GlobalPath.Value, DefaultTemporary,
@@ -686,19 +687,25 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
     Friend Sub BeginUpdate()
         MyXML.BeginUpdate()
         _UpdatesSuspended = True
-        If Plugins.Count > 0 Then Plugins.ForEach(Sub(p) p.Settings.Source.BeginUpdate())
+        If Plugins.Count > 0 Then Plugins.ForEach(Sub(p) p.Settings.BeginUpdate())
     End Sub
     Friend Sub EndUpdate()
-        If Plugins.Count > 0 Then Plugins.ForEach(Sub(p) p.Settings.Source.EndUpdate())
+        If Plugins.Count > 0 Then Plugins.ForEach(Sub(p) p.Settings.EndUpdate())
         MyXML.EndUpdate()
         If MyXML.ChangesDetected Then MyXML.UpdateData()
         _UpdatesSuspended = False
         ChangeDateProvider(Nothing, Nothing)
     End Sub
-    Default Friend ReadOnly Property Site(ByVal PluginKey As String) As SettingsHost
+    Default Friend Overloads ReadOnly Property Site(ByVal PluginKey As String) As SettingsHostCollection
         Get
             Dim i% = Plugins.FindIndex(Function(p) p.Key = PluginKey)
             If i >= 0 Then Return Plugins(i).Settings Else Return Nothing
+        End Get
+    End Property
+    Default Friend Overloads ReadOnly Property Site(ByVal PluginKey As String, ByVal AccountName As String) As SettingsHost
+        Get
+            Dim i% = Plugins.FindIndex(Function(p) p.Key = PluginKey)
+            If i >= 0 Then Return Plugins(i).Settings(AccountName) Else Return Nothing
         End Get
     End Property
     Friend ReadOnly Property GlobalPath As XMLValue(Of SFile)
@@ -734,6 +741,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
     Friend ReadOnly Property UserSiteNameAsFriendly As XMLValue(Of Boolean)
     Friend ReadOnly Property UserSiteNameUpdateEveryTime As XMLValue(Of Boolean)
     Friend ReadOnly Property CMDEncoding As XMLValue(Of Integer)
+    Friend ReadOnly Property UseDefaultAccountIfMissing As XMLValue(Of Boolean)
 #End Region
 #Region "STDownloader"
     Friend ReadOnly Property STDownloader_UpdateYouTubeOutputPath As XMLValue(Of Boolean)

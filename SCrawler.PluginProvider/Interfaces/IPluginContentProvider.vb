@@ -15,6 +15,7 @@ Namespace Plugin
         Property Thrower As IThrower
         Property LogProvider As ILogProvider
         Property Settings As ISiteSettings
+        Property AccountName As String
         Property Name As String
         Property ID As String
         Property Options As String
