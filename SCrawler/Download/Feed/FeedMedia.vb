@@ -61,6 +61,7 @@ Namespace DownloadObjects
         End Property
         Private ReadOnly UserKey As String
         Friend ReadOnly Post As UserMedia
+        Friend ReadOnly Media As UserMediaD
         Friend Property Checked As Boolean
             Get
                 Return CH_CHECKED.Checked
@@ -161,6 +162,7 @@ Namespace DownloadObjects
         Friend Sub New(ByVal Media As UserMediaD, ByVal Width As Integer, ByVal Height As Integer)
             Try
                 InitializeComponent()
+                Me.Media = Media
                 IsSubscription = If(Media.User?.IsSubscription, False)
 
                 If IsSubscription Then
@@ -174,7 +176,7 @@ Namespace DownloadObjects
                     BTT_CONTEXT_DOWN.Visible = True
                     CONTEXT_SEP_0.Visible = True
                     BTT_CONTEXT_OPEN_USER.Visible = False
-                    CONTEXT_SEP_3.Visible = False
+                    CONTEXT_SEP_4.Visible = False
                     BTT_CONTEXT_DELETE.Visible = False
 
                     If Not Media.Data.URL.IsEmptyString Then
@@ -297,6 +299,7 @@ Namespace DownloadObjects
                 Else
                     Throw New ArgumentNullException With {.HelpLink = 1}
                 End If
+                If Settings.Feeds.Favorite.Contains(Media) Then BTT_FEED_ADD_FAV.ControlChangeColor(True, False)
             Catch aex As ArgumentNullException When aex.HelpLink = 1
                 HasError = True
             Catch tex As Threading.ThreadStateException
@@ -336,9 +339,12 @@ Namespace DownloadObjects
         End Sub
 #End Region
 #Region "Context"
+#Region "Down"
         Private Sub BTT_CONTEXT_DOWN_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_DOWN.Click
             RaiseEvent MediaDownload(Me, EventArgs.Empty)
         End Sub
+#End Region
+#Region "Open media, folder"
         Private Sub BTT_CONTEXT_OPEN_MEDIA_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_OPEN_MEDIA.Click
             File.Open()
         End Sub
@@ -348,6 +354,8 @@ Namespace DownloadObjects
                 If Not u Is Nothing Then u.OpenFolder()
             End If
         End Sub
+#End Region
+#Region "Open URL"
         Private Sub BTT_CONTEXT_OPEN_USER_URL_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_OPEN_USER_URL.Click
             If Not UserKey.IsEmptyString Then
                 Dim u As IUserData = Settings.GetUser(UserKey)
@@ -372,15 +380,44 @@ Namespace DownloadObjects
                 ErrorsDescriber.Execute(EDP.LogMessageValue, ex, $"[FeedMedia.OpenPost({UserKey}, {Post.Post.ID})]")
             End Try
         End Sub
+#End Region
+#Region "Feed"
+        Private Sub BTT_FEED_ADD_FAV_Click(sender As Object, e As EventArgs) Handles BTT_FEED_ADD_FAV.Click
+            With Settings.Feeds.Favorite
+                If Not .Contains(Media) Then .Add(Media)
+                BTT_FEED_ADD_FAV.ControlChangeColor(True, False)
+            End With
+        End Sub
+        Private Sub BTT_FEED_ADD_SPEC_Click(sender As Object, e As EventArgs) Handles BTT_FEED_ADD_SPEC.Click
+            With FeedSpecialCollection.ChooseFeeds(True)
+                If .ListExists Then .ForEach(Sub(f) f.Add(Media))
+            End With
+        End Sub
+        Private Sub BTT_FEED_REMOVE_FAV_Click(sender As Object, e As EventArgs) Handles BTT_FEED_REMOVE_FAV.Click
+            With Settings.Feeds.Favorite
+                If .Contains(Media) Then .Remove(Media)
+                BTT_FEED_ADD_FAV.ControlChangeColor(True)
+            End With
+        End Sub
+        Private Sub BTT_FEED_REMOVE_SPEC_Click(sender As Object, e As EventArgs) Handles BTT_FEED_REMOVE_SPEC.Click
+            With FeedSpecialCollection.ChooseFeeds(False)
+                If .ListExists Then .ForEach(Sub(f) f.Remove(Media))
+            End With
+        End Sub
+#End Region
+#Region "Info"
         Private Sub BTT_CONTEXT_FIND_USER_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_FIND_USER.Click
             If Not UserKey.IsEmptyString Then MainFrameObj.FocusUser(UserKey, True)
         End Sub
         Private Sub BTT_CONTEXT_INFO_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_INFO.Click
             MsgBoxE({Information, "Post information"})
         End Sub
+#End Region
+#Region "Delete"
         Private Sub BTT_CONTEXT_DELETE_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_DELETE.Click
             DeleteFile(False)
         End Sub
+#End Region
         Friend Function DeleteFile(ByVal Silent As Boolean) As Boolean
             Const msgTitle$ = "Deleting a file"
             Try

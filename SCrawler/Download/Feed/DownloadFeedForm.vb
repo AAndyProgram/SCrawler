@@ -13,6 +13,7 @@ Imports PersonalUtilities.Forms.Toolbars
 Imports PersonalUtilities.Tools
 Imports RCI = PersonalUtilities.Forms.Toolbars.RangeSwitcherToolbar.ControlItem
 Imports UserMediaD = SCrawler.DownloadObjects.TDownloader.UserMediaD
+Imports DTSModes = PersonalUtilities.Forms.DateTimeSelectionForm.Modes
 Namespace DownloadObjects
     Friend Class DownloadFeedForm
 #Region "Declarations"
@@ -26,6 +27,8 @@ Namespace DownloadObjects
         Private ReadOnly FilterSubscriptions As New FPredicate(Of UserMediaD)(Function(d) If(d.User?.IsSubscription, False))
         Private ReadOnly FilterUsers As New FPredicate(Of UserMediaD)(Function(d) Not FilterSubscriptions.Invoke(d))
         Private ReadOnly FileNotExist As New FPredicate(Of UserMediaD)(Function(d) Not d.Data.File.Exists And Not FilterSubscriptions.Invoke(d))
+        Private ReadOnly SessionDateStringProvider As New CustomProvider(Function(v As SFile) AConvert(Of String)(AConvert(Of Date)(v.Name, SessionDateTimeProvider, v.Name),
+                                                                                                                  DateTimeDefaultProvider, v.Name))
         Private BttRefreshToolTipText As String = "Refresh data list"
         Private CenterImage As Boolean = False
         Private NumberOfVisibleImages As Integer = 1
@@ -66,6 +69,22 @@ Namespace DownloadObjects
                 End With
                 ToolbarTOP.Items.AddRange({New ToolStripSeparator, BTT_DELETE_SELECTED})
                 With Settings
+                    With .Feeds
+                        .Load()
+                        AddHandler .FeedAdded, AddressOf Feed_FeedAdded
+                        AddHandler .FeedRemoved, AddressOf Feed_FeedRemoved
+                        If .Count > 0 Then
+                            For Each feed As FeedSpecial In .Self
+                                If Not feed.IsFavorite Then
+                                    AddNewFeedItem(BTT_LOAD_SPEC, feed, My.Resources.RSSPic_512, AddressOf Feed_SPEC_LOAD)
+                                    AddNewFeedItem(BTT_FEED_ADD_SPEC, feed, My.Resources.RSSPic_512, AddressOf Feed_SPEC_ADD)
+                                    AddNewFeedItem(BTT_FEED_REMOVE_SPEC, feed, My.Resources.RSSPic_512, AddressOf Feed_SPEC_REMOVE)
+                                    AddNewFeedItem(BTT_FEED_DELETE_SPEC, feed, My.Resources.DeletePic_24, AddressOf Feed_SPEC_DELETE)
+                                    AddNewFeedItem(BTT_FEED_CLEAR_SPEC, feed, My.Resources.BrushToolPic_16, AddressOf Feed_SPEC_CLEAR)
+                                End If
+                            Next
+                        End If
+                    End With
                     If .FeedOpenLastMode Then
                         If .FeedLastModeSubscriptions Then OPT_SUBSCRIPTIONS.Checked = True Else OPT_DEFAULT.Checked = True
                     Else
@@ -91,6 +110,85 @@ Namespace DownloadObjects
         End Sub
         Private Sub DownloadFeedForm_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
             If e.KeyCode = Keys.F5 Then RefillList() : e.Handled = True
+        End Sub
+#End Region
+#Region "Feeds handlers"
+        Private Sub AddNewFeedItem(ByVal Destination As ToolStripMenuItem, ByVal Feed As FeedSpecial, ByVal Image As Image, ByVal Handler As EventHandler,
+                                   Optional ByVal Insert As Boolean = False)
+            Dim item As New ToolStripMenuItem(Feed.Name, Image) With {.Tag = Feed}
+            AddHandler item.Click, Handler
+            ControlInvokeFast(ToolbarTOP, Destination, Sub()
+                                                           If Destination.DropDownItems.Count > 0 And Insert Then
+                                                               Destination.DropDownItems.Insert(0, item)
+                                                           Else
+                                                               Destination.DropDownItems.Add(item)
+                                                           End If
+                                                       End Sub, EDP.None)
+        End Sub
+        Private Sub Feed_FeedAdded(ByVal Source As FeedSpecialCollection, ByVal Feed As FeedSpecial)
+            AddNewFeedItem(BTT_LOAD_SPEC, Feed, My.Resources.RSSPic_512, AddressOf Feed_SPEC_LOAD, True)
+            AddNewFeedItem(BTT_FEED_ADD_SPEC, Feed, My.Resources.RSSPic_512, AddressOf Feed_SPEC_ADD, True)
+            AddNewFeedItem(BTT_FEED_REMOVE_SPEC, Feed, My.Resources.RSSPic_512, AddressOf Feed_SPEC_REMOVE, True)
+            AddNewFeedItem(BTT_FEED_DELETE_SPEC, Feed, My.Resources.DeletePic_24, AddressOf Feed_SPEC_DELETE, True)
+            AddNewFeedItem(BTT_FEED_CLEAR_SPEC, Feed, My.Resources.BrushToolPic_16, AddressOf Feed_SPEC_CLEAR, True)
+        End Sub
+        Private Overloads Sub Feed_FeedRemoved(ByVal Source As FeedSpecialCollection, ByVal Feed As FeedSpecial)
+            Feed_FeedRemoved(BTT_LOAD_SPEC, Feed)
+            Feed_FeedRemoved(BTT_FEED_ADD_SPEC, Feed)
+            Feed_FeedRemoved(BTT_FEED_REMOVE_SPEC, Feed)
+            Feed_FeedRemoved(BTT_FEED_DELETE_SPEC, Feed)
+            Feed_FeedRemoved(BTT_FEED_CLEAR_SPEC, Feed)
+        End Sub
+        Private Overloads Sub Feed_FeedRemoved(ByVal Destination As ToolStripMenuItem, ByVal Feed As FeedSpecial)
+            Try
+                With Destination
+                    ControlInvokeFast(ToolbarTOP, .Self,
+                                      Sub()
+                                          If .DropDownItems.Count > 0 Then
+                                              Dim item As Object
+                                              For i% = .DropDownItems.Count - 1 To 0 Step -1
+                                                  item = .DropDownItems(i)
+                                                  If TypeOf item Is ToolStripMenuItem AndAlso Feed.Equals(DirectCast(item, ToolStripMenuItem).Tag) Then
+                                                      With DirectCast(item, ToolStripMenuItem) : .Tag = Nothing : .Dispose() : End With
+                                                      '.DropDownItems.RemoveAt(i)
+                                                  End If
+                                              Next
+                                          End If
+                                      End Sub, EDP.None)
+                End With
+            Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "Feed removed")
+                MainFrameObj.UpdateLogButton()
+            End Try
+        End Sub
+        Private Sub Feed_SPEC_LOAD(ByVal Source As ToolStripMenuItem, ByVal e As EventArgs)
+            Dim f As FeedSpecial = Source.Tag
+            If Not f Is Nothing AndAlso Not f.Disposed Then
+                DataList.Clear()
+                If f.Count > 0 Then DataList.ListAddList(f) : CleanDataList()
+                RefillList(False)
+            End If
+        End Sub
+        Private Sub Feed_SPEC_ADD(ByVal Source As ToolStripMenuItem, ByVal e As EventArgs)
+            Dim f As FeedSpecial = Source.Tag
+            If Not f Is Nothing AndAlso Not f.Disposed Then f.Add(GetCheckedMedia())
+        End Sub
+        Private Sub Feed_SPEC_CLEAR(ByVal Source As ToolStripMenuItem, ByVal e As EventArgs)
+            Dim f As FeedSpecial = Source.Tag
+            If Not f Is Nothing AndAlso Not f.Disposed Then
+                If MsgBoxE({$"Are you sure you want to clear the '{f.Name}' feed?", "Clear feed"}, vbExclamation,,, {"Process", "Cancel"}) = 0 Then f.Clear()
+            End If
+        End Sub
+        Private Sub Feed_SPEC_REMOVE(ByVal Source As ToolStripMenuItem, ByVal e As EventArgs)
+            Dim f As FeedSpecial = Source.Tag
+            If Not f Is Nothing AndAlso Not f.Disposed Then f.Remove(GetCheckedMedia())
+        End Sub
+        Private Sub Feed_SPEC_DELETE(ByVal Source As ToolStripMenuItem, ByVal e As EventArgs)
+            Dim f As FeedSpecial = Source.Tag
+            If Not f Is Nothing AndAlso Not f.Disposed Then
+                If MsgBoxE({$"Are you sure you want to delete the '{f.Name}' feed?", "Delete feed"}, vbExclamation,,, {"Process", "Cancel"}) = 0 AndAlso
+                   f.Delete() Then Feed_FeedRemoved(Settings.Feeds, f)
+            End If
         End Sub
 #End Region
 #Region "Settings"
@@ -151,13 +249,6 @@ Namespace DownloadObjects
         End Sub
 #End Region
 #Region "Refill"
-        Friend Sub Downloader_FilesChanged(ByVal Added As Boolean)
-            ControlInvokeFast(ToolbarTOP, BTT_REFRESH, Sub() BTT_REFRESH.ToolTipText = If(Added, "New files found", "Some files have been removed"))
-            BTT_REFRESH.ControlChangeColor(ToolbarTOP, Added, False)
-        End Sub
-        Private Sub BTT_REFRESH_Click(sender As Object, e As EventArgs) Handles BTT_REFRESH.Click
-            RefillList()
-        End Sub
         Private Sub RefillList(Optional ByVal RefillDataList As Boolean = True)
             DataPopulated = False
             If RefillDataList Then
@@ -176,11 +267,20 @@ Namespace DownloadObjects
                 MyRange_IndexChanged(MyRange, Nothing)
             End If
         End Sub
-        Private Sub BTT_CLEAR_Click(sender As Object, e As EventArgs) Handles BTT_CLEAR.Click
-            Downloader.Files.Clear()
-            ClearTable()
-            RefillList()
+        Private Sub CleanDataList()
+            If DataList.Count > 0 Then
+                If IsSubscription Then
+                    DataList.RemoveAll(FilterUsers)
+                Else
+                    DataList.RemoveAll(FilterSubscriptions)
+                    DataList.RemoveAll(FileNotExist)
+                End If
+            End If
         End Sub
+#End Region
+#Region "Toolbar controls"
+#Region "Feed"
+#Region "Load"
         Private Sub BTT_LOAD_SESSION_CURRENT_Click(sender As Object, e As EventArgs) Handles BTT_LOAD_SESSION_CURRENT.Click
             RefillList()
         End Sub
@@ -190,7 +290,8 @@ Namespace DownloadObjects
         Private Sub BTT_LOAD_SESSION_CHOOSE_Click(sender As Object, e As EventArgs) Handles BTT_LOAD_SESSION_CHOOSE.Click
             SessionChooser(False)
         End Sub
-        Private Sub SessionChooser(ByVal GetLast As Boolean)
+        Private Sub SessionChooser(ByVal GetLast As Boolean, Optional ByVal GetFilesOnly As Boolean = False,
+                                   Optional ByRef ResultFilesList As List(Of SFile) = Nothing)
             Try
                 Downloader.ClearSessions()
                 Dim f As SFile = TDownloader.SessionsPath.CSFileP
@@ -198,16 +299,9 @@ Namespace DownloadObjects
                 Dim m As New MMessage("Saved sessions not selected", "Sessions",, vbExclamation)
                 Dim x As XmlFile
                 Dim lcr As New ListAddParams(LAP.NotContainsOnly + LAP.IgnoreICopier)
-                Dim __clearList As Action = Sub()
-                                                If IsSubscription Then
-                                                    DataList.RemoveAll(FilterUsers)
-                                                Else
-                                                    DataList.RemoveAll(FilterSubscriptions)
-                                                    DataList.RemoveAll(FileNotExist)
-                                                End If
-                                            End Sub
                 Dim __getFiles As Func(Of Boolean) = Function() As Boolean
                                                          If f.Exists(SFO.Path, False) Then fList = SFile.GetFiles(f, "*.xml",, EDP.ReturnValue)
+                                                         If fList.ListExists Then fList.RemoveAll(Settings.Feeds.FeedSpecialRemover)
                                                          If fList.ListExists Then
                                                              fList.Reverse()
                                                              Return True
@@ -216,27 +310,32 @@ Namespace DownloadObjects
                                                          End If
                                                      End Function
                 If Not GetLast Then __getFiles.Invoke
-                If Not GetLast AndAlso fList.ListExists Then
+                If Not GetLast And GetFilesOnly And Not fList.ListExists Then
+                    MsgBoxE({"No session files found", "Get session files"}, vbExclamation)
+                ElseIf Not GetLast AndAlso fList.ListExists Then
                     Using chooser As New SimpleListForm(Of SFile)(fList, Settings.Design) With {
                         .FormText = "Sessions",
                         .Icon = My.Resources.ArrowDownIcon_Blue_24,
                         .Mode = SimpleListFormModes.CheckedItems,
-                        .Provider = New CustomProvider(Function(v As SFile) AConvert(Of String)(AConvert(Of Date)(v.Name, SessionDateTimeProvider, v.Name),
-                                                                                                DateTimeDefaultProvider, v.Name))
+                        .Provider = SessionDateStringProvider
                     }
                         chooser.ClearButtons()
                         If chooser.ShowDialog = DialogResult.OK Then
                             fList = chooser.DataResult
                             If fList.ListExists Then
-                                DataList.Clear()
-                                For Each f In fList
-                                    x = New XmlFile(f,, False) With {.AllowSameNames = True, .XmlReadOnly = True}
-                                    x.LoadData()
-                                    If x.Count > 0 Then DataList.ListAddList(x, lcr)
-                                    x.Dispose()
-                                Next
-                                __clearList.Invoke
-                                RefillList(False)
+                                If GetFilesOnly Then
+                                    ResultFilesList.AddRange(fList)
+                                Else
+                                    DataList.Clear()
+                                    For Each f In fList
+                                        x = New XmlFile(f,, False) With {.AllowSameNames = True, .XmlReadOnly = True}
+                                        x.LoadData()
+                                        If x.Count > 0 Then DataList.ListAddList(x, lcr)
+                                        x.Dispose()
+                                    Next
+                                    CleanDataList()
+                                    RefillList(False)
+                                End If
                             Else
                                 MsgBoxE(m)
                             End If
@@ -254,7 +353,7 @@ Namespace DownloadObjects
                     x.LoadData()
                     If x.Count > 0 Then DataList.Clear() : DataList.ListAddList(x, lcr)
                     x.Dispose()
-                    __clearList.Invoke
+                    CleanDataList()
                     RefillList(False)
                 Else
                     m.Text = "Saved sessions not found"
@@ -265,6 +364,147 @@ Namespace DownloadObjects
                 ErrorsDescriber.Execute(EDP.SendToLog, ex, $"[DownloadObjects.DownloadFeedForm.SessionChooser({GetLast})]")
             End Try
         End Sub
+#End Region
+#Region "Load fav, spec"
+        Private Sub BTT_LOAD_FAV_Click(sender As Object, e As EventArgs) Handles BTT_LOAD_FAV.Click
+            DataList.Clear()
+            With Settings.Feeds.Favorite
+                .RemoveNotExist(FileNotExist)
+                If .Count > 0 Then DataList.AddRange(.Self) : CleanDataList() : RefillList(False)
+            End With
+        End Sub
+        Private Sub BTT_LOAD_SPEC_Click(sender As Object, e As EventArgs) Handles BTT_LOAD_SPEC.Click
+            With FeedSpecialCollection.ChooseFeeds(False)
+                If .ListExists Then
+                    DataList.Clear()
+                    Dim d As New List(Of UserMediaD)
+                    .ForEach(Sub(ByVal f As FeedSpecial)
+                                 f.RemoveNotExist(FileNotExist)
+                                 If f.Count > 0 Then d.AddRange(f)
+                             End Sub)
+                    If d.Count > 0 Then DataList.ListAddList(d.Distinct)
+                    CleanDataList()
+                    RefillList(False)
+                End If
+            End With
+        End Sub
+#End Region
+#Region "Add remove fav spec"
+        Private Sub BTT_FEED_ADD_FAV_Click(sender As Object, e As EventArgs) Handles BTT_FEED_ADD_FAV.Click
+            Settings.Feeds.Favorite.Add(GetCheckedMedia())
+        End Sub
+        Private Sub BTT_FEED_REMOVE_FAV_Click(sender As Object, e As EventArgs) Handles BTT_FEED_REMOVE_FAV.Click
+            Settings.Feeds.Favorite.Remove(GetCheckedMedia())
+        End Sub
+        Private Sub BTT_FEED_ADD_SPEC_Click(sender As Object, e As EventArgs) Handles BTT_FEED_ADD_SPEC.Click
+            Dim c As IEnumerable(Of UserMediaD) = GetCheckedMedia()
+            If c.ListExists Then
+                With FeedSpecialCollection.ChooseFeeds(False)
+                    If .ListExists Then .ForEach(Sub(f) f.Add(c))
+                End With
+            Else
+                MsgBoxE({"You haven't selected media to add to your feed(s)", "Add to feed(s)"}, vbExclamation)
+            End If
+        End Sub
+        Private Sub BTT_FEED_REMOVE_SPEC_Click(sender As Object, e As EventArgs) Handles BTT_FEED_REMOVE_SPEC.Click
+            Dim c As IEnumerable(Of UserMediaD) = GetCheckedMedia()
+            If c.ListExists Then
+                With FeedSpecialCollection.ChooseFeeds(False)
+                    If .ListExists Then .ForEach(Sub(f) f.Remove(c))
+                End With
+            Else
+                MsgBoxE({"You haven't selected media to remove from your feed(s)", "Remove from feed(s)"}, vbExclamation)
+            End If
+        End Sub
+        Private Function GetCheckedMedia() As IEnumerable(Of UserMediaD)
+            Return ControlInvoke(Of IEnumerable(Of UserMediaD))(TP_DATA,
+                   Function() As IEnumerable(Of UserMediaD)
+                       If TP_DATA.Controls.Count > 0 Then
+                           Return (From cnt As FeedMedia In TP_DATA.Controls Where cnt.Checked Select cnt.Media)
+                       Else
+                           Return New UserMediaD() {}
+                       End If
+                   End Function, New UserMediaD() {}, EDP.ReturnValue)
+        End Function
+#End Region
+#Region "Clear delete"
+        Private Sub BTT_FEED_CLEAR_FAV_Click(sender As Object, e As EventArgs) Handles BTT_FEED_CLEAR_FAV.Click
+            If MsgBoxE({"Are you sure you want to clear your Favorite feed?", "Clear feed"}, vbExclamation,,, {"Process", "Cancel"}) = 0 Then _
+               Settings.Feeds.Favorite.Delete()
+        End Sub
+        Private Sub BTT_FEED_CLEAR_SPEC_Click(sender As Object, e As EventArgs) Handles BTT_FEED_CLEAR_SPEC.Click
+            With FeedSpecialCollection.ChooseFeeds(False)
+                If .ListExists Then
+                    If MsgBoxE({$"Are you sure you want to clear the following feeds?{vbCr}{vbCr}{ .ListToString(vbCr)}", "Clear feed"}, vbExclamation,,,
+                               {"Process", "Cancel"}) = 0 Then .ForEach(Sub(f) f.Clear())
+                End If
+            End With
+        End Sub
+        Private Sub BTT_FEED_DELETE_SPEC_Click(sender As Object, e As EventArgs) Handles BTT_FEED_DELETE_SPEC.Click
+            With FeedSpecialCollection.ChooseFeeds(False)
+                If .ListExists Then
+                    If MsgBoxE({$"Are you sure you want to delete the following feeds?{vbCr}{vbCr}{ .ListToString(vbCr)}", "Delete feed"}, vbExclamation,,,
+                               {"Process", "Cancel"}) = 0 Then .ForEach(Sub(f) f.Delete())
+                End If
+            End With
+        End Sub
+        Private Sub BTT_FEED_DELETE_DAILY_LIST_Click(sender As Object, e As EventArgs) Handles BTT_FEED_DELETE_DAILY_LIST.Click
+            Try
+                Dim l As New List(Of SFile)
+                SessionChooser(False, True, l)
+                If l.Count > 0 Then
+                    If MsgBoxE({$"Are you sure you want to delete the following sessions?{vbCr}{vbCr}{l.ListToStringE(vbCr, SessionDateStringProvider)}", "Delete session"}, vbExclamation,,,
+                               {"Process", "Cancel"}) = 0 Then
+                        l.ForEach(Sub(f) f.Delete(SFO.File, SFODelete.DeleteToRecycleBin, EDP.None))
+                        MsgBoxE({"Sessions have been deleted", "Delete session"})
+                    End If
+                End If
+            Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "Delete daily sessions (by list)")
+                MainFrameObj.UpdateLogButton()
+            End Try
+        End Sub
+        Private Sub BTT_FEED_DELETE_DAILY_DATE_Click(sender As Object, e As EventArgs) Handles BTT_FEED_DELETE_DAILY_DATE.Click
+            Try
+                Using f As New DateTimeSelectionForm(DTSModes.CheckBoxes + DTSModes.Date + DTSModes.Start + DTSModes.End, Settings.Design) With {
+                    .DesignXMLNodeName = "SessionRemoverDateTimeForm"
+                }
+                    f.ShowDialog()
+                    If f.DialogResult = DialogResult.OK Then
+                        Dim _dStart As Date? = f.MyDateStart
+                        Dim _dEnd As Date? = f.MyDateEnd
+                        If _dStart.HasValue Or _dEnd.HasValue Then
+                            Dim dStart As Date = If(_dStart, Date.MinValue)
+                            dStart = dStart.Date
+                            Dim dEnd As Date = If(_dEnd, Date.MaxValue)
+                            dEnd = dEnd.Date
+                            Dim filesDir As SFile = TDownloader.SessionsPath.CSFileP
+                            If filesDir.Exists(SFO.Path, False) Then
+                                Dim files As List(Of SFile) = SFile.GetFiles(filesDir, "*.xml",, EDP.ReturnValue)
+                                If files.ListExists Then files.RemoveAll(Settings.Feeds.FeedSpecialRemover)
+                                If files.ListExists Then
+                                    Dim fd As IEnumerable(Of KeyValuePair(Of SFile, Date?)) =
+                                        files.Select(Function(ff) New KeyValuePair(Of SFile, Date?)(
+                                                                  ff, AConvert(Of Date)(ff.Name, SessionDateTimeProvider, AModes.Var, Nothing)))
+                                    If fd.ListExists Then
+                                        For Each optFile As KeyValuePair(Of SFile, Date?) In fd
+                                            If optFile.Value.HasValue AndAlso optFile.Value.Value.ValueBetween(dStart, dEnd) Then _
+                                               optFile.Key.Delete(SFO.File, SFODelete.DeleteToRecycleBin, EDP.None)
+                                        Next
+                                    End If
+                                End If
+                            End If
+                        End If
+                    End If
+                End Using
+            Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "Delete daily sessions (by date)")
+                MainFrameObj.UpdateLogButton()
+            End Try
+        End Sub
+#End Region
+#End Region
+#Region "View modes"
         Private Sub OPT_Click(ByVal Sender As ToolStripMenuItem, ByVal e As EventArgs) Handles OPT_DEFAULT.Click, OPT_SUBSCRIPTIONS.Click
             Dim __refill As Boolean = False
             ControlInvokeFast(ToolbarTOP, Sender,
@@ -282,6 +522,19 @@ Namespace DownloadObjects
                                   MENU_DOWN.Visible = OPT_SUBSCRIPTIONS.Checked
                               End Sub, EDP.None)
             If __refill Then RefillList()
+        End Sub
+#End Region
+        Friend Sub Downloader_FilesChanged(ByVal Added As Boolean)
+            ControlInvokeFast(ToolbarTOP, BTT_REFRESH, Sub() BTT_REFRESH.ToolTipText = If(Added, "New files found", "Some files have been removed"))
+            BTT_REFRESH.ControlChangeColor(ToolbarTOP, Added, False)
+        End Sub
+        Private Sub BTT_REFRESH_Click(sender As Object, e As EventArgs) Handles BTT_REFRESH.Click
+            RefillList()
+        End Sub
+        Private Sub BTT_CLEAR_Click(sender As Object, e As EventArgs) Handles BTT_CLEAR.Click
+            Downloader.Files.Clear()
+            ClearTable()
+            RefillList()
         End Sub
 #End Region
 #Region "Download"

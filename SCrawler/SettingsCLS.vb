@@ -131,6 +131,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
     Friend ReadOnly Property GlobalLocations As STDownloader.DownloadLocationsCollection
     Friend Property Automation As Scheduler
     Friend ReadOnly Property AutomationFile As XMLValue(Of SFile)
+    Friend ReadOnly Property Feeds As FeedSpecialCollection
     Friend ReadOnly Property BlackList As List(Of UserBan)
     Private ReadOnly BlackListFile As SFile = $"{SettingsFolderName}\BlackList.txt"
     Private ReadOnly UsersSettingsFile As SFile = $"{SettingsFolderName}\Users.xml"
@@ -148,6 +149,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         LastCollections = New List(Of String)
         GlobalLocations = New STDownloader.DownloadLocationsCollection
         GlobalLocations.Load(True,, $"{SettingsFolderName}\GlobalLocations.xml")
+        Feeds = New FeedSpecialCollection
 
         Dim n() As String = {"MediaEnvironment"}
 

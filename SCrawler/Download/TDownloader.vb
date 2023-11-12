@@ -116,7 +116,11 @@ Namespace DownloadObjects
                 If Not _FilesSessionCleared Then
                     _FilesSessionCleared = True
                     Dim files As List(Of SFile) = SFile.GetFiles(SessionsPath.CSFileP, "*.xml",, EDP.ReturnValue)
-                    If RenameOldFileNames(files) Then files = SFile.GetFiles(SessionsPath.CSFileP, "*.xml",, EDP.ReturnValue)
+                    If files.ListExists Then files.RemoveAll(Settings.Feeds.FeedSpecialRemover)
+                    If RenameOldFileNames(files) Then
+                        files = SFile.GetFiles(SessionsPath.CSFileP, "*.xml",, EDP.ReturnValue)
+                        If files.ListExists Then files.RemoveAll(Settings.Feeds.FeedSpecialRemover)
+                    End If
                     Dim filesCount% = Settings.FeedStoredSessionsNumber
                     If files.ListExists And filesCount > 0 Then
                         Dim fe As New ErrorsDescriber(EDP.None)
