@@ -130,16 +130,25 @@ Namespace DownloadObjects
 #End Region
 #Region "Execution"
         Friend Async Function Start(ByVal Init As Boolean) As Task
-            Await Task.Run(Sub()
-                               If Count > 0 Then
-                                   If Plans.Exists(PlanDownloading) Then PlansWaiter(PlanDownloading)
-                                   For Each Plan In Plans
-                                       Plan.Start(Init)
-                                       PlansWaiter(PlanDownloading)
-                                       Thread.Sleep(1000)
-                                   Next
-                               End If
-                           End Sub)
+            Try
+                Await Task.Run(Sub()
+                                   If Count > 0 Then
+                                       If Plans.Exists(PlanDownloading) Then PlansWaiter(PlanDownloading)
+                                       For Each Plan In Plans
+                                           Plan.Start(Init)
+                                           PlansWaiter(PlanDownloading)
+                                           Thread.Sleep(1000)
+                                       Next
+                                   End If
+                               End Sub)
+            Catch ex As Exception
+                If Init Then
+                    ErrorsDescriber.Execute(EDP.SendToLog, ex, "Start automation")
+                    MainFrameObj.UpdateLogButton()
+                Else
+                    Throw ex
+                End If
+            End Try
         End Function
         Friend Sub [Stop]()
             If Count > 0 Then Plans.ForEach(Sub(p) p.Stop())

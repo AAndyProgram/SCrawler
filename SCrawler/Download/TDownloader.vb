@@ -156,9 +156,10 @@ Namespace DownloadObjects
         Private ReadOnly NProv As IFormatProvider
 #End Region
 #Region "Working, Count"
-        Friend ReadOnly Property Working As Boolean
+        Friend ReadOnly Property Working(Optional ByVal CheckThread As Boolean = True) As Boolean
             Get
-                Return _PoolReconfiguration Or (Pool.Count > 0 AndAlso Pool.Exists(Function(j) j.Working)) Or If(CheckerThread?.IsAlive, False)
+                Return _PoolReconfiguration Or (Pool.Count > 0 AndAlso Pool.Exists(Function(j) j.Working)) Or
+                       (CheckThread AndAlso If(CheckerThread?.IsAlive, False))
             End Get
         End Property
         Friend ReadOnly Property Count As Integer

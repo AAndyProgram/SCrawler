@@ -578,10 +578,15 @@ CloseResume:
         ControlInvokeFast(Me, Sub() BTT_TRAY_PAUSE_AUTOMATION.Visible = b)
     End Sub
     Private Async Sub BTT_DOWN_AUTOMATION_Click(sender As Object, e As EventArgs) Handles BTT_DOWN_AUTOMATION.Click
-        Using f As New SchedulerEditorForm : f.ShowDialog() : End Using
-        Await Settings.Automation.Start(False)
-        UpdatePauseButtonsVisibility()
-        MainFrameObj.PauseButtons.UpdatePauseButtons()
+        Try
+            Using f As New SchedulerEditorForm : f.ShowDialog() : End Using
+            Await Settings.Automation.Start(False)
+            UpdatePauseButtonsVisibility()
+            MainFrameObj.PauseButtons.UpdatePauseButtons()
+        Catch ex As Exception
+            ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Start automation")
+            MainFrameObj.UpdateLogButton()
+        End Try
     End Sub
     Private Sub BTT_DOWN_AUTOMATION_PAUSE_Click(sender As Object, e As EventArgs) Handles BTT_DOWN_AUTOMATION_PAUSE.Click, BTT_TRAY_PAUSE_AUTOMATION.Click
         Dim p As PauseModes = Settings.Automation.Pause
@@ -1981,7 +1986,7 @@ ResumeDownloadingOperation:
         MainFrameObj.UpdateLogButton()
     End Sub
     Private Sub Downloader_Downloading(ByVal Value As Boolean)
-        Dim __isDownloading As Boolean = Value Or Downloader.Working
+        Dim __isDownloading As Boolean = Value Or Downloader.Working(False)
         ControlInvokeFast(Toolbar_TOP, BTT_DOWN_STOP, Sub() BTT_DOWN_STOP.Enabled = __isDownloading)
         TrayIcon.Icon = If(__isDownloading, My.Resources.ArrowDownIcon_Blue_24, My.Resources.RainbowIcon_48)
     End Sub

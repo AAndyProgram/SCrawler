@@ -582,7 +582,8 @@ Namespace API.Xhamster
 #Region "Exception"
         Protected Overrides Function DownloadingException(ByVal ex As Exception, ByVal Message As String, Optional ByVal FromPE As Boolean = False,
                                                           Optional ByVal EObj As Object = Nothing) As Integer
-            Return If(Responser.Status = Net.WebExceptionStatus.ConnectionClosed, 1, 0)
+            '8, 503
+            Return If(Responser.Status = Net.WebExceptionStatus.ConnectionClosed Or Responser.StatusCode = Net.HttpStatusCode.ServiceUnavailable, 1, 0)
         End Function
 #End Region
 #Region "IDisposable support"
