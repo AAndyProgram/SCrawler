@@ -1422,28 +1422,36 @@ Namespace API.YouTube.Objects
         Protected Sub ParseSubtitles(ByVal e As EContainer)
             Dim subt As Subtitles
             Dim ee As EContainer
-            Dim se As EContainer = e({"subtitles"})
-            If If(se?.Count, 0) = 0 OrElse (se.Count = 1 And se(0).Name = "live_chat") Then se = e({"automatic_captions"})
-            If If(se?.Count, 0) > 0 Then
-                If se.Count > 1 OrElse Not se(0).Name = "live_chat" Then
+            Dim eSUB As EContainer = e({"subtitles"})
+            Dim eCC As EContainer = e({"automatic_captions"})
+            If If(eSUB?.Count, 0) = 0 OrElse (eSUB.Count = 1 And eSUB(0).Name = "live_chat") Then eSUB = Nothing
+            If If(eCC?.Count, 0) = 0 OrElse (eCC.Count = 1 And eCC(0).Name = "live_chat") Then eCC = Nothing
+            If If(eSUB?.Count, 0) > 0 Or If(eCC?.Count, 0) > 0 Then
+                Dim sl As New List(Of EContainer)
+                Dim ccExists As Boolean = False
+                Dim ccIndx% = -1, rIndx% = -1
+                If If(eSUB?.Count, 0) > 0 Then sl.Add(eSUB) : ccIndx += 1
+                If If(eCC?.Count, 0) > 0 Then sl.Add(eCC) : ccIndx += 1 : ccExists = True
+                For Each se As EContainer In sl
+                    rIndx += 1
                     For Each ee In se
-                        subt = New Subtitles With {.ID = ee.Name}
+                        subt = New Subtitles With {.ID = ee.Name, .CC = rIndx = ccIndx And ccExists}
                         If ee.Count > 0 Then
                             subt.Name = ee(0).Value("name")
                             subt.Formats = ee.Select(Function(f) f.Value("ext")).ListToString(",")
                         End If
                         If Not subt.ID.IsEmptyString Then _Subtitles.Add(subt)
                     Next
-                    With MyYouTubeSettings
-                        If Not .DefaultSubtitlesFormat.IsEmptyString Then OutputSubtitlesFormat = .DefaultSubtitlesFormat
-                        If _Subtitles.Count > 0 And .DefaultSubtitles.Count > 0 Then
-                            _Subtitles.Sort()
-                            _Subtitles.ListReindex
-                            SubtitlesSelectedIndexesReset()
-                            PostProcessing_OutputSubtitlesFormats_Reset()
-                        End If
-                    End With
-                End If
+                Next
+                With MyYouTubeSettings
+                    If Not .DefaultSubtitlesFormat.IsEmptyString Then OutputSubtitlesFormat = .DefaultSubtitlesFormat
+                    If _Subtitles.Count > 0 And .DefaultSubtitles.Count > 0 Then
+                        _Subtitles.Sort()
+                        _Subtitles.ListReindex
+                        SubtitlesSelectedIndexesReset()
+                        PostProcessing_OutputSubtitlesFormats_Reset()
+                    End If
+                End With
             End If
         End Sub
 #End Region

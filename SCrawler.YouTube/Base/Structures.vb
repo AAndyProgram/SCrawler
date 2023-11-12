@@ -28,8 +28,19 @@ Namespace API.YouTube.Base
     End Structure
     Public Structure Subtitles : Implements IIndexable, IComparable(Of Subtitles)
         Public ID As String
-        Public Name As String
+        Private _Name As String
+        Public Property Name As String
+            Get
+                Dim n$ = _Name.IfNullOrEmpty(ID)
+                If CC Then n &= " (CC)"
+                Return n
+            End Get
+            Set(ByVal NewName As String)
+                _Name = NewName
+            End Set
+        End Property
         Public Formats As String
+        Public CC As Boolean
         Public ReadOnly Property FullID As String
             Get
                 Return IIf(ID = "en", "en.*", ID)
