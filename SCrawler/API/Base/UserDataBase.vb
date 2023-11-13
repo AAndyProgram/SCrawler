@@ -169,6 +169,11 @@ Namespace API.Base
         Protected Const Name_UseMD5Comparison As String = "UseMD5Comparison"
         Protected Const Name_RemoveExistingDuplicates As String = "RemoveExistingDuplicates"
         Protected Const Name_StartMD5Checked As String = "StartMD5Checked"
+#Region "Additional names"
+        Protected Const Name_SiteMode As String = "SiteMode"
+        Protected Const Name_TrueName As String = "TrueName"
+        Protected Const Name_Arguments As String = "Arguments"
+#End Region
 #End Region
 #Region "Declarations"
 #Region "Host, Site, Progress"

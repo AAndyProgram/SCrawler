@@ -18,7 +18,6 @@ Namespace API.Mastodon
     Friend Class UserData : Inherits Twitter.UserData
 #Region "XML names"
         Private Const Name_UserDomain As String = "UserDomain"
-        Private Const Name_TrueName As String = "TrueName"
 #End Region
 #Region "Declarations"
         Private _UserDomain As String = String.Empty

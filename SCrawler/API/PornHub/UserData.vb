@@ -29,7 +29,7 @@ Namespace API.PornHub
         Private Const Name_DownloadFavorite As String = "DownloadFavorite"
         Private Const Name_DownloadGifs As String = "DownloadGifs"
         Private Const Name_DownloadPhotoOnlyFromModelHub As String = "DownloadPhotoOnlyFromModelHub"
-        Private Const Name_IsUser As String = "IsUser"
+        <Obsolete> Private Const Name_IsUser As String = "IsUser"
 #End Region
 #Region "Structures"
         Private Structure FlashVar : Implements IRegExCreator
@@ -117,6 +117,8 @@ Namespace API.PornHub
         Private Const PersonTypeUser As String = "users"
         Private Const PersonTypePornstar As String = "pornstar"
         Private Const PersonTypeCannel As String = "channels"
+        Private Const PersonTypePlaylist As String = "playlist"
+        Private Const PlaylistsLabelName As String = "Playlist"
 #End Region
 #Region "Person"
         Friend Property PersonType As String
@@ -133,7 +135,7 @@ Namespace API.PornHub
 #Region "Advanced fields"
         Friend Overrides ReadOnly Property FeedIsUser As Boolean
             Get
-                Return IsUser
+                Return IsUser Or SiteMode = SiteModes.Playlists
             End Get
         End Property
         Private Property PhotoPageModel As PhotoPageModels = PhotoPageModels.Undefined
@@ -144,12 +146,12 @@ Namespace API.PornHub
         Friend Property DownloadFavorite As Boolean = False
         Friend Property DownloadGifs As Boolean
         Friend Property DownloadPhotoOnlyFromModelHub As Boolean = True
-        Private _IsUser As Boolean = True
         Friend Overrides ReadOnly Property IsUser As Boolean
             Get
-                Return _IsUser
+                Return SiteMode = SiteModes.User
             End Get
         End Property
+        Friend Property SiteMode As SiteModes = SiteModes.User
         Friend Property QueryString As String
             Get
                 If IsUser Then
@@ -164,7 +166,7 @@ Namespace API.PornHub
         End Property
         Friend Overrides ReadOnly Property SpecialLabels As IEnumerable(Of String)
             Get
-                Return {SearchRequestLabelName}
+                Return {SearchRequestLabelName, PlaylistsLabelName}
             End Get
         End Property
 #End Region
@@ -204,26 +206,32 @@ Namespace API.PornHub
 #Region "Loader"
         Private Function UpdateUserOptions(Optional ByVal Force As Boolean = False, Optional ByVal NewUrl As String = Nothing) As Boolean
 
-            If Not Force OrElse (Not IsUser AndAlso Not NewUrl.IsEmptyString AndAlso MyFileSettings.Exists) Then
+            If Not Force OrElse (Not IsUser AndAlso Not SiteMode = SiteModes.Playlists AndAlso Not NewUrl.IsEmptyString AndAlso MyFileSettings.Exists) Then
                 Dim eObj As Plugin.ExchangeOptions = Nothing
                 If Force Then eObj = MySettings.IsMyUser(NewUrl)
                 If (Force And Not eObj.UserName.IsEmptyString) Or (Not Force And Not Name.IsEmptyString And NameTrue.IsEmptyString) Then
                     If Not If(Force, eObj.Options, Options).IsEmptyString Then
-                        If IsUser And Force Then
+                        If (IsUser Or SiteMode = SiteModes.Playlists) And Force Then
                             Return False
                         Else
-                            _IsUser = False
+                            SiteMode = SiteModes.Search
                             Options = If(Force, eObj.Options, Options)
-                            NameTrue = Options
+                            If Options.ToLower.StartsWith(PersonTypePlaylist) Then
+                                SiteMode = SiteModes.Playlists
+                                NameTrue = Options.ToLower.Replace(PersonTypePlaylist, String.Empty).StringTrim.TrimStart("/")
+                            Else
+                                NameTrue = Options
+                            End If
                             If Not Force Then
-                                Settings.Labels.Add(SearchRequestLabelName)
-                                Labels.ListAddValue(SearchRequestLabelName, LNC)
+                                Dim l$ = IIf(SiteMode = SiteModes.Playlists, PlaylistsLabelName, SearchRequestLabelName)
+                                Settings.Labels.Add(l)
+                                Labels.ListAddValue(l, LNC)
                                 Labels.Sort()
                                 Return True
                             End If
                         End If
                     Else
-                        _IsUser = True
+                        SiteMode = SiteModes.User
                         Dim n$() = Name.Split("_")
                         If n.ListExists(2) Then
                             NameTrue = Name.Replace($"{n(0)}_", String.Empty)
@@ -247,7 +255,14 @@ Namespace API.PornHub
                     DownloadFavorite = .Value(Name_DownloadFavorite).FromXML(Of Boolean)(False)
                     DownloadGifs = .Value(Name_DownloadGifs).FromXML(Of Integer)(False)
                     DownloadPhotoOnlyFromModelHub = .Value(Name_DownloadPhotoOnlyFromModelHub).FromXML(Of Boolean)(True)
-                    _IsUser = .Value(Name_IsUser).FromXML(Of Boolean)(True)
+                    If .Contains(Name_SiteMode) Then
+                        SiteMode = .Value(Name_SiteMode).FromXML(Of Integer)(SiteModes.User)
+                    Else
+                        'TODELETE: PornHub 'IsUser' 20231113
+#Disable Warning BC40008
+                        SiteMode = IIf(.Value(Name_IsUser).FromXML(Of Boolean)(True), SiteModes.User, SiteModes.Search)
+#Enable Warning
+                    End If
                     UpdateUserOptions()
                 Else
                     If UpdateUserOptions() Then .Value(Name_LabelsName) = LabelsString
@@ -261,7 +276,7 @@ Namespace API.PornHub
                     .Add(Name_DownloadFavorite, DownloadFavorite.BoolToInteger)
                     .Add(Name_DownloadGifs, DownloadGifs.BoolToInteger)
                     .Add(Name_DownloadPhotoOnlyFromModelHub, DownloadPhotoOnlyFromModelHub.BoolToInteger)
-                    .Add(Name_IsUser, IsUser.BoolToInteger)
+                    .Add(Name_SiteMode, CInt(SiteMode))
 
                     'Debug.WriteLine(GetNonUserUrl(0))
                     'Debug.WriteLine(GetNonUserUrl(2))
@@ -271,8 +286,11 @@ Namespace API.PornHub
 #End Region
 #Region "Downloading"
 #Region "Download override"
+        Private Const PlayListUrlPattern As String = "https://www.pornhub.com/playlist/viewChunked?id={0}&token={1}&page={2}"
+        Private PlaylistToken As String = String.Empty
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
             Try
+                PlaylistToken = String.Empty
                 Responser.ResetStatus()
 
                 If IsSavedPosts Then
@@ -283,7 +301,11 @@ Namespace API.PornHub
                 Dim limit% = If(DownloadTopCount, -1)
                 If DownloadVideos Then
 
-                    If IsSavedPosts Or Not IsUser Or PersonType = PersonTypeUser Then
+                    If SiteMode = SiteModes.Playlists Then
+                        Responser.Mode = Responser.Modes.Default
+                        GetPlaylistToken(Token)
+                        DownloadUserVideos(1, VideoTypes.Favorite, False, Token)
+                    ElseIf IsSavedPosts Or Not IsUser Or PersonType = PersonTypeUser Then
                         DownloadUserVideos(1, VideoTypes.Favorite, False, Token)
                     Else
                         If DownloadUploaded Then
@@ -365,6 +387,9 @@ Namespace API.PornHub
                         Throw New ArgumentException($"Type '{Type}' is not implemented in the video download function", "Type")
                     End If
                     If Page > 1 Then URL &= $"?page={Page}"
+                ElseIf SiteMode = SiteModes.Playlists Then
+                    If PlaylistToken.IsEmptyString Then Throw New ArgumentNullException("PlaylistToken", "Unable to get 'PlaylistToken'")
+                    URL = String.Format(PlayListUrlPattern, NameTrue, PlaylistToken, Page)
                 Else
                     URL = GetNonUserUrl(Page)
                 End If
@@ -375,7 +400,7 @@ Namespace API.PornHub
                 Dim r$ = Responser.GetResponse(URL)
                 If Not r.IsEmptyString Then
                     Dim l As List(Of UserVideo) = RegexFields(Of UserVideo)(r, {RegexUserVideos}, {6, 7, 3, 10})
-                    If l.ListExists Then l = l.ListTake(3, l.Count).ToList
+                    If l.ListExists And Not SiteMode = SiteModes.Playlists Then l = l.ListTake(3, l.Count).ToList
                     If l.ListExists Then
                         If IsUser Then
                             If Type = VideoTypes.Favorite Then
@@ -417,6 +442,15 @@ Namespace API.PornHub
                 ProcessException(ex, Token, $"videos downloading error [{URL}]")
             Finally
                 ProgressPre.Perform()
+            End Try
+        End Sub
+        Private Sub GetPlaylistToken(ByVal Token As CancellationToken)
+            Dim URL$ = GetNonUserUrl(0)
+            Try
+                Dim r$ = Responser.GetResponse(URL)
+                If Not r.IsEmptyString Then PlaylistToken = RegexReplace(r, RegexDataToken)
+            Catch ex As Exception
+                ProcessException(ex, Token, $"token getting error [{URL}]")
             End Try
         End Sub
 #End Region

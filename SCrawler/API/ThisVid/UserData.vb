@@ -20,9 +20,6 @@ Namespace API.ThisVid
         Private Const Name_DownloadPrivate As String = "DownloadPrivate"
         Private Const Name_DownloadFavourite As String = "DownloadFavourite"
         Private Const Name_DifferentFolders As String = "DifferentFolders"
-        Private Const Name_TrueName As String = "TrueName"
-        Private Const Name_SiteMode As String = "SiteMode"
-        Private Const Name_Arguments As String = "Arguments"
 #End Region
 #Region "Structures"
         Private Structure Album : Implements IRegExCreator

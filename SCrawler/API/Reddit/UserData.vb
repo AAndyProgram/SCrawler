@@ -23,9 +23,6 @@ Imports CView = SCrawler.API.Reddit.IRedditView.View
 Imports CPeriod = SCrawler.API.Reddit.IRedditView.Period
 Namespace API.Reddit
     Friend Class UserData : Inherits UserDataBase : Implements IChannelLimits, IRedditView
-#Region "XML names"
-        Private Const Name_TrueName As String = "TrueName"
-#End Region
 #Region "Declarations"
         Private Const CannelsLabelName As String = "Channels"
         Friend Const CannelsLabelName_ChannelsForm As String = "RChannels"

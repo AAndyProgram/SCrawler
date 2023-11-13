@@ -17,9 +17,6 @@ Imports UTypes = SCrawler.API.Base.UserMedia.Types
 Namespace API.XVIDEOS
     Friend Class UserData : Inherits UserDataBase
 #Region "XML names"
-        Private Const Name_SiteMode As String = "SiteMode"
-        Private Const Name_TrueName As String = "TrueName"
-        Private Const Name_Arguments As String = "Arguments"
         Private Const Name_PersonType As String = "PersonType"
 #End Region
 #Region "Structures"

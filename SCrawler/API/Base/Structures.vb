@@ -18,6 +18,7 @@ Namespace API.Base
             Tags = 2
             Categories = 3
             Pornstars = 4
+            Playlists = 5
         End Enum
         Friend Structure UserMedia : Implements IUserMedia, IEquatable(Of UserMedia), IEContainerProvider
 #Region "XML Names"

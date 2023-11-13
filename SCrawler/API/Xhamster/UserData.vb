@@ -18,10 +18,7 @@ Imports UTypes = SCrawler.API.Base.UserMedia.Types
 Namespace API.Xhamster
     Friend Class UserData : Inherits UserDataBase
 #Region "XML names"
-        Private Const Name_TrueName As String = "TrueName"
         Private Const Name_Gender As String = "Gender"
-        Private Const Name_SiteMode As String = "SiteMode"
-        Private Const Name_Arguments As String = "Arguments"
 #End Region
 #Region "Declarations"
         Friend Overrides ReadOnly Property FeedIsUser As Boolean
