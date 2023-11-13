@@ -113,18 +113,24 @@ Namespace DownloadObjects
         End Sub
 #End Region
 #Region "Feeds handlers"
-        Private Sub AddNewFeedItem(ByVal Destination As ToolStripMenuItem, ByVal Feed As FeedSpecial, ByVal Image As Image, ByVal Handler As EventHandler,
-                                   Optional ByVal Insert As Boolean = False)
-            Dim item As New ToolStripMenuItem(Feed.Name, Image) With {.Tag = Feed}
-            AddHandler item.Click, Handler
-            ControlInvokeFast(ToolbarTOP, Destination, Sub()
-                                                           If Destination.DropDownItems.Count > 0 And Insert Then
-                                                               Destination.DropDownItems.Insert(0, item)
-                                                           Else
-                                                               Destination.DropDownItems.Add(item)
-                                                           End If
-                                                       End Sub, EDP.None)
+        Private Overloads Sub AddNewFeedItem(ByVal Destination As ToolStripMenuItem, ByVal Feed As FeedSpecial, ByVal Image As Image,
+                                             ByVal Handler As EventHandler, Optional ByVal Insert As Boolean = False)
+            AddNewFeedItem(Destination, ToolbarTOP, Feed, Image, Handler, Insert)
         End Sub
+        Friend Overloads Shared Function AddNewFeedItem(ByVal Destination As ToolStripMenuItem, ByVal Toolbar As ToolStrip,
+                                                        ByVal Feed As FeedSpecial, ByVal Image As Image,
+                                                        ByVal Handler As EventHandler, Optional ByVal Insert As Boolean = False) As ToolStripMenuItem
+            Dim item As New ToolStripMenuItem(Feed.Name, Image) With {.Tag = Feed}
+            If Not Handler Is Nothing Then AddHandler item.Click, Handler
+            ControlInvokeFast(Toolbar, Destination, Sub()
+                                                        If Destination.DropDownItems.Count > 0 And Insert Then
+                                                            Destination.DropDownItems.Insert(0, item)
+                                                        Else
+                                                            Destination.DropDownItems.Add(item)
+                                                        End If
+                                                    End Sub, EDP.None)
+            Return item
+        End Function
         Private Sub Feed_FeedAdded(ByVal Source As FeedSpecialCollection, ByVal Feed As FeedSpecial)
             AddNewFeedItem(BTT_LOAD_SPEC, Feed, My.Resources.RSSPic_512, AddressOf Feed_SPEC_LOAD, True)
             AddNewFeedItem(BTT_FEED_ADD_SPEC, Feed, My.Resources.RSSPic_512, AddressOf Feed_SPEC_ADD, True)
@@ -140,9 +146,12 @@ Namespace DownloadObjects
             Feed_FeedRemoved(BTT_FEED_CLEAR_SPEC, Feed)
         End Sub
         Private Overloads Sub Feed_FeedRemoved(ByVal Destination As ToolStripMenuItem, ByVal Feed As FeedSpecial)
+            Feed_FeedRemoved(Destination, ToolbarTOP, Feed)
+        End Sub
+        Friend Overloads Shared Sub Feed_FeedRemoved(ByVal Destination As ToolStripMenuItem, ByVal Toolbar As ToolStrip, ByVal Feed As FeedSpecial)
             Try
                 With Destination
-                    ControlInvokeFast(ToolbarTOP, .Self,
+                    ControlInvokeFast(Toolbar, .Self,
                                       Sub()
                                           If .DropDownItems.Count > 0 Then
                                               Dim item As Object
@@ -895,6 +904,9 @@ Namespace DownloadObjects
                                        If TP_DATA.Controls.Count > 0 Then
                                            For Each cnt As Control In TP_DATA.Controls : cnt.Dispose() : Next
                                            TP_DATA.Controls.Clear()
+                                           GC.Collect()
+                                           GC.WaitForPendingFinalizers()
+                                           GC.WaitForFullGCComplete()
                                        End If
                                    End Sub)
         End Sub

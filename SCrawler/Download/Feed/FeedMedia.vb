@@ -299,7 +299,22 @@ Namespace DownloadObjects
                 Else
                     Throw New ArgumentNullException With {.HelpLink = 1}
                 End If
-                If Settings.Feeds.Favorite.Contains(Media) Then BTT_FEED_ADD_FAV.ControlChangeColor(True, False)
+
+                If Settings.Feeds.FavoriteExists AndAlso Settings.Feeds.Favorite.Contains(Media) Then BTT_FEED_ADD_FAV.ControlChangeColor(True, False)
+                If Settings.FeedShowSpecialFeedsMediaItem Then
+                    With Settings.Feeds
+                        AddHandler .FeedAdded, AddressOf Feed_FeedAdded
+                        AddHandler .FeedRemoved, AddressOf Feed_FeedRemoved
+                        If .Count > 0 Then
+                            For Each fItem As FeedSpecial In .Self
+                                If Not fItem.IsFavorite Then
+                                    DownloadFeedForm.AddNewFeedItem(BTT_FEED_ADD_SPEC, CONTEXT_DATA, fItem, Nothing, AddressOf Feed_SPEC_ADD)
+                                    DownloadFeedForm.AddNewFeedItem(BTT_FEED_REMOVE_SPEC, CONTEXT_DATA, fItem, Nothing, AddressOf Feed_SPEC_REMOVE)
+                                End If
+                            Next
+                        End If
+                    End With
+                End If
             Catch aex As ArgumentNullException When aex.HelpLink = 1
                 HasError = True
             Catch tex As Threading.ThreadStateException
@@ -310,11 +325,38 @@ Namespace DownloadObjects
             End Try
         End Sub
 #End Region
+#Region "Feed handlers"
+        Private Sub Feed_FeedAdded(ByVal Source As FeedSpecialCollection, ByVal Feed As FeedSpecial)
+            DownloadFeedForm.AddNewFeedItem(BTT_FEED_ADD_SPEC, CONTEXT_DATA, Feed, My.Resources.RSSPic_512, AddressOf Feed_SPEC_ADD, True)
+            DownloadFeedForm.AddNewFeedItem(BTT_FEED_REMOVE_SPEC, CONTEXT_DATA, Feed, My.Resources.RSSPic_512, AddressOf Feed_SPEC_REMOVE, True)
+        End Sub
+        Private Sub Feed_FeedRemoved(ByVal Source As FeedSpecialCollection, ByVal Feed As FeedSpecial)
+            DownloadFeedForm.Feed_FeedRemoved(BTT_FEED_ADD_SPEC, CONTEXT_DATA, Feed)
+            DownloadFeedForm.Feed_FeedRemoved(BTT_FEED_REMOVE_SPEC, CONTEXT_DATA, Feed)
+        End Sub
+        Private Sub Feed_SPEC_ADD(ByVal Source As ToolStripMenuItem, ByVal e As EventArgs)
+            Dim f As FeedSpecial = Source.Tag
+            If Not f Is Nothing AndAlso Not f.Disposed Then f.Add(Media)
+        End Sub
+        Private Sub Feed_SPEC_REMOVE(ByVal Source As ToolStripMenuItem, ByVal e As EventArgs)
+            Dim f As FeedSpecial = Source.Tag
+            If Not f Is Nothing AndAlso Not f.Disposed Then f.Remove(Media)
+        End Sub
+#End Region
 #Region "Dispose"
         Private Sub FeedImage_Disposed(sender As Object, e As EventArgs) Handles Me.Disposed
             If Not MyImage Is Nothing Then MyImage.Dispose()
-            If Not MyPicture Is Nothing Then MyPicture.Dispose()
+            If Not MyPicture Is Nothing Then MyPicture.Dispose() : MyPicture = Nothing
             If Not MyVideo Is Nothing Then MyVideo.Dispose()
+            Try
+                If Settings.FeedShowSpecialFeedsMediaItem Then
+                    With Settings.Feeds
+                        RemoveHandler .FeedAdded, AddressOf Feed_FeedAdded
+                        RemoveHandler .FeedRemoved, AddressOf Feed_FeedRemoved
+                    End With
+                End If
+            Catch
+            End Try
         End Sub
 #End Region
 #Region "LBL"

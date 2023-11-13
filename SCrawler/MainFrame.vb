@@ -205,19 +205,25 @@ CloseResume:
     Private Sub MainFrame_ResizeEnd(sender As Object, e As EventArgs) Handles Me.ResizeEnd
         If Not _UFinit Then UpdateImageColor()
     End Sub
-    Private Sub UpdateImageColor()
+    Private ListImageLastWidth As Integer = -1
+    Private Sub UpdateImageColor(Optional ByVal UpdateOnlyImage As Boolean = False)
         Try
             If Settings.UserListImage.Value.Exists Then
-                Using ir As New ImageRenderer(Settings.UserListImage) : LIST_PROFILES.BackgroundImage = ir.FitToWidth(LIST_PROFILES.Width) : End Using
+                If Not ListImageLastWidth = LIST_PROFILES.Width Or LIST_PROFILES.BackgroundImage Is Nothing Then
+                    ListImageLastWidth = LIST_PROFILES.Width
+                    Using ir As New ImageRenderer(Settings.UserListImage) : LIST_PROFILES.BackgroundImage = ir.FitToWidth(LIST_PROFILES.Width) : End Using
+                End If
             Else
                 LIST_PROFILES.BackgroundImage = Nothing
             End If
-            With Settings
-                If Not .UserListBackColorF = LIST_PROFILES.BackColor Or Not .UserListForeColorF = LIST_PROFILES.ForeColor Then
-                    LIST_PROFILES.BackColor = .UserListBackColorF
-                    LIST_PROFILES.ForeColor = .UserListForeColorF
-                End If
-            End With
+            If Not UpdateOnlyImage Then
+                With Settings
+                    If Not .UserListBackColorF = LIST_PROFILES.BackColor Or Not .UserListForeColorF = LIST_PROFILES.ForeColor Then
+                        LIST_PROFILES.BackColor = .UserListBackColorF
+                        LIST_PROFILES.ForeColor = .UserListForeColorF
+                    End If
+                End With
+            End If
         Catch ex As Exception
         End Try
     End Sub
@@ -281,6 +287,7 @@ CloseResume:
 #End Region
 #Region "List refill, update"
     Friend Sub RefillList()
+        UpdateImageColor(True)
         UserListLoader.Update()
     End Sub
     Private Sub UserListUpdate(ByVal User As IUserData, ByVal Add As Boolean)
@@ -449,6 +456,7 @@ CloseResume:
             DownloadQueue.FormShow(EDP.LogMessageValue)
         Catch ex As Exception
             If Round = 0 Then
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "ShowDownloadQueueForm_0")
                 If Not DownloadQueue Is Nothing Then DownloadQueue.Dispose() : DownloadQueue = Nothing
                 ShowDownloadQueueForm(Round + 1)
             Else

@@ -132,6 +132,7 @@ Namespace Editors
             Me.CH_STD_SNAP_KEEP_WITH_FILES = New System.Windows.Forms.CheckBox()
             Me.CH_STD_SNAP_CACHE_PERMANENT = New System.Windows.Forms.CheckBox()
             Me.CH_STD_YT_CREATE_URL = New System.Windows.Forms.CheckBox()
+            Me.CH_USE_DEF_ACC = New System.Windows.Forms.CheckBox()
             Me.TXT_CHANNELS_ROWS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_CHANNELS_COLUMNS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.CH_DOWN_IMAGES_NATIVE = New System.Windows.Forms.CheckBox()
@@ -176,7 +177,7 @@ Namespace Editors
             Me.TAB_MAIN = New System.Windows.Forms.TabControl()
             Me.TAB_ENVIR = New System.Windows.Forms.TabPage()
             Me.CONTAINER_MAIN = New System.Windows.Forms.ToolStripContainer()
-            Me.CH_USE_DEF_ACC = New System.Windows.Forms.CheckBox()
+            Me.CH_FEED_SHOW_SPEC_MEDIAITEM = New System.Windows.Forms.CheckBox()
             TP_BASIS = New System.Windows.Forms.TableLayoutPanel()
             TP_IMAGES = New System.Windows.Forms.TableLayoutPanel()
             TP_FILE_NAME = New System.Windows.Forms.TableLayoutPanel()
@@ -1023,6 +1024,18 @@ Namespace Editors
             TT_MAIN.SetToolTip(Me.CH_STD_YT_CREATE_URL, "Create local URL files to link to the original page")
             Me.CH_STD_YT_CREATE_URL.UseVisualStyleBackColor = True
             '
+            'CH_USE_DEF_ACC
+            '
+            Me.CH_USE_DEF_ACC.AutoSize = True
+            Me.CH_USE_DEF_ACC.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_USE_DEF_ACC.Location = New System.Drawing.Point(4, 254)
+            Me.CH_USE_DEF_ACC.Name = "CH_USE_DEF_ACC"
+            Me.CH_USE_DEF_ACC.Size = New System.Drawing.Size(568, 19)
+            Me.CH_USE_DEF_ACC.TabIndex = 9
+            Me.CH_USE_DEF_ACC.Text = "Use the default account if the selected account does not exist"
+            TT_MAIN.SetToolTip(Me.CH_USE_DEF_ACC, "Use the default account if you deleted an account that you used for some users")
+            Me.CH_USE_DEF_ACC.UseVisualStyleBackColor = True
+            '
             'TP_CHANNELS_IMGS
             '
             TP_CHANNELS_IMGS.ColumnCount = 2
@@ -1492,10 +1505,11 @@ Namespace Editors
             TP_FEED.Controls.Add(Me.COLORS_FEED, 0, 2)
             TP_FEED.Controls.Add(Me.CH_FEED_OPEN_LAST_MODE, 0, 7)
             TP_FEED.Controls.Add(Me.CH_FEED_SHOW_FRIENDLY, 0, 8)
+            TP_FEED.Controls.Add(Me.CH_FEED_SHOW_SPEC_MEDIAITEM, 0, 9)
             TP_FEED.Dock = System.Windows.Forms.DockStyle.Fill
             TP_FEED.Location = New System.Drawing.Point(0, 0)
             TP_FEED.Name = "TP_FEED"
-            TP_FEED.RowCount = 10
+            TP_FEED.RowCount = 11
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
@@ -1503,6 +1517,7 @@ Namespace Editors
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
+            TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
@@ -2125,17 +2140,16 @@ Namespace Editors
             Me.CONTAINER_MAIN.TabIndex = 0
             Me.CONTAINER_MAIN.TopToolStripPanelVisible = False
             '
-            'CH_USE_DEF_ACC
+            'CH_FEED_SHOW_SPEC_MEDIAITEM
             '
-            Me.CH_USE_DEF_ACC.AutoSize = True
-            Me.CH_USE_DEF_ACC.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_USE_DEF_ACC.Location = New System.Drawing.Point(4, 254)
-            Me.CH_USE_DEF_ACC.Name = "CH_USE_DEF_ACC"
-            Me.CH_USE_DEF_ACC.Size = New System.Drawing.Size(568, 19)
-            Me.CH_USE_DEF_ACC.TabIndex = 9
-            Me.CH_USE_DEF_ACC.Text = "Use the default account if the selected account does not exist"
-            TT_MAIN.SetToolTip(Me.CH_USE_DEF_ACC, "Use the default account if you deleted an account that you used for some users")
-            Me.CH_USE_DEF_ACC.UseVisualStyleBackColor = True
+            Me.CH_FEED_SHOW_SPEC_MEDIAITEM.AutoSize = True
+            Me.CH_FEED_SHOW_SPEC_MEDIAITEM.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_FEED_SHOW_SPEC_MEDIAITEM.Location = New System.Drawing.Point(4, 247)
+            Me.CH_FEED_SHOW_SPEC_MEDIAITEM.Name = "CH_FEED_SHOW_SPEC_MEDIAITEM"
+            Me.CH_FEED_SHOW_SPEC_MEDIAITEM.Size = New System.Drawing.Size(568, 19)
+            Me.CH_FEED_SHOW_SPEC_MEDIAITEM.TabIndex = 9
+            Me.CH_FEED_SHOW_SPEC_MEDIAITEM.Text = "Show special feeds in media items"
+            Me.CH_FEED_SHOW_SPEC_MEDIAITEM.UseVisualStyleBackColor = True
             '
             'GlobalSettingsForm
             '
@@ -2326,5 +2340,6 @@ Namespace Editors
         Private WithEvents COLORS_SUBSCRIPTIONS_USERS As ColorPicker
         Private WithEvents CH_STD_YT_CREATE_URL As CheckBox
         Private WithEvents CH_USE_DEF_ACC As CheckBox
+        Private WithEvents CH_FEED_SHOW_SPEC_MEDIAITEM As CheckBox
     End Class
 End Namespace

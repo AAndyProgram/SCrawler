@@ -299,6 +299,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         FeedOpenLastMode = New XMLValue(Of Boolean)("OpenLastMode", False, MyXML, n)
         FeedLastModeSubscriptions = New XMLValue(Of Boolean)("LastModeSubscriptions", False, MyXML, n)
         FeedShowFriendlyNames = New XMLValue(Of Boolean)("ShowFriendlyNames", True, MyXML, n)
+        FeedShowSpecialFeedsMediaItem = New XMLValue(Of Boolean)("ShowSpecialFeedsMediaItem", False, MyXML, n)
 
         n = {"Users"}
         FromChannelDownloadTop = New XMLValue(Of Integer)("FromChannelDownloadTop", 10, MyXML, n)
@@ -923,6 +924,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
     Friend ReadOnly Property FeedOpenLastMode As XMLValue(Of Boolean)
     Friend ReadOnly Property FeedLastModeSubscriptions As XMLValue(Of Boolean)
     Friend ReadOnly Property FeedShowFriendlyNames As XMLValue(Of Boolean)
+    Friend ReadOnly Property FeedShowSpecialFeedsMediaItem As XMLValue(Of Boolean)
 #End Region
 #Region "New version properties"
     Friend ReadOnly Property CheckUpdatesAtStart As XMLValue(Of Boolean)

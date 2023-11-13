@@ -230,35 +230,13 @@ Namespace Plugin.Hosts
                                 Dim tUser As UserInfo
                                 Dim tUserIndx%
                                 Dim tUserBase As UserDataBase
-                                Dim samePath As Boolean = Obj.Path(False) = Hosts(selectedAcc).Path(False)
-                                Dim processUserPath As Boolean
                                 For Each tUser In users
-                                    tUserIndx = .UsersList.IndexOf(tUser)
-                                    If tUserIndx = -1 Then
-                                        Throw New KeyNotFoundException("User not found in the collection")
-                                    Else
-                                        tUserBase = .GetUser(tUser)
-                                        With tUser
-                                            If Not samePath AndAlso .SpecialPath.IsEmptyString AndAlso .SpecialCollectionPath.IsEmptyString Then
-                                                processUserPath = False
-                                                If .IncludedInCollection Then
-                                                    If Not .IsVirtual Then
-                                                        .SpecialCollectionPath = .GetCollectionRootPath
-                                                    Else
-                                                        processUserPath = True
-                                                    End If
-                                                End If
-                                                If Not .IncludedInCollection Or processUserPath Then .SpecialPath = .File.CutPath.PathWithSeparator
-                                            End If
-                                        End With
-                                        tUser.AccountName = Hosts(selectedAcc).AccountName
-                                        tUser.UpdateUserFile()
-                                        .UsersList(tUserIndx) = tUser
-                                        tUserBase.AccountName = String.Empty
-                                        tUserBase.User = tUser
-                                        tUserBase.UpdateUserInformation()
-                                        changedUsers.Add(tUserBase.ToStringForLog)
-                                    End If
+                                    UpdateUserAccount(tUser, Obj, Hosts(selectedAcc), True, tUserIndx)
+                                    tUserBase = .GetUser(tUser)
+                                    tUserBase.AccountName = String.Empty
+                                    tUserBase.User = tUser
+                                    tUserBase.UpdateUserInformation()
+                                    changedUsers.Add(tUserBase.ToStringForLog)
                                 Next
                                 .UpdateUsersList()
                             End If
@@ -281,6 +259,34 @@ Namespace Plugin.Hosts
                 If p <> np Then Settings.Automation.Pause = p
             End Try
         End Function
+        Friend Shared Sub UpdateUserAccount(ByRef ChangingUser As UserInfo, ByVal HostOld As SettingsHost, ByVal HostNew As SettingsHost,
+                                            ByVal UpdateUserInTheList As Boolean, Optional ByRef UserIndex As Integer = -1)
+            With Settings
+                UserIndex = .UsersList.IndexOf(ChangingUser)
+                If UserIndex = -1 Then
+                    Throw New KeyNotFoundException("User not found in the collection")
+                Else
+                    Dim processUserPath As Boolean
+                    Dim samePath As Boolean = HostOld.Path(False) = HostNew.Path(False)
+                    With ChangingUser
+                        If Not samePath AndAlso .SpecialPath.IsEmptyString AndAlso .SpecialCollectionPath.IsEmptyString Then
+                            processUserPath = False
+                            If .IncludedInCollection Then
+                                If Not .IsVirtual Then
+                                    .SpecialCollectionPath = .GetCollectionRootPath
+                                Else
+                                    processUserPath = True
+                                End If
+                            End If
+                            If Not .IncludedInCollection Or processUserPath Then .SpecialPath = .File.CutPath.PathWithSeparator
+                        End If
+                    End With
+                    ChangingUser.AccountName = HostNew.AccountName
+                    ChangingUser.UpdateUserFile()
+                    If UpdateUserInTheList Then .UsersList(UserIndex) = ChangingUser
+                End If
+            End With
+        End Sub
 #End Region
 #Region "Count, Item"
         Friend ReadOnly Property Count As Integer Implements IMyEnumerator(Of SettingsHost).MyEnumeratorCount

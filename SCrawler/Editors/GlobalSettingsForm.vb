@@ -141,6 +141,7 @@ Namespace Editors
                         NUM_FEED_STORE_SESSION_DATA.Value = .FeedStoredSessionsNumber.Value
                         CH_FEED_OPEN_LAST_MODE.Checked = .FeedOpenLastMode
                         CH_FEED_SHOW_FRIENDLY.Checked = .FeedShowFriendlyNames
+                        CH_FEED_SHOW_SPEC_MEDIAITEM.Checked = .FeedShowSpecialFeedsMediaItem
                     End With
                     .MyFieldsChecker = New FieldsChecker
                     With .MyFieldsCheckerE
@@ -312,6 +313,7 @@ Namespace Editors
                     .FeedStoredSessionsNumber.Value = NUM_FEED_STORE_SESSION_DATA.Value
                     .FeedOpenLastMode.Value = CH_FEED_OPEN_LAST_MODE.Checked
                     .FeedShowFriendlyNames.Value = CH_FEED_SHOW_FRIENDLY.Checked
+                    .FeedShowSpecialFeedsMediaItem.Value = CH_FEED_SHOW_SPEC_MEDIAITEM.Checked
                     FeedParametersChanged = .FeedDataRows.ChangesDetected Or .FeedDataColumns.ChangesDetected Or
                                             .FeedEndless.ChangesDetected Or .FeedStoreSessionsData.ChangesDetected Or
                                             .FeedBackColor.ChangesDetected Or .FeedForeColor.ChangesDetected Or

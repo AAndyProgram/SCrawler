@@ -43,7 +43,7 @@ Namespace API.JustForFans
             UserID = New PropertyValue(String.Empty, GetType(String))
             UserHash4 = New PropertyValue(String.Empty, GetType(String))
             HeaderAccept = New PropertyValue(Responser.Accept.Value, GetType(String), Sub(v) UpdateHeader(NameOf(HeaderAccept), v))
-            UserAgent = New PropertyValue(Responser.UserAgent, GetType(String), Sub(v) UpdateHeader(NameOf(UserAgent), v))
+            UserAgent = New PropertyValue(If(Responser.UserAgentExists, Responser.UserAgent, String.Empty), GetType(String), Sub(v) UpdateHeader(NameOf(UserAgent), v))
 
             _AllowUserAgentUpdate = False
             UserRegex = RParams.DMS("https://justfor.fans/([^/\?]+)", 1, EDP.ReturnValue)

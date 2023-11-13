@@ -392,7 +392,7 @@ Namespace Plugin.Hosts
             Return newHost
         End Function
         Friend Function Clone() As SettingsHost
-            Return New SettingsHost(Source.Clone(False), Path, Temporary, DownloadImages, DownloadVideos) With {.SavedPostsPath = SavedPostsPath}
+            Return New SettingsHost(Source.Clone(False), Path, Temporary, DownloadImages, DownloadVideos) With {.SavedPostsPath = SavedPostsPath, .Path = Path}
         End Function
 #Region "Forks"
         Friend Function IsMyUser(ByVal UserURL As String) As ExchangeOptions

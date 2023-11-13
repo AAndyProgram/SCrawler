@@ -175,6 +175,7 @@ Namespace Editors
                     End With
 
                     Dim NameFieldProvider As IFormatProvider = Nothing
+                    RefillAccounts(Nothing)
 
                     If UserIsCollection Then
                         CMB_SITE.CaptionEnabled = False
@@ -401,6 +402,7 @@ Namespace Editors
                             Else
                                 COLOR_USER.ColorsGetUser(_UserBackColor, _UserForeColor)
                                 Dim tmpUser As UserInfo = User
+                                Dim accOld$ = tmpUser.AccountName
                                 With tmpUser
                                     .Name = TXT_USER.Text
                                     .Site = s.Name
@@ -411,6 +413,8 @@ Namespace Editors
                                     If Not sp.IsEmptyString AndAlso Not SpecialPathHandler Is Nothing And UserInstance Is Nothing Then _
                                        sp = SpecialPathHandler.Invoke(.Self, sp)
                                     .SpecialPath = sp
+                                    If Not UserInstance Is Nothing Then _
+                                       SettingsHostCollection.UpdateUserAccount(tmpUser, Settings(.Plugin)(accOld), Settings(.Plugin)(.AccountName), False)
                                     .UpdateUserFile()
                                 End With
                                 User = tmpUser
@@ -808,14 +812,13 @@ CloseForm:
         End Sub
         Private Sub RefillAccounts(ByVal sc As SettingsHostCollection)
             Try
-                If Not sc Is Nothing And Not UserIsCollection Then
-                    _AccountsRefilling = True
-                    CMB_ACCOUNT.BeginUpdate()
+                _AccountsRefilling = True
+                With CMB_ACCOUNT
+                    .BeginUpdate()
+                    .Text = String.Empty
+                    .Items.Clear()
 
-                    With CMB_ACCOUNT
-                        .BeginUpdate()
-                        .Text = String.Empty
-                        .Items.Clear()
+                    If Not sc Is Nothing And Not UserIsCollection Then
                         If sc.Count = 1 Then
                             .Text = SettingsHost.NameAccountNameDefault
                             .LeaveDefaultButtons = False
@@ -824,16 +827,20 @@ CloseForm:
                             .LeaveDefaultButtons = True
                             .Items.AddRange(sc.Select(Function(s) New ListItem(s.AccountName.IfNullOrEmpty(SettingsHost.NameAccountNameDefault))))
                         End If
-                        .Buttons.UpdateButtonsPositions(True)
-                        .EndUpdate(True)
-                        If .Items.Count > 0 Then
-                            .Enabled = True
-                            .SelectedIndex = 0
-                        Else
-                            .Enabled = False
-                        End If
-                    End With
-                End If
+                    Else
+                        .LeaveDefaultButtons = False
+                        .Buttons.Clear()
+                    End If
+
+                    .Buttons.UpdateButtonsPositions(True)
+                    .EndUpdate(True)
+                    If .Items.Count > 0 Then
+                        .Enabled = True
+                        .SelectedIndex = 0
+                    Else
+                        .Enabled = False
+                    End If
+                End With
             Catch ex As Exception
                 ErrorsDescriber.Execute(EDP.SendToLog, ex, "[UserCreatorForm.RefillAccounts]")
             Finally
