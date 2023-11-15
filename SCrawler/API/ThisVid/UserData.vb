@@ -223,9 +223,12 @@ Namespace API.ThisVid
 #Region "Download functions"
         Private ReadOnly SessionPosts As List(Of String)
         Private AddedCount As Integer = 0
+        Private _PageVideosRepeat As Integer = 0
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
             SessionPosts.Clear()
             AddedCount = 0
+            _PageVideosRepeat = 0
+            SessionPosts.Clear()
             Responser.Cookies.ChangedAllowInternalDrop = False
             Responser.Cookies.Changed = False
             If ID.IsEmptyString Then ID = Name
@@ -286,7 +289,8 @@ Namespace API.ThisVid
                 ProgressPre.Perform()
                 Dim r$ = Responser.GetResponse(URL)
                 Dim cBefore% = _TempMediaList.Count
-                Dim prevPostsFound As Boolean = False, newPostsFound As Boolean = False
+                Dim pageRepeatSet As Boolean = False, prevPostsFound As Boolean = False, newPostsFound As Boolean = False
+
                 If Not r.IsEmptyString Then
                     Dim __SpecialFolder$ = If(DifferentFolders And Not IsSavedPosts And IsUser,
                                               Interaction.Switch(Model = 0, "Public", Model = 1, "Private", Model = 2, "Favourite"),
@@ -300,12 +304,19 @@ Namespace API.ThisVid
                                     _TempMediaList.Add(New UserMedia(u) With {.Type = UserMedia.Types.VideoPre, .SpecialFolder = __SpecialFolder})
                                     AddedCount += 1
                                     newPostsFound = True
+                                    If pageRepeatSet Then pageRepeatSet = False : _PageVideosRepeat -= 1
                                     If limit > 0 And AddedCount >= limit Then Exit Sub
                                 ElseIf SessionPosts.Count > 0 AndAlso SessionPosts.Contains(u) Then
                                     prevPostsFound = True
+                                    If pageRepeatSet Then pageRepeatSet = False : _PageVideosRepeat -= 1
                                     Continue For
                                 Else
-                                    Exit Sub
+                                    If _PageVideosRepeat > 2 Then
+                                        Exit Sub
+                                    ElseIf Not pageRepeatSet And Not newPostsFound Then
+                                        pageRepeatSet = True
+                                        _PageVideosRepeat += 1
+                                    End If
                                 End If
                             End If
                         Next

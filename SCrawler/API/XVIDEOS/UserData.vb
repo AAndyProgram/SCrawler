@@ -53,6 +53,11 @@ Namespace API.XVIDEOS
                 Return SiteMode = SiteModes.User
             End Get
         End Property
+        Friend ReadOnly Property IsSearch As Boolean
+            Get
+                Return SiteMode = SiteModes.Search Or SiteMode = SiteModes.Tags Or SiteMode = SiteModes.Categories
+            End Get
+        End Property
         Friend Overrides ReadOnly Property SpecialLabels As IEnumerable(Of String)
             Get
                 Return {SearchRequestLabelName}
@@ -172,6 +177,7 @@ Namespace API.XVIDEOS
             UseClientTokens = True
         End Sub
 #End Region
+#Region "GetUserUrl"
         Friend Function GetUserUrl(ByVal Page As Integer) As String
             Dim url$ = String.Empty
             If SiteMode = SiteModes.User Then
@@ -193,6 +199,8 @@ Namespace API.XVIDEOS
             End If
             Return url
         End Function
+#End Region
+#Region "Download functions"
         Private Sub Wait429(ByVal Round As Integer)
             If (Round Mod 5) = 0 Then
                 Thread.Sleep(5000 + (Round / 5).RoundDown)
@@ -318,7 +326,11 @@ Namespace API.XVIDEOS
                 Dim r$
                 Dim round% = 0
                 Dim data As List(Of PlayListVideo)
+                Dim pids As New List(Of String)
                 Dim cBefore%
+                Dim pageRepeatSet As Boolean, prevPostsFound As Boolean, newPostsFound As Boolean
+                Dim sessionPosts As New List(Of String)
+                Dim pageVideosRepeat As Integer = 0
 
                 Dim limit% = If(DownloadTopCount, -1)
                 Do
@@ -326,7 +338,11 @@ Namespace API.XVIDEOS
                     Wait429(round)
                     ThrowAny(Token)
                     NextPage += 1
+                    newPostsFound = False
+                    pageRepeatSet = False
+                    prevPostsFound = False
                     cBefore = _TempMediaList.Count
+                    pids.Clear()
 
                     If SiteMode = SiteModes.User Then
                         URL = $"{MySettings.SavedVideosPlaylist.Value}{If(NextPage = 0, String.Empty, $"/{NextPage}")}"
@@ -352,14 +368,35 @@ Namespace API.XVIDEOS
                     If Not r.IsEmptyString Then
                         data = RegexFields(Of PlayListVideo)(r, {Regex_SavedVideosPlaylist}, {1, 2, 3}, EDP.ReturnValue)
                         If data.ListExists Then
-                            If data.RemoveAll(Function(d) _TempPostsList.Contains(d.ID)) > 0 Then __continue = False
+                            pids.ListAddList(data.Select(Function(d) d.ID), LNC)
+                            If data.RemoveAll(Function(d) _TempPostsList.Contains(d.ID)) > 0 And Not IsSearch Then __continue = False
                             If data.ListExists Then
                                 _TempPostsList.ListAddList(data.Select(Function(d) d.ID), LNC)
                                 _TempMediaList.ListAddList(data.Select(Function(d) d.ToUserMedia()), LNC)
+                                newPostsFound = cBefore <> _TempMediaList.Count
+                            ElseIf sessionPosts.Count > 0 AndAlso sessionPosts.ListContains(pids) Then
+                                If pageRepeatSet Then pageRepeatSet = False : pageVideosRepeat -= 1
+                            Else
+                                If pageVideosRepeat > 2 Then
+                                    Exit Do
+                                ElseIf Not pageRepeatSet And Not newPostsFound Then
+                                    pageRepeatSet = True
+                                    pageVideosRepeat += 1
+                                End If
                             End If
+                            sessionPosts.ListAddList(pids, LNC)
                         End If
                     End If
-                Loop While NextPage < 100 And __continue And _TempMediaList.Count > cBefore And (limit < 0 Or _TempMediaList.Count < limit)
+                    If limit > 0 And _TempMediaList.Count >= limit Then Exit Do
+                    If IsSearch Then
+                        __continue = NextPage < 1000 And (newPostsFound Or (prevPostsFound And Not newPostsFound))
+                    ElseIf __continue Then
+                        __continue = Not cBefore = _TempMediaList.Count
+                    End If
+                Loop While NextPage < 1000 And __continue
+
+                pids.Clear()
+                sessionPosts.Clear()
 
                 If limit > 0 And _TempMediaList.Count >= limit Then _TempMediaList.ListAddList(_TempMediaList.ListTake(-1, limit), LAP.ClearBeforeAdd)
                 If _TempMediaList.Count > 0 Then
@@ -448,16 +485,22 @@ Namespace API.XVIDEOS
                 Return Nothing
             End Try
         End Function
+#End Region
+#Region "DownloadContent"
         Protected Overrides Sub DownloadContent(ByVal Token As CancellationToken)
             DownloadContentDefault(Token)
-        End Sub
-        Protected Overrides Sub DownloadSingleObject_GetPosts(ByVal Data As IYouTubeMediaContainer, ByVal Token As CancellationToken)
-            Dim m As UserMedia = GetVideoData(New UserMedia(Data.URL, UTypes.VideoPre))
-            If Not m.URL.IsEmptyString Then _TempMediaList.Add(m)
         End Sub
         Protected Overrides Function DownloadM3U8(ByVal URL As String, ByVal Media As UserMedia, ByVal DestinationFile As SFile, ByVal Token As CancellationToken) As SFile
             Return M3U8.Download(Media.URL, Media.PictureOption, DestinationFile, Token, Progress, Not IsSingleObjectDownload)
         End Function
+#End Region
+#Region "SingleObject"
+        Protected Overrides Sub DownloadSingleObject_GetPosts(ByVal Data As IYouTubeMediaContainer, ByVal Token As CancellationToken)
+            Dim m As UserMedia = GetVideoData(New UserMedia(Data.URL, UTypes.VideoPre))
+            If Not m.URL.IsEmptyString Then _TempMediaList.Add(m)
+        End Sub
+#End Region
+#Region "Exception"
         Protected Overrides Function DownloadingException(ByVal ex As Exception, ByVal Message As String, Optional ByVal FromPE As Boolean = False,
                                                           Optional ByVal EObj As Object = Nothing) As Integer
             Dim isQuickies As Boolean = False
@@ -471,5 +514,6 @@ Namespace API.XVIDEOS
                 Return 0
             End If
         End Function
+#End Region
     End Class
 End Namespace

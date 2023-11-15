@@ -194,13 +194,12 @@ Namespace API.PornHub
                 Return DirectCast(HOST.Source, SiteSettings)
             End Get
         End Property
-        Private ReadOnly LastPageIDs As List(Of String)
 #End Region
 #Region "Initializer"
         Friend Sub New()
-            LastPageIDs = New List(Of String)
             UseInternalM3U8Function = True
             UseClientTokens = True
+            SessionPosts = New List(Of String)
         End Sub
 #End Region
 #Region "Loader"
@@ -288,10 +287,14 @@ Namespace API.PornHub
 #Region "Download override"
         Private Const PlayListUrlPattern As String = "https://www.pornhub.com/playlist/viewChunked?id={0}&token={1}&page={2}"
         Private PlaylistToken As String = String.Empty
+        Private ReadOnly SessionPosts As List(Of String)
+        Private _PageVideosRepeat As Integer = 0
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
             Try
                 PlaylistToken = String.Empty
                 Responser.ResetStatus()
+                _PageVideosRepeat = 0
+                SessionPosts.Clear()
 
                 If IsSavedPosts Then
                     PersonType = PersonTypeUser
@@ -309,24 +312,24 @@ Namespace API.PornHub
                         DownloadUserVideos(1, VideoTypes.Favorite, False, Token)
                     Else
                         If DownloadUploaded Then
-                            LastPageIDs.Clear()
+                            SessionPosts.Clear()
                             DownloadUserVideos(1, VideoTypes.Uploaded, False, Token)
                         End If
                         If DownloadTagged Then
-                            LastPageIDs.Clear()
+                            SessionPosts.Clear()
                             Dim lBefore% = _TempMediaList.Count
                             DownloadUserVideos(1, VideoTypes.Tagged, False, Token)
                             If PersonType = PersonTypePornstar And lBefore = _TempMediaList.Count Then
-                                LastPageIDs.Clear()
+                                SessionPosts.Clear()
                                 DownloadUserVideos(1, VideoTypes.Tagged, True, Token)
                             End If
                         End If
                         If DownloadPrivate Then
-                            LastPageIDs.Clear()
+                            SessionPosts.Clear()
                             DownloadUserVideos(1, VideoTypes.Private, False, Token)
                         End If
                         If DownloadFavorite Then
-                            LastPageIDs.Clear()
+                            SessionPosts.Clear()
                             DownloadUserVideos(1, VideoTypes.Favorite, False, Token)
                         End If
                     End If
@@ -370,6 +373,7 @@ Namespace API.PornHub
                 Dim specFolder$ = String.Empty
                 Dim tryNextPage As Boolean = False
                 Dim limit% = If(DownloadTopCount, -1)
+                Dim cBefore% = _TempMediaList.Count
                 If IsUser Then
                     URL = $"https://www.pornhub.com/{PersonType}/{NameTrue}"
                     If Type = VideoTypes.Uploaded Then
@@ -414,23 +418,37 @@ Namespace API.PornHub
                             Dim lBefore% = l.Count
                             Dim nonLastPageDetected As Boolean = False
                             Dim newLastPageIDs As New List(Of String)
+                            Dim pageRepeatSet As Boolean = False, prevPostsFound As Boolean = False, newPostsFound As Boolean = False
                             l.RemoveAll(Function(ByVal uv As UserVideo) As Boolean
+                                            newLastPageIDs.Add(uv.ID)
                                             If Not _TempPostsList.Contains(uv.ID) Then
                                                 _TempPostsList.Add(uv.ID)
-                                                newLastPageIDs.Add(uv.ID)
                                                 Return False
+                                            ElseIf SessionPosts.Count > 0 AndAlso SessionPosts.Contains(uv.id) Then
+                                                prevPostsFound = True
+                                                If pageRepeatSet Then pageRepeatSet = False : _PageVideosRepeat -= 1
+                                                Return True
                                             Else
-                                                If Not LastPageIDs.Contains(uv.ID) Then nonLastPageDetected = True
+                                                'TODELETE: PornHub old validating
+                                                'If Not SessionPosts.Contains(uv.ID) Then nonLastPageDetected = True
+                                                If Not pageRepeatSet And Not newPostsFound Then pageRepeatSet = True : _PageVideosRepeat += 1
                                                 'Debug.WriteLine($"[REMOVED]: {uv.Title}")
                                                 Return True
                                             End If
                                         End Function)
                             'Debug.WriteLineIf(l.Count > 0, l.Select(Function(ll) ll.Title).ListToString(vbNewLine))
                             If l.Count > 0 Then _TempMediaList.ListAddList(l.Select(Function(uv) uv.ToUserMedia(specFolder)))
-                            LastPageIDs.Clear()
-                            If newLastPageIDs.Count > 0 Then LastPageIDs.AddRange(newLastPageIDs) : newLastPageIDs.Clear()
-                            If l.Count > 0 AndAlso (l.Count = lBefore Or Not nonLastPageDetected) AndAlso
-                               Not (limit > 0 And _TempMediaList.Count >= limit) Then tryNextPage = True
+                            SessionPosts.ListAddList(newLastPageIDs, LNC)
+                            newLastPageIDs.Clear()
+                            'TODELETE: PornHub old validating
+                            'If l.Count > 0 AndAlso (l.Count = lBefore Or Not nonLastPageDetected) AndAlso
+                            '   Not (limit > 0 And _TempMediaList.Count >= limit) Then tryNextPage = True
+
+                            If limit > 0 And _TempMediaList.Count >= limit Then Exit Sub
+                            If (Not IsUser And prevPostsFound And Not newPostsFound And Page < 1000) Or
+                               (Not cBefore = _TempMediaList.Count And (IsUser Or Page < 1000)) Then tryNextPage = True
+
+                            l.Clear()
                         End If
                     End If
                 End If
@@ -965,7 +983,7 @@ Namespace API.PornHub
 #End Region
 #Region "IDisposable Support"
         Protected Overrides Sub Dispose(ByVal disposing As Boolean)
-            If Not disposedValue And disposing Then LastPageIDs.Clear()
+            If Not disposedValue And disposing Then SessionPosts.Clear()
             MyBase.Dispose(disposing)
         End Sub
 #End Region

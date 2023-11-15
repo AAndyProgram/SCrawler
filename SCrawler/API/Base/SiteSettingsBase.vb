@@ -278,9 +278,13 @@ Namespace API.Base
             '1 = clone
             '2 = any
             Dim filterUC As Func(Of MemberInfo, Byte, Boolean) = Function(ByVal m As MemberInfo, ByVal __mode As Byte) As Boolean
-                                                                     With m.GetCustomAttribute(Of PClonableAttribute)
-                                                                         Return Not .Self Is Nothing AndAlso (__mode = 2 OrElse If(__mode = 0, .Update, .Clone))
-                                                                     End With
+                                                                     If m.GetCustomAttribute(Of DoNotUse) Is Nothing Then
+                                                                         Return False
+                                                                     Else
+                                                                         With m.GetCustomAttribute(Of PClonableAttribute)
+                                                                             Return Not .Self Is Nothing AndAlso (__mode = 2 OrElse If(__mode = 0, .Update, .Clone))
+                                                                         End With
+                                                                     End If
                                                                  End Function
             Dim filterAll As Func(Of MemberInfo, Boolean) = Function(m) filterUC.Invoke(m, 2)
             Dim filterC As Func(Of MemberInfo, Boolean) = Function(m) If(Full, filterAll.Invoke(m), filterUC.Invoke(m, 1))

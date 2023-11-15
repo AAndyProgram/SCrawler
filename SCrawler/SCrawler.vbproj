@@ -176,6 +176,10 @@
     <Compile Include="API\Base\Structures.vb" />
     <Compile Include="API\Base\TokenBatch.vb" />
     <Compile Include="API\Base\YTDLP.vb" />
+    <Compile Include="API\Facebook\Declarations.vb" />
+    <Compile Include="API\Facebook\SiteSettings.vb" />
+    <Compile Include="API\Facebook\UserData.vb" />
+    <Compile Include="API\Facebook\UserExchangeOptions.vb" />
     <Compile Include="API\Instagram\EditorExchangeOptions.vb" />
     <Compile Include="API\JustForFans\Declarations.vb" />
     <Compile Include="API\JustForFans\M3U8.vb" />
@@ -706,6 +710,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Content\Icons\SiteIcons\ThreadsIcon_192.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Content\Icons\SiteIcons\FacebookIcon_32.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Content\Pictures\SitePictures\FacebookPic_37.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

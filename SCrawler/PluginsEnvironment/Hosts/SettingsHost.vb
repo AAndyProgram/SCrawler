@@ -13,6 +13,7 @@ Imports SCrawler.Plugin.Attributes
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.XML.Base
 Imports PersonalUtilities.Functions.XML.Objects
+Imports PersonalUtilities.Tools
 Imports PersonalUtilities.Tools.Web.Clients
 Imports Download = SCrawler.Plugin.ISiteSettings.Download
 Namespace Plugin.Hosts
@@ -259,7 +260,8 @@ Namespace Plugin.Hosts
 
             Source.BeginInit()
 
-            Dim Members As IEnumerable(Of MemberInfo) = Plugin.GetType.GetTypeInfo.DeclaredMembers
+            Dim Members As IEnumerable(Of MemberInfo) = GetObjectMembers(Plugin,,, True, New MembersDistinctComparer) 'Plugin.GetType.GetTypeInfo.DeclaredMembers
+
             _ResponserIsContainer = TypeOf Plugin Is IResponserContainer
             If Members.ListExists Then
                 Dim Updaters As New List(Of MemberInfo)

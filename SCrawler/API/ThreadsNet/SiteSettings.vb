@@ -18,19 +18,29 @@ Namespace API.ThreadsNet
     Friend Class SiteSettings : Inherits SiteSettingsBase
 #Region "Declarations"
 #Region "Authorization"
-        <PropertyOption(ControlText:="x-csrftoken", AllowNull:=False), PClonable(Clone:=False)>
-        Friend ReadOnly Property HH_CSRF_TOKEN As PropertyValue
-        <PropertyOption(ControlText:="x-ig-app-id", AllowNull:=False), PClonable>
-        Friend Property HH_IG_APP_ID As PropertyValue
-        <PropertyOption(ControlText:="x-asbd-id", AllowNull:=True), PClonable>
-        Friend Property HH_ASBD_ID As PropertyValue
-        <PropertyOption(ControlText:="sec-ch-ua", AllowNull:=True), PClonable>
-        Private Property HH_BROWSER As PropertyValue
-        <PropertyOption(ControlText:="sec-ch-ua-full", ControlToolTip:="sec-ch-ua-full-version-list", AllowNull:=True), PClonable>
-        Private Property HH_BROWSER_EXT As PropertyValue
-        <PropertyOption(ControlText:="sec-ch-ua-platform-ver", ControlToolTip:="sec-ch-ua-platform-version", AllowNull:=True, LeftOffset:=120), PClonable>
-        Private Property HH_PLATFORM As PropertyValue
-        <PropertyOption(ControlText:="UserAgent"), PClonable>
+        <PClonable(Clone:=False)> Protected ReadOnly __HH_CSRF_TOKEN As PropertyValue
+        <PropertyOption(ControlText:="x-csrftoken", AllowNull:=False, IsAuth:=True), ControlNumber(0)>
+        Friend Overridable ReadOnly Property HH_CSRF_TOKEN As PropertyValue
+            Get
+                Return __HH_CSRF_TOKEN
+            End Get
+        End Property
+        <PClonable> Protected ReadOnly __HH_IG_APP_ID As PropertyValue
+        <PropertyOption(ControlText:="x-ig-app-id", AllowNull:=False, IsAuth:=True), ControlNumber(10)>
+        Friend Overridable ReadOnly Property HH_IG_APP_ID As PropertyValue
+            Get
+                Return __HH_IG_APP_ID
+            End Get
+        End Property
+        <PropertyOption(ControlText:="x-asbd-id", AllowNull:=True, IsAuth:=True), ControlNumber(20), PClonable>
+        Friend ReadOnly Property HH_ASBD_ID As PropertyValue
+        <PropertyOption(ControlText:="sec-ch-ua", AllowNull:=True, IsAuth:=True), ControlNumber(30), PClonable>
+        Private ReadOnly Property HH_BROWSER As PropertyValue
+        <PropertyOption(ControlText:="sec-ch-ua-full", ControlToolTip:="sec-ch-ua-full-version-list", AllowNull:=True, IsAuth:=True), ControlNumber(40), PClonable>
+        Private ReadOnly Property HH_BROWSER_EXT As PropertyValue
+        <PropertyOption(ControlText:="sec-ch-ua-platform", ControlToolTip:="sec-ch-ua-platform", AllowNull:=True, IsAuth:=True, LeftOffset:=120), ControlNumber(50), PClonable>
+        Private ReadOnly Property HH_PLATFORM As PropertyValue
+        <PropertyOption(ControlText:="UserAgent", IsAuth:=True), ControlNumber(60), PClonable>
         Private ReadOnly Property HH_USER_AGENT As PropertyValue
         Private Sub ChangeResponserFields(ByVal PropName As String, ByVal Value As Object)
             If Not PropName.IsEmptyString Then
@@ -57,7 +67,13 @@ Namespace API.ThreadsNet
 #End Region
 #Region "Initializer"
         Friend Sub New(ByVal AccName As String, ByVal Temp As Boolean)
-            MyBase.New("Threads", "threads.net", AccName, Temp, My.Resources.SiteResources.ThreadsIcon_192, My.Resources.SiteResources.ThreadsIcon_192.ToBitmap)
+            Me.New("Threads", "threads.net", AccName, Temp, My.Resources.SiteResources.ThreadsIcon_192, My.Resources.SiteResources.ThreadsIcon_192.ToBitmap)
+        End Sub
+        Protected Sub New(ByVal SiteName As String, ByVal CookiesDomain As String, ByVal AccName As String, ByVal Temp As Boolean,
+                          Optional ByVal __Icon As Icon = Nothing, Optional ByVal __Image As Image = Nothing)
+            MyBase.New(SiteName, CookiesDomain, AccName, Temp,
+                       If(__Icon, My.Resources.SiteResources.ThreadsIcon_192),
+                       If(__Image, My.Resources.SiteResources.ThreadsIcon_192.ToBitmap))
             _AllowUserAgentUpdate = False
 
             Dim app_id$ = String.Empty
@@ -82,17 +98,17 @@ Namespace API.ThreadsNet
                         browserExt = .Value(IG.Header_BrowserExt)
                         platform = .Value(IG.Header_Platform)
                     End If
-                    .Add("Authority", "www.threads.net")
-                    .Add("Origin", "https://www.threads.net")
+                    .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.Authority, "www.threads.net"))
+                    .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.Origin, "https://www.threads.net"))
                     .Add("Upgrade-Insecure-Requests", 1)
                     .Add("Sec-Ch-Ua-Model", "")
-                    .Add("Sec-Ch-Ua-Mobile", "?0")
-                    .Add("Sec-Ch-Ua-Platform", """Windows""")
-                    .Add("Sec-Fetch-Dest", "empty")
-                    .Add("Sec-Fetch-Mode", "cors")
-                    .Add("Sec-Fetch-Site", "same-origin")
+                    .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.SecChUaMobile, "?0"))
+                    .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.SecChUaPlatform, """Windows"""))
+                    .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.SecFetchDest, "empty"))
+                    .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.SecFetchMode, "cors"))
+                    .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.SecFetchSite, "same-origin"))
                     .Add("Sec-Fetch-User", "?1")
-                    .Add("x-fb-friendly-name", "BarcelonaProfileThreadsTabRefetchableQuery")
+                    .Add(DeclaredNames.Header_FB_FRIENDLY_NAME, "BarcelonaProfileThreadsTabRefetchableQuery")
                 End With
                 .CookiesExtractMode = Responser.CookiesExtractModes.Any
                 .CookiesUpdateMode = CookieKeeper.UpdateModes.ReplaceByNameAll
@@ -101,8 +117,8 @@ Namespace API.ThreadsNet
                 .Cookies.Changed = False
             End With
 
-            HH_CSRF_TOKEN = New PropertyValue(token, GetType(String), Sub(v) ChangeResponserFields(NameOf(HH_CSRF_TOKEN), v))
-            HH_IG_APP_ID = New PropertyValue(app_id, GetType(String), Sub(v) ChangeResponserFields(NameOf(HH_IG_APP_ID), v))
+            __HH_CSRF_TOKEN = New PropertyValue(token, GetType(String), Sub(v) ChangeResponserFields(NameOf(HH_CSRF_TOKEN), v))
+            __HH_IG_APP_ID = New PropertyValue(app_id, GetType(String), Sub(v) ChangeResponserFields(NameOf(HH_IG_APP_ID), v))
             HH_ASBD_ID = New PropertyValue(asbd, GetType(String), Sub(v) ChangeResponserFields(NameOf(HH_ASBD_ID), v))
             HH_BROWSER = New PropertyValue(browser, GetType(String), Sub(v) ChangeResponserFields(NameOf(HH_BROWSER), v))
             HH_BROWSER_EXT = New PropertyValue(browserExt, GetType(String), Sub(v) ChangeResponserFields(NameOf(HH_BROWSER_EXT), v))
@@ -115,7 +131,7 @@ Namespace API.ThreadsNet
         End Sub
 #End Region
 #Region "UpdateResponserData"
-        Friend Sub UpdateResponserData(ByVal Resp As Responser)
+        Friend Overridable Sub UpdateResponserData(ByVal Resp As Responser)
             With Responser.Cookies
                 Dim csrf$ = String.Empty
                 .Update(Resp.Cookies)

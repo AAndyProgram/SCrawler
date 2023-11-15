@@ -18,7 +18,7 @@ Imports IGS = SCrawler.API.Instagram.SiteSettings
 Namespace API.ThreadsNet
     Friend Class UserData : Inherits Instagram.UserData
 #Region "Declarations"
-        Private Const Header_FB_LSD As String = "x-fb-lsd"
+        Friend Const Header_FB_LSD As String = "x-fb-lsd"
         Private ReadOnly Property MySettings As SiteSettings
             Get
                 Return HOST.Source

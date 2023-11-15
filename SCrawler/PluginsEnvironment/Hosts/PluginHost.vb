@@ -81,6 +81,7 @@ Namespace Plugin.Hosts
                     New PluginHost(GetType(API.Mastodon.SiteSettings), _XML, GlobalPath, _Temp, _Imgs, _Vids),
                     New PluginHost(GetType(API.Instagram.SiteSettings), _XML, GlobalPath, _Temp, _Imgs, _Vids),
                     New PluginHost(GetType(API.ThreadsNet.SiteSettings), _XML, GlobalPath, _Temp, _Imgs, _Vids),
+                    New PluginHost(GetType(API.Facebook.SiteSettings), _XML, GlobalPath, _Temp, _Imgs, _Vids),
                     New PluginHost(GetType(API.RedGifs.SiteSettings), _XML, GlobalPath, _Temp, _Imgs, _Vids),
                     New PluginHost(GetType(API.YouTube.SiteSettings), _XML, GlobalPath, _Temp, _Imgs, _Vids),
                     New PluginHost(GetType(API.Pinterest.SiteSettings), _XML, GlobalPath, _Temp, _Imgs, _Vids),

@@ -71,7 +71,7 @@ Namespace API.Instagram
                 Return DirectCast(HOST.Source, SiteSettings)
             End Get
         End Property
-        Private ReadOnly PostsKVIDs As List(Of PostKV)
+        Protected ReadOnly PostsKVIDs As List(Of PostKV)
         Private ReadOnly PostsToReparse As List(Of PostKV)
         Private LastCursor As String = String.Empty
         Private FirstLoadingDone As Boolean = False
@@ -175,7 +175,7 @@ Namespace API.Instagram
                 End If
             End If
         End Sub
-        Private Overloads Function PostKvExists(ByVal pkv As PostKV) As Boolean
+        Protected Overloads Function PostKvExists(ByVal pkv As PostKV) As Boolean
             Return PostKvExists(pkv.ID, False, pkv.Section) OrElse PostKvExists(pkv.Code, True, pkv.Section)
         End Function
         Private Overloads Function PostKvExists(ByVal PostCodeId As String, ByVal IsCode As Boolean, ByVal Section As Sections) As Boolean
@@ -297,7 +297,7 @@ Namespace API.Instagram
             Declarations.UpdateResponser(e, Responser)
         End Sub
         Protected Enum Sections : Timeline : Tagged : Stories : UserStories : SavedPosts : End Enum
-        Private Const StoriesFolder As String = "Stories"
+        Protected Const StoriesFolder As String = "Stories"
         Private Const TaggedFolder As String = "Tagged"
 #Region "429 bypass"
         Private Const MaxPostsCount As Integer = 200
@@ -1011,7 +1011,7 @@ Namespace API.Instagram
                                                           Optional ByVal s As Object = Nothing) As Integer
             If Responser.StatusCode = HttpStatusCode.NotFound Then '404
                 If Not UserNameRequested AndAlso GetUserNameById() Then Return 1 Else UserExists = False
-            ElseIf Responser.StatusCode = HttpStatusCode.BadRequest Then '400
+            ElseIf Responser.StatusCode = HttpStatusCode.BadRequest Or Responser.StatusCode = HttpStatusCode.Unauthorized Then '400, 401
                 HasError = True
                 MyMainLOG = $"Instagram credentials have expired [{CInt(Responser.StatusCode)}]: {ToStringForLog()} [{s}]"
                 DisableSection(s)

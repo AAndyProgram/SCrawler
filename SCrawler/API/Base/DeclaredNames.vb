@@ -11,6 +11,8 @@ Namespace API.Base
         Friend Const Header_Authorization As String = "authorization"
         Friend Const Header_CSRFToken As String = "x-csrf-token"
 
+        Friend Const Header_FB_FRIENDLY_NAME As String = "x-fb-friendly-name"
+
         Friend Const ConcurrentDownloadsCaption As String = "Concurrent downloads"
         Friend Const ConcurrentDownloadsToolTip As String = "The number of concurrent downloads."
         Friend Const SavedPostsUserNameCaption As String = "Saved posts user"

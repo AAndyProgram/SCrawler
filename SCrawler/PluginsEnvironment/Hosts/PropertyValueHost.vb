@@ -257,7 +257,7 @@ Namespace Plugin.Hosts
                 _XmlName = If(Member.GetCustomAttribute(Of PXML)()?.ElementName, String.Empty)
                 If Not _XmlName.IsEmptyString Then XValue = CreateXMLValueInstance([Type], True)
                 DependentNames.ListAddList(Member.GetCustomAttribute(Of DependentFields)?.Fields, LAP.NotContainsOnly)
-                Exists = True
+                Exists = Not If(Member.GetCustomAttribute(Of DoNotUse)()?.Value, False)
             End If
         End Sub
         Friend Sub SetXmlEnvironment(ByRef Container As Object, Optional ByVal _Nodes() As String = Nothing,
