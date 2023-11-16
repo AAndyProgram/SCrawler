@@ -1,3 +1,33 @@
+# 2023.11.17.0
+
+*2023-11-17*
+
+- Added
+  - **Facebook**
+  - **Multi-account**
+  - **Special feeds**
+  - Site settings: option `Download saved posts`
+  - Standalone downloader: support for multiple account
+  - PornHub: add playlists downloading
+  - YouTube: ability to download subtitles **and** `CC` if they both exists
+  - Other improvements
+- PluginProvider
+  - `IDownloadableMedia`: added `AccountName` property
+  - `IPluginContentProvider`: added `AccountName` property
+  - `ISiteSettings`: added properties: `AccountName`, `Temporary`, `AvailableText`, `DefaultInstance`; added functions: `Clone`, `Update`, `Delete`; removed `Load` function; implement `IDisposable` interface
+  - `PropertyValue`: added functions: `BeginInit`, `EndInit`, `Clone`
+  - `Attributes.DoNotUse` - add `Value` field
+- Fixed
+  - Instagram: handling 401 error
+  - OnlyFans: handling 401 error
+  - xHamster: handling 503 error
+  - xHamster: incorrect parsing of search queries
+  - XVideos: incorrect parsing of search queries
+  - ThisVid: incorrect parsing of search queries
+  - PornHub: incorrect parsing of search queries
+  - Automation: handle automation start error (in some cases) when changing scheduler
+  - Minor bugs
+
 # 2023.10.10.0
 
 *2023-10-10*

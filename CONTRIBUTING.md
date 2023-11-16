@@ -39,5 +39,4 @@ I welcome requests! Follow these steps to contribute:
 If I'm interested in a site you want to add, it may be added in future releases.
 
 # Sites I will never develop
-- Facebook
 - Tumblr

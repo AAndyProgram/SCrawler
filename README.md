@@ -12,7 +12,7 @@
 :eu:
 :greece:
 
-A program to download photo and video from [any site](#supported-sites) (e.g. YouTube, YouTube Music, OnlyFans, Reddit, Twitter, Mastodon, Instagram, Threads, TikTok, RedGifs, JustForFans, PornHub, XHamster, XVIDEOS, ThisVid, LPSG, Pinterest).
+A program to download photo and video from [any site](#supported-sites) (e.g. YouTube, YouTube Music, OnlyFans, Reddit, Twitter, Mastodon, Instagram, Threads, Facebook, TikTok, RedGifs, JustForFans, PornHub, XHamster, XVIDEOS, ThisVid, LPSG, Pinterest).
 
 **If you like SCrawler, please like the program on [this site](https://alternativeto.net/software/scrawler/about/) and/or [this](https://www.softpedia.com/get/Internet/Download-Managers/Social-networks-crawler.shtml)**
 <!---Do you like this program? Consider adding to my coffee fund by making a donation to show your support. :blush:
@@ -39,6 +39,7 @@ A program to download photo and video from [any site](#supported-sites) (e.g. Yo
   - Mastodon images and videos, saved (bookmarked) posts;
   - Instagram images and videos, tagged posts, stories, saved posts;
   - Threads images and videos;
+  - Facebook images and videos, saved posts;
   - TikTok videos;
   - Pinterest boards, users, saved posts;
   - Imgur images, galleries and videos;
@@ -54,6 +55,7 @@ A program to download photo and video from [any site](#supported-sites) (e.g. Yo
 - **Advanced user management**
 - **Automation** ([downloading data automatically](https://github.com/AAndyProgram/SCrawler/wiki/Settings#automation) every ```X``` minutes)
 - **Feed** ([feed](https://github.com/AAndyProgram/SCrawler/wiki#feed) of downloaded media files and subscriptions posts)
+- Multiple accounts support
 - Labeling users
 - Create [download groups](https://github.com/AAndyProgram/SCrawler/wiki/Settings#download-groups)
 - Adding users to favorites and temporary
@@ -76,6 +78,7 @@ A program to download photo and video from [any site](#supported-sites) (e.g. Yo
 - **Mastodon**
 - **Instagram**
 - **Threads**
+- **Facebook**
 - JustForFans
 - TikTok
 - RedGifs
@@ -128,6 +131,7 @@ First, the program downloads the full profile. After the program downloads only 
   - [Mastodon](https://github.com/AAndyProgram/SCrawler/wiki/Settings#mastodon)
   - [Instagram](https://github.com/AAndyProgram/SCrawler/wiki/Settings#instagram)
   - [Threads](https://github.com/AAndyProgram/SCrawler/wiki/Settings#threads)
+  - [Facebook](https://github.com/AAndyProgram/SCrawler/wiki/Settings#facebook)
   - [JustForFans](https://github.com/AAndyProgram/SCrawler/wiki/Settings#justforfans)
   - [TikTok](https://github.com/AAndyProgram/SCrawler/wiki/Settings#tiktok)
   - [RedGifs](https://github.com/AAndyProgram/SCrawler/wiki/Settings#redgifs)
@@ -195,7 +199,6 @@ F5-->[*]
 
 Discord server: https://discord.gg/uFNUXvFFmg
 
-[e-mail](mailto:andyprogram@proton.me): andyprogram@proton.me
 <!--
 [e-mail](mailto:andyprogram@proton.me): andyprogram@proton.me
 
