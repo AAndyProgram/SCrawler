@@ -80,6 +80,14 @@ Namespace API.YouTube.Controls
                 End If
                 LIST_PLAYLISTS.SelectedIndex = 0
 
+                If .ObjectType = Base.YouTubeMediaType.Channel Then
+                    With TXT_OUTPUT_PATH
+                        .CaptionMode = ICaptionControl.Modes.Label
+                        .CaptionToolTipText = String.Empty
+                        .CaptionToolTipEnabled = False
+                    End With
+                End If
+
                 TXT_OUTPUT_PATH.Text = MyYouTubeSettings.OutputPath.Value
 
                 If Not .UserTitle.IsEmptyString Then
@@ -266,6 +274,7 @@ Namespace API.YouTube.Controls
                     If Not TXT_SUBS.Checked Then .PostProcessing_OutputSubtitlesFormats.Clear()
                     .OutputAudioCodec = CMB_FORMATS.Text
                     If Not TXT_FORMATS_ADDIT.Checked Then .PostProcessing_OutputAudioFormats.Clear()
+                    .AbsolutePath = TXT_OUTPUT_PATH.Checked
                     .File = TXT_OUTPUT_PATH.Text.CSFileP
                     If MyYouTubeSettings.OutputPathAutoChange Then MyYouTubeSettings.OutputPath.Value = .File
                     If MyDownloaderSettings.OutputPathAutoAddPaths Then MyYouTubeSettings.DownloadLocations.Add(.File, False)

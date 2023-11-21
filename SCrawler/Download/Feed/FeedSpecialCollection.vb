@@ -85,11 +85,14 @@ Namespace DownloadObjects
         Friend ReadOnly Property Comparer As New FeedSpecial.SEComparer
         Private ReadOnly Property ComparerFeeds As New FeedsComparer
         Friend ReadOnly Property FeedSpecialRemover As Predicate(Of SFile) = Function(f) f.Name.StartsWith(FeedSpecial.FavoriteName) Or f.Name.StartsWith(FeedSpecial.SpecialName)
+        ''' <summary>InitialUser, NewUser</summary>
+        Friend ReadOnly Property PendingUsersToUpdate As List(Of KeyValuePair(Of UserInfo, UserInfo))
 #End Region
 #Region "Initializer, loader, feeds handlers"
         Friend Sub New()
             FeedAddedEventHandlers = New List(Of FeedActionEventHandler)
             FeedRemovedEventHandlers = New List(Of FeedActionEventHandler)
+            PendingUsersToUpdate = New List(Of KeyValuePair(Of UserInfo, UserInfo))
             Feeds = New List(Of FeedSpecial)
         End Sub
         Friend Sub Load()
@@ -204,6 +207,23 @@ Namespace DownloadObjects
             End If
             Return result
         End Function
+#End Region
+#Region "UpdateUsers"
+        Friend Sub UpdateUsers(ByVal InitialUser As UserInfo, ByVal NewUser As UserInfo)
+            Try
+                Load()
+                If Count > 0 Then
+                    Feeds.ForEach(Sub(f) f.UpdateUsers(InitialUser, NewUser))
+                    If Downloader.Files.Count > 0 Then
+                        PendingUsersToUpdate.Add(New KeyValuePair(Of UserInfo, UserInfo)(InitialUser, NewUser))
+                        If Not Downloader.Working Then Downloader.FilesUpdatePendingUsers()
+                    End If
+                End If
+            Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "[FeedSpecialCollection.UpdateUsers]")
+                MainFrameObj.UpdateLogButton()
+            End Try
+        End Sub
 #End Region
 #Region "IEnumerable Support"
         Private Function GetEnumerator() As IEnumerator(Of FeedSpecial) Implements IEnumerable(Of FeedSpecial).GetEnumerator

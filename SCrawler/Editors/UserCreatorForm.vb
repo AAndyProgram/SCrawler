@@ -402,6 +402,7 @@ Namespace Editors
                             Else
                                 COLOR_USER.ColorsGetUser(_UserBackColor, _UserForeColor)
                                 Dim tmpUser As UserInfo = User
+                                Dim userBefore As UserInfo = User
                                 Dim accOld$ = tmpUser.AccountName
                                 With tmpUser
                                     .Name = TXT_USER.Text
@@ -462,6 +463,7 @@ Namespace Editors
                                         .ScriptUse = TXT_SCRIPT.Checked
                                         .ScriptData = TXT_SCRIPT.Text
                                         .UpdateUserInformation()
+                                        Settings.Feeds.UpdateUsers(userBefore, User)
                                     End With
                                 End If
                                 GoTo CloseForm

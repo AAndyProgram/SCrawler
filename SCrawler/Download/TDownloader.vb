@@ -37,19 +37,28 @@ Namespace DownloadObjects
 #End Region
             Friend ReadOnly User As IUserData
             Friend ReadOnly Data As UserMedia
+            Friend ReadOnly UserInfo As UserInfo
             Friend ReadOnly [Date] As Date
             Friend ReadOnly Session As Integer
             Friend Sub New(ByVal Data As UserMedia, ByVal User As IUserData, ByVal Session As Integer)
                 Me.Data = Data
                 Me.User = User
+                If Not Me.User Is Nothing Then Me.UserInfo = DirectCast(Me.User, UserDataBase).User
                 [Date] = Now
                 Me.Session = Session
+            End Sub
+            Friend Sub New(ByVal Data As UserMedia, ByVal User As IUserData, ByVal Session As Integer, ByVal _Date As Date)
+                Me.New(Data, User, Session)
+                [Date] = _Date
             End Sub
             Private Sub New(ByVal e As EContainer)
                 If Not e Is Nothing Then
                     If e.Contains(Name_User) Then
                         Dim u As UserInfo = e(Name_User)
-                        If Not u.Name.IsEmptyString And Not u.Site.IsEmptyString Then User = Settings.GetUser(u)
+                        If Not u.Name.IsEmptyString And Not u.Site.IsEmptyString Then
+                            User = Settings.GetUser(u)
+                            If Not User Is Nothing Then UserInfo = DirectCast(User, UserDataBase).User
+                        End If
                     End If
                     Data = New UserMedia(e(Name_Media), User)
                     [Date] = AConvert(Of Date)(e.Value(Name_Date), DateTimeDefaultProvider, Now)
@@ -98,7 +107,7 @@ Namespace DownloadObjects
                 Return _FilesSessionActual
             End Get
         End Property
-        Private Sub FilesSave()
+        Friend Sub FilesSave()
             Try
                 If Settings.FeedStoreSessionsData And Files.Count > 0 Then
                     ClearSessions()
@@ -109,6 +118,46 @@ Namespace DownloadObjects
                 End If
             Catch ex As Exception
                 ErrorsDescriber.Execute(EDP.SendToLog, ex, "[DownloadObjects.TDownloader.FilesSave]")
+            End Try
+        End Sub
+        Private _FilesUpdating As Boolean = False
+        Friend Sub FilesUpdatePendingUsers()
+            _FilesUpdating = True
+            Try
+                If Files.Count > 0 Then
+                    With Settings.Feeds
+                        Dim pUsers As List(Of KeyValuePair(Of UserInfo, UserInfo))
+                        Dim pendingUser As KeyValuePair(Of UserInfo, UserInfo)
+                        Dim item As UserMediaD
+                        Dim result As Boolean
+                        Dim changed As Boolean = False
+                        While .PendingUsersToUpdate.Count > 0
+                            pUsers = New List(Of KeyValuePair(Of UserInfo, UserInfo))(.PendingUsersToUpdate)
+                            .PendingUsersToUpdate.Clear()
+                            For Each pendingUser In pUsers
+                                With Files
+                                    If .Count > 0 Then
+                                        For i% = 0 To .Count - 1
+                                            item = .Item(i)
+                                            result = False
+                                            item = FeedSpecial.UpdateUsers(item, pendingUser.Key, pendingUser.Value, result)
+                                            If result Then changed = True : .Item(i) = item
+                                        Next
+                                    End If
+                                End With
+                                If changed Then FilesSave()
+                            Next
+                            pUsers.Clear()
+                        End While
+                    End With
+                End If
+            Catch aex As ArgumentOutOfRangeException
+            Catch iex As IndexOutOfRangeException
+            Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "[TDownloader.FilesUpdatePendingUsers]")
+                MainFrameObj.UpdateLogButton()
+            Finally
+                _FilesUpdating = False
             End Try
         End Sub
         Friend Sub ClearSessions()
@@ -159,7 +208,7 @@ Namespace DownloadObjects
         Friend ReadOnly Property Working(Optional ByVal CheckThread As Boolean = True) As Boolean
             Get
                 Return _PoolReconfiguration Or (Pool.Count > 0 AndAlso Pool.Exists(Function(j) j.Working)) Or
-                       (CheckThread AndAlso If(CheckerThread?.IsAlive, False))
+                       (CheckThread AndAlso If(CheckerThread?.IsAlive, False)) Or _FilesUpdating
             End Get
         End Property
         Friend ReadOnly Property Count As Integer
@@ -411,6 +460,7 @@ Namespace DownloadObjects
                 Files.Sort()
                 FilesChanged = Not fBefore = Files.Count
                 RaiseEvent Downloading(False)
+                FilesUpdatePendingUsers()
                 If FilesChanged Then FilesSave() : RaiseEvent FeedFilesChanged(True)
             End Try
         End Sub
@@ -453,7 +503,7 @@ Namespace DownloadObjects
         Private Sub UpdateJobsLabel()
             RaiseEvent JobsChange(Count)
         End Sub
-        Friend Structure HostLimit
+        Private Structure HostLimit
             Friend Key As String
             Friend Limit As Integer
             Friend Value As Integer

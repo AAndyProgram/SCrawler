@@ -10,6 +10,7 @@ Imports System.Reflection
 Imports SCrawler.Plugin
 Imports SCrawler.Plugin.Attributes
 Imports PersonalUtilities.Tools
+Imports PersonalUtilities.Tools.Web.Cookies
 Imports PersonalUtilities.Tools.Web.Clients
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports Download = SCrawler.Plugin.ISiteSettings.Download
@@ -73,7 +74,7 @@ Namespace API.Base
                     Responser.Cookies.ChangedAllowInternalDrop = Not _UseNetscapeCookies
                     Responser.Cookies.Changed = False
                 End If
-                If b And _UseNetscapeCookies Then Update_SaveCookiesNetscape()
+                If b AndAlso _UseNetscapeCookies AndAlso Not CookiesNetscapeFile.Exists Then Update_SaveCookiesNetscape()
             End Set
         End Property
         Private Property IResponserContainer_Responser As Responser Implements IResponserContainer.Responser
@@ -140,6 +141,12 @@ Namespace API.Base
         Protected _SiteEditorFormOpened As Boolean = False
         Friend Overridable Sub BeginEdit() Implements ISiteSettings.BeginEdit
             _SiteEditorFormOpened = True
+            If UseNetscapeCookies And CookiesNetscapeFile.Exists Then
+                With Responser.Cookies
+                    .Clear()
+                    .AddRange(CookieKeeper.ParseNetscapeText(CookiesNetscapeFile.GetText, EDP.SendToLog + EDP.ReturnValue),, EDP.None)
+                End With
+            End If
         End Sub
         Friend Overridable Sub EndEdit() Implements ISiteSettings.EndEdit
             If _SiteEditorFormOpened Then DomainsReset()

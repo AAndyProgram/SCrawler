@@ -58,6 +58,7 @@ Namespace DownloadObjects
                     CH_NOTIFY_SIMPLE.Checked = .ShowSimpleNotification
                     CH_SHOW_PIC.Checked = .ShowPictureDownloaded
                     CH_SHOW_PIC_USER.Checked = .ShowPictureUser
+                    CH_MANUAL.Checked = .IsManual
                     TXT_TIMER.Text = .Timer
                     NUM_DELAY.Value = .StartupDelay
                     LBL_LAST_TIME_UP.Text = .Information
@@ -94,8 +95,10 @@ Namespace DownloadObjects
                     .ShowSimpleNotification = CH_NOTIFY_SIMPLE.Checked
                     .ShowPictureDownloaded = CH_SHOW_PIC.Checked
                     .ShowPictureUser = CH_SHOW_PIC_USER.Checked
+                    .IsManual = CH_MANUAL.Checked
                     .Timer = AConvert(Of Integer)(TXT_TIMER.Text, AutoDownloader.DefaultTimer)
                     .StartupDelay = NUM_DELAY.Value
+                    If .IsManual Then .Stop()
                     .Update()
                 End With
                 MyDefs.CloseForm()

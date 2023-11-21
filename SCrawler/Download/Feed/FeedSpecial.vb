@@ -6,6 +6,7 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
+Imports SCrawler.API.Base
 Imports PersonalUtilities.Tools
 Imports PersonalUtilities.Functions.XML
 Imports UserMediaD = SCrawler.DownloadObjects.TDownloader.UserMediaD
@@ -119,6 +120,52 @@ Namespace DownloadObjects
                 End Using
             End If
         End Sub
+#End Region
+#Region "UpdateUsers"
+        Friend Overloads Sub UpdateUsers(ByVal InitialUser As UserInfo, ByVal NewUser As UserInfo)
+            Try
+                If Count > 0 Then
+                    Dim changed As Boolean = False
+                    Dim result As Boolean
+                    Dim item As UserMediaD
+                    For i% = 0 To Count - 1
+                        item = Items(i)
+                        result = False
+                        item = UpdateUsers(item, InitialUser, NewUser, result)
+                        If result Then changed = True : Items(i) = item
+                    Next
+                    If changed Then Save()
+                End If
+            Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "[FeedSpecial.UpdateUsers]")
+                MainFrameObj.UpdateLogButton()
+            End Try
+        End Sub
+        Friend Overloads Shared Function UpdateUsers(ByVal Item As UserMediaD, ByVal InitialUser As UserInfo, ByVal NewUser As UserInfo,
+                                                     ByRef Result As Boolean) As UserMediaD
+            Dim data As UserMedia
+            Dim user As IUserData
+            Dim path$ = InitialUser.File.CutPath.PathWithSeparator
+            Dim pathNew$ = NewUser.File.CutPath.PathWithSeparator
+            If Item.UserInfo.Equals(InitialUser) Or Item.UserInfo.Equals(NewUser) Then
+                If Item.Data.File.PathWithSeparator.Contains(path) Then
+                    data = Item.Data
+                    data.File = data.File.ToString.Replace(path, pathNew)
+                    If Item.User Is Nothing Then
+                        user = Settings.GetUser(NewUser)
+                    Else
+                        user = Item.User
+                    End If
+                    If Not If(user?.IsSubscription, False) Then
+                        Item = New UserMediaD(data, user, Item.Session, Item.Date)
+                        Result = True
+                        Return Item
+                    End If
+                End If
+            End If
+            Result = False
+            Return Item
+        End Function
 #End Region
 #Region "Add"
         Friend Overloads Function Add(ByVal Item As UserMediaD, Optional ByVal AutoSave As Boolean = True) As Boolean

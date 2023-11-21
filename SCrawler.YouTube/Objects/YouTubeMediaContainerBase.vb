@@ -543,6 +543,16 @@ Namespace API.YouTube.Objects
                 Return _FileIsPlaylistObject
             End Get
         End Property
+        Private _AbsolutePath As Boolean = False
+        Public Property AbsolutePath As Boolean
+            Get
+                Return _AbsolutePath
+            End Get
+            Set(ByVal ap As Boolean)
+                _AbsolutePath = ap
+                If Elements.Count > 0 Then Elements.ForEach(Sub(e As YouTubeMediaContainerBase) e.AbsolutePath = ap)
+            End Set
+        End Property
         Public Overridable Property File As SFile Implements IYouTubeMediaContainer.File
             Get
                 Return _File
@@ -550,11 +560,16 @@ Namespace API.YouTube.Objects
             Set(ByVal f As SFile)
                 Select Case ObjectType
                     Case YouTubeMediaType.Channel : _File = f.Path
-                    Case YouTubeMediaType.PlayList : _File.Path = $"{f.PathWithSeparator}{GetPlayListTitle()}"
+                    Case YouTubeMediaType.PlayList
+                        If AbsolutePath Then
+                            _File.Path = f.Path
+                        Else
+                            _File.Path = $"{f.PathWithSeparator}{GetPlayListTitle()}"
+                        End If
                     Case YouTubeMediaType.Single
                         If PlaylistCount > 0 And Not FileIgnorePlaylist Then
                             _File.Path = f.Path
-                            Dim pls$ = GetPlayListTitle()
+                            Dim pls$ = If(AbsolutePath, String.Empty, GetPlayListTitle())
                             If Not _File.Path.Contains(pls) Then _File.Path = $"{_File.PathWithSeparator(Not pls.IsEmptyString)}{pls}"
                         ElseIf Not f.Name.IsEmptyString Then
                             _File = f

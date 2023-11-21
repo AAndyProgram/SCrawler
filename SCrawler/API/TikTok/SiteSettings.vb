@@ -14,20 +14,24 @@ Namespace API.TikTok
     <Manifest("AndyProgram_TikTok"), SpecialForm(False), SeparatedTasks(1)>
     Friend Class SiteSettings : Inherits SiteSettingsBase
         <PropertyOption(ControlText:="Remove tags from title"), PXML, PClonable>
-        Friend Property RemoveTagsFromTitle As PropertyValue
+        Friend ReadOnly Property RemoveTagsFromTitle As PropertyValue
         <PropertyOption(ControlText:="Use native title", ControlToolTip:="Use a user-created video title for the filename instead of the video ID."), PXML, PClonable>
-        Friend Property TitleUseNative As PropertyValue
+        Friend ReadOnly Property TitleUseNative As PropertyValue
         <PropertyOption(ControlText:="Use native title in standalone downloader",
                         ControlToolTip:="Use a user-created video title for the filename instead of the video ID."), PXML, PClonable>
-        Friend Property TitleUseNativeSTD As PropertyValue
+        Friend ReadOnly Property TitleUseNativeSTD As PropertyValue
         <PropertyOption(ControlText:="Add video ID to video title"), PXML, PClonable>
-        Friend Property TitleAddVideoID As PropertyValue
+        Friend ReadOnly Property TitleAddVideoID As PropertyValue
+        <PropertyOption(ControlText:="Use video date as file date",
+                        ControlToolTip:="Set the file date to the date the video was added (website) (if available)."), PXML, PClonable>
+        Friend ReadOnly Property UseParsedVideoDate As PropertyValue
         Friend Sub New(ByVal AccName As String, ByVal Temp As Boolean)
             MyBase.New("TikTok", "www.tiktok.com", AccName, Temp, My.Resources.SiteResources.TikTokIcon_32, My.Resources.SiteResources.TikTokPic_192)
             RemoveTagsFromTitle = New PropertyValue(False)
             TitleUseNative = New PropertyValue(True)
             TitleUseNativeSTD = New PropertyValue(False)
             TitleAddVideoID = New PropertyValue(True)
+            UseParsedVideoDate = New PropertyValue(True)
             UseNetscapeCookies = True
             UrlPatternUser = "https://www.tiktok.com/@{0}/"
             UserRegex = RParams.DMS("[htps:/]{7,8}.*?tiktok.com/@([^/]+)", 1)
@@ -45,5 +49,8 @@ Namespace API.TikTok
                 Using f As New InternalSettingsForm(Options, Me, False) : f.ShowDialog() : End Using
             End If
         End Sub
+        Friend Overrides Function GetUserUrl(ByVal User As IPluginContentProvider) As String
+            Return String.Format(UrlPatternUser, DirectCast(User, UserData).TrueName)
+        End Function
     End Class
 End Namespace

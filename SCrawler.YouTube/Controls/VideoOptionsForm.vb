@@ -76,6 +76,12 @@ Namespace API.YouTube.Controls
                             If Not def.ValueBetween(-1, 10000) Then def = 1080
                         End If
                         NUM_RES.Value = def
+                        With TXT_FILE
+                            .CaptionMode = ICaptionControl.Modes.CheckBox
+                            .CaptionWidth = 18
+                            .CaptionToolTipText = "If this checkbox is selected, this path is absolute and artist folder will not be created in it"
+                            .CaptionToolTipEnabled = True
+                        End With
                     Else
                         TP_OPTIONS.Controls.Remove(NUM_RES)
                         TP_OPTIONS.ColumnStyles(3).Width = 0
@@ -297,8 +303,8 @@ Namespace API.YouTube.Controls
                             .SelectedVideoIndex = -1
                             .SelectedAudioIndex = cntIndex
                         End If
-                        .File = f
                         .FileSetManually = True
+                        .File = f
                         .UpdateInfoFields()
                         '#If DEBUG Then
                         'Debug.WriteLine(.Command(False))
@@ -309,6 +315,7 @@ Namespace API.YouTube.Controls
                         Else
                             .SetMaxResolution(NUM_RES.Value)
                         End If
+                        .AbsolutePath = TXT_FILE.Checked
                         .File = f
                     End If
                 End With

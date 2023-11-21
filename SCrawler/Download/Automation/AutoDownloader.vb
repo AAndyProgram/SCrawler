@@ -184,6 +184,7 @@ Namespace DownloadObjects
 #Region "XML Names"
         Private Const Name_Mode As String = "Mode"
         Private Const Name_Groups As String = "Groups"
+        Private Const Name_IsManual As String = "IsManual"
         Private Const Name_Timer As String = "Timer"
         Private Const Name_StartupDelay As String = "StartupDelay"
         Private Const Name_LastDownloadDate As String = "LastDownloadDate"
@@ -205,6 +206,7 @@ Namespace DownloadObjects
             End Set
         End Property
         Friend ReadOnly Property Groups As List(Of String)
+        Friend Property IsManual As Boolean = False
         Friend Property Timer As Integer = DefaultTimer
         Friend Property StartupDelay As Integer = 1
         Friend Property ShowNotifications As Boolean = True
@@ -281,7 +283,11 @@ Namespace DownloadObjects
             Return OutStr
         End Function
         Public Overrides Function ToString() As String
-            Return $"{Name} ({GetWorkingState()}): last download date: {GetLastDateString()}; next run: {GetNextDateString()}"
+            If IsManual Then
+                Return $"{Name} (manual): last download date: {GetLastDateString()}"
+            Else
+                Return $"{Name} ({GetWorkingState()}): last download date: {GetLastDateString()}; next run: {GetNextDateString()}"
+            End If
         End Function
 #End Region
 #End Region
@@ -307,6 +313,7 @@ Namespace DownloadObjects
             If Name.IsEmptyString Then Name = "Default"
             Groups.ListAddList(x.Value(Name_Groups).StringToList(Of String)("|"), LAP.NotContainsOnly)
 
+            IsManual = x.Value(Name_IsManual).FromXML(Of Boolean)(False)
             Timer = x.Value(Name_Timer).FromXML(Of Integer)(DefaultTimer)
             If Timer <= 0 Then Timer = DefaultTimer
             StartupDelay = x.Value(Name_StartupDelay).FromXML(Of Integer)(0)
@@ -364,6 +371,7 @@ Namespace DownloadObjects
             Return Export(New EContainer(Scheduler.Name_Plan, String.Empty) From {
                                          New EContainer(Name_Mode, CInt(Mode)),
                                          New EContainer(Name_Groups, Groups.ListToString("|")),
+                                         New EContainer(Name_IsManual, IsManual.BoolToInteger),
                                          New EContainer(Name_Timer, Timer),
                                          New EContainer(Name_StartupDelay, StartupDelay),
                                          New EContainer(Name_ShowNotifications, ShowNotifications.BoolToInteger),
@@ -383,13 +391,15 @@ Namespace DownloadObjects
             End Get
         End Property
         Private _StartTime As Date = Now
-        Friend Sub Start(ByVal Init As Boolean)
-            If Init Then _StartTime = Now
-            _IsNewPlan = False
-            If Not Working And Not Mode = Modes.None Then
-                AThread = New Thread(New ThreadStart(AddressOf Checker))
-                AThread.SetApartmentState(ApartmentState.MTA)
-                AThread.Start()
+        Friend Sub Start(ByVal Init As Boolean, Optional ByVal Force As Boolean = False)
+            If Not IsManual Or Force Then
+                If Init Then _StartTime = Now
+                _IsNewPlan = False
+                If Not Working And Not Mode = Modes.None Then
+                    AThread = New Thread(New ThreadStart(AddressOf Checker))
+                    AThread.SetApartmentState(ApartmentState.MTA)
+                    AThread.Start()
+                End If
             End If
         End Sub
         Private _StopRequested As Boolean = False
@@ -456,6 +466,7 @@ Namespace DownloadObjects
         End Sub
         Friend Sub ForceStart()
             _ForceStartRequested = True
+            If IsManual Then Start(False, True)
         End Sub
         Private _ForceStartRequested As Boolean = False
         Private _SpecialDelayUse As Boolean = False
@@ -464,7 +475,8 @@ Namespace DownloadObjects
             Try
                 Dim _StartDownload As Boolean
                 While (Not _StopRequested Or Downloader.Working) And Not Mode = Modes.None
-                    If ((NextExecutionDate < Now And Not IsPaused) Or _ForceStartRequested) And Not _StopRequested And Not Mode = Modes.None Then
+                    If ((IsManual And _ForceStartRequested) Or (NextExecutionDate < Now And Not IsPaused) Or _ForceStartRequested) And
+                       Not _StopRequested And Not Mode = Modes.None Then
                         If Downloader.Working Then
                             _SpecialDelayUse = True
                         Else
@@ -478,7 +490,10 @@ Namespace DownloadObjects
                                 Else
                                     _StartDownload = NextExecutionDate.AddMilliseconds(1000 * (Index + 1)).Ticks <= Now.Ticks
                                 End If
-                                If _StartDownload Then Download()
+                                If _StartDownload Then
+                                    Download()
+                                    If IsManual Then Exit While
+                                End If
                             End If
                         End If
                     End If

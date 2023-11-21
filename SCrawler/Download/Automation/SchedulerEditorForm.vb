@@ -281,7 +281,7 @@ Namespace DownloadObjects
         Private Sub BTT_START_FORCE_Click(sender As Object, e As EventArgs) Handles BTT_START_FORCE.Click
             If _LatestSelected.ValueBetween(0, LIST_PLANS.Items.Count - 1) Then
                 With Settings.Automation(_LatestSelected)
-                    If .Working Then .ForceStart() : Refill()
+                    If .Working Or .IsManual Then .ForceStart() : Refill()
                 End With
             End If
         End Sub

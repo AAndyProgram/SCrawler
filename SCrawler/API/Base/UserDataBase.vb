@@ -1942,6 +1942,7 @@ BlockNullPicture:
             Try
                 Dim f As SFile
                 Dim v As Boolean = IsVirtual
+                Settings.Feeds.Load()
 
                 If IncludedInCollection And __CollectionName.IsEmptyString And __SpecialCollectionPath.IsEmptyString Then
                     Settings.Users.Add(Me)
@@ -1984,6 +1985,7 @@ BlockNullPicture:
 
                 Settings.UsersList.Remove(UserBefore)
                 Settings.UpdateUsersList(User)
+                Settings.Feeds.UpdateUsers(UserBefore, User)
                 UpdateUserInformation()
                 Return True
             Catch ex As Exception
@@ -2037,6 +2039,7 @@ BlockNullPicture:
                     End If
                     If Not ScriptData.IsEmptyString AndAlso ScriptData.Contains(UserBefore.File.PathNoSeparator) Then _
                        ScriptData = ScriptData.Replace(UserBefore.File.PathNoSeparator, MyFile.PathNoSeparator)
+                    Settings.Feeds.UpdateUsers(UserBefore, User)
                     UpdateUserInformation()
                 End If
             Catch ioex As InvalidOperationException When ioex.HelpLink = 1

@@ -227,15 +227,17 @@ Namespace Plugin.Hosts
                             End Select
 
                             If selectedAcc >= 0 Then
-                                Dim tUser As UserInfo
+                                Dim tUser As UserInfo, userBefore As UserInfo
                                 Dim tUserIndx%
                                 Dim tUserBase As UserDataBase
                                 For Each tUser In users
+                                    userBefore = tUser
                                     UpdateUserAccount(tUser, Obj, Hosts(selectedAcc), True, tUserIndx)
                                     tUserBase = .GetUser(tUser)
                                     tUserBase.AccountName = String.Empty
                                     tUserBase.User = tUser
                                     tUserBase.UpdateUserInformation()
+                                    Settings.Feeds.UpdateUsers(userBefore, tUser)
                                     changedUsers.Add(tUserBase.ToStringForLog)
                                 Next
                                 .UpdateUsersList()

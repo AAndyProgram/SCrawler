@@ -48,6 +48,15 @@ Namespace API.TikTok
         Friend Property TitleUseNative As Boolean = True
         Friend Property TitleAddVideoID As Boolean = True
         Private Property LastDownloadDate As Date? = Nothing
+        Private _TrueName As String = String.Empty
+        Friend Property TrueName As String
+            Get
+                Return _TrueName.IfNullOrEmpty(Name)
+            End Get
+            Set(ByVal NewName As String)
+                _TrueName = NewName
+            End Set
+        End Property
 #End Region
 #Region "Exchange"
         Friend Overrides Function ExchangeOptionsGet() As Object
@@ -72,11 +81,13 @@ Namespace API.TikTok
                     TitleAddVideoID = .Value(Name_TitleAddVideoID).FromXML(Of Boolean)(True)
                     LastDownloadDate = AConvert(Of Date)(.Value(Name_LastDownloadDate), ADateTime.Formats.BaseDateTime, Nothing)
                     If Not LastDownloadDate.HasValue Then LastDownloadDate = LastUpdated
+                    _TrueName = .Value(Name_TrueName)
                 Else
                     .Add(Name_RemoveTagsFromTitle, RemoveTagsFromTitle.BoolToInteger)
                     .Add(Name_TitleUseNative, TitleUseNative.BoolToInteger)
                     .Add(Name_TitleAddVideoID, TitleAddVideoID.BoolToInteger)
                     .Add(Name_LastDownloadDate, AConvert(Of String)(LastDownloadDate, AModes.XML, ADateTime.Formats.BaseDateTime, String.Empty))
+                    .Add(Name_TrueName, _TrueName)
                 End If
             End With
         End Sub
@@ -89,14 +100,15 @@ Namespace API.TikTok
 #End Region
 #Region "Download functions"
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
-            Dim URL$ = $"https://www.tiktok.com/@{Name}"
+            Dim URL$ = $"https://www.tiktok.com/@{TrueName}"
             Using cache As CacheKeeper = CreateCache()
                 Try
-                    Dim postID$, title$, postUrl$
+                    Dim postID$, title$, postUrl$, newName$
                     Dim postDate As Date?
                     Dim dateAfterC As Date? = Nothing
                     Dim dateBefore As Date? = DownloadDateTo
                     Dim dateAfter As Date? = DownloadDateFrom
+                    Dim baseDataObtained As Boolean = False
 
                     If _ContentList.Count > 0 Then
                         With (From d In _ContentList Where d.Post.Date.HasValue Select d.Post.Date.Value)
@@ -138,6 +150,20 @@ Namespace API.TikTok
                             j = JsonDocument.Parse(file.GetText, EDP.ReturnValue)
                             If j.ListExists Then
                                 If j.Value("_type").StringToLower = "video" Then
+                                    If Not baseDataObtained Then
+                                        baseDataObtained = True
+                                        If ID.IsEmptyString Then
+                                            ID = j.Value("uploader_id")
+                                            If Not ID.IsEmptyString Then _ForceSaveUserInfo = True
+                                        End If
+                                        newName = j.Value("uploader")
+                                        If Not newName.IsEmptyString Then
+                                            If Not _TrueName = newName Then _ForceSaveUserInfo = True
+                                            _TrueName = newName
+                                        End If
+                                        newName = j.Value("creator")
+                                        If Not newName.IsEmptyString Then UserSiteName = newName
+                                    End If
                                     postID = j.Value("id")
                                     If Not _TempPostsList.Contains(postID) Then
                                         _TempPostsList.Add(postID)
@@ -211,6 +237,7 @@ Namespace API.TikTok
             End If
             If DateBefore.HasValue Then command &= $"--datebefore {DateBefore.Value.AddDays(1).ToStringDate(SimpleDateConverter)} "
             If DateAfter.HasValue Then command &= $"--dateafter {DateAfter.Value.AddDays(-1).ToStringDate(SimpleDateConverter)} "
+            If Not CBool(MySettings.UseParsedVideoDate.Value) Then command &= "--no-mtime "
             If MySettings.CookiesNetscapeFile.Exists Then command &= $"--no-cookies-from-browser --cookies ""{MySettings.CookiesNetscapeFile}"" "
             command &= $"{URL} "
             If SupportOutput Then
