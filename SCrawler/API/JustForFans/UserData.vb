@@ -168,8 +168,6 @@ Namespace API.JustForFans
 #Region "Initializer"
         Friend Sub New()
             UseInternalM3U8Function = True
-            'TODELETE: UseResponserClient 20231008
-            'UseResponserClient = True
         End Sub
 #End Region
 #Region "Download functions"

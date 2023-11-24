@@ -1,3 +1,27 @@
+# 2023.11.24.0
+
+*2023-11-24*
+
+For those of you who use TikTok, I recommend updating [TikTok plugin](https://github.com/bashonly/yt-dlp-TTUser) to the latest version using [these instructions](https://github.com/AAndyProgram/SCrawler/wiki/Settings#how-to-install-yt-dlp-ttuser-plugin).
+
+- Added
+  - Automation: manual task option
+  - Scheduler: add scheduler name to form title
+  - Feeds: update when users' location and/or basic information changes
+  - Reddit: special notification for error 429
+  - TikTok: ID, username and friendly name extraction from data
+  - TikTok: new option `Use video date as file date`
+  - YouTube: absolute path for a single playlist
+- Updated
+  - yt-dlp up to version 2023.11.16
+- Fixed
+  - Scheduler: scheduler change error
+  - Twitter: JSON deserialization error
+  - xHamster, XVideos, PornHub, ThisVid: incorrect parsing of search queries
+  - YouTube: the file name is not changed manually
+  - YouTube: path not set when adding array to download
+  - Minor bugs
+
 # 2023.11.17.0
 
 *2023-11-17*

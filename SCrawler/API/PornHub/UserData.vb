@@ -423,30 +423,28 @@ Namespace API.PornHub
                                             newLastPageIDs.Add(uv.ID)
                                             If Not _TempPostsList.Contains(uv.ID) Then
                                                 _TempPostsList.Add(uv.ID)
+                                                newPostsFound = True
                                                 Return False
                                             ElseIf SessionPosts.Count > 0 AndAlso SessionPosts.Contains(uv.id) Then
                                                 prevPostsFound = True
-                                                If pageRepeatSet Then pageRepeatSet = False : _PageVideosRepeat -= 1
                                                 Return True
                                             Else
-                                                'TODELETE: PornHub old validating
-                                                'If Not SessionPosts.Contains(uv.ID) Then nonLastPageDetected = True
                                                 If Not pageRepeatSet And Not newPostsFound Then pageRepeatSet = True : _PageVideosRepeat += 1
                                                 'Debug.WriteLine($"[REMOVED]: {uv.Title}")
                                                 Return True
                                             End If
                                         End Function)
                             'Debug.WriteLineIf(l.Count > 0, l.Select(Function(ll) ll.Title).ListToString(vbNewLine))
+                            If prevPostsFound And Not pageRepeatSet And Not newPostsFound Then pageRepeatSet = True : _PageVideosRepeat += 1
+                            If prevPostsFound And newPostsFound And pageRepeatSet Then _PageVideosRepeat -= 1
                             If l.Count > 0 Then _TempMediaList.ListAddList(l.Select(Function(uv) uv.ToUserMedia(specFolder)))
                             SessionPosts.ListAddList(newLastPageIDs, LNC)
                             newLastPageIDs.Clear()
-                            'TODELETE: PornHub old validating
-                            'If l.Count > 0 AndAlso (l.Count = lBefore Or Not nonLastPageDetected) AndAlso
-                            '   Not (limit > 0 And _TempMediaList.Count >= limit) Then tryNextPage = True
 
                             If limit > 0 And _TempMediaList.Count >= limit Then Exit Sub
-                            If (Not IsUser And prevPostsFound And Not newPostsFound And Page < 1000) Or
-                               (Not cBefore = _TempMediaList.Count And (IsUser Or Page < 1000)) Then tryNextPage = True
+                            If _PageVideosRepeat < 2 And
+                               ((Not IsUser And prevPostsFound And Not newPostsFound And Page < 1000) Or
+                               (Not cBefore = _TempMediaList.Count And (IsUser Or Page < 1000))) Then tryNextPage = True
 
                             l.Clear()
                         End If

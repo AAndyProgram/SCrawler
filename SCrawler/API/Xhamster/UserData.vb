@@ -308,7 +308,6 @@ Namespace API.Xhamster
                                                     _TempMediaList.ListAddValue(m, LNC)
                                                     SearchPostsCount += 1
                                                     newPostsFound = True
-                                                    If pageRepeatSet Then pageRepeatSet = False : _PageVideosRepeat -= 1
                                                     If checkLimit.Invoke Then Exit Sub
                                                 ElseIf Not IsVideo Then
                                                     If DirectCast(m.Object, ExchObj).IsPhoto Then
@@ -322,9 +321,8 @@ Namespace API.Xhamster
                                                 ElseIf IsVideo And _TempPostsList.Contains(m.Post.ID) Then
                                                     If SessionPosts.Count > 0 AndAlso SessionPosts.Contains(m.Post.ID) Then
                                                         prevPostsFound = True
-                                                        If pageRepeatSet Then pageRepeatSet = False : _PageVideosRepeat -= 1
                                                         Continue For
-                                                    ElseIf _PageVideosRepeat > 2 Then
+                                                    ElseIf _PageVideosRepeat >= 2 Then
                                                         Exit Sub
                                                     ElseIf Not pageRepeatSet And Not newPostsFound Then
                                                         pageRepeatSet = True
@@ -335,6 +333,8 @@ Namespace API.Xhamster
                                                 End If
                                             End If
                                         Next
+                                        If prevPostsFound And Not pageRepeatSet And Not newPostsFound Then pageRepeatSet = True : _PageVideosRepeat += 1
+                                        If prevPostsFound And newPostsFound And pageRepeatSet Then _PageVideosRepeat -= 1
                                         SessionPosts.ListAddList(pids, LNC)
                                         pids.Clear()
                                         Exit For
@@ -347,11 +347,11 @@ Namespace API.Xhamster
 
                 containerNodes.Clear()
 
-                If (
+                If _PageVideosRepeat < 2 And ((
                     (MaxPage = -1 Or Page < MaxPage) And
                     ((Not _TempMediaList.Count = cBefore Or skipped) And (IsUser Or Page < 1000))
                    ) Or
-                   (IsChannel Or (Not IsUser And Page < 1000 And prevPostsFound And Not newPostsFound)) Then DownloadData(Page + 1, IsVideo, Token)
+                   (IsChannel Or (Not IsUser And Page < 1000 And prevPostsFound And Not newPostsFound))) Then DownloadData(Page + 1, IsVideo, Token)
             Catch ex As Exception
                 ProcessException(ex, Token, $"data downloading error [{URL}]")
             End Try

@@ -1729,8 +1729,6 @@ BlockNullPicture:
                                         DownloadContentDefault_PostProcessing(v, f, Token)
                                         dCount += 1
                                     Catch woex As OperationCanceledException When Token.IsCancellationRequested
-                                        'TODELETE: UserDataBase.DownloadContentDefault: remove file when 'OperationCanceledException'
-                                        'If f.Exists Then f.Delete(,, EDP.SendToLog)
                                         __deleteFile.Invoke(f, v.URL_BASE)
                                         v.State = UStates.Missing
                                         v.Attempts += 1

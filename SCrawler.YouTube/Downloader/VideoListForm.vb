@@ -278,6 +278,17 @@ Namespace DownloadObjects.STDownloader
                                             .IsMusic = containers.Any(Function(cc) cc.IsMusic)
                                         }
                                         c.Elements.AddRange(containers)
+                                        Dim path$ = c.Elements(0).File.PathWithSeparator
+                                        For Each list As List(Of String) In {
+                                            c.Elements.Select(Function(cc) cc.UserTitle).ListWithRemove(Function(cc) cc.IsEmptyString).ListIfNothing,
+                                            c.Elements.Select(Function(cc) cc.PlaylistTitle).ListWithRemove(Function(cc) cc.IsEmptyString).ListIfNothing
+                                        }
+                                            If list.Count > 0 AndAlso
+                                               (list.Count = 1 OrElse
+                                               ListAddList(Nothing, list, LAP.NotContainsOnly, EDP.ReturnValue).ListIfNothing.Count = 1) Then _
+                                               path &= $"{list(0)}\"
+                                        Next
+                                        c.File = path
                                     End If
                                 End If
                             End With
@@ -450,12 +461,16 @@ Namespace DownloadObjects.STDownloader
             UpdateLogButton()
         End Sub
         Protected Sub AddToDownload(ByRef Item As MediaItem, ByVal RunThread As Boolean)
-            Dim hc% = Item.MyContainer.GetHashCode
-            If MyJob.Count = 0 OrElse Not MyJob.Items.Exists(Function(i) i.MyContainer.GetHashCode = hc) Then
-                MyJob.Add(Item)
-                Item.AddToQueue()
-                If RunThread Then StartDownloading()
-            End If
+            Try
+                Dim hc% = Item.MyContainer.GetHashCode
+                If MyJob.Count = 0 OrElse Not MyJob.Items.Exists(Function(i) i.MyContainer.GetHashCode = hc) Then
+                    MyJob.Add(Item)
+                    Item.AddToQueue()
+                    If RunThread Then StartDownloading()
+                End If
+            Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "[VideoListForm.AddToDownload]")
+            End Try
         End Sub
         Private Sub StartDownloading()
             If Not MyJob.Working And MyJob.Count > 0 Then

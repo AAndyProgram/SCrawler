@@ -218,12 +218,16 @@ Namespace DownloadObjects
                     If Not BTT_STOP Is Nothing Then BTT_STOP.Dispose()
                     If Not BTT_OPEN Is Nothing Then BTT_OPEN.Dispose()
                     If Not Icon Is Nothing Then Icon.Dispose()
-                    PR_MAIN.Dispose()
-                    LBL_INFO.Dispose()
-                    TP_CONTROLS.Controls.Clear()
-                    TP_CONTROLS.Dispose()
-                    TP_MAIN.Controls.Clear()
-                    TP_MAIN.Dispose()
+                    PR_MAIN.DisposeIfReady()
+                    LBL_INFO.DisposeIfReady()
+                    If Not TP_CONTROLS Is Nothing Then
+                        TP_CONTROLS.Controls.Clear()
+                        TP_CONTROLS.Dispose()
+                    End If
+                    If Not TP_MAIN Is Nothing Then
+                        TP_MAIN.Controls.Clear()
+                        TP_MAIN.Dispose()
+                    End If
                 End If
                 disposedValue = True
             End If

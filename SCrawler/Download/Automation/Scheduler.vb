@@ -27,6 +27,15 @@ Namespace DownloadObjects
         Private ReadOnly PlansWaiter As Action(Of Predicate(Of AutoDownloader)) = Sub(ByVal Predicate As Predicate(Of AutoDownloader))
                                                                                       While Plans.Exists(Predicate) : Thread.Sleep(200) : End While
                                                                                   End Sub
+        Friend ReadOnly Property Name As String
+            Get
+                If Not File.Name.IsEmptyString AndAlso Not File.Name = FileNameDefault Then
+                    Return File.Name.Replace(FileNameDefault, String.Empty).StringTrimStart("_").IfNullOrEmpty("Default")
+                Else
+                    Return "Default"
+                End If
+            End Get
+        End Property
         Friend Sub New()
             Plans = New List(Of AutoDownloader)
             File = Settings.AutomationFile.Value.IfNullOrEmpty(FileDefault)
@@ -132,14 +141,22 @@ Namespace DownloadObjects
         Friend Async Function Start(ByVal Init As Boolean) As Task
             Try
                 Await Task.Run(Sub()
-                                   If Count > 0 Then
-                                       If Plans.Exists(PlanDownloading) Then PlansWaiter(PlanDownloading)
-                                       For Each Plan In Plans
-                                           Plan.Start(Init)
-                                           PlansWaiter(PlanDownloading)
-                                           Thread.Sleep(1000)
-                                       Next
-                                   End If
+                                   Dim r% = 0
+                                   Do
+                                       r += 1
+                                       Try
+                                           If Count > 0 Then
+                                               If Plans.Exists(PlanDownloading) Then PlansWaiter(PlanDownloading)
+                                               For Each Plan In Plans
+                                                   Plan.Start(Init)
+                                                   PlansWaiter(PlanDownloading)
+                                                   Thread.Sleep(1000)
+                                               Next
+                                           End If
+                                           Exit Do
+                                       Catch io_ex As InvalidOperationException 'Collection was modified; enumeration operation may not execute
+                                       End Try
+                                   Loop While r < 10
                                End Sub)
             Catch ex As Exception
                 If Init Then

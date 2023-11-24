@@ -50,6 +50,12 @@ Namespace API.Reddit
         Friend ReadOnly Property UseCookiesForTimelines As PropertyValue
         <PropertyOption(ControlText:=DeclaredNames.SavedPostsUserNameCaption, ControlToolTip:=DeclaredNames.SavedPostsUserNameToolTip, IsAuth:=True), PXML, PClonable(Clone:=False)>
         Friend ReadOnly Property SavedPostsUserName As PropertyValue
+        Friend ReadOnly Property CredentialsExists As Boolean
+            Get
+                Return {AuthUserName.Value, AuthPassword.Value, ApiClientID.Value, ApiClientSecret.Value}.All(Function(v$) Not v.IsEmptyString)
+            End Get
+        End Property
+
 #End Region
 #Region "Other"
         <PropertyOption(ControlText:="Use M3U8", ControlToolTip:="Use M3U8 or mp4 for Reddit videos", IsAuth:=False), PXML, PClonable>
@@ -238,8 +244,7 @@ Namespace API.Reddit
             Return False
         End Function
         Private Function UpdateTokenIfRequired() As Boolean
-            If (CBool(UseTokenForTimelines.Value) Or CBool(UseTokenForSavedPosts.Value)) AndAlso
-               {AuthUserName.Value, AuthPassword.Value, ApiClientID.Value, ApiClientSecret.Value}.All(Function(v$) Not v.IsEmptyString) Then
+            If (CBool(UseTokenForTimelines.Value) Or CBool(UseTokenForSavedPosts.Value)) AndAlso CredentialsExists Then
                 If CDate(BearerTokenDateUpdate.Value).AddMinutes(TokenUpdateInterval.Value) <= Now Then Return UpdateToken()
             End If
             Return True

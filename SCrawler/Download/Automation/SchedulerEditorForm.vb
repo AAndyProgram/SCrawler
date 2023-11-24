@@ -14,6 +14,7 @@ Imports ADB = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons
 Namespace DownloadObjects
     Friend Class SchedulerEditorForm
 #Region "Declarations"
+        Private Const TitleDefault As String = "Scheduler"
         Private WithEvents MyDefs As DefaultFormOptions
         Private WithEvents BTT_SETTINGS As ToolStripButton
         Private WithEvents BTT_CLONE As ToolStripButton
@@ -110,6 +111,7 @@ Namespace DownloadObjects
                                  BTT_START, BTT_START_FORCE, MENU_SKIP, BTT_PAUSE})
                 PauseArr.AddButtons(BTT_PAUSE, .MyEditToolbar.ToolStrip)
                 Refill()
+                SetTitle()
                 .EndLoaderOperations(False)
             End With
         End Sub
@@ -136,6 +138,17 @@ Namespace DownloadObjects
                 End If
             Catch ex As Exception
                 ErrorsDescriber.Execute(EDP.SendToLog, ex, "[DownloadObjects.SchedulerEditorForm.Refill]")
+            End Try
+        End Sub
+        Private Sub SetTitle()
+            Try
+                If GetSchedulerFiles.ListExists(2) Then
+                    Text = $"{TitleDefault} [{Settings.Automation.Name}]"
+                Else
+                    Text = TitleDefault
+                End If
+            Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "[SchedulerEditorForm.SetTitle]")
             End Try
         End Sub
 #Region "Add, Edit, Delete"
@@ -199,12 +212,15 @@ Namespace DownloadObjects
         End Sub
 #End Region
 #Region "Settings, Start, Skip, Pause"
+        Private Function GetSchedulerFiles() As List(Of SFile)
+            Return SFile.GetFiles(SettingsFolderName.CSFileP, $"{Scheduler.FileNameDefault}*.xml",, EDP.ReturnValue)
+        End Function
         Private Sub BTT_SETTINGS_Click(sender As Object, e As EventArgs) Handles BTT_SETTINGS.Click
             Const msgTitle$ = "Change scheduler"
             Try
                 Const defName$ = "Default"
                 Dim l As New Dictionary(Of SFile, String)
-                With SFile.GetFiles(SettingsFolderName.CSFileP, $"{Scheduler.FileNameDefault}*.xml",, EDP.ReturnValue)
+                With GetSchedulerFiles()
                     If .ListExists Then .ForEach(Sub(ff) l.Add(ff, ff.Name.Replace(Scheduler.FileNameDefault, String.Empty).StringTrimStart("_").IfNullOrEmpty(defName)))
                 End With
                 If l.Count > 0 Then
@@ -260,6 +276,7 @@ Namespace DownloadObjects
                                             Next
                                         End If
                                     End If
+                                    SetTitle()
                                 End If
                             End If
                         End With

@@ -375,9 +375,9 @@ Namespace API.XVIDEOS
                                 _TempMediaList.ListAddList(data.Select(Function(d) d.ToUserMedia()), LNC)
                                 newPostsFound = cBefore <> _TempMediaList.Count
                             ElseIf sessionPosts.Count > 0 AndAlso sessionPosts.ListContains(pids) Then
-                                If pageRepeatSet Then pageRepeatSet = False : pageVideosRepeat -= 1
+                                prevPostsFound = True
                             Else
-                                If pageVideosRepeat > 2 Then
+                                If pageVideosRepeat >= 2 Then
                                     Exit Do
                                 ElseIf Not pageRepeatSet And Not newPostsFound Then
                                     pageRepeatSet = True
@@ -388,8 +388,10 @@ Namespace API.XVIDEOS
                         End If
                     End If
                     If limit > 0 And _TempMediaList.Count >= limit Then Exit Do
+                    If prevPostsFound And Not pageRepeatSet And Not newPostsFound Then pageRepeatSet = True : pageVideosRepeat += 1
+                    If prevPostsFound And newPostsFound And pageRepeatSet Then pageVideosRepeat -= 1
                     If IsSearch Then
-                        __continue = NextPage < 1000 And (newPostsFound Or (prevPostsFound And Not newPostsFound))
+                        __continue = pageVideosRepeat < 2 And NextPage < 1000 And (newPostsFound Or (prevPostsFound And Not newPostsFound))
                     ElseIf __continue Then
                         __continue = Not cBefore = _TempMediaList.Count
                     End If

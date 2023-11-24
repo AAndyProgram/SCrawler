@@ -41,9 +41,7 @@ Friend Class UserSearchForm
             End If
         End Function
         Public Overrides Function Equals(ByVal Obj As Object) As Boolean
-            'TODO: [UserSearchForm]: updated equal function
             With DirectCast(Obj, SearchResult) : Return Key = .Key : End With
-            'With DirectCast(Obj, SearchResult) : Return Key = .Key And Mode = .Mode : End With
         End Function
     End Structure
     Public Sub New()

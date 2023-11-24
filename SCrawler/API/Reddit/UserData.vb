@@ -1037,22 +1037,29 @@ Namespace API.Reddit
         Protected Overrides Function DownloadingException(ByVal ex As Exception, ByVal Message As String, Optional ByVal FromPE As Boolean = False,
                                                           Optional ByVal EObj As Object = Nothing) As Integer
             With Responser
-                If .StatusCode = HttpStatusCode.NotFound Then
+                If .StatusCode = HttpStatusCode.NotFound Then '404
                     UserExists = False
-                ElseIf .StatusCode = HttpStatusCode.Forbidden Then
+                ElseIf .StatusCode = HttpStatusCode.Forbidden Then '403
                     UserSuspended = True
-                ElseIf .StatusCode = HttpStatusCode.BadGateway Or .StatusCode = HttpStatusCode.ServiceUnavailable Then
-                    MyMainLOG = $"[{CInt(Responser.StatusCode)}] Reddit is currently unavailable ({ToString()})"
+                ElseIf .StatusCode = HttpStatusCode.BadGateway Or .StatusCode = HttpStatusCode.ServiceUnavailable Then '502, 503
+                    MyMainLOG = $"{ToStringForLog()}: [{CInt(Responser.StatusCode)}] Reddit is currently unavailable"
                     Throw New Plugin.ExitException With {.Silent = True}
-                ElseIf .StatusCode = HttpStatusCode.GatewayTimeout Then
+                ElseIf .StatusCode = HttpStatusCode.GatewayTimeout Then '504
                     Return 1
-                ElseIf .StatusCode = HttpStatusCode.Unauthorized Then
-                    MyMainLOG = $"[{CInt(Responser.StatusCode)}] Reddit credentials expired ({ToString()})"
+                ElseIf .StatusCode = HttpStatusCode.Unauthorized Then '401
+                    MyMainLOG = $"{ToStringForLog()}: [{CInt(Responser.StatusCode)}] Reddit credentials expired"
                     MySiteSettings.SessionInterrupted = True
                     Throw New Plugin.ExitException With {.Silent = True}
-                ElseIf .StatusCode = HttpStatusCode.InternalServerError Then
+                ElseIf .StatusCode = HttpStatusCode.InternalServerError Then '500
                     If Not IsNothing(EObj) AndAlso IsNumeric(EObj) AndAlso CInt(EObj) = HttpStatusCode.InternalServerError Then Return 1
                     Return HttpStatusCode.InternalServerError
+                ElseIf .StatusCode = 429 AndAlso
+                       ((Not IsSavedPosts And CBool(MySiteSettings.UseTokenForTimelines.Value)) Or (IsSavedPosts And MySiteSettings.UseTokenForSavedPosts.Value)) AndAlso
+                       Not MySiteSettings.CredentialsExists Then '429
+                    MyMainLOG = $"{ToStringForLog()}: [{CInt(Responser.StatusCode)}] You should use OAuth authorization or disable " &
+                                IIf(IsSavedPosts, "token usage for downloading saved posts", "the use of token and cookies for downloading timelines")
+                    MySiteSettings.SessionInterrupted = True
+                    Throw New Plugin.ExitException With {.Silent = True}
                 Else
                     If Not FromPE Then LogError(ex, Message) : HasError = True
                     Return 0

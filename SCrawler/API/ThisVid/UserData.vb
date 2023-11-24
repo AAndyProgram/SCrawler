@@ -304,14 +304,12 @@ Namespace API.ThisVid
                                     _TempMediaList.Add(New UserMedia(u) With {.Type = UserMedia.Types.VideoPre, .SpecialFolder = __SpecialFolder})
                                     AddedCount += 1
                                     newPostsFound = True
-                                    If pageRepeatSet Then pageRepeatSet = False : _PageVideosRepeat -= 1
                                     If limit > 0 And AddedCount >= limit Then Exit Sub
                                 ElseIf SessionPosts.Count > 0 AndAlso SessionPosts.Contains(u) Then
                                     prevPostsFound = True
-                                    If pageRepeatSet Then pageRepeatSet = False : _PageVideosRepeat -= 1
                                     Continue For
                                 Else
-                                    If _PageVideosRepeat > 2 Then
+                                    If _PageVideosRepeat >= 2 Then
                                         Exit Sub
                                     ElseIf Not pageRepeatSet And Not newPostsFound Then
                                         pageRepeatSet = True
@@ -320,12 +318,15 @@ Namespace API.ThisVid
                                 End If
                             End If
                         Next
+                        If prevPostsFound And Not pageRepeatSet And Not newPostsFound Then pageRepeatSet = True : _PageVideosRepeat += 1
+                        If prevPostsFound And newPostsFound And pageRepeatSet Then _PageVideosRepeat -= 1
                         SessionPosts.ListAddList(l, LNC)
                         l.Clear()
                     End If
                 End If
-                If (Not IsUser And prevPostsFound And Not newPostsFound And Page < 1000) Or
-                   (Not cBefore = _TempMediaList.Count And (IsUser Or Page < 1000)) Then DownloadData(Page + 1, Model, Token)
+                If _PageVideosRepeat < 2 And
+                   ((Not IsUser And prevPostsFound And Not newPostsFound And Page < 1000) Or
+                   (Not cBefore = _TempMediaList.Count And (IsUser Or Page < 1000))) Then DownloadData(Page + 1, Model, Token)
             Catch aex As ArgumentNullException When aex.HelpLink = 1
             Catch ex As Exception
                 ProcessException(ex, Token, $"videos downloading error [{URL}]")
