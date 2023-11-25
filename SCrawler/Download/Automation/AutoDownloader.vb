@@ -339,6 +339,7 @@ Namespace DownloadObjects
                 .Name = String.Empty
                 ._Mode = _Mode
                 .Groups.ListAddList(Groups, LAP.ClearBeforeAdd)
+                .IsManual = IsManual
                 .Timer = Timer
                 .StartupDelay = StartupDelay
                 .ShowNotifications = ShowNotifications

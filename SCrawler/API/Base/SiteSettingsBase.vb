@@ -280,7 +280,7 @@ Namespace API.Base
 #End Region
         Protected Sub CLONE_PROPERTIES(ByVal Source As ISiteSettings, ByVal Destination As ISiteSettings, ByVal IsUpdate As Boolean,
                                        Optional ByVal Full As Boolean = True)
-            Dim comparer As New MembersDistinctComparer
+            Dim comparer As New MembersDistinctComparerExtended
             '0 = update
             '1 = clone
             '2 = any

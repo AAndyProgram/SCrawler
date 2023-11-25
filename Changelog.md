@@ -1,3 +1,10 @@
+# 2023.11.25.0
+
+*2023-11-25*
+
+- Fixed
+  - Reddit: missing refresh token button in the settings form
+
 # 2023.11.24.0
 
 *2023-11-24*

@@ -43,7 +43,7 @@ Namespace API.RedGifs
                 t = .Headers.Value(TokenName)
             End With
             Token = New PropertyValue(t, GetType(String), Sub(v) UpdateResponse(NameOf(Token), v))
-            UserAgent = New PropertyValue(Responser.UserAgent, GetType(String), Sub(v) UpdateResponse(NameOf(UserAgent), v))
+            UserAgent = New PropertyValue(If(Responser.UserAgentExists, Responser.UserAgent, String.Empty), GetType(String), Sub(v) UpdateResponse(NameOf(UserAgent), v))
             TokenLastDateUpdated = New PropertyValue(Now.AddYears(-1), GetType(Date))
             TokenUpdateInterval = New PropertyValue(60 * 12, GetType(Integer))
             TokenUpdateIntervalProvider = New TokenRefreshIntervalProvider

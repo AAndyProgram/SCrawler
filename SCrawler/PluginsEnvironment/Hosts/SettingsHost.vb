@@ -260,7 +260,7 @@ Namespace Plugin.Hosts
 
             Source.BeginInit()
 
-            Dim Members As IEnumerable(Of MemberInfo) = GetObjectMembers(Plugin,,, True, New MembersDistinctComparer) 'Plugin.GetType.GetTypeInfo.DeclaredMembers
+            Dim Members As IEnumerable(Of MemberInfo) = GetObjectMembers(Plugin,,, True, New MembersDistinctComparerExtended) 'Plugin.GetType.GetTypeInfo.DeclaredMembers
 
             _ResponserIsContainer = TypeOf Plugin Is IResponserContainer
             If Members.ListExists Then
