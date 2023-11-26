@@ -145,6 +145,10 @@ First, the program downloads the full profile. After the program downloads only 
 
 **Full guide you can find [here](https://github.com/AAndyProgram/SCrawler/wiki)**
 
+**Video on how to configure**
+
+[![How to configure](https://img.youtube.com/vi/XDn7zG4I700/0.jpg)](https://www.youtube.com/watch?v=XDn7zG4I700)
+
 # Installation
 
 **Just download the [latest release](https://github.com/AAndyProgram/SCrawler/releases/latest), unzip the program archive to any folder and enjoy.** :blush:
@@ -166,6 +170,8 @@ Just download [latest](https://github.com/AAndyProgram/SCrawler/releases/latest)
 The program has an intuitive interface.
 
 **[SITES REQUIREMENTS](https://github.com/AAndyProgram/SCrawler/wiki/Settings#sites-requirements)**
+
+[![How to configure](https://img.youtube.com/vi/XDn7zG4I700/0.jpg)](https://www.youtube.com/watch?v=XDn7zG4I700)
 
 Just add a user profile and **click the ```Download``` button**.
 
