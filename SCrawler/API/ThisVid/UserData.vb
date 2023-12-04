@@ -20,9 +20,6 @@ Namespace API.ThisVid
         Private Const Name_DownloadPrivate As String = "DownloadPrivate"
         Private Const Name_DownloadFavourite As String = "DownloadFavourite"
         Private Const Name_DifferentFolders As String = "DifferentFolders"
-        Private Const Name_TrueName As String = "TrueName"
-        Private Const Name_SiteMode As String = "SiteMode"
-        Private Const Name_Arguments As String = "Arguments"
 #End Region
 #Region "Structures"
         Private Structure Album : Implements IRegExCreator
@@ -67,7 +64,7 @@ Namespace API.ThisVid
                 UpdateUserOptions(True, q)
             End Set
         End Property
-        Friend ReadOnly Property IsUser As Boolean
+        Friend Overrides ReadOnly Property IsUser As Boolean
             Get
                 Return SiteMode = SiteModes.User
             End Get
@@ -180,6 +177,7 @@ Namespace API.ThisVid
 #Region "Initializer"
         Friend Sub New()
             UseClientTokens = True
+            SessionPosts = New List(Of String)
         End Sub
 #End Region
 #Region "Validation"
@@ -223,9 +221,14 @@ Namespace API.ThisVid
         End Function
 #End Region
 #Region "Download functions"
+        Private ReadOnly SessionPosts As List(Of String)
         Private AddedCount As Integer = 0
+        Private _PageVideosRepeat As Integer = 0
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
+            SessionPosts.Clear()
             AddedCount = 0
+            _PageVideosRepeat = 0
+            SessionPosts.Clear()
             Responser.Cookies.ChangedAllowInternalDrop = False
             Responser.Cookies.Changed = False
             If ID.IsEmptyString Then ID = Name
@@ -286,6 +289,8 @@ Namespace API.ThisVid
                 ProgressPre.Perform()
                 Dim r$ = Responser.GetResponse(URL)
                 Dim cBefore% = _TempMediaList.Count
+                Dim pageRepeatSet As Boolean = False, prevPostsFound As Boolean = False, newPostsFound As Boolean = False
+
                 If Not r.IsEmptyString Then
                     Dim __SpecialFolder$ = If(DifferentFolders And Not IsSavedPosts And IsUser,
                                               Interaction.Switch(Model = 0, "Public", Model = 1, "Private", Model = 2, "Favourite"),
@@ -298,15 +303,30 @@ Namespace API.ThisVid
                                     _TempPostsList.Add(u)
                                     _TempMediaList.Add(New UserMedia(u) With {.Type = UserMedia.Types.VideoPre, .SpecialFolder = __SpecialFolder})
                                     AddedCount += 1
+                                    newPostsFound = True
                                     If limit > 0 And AddedCount >= limit Then Exit Sub
+                                ElseIf SessionPosts.Count > 0 AndAlso SessionPosts.Contains(u) Then
+                                    prevPostsFound = True
+                                    Continue For
                                 Else
-                                    Exit Sub
+                                    If _PageVideosRepeat >= 2 Then
+                                        Exit Sub
+                                    ElseIf Not pageRepeatSet And Not newPostsFound Then
+                                        pageRepeatSet = True
+                                        _PageVideosRepeat += 1
+                                    End If
                                 End If
                             End If
                         Next
+                        If prevPostsFound And Not pageRepeatSet And Not newPostsFound Then pageRepeatSet = True : _PageVideosRepeat += 1
+                        If prevPostsFound And newPostsFound And pageRepeatSet Then _PageVideosRepeat -= 1
+                        SessionPosts.ListAddList(l, LNC)
+                        l.Clear()
                     End If
                 End If
-                If Not cBefore = _TempMediaList.Count And (IsUser Or Page < 1000) Then DownloadData(Page + 1, Model, Token)
+                If _PageVideosRepeat < 2 And
+                   ((Not IsUser And prevPostsFound And Not newPostsFound And Page < 1000) Or
+                   (Not cBefore = _TempMediaList.Count And (IsUser Or Page < 1000))) Then DownloadData(Page + 1, Model, Token)
             Catch aex As ArgumentNullException When aex.HelpLink = 1
             Catch ex As Exception
                 ProcessException(ex, Token, $"videos downloading error [{URL}]")
@@ -537,6 +557,12 @@ Namespace API.ThisVid
                 Return 0
             End If
         End Function
+#End Region
+#Region "IDisposable Support"
+        Protected Overrides Sub Dispose(ByVal disposing As Boolean)
+            If Not disposedValue And disposing Then SessionPosts.Clear()
+            MyBase.Dispose(disposing)
+        End Sub
 #End Region
     End Class
 End Namespace

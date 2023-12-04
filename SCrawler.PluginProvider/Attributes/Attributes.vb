@@ -65,6 +65,12 @@ Namespace Plugin.Attributes
     End Class
     ''' <summary>Attribute to disable some properties for host use</summary>
     <AttributeUsage(AttributeTargets.Property, AllowMultiple:=False, Inherited:=False)> Public NotInheritable Class DoNotUse : Inherits Attribute
+        Public ReadOnly Value As Boolean = True
+        Public Sub New()
+        End Sub
+        Public Sub New(ByVal Value As Boolean)
+            Me.Value = Value
+        End Sub
     End Class
     ''' <summary>Special property updater</summary>
     <AttributeUsage(AttributeTargets.Method, AllowMultiple:=True, Inherited:=False)> Public NotInheritable Class PropertyUpdater : Inherits Attribute

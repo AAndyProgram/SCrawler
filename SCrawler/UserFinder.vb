@@ -58,7 +58,7 @@ Friend Class UserFinder : Implements IDisposable
             If OriginalLocations Then
                 Paths.Clear()
                 PathStr = String.Empty
-                Paths.ListAddList(Settings.Plugins.Select(Function(p) p.Settings.Path), LAP.NotContainsOnly)
+                Paths.ListAddList(Settings.Plugins.SelectMany(Function(p) p.Settings.Select(Function(pp) pp.Path)), LAP.NotContainsOnly)
                 Paths.ListAddValue(Settings.CollectionsPathF, LAP.NotContainsOnly)
                 PathStr = vbCr & Paths.ListToString(vbCr)
             End If
@@ -78,6 +78,7 @@ Friend Class UserFinder : Implements IDisposable
                                 .Name = x.Value(UserDataBase.Name_UserName),
                                 .Site = x.Value(UserInfo.Name_Site),
                                 .Plugin = x.Value(UserInfo.Name_Plugin),
+                                .AccountName = x.Value(UserInfo.Name_AccountName),
                                 .File = f,
                                 .SpecialPath = x.Value(UserInfo.Name_SpecialPath),
                                 .SpecialCollectionPath = x.Value(UserInfo.Name_SpecialCollectionPath),
@@ -115,9 +116,9 @@ Friend Class UserFinder : Implements IDisposable
                     s = Nothing
                     If u.Plugin.IsEmptyString Then
                         pIndx = Settings.Plugins.FindIndex(Function(pp) pp.Name.ToLower = u.Site.ToLower)
-                        If pIndx >= 0 Then s = Settings.Plugins(pIndx).Settings
+                        If pIndx >= 0 Then s = Settings.Plugins(pIndx).Settings.Default
                     Else
-                        s = Settings(u.Plugin)
+                        s = Settings(u.Plugin).Default
                     End If
                     If Not s Is Nothing Then
                         u.Plugin = s.Key

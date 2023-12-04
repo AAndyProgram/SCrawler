@@ -23,17 +23,25 @@ Namespace API.Reddit
         End Enum
         Property ViewMode As View
         Property ViewPeriod As Period
+        Property RedGifsAccount As String
+        Property RedditAccount As String
         Sub SetView(ByVal Options As IRedditView)
     End Interface
     Friend Class RedditViewExchange : Implements IRedditView
         Friend Const Name_ViewMode As String = "ViewMode"
         Friend Const Name_ViewPeriod As String = "ViewPeriod"
+        Friend Const Name_RedGifsAccount As String = "RedGifsAccount"
+        Friend Const Name_RedditAccount As String = "RedditAccount"
         Friend Property ViewMode As IRedditView.View Implements IRedditView.ViewMode
         Friend Property ViewPeriod As IRedditView.Period Implements IRedditView.ViewPeriod
+        Friend Property RedGifsAccount As String Implements IRedditView.RedGifsAccount
+        Friend Property RedditAccount As String Implements IRedditView.RedditAccount
         Friend Sub SetView(ByVal Options As IRedditView) Implements IRedditView.SetView
             If Not Options Is Nothing Then
                 ViewMode = Options.ViewMode
                 ViewPeriod = Options.ViewPeriod
+                RedGifsAccount = Options.RedGifsAccount
+                RedditAccount = Options.RedditAccount
             End If
         End Sub
     End Class

@@ -53,6 +53,7 @@ Friend Module MainMod
         NoLabels = 1000
         Deleted = 10000
         Suspended = 12000
+        AdvancedFilter = 100000
     End Enum
     Friend Enum ShowingDates As Integer
         [Off] = 0
@@ -83,12 +84,20 @@ Friend Module MainMod
     Friend MyProgressForm As ActiveDownloadingProgress
     Friend MainFrameObj As MainFrameObjects
     Friend ReadOnly DateTimeDefaultProvider As New ADateTime(ADateTime.Formats.BaseDateTime)
+    Friend ReadOnly SessionDateTimeProvider As New ADateTime("yyyyMMdd_HHmmss")
     Friend ReadOnly FeedVideoLengthProvider As New ADateTime("hh\:mm\:ss") With {.TimeParseMode = ADateTime.TimeModes.TimeSpan}
     Friend ReadOnly UserExistsPredicate As New FPredicate(Of IUserData)(Function(u) u.Exists)
     Friend ReadOnly UserExistsSubscriptionsPredicate As New FPredicate(Of IUserData)(Function(u) u.Exists And u.IsSubscription)
     Friend ReadOnly UserExistsNonSubscriptionsPredicate As New FPredicate(Of IUserData)(Function(u) u.Exists And Not u.IsSubscription)
     Friend ReadOnly LogConnector As New LogHost
     Friend DefaultUserAgent As String = String.Empty
+#Region "NonExistingUsersLog"
+    Friend ReadOnly NonExistingUsersLog As New TextSaver($"LOGs\NonExistingUsers.txt") With {.LogMode = True, .AutoSave = True}
+    Friend Sub AddNonExistingUserToLog(ByVal Message As String)
+        MyMainLOG = Message
+        NonExistingUsersLog.AppendLine(Message)
+    End Sub
+#End Region
 #Region "File name operations"
     Friend FileDateAppenderProvider As IFormatProvider
     ''' <summary>File, Date</summary>

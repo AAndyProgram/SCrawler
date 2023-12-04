@@ -8,7 +8,7 @@
 ' but WITHOUT ANY WARRANTY
 Imports System.Drawing
 Namespace Plugin
-    Public Interface ISiteSettings
+    Public Interface ISiteSettings : Inherits IDisposable
         Enum Download As Integer
             Main = 0
             SavedPosts = 1
@@ -17,6 +17,9 @@ Namespace Plugin
         ReadOnly Property Icon As Icon
         ReadOnly Property Image As Image
         ReadOnly Property Site As String
+        Property AccountName As String
+        Property Temporary As Boolean
+        Property DefaultInstance As ISiteSettings
         ReadOnly Property SubscriptionsAllowed As Boolean
         Property Logger As ILogProvider
         Function GetUserUrl(ByVal User As IPluginContentProvider) As String
@@ -25,9 +28,6 @@ Namespace Plugin
         Function GetInstance(ByVal What As Download) As IPluginContentProvider
         Function GetSingleMediaInstance(ByVal URL As String, ByVal OutputFile As String) As IDownloadableMedia
         Function GetUserPostUrl(ByVal User As IPluginContentProvider, ByVal Media As IUserMedia) As String
-#Region "XML Support"
-        Sub Load(ByVal XMLValues As IEnumerable(Of KeyValuePair(Of String, String)))
-#End Region
 #Region "Initialization"
         Sub BeginInit()
         Sub EndInit()
@@ -37,6 +37,7 @@ Namespace Plugin
         Sub EndEdit()
 #End Region
 #Region "Site availability"
+        Property AvailableText As String
         Function Available(ByVal What As Download, ByVal Silent As Boolean) As Boolean
         Function ReadyToDownload(ByVal What As Download) As Boolean
 #End Region
@@ -46,7 +47,10 @@ Namespace Plugin
         Sub AfterDownload(ByVal User As Object, ByVal What As Download)
         Sub DownloadDone(ByVal What As Download)
 #End Region
-        Sub Update()
+        Function Clone(ByVal Full As Boolean) As ISiteSettings
+        Sub Delete()
+        Overloads Sub Update()
+        Overloads Sub Update(ByVal Source As ISiteSettings)
         Sub Reset()
         Sub OpenSettingsForm()
         Sub UserOptions(ByRef Options As Object, ByVal OpenForm As Boolean)

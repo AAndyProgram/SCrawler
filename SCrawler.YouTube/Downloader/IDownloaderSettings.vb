@@ -18,6 +18,7 @@ Namespace DownloadObjects.STDownloader
         ReadOnly Property OpenFolderInOtherProgram_Command As String
         ReadOnly Property OutputPathAskForName As Boolean
         ReadOnly Property OutputPathAutoAddPaths As Boolean
+        ReadOnly Property CreateUrlFiles As Boolean
         ReadOnly Property ENVIR_FFMPEG As SFile
         ReadOnly Property ENVIR_YTDLP As SFile
         ReadOnly Property ENVIR_GDL As SFile

@@ -13,19 +13,47 @@ Imports SCrawler.Plugin.Attributes
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.XML.Base
 Imports PersonalUtilities.Functions.XML.Objects
+Imports PersonalUtilities.Tools
 Imports PersonalUtilities.Tools.Web.Clients
 Imports Download = SCrawler.Plugin.ISiteSettings.Download
 Namespace Plugin.Hosts
-    Friend Class SettingsHost
+    Friend Class SettingsHost : Implements IIndexable, IEquatable(Of SettingsHost), IDisposableSuspend
+#Region "Events"
+        Friend Delegate Sub SettingsHostActionEventHandler(ByVal Obj As SettingsHost)
+        Friend Event Deleted As SettingsHostActionEventHandler
+        Friend Event OkClick As SettingsHostActionEventHandler
+        Friend Event CloneClick As SettingsHostActionEventHandler
+#End Region
 #Region "Controls"
         Private WithEvents BTT_SETTINGS As ToolStripMenuItem
+        Private WithEvents BTT_SETTINGS_ACTIONS_EDIT As ToolStripMenuItem
+        Private WithEvents BTT_SETTINGS_ACTIONS_DELETE As ToolStripMenuItem
+        Private WithEvents BTT_SETTINGS_ACTIONS_CLONE As ToolStripMenuItem
         Private WithEvents BTT_SETTINGS_INTERNAL As Button
         Private ReadOnly SpecialFormAttribute As SpecialForm = Nothing
+#Region "Menu buttons"
         Friend Function GetSettingsButton() As ToolStripItem
-            BTT_SETTINGS = New ToolStripMenuItem With {.Text = Source.Site}
-            If Not Source.Image Is Nothing Then BTT_SETTINGS.Image = Source.Image
+            UpdateSettingsButton()
             Return BTT_SETTINGS
         End Function
+        Private Sub UpdateSettingsButton()
+            If BTT_SETTINGS Is Nothing Then
+                BTT_SETTINGS = New ToolStripMenuItem
+                If [Default] Then
+                    BTT_SETTINGS.Text = NameAccountNameDefault
+                    If Not _AccountName.IsEmptyString Then BTT_SETTINGS.Text &= $" [{_AccountName}]"
+                Else
+                    BTT_SETTINGS.Text = AccountName
+                End If
+                If Not Source.Image Is Nothing Then BTT_SETTINGS.Image = Source.Image
+            End If
+            If BTT_SETTINGS_ACTIONS_EDIT Is Nothing Then BTT_SETTINGS_ACTIONS_EDIT = New ToolStripMenuItem("Edit", My.Resources.PencilPic_16) With {.BackColor = MyColor.EditBack, .ForeColor = MyColor.EditFore}
+            If BTT_SETTINGS_ACTIONS_DELETE Is Nothing Then BTT_SETTINGS_ACTIONS_DELETE = New ToolStripMenuItem("Delete", My.Resources.DeletePic_24) With {.BackColor = MyColor.DeleteBack, .ForeColor = MyColor.DeleteFore}
+            If BTT_SETTINGS_ACTIONS_CLONE Is Nothing Then BTT_SETTINGS_ACTIONS_CLONE = New ToolStripMenuItem("Clone", My.Resources.PlusPic_24) With {.BackColor = MyColor.OkBack, .ForeColor = MyColor.OkFore}
+            If BTT_SETTINGS.DropDownItems.Count = 0 Then BTT_SETTINGS.DropDownItems.AddRange({BTT_SETTINGS_ACTIONS_EDIT, BTT_SETTINGS_ACTIONS_DELETE, BTT_SETTINGS_ACTIONS_CLONE})
+        End Sub
+#End Region
+#Region "Editor form button"
         Friend Function GetSettingsButtonInternal() As Button
             If Not SpecialFormAttribute Is Nothing AndAlso SpecialFormAttribute.SettingsForm Then
                 BTT_SETTINGS_INTERNAL = New Button With {.Text = "Other settings", .Dock = DockStyle.Right, .Width = 150}
@@ -34,13 +62,33 @@ Namespace Plugin.Hosts
                 Return Nothing
             End If
         End Function
-        Private Sub BTT_SETTINGS_Click(sender As Object, e As EventArgs) Handles BTT_SETTINGS.Click
+#End Region
+#Region "Menu buttons handlers"
+        Friend Sub SettingsPerformClick() Handles BTT_SETTINGS.Click, BTT_SETTINGS_ACTIONS_EDIT.Click
             Try
-                Using f As New Editors.SiteEditorForm(Me) : f.ShowDialog() : End Using
+                Using f As New Editors.SiteEditorForm(Me)
+                    f.ShowDialog()
+                    If f.DialogResult = DialogResult.OK And IsAbstract Then RaiseEvent OkClick(Me)
+                End Using
             Catch ex As Exception
                 ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "[Plugin.Hosts.SettingsHost.OpenSettingsForm]")
             End Try
         End Sub
+        Private Sub BTT_SETTINGS_ACTIONS_DELETE_Click(sender As Object, e As EventArgs) Handles BTT_SETTINGS_ACTIONS_DELETE.Click
+            Const msgTitle$ = "Deleting a profile"
+            If Downloader.Working Then
+                MsgBoxE({"You cannot delete a profile until the download is complete", msgTitle}, vbCritical)
+            ElseIf [Default] Then
+                MsgBoxE({"The default profile cannot be deleted", msgTitle}, vbCritical)
+            ElseIf MsgBoxE({$"Are you sure you want to delete this profile ({AccountName})?", msgTitle}, vbExclamation,,, {"Process", "Cancel"}) = 0 Then
+                RaiseEvent Deleted(Me)
+            End If
+        End Sub
+        Private Sub BTT_SETTINGS_ACTIONS_CLONE_Click(sender As Object, e As EventArgs) Handles BTT_SETTINGS_ACTIONS_CLONE.Click
+            RaiseEvent CloneClick(Me)
+        End Sub
+#End Region
+#Region "Editor form buttons handlers"
         Private Sub BTT_SETTINGS_INTERNAL_Click(sender As Object, e As EventArgs) Handles BTT_SETTINGS_INTERNAL.Click
             Try
                 If Not SpecialFormAttribute Is Nothing AndAlso SpecialFormAttribute.SettingsForm Then Source.OpenSettingsForm()
@@ -48,6 +96,14 @@ Namespace Plugin.Hosts
                 ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "[Plugin.Hosts.SettingsHost.OpenSettingsForm(Button)]")
             End Try
         End Sub
+#End Region
+#End Region
+#Region "IIndexable Support"
+        Friend Property Index As Integer = -1 Implements IIndexable.Index
+        Private Function SetIndex(ByVal Obj As Object, ByVal Index As Integer) As Object Implements IIndexable.SetIndex
+            DirectCast(Obj, SettingsHost).Index = Index
+            Return Obj
+        End Function
 #End Region
 #Region "Host declarations"
         Friend ReadOnly Property Source As ISiteSettings
@@ -60,9 +116,33 @@ Namespace Plugin.Hosts
         Private ReadOnly _Key As String
         Friend ReadOnly Property Key As String
             Get
-                Return IIf(_Key.IsEmptyString, Name, _Key)
+                Return _Key.IfNullOrEmpty(Name)
             End Get
         End Property
+        Friend ReadOnly Property KeyDownloader As String
+            Get
+                Return $"{Key}_{AccountName}"
+            End Get
+        End Property
+        Friend Const NameAccountNameDefault As String = "Default"
+        Friend Const NameXML_AccountName As String = "AccountName"
+        Private ReadOnly _AccountName As XMLValue(Of String)
+        Friend Property AccountName As String
+            Get
+                If Not _AccountName.IsEmptyString Then
+                    Return _AccountName
+                ElseIf Index = 0 Then
+                    Return NameAccountNameDefault
+                Else
+                    Return String.Empty
+                End If
+            End Get
+            Set(ByVal _AccountName As String)
+                Me._AccountName.Value = _AccountName
+                Me.Source.AccountName = _AccountName
+            End Set
+        End Property
+        Friend ReadOnly Property [Default] As Boolean
         Friend ReadOnly Property IsSeparatedTasks As Boolean = False
         Friend ReadOnly Property IsSavedPostsCompatible As Boolean = False
         Private ReadOnly _TaskCountDefined As Integer? = Nothing
@@ -130,12 +210,19 @@ Namespace Plugin.Hosts
                 _SavedPostsPath.Value = NewPath
             End Set
         End Property
+        Friend Property DownloadSavedPosts As XMLValue(Of Boolean)
         Friend ReadOnly Property GetUserMediaOnly As XMLValue(Of Boolean)
 #End Region
-        Friend Sub New(ByVal Plugin As ISiteSettings, ByRef _XML As XmlFile, ByVal GlobalPath As SFile,
+        Friend ReadOnly Property IsAbstract As Boolean = False
+        Friend Sub New(ByVal Plugin As ISiteSettings, ByVal GlobalPath As SFile, ByVal _Temp As Boolean, _Imgs As Boolean, _Vids As Boolean)
+            Me.New(Plugin, False, Nothing, GlobalPath, _Temp, _Imgs, _Vids)
+        End Sub
+        Friend Sub New(ByVal Plugin As ISiteSettings, ByVal IsDef As Boolean, ByRef _XML As XmlFile, ByVal GlobalPath As SFile,
                        ByRef _Temp As XMLValue(Of Boolean), ByRef _Imgs As XMLValue(Of Boolean), ByRef _Vids As XMLValue(Of Boolean))
             Source = Plugin
             Source.Logger = LogConnector
+            [Default] = IsDef
+            If _XML Is Nothing Then IsAbstract = True
 
             PropList = New List(Of PropertyValueHost)
 
@@ -166,12 +253,15 @@ Namespace Plugin.Hosts
             End If
 
             Dim i%
+            Dim n() As String = {SettingsCLS.Name_Node_Sites, Name}
+
+            _AccountName = New XMLValue(Of String)(NameXML_AccountName,, _XML, n)
+            Source.AccountName = _AccountName
 
             Source.BeginInit()
 
-            Dim n() As String = {SettingsCLS.Name_Node_Sites, Name}
-            If If(_XML(n)?.Count, 0) > 0 Then Source.Load(ToKeyValuePair(Of String, EContainer)(_XML(n)))
-            Dim Members As IEnumerable(Of MemberInfo) = Plugin.GetType.GetTypeInfo.DeclaredMembers
+            Dim Members As IEnumerable(Of MemberInfo) = GetObjectMembers(Plugin,,, True, New MembersDistinctComparerExtended) 'Plugin.GetType.GetTypeInfo.DeclaredMembers
+
             _ResponserIsContainer = TypeOf Plugin Is IResponserContainer
             If Members.ListExists Then
                 Dim Updaters As New List(Of MemberInfo)
@@ -247,6 +337,7 @@ Namespace Plugin.Hosts
 
             _Path = New XMLValue(Of SFile)("Path",, _XML, n, New XMLToFilePathProvider)
             _SavedPostsPath = New XMLValue(Of SFile)("SavedPostsPath",, _XML, n, New XMLToFilePathProvider)
+            DownloadSavedPosts = New XMLValue(Of Boolean)("DownloadSavedPosts", True, _XML, n)
 
             Temporary = New XMLValue(Of Boolean)
             Temporary.SetExtended("Temporary", False, _XML, n)
@@ -266,13 +357,45 @@ Namespace Plugin.Hosts
             If PropList.Count > 0 Then
                 Dim MaxOffset% = Math.Max(PropList.Max(Function(pp) pp.LeftOffset), PropertyValueHost.LeftOffsetDefault)
                 For Each p As PropertyValueHost In PropList
-                    p.SetXmlEnvironment(_XML, n)
+                    If Not IsAbstract Then p.SetXmlEnvironment(_XML, n)
                     p.LeftOffset = MaxOffset
                 Next
             End If
 
             Source.EndInit()
         End Sub
+        Friend Function Apply(ByVal _XML As XmlFile, ByVal GlobalPath As SFile,
+                              ByRef _Temp As XMLValue(Of Boolean), ByRef _Imgs As XMLValue(Of Boolean), ByRef _Vids As XMLValue(Of Boolean)) As SettingsHost
+            Dim newHost As New SettingsHost(Source.Clone(True), False, _XML, GlobalPath, _Temp, _Imgs, _Vids)
+
+            _XML.BeginUpdate()
+
+            With newHost
+                ._AccountName.Value = _AccountName.Value
+                .DownloadSiteData.Value = DownloadSiteData.Value
+                .Temporary.ValueF = Temporary.ValueF
+                .DownloadImages.ValueF = DownloadImages.ValueF
+                .DownloadVideos.ValueF = DownloadVideos.ValueF
+                ._Path.Value = _Path.Value
+                ._SavedPostsPath.Value = _SavedPostsPath.Value
+                .DownloadSavedPosts.Value = .DownloadSavedPosts.Value
+                .GetUserMediaOnly.Value = .GetUserMediaOnly.Value
+                With .Source
+                    .BeginInit()
+                    .AccountName = _AccountName
+                    .Update(Source)
+                    .AccountName = _AccountName
+                    .EndInit()
+                End With
+            End With
+
+            _XML.EndUpdate()
+
+            Return newHost
+        End Function
+        Friend Function Clone() As SettingsHost
+            Return New SettingsHost(Source.Clone(False), Path, Temporary, DownloadImages, DownloadVideos) With {.SavedPostsPath = SavedPostsPath, .Path = Path}
+        End Function
 #Region "Forks"
         Friend Function IsMyUser(ByVal UserURL As String) As ExchangeOptions
             Dim s As ExchangeOptions = Source.IsMyUser(UserURL)
@@ -323,14 +446,18 @@ Namespace Plugin.Hosts
         Private _AvailableValue As Boolean = True
         Private _AvailableAsked As Boolean = False
         Private _ActiveTaskCount As Integer = 0
+        Friend Property AvailableText As String = String.Empty
         Friend Function Available(ByVal What As Download, ByVal Silent As Boolean) As Boolean
             If DownloadSiteData Then
                 If Not _AvailableAsked Then
                     _AvailableValue = Source.Available(What, Silent)
+                    AvailableText = Source.AvailableText
                     _AvailableAsked = True
                 End If
                 Return _AvailableValue
             Else
+                AvailableText = $"Downloading data for the site {Name} - {AccountName.IfNullOrEmpty(NameAccountNameDefault)} has been disabled by you."
+                If Not Silent Then MsgBoxE({AvailableText, $"{Name} downloading disabled"}, vbExclamation)
                 Return False
             End If
         End Function
@@ -346,12 +473,60 @@ Namespace Plugin.Hosts
         End Sub
         Friend Sub DownloadDone(ByVal What As Download)
             _ActiveTaskCount -= 1
-            If _ActiveTaskCount = 0 Then _AvailableAsked = False
+            If _ActiveTaskCount = 0 Then _AvailableAsked = False : AvailableText = String.Empty
             Source.DownloadDone(What)
         End Sub
         Private Function ConvertUser(ByVal User As IUserData) As Object
             Return If(DirectCast(User, UserDataBase).ExternalPlugin, User)
         End Function
+#End Region
+#Region "IEquatable Support"
+        Friend Overloads Function Equals(ByVal Other As SettingsHost) As Boolean Implements IEquatable(Of SettingsHost).Equals
+            Return [Default] = Other.Default OrElse AccountName = Other.AccountName
+        End Function
+        Public Overrides Function Equals(ByVal Obj As Object) As Boolean
+            Return Equals(DirectCast(Obj, SettingsHost))
+        End Function
+#End Region
+#Region "IDisposable Support"
+        Private disposedValue As Boolean = False
+        Friend Property DisposeSuspended As Boolean Implements IDisposableSuspend.DisposeSuspended
+            Get
+                Return [Default]
+            End Get
+            Private Set : End Set
+        End Property
+        Friend ReadOnly Property Disposed As Boolean Implements IDisposableSuspend.Disposed
+            Get
+                Return disposedValue
+            End Get
+        End Property
+        Protected Overridable Overloads Sub Dispose(ByVal disposing As Boolean)
+            If Not disposedValue And Not DisposeSuspended Then
+                If disposing Then
+                    Source.DisposeIfReady
+                    If Not BTT_SETTINGS Is Nothing Then BTT_SETTINGS.DropDownItems.Clear()
+                    BTT_SETTINGS.DisposeIfReady
+                    BTT_SETTINGS_ACTIONS_EDIT.DisposeIfReady
+                    BTT_SETTINGS_ACTIONS_DELETE.DisposeIfReady
+                    BTT_SETTINGS_ACTIONS_CLONE.DisposeIfReady
+                    BTT_SETTINGS_INTERNAL.DisposeIfReady
+                    PropList.ListClearDispose
+                    XMLValuesDispose(Me, False)
+                End If
+                BTT_SETTINGS = Nothing
+                BTT_SETTINGS_INTERNAL = Nothing
+                disposedValue = True
+            End If
+        End Sub
+        Protected Overrides Sub Finalize()
+            Dispose(False)
+            MyBase.Finalize()
+        End Sub
+        Friend Overloads Sub Dispose() Implements IDisposable.Dispose
+            Dispose(True)
+            GC.SuppressFinalize(Me)
+        End Sub
 #End Region
     End Class
 End Namespace

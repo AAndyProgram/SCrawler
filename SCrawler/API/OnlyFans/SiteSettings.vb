@@ -16,23 +16,11 @@ Imports PersonalUtilities.Functions.RegularExpressions
 Namespace API.OnlyFans
     <Manifest("AndyProgram_OnlyFans"), SavedPosts, SpecialForm(False), SeparatedTasks(1)>
     Friend Class SiteSettings : Inherits SiteSettingsBase
-#Region "Icon"
-        Friend Overrides ReadOnly Property Icon As Icon
-            Get
-                Return My.Resources.SiteResources.OnlyFansIcon_32
-            End Get
-        End Property
-        Friend Overrides ReadOnly Property Image As Image
-            Get
-                Return My.Resources.SiteResources.OnlyFansPic_32
-            End Get
-        End Property
-#End Region
 #Region "Declarations"
 #Region "Options"
-        <PropertyOption(ControlText:="Download highlights", ControlToolTip:="Download profile highlights if they exists"), PXML>
+        <PropertyOption(ControlText:="Download highlights", ControlToolTip:="Download profile highlights if they exists"), PXML, PClonable>
         Friend Property DownloadHighlights As PropertyValue
-        <PropertyOption(ControlText:="Download chat", ControlToolTip:="Download unlocked chat media"), PXML>
+        <PropertyOption(ControlText:="Download chat", ControlToolTip:="Download unlocked chat media"), PXML, PClonable>
         Friend Property DownloadChatMedia As PropertyValue
 #End Region
 #Region "Headers"
@@ -40,15 +28,15 @@ Namespace API.OnlyFans
         Private Const HeaderUserID As String = "User-Id"
         Private Const HeaderXBC As String = "X-Bc"
         Private Const HeaderAppToken As String = "App-Token"
-        <PropertyOption(ControlText:=HeaderUserID, AllowNull:=False)>
+        <PropertyOption(ControlText:=HeaderUserID, AllowNull:=False), PClonable(Clone:=False)>
         Friend ReadOnly Property HH_USER_ID As PropertyValue
-        <PropertyOption(ControlText:=HeaderXBC, AllowNull:=False)>
+        <PropertyOption(ControlText:=HeaderXBC, AllowNull:=False), PClonable(Clone:=False)>
         Private ReadOnly Property HH_X_BC As PropertyValue
-        <PropertyOption(ControlText:=HeaderAppToken, AllowNull:=False)>
+        <PropertyOption(ControlText:=HeaderAppToken, AllowNull:=False), PClonable(Clone:=False)>
         Private ReadOnly Property HH_APP_TOKEN As PropertyValue
-        <PropertyOption(ControlText:=HeaderBrowser, ControlToolTip:="Can be null", AllowNull:=True)>
+        <PropertyOption(ControlText:=HeaderBrowser, ControlToolTip:="Can be null", AllowNull:=True), PClonable>
         Private ReadOnly Property HH_BROWSER As PropertyValue
-        <PropertyOption(AllowNull:=False)>
+        <PropertyOption(AllowNull:=False), PClonable>
         Private ReadOnly Property UserAgent As PropertyValue
         Private Sub UpdateHeader(ByVal PropertyName As String, ByVal Value As String)
             Dim hName$ = String.Empty
@@ -79,21 +67,21 @@ Namespace API.OnlyFans
         End Property
         <PropertyOption(ControlText:="Use old authorization rules",
                         ControlToolTip:="Use old dynamic rules (from 'DATAHOARDERS') or new ones (from 'DIGITALCRIMINALS')." & vbCr &
-                                        "Change this value only if you know what you are doing."), PXML>
+                                        "Change this value only if you know what you are doing."), PXML, PClonable>
         Friend ReadOnly Property UseOldAuthRules As PropertyValue
-        <PropertyOption(ControlText:="Dynamic rules update", ControlToolTip:="'Dynamic rules' update interval (minutes). Default: 1440", LeftOffset:=110), PXML>
+        <PropertyOption(ControlText:="Dynamic rules update", ControlToolTip:="'Dynamic rules' update interval (minutes). Default: 1440", LeftOffset:=110), PXML, PClonable>
         Friend ReadOnly Property DynamicRulesUpdateInterval As PropertyValue
         <Provider(NameOf(DynamicRulesUpdateInterval), FieldsChecker:=True)>
         Private ReadOnly Property DynamicRulesUpdateIntervalProvider As IFormatProvider
         <PropertyOption(ControlText:="Dynamic rules",
                         ControlToolTip:="Overwrite 'Dynamic rules' with this URL" & vbCr &
-                                        "Change this value only if you know what you are doing."), PXML>
+                                        "Change this value only if you know what you are doing."), PXML, PClonable>
         Friend ReadOnly Property DynamicRules As PropertyValue
 #End Region
 #End Region
 #Region "Initializer"
-        Friend Sub New()
-            MyBase.New("OnlyFans", ".onlyfans.com")
+        Friend Sub New(ByVal AccName As String, ByVal Temp As Boolean)
+            MyBase.New("OnlyFans", ".onlyfans.com", AccName, Temp, My.Resources.SiteResources.OnlyFansIcon_32, My.Resources.SiteResources.OnlyFansPic_32)
 
             With Responser
                 .Accept = "application/json, text/plain, */*"

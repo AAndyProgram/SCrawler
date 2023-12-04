@@ -25,7 +25,13 @@ Namespace DownloadObjects.STDownloader
             Dim SEP_2 As System.Windows.Forms.ToolStripSeparator
             Dim SEP_3 As System.Windows.Forms.ToolStripSeparator
             Dim MENU_ADD_SEP_1 As System.Windows.Forms.ToolStripSeparator
+            Dim MENU_DEL_CLEAR As System.Windows.Forms.ToolStripDropDownButton
             Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(VideoListForm))
+            Dim MENU_DEL_SEP_1 As System.Windows.Forms.ToolStripSeparator
+            Me.BTT_DELETE = New System.Windows.Forms.ToolStripMenuItem()
+            Me.BTT_CLEAR_SELECTED = New System.Windows.Forms.ToolStripMenuItem()
+            Me.BTT_CLEAR_DONE = New System.Windows.Forms.ToolStripMenuItem()
+            Me.BTT_CLEAR_ALL = New System.Windows.Forms.ToolStripMenuItem()
             Me.TOOLBAR_BOTTOM = New System.Windows.Forms.StatusStrip()
             Me.PR_MAIN = New System.Windows.Forms.ToolStripProgressBar()
             Me.LBL_INFO = New System.Windows.Forms.ToolStripStatusLabel()
@@ -40,9 +46,6 @@ Namespace DownloadObjects.STDownloader
             Me.BTT_ADD_SHORTS_ONLY = New PersonalUtilities.Forms.Controls.KeyClick.ToolStripMenuItemKeyClick()
             Me.BTT_DOWN = New System.Windows.Forms.ToolStripButton()
             Me.BTT_STOP = New System.Windows.Forms.ToolStripButton()
-            Me.BTT_DELETE = New System.Windows.Forms.ToolStripButton()
-            Me.BTT_CLEAR_DONE = New System.Windows.Forms.ToolStripButton()
-            Me.BTT_CLEAR_ALL = New System.Windows.Forms.ToolStripButton()
             Me.SEP_LOG = New System.Windows.Forms.ToolStripSeparator()
             Me.BTT_LOG = New System.Windows.Forms.ToolStripButton()
             Me.BTT_INFO = New System.Windows.Forms.ToolStripButton()
@@ -51,6 +54,8 @@ Namespace DownloadObjects.STDownloader
             SEP_2 = New System.Windows.Forms.ToolStripSeparator()
             SEP_3 = New System.Windows.Forms.ToolStripSeparator()
             MENU_ADD_SEP_1 = New System.Windows.Forms.ToolStripSeparator()
+            MENU_DEL_CLEAR = New System.Windows.Forms.ToolStripDropDownButton()
+            MENU_DEL_SEP_1 = New System.Windows.Forms.ToolStripSeparator()
             Me.TOOLBAR_BOTTOM.SuspendLayout()
             Me.TOOLBAR_TOP.SuspendLayout()
             Me.SuspendLayout()
@@ -69,6 +74,59 @@ Namespace DownloadObjects.STDownloader
             '
             MENU_ADD_SEP_1.Name = "MENU_ADD_SEP_1"
             MENU_ADD_SEP_1.Size = New System.Drawing.Size(181, 6)
+            '
+            'MENU_DEL_CLEAR
+            '
+            MENU_DEL_CLEAR.AutoToolTip = False
+            MENU_DEL_CLEAR.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_DELETE, MENU_DEL_SEP_1, Me.BTT_CLEAR_SELECTED, Me.BTT_CLEAR_DONE, Me.BTT_CLEAR_ALL})
+            MENU_DEL_CLEAR.Image = CType(resources.GetObject("MENU_DEL_CLEAR.Image"), System.Drawing.Image)
+            MENU_DEL_CLEAR.ImageTransparentColor = System.Drawing.Color.Magenta
+            MENU_DEL_CLEAR.Name = "MENU_DEL_CLEAR"
+            MENU_DEL_CLEAR.Size = New System.Drawing.Size(107, 22)
+            MENU_DEL_CLEAR.Text = "Delete / Clear"
+            '
+            'BTT_DELETE
+            '
+            Me.BTT_DELETE.Image = CType(resources.GetObject("BTT_DELETE.Image"), System.Drawing.Image)
+            Me.BTT_DELETE.ImageTransparentColor = System.Drawing.Color.Magenta
+            Me.BTT_DELETE.Name = "BTT_DELETE"
+            Me.BTT_DELETE.Size = New System.Drawing.Size(185, 22)
+            Me.BTT_DELETE.Text = "Delete selected items"
+            Me.BTT_DELETE.ToolTipText = "Delete selected items"
+            '
+            'MENU_DEL_SEP_1
+            '
+            MENU_DEL_SEP_1.Name = "MENU_DEL_SEP_1"
+            MENU_DEL_SEP_1.Size = New System.Drawing.Size(182, 6)
+            '
+            'BTT_CLEAR_SELECTED
+            '
+            Me.BTT_CLEAR_SELECTED.AutoToolTip = True
+            Me.BTT_CLEAR_SELECTED.Image = CType(resources.GetObject("BTT_CLEAR_SELECTED.Image"), System.Drawing.Image)
+            Me.BTT_CLEAR_SELECTED.Name = "BTT_CLEAR_SELECTED"
+            Me.BTT_CLEAR_SELECTED.Size = New System.Drawing.Size(185, 22)
+            Me.BTT_CLEAR_SELECTED.Text = "Clear selected"
+            Me.BTT_CLEAR_SELECTED.ToolTipText = "Remove all checked items from the list"
+            '
+            'BTT_CLEAR_DONE
+            '
+            Me.BTT_CLEAR_DONE.AutoToolTip = True
+            Me.BTT_CLEAR_DONE.Image = CType(resources.GetObject("BTT_CLEAR_DONE.Image"), System.Drawing.Image)
+            Me.BTT_CLEAR_DONE.ImageTransparentColor = System.Drawing.Color.Magenta
+            Me.BTT_CLEAR_DONE.Name = "BTT_CLEAR_DONE"
+            Me.BTT_CLEAR_DONE.Size = New System.Drawing.Size(185, 22)
+            Me.BTT_CLEAR_DONE.Text = "Clear downloaded"
+            Me.BTT_CLEAR_DONE.ToolTipText = "Remove all downloaded items from the list"
+            '
+            'BTT_CLEAR_ALL
+            '
+            Me.BTT_CLEAR_ALL.AutoToolTip = True
+            Me.BTT_CLEAR_ALL.Image = CType(resources.GetObject("BTT_CLEAR_ALL.Image"), System.Drawing.Image)
+            Me.BTT_CLEAR_ALL.ImageTransparentColor = System.Drawing.Color.Magenta
+            Me.BTT_CLEAR_ALL.Name = "BTT_CLEAR_ALL"
+            Me.BTT_CLEAR_ALL.Size = New System.Drawing.Size(185, 22)
+            Me.BTT_CLEAR_ALL.Text = "Clear all"
+            Me.BTT_CLEAR_ALL.ToolTipText = "Remove all items from the list"
             '
             'TOOLBAR_BOTTOM
             '
@@ -105,7 +163,7 @@ Namespace DownloadObjects.STDownloader
             'TOOLBAR_TOP
             '
             Me.TOOLBAR_TOP.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden
-            Me.TOOLBAR_TOP.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_SETTINGS, Me.SEP_1, Me.MENU_ADD, SEP_2, Me.BTT_DOWN, Me.BTT_STOP, SEP_3, Me.BTT_DELETE, Me.BTT_CLEAR_DONE, Me.BTT_CLEAR_ALL, Me.SEP_LOG, Me.BTT_LOG, Me.BTT_INFO, Me.BTT_DONATE, Me.BTT_BUG_REPORT})
+            Me.TOOLBAR_TOP.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_SETTINGS, Me.SEP_1, Me.MENU_ADD, SEP_2, Me.BTT_DOWN, Me.BTT_STOP, SEP_3, MENU_DEL_CLEAR, Me.SEP_LOG, Me.BTT_LOG, Me.BTT_INFO, Me.BTT_DONATE, Me.BTT_BUG_REPORT})
             Me.TOOLBAR_TOP.Location = New System.Drawing.Point(0, 0)
             Me.TOOLBAR_TOP.Name = "TOOLBAR_TOP"
             Me.TOOLBAR_TOP.Size = New System.Drawing.Size(584, 25)
@@ -202,33 +260,6 @@ Namespace DownloadObjects.STDownloader
             Me.BTT_STOP.Size = New System.Drawing.Size(51, 22)
             Me.BTT_STOP.Text = "Stop"
             '
-            'BTT_DELETE
-            '
-            Me.BTT_DELETE.Image = CType(resources.GetObject("BTT_DELETE.Image"), System.Drawing.Image)
-            Me.BTT_DELETE.ImageTransparentColor = System.Drawing.Color.Magenta
-            Me.BTT_DELETE.Name = "BTT_DELETE"
-            Me.BTT_DELETE.Size = New System.Drawing.Size(60, 22)
-            Me.BTT_DELETE.Text = "Delete"
-            Me.BTT_DELETE.ToolTipText = "Delete selected items"
-            '
-            'BTT_CLEAR_DONE
-            '
-            Me.BTT_CLEAR_DONE.Image = CType(resources.GetObject("BTT_CLEAR_DONE.Image"), System.Drawing.Image)
-            Me.BTT_CLEAR_DONE.ImageTransparentColor = System.Drawing.Color.Magenta
-            Me.BTT_CLEAR_DONE.Name = "BTT_CLEAR_DONE"
-            Me.BTT_CLEAR_DONE.Size = New System.Drawing.Size(54, 22)
-            Me.BTT_CLEAR_DONE.Text = "Clear"
-            Me.BTT_CLEAR_DONE.ToolTipText = "Remove all downloaded items"
-            '
-            'BTT_CLEAR_ALL
-            '
-            Me.BTT_CLEAR_ALL.Image = CType(resources.GetObject("BTT_CLEAR_ALL.Image"), System.Drawing.Image)
-            Me.BTT_CLEAR_ALL.ImageTransparentColor = System.Drawing.Color.Magenta
-            Me.BTT_CLEAR_ALL.Name = "BTT_CLEAR_ALL"
-            Me.BTT_CLEAR_ALL.Size = New System.Drawing.Size(69, 22)
-            Me.BTT_CLEAR_ALL.Text = "Clear all"
-            Me.BTT_CLEAR_ALL.ToolTipText = "Remove all items (pending and downloaded)"
-            '
             'SEP_LOG
             '
             Me.SEP_LOG.Name = "SEP_LOG"
@@ -300,9 +331,9 @@ Namespace DownloadObjects.STDownloader
         Private WithEvents LBL_INFO As ToolStripStatusLabel
         Protected WithEvents TP_CONTROLS As TableLayoutPanel
         Private WithEvents TOOLBAR_TOP As ToolStrip
-        Private WithEvents BTT_DELETE As ToolStripButton
-        Private WithEvents BTT_CLEAR_DONE As ToolStripButton
-        Private WithEvents BTT_CLEAR_ALL As ToolStripButton
+        Private WithEvents BTT_DELETE As ToolStripMenuItem
+        Private WithEvents BTT_CLEAR_DONE As ToolStripMenuItem
+        Private WithEvents BTT_CLEAR_ALL As ToolStripMenuItem
         Private WithEvents BTT_SETTINGS As ToolStripButton
         Private WithEvents SEP_1 As ToolStripSeparator
         Private WithEvents SEP_LOG As ToolStripSeparator
@@ -317,5 +348,6 @@ Namespace DownloadObjects.STDownloader
         Protected WithEvents MENU_ADD As ToolStripDropDownButton
         Protected WithEvents BTT_DOWN As ToolStripButton
         Private WithEvents BTT_BUG_REPORT As ToolStripButton
+        Private WithEvents BTT_CLEAR_SELECTED As ToolStripMenuItem
     End Class
 End Namespace

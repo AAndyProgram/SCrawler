@@ -33,16 +33,19 @@ Namespace Editors
                         TXT_MAX_JOBS_USERS.Value = .MaxUsersJobsCount.Value
                         TXT_MAX_JOBS_CHANNELS.Value = .ChannelsMaxJobsCount.Value
                         CH_CHECK_VER_START.Checked = .CheckUpdatesAtStart
-                        TXT_PRG_TITLE.Text = .ProgramText
-                        TXT_PRG_DESCR.Text = .ProgramDescription
                         TXT_USER_AGENT.Text = .UserAgent
                         TXT_IMGUR_CLIENT_ID.Text = .ImgurClientID
+                        CH_SHOW_GROUPS.Checked = .ShowGroups
+                        CH_USERS_GROUPING.Checked = .UseGrouping
+                        'Design
+                        TXT_PRG_TITLE.Text = .ProgramText
+                        TXT_PRG_DESCR.Text = .ProgramDescription
                         TXT_USER_LIST_IMAGE.Text = .UserListImage.Value
                         COLORS_USERLIST.ColorsSet(.UserListBackColor, .UserListForeColor, SystemColors.Window, SystemColors.WindowText)
                         COLORS_SUBSCRIPTIONS.ColorsSet(.MainFrameUsersSubscriptionsColorBack, .MainFrameUsersSubscriptionsColorFore,
                                                        SystemColors.Window, SystemColors.WindowText)
-                        CH_SHOW_GROUPS.Checked = .ShowGroups
-                        CH_USERS_GROUPING.Checked = .UseGrouping
+                        COLORS_SUBSCRIPTIONS_USERS.ColorsSet(.MainFrameUsersSubscriptionsColorBack_USERS, .MainFrameUsersSubscriptionsColorFore_USERS,
+                                                             SystemColors.Window, SystemColors.WindowText)
                         'Environment
                         TXT_FFMPEG.Text = .FfmpegFile.File
                         TXT_CURL.Text = .CurlFile.File
@@ -94,6 +97,7 @@ Namespace Editors
                         CH_STD_YT_REMOVE.Checked = .STDownloader_RemoveYTVideosOnClear
                         CH_STD_YT_OUTPUT_ASK_NAME.Checked = .STDownloader_OutputPathAskForName
                         CH_STD_YT_OUTPUT_AUTO_ADD.Checked = .STDownloader_OutputPathAutoAddPaths
+                        CH_STD_YT_CREATE_URL.Checked = .STDownloader_CreateUrlFiles
                         'Downloading
                         CH_UDESCR_UP.Checked = .UpdateUserDescriptionEveryTime
                         CH_UNAME_UP.Checked = .UserSiteNameUpdateEveryTime
@@ -105,6 +109,7 @@ Namespace Editors
                         CH_ADD_MISSING_TO_LOG.Checked = .AddMissingToLog
                         CH_ADD_MISSING_ERROS_TO_LOG.Checked = .AddMissingErrorsToLog
                         CH_DOWN_REPARSE_MISSING.Checked = .ReparseMissingInTheRoutine
+                        CH_USE_DEF_ACC.Checked = .UseDefaultAccountIfMissing
                         'Downloading: file names
                         CH_FILE_NAME_CHANGE.Checked = Not .FileReplaceNameByDate.Value = FileNameReplaceMode.None
                         OPT_FILE_NAME_REPLACE.Checked = .FileReplaceNameByDate.Value = FileNameReplaceMode.Replace
@@ -132,9 +137,11 @@ Namespace Editors
                         CH_FEED_ENDLESS.Checked = .FeedEndless
                         CH_FEED_ADD_SESSION.Checked = .FeedAddSessionToCaption
                         CH_FEED_ADD_DATE.Checked = .FeedAddDateToCaption
-                        CH_FEED_STORE_SESSION_DATA.Checked = .FeedStoreSessionsData
+                        NUM_FEED_STORE_SESSION_DATA.Checked = .FeedStoreSessionsData
+                        NUM_FEED_STORE_SESSION_DATA.Value = .FeedStoredSessionsNumber.Value
                         CH_FEED_OPEN_LAST_MODE.Checked = .FeedOpenLastMode
                         CH_FEED_SHOW_FRIENDLY.Checked = .FeedShowFriendlyNames
+                        CH_FEED_SHOW_SPEC_MEDIAITEM.Checked = .FeedShowSpecialFeedsMediaItem
                     End With
                     .MyFieldsChecker = New FieldsChecker
                     With .MyFieldsCheckerE
@@ -201,16 +208,18 @@ Namespace Editors
                     .MaxUsersJobsCount.Value = CInt(TXT_MAX_JOBS_USERS.Value)
                     .ChannelsMaxJobsCount.Value = TXT_MAX_JOBS_CHANNELS.Value
                     .CheckUpdatesAtStart.Value = CH_CHECK_VER_START.Checked
-                    .ProgramText.Value = TXT_PRG_TITLE.Text
-                    .ProgramDescription.Value = TXT_PRG_DESCR.Text
                     .UserAgent.Value = TXT_USER_AGENT.Text
                     DefaultUserAgent = TXT_USER_AGENT.Text
                     .ImgurClientID.Value = TXT_IMGUR_CLIENT_ID.Text
+                    .ShowGroups.Value = CH_SHOW_GROUPS.Checked
+                    .UseGrouping.Value = CH_USERS_GROUPING.Checked
+                    'Design
+                    .ProgramText.Value = TXT_PRG_TITLE.Text
+                    .ProgramDescription.Value = TXT_PRG_DESCR.Text
                     .UserListImage.Value = TXT_USER_LIST_IMAGE.Text
                     COLORS_USERLIST.ColorsGet(.UserListBackColor, .UserListForeColor)
                     COLORS_SUBSCRIPTIONS.ColorsGet(.MainFrameUsersSubscriptionsColorBack, .MainFrameUsersSubscriptionsColorFore)
-                    .ShowGroups.Value = CH_SHOW_GROUPS.Checked
-                    .UseGrouping.Value = CH_USERS_GROUPING.Checked
+                    COLORS_SUBSCRIPTIONS_USERS.ColorsGet(.MainFrameUsersSubscriptionsColorBack_USERS, .MainFrameUsersSubscriptionsColorFore_USERS)
                     'Environment
                     .FfmpegFile.File = TXT_FFMPEG.Text
                     .CurlFile.File = TXT_CURL.Text
@@ -259,6 +268,7 @@ Namespace Editors
                     .STDownloader_RemoveYTVideosOnClear.Value = CH_STD_YT_REMOVE.Checked
                     .STDownloader_OutputPathAskForName.Value = CH_STD_YT_OUTPUT_ASK_NAME.Checked
                     .STDownloader_OutputPathAutoAddPaths.Value = CH_STD_YT_OUTPUT_AUTO_ADD.Checked
+                    .STDownloader_CreateUrlFiles.Value = CH_STD_YT_CREATE_URL.Checked
                     'Downloading
                     .UpdateUserDescriptionEveryTime.Value = CH_UDESCR_UP.Checked
                     .UserSiteNameUpdateEveryTime.Value = CH_UNAME_UP.Checked
@@ -270,6 +280,7 @@ Namespace Editors
                     .AddMissingToLog.Value = CH_ADD_MISSING_TO_LOG.Checked
                     .AddMissingErrorsToLog.Value = CH_ADD_MISSING_ERROS_TO_LOG.Checked
                     .ReparseMissingInTheRoutine.Value = CH_DOWN_REPARSE_MISSING.Checked
+                    .UseDefaultAccountIfMissing.Value = CH_USE_DEF_ACC.Checked
                     'Downloading: file names
                     If CH_FILE_NAME_CHANGE.Checked Then
                         .FileReplaceNameByDate.Value = If(OPT_FILE_NAME_REPLACE.Checked, FileNameReplaceMode.Replace, FileNameReplaceMode.Add)
@@ -298,9 +309,11 @@ Namespace Editors
                     .FeedEndless.Value = CH_FEED_ENDLESS.Checked
                     .FeedAddSessionToCaption.Value = CH_FEED_ADD_SESSION.Checked
                     .FeedAddDateToCaption.Value = CH_FEED_ADD_DATE.Checked
-                    .FeedStoreSessionsData.Value = CH_FEED_STORE_SESSION_DATA.Checked
+                    .FeedStoreSessionsData.Value = NUM_FEED_STORE_SESSION_DATA.Checked
+                    .FeedStoredSessionsNumber.Value = NUM_FEED_STORE_SESSION_DATA.Value
                     .FeedOpenLastMode.Value = CH_FEED_OPEN_LAST_MODE.Checked
                     .FeedShowFriendlyNames.Value = CH_FEED_SHOW_FRIENDLY.Checked
+                    .FeedShowSpecialFeedsMediaItem.Value = CH_FEED_SHOW_SPEC_MEDIAITEM.Checked
                     FeedParametersChanged = .FeedDataRows.ChangesDetected Or .FeedDataColumns.ChangesDetected Or
                                             .FeedEndless.ChangesDetected Or .FeedStoreSessionsData.ChangesDetected Or
                                             .FeedBackColor.ChangesDetected Or .FeedForeColor.ChangesDetected Or

@@ -26,6 +26,17 @@ Namespace DownloadObjects.STDownloader
                 End If
             End Get
         End Property
+        Friend ReadOnly Property AccountName As String
+            Get
+                Return CMB_ACCOUNT.Text
+            End Get
+        End Property
+        Private _UseAccountName As Boolean = False
+        Friend ReadOnly Property UseAccountName As Boolean
+            Get
+                Return _UseAccountName
+            End Get
+        End Property
         Friend Sub New(ByVal InitialList As IEnumerable(Of String))
             InitializeComponent()
             MyDefs = New DefaultFormOptions(Me, Settings.Design)
@@ -38,6 +49,7 @@ Namespace DownloadObjects.STDownloader
                 Settings.DownloadLocations.PopulateComboBox(TXT_OUTPUT)
                 TXT_OUTPUT.Text = Settings.LatestSavingPath.Value.PathWithSeparator
                 If TXT_OUTPUT.Text.IsEmptyString Then TXT_OUTPUT.Text = Application.StartupPath.CSFileP.PathWithSeparator
+                TXT_URLS_TextChanged()
                 .MyFieldsChecker = New FieldsChecker
                 With .MyFieldsCheckerE
                     .AddControl(Of String)(TXT_OUTPUT, TXT_OUTPUT.CaptionText)
@@ -64,6 +76,34 @@ Namespace DownloadObjects.STDownloader
         Private Sub TXT_OUTPUT_ActionOnButtonClick(ByVal Sender As Object, ByVal e As ActionButtonEventArgs) Handles TXT_OUTPUT.ActionOnButtonClick
             If Sender.DefaultButton = ADB.Open Or Sender.DefaultButton = ADB.Add Then _
                Settings.DownloadLocations.ChooseNewLocation(TXT_OUTPUT, Sender.DefaultButton = ADB.Add, Settings.STDownloader_OutputPathAskForName)
+        End Sub
+        Private Sub TXT_URLS_TextChanged() Handles TXT_URLS.TextChanged
+            Try
+                With CMB_ACCOUNT
+                    .BeginUpdate()
+                    .Items.Clear()
+                    .Text = String.Empty
+                    _UseAccountName = False
+                    If Not TXT_URLS.Text.IsEmptyString Then
+                        Dim plugins As IEnumerable(Of String) = TXT_URLS.Lines.Select(Function(u) DownloaderUrlForm.GetMediaPluginKey(u)).Distinct
+                        Dim fpl As Func(Of String, Boolean) = Function(p) Not p.IsEmptyString
+                        If plugins.ListExists AndAlso plugins.LongCount(fpl) = 1 Then
+                            CMB_ACCOUNT.Items.AddRange(Settings(plugins.First(fpl)).Select(Function(p) New ListItem(p.AccountName.IfNullOrEmpty(
+                                                                                                                    Plugin.Hosts.SettingsHost.NameAccountNameDefault))))
+                            _UseAccountName = True
+                        End If
+                    End If
+                    .LeaveDefaultButtons = .Items.Count > 1
+                    .Buttons.UpdateButtonsPositions()
+                    .EndUpdate()
+                    If .Items.Count > 0 Then .SelectedIndex = 0
+                    .Enabled = .Items.Count > 1
+                End With
+            Catch ex As Exception
+                _UseAccountName = True
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "[STDownloader.DownloaderUrlsArrForm.TXT_URLS_TextChanged]")
+                MainFrameObj.UpdateLogButton()
+            End Try
         End Sub
     End Class
 End Namespace

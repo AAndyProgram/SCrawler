@@ -427,10 +427,14 @@ Namespace API.YouTube.Controls
             Me.TXT_OUTPUT_PATH.Buttons.Add(ActionButton8)
             Me.TXT_OUTPUT_PATH.Buttons.Add(ActionButton9)
             Me.TXT_OUTPUT_PATH.Buttons.Add(ActionButton10)
-            Me.TXT_OUTPUT_PATH.CaptionMode = PersonalUtilities.Forms.Controls.Base.ICaptionControl.Modes.Label
+            Me.TXT_OUTPUT_PATH.CaptionMode = PersonalUtilities.Forms.Controls.Base.ICaptionControl.Modes.CheckBox
             Me.TXT_OUTPUT_PATH.CaptionText = "Output path"
+            Me.TXT_OUTPUT_PATH.CaptionToolTipEnabled = True
+            Me.TXT_OUTPUT_PATH.CaptionToolTipText = "If this checkbox is selected, this path is absolute and artist folder will not be" &
+    " created in it"
             Me.TXT_OUTPUT_PATH.CaptionVisible = True
             Me.TXT_OUTPUT_PATH.CaptionWidth = 112.0R
+            Me.TXT_OUTPUT_PATH.ChangeControlsEnableOnCheckedChange = False
             ListColumn1.Name = "COL_NAME"
             ListColumn1.Text = "Name"
             ListColumn1.Width = -1

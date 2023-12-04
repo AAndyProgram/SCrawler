@@ -26,7 +26,7 @@ Namespace API.YouTube.Controls
             Dim TP_MAIN As System.Windows.Forms.TableLayoutPanel
             Dim FRM_PLS As System.Windows.Forms.GroupBox
             Me.CH_PLS_ONE = New System.Windows.Forms.CheckBox()
-            Me.TXT_URLS = New System.Windows.Forms.RichTextBox()
+            Me.TXT_URLS = New System.Windows.Forms.TextBox()
             CONTAINER_MAIN = New System.Windows.Forms.ToolStripContainer()
             TP_MAIN = New System.Windows.Forms.TableLayoutPanel()
             FRM_PLS = New System.Windows.Forms.GroupBox()
@@ -94,13 +94,14 @@ Namespace API.YouTube.Controls
             '
             'TXT_URLS
             '
-            Me.TXT_URLS.DetectUrls = False
+            Me.TXT_URLS.AcceptsReturn = True
             Me.TXT_URLS.Dock = System.Windows.Forms.DockStyle.Fill
             Me.TXT_URLS.Location = New System.Drawing.Point(3, 16)
+            Me.TXT_URLS.MaxLength = 2147483647
+            Me.TXT_URLS.Multiline = True
             Me.TXT_URLS.Name = "TXT_URLS"
             Me.TXT_URLS.Size = New System.Drawing.Size(372, 261)
             Me.TXT_URLS.TabIndex = 0
-            Me.TXT_URLS.Text = ""
             '
             'PlaylistArrayForm
             '
@@ -119,10 +120,11 @@ Namespace API.YouTube.Controls
             TP_MAIN.ResumeLayout(False)
             TP_MAIN.PerformLayout()
             FRM_PLS.ResumeLayout(False)
+            FRM_PLS.PerformLayout()
             Me.ResumeLayout(False)
 
         End Sub
         Private WithEvents CH_PLS_ONE As CheckBox
-        Private WithEvents TXT_URLS As RichTextBox
+        Private WithEvents TXT_URLS As TextBox
     End Class
 End Namespace

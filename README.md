@@ -1,9 +1,10 @@
-# :rainbow_flag: Happy LGBT Pride Month :tada:
-
+<!-- # :rainbow_flag: Happy LGBT Pride Month :tada:
+-->
 # :rainbow_flag: Social networks crawler :rainbow_flag:
 
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/AAndyProgram/SCrawler)](https://github.com/AAndyProgram/SCrawler/releases/latest)
 [![GitHub license](https://img.shields.io/github/license/AAndyProgram/SCrawler)](https://github.com/AAndyProgram/SCrawler/blob/main/LICENSE)
+[![Discord](https://img.shields.io/discord/1124032649682493462?logo=discord)](https://discord.gg/uFNUXvFFmg)
 [![GitHub all releases](https://img.shields.io/github/downloads/aandyprogram/scrawler/total?label=Total%20downloads)](https://github.com/AAndyProgram/SCrawler/releases)
 [![FAQ](https://img.shields.io/badge/FAQ-green)](FAQ.md)
 [![GUIDE](https://img.shields.io/badge/GUIDE-green)](https://github.com/AAndyProgram/SCrawler/wiki)
@@ -11,7 +12,7 @@
 :eu:
 :greece:
 
-A program to download photo and video from [any site](#supported-sites) (e.g. YouTube, YouTube Music, OnlyFans, Reddit, Twitter, Mastodon, Instagram, TikTok, RedGifs, PornHub, XHamster, XVIDEOS, ThisVid, LPSG, Pinterest).
+A program to download photo and video from [any site](#supported-sites) (e.g. YouTube, YouTube Music, OnlyFans, Reddit, Twitter, Mastodon, Instagram, Threads, Facebook, TikTok, RedGifs, JustForFans, PornHub, XHamster, XVIDEOS, ThisVid, LPSG, Pinterest).
 
 **If you like SCrawler, please like the program on [this site](https://alternativeto.net/software/scrawler/about/) and/or [this](https://www.softpedia.com/get/Internet/Download-Managers/Social-networks-crawler.shtml)**
 <!---Do you like this program? Consider adding to my coffee fund by making a donation to show your support. :blush:
@@ -34,8 +35,11 @@ A program to download photo and video from [any site](#supported-sites) (e.g. Yo
   - Redgifs videos (https://www.redgifs.com/);
   - Twitter images and videos, saved (bookmarked) posts;
   - OnlyFans images and videos, saved (bookmarked) posts;
+  - JustForFans images and videos, saved (bookmarked) posts;
   - Mastodon images and videos, saved (bookmarked) posts;
   - Instagram images and videos, tagged posts, stories, saved posts;
+  - Threads images and videos;
+  - Facebook images and videos, saved posts;
   - TikTok videos;
   - Pinterest boards, users, saved posts;
   - Imgur images, galleries and videos;
@@ -51,6 +55,7 @@ A program to download photo and video from [any site](#supported-sites) (e.g. Yo
 - **Advanced user management**
 - **Automation** ([downloading data automatically](https://github.com/AAndyProgram/SCrawler/wiki/Settings#automation) every ```X``` minutes)
 - **Feed** ([feed](https://github.com/AAndyProgram/SCrawler/wiki#feed) of downloaded media files and subscriptions posts)
+- Multiple accounts support
 - Labeling users
 - Create [download groups](https://github.com/AAndyProgram/SCrawler/wiki/Settings#download-groups)
 - Adding users to favorites and temporary
@@ -72,6 +77,9 @@ A program to download photo and video from [any site](#supported-sites) (e.g. Yo
 - **OnlyFans**
 - **Mastodon**
 - **Instagram**
+- **Threads**
+- **Facebook**
+- JustForFans
 - TikTok
 - RedGifs
 - Pinterest
@@ -89,14 +97,6 @@ A program to download photo and video from [any site](#supported-sites) (e.g. Yo
 # How it works
 
 First, the program downloads the full profile. After the program downloads only new posts. The program remembers downloaded posts.
-
-## Reddit
-
-The program parses user posts, obtain MD5  images hash and compares them with existing ones to remove duplicates. Then the media will be downloaded.
-
-## Other sites
-
-The program parses user posts and compares file names with existing ones to remove duplicates. Then the media will be downloaded.
 
 ## How to request a new site
 
@@ -128,19 +128,26 @@ The program parses user posts and compares file names with existing ones to remo
   - [Reddit](https://github.com/AAndyProgram/SCrawler/wiki/Settings#reddit)
   - [Twitter](https://github.com/AAndyProgram/SCrawler/wiki/Settings#twitter)
   - [OnlyFans](https://github.com/AAndyProgram/SCrawler/wiki/Settings#onlyfans)
-  - [Mastodon](https://github.com/AAndyProgram/SCrawler/wiki/Settings#Mastodon)
+  - [Mastodon](https://github.com/AAndyProgram/SCrawler/wiki/Settings#mastodon)
   - [Instagram](https://github.com/AAndyProgram/SCrawler/wiki/Settings#instagram)
+  - [Threads](https://github.com/AAndyProgram/SCrawler/wiki/Settings#threads)
+  - [Facebook](https://github.com/AAndyProgram/SCrawler/wiki/Settings#facebook)
+  - [JustForFans](https://github.com/AAndyProgram/SCrawler/wiki/Settings#justforfans)
   - [TikTok](https://github.com/AAndyProgram/SCrawler/wiki/Settings#tiktok)
   - [RedGifs](https://github.com/AAndyProgram/SCrawler/wiki/Settings#redgifs)
-  - [YouTube](https://github.com/AAndyProgram/SCrawler/wiki/Settings#YouTube)
+  - [YouTube](https://github.com/AAndyProgram/SCrawler/wiki/Settings#youtube)
   - [Pinterest](https://github.com/AAndyProgram/SCrawler/wiki/Settings#Pinterest)
   - [PornHub](https://github.com/AAndyProgram/SCrawler/wiki/Settings#pornhub)
   - [XHamster](https://github.com/AAndyProgram/SCrawler/wiki/Settings#xhamster)
   - [XVIDEOS](https://github.com/AAndyProgram/SCrawler/wiki/Settings#xvideos)
-  - [ThisVid](https://github.com/AAndyProgram/SCrawler/wiki/Settings#ThisVid)
+  - [ThisVid](https://github.com/AAndyProgram/SCrawler/wiki/Settings#thisvid)
   - [LPSG](https://github.com/AAndyProgram/SCrawler/wiki/Settings#lpsg)
 
 **Full guide you can find [here](https://github.com/AAndyProgram/SCrawler/wiki)**
+
+**Video on how to configure**
+
+[![How to configure](https://img.youtube.com/vi/XDn7zG4I700/0.jpg)](https://www.youtube.com/watch?v=XDn7zG4I700)
 
 # Installation
 
@@ -163,6 +170,8 @@ Just download [latest](https://github.com/AAndyProgram/SCrawler/releases/latest)
 The program has an intuitive interface.
 
 **[SITES REQUIREMENTS](https://github.com/AAndyProgram/SCrawler/wiki/Settings#sites-requirements)**
+
+[![How to configure](https://img.youtube.com/vi/XDn7zG4I700/0.jpg)](https://www.youtube.com/watch?v=XDn7zG4I700)
 
 Just add a user profile and **click the ```Download``` button**.
 
@@ -194,6 +203,9 @@ F5-->[*]
 
 # Contact me
 
+Discord server: https://discord.gg/uFNUXvFFmg
+
+<!--
 [e-mail](mailto:andyprogram@proton.me): andyprogram@proton.me
 
 Matrix (Element): https://matrix.to/#/@andyprogram:matrix.org
@@ -203,3 +215,4 @@ Discord (contact the developer): andyprogram
 Discord server: https://discord.gg/uFNUXvFFmg
 
 [Wire](https://account.wire.com/user-profile/?id=93985052-cf2c-4b72-ac75-bbe3231cf544): @andyprogram
+-->

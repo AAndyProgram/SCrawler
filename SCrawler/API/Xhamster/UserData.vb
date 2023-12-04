@@ -18,10 +18,7 @@ Imports UTypes = SCrawler.API.Base.UserMedia.Types
 Namespace API.Xhamster
     Friend Class UserData : Inherits UserDataBase
 #Region "XML names"
-        Private Const Name_TrueName As String = "TrueName"
         Private Const Name_Gender As String = "Gender"
-        Private Const Name_SiteMode As String = "SiteMode"
-        Private Const Name_Arguments As String = "Arguments"
 #End Region
 #Region "Declarations"
         Friend Overrides ReadOnly Property FeedIsUser As Boolean
@@ -34,6 +31,16 @@ Namespace API.Xhamster
         Friend Property Gender As String = String.Empty
         Friend Property SiteMode As SiteModes = SiteModes.User
         Friend Property Arguments As String = String.Empty
+        Friend Overrides ReadOnly Property IsUser As Boolean
+            Get
+                Return SiteMode = SiteModes.User Or SiteMode = SiteModes.Pornstars
+            End Get
+        End Property
+        Friend ReadOnly Property IsSearch As Boolean
+            Get
+                Return SiteMode = SiteModes.Search Or SiteMode = SiteModes.Tags Or SiteMode = SiteModes.Categories
+            End Get
+        End Property
         Friend Overrides ReadOnly Property SpecialLabels As IEnumerable(Of String)
             Get
                 Return {SearchRequestLabelName}
@@ -166,6 +173,7 @@ Namespace API.Xhamster
             UseInternalM3U8Function = True
             UseClientTokens = True
             _TempPhotoData = New List(Of UserMedia)
+            SessionPosts = New List(Of String)
         End Sub
 #End Region
 #Region "Download functions"
@@ -213,9 +221,13 @@ Namespace API.Xhamster
             End If
         End Function
         Private SearchPostsCount As Integer = 0
+        Private ReadOnly SessionPosts As List(Of String)
+        Private _PageVideosRepeat As Integer = 0
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
             _TempPhotoData.Clear()
             SearchPostsCount = 0
+            _PageVideosRepeat = 0
+            SessionPosts.Clear()
             If DownloadVideos Then DownloadData(1, True, Token)
             If Not IsChannel And DownloadImages And Not IsSubscription Then
                 DownloadData(1, False, Token)
@@ -233,6 +245,8 @@ Namespace API.Xhamster
                 Dim skipped As Boolean = False
                 Dim limit% = If(DownloadTopCount, -1)
                 Dim cBefore% = _TempMediaList.Count
+                Dim pageRepeatSet As Boolean = False, prevPostsFound As Boolean = False, newPostsFound As Boolean = False
+                Dim pids As New List(Of String)
                 Dim m As UserMedia
                 Dim checkLimit As Func(Of Boolean) = Function() limit > 0 And SearchPostsCount >= limit And IsVideo
 
@@ -279,6 +293,7 @@ Namespace API.Xhamster
                                             ProgressPre.Perform()
                                             m = ExtractMedia(e, Type)
                                             If Not m.URL.IsEmptyString Then
+                                                pids.ListAddValue(m.Post.ID, LNC)
                                                 If m.File.IsEmptyString Then Continue For
 
                                                 If m.Post.Date.HasValue Then
@@ -292,6 +307,7 @@ Namespace API.Xhamster
                                                     _TempPostsList.Add(m.Post.ID)
                                                     _TempMediaList.ListAddValue(m, LNC)
                                                     SearchPostsCount += 1
+                                                    newPostsFound = True
                                                     If checkLimit.Invoke Then Exit Sub
                                                 ElseIf Not IsVideo Then
                                                     If DirectCast(m.Object, ExchObj).IsPhoto Then
@@ -302,11 +318,25 @@ Namespace API.Xhamster
                                                     Else
                                                         _TempPhotoData.ListAddValue(m, LNC)
                                                     End If
+                                                ElseIf IsVideo And _TempPostsList.Contains(m.Post.ID) Then
+                                                    If SessionPosts.Count > 0 AndAlso SessionPosts.Contains(m.Post.ID) Then
+                                                        prevPostsFound = True
+                                                        Continue For
+                                                    ElseIf _PageVideosRepeat >= 2 Then
+                                                        Exit Sub
+                                                    ElseIf Not pageRepeatSet And Not newPostsFound Then
+                                                        pageRepeatSet = True
+                                                        _PageVideosRepeat += 1
+                                                    End If
                                                 Else
                                                     Exit Sub
                                                 End If
                                             End If
                                         Next
+                                        If prevPostsFound And Not pageRepeatSet And Not newPostsFound Then pageRepeatSet = True : _PageVideosRepeat += 1
+                                        If prevPostsFound And newPostsFound And pageRepeatSet Then _PageVideosRepeat -= 1
+                                        SessionPosts.ListAddList(pids, LNC)
+                                        pids.Clear()
                                         Exit For
                                     End If
                                 End With
@@ -317,8 +347,11 @@ Namespace API.Xhamster
 
                 containerNodes.Clear()
 
-                If (Not _TempMediaList.Count = cBefore Or skipped) And
-                   (IsChannel Or (MaxPage > 0 And Page < MaxPage) Or (Not SiteMode = SiteModes.User And Page < 1000)) Then DownloadData(Page + 1, IsVideo, Token)
+                If _PageVideosRepeat < 2 And ((
+                    (MaxPage = -1 Or Page < MaxPage) And
+                    ((Not _TempMediaList.Count = cBefore Or skipped) And (IsUser Or Page < 1000))
+                   ) Or
+                   (IsChannel Or (Not IsUser And Page < 1000 And prevPostsFound And Not newPostsFound))) Then DownloadData(Page + 1, IsVideo, Token)
             Catch ex As Exception
                 ProcessException(ex, Token, $"data downloading error [{URL}]")
             End Try
@@ -339,6 +372,7 @@ Namespace API.Xhamster
                                 m = _TempMediaList(i)
                                 If Not m.URL_BASE.IsEmptyString Then
                                     m2 = Nothing
+                                    ThrowAny(Token)
                                     If GetM3U8(m2, m.URL_BASE) Then
                                         m2.URL_BASE = m.URL_BASE
                                         _TempMediaList(i) = m2
@@ -368,6 +402,7 @@ Namespace API.Xhamster
                                 m = _TempMediaList(i)
                                 If Not m.URL_BASE.IsEmptyString Then
                                     m2 = Nothing
+                                    ThrowAny(Token)
                                     If GetM3U8(m2, m.URL_BASE) Then
                                         m2.URL_BASE = m.URL_BASE
                                         _TempMediaList(i) = m2
@@ -451,6 +486,8 @@ Namespace API.Xhamster
                             m2 = Nothing
                             If GetM3U8(m2, m.URL_BASE) Then
                                 m2.URL_BASE = m.URL_BASE
+                                m2.State = UserMedia.States.Missing
+                                m2.Attempts = m.Attempts
                                 _TempMediaList.ListAddValue(m2, LNC)
                                 rList.Add(i)
                             End If
@@ -575,12 +612,13 @@ Namespace API.Xhamster
 #Region "Exception"
         Protected Overrides Function DownloadingException(ByVal ex As Exception, ByVal Message As String, Optional ByVal FromPE As Boolean = False,
                                                           Optional ByVal EObj As Object = Nothing) As Integer
-            Return If(Responser.Status = Net.WebExceptionStatus.ConnectionClosed, 1, 0)
+            '8, 503
+            Return If(Responser.Status = Net.WebExceptionStatus.ConnectionClosed Or Responser.StatusCode = Net.HttpStatusCode.ServiceUnavailable, 1, 0)
         End Function
 #End Region
 #Region "IDisposable support"
         Protected Overrides Sub Dispose(ByVal disposing As Boolean)
-            If Not disposedValue And disposing Then _TempPhotoData.Clear()
+            If Not disposedValue And disposing Then _TempPhotoData.Clear() : SessionPosts.Clear()
             MyBase.Dispose(disposing)
         End Sub
 #End Region

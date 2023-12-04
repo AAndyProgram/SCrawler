@@ -17,6 +17,7 @@ Partial Friend Module MainMod
         Friend Const Name_UserNode As String = "User"
         Friend Const Name_Site As String = "Site"
         Friend Const Name_Plugin As String = "Plugin"
+        Friend Const Name_AccountName As String = "AccountName"
         Friend Const Name_IsSubscription As String = "IsSubscription"
         Friend Const Name_Collection As String = "Collection"
         Friend Const Name_Model_User As String = "ModelUser"
@@ -30,6 +31,7 @@ Partial Friend Module MainMod
         Friend Name As String
         Friend Site As String
         Friend Plugin As String
+        Friend AccountName As String
         Friend File As SFile
         Friend IsSubscription As Boolean
         Friend SpecialPath As SFile
@@ -67,6 +69,7 @@ Partial Friend Module MainMod
             Name = x.Value
             Site = x.Attribute(Name_Site).Value
             Plugin = x.Attribute(Name_Plugin).Value
+            AccountName = x.Attribute(Name_AccountName).Value
             IsSubscription = x.Attribute(Name_IsSubscription).Value.FromXML(Of Boolean)(False)
             CollectionName = x.Attribute(Name_Collection).Value
             CollectionModel = x.Attribute(Name_Model_Collection).Value.FromXML(Of Integer)(UsageModel.Default)
@@ -81,6 +84,7 @@ Partial Friend Module MainMod
             Name = c.Name
             Site = Reddit.RedditSite
             Plugin = Reddit.RedditSiteKey
+            AccountName = c.RedditAccount
             File = c.File
         End Sub
         Public Shared Widening Operator CType(ByVal x As EContainer) As UserInfo
@@ -125,13 +129,11 @@ Partial Friend Module MainMod
         Private Function GetFilePathByParams() As String
             If [Protected] Then Return String.Empty
             If IsSubscription Then
-                If Not Settings(Plugin) Is Nothing Then
-                    Return $"{Application.StartupPath.CSFilePSN}\{SettingsFolderName}\Subscriptions\{Settings(Plugin).Key}\{Name}\{SettingsFolderName}"
-                Else
-                    Return String.Empty
-                End If
+                If Not Settings(Plugin) Is Nothing Then _
+                   Return $"{Application.StartupPath.CSFilePSN}\{SettingsFolderName}\Subscriptions\{Settings(Plugin).Key}\{Name}\{SettingsFolderName}"
             Else
                 Dim ColPath$ = GetCollectionRootPath().PathNoSeparator
+                Dim pluginSettings As SettingsHost
                 If Not SpecialPath.IsEmptyString Then
                     Return $"{SpecialPath.PathWithSeparator}{SettingsFolderName}"
                 ElseIf Merged And IncludedInCollection Then
@@ -140,20 +142,26 @@ Partial Friend Module MainMod
                     If IncludedInCollection And Not IsVirtual Then
                         Return $"{String.Format(CollectionUserPathPattern, ColPath, Site, Name)}{SettingsFolderName}"
                     ElseIf Not Settings(Plugin) Is Nothing Then
-                        Return $"{Settings(Plugin).Path.PathNoSeparator}\{Name}\{SettingsFolderName}"
+                        pluginSettings = Settings(Plugin)(AccountName)
+                        If Not pluginSettings Is Nothing Then Return $"{pluginSettings.Path.PathNoSeparator}\{Name}\{SettingsFolderName}"
                     Else
                         Dim s$ = Site.ToLower
                         Dim i% = Settings.Plugins.FindIndex(Function(p) p.Name.ToLower = s)
-                        If i >= 0 Then Return $"{Settings.Plugins(i).Settings.Path.PathNoSeparator}\{Name}\{SettingsFolderName}" Else Return String.Empty
+                        If i >= 0 Then
+                            pluginSettings = Settings.Plugins(i).Settings(AccountName)
+                            If Not pluginSettings Is Nothing Then Return $"{pluginSettings.Path.PathNoSeparator}\{Name}\{SettingsFolderName}"
+                        End If
                     End If
                 End If
             End If
+            Return String.Empty
         End Function
 #End Region
 #Region "ToEContainer Support"
         Friend Function ToEContainer(Optional ByVal e As ErrorsDescriber = Nothing) As EContainer Implements IEContainerProvider.ToEContainer
             Return New EContainer(Name_UserNode, Name, {New EAttribute(Name_Site, Site),
                                                         New EAttribute(Name_Plugin, Plugin),
+                                                        New EAttribute(Name_AccountName, AccountName),
                                                         New EAttribute(Name_IsSubscription, IsSubscription.BoolToInteger),
                                                         New EAttribute(Name_Collection, CollectionName),
                                                         New EAttribute(Name_Model_User, CInt(UserModel)),

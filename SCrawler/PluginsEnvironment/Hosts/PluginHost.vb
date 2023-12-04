@@ -14,7 +14,7 @@ Imports PersonalUtilities.Tools.WEB.GitHub
 Namespace Plugin.Hosts
     Friend Class PluginHost
         Friend Const PluginsPath As String = "Plugins\"
-        Friend ReadOnly Property Settings As SettingsHost
+        Friend ReadOnly Property Settings As SettingsHostCollection
         Friend ReadOnly Property Name As String
             Get
                 Return Settings.Name
@@ -42,9 +42,9 @@ Namespace Plugin.Hosts
             End Get
         End Property
         Friend ReadOnly Property HasError As Boolean
-        Private Sub New(ByVal s As ISiteSettings, ByRef _XML As XmlFile, ByVal GlobalPath As SFile,
+        Private Sub New(ByVal PluginType As Type, ByRef _XML As XmlFile, ByVal GlobalPath As SFile,
                         ByRef _Temp As XMLValue(Of Boolean), ByRef _Imgs As XMLValue(Of Boolean), ByRef _Vids As XMLValue(Of Boolean))
-            Settings = New SettingsHost(s, _XML, GlobalPath, _Temp, _Imgs, _Vids)
+            Settings = New SettingsHostCollection(PluginType, _XML, GlobalPath, _Temp, _Imgs, _Vids)
         End Sub
         Private Sub New(ByVal AssemblyFile As SFile, ByRef _XML As XmlFile, ByVal GlobalPath As SFile,
                         ByRef _Temp As XMLValue(Of Boolean), ByRef _Imgs As XMLValue(Of Boolean), ByRef _Vids As XMLValue(Of Boolean))
@@ -59,10 +59,8 @@ Namespace Plugin.Hosts
                         For Each tt As Type In t
                             If tt.IsInterface Or tt.IsAbstract Then
                                 Continue For
-                            Else
-                                If Not tt.GetInterface(tSettings) Is Nothing Then
-                                    Settings = New SettingsHost(Activator.CreateInstance(tt), _XML, GlobalPath, _Temp, _Imgs, _Vids)
-                                End If
+                            ElseIf Not tt.GetInterface(tSettings) Is Nothing Then
+                                Settings = New SettingsHostCollection(tt, _XML, GlobalPath, _Temp, _Imgs, _Vids)
                             End If
                         Next
                     End If
@@ -72,24 +70,30 @@ Namespace Plugin.Hosts
                 _HasError = True
             End Try
         End Sub
+        Public Overrides Function ToString() As String
+            Return Name
+        End Function
         Friend Shared Function GetMyHosts(ByRef _XML As XmlFile, ByVal GlobalPath As SFile,
                                           ByRef _Temp As XMLValue(Of Boolean), ByRef _Imgs As XMLValue(Of Boolean),
                                           ByRef _Vids As XMLValue(Of Boolean)) As IEnumerable(Of PluginHost)
-            Return {New PluginHost(New API.Reddit.SiteSettings, _XML, GlobalPath, _Temp, _Imgs, _Vids),
-                    New PluginHost(New API.Twitter.SiteSettings, _XML, GlobalPath, _Temp, _Imgs, _Vids),
-                    New PluginHost(New API.Mastodon.SiteSettings, _XML, GlobalPath, _Temp, _Imgs, _Vids),
-                    New PluginHost(New API.Instagram.SiteSettings(_XML, GlobalPath), _XML, GlobalPath, _Temp, _Imgs, _Vids),
-                    New PluginHost(New API.RedGifs.SiteSettings, _XML, GlobalPath, _Temp, _Imgs, _Vids),
-                    New PluginHost(New API.YouTube.SiteSettings, _XML, GlobalPath, _Temp, _Imgs, _Vids),
-                    New PluginHost(New API.Pinterest.SiteSettings, _XML, GlobalPath, _Temp, _Imgs, _Vids),
-                    New PluginHost(New API.TikTok.SiteSettings, _XML, GlobalPath, _Temp, _Imgs, _Vids),
-                    New PluginHost(New API.LPSG.SiteSettings, _XML, GlobalPath, _Temp, _Imgs, _Vids),
-                    New PluginHost(New API.PornHub.SiteSettings, _XML, GlobalPath, _Temp, _Imgs, _Vids),
-                    New PluginHost(New API.Xhamster.SiteSettings, _XML, GlobalPath, _Temp, _Imgs, _Vids),
-                    New PluginHost(New API.XVIDEOS.SiteSettings, _XML, GlobalPath, _Temp, _Imgs, _Vids),
-                    New PluginHost(New API.ThisVid.SiteSettings, _XML, GlobalPath, _Temp, _Imgs, _Vids),
-                    New PluginHost(New API.PathPlugin.SiteSettings, _XML, GlobalPath, _Temp, _Imgs, _Vids),
-                    New PluginHost(New API.OnlyFans.SiteSettings, _XML, GlobalPath, _Temp, _Imgs, _Vids)}
+            Return {New PluginHost(GetType(API.Reddit.SiteSettings), _XML, GlobalPath, _Temp, _Imgs, _Vids),
+                    New PluginHost(GetType(API.Twitter.SiteSettings), _XML, GlobalPath, _Temp, _Imgs, _Vids),
+                    New PluginHost(GetType(API.Mastodon.SiteSettings), _XML, GlobalPath, _Temp, _Imgs, _Vids),
+                    New PluginHost(GetType(API.Instagram.SiteSettings), _XML, GlobalPath, _Temp, _Imgs, _Vids),
+                    New PluginHost(GetType(API.ThreadsNet.SiteSettings), _XML, GlobalPath, _Temp, _Imgs, _Vids),
+                    New PluginHost(GetType(API.Facebook.SiteSettings), _XML, GlobalPath, _Temp, _Imgs, _Vids),
+                    New PluginHost(GetType(API.RedGifs.SiteSettings), _XML, GlobalPath, _Temp, _Imgs, _Vids),
+                    New PluginHost(GetType(API.YouTube.SiteSettings), _XML, GlobalPath, _Temp, _Imgs, _Vids),
+                    New PluginHost(GetType(API.Pinterest.SiteSettings), _XML, GlobalPath, _Temp, _Imgs, _Vids),
+                    New PluginHost(GetType(API.TikTok.SiteSettings), _XML, GlobalPath, _Temp, _Imgs, _Vids),
+                    New PluginHost(GetType(API.LPSG.SiteSettings), _XML, GlobalPath, _Temp, _Imgs, _Vids),
+                    New PluginHost(GetType(API.PornHub.SiteSettings), _XML, GlobalPath, _Temp, _Imgs, _Vids),
+                    New PluginHost(GetType(API.Xhamster.SiteSettings), _XML, GlobalPath, _Temp, _Imgs, _Vids),
+                    New PluginHost(GetType(API.XVIDEOS.SiteSettings), _XML, GlobalPath, _Temp, _Imgs, _Vids),
+                    New PluginHost(GetType(API.ThisVid.SiteSettings), _XML, GlobalPath, _Temp, _Imgs, _Vids),
+                    New PluginHost(GetType(API.PathPlugin.SiteSettings), _XML, GlobalPath, _Temp, _Imgs, _Vids),
+                    New PluginHost(GetType(API.OnlyFans.SiteSettings), _XML, GlobalPath, _Temp, _Imgs, _Vids),
+                    New PluginHost(GetType(API.JustForFans.SiteSettings), _XML, GlobalPath, _Temp, _Imgs, _Vids)}
         End Function
         Friend Shared Function GetPluginsHosts(ByRef _XML As XmlFile, ByVal GlobalPath As SFile,
                                                ByRef _Temp As XMLValue(Of Boolean), ByRef _Imgs As XMLValue(Of Boolean),

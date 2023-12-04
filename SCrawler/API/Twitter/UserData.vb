@@ -12,6 +12,7 @@ Imports SCrawler.API.YouTube.Objects
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Tools
+Imports PersonalUtilities.Tools.Web.Documents
 Imports PersonalUtilities.Tools.Web.Documents.JSON
 Imports UStates = SCrawler.API.Base.UserMedia.States
 Imports UTypes = SCrawler.API.Base.UserMedia.Types
@@ -140,7 +141,7 @@ Namespace API.Twitter
         End Function
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
             If MySettings.LIMIT_ABORT Then
-                TwitterLimitException.LogMessage(ToStringForLog, True)
+                Throw New TwitterLimitException(Me)
             Else
                 If IsSavedPosts Then
                     If _ContentList.Count > 0 Then _DataNames.ListAddList(_ContentList.Select(Function(c) c.Post.ID), LAP.ClearBeforeAdd, LAP.NotContainsOnly)
@@ -154,6 +155,7 @@ Namespace API.Twitter
         Private Sub DownloadData_Timeline(ByVal Token As CancellationToken)
             Dim URL$ = String.Empty
             Dim tCache As CacheKeeper = Nothing
+            Dim jsonArgs As New WebDocumentEventArgs With {.DeclaredError = EDP.ThrowException}
             Try
                 Const entry$ = "entry"
                 Dim PostID$ = String.Empty
@@ -231,7 +233,8 @@ Namespace API.Twitter
                                 For i = 0 To timelineFiles.Count - 1 : timelineFiles(i) = RenameGdlFile(timelineFiles(i), i) : Next
                                 'parse files
                                 For i = 0 To timelineFiles.Count - 1
-                                    j = JsonDocument.Parse(timelineFiles(i).GetText)
+                                    j = JsonDocument.Parse(timelineFiles(i).GetText, jsonArgs)
+                                    jsonArgs.Reset()
                                     If Not j Is Nothing Then
                                         If i = 0 Then
                                             If Not userInfoParsed Then
@@ -339,11 +342,15 @@ Namespace API.Twitter
                 End If
                 DownloadModelForceApply = False
                 FirstDownloadComplete = True
+            Catch jsonNull_ex As ArgumentNullException When jsonArgs.State = WebDocumentEventArgs.States.Error
+                Throw New Plugin.ExitException($"{ToStringForLog()}: No deserialized data found")
             Catch limit_ex As TwitterLimitException
+                Throw limit_ex
             Catch ex As Exception
                 ProcessException(ex, Token, $"data downloading error [{URL}]")
             Finally
                 If Not tCache Is Nothing Then tCache.Dispose()
+                jsonArgs.DisposeIfReady
                 If _TempPostsList.Count > 0 Then _TempPostsList.Sort()
             End Try
         End Sub
@@ -391,7 +398,8 @@ Namespace API.Twitter
         End Sub
 #End Region
 #Region "Obtain media"
-        Private Sub ObtainMedia(ByVal e As EContainer, ByVal PostID As String, ByVal PostDate As String, Optional ByVal State As UStates = UStates.Unknown)
+        Private Sub ObtainMedia(ByVal e As EContainer, ByVal PostID As String, ByVal PostDate As String, Optional ByVal State As UStates = UStates.Unknown,
+                                Optional ByVal Attempts As Integer = 0)
             Dim s As EContainer = e({"extended_entities", "media"})
             If If(s?.Count, 0) = 0 Then s = e({"retweeted_status", "extended_entities", "media"})
             If If(s?.Count, 0) = 0 Then s = e({"retweeted_status_result", "result", "legacy", "extended_entities", "media"})
@@ -405,7 +413,7 @@ Namespace API.Twitter
                             Dim dName$ = UrlFile(mUrl)
                             If Not dName.IsEmptyString AndAlso Not _DataNames.Contains(dName) Then
                                 _DataNames.Add(dName)
-                                _TempMediaList.ListAddValue(MediaFromData(mUrl, PostID, PostDate, GetPictureOption(m), State, UTypes.Picture), LNC)
+                                _TempMediaList.ListAddValue(MediaFromData(mUrl, PostID, PostDate, GetPictureOption(m), State, UTypes.Picture, Attempts), LNC)
                             End If
                         End If
                     End If
@@ -491,12 +499,10 @@ Namespace API.Twitter
         End Function
 #End Region
 #Region "Gallery-DL Support"
-        Private Class TwitterLimitException : Inherits Exception
-            Friend Sub New(ByVal User As String, ByVal Skipped As Boolean)
-                LogMessage(User, Skipped)
-            End Sub
-            Friend Shared Sub LogMessage(ByVal User As String, ByVal Skipped As Boolean)
-                MyMainLOG = $"{User}: twitter limit reached.{IIf(Skipped, "Data has not been downloaded", String.Empty)}"
+        Private Class TwitterLimitException : Inherits Plugin.ExitException
+            Friend Sub New(ByVal User As UserData)
+                Silent = True
+                User.MySettings.LimitSkippedUsers.Add(User)
             End Sub
         End Class
         Private Class TwitterGDL : Inherits GDL.GDLBatch
@@ -558,7 +564,7 @@ Namespace API.Twitter
                                 MySettings.LIMIT_ABORT = True
                                 Return dir
                             Else
-                                Throw New TwitterLimitException(ToStringForLog, False)
+                                Throw New TwitterLimitException(Me)
                             End If
                         End If
                     End Using
@@ -626,7 +632,7 @@ Namespace API.Twitter
                                     MySettings.LIMIT_ABORT = True
                                     Exit For
                                 Else
-                                    Throw New TwitterLimitException(ToStringForLog, False)
+                                    Throw New TwitterLimitException(Me)
                                 End If
                             End If
                         End If
@@ -713,7 +719,7 @@ Namespace API.Twitter
                                                                     If .ListExists Then
                                                                         PostDate = String.Empty
                                                                         If .Contains("created_at") Then PostDate = .Value("created_at") Else PostDate = String.Empty
-                                                                        ObtainMedia(.Self, m.Post.ID, PostDate, UStates.Missing)
+                                                                        ObtainMedia(.Self, m.Post.ID, PostDate, UStates.Missing, m.Attempts)
                                                                         rList.ListAddValue(i, LNC)
                                                                     End If
                                                                 End With
@@ -805,7 +811,8 @@ Namespace API.Twitter
         Private Function MediaFromData(ByVal _URL As String, ByVal PostID As String, ByVal PostDate As String,
                                        Optional ByVal _PictureOption As String = Nothing,
                                        Optional ByVal State As UStates = UStates.Unknown,
-                                       Optional ByVal Type As UTypes = UTypes.Undefined) As UserMedia
+                                       Optional ByVal Type As UTypes = UTypes.Undefined,
+                                       Optional ByVal Attempts As Integer = 0) As UserMedia
             _URL = LinkFormatterSecure(RegexReplace(_URL.Replace("\", String.Empty), LinkPattern))
             Dim m As New UserMedia(_URL) With {.PictureOption = _PictureOption, .Post = New UserPost With {.ID = PostID}, .Type = Type}
             If Not m.URL.IsEmptyString Then m.File = CStr(RegexReplace(m.URL, FilesPattern))
@@ -814,6 +821,7 @@ Namespace API.Twitter
             End If
             If Not PostDate.IsEmptyString Then m.Post.Date = AConvert(Of Date)(PostDate, Declarations.DateProvider, Nothing) Else m.Post.Date = Nothing
             m.State = State
+            m.Attempts = Attempts
             Return m
         End Function
 #End Region

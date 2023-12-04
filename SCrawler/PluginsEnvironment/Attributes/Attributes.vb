@@ -41,4 +41,8 @@ Namespace Plugin.Attributes
             Name = _Name
         End Sub
     End Class
+    Public Class PClonableAttribute : Inherits Attribute
+        Public Clone As Boolean = True
+        Public Update As Boolean = True
+    End Class
 End Namespace

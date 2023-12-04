@@ -22,20 +22,124 @@ Namespace Editors
         Private Property Cookies As CookieKeeper
         Private CookiesChanged As Boolean = False
 #Region "Providers"
-        Private Class SavedPostsChecker : Inherits FieldsCheckerProviderBase
+        Private Class SavedPostsChecker : Inherits AccountsNameChecker
+            Friend ReadOnly PathControl As TextBoxExtended
+            Friend ReadOnly HostPaths As List(Of String)
+            Friend Shared Function GetNewSavedPostsName(ByVal PathText As String, ByVal HostIndex As Integer, ByVal MaxCount As Integer) As String
+                Return If(Not PathText.IsEmptyString, $"{PathText.CSFilePS}{SettingsHost.SavedPostsFolderName}{If(HostIndex = 0, String.Empty, $"_{IIf(HostIndex = -1, MaxCount + 1, HostIndex)}")}\", String.Empty)
+            End Function
+            Friend Sub New(ByVal h As SettingsHostCollection, ByVal i As Integer)
+                MyBase.New(h, i)
+                HostPaths = New List(Of String)(h.Select(Function(hh) hh.Path.PathNoSeparator))
+            End Sub
+            Friend Sub New(ByVal h As SettingsHostCollection, ByVal i As Integer, ByRef _PathControl As TextBoxExtended)
+                Me.New(h, i)
+                PathControl = _PathControl
+            End Sub
             Public Overrides Function Convert(ByVal Value As Object, ByVal DestinationType As Type, ByVal Provider As IFormatProvider,
                                               Optional ByVal NothingArg As Object = Nothing, Optional ByVal e As ErrorsDescriber = Nothing) As Object
-                If ACheck(Value) AndAlso CStr(Value).Contains("/") Then
+                Dim v$ = AConvert(Of String)(Value, String.Empty)
+                If Not v.IsEmptyString AndAlso v.Contains("/") Then
                     ErrorMessage = $"Path [{Name}] contains forbidden character ""/"""
                     HasError = True
-                    Return Nothing
+                ElseIf HostCollection.Count = 1 And HostIndex = 0 Then
+                    Return Value
+                ElseIf v.IsEmptyString Then
+                    If Not PathControl.IsEmptyString AndAlso Not HostPaths.Contains(PathControl.Text.CSFilePSN) Then
+                        Return GetNewSavedPostsName(PathControl.Text, HostIndex, HostCollection.Count)
+                    Else
+                        HasError = True
+                        ErrorMessage = "The path to saved posts is not unique!"
+                    End If
                 Else
                     Return Value
                 End If
+                Return Nothing
+            End Function
+        End Class
+        Private Class SavedPostsControlParams : Inherits FieldsChecker.ControlParams
+            Private ReadOnly Property ProviderE As SavedPostsChecker
+                Get
+                    Return Provider
+                End Get
+            End Property
+            Public Overrides Property CanBeNull As Boolean
+                Get
+                    With ProviderE
+                        If .HostCollection.Count = 1 And .HostIndex = 0 Then
+                            Return True
+                        ElseIf Not .PathControl.IsEmptyString Then
+                            Dim v$ = .PathControl.Text.CSFilePSN
+                            Return Not .HostPaths.Contains(v)
+                        Else
+                            Return False
+                        End If
+                    End With
+                End Get
+                Set : End Set
+            End Property
+            Friend Sub New(ByVal Name As String, ByRef RelatedControl As TextBoxExtended, ByRef _PathControl As TextBoxExtended,
+                           ByVal h As SettingsHostCollection, ByVal i As Integer)
+                MyBase.New(Name, GetType(String), RelatedControl, True, New SavedPostsChecker(h, i, _PathControl))
+            End Sub
+            Public Overrides Function Validate() As Boolean
+                If MyBase.Validate() Then
+                    Return True
+                Else
+                    DirectCast(WorkingControl, TextBoxExtended).Text = ProviderE.Convert(Validate_GetValue, GetType(String), Nothing, String.Empty, EDP.ReturnValue)
+                    Return MyBase.Validate()
+                End If
+            End Function
+        End Class
+        Private Class AccountsNameChecker : Inherits FieldsCheckerProviderBase
+            Friend ReadOnly HostCollection As SettingsHostCollection
+            Friend ReadOnly HostIndex As Integer
+            Public Overrides Property ErrorMessage As String
+                Get
+                    Return MyBase.ErrorMessage
+                End Get
+                Set(ByVal m As String)
+                    MyBase.ErrorMessage = m
+                    HasError = True
+                End Set
+            End Property
+            Public Overrides Sub Reset()
+                MyBase.Reset()
+                MyBase.ErrorMessage = String.Empty
+            End Sub
+            Friend Sub New(ByVal h As SettingsHostCollection, ByVal i As Integer)
+                HostCollection = h
+                HostIndex = i
+            End Sub
+            Public Overrides Function Convert(ByVal Value As Object, ByVal DestinationType As Type, ByVal Provider As IFormatProvider,
+                                              Optional ByVal NothingArg As Object = Nothing, Optional ByVal e As ErrorsDescriber = Nothing) As Object
+                If HostCollection.Count = 1 And HostIndex = 0 Then
+                    Return Value
+                Else
+                    Dim v$ = AConvert(Of String)(Value, String.Empty)
+                    If v.IsEmptyString Then
+                        If HostIndex = 0 Then
+                            Return v
+                        Else
+                            ErrorMessage = "Settings name cannot be null"
+                        End If
+                    ElseIf v = SettingsHost.NameAccountNameDefault Then
+                        If HostIndex = 0 Then
+                            Return v
+                        Else
+                            ErrorMessage = "The default name can only be set for the first settings!"
+                        End If
+                    Else
+                        Dim i% = HostCollection.IndexOf(v)
+                        If i >= 0 And i <> HostIndex Then ErrorMessage = $"There are already settings named '{v}'" Else Return v
+                    End If
+                End If
+                Return Nothing
             End Function
         End Class
 #End Region
         Private ReadOnly Property Host As SettingsHost
+        Private Property HostCollection As SettingsHostCollection
         Friend Sub New(ByVal h As SettingsHost)
             InitializeComponent()
             MyDefs = New DefaultFormOptions(Me, Settings.Design)
@@ -53,23 +157,33 @@ Namespace Editors
 
                     .MyFieldsChecker = New FieldsChecker
                     With Host
+                        HostCollection = Settings(Host.Key)
                         With .Source
                             Text = .Site
                             If Not .Icon Is Nothing Then Icon = .Icon Else ShowIcon = False
                         End With
+                        If Not .AccountName.IsEmptyString Then Text &= $" [{ .AccountName}]"
+                        If hostCollection.Count = 1 Then TXT_PATH_SAVED_POSTS.Button(ADB.Refresh).Visible = False
 
                         SetCookieText()
 
-                        TXT_PATH.Text = .Path(False)
                         TXT_PATH_SAVED_POSTS.Text = .SavedPostsPath(False)
+                        _PathBefore = .Path(False)
+                        TXT_PATH.Text = _PathBefore
+                        TXT_ACCOUNT_NAME.Text = .AccountName
+                        If Host.Index = 0 Then TXT_PATH_SAVED_POSTS.Button(ADB.Refresh).Visible = False : TXT_PATH_SAVED_POSTS.Buttons.UpdateButtonsPositions()
+                        If Host.Index >= 0 Then TXT_ACCOUNT_NAME.Enabled = False : TXT_ACCOUNT_NAME.Buttons.Clear() : TXT_ACCOUNT_NAME.Buttons.UpdateButtonsPositions()
                         CH_DOWNLOAD_SITE_DATA.Checked = .DownloadSiteData
+                        CH_USE_SAVED_POSTS.Checked = .DownloadSavedPosts
                         CH_GET_USER_MEDIA_ONLY.Checked = .GetUserMediaOnly
 
                         SiteDefaultsFunctions.SetChecker(TP_SITE_PROPS, Host)
 
                         With MyDefs.MyFieldsCheckerE
-                            .AddControl(Of String)(TXT_PATH, TXT_PATH.CaptionText, True, New SavedPostsChecker)
-                            .AddControl(Of String)(TXT_PATH_SAVED_POSTS, TXT_PATH_SAVED_POSTS.CaptionText, True, New SavedPostsChecker)
+                            .AddControl(Of String)(TXT_PATH, TXT_PATH.CaptionText, True, New SavedPostsChecker(HostCollection, Host.Index))
+                            .AddControl(New SavedPostsControlParams(TXT_PATH_SAVED_POSTS.CaptionText, TXT_PATH_SAVED_POSTS, TXT_PATH, HostCollection, Host.Index))
+                            .AddControl(Of String)(TXT_ACCOUNT_NAME, TXT_ACCOUNT_NAME.CaptionText,
+                                                   hostCollection.Count = 1 And Host.Index = 0, New AccountsNameChecker(hostCollection, Host.Index))
                         End With
 
                         Dim offset% = PropertyValueHost.LeftOffsetDefault
@@ -135,7 +249,9 @@ Namespace Editors
                         TXT_PATH.CaptionWidth = offset
                         TXT_PATH_SAVED_POSTS.CaptionWidth = offset
                         TXT_COOKIES.CaptionWidth = offset
+                        TXT_ACCOUNT_NAME.CaptionWidth = offset
                         CH_DOWNLOAD_SITE_DATA.Padding = New PaddingE(CH_DOWNLOAD_SITE_DATA.Padding) With {.Left = offset}
+                        CH_USE_SAVED_POSTS.Padding = New PaddingE(CH_USE_SAVED_POSTS.Padding) With {.Left = offset}
                         CH_GET_USER_MEDIA_ONLY.Padding = New PaddingE(CH_GET_USER_MEDIA_ONLY.Padding) With {.Left = offset}
                         If c > 0 Or h <> 0 Then
                             Dim ss As New Size(Size.Width, Size.Height + h + c)
@@ -200,7 +316,9 @@ Namespace Editors
                     SiteDefaultsFunctions.SetPropByChecker(TP_SITE_PROPS, Host)
                     If TXT_PATH.IsEmptyString Then .Path = Nothing Else .Path = TXT_PATH.Text
                     .SavedPostsPath = TXT_PATH_SAVED_POSTS.Text
+                    .AccountName = TXT_ACCOUNT_NAME.Text
                     .DownloadSiteData.Value = CH_DOWNLOAD_SITE_DATA.Checked
+                    .DownloadSavedPosts.Value = CH_USE_SAVED_POSTS.Checked
                     .GetUserMediaOnly.Value = CH_GET_USER_MEDIA_ONLY.Checked
                     If CookiesChanged And Not Cookies Is Nothing And Not .Responser Is Nothing Then
                         With .Responser.Cookies
@@ -219,11 +337,32 @@ Namespace Editors
                 MyDefs.CloseForm()
             End If
         End Sub
-        Private Sub TXT_PATH_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As EventArgs) Handles TXT_PATH.ActionOnButtonClick
-            ChangePath(Sender, Host.Path(False), TXT_PATH)
+        Private _PathBefore As SFile = Nothing
+        Private Sub TXT_PATH_ActionOnBeforeTextChanged(sender As Object, e As EventArgs) Handles TXT_PATH.ActionOnBeforeTextChanged
+            If Not MyDefs.Initializing Then _PathBefore = TXT_PATH.Text.CSFileP
         End Sub
-        Private Sub TXT_PATH_SAVED_POSTS_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As EventArgs) Handles TXT_PATH_SAVED_POSTS.ActionOnButtonClick
-            ChangePath(Sender, Host.SavedPostsPath(False), TXT_PATH_SAVED_POSTS)
+        Private _PathButtonClicked As Boolean = False
+        Private Sub TXT_PATH_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As ActionButtonEventArgs) Handles TXT_PATH.ActionOnButtonClick
+            _PathButtonClicked = True
+            ChangePath(Sender, Host.Path(False), TXT_PATH)
+            _PathButtonClicked = False
+        End Sub
+        Private Sub TXT_PATH_ActionOnTextChanged(sender As Object, e As EventArgs) Handles TXT_PATH.ActionOnTextChanged
+            If (_PathButtonClicked Or MyDefs.Initializing) And (HostCollection.Count > 1 Or Host.Index = -1) And TXT_PATH_SAVED_POSTS.IsEmptyString Then
+                If Not TXT_PATH.Text.IsEmptyString Then
+                    Dim f As SFile = TXT_PATH_SAVED_POSTS.Text.CSFileP
+                    If f.IsEmptyString OrElse (Not _PathBefore.IsEmptyString AndAlso _PathBefore.PathNoSeparator.Contains(f.PathNoSeparator)) Then _
+                       TXT_PATH_SAVED_POSTS.Text = SavedPostsChecker.GetNewSavedPostsName(TXT_PATH.Text, Host.Index, HostCollection.Count)
+                End If
+            End If
+        End Sub
+        Private Sub TXT_PATH_SAVED_POSTS_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As ActionButtonEventArgs) Handles TXT_PATH_SAVED_POSTS.ActionOnButtonClick
+            If e.DefaultButton = ADB.Refresh Then
+                If Not TXT_PATH.IsEmptyString Then TXT_PATH_SAVED_POSTS.Text =
+                   SavedPostsChecker.GetNewSavedPostsName(TXT_PATH.Text, Host.Index, HostCollection.Count)
+            Else
+                ChangePath(Sender, Host.SavedPostsPath(False), TXT_PATH_SAVED_POSTS)
+            End If
         End Sub
         Private Sub ChangePath(ByVal Sender As ActionButton, ByVal PathValue As SFile, ByRef CNT As TextBoxExtended)
             If Sender.DefaultButton = ADB.Open Then

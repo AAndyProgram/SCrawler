@@ -11,6 +11,6 @@ Namespace Plugin
         Overloads Sub Add(ByVal Message As String)
         Overloads Sub Add(ByVal ex As Exception, ByVal Message As String,
                           Optional ByVal ShowMainMsg As Boolean = False, Optional ByVal ShowErrorMsg As Boolean = False,
-                          Optional ByVal SendInLog As Boolean = True)
+                          Optional ByVal SendToLog As Boolean = True)
     End Interface
 End Namespace

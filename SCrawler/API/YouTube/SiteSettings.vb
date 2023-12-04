@@ -14,34 +14,25 @@ Namespace API.YouTube
     <Manifest(YouTubeSiteKey), SpecialForm(True), SpecialForm(False), SeparatedTasks(1)>
     Friend Class SiteSettings : Inherits SiteSettingsBase
 #Region "Declarations"
-        Friend Overrides ReadOnly Property Icon As Icon
-            Get
-                Return My.Resources.SiteYouTube.YouTubeIcon_32
-            End Get
-        End Property
-        Friend Overrides ReadOnly Property Image As Image
-            Get
-                Return My.Resources.SiteYouTube.YouTubePic_96
-            End Get
-        End Property
-        <PXML, PropertyOption(ControlText:="Download user videos")>
+        <PXML, PropertyOption(ControlText:="Download user videos"), PClonable>
         Friend ReadOnly Property DownloadVideos As PropertyValue
-        <PXML, PropertyOption(ControlText:="Download user shorts")>
+        <PXML, PropertyOption(ControlText:="Download user shorts"), PClonable>
         Friend ReadOnly Property DownloadShorts As PropertyValue
-        <PXML, PropertyOption(ControlText:="Download user playlists")>
+        <PXML, PropertyOption(ControlText:="Download user playlists"), PClonable>
         Friend ReadOnly Property DownloadPlaylists As PropertyValue
-        <PXML, PropertyOption(ControlText:="Use cookies", ControlToolTip:="Default value for new users." & vbCr & "Use cookies when downloading data.")>
+        <PXML, PropertyOption(ControlText:="Use cookies", ControlToolTip:="Default value for new users." & vbCr & "Use cookies when downloading data."), PClonable>
         Friend ReadOnly Property UseCookies As PropertyValue
 #End Region
 #Region "Initializer"
-        Friend Sub New()
-            MyBase.New(YouTubeSite, "youtube.com")
+        Friend Sub New(ByVal AccName As String, ByVal Temp As Boolean)
+            MyBase.New(YouTubeSite, "youtube.com", AccName, Temp, My.Resources.SiteYouTube.YouTubeIcon_32, My.Resources.SiteYouTube.YouTubePic_96)
             Responser.Cookies.ChangedAllowInternalDrop = False
             DownloadVideos = New PropertyValue(True)
             DownloadShorts = New PropertyValue(False)
             DownloadPlaylists = New PropertyValue(False)
             UseCookies = New PropertyValue(False)
             _SubscriptionsAllowed = True
+            UseNetscapeCookies = True
         End Sub
 #End Region
 #Region "GetInstance"
@@ -82,7 +73,7 @@ Namespace API.YouTube
             Dim isMusic As Boolean = False
             Dim id$ = String.Empty
             Dim isChannelUser As Boolean = False
-            Dim t As YouTubeMediaType = YouTubeFunctions.Info_GetUrlType(UserURL, isMusic, isChannelUser, id)
+            Dim t As YouTubeMediaType = YouTubeFunctions.Info_GetUrlType(UserURL, isMusic,, isChannelUser, id)
             If Not t = YouTubeMediaType.Undefined And Not t = YouTubeMediaType.Single And Not id.IsEmptyString Then
                 Return New ExchangeOptions(Site, $"{id}@{CInt(t) + IIf(isMusic, UserMedia.Types.Audio, 0) + IIf(isChannelUser, ChannelUserInt, 0)}")
             End If

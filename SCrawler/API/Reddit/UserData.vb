@@ -23,9 +23,6 @@ Imports CView = SCrawler.API.Reddit.IRedditView.View
 Imports CPeriod = SCrawler.API.Reddit.IRedditView.Period
 Namespace API.Reddit
     Friend Class UserData : Inherits UserDataBase : Implements IChannelLimits, IRedditView
-#Region "XML names"
-        Private Const Name_TrueName As String = "TrueName"
-#End Region
 #Region "Declarations"
         Private Const CannelsLabelName As String = "Channels"
         Friend Const CannelsLabelName_ChannelsForm As String = "RChannels"
@@ -51,6 +48,42 @@ Namespace API.Reddit
                 Return {CannelsLabelName, CannelsLabelName_ChannelsForm, UserLabelName}
             End Get
         End Property
+        Private _RedGifsAccount As String = String.Empty
+        Friend Property RedGifsAccount As String Implements IRedditView.RedGifsAccount
+            Get
+                If Not _RedGifsAccount.IsEmptyString Then
+                    Return _RedGifsAccount
+                ElseIf Not ChannelInfo Is Nothing Then
+                    Return ChannelInfo.RedGifsAccount
+                Else
+                    Return String.Empty
+                End If
+            End Get
+            Set(ByVal acc As String)
+                _RedGifsAccount = acc
+            End Set
+        End Property
+        Private _RedditAccount As String = String.Empty
+        Friend Property RedditAccount As String Implements IRedditView.RedditAccount
+            Get
+                If IsChannelForm Then
+                    Return _RedditAccount
+                Else
+                    Return MyBase.AccountName
+                End If
+            End Get
+            Set(ByVal acc As String)
+                _RedditAccount = acc
+            End Set
+        End Property
+        Friend Overrides Property AccountName As String
+            Get
+                Return RedditAccount
+            End Get
+            Set(ByVal acc As String)
+                MyBase.AccountName = acc
+            End Set
+        End Property
 #End Region
 #Region "Channels Support"
 #Region "IChannelLimits Support"
@@ -72,6 +105,11 @@ Namespace API.Reddit
             End With
         End Sub
         Friend Property AutoGetLimits As Boolean = True Implements IChannelLimits.AutoGetLimits
+        Private ReadOnly Property IsChannelForm As Boolean
+            Get
+                Return Not IsSavedPosts AndAlso IsChannel AndAlso Not ChannelInfo Is Nothing
+            End Get
+        End Property
 #End Region
         Friend Property ChannelInfo As Channel
         Private ReadOnly ChannelPostsNames As List(Of String)
@@ -91,6 +129,8 @@ Namespace API.Reddit
             If Not Options Is Nothing Then
                 ViewMode = Options.ViewMode
                 ViewPeriod = Options.ViewPeriod
+                RedGifsAccount = Options.RedGifsAccount
+                RedditAccount = Options.RedditAccount
             End If
         End Sub
         Private ReadOnly Property View As String
@@ -162,6 +202,8 @@ Namespace API.Reddit
                     ViewPeriod = .Value(Name_ViewPeriod).FromXML(Of Integer)(CInt(CPeriod.All))
                     IsChannel = .Value(Name_IsChannel).FromXML(Of Boolean)(False)
                     TrueName = .Value(Name_TrueName)
+                    RedGifsAccount = .Value(Name_RedGifsAccount)
+                    RedditAccount = .Value(Name_RedditAccount)
                     UpdateNames()
                 Else
                     If UpdateNames() Then .Value(Name_LabelsName) = LabelsString
@@ -169,11 +211,13 @@ Namespace API.Reddit
                     .Add(Name_ViewPeriod, CInt(ViewPeriod))
                     .Add(Name_IsChannel, IsChannel.BoolToInteger)
                     .Add(Name_TrueName, TrueName)
+                    .Add(Name_RedGifsAccount, RedGifsAccount)
+                    .Add(Name_RedditAccount, RedditAccount)
                 End If
             End With
         End Sub
         Friend Overrides Function ExchangeOptionsGet() As Object
-            Return New RedditViewExchange With {.ViewMode = ViewMode, .ViewPeriod = ViewPeriod}
+            Return New RedditViewExchange With {.ViewMode = ViewMode, .ViewPeriod = ViewPeriod, .RedGifsAccount = RedGifsAccount, .RedditAccount = RedditAccount}
         End Function
         Friend Overrides Sub ExchangeOptionsSet(ByVal Obj As Object)
             If Not Obj Is Nothing AndAlso TypeOf Obj Is IRedditView Then SetView(DirectCast(Obj, IRedditView))
@@ -187,7 +231,7 @@ Namespace API.Reddit
             If IsChannel Or IsSavedPosts Then UseMD5Comparison = False
             If IsSavedPosts Then TrueName = MySiteSettings.SavedPostsUserName.Value
             UpdateNames()
-            If Not IsSavedPosts AndAlso (IsChannel AndAlso Not ChannelInfo Is Nothing) Then
+            If IsChannelForm Then
                 UseMD5Comparison = False
                 EnvirDownloadSet()
                 If Not Responser Is Nothing Then Responser.Dispose()
@@ -790,8 +834,9 @@ Namespace API.Reddit
                     Dim r$, v$
                     Dim e As New ErrorsDescriber(EDP.ReturnValue)
                     Dim m As UserMedia, m2 As UserMedia
-                    Dim RedGifsHost As SettingsHost = Settings(RedGifs.RedGifsSiteKey)
+                    Dim RedGifsHost As SettingsHost = Settings(RedGifs.RedGifsSiteKey, RedGifsAccount)
                     Dim _repeatForRedgifs As Boolean
+                    If RedGifsHost Is Nothing Then RedGifsHost = Settings(RedGifs.RedGifsSiteKey).Default
                     RedGifsResponser = RedGifsHost.Responser.Copy
                     ProgressPre.ChangeMax(_TempMediaList.Count)
                     For i% = _TempMediaList.Count - 1 To 0 Step -1
@@ -806,7 +851,7 @@ Namespace API.Reddit
                                         r = Gfycat.Envir.GetVideo(m.URL)
                                         If Not r.IsEmptyString AndAlso r.Contains("redgifs.com") Then m.URL = r : _repeatForRedgifs = True
                                     ElseIf m.URL.Contains(SiteRedGifsKey) Then
-                                        m2 = RedGifs.UserData.GetDataFromUrlId(m.URL, False, RedGifsResponser, RedGifsHost)
+                                        m2 = RedGifs.UserData.GetDataFromUrlId(m.URL, False, RedGifsResponser, RedGifsHost, RedGifsAccount)
                                         If m2.State = UStates.Missing Then
                                             m.State = UStates.Missing
                                             _ContentList.Add(m)
@@ -853,7 +898,8 @@ Namespace API.Reddit
             Try
                 If Not ChannelInfo Is Nothing Or SaveToCache Then Exit Sub
                 If ContentMissingExists Then
-                    Dim RedGifsHost As SettingsHost = Settings(RedGifs.RedGifsSiteKey)
+                    Dim RedGifsHost As SettingsHost = Settings(RedGifs.RedGifsSiteKey, RedGifsAccount)
+                    If RedGifsHost Is Nothing Then RedGifsHost = Settings(RedGifs.RedGifsSiteKey).Default
                     RedGifsResponser = RedGifsHost.Responser.Copy
                     Dim m As UserMedia, m2 As UserMedia
                     Dim r$
@@ -877,6 +923,8 @@ Namespace API.Reddit
                                                     For li = IIf(lastCount < 0, 0, lastCount) To _TempMediaList.Count - 1
                                                         m2 = _TempMediaList(i)
                                                         m2.Post.Date = m.Post.Date
+                                                        m2.State = UStates.Missing
+                                                        m2.Attempts = m.Attempts
                                                         _TempMediaList(i) = m2
                                                     Next
                                                 End If
@@ -943,7 +991,7 @@ Namespace API.Reddit
             If _ContentNew.Count > 0 Then
                 Try
                     If Not _RedGifsResponser Is Nothing Then _RedGifsResponser.Dispose()
-                    _RedGifsResponser = Settings(RedGifs.RedGifsSiteKey).Responser.Copy
+                    _RedGifsResponser = If(Settings(RedGifs.RedGifsSiteKey, RedGifsAccount), Settings(RedGifs.RedGifsSiteKey).Default).Responser.Copy
                     DownloadContentDefault(Token)
                 Finally
                     If Not _RedGifsResponser Is Nothing Then _RedGifsResponser.Dispose() : _RedGifsResponser = Nothing
@@ -989,22 +1037,29 @@ Namespace API.Reddit
         Protected Overrides Function DownloadingException(ByVal ex As Exception, ByVal Message As String, Optional ByVal FromPE As Boolean = False,
                                                           Optional ByVal EObj As Object = Nothing) As Integer
             With Responser
-                If .StatusCode = HttpStatusCode.NotFound Then
+                If .StatusCode = HttpStatusCode.NotFound Then '404
                     UserExists = False
-                ElseIf .StatusCode = HttpStatusCode.Forbidden Then
+                ElseIf .StatusCode = HttpStatusCode.Forbidden Then '403
                     UserSuspended = True
-                ElseIf .StatusCode = HttpStatusCode.BadGateway Or .StatusCode = HttpStatusCode.ServiceUnavailable Then
-                    MyMainLOG = $"[{CInt(Responser.StatusCode)}] Reddit is currently unavailable ({ToString()})"
+                ElseIf .StatusCode = HttpStatusCode.BadGateway Or .StatusCode = HttpStatusCode.ServiceUnavailable Then '502, 503
+                    MyMainLOG = $"{ToStringForLog()}: [{CInt(Responser.StatusCode)}] Reddit is currently unavailable"
                     Throw New Plugin.ExitException With {.Silent = True}
-                ElseIf .StatusCode = HttpStatusCode.GatewayTimeout Then
+                ElseIf .StatusCode = HttpStatusCode.GatewayTimeout Then '504
                     Return 1
-                ElseIf .StatusCode = HttpStatusCode.Unauthorized Then
-                    MyMainLOG = $"[{CInt(Responser.StatusCode)}] Reddit credentials expired ({ToString()})"
+                ElseIf .StatusCode = HttpStatusCode.Unauthorized Then '401
+                    MyMainLOG = $"{ToStringForLog()}: [{CInt(Responser.StatusCode)}] Reddit credentials expired"
                     MySiteSettings.SessionInterrupted = True
                     Throw New Plugin.ExitException With {.Silent = True}
-                ElseIf .StatusCode = HttpStatusCode.InternalServerError Then
+                ElseIf .StatusCode = HttpStatusCode.InternalServerError Then '500
                     If Not IsNothing(EObj) AndAlso IsNumeric(EObj) AndAlso CInt(EObj) = HttpStatusCode.InternalServerError Then Return 1
                     Return HttpStatusCode.InternalServerError
+                ElseIf .StatusCode = 429 AndAlso
+                       ((Not IsSavedPosts And CBool(MySiteSettings.UseTokenForTimelines.Value)) Or (IsSavedPosts And MySiteSettings.UseTokenForSavedPosts.Value)) AndAlso
+                       Not MySiteSettings.CredentialsExists Then '429
+                    MyMainLOG = $"{ToStringForLog()}: [{CInt(Responser.StatusCode)}] You should use OAuth authorization or disable " &
+                                IIf(IsSavedPosts, "token usage for downloading saved posts", "the use of token and cookies for downloading timelines")
+                    MySiteSettings.SessionInterrupted = True
+                    Throw New Plugin.ExitException With {.Silent = True}
                 Else
                     If Not FromPE Then LogError(ex, Message) : HasError = True
                     Return 0

@@ -10,9 +10,6 @@ Imports SCrawler.API.Base
 Imports SCrawler.Plugin
 Imports SCrawler.Plugin.Attributes
 Imports PersonalUtilities.Forms
-Imports PersonalUtilities.Functions.XML
-Imports PersonalUtilities.Functions.XML.Objects
-Imports PersonalUtilities.Functions.XML.Base
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Tools.Web.Clients
 Imports PersonalUtilities.Tools.Web.Cookies
@@ -21,18 +18,6 @@ Namespace API.Instagram
     <Manifest(InstagramSiteKey), SeparatedTasks(1), SavedPosts, SpecialForm(False)>
     Friend Class SiteSettings : Inherits SiteSettingsBase
 #Region "Declarations"
-#Region "Images"
-        Friend Overrides ReadOnly Property Icon As Icon
-            Get
-                Return My.Resources.SiteResources.InstagramIcon_32
-            End Get
-        End Property
-        Friend Overrides ReadOnly Property Image As Image
-            Get
-                Return My.Resources.SiteResources.InstagramPic_76
-            End Get
-        End Property
-#End Region
 #Region "Providers"
         Private Class TimersChecker : Inherits FieldsCheckerProviderBase
             Private ReadOnly LVProvider As New ANumbers With {.FormatOptions = ANumbers.Options.GroupIntegral}
@@ -70,30 +55,31 @@ Namespace API.Instagram
         End Class
 #End Region
 #Region "Authorization properties"
-        Private Const Header_IG_APP_ID As String = "x-ig-app-id"
+        Friend Const Header_IG_APP_ID As String = "x-ig-app-id"
         Friend Const Header_IG_WWW_CLAIM As String = "x-ig-www-claim"
         Friend Const Header_CSRF_TOKEN As String = "x-csrftoken"
-        Private Const Header_ASBD_ID As String = "X-Asbd-Id"
-        Private Const Header_Browser As String = "Sec-Ch-Ua"
-        Private Const Header_BrowserExt As String = "Sec-Ch-Ua-Full-Version-List"
-        Private Const Header_Platform As String = "Sec-Ch-Ua-Platform-Version"
-        <PropertyOption(ControlText:="Hash", ControlToolTip:="Instagram session hash for tagged posts", IsAuth:=True), PXML("InstaHash"), ControlNumber(0)>
+        Friend Const Header_CSRF_TOKEN_COOKIE As String = "csrftoken"
+        Friend Const Header_ASBD_ID As String = "X-Asbd-Id"
+        Friend Const Header_Browser As String = "Sec-Ch-Ua"
+        Friend Const Header_BrowserExt As String = "Sec-Ch-Ua-Full-Version-List"
+        Friend Const Header_Platform As String = "Sec-Ch-Ua-Platform-Version"
+        <PropertyOption(ControlText:="Hash", ControlToolTip:="Instagram session hash for tagged posts", IsAuth:=True), PXML("InstaHash"), ControlNumber(0), PClonable(Clone:=False)>
         Friend ReadOnly Property HashTagged As PropertyValue
-        <PropertyOption(ControlText:="x-csrftoken", IsAuth:=True, AllowNull:=False), ControlNumber(2)>
+        <PropertyOption(ControlText:="x-csrftoken", IsAuth:=True, AllowNull:=False), ControlNumber(2), PClonable(Clone:=False)>
         Friend ReadOnly Property HH_CSRF_TOKEN As PropertyValue
-        <PropertyOption(ControlText:="x-ig-app-id", IsAuth:=True, AllowNull:=False), ControlNumber(3)>
+        <PropertyOption(ControlText:="x-ig-app-id", IsAuth:=True, AllowNull:=False), ControlNumber(3), PClonable(Clone:=False)>
         Friend Property HH_IG_APP_ID As PropertyValue
-        <PropertyOption(ControlText:="x-asbd-id", IsAuth:=True, AllowNull:=True), ControlNumber(4)>
+        <PropertyOption(ControlText:="x-asbd-id", IsAuth:=True, AllowNull:=True), ControlNumber(4), PClonable(Clone:=False)>
         Friend Property HH_ASBD_ID As PropertyValue
-        <PropertyOption(ControlText:="x-ig-www-claim", IsAuth:=True, AllowNull:=True), ControlNumber(5)>
+        <PropertyOption(ControlText:="x-ig-www-claim", IsAuth:=True, AllowNull:=True), ControlNumber(5), PClonable(Clone:=False)>
         Friend Property HH_IG_WWW_CLAIM As PropertyValue
-        <PropertyOption(ControlText:="sec-ch-ua", IsAuth:=True, AllowNull:=True), ControlNumber(6)>
+        <PropertyOption(ControlText:="sec-ch-ua", IsAuth:=True, AllowNull:=True), ControlNumber(6), PClonable>
         Private Property HH_BROWSER As PropertyValue
-        <PropertyOption(ControlText:="sec-ch-ua-full", ControlToolTip:="sec-ch-ua-full-version-list", IsAuth:=True, AllowNull:=True), ControlNumber(7)>
+        <PropertyOption(ControlText:="sec-ch-ua-full", ControlToolTip:="sec-ch-ua-full-version-list", IsAuth:=True, AllowNull:=True), ControlNumber(7), PClonable>
         Private Property HH_BROWSER_EXT As PropertyValue
-        <PropertyOption(ControlText:="sec-ch-ua-platform-ver", ControlToolTip:="sec-ch-ua-platform-version", IsAuth:=True, AllowNull:=True), ControlNumber(8)>
+        <PropertyOption(ControlText:="sec-ch-ua-platform-ver", ControlToolTip:="sec-ch-ua-platform-version", IsAuth:=True, AllowNull:=True), ControlNumber(8), PClonable>
         Private Property HH_PLATFORM As PropertyValue
-        <PropertyOption(ControlText:="UserAgent", IsAuth:=True, AllowNull:=True), ControlNumber(9)>
+        <PropertyOption(ControlText:="UserAgent", IsAuth:=True, AllowNull:=True), ControlNumber(9), PClonable>
         Private Property HH_USER_AGENT As PropertyValue
         Friend Overrides Function BaseAuthExists() As Boolean
             Return Responser.CookiesExists And ACheck(HH_IG_APP_ID.Value) And ACheck(HH_CSRF_TOKEN.Value)
@@ -123,64 +109,69 @@ Namespace API.Instagram
         End Sub
 #End Region
 #Region "Download properties"
-        <PropertyOption(ControlText:="Request timer", AllowNull:=False), PXML("RequestsWaitTimer"), ControlNumber(20)>
+        <PropertyOption(ControlText:="Request timer", AllowNull:=False), PXML("RequestsWaitTimer"), ControlNumber(20), PClonable>
         Friend ReadOnly Property RequestsWaitTimer As PropertyValue
         <Provider(NameOf(RequestsWaitTimer), FieldsChecker:=True)>
         Private ReadOnly Property RequestsWaitTimerProvider As IFormatProvider
-        <PropertyOption(ControlText:="Request timer counter", AllowNull:=False, LeftOffset:=120), PXML("RequestsWaitTimerTaskCount"), ControlNumber(21)>
+        <PropertyOption(ControlText:="Request timer counter", AllowNull:=False, LeftOffset:=120), PXML("RequestsWaitTimerTaskCount"), ControlNumber(21), PClonable>
         Friend ReadOnly Property RequestsWaitTimerTaskCount As PropertyValue
         <Provider(NameOf(RequestsWaitTimerTaskCount), FieldsChecker:=True)>
         Private ReadOnly Property RequestsWaitTimerTaskCountProvider As IFormatProvider
-        <PropertyOption(ControlText:="Posts limit timer", AllowNull:=False), PXML("SleepTimerOnPostsLimit"), ControlNumber(22)>
+        <PropertyOption(ControlText:="Posts limit timer", AllowNull:=False), PXML("SleepTimerOnPostsLimit"), ControlNumber(22), PClonable>
         Friend ReadOnly Property SleepTimerOnPostsLimit As PropertyValue
         <Provider(NameOf(SleepTimerOnPostsLimit), FieldsChecker:=True)>
         Private ReadOnly Property SleepTimerOnPostsLimitProvider As IFormatProvider
-        <PropertyOption(ControlText:="Get timeline", ControlToolTip:="Default value for new users"), PXML, ControlNumber(23)>
+        <PropertyOption(ControlText:="Get timeline", ControlToolTip:="Default value for new users"), PXML, ControlNumber(23), PClonable>
         Friend ReadOnly Property GetTimeline As PropertyValue
-        <PropertyOption(ControlText:="Get stories", ControlToolTip:="Default value for new users"), PXML, ControlNumber(24)>
+        <PropertyOption(ControlText:="Get stories", ControlToolTip:="Default value for new users"), PXML, ControlNumber(24), PClonable>
         Friend ReadOnly Property GetStories As PropertyValue
-        <PropertyOption(ControlText:="Get tagged photos", ControlToolTip:="Default value for new users"), PXML, ControlNumber(25)>
+        <PropertyOption(ControlText:="Get stories: user", ControlToolTip:="Default value for new users"), PXML, ControlNumber(25), PClonable>
+        Friend ReadOnly Property GetStoriesUser As PropertyValue
+        <PropertyOption(ControlText:="Get tagged photos", ControlToolTip:="Default value for new users"), PXML, ControlNumber(26), PClonable>
         Friend ReadOnly Property GetTagged As PropertyValue
         <PropertyOption(ControlText:="Tagged notify limit",
                         ControlToolTip:="If the number of tagged posts exceeds this number you will be notified." & vbCr &
-                        "-1 to disable"), PXML, ControlNumber(26)>
+                        "-1 to disable"), PXML, ControlNumber(27), PClonable>
         Friend ReadOnly Property TaggedNotifyLimit As PropertyValue
         <Provider(NameOf(TaggedNotifyLimit), FieldsChecker:=True)>
         Private ReadOnly Property TaggedNotifyLimitProvider As IFormatProvider
 #End Region
 #Region "Download ready"
-        <PropertyOption(ControlText:="Download timeline", ControlToolTip:="Download timeline"), PXML, ControlNumber(10)>
+        <PropertyOption(ControlText:="Download timeline", ControlToolTip:="Download timeline"), PXML, ControlNumber(10), PClonable>
         Friend ReadOnly Property DownloadTimeline As PropertyValue
-        <PropertyOption(ControlText:="Download stories", ControlToolTip:="Download stories"), PXML, ControlNumber(11)>
+        <PropertyOption(ControlText:="Download stories", ControlToolTip:="Download stories"), PXML, ControlNumber(11), PClonable>
         Friend ReadOnly Property DownloadStories As PropertyValue
-        <PropertyOption(ControlText:="Download tagged", ControlToolTip:="Download tagged posts"), PXML, ControlNumber(12)>
+        <PropertyOption(ControlText:="Download stories: user", ControlToolTip:="Download stories (user)"), PXML, ControlNumber(12), PClonable>
+        Friend ReadOnly Property DownloadStoriesUser As PropertyValue
+        <PropertyOption(ControlText:="Download tagged", ControlToolTip:="Download tagged posts"), PXML, ControlNumber(13), PClonable>
         Friend ReadOnly Property DownloadTagged As PropertyValue
 #End Region
 #Region "429 bypass"
-        Private ReadOnly Property DownloadingErrorDate As XMLValue(Of Date)
+        <PXML("InstagramDownloadingErrorDate")>
+        Private ReadOnly Property DownloadingErrorDate As PropertyValue
         Friend Property LastApplyingValue As Integer? = Nothing
         Friend ReadOnly Property ReadyForDownload As Boolean
             Get
                 If SkipUntilNextSession Then Return False
                 With DownloadingErrorDate
-                    If .ValueF.Exists Then
-                        Return .ValueF.Value.AddMinutes(If(LastApplyingValue, 10)) < Now
+                    If ACheck(Of Date)(.Value) Then
+                        Return CDate(.Value).AddMinutes(If(LastApplyingValue, 10)) < Now
                     Else
                         Return True
                     End If
                 End With
             End Get
         End Property
-        Private ReadOnly Property LastDownloadDate As XMLValue(Of Date)
-        Private ReadOnly Property LastRequestsCount As XMLValue(Of Integer)
+        <PXML> Private ReadOnly Property LastDownloadDate As PropertyValue
+        <PXML> Private ReadOnly Property LastRequestsCount As PropertyValue
         <PropertyOption(IsInformationLabel:=True), ControlNumber(100)>
         Private Property LastRequestsCountLabel As PropertyValue
         Private ReadOnly LastRequestsCountLabelStr As Func(Of Integer, String) = Function(r) $"Number of spent requests: {r.NumToGroupIntegral}"
         Private TooManyRequestsReadyForCatch As Boolean = True
         Friend Function GetWaitDate() As Date
             With DownloadingErrorDate
-                If .ValueF.Exists Then
-                    Return .ValueF.Value.AddMinutes(If(LastApplyingValue, 10))
+                If ACheck(Of Date)(.Value) Then
+                    Return CDate(.Value).AddMinutes(If(LastApplyingValue, 10))
                 Else
                     Return Now
                 End If
@@ -189,7 +180,7 @@ Namespace API.Instagram
         Friend Sub TooManyRequests(ByVal Catched As Boolean)
             With DownloadingErrorDate
                 If Catched Then
-                    If Not .ValueF.Exists Then
+                    If Not ACheck(Of Date)(.Value) Then
                         .Value = Now
                         If TooManyRequestsReadyForCatch Then
                             LastApplyingValue = If(LastApplyingValue, 0) + 10
@@ -198,7 +189,7 @@ Namespace API.Instagram
                         End If
                     End If
                 Else
-                    .ValueF = Nothing
+                    .Value = Nothing
                     LastApplyingValue = Nothing
                     TooManyRequestsReadyForCatch = True
                 End If
@@ -207,8 +198,8 @@ Namespace API.Instagram
 #End Region
 #End Region
 #Region "Initializer"
-        Friend Sub New(ByRef _XML As XmlFile, ByVal GlobalPath As SFile)
-            MyBase.New(InstagramSite, "instagram.com")
+        Friend Sub New(ByVal AccName As String, ByVal Temp As Boolean)
+            MyBase.New(InstagramSite, "instagram.com", AccName, Temp, My.Resources.SiteResources.InstagramIcon_32, My.Resources.SiteResources.InstagramPic_76)
 
             Dim app_id$ = String.Empty
             Dim www_claim$ = String.Empty
@@ -221,7 +212,7 @@ Namespace API.Instagram
 
             With Responser
                 .Accept = "*/*"
-                useragent = .UserAgent
+                If .UserAgentExists Then useragent = .UserAgent Else .UserAgent = String.Empty
                 With .Headers
                     If .Count > 0 Then
                         token = .Value(Header_CSRF_TOKEN)
@@ -245,8 +236,6 @@ Namespace API.Instagram
                 .CookiesExtractedAutoSave = False
             End With
 
-            Dim n() As String = {SettingsCLS.Name_Node_Sites, Site.ToString}
-
             HashTagged = New PropertyValue(String.Empty, GetType(String))
             HH_CSRF_TOKEN = New PropertyValue(token, GetType(String), Sub(v) ChangeResponserFields(NameOf(HH_CSRF_TOKEN), v))
             HH_IG_APP_ID = New PropertyValue(app_id, GetType(String), Sub(v) ChangeResponserFields(NameOf(HH_IG_APP_ID), v))
@@ -259,6 +248,7 @@ Namespace API.Instagram
 
             DownloadTimeline = New PropertyValue(True)
             DownloadStories = New PropertyValue(True)
+            DownloadStoriesUser = New PropertyValue(True)
             DownloadTagged = New PropertyValue(False)
 
             RequestsWaitTimer = New PropertyValue(1000)
@@ -270,16 +260,16 @@ Namespace API.Instagram
 
             GetTimeline = New PropertyValue(True)
             GetStories = New PropertyValue(False)
+            GetStoriesUser = New PropertyValue(False)
             GetTagged = New PropertyValue(False)
             TaggedNotifyLimit = New PropertyValue(200)
             TaggedNotifyLimitProvider = New TaggedNotifyLimitChecker
 
-            DownloadingErrorDate = New XMLValue(Of Date) With {.Provider = New XMLValueConversionProvider(Function(ss, nn, vv, dd) AConvert(Of String)(vv, AModes.Var, Nothing))}
-            DownloadingErrorDate.SetExtended("InstagramDownloadingErrorDate", Now.AddYears(-10), _XML, n)
-            LastDownloadDate = New XMLValue(Of Date)("LastDownloadDate", Now.AddDays(-1), _XML, n)
-            LastRequestsCount = New XMLValue(Of Integer)("LastRequestsCount", 0, _XML, n)
+            DownloadingErrorDate = New PropertyValue(Nothing, GetType(Date))
+            LastDownloadDate = New PropertyValue(Now.AddDays(-1))
+            LastRequestsCount = New PropertyValue(0)
             LastRequestsCountLabel = New PropertyValue(LastRequestsCountLabelStr.Invoke(LastRequestsCount.Value))
-            AddHandler LastRequestsCount.ValueChanged, Sub(sender, e) LastRequestsCountLabel.Value = LastRequestsCountLabelStr.Invoke(DirectCast(sender, XMLValue(Of Integer)).ValueF.Value)
+            LastRequestsCount.OnChangeFunction = Sub(vv) LastRequestsCountLabel.Value = LastRequestsCountLabelStr.Invoke(vv)
 
             _AllowUserAgentUpdate = False
             UrlPatternUser = "https://www.instagram.com/{0}/"
@@ -322,7 +312,7 @@ Namespace API.Instagram
         Private _NextTagged As Boolean = True
         Friend Overrides Sub DownloadStarted(ByVal What As Download)
             ActiveJobs += 1
-            If LastDownloadDate.Value.AddMinutes(120) < Now Or Not ACheck(HH_IG_WWW_CLAIM.Value) Then HH_IG_WWW_CLAIM.Value = "0"
+            If CDate(LastDownloadDate.Value).AddMinutes(120) < Now Or Not ACheck(HH_IG_WWW_CLAIM.Value) Then HH_IG_WWW_CLAIM.Value = "0"
         End Sub
         Friend Overrides Sub BeforeStartDownload(ByVal User As Object, ByVal What As Download)
             With DirectCast(User, UserData)
@@ -330,8 +320,8 @@ Namespace API.Instagram
                     .WaitNotificationMode = _NextWNM
                     .TaggedCheckSession = _NextTagged
                 End If
-                If LastDownloadDate.Value.AddMinutes(60) > Now Then
-                    .RequestsCount = LastRequestsCount
+                If CDate(LastDownloadDate.Value).AddMinutes(60) > Now Then
+                    .RequestsCount = LastRequestsCount.Value
                 Else
                     LastRequestsCount.Value = 0
                     .RequestsCount = 0
@@ -359,13 +349,16 @@ Namespace API.Instagram
             SkipUntilNextSession = False
         End Sub
 #End Region
-#Region "UserOptions, GetUserPostUrl"
+#Region "UserOptions, GetUserUrl, GetUserPostUrl"
         Friend Overrides Sub UserOptions(ByRef Options As Object, ByVal OpenForm As Boolean)
             If Options Is Nothing OrElse Not TypeOf Options Is EditorExchangeOptions Then Options = New EditorExchangeOptions(Me)
             If OpenForm Then
                 Using f As New InternalSettingsForm(Options, Me, False) : f.ShowDialog() : End Using
             End If
         End Sub
+        Friend Overrides Function GetUserUrl(ByVal User As IPluginContentProvider) As String
+            Return String.Format(UrlPatternUser, DirectCast(User, UserData).NameTrue)
+        End Function
         Friend Overrides Function GetUserPostUrl(ByVal User As UserDataBase, ByVal Media As UserMedia) As String
             Try
                 Dim code$ = DirectCast(User, UserData).GetPostCodeById(Media.Post.ID)

@@ -12,43 +12,72 @@ Imports PersonalUtilities.Forms.Toolbars
 Imports PDownload = SCrawler.Plugin.ISiteSettings.Download
 Namespace API.Base
     Friend NotInheritable Class ProfileSaved
-        Private ReadOnly Property HOST As SettingsHost
+        Private ReadOnly Property HOST As SettingsHostCollection
         Private ReadOnly Property Progress As MyProgress
-        Friend Sub New(ByRef h As SettingsHost, ByRef Bar As MyProgress)
+        Private _Unavailable As Integer, _NotReady As Integer, _ErrorCount As Integer
+        Private _TotalImages As Integer, _TotalVideos As Integer
+        Friend Sub New(ByRef h As SettingsHostCollection, ByRef Bar As MyProgress)
             HOST = h
             Progress = Bar
         End Sub
-        Friend Sub Download(ByVal Token As CancellationToken, ByVal Multiple As Boolean)
+        Friend Overloads Sub Download(ByVal Token As CancellationToken, ByVal Multiple As Boolean)
+            Dim n% = 0
+            Dim c% = HOST.Sum(Function(h) IIf(h.DownloadSavedPosts, 1, 0))
+            _Unavailable = 0
+            _NotReady = 0
+            _ErrorCount = 0
+            _TotalImages = 0
+            _TotalVideos = 0
+            If c > 0 Then
+                For i% = 0 To HOST.Count - 1
+                    If HOST(i).DownloadSavedPosts Then n += 1 : Download(HOST(i), n, c, Token, Multiple)
+                Next
+                If c > 1 Then
+                    Dim s% = {_Unavailable, _NotReady, _ErrorCount}.Sum
+                    Progress.InformationTemporary = $"{HOST.Name} ({c - s}/{c}) Images: {_TotalImages}; Videos: {_TotalVideos}"
+                End If
+            End If
+        End Sub
+        Private Overloads Sub Download(ByVal Host As SettingsHost, ByVal Number As Integer, ByVal Count As Integer,
+                                       ByVal Token As CancellationToken, ByVal Multiple As Boolean)
+            Dim aStr$ = String.Empty
+            If Count > 1 Then aStr = $" ({Number}/{Count})"
             Try
-                If HOST.Source.ReadyToDownload(PDownload.SavedPosts) Then
-                    If HOST.Available(PDownload.SavedPosts, Multiple) Then
-                        HOST.DownloadStarted(PDownload.SavedPosts)
-                        Dim u As New UserInfo With {.Plugin = HOST.Key, .Site = HOST.Name, .SpecialPath = HOST.SavedPostsPath}
-                        Using user As IUserData = HOST.GetInstance(PDownload.SavedPosts, Nothing, False, False)
+                If Host.Source.ReadyToDownload(PDownload.SavedPosts) Then
+                    If Host.Available(PDownload.SavedPosts, Multiple Or Count > 1) Then
+                        Host.DownloadStarted(PDownload.SavedPosts)
+                        If Count > 1 Then Progress.Information = $"{Host.Name} - {Host.AccountName.IfNullOrEmpty(SettingsHost.NameAccountNameDefault)}"
+                        Using user As IUserData = Host.GetInstance(PDownload.SavedPosts, Nothing, False, False)
                             If Not user Is Nothing Then
                                 With DirectCast(user, UserDataBase)
+                                    .HostStatic = True
                                     .IsSavedPosts = True
                                     .LoadUserInformation()
                                     .Progress = Progress
                                     If Not .FileExists Then .UpdateUserInformation()
                                 End With
-                                HOST.BeforeStartDownload(user, PDownload.SavedPosts)
+                                Host.BeforeStartDownload(user, PDownload.SavedPosts)
                                 user.DownloadData(Token)
-                                Progress.InformationTemporary = $"{HOST.Name} Images: {user.DownloadedPictures(False)}; Videos: {user.DownloadedVideos(False)}"
-                                HOST.AfterDownload(user, PDownload.SavedPosts)
+                                _TotalImages += user.DownloadedPictures(False)
+                                _TotalVideos += user.DownloadedVideos(False)
+                                Progress.InformationTemporary = $"{Host.Name}{aStr} Images: {user.DownloadedPictures(False)}; Videos: {user.DownloadedVideos(False)}"
+                                Host.AfterDownload(user, PDownload.SavedPosts)
                             End If
                         End Using
                     Else
-                        Progress.InformationTemporary = $"Host [{HOST.Name}] is unavailable"
+                        _Unavailable += 1
+                        Progress.InformationTemporary = $"Host [{Host.Name}{aStr}] is unavailable"
                     End If
                 Else
-                    Progress.InformationTemporary = $"Host [{HOST.Name}] is not ready"
+                    _NotReady += 1
+                    Progress.InformationTemporary = $"Host [{Host.Name}{aStr}] is not ready"
                 End If
             Catch ex As Exception
-                Progress.InformationTemporary = $"{HOST.Name} downloading error"
-                ErrorsDescriber.Execute(EDP.SendToLog, ex, $"[API.Base.ProfileSaved.Download({HOST.Key})]")
+                _ErrorCount += 1
+                Progress.InformationTemporary = $"{Host.Name}{aStr} downloading error"
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, $"[API.Base.ProfileSaved.Download({Host.Key}{aStr})]")
             Finally
-                HOST.DownloadDone(PDownload.SavedPosts)
+                Host.DownloadDone(PDownload.SavedPosts)
                 MainFrameObj.UpdateLogButton()
             End Try
         End Sub

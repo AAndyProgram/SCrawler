@@ -23,10 +23,13 @@ Namespace API.Reddit
         <System.Diagnostics.DebuggerStepThrough()>
         Private Sub InitializeComponent()
             Dim CONTAINER_MAIN As System.Windows.Forms.ToolStripContainer
-            Dim TP_MAIN As System.Windows.Forms.TableLayoutPanel
             Dim TP_VIEW_MODE As System.Windows.Forms.TableLayoutPanel
             Dim LBL_VIEW_MODE As System.Windows.Forms.Label
             Dim LBL_PERIOD As System.Windows.Forms.Label
+            Dim ActionButton1 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(RedditViewSettingsForm))
+            Dim ActionButton2 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Me.TP_MAIN = New System.Windows.Forms.TableLayoutPanel()
             Me.OPT_VIEW_MODE_NEW = New System.Windows.Forms.RadioButton()
             Me.OPT_VIEW_MODE_HOT = New System.Windows.Forms.RadioButton()
             Me.OPT_VIEW_MODE_TOP = New System.Windows.Forms.RadioButton()
@@ -37,16 +40,19 @@ Namespace API.Reddit
             Me.OPT_PERIOD_WEEK = New System.Windows.Forms.RadioButton()
             Me.OPT_PERIOD_MONTH = New System.Windows.Forms.RadioButton()
             Me.OPT_PERIOD_YEAR = New System.Windows.Forms.RadioButton()
+            Me.CMB_REDGIFS_ACC = New PersonalUtilities.Forms.Controls.ComboBoxExtended()
+            Me.CMB_REDDIT_ACC = New PersonalUtilities.Forms.Controls.ComboBoxExtended()
             CONTAINER_MAIN = New System.Windows.Forms.ToolStripContainer()
-            TP_MAIN = New System.Windows.Forms.TableLayoutPanel()
             TP_VIEW_MODE = New System.Windows.Forms.TableLayoutPanel()
             LBL_VIEW_MODE = New System.Windows.Forms.Label()
             LBL_PERIOD = New System.Windows.Forms.Label()
             CONTAINER_MAIN.ContentPanel.SuspendLayout()
             CONTAINER_MAIN.SuspendLayout()
-            TP_MAIN.SuspendLayout()
+            Me.TP_MAIN.SuspendLayout()
             TP_VIEW_MODE.SuspendLayout()
             Me.TP_PERIOD.SuspendLayout()
+            CType(Me.CMB_REDGIFS_ACC, System.ComponentModel.ISupportInitialize).BeginInit()
+            CType(Me.CMB_REDDIT_ACC, System.ComponentModel.ISupportInitialize).BeginInit()
             Me.SuspendLayout()
             '
             'CONTAINER_MAIN
@@ -54,34 +60,37 @@ Namespace API.Reddit
             '
             'CONTAINER_MAIN.ContentPanel
             '
-            CONTAINER_MAIN.ContentPanel.Controls.Add(TP_MAIN)
-            CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(477, 87)
+            CONTAINER_MAIN.ContentPanel.Controls.Add(Me.TP_MAIN)
+            CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(477, 169)
             CONTAINER_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
             CONTAINER_MAIN.LeftToolStripPanelVisible = False
             CONTAINER_MAIN.Location = New System.Drawing.Point(0, 0)
             CONTAINER_MAIN.Name = "CONTAINER_MAIN"
             CONTAINER_MAIN.RightToolStripPanelVisible = False
-            CONTAINER_MAIN.Size = New System.Drawing.Size(477, 112)
+            CONTAINER_MAIN.Size = New System.Drawing.Size(477, 169)
             CONTAINER_MAIN.TabIndex = 0
             CONTAINER_MAIN.TopToolStripPanelVisible = False
             '
             'TP_MAIN
             '
-            TP_MAIN.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
-            TP_MAIN.ColumnCount = 1
-            TP_MAIN.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_MAIN.Controls.Add(TP_VIEW_MODE, 0, 0)
-            TP_MAIN.Controls.Add(Me.TP_PERIOD, 0, 1)
-            TP_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
-            TP_MAIN.Location = New System.Drawing.Point(0, 0)
-            TP_MAIN.Name = "TP_MAIN"
-            TP_MAIN.RowCount = 3
-            TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
-            TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 56.0!))
-            TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
-            TP_MAIN.Size = New System.Drawing.Size(477, 87)
-            TP_MAIN.TabIndex = 0
+            Me.TP_MAIN.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
+            Me.TP_MAIN.ColumnCount = 1
+            Me.TP_MAIN.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            Me.TP_MAIN.Controls.Add(TP_VIEW_MODE, 0, 0)
+            Me.TP_MAIN.Controls.Add(Me.TP_PERIOD, 0, 1)
+            Me.TP_MAIN.Controls.Add(Me.CMB_REDGIFS_ACC, 0, 3)
+            Me.TP_MAIN.Controls.Add(Me.CMB_REDDIT_ACC, 0, 2)
+            Me.TP_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.TP_MAIN.Location = New System.Drawing.Point(0, 0)
+            Me.TP_MAIN.Name = "TP_MAIN"
+            Me.TP_MAIN.RowCount = 5
+            Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
+            Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 56.0!))
+            Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
+            Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
+            Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            Me.TP_MAIN.Size = New System.Drawing.Size(477, 169)
+            Me.TP_MAIN.TabIndex = 0
             '
             'TP_VIEW_MODE
             '
@@ -258,19 +267,55 @@ Namespace API.Reddit
             Me.OPT_PERIOD_YEAR.Text = "Year"
             Me.OPT_PERIOD_YEAR.UseVisualStyleBackColor = True
             '
+            'CMB_REDGIFS_ACC
+            '
+            ActionButton1.BackgroundImage = CType(resources.GetObject("ActionButton1.BackgroundImage"), System.Drawing.Image)
+            ActionButton1.Name = "ArrowDown"
+            ActionButton1.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.ArrowDown
+            Me.CMB_REDGIFS_ACC.Buttons.Add(ActionButton1)
+            Me.CMB_REDGIFS_ACC.CaptionMode = PersonalUtilities.Forms.Controls.Base.ICaptionControl.Modes.Label
+            Me.CMB_REDGIFS_ACC.CaptionSizeType = System.Windows.Forms.SizeType.Percent
+            Me.CMB_REDGIFS_ACC.CaptionText = "RedGifs account"
+            Me.CMB_REDGIFS_ACC.CaptionVisible = True
+            Me.CMB_REDGIFS_ACC.CaptionWidth = 26.0R
+            Me.CMB_REDGIFS_ACC.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CMB_REDGIFS_ACC.Location = New System.Drawing.Point(4, 119)
+            Me.CMB_REDGIFS_ACC.Name = "CMB_REDGIFS_ACC"
+            Me.CMB_REDGIFS_ACC.Size = New System.Drawing.Size(469, 22)
+            Me.CMB_REDGIFS_ACC.TabIndex = 4
+            Me.CMB_REDGIFS_ACC.TextBoxBorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
+            '
+            'CMB_REDDIT_ACC
+            '
+            ActionButton2.BackgroundImage = CType(resources.GetObject("ActionButton2.BackgroundImage"), System.Drawing.Image)
+            ActionButton2.Name = "ArrowDown"
+            ActionButton2.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.ArrowDown
+            Me.CMB_REDDIT_ACC.Buttons.Add(ActionButton2)
+            Me.CMB_REDDIT_ACC.CaptionMode = PersonalUtilities.Forms.Controls.Base.ICaptionControl.Modes.Label
+            Me.CMB_REDDIT_ACC.CaptionSizeType = System.Windows.Forms.SizeType.Percent
+            Me.CMB_REDDIT_ACC.CaptionText = "Reddit account"
+            Me.CMB_REDDIT_ACC.CaptionVisible = True
+            Me.CMB_REDDIT_ACC.CaptionWidth = 26.0R
+            Me.CMB_REDDIT_ACC.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CMB_REDDIT_ACC.Location = New System.Drawing.Point(4, 90)
+            Me.CMB_REDDIT_ACC.Name = "CMB_REDDIT_ACC"
+            Me.CMB_REDDIT_ACC.Size = New System.Drawing.Size(469, 22)
+            Me.CMB_REDDIT_ACC.TabIndex = 3
+            Me.CMB_REDDIT_ACC.TextBoxBorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
+            '
             'RedditViewSettingsForm
             '
             Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
             Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-            Me.ClientSize = New System.Drawing.Size(477, 112)
+            Me.ClientSize = New System.Drawing.Size(477, 169)
             Me.Controls.Add(CONTAINER_MAIN)
             Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle
             Me.Icon = Global.SCrawler.My.Resources.SiteResources.RedditIcon_128
             Me.KeyPreview = True
             Me.MaximizeBox = False
-            Me.MaximumSize = New System.Drawing.Size(493, 151)
+            Me.MaximumSize = New System.Drawing.Size(493, 208)
             Me.MinimizeBox = False
-            Me.MinimumSize = New System.Drawing.Size(493, 151)
+            Me.MinimumSize = New System.Drawing.Size(493, 208)
             Me.Name = "RedditViewSettingsForm"
             Me.ShowInTaskbar = False
             Me.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide
@@ -278,11 +323,13 @@ Namespace API.Reddit
             CONTAINER_MAIN.ContentPanel.ResumeLayout(False)
             CONTAINER_MAIN.ResumeLayout(False)
             CONTAINER_MAIN.PerformLayout()
-            TP_MAIN.ResumeLayout(False)
+            Me.TP_MAIN.ResumeLayout(False)
             TP_VIEW_MODE.ResumeLayout(False)
             TP_VIEW_MODE.PerformLayout()
             Me.TP_PERIOD.ResumeLayout(False)
             Me.TP_PERIOD.PerformLayout()
+            CType(Me.CMB_REDGIFS_ACC, System.ComponentModel.ISupportInitialize).EndInit()
+            CType(Me.CMB_REDDIT_ACC, System.ComponentModel.ISupportInitialize).EndInit()
             Me.ResumeLayout(False)
 
         End Sub
@@ -296,5 +343,8 @@ Namespace API.Reddit
         Private WithEvents OPT_PERIOD_MONTH As RadioButton
         Private WithEvents OPT_PERIOD_YEAR As RadioButton
         Private WithEvents TP_PERIOD As TableLayoutPanel
+        Private WithEvents CMB_REDGIFS_ACC As PersonalUtilities.Forms.Controls.ComboBoxExtended
+        Private WithEvents CMB_REDDIT_ACC As PersonalUtilities.Forms.Controls.ComboBoxExtended
+        Private WithEvents TP_MAIN As TableLayoutPanel
     End Class
 End Namespace

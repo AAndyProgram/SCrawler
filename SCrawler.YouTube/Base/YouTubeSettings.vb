@@ -35,6 +35,7 @@ Namespace API.YouTube.Base
         <Browsable(False)> Private Property Mode As GridUpdateModes = GridUpdateModes.OnConfirm Implements IGridValuesContainer.Mode
         <Browsable(False), XMLVV(-1)> Friend ReadOnly Property PlaylistFormSplitterDistance As XMLValue(Of Integer)
         <Browsable(False)> Friend ReadOnly Property DownloadLocations As DownloadLocationsCollection
+        <Browsable(False)> Public Overridable Property AccountName As String
 #Region "Environment"
 #Region "Programs"
         <Browsable(True), GridVisible(False), XMLVN({"Environment"}), Category("Environment programs"), DisplayName("Path to yt-dlp.exe"),
@@ -132,13 +133,32 @@ Namespace API.YouTube.Base
             End Set
         End Property
 #End Region
+#Region "Info"
+        <Browsable(True), GridVisible, XMLVN({"Info"}), Category("Info"), DisplayName("Create URL files"),
+            Description("Create local URL files to link to the original page. Default: false.")>
+        Public ReadOnly Property CreateUrlFiles As XMLValue(Of Boolean)
+        Private ReadOnly Property IDownloaderSettings_CreateUrlFiles As Boolean Implements IDownloaderSettings.CreateUrlFiles
+            Get
+                Return CreateUrlFiles
+            End Get
+        End Property
+        <Browsable(True), GridVisible, XMLVN({"Info"}), Category("Info"), DisplayName("Create description files"),
+            Description("Create video description files. Default: false.")>
+        Public ReadOnly Property CreateDescriptionFiles As XMLValue(Of Boolean)
+#End Region
 #Region "Defaults"
+        <Browsable(True), GridVisible, XMLVN({"Defaults"}, True), Category("Defaults"), DisplayName("Standardize URLs"),
+            Description("Standardize URLs by eliminating unwanted strings. Default: true.")>
+        Public ReadOnly Property StandardizeURLs As XMLValue(Of Boolean)
         <Browsable(True), GridVisible, XMLVN({"Defaults"}), Category("Defaults"), DisplayName("Replace modification date"),
             Description("Set the file date to the date the video was added (website) (if available). Default: false.")>
         Public ReadOnly Property ReplaceModificationDate As XMLValue(Of Boolean)
         <Browsable(True), GridVisible, XMLVN({"Defaults"}), Category("Defaults"), DisplayName("Use cookies"),
             Description("By default, use cookies when downloading from YouTube.")>
         Public ReadOnly Property DefaultUseCookies As XMLValue(Of Boolean)
+        <Browsable(True), GridVisible, XMLVN({"Defaults"}, Protocols.Any), Category("Defaults"), DisplayName("Protocol"),
+            Description("Priority download protocol. Default: 'Any'")>
+        Public ReadOnly Property DefaultProtocol As XMLValue(Of Protocols)
         <Browsable(True), GridVisible(False), XMLVN({"Defaults"}), Category("Defaults"),
             DisplayName("Auto remove"), Description("Automatically remove downloaded items from the list.")>
         Public ReadOnly Property RemoveDownloadedAutomatically As XMLValue(Of Boolean)
@@ -281,9 +301,17 @@ Namespace API.YouTube.Base
 #End Region
 #Region "Initializer"
         Public Sub New()
+            Me.New(String.Empty)
+        End Sub
+        Public Sub New(ByVal AccountName As String)
+            Me.AccountName = AccountName
             DownloadLocations = New DownloadLocationsCollection
             DownloadLocations.Load(False, True)
-            XML = New XmlFile(YouTubeSettingsFile,, False) With {.AutoUpdateFile = True}
+            Dim acc$ = String.Empty
+            If Not AccountName.IsEmptyString Then acc = $"_{AccountName}"
+            Dim f As SFile = YouTubeSettingsFile
+            f.Name &= acc
+            XML = New XmlFile(f,, False) With {.AutoUpdateFile = True}
             XML.LoadData(EDP.None)
             DesignXml = New XmlFile("Settings\DesignDownloader.xml", Protector.Modes.All, False)
             DesignXml.LoadData(EDP.None)
@@ -291,7 +319,9 @@ Namespace API.YouTube.Base
             AddHandler ShowNotificationsEveryDownload.TempValueChanged, AddressOf ShowNotificationsEveryDownload_TempValueChanged
             Cookies = New CookieKeeper
             Grid.Abstract.DesignerXmlSource.Add(New Grid.Abstract.DesignerXmlData(GetType(CookieListForm2), DesignXml, "CookiesListForm"))
-            If YouTubeCookieNetscapeFile.Exists Then Cookies.AddRange(CookieKeeper.ParseNetscapeText(YouTubeCookieNetscapeFile.GetText(EDP.ReturnValue), EDP.None),, EDP.None)
+            f = YouTubeCookieNetscapeFile
+            f.Name &= acc
+            If f.Exists Then Cookies.AddRange(CookieKeeper.ParseNetscapeText(f.GetText(EDP.ReturnValue), EDP.None),, EDP.None)
             If Not YTDLP.Value.Exists Then YTDLP.Value = ProgramPath("yt-dlp.exe")
             If Not FFMPEG.Value.Exists Then FFMPEG.Value = ProgramPath("ffmpeg.exe")
             If Not OutputPath.Value.Exists(SFO.Path, False) Then OutputPath.Value = YouTubeDownloadPathDefault

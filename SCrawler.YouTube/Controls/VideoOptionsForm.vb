@@ -76,6 +76,12 @@ Namespace API.YouTube.Controls
                             If Not def.ValueBetween(-1, 10000) Then def = 1080
                         End If
                         NUM_RES.Value = def
+                        With TXT_FILE
+                            .CaptionMode = ICaptionControl.Modes.CheckBox
+                            .CaptionWidth = 18
+                            .CaptionToolTipText = "If this checkbox is selected, this path is absolute and artist folder will not be created in it"
+                            .CaptionToolTipEnabled = True
+                        End With
                     Else
                         TP_OPTIONS.Controls.Remove(NUM_RES)
                         TP_OPTIONS.ColumnStyles(3).Width = 0
@@ -297,8 +303,8 @@ Namespace API.YouTube.Controls
                             .SelectedVideoIndex = -1
                             .SelectedAudioIndex = cntIndex
                         End If
-                        .File = f
                         .FileSetManually = True
+                        .File = f
                         .UpdateInfoFields()
                         '#If DEBUG Then
                         'Debug.WriteLine(.Command(False))
@@ -309,6 +315,7 @@ Namespace API.YouTube.Controls
                         Else
                             .SetMaxResolution(NUM_RES.Value)
                         End If
+                        .AbsolutePath = TXT_FILE.Checked
                         .File = f
                     End If
                 End With
@@ -433,7 +440,28 @@ Namespace API.YouTube.Controls
         End Sub
 #End Region
 #Region "Footer"
-        Private Sub BTT_BROWSE_MouseClick(sender As Object, e As MouseEventArgs) Handles BTT_BROWSE.MouseClick
+        Private _FilePathBeforeItemChange As SFile = Nothing
+        Private Sub TXT_FILE_ActionSelectedItemBeforeChanged(ByVal Sender As Object, ByVal e As EventArgs, ByVal Item As ListViewItem) Handles TXT_FILE.ActionSelectedItemBeforeChanged
+            If Not TXT_FILE.Text.IsEmptyString Then _FilePathBeforeItemChange = TXT_FILE.Text Else _FilePathBeforeItemChange = Nothing
+        End Sub
+        Private Sub TXT_FILE_ActionSelectedItemChanged(ByVal Sender As Object, ByVal e As EventArgs, ByVal Item As ListViewItem) Handles TXT_FILE.ActionSelectedItemChanged
+            Try
+                If Not MyContainer.HasElements Then
+                    Dim currentPath As SFile = _FilePathBeforeItemChange
+                    Dim newPath As SFile = TXT_FILE.Text.CSFileP
+                    If Not currentPath.File.IsEmptyString Then
+                        newPath.Name = currentPath.Name
+                        newPath.Extension = currentPath.Extension
+                        TXT_FILE.Text = newPath
+                    End If
+                End If
+            Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "[API.YouTube.Controls.VideoOptionsForm.ChangeDestinationPath]")
+            Finally
+                _FilePathBeforeItemChange = Nothing
+            End Try
+        End Sub
+        Private Sub BTT_BROWSE_MouseDown(sender As Object, e As MouseEventArgs) Handles BTT_BROWSE.MouseDown
             Dim f As SFile
 #Disable Warning BC40000
             If MyContainer.HasElements Then

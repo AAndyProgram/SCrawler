@@ -380,6 +380,11 @@ Namespace API.OnlyFans
             Try
                 If ContentMissingExists Then
                     Dim m As UserMedia
+                    Dim stateRefill As Func(Of UserMedia, Integer, UserMedia) = Function(ByVal input As UserMedia, ByVal ii As Integer) As UserMedia
+                                                                                    input.State = UStates.Missing
+                                                                                    input.Attempts = m.Attempts
+                                                                                    Return input
+                                                                                End Function
                     Dim mList As List(Of UserMedia)
                     Dim mediaResult As Boolean
                     Dim r$, path$, postDate$
@@ -402,7 +407,7 @@ Namespace API.OnlyFans
                                             mediaResult = False
                                             mList = TryCreateMedia(j, m.Post.ID, postDate, mediaResult)
                                             If mediaResult Then
-                                                _TempMediaList.ListAddList(mList, LNC)
+                                                _TempMediaList.ListAddList(mList.ListForEachCopy(stateRefill, True), LNC)
                                                 rList.Add(i)
                                                 mList.Clear()
                                             End If
@@ -439,42 +444,56 @@ Namespace API.OnlyFans
                 Return f
             End Get
         End Property
-        Private Function UpdateSignature(ByVal Path As String, Optional ByVal ForceUpdateAuth As Boolean = False) As Boolean
+        Private Function UpdateSignature(ByVal Path As String, Optional ByVal ForceUpdateAuth As Boolean = False,
+                                         Optional ByVal Round As Integer = 0) As Boolean
             Try
                 If UpdateAuthFile(ForceUpdateAuth) Then
                     Const nullMsg$ = "The auth parameter is null"
-                    Dim j As EContainer = JsonDocument.Parse(AuthFile.GetText)
-                    Dim pattern$ = j.Value("format")
-                    If pattern.IsEmptyString Then Throw New ArgumentNullException("format", nullMsg)
-                    pattern = pattern.Replace("{}", "{0}").Replace("{:x}", "{1:x}")
+                    Dim j As EContainer
+                    Try
+                        j = JsonDocument.Parse(AuthFile.GetText)
+                    Catch jex As Exception
+                        If Round = 0 Then
+                            AuthFile.Delete()
+                            UpdateAuthFile(True)
+                            Return UpdateSignature(Path, ForceUpdateAuth, Round + 1)
+                        Else
+                            MySettings.SessionAborted = True
+                            Return False
+                        End If
+                    End Try
+                    If Not j Is Nothing Then
+                        Dim pattern$ = j.Value("format")
+                        If pattern.IsEmptyString Then Throw New ArgumentNullException("format", nullMsg)
+                        pattern = pattern.Replace("{}", "{0}").Replace("{:x}", "{1:x}")
 
-                    Dim li%() = j("checksum_indexes").Select(Function(e) CInt(e(0).Value)).ToArray
+                        Dim li%() = j("checksum_indexes").Select(Function(e) CInt(e(0).Value)).ToArray
 
-                    If Not li.ListExists Then Throw New ArgumentNullException("checksum_indexes", nullMsg)
-                    If j.Value("static_param").IsEmptyString Then Throw New ArgumentNullException("static_param", nullMsg)
-                    If j.Value("checksum_constant").IsEmptyString Then Throw New ArgumentNullException("checksum_constant", nullMsg)
+                        If Not li.ListExists Then Throw New ArgumentNullException("checksum_indexes", nullMsg)
+                        If j.Value("static_param").IsEmptyString Then Throw New ArgumentNullException("static_param", nullMsg)
+                        If j.Value("checksum_constant").IsEmptyString Then Throw New ArgumentNullException("checksum_constant", nullMsg)
 
-                    Dim t$ = ADateTime.ConvertToUnix64(Now.ToUniversalTime).ToString
-                    Dim h$ = String.Join(vbLf, j.Value("static_param"), t, Path, MySettings.HH_USER_ID.Value.ToString)
+                        Dim t$ = ADateTime.ConvertToUnix64(Now.ToUniversalTime).ToString
+                        Dim h$ = String.Join(vbLf, j.Value("static_param"), t, Path, MySettings.HH_USER_ID.Value.ToString)
 
-                    Dim hash$ = GetHashSha1(h)
-                    Dim hashBytes() As Byte = System.Text.Encoding.ASCII.GetBytes(hash)
-                    Dim hashSum% = li.Sum(Function(i) hashBytes(i)) + CInt(j.Value("checksum_constant"))
-                    Dim sign$ = String.Format(pattern, hash, Math.Abs(hashSum))
+                        Dim hash$ = GetHashSha1(h)
+                        Dim hashBytes() As Byte = System.Text.Encoding.ASCII.GetBytes(hash)
+                        Dim hashSum% = li.Sum(Function(i) hashBytes(i)) + CInt(j.Value("checksum_constant"))
+                        Dim sign$ = String.Format(pattern, hash, Math.Abs(hashSum))
 
-                    '#If DEBUG Then
-                    'Debug.WriteLine(sign)
-                    'Debug.WriteLine(t)
-                    '#End If
+                        '#If DEBUG Then
+                        'Debug.WriteLine(sign)
+                        'Debug.WriteLine(t)
+                        '#End If
 
-                    Responser.Headers.Add(HeaderSign, sign)
-                    Responser.Headers.Add(HeaderTime, t)
+                        Responser.Headers.Add(HeaderSign, sign)
+                        Responser.Headers.Add(HeaderTime, t)
 
-                    j.Dispose()
-                    Return True
-                Else
-                    Return False
+                        j.Dispose()
+                        Return True
+                    End If
                 End If
+                Return False
             Catch ex As Exception
                 Return ErrorsDescriber.Execute(EDP.SendToLog + EDP.ReturnValue, ex, $"{ToStringForLog()}: UpdateSignature", False)
             End Try
@@ -521,7 +540,7 @@ Namespace API.OnlyFans
         Private _DownloadingException_AuthFileUpdate As Boolean = False
         Protected Overrides Function DownloadingException(ByVal ex As Exception, ByVal Message As String, Optional ByVal FromPE As Boolean = False,
                                                           Optional ByVal EObj As Object = Nothing) As Integer
-            If Responser.StatusCode = Net.HttpStatusCode.BadRequest Then
+            If Responser.StatusCode = Net.HttpStatusCode.BadRequest Then '400
                 If Not _DownloadingException_AuthFileUpdate AndAlso UpdateAuthFile(True) Then
                     _DownloadingException_AuthFileUpdate = True
                     Return 2
@@ -530,12 +549,16 @@ Namespace API.OnlyFans
                     MyMainLOG = $"{ToStringForLog()}: OnlyFans credentials expired"
                     Return 1
                 End If
-            ElseIf Responser.StatusCode = Net.HttpStatusCode.NotFound Then
+            ElseIf Responser.StatusCode = Net.HttpStatusCode.NotFound Then '404
                 UserExists = False
                 Return 1
-            ElseIf Responser.StatusCode = Net.HttpStatusCode.GatewayTimeout Or Responser.StatusCode = 429 Then
+            ElseIf Responser.StatusCode = Net.HttpStatusCode.GatewayTimeout Or Responser.StatusCode = 429 Then '504, 429
                 If Responser.StatusCode = 429 Then MyMainLOG = $"[429] OnlyFans too many requests ({ToStringForLog()})"
                 MySettings.SessionAborted = True
+                Return 1
+            ElseIf Responser.StatusCode = Net.HttpStatusCode.Unauthorized Then '401
+                MySettings.SessionAborted = True
+                MyMainLOG = $"{ToStringForLog()}: OnlyFans credentials expired"
                 Return 1
             Else
                 Return 0

@@ -11,14 +11,17 @@ Namespace API.Instagram
     Friend Class EditorExchangeOptions
         <PSetting(Caption:="Get timeline", ToolTip:="Download user timeline")>
         Friend Property GetTimeline As Boolean
-        <PSetting(Caption:="Get stories", ToolTip:="Download user stories")>
+        <PSetting(Caption:="Get stories", ToolTip:="Download user stories (pinned)")>
         Friend Property GetStories As Boolean
+        <PSetting(Caption:="Get stories: user", ToolTip:="Download user stories")>
+        Friend Property GetStoriesUser As Boolean
         <PSetting(Caption:="Get tagged posts", ToolTip:="Download user tagged posts")>
         Friend Property GetTagged As Boolean
         Friend Sub New(ByVal u As UserData)
             With u
                 GetTimeline = .GetTimeline
                 GetStories = .GetStories
+                GetStoriesUser = .GetStoriesUser
                 GetTagged = .GetTaggedData
             End With
         End Sub
@@ -26,6 +29,7 @@ Namespace API.Instagram
             With s
                 GetTimeline = CBool(.GetTimeline.Value)
                 GetStories = CBool(.GetStories.Value)
+                GetStoriesUser = CBool(.GetStoriesUser.Value)
                 GetTagged = CBool(.GetTagged.Value)
             End With
         End Sub

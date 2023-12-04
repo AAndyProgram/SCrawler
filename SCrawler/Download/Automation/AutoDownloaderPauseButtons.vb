@@ -92,34 +92,39 @@ Namespace DownloadObjects
                                                                                                                 BTT_PAUSE_H6.Click, BTT_PAUSE_H12.Click,
                                                                                                                 BTT_PAUSE_UNTIL.Click, BTT_PAUSE_UNLIMITED.Click,
                                                                                                                 BTT_PAUSE_DISABLE.Click
-            If (Place = ButtonsPlace.Scheduler And PlanIndex >= 0 And PlanIndex.ValueBetween(0, Settings.Automation.Count - 1)) Or Not Place = ButtonsPlace.Scheduler Then
-                Dim p As PauseModes = CInt(AConvert(Of Integer)(Sender.Tag, -10))
-                If p > -10 Then
-                    Dim d As Date? = Nothing
-                    Dim _SetPauseValue As Action = Sub()
-                                                       If Place = ButtonsPlace.Scheduler And PlanIndex.ValueBetween(0, Settings.Automation.Count - 1) Then
-                                                           Settings.Automation(PlanIndex).Pause(d) = p
-                                                       ElseIf Not Place = ButtonsPlace.Scheduler Then
-                                                           Settings.Automation.Pause(d) = p
-                                                       End If
-                                                   End Sub
-                    If p = PauseModes.Until Then
-                        Using f As New DateTimeSelectionForm(TimeSelectionModes.End + TimeSelectionModes.Date + TimeSelectionModes.Time, Settings.Design)
-                            f.ShowDialog()
-                            If f.DialogResult = DialogResult.OK Then d = f.MyDateEnd
-                        End Using
-                        If d.HasValue Then _SetPauseValue.Invoke
-                    Else
-                        _SetPauseValue.Invoke
-                    End If
-                    UpdatePauseButtons()
+            Dim p As PauseModes = CInt(AConvert(Of Integer)(Sender.Tag, -10))
+            If p > -10 AndAlso ((Place = ButtonsPlace.Scheduler And PlanIndex >= 0 And PlanIndex.ValueBetween(0, Settings.Automation.Count - 1)) OrElse
+               Not Place = ButtonsPlace.Scheduler OrElse
+               (Place = ButtonsPlace.Scheduler AndAlso PlanIndex = -1 AndAlso
+                MsgBoxE({$"Do you want to turn {IIf(p = PauseModes.Disabled, "off", "on")} pause for all plans?", "Pause plan"},
+                        vbExclamation + vbYesNo) = vbYes)) Then
+                Dim d As Date? = Nothing
+                Dim _SetPauseValue As Action = Sub()
+                                                   If Place = ButtonsPlace.Scheduler And PlanIndex.ValueBetween(0, Settings.Automation.Count - 1) Then
+                                                       Settings.Automation(PlanIndex).Pause(d) = p
+                                                   ElseIf Not Place = ButtonsPlace.Scheduler Or Place = ButtonsPlace.Scheduler And PlanIndex = -1 Then
+                                                       Settings.Automation.Pause(d) = p
+                                                   End If
+                                               End Sub
+                If p = PauseModes.Until Then
+                    Using f As New DateTimeSelectionForm(TimeSelectionModes.End + TimeSelectionModes.Date + TimeSelectionModes.Time, Settings.Design)
+                        f.ShowDialog()
+                        If f.DialogResult = DialogResult.OK Then d = f.MyDateEnd
+                    End Using
+                    If d.HasValue Then _SetPauseValue.Invoke
+                Else
+                    _SetPauseValue.Invoke
                 End If
-            ElseIf Place = ButtonsPlace.Scheduler And PlanIndex = -1 Then
+                UpdatePauseButtons()
+            ElseIf p > -10 And Place = ButtonsPlace.Scheduler And PlanIndex = -1 Then
                 MsgBoxE({"The plan to be paused is not selected", "Pause plan"}, vbExclamation)
             End If
         End Sub
 #End Region
 #Region "Update buttons"
+        Friend Overloads Sub UpdatePauseButtons_Handler(ByVal Value As PauseModes)
+            UpdatePauseButtons()
+        End Sub
         Friend Overloads Sub UpdatePauseButtons() Handles TrayButtons.Updating
             UpdatePauseButtons(True)
         End Sub

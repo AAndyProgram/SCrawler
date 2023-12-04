@@ -123,7 +123,7 @@ Namespace DownloadObjects
                     With Downloader.Downloaded
                         If .Count > 0 Then
                             With .Select(Function(u) Settings.GetUser(u, False)).Reverse
-                                If _UsersListSession.Count > 0 Then _UsersListSession.ListWithRemove(.Self)
+                                If _UsersListSession.Count > 0 Then _UsersListSession.ListWithRemove(.Self, New ListAddParams With {.DisableDispose = True})
                                 If _UsersListSession.Count > 0 Then
                                     _UsersListSession.InsertRange(0, .Self)
                                 Else
@@ -165,33 +165,45 @@ Namespace DownloadObjects
 #End Region
 #Region "Toolbar controls"
         Private Sub MENU_VIEW_Click(ByVal Sender As ToolStripMenuItem, ByVal e As EventArgs) Handles MENU_VIEW_SESSION.Click, MENU_VIEW_ALL.Click
-            Dim __refill As Boolean = False
-            Dim clicked As ToolStripMenuItem = Sender
-            Dim other As ToolStripMenuItem = If(Sender Is MENU_VIEW_SESSION, MENU_VIEW_ALL, MENU_VIEW_SESSION)
-            If other.Checked Then
-                clicked.Checked = True
-                other.Checked = False
-                __refill = True
-            Else
-                clicked.Checked = False
-            End If
-            ViewMode = IIf(MENU_VIEW_SESSION.Checked, ViewModes.Session, ViewModes.All)
-            ControlInvokeFast(ToolbarTOP, BTT_CLEAR, Sub() BTT_CLEAR.Visible = ViewMode = ViewModes.Session)
-            If __refill Then RefillList()
+            Try
+                Dim __refill As Boolean = False
+                Dim clicked As ToolStripMenuItem = Sender
+                Dim other As ToolStripMenuItem = If(Sender Is MENU_VIEW_SESSION, MENU_VIEW_ALL, MENU_VIEW_SESSION)
+                ControlInvokeFast(ToolbarTOP, clicked, Sub()
+                                                           If other.Checked Then
+                                                               clicked.Checked = True
+                                                               other.Checked = False
+                                                               __refill = True
+                                                           Else
+                                                               clicked.Checked = False
+                                                           End If
+                                                           ViewMode = IIf(MENU_VIEW_SESSION.Checked, ViewModes.Session, ViewModes.All)
+                                                           BTT_CLEAR.Visible = ViewMode = ViewModes.Session
+                                                       End Sub, EDP.SendToLog)
+                If __refill Then RefillList()
+            Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "DownloadedInfoForm.ViewChange")
+            End Try
         End Sub
         Private Sub OPT_Click(ByVal Sender As ToolStripMenuItem, ByVal e As EventArgs) Handles OPT_DEFAULT.Click, OPT_SUBSCRIPTIONS.Click
-            Dim __refill As Boolean = False
-            Dim clicked As ToolStripMenuItem = Sender
-            Dim other As ToolStripMenuItem = If(Sender Is OPT_DEFAULT, OPT_SUBSCRIPTIONS, OPT_DEFAULT)
-            If other.Checked Then
-                clicked.Checked = True
-                other.Checked = False
-                __refill = True
-            Else
-                clicked.Checked = False
-            End If
-            Settings.InfoViewDefault.Value = OPT_DEFAULT.Checked
-            If __refill Then RefillList()
+            Try
+                Dim __refill As Boolean = False
+                Dim clicked As ToolStripMenuItem = Sender
+                Dim other As ToolStripMenuItem = If(Sender Is OPT_DEFAULT, OPT_SUBSCRIPTIONS, OPT_DEFAULT)
+                ControlInvokeFast(ToolbarTOP, clicked, Sub()
+                                                           If other.Checked Then
+                                                               clicked.Checked = True
+                                                               other.Checked = False
+                                                               __refill = True
+                                                           Else
+                                                               clicked.Checked = False
+                                                           End If
+                                                       End Sub, EDP.SendToLog)
+                Settings.InfoViewDefault.Value = OPT_DEFAULT.Checked
+                If __refill Then RefillList()
+            Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "DownloadedInfoForm.SubscriptionChange")
+            End Try
         End Sub
         Private Sub BTT_FIND_Click(sender As Object, e As EventArgs) Handles BTT_FIND.Click
             Try : RaiseEvent UserFind(If(Settings.GetUser(SelectedUser, True)?.Key, String.Empty)) : Catch : End Try

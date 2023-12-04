@@ -14,33 +14,33 @@ Imports PauseModes = SCrawler.DownloadObjects.AutoDownloader.PauseModes
 Namespace DownloadObjects
     Friend Class Scheduler : Implements IEnumerable(Of AutoDownloader), IMyEnumerator(Of AutoDownloader), IDisposable
         Friend Const Name_Plan As String = "Plan"
-        Friend Event PauseDisabled As AutoDownloader.PauseDisabledEventHandler
-        Private Sub OnPauseDisabled()
-            RaiseEvent PauseDisabled()
+        Friend Event PauseChanged As AutoDownloader.PauseChangedEventHandler
+        Private Sub OnPauseChanged(ByVal Value As PauseModes)
+            RaiseEvent PauseChanged(Pause)
         End Sub
         Private ReadOnly Plans As List(Of AutoDownloader)
-        Private ReadOnly File As SFile = $"Settings\AutoDownload.xml"
+        Friend Const FileNameDefault As String = "AutoDownload"
+        Friend ReadOnly FileDefault As SFile = $"{SettingsFolderName}\{FileNameDefault}.xml"
+        Friend File As SFile = Nothing
         Private ReadOnly PlanWorking As Predicate(Of AutoDownloader) = Function(Plan) Plan.Working
         Private ReadOnly PlanDownloading As Predicate(Of AutoDownloader) = Function(Plan) Plan.Downloading
         Private ReadOnly PlansWaiter As Action(Of Predicate(Of AutoDownloader)) = Sub(ByVal Predicate As Predicate(Of AutoDownloader))
                                                                                       While Plans.Exists(Predicate) : Thread.Sleep(200) : End While
                                                                                   End Sub
+        Friend ReadOnly Property Name As String
+            Get
+                If Not File.Name.IsEmptyString AndAlso Not File.Name = FileNameDefault Then
+                    Return File.Name.Replace(FileNameDefault, String.Empty).StringTrimStart("_").IfNullOrEmpty("Default")
+                Else
+                    Return "Default"
+                End If
+            End Get
+        End Property
         Friend Sub New()
             Plans = New List(Of AutoDownloader)
-            If File.Exists Then
-                Using x As New XmlFile(File,, False) With {.AllowSameNames = True}
-                    x.LoadData()
-                    If x.Contains(Name_Plan) Then
-                        For Each e In x : Plans.Add(New AutoDownloader(e)) : Next
-                    Else
-                        Plans.Add(New AutoDownloader(x))
-                    End If
-                End Using
-            End If
-            If Plans.Count > 0 Then Plans.ForEach(Sub(p)
-                                                      p.Source = Me
-                                                      AddHandler p.PauseDisabled, AddressOf OnPauseDisabled
-                                                  End Sub) : Plans.ListReindex
+            File = Settings.AutomationFile.Value.IfNullOrEmpty(FileDefault)
+            If Not File.Exists Then File = FileDefault
+            Reset(File, True)
         End Sub
         Default Friend ReadOnly Property Item(ByVal Index As Integer) As AutoDownloader Implements IMyEnumerator(Of AutoDownloader).MyEnumeratorObject
             Get
@@ -62,7 +62,7 @@ Namespace DownloadObjects
         End Function
         Friend Sub Add(ByVal Plan As AutoDownloader)
             Plan.Source = Me
-            AddHandler Plan.PauseDisabled, AddressOf OnPauseDisabled
+            AddHandler Plan.PauseChanged, AddressOf OnPauseChanged
             Plans.Add(Plan)
             Plans.ListReindex
             Update()
@@ -96,6 +96,39 @@ Namespace DownloadObjects
             Catch
             End Try
         End Sub
+        Friend Function Reset(ByVal f As SFile, ByVal IsInit As Boolean) As Boolean
+            If Plans.Count > 0 Then
+                If Not Plans.Exists(PlanWorking) Then
+                    Pause = PauseModes.Unlimited
+                    If Plans.Exists(PlanWorking) Then
+                        MsgBoxE({$"Some plans are already being worked.{vbCr}Wait for the plans to complete their work and try again.",
+                                 "Change scheduler"}, vbCritical)
+                        Pause = PauseModes.Unlimited
+                        Return False
+                    End If
+                End If
+                [Stop]()
+                If _UpdateRequired Then Update()
+                Plans.ListClearDispose(,, EDP.LogMessageValue)
+            End If
+            If f.Exists Then
+                File = f
+                Using x As New XmlFile(File,, False) With {.AllowSameNames = True}
+                    x.LoadData()
+                    If x.Contains(Name_Plan) Then
+                        For Each e In x : Plans.Add(New AutoDownloader(e)) : Next
+                    Else
+                        Plans.Add(New AutoDownloader(x))
+                    End If
+                End Using
+                If Plans.Count > 0 Then Plans.ForEach(Sub(ByVal p As AutoDownloader)
+                                                          p.Source = Me
+                                                          If Not IsInit Then p.Pause = PauseModes.Unlimited
+                                                          AddHandler p.PauseChanged, AddressOf OnPauseChanged
+                                                      End Sub) : Plans.ListReindex
+            End If
+            Return True
+        End Function
 #Region "Groups Support"
         Friend Sub GROUPS_Updated(ByVal Sender As DownloadGroup)
             If Count > 0 Then Plans.ForEach(Sub(p) p.GROUPS_Updated(Sender))
@@ -106,16 +139,33 @@ Namespace DownloadObjects
 #End Region
 #Region "Execution"
         Friend Async Function Start(ByVal Init As Boolean) As Task
-            Await Task.Run(Sub()
-                               If Count > 0 Then
-                                   If Plans.Exists(PlanDownloading) Then PlansWaiter(PlanDownloading)
-                                   For Each Plan In Plans
-                                       Plan.Start(Init)
-                                       PlansWaiter(PlanDownloading)
-                                       Thread.Sleep(1000)
-                                   Next
-                               End If
-                           End Sub)
+            Try
+                Await Task.Run(Sub()
+                                   Dim r% = 0
+                                   Do
+                                       r += 1
+                                       Try
+                                           If Count > 0 Then
+                                               If Plans.Exists(PlanDownloading) Then PlansWaiter(PlanDownloading)
+                                               For Each Plan In Plans
+                                                   Plan.Start(Init)
+                                                   PlansWaiter(PlanDownloading)
+                                                   Thread.Sleep(1000)
+                                               Next
+                                           End If
+                                           Exit Do
+                                       Catch io_ex As InvalidOperationException 'Collection was modified; enumeration operation may not execute
+                                       End Try
+                                   Loop While r < 10
+                               End Sub)
+            Catch ex As Exception
+                If Init Then
+                    ErrorsDescriber.Execute(EDP.SendToLog, ex, "Start automation")
+                    MainFrameObj.UpdateLogButton()
+                Else
+                    Throw ex
+                End If
+            End Try
         End Function
         Friend Sub [Stop]()
             If Count > 0 Then Plans.ForEach(Sub(p) p.Stop())

@@ -125,10 +125,13 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
     Friend Property Channels As Reddit.ChannelsCollection
     Friend ReadOnly Property Labels As LabelsKeeper
     Friend ReadOnly Property Groups As Groups.DownloadGroupCollection
+    Friend ReadOnly Property AdvancedFilter As Groups.DownloadGroup
     Friend ReadOnly Property LastCollections As List(Of String)
     Friend ReadOnly Property DownloadLocations As STDownloader.DownloadLocationsCollection
     Friend ReadOnly Property GlobalLocations As STDownloader.DownloadLocationsCollection
     Friend Property Automation As Scheduler
+    Friend ReadOnly Property AutomationFile As XMLValue(Of SFile)
+    Friend ReadOnly Property Feeds As FeedSpecialCollection
     Friend ReadOnly Property BlackList As List(Of UserBan)
     Private ReadOnly BlackListFile As SFile = $"{SettingsFolderName}\BlackList.txt"
     Private ReadOnly UsersSettingsFile As SFile = $"{SettingsFolderName}\Users.xml"
@@ -146,6 +149,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         LastCollections = New List(Of String)
         GlobalLocations = New STDownloader.DownloadLocationsCollection
         GlobalLocations.Load(True,, $"{SettingsFolderName}\GlobalLocations.xml")
+        Feeds = New FeedSpecialCollection
 
         Dim n() As String = {"MediaEnvironment"}
 
@@ -169,6 +173,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
 
         SeparateVideoFolder = New XMLValue(Of Boolean)("SeparateVideoFolder", True, MyXML)
         CollectionsPath = New XMLValue(Of String)("CollectionsPath", CollectionsFolderName, MyXML)
+        AutomationFile = New XMLValue(Of SFile)("AutomationFile",, MyXML)
 
         UserAgent = New XMLValue(Of String)("UserAgent",, MyXML)
         If Not UserAgent.IsEmptyString Then DefaultUserAgent = UserAgent
@@ -194,6 +199,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         UserSiteNameAsFriendly = New XMLValue(Of Boolean)("UserSiteNameAsFriendly", False, MyXML, n)
         UserSiteNameUpdateEveryTime = New XMLValue(Of Boolean)("UserSiteNameUpdateEveryTime", False, MyXML, n)
         CMDEncoding = New XMLValue(Of Integer)("CMDEncoding", DefaultCmdEncoding, MyXML, n)
+        UseDefaultAccountIfMissing = New XMLValue(Of Boolean)("UseDefaultAccountIfMissing", True, MyXML, n)
 
         Plugins.AddRange(PluginHost.GetMyHosts(MyXML, GlobalPath.Value, DefaultTemporary, DefaultDownloadImages, DefaultDownloadVideos))
         Dim tmpPluginList As IEnumerable(Of PluginHost) = PluginHost.GetPluginsHosts(MyXML, GlobalPath.Value, DefaultTemporary,
@@ -202,8 +208,14 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
 
         MainFrameUsersShowDefaults = New XMLValue(Of Boolean)("UsersShowDefaults", True, MyXML)
         MainFrameUsersShowSubscriptions = New XMLValue(Of Boolean)("UsersShowSubscriptions", True, MyXML)
+
         MainFrameUsersSubscriptionsColorBack = New XMLValue(Of Color)("UsersSubscriptionsColorBack", MyColor.OkBack, MyXML)
         MainFrameUsersSubscriptionsColorFore = New XMLValue(Of Color)("UsersSubscriptionsColorFore", MyColor.OkFore, MyXML)
+        MainFrameUsersSubscriptionsColorBack_USERS = New XMLValue(Of Color)
+        MainFrameUsersSubscriptionsColorBack_USERS.SetExtended("UsersSubscriptionsColorBack_USERS",, MyXML)
+        MainFrameUsersSubscriptionsColorFore_USERS = New XMLValue(Of Color)
+        MainFrameUsersSubscriptionsColorFore_USERS.SetExtended("UsersSubscriptionsColorFore_USERS",, MyXML)
+
         FastProfilesLoading = New XMLValue(Of Boolean)("FastProfilesLoading", True, MyXML)
         MaxLargeImageHeight = New XMLValue(Of Integer)("MaxLargeImageHeight", 150, MyXML)
         MaxSmallImageHeight = New XMLValue(Of Integer)("MaxSmallImageHeight", 15, MyXML)
@@ -267,6 +279,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         STDownloader_OutputPathUseYT = New XMLValue(Of Boolean)("OutputPathUseYT", False, MyXML, n)
         STDownloader_OutputPathAskForName = New XMLValue(Of Boolean)("OutputPathAskForName", True, MyXML, n)
         STDownloader_OutputPathAutoAddPaths = New XMLValue(Of Boolean)("OutputPathAutoAddPaths", True, MyXML, n)
+        STDownloader_CreateUrlFiles = New XMLValue(Of Boolean)("CreateUrlFiles", False, MyXML, n)
         DownloadLocations = New STDownloader.DownloadLocationsCollection
         DownloadLocations.Load(False, STDownloader_OutputPathUseYT)
 
@@ -278,6 +291,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         FeedAddDateToCaption = New XMLValue(Of Boolean)("AddDateToCaption", True, MyXML, n)
         FeedAddSessionToCaption = New XMLValue(Of Boolean)("AddSessionToCaption", False, MyXML, n)
         FeedStoreSessionsData = New XMLValue(Of Boolean)("StoreSessionsData", True, MyXML, n)
+        FeedStoredSessionsNumber = New XMLValue(Of Integer)("StoredSessionsNumber", 20, MyXML, n)
         FeedBackColor = New XMLValue(Of Color)
         FeedBackColor.SetExtended("FeedColorBack",, MyXML, n)
         FeedForeColor = New XMLValue(Of Color)
@@ -285,6 +299,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         FeedOpenLastMode = New XMLValue(Of Boolean)("OpenLastMode", False, MyXML, n)
         FeedLastModeSubscriptions = New XMLValue(Of Boolean)("LastModeSubscriptions", False, MyXML, n)
         FeedShowFriendlyNames = New XMLValue(Of Boolean)("ShowFriendlyNames", True, MyXML, n)
+        FeedShowSpecialFeedsMediaItem = New XMLValue(Of Boolean)("ShowSpecialFeedsMediaItem", False, MyXML, n)
 
         n = {"Users"}
         FromChannelDownloadTop = New XMLValue(Of Integer)("FromChannelDownloadTop", 10, MyXML, n)
@@ -327,6 +342,9 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         Labels = New LabelsKeeper(MyXML)
         Groups = New Groups.DownloadGroupCollection
         Labels.AddRange(Groups.GetGroupsLabels, False)
+        AdvancedFilter = New Groups.DownloadGroup
+        AdvancedFilter.LoadFromFile($"{SettingsFolderName}\AdvancedFilter.xml")
+        Labels.AddRange({AdvancedFilter}.GetGroupsLabels, False)
 
         MyXML.EndUpdate()
         If MyXML.ChangesDetected Then MyXML.Sort() : MyXML.UpdateData()
@@ -672,19 +690,25 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
     Friend Sub BeginUpdate()
         MyXML.BeginUpdate()
         _UpdatesSuspended = True
-        If Plugins.Count > 0 Then Plugins.ForEach(Sub(p) p.Settings.Source.BeginUpdate())
+        If Plugins.Count > 0 Then Plugins.ForEach(Sub(p) p.Settings.BeginUpdate())
     End Sub
     Friend Sub EndUpdate()
-        If Plugins.Count > 0 Then Plugins.ForEach(Sub(p) p.Settings.Source.EndUpdate())
+        If Plugins.Count > 0 Then Plugins.ForEach(Sub(p) p.Settings.EndUpdate())
         MyXML.EndUpdate()
         If MyXML.ChangesDetected Then MyXML.UpdateData()
         _UpdatesSuspended = False
         ChangeDateProvider(Nothing, Nothing)
     End Sub
-    Default Friend ReadOnly Property Site(ByVal PluginKey As String) As SettingsHost
+    Default Friend Overloads ReadOnly Property Site(ByVal PluginKey As String) As SettingsHostCollection
         Get
             Dim i% = Plugins.FindIndex(Function(p) p.Key = PluginKey)
             If i >= 0 Then Return Plugins(i).Settings Else Return Nothing
+        End Get
+    End Property
+    Default Friend Overloads ReadOnly Property Site(ByVal PluginKey As String, ByVal AccountName As String) As SettingsHost
+        Get
+            Dim i% = Plugins.FindIndex(Function(p) p.Key = PluginKey)
+            If i >= 0 Then Return Plugins(i).Settings(AccountName) Else Return Nothing
         End Get
     End Property
     Friend ReadOnly Property GlobalPath As XMLValue(Of SFile)
@@ -720,6 +744,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
     Friend ReadOnly Property UserSiteNameAsFriendly As XMLValue(Of Boolean)
     Friend ReadOnly Property UserSiteNameUpdateEveryTime As XMLValue(Of Boolean)
     Friend ReadOnly Property CMDEncoding As XMLValue(Of Integer)
+    Friend ReadOnly Property UseDefaultAccountIfMissing As XMLValue(Of Boolean)
 #End Region
 #Region "STDownloader"
     Friend ReadOnly Property STDownloader_UpdateYouTubeOutputPath As XMLValue(Of Boolean)
@@ -779,6 +804,12 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
             Return STDownloader_OutputPathAutoAddPaths
         End Get
     End Property
+    Friend ReadOnly Property STDownloader_CreateUrlFiles As XMLValue(Of Boolean)
+    Private ReadOnly Property IDownloaderSettings_CreateUrlFiles As Boolean Implements IDownloaderSettings.CreateUrlFiles
+        Get
+            Return STDownloader_CreateUrlFiles
+        End Get
+    End Property
 #End Region
 #Region "User metrics"
     Friend ReadOnly Property UMetrics_What As XMLValue(Of Integer)
@@ -804,6 +835,8 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
     Friend ReadOnly Property MainFrameUsersShowSubscriptions As XMLValue(Of Boolean)
     Friend ReadOnly Property MainFrameUsersSubscriptionsColorBack As XMLValue(Of Color)
     Friend ReadOnly Property MainFrameUsersSubscriptionsColorFore As XMLValue(Of Color)
+    Friend ReadOnly Property MainFrameUsersSubscriptionsColorBack_USERS As XMLValue(Of Color)
+    Friend ReadOnly Property MainFrameUsersSubscriptionsColorFore_USERS As XMLValue(Of Color)
     Friend ReadOnly Property FastProfilesLoading As XMLValue(Of Boolean)
     Friend ReadOnly Property MaxLargeImageHeight As XMLValue(Of Integer)
     Friend ReadOnly Property MaxSmallImageHeight As XMLValue(Of Integer)
@@ -885,11 +918,13 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
     Friend ReadOnly Property FeedAddDateToCaption As XMLValue(Of Boolean)
     Friend ReadOnly Property FeedAddSessionToCaption As XMLValue(Of Boolean)
     Friend ReadOnly Property FeedStoreSessionsData As XMLValue(Of Boolean)
+    Friend ReadOnly Property FeedStoredSessionsNumber As XMLValue(Of Integer)
     Friend ReadOnly Property FeedBackColor As XMLValue(Of Color)
     Friend ReadOnly Property FeedForeColor As XMLValue(Of Color)
     Friend ReadOnly Property FeedOpenLastMode As XMLValue(Of Boolean)
     Friend ReadOnly Property FeedLastModeSubscriptions As XMLValue(Of Boolean)
     Friend ReadOnly Property FeedShowFriendlyNames As XMLValue(Of Boolean)
+    Friend ReadOnly Property FeedShowSpecialFeedsMediaItem As XMLValue(Of Boolean)
 #End Region
 #Region "New version properties"
     Friend ReadOnly Property CheckUpdatesAtStart As XMLValue(Of Boolean)

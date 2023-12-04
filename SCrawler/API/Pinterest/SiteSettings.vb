@@ -9,33 +9,22 @@
 Imports SCrawler.API.Base
 Imports SCrawler.Plugin
 Imports SCrawler.Plugin.Attributes
-Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Functions.RegularExpressions
 Namespace API.Pinterest
     <Manifest("AndyProgram_Pinterest"), SavedPosts, SeparatedTasks>
     Friend Class SiteSettings : Inherits SiteSettingsBase
 #Region "Declarations"
-        Friend Overrides ReadOnly Property Icon As Icon
-            Get
-                Return My.Resources.SiteResources.PinterestIcon_32
-            End Get
-        End Property
-        Friend Overrides ReadOnly Property Image As Image
-            Get
-                Return My.Resources.SiteResources.PinterestPic_48
-            End Get
-        End Property
         <PropertyOption(ControlText:=DeclaredNames.ConcurrentDownloadsCaption,
-                        ControlToolTip:=DeclaredNames.ConcurrentDownloadsToolTip, AllowNull:=False, LeftOffset:=120), PXML, TaskCounter>
+                        ControlToolTip:=DeclaredNames.ConcurrentDownloadsToolTip, AllowNull:=False, LeftOffset:=120), PXML, TaskCounter, PClonable>
         Friend ReadOnly Property ConcurrentDownloads As PropertyValue
         <Provider(NameOf(ConcurrentDownloads), FieldsChecker:=True)>
         Private ReadOnly Property MyConcurrentDownloadsProvider As IFormatProvider
-        <PropertyOption(ControlText:=DeclaredNames.SavedPostsUserNameCaption, ControlToolTip:=DeclaredNames.SavedPostsUserNameToolTip), PXML>
+        <PropertyOption(ControlText:=DeclaredNames.SavedPostsUserNameCaption, ControlToolTip:=DeclaredNames.SavedPostsUserNameToolTip), PXML, PClonable(Clone:=False)>
         Friend ReadOnly Property SavedPostsUserName As PropertyValue
 #End Region
 #Region "Initializer"
-        Friend Sub New()
-            MyBase.New("Pinterest", "pinterest.com")
+        Friend Sub New(ByVal AccName As String, ByVal Temp As Boolean)
+            MyBase.New("Pinterest", "pinterest.com", AccName, Temp, My.Resources.SiteResources.PinterestIcon_32, My.Resources.SiteResources.PinterestPic_48)
             SavedPostsUserName = New PropertyValue(String.Empty, GetType(String))
             ConcurrentDownloads = New PropertyValue(1)
             MyConcurrentDownloadsProvider = New ConcurrentDownloadsProvider

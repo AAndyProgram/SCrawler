@@ -126,6 +126,7 @@ Namespace API.Base
 #Region "XML Declarations"
         Private Const Name_Site As String = UserInfo.Name_Site
         Private Const Name_Plugin As String = UserInfo.Name_Plugin
+        Private Const Name_AccountName As String = UserInfo.Name_AccountName
         Protected Const Name_IsChannel As String = "IsChannel"
         Friend Const Name_UserName As String = "UserName"
         Private Const Name_Model_User As String = UserInfo.Name_Model_User
@@ -168,10 +169,56 @@ Namespace API.Base
         Protected Const Name_UseMD5Comparison As String = "UseMD5Comparison"
         Protected Const Name_RemoveExistingDuplicates As String = "RemoveExistingDuplicates"
         Protected Const Name_StartMD5Checked As String = "StartMD5Checked"
+#Region "Additional names"
+        Protected Const Name_SiteMode As String = "SiteMode"
+        Protected Const Name_TrueName As String = "TrueName"
+        Protected Const Name_Arguments As String = "Arguments"
+#End Region
 #End Region
 #Region "Declarations"
 #Region "Host, Site, Progress"
+        Friend Property HostCollection As SettingsHostCollection
+        Private Function HostObtainCollection() As Boolean
+            If HostCollection Is Nothing Then
+                Dim k$ = If(_HOST?.Key, _HostKey)
+                If Not k.IsEmptyString Then HostCollection = Settings(k)
+            End If
+            Return Not HostCollection Is Nothing
+        End Function
+        Private _HOST As SettingsHost
+        Private _HostKey As String = String.Empty
+        Private _HostObtained As Boolean = False
         Friend Property HOST As SettingsHost Implements IUserData.HOST
+            Get
+                If _HostObtained Or HostStatic Then
+                    Return _HOST
+                ElseIf HostObtainCollection() Then
+                    _HOST = HostCollection(AccountName)
+                    _HostObtained = Not _HOST Is Nothing
+                    Return _HOST
+                Else
+                    Return Nothing
+                End If
+            End Get
+            Set(ByVal h As SettingsHost)
+                _HOST = h
+                _HostKey = h.Key
+            End Set
+        End Property
+        Private Sub ResetHost()
+            _HostObtained = False
+        End Sub
+        Friend Property HostStatic As Boolean = False Implements IUserData.HostStatic
+        Private _AccountName As String = String.Empty
+        Friend Overridable Property AccountName As String Implements IUserData.AccountName, IPluginContentProvider.AccountName
+            Get
+                Return _AccountName.IfNullOrEmpty(User.AccountName)
+            End Get
+            Set(ByVal name As String)
+                If Not _AccountName = name Then ResetHost()
+                _AccountName = name
+            End Set
+        End Property
         Friend ReadOnly Property Site As String Implements IUserData.Site
             Get
                 Return HOST.Name
@@ -553,6 +600,11 @@ BlockNullPicture:
                 Return User.IsSubscription
             End Get
         End Property
+        Friend Overridable ReadOnly Property IsUser As Boolean Implements IUserData.IsUser
+            Get
+                Return True
+            End Get
+        End Property
         Private Property IPluginContentProvider_IsSubscription As Boolean Implements IPluginContentProvider.IsSubscription
             Get
                 Return IsSubscription
@@ -751,7 +803,6 @@ BlockNullPicture:
         End Function
         Friend Overridable Sub ExchangeOptionsSet(ByVal Obj As Object) Implements IPluginContentProvider.ExchangeOptionsSet
         End Sub
-        Private _ExternalCompatibilityToken As CancellationToken
 #End Region
 #Region "IIndexable Support"
         Friend Property Index As Integer = 0 Implements IIndexable.Index
@@ -841,6 +892,7 @@ BlockNullPicture:
         Friend Sub SetEnvironment(ByRef h As SettingsHost, ByVal u As UserInfo, ByVal _LoadUserInformation As Boolean,
                                   Optional ByVal AttachUserInfo As Boolean = True) Implements IUserData.SetEnvironment
             HOST = h
+            HostObtainCollection()
             If AttachUserInfo Then
                 User = u
                 If _LoadUserInformation Then LoadUserInformation()
@@ -849,7 +901,7 @@ BlockNullPicture:
         ''' <exception cref="ArgumentOutOfRangeException"></exception>
         Friend Shared Function GetInstance(ByVal u As UserInfo, Optional ByVal _LoadUserInformation As Boolean = True) As IUserData
             If Not u.Plugin.IsEmptyString Then
-                Return Settings(u.Plugin).GetInstance(ISiteSettings.Download.Main, u, _LoadUserInformation)
+                Return Settings(u.Plugin).Default.GetInstance(ISiteSettings.Download.Main, u, _LoadUserInformation)
             Else
                 Throw New ArgumentOutOfRangeException("Plugin", $"Plugin [{u.Plugin}] information does not recognized by loader")
             End If
@@ -861,7 +913,7 @@ BlockNullPicture:
                     With DirectCast(u, UserDataBase)
                         If Not .User.Plugin.IsEmptyString Then
                             uName = .User.Name
-                            Return Settings(.User.Plugin).GetUserPostUrl(.Self, PostData)
+                            Return Settings(.User.Plugin).Default.GetUserPostUrl(.Self, PostData)
                         End If
                     End With
                 End If
@@ -933,6 +985,7 @@ BlockNullPicture:
                 Using x As New XmlFile With {.Name = "User"}
                     x.Add(Name_Site, Site)
                     x.Add(Name_Plugin, HOST.Key)
+                    x.Add(Name_AccountName, AccountName)
                     x.Add(Name_UserName, User.Name)
                     x.Add(Name_Model_User, CInt(UserModel))
                     x.Add(Name_Model_Collection, CInt(CollectionModel))
@@ -1082,7 +1135,8 @@ BlockNullPicture:
                 Return __DOWNLOAD_IN_PROGRESS
             End Get
         End Property
-        Friend PersonalToken As CancellationToken
+        Private TokenQueue As CancellationToken
+        Friend TokenPersonal As CancellationToken
         Protected Responser As Responser
         Protected UseResponserClient As Boolean = False
         Protected UseClientTokens As Boolean = False
@@ -1096,7 +1150,7 @@ BlockNullPicture:
         Private _PictureExists As Boolean
         Private _EnvirInvokeUserUpdated As Boolean = False
         Protected Sub EnvirDownloadSet()
-            PersonalToken = Nothing
+            TokenPersonal = Nothing
             ProgressPre.Reset()
             UpdateDataFiles()
             _DownloadInProgress = True
@@ -1125,11 +1179,13 @@ BlockNullPicture:
             End If
         End Sub
         Friend Overridable Sub DownloadData(ByVal Token As CancellationToken) Implements IUserData.DownloadData
+            ResetHost()
             __DOWNLOAD_IN_PROGRESS = True
             OnUserDownloadStateChanged(True)
             Dim Canceled As Boolean = False
-            _ExternalCompatibilityToken = Token
+            TokenQueue = Token
             Try
+                If HOST Is Nothing Then Throw New ExitException($"Host '{AccountName}' not found")
                 EnvirDownloadSet()
                 If Not Responser Is Nothing Then Responser.Dispose()
                 Responser = New Responser
@@ -1221,7 +1277,7 @@ BlockNullPicture:
                 End If
                 ThrowIfDisposed()
                 If Not _PictureExists Or _EnvirInvokeUserUpdated Then OnUserUpdated()
-            Catch oex As OperationCanceledException When Token.IsCancellationRequested Or PersonalToken.IsCancellationRequested
+            Catch oex As OperationCanceledException When Token.IsCancellationRequested Or TokenPersonal.IsCancellationRequested Or TokenQueue.IsCancellationRequested
                 MyMainLOG = $"{ToStringForLog()}: downloading canceled"
                 Canceled = True
             Catch exit_ex As ExitException
@@ -1239,9 +1295,10 @@ BlockNullPicture:
                 LogError(ex, "downloading data error")
                 HasError = True
             Finally
-                If Not UserExists Then MyMainLOG = $"User '{ToStringForLog()}' not found on the site"
+                If Not UserExists Then AddNonExistingUserToLog($"User '{ToStringForLog()}' not found on the site")
                 If Not Responser Is Nothing Then Responser.Dispose() : Responser = Nothing
                 If Not Canceled Then _DataParsed = True
+                TokenPersonal = Nothing
                 _ContentNew.Clear()
                 _DownloadInProgress = False
                 DownloadTopCount = Nothing
@@ -1285,9 +1342,15 @@ BlockNullPicture:
 #Region "DownloadSingleObject"
         Protected IsSingleObjectDownload As Boolean = False
         Friend Overridable Sub DownloadSingleObject(ByVal Data As YouTube.Objects.IYouTubeMediaContainer, ByVal Token As CancellationToken) Implements IUserData.DownloadSingleObject
+            Dim URL$ = String.Empty
             Try
+                ResetHost()
+                URL = Data.URL
+                AccountName = Data.AccountName
+                If HOST Is Nothing Then Throw New ExitException($"Host '{AccountName}' not found")
                 Data.DownloadState = UserMediaStates.Tried
                 Progress = Data.Progress
+                If Not Progress Is Nothing Then Progress.ResetProgressOnMaximumChanges = False
                 If Not Responser Is Nothing Then Responser.Dispose()
                 Responser = New Responser
                 If Not HOST Is Nothing AndAlso HOST.Available(ISiteSettings.Download.SingleObject, True) AndAlso
@@ -1298,9 +1361,21 @@ BlockNullPicture:
                 DownloadSingleObject_CreateMedia(Data, Token)
                 DownloadSingleObject_Download(Data, Token)
                 DownloadSingleObject_PostProcessing(Data)
+            Catch oex As OperationCanceledException When Token.IsCancellationRequested
+                Data.DownloadState = UserMediaStates.Missing
+                ErrorsDescriber.Execute(EDP.SendToLog, oex, $"{Site} download canceled: {URL}")
+            Catch dex As ObjectDisposedException When Disposed
+            Catch exit_ex As ExitException
+                If Not exit_ex.Silent Then
+                    If exit_ex.SimpleLogLine Then
+                        MyMainLOG = $"{URL}: downloading canceled (exit) ({exit_ex.Message})"
+                    Else
+                        ErrorsDescriber.Execute(EDP.SendToLog, exit_ex, $"{URL}: downloading canceled (exit)")
+                    End If
+                End If
             Catch ex As Exception
                 Data.DownloadState = UserMediaStates.Missing
-                ErrorsDescriber.Execute(EDP.SendToLog, ex, $"{Site} single data downloader error: {Data.URL}")
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, $"{Site} single data downloader error: {URL}")
             End Try
         End Sub
         Protected Overridable Sub DownloadSingleObject_CreateMedia(ByVal Data As YouTube.Objects.IYouTubeMediaContainer, ByVal Token As CancellationToken)
@@ -1364,7 +1439,7 @@ BlockNullPicture:
 #Region "MD5 support"
         Protected Const VALIDATE_MD5_ERROR As String = "VALIDATE_MD5_ERROR"
         Friend Property UseMD5Comparison As Boolean = False
-        Protected Property StartMD5Checked As Boolean = True
+        Protected Property StartMD5Checked As Boolean = False
         Friend Property RemoveExistingDuplicates As Boolean = False
         Protected Overridable Sub ValidateMD5(ByVal Token As CancellationToken)
             Try
@@ -1441,7 +1516,7 @@ BlockNullPicture:
                             For i = 0 To _ContentList.Count - 1
                                 data = _ContentList(i)
                                 ProgressPre.Perform()
-                                If (data.Type = UTypes.GIF Or data.Type = UTypes.Picture) Then
+                                If data.Type = UTypes.GIF Or data.Type = UTypes.Picture Then
                                     If data.MD5.IsEmptyString Then
                                         ThrowAny(Token)
                                         eIndx = existingFiles.FindIndex(eFinder)
@@ -1654,8 +1729,6 @@ BlockNullPicture:
                                         DownloadContentDefault_PostProcessing(v, f, Token)
                                         dCount += 1
                                     Catch woex As OperationCanceledException When Token.IsCancellationRequested
-                                        'TODELETE: UserDataBase.DownloadContentDefault: remove file when 'OperationCanceledException'
-                                        'If f.Exists Then f.Delete(,, EDP.SendToLog)
                                         __deleteFile.Invoke(f, v.URL_BASE)
                                         v.State = UStates.Missing
                                         v.Attempts += 1
@@ -1722,7 +1795,7 @@ BlockNullPicture:
                                             Optional ByVal ThrowEx As Boolean = True) As Integer
             If TypeOf ex Is ExitException Then
                 Throw ex
-            ElseIf Not ((TypeOf ex Is OperationCanceledException And (Token.IsCancellationRequested Or PersonalToken.IsCancellationRequested)) Or
+            ElseIf Not ((TypeOf ex Is OperationCanceledException And (Token.IsCancellationRequested Or TokenPersonal.IsCancellationRequested Or TokenQueue.IsCancellationRequested)) Or
                         (TypeOf ex Is ObjectDisposedException And Disposed)) Then
                 If RDE Then
                     Dim v% = DownloadingException(ex, Message, True, EObj)
@@ -1822,12 +1895,7 @@ BlockNullPicture:
                         If m.Contains(IUserData.EraseMode.History) Then
                             If MyFilePosts.Delete(SFO.File, SFODelete.DeleteToRecycleBin, e) Then result = True
                             If MyFileData.Delete(SFO.File, SFODelete.DeleteToRecycleBin, e) Then result = True
-                            If result Then
-                                _TempPostsList.Clear()
-                                _TempMediaList.Clear()
-                                _ContentNew.Clear()
-                                _ContentList.Clear()
-                            End If
+                            EraseData_AdditionalDataFiles()
                         End If
                         If m.Contains(IUserData.EraseMode.Data) Then
                             Dim files As List(Of SFile) = SFile.GetFiles(DownloadContentDefault_GetRootDir.CSFileP,, SearchOption.AllDirectories, e)
@@ -1836,6 +1904,12 @@ BlockNullPicture:
                             LatestData.Clear()
                             result = True
                         End If
+                        If result Then
+                            _TempPostsList.Clear()
+                            _TempMediaList.Clear()
+                            _ContentNew.Clear()
+                            _ContentList.Clear()
+                        End If
                     End If
                 End If
                 Return result
@@ -1843,6 +1917,8 @@ BlockNullPicture:
                 Return ErrorsDescriber.Execute(EDP.SendToLog + EDP.ReturnValue, ex, $"EraseData({CInt(Mode)}): {ToStringForLog()}", False)
             End Try
         End Function
+        Protected Overridable Sub EraseData_AdditionalDataFiles()
+        End Sub
         Friend Overridable Function Delete(Optional ByVal Multiple As Boolean = False, Optional ByVal CollectionValue As Integer = -1) As Integer Implements IUserData.Delete
             Dim f As SFile = SFile.GetPath(MyFile.CutPath.Path)
             If f.Exists(SFO.Path, False) AndAlso (User.Merged OrElse f.Delete(SFO.Path, Settings.DeleteMode)) Then
@@ -1864,6 +1940,7 @@ BlockNullPicture:
             Try
                 Dim f As SFile
                 Dim v As Boolean = IsVirtual
+                Settings.Feeds.Load()
 
                 If IncludedInCollection And __CollectionName.IsEmptyString And __SpecialCollectionPath.IsEmptyString Then
                     Settings.Users.Add(Me)
@@ -1906,6 +1983,7 @@ BlockNullPicture:
 
                 Settings.UsersList.Remove(UserBefore)
                 Settings.UpdateUsersList(User)
+                Settings.Feeds.UpdateUsers(UserBefore, User)
                 UpdateUserInformation()
                 Return True
             Catch ex As Exception
@@ -1959,6 +2037,7 @@ BlockNullPicture:
                     End If
                     If Not ScriptData.IsEmptyString AndAlso ScriptData.Contains(UserBefore.File.PathNoSeparator) Then _
                        ScriptData = ScriptData.Replace(UserBefore.File.PathNoSeparator, MyFile.PathNoSeparator)
+                    Settings.Feeds.UpdateUsers(UserBefore, User)
                     UpdateUserInformation()
                 End If
             Catch ioex As InvalidOperationException When ioex.HelpLink = 1
@@ -2019,8 +2098,8 @@ BlockNullPicture:
         End Function
 #End Region
 #Region "Errors functions"
-        Protected Sub LogError(ByVal ex As Exception, ByVal Message As String)
-            ErrorsDescriber.Execute(EDP.SendToLog, ex, $"{ToStringForLog()}: {Message}")
+        Protected Sub LogError(ByVal ex As Exception, ByVal Message As String, Optional ByVal e As ErrorsDescriber = Nothing)
+            ErrorsDescriber.Execute(If(e.Exists, e, New ErrorsDescriber(EDP.SendToLog)), ex, $"{ToStringForLog()}: {Message}")
         End Sub
         Protected Sub ErrorDownloading(ByVal f As SFile, ByVal URL As String)
             If Not f.Exists Then MyMainLOG = $"Error downloading from [{URL}] to [{f}]"
@@ -2031,13 +2110,18 @@ BlockNullPicture:
         End Sub
         ''' <inheritdoc cref="ThrowAny(CancellationToken)"/>
         Private Overloads Sub ThrowAny() Implements IThrower.ThrowAny
-            ThrowAny(_ExternalCompatibilityToken)
+            ThrowAny(TokenQueue)
         End Sub
+        ''' <summary><c>ThrowAnyImpl(Token)</c></summary>
         ''' <exception cref="OperationCanceledException"></exception>
         ''' <exception cref="ObjectDisposedException"></exception>
         Friend Overridable Overloads Sub ThrowAny(ByVal Token As CancellationToken)
+            ThrowAnyImpl(Token)
+        End Sub
+        Protected Sub ThrowAnyImpl(ByVal Token As CancellationToken)
             Token.ThrowIfCancellationRequested()
-            PersonalToken.ThrowIfCancellationRequested()
+            TokenQueue.ThrowIfCancellationRequested()
+            TokenPersonal.ThrowIfCancellationRequested()
             ThrowIfDisposed()
         End Sub
 #End Region
@@ -2097,7 +2181,11 @@ BlockNullPicture:
 #End Region
 #Region "IComparable Support"
         Friend Overridable Function CompareTo(ByVal Other As UserDataBase) As Integer Implements IComparable(Of UserDataBase).CompareTo
-            Return Name.CompareTo(Other.Name)
+            If IsCollection Then
+                Return Name.CompareTo(Other.Name)
+            Else
+                Return FriendlyName.IfNullOrEmpty(Name).StringTrim.CompareTo(Other.FriendlyName.IfNullOrEmpty(Other.Name).StringTrim)
+            End If
         End Function
         Friend Overridable Function CompareTo(ByVal Obj As Object) As Integer Implements IComparable.CompareTo
             If Not Obj Is Nothing AndAlso TypeOf Obj Is UserDataBase Then
@@ -2134,6 +2222,7 @@ BlockNullPicture:
                     LatestData.Clear()
                     _TempMediaList.Clear()
                     _TempPostsList.Clear()
+                    TokenPersonal = Nothing
                     If Not ProgressPre Is Nothing Then ProgressPre.Reset() : ProgressPre.Dispose()
                     If Not Responser Is Nothing Then Responser.Dispose()
                     If Not BTT_CONTEXT_DOWN Is Nothing Then BTT_CONTEXT_DOWN.Dispose()

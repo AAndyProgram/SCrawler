@@ -74,16 +74,16 @@ Namespace API.RedGifs
 #Region "Media obtain, extract"
         Private Sub ObtainMedia(ByVal j As EContainer, ByVal PostID As String,
                                 Optional ByVal PostDateStr As String = Nothing, Optional ByVal PostDateDate As Date? = Nothing,
-                                Optional ByVal State As UStates = UStates.Unknown)
+                                Optional ByVal State As UStates = UStates.Unknown, Optional ByVal Attempts As Integer = 0)
             Dim tMedia As UserMedia = ExtractMedia(j)
             If Not tMedia.Type = UTypes.Undefined Then _
-               _TempMediaList.ListAddValue(MediaFromData(tMedia.Type, tMedia.URL, PostID, PostDateStr, PostDateDate, State))
+               _TempMediaList.ListAddValue(MediaFromData(tMedia.Type, tMedia.URL, PostID, PostDateStr, PostDateDate, State, Attempts))
         End Sub
         Private Shared Function ExtractMedia(ByVal j As EContainer) As UserMedia
             If Not j Is Nothing Then
                 With j("urls")
                     If .ListExists Then
-                        Dim u$ = If(.Item("hd"), .Item("sd")).XmlIfNothingValue
+                        Dim u$ = .Value("hd").IfNullOrEmpty(.Value("sd"))
                         If Not u.IsEmptyString Then
                             Dim ut As UTypes = UTypes.Undefined
                             'Type 1: video
@@ -122,7 +122,7 @@ Namespace API.RedGifs
                                         j = JsonDocument.Parse(r)
                                         If Not j Is Nothing Then
                                             If If(j("gif")?.Count, 0) > 0 Then
-                                                ObtainMedia(j("gif"), u.Post.ID,, u.Post.Date, UStates.Missing)
+                                                ObtainMedia(j("gif"), u.Post.ID,, u.Post.Date, UStates.Missing, u.Attempts)
                                                 rList.Add(i)
                                             End If
                                         End If
@@ -166,16 +166,19 @@ Namespace API.RedGifs
             End If
         End Function
         Friend Shared Function GetDataFromUrlId(ByVal Obj As String, ByVal ObjIsID As Boolean, ByVal Responser As Responser,
-                                                ByVal Host As Plugin.Hosts.SettingsHost) As UserMedia
+                                                ByVal Host As Plugin.Hosts.SettingsHost, ByVal AccountName As String) As UserMedia
             Dim URL$ = String.Empty
             Try
                 If Obj.IsEmptyString Then Return Nothing
                 If Not ObjIsID Then
                     Obj = GetVideoIdFromUrl(Obj)
-                    If Not Obj.IsEmptyString Then Return GetDataFromUrlId(Obj, True, Responser, Host)
+                    If Not Obj.IsEmptyString Then Return GetDataFromUrlId(Obj, True, Responser, Host, AccountName)
                 Else
-                    If Host Is Nothing Then Host = Settings(RedGifsSiteKey)
-                    If Host.Source.Available(Plugin.ISiteSettings.Download.Main, True) Then
+                    If Host Is Nothing Then
+                        Host = Settings(RedGifsSiteKey, AccountName)
+                        If Host Is Nothing Then Host = Settings(RedGifsSiteKey).Default
+                    End If
+                    If Not Host Is Nothing AndAlso Host.Source.Available(Plugin.ISiteSettings.Download.Main, True) Then
                         If Responser Is Nothing Then Responser = Host.Responser.Copy
                         URL = String.Format(PostDataUrl, Obj.ToLower)
                         Dim r$ = Responser.GetResponse(URL,, EDP.ThrowException)
@@ -220,7 +223,7 @@ Namespace API.RedGifs
 #End Region
 #Region "Single data downloader"
         Protected Overrides Sub DownloadSingleObject_GetPosts(ByVal Data As IYouTubeMediaContainer, ByVal Token As CancellationToken)
-            Dim m As UserMedia = GetDataFromUrlId(Data.URL, False, Responser, HOST)
+            Dim m As UserMedia = GetDataFromUrlId(Data.URL, False, Responser, HOST, AccountName)
             If Not m.State = UStates.Missing And Not m.State = DataGone And (m.Type = UTypes.Picture Or m.Type = UTypes.Video) Then
                 m.URL_BASE = MySettings.GetUserPostUrl(Me, m)
                 _TempMediaList.Add(m)
@@ -229,7 +232,7 @@ Namespace API.RedGifs
 #End Region
 #Region "Create media"
         Private Function MediaFromData(ByVal t As UTypes, ByVal _URL As String, ByVal PostID As String,
-                                       ByVal PostDateStr As String, ByVal PostDateDate As Date?, ByVal State As UStates) As UserMedia
+                                       ByVal PostDateStr As String, ByVal PostDateDate As Date?, ByVal State As UStates, Optional ByVal Attempts As Integer = 0) As UserMedia
             _URL = LinkFormatterSecure(RegexReplace(_URL.Replace("\", String.Empty), LinkPattern))
             Dim m As New UserMedia(_URL, t) With {.Post = New UserPost With {.ID = PostID}}
             If Not m.URL.IsEmptyString Then m.File = CStr(RegexReplace(m.URL, FilesPattern))
@@ -241,6 +244,7 @@ Namespace API.RedGifs
                 m.Post.Date = Nothing
             End If
             m.State = State
+            m.Attempts = Attempts
             Return m
         End Function
 #End Region
@@ -249,7 +253,7 @@ Namespace API.RedGifs
                                                           Optional ByVal EObj As Object = Nothing) As Integer
             Dim s As WebExceptionStatus = Responser.Status
             Dim sc As HttpStatusCode = Responser.StatusCode
-            If sc = HttpStatusCode.NotFound Or s = DataGone Then
+            If sc = HttpStatusCode.NotFound Or s = DataGone Or sc = DataGone Then
                 UserExists = False
             ElseIf sc = HttpStatusCode.Unauthorized Then
                 MyMainLOG = $"RedGifs credentials have expired [{CInt(sc)}]: {ToStringForLog()}"

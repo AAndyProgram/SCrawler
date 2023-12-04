@@ -17,6 +17,7 @@ Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Tools.Web.Clients
 Imports PersonalUtilities.Tools.Web.Documents.JSON
 Imports UTypes = SCrawler.API.Base.UserMedia.Types
+Imports UStates = SCrawler.API.Base.UserMedia.States
 Namespace API.Instagram
     Friend Class UserData : Inherits UserDataBase
 #Region "XML Names"
@@ -24,12 +25,13 @@ Namespace API.Instagram
         Private Const Name_FirstLoadingDone As String = "FirstLoadingDone"
         Private Const Name_GetTimeline As String = "GetTimeline"
         Private Const Name_GetStories As String = "GetStories"
+        Private Const Name_GetStoriesUser As String = "GetStoriesUser"
         Private Const Name_GetTagged As String = "GetTaggedData"
         Private Const Name_TaggedChecked As String = "TaggedChecked"
         Private Const Name_NameTrue As String = "NameTrue"
 #End Region
 #Region "Declarations"
-        Private Structure PostKV : Implements IEContainerProvider
+        Protected Structure PostKV : Implements IEContainerProvider
             Private Const Name_Code As String = "Code"
             Private Const Name_Section As String = "Section"
             Friend Code As String
@@ -69,20 +71,46 @@ Namespace API.Instagram
                 Return DirectCast(HOST.Source, SiteSettings)
             End Get
         End Property
-        Private ReadOnly PostsKVIDs As List(Of PostKV)
+        Protected ReadOnly PostsKVIDs As List(Of PostKV)
         Private ReadOnly PostsToReparse As List(Of PostKV)
         Private LastCursor As String = String.Empty
         Private FirstLoadingDone As Boolean = False
         Friend Property GetTimeline As Boolean = True
         Friend Property GetStories As Boolean
+        Friend Property GetStoriesUser As Boolean
         Friend Property GetTaggedData As Boolean
-        Private _NameTrue As String = String.Empty
-        Private ReadOnly Property NameTrue As String
+        Protected _NameTrue As String = String.Empty
+        Friend ReadOnly Property NameTrue As String
             Get
                 Return _NameTrue.IfNullOrEmpty(Name)
             End Get
         End Property
         Private UserNameRequested As Boolean = False
+#End Region
+#Region "Loader"
+        Protected Overrides Sub LoadUserInformation_OptionalFields(ByRef Container As XmlFile, ByVal Loading As Boolean)
+            With Container
+                If Loading Then
+                    LastCursor = .Value(Name_LastCursor)
+                    FirstLoadingDone = .Value(Name_FirstLoadingDone).FromXML(Of Boolean)(False)
+                    GetTimeline = .Value(Name_GetTimeline).FromXML(Of Boolean)(CBool(MySiteSettings.GetTimeline.Value))
+                    GetStories = .Value(Name_GetStories).FromXML(Of Boolean)(CBool(MySiteSettings.GetStories.Value))
+                    GetStoriesUser = .Value(Name_GetStoriesUser).FromXML(Of Boolean)(MySiteSettings.GetStoriesUser.Value)
+                    GetTaggedData = .Value(Name_GetTagged).FromXML(Of Boolean)(CBool(MySiteSettings.GetTagged.Value))
+                    TaggedChecked = .Value(Name_TaggedChecked).FromXML(Of Boolean)(False)
+                    _NameTrue = .Value(Name_NameTrue)
+                Else
+                    .Add(Name_LastCursor, LastCursor)
+                    .Add(Name_FirstLoadingDone, FirstLoadingDone.BoolToInteger)
+                    .Add(Name_GetTimeline, GetTimeline.BoolToInteger)
+                    .Add(Name_GetStories, GetStories.BoolToInteger)
+                    .Add(Name_GetStoriesUser, GetStoriesUser.BoolToInteger)
+                    .Add(Name_GetTagged, GetTaggedData.BoolToInteger)
+                    .Add(Name_TaggedChecked, TaggedChecked.BoolToInteger)
+                    .Add(Name_NameTrue, _NameTrue)
+                End If
+            End With
+        End Sub
 #End Region
 #Region "Exchange options"
         Friend Overrides Function ExchangeOptionsGet() As Object
@@ -93,36 +121,16 @@ Namespace API.Instagram
                 With DirectCast(Obj, EditorExchangeOptions)
                     GetTimeline = .GetTimeline
                     GetStories = .GetStories
+                    GetStoriesUser = .GetStoriesUser
                     GetTaggedData = .GetTagged
                 End With
             End If
         End Sub
 #End Region
-#Region "Initializer, loader"
+#Region "Initializer"
         Friend Sub New()
             PostsKVIDs = New List(Of PostKV)
             PostsToReparse = New List(Of PostKV)
-        End Sub
-        Protected Overrides Sub LoadUserInformation_OptionalFields(ByRef Container As XmlFile, ByVal Loading As Boolean)
-            With Container
-                If Loading Then
-                    LastCursor = .Value(Name_LastCursor)
-                    FirstLoadingDone = .Value(Name_FirstLoadingDone).FromXML(Of Boolean)(False)
-                    GetTimeline = .Value(Name_GetTimeline).FromXML(Of Boolean)(CBool(MySiteSettings.GetTimeline.Value))
-                    GetStories = .Value(Name_GetStories).FromXML(Of Boolean)(CBool(MySiteSettings.GetStories.Value))
-                    GetTaggedData = .Value(Name_GetTagged).FromXML(Of Boolean)(CBool(MySiteSettings.GetTagged.Value))
-                    TaggedChecked = .Value(Name_TaggedChecked).FromXML(Of Boolean)(False)
-                    _NameTrue = .Value(Name_NameTrue)
-                Else
-                    .Add(Name_LastCursor, LastCursor)
-                    .Add(Name_FirstLoadingDone, FirstLoadingDone.BoolToInteger)
-                    .Add(Name_GetTimeline, GetTimeline.BoolToInteger)
-                    .Add(Name_GetStories, GetStories.BoolToInteger)
-                    .Add(Name_GetTagged, GetTaggedData.BoolToInteger)
-                    .Add(Name_TaggedChecked, TaggedChecked.BoolToInteger)
-                    .Add(Name_NameTrue, _NameTrue)
-                End If
-            End With
         End Sub
 #End Region
 #Region "Download data"
@@ -136,12 +144,22 @@ Namespace API.Instagram
                 Throw New ExitException
             End Sub
         End Class
-        Private Sub LoadSavePostsKV(ByVal Load As Boolean)
+        Private ReadOnly Property MyFilePostsKV As SFile
+            Get
+                Dim f As SFile = MyFilePosts
+                If Not f.IsEmptyString Then
+                    f.Name &= "_KV"
+                    f.Extension = "xml"
+                    Return f
+                Else
+                    Return Nothing
+                End If
+            End Get
+        End Property
+        Protected Sub LoadSavePostsKV(ByVal Load As Boolean)
             Dim x As XmlFile
-            Dim f As SFile = MyFilePosts
+            Dim f As SFile = MyFilePostsKV
             If Not f.IsEmptyString Then
-                f.Name &= "_KV"
-                f.Extension = "xml"
                 If Load Then
                     PostsKVIDs.Clear()
                     x = New XmlFile(f, Protector.Modes.All, False) With {.AllowSameNames = True, .XmlReadOnly = True}
@@ -157,7 +175,7 @@ Namespace API.Instagram
                 End If
             End If
         End Sub
-        Private Overloads Function PostKvExists(ByVal pkv As PostKV) As Boolean
+        Protected Overloads Function PostKvExists(ByVal pkv As PostKV) As Boolean
             Return PostKvExists(pkv.ID, False, pkv.Section) OrElse PostKvExists(pkv.Code, True, pkv.Section)
         End Function
         Private Overloads Function PostKvExists(ByVal PostCodeId As String, ByVal IsCode As Boolean, ByVal Section As Sections) As Boolean
@@ -175,10 +193,8 @@ Namespace API.Instagram
         Friend Function GetPostCodeById(ByVal PostID As String) As String
             Try
                 If Not PostID.IsEmptyString Then
-                    Dim f As SFile = MyFilePosts
+                    Dim f As SFile = MyFilePostsKV
                     If Not f.IsEmptyString Then
-                        f.Name &= "_KV"
-                        f.Extension = "xml"
                         Dim l As List(Of PostKV) = Nothing
                         Using x As New XmlFile(f, Protector.Modes.All, False) With {.AllowSameNames = True, .XmlReadOnly = True}
                             x.LoadData()
@@ -206,11 +222,15 @@ Namespace API.Instagram
             End If
         End Function
         Private _DownloadingInProgress As Boolean = False
+        Private _Limit As Integer = -1
+        Private _TotalPostsParsed As Integer = 0
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
             UserNameRequested = False
             Dim s As Sections = Sections.Timeline
             Dim errorFound As Boolean = False
             Try
+                _Limit = If(DownloadTopCount, -1)
+                _TotalPostsParsed = 0
                 LoadSavePostsKV(True)
                 _DownloadingInProgress = True
                 AddHandler Responser.ResponseReceived, AddressOf Responser_ResponseReceived
@@ -234,6 +254,7 @@ Namespace API.Instagram
                 If FirstLoadingDone Then LastCursor = String.Empty
                 If Not IsSavedPosts AndAlso MySiteSettings.BaseAuthExists() Then
                     If CBool(MySiteSettings.DownloadStories.Value) And GetStories Then s = Sections.Stories : DownloadData(String.Empty, s, Token) : ProgressPre.Done()
+                    If CBool(MySiteSettings.DownloadStoriesUser.Value) And GetStoriesUser Then s = Sections.UserStories : DownloadData(String.Empty, s, Token) : ProgressPre.Done()
                     If CBool(MySiteSettings.DownloadTagged.Value) And ACheck(MySiteSettings.HashTagged.Value) And GetTaggedData Then s = Sections.Tagged : DownloadData(String.Empty, s, Token) : ProgressPre.Done()
                 End If
                 If WaitNotificationMode = WNM.SkipTemp Or WaitNotificationMode = WNM.SkipCurrent Then WaitNotificationMode = WNM.Notify
@@ -262,7 +283,7 @@ Namespace API.Instagram
             Catch ex As Exception
             End Try
         End Sub
-        Private Sub UpdateResponser()
+        Protected Overridable Sub UpdateResponser()
             Try
                 If _DownloadingInProgress AndAlso Not Responser Is Nothing AndAlso Not Responser.Disposed Then
                     _DownloadingInProgress = False
@@ -272,11 +293,11 @@ Namespace API.Instagram
             Catch
             End Try
         End Sub
-        Private Sub Responser_ResponseReceived(ByVal Sender As Object, ByVal e As EventArguments.WebDataResponse)
+        Protected Overridable Sub Responser_ResponseReceived(ByVal Sender As Object, ByVal e As EventArguments.WebDataResponse)
             Declarations.UpdateResponser(e, Responser)
         End Sub
-        Private Enum Sections : Timeline : Tagged : Stories : SavedPosts : End Enum
-        Private Const StoriesFolder As String = "Stories"
+        Protected Enum Sections : Timeline : Tagged : Stories : UserStories : SavedPosts : End Enum
+        Protected Const StoriesFolder As String = "Stories"
         Private Const TaggedFolder As String = "Tagged"
 #Region "429 bypass"
         Private Const MaxPostsCount As Integer = 200
@@ -455,7 +476,7 @@ Namespace API.Instagram
                                     ThrowAny(Token)
                                 End If
                                 If StoriesList.ListExists Then
-                                    GetStoriesData(StoriesList, Token)
+                                    GetStoriesData(StoriesList, False, Token)
                                     MySiteSettings.TooManyRequests(False)
                                     RequestsCount += 1
                                 End If
@@ -464,6 +485,11 @@ Namespace API.Instagram
                                 Else
                                     Throw New ExitException
                                 End If
+                            Case Sections.UserStories
+                                GetStoriesData(Nothing, True, Token)
+                                MySiteSettings.TooManyRequests(False)
+                                RequestsCount += 1
+                                Throw New ExitException
                         End Select
 
                         'Get response
@@ -559,6 +585,7 @@ Namespace API.Instagram
             Dim URL$ = String.Empty
             Dim dValue% = 1
             Dim _Index% = 0
+            Dim before%
             If PostsToReparse.Count > 0 Then ProgressPre.ChangeMax(PostsToReparse.Count)
             Try
                 Do While dValue = 1
@@ -587,7 +614,12 @@ Namespace API.Instagram
                                     If Not j Is Nothing Then
                                         If If(j("items")?.Count, 0) > 0 Then
                                             With j("items")
-                                                For Each jj In .Self : ObtainMedia(jj, PostsToReparse(i).ID) : Next
+                                                For Each jj In .Self
+                                                    before = _TempMediaList.Count
+                                                    ObtainMedia(jj, PostsToReparse(i).ID)
+                                                    If Not before = _TempMediaList.Count Then _TotalPostsParsed += 1
+                                                    If _Limit > 0 And _TotalPostsParsed >= _Limit Then Throw New ExitException
+                                                Next
                                             End With
                                         End If
                                         j.Dispose()
@@ -624,21 +656,24 @@ Namespace API.Instagram
                             NextCursor = .Value("next_max_id")
                             If .Contains("items") Then nodes = (From ee As EContainer In .Item("items") Where ee.Count > 0 Select ee(0))
                         End With
-                        If nodes.ListExists Then
-                            DefaultParser(nodes, Sections.SavedPosts, Token)
-                            If HasNextPage And Not NextCursor.IsEmptyString Then SavedPostsDownload(NextCursor, Token)
-                        End If
+                        If nodes.ListExists AndAlso DefaultParser(nodes, Sections.SavedPosts, Token) AndAlso
+                           HasNextPage AndAlso Not NextCursor.IsEmptyString Then SavedPostsDownload(NextCursor, Token)
                     End If
                 End Using
             End If
         End Sub
-        Private Function DefaultParser(ByVal Items As IEnumerable(Of EContainer), ByVal Section As Sections, ByVal Token As CancellationToken,
-                                       Optional ByVal SpecFolder As String = Nothing) As Boolean
+        Protected DefaultParser_ElemNode() As Object = Nothing
+        Protected DefaultParser_IgnorePass As Boolean = False
+        Protected DefaultParser_PostUrlCreator As Func(Of PostKV, String) = Function(post) $"https://www.instagram.com/p/{post.Code}/"
+        Protected Function DefaultParser(ByVal Items As IEnumerable(Of EContainer), ByVal Section As Sections, ByVal Token As CancellationToken,
+                                         Optional ByVal SpecFolder As String = Nothing, Optional ByVal State As UStates = UStates.Unknown,
+                                         Optional ByVal Attempts As Integer = 0) As Boolean
             ThrowAny(Token)
             If Items.Count > 0 Then
                 Dim PostIDKV As PostKV
                 Dim Pinned As Boolean
-                Dim PostDate$
+                Dim PostDate$, PostOriginUrl$
+                Dim before%
                 If SpecFolder.IsEmptyString Then
                     Select Case Section
                         Case Sections.Tagged : SpecFolder = TaggedFolder
@@ -649,22 +684,26 @@ Namespace API.Instagram
                 ProgressPre.ChangeMax(Items.Count)
                 For Each nn In Items
                     ProgressPre.Perform()
-                    With nn
+                    With If(Not DefaultParser_ElemNode Is Nothing, nn.ItemF(DefaultParser_ElemNode), nn)
                         PostIDKV = New PostKV(.Value("code"), .Value("id"), Section)
+                        PostOriginUrl = DefaultParser_PostUrlCreator(PostIDKV)
                         Pinned = .Contains("timeline_pinned_user_ids")
-                        If PostKvExists(PostIDKV) Then
+                        If Not DefaultParser_IgnorePass AndAlso PostKvExists(PostIDKV) Then
                             If Not Pinned Then Return False
                         Else
                             _TempPostsList.Add(PostIDKV.ID)
                             PostsKVIDs.ListAddValue(PostIDKV, LNC)
                             PostDate = .Value("taken_at")
-                            If Not IsSavedPosts Then
+                            If Not DefaultParser_IgnorePass And Not IsSavedPosts Then
                                 Select Case CheckDatesLimit(PostDate, UnixDate32Provider)
                                     Case DateResult.Skip : Continue For
                                     Case DateResult.Exit : If Not Pinned Then Return False
                                 End Select
                             End If
-                            ObtainMedia(.Self, PostIDKV.ID, SpecFolder, PostDate)
+                            before = _TempMediaList.Count
+                            ObtainMedia(.Self, PostIDKV.ID, SpecFolder, PostDate,, PostOriginUrl, State, Attempts)
+                            If Not before = _TempMediaList.Count Then _TotalPostsParsed += 1
+                            If _Limit > 0 And _TotalPostsParsed >= _Limit Then Return False
                         End If
                     End With
                 Next
@@ -675,7 +714,7 @@ Namespace API.Instagram
         End Function
 #End Region
 #Region "Code ID converters"
-        Private Function CodeToID(ByVal Code As String) As String
+        Protected Function CodeToID(ByVal Code As String) As String
             Const CodeSymbols$ = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
             Try
                 If Not Code.IsEmptyString Then
@@ -695,12 +734,20 @@ Namespace API.Instagram
         End Function
 #End Region
 #Region "Obtain Media"
-        Private Sub ObtainMedia(ByVal n As EContainer, ByVal PostID As String, Optional ByVal SpecialFolder As String = Nothing,
-                                Optional ByVal DateObj As String = Nothing)
+        Protected ObtainMedia_SizeFuncVid As Func(Of EContainer, Sizes) = Nothing
+        Protected ObtainMedia_SizeFuncPic As Func(Of EContainer, Sizes) = Nothing
+        Protected ObtainMedia_AllowAbstract As Boolean = False
+        Protected Sub ObtainMedia(ByVal n As EContainer, ByVal PostID As String, Optional ByVal SpecialFolder As String = Nothing,
+                                  Optional ByVal DateObj As String = Nothing, Optional ByVal InitialType As Integer = -1,
+                                  Optional ByVal PostOriginUrl As String = Nothing,
+                                  Optional ByVal State As UStates = UStates.Unknown, Optional ByVal Attempts As Integer = 0)
             Try
+                Dim wrongData As Predicate(Of Sizes) = Function(_ss) _ss.HasError Or _ss.Data.IsEmptyString
                 Dim img As Predicate(Of EContainer) = Function(_img) Not _img.Name.IsEmptyString AndAlso _img.Name.StartsWith("image_versions") AndAlso _img.Count > 0
                 Dim vid As Predicate(Of EContainer) = Function(_vid) Not _vid.Name.IsEmptyString AndAlso _vid.Name.StartsWith("video_versions") AndAlso _vid.Count > 0
                 Dim ss As Func(Of EContainer, Sizes) = Function(_ss) New Sizes(_ss.Value("width"), _ss.Value("url"))
+                Dim ssVid As Func(Of EContainer, Sizes) = ss
+                Dim ssPic As Func(Of EContainer, Sizes) = ss
                 Dim mDate As Func(Of EContainer, String) = Function(ByVal elem As EContainer) As String
                                                                If Not DateObj.IsEmptyString Then Return DateObj
                                                                If elem.Contains("taken_at") Then
@@ -720,28 +767,41 @@ Namespace API.Instagram
                                                                    End If
                                                                End If
                                                            End Function
+                If Not ObtainMedia_SizeFuncVid Is Nothing Then ssVid = ObtainMedia_SizeFuncVid
+                If Not ObtainMedia_SizeFuncPic Is Nothing Then ssPic = ObtainMedia_SizeFuncPic
                 If n.Count > 0 Then
                     Dim l As New List(Of Sizes)
                     Dim d As EContainer
                     Dim t%
+                    Dim abstractDecision As Boolean = False
                     '8 - gallery
                     '2 - one video
                     '1 - one picture
                     t = n.Value("media_type").FromXML(Of Integer)(-1)
+                    If t = -1 And InitialType = 8 And ObtainMedia_AllowAbstract Then
+                        If n.Contains(vid) Then
+                            t = 2
+                            abstractDecision = True
+                        ElseIf n.Contains(img) Then
+                            t = 1
+                            abstractDecision = True
+                        End If
+                    End If
                     If t >= 0 Then
                         Select Case t
                             Case 1
                                 If n.Contains(img) Then
-                                    t = n.Value("media_type").FromXML(Of Integer)(-1)
+                                    If Not abstractDecision Then t = n.Value("media_type").FromXML(Of Integer)(-1)
                                     DateObj = mDate(n)
                                     If t >= 0 Then
                                         With n.ItemF({img, "candidates"}).XmlIfNothing
                                             If .Count > 0 Then
                                                 l.Clear()
-                                                l.ListAddList(.Select(ss), LNC)
+                                                l.ListAddList(.Select(ssPic), LNC)
+                                                If l.Count > 0 Then l.RemoveAll(wrongData)
                                                 If l.Count > 0 Then
                                                     l.Sort()
-                                                    _TempMediaList.ListAddValue(MediaFromData(UTypes.Picture, l.First.Data, PostID, DateObj, SpecialFolder), LNC)
+                                                    _TempMediaList.ListAddValue(MediaFromData(UTypes.Picture, l.First.Data, PostID, DateObj, SpecialFolder, PostOriginUrl, State, Attempts), LNC)
                                                     l.Clear()
                                                 End If
                                             End If
@@ -754,10 +814,11 @@ Namespace API.Instagram
                                     With n.ItemF({vid}).XmlIfNothing
                                         If .Count > 0 Then
                                             l.Clear()
-                                            l.ListAddList(.Select(ss), LNC)
+                                            l.ListAddList(.Select(ssVid), LNC)
+                                            If l.Count > 0 Then l.RemoveAll(wrongData)
                                             If l.Count > 0 Then
                                                 l.Sort()
-                                                _TempMediaList.ListAddValue(MediaFromData(UTypes.Video, l.First.Data, PostID, DateObj, SpecialFolder), LNC)
+                                                _TempMediaList.ListAddValue(MediaFromData(UTypes.Video, l.First.Data, PostID, DateObj, SpecialFolder, PostOriginUrl, State, Attempts), LNC)
                                                 l.Clear()
                                             End If
                                         End If
@@ -767,7 +828,7 @@ Namespace API.Instagram
                                 DateObj = mDate(n)
                                 With n("carousel_media").XmlIfNothing
                                     If .Count > 0 Then
-                                        For Each d In .Self : ObtainMedia(d, PostID, SpecialFolder, DateObj) : Next
+                                        For Each d In .Self : ObtainMedia(d, PostID, SpecialFolder, DateObj, 8, PostOriginUrl) : Next
                                     End If
                                 End With
                         End Select
@@ -854,17 +915,21 @@ Namespace API.Instagram
         End Function
 #End Region
 #Region "Pinned stories"
-        Private Sub GetStoriesData(ByRef StoriesList As List(Of String), ByVal Token As CancellationToken)
+        Private Sub GetStoriesData(ByRef StoriesList As List(Of String), ByVal GetUserStory As Boolean, ByVal Token As CancellationToken)
             Const ReqUrl$ = "https://i.instagram.com/api/v1/feed/reels_media/?{0}"
-            Dim tmpList As IEnumerable(Of String)
+            Dim tmpList As IEnumerable(Of String) = Nothing
             Dim qStr$, r$, sFolder$, storyID$, pid$
             Dim i% = -1
             Dim jj As EContainer, s As EContainer
             ThrowAny(Token)
-            If StoriesList.ListExists Then
-                tmpList = StoriesList.Take(5)
-                If tmpList.ListExists Then
-                    qStr = String.Format(ReqUrl, tmpList.Select(Function(q) $"reel_ids=highlight:{q}").ListToString("&"))
+            If StoriesList.ListExists Or GetUserStory Then
+                If Not GetUserStory Then tmpList = StoriesList.Take(5)
+                If tmpList.ListExists Or GetUserStory Then
+                    If GetUserStory Then
+                        qStr = $"https://www.instagram.com/api/v1/feed/reels_media/?reel_ids={ID}"
+                    Else
+                        qStr = String.Format(ReqUrl, tmpList.Select(Function(q) $"reel_ids=highlight:{q}").ListToString("&"))
+                    End If
                     r = Responser.GetResponse(qStr,, EDP.ThrowException)
                     ThrowAny(Token)
                     If Not r.IsEmptyString Then
@@ -876,9 +941,13 @@ Namespace API.Instagram
                                     i += 1
                                     sFolder = jj.Value("title").StringRemoveWinForbiddenSymbols
                                     storyID = jj.Value("id").Replace("highlight:", String.Empty)
-                                    If sFolder.IsEmptyString Then sFolder = $"Story_{storyID}"
-                                    If sFolder.IsEmptyString Then sFolder = $"Story_{i}"
-                                    sFolder = $"{StoriesFolder}\{sFolder}"
+                                    If GetUserStory Then
+                                        sFolder = $"{StoriesFolder} (user)"
+                                    Else
+                                        If sFolder.IsEmptyString Then sFolder = $"Story_{storyID}"
+                                        If sFolder.IsEmptyString Then sFolder = $"Story_{i}"
+                                        sFolder = $"{StoriesFolder}\{sFolder}"
+                                    End If
                                     If Not storyID.IsEmptyString Then storyID &= ":"
                                     With jj("items").XmlIfNothing
                                         If .Count > 0 Then
@@ -896,7 +965,7 @@ Namespace API.Instagram
                             End If
                         End Using
                     End If
-                    StoriesList.RemoveRange(0, tmpList.Count)
+                    If Not GetUserStory Then StoriesList.RemoveRange(0, tmpList.Count)
                 End If
             End If
         End Sub
@@ -904,7 +973,8 @@ Namespace API.Instagram
             Try
                 Dim r$ = Responser.GetResponse($"https://i.instagram.com/api/v1/highlights/{ID}/highlights_tray/",, EDP.ThrowException)
                 If Not r.IsEmptyString Then
-                    Using j As EContainer = JsonDocument.Parse(r).XmlIfNothing()("tray").XmlIfNothing
+                    Dim ee As New ErrorsDescriber(EDP.ReturnValue) With {.DeclaredMessage = New MMessage($"{ToStringForLog()}:")}
+                    Using j As EContainer = JsonDocument.Parse(r, ee).XmlIfNothing()("tray").XmlIfNothing
                         If j.Count > 0 Then Return j.Select(Function(jj) jj.Value("id").Replace("highlight:", String.Empty)).ListIfNothing
                     End Using
                 End If
@@ -920,6 +990,12 @@ Namespace API.Instagram
             DownloadContentDefault(Token)
         End Sub
 #End Region
+#Region "Erase"
+        Protected Overrides Sub EraseData_AdditionalDataFiles()
+            Dim f As SFile = MyFilePostsKV
+            If f.Exists Then f.Delete(SFO.File, SFODelete.DeleteToRecycleBin, EDP.ReturnValue)
+        End Sub
+#End Region
 #Region "Exceptions"
         ''' <exception cref="ExitException"></exception>
         ''' <inheritdoc cref="UserDataBase.ThrowAny(CancellationToken)"/>
@@ -933,15 +1009,15 @@ Namespace API.Instagram
         ''' </summary>
         Protected Overrides Function DownloadingException(ByVal ex As Exception, ByVal Message As String, Optional ByVal FromPE As Boolean = False,
                                                           Optional ByVal s As Object = Nothing) As Integer
-            If Responser.StatusCode = HttpStatusCode.NotFound Then
+            If Responser.StatusCode = HttpStatusCode.NotFound Then '404
                 If Not UserNameRequested AndAlso GetUserNameById() Then Return 1 Else UserExists = False
-            ElseIf Responser.StatusCode = HttpStatusCode.BadRequest Then
+            ElseIf Responser.StatusCode = HttpStatusCode.BadRequest Or Responser.StatusCode = HttpStatusCode.Unauthorized Then '400, 401
                 HasError = True
                 MyMainLOG = $"Instagram credentials have expired [{CInt(Responser.StatusCode)}]: {ToStringForLog()} [{s}]"
                 DisableSection(s)
-            ElseIf Responser.StatusCode = HttpStatusCode.Forbidden And s = Sections.Tagged Then
+            ElseIf Responser.StatusCode = HttpStatusCode.Forbidden And s = Sections.Tagged Then '403
                 Return 3
-            ElseIf Responser.StatusCode = 429 Then
+            ElseIf Responser.StatusCode = 429 Then '429
                 With MySiteSettings
                     Dim WaiterExists As Boolean = .LastApplyingValue.HasValue
                     .TooManyRequests(True)
@@ -950,10 +1026,10 @@ Namespace API.Instagram
                 Caught429 = True
                 MyMainLOG = $"Number of requests before error 429: {RequestsCount}"
                 Return 1
-            ElseIf Responser.StatusCode = 560 Then
+            ElseIf Responser.StatusCode = 560 Or Responser.StatusCode = HttpStatusCode.InternalServerError Then '560, 500
                 MySiteSettings.SkipUntilNextSession = True
             Else
-                MyMainLOG = $"Something is wrong. Your credentials may have expired [{CInt(Responser.StatusCode)}]: {ToString()} [{s}]"
+                MyMainLOG = $"Something is wrong. Your credentials may have expired [{CInt(Responser.StatusCode)}/{CInt(Responser.Status)}]: {ToString()} [{s}]"
                 DisableSection(s)
                 If Not FromPE Then LogError(ex, Message) : HasError = True
                 Return 0
@@ -965,6 +1041,10 @@ Namespace API.Instagram
                 Dim s As Sections = DirectCast(Section, Sections)
                 Select Case s
                     Case Sections.Timeline : MySiteSettings.DownloadTimeline.Value = False
+                    Case Sections.Stories, Sections.UserStories
+                        MySiteSettings.DownloadTimeline.Value = False
+                        MySiteSettings.DownloadStories.Value = False
+                        MySiteSettings.DownloadStoriesUser.Value = False
                     Case Else : MySiteSettings.DownloadTagged.Value = False
                 End Select
                 MyMainLOG = $"[{s}] downloading is disabled until you update your credentials".ToUpper
@@ -973,12 +1053,14 @@ Namespace API.Instagram
 #End Region
 #Region "Create media"
         Private Function MediaFromData(ByVal t As UTypes, ByVal _URL As String, ByVal PostID As String, ByVal PostDate As String,
-                                       Optional ByVal SpecialFolder As String = Nothing) As UserMedia
+                                       Optional ByVal SpecialFolder As String = Nothing, Optional ByVal PostOriginUrl As String = Nothing,
+                                       Optional ByVal State As UStates = UStates.Unknown, Optional ByVal Attempts As Integer = 0) As UserMedia
             _URL = LinkFormatterSecure(RegexReplace(_URL.Replace("\", String.Empty), LinkPattern))
-            Dim m As New UserMedia(_URL, t) With {.Post = New UserPost With {.ID = PostID}}
+            Dim m As New UserMedia(_URL, t) With {.URL_BASE = PostOriginUrl.IfNullOrEmpty(_URL), .Post = New UserPost With {.ID = PostID}}
             If Not m.URL.IsEmptyString Then m.File = CStr(RegexReplace(m.URL, FilesPattern))
             If Not PostDate.IsEmptyString Then m.Post.Date = AConvert(Of Date)(PostDate, UnixDate32Provider, Nothing) Else m.Post.Date = Nothing
             m.SpecialFolder = SpecialFolder
+            If State = UStates.Missing Then m.State = UStates.Missing : m.Attempts = Attempts
             Return m
         End Function
 #End Region

@@ -8,10 +8,16 @@
 ' but WITHOUT ANY WARRANTY
 Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Forms.Toolbars
+Imports PersonalUtilities.Tools
+Imports ECI = PersonalUtilities.Forms.Toolbars.EditToolbar.ControlItem
+Imports ADB = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons
 Namespace DownloadObjects
     Friend Class SchedulerEditorForm
 #Region "Declarations"
+        Private Const TitleDefault As String = "Scheduler"
         Private WithEvents MyDefs As DefaultFormOptions
+        Private WithEvents BTT_SETTINGS As ToolStripButton
+        Private WithEvents BTT_CLONE As ToolStripButton
         Private ReadOnly MENU_SKIP As ToolStripDropDownButton
         Private WithEvents BTT_SKIP As ToolStripMenuItem
         Private WithEvents BTT_SKIP_MIN As ToolStripMenuItem
@@ -26,6 +32,20 @@ Namespace DownloadObjects
         Friend Sub New()
             InitializeComponent()
             MyDefs = New DefaultFormOptions(Me, Settings.Design)
+            BTT_SETTINGS = New ToolStripButton With {
+                .Text = String.Empty,
+                .AutoToolTip = True,
+                .ToolTipText = "Change scheduler",
+                .DisplayStyle = ToolStripItemDisplayStyle.Image,
+                .Image = My.Resources.ScriptPic_32
+            }
+            BTT_CLONE = New ToolStripButton With {
+                .Text = "Clone",
+                .DisplayStyle = ToolStripItemDisplayStyle.ImageAndText,
+                .Image = My.Resources.PlusPic_24,
+                .ToolTipText = "Create a copy of the selected plan",
+                .AutoToolTip = True
+            }
             MENU_SKIP = New ToolStripDropDownButton With {
                 .Text = "Skip",
                 .ToolTipText = String.Empty,
@@ -80,15 +100,18 @@ Namespace DownloadObjects
             }
             PauseArr = New AutoDownloaderPauseButtons(AutoDownloaderPauseButtons.ButtonsPlace.Scheduler) With {
                        .MainFrameButtonsInstance = MainFrameObj.PauseButtons}
+            Icon = ImageRenderer.GetIcon(My.Resources.ScriptPic_32, EDP.ReturnValue)
         End Sub
 #End Region
 #Region "Form handlers"
         Private Sub SchedulerEditorForm_Load(sender As Object, e As EventArgs) Handles Me.Load
             With MyDefs
                 .MyViewInitialize()
-                .AddEditToolbarPlus({New ToolStripSeparator, BTT_START, BTT_START_FORCE, MENU_SKIP, BTT_PAUSE})
+                .AddEditToolbar({BTT_SETTINGS, ECI.Separator, ECI.Add, BTT_CLONE, ECI.Edit, ECI.Delete, ECI.Update, ECI.Separator,
+                                 BTT_START, BTT_START_FORCE, MENU_SKIP, BTT_PAUSE})
                 PauseArr.AddButtons(BTT_PAUSE, .MyEditToolbar.ToolStrip)
                 Refill()
+                SetTitle()
                 .EndLoaderOperations(False)
             End With
         End Sub
@@ -117,18 +140,36 @@ Namespace DownloadObjects
                 ErrorsDescriber.Execute(EDP.SendToLog, ex, "[DownloadObjects.SchedulerEditorForm.Refill]")
             End Try
         End Sub
-#Region "Add, Edit, Delete"
-        Private Sub MyDefs_ButtonAddClick(ByVal Sender As Object, ByVal e As EditToolbarEventArgs) Handles MyDefs.ButtonAddClick
-            Dim a As New AutoDownloader(True)
-            Using f As New AutoDownloaderEditorForm(a)
-                f.ShowDialog()
-                If f.DialogResult = DialogResult.OK Then
-                    Settings.Automation.Add(a)
-                    Refill()
+        Private Sub SetTitle()
+            Try
+                If GetSchedulerFiles.ListExists(2) Then
+                    Text = $"{TitleDefault} [{Settings.Automation.Name}]"
                 Else
-                    a.Dispose()
+                    Text = TitleDefault
                 End If
-            End Using
+            Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "[SchedulerEditorForm.SetTitle]")
+            End Try
+        End Sub
+#Region "Add, Edit, Delete"
+        Private Sub MyDefs_ButtonAddClick(ByVal Sender As Object, ByVal e As EventArgs) Handles MyDefs.ButtonAddClick, BTT_CLONE.Click
+            Dim a As AutoDownloader = Nothing
+            If Sender Is BTT_CLONE Then
+                If _LatestSelected.ValueBetween(0, Settings.Automation.Count - 1) Then a = Settings.Automation(_LatestSelected).Copy
+            Else
+                a = New AutoDownloader(True)
+            End If
+            If Not a Is Nothing Then
+                Using f As New AutoDownloaderEditorForm(a)
+                    f.ShowDialog()
+                    If f.DialogResult = DialogResult.OK Then
+                        Settings.Automation.Add(a)
+                        Refill()
+                    Else
+                        a.Dispose()
+                    End If
+                End Using
+            End If
         End Sub
         Private Sub Edit() Handles MyDefs.ButtonEditClick
             If _LatestSelected.ValueBetween(0, LIST_PLANS.Items.Count - 1) Then
@@ -170,7 +211,84 @@ Namespace DownloadObjects
             Edit()
         End Sub
 #End Region
-#Region "Start, Skip, Pause"
+#Region "Settings, Start, Skip, Pause"
+        Private Function GetSchedulerFiles() As List(Of SFile)
+            Return SFile.GetFiles(SettingsFolderName.CSFileP, $"{Scheduler.FileNameDefault}*.xml",, EDP.ReturnValue)
+        End Function
+        Private Sub BTT_SETTINGS_Click(sender As Object, e As EventArgs) Handles BTT_SETTINGS.Click
+            Const msgTitle$ = "Change scheduler"
+            Try
+                Const defName$ = "Default"
+                Dim l As New Dictionary(Of SFile, String)
+                With GetSchedulerFiles()
+                    If .ListExists Then .ForEach(Sub(ff) l.Add(ff, ff.Name.Replace(Scheduler.FileNameDefault, String.Empty).StringTrimStart("_").IfNullOrEmpty(defName)))
+                End With
+                If l.Count > 0 Then
+                    Using chooser As New SimpleListForm(Of String)(l.Values.Cast(Of String), Settings.Design) With {
+                        .DesignXMLNodeName = "SchedulerChooserForm",
+                        .Icon = PersonalUtilities.Tools.ImageRenderer.GetIcon(My.Resources.ScriptPic_32, EDP.ReturnValue),
+                        .FormText = "Schedulers",
+                        .Mode = SimpleListFormModes.SelectedItems,
+                        .MultiSelect = False
+                    }
+                        With chooser
+                            Dim i%
+                            Dim f As SFile
+                            Dim selectedName$
+                            Dim addedObj$ = String.Empty
+                            .ClearButtons()
+                            .Buttons = {ADB.Add, ADB.Delete}
+                            AddHandler .AddClick, Sub(ByVal obj As Object, ByVal args As SimpleListFormEventArgs)
+                                                      If addedObj.IsEmptyString Then
+                                                          addedObj = InputBoxE("Enter a new scheduler name:", msgTitle)
+                                                          args.Result = Not addedObj.IsEmptyString
+                                                          If args.Result Then args.Item = addedObj
+                                                      Else
+                                                          MsgBoxE({"You can only create one scheduler at a time", "Create a new scheduler"}, vbCritical)
+                                                      End If
+                                                  End Sub
+                            If Settings.Automation.File.Name = Scheduler.FileNameDefault Then
+                                .DataSelectedIndexes.Add(0)
+                            Else
+                                i = l.Keys.ListIndexOf(Function(ff) ff = Settings.Automation.File)
+                                If i >= 0 Then .DataSelectedIndexes.Add(i)
+                            End If
+                            If .ShowDialog() = DialogResult.OK Then
+                                selectedName = .DataResult.FirstOrDefault
+                                If Not selectedName.IsEmptyString Then
+                                    If selectedName = defName Then
+                                        f = Settings.Automation.FileDefault
+                                    Else
+                                        f = $"{SettingsFolderName}\{Scheduler.FileNameDefault}_{selectedName.StringRemoveWinForbiddenSymbols}.xml"
+                                    End If
+                                    If Not Settings.Automation.File = f AndAlso Settings.Automation.Reset(f, False) Then
+                                        Settings.Automation.File = f
+                                        If selectedName = defName Then
+                                            Settings.AutomationFile.Value = Nothing
+                                        Else
+                                            Settings.AutomationFile.Value = f
+                                        End If
+                                        PauseArr.UpdatePauseButtons()
+                                        Refill()
+                                        If Not .DataSource.Count = l.Count Then
+                                            For i = l.Count - 1 To 0 Step -1
+                                                If Not .DataSource.Contains(l(l.Keys(i))) Then l.Keys(i).Delete(, SFODelete.DeleteToRecycleBin, EDP.SendToLog)
+                                            Next
+                                        End If
+                                    End If
+                                    SetTitle()
+                                End If
+                            End If
+                        End With
+                    End Using
+                    l.Clear()
+                Else
+                    MsgBoxE({"There are no plans created", msgTitle}, vbExclamation)
+                End If
+            Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.LogMessageValue, ex, msgTitle)
+            End Try
+        End Sub
         Private Sub BTT_START_Click(sender As Object, e As EventArgs) Handles BTT_START.Click
             If _LatestSelected.ValueBetween(0, LIST_PLANS.Items.Count - 1) Then
                 With Settings.Automation(_LatestSelected) : .Start(.IsNewPlan) : End With
@@ -180,7 +298,7 @@ Namespace DownloadObjects
         Private Sub BTT_START_FORCE_Click(sender As Object, e As EventArgs) Handles BTT_START_FORCE.Click
             If _LatestSelected.ValueBetween(0, LIST_PLANS.Items.Count - 1) Then
                 With Settings.Automation(_LatestSelected)
-                    If .Working Then .ForceStart() : Refill()
+                    If .Working Or .IsManual Then .ForceStart() : Refill()
                 End With
             End If
         End Sub

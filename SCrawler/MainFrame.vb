@@ -22,6 +22,7 @@ Public Class MainFrame
     Private MyView As FormView
     Private WithEvents MyActivator As FormActivator
     Private WithEvents BTT_IMPORT_USERS As ToolStripMenuItem
+    Private WithEvents BTT_NEW_PROFILE As ToolStripMenuItem
     Friend MyChannels As ChannelViewForm
     Friend MySavedPosts As DownloadSavedPostsForm
     Private MyMissingPosts As MissingPostsForm
@@ -43,7 +44,10 @@ Public Class MainFrame
                 Next
             End If
         End With
-        BTT_IMPORT_USERS = New ToolStripMenuItem With {.Text = "Import", .Image = My.Resources.UsersIcon_32.ToBitmap}
+        BTT_IMPORT_USERS = New ToolStripMenuItem("Import", My.Resources.UsersIcon_32.ToBitmap)
+        BTT_NEW_PROFILE = New ToolStripMenuItem("Add new profile", My.Resources.PlusPic_24)
+        MENU_SETTINGS.DropDownItems.Insert(MENU_SETTINGS.DropDownItems.Count - 2, New ToolStripSeparator)
+        MENU_SETTINGS.DropDownItems.Insert(MENU_SETTINGS.DropDownItems.Count - 2, BTT_NEW_PROFILE)
         MENU_SETTINGS.DropDownItems.AddRange({New ToolStripSeparator, BTT_IMPORT_USERS})
         BTT_BUG_REPORT.Image = My.Resources.MailPic_16
     End Sub
@@ -68,12 +72,15 @@ Public Class MainFrame
             .ResetProgressOnMaximumChanges = False, .Visible = False}
         Downloader = New TDownloader
         InfoForm = New DownloadedInfoForm
+        DownloadQueue = New UserDownloadQueueForm
         MyProgressForm = New ActiveDownloadingProgress
         Downloader.ReconfPool()
         AddHandler Downloader.JobsChange, AddressOf Downloader_UpdateJobsCount
         AddHandler Downloader.Downloading, AddressOf Downloader_Downloading
         AddHandler Downloader.DownloadCountChange, AddressOf InfoForm.Downloader_DownloadCountChange
         AddHandler Downloader.SendNotification, AddressOf MainFrameObj.ShowNotification
+        AddHandler Downloader.UserDownloadStateChanged, AddressOf DownloadQueue.Downloader_UserDownloadStateChanged
+        AddHandler Downloader.Downloading, AddressOf DownloadQueue.Downloader_Downloading
         AddHandler InfoForm.UserFind, AddressOf FocusUser
         Settings.LoadUsers()
         MyView = New FormView(Me)
@@ -84,7 +91,7 @@ Public Class MainFrame
         With LIST_PROFILES.Groups
             .AddRange(GetLviGroupName(Nothing, True)) 'collections
             If Settings.Plugins.Count > 0 Then
-                For Each h As SettingsHost In Settings.Plugins.Select(Function(hh) hh.Settings) : .AddRange(GetLviGroupName(h, False)) : Next
+                For Each h As SettingsHost In Settings.Plugins.Select(Function(hh) hh.Settings.Default) : .AddRange(GetLviGroupName(h, False)) : Next
             End If
             If Settings.Labels.Count > 0 Then Settings.Labels.ToList.ForEach(Sub(l) .Add(New ListViewGroup(l, l)))
             .Add(Settings.Labels.NoLabel)
@@ -119,7 +126,7 @@ Public Class MainFrame
             .Automation = New Scheduler
             AddHandler .Groups.Updated, AddressOf .Automation.GROUPS_Updated
             AddHandler .Groups.Deleted, AddressOf .Automation.GROUPS_Deleted
-            AddHandler .Automation.PauseDisabled, AddressOf MainFrameObj.PauseButtons.UpdatePauseButtons
+            AddHandler .Automation.PauseChanged, AddressOf MainFrameObj.PauseButtons.UpdatePauseButtons_Handler
             If .Automation.Count > 0 Then .Labels.AddRange(.Automation.GetGroupsLabels, False) : .Labels.Update()
             _UFinit = False
             Await .Automation.Start(True)
@@ -198,19 +205,25 @@ CloseResume:
     Private Sub MainFrame_ResizeEnd(sender As Object, e As EventArgs) Handles Me.ResizeEnd
         If Not _UFinit Then UpdateImageColor()
     End Sub
-    Private Sub UpdateImageColor()
+    Private ListImageLastWidth As Integer = -1
+    Private Sub UpdateImageColor(Optional ByVal UpdateOnlyImage As Boolean = False)
         Try
             If Settings.UserListImage.Value.Exists Then
-                Using ir As New ImageRenderer(Settings.UserListImage) : LIST_PROFILES.BackgroundImage = ir.FitToWidth(LIST_PROFILES.Width) : End Using
+                If Not ListImageLastWidth = LIST_PROFILES.Width Or LIST_PROFILES.BackgroundImage Is Nothing Then
+                    ListImageLastWidth = LIST_PROFILES.Width
+                    Using ir As New ImageRenderer(Settings.UserListImage) : LIST_PROFILES.BackgroundImage = ir.FitToWidth(LIST_PROFILES.Width) : End Using
+                End If
             Else
                 LIST_PROFILES.BackgroundImage = Nothing
             End If
-            With Settings
-                If Not .UserListBackColorF = LIST_PROFILES.BackColor Or Not .UserListForeColorF = LIST_PROFILES.ForeColor Then
-                    LIST_PROFILES.BackColor = .UserListBackColorF
-                    LIST_PROFILES.ForeColor = .UserListForeColorF
-                End If
-            End With
+            If Not UpdateOnlyImage Then
+                With Settings
+                    If Not .UserListBackColorF = LIST_PROFILES.BackColor Or Not .UserListForeColorF = LIST_PROFILES.ForeColor Then
+                        LIST_PROFILES.BackColor = .UserListBackColorF
+                        LIST_PROFILES.ForeColor = .UserListForeColorF
+                    End If
+                End With
+            End If
         Catch ex As Exception
         End Try
     End Sub
@@ -274,6 +287,7 @@ CloseResume:
 #End Region
 #Region "List refill, update"
     Friend Sub RefillList()
+        UpdateImageColor(True)
         UserListLoader.Update()
     End Sub
     Private Sub UserListUpdate(ByVal User As IUserData, ByVal Add As Boolean)
@@ -308,6 +322,21 @@ CloseResume:
             If Not .FFMPEG.Value.Exists And Settings.FfmpegFile.Exists Then .FFMPEG.Value = Settings.FfmpegFile.File
             If .OutputPath.IsEmptyString And Not Settings.LatestSavingPath.IsEmptyString Then .OutputPath.Value = Settings.LatestSavingPath.Value
         End With
+    End Sub
+    Private Sub BTT_NEW_PROFILE_Click(sender As Object, e As EventArgs) Handles BTT_NEW_PROFILE.Click
+        Try
+            Using f As New SimpleListForm(Of PluginHost)(Settings.Plugins, Settings.Design) With {
+                .DesignXMLNodeName = "PluginsChooserForm",
+                .Mode = SimpleListFormModes.SelectedItems,
+                .MultiSelect = False,
+                .FormText = "Available plugins",
+                .Icon = My.Resources.SettingsIcon_48
+            }
+                If f.ShowDialog = DialogResult.OK AndAlso f.DataResult.Count > 0 Then f.DataResult.First.Settings.CreateAbstract()
+            End Using
+        Catch ex As Exception
+            ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "MainFrame.CreateNewProfile]")
+        End Try
     End Sub
     Private Sub BTT_IMPORT_USERS_Click(sender As Object, e As EventArgs) Handles BTT_IMPORT_USERS.Click
         Const MsgTitle$ = "Import users"
@@ -415,20 +444,33 @@ CloseResume:
     End Sub
 #End Region
 #Region "Info, Feed, Channels, Saved posts"
+#Region "Info"
     Private Sub MENU_INFO_SHOW_INFO_Click(sender As Object, e As EventArgs) Handles MENU_INFO_SHOW_INFO.Click
-        InfoForm.FormShow()
+        InfoForm.FormShow(EDP.LogMessageValue)
     End Sub
     Private Sub MENU_INFO_SHOW_QUEUE_Click(sender As Object, e As EventArgs) Handles MENU_INFO_SHOW_QUEUE.Click
-        DownloadQueue.FormShow(EDP.LogMessageValue)
+        ShowDownloadQueueForm()
+    End Sub
+    Private Sub ShowDownloadQueueForm(Optional ByVal Round As Integer = 0)
+        Try
+            DownloadQueue.FormShow(EDP.LogMessageValue)
+        Catch ex As Exception
+            If Round = 0 Then
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "ShowDownloadQueueForm_0")
+                If Not DownloadQueue Is Nothing Then DownloadQueue.Dispose() : DownloadQueue = Nothing
+                ShowDownloadQueueForm(Round + 1)
+            Else
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "ShowDownloadQueueForm")
+            End If
+        End Try
     End Sub
     Private Sub MENU_INFO_SHOW_MISSING_Click(sender As Object, e As EventArgs) Handles MENU_INFO_SHOW_MISSING.Click
-        If MyMissingPosts Is Nothing Then MyMissingPosts = New MissingPostsForm
-        If MyMissingPosts.Visible Then MyMissingPosts.BringToFront() Else MyMissingPosts.Show()
+        MyMissingPosts.FormShow(EDP.LogMessageValue)
     End Sub
     Private Sub MENU_INFO_SHOW_USER_METRICS_Click(sender As Object, e As EventArgs) Handles MENU_INFO_SHOW_USER_METRICS.Click
-        If MyUserMetrics Is Nothing Then MyUserMetrics = New UsersInfoForm
-        MyUserMetrics.FormShowS
+        MyUserMetrics.FormShow(EDP.LogMessageValue)
     End Sub
+#End Region
     Private Sub ShowFeed() Handles BTT_FEED.Click, BTT_TRAY_FEED_SHOW.Click
         If MyFeed Is Nothing Then MyFeed = New DownloadFeedForm : AddHandler Downloader.FeedFilesChanged, AddressOf MyFeed.Downloader_FilesChanged
         If MyFeed.Visible Then MyFeed.BringToFront() Else MyFeed.Show()
@@ -483,19 +525,32 @@ CloseResume:
         DownloadSiteFull(False, e.IncludeInTheFeed, True, e.Shift)
     End Sub
 #End Region
+    Private Sub BTT_DOWN_SPEC_KeyClick(ByVal Sender As Object, ByVal e As MyKeyEventArgs) Handles BTT_DOWN_SPEC.KeyClick
+        Dim group As Groups.DownloadGroup = Nothing
+        Using f As New Groups.GroupEditorForm(Nothing) With {.DownloadMode = True}
+            f.ShowDialog()
+            If f.DialogResult = DialogResult.OK AndAlso Not f.MyGroup Is Nothing Then group = f.MyGroup
+        End Using
+        If Not group Is Nothing Then group.DownloadUsers(e.IncludeInTheFeed,, e.Shift) : group.Dispose()
+    End Sub
     Private Sub DownloadSiteFull(ByVal ReadyForDownloadOnly As Boolean, ByVal IncludeInTheFeed As Boolean,
                                  ByVal Subscription As Boolean, Optional ByVal IgnoreExists As Boolean = False)
         Using f As New SiteSelectionForm(Settings.LatestDownloadedSites.ValuesList)
             f.ShowDialog()
-            If f.DialogResult = DialogResult.OK Then
+            If f.DialogResult = DialogResult.OK AndAlso f.SelectedSites.Count > 0 Then
                 Settings.LatestDownloadedSites.Clear()
                 Settings.LatestDownloadedSites.AddRange(f.SelectedSites)
                 Settings.LatestDownloadedSites.Update()
-                If f.SelectedSites.Count > 0 Then
-                    Downloader.AddRange(Settings.GetUsers(Function(u) f.SelectedSites.Contains(u.Site) And (u.Exists Or IgnoreExists) And
-                                                                      u.IsSubscription = Subscription And
-                                                                      (Not ReadyForDownloadOnly Or u.ReadyForDownload)), IncludeInTheFeed)
-                End If
+                Using g As New Groups.DownloadGroup
+                    g.Sites.AddRange(f.SelectedSites)
+                    g.ReadyForDownload = True
+                    g.ReadyForDownloadIgnore = Not ReadyForDownloadOnly
+                    If Subscription Then
+                        g.Subscriptions = True
+                        g.SubscriptionsOnly = True
+                    End If
+                    g.DownloadUsers(IncludeInTheFeed, ReadyForDownloadOnly, IgnoreExists)
+                End Using
             End If
         End Using
     End Sub
@@ -531,10 +586,15 @@ CloseResume:
         ControlInvokeFast(Me, Sub() BTT_TRAY_PAUSE_AUTOMATION.Visible = b)
     End Sub
     Private Async Sub BTT_DOWN_AUTOMATION_Click(sender As Object, e As EventArgs) Handles BTT_DOWN_AUTOMATION.Click
-        Using f As New SchedulerEditorForm : f.ShowDialog() : End Using
-        Await Settings.Automation.Start(False)
-        UpdatePauseButtonsVisibility()
-        MainFrameObj.PauseButtons.UpdatePauseButtons()
+        Try
+            Using f As New SchedulerEditorForm : f.ShowDialog() : End Using
+            Await Settings.Automation.Start(False)
+            UpdatePauseButtonsVisibility()
+            MainFrameObj.PauseButtons.UpdatePauseButtons()
+        Catch ex As Exception
+            ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Start automation")
+            MainFrameObj.UpdateLogButton()
+        End Try
     End Sub
     Private Sub BTT_DOWN_AUTOMATION_PAUSE_Click(sender As Object, e As EventArgs) Handles BTT_DOWN_AUTOMATION_PAUSE.Click, BTT_TRAY_PAUSE_AUTOMATION.Click
         Dim p As PauseModes = Settings.Automation.Pause
@@ -679,6 +739,7 @@ CloseResume:
         BTT_SHOW_LABELS.Checked = m = ShowingModes.Labels
         BTT_SHOW_NO_LABELS.Checked = m = ShowingModes.NoLabels
         BTT_SHOW_SHOW_GROUPS.Checked = Settings.ShowGroupsInsteadLabels
+        BTT_SHOW_FILTER_ADV.Checked = m = ShowingModes.AdvancedFilter
         SetExcludedButtonChecker()
         With Settings
             If Not m = ShowingModes.Labels Then .Labels.Current.Clear() : .Labels.Current.Update()
@@ -705,6 +766,19 @@ CloseResume:
             End If
         End Using
     End Function
+    Private Sub BTT_SHOW_FILTER_ADV_Click(sender As Object, e As EventArgs) Handles BTT_SHOW_FILTER_ADV.Click
+        Try
+            Using g As New Groups.GroupEditorForm(Settings.AdvancedFilter) With {.FilterMode = True}
+                g.ShowDialog()
+                If g.DialogResult = DialogResult.OK Then
+                    Settings.AdvancedFilter.UpdateFile()
+                    SetShowButtonsCheckers(ShowingModes.AdvancedFilter, True)
+                End If
+            End Using
+        Catch ex As Exception
+            ErrorsDescriber.Execute(EDP.SendToLog, ex, "Changing advanced filter options")
+        End Try
+    End Sub
 #End Region
 #Region "5 - view dates"
     Private Sub BTT_SHOW_LIMIT_DATES_NOT_IN_Click(ByVal Sender As ToolStripMenuItem, ByVal e As EventArgs) Handles BTT_SHOW_LIMIT_DATES_NOT.Click,
@@ -1620,8 +1694,8 @@ ResumeDownloadingOperation:
                         If user.IsCollection And Not user.CollectionName = f.CollectionName Then
                             If Not user.IsVirtual AndAlso Downloader.Working Then
                                 MsgBoxE({"Some users are currently downloading." & vbCr &
-                                             "You cannot change collection name while downloading." & vbCr &
-                                             "Wait until the download is complete.", MsgTitle}, vbCritical)
+                                         "You cannot change collection name while downloading." & vbCr &
+                                         "Wait until the download is complete.", MsgTitle}, vbCritical)
                                 Exit Sub
                             Else
                                 If Not user.IsVirtual Then
@@ -1920,7 +1994,7 @@ ResumeDownloadingOperation:
         MainFrameObj.UpdateLogButton()
     End Sub
     Private Sub Downloader_Downloading(ByVal Value As Boolean)
-        Dim __isDownloading As Boolean = Value Or Downloader.Working
+        Dim __isDownloading As Boolean = Value Or Downloader.Working(False)
         ControlInvokeFast(Toolbar_TOP, BTT_DOWN_STOP, Sub() BTT_DOWN_STOP.Enabled = __isDownloading)
         TrayIcon.Icon = If(__isDownloading, My.Resources.ArrowDownIcon_Blue_24, My.Resources.RainbowIcon_48)
     End Sub

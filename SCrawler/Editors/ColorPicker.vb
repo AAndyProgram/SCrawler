@@ -12,8 +12,12 @@ Imports PersonalUtilities.Functions.XML.Objects
 Namespace Editors
     Public Class ColorPicker : Implements IChangeDetectorCompatible
         Private Event DataChanged As EventHandler Implements IChangeDetectorCompatible.DataChanged
+        Private TT As ToolTip
         Public Sub New()
             InitializeComponent()
+        End Sub
+        Private Sub ColorPicker_Disposed(sender As Object, e As EventArgs) Handles Me.Disposed
+            TT.DisposeIfReady
         End Sub
 #Region "Appearance"
         <Category("Appearance2"), DefaultValue(105)>
@@ -50,6 +54,20 @@ Namespace Editors
             End Get
             Set(ByVal t As String)
                 LBL_CAPTION.Text = t
+            End Set
+        End Property
+        Private _TooltipText As String = String.Empty
+        <Category("Appearance2"), DefaultValue("")>
+        Public Property TooltipText As String
+            Get
+                Return _TooltipText
+            End Get
+            Set(ByVal NewText As String)
+                _TooltipText = NewText
+                If Not NewText.IsEmptyString Then
+                    If TT Is Nothing Then TT = New ToolTip
+                    TT.SetToolTip(LBL_CAPTION, _TooltipText)
+                End If
             End Set
         End Property
 #End Region

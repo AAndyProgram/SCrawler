@@ -61,7 +61,7 @@ Namespace DownloadObjects
         End Property
         Private ReadOnly UserKey As String
         Friend ReadOnly Post As UserMedia
-        Private ReadOnly Media As UserMediaD
+        Friend ReadOnly Media As UserMediaD
         Friend Property Checked As Boolean
             Get
                 Return CH_CHECKED.Checked
@@ -106,11 +106,15 @@ Namespace DownloadObjects
                 Me.Width = Width
             End If
         End Sub
-        Private Sub ApplyColors()
+        Private Sub ApplyColors(ByVal Media As UserMediaD)
             Dim b As Color? = Nothing, f As Color? = Nothing
             If Not Media.User Is Nothing Then
                 If Media.User.BackColor.HasValue Then b = Media.User.BackColor
                 If Media.User.ForeColor.HasValue Then f = Media.User.ForeColor
+                If Media.User.IsSubscription And Media.User.IsUser Then
+                    If Not b.HasValue And Settings.MainFrameUsersSubscriptionsColorBack_USERS.Exists Then b = Settings.MainFrameUsersSubscriptionsColorBack_USERS.Value
+                    If Not f.HasValue And Settings.MainFrameUsersSubscriptionsColorFore_USERS.Exists Then f = Settings.MainFrameUsersSubscriptionsColorFore_USERS.Value
+                End If
             End If
             If Not b.HasValue And Settings.FeedBackColor.Exists Then b = Settings.FeedBackColor.Value
             If Not f.HasValue And Settings.FeedForeColor.Exists Then f = Settings.FeedForeColor.Value
@@ -172,15 +176,16 @@ Namespace DownloadObjects
                     BTT_CONTEXT_DOWN.Visible = True
                     CONTEXT_SEP_0.Visible = True
                     BTT_CONTEXT_OPEN_USER.Visible = False
-                    CONTEXT_SEP_3.Visible = False
+                    CONTEXT_SEP_4.Visible = False
                     BTT_CONTEXT_DELETE.Visible = False
 
                     If Not Media.Data.URL.IsEmptyString Then
                         Dim ext$ = Media.Data.URL.CSFile.Extension
                         Dim imgFile As New SFile With {.Path = Settings.Cache.RootDirectory.Path}
                         With Media.User
-                            imgFile.Name = $"{IIf(.IncludedInCollection, "{.CollectionName}", String.Empty)}{ .Site}{ .Name}_"
+                            imgFile.Name = $"{IIf(.IncludedInCollection, .CollectionName, String.Empty)}{ .Site}{ .Name}_"
                             imgFile.Name &= (CLng(Media.Data.URL.GetHashCode) + CLng(Media.Data.File.GetHashCode)).ToString
+                            imgFile.Name = imgFile.Name.StringRemoveWinForbiddenSymbols
                             imgFile.Extension = ExtJpg
                             If Not imgFile.Exists AndAlso Not ext.IsEmptyString AndAlso ext.ToLower = ExtWebp Then imgFile.Extension = ExtWebp
                         End With
@@ -290,9 +295,25 @@ Namespace DownloadObjects
                     Size = s
                     MinimumSize = s
                     MaximumSize = s
-                    ApplyColors()
+                    ApplyColors(Media)
                 Else
                     Throw New ArgumentNullException With {.HelpLink = 1}
+                End If
+
+                If Settings.Feeds.FavoriteExists AndAlso Settings.Feeds.Favorite.Contains(Media) Then BTT_FEED_ADD_FAV.ControlChangeColor(True, False)
+                If Settings.FeedShowSpecialFeedsMediaItem Then
+                    With Settings.Feeds
+                        AddHandler .FeedAdded, AddressOf Feed_FeedAdded
+                        AddHandler .FeedRemoved, AddressOf Feed_FeedRemoved
+                        If .Count > 0 Then
+                            For Each fItem As FeedSpecial In .Self
+                                If Not fItem.IsFavorite Then
+                                    DownloadFeedForm.AddNewFeedItem(BTT_FEED_ADD_SPEC, CONTEXT_DATA, fItem, Nothing, AddressOf Feed_SPEC_ADD)
+                                    DownloadFeedForm.AddNewFeedItem(BTT_FEED_REMOVE_SPEC, CONTEXT_DATA, fItem, Nothing, AddressOf Feed_SPEC_REMOVE)
+                                End If
+                            Next
+                        End If
+                    End With
                 End If
             Catch aex As ArgumentNullException When aex.HelpLink = 1
                 HasError = True
@@ -304,11 +325,38 @@ Namespace DownloadObjects
             End Try
         End Sub
 #End Region
+#Region "Feed handlers"
+        Private Sub Feed_FeedAdded(ByVal Source As FeedSpecialCollection, ByVal Feed As FeedSpecial)
+            DownloadFeedForm.AddNewFeedItem(BTT_FEED_ADD_SPEC, CONTEXT_DATA, Feed, My.Resources.RSSPic_512, AddressOf Feed_SPEC_ADD, True)
+            DownloadFeedForm.AddNewFeedItem(BTT_FEED_REMOVE_SPEC, CONTEXT_DATA, Feed, My.Resources.RSSPic_512, AddressOf Feed_SPEC_REMOVE, True)
+        End Sub
+        Private Sub Feed_FeedRemoved(ByVal Source As FeedSpecialCollection, ByVal Feed As FeedSpecial)
+            DownloadFeedForm.Feed_FeedRemoved(BTT_FEED_ADD_SPEC, CONTEXT_DATA, Feed)
+            DownloadFeedForm.Feed_FeedRemoved(BTT_FEED_REMOVE_SPEC, CONTEXT_DATA, Feed)
+        End Sub
+        Private Sub Feed_SPEC_ADD(ByVal Source As ToolStripMenuItem, ByVal e As EventArgs)
+            Dim f As FeedSpecial = Source.Tag
+            If Not f Is Nothing AndAlso Not f.Disposed Then f.Add(Media)
+        End Sub
+        Private Sub Feed_SPEC_REMOVE(ByVal Source As ToolStripMenuItem, ByVal e As EventArgs)
+            Dim f As FeedSpecial = Source.Tag
+            If Not f Is Nothing AndAlso Not f.Disposed Then f.Remove(Media)
+        End Sub
+#End Region
 #Region "Dispose"
         Private Sub FeedImage_Disposed(sender As Object, e As EventArgs) Handles Me.Disposed
             If Not MyImage Is Nothing Then MyImage.Dispose()
-            If Not MyPicture Is Nothing Then MyPicture.Dispose()
+            If Not MyPicture Is Nothing Then MyPicture.Dispose() : MyPicture = Nothing
             If Not MyVideo Is Nothing Then MyVideo.Dispose()
+            Try
+                If Settings.FeedShowSpecialFeedsMediaItem Then
+                    With Settings.Feeds
+                        RemoveHandler .FeedAdded, AddressOf Feed_FeedAdded
+                        RemoveHandler .FeedRemoved, AddressOf Feed_FeedRemoved
+                    End With
+                End If
+            Catch
+            End Try
         End Sub
 #End Region
 #Region "LBL"
@@ -333,9 +381,12 @@ Namespace DownloadObjects
         End Sub
 #End Region
 #Region "Context"
+#Region "Down"
         Private Sub BTT_CONTEXT_DOWN_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_DOWN.Click
             RaiseEvent MediaDownload(Me, EventArgs.Empty)
         End Sub
+#End Region
+#Region "Open media, folder"
         Private Sub BTT_CONTEXT_OPEN_MEDIA_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_OPEN_MEDIA.Click
             File.Open()
         End Sub
@@ -345,6 +396,8 @@ Namespace DownloadObjects
                 If Not u Is Nothing Then u.OpenFolder()
             End If
         End Sub
+#End Region
+#Region "Open URL"
         Private Sub BTT_CONTEXT_OPEN_USER_URL_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_OPEN_USER_URL.Click
             If Not UserKey.IsEmptyString Then
                 Dim u As IUserData = Settings.GetUser(UserKey)
@@ -369,15 +422,44 @@ Namespace DownloadObjects
                 ErrorsDescriber.Execute(EDP.LogMessageValue, ex, $"[FeedMedia.OpenPost({UserKey}, {Post.Post.ID})]")
             End Try
         End Sub
+#End Region
+#Region "Feed"
+        Private Sub BTT_FEED_ADD_FAV_Click(sender As Object, e As EventArgs) Handles BTT_FEED_ADD_FAV.Click
+            With Settings.Feeds.Favorite
+                If Not .Contains(Media) Then .Add(Media)
+                BTT_FEED_ADD_FAV.ControlChangeColor(True, False)
+            End With
+        End Sub
+        Private Sub BTT_FEED_ADD_SPEC_Click(sender As Object, e As EventArgs) Handles BTT_FEED_ADD_SPEC.Click
+            With FeedSpecialCollection.ChooseFeeds(True)
+                If .ListExists Then .ForEach(Sub(f) f.Add(Media))
+            End With
+        End Sub
+        Private Sub BTT_FEED_REMOVE_FAV_Click(sender As Object, e As EventArgs) Handles BTT_FEED_REMOVE_FAV.Click
+            With Settings.Feeds.Favorite
+                If .Contains(Media) Then .Remove(Media)
+                BTT_FEED_ADD_FAV.ControlChangeColor(True)
+            End With
+        End Sub
+        Private Sub BTT_FEED_REMOVE_SPEC_Click(sender As Object, e As EventArgs) Handles BTT_FEED_REMOVE_SPEC.Click
+            With FeedSpecialCollection.ChooseFeeds(False)
+                If .ListExists Then .ForEach(Sub(f) f.Remove(Media))
+            End With
+        End Sub
+#End Region
+#Region "Info"
         Private Sub BTT_CONTEXT_FIND_USER_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_FIND_USER.Click
             If Not UserKey.IsEmptyString Then MainFrameObj.FocusUser(UserKey, True)
         End Sub
         Private Sub BTT_CONTEXT_INFO_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_INFO.Click
             MsgBoxE({Information, "Post information"})
         End Sub
+#End Region
+#Region "Delete"
         Private Sub BTT_CONTEXT_DELETE_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_DELETE.Click
             DeleteFile(False)
         End Sub
+#End Region
         Friend Function DeleteFile(ByVal Silent As Boolean) As Boolean
             Const msgTitle$ = "Deleting a file"
             Try

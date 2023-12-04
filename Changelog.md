@@ -1,3 +1,147 @@
+# 2023.11.25.0
+
+*2023-11-25*
+
+- Fixed
+  - Reddit: missing refresh token button in the settings form
+
+# 2023.11.24.0
+
+*2023-11-24*
+
+For those of you who use TikTok, I recommend updating [TikTok plugin](https://github.com/bashonly/yt-dlp-TTUser) to the latest version using [these instructions](https://github.com/AAndyProgram/SCrawler/wiki/Settings#how-to-install-yt-dlp-ttuser-plugin).
+
+- Added
+  - Automation: manual task option
+  - Scheduler: add scheduler name to form title
+  - Feeds: update when users' location and/or basic information changes
+  - Reddit: special notification for error 429
+  - TikTok: ID, username and friendly name extraction from data
+  - TikTok: new option `Use video date as file date`
+  - YouTube: absolute path for a single playlist
+- Updated
+  - yt-dlp up to version 2023.11.16
+- Fixed
+  - Scheduler: scheduler change error
+  - Twitter: JSON deserialization error
+  - xHamster, XVideos, PornHub, ThisVid: incorrect parsing of search queries
+  - YouTube: the file name is not changed manually
+  - YouTube: path not set when adding array to download
+  - Minor bugs
+
+# 2023.11.17.0
+
+*2023-11-17*
+
+- Added
+  - **Facebook**
+  - **Multi-account**
+  - **Special feeds**
+  - Site settings: option `Download saved posts`
+  - Standalone downloader: support for multiple account
+  - PornHub: add playlists downloading
+  - YouTube: ability to download subtitles **and** `CC` if they both exists
+  - Other improvements
+- PluginProvider
+  - `IDownloadableMedia`: added `AccountName` property
+  - `IPluginContentProvider`: added `AccountName` property
+  - `ISiteSettings`: added properties: `AccountName`, `Temporary`, `AvailableText`, `DefaultInstance`; added functions: `Clone`, `Update`, `Delete`; removed `Load` function; implement `IDisposable` interface
+  - `PropertyValue`: added functions: `BeginInit`, `EndInit`, `Clone`
+  - `Attributes.DoNotUse` - add `Value` field
+- Fixed
+  - Instagram: handling 401 error
+  - OnlyFans: handling 401 error
+  - xHamster: handling 503 error
+  - xHamster: incorrect parsing of search queries
+  - XVideos: incorrect parsing of search queries
+  - ThisVid: incorrect parsing of search queries
+  - PornHub: incorrect parsing of search queries
+  - Automation: handle automation start error (in some cases) when changing scheduler
+  - Minor bugs
+
+# 2023.10.10.0
+
+*2023-10-10*
+
+- Added
+  - Notification if the user has disabled downloading from the site
+  - Standalone downloader: new setting `Create URL files`
+  - Changed the sessions naming method to be more intuitive
+  - Settings that allow the user to change the number of saved session (`Settings` - `Feed` - `Store session data`)
+  - **YouTube: new settings `Create URL files` and `Create description files`**
+  - YouTube: added the `Clear selected` button
+  - YouTube: group the `Clear and remove` buttons in the menu
+- Fixed
+  - Reddit: unable to save settings without OAuth data
+  - JustForFans: rewritten m3u8 downloader
+  - JustForFans: downloading of missing posts
+  - JustForFans: download to the date
+  - JustForFans: corrupted files
+  - Threads: new token is not saved if it was received during download
+  - ThisVid: parsing stops when new videos are added
+  - YouTube: file name is missing when destination is changed by selecting one of the saved locations
+  - YouTube: missing files still appear in the list
+  - Collections: labels are removed when creating a new collection
+  - Standalone downloader: cached thumbnail is not removed when item is removed from the list
+  - Minor bugs
+
+# 2023.10.1.0
+
+*2023-10-01*
+
+- Added
+  - **Threads.net**
+  - YouTube: add URL standardization
+- Fixed
+  - UserEditor: disable updating labels if they haven't changed
+  - Collections: incorrect updating of colors and labels when adding a new user
+  - RedGifs: incorrect handling of error 410
+  - Mastodon: hide error 503
+  - JustForFans: some profiles won't download
+  - Minor bugs
+
+# 2023.9.21.0
+
+*2023-09-21*
+
+- Fixed
+  - PornHub: videos are not downloading
+
+# 2023.9.20.0
+
+*2023-09-20*
+
+- Added
+  - **Instagram: user active (non-pinned) stories (Issue #17)**
+  - Reddit: reduce the number of token updates (refresh the token if there are Reddit users in the download queue)
+  - YouTube (standalone app): priority download protocol *(`Settings` - `Defaults` - `Protocol`)* (you can now select the default protocol you want to download media on: `Any`, `https`, `m3u8`))
+  - Automation: ability to change schedulers (`Download` - `Automation` - `Script icon`)
+  - Collections: update colors for the added user
+- Fixed
+  - YouTube: can't detect `shorts` links
+  - Incorrect MD5 validation initial value
+  - Instagram: handle error 500
+  - Collections: update labels only for the added user
+
+# 2023.8.27.0
+
+*2023-08-27*
+
+- Added
+  - **JustForFans**
+  - Advanced download (`Download` - `Download (advanced)`)
+  - Advanced filter (`View` - `Advanced filter`)
+  - Auto downloader: cloning plans
+  - Feed: add button to go to custom page
+  - Special log for non-existent users
+  - Twitter: group 'limit' notifications
+  - Ability to set custom color for subscription users
+  - Other improvements
+- Fixed
+  - Auto downloader: new plan date display bug
+  - Auto downloader: downloading stuck
+  - Minor bugs
+
 # 2023.8.6.0
 
 *2023-08-06*

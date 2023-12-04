@@ -11,6 +11,8 @@ Imports PersonalUtilities.Forms
 Namespace DownloadObjects
     Friend Class ActiveDownloadingProgress
         Private Const MinWidth As Integer = 450
+        Private Const TP_RowHeight As Integer = 30
+        Private Const TP_LowestValue As Integer = 39
         Private MyView As FormView
         Private Opened As Boolean = False
         Friend ReadOnly Property ReadyToOpen As Boolean
@@ -40,9 +42,26 @@ Namespace DownloadObjects
         Private Sub ActiveDownloadingProgress_Disposed(sender As Object, e As EventArgs) Handles Me.Disposed
             MyView.DisposeIfReady()
         End Sub
+        Private Sub ActiveDownloadingProgress_VisibleChanged(sender As Object, e As EventArgs) Handles Me.VisibleChanged
+            Try
+                If Visible Then
+                    ControlInvokeFast(Me, Sub()
+                                              Dim s As Size = Size
+                                              Dim ss As Size = Screen.PrimaryScreen.WorkingArea.Size
+                                              Dim c% = TP_MAIN.RowStyles.Count - 1
+                                              s.Height = c * TP_RowHeight + TP_LowestValue + (PaddingE.GetOf({TP_MAIN}).Vertical(c) / c).RoundDown
+                                              If s.Height > ss.Height Then s.Height = ss.Height
+                                              MinimumSize = Nothing
+                                              Size = s
+                                              MinimumSize = New Size(MinWidth, s.Height)
+                                          End Sub)
+                End If
+            Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "Change 'ActiveDownloadingProgress' size")
+                MainFrameObj.UpdateLogButton()
+            End Try
+        End Sub
         Private Sub Downloader_Reconfigured()
-            Const RowHeight% = 30
-            Const LowestValue% = 39
             Dim a As Action = Sub()
                                   With TP_MAIN
                                       If .Controls.Count > 0 Then
@@ -59,7 +78,7 @@ Namespace DownloadObjects
                                       If .Pool.Count > 0 Then
                                           For Each j As TDownloader.Job In .Pool
                                               With TP_MAIN
-                                                  .RowStyles.Add(New RowStyle(SizeType.Absolute, RowHeight))
+                                                  .RowStyles.Add(New RowStyle(SizeType.Absolute, TP_RowHeight))
                                                   .RowCount += 1
                                                   JobsList.Add(New DownloadProgress(j))
                                                   AddHandler JobsList.Last.ProgressChanged, AddressOf Jobs_ProgressChanged
@@ -69,14 +88,14 @@ Namespace DownloadObjects
                                           TP_MAIN.RowStyles.Add(New RowStyle(SizeType.AutoSize))
                                           TP_MAIN.RowCount += 1
 
-                                          Dim s As Size = Size
-                                          Dim ss As Size = Screen.PrimaryScreen.WorkingArea.Size
-                                          Dim c% = TP_MAIN.RowStyles.Count - 1
-                                          s.Height = c * RowHeight + LowestValue + (PaddingE.GetOf({TP_MAIN}).Vertical(c) / c).RoundDown
-                                          If s.Height > ss.Height Then s.Height = ss.Height
-                                          MinimumSize = Nothing
-                                          Size = s
-                                          MinimumSize = New Size(MinWidth, s.Height)
+                                          'Dim s As Size = Size
+                                          'Dim ss As Size = Screen.PrimaryScreen.WorkingArea.Size
+                                          'Dim c% = TP_MAIN.RowStyles.Count - 1
+                                          's.Height = c * TP_RowHeight + TP_LowestValue + (PaddingE.GetOf({TP_MAIN}).Vertical(c) / c).RoundDown
+                                          'If s.Height > ss.Height Then s.Height = ss.Height
+                                          'MinimumSize = Nothing
+                                          'Size = s
+                                          'MinimumSize = New Size(MinWidth, s.Height)
                                       End If
                                   End With
                                   TP_MAIN.Refresh()

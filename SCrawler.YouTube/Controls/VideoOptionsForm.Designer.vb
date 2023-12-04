@@ -275,6 +275,7 @@ Namespace API.YouTube.Controls
             ActionButton1.Name = "ArrowDown"
             ActionButton1.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.ArrowDown
             Me.TXT_FILE.Buttons.Add(ActionButton1)
+            Me.TXT_FILE.ChangeControlsEnableOnCheckedChange = False
             ListColumn1.Name = "COL_NAME"
             ListColumn1.Text = "Name"
             ListColumn1.Width = -1

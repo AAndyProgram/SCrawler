@@ -118,11 +118,23 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="FacebookIcon_32" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Content\Icons\SiteIcons\FacebookIcon_32.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="FacebookPic_37" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Content\Pictures\SitePictures\FacebookPic_37.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="InstagramIcon_32" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Content\Icons\SiteIcons\InstagramIcon_32.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="InstagramPic_76" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Content\Pictures\SitePictures\InstagramPic_76.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="JFFIcon_64" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Content\Icons\SiteIcons\JFFIcon_64.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="JFFPic_76" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Content\Pictures\SitePictures\JFFPic_76.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="LPSGIcon_48" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Content\Icons\SiteIcons\LPSGIcon_48.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
@@ -171,6 +183,9 @@
   </data>
   <data name="ThisVidPic_16" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Content\Pictures\SitePictures\ThisVidPic_16.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="ThreadsIcon_192" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Content\Icons\SiteIcons\ThreadsIcon_192.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="TikTokIcon_32" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Content\Icons\SiteIcons\TikTokIcon_32.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>

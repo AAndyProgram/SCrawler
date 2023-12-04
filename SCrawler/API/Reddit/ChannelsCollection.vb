@@ -90,7 +90,7 @@ Namespace API.Reddit
             End If
         End Sub
         Friend Sub Update()
-            If Count > 0 Then Channels.ForEach(Sub(c) c.Save())
+            If Count > 0 Then Channels.ForEach(Sub(c) c.SaveUnsaved())
         End Sub
         Friend ReadOnly Property Count As Integer Implements ICollection(Of Channel).Count, IMyEnumerator(Of Channel).MyEnumeratorCount
             Get

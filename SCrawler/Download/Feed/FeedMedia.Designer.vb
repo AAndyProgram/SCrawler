@@ -42,6 +42,11 @@ Namespace DownloadObjects
             Me.ICON_SITE = New System.Windows.Forms.PictureBox()
             Me.TP_MAIN = New System.Windows.Forms.TableLayoutPanel()
             Me.LBL_TITLE = New System.Windows.Forms.Label()
+            Me.CONTEXT_SEP_4 = New System.Windows.Forms.ToolStripSeparator()
+            Me.BTT_FEED_ADD_FAV = New System.Windows.Forms.ToolStripMenuItem()
+            Me.BTT_FEED_ADD_SPEC = New System.Windows.Forms.ToolStripMenuItem()
+            Me.BTT_FEED_REMOVE_FAV = New System.Windows.Forms.ToolStripMenuItem()
+            Me.BTT_FEED_REMOVE_SPEC = New System.Windows.Forms.ToolStripMenuItem()
             CONTEXT_SEP_1 = New System.Windows.Forms.ToolStripSeparator()
             CONTEXT_SEP_2 = New System.Windows.Forms.ToolStripSeparator()
             TP_LBL = New System.Windows.Forms.TableLayoutPanel()
@@ -54,12 +59,12 @@ Namespace DownloadObjects
             'CONTEXT_SEP_1
             '
             CONTEXT_SEP_1.Name = "CONTEXT_SEP_1"
-            CONTEXT_SEP_1.Size = New System.Drawing.Size(134, 6)
+            CONTEXT_SEP_1.Size = New System.Drawing.Size(217, 6)
             '
             'CONTEXT_SEP_2
             '
             CONTEXT_SEP_2.Name = "CONTEXT_SEP_2"
-            CONTEXT_SEP_2.Size = New System.Drawing.Size(134, 6)
+            CONTEXT_SEP_2.Size = New System.Drawing.Size(217, 6)
             '
             'TP_LBL
             '
@@ -103,76 +108,76 @@ Namespace DownloadObjects
             '
             'CONTEXT_DATA
             '
-            Me.CONTEXT_DATA.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_CONTEXT_DOWN, Me.CONTEXT_SEP_0, Me.BTT_CONTEXT_OPEN_MEDIA, Me.BTT_CONTEXT_OPEN_USER, CONTEXT_SEP_1, Me.BTT_CONTEXT_OPEN_USER_URL, Me.BTT_CONTEXT_OPEN_USER_POST, CONTEXT_SEP_2, Me.BTT_CONTEXT_FIND_USER, Me.BTT_CONTEXT_INFO, Me.CONTEXT_SEP_3, Me.BTT_CONTEXT_DELETE})
+            Me.CONTEXT_DATA.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_CONTEXT_DOWN, Me.CONTEXT_SEP_0, Me.BTT_CONTEXT_OPEN_MEDIA, Me.BTT_CONTEXT_OPEN_USER, CONTEXT_SEP_1, Me.BTT_CONTEXT_OPEN_USER_URL, Me.BTT_CONTEXT_OPEN_USER_POST, CONTEXT_SEP_2, Me.BTT_FEED_ADD_FAV, Me.BTT_FEED_ADD_SPEC, Me.BTT_FEED_REMOVE_FAV, Me.BTT_FEED_REMOVE_SPEC, Me.CONTEXT_SEP_3, Me.BTT_CONTEXT_FIND_USER, Me.BTT_CONTEXT_INFO, Me.CONTEXT_SEP_4, Me.BTT_CONTEXT_DELETE})
             Me.CONTEXT_DATA.Name = "CONTEXT_PIC"
-            Me.CONTEXT_DATA.Size = New System.Drawing.Size(138, 204)
+            Me.CONTEXT_DATA.Size = New System.Drawing.Size(221, 320)
             '
             'BTT_CONTEXT_DOWN
             '
             Me.BTT_CONTEXT_DOWN.Image = Global.SCrawler.My.Resources.Resources.StartPic_Green_16
             Me.BTT_CONTEXT_DOWN.Name = "BTT_CONTEXT_DOWN"
-            Me.BTT_CONTEXT_DOWN.Size = New System.Drawing.Size(137, 22)
+            Me.BTT_CONTEXT_DOWN.Size = New System.Drawing.Size(220, 22)
             Me.BTT_CONTEXT_DOWN.Text = "Download"
             Me.BTT_CONTEXT_DOWN.Visible = False
             '
             'CONTEXT_SEP_0
             '
             Me.CONTEXT_SEP_0.Name = "CONTEXT_SEP_0"
-            Me.CONTEXT_SEP_0.Size = New System.Drawing.Size(134, 6)
+            Me.CONTEXT_SEP_0.Size = New System.Drawing.Size(217, 6)
             Me.CONTEXT_SEP_0.Visible = False
             '
             'BTT_CONTEXT_OPEN_MEDIA
             '
             Me.BTT_CONTEXT_OPEN_MEDIA.Image = Global.SCrawler.My.Resources.Resources.FolderPic_32
             Me.BTT_CONTEXT_OPEN_MEDIA.Name = "BTT_CONTEXT_OPEN_MEDIA"
-            Me.BTT_CONTEXT_OPEN_MEDIA.Size = New System.Drawing.Size(137, 22)
+            Me.BTT_CONTEXT_OPEN_MEDIA.Size = New System.Drawing.Size(220, 22)
             Me.BTT_CONTEXT_OPEN_MEDIA.Text = "Open"
             '
             'BTT_CONTEXT_OPEN_USER
             '
             Me.BTT_CONTEXT_OPEN_USER.Image = Global.SCrawler.My.Resources.Resources.FolderPic_32
             Me.BTT_CONTEXT_OPEN_USER.Name = "BTT_CONTEXT_OPEN_USER"
-            Me.BTT_CONTEXT_OPEN_USER.Size = New System.Drawing.Size(137, 22)
+            Me.BTT_CONTEXT_OPEN_USER.Size = New System.Drawing.Size(220, 22)
             Me.BTT_CONTEXT_OPEN_USER.Text = "Open user"
             '
             'BTT_CONTEXT_OPEN_USER_URL
             '
             Me.BTT_CONTEXT_OPEN_USER_URL.Image = Global.SCrawler.My.Resources.Resources.GlobePic_32
             Me.BTT_CONTEXT_OPEN_USER_URL.Name = "BTT_CONTEXT_OPEN_USER_URL"
-            Me.BTT_CONTEXT_OPEN_USER_URL.Size = New System.Drawing.Size(137, 22)
+            Me.BTT_CONTEXT_OPEN_USER_URL.Size = New System.Drawing.Size(220, 22)
             Me.BTT_CONTEXT_OPEN_USER_URL.Text = "Open user"
             '
             'BTT_CONTEXT_OPEN_USER_POST
             '
             Me.BTT_CONTEXT_OPEN_USER_POST.Image = Global.SCrawler.My.Resources.Resources.GlobePic_32
             Me.BTT_CONTEXT_OPEN_USER_POST.Name = "BTT_CONTEXT_OPEN_USER_POST"
-            Me.BTT_CONTEXT_OPEN_USER_POST.Size = New System.Drawing.Size(137, 22)
+            Me.BTT_CONTEXT_OPEN_USER_POST.Size = New System.Drawing.Size(220, 22)
             Me.BTT_CONTEXT_OPEN_USER_POST.Text = "Open post"
             '
             'BTT_CONTEXT_FIND_USER
             '
             Me.BTT_CONTEXT_FIND_USER.Image = Global.SCrawler.My.Resources.Resources.InfoPic_32
             Me.BTT_CONTEXT_FIND_USER.Name = "BTT_CONTEXT_FIND_USER"
-            Me.BTT_CONTEXT_FIND_USER.Size = New System.Drawing.Size(137, 22)
+            Me.BTT_CONTEXT_FIND_USER.Size = New System.Drawing.Size(220, 22)
             Me.BTT_CONTEXT_FIND_USER.Text = "Find user"
             '
             'BTT_CONTEXT_INFO
             '
             Me.BTT_CONTEXT_INFO.Image = Global.SCrawler.My.Resources.Resources.InfoPic_32
             Me.BTT_CONTEXT_INFO.Name = "BTT_CONTEXT_INFO"
-            Me.BTT_CONTEXT_INFO.Size = New System.Drawing.Size(137, 22)
+            Me.BTT_CONTEXT_INFO.Size = New System.Drawing.Size(220, 22)
             Me.BTT_CONTEXT_INFO.Text = "Information"
             '
             'CONTEXT_SEP_3
             '
             Me.CONTEXT_SEP_3.Name = "CONTEXT_SEP_3"
-            Me.CONTEXT_SEP_3.Size = New System.Drawing.Size(134, 6)
+            Me.CONTEXT_SEP_3.Size = New System.Drawing.Size(217, 6)
             '
             'BTT_CONTEXT_DELETE
             '
             Me.BTT_CONTEXT_DELETE.Image = Global.SCrawler.My.Resources.Resources.DeletePic_24
             Me.BTT_CONTEXT_DELETE.Name = "BTT_CONTEXT_DELETE"
-            Me.BTT_CONTEXT_DELETE.Size = New System.Drawing.Size(137, 22)
+            Me.BTT_CONTEXT_DELETE.Size = New System.Drawing.Size(220, 22)
             Me.BTT_CONTEXT_DELETE.Text = "Delete"
             '
             'ICON_SITE
@@ -212,6 +217,39 @@ Namespace DownloadObjects
             Me.LBL_TITLE.Size = New System.Drawing.Size(140, 25)
             Me.LBL_TITLE.TabIndex = 1
             '
+            'CONTEXT_SEP_4
+            '
+            Me.CONTEXT_SEP_4.Name = "CONTEXT_SEP_4"
+            Me.CONTEXT_SEP_4.Size = New System.Drawing.Size(217, 6)
+            '
+            'BTT_FEED_ADD_FAV
+            '
+            Me.BTT_FEED_ADD_FAV.Image = Global.SCrawler.My.Resources.Resources.HeartPic_32
+            Me.BTT_FEED_ADD_FAV.Name = "BTT_FEED_ADD_FAV"
+            Me.BTT_FEED_ADD_FAV.Size = New System.Drawing.Size(220, 22)
+            Me.BTT_FEED_ADD_FAV.Text = "Add to Favorite"
+            '
+            'BTT_FEED_ADD_SPEC
+            '
+            Me.BTT_FEED_ADD_SPEC.Image = Global.SCrawler.My.Resources.Resources.RSSPic_512
+            Me.BTT_FEED_ADD_SPEC.Name = "BTT_FEED_ADD_SPEC"
+            Me.BTT_FEED_ADD_SPEC.Size = New System.Drawing.Size(220, 22)
+            Me.BTT_FEED_ADD_SPEC.Text = "Add to special feed..."
+            '
+            'BTT_FEED_REMOVE_FAV
+            '
+            Me.BTT_FEED_REMOVE_FAV.Image = Global.SCrawler.My.Resources.Resources.DeletePic_24
+            Me.BTT_FEED_REMOVE_FAV.Name = "BTT_FEED_REMOVE_FAV"
+            Me.BTT_FEED_REMOVE_FAV.Size = New System.Drawing.Size(220, 22)
+            Me.BTT_FEED_REMOVE_FAV.Text = "Remove from Favorite"
+            '
+            'BTT_FEED_REMOVE_SPEC
+            '
+            Me.BTT_FEED_REMOVE_SPEC.Image = Global.SCrawler.My.Resources.Resources.DeletePic_24
+            Me.BTT_FEED_REMOVE_SPEC.Name = "BTT_FEED_REMOVE_SPEC"
+            Me.BTT_FEED_REMOVE_SPEC.Size = New System.Drawing.Size(220, 22)
+            Me.BTT_FEED_REMOVE_SPEC.Text = "Remove from special feed..."
+            '
             'FeedMedia
             '
             Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
@@ -249,5 +287,10 @@ Namespace DownloadObjects
         Private WithEvents BTT_CONTEXT_DOWN As ToolStripMenuItem
         Private WithEvents CONTEXT_SEP_0 As ToolStripSeparator
         Private WithEvents LBL_TITLE As Label
+        Private WithEvents BTT_FEED_ADD_FAV As ToolStripMenuItem
+        Private WithEvents BTT_FEED_ADD_SPEC As ToolStripMenuItem
+        Private WithEvents BTT_FEED_REMOVE_FAV As ToolStripMenuItem
+        Private WithEvents BTT_FEED_REMOVE_SPEC As ToolStripMenuItem
+        Private WithEvents CONTEXT_SEP_4 As ToolStripSeparator
     End Class
 End Namespace

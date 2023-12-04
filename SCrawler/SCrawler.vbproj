@@ -168,27 +168,29 @@
     <Compile Include="API\Base\Declarations.vb" />
     <Compile Include="API\Base\DeclaredNames.vb" />
     <Compile Include="API\Base\DownDetector.vb" />
-    <Compile Include="API\Base\GDLBatch.vb" />
+    <Compile Include="API\Base\GDL.vb" />
     <Compile Include="API\Base\IUserData.vb" />
     <Compile Include="API\Base\M3U8Base.vb" />
     <Compile Include="API\Base\ProfileSaved.vb" />
     <Compile Include="API\Base\SiteSettingsBase.vb" />
     <Compile Include="API\Base\Structures.vb" />
     <Compile Include="API\Base\TokenBatch.vb" />
+    <Compile Include="API\Base\YTDLP.vb" />
+    <Compile Include="API\Facebook\Declarations.vb" />
+    <Compile Include="API\Facebook\SiteSettings.vb" />
+    <Compile Include="API\Facebook\UserData.vb" />
+    <Compile Include="API\Facebook\UserExchangeOptions.vb" />
     <Compile Include="API\Instagram\EditorExchangeOptions.vb" />
+    <Compile Include="API\JustForFans\Declarations.vb" />
+    <Compile Include="API\JustForFans\M3U8.vb" />
+    <Compile Include="API\JustForFans\SiteSettings.vb" />
+    <Compile Include="API\JustForFans\UserData.vb" />
     <Compile Include="API\LPSG\Declarations.vb" />
     <Compile Include="API\LPSG\SiteSettings.vb" />
     <Compile Include="API\LPSG\UserData.vb" />
     <Compile Include="API\Mastodon\Credentials.vb" />
     <Compile Include="API\Mastodon\Declarations.vb" />
     <Compile Include="API\Mastodon\EditorExchangeOptions.vb" />
-    <Compile Include="API\Mastodon\MastodonDomains.vb" />
-    <Compile Include="API\Mastodon\SettingsForm.Designer.vb">
-      <DependentUpon>SettingsForm.vb</DependentUpon>
-    </Compile>
-    <Compile Include="API\Mastodon\SettingsForm.vb">
-      <SubType>Form</SubType>
-    </Compile>
     <Compile Include="API\Mastodon\SiteSettings.vb" />
     <Compile Include="API\Mastodon\UserData.vb" />
     <Compile Include="API\OnlyFans\Declarations.vb" />
@@ -218,6 +220,8 @@
     <Compile Include="API\ThisVid\SiteSettings.vb" />
     <Compile Include="API\ThisVid\UserData.vb" />
     <Compile Include="API\ThisVid\UserExchangeOptions.vb" />
+    <Compile Include="API\ThreadsNet\SiteSettings.vb" />
+    <Compile Include="API\ThreadsNet\UserData.vb" />
     <Compile Include="API\TikTok\Declarations.vb" />
     <Compile Include="API\TikTok\SiteSettings.vb" />
     <Compile Include="API\TikTok\UserData.vb" />
@@ -264,6 +268,8 @@
     <Compile Include="Download\Feed\FeedMedia.vb">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Include="Download\Feed\FeedSpecial.vb" />
+    <Compile Include="Download\Feed\FeedSpecialCollection.vb" />
     <Compile Include="Download\Feed\FeedVideo.Designer.vb">
       <DependentUpon>FeedVideo.vb</DependentUpon>
     </Compile>
@@ -350,6 +356,7 @@
     <Compile Include="MyProgressExt.vb" />
     <Compile Include="PluginsEnvironment\Attributes\Attributes.vb" />
     <Compile Include="PluginsEnvironment\Hosts\DownloadableMediaHost.vb" />
+    <Compile Include="PluginsEnvironment\Hosts\SettingsHostCollection.vb" />
     <Compile Include="PluginsEnvironment\Hosts\UserDataHost.vb" />
     <Compile Include="API\Base\UserDataBase.vb" />
     <Compile Include="API\Gfycat\Envir.vb" />
@@ -482,9 +489,6 @@
   <ItemGroup>
     <EmbeddedResource Include="API\BaseObjects\InternalSettingsForm.resx">
       <DependentUpon>InternalSettingsForm.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="API\Mastodon\SettingsForm.resx">
-      <DependentUpon>SettingsForm.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="API\Reddit\RedditViewSettingsForm.resx">
       <DependentUpon>RedditViewSettingsForm.vb</DependentUpon>
@@ -697,6 +701,21 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Content\Pictures\BrushToolPic_16.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Content\Pictures\SitePictures\JFFPic_76.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Content\Icons\SiteIcons\JFFIcon_64.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Content\Icons\SiteIcons\ThreadsIcon_192.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Content\Icons\SiteIcons\FacebookIcon_32.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Content\Pictures\SitePictures\FacebookPic_37.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

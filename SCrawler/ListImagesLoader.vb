@@ -105,12 +105,17 @@ Friend Class ListImagesLoader
                     Dim v As View = Settings.ViewMode.Value
 
                     With MyList
-                        MyList.BeginUpdate()
+                        .BeginUpdate()
 
                         If Settings.FastProfilesLoading Then
                             Settings.Users.ListReindex
 
-                            UserDataList = (From u As IUserData In Settings.Users Where u.FitToAddParams Select New UserOption(u, MyList)).ListIfNothing
+                            If Settings.ShowingMode.Value = ShowingModes.AdvancedFilter Then
+                                UserDataList = GetAdvancedFilteredUsers(Of UserOption)()
+                            Else
+                                UserDataList = (From u As IUserData In Settings.Users Where u.FitToAddParams Select New UserOption(u, MyList)).ListIfNothing
+                            End If
+
                             If UserDataList.ListExists Then UserDataList.Sort()
 
                             If UserDataList.ListExists Then
@@ -127,7 +132,14 @@ Friend Class ListImagesLoader
                             End If
                         Else
                             Dim t As New List(Of Task)
-                            For Each User As IUserData In Settings.Users
+                            Dim advUsers As List(Of IUserData) = Nothing
+                            Dim isAdv As Boolean = False
+                            If Settings.ShowingMode.Value = ShowingModes.AdvancedFilter Then
+                                isAdv = True
+                                advUsers = GetAdvancedFilteredUsers(Of IUserData)()
+                                If Not advUsers.ListExists Then UpdateInProgress = False : MyList.EndUpdate() : Exit Sub
+                            End If
+                            For Each User As IUserData In If(isAdv, advUsers, Settings.Users)
                                 If User.FitToAddParams Then
                                     If Settings.ViewModeIsPicture Then
                                         t.Add(Task.Run(Sub() UpdateUser(User, True)))
@@ -139,8 +151,9 @@ Friend Class ListImagesLoader
                             If t.Count > 0 Then Task.WhenAll(t.ToArray) : t.Clear()
                             UpdateInProgress = False
                         End If
+
+                        .EndUpdate()
                     End With
-                    MyList.EndUpdate()
                 Else
                     UpdateInProgress = False
                 End If
@@ -151,6 +164,16 @@ Friend Class ListImagesLoader
             ErrorsDescriber.Execute(EDP.SendToLog, ex, "[ListImagesLoader.Update]")
         End Try
     End Sub
+    Private Function GetAdvancedFilteredUsers(Of T)() As List(Of T)
+        With Settings.AdvancedFilter.GetUsers
+            If .ListExists Then
+                With ListAddList(Nothing, .Select(Function(u) Settings.GetUser(u, True)), LAP.NotContainsOnly, LAP.IgnoreICopier)
+                    If .ListExists Then Return If(GetType(T) Is GetType(UserOption), .Select(Function(u) New UserOption(u, MyList)).ToList, .Self)
+                End With
+            End If
+        End With
+        Return Nothing
+    End Function
     Friend Sub UpdateUser(ByVal User As IUserData, ByVal Add As Boolean)
         Try
             Dim a As Action
@@ -200,14 +223,31 @@ Friend Class ListImagesLoader
                 .BackColor = Color.LightSkyBlue
                 .ForeColor = Color.MidnightBlue
             ElseIf User.IsSubscription Then
-                .BackColor = If(User.BackColor, Settings.MainFrameUsersSubscriptionsColorBack.Value)
-                .ForeColor = If(User.ForeColor, Settings.MainFrameUsersSubscriptionsColorFore.Value)
+                .BackColor = GetSubscriptionColor(User, True)
+                .ForeColor = GetSubscriptionColor(User, False)
             Else
                 .BackColor = If(User.BackColor, Settings.UserListBackColorF)
                 .ForeColor = If(User.ForeColor, Settings.UserListForeColorF)
             End If
         End With
         Return LVI
+    End Function
+    Private Shared Function GetSubscriptionColor(ByVal User As IUserData, ByVal GetBackColor As Boolean) As Color
+        Dim uc As Color? = If(GetBackColor, User.BackColor, User.ForeColor)
+        If Not uc.HasValue Then
+            Dim sc As Color = If(GetBackColor, Settings.MainFrameUsersSubscriptionsColorBack.Value, Settings.MainFrameUsersSubscriptionsColorFore.Value)
+            Dim scu As Color? = Nothing
+            If User.IsUser Then
+                If GetBackColor Then
+                    If Settings.MainFrameUsersSubscriptionsColorBack_USERS.Exists Then scu = Settings.MainFrameUsersSubscriptionsColorBack_USERS.Value
+                Else
+                    If Settings.MainFrameUsersSubscriptionsColorFore_USERS.Exists Then scu = Settings.MainFrameUsersSubscriptionsColorFore_USERS.Value
+                End If
+            End If
+            Return If(scu, sc)
+        Else
+            Return uc.Value
+        End If
     End Function
     Private Shared Function CheckUserCollection(ByVal User As IUserData) As Boolean
         If User.IsCollection Then

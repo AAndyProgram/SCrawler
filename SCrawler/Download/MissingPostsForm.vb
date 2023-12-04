@@ -22,7 +22,7 @@ Namespace DownloadObjects
         Private WithEvents BTT_INFO As ToolStripButton
 #End Region
 #Region "Initializer"
-        Friend Sub New()
+        Public Sub New()
             InitializeComponent()
             MUsers = New List(Of IUserData)
             MyDefs = New DefaultFormOptions(Me, Settings.Design)

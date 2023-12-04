@@ -124,7 +124,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
     Private Sub SetLimit(ByVal Source As IChannelLimits) Implements IChannelLimits.SetLimit
     End Sub
 #End Region
-    Private ReadOnly HOST As SettingsHost
+    Private ReadOnly HOST_COLLECTION As SettingsHostCollection
     Private ReadOnly PendingUsers As List(Of PendingUser)
     Private ReadOnly LNC As New ListAddParams(LAP.NotContainsOnly)
     Private WithEvents MyRange As RangeSwitcherToolbar(Of UserPost)
@@ -148,7 +148,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
         CProvider = New ANumbers With {.FormatOptions = ANumbers.Options.GroupIntegral}
         LimitProvider = New ADateTime("dd.MM.yyyy HH:mm")
         PendingUsers = New List(Of PendingUser)
-        HOST = Settings(RedditSiteKey)
+        HOST_COLLECTION = Settings(RedditSiteKey)
 
         CMB_CHANNELS = New ComboBoxExtended With {
             .CaptionMode = ICaptionControl.Modes.CheckBox,
@@ -312,7 +312,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
             Dim Added% = 0, Skipped% = 0
             Dim StartIndex% = Settings.Users.Count
             Dim f As SFile
-            Dim umo As Boolean = HOST.GetUserMediaOnly
+            Dim umo As Boolean
             Settings.Labels.Add(UserData.CannelsLabelName_ChannelsForm)
             Settings.Labels.Add(LabelsKeeper.NoParsedUser)
             Dim rUsers$() = UserBanned(PendingUsers.Select(Function(u) u.ID).ToArray)
@@ -321,13 +321,23 @@ Friend Class ChannelViewForm : Implements IChannelLimits
                 Dim c As New ListAddParams(LAP.NotContainsOnly)
                 Dim cn$
                 Dim tmpUser As IUserData
-                With PendingUsers.Select(Function(u) New UserInfo(u, HOST))
+                Dim h As SettingsHost
+                With PendingUsers.Select(Function(u) New UserInfo(u, If(u.Channel?.HOST, HOST_COLLECTION.Default)))
                     For i = 0 To .Count - 1
                         If Not Settings.UsersList.Contains(.ElementAt(i)) Then
                             f = PendingUsers(i).File
-                            cn = If(PendingUsers(i).Channel?.Name, String.Empty)
+                            If Not PendingUsers(i).Channel Is Nothing Then
+                                cn = PendingUsers(i).Channel.Name
+                                umo = PendingUsers(i).Channel.HOST.GetUserMediaOnly
+                                h = PendingUsers(i).Channel.HOST
+                            Else
+                                cn = String.Empty
+                                umo = True
+                                h = Nothing
+                            End If
+                            If h Is Nothing Then h = HOST_COLLECTION.Default
                             Settings.UpdateUsersList(.ElementAt(i))
-                            tmpUser = HOST.GetInstance(Plugin.ISiteSettings.Download.Main, .ElementAt(i), False)
+                            tmpUser = h.GetInstance(Plugin.ISiteSettings.Download.Main, .ElementAt(i), False)
                             With DirectCast(tmpUser, UserData)
                                 .Temporary = Settings.ChannelsDefaultTemporary
                                 .CreatedByChannel = True
@@ -417,7 +427,18 @@ Friend Class ChannelViewForm : Implements IChannelLimits
     Private Async Sub BTT_DOWNLOAD_Click(sender As Object, e As EventArgs) Handles BTT_DOWNLOAD.Click
         Try
             AppendPendingUsers()
-            If Not TokenSource Is Nothing OrElse Not HOST.Source.Available(Plugin.ISiteSettings.Download.Main, False) Then Exit Sub
+            Dim c As Channel
+            If CMB_CHANNELS.Count > 0 Then
+                Dim hList As IEnumerable(Of String) = Nothing
+                If CMB_CHANNELS.Checked Then
+                    hList = Settings.Channels.Select(Function(cc) cc.RedditAccount.IfNullOrEmpty(SettingsHost.NameAccountNameDefault)).Distinct
+                Else
+                    c = GetCurrentChannel()
+                    If Not c Is Nothing Then hList = {c.RedditAccount}
+                End If
+                If Not TokenSource Is Nothing OrElse Not HOST_COLLECTION.Available(Plugin.ISiteSettings.Download.Main, False, False,
+                                                                                   hList, Not hList Is Nothing) Then Exit Sub
+            End If
             Dim InvokeToken As Action = Sub()
                                             If TokenSource Is Nothing Then
                                                 CProgress.Maximum = 0
@@ -437,7 +458,6 @@ Friend Class ChannelViewForm : Implements IChannelLimits
                                                 MyRange.Enabled = False
                                             End If
                                         End Sub
-            Dim c As Channel
             If CMB_CHANNELS.Count > 0 Then
                 BTT_DOWNLOAD.Enabled = False
                 BTT_STOP.Enabled = True
@@ -607,7 +627,7 @@ Friend Class ChannelViewForm : Implements IChannelLimits
                 Try
                     c = GetCurrentChannel()
                     If Not c Is Nothing Then
-                        Using f As New RedditViewSettingsForm(c)
+                        Using f As New RedditViewSettingsForm(c, False)
                             f.ShowDialog()
                             If f.DialogResult = DialogResult.OK Then c.Save()
                         End Using

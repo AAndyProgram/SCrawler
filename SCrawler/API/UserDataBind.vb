@@ -71,17 +71,9 @@ Namespace API
         End Property
         Friend Overrides Property FriendlyName As String
             Get
-                If Count > 0 Then
-                    Return Collections(0).FriendlyName
-                Else
-                    Return String.Empty
-                End If
+                Return CollectionName
             End Get
             Set(ByVal NewName As String)
-                If Count > 0 Then Collections.ForEach(Sub(c)
-                                                          c.FriendlyName = NewName
-                                                          c.UpdateUserInformation()
-                                                      End Sub)
             End Set
         End Property
         Friend Overrides Property UserExists As Boolean
@@ -291,7 +283,7 @@ Namespace API
         End Property
         Friend Overrides Property ScriptUse As Boolean
             Get
-                Return Count > 0 AndAlso Collections.Exists(Function(c) c.ScriptUse)
+                Return Count > 0 AndAlso Collections.All(Function(c) c.ScriptUse)
             End Get
             Set(ByVal u As Boolean)
                 If Count > 0 Then Collections.ForEach(Sub(ByVal c As IUserData)
@@ -499,19 +491,22 @@ Namespace API
         Friend Overloads Sub Add(ByVal _Item As IUserData) Implements ICollection(Of IUserData).Add
             With _Item
                 If .MoveFiles(CollectionName, CollectionPath) Then
-                    If Not _Item.IsVirtual And DataMerging Then DirectCast(.Self, UserDataBase).MergeData()
-                    Collections.Add(_Item)
+                    If Not .Self.IsVirtual And DataMerging Then DirectCast(.Self, UserDataBase).MergeData()
+
+                    ConsolidateLabels(.Self)
+                    ConsolidateScripts(.Self)
+                    ConsolidateColors(.Self)
+
+                    Collections.Add(.Self)
+
                     With Collections.Last
-                        If Count > 1 Then
-                            If _CollectionName.IsEmptyString Then _CollectionName = .CollectionName
-                            .Temporary = Temporary
-                            .Favorite = Favorite
-                            .ReadyForDownload = ReadyForDownload
-                            ConsolidateLabels()
-                            ConsolidateScripts()
-                            .UpdateUserInformation()
-                        End If
-                        MainFrameObj.ImageHandler(_Item, False)
+                        If _CollectionName.IsEmptyString Then _CollectionName = .CollectionName
+                        .Temporary = Temporary
+                        .Favorite = Favorite
+                        .ReadyForDownload = ReadyForDownload
+                        .UpdateUserInformation()
+
+                        MainFrameObj.ImageHandler(.Self, False)
                         AddRemoveBttDeleteHandler(.Self, True)
                         AddHandler .Self.UserUpdated, AddressOf User_OnUserUpdated
                     End With
@@ -546,11 +541,25 @@ Namespace API
             Catch ex As Exception
             End Try
         End Sub
-        Private Sub ConsolidateLabels()
-            UpdateLabels(Me, ListAddList(Nothing, Labels.ListWithRemove(SpecialLabels)), 1, True)
+        Private Sub ConsolidateLabels(ByVal Destination As UserDataBase)
+            If Count > 0 Then UpdateLabels(Destination, ListAddList(Nothing, Labels.ListWithRemove(SpecialLabels)), 0, True)
         End Sub
-        Private Sub ConsolidateScripts()
-            If Count > 1 AndAlso ScriptUse Then Collections.ForEach(Sub(c) c.ScriptUse = True)
+        Private Sub ConsolidateScripts(ByVal Destination As UserDataBase)
+            If Count > 0 AndAlso ScriptUse Then
+                Dim __scriptData$ = Collections(0).ScriptData
+                Destination.ScriptUse = True
+                If Collections.All(Function(c) c.ScriptData = __scriptData) Then Destination.ScriptData = __scriptData
+            End If
+        End Sub
+        Private Sub ConsolidateColors(ByVal Destination As UserDataBase)
+            If Count > 0 And Not Destination.ForeColor.HasValue And Not Destination.BackColor.HasValue Then
+                Dim b As Color? = BackColor
+                Dim f As Color? = ForeColor
+                If b.HasValue AndAlso Not Collections.All(Function(u) Not u Is Destination AndAlso u.BackColor.HasValue AndAlso u.BackColor.Value = b.Value) Then b = Nothing
+                If f.HasValue AndAlso Not Collections.All(Function(u) Not u Is Destination AndAlso u.ForeColor.HasValue AndAlso u.ForeColor.Value = f.Value) Then f = Nothing
+                If b.HasValue Then Destination.BackColor = b
+                If f.HasValue Then Destination.ForeColor = f
+            End If
         End Sub
 #End Region
 #Region "Move, Merge"

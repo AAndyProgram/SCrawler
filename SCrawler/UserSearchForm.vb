@@ -41,9 +41,7 @@ Friend Class UserSearchForm
             End If
         End Function
         Public Overrides Function Equals(ByVal Obj As Object) As Boolean
-            'TODO: [UserSearchForm]: updated equal function
             With DirectCast(Obj, SearchResult) : Return Key = .Key : End With
-            'With DirectCast(Obj, SearchResult) : Return Key = .Key And Mode = .Mode : End With
         End Function
     End Structure
     Public Sub New()
@@ -62,6 +60,9 @@ Friend Class UserSearchForm
     Private Sub UserSearchForm_Closing(sender As Object, e As CancelEventArgs) Handles Me.Closing
         e.Cancel = True
         Hide()
+    End Sub
+    Private Sub UserSearchForm_VisibleChanged(sender As Object, e As EventArgs) Handles Me.VisibleChanged
+        If Not _UFInit And Visible Then TXT_SEARCH.Select() : TXT_SEARCH.SelectAll()
     End Sub
     Private Sub UserSearchForm_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
         If e.KeyCode = Keys.Escape Then Hide() : e.Handled = True

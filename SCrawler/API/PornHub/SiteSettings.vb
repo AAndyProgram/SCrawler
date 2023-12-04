@@ -15,40 +15,30 @@ Namespace API.PornHub
     <Manifest("AndyProgram_PornHub"), SavedPosts, SpecialForm(False), SeparatedTasks(1)>
     Friend Class SiteSettings : Inherits SiteSettingsBase
 #Region "Declarations"
-        Friend Overrides ReadOnly Property Icon As Icon
-            Get
-                Return My.Resources.SiteResources.PornHubIcon_16
-            End Get
-        End Property
-        Friend Overrides ReadOnly Property Image As Image
-            Get
-                Return My.Resources.SiteResources.PornHubPic_16
-            End Get
-        End Property
-        <PropertyOption(ControlText:="Download UHD", ControlToolTip:="Download UHD (4K) content"), PXML>
+        <PropertyOption(ControlText:="Download UHD", ControlToolTip:="Download UHD (4K) content"), PXML, PClonable>
         Friend Property DownloadUHD As PropertyValue
-        <PropertyOption(ControlText:="Download uploaded", ControlToolTip:="Download uploaded videos"), PXML>
+        <PropertyOption(ControlText:="Download uploaded", ControlToolTip:="Download uploaded videos"), PXML, PClonable>
         Friend Property DownloadUploaded As PropertyValue
-        <PropertyOption(ControlText:="Download tagged", ControlToolTip:="Download tagged videos"), PXML>
+        <PropertyOption(ControlText:="Download tagged", ControlToolTip:="Download tagged videos"), PXML, PClonable>
         Friend Property DownloadTagged As PropertyValue
-        <PropertyOption(ControlText:="Download private", ControlToolTip:="Download private videos"), PXML>
+        <PropertyOption(ControlText:="Download private", ControlToolTip:="Download private videos"), PXML, PClonable>
         Friend Property DownloadPrivate As PropertyValue
-        <PropertyOption(ControlText:="Download favorite", ControlToolTip:="Download favorite videos"), PXML>
+        <PropertyOption(ControlText:="Download favorite", ControlToolTip:="Download favorite videos"), PXML, PClonable>
         Friend Property DownloadFavorite As PropertyValue
-        <PropertyOption(ControlText:="Download GIF", ControlToolTip:="Default for new users", ThreeStates:=True), PXML>
+        <PropertyOption(ControlText:="Download GIF", ControlToolTip:="Default for new users", ThreeStates:=True), PXML, PClonable>
         Friend ReadOnly Property DownloadGifs As PropertyValue
-        <PropertyOption(ControlText:="Download GIFs as mp4", ControlToolTip:="Download gifs in 'mp4' format instead of native 'webm'"), PXML>
+        <PropertyOption(ControlText:="Download GIFs as mp4", ControlToolTip:="Download gifs in 'mp4' format instead of native 'webm'"), PXML, PClonable>
         Friend ReadOnly Property DownloadGifsAsMp4 As PropertyValue
         <PropertyOption(ControlText:="Photo ModelHub only",
                         ControlToolTip:="Download photo only from ModelHub. Prornstar photos hosted on PornHub itself will not be downloaded." & vbCr &
-                                        "Attention! Downloading photos hosted on PornHub is a very heavy job."), PXML>
+                                        "Attention! Downloading photos hosted on PornHub is a very heavy job."), PXML, PClonable>
         Friend ReadOnly Property DownloadPhotoOnlyFromModelHub As PropertyValue
-        <PropertyOption(ControlText:=DeclaredNames.SavedPostsUserNameCaption, ControlToolTip:=DeclaredNames.SavedPostsUserNameToolTip), PXML>
+        <PropertyOption(ControlText:=DeclaredNames.SavedPostsUserNameCaption, ControlToolTip:=DeclaredNames.SavedPostsUserNameToolTip), PXML, PClonable(Clone:=False)>
         Friend ReadOnly Property SavedPostsUserName As PropertyValue
 #End Region
 #Region "Initializer"
-        Friend Sub New()
-            MyBase.New("PornHub", "pornhub.com")
+        Friend Sub New(ByVal AccName As String, ByVal Temp As Boolean)
+            MyBase.New("PornHub", "pornhub.com", AccName, Temp, My.Resources.SiteResources.PornHubIcon_16, My.Resources.SiteResources.PornHubPic_16)
             With Responser : .CurlSslNoRevoke = True : .CurlInsecure = True : End With
 
             DownloadUHD = New PropertyValue(False)

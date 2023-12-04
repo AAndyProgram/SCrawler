@@ -20,7 +20,7 @@ Namespace API.Base
         Private ReadOnly Property MyMembers As List(Of MemberOption)
         ''' <summary>Default: 200</summary>
         Friend Property MinimumWidth As Integer = 200
-        Private Class MemberOption : Inherits Hosts.PropertyValueHost : Implements IDisposable
+        Private Class MemberOption : Inherits Hosts.PropertyValueHost
             Friend ToolTip As String
             Friend Caption As String
             Friend ThreeState As Boolean = False
@@ -102,24 +102,6 @@ Namespace API.Base
                 CreateControl(TT)
                 If Not Provider Is Nothing Then f.AddControl(Control, Caption, Type, AllowNull, Activator.CreateInstance(Provider))
             End Sub
-#Region "IDisposable Support"
-            Private disposedValue As Boolean = False
-            Protected Overridable Overloads Sub Dispose(ByVal disposing As Boolean)
-                If Not disposedValue Then
-                    If disposing Then Control.Dispose()
-                    Control = Nothing
-                    disposedValue = True
-                End If
-            End Sub
-            Protected Overrides Sub Finalize()
-                Dispose(False)
-                MyBase.Finalize()
-            End Sub
-            Friend Overloads Sub Dispose() Implements IDisposable.Dispose
-                Dispose(True)
-                GC.SuppressFinalize(Me)
-            End Sub
-#End Region
         End Class
         Friend Sub New(ByVal Obj As Object, ByVal s As ISiteSettings, ByVal _IsSettingsForm As Boolean)
             InitializeComponent()

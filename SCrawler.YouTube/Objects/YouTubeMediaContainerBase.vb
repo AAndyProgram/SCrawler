@@ -111,8 +111,9 @@ Namespace API.YouTube.Objects
                 _SiteKey = Key
             End Set
         End Property
+        <XMLEC> Public Property AccountName As String = String.Empty Implements IDownloadableMedia.AccountName
         <XMLEC(Name_IsMusic)> Public Property IsMusic As Boolean = False Implements IYouTubeMediaContainer.IsMusic
-        <XMLEC> Public Property IsShorts As Boolean = False
+        <XMLEC> Public Property IsShorts As Boolean = False Implements IYouTubeMediaContainer.IsShorts
         <XMLEC> Public Property ID As String Implements IYouTubeMediaContainer.ID, IUserMedia.PostID
         <XMLEC> Public Property Title As String Implements IDownloadableMedia.Title
         <XMLEC> Public Property Description As String Implements IYouTubeMediaContainer.Description
@@ -542,6 +543,16 @@ Namespace API.YouTube.Objects
                 Return _FileIsPlaylistObject
             End Get
         End Property
+        Private _AbsolutePath As Boolean = False
+        Public Property AbsolutePath As Boolean
+            Get
+                Return _AbsolutePath
+            End Get
+            Set(ByVal ap As Boolean)
+                _AbsolutePath = ap
+                If Elements.Count > 0 Then Elements.ForEach(Sub(e As YouTubeMediaContainerBase) e.AbsolutePath = ap)
+            End Set
+        End Property
         Public Overridable Property File As SFile Implements IYouTubeMediaContainer.File
             Get
                 Return _File
@@ -549,11 +560,16 @@ Namespace API.YouTube.Objects
             Set(ByVal f As SFile)
                 Select Case ObjectType
                     Case YouTubeMediaType.Channel : _File = f.Path
-                    Case YouTubeMediaType.PlayList : _File.Path = $"{f.PathWithSeparator}{GetPlayListTitle()}"
+                    Case YouTubeMediaType.PlayList
+                        If AbsolutePath Then
+                            _File.Path = f.Path
+                        Else
+                            _File.Path = $"{f.PathWithSeparator}{GetPlayListTitle()}"
+                        End If
                     Case YouTubeMediaType.Single
                         If PlaylistCount > 0 And Not FileIgnorePlaylist Then
                             _File.Path = f.Path
-                            Dim pls$ = GetPlayListTitle()
+                            Dim pls$ = If(AbsolutePath, String.Empty, GetPlayListTitle())
                             If Not _File.Path.Contains(pls) Then _File.Path = $"{_File.PathWithSeparator(Not pls.IsEmptyString)}{pls}"
                         ElseIf Not f.Name.IsEmptyString Then
                             _File = f
@@ -709,6 +725,19 @@ Namespace API.YouTube.Objects
         End Sub
 #End Region
 #Region "Download"
+        Protected Shared Sub CreateUrlFile(ByVal URL As String, ByVal File As SFile)
+            Try
+                File.Extension = "url"
+                Using t As New TextSaver(File)
+                    t.AppendLine("[InternetShortcut]")
+                    t.AppendLine("IDList=")
+                    t.AppendLine($"URL={URL}")
+                    t.AppendLine()
+                    t.Save(EDP.None)
+                End Using
+            Catch ex As Exception
+            End Try
+        End Sub
         Private ReadOnly DownloadProgressPattern As RParams = RParams.DMS("\[download\]\s*([\d\.,]+)", 1, EDP.ReturnValue)
         Public Property Progress As MyProgress Implements IYouTubeMediaContainer.Progress
         Private Property IDownloadableMedia_Progress As Object Implements IDownloadableMedia.Progress
@@ -807,6 +836,13 @@ Namespace API.YouTube.Objects
             Try
                 Dim url$ = $"https://{IIf(IsMusic, "music", "www")}.youtube.com/playlist?list={PlsId}"
                 Dim r$
+                If DownloadObjects.STDownloader.MyDownloaderSettings.CreateUrlFiles Then
+                    Dim ff As SFile = f
+                    ff.Name = "album"
+                    ff.Extension = "url"
+                    CreateUrlFile(url, ff)
+                    If ff.Exists Then Files.Add(ff)
+                End If
                 Using resp As New Responser
                     If UseCookies And MyYouTubeSettings.Cookies.Count > 0 Then resp.Cookies.AddRange(MyYouTubeSettings.Cookies,, EDP.SendToLog)
                     r = resp.GetResponse(url,, EDP.ReturnValue)
@@ -882,6 +918,21 @@ Namespace API.YouTube.Objects
                         End If
                         If Not File.Exists Then _File.Name = File.File
                         If File.Exists Then
+
+                            If DownloadObjects.STDownloader.MyDownloaderSettings.CreateUrlFiles Then
+                                Dim fileUrl As SFile = File
+                                fileUrl.Extension = "url"
+                                CreateUrlFile(URL, fileUrl)
+                                If fileUrl.Exists Then Files.Add(fileUrl)
+                            End If
+
+                            If MyYouTubeSettings.CreateDescriptionFiles And Not Description.IsEmptyString Then
+                                Dim fileDesr As SFile = File
+                                fileDesr.Extension = "txt"
+                                TextSaver.SaveTextToFile(Description, fileDesr,,, EDP.None)
+                                If fileDesr.Exists Then Files.Add(fileDesr)
+                            End If
+
                             If PlaylistCount > 0 And Not CoverDownloaded And Not PlaylistID.IsEmptyString Then DownloadPlaylistCover(PlaylistID, File, UseCookies)
                             If prExists Then Progress.InformationTemporary = $"Download {MediaType}: post processing"
                             _ThumbnailFile = File
@@ -1025,7 +1076,11 @@ Namespace API.YouTube.Objects
                         If fc.Exists(SFO.Path, False) AndAlso SFile.GetFiles(fc, "*.json",, EDP.ReturnValue).Count > 0 Then Parse(Nothing, fc, IsMusic)
                         XMLPopulateData(Me, x)
                         _MediaStateOnLoad = _MediaState
-                        _Exists = True
+                        If Me.MediaState = UMStates.Downloaded Then
+                            _Exists = File.Exists(IIf(ObjectType = YouTubeMediaType.Single, SFO.File, SFO.Path), False)
+                        Else
+                            _Exists = True
+                        End If
                         If If(x(Name_CheckedElements)?.Count, 0) > 0 Then ApplyElementCheckedValue(x(Name_CheckedElements))
                         If ArrayMaxResolution <> -10 Then SetMaxResolution(ArrayMaxResolution)
                     End Using
@@ -1309,9 +1364,29 @@ Namespace API.YouTube.Objects
                             Next
                         End If
                     End Sub
+                Dim protocolCleaner As Action =
+                    Sub()
+                        If Not MyYouTubeSettings.DefaultProtocol.Value = Protocols.Undefined And
+                           Not MyYouTubeSettings.DefaultProtocol.Value = Protocols.Any Then
+                            Dim data As New List(Of MediaObject)(MediaObjects.Where(Function(mo) mo.ProtocolType = MyYouTubeSettings.DefaultProtocol.Value))
+                            If data.ListExists Then
+                                Dim dRem As Protocols = IIf(MyYouTubeSettings.DefaultProtocol.Value = Protocols.https, Protocols.m3u8, Protocols.https)
+                                Dim d As MediaObject
+                                Dim dr As New FPredicate(Of MediaObject)(Function(mo) mo.Height = d.Height And mo.ProtocolType = dRem)
+                                For Each d In data
+                                    If MediaObjects.Count = 0 Then
+                                        Exit For
+                                    ElseIf MediaObjects.LongCount(dr) > 0 Then
+                                        MediaObjects.RemoveAll(dr)
+                                    End If
+                                Next
+                            End If
+                        End If
+                    End Sub
                 If MediaObjects.Count > 0 And Not MyYouTubeSettings.DefaultVideoIncludeNullSize Then MediaObjects.RemoveAll(Function(mo) mo.Size <= 0)
                 If MediaObjects.Count > 0 Then DupRemover.Invoke(UMTypes.Audio)
                 If MediaObjects.Count > 0 Then DupRemover.Invoke(UMTypes.Video)
+                If MediaObjects.Count > 0 Then protocolCleaner.Invoke
                 If MediaObjects.Count > 0 Then
                     MediaObjects.Sort()
                     SelectedAudioIndex = MediaObjects.FindIndex(Function(mo) mo.Type = UMTypes.Audio)
@@ -1362,28 +1437,36 @@ Namespace API.YouTube.Objects
         Protected Sub ParseSubtitles(ByVal e As EContainer)
             Dim subt As Subtitles
             Dim ee As EContainer
-            Dim se As EContainer = e({"subtitles"})
-            If If(se?.Count, 0) = 0 OrElse (se.Count = 1 And se(0).Name = "live_chat") Then se = e({"automatic_captions"})
-            If If(se?.Count, 0) > 0 Then
-                If se.Count > 1 OrElse Not se(0).Name = "live_chat" Then
+            Dim eSUB As EContainer = e({"subtitles"})
+            Dim eCC As EContainer = e({"automatic_captions"})
+            If If(eSUB?.Count, 0) = 0 OrElse (eSUB.Count = 1 And eSUB(0).Name = "live_chat") Then eSUB = Nothing
+            If If(eCC?.Count, 0) = 0 OrElse (eCC.Count = 1 And eCC(0).Name = "live_chat") Then eCC = Nothing
+            If If(eSUB?.Count, 0) > 0 Or If(eCC?.Count, 0) > 0 Then
+                Dim sl As New List(Of EContainer)
+                Dim ccExists As Boolean = False
+                Dim ccIndx% = -1, rIndx% = -1
+                If If(eSUB?.Count, 0) > 0 Then sl.Add(eSUB) : ccIndx += 1
+                If If(eCC?.Count, 0) > 0 Then sl.Add(eCC) : ccIndx += 1 : ccExists = True
+                For Each se As EContainer In sl
+                    rIndx += 1
                     For Each ee In se
-                        subt = New Subtitles With {.ID = ee.Name}
+                        subt = New Subtitles With {.ID = ee.Name, .CC = rIndx = ccIndx And ccExists}
                         If ee.Count > 0 Then
                             subt.Name = ee(0).Value("name")
                             subt.Formats = ee.Select(Function(f) f.Value("ext")).ListToString(",")
                         End If
                         If Not subt.ID.IsEmptyString Then _Subtitles.Add(subt)
                     Next
-                    With MyYouTubeSettings
-                        If Not .DefaultSubtitlesFormat.IsEmptyString Then OutputSubtitlesFormat = .DefaultSubtitlesFormat
-                        If _Subtitles.Count > 0 And .DefaultSubtitles.Count > 0 Then
-                            _Subtitles.Sort()
-                            _Subtitles.ListReindex
-                            SubtitlesSelectedIndexesReset()
-                            PostProcessing_OutputSubtitlesFormats_Reset()
-                        End If
-                    End With
-                End If
+                Next
+                With MyYouTubeSettings
+                    If Not .DefaultSubtitlesFormat.IsEmptyString Then OutputSubtitlesFormat = .DefaultSubtitlesFormat
+                    If _Subtitles.Count > 0 And .DefaultSubtitles.Count > 0 Then
+                        _Subtitles.Sort()
+                        _Subtitles.ListReindex
+                        SubtitlesSelectedIndexesReset()
+                        PostProcessing_OutputSubtitlesFormats_Reset()
+                    End If
+                End With
             End If
         End Sub
 #End Region

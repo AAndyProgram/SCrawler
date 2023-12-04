@@ -18,7 +18,6 @@ Namespace API.Mastodon
     Friend Class UserData : Inherits Twitter.UserData
 #Region "XML names"
         Private Const Name_UserDomain As String = "UserDomain"
-        Private Const Name_TrueName As String = "TrueName"
 #End Region
 #Region "Declarations"
         Private _UserDomain As String = String.Empty
@@ -38,22 +37,7 @@ Namespace API.Mastodon
         End Property
         Private MyCredentials As Credentials
         Private Sub ResetCredentials()
-            MyCredentials = Nothing
-            With MySettings
-                Dim setDef As Boolean = True
-                If Not IsSavedPosts Then
-                    If ACheck(.MyDomain.Value) AndAlso UserDomain = .MyDomain.Value Then
-                        setDef = True
-                    ElseIf .Domains.Credentials.Count > 0 Then
-                        Dim i% = .Domains.Credentials.IndexOf(UserDomain)
-                        If i >= 0 Then
-                            MyCredentials = .Domains.Credentials(i)
-                            setDef = Not MyCredentials.Exists
-                        End If
-                    End If
-                End If
-                If setDef Then MyCredentials = New Credentials With {.Domain = UserDomain, .Bearer = MySettings.Auth.Value, .Csrf = MySettings.Token.Value}
-            End With
+            MyCredentials = New Credentials With {.Domain = MySettings.MyDomain.Value, .Bearer = MySettings.Auth.Value, .Csrf = MySettings.Token.Value}
             With MyCredentials
                 Responser.Headers.Add(DeclaredNames.Header_Authorization, .Bearer)
                 Responser.Headers.Add(DeclaredNames.Header_CSRFToken, .Csrf)
@@ -190,7 +174,8 @@ Namespace API.Mastodon
                 ProcessException(ex, Token, $"data downloading error{IIf(IsSavedPosts, " (Saved Posts)", String.Empty)} [{URL}]")
             End Try
         End Sub
-        Private Sub ObtainMedia(ByVal e As EContainer, ByVal PostID As String, ByVal PostDate As String, Optional ByVal BaseUrl As String = Nothing)
+        Private Sub ObtainMedia(ByVal e As EContainer, ByVal PostID As String, ByVal PostDate As String, Optional ByVal BaseUrl As String = Nothing,
+                                Optional ByVal SourceMedia As UserMedia = Nothing)
             Dim t As UTypes = UTypes.Undefined
             Select Case e.Value("type")
                 Case "video" : t = UTypes.Video
@@ -207,7 +192,13 @@ Namespace API.Mastodon
                         If Not GifsSpecialFolder.IsEmptyString Then m.SpecialFolder = GifsSpecialFolder
                         If Not GifsPrefix.IsEmptyString Then m.File.Name = $"{GifsPrefix}{m.File.Name}"
                     End If
-                    If Not m.URL.IsEmptyString Then _TempMediaList.ListAddValue(m, LNC)
+                    If Not m.URL.IsEmptyString Then
+                        If SourceMedia.State = UStates.Missing Then
+                            m.State = UStates.Missing
+                            m.Attempts = SourceMedia.Attempts
+                        End If
+                        _TempMediaList.ListAddValue(m, LNC)
+                    End If
                 End If
             End If
         End Sub
@@ -261,7 +252,7 @@ Namespace API.Mastodon
                                     If Not j Is Nothing Then
                                         PostDate = String.Empty
                                         If j.Contains("created_at") Then PostDate = j("created_at").Value Else PostDate = String.Empty
-                                        ObtainMedia(j, m.Post.ID, PostDate, m.URL_BASE)
+                                        ObtainMedia(j, m.Post.ID, PostDate, m.URL_BASE, m)
                                         rList.Add(i)
                                         j.Dispose()
                                     End If

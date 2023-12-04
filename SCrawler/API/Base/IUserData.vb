@@ -31,6 +31,7 @@ Namespace API.Base
         Sub DownloadSingleObject(ByVal Data As YouTube.Objects.IYouTubeMediaContainer, ByVal Token As CancellationToken)
         Property ParseUserMediaOnly As Boolean
         ReadOnly Property IsSubscription As Boolean
+        ReadOnly Property IsUser As Boolean
 #Region "Images"
         Function GetPicture() As Image
         Sub SetPicture(ByVal f As SFile)
@@ -49,6 +50,8 @@ Namespace API.Base
         Property Suspended As Boolean
         Property ReadyForDownload As Boolean
         Property HOST As SettingsHost
+        Property HostStatic As Boolean
+        Property AccountName As String
         Property [File] As SFile
         Property FileExists As Boolean
         Property DownloadedPictures(ByVal Total As Boolean) As Integer

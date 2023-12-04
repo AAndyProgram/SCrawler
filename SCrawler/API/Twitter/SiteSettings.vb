@@ -16,43 +16,32 @@ Namespace API.Twitter
     <Manifest(TwitterSiteKey), SavedPosts, SeparatedTasks, SpecialForm(False)>
     Friend Class SiteSettings : Inherits SiteSettingsBase
 #Region "Declarations"
-        Friend Overrides ReadOnly Property Icon As Icon
-            Get
-                Return My.Resources.SiteResources.TwitterIcon_32
-            End Get
-        End Property
-        Private ReadOnly _Image As Image
-        Friend Overrides ReadOnly Property Image As Image
-            Get
-                Return _Image
-            End Get
-        End Property
 #Region "Other properties"
         <PropertyOption(ControlText:="Use the appropriate model",
                         ControlToolTip:="Use the appropriate model for new users." & vbCr &
                         "If disabled, all download models will be used for the first download. " &
                         "Next, the appropriate download model will be automatically selected." & vbCr &
-                        "Otherwise the appropriate download model will be selected right from the start."), PXML>
+                        "Otherwise the appropriate download model will be selected right from the start."), PXML, PClonable>
         Friend ReadOnly Property UseAppropriateModel As PropertyValue
 #Region "End points"
-        <PropertyOption(ControlText:="New endpoint: search", ControlToolTip:="Use new endpoint argument (-o search-endpoint=graphql) for the search model."), PXML>
+        <PropertyOption(ControlText:="New endpoint: search", ControlToolTip:="Use new endpoint argument (-o search-endpoint=graphql) for the search model."), PXML, PClonable>
         Friend Property UseNewEndPointSearch As PropertyValue
-        <PropertyOption(ControlText:="New endpoint: profiles", ControlToolTip:="Use new endpoint argument (-o search-endpoint=graphql) for the profile models."), PXML>
+        <PropertyOption(ControlText:="New endpoint: profiles", ControlToolTip:="Use new endpoint argument (-o search-endpoint=graphql) for the profile models."), PXML, PClonable>
         Friend Property UseNewEndPointProfiles As PropertyValue
 #End Region
 #Region "Limits"
-        <PropertyOption(ControlText:="Abort on limit", ControlToolTip:="Abort twitter downloading when limit is reached"), PXML>
+        <PropertyOption(ControlText:="Abort on limit", ControlToolTip:="Abort twitter downloading when limit is reached"), PXML, PClonable>
         Friend Property AbortOnLimit As PropertyValue
-        <PropertyOption(ControlText:="Download already parsed", ControlToolTip:="Download already parsed content on abort"), PXML>
+        <PropertyOption(ControlText:="Download already parsed", ControlToolTip:="Download already parsed content on abort"), PXML, PClonable>
         Friend Property DownloadAlreadyParsed As PropertyValue
 #End Region
-        <PropertyOption(ControlText:="Media Model: allow non-user tweets", ControlToolTip:="Allow downloading non-user tweets in the media-model."), PXML>
+        <PropertyOption(ControlText:="Media Model: allow non-user tweets", ControlToolTip:="Allow downloading non-user tweets in the media-model."), PXML, PClonable>
         Friend ReadOnly Property MediaModelAllowNonUserTweets As PropertyValue
-        <PropertyOption(ControlText:=DN.GifsDownloadCaption), PXML>
+        <PropertyOption(ControlText:=DN.GifsDownloadCaption), PXML, PClonable>
         Friend ReadOnly Property GifsDownload As PropertyValue
-        <PropertyOption(ControlText:=DN.GifsSpecialFolderCaption, ControlToolTip:=DN.GifsSpecialFolderToolTip), PXML>
+        <PropertyOption(ControlText:=DN.GifsSpecialFolderCaption, ControlToolTip:=DN.GifsSpecialFolderToolTip), PXML, PClonable>
         Friend ReadOnly Property GifsSpecialFolder As PropertyValue
-        <PropertyOption(ControlText:=DN.GifsPrefixCaption, ControlToolTip:=DN.GifsPrefixToolTip), PXML>
+        <PropertyOption(ControlText:=DN.GifsPrefixCaption, ControlToolTip:=DN.GifsPrefixToolTip), PXML, PClonable>
         Friend ReadOnly Property GifsPrefix As PropertyValue
         <Provider(NameOf(GifsSpecialFolder), Interaction:=True), Provider(NameOf(GifsPrefix), Interaction:=True)>
         Private ReadOnly Property GifStringChecker As IFormatProvider
@@ -74,19 +63,19 @@ Namespace API.Twitter
                 Throw New NotImplementedException("[GetFormat] is not available in the context of [GifStringProvider]")
             End Function
         End Class
-        <PropertyOption(ControlText:=DN.UseMD5ComparisonCaption, ControlToolTip:=DN.UseMD5ComparisonToolTip), PXML>
+        <PropertyOption(ControlText:=DN.UseMD5ComparisonCaption, ControlToolTip:=DN.UseMD5ComparisonToolTip), PXML, PClonable>
         Friend ReadOnly Property UseMD5Comparison As PropertyValue
         <PropertyOption(ControlText:=DN.ConcurrentDownloadsCaption,
-                        ControlToolTip:=DN.ConcurrentDownloadsToolTip, AllowNull:=False, LeftOffset:=120), PXML, TaskCounter>
+                        ControlToolTip:=DN.ConcurrentDownloadsToolTip, AllowNull:=False, LeftOffset:=120), PXML, TaskCounter, PClonable>
         Friend ReadOnly Property ConcurrentDownloads As PropertyValue
         <Provider(NameOf(ConcurrentDownloads), FieldsChecker:=True)>
         Private ReadOnly Property MyConcurrentDownloadsProvider As IFormatProvider
 #End Region
 #End Region
-        Friend Sub New()
-            MyBase.New(TwitterSite, "twitter.com")
+        Friend Sub New(ByVal AccName As String, ByVal Temp As Boolean)
+            MyBase.New(TwitterSite, "twitter.com", AccName, Temp, My.Resources.SiteResources.TwitterIcon_32, My.Resources.SiteResources.TwitterIcon_32.ToBitmap)
 
-            _Image = My.Resources.SiteResources.TwitterIcon_32.ToBitmap
+            LimitSkippedUsers = New List(Of UserDataBase)
 
             With Responser
                 .Cookies.ChangedAllowInternalDrop = False
@@ -126,7 +115,19 @@ Namespace API.Twitter
             Return Settings.GalleryDLFile.Exists And BaseAuthExists()
         End Function
         Friend Property LIMIT_ABORT As Boolean = False
+        Friend ReadOnly Property LimitSkippedUsers As List(Of UserDataBase)
         Friend Overrides Sub DownloadDone(ByVal What As ISiteSettings.Download)
+            If LimitSkippedUsers.Count > 0 Then
+                With LimitSkippedUsers
+                    If .Count = 1 Then
+                        MyMainLOG = $"{ .Item(0).ToStringForLog}: twitter limit reached. Data has not been downloaded."
+                    Else
+                        MyMainLOG = "The following twitter users have not been downloaded (twitter limit reached):" & vbNewLine &
+                                    .ListToStringE(vbNewLine, New CustomProvider(Function(v As UserDataBase) $"{v.Name} ({v.ToStringForLog})"))
+                    End If
+                    .Clear()
+                End With
+            End If
             LIMIT_ABORT = False
             MyBase.DownloadDone(What)
         End Sub

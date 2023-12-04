@@ -25,6 +25,7 @@ Namespace API.YouTube.Objects
         ReadOnly Property MediaType As UMTypes
         ReadOnly Property MediaState As UMStates
         Property IsMusic As Boolean
+        Property IsShorts As Boolean
         Property ID As String
         Property Description As String
         Property PlaylistID As String
