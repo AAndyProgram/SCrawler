@@ -11,16 +11,23 @@ Imports SCrawler.API.Base
 Imports SCrawler.API.YouTube.Base
 Imports SCrawler.API.YouTube.Objects
 Imports PersonalUtilities.Functions.XML
+Imports PersonalUtilities.Functions.RegularExpressions
+Imports PersonalUtilities.Tools.Web.Clients
+Imports PersonalUtilities.Tools.Web.Documents.JSON
+Imports UTypes = SCrawler.API.Base.UserMedia.Types
 Namespace API.YouTube
     Friend Class UserData : Inherits UserDataBase
 #Region "XML names"
         Private Const Name_DownloadYTVideos As String = "YTDownloadVideos"
         Private Const Name_DownloadYTShorts As String = "YTDownloadShorts"
         Private Const Name_DownloadYTPlaylists As String = "YTDownloadPlaylists"
+        Private Const Name_DownloadYTCommunityImages As String = "YTDownloadCommunityImages"
+        Private Const Name_DownloadYTCommunityVideos As String = "YTDownloadCommunityVideos"
         Private Const Name_YTUseCookies As String = "YTUseCookies"
         Private Const Name_IsMusic As String = "YTIsMusic"
         Private Const Name_IsChannelUser As String = "YTIsChannelUser"
         Private Const Name_YTMediaType As String = "YTMediaType"
+        Private Const Name_ChannelID As String = "ChannelID"
         Private Const Name_LastDownloadDateVideos As String = "YTLastDownloadDateVideos"
         Private Const Name_LastDownloadDateShorts As String = "YTLastDownloadDateShorts"
         Private Const Name_LastDownloadDatePlaylist As String = "YTLastDownloadDatePlaylist"
@@ -29,6 +36,9 @@ Namespace API.YouTube
         Friend Property DownloadYTVideos As Boolean = True
         Friend Property DownloadYTShorts As Boolean = False
         Friend Property DownloadYTPlaylists As Boolean = False
+        Friend Property DownloadYTCommunityImages As Boolean = False
+        Friend Property DownloadYTCommunityVideos As Boolean = False
+        Friend Property ChannelID As String = String.Empty
         Friend Property YTUseCookies As Boolean = False
         Friend Property IsMusic As Boolean = False
         Friend Property IsChannelUser As Boolean = False
@@ -70,6 +80,9 @@ Namespace API.YouTube
                     DownloadYTVideos = .Value(Name_DownloadYTVideos).FromXML(Of Boolean)(True)
                     DownloadYTShorts = .Value(Name_DownloadYTShorts).FromXML(Of Boolean)(False)
                     DownloadYTPlaylists = .Value(Name_DownloadYTPlaylists).FromXML(Of Boolean)(False)
+                    DownloadYTCommunityImages = .Value(Name_DownloadYTCommunityImages).FromXML(Of Boolean)(False)
+                    DownloadYTCommunityVideos = .Value(Name_DownloadYTCommunityVideos).FromXML(Of Boolean)(False)
+                    ChannelID = .Value(Name_ChannelID)
                     IsMusic = .Value(Name_IsMusic).FromXML(Of Boolean)(False)
                     IsChannelUser = .Value(Name_IsChannelUser).FromXML(Of Boolean)(False)
                     YTMediaType = .Value(Name_YTMediaType).FromXML(Of Integer)(YouTubeMediaType.Undefined)
@@ -83,6 +96,9 @@ Namespace API.YouTube
                     .Add(Name_DownloadYTVideos, DownloadYTVideos.BoolToInteger)
                     .Add(Name_DownloadYTShorts, DownloadYTShorts.BoolToInteger)
                     .Add(Name_DownloadYTPlaylists, DownloadYTPlaylists.BoolToInteger)
+                    .Add(Name_DownloadYTCommunityImages, DownloadYTCommunityImages.BoolToInteger)
+                    .Add(Name_DownloadYTCommunityVideos, DownloadYTCommunityVideos.BoolToInteger)
+                    .Add(Name_ChannelID, ChannelID)
                     .Add(Name_IsMusic, IsMusic.BoolToInteger)
                     .Add(Name_IsChannelUser, IsChannelUser.BoolToInteger)
                     .Add(Name_YTMediaType, CInt(YTMediaType))
@@ -103,7 +119,10 @@ Namespace API.YouTube
                     DownloadYTVideos = .DownloadVideos
                     DownloadYTShorts = .DownloadShorts
                     DownloadYTPlaylists = .DownloadPlaylists
+                    DownloadYTCommunityImages = .DownloadCommunityImages
+                    DownloadYTCommunityVideos = .DownloadCommunityVideos
                     YTUseCookies = .UseCookies
+                    ChannelID = .ChannelID
                 End With
             End If
         End Sub
@@ -184,6 +203,7 @@ Namespace API.YouTube
                         applySpecFolder.Invoke("Playlists", True)
                         If fillList.Invoke(LastDownloadDatePlaylist) Then LastDownloadDatePlaylist = If(maxDate, Now)
                     End If
+                    If Not IsMusic And (DownloadYTCommunityImages Or DownloadYTCommunityVideos) Then DownloadCommunity(String.Empty, Token)
                 Else
                     Throw New InvalidOperationException($"Media type {YTMediaType} not implemented")
                 End If
@@ -203,10 +223,201 @@ Namespace API.YouTube
                 pr.Dispose()
             End Try
         End Sub
+        Private Sub DownloadCommunity(ByVal Cursor As String, ByVal Token As CancellationToken, Optional ByVal Round As Integer = 0)
+            Dim URL$ = String.Empty
+            Try
+                Const postIdTemp$ = "Community_{0}"
+                Const specFolder$ = "Community"
+                Dim nextToken$ = String.Empty
+                Dim postId$ = String.Empty, videoId$ = String.Empty
+                Dim tmpPID$
+                Dim imgCount%, imgNum%
+                Dim postUrl As Func(Of String) = Function() $"https://www.youtube.com/post/{postId}"
+                Dim image As EContainer, thumb As EContainer
+                Dim sl As New List(Of Sizes)
+                Dim m As UserMedia
+                Dim v As IYouTubeMediaContainer
+
+                If ChannelID.IsEmptyString Then GetChannelID()
+                If ChannelID.IsEmptyString Then Throw New ArgumentNullException("ChannelID", "Channel ID cannot be null")
+
+                URL = $"https://yt.lemnoslife.com/channels?part=community&id={ChannelID}"
+                If Not Cursor.IsEmptyString Then URL &= $"&pageToken={Cursor}"
+
+                ProgressPre.ChangeMax(1)
+
+                Using resp As New Responser
+                    Dim r$ = resp.GetResponse(URL,, EDP.ReturnValue)
+                    ProgressPre.Perform()
+                    If Not r.IsEmptyString Then
+                        Using j As EContainer = JsonDocument.Parse(r)
+                            If j.ListExists Then
+                                With j.ItemF({"items", 0})
+                                    If .ListExists Then
+                                        nextToken = .Value("nextPageToken")
+                                        With .Item("community")
+                                            If .ListExists Then
+                                                ProgressPre.ChangeMax(.Count)
+                                                For Each jj As EContainer In .Self
+                                                    With jj
+                                                        postId = .Value("id")
+                                                        videoId = .Value("videoId")
+                                                        tmpPID = String.Format(postIdTemp, postId)
+                                                        If Not _TempPostsList.Contains(tmpPID) Then _TempPostsList.Add(tmpPID) Else Exit Sub
+
+                                                        If Not videoId.IsEmptyString Then
+                                                            If DownloadYTCommunityVideos Then
+                                                                v = Nothing
+                                                                Try : v = YouTubeFunctions.Parse($"https://www.youtube.com/watch?v={videoId}", YTUseCookies, Token) : Catch : End Try
+                                                                If Not v Is Nothing Then
+                                                                    With DirectCast(v, YouTubeMediaContainerBase)
+                                                                        .SpecialPath = specFolder & "\Videos"
+                                                                        .SpecialPathDisabled = False
+                                                                    End With
+                                                                    _TempMediaList.ListAddValue(New UserMedia(v) With {.Post = postId}, LNC)
+                                                                End If
+                                                            End If
+                                                        ElseIf DownloadYTCommunityImages Then
+                                                            With .Item("images")
+                                                                If .ListExists Then
+                                                                    imgCount = .Count
+                                                                    imgNum = 0
+                                                                    For Each image In .Self
+                                                                        imgNum += 1
+                                                                        sl.Clear()
+                                                                        With image("thumbnails")
+                                                                            If .ListExists Then
+                                                                                For Each thumb In .Self : sl.Add(New Sizes(thumb.Value("width"), thumb.Value("url"))) : Next
+                                                                                If sl.Count > 0 Then sl.RemoveAll(Function(s) s.HasError Or s.Data.IsEmptyString)
+                                                                                If sl.Count > 0 Then
+                                                                                    sl.Sort()
+                                                                                    m = New UserMedia(sl(0).Data, UTypes.Picture) With {
+                                                                                        .URL_BASE = postUrl.Invoke,
+                                                                                        .Post = postId,
+                                                                                        .SpecialFolder = specFolder,
+                                                                                        .File = $"{postId}{IIf(imgCount > 1, $"_{imgNum}", String.Empty)}.jpg"
+                                                                                    }
+                                                                                    _TempMediaList.Add(m)
+                                                                                End If
+                                                                            End If
+                                                                        End With
+                                                                    Next
+                                                                End If
+                                                            End With
+                                                        End If
+
+                                                        ProgressPre.Perform()
+                                                    End With
+                                                Next
+                                            End If
+                                        End With
+                                    End If
+                                End With
+                            End If
+                        End Using
+                    ElseIf resp.HasError Then
+                        If resp.Status = Net.WebExceptionStatus.ConnectFailure And Round < 2 Then
+                            Thread.Sleep(1000)
+                            DownloadCommunity(Cursor, Token, Round + 1)
+                        Else
+                            Throw resp.ErrorException
+                        End If
+                    End If
+                End Using
+
+                If Not nextToken.IsEmptyString Then DownloadCommunity(nextToken, Token)
+            Catch ex As Exception
+                ProcessException(ex, Token, "community data downloading error")
+            End Try
+        End Sub
+        Private Sub GetChannelID()
+            Try
+                Dim r$ = GetWebString(GetUserUrl,, EDP.ThrowException)
+                If Not r.IsEmptyString Then
+                    Dim newUrl$ = RegexReplace(r, RParams.DMS("meta property=.og:url..content=.([^""]+)", 1, EDP.ReturnValue))
+                    If Not newUrl.IsEmptyString Then
+                        Dim newID$ = String.Empty
+                        YouTubeFunctions.Info_GetUrlType(newUrl,,,, newID)
+                        If Not newID.IsEmptyString And Not ChannelID = newID Then ChannelID = newID : _ForceSaveUserInfo = True
+                    End If
+                End If
+            Catch ex As Exception
+                ProcessException(ex, Nothing, "error getting channel ID")
+            End Try
+        End Sub
         Protected Overrides Sub DownloadContent(ByVal Token As CancellationToken)
             SeparateVideoFolder = False
             DownloadContentDefault(Token)
         End Sub
+        Private Class YTPreProgressContainer : Inherits PersonalUtilities.Forms.Toolbars.MyProgress
+            Private ReadOnly MyPreProgress As PreProgress
+            Friend Sub New(ByVal PR As PreProgress)
+                MyBase.New(PR.Progress.MyControls)
+                MyPreProgress = PR
+            End Sub
+            Private _MaxChanged As Boolean = False
+            Public Overrides Property Maximum As Double
+                Get
+                    Return MyPreProgress.Progress.Maximum0
+                End Get
+                Set(ByVal max As Double)
+                    MyPreProgress.Progress.Maximum0 += max
+                    _MaxChanged = True
+                End Set
+            End Property
+            Private _LastValue As Double = -1
+            Private _FirstAdded As Boolean = False
+            Public Overrides Property Value As Double
+                Get
+                    Return MyPreProgress.Progress.Value0
+                End Get
+                Set(ByVal v As Double)
+                    If _MaxChanged Then
+                        If Not _FirstAdded Then
+                            _FirstAdded = True
+                        ElseIf v > 0 Then
+                            Dim newValue#
+                            If _LastValue = -1 Then
+                                newValue = v
+                            ElseIf _LastValue > v Then
+                                newValue = v
+                            Else
+                                newValue = v - _LastValue
+                            End If
+                            _LastValue = v
+                            MyPreProgress.Progress.Value0 += newValue
+                        End If
+                    End If
+                End Set
+            End Property
+            Public Overrides Sub Perform(Optional ByVal Value As Double = 1)
+                MyPreProgress.Perform(Value)
+            End Sub
+            Public Overrides Sub Reset()
+                MyPreProgress.Reset()
+            End Sub
+            Public Overrides Sub Done()
+                MyPreProgress.Done()
+            End Sub
+            Public Overrides Property Information As String
+                Get
+                    Return String.Empty
+                End Get
+                Set : End Set
+            End Property
+            Public Overrides WriteOnly Property InformationTemporary(Optional ByVal AddPercentage As Boolean = False) As String
+                Set : End Set
+            End Property
+            Public Overrides Function GetLabelText() As String
+                Return String.Empty
+            End Function
+            Public Overrides Property Visible(Optional ByVal ProgressBar As Boolean = True, Optional ByVal Label As Boolean = True) As Boolean
+                Get
+                    Return True
+                End Get
+                Set : End Set
+            End Property
+        End Class
         Protected Overrides Function DownloadFile(ByVal URL As String, ByVal Media As UserMedia, ByVal DestinationFile As SFile,
                                                   ByVal Token As CancellationToken) As SFile
             If Not Media.Object Is Nothing AndAlso TypeOf Media.Object Is IYouTubeMediaContainer Then
@@ -215,12 +426,16 @@ Namespace API.YouTube
                     f.Path = DestinationFile.Path
                     If Not IsSingleObjectDownload And Not .FileIsPlaylistObject Then .FileIgnorePlaylist = True
                     .File = f
-                    If IsSingleObjectDownload Then .Progress = Progress
+                    If IsSingleObjectDownload Then .Progress = Progress Else .Progress = New YTPreProgressContainer(ProgressPre)
                     .Download(YTUseCookies, Token)
+                    If Not .Progress Is Nothing AndAlso TypeOf .Progress Is YTPreProgressContainer Then .Progress.Dispose()
                     If .File.Exists Then Return .File
                 End With
             End If
             Return Nothing
+        End Function
+        Protected Overrides Function ValidateDownloadFile(ByVal URL As String, ByVal Media As UserMedia, ByRef Interrupt As Boolean) As Boolean
+            Return Not Media.Type = UTypes.Picture
         End Function
         Protected Overrides Sub DownloadSingleObject_GetPosts(ByVal Data As IYouTubeMediaContainer, ByVal Token As CancellationToken)
             _TempMediaList.Add(New UserMedia(Data))

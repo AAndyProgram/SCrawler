@@ -84,7 +84,7 @@ Namespace API.Base
             Set : End Set
         End Property
         Protected Sub UpdateResponserFile()
-            Dim acc$ = If(Not AccountName.IsEmptyString, $"_{AccountName}", String.Empty)
+            Dim acc$ = If(AccountName.IsEmptyString OrElse AccountName = Hosts.SettingsHost.NameAccountNameDefault, String.Empty, $"_{AccountName}")
             Responser.File = $"{SettingsFolderName}\Responser_{Site}{acc}.xml"
             _CookiesNetscapeFile = Responser.File
             _CookiesNetscapeFile.Name &= "_Cookies_Netscape"
@@ -285,7 +285,7 @@ Namespace API.Base
             '1 = clone
             '2 = any
             Dim filterUC As Func(Of MemberInfo, Byte, Boolean) = Function(ByVal m As MemberInfo, ByVal __mode As Byte) As Boolean
-                                                                     If m.GetCustomAttribute(Of DoNotUse) Is Nothing Then
+                                                                     If If(m.GetCustomAttribute(Of DoNotUse)?.Value, False) Then
                                                                          Return False
                                                                      Else
                                                                          With m.GetCustomAttribute(Of PClonableAttribute)

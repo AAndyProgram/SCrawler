@@ -20,6 +20,10 @@ Namespace API.YouTube
         Friend ReadOnly Property DownloadShorts As PropertyValue
         <PXML, PropertyOption(ControlText:="Download user playlists"), PClonable>
         Friend ReadOnly Property DownloadPlaylists As PropertyValue
+        <PXML, PropertyOption(ControlText:="Download user community: images"), PClonable>
+        Friend ReadOnly Property DownloadCommunityImages As PropertyValue
+        <PXML, PropertyOption(ControlText:="Download user community: videos"), PClonable>
+        Friend ReadOnly Property DownloadCommunityVideos As PropertyValue
         <PXML, PropertyOption(ControlText:="Use cookies", ControlToolTip:="Default value for new users." & vbCr & "Use cookies when downloading data."), PClonable>
         Friend ReadOnly Property UseCookies As PropertyValue
 #End Region
@@ -30,6 +34,8 @@ Namespace API.YouTube
             DownloadVideos = New PropertyValue(True)
             DownloadShorts = New PropertyValue(False)
             DownloadPlaylists = New PropertyValue(False)
+            DownloadCommunityImages = New PropertyValue(False)
+            DownloadCommunityVideos = New PropertyValue(False)
             UseCookies = New PropertyValue(False)
             _SubscriptionsAllowed = True
             UseNetscapeCookies = True

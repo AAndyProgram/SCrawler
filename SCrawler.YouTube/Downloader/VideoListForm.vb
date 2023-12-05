@@ -326,7 +326,7 @@ Namespace DownloadObjects.STDownloader
                         If Not f Is Nothing Then
                             If TypeOf f Is IDesignXMLContainer Then DirectCast(f, IDesignXMLContainer).DesignXML = DesignXML
                             f.ShowDialog()
-                            If f.DialogResult = DialogResult.OK Then ControlCreateAndAdd(c, disableDown)
+                            If f.DialogResult = DialogResult.OK AndAlso ValidateContainerURL(c) Then ControlCreateAndAdd(c, disableDown)
                             f.Dispose()
                         End If
                     End If
@@ -340,6 +340,61 @@ Namespace DownloadObjects.STDownloader
                 If Not pForm Is Nothing Then pForm.Dispose()
             End Try
         End Sub
+        Protected Function ValidateContainerURL(ByVal c As IYouTubeMediaContainer) As Boolean
+            Try
+                If Not c Is Nothing AndAlso Not c.IsMusic Then
+                    Dim urls As List(Of String) = Nothing
+                    Dim files As List(Of SFile) = Nothing
+                    Dim msg As New MMessage("The media file to be added is already downloaded. Do you want to download it again?", "Download media file", {"Process", "Cancel"}, vbExclamation)
+                    If TP_CONTROLS.Controls.Count > 0 Then
+                        With TP_CONTROLS.Controls.Cast(Of MediaItem)
+                            urls.ListAddList(.SelectMany(Function(ByVal m As MediaItem) As IEnumerable(Of String)
+                                                             If Not m.MyContainer Is Nothing Then
+                                                                 Return DirectCast(m.MyContainer, YouTubeMediaContainerBase).GetUrls()
+                                                             Else
+                                                                 Return New String() {}
+                                                             End If
+                                                         End Function), LAP.NotContainsOnly, EDP.ReturnValue)
+                            files.ListAddList(.SelectMany(Function(ByVal m As MediaItem) As IEnumerable(Of SFile)
+                                                              If Not m.MyContainer Is Nothing Then
+                                                                  Return DirectCast(m.MyContainer, YouTubeMediaContainerBase).GetFiles()
+                                                              Else
+                                                                  Return New SFile() {}
+                                                              End If
+                                                          End Function), LAP.NotContainsOnly, EDP.ReturnValue)
+                        End With
+                    End If
+                    If urls.ListExists Then
+                        Dim cUrls As New List(Of String)
+                        cUrls.ListAddList({c.URL, c.URL_BASE}, LAP.NotContainsOnly)
+                        If urls.ListContains(cUrls) Then Return msg.Show = 0
+                    End If
+                    If files.ListExists And Not c.File.IsEmptyString Then Return Not files.Contains(c.File) OrElse msg.Show = 0
+                    If c.ObjectType = YouTubeMediaType.Single AndAlso c.File.Exists Then
+                        Dim callBack As MsgBoxButtonCallBack = Sub(r, m, b)
+                                                                   Dim __sfo As SFO = IIf(r.Button.CallBackObject = 0, SFO.File, SFO.Path)
+                                                                   If __sfo = SFO.File Then
+                                                                       c.File.Open(__sfo)
+                                                                   Else
+                                                                       GlobalOpenPath(c.File)
+                                                                   End If
+                                                               End Sub
+                        Return MsgBoxE(New MMessage("The following file already exists at the destination." & vbCr &
+                                        "Do you want to download it again?" & vbCr & vbCr &
+                                        $"File: {c.File}", "Download media file",
+                                        {"Process",
+                                         New MsgBoxButton("Open file") With {.IsDialogResultButton = False, .CallBackObject = 0, .CallBack = callBack},
+                                         New MsgBoxButton("Open folder") With {.IsDialogResultButton = False, .CallBackObject = 1, .CallBack = callBack},
+                                         "Cancel"}, vbExclamation) With {.ButtonsPerRow = 4}) = 0
+                    End If
+                    urls.ListClearDispose
+                    files.ListClearDispose
+                End If
+                Return True
+            Catch ex As Exception
+                Return ErrorsDescriber.Execute(EDP.SendToLog + EDP.ReturnValue, ex, "[VideoListForm.ValidateContainerURL]", True)
+            End Try
+        End Function
         Private Sub BTT_DOWN_Click(sender As Object, e As EventArgs) Handles BTT_DOWN.Click
             With TP_CONTROLS
                 If .Controls.Count > 0 Then

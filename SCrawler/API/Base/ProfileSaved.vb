@@ -10,12 +10,21 @@ Imports System.Threading
 Imports SCrawler.Plugin.Hosts
 Imports PersonalUtilities.Forms.Toolbars
 Imports PDownload = SCrawler.Plugin.ISiteSettings.Download
+Imports UserMediaD = SCrawler.DownloadObjects.TDownloader.UserMediaD
 Namespace API.Base
     Friend NotInheritable Class ProfileSaved
         Private ReadOnly Property HOST As SettingsHostCollection
         Private ReadOnly Property Progress As MyProgress
         Private _Unavailable As Integer, _NotReady As Integer, _ErrorCount As Integer
         Private _TotalImages As Integer, _TotalVideos As Integer
+        Friend Property Session As Integer
+        Friend Property IncludeInTheFeed As Boolean = False
+        Private _FeedDataExists As Boolean = False
+        Friend ReadOnly Property FeedDataExists As Boolean
+            Get
+                Return _FeedDataExists
+            End Get
+        End Property
         Friend Sub New(ByRef h As SettingsHostCollection, ByRef Bar As MyProgress)
             HOST = h
             Progress = Bar
@@ -23,6 +32,7 @@ Namespace API.Base
         Friend Overloads Sub Download(ByVal Token As CancellationToken, ByVal Multiple As Boolean)
             Dim n% = 0
             Dim c% = HOST.Sum(Function(h) IIf(h.DownloadSavedPosts, 1, 0))
+            _FeedDataExists = False
             _Unavailable = 0
             _NotReady = 0
             _ErrorCount = 0
@@ -30,7 +40,7 @@ Namespace API.Base
             _TotalVideos = 0
             If c > 0 Then
                 For i% = 0 To HOST.Count - 1
-                    If HOST(i).DownloadSavedPosts Then n += 1 : Download(HOST(i), n, c, Token, Multiple)
+                    If Not Token.IsCancellationRequested And HOST(i).DownloadSavedPosts Then n += 1 : Download(HOST(i), n, c, Token, Multiple)
                 Next
                 If c > 1 Then
                     Dim s% = {_Unavailable, _NotReady, _ErrorCount}.Sum
@@ -55,13 +65,19 @@ Namespace API.Base
                                     .LoadUserInformation()
                                     .Progress = Progress
                                     If Not .FileExists Then .UpdateUserInformation()
+                                    .IncludeInTheFeed = IncludeInTheFeed
+
+                                    Host.BeforeStartDownload(.Self, PDownload.SavedPosts)
+                                    .DownloadData(Token)
+                                    _TotalImages += .DownloadedPictures(False)
+                                    _TotalVideos += .DownloadedVideos(False)
+                                    If IncludeInTheFeed And .LatestData.Count > 0 Then
+                                        _FeedDataExists = True
+                                        Downloader.Files.AddRange(.LatestData.Select(Function(m) New UserMediaD(m, .Self, Session) With {.IsSavedPosts = True}))
+                                    End If
+                                    Progress.InformationTemporary = $"{Host.Name}{aStr} Images: { .DownloadedPictures(False)}; Videos: { .DownloadedVideos(False)}"
+                                    Host.AfterDownload(.Self, PDownload.SavedPosts)
                                 End With
-                                Host.BeforeStartDownload(user, PDownload.SavedPosts)
-                                user.DownloadData(Token)
-                                _TotalImages += user.DownloadedPictures(False)
-                                _TotalVideos += user.DownloadedVideos(False)
-                                Progress.InformationTemporary = $"{Host.Name}{aStr} Images: {user.DownloadedPictures(False)}; Videos: {user.DownloadedVideos(False)}"
-                                Host.AfterDownload(user, PDownload.SavedPosts)
                             End If
                         End Using
                     Else
@@ -72,6 +88,9 @@ Namespace API.Base
                     _NotReady += 1
                     Progress.InformationTemporary = $"Host [{Host.Name}{aStr}] is not ready"
                 End If
+            Catch oex As OperationCanceledException When Token.IsCancellationRequested
+                _ErrorCount += 1
+                Progress.InformationTemporary = $"{Host.Name}{aStr} downloading canceled"
             Catch ex As Exception
                 _ErrorCount += 1
                 Progress.InformationTemporary = $"{Host.Name}{aStr} downloading error"

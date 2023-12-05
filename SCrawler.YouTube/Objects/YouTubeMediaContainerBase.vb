@@ -496,6 +496,12 @@ Namespace API.YouTube.Objects
                 _IUserMedia_URL_BASE = u
             End Set
         End Property
+        Friend Function GetUrls() As IEnumerable(Of String)
+            Dim urls As New List(Of String)
+            urls.ListAddList({URL, IUserMedia_URL_BASE}, LAP.NotContainsOnly)
+            If HasElements And Not IsMusic Then urls.ListAddList(Elements.SelectMany(Function(elem As YouTubeMediaContainerBase) elem.GetUrls()), LAP.NotContainsOnly)
+            Return urls
+        End Function
         Protected Overridable Sub GenerateFileName()
         End Sub
         Protected Function GetPlayListTitle() As String
@@ -531,7 +537,7 @@ Namespace API.YouTube.Objects
             If ObjectType = YouTubeMediaType.Single AndAlso Not GetPlayListTitle.IsEmptyString Then _SpecialPath.StringAppend(GetPlayListTitle(), "\")
             If Elements.Count > 0 Then Elements.ForEach(Sub(e) e.SpecialFolder = Path)
         End Sub
-        <XMLEC> Friend ReadOnly Property Files As List(Of SFile) Implements IYouTubeMediaContainer.Files
+        <XMLEC> Protected Friend ReadOnly Property Files As List(Of SFile) Implements IYouTubeMediaContainer.Files
         <XMLEC> Protected _File As SFile
         <XMLEC> Protected Friend Property FileSetManually As Boolean = False
         Public Property FileIgnorePlaylist As Boolean = False
@@ -591,6 +597,11 @@ Namespace API.YouTube.Objects
                 File = f
             End Set
         End Property
+        Friend Function GetFiles() As IEnumerable(Of SFile)
+            Dim urls As New List(Of String)({File})
+            If HasElements And Not IsMusic Then urls.ListAddList(Elements.SelectMany(Function(elem As YouTubeMediaContainerBase) elem.GetFiles()), LAP.NotContainsOnly)
+            Return urls
+        End Function
 #End Region
 #Region "Command"
         <XMLEC> Public Property UseCookies As Boolean = MyYouTubeSettings.DefaultUseCookies Implements IYouTubeMediaContainer.UseCookies
@@ -725,7 +736,7 @@ Namespace API.YouTube.Objects
         End Sub
 #End Region
 #Region "Download"
-        Protected Shared Sub CreateUrlFile(ByVal URL As String, ByVal File As SFile)
+        Protected Shared Function CreateUrlFile(ByVal URL As String, ByVal File As SFile) As SFile
             Try
                 File.Extension = "url"
                 Using t As New TextSaver(File)
@@ -735,9 +746,11 @@ Namespace API.YouTube.Objects
                     t.AppendLine()
                     t.Save(EDP.None)
                 End Using
+                Return File
             Catch ex As Exception
+                Return Nothing
             End Try
-        End Sub
+        End Function
         Private ReadOnly DownloadProgressPattern As RParams = RParams.DMS("\[download\]\s*([\d\.,]+)", 1, EDP.ReturnValue)
         Public Property Progress As MyProgress Implements IYouTubeMediaContainer.Progress
         Private Property IDownloadableMedia_Progress As Object Implements IDownloadableMedia.Progress

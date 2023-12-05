@@ -239,7 +239,20 @@ CloseResume:
             Case Keys.F6 : BTT_DOWN_ALL_FULL_KeyClick(Nothing, New MyKeyEventArgs(e))
             Case Else : b = NumGroup(e)
         End Select
-        If Not b And e.Control And e.KeyCode = Keys.F Then MySearch.FormShow() : b = True
+
+        If Not b Then
+            b = True
+            If e.Control And e.KeyCode = Keys.F Then
+                MySearch.FormShow()
+            ElseIf e.Alt And e.KeyCode = Keys.A Then
+                BTT_DOWN_AUTOMATION.PerformClick()
+            ElseIf e.Alt And e.KeyCode = Keys.P Then
+                BTT_PR_INFO.PerformClick()
+            Else
+                b = False
+            End If
+        End If
+
         If b Then e.Handled = True
     End Sub
     Private Function NumGroup(ByVal e As KeyEventArgs) As Boolean
@@ -472,7 +485,11 @@ CloseResume:
     End Sub
 #End Region
     Private Sub ShowFeed() Handles BTT_FEED.Click, BTT_TRAY_FEED_SHOW.Click
-        If MyFeed Is Nothing Then MyFeed = New DownloadFeedForm : AddHandler Downloader.FeedFilesChanged, AddressOf MyFeed.Downloader_FilesChanged
+        If MyFeed Is Nothing Then
+            MyFeed = New DownloadFeedForm
+            AddHandler Downloader.FeedFilesChanged, AddressOf MyFeed.Downloader_FilesChanged
+            If Not MySavedPosts Is Nothing Then AddHandler MySavedPosts.FeedFilesChanged, AddressOf MyFeed.Downloader_FilesChanged
+        End If
         If MyFeed.Visible Then MyFeed.BringToFront() Else MyFeed.Show()
     End Sub
     Private Sub BTT_CHANNELS_Click(sender As Object, e As EventArgs) Handles BTT_CHANNELS.Click, BTT_TRAY_CHANNELS.Click
@@ -487,6 +504,7 @@ CloseResume:
         If MySavedPosts Is Nothing Then
             MySavedPosts = New DownloadSavedPostsForm
             AddHandler MySavedPosts.DownloadDone, AddressOf MainFrameObj.ShowNotification
+            If Not MyFeed Is Nothing Then AddHandler MySavedPosts.FeedFilesChanged, AddressOf MyFeed.Downloader_FilesChanged
         End If
         With MySavedPosts
             If .Visible Then .BringToFront() Else .Show()
@@ -910,7 +928,7 @@ CloseResume:
 #Region "2 - user parameters"
     Private Sub BTT_CONTEXT_FAV_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_FAV.Click
         Dim users As List(Of IUserData) = GetSelectedUserArray()
-        If AskForMassReplace(users, "Favorite") Then users.ForEach(Sub(u)
+        If AskForMassReplace(users, "Favorite") Then users.ForEach(Sub(ByVal u As IUserData)
                                                                        u.Favorite = Not u.Favorite
                                                                        u.UpdateUserInformation()
                                                                        UserListUpdate(u, False)
@@ -918,7 +936,7 @@ CloseResume:
     End Sub
     Private Sub BTT_CONTEXT_TEMP_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_TEMP.Click
         Dim users As List(Of IUserData) = GetSelectedUserArray()
-        If AskForMassReplace(users, "Temporary") Then users.ForEach(Sub(u)
+        If AskForMassReplace(users, "Temporary") Then users.ForEach(Sub(ByVal u As IUserData)
                                                                         u.Temporary = Not u.Temporary
                                                                         u.UpdateUserInformation()
                                                                         UserListUpdate(u, False)
@@ -928,7 +946,7 @@ CloseResume:
         Dim users As List(Of IUserData) = GetSelectedUserArray()
         If AskForMassReplace(users, "Ready for download") Then
             Dim r As Boolean = MsgBoxE({"What state do you want to set for selected users", "Select ready state"}, vbQuestion,,, {"Not Ready", "Ready"}).Index
-            users.ForEach(Sub(u)
+            users.ForEach(Sub(ByVal u As IUserData)
                               u.ReadyForDownload = r
                               u.UpdateUserInformation()
                           End Sub)
@@ -1549,7 +1567,7 @@ CloseResume:
     Friend Function GetUserListProvider(ByVal WithCollections As Boolean) As IFormatProvider
         If WithCollections Then
             If OperationsUserListProviderCollections Is Nothing Then _
-               OperationsUserListProviderCollections = New CustomProvider(Function(v, d, p, n, ee)
+               OperationsUserListProviderCollections = New CustomProvider(Function(ByVal v As Object) As Object
                                                                               Dim OutStr$
                                                                               With DirectCast(v, IUserData)
                                                                                   If .IsCollection Then
@@ -1563,7 +1581,7 @@ CloseResume:
             Return OperationsUserListProviderCollections
         Else
             If OperationsUserListProvider Is Nothing Then _
-               OperationsUserListProvider = New CustomProvider(Function(v, d, p, n, ee) $"[{DirectCast(v, IUserData).Site}] {DirectCast(v, IUserData).Name}")
+               OperationsUserListProvider = New CustomProvider(Function(v) $"[{DirectCast(v, IUserData).Site}] {DirectCast(v, IUserData).Name}")
             Return OperationsUserListProvider
         End If
     End Function

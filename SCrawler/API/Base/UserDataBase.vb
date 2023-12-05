@@ -202,7 +202,7 @@ Namespace API.Base
             End Get
             Set(ByVal h As SettingsHost)
                 _HOST = h
-                _HostKey = h.Key
+                If Not h Is Nothing Then _HostKey = h.Key
             End Set
         End Property
         Private Sub ResetHost()
@@ -1079,6 +1079,7 @@ BlockNullPicture:
             End Try
         End Sub
         Friend Overridable Sub OpenFolder() Implements IUserData.OpenFolder
+            If MyFile.IsEmptyString And IsSavedPosts Then UpdateDataFiles()
             GlobalOpenPath(MyFile.CutPath)
         End Sub
 #End Region

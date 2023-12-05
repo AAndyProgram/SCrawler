@@ -145,7 +145,7 @@ Namespace DownloadObjects.STDownloader
                             For Each url In urls
                                 If Not TryYouTube.Invoke Then
                                     media = FindSource(url, output)
-                                    If Not media Is Nothing Then media.AccountName = acc : ControlCreateAndAdd(media, disableDown)
+                                    If Not media Is Nothing AndAlso ValidateContainerURL(media) Then media.AccountName = acc : ControlCreateAndAdd(media, disableDown)
                                 End If
                             Next
                             urls.Clear()
@@ -175,7 +175,7 @@ Namespace DownloadObjects.STDownloader
                         End If
                         If media Is Nothing Then
                             MsgBoxE({$"The URL you entered is not recognized by existing plugins.{vbCr}{url}", "Download video"}, vbCritical)
-                        Else
+                        ElseIf ValidateContainerURL(media) Then
                             media.AccountName = acc
                             output.Exists(SFO.Path, True)
                             ControlCreateAndAdd(media, disableDown)

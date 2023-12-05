@@ -34,12 +34,14 @@ Namespace DownloadObjects
             Private Const Name_Date As String = "Date"
             Private Const Name_Session As String = "Session"
             Private Const Name_File As String = "File"
+            Private Const Name_IsSavedPosts As String = "IsSavedPosts"
 #End Region
             Friend ReadOnly User As IUserData
             Friend ReadOnly Data As UserMedia
             Friend ReadOnly UserInfo As UserInfo
             Friend ReadOnly [Date] As Date
             Friend ReadOnly Session As Integer
+            Friend IsSavedPosts As Boolean
             Friend Sub New(ByVal Data As UserMedia, ByVal User As IUserData, ByVal Session As Integer)
                 Me.Data = Data
                 Me.User = User
@@ -54,10 +56,22 @@ Namespace DownloadObjects
             Private Sub New(ByVal e As EContainer)
                 If Not e Is Nothing Then
                     If e.Contains(Name_User) Then
+                        IsSavedPosts = e.Value(Name_IsSavedPosts).FromXML(Of Boolean)(False)
                         Dim u As UserInfo = e(Name_User)
                         If Not u.Name.IsEmptyString And Not u.Site.IsEmptyString Then
-                            User = Settings.GetUser(u)
-                            If Not User Is Nothing Then UserInfo = DirectCast(User, UserDataBase).User
+                            If Not IsSavedPosts Then
+                                User = Settings.GetUser(u)
+                                If Not User Is Nothing Then UserInfo = DirectCast(User, UserDataBase).User Else UserInfo = u
+                            ElseIf Not u.Plugin.IsEmptyString Then
+                                UserInfo = u
+                                User = Settings(u.Plugin).Default.GetInstance(Download.SavedPosts, u, False, False)
+                                If Not User Is Nothing Then
+                                    With DirectCast(User, UserDataBase)
+                                        .HostStatic = True
+                                        .IsSavedPosts = True
+                                    End With
+                                End If
+                            End If
                         End If
                     End If
                     Data = New UserMedia(e(Name_Media), User)
@@ -90,8 +104,9 @@ Namespace DownloadObjects
                                         Data.ToEContainer,
                                         New EContainer(Name_Date, AConvert(Of String)([Date], DateTimeDefaultProvider, String.Empty)),
                                         New EContainer(Name_Session, Session),
-                                        New EContainer(Name_File, Data.File)},
-                                    If(Not User Is Nothing, DirectCast(User, UserDataBase).User.ToEContainer, Nothing), LAP.IgnoreICopier)
+                                        New EContainer(Name_File, Data.File),
+                                        New EContainer(Name_IsSavedPosts, IsSavedPosts.BoolToInteger)},
+                                    If(IsSavedPosts, UserInfo.ToEContainer, If(Not User Is Nothing, DirectCast(User, UserDataBase).User.ToEContainer, Nothing)), LAP.IgnoreICopier)
             End Function
         End Structure
         Friend ReadOnly Property Files As List(Of UserMediaD)
@@ -415,6 +430,28 @@ Namespace DownloadObjects
 #Region "Thread"
         Private CheckerThread As Thread
         Private MissingPostsDetected As Boolean = False
+        Private _SessionSavedPosts As Integer = -1
+        Friend Property SessionSavedPosts As Integer
+            Get
+                If Not Working Then
+                    Session += 1
+                    Return Session
+                ElseIf _SessionSavedPosts >= 0 Then
+                    _SessionSavedPosts += 1
+                    Return _SessionSavedPosts
+                Else
+                    _SessionSavedPosts = Session + 1
+                    Return _SessionSavedPosts
+                End If
+            End Get
+            Set(ByVal NewSessionValue As Integer)
+                If Not Working Then
+                    Session = NewSessionValue
+                Else
+                    _SessionSavedPosts = NewSessionValue
+                End If
+            End Set
+        End Property
         Private Session As Integer = 0
         Private Sub [Start]()
             If Not AutoDownloaderWorking AndAlso MyProgressForm.ReadyToOpen AndAlso Pool.LongCount(Function(p) p.Count > 0) > 1 Then MyProgressForm.Show() : MainFrameObj.Focus()
@@ -462,6 +499,7 @@ Namespace DownloadObjects
                 RaiseEvent Downloading(False)
                 FilesUpdatePendingUsers()
                 If FilesChanged Then FilesSave() : RaiseEvent FeedFilesChanged(True)
+                If _SessionSavedPosts <> -1 Then Session = _SessionSavedPosts : _SessionSavedPosts = -1
             End Try
         End Sub
         Private Sub StartDownloading(ByRef _Job As Job)

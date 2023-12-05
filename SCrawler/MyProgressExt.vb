@@ -8,7 +8,7 @@
 ' but WITHOUT ANY WARRANTY
 Imports PersonalUtilities.Forms.Toolbars
 Friend Class PreProgress : Implements IDisposable
-    Private ReadOnly Progress As MyProgressExt = Nothing
+    Friend ReadOnly Progress As MyProgressExt = Nothing
     Private ReadOnly ProgressExists As Boolean = False
     Private ReadOnly Property Ready As Boolean
         Get

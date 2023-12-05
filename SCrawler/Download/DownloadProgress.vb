@@ -7,6 +7,7 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports PersonalUtilities.Forms.Toolbars
+Imports PersonalUtilities.Forms.Controls.KeyClick
 Imports Download = SCrawler.Plugin.ISiteSettings.Download
 Imports TDJob = SCrawler.DownloadObjects.TDownloader.Job
 Namespace DownloadObjects
@@ -14,6 +15,7 @@ Namespace DownloadObjects
 #Region "Events"
         Friend Event DownloadDone As NotificationEventHandler
         Friend Event ProgressChanged(ByVal Main As Boolean, ByVal IsMaxValue As Boolean, ByVal IsDone As Boolean)
+        Friend Event FeedFilesChanged As TDownloader.FeedFilesChangedEventHandler
 #End Region
 #Region "Declarations"
 #Region "Controls"
@@ -26,14 +28,18 @@ Namespace DownloadObjects
         Private ReadOnly PR_PRE As ProgressBar
         Private ReadOnly LBL_INFO As Label
         Private ReadOnly Icon As PictureBox
+        Private ReadOnly TT_MAIN As ToolTip
 #End Region
         Private ReadOnly Property Instance As API.Base.ProfileSaved
         Friend ReadOnly Property Job As TDJob
+        Private ReadOnly InternalArgs As KeyClickEventArgs
 #End Region
 #Region "Initializer"
         Friend Sub New(ByVal _Job As TDJob)
             Job = _Job
+            InternalArgs = New KeyClickEventArgs
 
+            TT_MAIN = New ToolTip
             TP_MAIN = New TableLayoutPanel With {.Margin = New Padding(0), .Dock = DockStyle.Fill}
             TP_MAIN.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 100))
             TP_MAIN.ColumnCount = 1
@@ -86,6 +92,7 @@ Namespace DownloadObjects
                 LBL_INFO.Padding = New Padding(3, 0, 3, 0)
                 LBL_INFO.TextAlign = ContentAlignment.TopCenter
                 CreateButton(BTT_START, My.Resources.StartPic_Green_16)
+                TT_MAIN.SetToolTip(BTT_START, "Ctrl+Click: download, exclude from feed.")
                 CreateButton(BTT_OPEN, PersonalUtilities.My.Resources.FolderOpenPic_Black_16)
                 With TP_CONTROLS
                     With .ColumnStyles
@@ -148,7 +155,8 @@ Namespace DownloadObjects
         End Function
 #Region "Buttons"
         Private Sub BTT_START_Click(sender As Object, e As EventArgs) Handles BTT_START.Click
-            Start()
+            InternalArgs.Reset()
+            Start(, Downloader.SessionSavedPosts, Not InternalArgs.Control)
         End Sub
         Private Sub BTT_STOP_Click(sender As Object, e As EventArgs) Handles BTT_STOP.Click
             [Stop]()
@@ -159,8 +167,13 @@ Namespace DownloadObjects
 #End Region
 #Region "Start, Stop"
         Private _IsMultiple As Boolean = False
-        Friend Sub Start(Optional ByVal Multiple As Boolean = False)
+        Private _Session As Integer = 0
+        Private _IncludeInTheFeed As Boolean = True
+        Friend Sub Start(Optional ByVal Multiple As Boolean = False, Optional ByVal Session As Integer = -1,
+                         Optional ByVal IncludeInTheFeed As Boolean = True)
             _IsMultiple = Multiple
+            _Session = Session
+            _IncludeInTheFeed = IncludeInTheFeed
             Job.StartThread(AddressOf DownloadData)
         End Sub
         Friend Sub [Stop]()
@@ -175,7 +188,10 @@ Namespace DownloadObjects
                 btte.Invoke(BTT_STOP, True)
                 Job.Progress.InformationTemporary = $"{Job.HostCollection.Name} downloading started"
                 Job.Start()
+                Instance.Session = _Session
+                Instance.IncludeInTheFeed = _IncludeInTheFeed
                 Instance.Download(Job.Token, _IsMultiple)
+                If _IncludeInTheFeed And Instance.FeedDataExists Then RaiseEvent FeedFilesChanged(True)
                 RaiseEvent DownloadDone(SettingsCLS.NotificationObjects.SavedPosts, $"Downloading saved {Job.HostCollection.Name} posts is completed")
             Catch ex As Exception
                 Job.Progress.InformationTemporary = $"{Job.HostCollection.Name} downloading error"
@@ -220,6 +236,7 @@ Namespace DownloadObjects
                     If Not Icon Is Nothing Then Icon.Dispose()
                     PR_MAIN.DisposeIfReady()
                     LBL_INFO.DisposeIfReady()
+                    If Not TT_MAIN Is Nothing Then TT_MAIN.Dispose()
                     If Not TP_CONTROLS Is Nothing Then
                         TP_CONTROLS.Controls.Clear()
                         TP_CONTROLS.Dispose()

@@ -24,7 +24,6 @@ Partial Friend Class DownloadSavedPostsForm : Inherits System.Windows.Forms.Form
         Me.components = New System.ComponentModel.Container()
         Dim TP_BUTTONS As System.Windows.Forms.TableLayoutPanel
         Dim TT_MAIN As System.Windows.Forms.ToolTip
-        Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(DownloadSavedPostsForm))
         Me.BTT_DOWN_ALL = New System.Windows.Forms.Button()
         Me.BTT_STOP_ALL = New System.Windows.Forms.Button()
         Me.TP_MAIN = New System.Windows.Forms.TableLayoutPanel()
@@ -59,6 +58,7 @@ Partial Friend Class DownloadSavedPostsForm : Inherits System.Windows.Forms.Form
         Me.BTT_DOWN_ALL.Size = New System.Drawing.Size(234, 31)
         Me.BTT_DOWN_ALL.TabIndex = 0
         Me.BTT_DOWN_ALL.Text = "Download ALL"
+        TT_MAIN.SetToolTip(Me.BTT_DOWN_ALL, "Ctrl+Click: download, exclude from feed.")
         Me.BTT_DOWN_ALL.UseVisualStyleBackColor = True
         '
         'BTT_STOP_ALL
@@ -92,7 +92,7 @@ Partial Friend Class DownloadSavedPostsForm : Inherits System.Windows.Forms.Form
         Me.ClientSize = New System.Drawing.Size(484, 41)
         Me.Controls.Add(Me.TP_MAIN)
         Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle
-        Me.Icon = Global.SCrawler.My.Resources.BookmarkIcon_32
+        Me.Icon = Global.SCrawler.My.Resources.Resources.BookmarkIcon_32
         Me.MaximizeBox = False
         Me.MaximumSize = New System.Drawing.Size(500, 80)
         Me.MinimumSize = New System.Drawing.Size(500, 80)

@@ -15,18 +15,29 @@ Namespace API.YouTube
         Friend Property DownloadShorts As Boolean
         <PSetting(Caption:="Download playlists")>
         Friend Property DownloadPlaylists As Boolean
+        <PSetting(Caption:="Download community images")>
+        Friend Property DownloadCommunityImages As Boolean
+        <PSetting(Caption:="Download community videos")>
+        Friend Property DownloadCommunityVideos As Boolean
         <PSetting(Caption:="Use cookies", ToolTip:="Use cookies when downloading data.")>
         Friend Property UseCookies As Boolean
+        <PSetting(Caption:="Channel ID", Address:=SettingAddress.User)>
+        Friend Property ChannelID As String
         Friend Sub New(ByVal u As UserData)
             DownloadVideos = u.DownloadYTVideos
             DownloadShorts = u.DownloadYTShorts
             DownloadPlaylists = u.DownloadYTPlaylists
+            DownloadCommunityImages = u.DownloadYTCommunityImages
+            DownloadCommunityVideos = u.DownloadYTCommunityVideos
             UseCookies = u.YTUseCookies
+            ChannelID = u.ChannelID
         End Sub
         Friend Sub New(ByVal s As SiteSettings)
             DownloadVideos = s.DownloadVideos.Value
             DownloadShorts = s.DownloadShorts.Value
             DownloadPlaylists = s.DownloadPlaylists.Value
+            DownloadCommunityImages = s.DownloadCommunityImages.Value
+            DownloadCommunityVideos = s.DownloadCommunityVideos.Value
             UseCookies = s.UseCookies.Value
         End Sub
     End Class

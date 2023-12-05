@@ -300,6 +300,11 @@ Namespace DownloadObjects
                     Throw New ArgumentNullException With {.HelpLink = 1}
                 End If
 
+                If Media.IsSavedPosts Then
+                    BTT_CONTEXT_OPEN_USER_URL.Visible = False
+                    BTT_CONTEXT_FIND_USER.Visible = False
+                End If
+
                 If Settings.Feeds.FavoriteExists AndAlso Settings.Feeds.Favorite.Contains(Media) Then BTT_FEED_ADD_FAV.ControlChangeColor(True, False)
                 If Settings.FeedShowSpecialFeedsMediaItem Then
                     With Settings.Feeds
@@ -392,14 +397,31 @@ Namespace DownloadObjects
         End Sub
         Private Sub BTT_CONTEXT_OPEN_USER_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_OPEN_USER.Click
             If Not UserKey.IsEmptyString Then
-                Dim u As IUserData = Settings.GetUser(UserKey)
-                If Not u Is Nothing Then u.OpenFolder()
+                Dim u As IUserData = Nothing
+                If Not Media.IsSavedPosts Then
+                    u = Settings.GetUser(UserKey)
+                Else
+                    If Not Media.UserInfo.Plugin.IsEmptyString Then
+                        Dim host As Plugin.Hosts.SettingsHost = Settings(Media.UserInfo.Plugin, Media.UserInfo.AccountName)
+                        If Not host Is Nothing Then
+                            u = host.GetInstance(Plugin.ISiteSettings.Download.SavedPosts, Media.UserInfo, False, False)
+                            With DirectCast(u, UserDataBase)
+                                .IsSavedPosts = True
+                                .HostStatic = True
+                            End With
+                        End If
+                    End If
+                End If
+                If Not u Is Nothing Then
+                    u.OpenFolder()
+                    If Media.IsSavedPosts Then u.Dispose()
+                End If
             End If
         End Sub
 #End Region
 #Region "Open URL"
         Private Sub BTT_CONTEXT_OPEN_USER_URL_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_OPEN_USER_URL.Click
-            If Not UserKey.IsEmptyString Then
+            If Not UserKey.IsEmptyString And Not Media.IsSavedPosts Then
                 Dim u As IUserData = Settings.GetUser(UserKey)
                 If Not u Is Nothing Then u.OpenSite()
             End If
@@ -411,8 +433,26 @@ Namespace DownloadObjects
                     url = Post.URL_BASE
                 Else
                     If Not UserKey.IsEmptyString And Not Post.Post.ID.IsEmptyString Then
-                        Dim u As IUserData = Settings.GetUser(UserKey)
-                        If Not u Is Nothing Then url = UserDataBase.GetPostUrl(u, Post)
+                        Dim u As IUserData
+                        If Media.IsSavedPosts Then
+                            If Not Media.UserInfo.Plugin.IsEmptyString Then
+                                Dim host As Plugin.Hosts.SettingsHostCollection = Settings(Media.UserInfo.Plugin)
+                                If Not host Is Nothing Then
+                                    u = host.Default.GetInstance(Plugin.ISiteSettings.Download.SavedPosts, Media.UserInfo, False, False)
+                                    If Not u Is Nothing AndAlso Not u.HOST Is Nothing Then
+                                        With DirectCast(u, UserDataBase)
+                                            .IsSavedPosts = True
+                                            .HostStatic = True
+                                        End With
+                                        Try : url = u.HOST.Source.GetUserPostUrl(u, Post) : Catch : End Try
+                                        u.Dispose()
+                                    End If
+                                End If
+                            End If
+                        Else
+                            u = Settings.GetUser(UserKey)
+                            If Not u Is Nothing Then url = UserDataBase.GetPostUrl(u, Post)
+                        End If
                     End If
                 End If
                 If Not url.IsEmptyString Then

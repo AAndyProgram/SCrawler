@@ -120,7 +120,10 @@ Namespace Plugin.Hosts
             Instance.DownloadSingleObject(If(ExternalSource, Me), Token)
             ExchangeData(ExternalSource, Me)
             Dim __url$ = DirectCast(Me, IDownloadableMedia).URL_BASE.IfNullOrEmpty(URL)
-            If File.Exists And Not __url.IsEmptyString And MyDownloaderSettings.CreateUrlFiles Then CreateUrlFile(__url, File)
+            If File.Exists And Not __url.IsEmptyString And MyDownloaderSettings.CreateUrlFiles Then
+                Dim urlFile As SFile = CreateUrlFile(__url, File)
+                If urlFile.Exists Then Files.Add(urlFile)
+            End If
             If Not ExternalSource Is Nothing Then
                 With ExternalSource : _HasError = .HasError : _Exists = .Exists : End With
             End If
