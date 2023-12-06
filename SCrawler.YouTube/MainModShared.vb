@@ -6,6 +6,7 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
+Imports System.Threading
 Imports PersonalUtilities.Tools
 Imports PersonalUtilities.Tools.Web
 Imports PersonalUtilities.Functions.Messaging
@@ -38,6 +39,23 @@ Public Module MainModShared
             End If
         End Try
     End Sub
+    Public Sub CheckNewReleaseFolder()
+        Try
+            Const NewReleaseFolderName$ = "__NewRelease"
+            Const updaterFolderName$ = "Updater\"
+            Dim f As SFile = NewReleaseFolderName.CSFileP
+            If f.Exists(SFO.Path, False) Then
+                Dim updater As SFile = updaterFolderName
+                Dim updaterNR As SFile = f.PathWithSeparator & updaterFolderName
+                If updaterNR.Exists(SFO.Path, False) Then
+                    If updater.Exists(SFO.Path, False) Then updater.Delete(SFO.Path, SFODelete.DeletePermanently, EDP.ReturnValue)
+                    SFile.Move(updaterNR, updater, SFO.Path, True, SFODelete.DeletePermanently, EDP.ReturnValue)
+                End If
+                f.Delete(SFO.Path, SFODelete.DeletePermanently, EDP.None)
+            End If
+        Catch ex As Exception
+        End Try
+    End Sub
     Public Sub ShowProgramInfo(ByVal ProgramText As String, ByVal CurrentVersion As Version, ByVal CheckForUpdate As Boolean, ByVal Force As Boolean,
                                ByVal EnvirData As IDownloaderSettings, ByVal IsYouTube As Boolean,
                                Optional ByRef NewVersionDestination As String = Nothing, Optional ByVal ShowNewVersionNotification As Boolean = True,
@@ -46,11 +64,30 @@ Public Module MainModShared
             Dim GoToSite As New MsgBoxButton("Go to site") With {.CallBack = Sub(r, n, b) Process.Start("https://github.com/AAndyProgram/SCrawler/releases/latest")}
             If CheckForUpdate AndAlso GitHub.NewVersionExists(CurrentVersion, "AAndyProgram", "SCrawler", NewVersionDestination) Then
                 If ShowNewVersionNotification Or Force Then
-                    If MsgBoxE(New MMessage($"{ProgramText}: new version detected" & vbCr &
-                                            $"Current version: {CurrentVersion}" & vbCr &
-                                            $"New version: {NewVersionDestination}",
-                                            "New version",
-                                            {"OK", GoToSite, "Disable notifications"})) = 2 Then ShowNewVersionNotification = False
+                    Dim b As New List(Of MsgBoxButton)
+                    Dim updaterFile As SFile = Nothing
+                    Dim updateBtt As New MsgBoxButton("Update", "Update the program using the updater") With {
+                        .CallBack = Sub(r, n, btt)
+                                        Dim th As New Thread(Sub() Process.Start(New ProcessStartInfo(updaterFile, 1))) With {.IsBackground = True}
+                                        th.SetApartmentState(ApartmentState.MTA)
+                                        th.Start()
+                                    End Sub}
+                    With SFile.GetFiles("Updater\", "*.exe",, EDP.ReturnValue).ListIfNothing
+                        If .ListExists Then
+                            With .FirstOrDefault(Function(f) f.Name = "Updater")
+                                If Not .IsEmptyString Then updaterFile = .Self
+                            End With
+                        End If
+                    End With
+                    b.AddRange({"OK", GoToSite})
+                    If Not updaterFile.IsEmptyString Then b.Add(updateBtt)
+                    b.Add(New MsgBoxButton("Disable notifications") With {.CallBackObject = 10})
+                    If AConvert(Of Integer)(
+                                MsgBoxE(New MMessage($"{ProgramText}: new version detected" & vbCr &
+                                                     $"Current version: {CurrentVersion}" & vbCr &
+                                                     $"New version: {NewVersionDestination}",
+                                                     "New version", b) With {.ButtonsPerRow = 4}).Button.CallBackObject, -1) = 10 Then _
+                       ShowNewVersionNotification = False
                 End If
             Else
                 If Force Then

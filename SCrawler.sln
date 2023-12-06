@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 16.0.31515.178
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "SCrawler", "SCrawler\SCrawler.vbproj", "{4A016FAD-9F07-4957-8BB2-AE86C88BA342}"
+	ProjectSection(ProjectDependencies) = postProject
+		{71263EEE-E25F-44DD-B0A9-F09047C0BEEA} = {71263EEE-E25F-44DD-B0A9-F09047C0BEEA}
+	EndProjectSection
 EndProject
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "PersonalUtilities", "..\..\MyUtilities\PersonalUtilities\PersonalUtilities.vbproj", "{8405896B-2685-4916-BC93-1FB514C323A9}"
 EndProject
@@ -21,6 +24,8 @@ EndProject
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "SCrawler.YouTube", "SCrawler.YouTube\SCrawler.YouTube.vbproj", "{7C764707-7FD1-469C-A365-94605C193607}"
 EndProject
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "SCrawler.YouTubeDownloader", "SCrawler.YouTubeDownloader\SCrawler.YouTubeDownloader.vbproj", "{3F2F2C29-4ADB-48B5-A66E-EE0F51D0DCEF}"
+EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "SCrawler.Updater", "SCrawler.Updater\SCrawler.Updater.vbproj", "{71263EEE-E25F-44DD-B0A9-F09047C0BEEA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -104,6 +109,18 @@ Global
 		{3F2F2C29-4ADB-48B5-A66E-EE0F51D0DCEF}.Release|x64.Build.0 = Release|x64
 		{3F2F2C29-4ADB-48B5-A66E-EE0F51D0DCEF}.Release|x86.ActiveCfg = Release|x86
 		{3F2F2C29-4ADB-48B5-A66E-EE0F51D0DCEF}.Release|x86.Build.0 = Release|x86
+		{71263EEE-E25F-44DD-B0A9-F09047C0BEEA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{71263EEE-E25F-44DD-B0A9-F09047C0BEEA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{71263EEE-E25F-44DD-B0A9-F09047C0BEEA}.Debug|x64.ActiveCfg = Debug|x64
+		{71263EEE-E25F-44DD-B0A9-F09047C0BEEA}.Debug|x64.Build.0 = Debug|x64
+		{71263EEE-E25F-44DD-B0A9-F09047C0BEEA}.Debug|x86.ActiveCfg = Debug|x86
+		{71263EEE-E25F-44DD-B0A9-F09047C0BEEA}.Debug|x86.Build.0 = Debug|x86
+		{71263EEE-E25F-44DD-B0A9-F09047C0BEEA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{71263EEE-E25F-44DD-B0A9-F09047C0BEEA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{71263EEE-E25F-44DD-B0A9-F09047C0BEEA}.Release|x64.ActiveCfg = Release|x64
+		{71263EEE-E25F-44DD-B0A9-F09047C0BEEA}.Release|x64.Build.0 = Release|x64
+		{71263EEE-E25F-44DD-B0A9-F09047C0BEEA}.Release|x86.ActiveCfg = Release|x86
+		{71263EEE-E25F-44DD-B0A9-F09047C0BEEA}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

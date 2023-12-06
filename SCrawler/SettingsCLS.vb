@@ -136,6 +136,8 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
     Private ReadOnly BlackListFile As SFile = $"{SettingsFolderName}\BlackList.txt"
     Private ReadOnly UsersSettingsFile As SFile = $"{SettingsFolderName}\Users.xml"
     Friend Sub New()
+        CheckNewReleaseFolder()
+
         Cache = CacheKeeper.Default
         Cache.DisposeSuspended = True
 
