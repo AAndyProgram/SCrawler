@@ -27,6 +27,8 @@ Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "SCrawler.YouTubeDownloader"
 EndProject
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "SCrawler.Updater", "SCrawler.Updater\SCrawler.Updater.vbproj", "{71263EEE-E25F-44DD-B0A9-F09047C0BEEA}"
 EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "SCrawler.Shared", "SCrawler.Shared\SCrawler.Shared.vbproj", "{DC634700-24C7-42DD-BF8F-87E6CC54E625}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -121,6 +123,18 @@ Global
 		{71263EEE-E25F-44DD-B0A9-F09047C0BEEA}.Release|x64.Build.0 = Release|x64
 		{71263EEE-E25F-44DD-B0A9-F09047C0BEEA}.Release|x86.ActiveCfg = Release|x86
 		{71263EEE-E25F-44DD-B0A9-F09047C0BEEA}.Release|x86.Build.0 = Release|x86
+		{DC634700-24C7-42DD-BF8F-87E6CC54E625}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DC634700-24C7-42DD-BF8F-87E6CC54E625}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DC634700-24C7-42DD-BF8F-87E6CC54E625}.Debug|x64.ActiveCfg = Debug|x64
+		{DC634700-24C7-42DD-BF8F-87E6CC54E625}.Debug|x64.Build.0 = Debug|x64
+		{DC634700-24C7-42DD-BF8F-87E6CC54E625}.Debug|x86.ActiveCfg = Debug|x86
+		{DC634700-24C7-42DD-BF8F-87E6CC54E625}.Debug|x86.Build.0 = Debug|x86
+		{DC634700-24C7-42DD-BF8F-87E6CC54E625}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DC634700-24C7-42DD-BF8F-87E6CC54E625}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DC634700-24C7-42DD-BF8F-87E6CC54E625}.Release|x64.ActiveCfg = Release|x64
+		{DC634700-24C7-42DD-BF8F-87E6CC54E625}.Release|x64.Build.0 = Release|x64
+		{DC634700-24C7-42DD-BF8F-87E6CC54E625}.Release|x86.ActiveCfg = Release|x86
+		{DC634700-24C7-42DD-BF8F-87E6CC54E625}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -41,9 +41,8 @@ Public Module MainModShared
     End Sub
     Public Sub CheckNewReleaseFolder()
         Try
-            Const NewReleaseFolderName$ = "__NewRelease"
             Const updaterFolderName$ = "Updater\"
-            Dim f As SFile = NewReleaseFolderName.CSFileP
+            Dim f As SFile = SCrawler.Shared.NewReleaseFolderName.CSFileP
             If f.Exists(SFO.Path, False) Then
                 Dim updater As SFile = updaterFolderName
                 Dim updaterNR As SFile = f.PathWithSeparator & updaterFolderName
@@ -58,7 +57,7 @@ Public Module MainModShared
     End Sub
     Public Sub ShowProgramInfo(ByVal ProgramText As String, ByVal CurrentVersion As Version, ByVal CheckForUpdate As Boolean, ByVal Force As Boolean,
                                ByVal EnvirData As IDownloaderSettings, ByVal IsYouTube As Boolean,
-                               Optional ByRef NewVersionDestination As String = Nothing, Optional ByVal ShowNewVersionNotification As Boolean = True,
+                               Optional ByRef NewVersionDestination As String = Nothing, Optional ByRef ShowNewVersionNotification As Boolean = True,
                                Optional ByVal AdditText As String = Nothing)
         Try
             Dim GoToSite As New MsgBoxButton("Go to site") With {.CallBack = Sub(r, n, b) Process.Start("https://github.com/AAndyProgram/SCrawler/releases/latest")}

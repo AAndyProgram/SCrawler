@@ -151,7 +151,9 @@ Friend Module MainMod
     Friend Sub CheckVersion(ByVal Force As Boolean)
         With Settings
             If .CheckUpdatesAtStart Or Force Then
-                ShowProgramInfo(.ProgramText.Value.IfNullOrEmpty("SCrawler"), My.Application.Info.Version, True, Force, .Self, False,
+                ShowProgramInfo(.ProgramText.Value.IfNullOrEmpty("SCrawler"),
+                                SCrawler.Shared.GetCurrentMaxVer(Application.StartupPath.CSFileP).IfNullOrEmpty(My.Application.Info.Version),
+                                True, Force, .Self, False,
                                 .LatestVersion.Value, .ShowNewVersionNotification.Value, .ProgramDescription)
             End If
         End With

@@ -12,8 +12,8 @@ Imports PersonalUtilities.Functions
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Tools.Web.Clients
 Imports PersonalUtilities.Tools.Web.Documents.JSON
+Imports SCrawler.Shared
 Public Module MainMod
-    Private Const NewReleaseFolderName As String = "__NewRelease"
     Private MyProcessID As Integer = -1
     Private MyWorkingPath As SFile = Nothing
     Private ReadOnly ProcessNames As String() = {"SCrawler", "YouTubeDownloader", "Updater"}
@@ -222,25 +222,6 @@ Public Module MainMod
                     End Using
                 End If
             End Using
-        Catch
-        End Try
-        Return Nothing
-    End Function
-    Private Function GetCurrentMaxVer(ByVal Path As SFile) As Version
-        Try
-            If Path.Exists(SFO.Path, False) Then
-                Dim versions As New List(Of Version)
-                Dim v As FileVersionInfo
-                With SFile.GetFiles(Path, "*.exe",, EDP.ReturnValue).ListIfNothing.Where(Function(f) f.Name = "SCrawler" Or f.Name = "YouTubeDownloader")
-                    If .ListExists Then
-                        For Each f As SFile In .Self
-                            v = FileVersionInfo.GetVersionInfo(f)
-                            versions.Add(New Version(v.ProductVersion))
-                        Next
-                    End If
-                End With
-                If versions.Count > 0 Then Return versions.LastOrDefault
-            End If
         Catch
         End Try
         Return Nothing

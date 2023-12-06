@@ -636,6 +636,10 @@
       <Project>{d4650f6b-5a54-44b6-999b-6c675b7116b1}</Project>
       <Name>SCrawler.PluginProvider</Name>
     </ProjectReference>
+    <ProjectReference Include="..\SCrawler.Shared\SCrawler.Shared.vbproj">
+      <Project>{dc634700-24c7-42dd-bf8f-87e6cc54e625}</Project>
+      <Name>SCrawler.Shared</Name>
+    </ProjectReference>
     <ProjectReference Include="..\SCrawler.YouTube\SCrawler.YouTube.vbproj">
       <Project>{7c764707-7fd1-469c-a365-94605c193607}</Project>
       <Name>SCrawler.YouTube</Name>

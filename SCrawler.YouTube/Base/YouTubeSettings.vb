@@ -132,6 +132,8 @@ Namespace API.YouTube.Base
                 OpenFolderInOtherProgram.Value = command
             End Set
         End Property
+        <Browsable(True), GridVisible(False), XMLVN({"Environment"}, True), Category("Environment"), DisplayName("Check new version at start")>
+        Friend ReadOnly Property CheckUpdatesAtStart As XMLValue(Of Boolean)
 #End Region
 #Region "Info"
         <Browsable(True), GridVisible, XMLVN({"Info"}), Category("Info"), DisplayName("Create URL files"),

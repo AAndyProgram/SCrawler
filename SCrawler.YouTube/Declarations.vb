@@ -108,5 +108,16 @@ Namespace API.YouTube
                 Throw New NotImplementedException("'GetFormat' is not available in the 'DurationXmlConverter' context")
             End Function
         End Class
+        Friend Sub CheckVersion(ByVal Force As Boolean)
+            If Not MyYouTubeSettings Is Nothing Then
+                With MyYouTubeSettings
+                    If .CheckUpdatesAtStart Or Force Then
+                        ShowProgramInfo(.ProgramText.Value.IfNullOrEmpty("YouTube Downloader"),
+                                        SCrawler.Shared.GetCurrentMaxVer(Application.StartupPath.CSFileP).IfNullOrEmpty(My.Application.Info.Version),
+                                        True, Force, .Self, True,, False, .ProgramDescription)
+                    End If
+                End With
+            End If
+        End Sub
     End Module
 End Namespace
