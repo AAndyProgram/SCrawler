@@ -39,7 +39,7 @@ A program to download photo and video from [any site](#supported-sites) (e.g. Yo
   - Mastodon images and videos, saved (bookmarked) posts;
   - Instagram images and videos, tagged posts, stories, saved posts;
   - Threads images and videos;
-  - Facebook images and videos, saved posts;
+  - Facebook images and videos, stories, saved posts;
   - TikTok videos;
   - Pinterest boards, users, saved posts;
   - Imgur images, galleries and videos;
