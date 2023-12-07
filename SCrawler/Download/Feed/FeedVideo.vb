@@ -6,7 +6,7 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
-Imports LibVLCSharp
+Imports LibVLCSharp.Shared
 Imports System.Threading
 Imports System.ComponentModel
 Imports PersonalUtilities.Tools
@@ -15,7 +15,7 @@ Imports VLCState = LibVLCSharp.Shared.VLCState
 Namespace DownloadObjects
     <ToolboxItem(False), DesignTimeVisible(False)>
     Public Class FeedVideo
-        Private WithEvents MediaPlayer As [Shared].MediaPlayer
+        Private WithEvents MediaPlayer As MediaPlayer
         Private ReadOnly TimeChange As Action = Sub()
                                                     If _Disposed Then Exit Sub
                                                     Dim v# = DivideWithZeroChecking(MediaPlayer.Time, MediaPlayer.Length) * 10
@@ -50,7 +50,7 @@ Namespace DownloadObjects
                 '#If DEBUG Then
                 '            debugLogs = True
                 '#End If
-                MediaPlayer = New [Shared].MediaPlayer(New [Shared].Media(New [Shared].LibVLC(enableDebugLogs:=debugLogs), New Uri(File.ToString)))
+                MediaPlayer = New MediaPlayer(New Media(New LibVLC(enableDebugLogs:=debugLogs), New Uri(File.ToString)))
                 MyVideo.MediaPlayer = MediaPlayer
                 TR_VOLUME.Value = MediaPlayer.Volume / 10
                 If Settings.UseM3U8 Then
@@ -111,7 +111,7 @@ Namespace DownloadObjects
                             End Sub, "Stop")
             UpdateButtons()
         End Sub
-        Private Sub MediaPlayer_TimeChanged(sender As Object, e As [Shared].MediaPlayerTimeChangedEventArgs) Handles MediaPlayer.TimeChanged
+        Private Sub MediaPlayer_TimeChanged(sender As Object, e As MediaPlayerTimeChangedEventArgs) Handles MediaPlayer.TimeChanged
             If _Disposed Then Exit Sub
             If TR_POSITION.InvokeRequired Then TR_POSITION.Invoke(TimeChange) Else TimeChange.Invoke
             If LBL_TIME.InvokeRequired Then LBL_TIME.Invoke(TimeChangeLabel) Else TimeChangeLabel.Invoke

@@ -114,3 +114,7 @@ A: I can only [suggest](#q-you-lost-me-your-program-is-too-complicated) you find
 #### Q: **Can you add a step-by-step guide or video on how to use the program?**
 
 A: **NO! NEVER!** The guide fully covers all the functionality of SCrawler! If you don't respect my work, I don't waste my time. If you want, you can create a video tutorial and send it to me. Then I add it. All options and what each option does described on the wiki. The wiki also contains a description of all settings and how-to configure them. For complex settings, there is a steep-by-steep guide. Read the [main](README.md) information and [GUIDE](https://github.com/AAndyProgram/SCrawler/wiki/) and you won't have any problems. I have developed a program with an intuitive interface. There is a Settings button, download buttons, a context menu that drops down when a user is clicked, and other controls. Anyone can use it.
+
+**The following video shows how to add credentials:**
+
+[![How to configure](https://img.youtube.com/vi/XDn7zG4I700/0.jpg)](https://www.youtube.com/watch?v=XDn7zG4I700)

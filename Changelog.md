@@ -1,3 +1,19 @@
+# 2023.12.7.0
+
+*2023-12-07*
+
+- Added
+  - Saved posts: add downloaded saved posts to the feed
+  - **YouTube (SCrawler): the ability to download YouTube user community feeds**
+  - Main window: add `Alt+A` hotkey to show scheduler
+  - Main window: add `Alt+P` hotkey to show progress form
+  - YouTube: check of adding a URL if it has already been downloaded
+  - YouTube: ability to check for a new version at start
+  - **Updater**
+- Fixed
+  - Standalone downloader: URL files are not deleted along with the file
+  - Minor bugs
+
 # 2023.11.25.0
 
 *2023-11-25*

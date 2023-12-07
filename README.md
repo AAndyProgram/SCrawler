@@ -30,7 +30,7 @@ A program to download photo and video from [any site](#supported-sites) (e.g. Yo
 
 # What can program do:
 - Download pictures and videos from users' profiles and subreddits:
-  - YouTube videos, shorts, users, artists, playlists, music, tracks;
+  - YouTube videos, shorts, community feeds, users, artists, playlists, music, tracks;
   - Reddit images, galleries of images, videos, saved posts;
   - Redgifs videos (https://www.redgifs.com/);
   - Twitter images and videos, saved (bookmarked) posts;
