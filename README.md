@@ -1,6 +1,6 @@
 <!-- # :rainbow_flag: Happy LGBT Pride Month :tada:
 -->
-# :rainbow_flag: Social networks crawler :rainbow_flag:
+# 🏳️‍🌈 Social networks crawler 🏳️‍🌈
 
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/AAndyProgram/SCrawler)](https://github.com/AAndyProgram/SCrawler/releases/latest)
 [![GitHub license](https://img.shields.io/github/license/AAndyProgram/SCrawler)](https://github.com/AAndyProgram/SCrawler/blob/main/LICENSE)
