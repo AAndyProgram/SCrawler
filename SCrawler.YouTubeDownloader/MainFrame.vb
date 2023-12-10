@@ -20,6 +20,8 @@ Public Class MainFrame
     Protected Overrides Sub VideoListForm_Load(sender As Object, e As EventArgs)
         MyBase.VideoListForm_Load(sender, e)
         TRAY_ICON.Visible = MyYouTubeSettings.CloseToTray
+        CheckNewReleaseFolder()
+        CheckVersionImpl(False)
     End Sub
     Private _CloseInvoked As Boolean = False
     Private _IgnoreTrayOptions As Boolean = False

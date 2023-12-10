@@ -59,8 +59,6 @@ Namespace DownloadObjects.STDownloader
                 MyDownloaderSettings = MyYouTubeSettings
             End If
 
-            CheckVersion(False)
-
             With MyView : .Import() : .SetFormSize() : End With
             BTT_DELETE.Enabled = False
             If Not AppMode Then
@@ -444,7 +442,10 @@ Namespace DownloadObjects.STDownloader
             Try : Process.Start("https://github.com/AAndyProgram/SCrawler/blob/main/HowToSupport.md") : Catch : End Try
         End Sub
         Private Sub BTT_INFO_Click(sender As Object, e As EventArgs) Handles BTT_INFO.Click
-            CheckVersion(True)
+            CheckVersionImpl(True)
+        End Sub
+        Protected Sub CheckVersionImpl(ByVal Force As Boolean)
+            CheckVersion(Force)
         End Sub
         Protected Overloads Sub RemoveControls(Optional ByVal Predicate As Predicate(Of MediaItem) = Nothing, Optional ByVal RemoveFiles As Boolean = False)
             ControlInvokeFast(TP_CONTROLS, Sub()

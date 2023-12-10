@@ -136,7 +136,9 @@ Namespace API.Twitter
         Private Function GetContainerSubnodes() As List(Of String())
             Return New List(Of String()) From {
                 {{"content", "itemContent", "tweet_results", "result", "legacy"}},
-                {{"content", "itemContent", "tweet_results", "result", "tweet", "legacy"}}
+                {{"content", "itemContent", "tweet_results", "result", "tweet", "legacy"}},
+                {{"item", "itemContent", "tweet_results", "result", "legacy"}},
+                {{"item", "itemContent", "tweet_results", "result", "tweet", "legacy"}}
             }
         End Function
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
@@ -168,6 +170,7 @@ Namespace API.Twitter
                 Dim pinNode As Predicate(Of EContainer) = Function(ee) ee.Value("type").StringToLower = "timelinepinentry"
                 Dim entriesNode As Predicate(Of EContainer) = Function(ee) ee.Name = "entries" Or ee.Name = entry
                 Dim sourceIdPredicate As Predicate(Of EContainer) = Function(ee) ee.Name = "source_user_id_str" Or ee.Name = "source_user_id"
+                Dim newTwitterNodes() As Object = {0, "content", "items"}
                 Dim p As Predicate(Of EContainer)
                 Dim pIndx%
                 Dim isOneNode As Boolean, isPins As Boolean, ExistsDetected As Boolean, userInfoParsed As Boolean = False
@@ -308,7 +311,9 @@ Namespace API.Twitter
                                                             ProgressPre.Perform()
                                                             If Not __parseContainer(.Self) Then Exit For
                                                         Else
-                                                            For Each tmpNode In .Self
+                                                            For Each tmpNode In If(If(.ItemF(newTwitterNodes)?.Count, 0) > 0,
+                                                                                   .ItemF(newTwitterNodes),
+                                                                                   .Self)
                                                                 ProgressPre.Perform()
                                                                 If Not __parseContainer(tmpNode) Then Exit For
                                                             Next

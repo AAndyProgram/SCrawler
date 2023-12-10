@@ -1,3 +1,12 @@
+# 2023.12.10.0
+
+*2023-12-10*
+
+- Updated
+  - gallery-dl up to version 1.26.4-dev
+- Fixed
+  - Twitter: data is not downloading
+
 # 2023.12.7.0
 
 *2023-12-07*
