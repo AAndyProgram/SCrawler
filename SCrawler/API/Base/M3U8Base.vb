@@ -18,8 +18,30 @@ Namespace API.Base
             Friend ReadOnly TsFilesRegEx As RParams = RParams.DM(".+?\.ts[^\r\n]*", 0, RegexReturn.List)
         End Module
     End Namespace
+    Friend Structure M3U8URL
+        Friend URL As String
+        Friend Extension As String
+        Friend Sub New(ByVal _URL As String, Optional ByVal _Extension As String = Nothing)
+            URL = _URL
+            Extension = _Extension
+        End Sub
+        Public Shared Widening Operator CType(ByVal URL As String) As M3U8URL
+            Return New M3U8URL(URL)
+        End Operator
+        Public Overrides Function Equals(ByVal Obj As Object) As Boolean
+            If Not IsNothing(Obj) Then
+                If TypeOf Obj Is M3U8URL Then
+                    Return CType(Obj, M3U8URL).URL = URL
+                Else
+                    Return CStr(Obj) = URL
+                End If
+            End If
+            Return False
+        End Function
+    End Structure
     Friend NotInheritable Class M3U8Base
         Friend Const TempCacheFolderName As String = "tmpCache"
+        Friend Const TempFilePrefix As String = "ConPart_"
         Private Sub New()
         End Sub
         Friend Shared Function CreateUrl(ByVal Appender As String, ByVal File As String) As String
@@ -32,9 +54,17 @@ Namespace API.Base
                 Return $"{Appender.StringTrimEnd("/")}/{File}"
             End If
         End Function
-        Friend Shared Function Download(ByVal URLs As List(Of String), ByVal DestinationFile As SFile, Optional ByVal Responser As Responser = Nothing,
-                                        Optional ByVal Token As CancellationToken = Nothing, Optional ByVal Progress As MyProgress = Nothing,
-                                        Optional ByVal UsePreProgress As Boolean = True, Optional ByVal ExistingCache As CacheKeeper = Nothing) As SFile
+        Friend Overloads Shared Function Download(ByVal URLs As List(Of String), ByVal DestinationFile As SFile, Optional ByVal Responser As Responser = Nothing,
+                                                  Optional ByVal Token As CancellationToken = Nothing, Optional ByVal Progress As MyProgress = Nothing,
+                                                  Optional ByVal UsePreProgress As Boolean = True, Optional ByVal ExistingCache As CacheKeeper = Nothing,
+                                                  Optional ByVal OnlyDownload As Boolean = False) As SFile
+            Return Download(URLs.ListCast(Of M3U8URL), DestinationFile, Responser, Token, Progress, UsePreProgress, ExistingCache, OnlyDownload)
+        End Function
+        Friend Overloads Shared Function Download(ByVal URLs As List(Of M3U8URL), ByVal DestinationFile As SFile, Optional ByVal Responser As Responser = Nothing,
+                                                  Optional ByVal Token As CancellationToken = Nothing, Optional ByVal Progress As MyProgress = Nothing,
+                                                  Optional ByVal UsePreProgress As Boolean = True, Optional ByVal ExistingCache As CacheKeeper = Nothing,
+                                                  Optional ByVal OnlyDownload As Boolean = False) As SFile
+            Const defaultExtension$ = "ts"
             Dim Cache As CacheKeeper = Nothing
             Using tmpPr As New PreProgress(Progress)
                 Try
@@ -59,10 +89,13 @@ Namespace API.Base
                                 End If
                             End If
                             Dim p As SFileNumbers = SFileNumbers.Default(ConcatFile.Name)
+                            Dim pNum As ANumbers = SFileNumbers.NumberProviderDefault
+                            p.NumberProvider = pNum
+                            DirectCast(p.NumberProvider, ANumbers).GroupSize = {URLs.Count.ToString.Length, 3}.Max
                             ConcatFile = SFile.IndexReindex(ConcatFile,,, p, EDP.ReturnValue)
                             Dim i%
                             Dim dFile As SFile = cache2.RootDirectory
-                            dFile.Extension = "ts"
+                            dFile.Extension = defaultExtension
                             Using w As New DownloadObjects.WebClient2(Responser)
                                 For i = 0 To URLs.Count - 1
                                     If progressExists Then
@@ -73,12 +106,14 @@ Namespace API.Base
                                         End If
                                     End If
                                     Token.ThrowIfCancellationRequested()
-                                    dFile.Name = $"ConPart_{i}"
-                                    w.DownloadFile(URLs(i), dFile)
+                                    dFile.Name = $"{TempFilePrefix}{i.NumToString(pNum)}"
+                                    dFile.Extension = URLs(i).Extension.IfNullOrEmpty(defaultExtension)
+                                    w.DownloadFile(URLs(i).URL, dFile)
                                     cache2.AddFile(dFile, True)
                                 Next
                             End Using
-                            DestinationFile = FFMPEG.ConcatenateFiles(cache2, Settings.FfmpegFile.File, ConcatFile, Settings.CMDEncoding, p, EDP.ThrowException)
+                            If Not OnlyDownload Then _
+                               DestinationFile = FFMPEG.ConcatenateFiles(cache2, Settings.FfmpegFile.File, ConcatFile, Settings.CMDEncoding, p, EDP.ThrowException)
                             Return DestinationFile
                         End If
                     End If

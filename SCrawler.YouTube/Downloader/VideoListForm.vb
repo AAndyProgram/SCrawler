@@ -237,8 +237,7 @@ Namespace DownloadObjects.STDownloader
         Protected Overridable Sub BTT_SETTINGS_Click(sender As Object, e As EventArgs) Handles BTT_SETTINGS.Click
             MyYouTubeSettings.ShowForm(AppMode)
         End Sub
-        Protected Overridable Sub BTT_ADD_KeyClick(ByVal Sender As ToolStripMenuItemKeyClick, ByVal e As KeyClickEventArgs) Handles BTT_ADD.KeyClick, BTT_ADD_PLS_ARR.KeyClick,
-                                                                                                                                    BTT_ADD_NO_SHORTS.KeyClick, BTT_ADD_SHORTS_ONLY.KeyClick
+        Protected Overridable Sub BTT_ADD_KeyClick(ByVal Sender As ToolStripMenuItemKeyClick, ByVal e As KeyClickEventArgs) Handles BTT_ADD.KeyClick, BTT_ADD_PLS_ARR.KeyClick
             Dim pForm As ParsingProgressForm = Nothing
             Try
                 Dim useCookies As Boolean = MyYouTubeSettings.DefaultUseCookies
@@ -252,8 +251,6 @@ Namespace DownloadObjects.STDownloader
 
                 Dim c As IYouTubeMediaContainer = Nothing
                 Dim url$ = String.Empty
-                Dim GetDefault As Boolean = True
-                Dim GetShorts As Boolean = True
 
                 If sTag = "pls" Then
                     Using pf As New PlaylistArrayForm With {.DesignXML = DesignXML}
@@ -266,7 +263,7 @@ Namespace DownloadObjects.STDownloader
                                     pForm.SetInitialValues(.Count, "Parsing playlists...")
                                     Dim containers As New List(Of IYouTubeMediaContainer)
                                     For Each u$ In .Self
-                                        containers.Add(YouTubeFunctions.Parse(standardize(u), useCookiesParse, pForm.Token, pForm.MyProgress, True, False))
+                                        containers.Add(YouTubeFunctions.Parse(standardize(u), useCookiesParse, pForm.Token, pForm.MyProgress))
                                         pForm.NextPlaylist()
                                         pForm.MyProgress.Perform()
                                     Next
@@ -295,20 +292,36 @@ Namespace DownloadObjects.STDownloader
                         End If
                     End Using
                 Else
-                    Select Case sTag
-                        Case "ans" : GetShorts = False
-                        Case "as" : GetDefault = False : GetShorts = True
-                    End Select
                     url = BufferText
                     If url.IsEmptyString OrElse Not YouTubeFunctions.IsMyUrl(url) Then url = InputBoxE("Enter a valid URL to the YouTube video:", "YouTube link")
                 End If
 
                 If Not c Is Nothing OrElse YouTubeFunctions.IsMyUrl(url) Then
                     If c Is Nothing Then
+                        Dim downAsIs As Boolean = False
+                        Dim channelTab As YouTubeChannelTab? = Nothing
+                        Dim __channelTab As YouTubeChannelTab = YouTubeChannelTab.All
+                        Dim oType As YouTubeMediaType = YouTubeFunctions.Info_GetUrlType(url,,,,, __channelTab)
+                        If oType = YouTubeMediaType.Channel Then
+                            channelTab = __channelTab
+                            Using channelTabForm As New ChannelTabsChooserForm(__channelTab, url)
+                                With channelTabForm
+                                    .ShowDialog()
+                                    If .DialogResult = DialogResult.OK Then
+                                        channelTab = .Result
+                                        downAsIs = .MyUrlAsIs
+                                        url = YouTubeFunctions.StandardizeURL_Channel(.URL, Not downAsIs)
+                                    Else
+                                        Exit Sub
+                                    End If
+                                End With
+                            End Using
+                        End If
                         pForm = New ParsingProgressForm
                         pForm.Show(Me)
                         pForm.SetInitialValues(1, "Parsing data...")
-                        c = YouTubeFunctions.Parse(standardize(url), useCookiesParse, pForm.Token, pForm.MyProgress, GetDefault, GetShorts)
+                        c = YouTubeFunctions.Parse(standardize(url), useCookiesParse, pForm.Token, pForm.MyProgress,,, channelTab,
+                                                   oType <> YouTubeMediaType.Channel Or downAsIs)
                         pForm.Dispose()
                     End If
                     If Not c Is Nothing Then

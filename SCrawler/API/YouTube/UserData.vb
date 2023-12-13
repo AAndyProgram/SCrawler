@@ -175,7 +175,7 @@ Namespace API.YouTube
                     maxDate = Nothing
                     LastDownloadDatePlaylist = nDate(LastDownloadDatePlaylist)
                     url = $"https://{IIf(IsMusic, "music", "www")}.youtube.com/playlist?list={ID}"
-                    container = YouTubeFunctions.Parse(url, YTUseCookies, Token, pr, True, False,, LastDownloadDatePlaylist)
+                    container = YouTubeFunctions.Parse(url, YTUseCookies, Token, pr,, LastDownloadDatePlaylist,, True)
                     applySpecFolder.Invoke(String.Empty, False)
                     If fillList.Invoke(LastDownloadDatePlaylist) Then LastDownloadDatePlaylist = If(maxDate, Now)
                 ElseIf YTMediaType = YouTubeMediaType.Channel Then
@@ -183,7 +183,7 @@ Namespace API.YouTube
                         maxDate = Nothing
                         LastDownloadDateVideos = nDate(LastDownloadDateVideos)
                         url = $"https://{IIf(IsMusic, "music", "www")}.youtube.com/{IIf(IsMusic Or IsChannelUser, $"{YouTubeFunctions.UserChannelOption}/", "@")}{ID}"
-                        container = YouTubeFunctions.Parse(url, YTUseCookies, Token, pr, True, False,, LastDownloadDateVideos)
+                        container = YouTubeFunctions.Parse(url, YTUseCookies, Token, pr,, LastDownloadDateVideos,, True)
                         applySpecFolder.Invoke(IIf(IsMusic, String.Empty, "Videos"), False)
                         If fillList.Invoke(LastDownloadDateVideos) Then LastDownloadDateVideos = If(maxDate, Now)
                     End If
@@ -191,7 +191,7 @@ Namespace API.YouTube
                         maxDate = Nothing
                         LastDownloadDateShorts = nDate(LastDownloadDateShorts)
                         url = $"https://www.youtube.com/{IIf(IsChannelUser, $"{YouTubeFunctions.UserChannelOption}/", "@")}{ID}/shorts"
-                        container = YouTubeFunctions.Parse(url, YTUseCookies, Token, pr, True, False,, LastDownloadDateShorts)
+                        container = YouTubeFunctions.Parse(url, YTUseCookies, Token, pr,, LastDownloadDateShorts,, True)
                         applySpecFolder.Invoke("Shorts", False)
                         If fillList.Invoke(LastDownloadDateShorts) Then LastDownloadDateShorts = If(maxDate, Now)
                     End If
@@ -199,7 +199,7 @@ Namespace API.YouTube
                         maxDate = Nothing
                         LastDownloadDatePlaylist = nDate(LastDownloadDatePlaylist)
                         url = $"https://www.youtube.com/{IIf(IsChannelUser, $"{YouTubeFunctions.UserChannelOption}/", "@")}{ID}/playlists"
-                        container = YouTubeFunctions.Parse(url, YTUseCookies, Token, pr, True, False,, LastDownloadDatePlaylist)
+                        container = YouTubeFunctions.Parse(url, YTUseCookies, Token, pr,, LastDownloadDatePlaylist,, True)
                         applySpecFolder.Invoke("Playlists", True)
                         If fillList.Invoke(LastDownloadDatePlaylist) Then LastDownloadDatePlaylist = If(maxDate, Now)
                     End If

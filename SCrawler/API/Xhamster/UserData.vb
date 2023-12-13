@@ -537,7 +537,7 @@ Namespace API.Xhamster
         Private Overloads Function GetM3U8(ByRef m As UserMedia, ByVal j As EContainer) As Boolean
             Dim node As EContainer = j({"xplayerSettings", "sources", "hls"})
             If node.ListExists Then
-                Dim url$ = node.GetNode({New NodeParams("url", True, True, True, True, 2)})
+                Dim url$ = node.GetNode({New NodeParams("url", True, True, True, True, 2)}).XmlIfNothingValue
                 If Not url.IsEmptyString Then m.URL = url : m.Type = UTypes.m3u8 : Return True
             End If
             Return False
@@ -555,7 +555,7 @@ Namespace API.Xhamster
         End Sub
         Protected Overrides Function DownloadM3U8(ByVal URL As String, ByVal Media As UserMedia, ByVal DestinationFile As SFile, ByVal Token As CancellationToken) As SFile
             Media.File = DestinationFile
-            Return M3U8.Download(Media, Responser, MySettings.DownloadUHD.Value, Token, Progress, Not IsSingleObjectDownload)
+            Return M3U8.Download(Media, Responser, MySettings.DownloadUHD.Value, Token, Progress, Not IsSingleObjectDownload, MySettings.ReencodeVideos.Value)
         End Function
 #End Region
 #Region "Create media"

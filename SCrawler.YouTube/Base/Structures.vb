@@ -62,6 +62,14 @@ Namespace API.YouTube.Base
         Channel = 2
         PlayList = 3
     End Enum
+    <Editor(GetType(EnumDropDownEditor), GetType(UITypeEditor)), Flags>
+    Public Enum YouTubeChannelTab As Integer
+        <EnumValue(IsNullValue:=True)>
+        All = 0
+        Videos = 1
+        Shorts = 3
+        Playlists = 10
+    End Enum
     <Editor(GetType(EnumDropDownEditor), GetType(UITypeEditor))>
     Public Enum Protocols As Integer
         <EnumValue(ExcludeFromList:=True)>

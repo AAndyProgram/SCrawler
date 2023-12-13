@@ -25,8 +25,6 @@ Namespace DownloadObjects.STDownloader
             AppMode = False
             Icon = My.Resources.ArrowDownIcon_Blue_24
             BTT_ADD_PLS_ARR.Text = $"YouTube: {BTT_ADD_PLS_ARR.Text}"
-            BTT_ADD_NO_SHORTS.Text = $"YouTube: {BTT_ADD_NO_SHORTS.Text}"
-            BTT_ADD_SHORTS_ONLY.Text = $"YouTube: {BTT_ADD_SHORTS_ONLY.Text}"
             BTT_ADD_URLS_ARR = New ToolStripMenuItemKeyClick("Add an array of URLs", PersonalUtilities.My.Resources.PlusPic_Green_24) With {.Tag = UrlsArrTag}
             BTT_ADD_URLS_EXTERNAL = New ToolStripMenuItemKeyClick With {.Tag = TAG_EXTERNAL}
             MENU_ADD.DropDownItems.Insert(1, BTT_ADD_URLS_ARR)

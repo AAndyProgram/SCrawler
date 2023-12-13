@@ -70,6 +70,9 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         Public Shared Widening Operator CType(ByVal f As ProgramFile) As SFile
             Return f.File
         End Operator
+        Public Shared Narrowing Operator CType(ByVal f As ProgramFile) As String
+            Return f.ToString
+        End Operator
         Public Overrides Function ToString() As String
             Return File.ToString
         End Function

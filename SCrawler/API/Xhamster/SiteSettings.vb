@@ -28,7 +28,11 @@ Namespace API.Xhamster
             End Get
         End Property
         <PropertyOption(ControlText:="Download UHD", ControlToolTip:="Download UHD (4K) content"), PXML, PClonable>
-        Friend Property DownloadUHD As PropertyValue
+        Friend ReadOnly Property DownloadUHD As PropertyValue
+        <PropertyOption(ControlText:="Re-encode downloaded videos if necessary",
+                        ControlToolTip:="If enabled and the video is downloaded in a non-native format, the video will be re-encoded." & vbCr &
+                                        "Attention! Enabling this setting results in maximum CPU usage."), PXML, PClonable>
+        Friend ReadOnly Property ReencodeVideos As PropertyValue
 #End Region
 #Region "Initializer"
         Friend Sub New(ByVal AccName As String, ByVal Temp As Boolean)
@@ -38,6 +42,7 @@ Namespace API.Xhamster
             SiteDomains = New PropertyValue(Domains.DomainsDefault, GetType(String))
             Domains.DestinationProp = SiteDomains
             DownloadUHD = New PropertyValue(False)
+            ReencodeVideos = New PropertyValue(False)
 
             _SubscriptionsAllowed = True
             UrlPatternUser = "https://xhamster.com/{0}/{1}"

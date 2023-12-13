@@ -115,6 +115,12 @@
   <ItemGroup>
     <Compile Include="Attributes\GridVisibleAttribute.vb" />
     <Compile Include="Base\TableControlsProcessor.vb" />
+    <Compile Include="Controls\ChannelTabsChooserForm.Designer.vb">
+      <DependentUpon>ChannelTabsChooserForm.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\ChannelTabsChooserForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Controls\PlayListParserForm.Designer.vb">
       <DependentUpon>PlayListParserForm.vb</DependentUpon>
     </Compile>
@@ -208,6 +214,9 @@
     <Compile Include="Base\YouTubeSettings.vb" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Controls\ChannelTabsChooserForm.resx">
+      <DependentUpon>ChannelTabsChooserForm.vb</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Controls\PlayListParserForm.resx">
       <DependentUpon>PlayListParserForm.vb</DependentUpon>
     </EmbeddedResource>

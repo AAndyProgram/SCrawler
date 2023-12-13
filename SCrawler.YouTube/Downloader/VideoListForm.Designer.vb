@@ -24,7 +24,6 @@ Namespace DownloadObjects.STDownloader
         Private Sub InitializeComponent()
             Dim SEP_2 As System.Windows.Forms.ToolStripSeparator
             Dim SEP_3 As System.Windows.Forms.ToolStripSeparator
-            Dim MENU_ADD_SEP_1 As System.Windows.Forms.ToolStripSeparator
             Dim MENU_DEL_CLEAR As System.Windows.Forms.ToolStripDropDownButton
             Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(VideoListForm))
             Dim MENU_DEL_SEP_1 As System.Windows.Forms.ToolStripSeparator
@@ -40,10 +39,6 @@ Namespace DownloadObjects.STDownloader
             Me.BTT_SETTINGS = New System.Windows.Forms.ToolStripButton()
             Me.SEP_1 = New System.Windows.Forms.ToolStripSeparator()
             Me.MENU_ADD = New System.Windows.Forms.ToolStripDropDownButton()
-            Me.BTT_ADD = New PersonalUtilities.Forms.Controls.KeyClick.ToolStripMenuItemKeyClick()
-            Me.BTT_ADD_PLS_ARR = New PersonalUtilities.Forms.Controls.KeyClick.ToolStripMenuItemKeyClick()
-            Me.BTT_ADD_NO_SHORTS = New PersonalUtilities.Forms.Controls.KeyClick.ToolStripMenuItemKeyClick()
-            Me.BTT_ADD_SHORTS_ONLY = New PersonalUtilities.Forms.Controls.KeyClick.ToolStripMenuItemKeyClick()
             Me.BTT_DOWN = New System.Windows.Forms.ToolStripButton()
             Me.BTT_STOP = New System.Windows.Forms.ToolStripButton()
             Me.SEP_LOG = New System.Windows.Forms.ToolStripSeparator()
@@ -51,9 +46,10 @@ Namespace DownloadObjects.STDownloader
             Me.BTT_INFO = New System.Windows.Forms.ToolStripButton()
             Me.BTT_DONATE = New System.Windows.Forms.ToolStripButton()
             Me.BTT_BUG_REPORT = New System.Windows.Forms.ToolStripButton()
+            Me.BTT_ADD = New PersonalUtilities.Forms.Controls.KeyClick.ToolStripMenuItemKeyClick()
+            Me.BTT_ADD_PLS_ARR = New PersonalUtilities.Forms.Controls.KeyClick.ToolStripMenuItemKeyClick()
             SEP_2 = New System.Windows.Forms.ToolStripSeparator()
             SEP_3 = New System.Windows.Forms.ToolStripSeparator()
-            MENU_ADD_SEP_1 = New System.Windows.Forms.ToolStripSeparator()
             MENU_DEL_CLEAR = New System.Windows.Forms.ToolStripDropDownButton()
             MENU_DEL_SEP_1 = New System.Windows.Forms.ToolStripSeparator()
             Me.TOOLBAR_BOTTOM.SuspendLayout()
@@ -69,11 +65,6 @@ Namespace DownloadObjects.STDownloader
             '
             SEP_3.Name = "SEP_3"
             SEP_3.Size = New System.Drawing.Size(6, 25)
-            '
-            'MENU_ADD_SEP_1
-            '
-            MENU_ADD_SEP_1.Name = "MENU_ADD_SEP_1"
-            MENU_ADD_SEP_1.Size = New System.Drawing.Size(181, 6)
             '
             'MENU_DEL_CLEAR
             '
@@ -186,60 +177,12 @@ Namespace DownloadObjects.STDownloader
             'MENU_ADD
             '
             Me.MENU_ADD.AutoToolTip = False
-            Me.MENU_ADD.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_ADD, Me.BTT_ADD_PLS_ARR, MENU_ADD_SEP_1, Me.BTT_ADD_NO_SHORTS, Me.BTT_ADD_SHORTS_ONLY})
+            Me.MENU_ADD.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_ADD, Me.BTT_ADD_PLS_ARR})
             Me.MENU_ADD.Image = CType(resources.GetObject("MENU_ADD.Image"), System.Drawing.Image)
             Me.MENU_ADD.ImageTransparentColor = System.Drawing.Color.Magenta
             Me.MENU_ADD.Name = "MENU_ADD"
             Me.MENU_ADD.Size = New System.Drawing.Size(84, 22)
             Me.MENU_ADD.Text = "Add (Ins)"
-            '
-            'BTT_ADD
-            '
-            Me.BTT_ADD.AutoToolTip = True
-            Me.BTT_ADD.Image = CType(resources.GetObject("BTT_ADD.Image"), System.Drawing.Image)
-            Me.BTT_ADD.ImageTransparentColor = System.Drawing.Color.Magenta
-            Me.BTT_ADD.Name = "BTT_ADD"
-            Me.BTT_ADD.Size = New System.Drawing.Size(184, 22)
-            Me.BTT_ADD.Tag = "a"
-            Me.BTT_ADD.Text = "Add (Ins)"
-            Me.BTT_ADD.ToolTipText = "Click to add." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Ctrl+click to use cookies for download (if supported)." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Shift to a" &
-    "dd without downloading."
-            '
-            'BTT_ADD_PLS_ARR
-            '
-            Me.BTT_ADD_PLS_ARR.AutoToolTip = True
-            Me.BTT_ADD_PLS_ARR.Image = CType(resources.GetObject("BTT_ADD_PLS_ARR.Image"), System.Drawing.Image)
-            Me.BTT_ADD_PLS_ARR.ImageTransparentColor = System.Drawing.Color.Magenta
-            Me.BTT_ADD_PLS_ARR.Name = "BTT_ADD_PLS_ARR"
-            Me.BTT_ADD_PLS_ARR.Size = New System.Drawing.Size(184, 22)
-            Me.BTT_ADD_PLS_ARR.Tag = "pls"
-            Me.BTT_ADD_PLS_ARR.Text = "Add playlist array"
-            Me.BTT_ADD_PLS_ARR.ToolTipText = "Click to add." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Ctrl+click to use cookies for download (if supported)." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Shift to a" &
-    "dd without downloading."
-            '
-            'BTT_ADD_NO_SHORTS
-            '
-            Me.BTT_ADD_NO_SHORTS.AutoToolTip = True
-            Me.BTT_ADD_NO_SHORTS.Image = CType(resources.GetObject("BTT_ADD_NO_SHORTS.Image"), System.Drawing.Image)
-            Me.BTT_ADD_NO_SHORTS.ImageTransparentColor = System.Drawing.Color.Magenta
-            Me.BTT_ADD_NO_SHORTS.Name = "BTT_ADD_NO_SHORTS"
-            Me.BTT_ADD_NO_SHORTS.Size = New System.Drawing.Size(184, 22)
-            Me.BTT_ADD_NO_SHORTS.Tag = "ans"
-            Me.BTT_ADD_NO_SHORTS.Text = "Add (without Shorts)"
-            Me.BTT_ADD_NO_SHORTS.ToolTipText = "Download all videos except 'Shorts'." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Click to add." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Ctrl+click to use cookies fo" &
-    "r download (if supported)." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Shift to add without downloading."
-            '
-            'BTT_ADD_SHORTS_ONLY
-            '
-            Me.BTT_ADD_SHORTS_ONLY.AutoToolTip = True
-            Me.BTT_ADD_SHORTS_ONLY.Image = CType(resources.GetObject("BTT_ADD_SHORTS_ONLY.Image"), System.Drawing.Image)
-            Me.BTT_ADD_SHORTS_ONLY.ImageTransparentColor = System.Drawing.Color.Magenta
-            Me.BTT_ADD_SHORTS_ONLY.Name = "BTT_ADD_SHORTS_ONLY"
-            Me.BTT_ADD_SHORTS_ONLY.Size = New System.Drawing.Size(184, 22)
-            Me.BTT_ADD_SHORTS_ONLY.Tag = "as"
-            Me.BTT_ADD_SHORTS_ONLY.Text = "Add (Shorts only)"
-            Me.BTT_ADD_SHORTS_ONLY.ToolTipText = "Download only 'Shorts' videos." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Click to add." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Ctrl+click to use cookies for down" &
-    "load (if supported)." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Shift to add without downloading."
             '
             'BTT_DOWN
             '
@@ -304,6 +247,30 @@ Namespace DownloadObjects.STDownloader
             Me.BTT_BUG_REPORT.Size = New System.Drawing.Size(23, 22)
             Me.BTT_BUG_REPORT.Text = "Bug report"
             '
+            'BTT_ADD
+            '
+            Me.BTT_ADD.AutoToolTip = True
+            Me.BTT_ADD.Image = CType(resources.GetObject("BTT_ADD.Image"), System.Drawing.Image)
+            Me.BTT_ADD.ImageTransparentColor = System.Drawing.Color.Magenta
+            Me.BTT_ADD.Name = "BTT_ADD"
+            Me.BTT_ADD.Size = New System.Drawing.Size(180, 22)
+            Me.BTT_ADD.Tag = "a"
+            Me.BTT_ADD.Text = "Add (Ins)"
+            Me.BTT_ADD.ToolTipText = "Click to add." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Ctrl+click to use cookies for download (if supported)." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Shift to a" &
+    "dd without downloading."
+            '
+            'BTT_ADD_PLS_ARR
+            '
+            Me.BTT_ADD_PLS_ARR.AutoToolTip = True
+            Me.BTT_ADD_PLS_ARR.Image = CType(resources.GetObject("BTT_ADD_PLS_ARR.Image"), System.Drawing.Image)
+            Me.BTT_ADD_PLS_ARR.ImageTransparentColor = System.Drawing.Color.Magenta
+            Me.BTT_ADD_PLS_ARR.Name = "BTT_ADD_PLS_ARR"
+            Me.BTT_ADD_PLS_ARR.Size = New System.Drawing.Size(180, 22)
+            Me.BTT_ADD_PLS_ARR.Tag = "pls"
+            Me.BTT_ADD_PLS_ARR.Text = "Add URL array"
+            Me.BTT_ADD_PLS_ARR.ToolTipText = "Click to add." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Ctrl+click to use cookies for download (if supported)." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Shift to a" &
+    "dd without downloading."
+            '
             'VideoListForm
             '
             Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
@@ -343,8 +310,6 @@ Namespace DownloadObjects.STDownloader
         Private WithEvents BTT_DONATE As ToolStripButton
         Protected WithEvents BTT_ADD As PersonalUtilities.Forms.Controls.KeyClick.ToolStripMenuItemKeyClick
         Protected WithEvents BTT_ADD_PLS_ARR As PersonalUtilities.Forms.Controls.KeyClick.ToolStripMenuItemKeyClick
-        Protected WithEvents BTT_ADD_NO_SHORTS As PersonalUtilities.Forms.Controls.KeyClick.ToolStripMenuItemKeyClick
-        Protected WithEvents BTT_ADD_SHORTS_ONLY As PersonalUtilities.Forms.Controls.KeyClick.ToolStripMenuItemKeyClick
         Protected WithEvents MENU_ADD As ToolStripDropDownButton
         Protected WithEvents BTT_DOWN As ToolStripButton
         Private WithEvents BTT_BUG_REPORT As ToolStripButton

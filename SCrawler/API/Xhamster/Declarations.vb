@@ -14,5 +14,6 @@ Namespace API.Xhamster
         Friend ReadOnly HtmlScript As RParams = RParams.DMS("\<script id='initials-script'\>window.initials=(\{.+?\});\</script\>", 1, EDP.ReturnValue,
                                                             CType(Function(Input$) Input.StringTrim, Func(Of String, String)))
         Friend ReadOnly FirstM3U8FileRegEx As RParams = RParams.DM("RESOLUTION=\d+x(\d+).*?[\r\n]+?([^#]*?\.m3u8.*)", 0, RegexReturn.List)
+        Friend ReadOnly SecondM3U8FileRegEx As RParams = RParams.DM("(#EXT-X-MAP.URI=""([^""]+((?<=\.)([^\?\.]{2,5})(?=(\?|\Z|"")))(.+|))""|#EXTINF[^\r\n]*[\r\n]+(([^\r\n]+((?<=\.)([^\?\.\r\n]{2,5})(?=(\?[^\r\n]+|[\r\n]+)))([^\r\n]+|))([\r\n]+|\Z)))", 0, RegexReturn.List)
     End Module
 End Namespace

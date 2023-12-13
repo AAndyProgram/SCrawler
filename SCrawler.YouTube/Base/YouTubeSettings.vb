@@ -223,6 +223,38 @@ Namespace API.YouTube.Base
             Description("Add some additional info to the program info if you need")>
         Friend ReadOnly Property ProgramDescription As XMLValue(Of String)
 #End Region
+#Region "Defaults ChannelsDownload"
+        <Browsable(True), GridVisible, XMLVN({"Defaults", "Channels"}), Category("Defaults"), DisplayName("Default download tabs for channels"),
+            Description("Default download tabs for downloading channels"), TypeConverter(GetType(YouTubeChannelTabConverter))>
+        Public ReadOnly Property ChannelsDownload As XMLValue(Of YouTubeChannelTab)
+        Private Class YouTubeChannelTabConverter : Inherits TypeConverter
+            Public Overrides Function ConvertTo(ByVal Context As ITypeDescriptorContext, ByVal Culture As CultureInfo, ByVal Value As Object,
+                                                ByVal DestinationType As Type) As Object
+                If Not DestinationType Is Nothing Then
+                    If DestinationType Is GetType(String) Then
+                        If IsNothing(Value) Then
+                            Return YouTubeChannelTab.All.ToString
+                        Else
+                            Dim v As List(Of YouTubeChannelTab) = EnumExtract(Of YouTubeChannelTab)(Value,,, EDP.ReturnValue).ListIfNothing
+                            If v.ListExists Then
+                                v.Sort()
+                                Return v.ListToStringE(, New ANumbers.EnumToStringProvider(GetType(YouTubeChannelTab)))
+                            Else
+                                Return YouTubeChannelTab.All.ToString
+                            End If
+                        End If
+                    Else
+                        If IsNothing(Value) Then
+                            Return YouTubeChannelTab.All
+                        Else
+                            Return Value
+                        End If
+                    End If
+                End If
+                Return MyBase.ConvertTo(Context, Culture, Value, DestinationType)
+            End Function
+        End Class
+#End Region
 #Region "Defaults Video"
         <Browsable(True), GridVisible, XMLVN({"DefaultsVideo"}, "MKV"), Category("Defaults Video"), DisplayName("Default format"),
             TypeConverter(GetType(FieldsTypeConverter)), GridStandardValuesProvider(NameOf(AvailableVideoFormats_Impl)),

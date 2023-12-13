@@ -1,3 +1,15 @@
+# 2023.12.13.0
+
+*2023-12-13*
+
+- Added
+  - YouTube (standalone app): additional options for downloading channels
+- Updated
+  - gallery-dl up to version 1.26.4
+- Fixed
+  - Feed: saved posts are added to the end of the feed
+  - xHamster: some videos won't download
+
 # 2023.12.10.0
 
 *2023-12-10*
