@@ -162,7 +162,7 @@ Namespace API.Twitter
                 Const entry$ = "entry"
                 Dim PostID$ = String.Empty
                 Dim PostDate$, tmpUserId$
-                Dim i%
+                Dim i%, nodeIndx%
                 Dim dirIndx% = -1
                 Dim nodes As List(Of String()) = GetContainerSubnodes()
                 Dim node$()
@@ -170,11 +170,12 @@ Namespace API.Twitter
                 Dim pinNode As Predicate(Of EContainer) = Function(ee) ee.Value("type").StringToLower = "timelinepinentry"
                 Dim entriesNode As Predicate(Of EContainer) = Function(ee) ee.Name = "entries" Or ee.Name = entry
                 Dim sourceIdPredicate As Predicate(Of EContainer) = Function(ee) ee.Name = "source_user_id_str" Or ee.Name = "source_user_id"
+                Dim moduleItemsPredicate As Predicate(Of EContainer) = Function(ee) ee.Name.StringToLower = "moduleitems"
                 Dim newTwitterNodes() As Object = {0, "content", "items"}
                 Dim p As Predicate(Of EContainer)
                 Dim pIndx%
                 Dim isOneNode As Boolean, isPins As Boolean, ExistsDetected As Boolean, userInfoParsed As Boolean = False
-                Dim j As EContainer, rootNode As EContainer, tmpNode As EContainer, nn As EContainer = Nothing
+                Dim j As EContainer, rootNode As EContainer, optionalNode As EContainer, workingNode As EContainer, tmpNode As EContainer, nn As EContainer = Nothing
 
                 Dim __parseContainer As Func(Of EContainer, Boolean) =
                     Function(ByVal ee As EContainer) As Boolean
@@ -289,18 +290,21 @@ Namespace API.Twitter
                                             End If
                                         Else
                                             For pIndx = 0 To IIf(dirIndx < 2, 1, 0)
+                                                optionalNode = Nothing
                                                 Select Case dirIndx
                                                     Case 0, 1
                                                         rootNode = j({"data", "user", "result", "timeline_v2", "timeline", "instructions"})
                                                         If rootNode.ListExists Then
                                                             p = If(pIndx = 0, pinNode, timelineNode)
                                                             isPins = pIndx = 0
+                                                            optionalNode = rootNode
                                                             rootNode = rootNode.Find(p, False)
                                                             If rootNode.ListExists Then rootNode = rootNode.Find(entriesNode, False)
                                                         End If
                                                     Case Else
                                                         isPins = False
                                                         rootNode = j({"globalObjects", "tweets"})
+                                                        optionalNode = rootNode
                                                 End Select
 
                                                 If rootNode.ListExists Then
@@ -311,11 +315,23 @@ Namespace API.Twitter
                                                             ProgressPre.Perform()
                                                             If Not __parseContainer(.Self) Then Exit For
                                                         Else
-                                                            For Each tmpNode In If(If(.ItemF(newTwitterNodes)?.Count, 0) > 0,
-                                                                                   .ItemF(newTwitterNodes),
-                                                                                   .Self)
-                                                                ProgressPre.Perform()
-                                                                If Not __parseContainer(tmpNode) Then Exit For
+                                                            For nodeIndx = 0 To 1
+                                                                If nodeIndx = 0 Then
+                                                                    workingNode = rootNode
+                                                                Else
+                                                                    workingNode = optionalNode
+                                                                    If workingNode.ListExists Then workingNode = workingNode.Find(moduleItemsPredicate, True)
+                                                                End If
+                                                                If workingNode.ListExists Then
+                                                                    With workingNode
+                                                                        For Each tmpNode In If(If(.ItemF(newTwitterNodes)?.Count, 0) > 0,
+                                                                                                  .ItemF(newTwitterNodes),
+                                                                                                  .Self)
+                                                                            ProgressPre.Perform()
+                                                                            If Not __parseContainer(tmpNode) Then Exit For
+                                                                        Next
+                                                                    End With
+                                                                End If
                                                             Next
                                                         End If
                                                     End With
