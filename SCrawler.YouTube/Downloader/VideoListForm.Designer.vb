@@ -27,10 +27,12 @@ Namespace DownloadObjects.STDownloader
             Dim MENU_DEL_CLEAR As System.Windows.Forms.ToolStripDropDownButton
             Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(VideoListForm))
             Dim MENU_DEL_SEP_1 As System.Windows.Forms.ToolStripSeparator
+            Dim MENU_DEL_SEP_2 As System.Windows.Forms.ToolStripSeparator
             Me.BTT_DELETE = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_CLEAR_SELECTED = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_CLEAR_DONE = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_CLEAR_ALL = New System.Windows.Forms.ToolStripMenuItem()
+            Me.BTT_SELECT_ALL = New System.Windows.Forms.ToolStripMenuItem()
             Me.TOOLBAR_BOTTOM = New System.Windows.Forms.StatusStrip()
             Me.PR_MAIN = New System.Windows.Forms.ToolStripProgressBar()
             Me.LBL_INFO = New System.Windows.Forms.ToolStripStatusLabel()
@@ -39,6 +41,8 @@ Namespace DownloadObjects.STDownloader
             Me.BTT_SETTINGS = New System.Windows.Forms.ToolStripButton()
             Me.SEP_1 = New System.Windows.Forms.ToolStripSeparator()
             Me.MENU_ADD = New System.Windows.Forms.ToolStripDropDownButton()
+            Me.BTT_ADD = New PersonalUtilities.Forms.Controls.KeyClick.ToolStripMenuItemKeyClick()
+            Me.BTT_ADD_PLS_ARR = New PersonalUtilities.Forms.Controls.KeyClick.ToolStripMenuItemKeyClick()
             Me.BTT_DOWN = New System.Windows.Forms.ToolStripButton()
             Me.BTT_STOP = New System.Windows.Forms.ToolStripButton()
             Me.SEP_LOG = New System.Windows.Forms.ToolStripSeparator()
@@ -46,12 +50,12 @@ Namespace DownloadObjects.STDownloader
             Me.BTT_INFO = New System.Windows.Forms.ToolStripButton()
             Me.BTT_DONATE = New System.Windows.Forms.ToolStripButton()
             Me.BTT_BUG_REPORT = New System.Windows.Forms.ToolStripButton()
-            Me.BTT_ADD = New PersonalUtilities.Forms.Controls.KeyClick.ToolStripMenuItemKeyClick()
-            Me.BTT_ADD_PLS_ARR = New PersonalUtilities.Forms.Controls.KeyClick.ToolStripMenuItemKeyClick()
+            Me.BTT_SELECT_NONE = New System.Windows.Forms.ToolStripMenuItem()
             SEP_2 = New System.Windows.Forms.ToolStripSeparator()
             SEP_3 = New System.Windows.Forms.ToolStripSeparator()
             MENU_DEL_CLEAR = New System.Windows.Forms.ToolStripDropDownButton()
             MENU_DEL_SEP_1 = New System.Windows.Forms.ToolStripSeparator()
+            MENU_DEL_SEP_2 = New System.Windows.Forms.ToolStripSeparator()
             Me.TOOLBAR_BOTTOM.SuspendLayout()
             Me.TOOLBAR_TOP.SuspendLayout()
             Me.SuspendLayout()
@@ -69,7 +73,7 @@ Namespace DownloadObjects.STDownloader
             'MENU_DEL_CLEAR
             '
             MENU_DEL_CLEAR.AutoToolTip = False
-            MENU_DEL_CLEAR.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_DELETE, MENU_DEL_SEP_1, Me.BTT_CLEAR_SELECTED, Me.BTT_CLEAR_DONE, Me.BTT_CLEAR_ALL})
+            MENU_DEL_CLEAR.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_DELETE, MENU_DEL_SEP_1, Me.BTT_CLEAR_SELECTED, Me.BTT_CLEAR_DONE, Me.BTT_CLEAR_ALL, MENU_DEL_SEP_2, Me.BTT_SELECT_ALL, Me.BTT_SELECT_NONE})
             MENU_DEL_CLEAR.Image = CType(resources.GetObject("MENU_DEL_CLEAR.Image"), System.Drawing.Image)
             MENU_DEL_CLEAR.ImageTransparentColor = System.Drawing.Color.Magenta
             MENU_DEL_CLEAR.Name = "MENU_DEL_CLEAR"
@@ -118,6 +122,17 @@ Namespace DownloadObjects.STDownloader
             Me.BTT_CLEAR_ALL.Size = New System.Drawing.Size(185, 22)
             Me.BTT_CLEAR_ALL.Text = "Clear all"
             Me.BTT_CLEAR_ALL.ToolTipText = "Remove all items from the list"
+            '
+            'MENU_DEL_SEP_2
+            '
+            MENU_DEL_SEP_2.Name = "MENU_DEL_SEP_2"
+            MENU_DEL_SEP_2.Size = New System.Drawing.Size(182, 6)
+            '
+            'BTT_SELECT_ALL
+            '
+            Me.BTT_SELECT_ALL.Name = "BTT_SELECT_ALL"
+            Me.BTT_SELECT_ALL.Size = New System.Drawing.Size(185, 22)
+            Me.BTT_SELECT_ALL.Text = "Select all"
             '
             'TOOLBAR_BOTTOM
             '
@@ -184,6 +199,30 @@ Namespace DownloadObjects.STDownloader
             Me.MENU_ADD.Size = New System.Drawing.Size(84, 22)
             Me.MENU_ADD.Text = "Add (Ins)"
             '
+            'BTT_ADD
+            '
+            Me.BTT_ADD.AutoToolTip = True
+            Me.BTT_ADD.Image = CType(resources.GetObject("BTT_ADD.Image"), System.Drawing.Image)
+            Me.BTT_ADD.ImageTransparentColor = System.Drawing.Color.Magenta
+            Me.BTT_ADD.Name = "BTT_ADD"
+            Me.BTT_ADD.Size = New System.Drawing.Size(149, 22)
+            Me.BTT_ADD.Tag = "a"
+            Me.BTT_ADD.Text = "Add (Ins)"
+            Me.BTT_ADD.ToolTipText = "Click to add." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Ctrl+click to use cookies for download (if supported)." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Shift to a" &
+    "dd without downloading."
+            '
+            'BTT_ADD_PLS_ARR
+            '
+            Me.BTT_ADD_PLS_ARR.AutoToolTip = True
+            Me.BTT_ADD_PLS_ARR.Image = CType(resources.GetObject("BTT_ADD_PLS_ARR.Image"), System.Drawing.Image)
+            Me.BTT_ADD_PLS_ARR.ImageTransparentColor = System.Drawing.Color.Magenta
+            Me.BTT_ADD_PLS_ARR.Name = "BTT_ADD_PLS_ARR"
+            Me.BTT_ADD_PLS_ARR.Size = New System.Drawing.Size(149, 22)
+            Me.BTT_ADD_PLS_ARR.Tag = "pls"
+            Me.BTT_ADD_PLS_ARR.Text = "Add URL array"
+            Me.BTT_ADD_PLS_ARR.ToolTipText = "Click to add." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Ctrl+click to use cookies for download (if supported)." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Shift to a" &
+    "dd without downloading."
+            '
             'BTT_DOWN
             '
             Me.BTT_DOWN.Image = Global.SCrawler.My.Resources.Resources.StartPic_Green_16
@@ -247,29 +286,11 @@ Namespace DownloadObjects.STDownloader
             Me.BTT_BUG_REPORT.Size = New System.Drawing.Size(23, 22)
             Me.BTT_BUG_REPORT.Text = "Bug report"
             '
-            'BTT_ADD
+            'BTT_SELECT_NONE
             '
-            Me.BTT_ADD.AutoToolTip = True
-            Me.BTT_ADD.Image = CType(resources.GetObject("BTT_ADD.Image"), System.Drawing.Image)
-            Me.BTT_ADD.ImageTransparentColor = System.Drawing.Color.Magenta
-            Me.BTT_ADD.Name = "BTT_ADD"
-            Me.BTT_ADD.Size = New System.Drawing.Size(180, 22)
-            Me.BTT_ADD.Tag = "a"
-            Me.BTT_ADD.Text = "Add (Ins)"
-            Me.BTT_ADD.ToolTipText = "Click to add." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Ctrl+click to use cookies for download (if supported)." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Shift to a" &
-    "dd without downloading."
-            '
-            'BTT_ADD_PLS_ARR
-            '
-            Me.BTT_ADD_PLS_ARR.AutoToolTip = True
-            Me.BTT_ADD_PLS_ARR.Image = CType(resources.GetObject("BTT_ADD_PLS_ARR.Image"), System.Drawing.Image)
-            Me.BTT_ADD_PLS_ARR.ImageTransparentColor = System.Drawing.Color.Magenta
-            Me.BTT_ADD_PLS_ARR.Name = "BTT_ADD_PLS_ARR"
-            Me.BTT_ADD_PLS_ARR.Size = New System.Drawing.Size(180, 22)
-            Me.BTT_ADD_PLS_ARR.Tag = "pls"
-            Me.BTT_ADD_PLS_ARR.Text = "Add URL array"
-            Me.BTT_ADD_PLS_ARR.ToolTipText = "Click to add." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Ctrl+click to use cookies for download (if supported)." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Shift to a" &
-    "dd without downloading."
+            Me.BTT_SELECT_NONE.Name = "BTT_SELECT_NONE"
+            Me.BTT_SELECT_NONE.Size = New System.Drawing.Size(185, 22)
+            Me.BTT_SELECT_NONE.Text = "Select none"
             '
             'VideoListForm
             '
@@ -314,5 +335,7 @@ Namespace DownloadObjects.STDownloader
         Protected WithEvents BTT_DOWN As ToolStripButton
         Private WithEvents BTT_BUG_REPORT As ToolStripButton
         Private WithEvents BTT_CLEAR_SELECTED As ToolStripMenuItem
+        Private WithEvents BTT_SELECT_ALL As ToolStripMenuItem
+        Private WithEvents BTT_SELECT_NONE As ToolStripMenuItem
     End Class
 End Namespace

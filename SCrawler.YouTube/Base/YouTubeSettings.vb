@@ -147,6 +147,12 @@ Namespace API.YouTube.Base
         <Browsable(True), GridVisible, XMLVN({"Info"}), Category("Info"), DisplayName("Create description files"),
             Description("Create video description files. Default: false.")>
         Public ReadOnly Property CreateDescriptionFiles As XMLValue(Of Boolean)
+        <Browsable(True), GridVisible, XMLVN({"Info"}, True), Category("Info"), DisplayName("Create thumbnail files (video)"),
+            Description("Create video thumbnail files. Default: true.")>
+        Public ReadOnly Property CreateThumbnails_Video As XMLValue(Of Boolean)
+        <Browsable(True), GridVisible, XMLVN({"Info"}, True), Category("Info"), DisplayName("Create thumbnail files (music)"),
+            Description("Create music thumbnail files (covers). Default: true.")>
+        Public ReadOnly Property CreateThumbnails_Music As XMLValue(Of Boolean)
 #End Region
 #Region "Defaults"
         <Browsable(True), GridVisible, XMLVN({"Defaults"}, True), Category("Defaults"), DisplayName("Standardize URLs"),

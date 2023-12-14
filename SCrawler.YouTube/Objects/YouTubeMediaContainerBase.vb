@@ -856,33 +856,35 @@ Namespace API.YouTube.Objects
                     CreateUrlFile(url, ff)
                     If ff.Exists Then Files.Add(ff)
                 End If
-                Using resp As New Responser
-                    If UseCookies And MyYouTubeSettings.Cookies.Count > 0 Then resp.Cookies.AddRange(MyYouTubeSettings.Cookies,, EDP.SendToLog)
-                    r = resp.GetResponse(url,, EDP.ReturnValue)
-                    If Not r.IsEmptyString Then
-                        Dim p As RParams = RParams.DM("(?<=https:[\\/]{2,4})[^\.]*[\.]?googleusercontent.com[^\,]+?w(\d+).h(\d+)[^\,]+?(?=\\x22)", 0, RegexReturn.List, EDP.ReturnValue)
-                        Dim l As List(Of String) = RegexReplace(r, p)
-                        If l.ListExists Then l.RemoveAll(Function(uu) uu.IsEmptyString)
-                        If l.ListExists Then
-                            Dim u$ = l.Last
-                            u = u.Replace("\/", "/").TrimStart("/")
-                            Dim position%
-                            Dim ch$
-                            Do
-                                position = InStr(u, "\")
-                                If position > 0 Then
-                                    ch = $"%{Mid(u, position + 2, 2)}"
-                                    ch = SymbolsConverter.ASCII.Decode(ch, New ErrorsDescriber(False, False, False, String.Empty))
-                                    u = u.Replace(Mid(u, position, 4), ch)
-                                End If
-                            Loop While position > 0
-                            url = LinkFormatterSecure(u)
-                            f.Name = "cover"
-                            f.Extension = "jpg"
-                            If resp.DownloadFile(url, f, EDP.ReturnValue) And f.Exists Then CoverDownloaded = True
+                If MyYouTubeSettings.CreateThumbnails_Music Then
+                    Using resp As New Responser
+                        If UseCookies And MyYouTubeSettings.Cookies.Count > 0 Then resp.Cookies.AddRange(MyYouTubeSettings.Cookies,, EDP.SendToLog)
+                        r = resp.GetResponse(url,, EDP.ReturnValue)
+                        If Not r.IsEmptyString Then
+                            Dim p As RParams = RParams.DM("(?<=https:[\\/]{2,4})[^\.]*[\.]?googleusercontent.com[^\,]+?w(\d+).h(\d+)[^\,]+?(?=\\x22)", 0, RegexReturn.List, EDP.ReturnValue)
+                            Dim l As List(Of String) = RegexReplace(r, p)
+                            If l.ListExists Then l.RemoveAll(Function(uu) uu.IsEmptyString)
+                            If l.ListExists Then
+                                Dim u$ = l.Last
+                                u = u.Replace("\/", "/").TrimStart("/")
+                                Dim position%
+                                Dim ch$
+                                Do
+                                    position = InStr(u, "\")
+                                    If position > 0 Then
+                                        ch = $"%{Mid(u, position + 2, 2)}"
+                                        ch = SymbolsConverter.ASCII.Decode(ch, New ErrorsDescriber(False, False, False, String.Empty))
+                                        u = u.Replace(Mid(u, position, 4), ch)
+                                    End If
+                                Loop While position > 0
+                                url = LinkFormatterSecure(u)
+                                f.Name = "cover"
+                                f.Extension = "jpg"
+                                If resp.DownloadFile(url, f, EDP.ReturnValue) And f.Exists Then CoverDownloaded = True
+                            End If
                         End If
-                    End If
-                End Using
+                    End Using
+                End If
             Catch ex As Exception
                 ErrorsDescriber.Execute(EDP.SendToLog, ex, $"DownloadPlaylistCover({PlsId}, {f})")
             End Try
@@ -951,7 +953,9 @@ Namespace API.YouTube.Objects
                             _ThumbnailFile = File
                             _ThumbnailFile.Name &= "_thumb"
                             _ThumbnailFile.Extension = "jpg"
-                            If Not ThumbnailUrl.IsEmptyString Then GetWebFile(ThumbnailUrl, _ThumbnailFile, EDP.None)
+                            If Not ThumbnailUrl.IsEmptyString And
+                               If(IsMusic, MyYouTubeSettings.CreateThumbnails_Music, MyYouTubeSettings.CreateThumbnails_Video).Value Then _
+                               GetWebFile(ThumbnailUrl, _ThumbnailFile, EDP.None)
 
                             ThrowAny(Token)
                             If MyYouTubeSettings.FFMPEG.Value.Exists Then

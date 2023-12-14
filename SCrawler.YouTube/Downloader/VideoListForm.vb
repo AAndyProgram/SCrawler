@@ -304,7 +304,7 @@ Namespace DownloadObjects.STDownloader
                         Dim oType As YouTubeMediaType = YouTubeFunctions.Info_GetUrlType(url,,,,, __channelTab)
                         If oType = YouTubeMediaType.Channel Then
                             channelTab = __channelTab
-                            Using channelTabForm As New ChannelTabsChooserForm(__channelTab, url)
+                            Using channelTabForm As New ChannelTabsChooserForm(__channelTab, url) With {.DesignXML = DesignXML}
                                 With channelTabForm
                                     .ShowDialog()
                                     If .DialogResult = DialogResult.OK Then
@@ -435,6 +435,19 @@ Namespace DownloadObjects.STDownloader
         Protected Overridable Sub BTT_CLEAR_ALL_Click(sender As Object, e As EventArgs) Handles BTT_CLEAR_ALL.Click
             RemoveControls(, False)
         End Sub
+        Private Sub BTT_SELECT_ALL_Click(sender As Object, e As EventArgs) Handles BTT_SELECT_ALL.Click, BTT_SELECT_NONE.Click
+            Try
+                Dim checked As Boolean = sender Is BTT_SELECT_ALL
+                ControlInvokeFast(TP_CONTROLS, Sub()
+                                                   With TP_CONTROLS.Controls
+                                                       If .Count > 0 Then
+                                                           For Each cnt As MediaItem In .Self : cnt.Checked = checked : Next
+                                                       End If
+                                                   End With
+                                               End Sub, EDP.None)
+            Catch
+            End Try
+        End Sub
 #End Region
         Private Sub BTT_LOG_Click(sender As Object, e As EventArgs) Handles BTT_LOG.Click
             MyMainLOG_ShowForm(DesignXML,,,, AddressOf UpdateLogButton)
@@ -511,16 +524,23 @@ Namespace DownloadObjects.STDownloader
             RemoveControls(Sender, False)
         End Sub
         Private Sub MediaControl_DownloadAgain(ByVal Sender As MediaItem, ByVal Container As IYouTubeMediaContainer)
-            If Not Container.URL.IsEmptyString Then BufferText = Container.URL : BTT_ADD.PerformClick()
+            Try
+                If Not Container.URL.IsEmptyString Then BufferText = Container.URL : BTT_ADD.PerformClick()
+            Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "[VideoListForm.DownloadAgain]")
+            End Try
         End Sub
         Private Sub MediaControl_DownloadRequested(ByVal Sender As MediaItem, ByVal Container As IYouTubeMediaContainer)
             AddToDownload(Sender, True)
         End Sub
         Private Sub MediaControl_CheckedChanged(ByVal Sender As MediaItem, ByVal Container As IYouTubeMediaContainer)
-            With TP_CONTROLS.Controls
-                ControlInvokeFast(TOOLBAR_TOP, BTT_DELETE,
-                                  Sub() BTT_DELETE.Enabled = .Count > 0 AndAlso .Cast(Of MediaItem).ListExists(Function(cnt) cnt.Checked), EDP.None)
-            End With
+            Try
+                With TP_CONTROLS.Controls
+                    ControlInvokeFast(TOOLBAR_TOP, BTT_DELETE,
+                                      Sub() BTT_DELETE.Enabled = .Count > 0 AndAlso .Cast(Of MediaItem).ListExists(Function(cnt) cnt.Checked), EDP.None)
+                End With
+            Catch
+            End Try
         End Sub
 #End Region
 #End Region

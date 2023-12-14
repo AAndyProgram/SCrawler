@@ -1,3 +1,11 @@
+# 2023.12.14.0
+
+*2023-12-14*
+
+- Added
+  - YouTube: options `Create thumbnail files (video)` and `Create thumbnail files (music)`
+  - YouTube: `Select all` and `Select none` buttons
+
 # 2023.12.13.0
 
 *2023-12-13*
