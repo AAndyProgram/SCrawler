@@ -1,9 +1,10 @@
-# 2023.12.14.1
+# 2023.12.15.0
 
-*2023-12-14*
+*2023-12-15*
 
 - Fixed
   - Twitter: some twitter profiles don't download completely
+  - Minor bugs
 
 # 2023.12.14.0
 

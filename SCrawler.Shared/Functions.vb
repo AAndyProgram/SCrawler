@@ -23,7 +23,7 @@ Namespace [Shared]
                             Next
                         End If
                     End With
-                    If versions.Count > 0 Then Return versions.LastOrDefault
+                    If versions.Count > 0 Then Return versions.Max
                 End If
             Catch
             End Try
