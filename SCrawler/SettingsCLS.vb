@@ -27,6 +27,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
     Friend Const CookieEncryptKey As String = "SCrawlerCookiesEncryptKeyword"
     Private Const EnvironmentPath As String = "Environment\"
     Friend Const CollectionsFolderName As String = "Collections"
+    Private Const PermanentCacheSnapshotsPath As String = "_CacheSnapshots\"
     Friend Const DefaultCmdEncoding As Integer = BatchExecutor.UnicodeEncoding
     Friend ReadOnly Design As XmlFile
     Private ReadOnly MyXML As XmlFile
@@ -113,7 +114,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
     Friend ReadOnly Property CacheSnapshots(ByVal Permanent As Boolean) As CacheKeeper
         Get
             If Permanent Then
-                If _CacheSnapshots Is Nothing Then _CacheSnapshots = New CacheKeeper("_CacheSnapshots\") With {.DeleteCacheOnDispose = False, .DeleteRootOnDispose = False}
+                If _CacheSnapshots Is Nothing Then _CacheSnapshots = New CacheKeeper(PermanentCacheSnapshotsPath) With {.DeleteCacheOnDispose = False, .DeleteRootOnDispose = False}
                 Return _CacheSnapshots
             Else
                 Dim dir As SFile = $"{Cache.RootDirectory.PathWithSeparator}Snapshots\"
@@ -336,6 +337,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         ShowNotificationsDownSavedPosts = New XMLValue(Of Boolean)("SavedPosts", True, MyXML, n)
         ShowNotificationsSTDownloader = New XMLValue(Of Boolean)("STDownloader", True, MyXML, n)
         ShowNotificationsSTDownloaderEveryDownload = New XMLValue(Of Boolean)("STDownloaderEveryDownload", True, MyXML, n)
+        ShowNotificationsLOG = New XMLValue(Of Boolean)("LOG", True, MyXML, n)
 
         ProgramText = New XMLValue(Of String)("ProgramText",, MyXML)
         ProgramDescription = New XMLValue(Of String)("ProgramDescription",, MyXML)
@@ -672,6 +674,14 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
     Friend Sub DeleteCachePath()
         Reddit.ChannelsCollection.ChannelsPathCache.Delete(SFO.Path, SFODelete.None, EDP.None)
     End Sub
+    Private Sub DeleteCachePathPermanent()
+        Try
+            Dim f As New SFile(PermanentCacheSnapshotsPath)
+            If f.Exists(SFO.Path, False) AndAlso Not SFile.GetFiles(f,, IO.SearchOption.AllDirectories, EDP.ReturnValue).ListExists Then _
+               f.Delete(SFO.Path, SFODelete.DeletePermanently, EDP.None)
+        Catch
+        End Try
+    End Sub
     Friend Overloads Function UserExists(ByVal UserSite As String, ByVal UserID As String) As Boolean
         Dim UserFinderBase As Predicate(Of IUserData) = Function(user) user.Site = UserSite And user.Name = UserID
         Dim UserFinder As Predicate(Of IUserData) = Function(ByVal user As IUserData) As Boolean
@@ -944,6 +954,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         Channels
         SavedPosts
         STDownloader
+        LOG
     End Enum
     Friend ReadOnly Property ProcessNotification(ByVal Sender As NotificationObjects) As Boolean
         Get
@@ -955,6 +966,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
                     Case NotificationObjects.Channels : Return ShowNotificationsDownChannels
                     Case NotificationObjects.SavedPosts : Return ShowNotificationsDownSavedPosts
                     Case NotificationObjects.STDownloader : Return ShowNotificationsSTDownloader
+                    Case NotificationObjects.LOG : Return ShowNotificationsLOG
                     Case Else : Return True
                 End Select
             Else
@@ -970,6 +982,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
     Friend ReadOnly Property ShowNotificationsDownSavedPosts As XMLValue(Of Boolean)
     Friend ReadOnly Property ShowNotificationsSTDownloader As XMLValue(Of Boolean)
     Friend ReadOnly Property ShowNotificationsSTDownloaderEveryDownload As XMLValue(Of Boolean)
+    Friend ReadOnly Property ShowNotificationsLOG As XMLValue(Of Boolean)
 #End Region
 #Region "Other program properties"
     Friend ReadOnly Property ProgramText As XMLValue(Of String)
@@ -1007,6 +1020,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
                 End If
                 If Not Automation Is Nothing Then Automation.Dispose()
                 Cache.Dispose()
+                DeleteCachePathPermanent()
                 Plugins.Clear()
                 LastCollections.Clear()
                 Users.ListClearDispose

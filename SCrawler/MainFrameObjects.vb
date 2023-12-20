@@ -19,6 +19,11 @@ Friend Class MainFrameObjects : Implements INotificator
         MF = f
         Notificator = New NotificationsManager
         PauseButtons = New DownloadObjects.AutoDownloaderPauseButtons(DownloadObjects.AutoDownloaderPauseButtons.ButtonsPlace.MainFrame)
+        ProgramLogInitialize()
+        With ProgramLog
+            AddHandler ProgramLog.TextAdded, AddressOf ProgramLog_TextAdded
+            AddHandler ProgramLog.TextCleared, AddressOf ProgramLog_TextCleared
+        End With
     End Sub
 #Region "Users"
     Friend Sub FocusUser(ByVal Key As String, Optional ByVal ActivateForm As Boolean = False)
@@ -98,6 +103,18 @@ Friend Class MainFrameObjects : Implements INotificator
                 Focus(True)
             End If
         End If
+    End Sub
+#End Region
+#Region "LOG events support"
+    Private _LogNotificationsEnabled As Boolean = True
+    Private Sub ProgramLog_TextAdded(ByVal Sender As Object, ByVal e As EventArgs)
+        If _LogNotificationsEnabled Then _LogNotificationsEnabled = False : ShowNotification(NotifyObj.LOG, "There is new data in the log")
+    End Sub
+    Private Sub ProgramLog_TextCleared(ByVal Sender As Object, ByVal e As EventArgs)
+        _LogNotificationsEnabled = True
+    End Sub
+    Friend Sub LogFormClosed()
+        _LogNotificationsEnabled = True
     End Sub
 #End Region
 End Class

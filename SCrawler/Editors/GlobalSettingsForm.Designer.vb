@@ -157,6 +157,7 @@ Namespace Editors
             Me.TXT_FEED_CENTER_IMAGE = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.COLORS_FEED = New SCrawler.Editors.ColorPicker()
             Me.CH_FEED_SHOW_FRIENDLY = New System.Windows.Forms.CheckBox()
+            Me.CH_FEED_SHOW_SPEC_MEDIAITEM = New System.Windows.Forms.CheckBox()
             Me.TXT_YTDLP = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_FFMPEG = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_CURL = New PersonalUtilities.Forms.Controls.TextBoxExtended()
@@ -177,7 +178,7 @@ Namespace Editors
             Me.TAB_MAIN = New System.Windows.Forms.TabControl()
             Me.TAB_ENVIR = New System.Windows.Forms.TabPage()
             Me.CONTAINER_MAIN = New System.Windows.Forms.ToolStripContainer()
-            Me.CH_FEED_SHOW_SPEC_MEDIAITEM = New System.Windows.Forms.CheckBox()
+            Me.CH_NOTIFY_LOG = New System.Windows.Forms.CheckBox()
             TP_BASIS = New System.Windows.Forms.TableLayoutPanel()
             TP_IMAGES = New System.Windows.Forms.TableLayoutPanel()
             TP_FILE_NAME = New System.Windows.Forms.TableLayoutPanel()
@@ -1670,6 +1671,17 @@ Namespace Editors
             Me.CH_FEED_SHOW_FRIENDLY.Text = "Show friendly names instead of usernames"
             Me.CH_FEED_SHOW_FRIENDLY.UseVisualStyleBackColor = True
             '
+            'CH_FEED_SHOW_SPEC_MEDIAITEM
+            '
+            Me.CH_FEED_SHOW_SPEC_MEDIAITEM.AutoSize = True
+            Me.CH_FEED_SHOW_SPEC_MEDIAITEM.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_FEED_SHOW_SPEC_MEDIAITEM.Location = New System.Drawing.Point(4, 247)
+            Me.CH_FEED_SHOW_SPEC_MEDIAITEM.Name = "CH_FEED_SHOW_SPEC_MEDIAITEM"
+            Me.CH_FEED_SHOW_SPEC_MEDIAITEM.Size = New System.Drawing.Size(568, 19)
+            Me.CH_FEED_SHOW_SPEC_MEDIAITEM.TabIndex = 9
+            Me.CH_FEED_SHOW_SPEC_MEDIAITEM.Text = "Show special feeds in media items"
+            Me.CH_FEED_SHOW_SPEC_MEDIAITEM.UseVisualStyleBackColor = True
+            '
             'TAB_NOTIFY
             '
             TAB_NOTIFY.Controls.Add(TP_NOTIFY_MAIN)
@@ -1692,10 +1704,12 @@ Namespace Editors
             TP_NOTIFY_MAIN.Controls.Add(Me.CH_NOTIFY_SAVED_POSTS, 0, 5)
             TP_NOTIFY_MAIN.Controls.Add(Me.CH_STD, 0, 6)
             TP_NOTIFY_MAIN.Controls.Add(Me.CH_STD_EVERY, 0, 7)
+            TP_NOTIFY_MAIN.Controls.Add(Me.CH_NOTIFY_LOG, 0, 8)
             TP_NOTIFY_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
             TP_NOTIFY_MAIN.Location = New System.Drawing.Point(0, 0)
             TP_NOTIFY_MAIN.Name = "TP_NOTIFY_MAIN"
-            TP_NOTIFY_MAIN.RowCount = 9
+            TP_NOTIFY_MAIN.RowCount = 10
+            TP_NOTIFY_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_NOTIFY_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_NOTIFY_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_NOTIFY_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
@@ -2140,16 +2154,17 @@ Namespace Editors
             Me.CONTAINER_MAIN.TabIndex = 0
             Me.CONTAINER_MAIN.TopToolStripPanelVisible = False
             '
-            'CH_FEED_SHOW_SPEC_MEDIAITEM
+            'CH_NOTIFY_LOG
             '
-            Me.CH_FEED_SHOW_SPEC_MEDIAITEM.AutoSize = True
-            Me.CH_FEED_SHOW_SPEC_MEDIAITEM.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_FEED_SHOW_SPEC_MEDIAITEM.Location = New System.Drawing.Point(4, 247)
-            Me.CH_FEED_SHOW_SPEC_MEDIAITEM.Name = "CH_FEED_SHOW_SPEC_MEDIAITEM"
-            Me.CH_FEED_SHOW_SPEC_MEDIAITEM.Size = New System.Drawing.Size(568, 19)
-            Me.CH_FEED_SHOW_SPEC_MEDIAITEM.TabIndex = 9
-            Me.CH_FEED_SHOW_SPEC_MEDIAITEM.Text = "Show special feeds in media items"
-            Me.CH_FEED_SHOW_SPEC_MEDIAITEM.UseVisualStyleBackColor = True
+            Me.CH_NOTIFY_LOG.AutoSize = True
+            Me.CH_NOTIFY_LOG.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_NOTIFY_LOG.Location = New System.Drawing.Point(4, 212)
+            Me.CH_NOTIFY_LOG.Name = "CH_NOTIFY_LOG"
+            Me.CH_NOTIFY_LOG.Size = New System.Drawing.Size(568, 19)
+            Me.CH_NOTIFY_LOG.TabIndex = 8
+            Me.CH_NOTIFY_LOG.Text = "The log contains new data"
+            TT_MAIN.SetToolTip(Me.CH_NOTIFY_LOG, "Show a notification when the new data is added to the log.")
+            Me.CH_NOTIFY_LOG.UseVisualStyleBackColor = True
             '
             'GlobalSettingsForm
             '
@@ -2341,5 +2356,6 @@ Namespace Editors
         Private WithEvents CH_STD_YT_CREATE_URL As CheckBox
         Private WithEvents CH_USE_DEF_ACC As CheckBox
         Private WithEvents CH_FEED_SHOW_SPEC_MEDIAITEM As CheckBox
+        Private WithEvents CH_NOTIFY_LOG As CheckBox
     End Class
 End Namespace

@@ -364,7 +364,7 @@ Namespace API.Twitter
                 DownloadModelForceApply = False
                 FirstDownloadComplete = True
             Catch jsonNull_ex As ArgumentNullException When jsonArgs.State = WebDocumentEventArgs.States.Error
-                Throw New Plugin.ExitException($"{ToStringForLog()}: No deserialized data found")
+                Throw New Plugin.ExitException("No deserialized data found")
             Catch limit_ex As TwitterLimitException
                 Throw limit_ex
             Catch ex As Exception

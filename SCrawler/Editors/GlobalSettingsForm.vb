@@ -74,6 +74,7 @@ Namespace Editors
                         CH_NOTIFY_SAVED_POSTS.Checked = .ShowNotificationsDownSavedPosts
                         CH_STD.Checked = .ShowNotificationsSTDownloader
                         CH_STD_EVERY.Checked = .ShowNotificationsSTDownloaderEveryDownload
+                        CH_NOTIFY_LOG.Checked = .ShowNotificationsLOG
                         'Defaults
                         CH_SEPARATE_VIDEO_FOLDER.Checked = .SeparateVideoFolder.Value
                         CH_DEF_TEMP.Checked = .DefaultTemporary
@@ -248,6 +249,7 @@ Namespace Editors
                     .ShowNotificationsDownSavedPosts.Value = CH_NOTIFY_SAVED_POSTS.Checked
                     .ShowNotificationsSTDownloader.Value = CH_STD.Checked
                     .ShowNotificationsSTDownloaderEveryDownload.Value = CH_STD_EVERY.Checked
+                    .ShowNotificationsLOG.Value = CH_NOTIFY_LOG.Checked
                     'Defaults
                     .SeparateVideoFolder.Value = CH_SEPARATE_VIDEO_FOLDER.Checked
                     .DefaultTemporary.Value = CH_DEF_TEMP.Checked
