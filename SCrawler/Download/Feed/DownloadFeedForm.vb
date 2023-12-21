@@ -318,7 +318,7 @@ Namespace DownloadObjects
                                                              Return False
                                                          End If
                                                      End Function
-                If Not GetLast Then __getFiles.Invoke
+                __getFiles.Invoke
                 If Not GetLast And GetFilesOnly And Not fList.ListExists Then
                     MsgBoxE({"No session files found", "Get session files"}, vbExclamation)
                 ElseIf Not GetLast AndAlso fList.ListExists Then
@@ -352,18 +352,24 @@ Namespace DownloadObjects
                             MsgBoxE(m)
                         End If
                     End Using
-                ElseIf Downloader.FilesSessionActual(False).Exists OrElse __getFiles.Invoke Then
-                    If Downloader.FilesSessionActual(False).Exists Then
-                        f = Downloader.FilesSessionActual(False)
+                ElseIf Downloader.FilesSessionActual(False).Exists OrElse fList.ListExists Then
+                    If GetLast Then
+                        If fList.ListExists Then
+                            f = fList(IIf(fList.Count > 1 And Downloader.FilesSessionActual(False).Exists, 1, 0))
+                        Else
+                            f = Downloader.FilesSessionActual(False)
+                        End If
                     Else
-                        f = fList(0)
+                        f = Downloader.FilesSessionActual(False)
                     End If
-                    x = New XmlFile(f,, False) With {.AllowSameNames = True, .XmlReadOnly = True}
-                    x.LoadData()
-                    If x.Count > 0 Then DataList.Clear() : DataList.ListAddList(x, lcr)
-                    x.Dispose()
-                    CleanDataList()
-                    RefillList(False)
+                    If f.Exists Then
+                        x = New XmlFile(f,, False) With {.AllowSameNames = True, .XmlReadOnly = True}
+                        x.LoadData()
+                        If x.Count > 0 Then DataList.Clear() : DataList.ListAddList(x, lcr)
+                        x.Dispose()
+                        CleanDataList()
+                        RefillList(False)
+                    End If
                 Else
                     m.Text = "Saved sessions not found"
                     MsgBoxE(m)

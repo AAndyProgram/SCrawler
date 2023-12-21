@@ -70,6 +70,12 @@ Friend Class MainFrameObjects : Implements INotificator
     Friend Function GetUserListProvider(ByVal WithCollections As Boolean) As IFormatProvider
         Return MF.GetUserListProvider(WithCollections)
     End Function
+    Friend Sub ShowLog()
+        MyMainLOG_ShowForm(Settings.Design,,,, Sub()
+                                                   UpdateLogButton()
+                                                   LogFormClosed()
+                                               End Sub)
+    End Sub
 #End Region
 #Region "Notifications"
     Private Sub INotificator_ShowNotification(ByVal Text As String, ByVal Image As SFile) Implements INotificator.ShowNotification
@@ -93,6 +99,7 @@ Friend Class MainFrameObjects : Implements INotificator
                     Case $"{NotificationInternalKey}_{NotifyObj.Channels}" : MF.MyChannels.FormShowS()
                     Case $"{NotificationInternalKey}_{NotifyObj.SavedPosts}" : MF.MySavedPosts.FormShowS()
                     Case $"{NotificationInternalKey}_{NotifyObj.STDownloader}" : VideoDownloader.FormShowS()
+                    Case $"{NotificationInternalKey}_{NotifyObj.LOG}" : ShowLog()
                     Case Else : Focus(True)
                 End Select
             ElseIf Settings.Automation Is Nothing OrElse Not Settings.Automation.NotificationClicked(Key, found, activateForm) Then

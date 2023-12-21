@@ -842,10 +842,7 @@ CloseResume:
 #End Region
 #End Region
     Private Sub BTT_LOG_Click(sender As Object, e As EventArgs) Handles BTT_LOG.Click
-        MyMainLOG_ShowForm(Settings.Design,,,, Sub()
-                                                   MainFrameObj.UpdateLogButton()
-                                                   MainFrameObj.LogFormClosed()
-                                               End Sub)
+        MainFrameObj.ShowLog()
     End Sub
     Private Sub BTT_VERSION_INFO_Click(sender As Object, e As EventArgs) Handles BTT_VERSION_INFO.Click
         CheckVersion(True)
