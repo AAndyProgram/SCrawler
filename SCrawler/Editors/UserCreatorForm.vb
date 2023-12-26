@@ -430,6 +430,7 @@ Namespace Editors
                                 If Not UserInstance Is Nothing Then
                                     With DirectCast(UserInstance, UserDataBase)
                                         .User = User
+                                        .ResetHost()
                                         Dim setFriendly As Boolean = True
                                         If FriendlyNameIsSiteName Then
                                             If Not FriendlyNameChanged Then
@@ -590,7 +591,7 @@ CloseForm:
         End Sub
         Private _AccountsRefilling As Boolean = False
         Private Sub CMB_ACCOUNT_ActionSelectedItemChanged(ByVal Sender As Object, ByVal e As EventArgs, ByVal Item As ListViewItem) Handles CMB_ACCOUNT.ActionSelectedItemChanged
-            If Not _AccountsRefilling Then SetParamsBySite(False)
+            If Not _AccountsRefilling And UserInstance Is Nothing Then SetParamsBySite(False)
         End Sub
         Private Sub CH_TEMP_CheckedChanged(sender As Object, e As EventArgs) Handles CH_TEMP.CheckedChanged
             If CH_TEMP.Checked Then CH_FAV.Checked = False : CH_READY_FOR_DOWN.Checked = False

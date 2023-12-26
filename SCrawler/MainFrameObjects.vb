@@ -21,8 +21,8 @@ Friend Class MainFrameObjects : Implements INotificator
         PauseButtons = New DownloadObjects.AutoDownloaderPauseButtons(DownloadObjects.AutoDownloaderPauseButtons.ButtonsPlace.MainFrame)
         ProgramLogInitialize()
         With ProgramLog
-            AddHandler ProgramLog.TextAdded, AddressOf ProgramLog_TextAdded
-            AddHandler ProgramLog.TextCleared, AddressOf ProgramLog_TextCleared
+            AddHandler .TextAdded, AddressOf ProgramLog_TextAdded
+            AddHandler .TextCleared, AddressOf ProgramLog_TextCleared
         End With
     End Sub
 #Region "Users"

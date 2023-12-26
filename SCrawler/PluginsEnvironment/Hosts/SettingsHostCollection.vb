@@ -122,7 +122,7 @@ Namespace Plugin.Hosts
             AddHandler Host.OkClick, AddressOf Hosts_OkClick
             AddHandler Host.Deleted, AddressOf Hosts_Deleted
             AddHandler Host.CloneClick, AddressOf Hosts_CloneClick
-            If Host.Index > 0 Then Host.Source.DefaultInstance = [Default].Source
+            If Host.Index > 0 Then Host.Source.DefaultInstance = [Default].Source : Host.DefaultInstanceChanged()
         End Sub
         Private Sub Hosts_OkClick(ByVal Obj As SettingsHost)
             If Obj.Index = -1 Then

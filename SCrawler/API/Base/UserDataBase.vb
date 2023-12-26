@@ -205,7 +205,7 @@ Namespace API.Base
                 If Not h Is Nothing Then _HostKey = h.Key
             End Set
         End Property
-        Private Sub ResetHost()
+        Friend Sub ResetHost()
             _HostObtained = False
         End Sub
         Friend Property HostStatic As Boolean = False Implements IUserData.HostStatic

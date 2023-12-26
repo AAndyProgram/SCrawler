@@ -23,6 +23,7 @@ Namespace Plugin.Hosts
         Private ReadOnly Keeper As SettingsHost
         Protected Source As Object 'ReadOnly
         Protected Member As MemberInfo
+        Private ReadOnly MemberRef As MemberInfo
         Friend ReadOnly Options As PropertyOption
         Friend Overridable ReadOnly Property Name As String
         Protected _Type As Type
@@ -41,7 +42,7 @@ Namespace Plugin.Hosts
 #End Region
 #Region "Control"
         Friend Property Control As Control
-        Protected ControlNumber As Integer = -1
+        Friend Property ControlNumber As Integer = -1
         Friend ReadOnly Property ControlHeight As Integer
             Get
                 If Not Control Is Nothing Then
@@ -245,13 +246,12 @@ Namespace Plugin.Hosts
             Me.Keeper = Keeper
             Source = PropertySource
             Name = Member.Name
+            MemberRef = Member
 
             ControlNumber = If(Member.GetCustomAttribute(Of ControlNumber)()?.PropertyNumber, -1)
 
             If DirectCast(Member, PropertyInfo).PropertyType Is GetType(PropertyValue) Then
-                ExternalValue = DirectCast(DirectCast(Member, PropertyInfo).GetValue(Source), PropertyValue)
-                _Value = ExternalValue.Value
-                AddHandler ExternalValue.ValueChanged, AddressOf ExternalValueChanged
+                UpdateMember()
                 Options = Member.GetCustomAttribute(Of PropertyOption)()
                 IsTaskCounter = Not Member.GetCustomAttribute(Of TaskCounter)() Is Nothing
                 _XmlName = If(Member.GetCustomAttribute(Of PXML)()?.ElementName, String.Empty)
@@ -274,9 +274,22 @@ Namespace Plugin.Hosts
                 Next
             End If
         End Sub
+        Friend Sub UpdateMember()
+            If Not ExternalValue Is Nothing Then
+                Try : RemoveHandler ExternalValue.ValueChanged, AddressOf ExternalValueChanged : Catch : End Try
+            End If
+            _ExternalValue = DirectCast(DirectCast(MemberRef, PropertyInfo).GetValue(Source), PropertyValue)
+            _Value = ExternalValue.Value
+            AddHandler ExternalValue.ValueChanged, AddressOf ExternalValueChanged
+        End Sub
 #End Region
 #Region "Value"
-        Protected ReadOnly Property ExternalValue As PropertyValue
+        Private _ExternalValue As PropertyValue = Nothing
+        Private ReadOnly Property ExternalValue As PropertyValue
+            Get
+                Return _ExternalValue
+            End Get
+        End Property
         Friend ReadOnly Property XValue As IXMLValue
         Protected _Value As Object
         Friend Overloads Property Value As Object Implements IPropertyValue.Value

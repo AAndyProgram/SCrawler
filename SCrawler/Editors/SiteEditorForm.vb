@@ -213,7 +213,7 @@ Namespace Editors
                             Dim loAdded As Boolean = False
                             Dim pArr() As Boolean
                             If .PropList.Exists(Function(p) If(p.Options?.IsAuth, False)) Then pArr = {True, False} Else pArr = {False}
-                            .PropList.Sort()
+                            If .PropList.Exists(Function(p) p.ControlNumber >= 0) Then .PropList.Sort()
                             For Each pAuth As Boolean In pArr
                                 For Each prop As PropertyValueHost In .PropList
                                     If Not prop.Options Is Nothing Then

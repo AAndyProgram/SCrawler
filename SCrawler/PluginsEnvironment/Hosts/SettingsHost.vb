@@ -143,6 +143,9 @@ Namespace Plugin.Hosts
             End Set
         End Property
         Friend ReadOnly Property [Default] As Boolean
+        Friend Sub DefaultInstanceChanged()
+            If PropList.Count > 0 Then PropList.ForEach(Sub(p) p.UpdateMember())
+        End Sub
         Friend ReadOnly Property IsSeparatedTasks As Boolean = False
         Friend ReadOnly Property IsSavedPostsCompatible As Boolean = False
         Private ReadOnly _TaskCountDefined As Integer? = Nothing
