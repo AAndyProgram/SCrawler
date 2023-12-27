@@ -194,6 +194,11 @@
     <Compile Include="API\Mastodon\SiteSettings.vb" />
     <Compile Include="API\Mastodon\UserData.vb" />
     <Compile Include="API\OnlyFans\Declarations.vb" />
+    <Compile Include="API\OnlyFans\OFResources.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>OFResources.resx</DependentUpon>
+    </Compile>
     <Compile Include="API\OnlyFans\SiteSettings.vb" />
     <Compile Include="API\OnlyFans\UserData.vb" />
     <Compile Include="API\OnlyFans\UserExchangeOptions.vb" />
@@ -490,6 +495,11 @@
     <EmbeddedResource Include="API\BaseObjects\InternalSettingsForm.resx">
       <DependentUpon>InternalSettingsForm.vb</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="API\OnlyFans\OFResources.resx">
+      <CustomToolNamespace>My.Resources</CustomToolNamespace>
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>OFResources.Designer.vb</LastGenOutput>
+    </EmbeddedResource>
     <EmbeddedResource Include="API\Reddit\RedditViewSettingsForm.resx">
       <DependentUpon>RedditViewSettingsForm.vb</DependentUpon>
     </EmbeddedResource>
@@ -588,6 +598,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include=".editorconfig" />
+    <None Include="API\OnlyFans\OFScraperConfigPattern.json" />
     <None Include="Content\Pictures\ApplicationPic_16.png" />
     <None Include="Content\Pictures\BookmarkBlack_16.png" />
     <None Include="Content\Pictures\DBPic_32.png" />

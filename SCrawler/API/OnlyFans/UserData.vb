@@ -7,10 +7,12 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports System.Threading
+Imports System.Text.RegularExpressions
 Imports SCrawler.API.Base
 Imports SCrawler.API.YouTube.Objects
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.RegularExpressions
+Imports PersonalUtilities.Tools
 Imports PersonalUtilities.Tools.Web.Clients
 Imports PersonalUtilities.Tools.Web.Clients.EventArguments
 Imports PersonalUtilities.Tools.Web.Cookies
@@ -65,11 +67,20 @@ Namespace API.OnlyFans
 #Region "Initializer"
         Friend Sub New()
             HighlightsList = New List(Of String)
+            UseInternalDownloadFileFunction = True
         End Sub
 #End Region
 #Region "Download functions"
+        Private _OFScraperExists As Boolean = False
+        Private OFSCache As CacheKeeper = Nothing
+        Private _AbsMediaIndex As Integer = 0
+        Private Sub ValidateOFScraper()
+            _OFScraperExists = ACheck(MySettings.OFScraperPath.Value) AndAlso CStr(MySettings.OFScraperPath.Value).CSFile.Exists
+        End Sub
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
             If Not MySettings.SessionAborted Then
+                ValidateOFScraper()
+                _AbsMediaIndex = 0
                 If Not CCookie Is Nothing Then CCookie.Dispose()
                 CCookie = Responser.Cookies.Copy
                 Responser.Cookies.Clear()
@@ -307,8 +318,8 @@ Namespace API.OnlyFans
 #End Region
         Private Function TryCreateMedia(ByVal n As EContainer, ByVal PostID As String, Optional ByVal PostDate As String = Nothing,
                                         Optional ByRef Result As Boolean = False, Optional ByVal IsHL As Boolean = False,
-                                        Optional ByVal SpecFolder As String = Nothing) As List(Of UserMedia)
-            Dim postUrl$, ext$
+                                        Optional ByVal SpecFolder As String = Nothing, Optional ByVal PostUserID As String = Nothing) As List(Of UserMedia)
+            Dim postUrl$, postUrlBase$, ext$
             Dim t As UTypes
             Dim mList As New List(Of UserMedia)
             Result = False
@@ -320,16 +331,27 @@ Namespace API.OnlyFans
                         Else
                             postUrl = m.Value({"source"}, "source").IfNullOrEmpty(m.Value("full"))
                         End If
+                        postUrlBase = String.Empty
                         Select Case m.Value("type")
                             Case "photo" : t = UTypes.Picture : ext = "jpg"
-                            Case "video" : t = UTypes.Video : ext = "mp4"
+                            Case "video"
+                                t = UTypes.Video
+                                ext = "mp4"
+                                If postUrl.IsEmptyString And Not IsHL Then
+                                    t = UTypes.VideoPre
+                                    _AbsMediaIndex += 1
+                                    If Not PostUserID.IsEmptyString And IsSingleObjectDownload Then _
+                                       postUrlBase = String.Format(SiteSettings.UserPostPattern, PostID, $"u{PostUserID}")
+                                End If
                             Case Else : t = UTypes.Undefined : ext = String.Empty
                         End Select
-                        If Not t = UTypes.Undefined And Not postUrl.IsEmptyString Then
-                            Dim media As New UserMedia(postUrl, t) With {
+                        If Not t = UTypes.Undefined And (Not postUrl.IsEmptyString Or t = UTypes.VideoPre) Then
+                            Dim media As New UserMedia(postUrl.IfNullOrEmpty(IIf(t = UTypes.VideoPre, $"{t}{_AbsMediaIndex}", String.Empty)), t) With {
                                 .Post = New UserPost(PostID, AConvert(Of Date)(PostDate, DateProvider, Nothing)),
                                 .SpecialFolder = SpecFolder
                             }
+                            If postUrlBase.IsEmptyString And Not IsSingleObjectDownload Then postUrlBase = GetPostUrl(Me, media)
+                            If Not postUrlBase.IsEmptyString Then media.URL_BASE = postUrlBase
                             media.File.Extension = ext
                             Result = True
                             mList.Add(media)
@@ -387,7 +409,7 @@ Namespace API.OnlyFans
                                                                                 End Function
                     Dim mList As List(Of UserMedia)
                     Dim mediaResult As Boolean
-                    Dim r$, path$, postDate$
+                    Dim r$, path$, postDate$, postUserID$
                     Dim j As EContainer
                     ProgressPre.ChangeMax(_ContentList.Count)
                     For i% = 0 To _ContentList.Count - 1
@@ -404,8 +426,9 @@ Namespace API.OnlyFans
                                         j = JsonDocument.Parse(r)
                                         If Not j Is Nothing Then
                                             postDate = j.Value("postedAt")
+                                            postUserID = j.Value({"author"}, "id")
                                             mediaResult = False
-                                            mList = TryCreateMedia(j, m.Post.ID, postDate, mediaResult)
+                                            mList = TryCreateMedia(j, m.Post.ID, postDate, mediaResult,,, postUserID)
                                             If mediaResult Then
                                                 _TempMediaList.ListAddList(mList.ListForEachCopy(stateRefill, True), LNC)
                                                 rList.Add(i)
@@ -531,10 +554,145 @@ Namespace API.OnlyFans
             Return result
         End Function
 #End Region
+#Region "OFScraper support"
+        Private Function OFS_DownloadFile(ByVal URL As String, ByVal Token As CancellationToken) As List(Of SFile)
+            Try
+                Const requestPattern$ = """{0}"" manual --config ""{1}"" --url {2}"
+                Dim conf As SFile = OFS_CreateConfig()
+                If conf.Exists Then
+                    Dim command$ = String.Format(requestPattern, MySettings.OFScraperPath.Value, conf, URL)
+                    '#If DEBUG Then
+                    'Debug.WriteLine(command)
+                    '#End If
+                    Using b As New TokenBatch(Token) : b.Execute(command) : End Using
+                    Return SFile.GetFiles(conf, "*.mp4", IO.SearchOption.AllDirectories, EDP.ReturnValue)
+                End If
+                Return Nothing
+            Catch ex As Exception
+                Return ErrorsDescriber.Execute(EDP.SendToLog, ex, "OnlyFans.UserData.OFS_DownloadFile", Nothing)
+            End Try
+        End Function
+        Private Function OFS_CreateConfig() As SFile
+            Try
+                Const confMainPattern$ = "{0}"": ""([^""]*)"""
+                If OFSCache Is Nothing Then OFSCache = If(IsSingleObjectDownload, Settings.Cache.NewInstance, CreateCache())
+                Dim currentCache As CacheKeeper = OFSCache.NewInstance
+                currentCache.Validate()
+                Dim cacheRoot As SFile = currentCache.NewPath
+                cacheRoot.Exists(SFO.Path, True, EDP.ThrowException)
+                Dim f As SFile = $"{SettingsFolderName}\OFScraperConfigPattern.json"
+                Dim configText$
+                If Not f.Exists Then
+                    configText = Text.Encoding.UTF8.GetString(My.Resources.OFResources.OFScraperConfigPattern)
+                    TextSaver.SaveTextToFile(configText, f, True)
+                End If
+                If f.Exists Then
+                    Dim replaceValue$ = String.Empty
+                    Dim rp As RParams = RParams.DMS(String.Empty, 1, RegexReturn.Replace, RegexOptions.IgnoreCase,
+                                                    CType(Function(input) replaceValue, Func(Of String, String)), String.Empty, EDP.ReturnValue)
+                    Dim ff As SFile
+                    configText = f.GetText
+                    Dim updateConf As Action(Of String, String) = Sub(ByVal patternValue As String, ByVal __replaceValue As String)
+                                                                      rp.Pattern = String.Format(confMainPattern, patternValue)
+                                                                      rp.Nothing = configText
+                                                                      replaceValue = __replaceValue
+                                                                      configText = RegexReplace(configText, rp)
+                                                                  End Sub
+                    If Not configText.IsEmptyString Then
+                        updateConf("save_location", cacheRoot.PathNoSeparator.Replace("\", "/"))
+                        If ACheck(MySettings.OFScraperMP4decrypt.Value) Then
+                            ff = CStr(MySettings.OFScraperMP4decrypt.Value)
+                            If ff.Exists Then updateConf("mp4decrypt", ff.ToString.Replace("\", "/"))
+                        End If
+                        If Settings.FfmpegFile.Exists Then updateConf("ffmpeg", Settings.FfmpegFile.File.ToString.Replace("\", "/"))
+                        updateConf("key-mode-default", CStr(MySettings.KeyModeDefault.Value).IfNullOrEmpty(SiteSettings.KeyModeDefault_Default))
+                        f = currentCache
+                        f.Name = "config"
+                        f.Extension = "json"
+                        If TextSaver.SaveTextToFile(configText, f, True).Exists AndAlso OFS_CreateAuth(currentCache) Then Return f
+                    End If
+                End If
+                Return Nothing
+            Catch ex As Exception
+                Return ErrorsDescriber.Execute(EDP.SendToLog, ex, "OnlyFans.UserData.OFS_CreateConfig", Nothing)
+            End Try
+        End Function
+        Private Function OFS_CreateAuth(ByVal DestinationPath As SFile) As Boolean
+            Const authText$ = """user_agent"": ""{0}"",""app-token"": ""{1}"",""x-bc"": ""{2}"",""auth_id"": ""{3}"",""sess"": ""{4}"",""auth_uid_"": ""{3}"",""cookie"": ""{5}"""
+            Try
+                Dim sess$ = If(If(CCookie, Responser.Cookies).FirstOrDefault(Function(c) c.Name.StringToLower = "sess")?.Value, String.Empty)
+                Dim outText$ = "{""auth"":{" &
+                               String.Format(authText,
+                                             MySettings.UserAgent.Value,
+                                             Responser.Headers.Value(SiteSettings.HeaderAppToken),
+                                             Responser.Headers.Value(SiteSettings.HeaderXBC),
+                                             MySettings.HH_USER_ID.Value,
+                                             sess,
+                                             If(CCookie, Responser.Cookies).ToString()) &
+                                             "}}"
+                If DestinationPath.Exists(SFO.Path, False) Then
+                    Dim f As SFile = $"{DestinationPath.PathWithSeparator}main_profile\auth.json"
+                    Return TextSaver.SaveTextToFile(outText, f, True).Exists
+                End If
+                Return False
+            Catch ex As Exception
+                Return ErrorsDescriber.Execute(EDP.SendToLog, ex, "OnlyFans.UserData.OFS_CreateAuth", False)
+            End Try
+        End Function
+#End Region
 #Region "DownloadContent"
+        Private OFSPostFiles As Dictionary(Of String, List(Of SFile)) = Nothing
         Protected Overrides Sub DownloadContent(ByVal Token As CancellationToken)
             DownloadContentDefault(Token)
+            OFSCache.DisposeIfReady
+            OFSPostFiles.ListClearDispose
         End Sub
+        Protected Overrides Function ValidateDownloadFile(ByVal URL As String, ByVal Media As UserMedia, ByRef Interrupt As Boolean) As Boolean
+            Return Media.Type = UTypes.VideoPre
+        End Function
+        Protected Overrides Function DownloadFile(ByVal URL As String, ByVal Media As UserMedia, ByVal DestinationFile As SFile,
+                                                  ByVal Token As CancellationToken) As SFile
+            ValidateOFScraper()
+            If _OFScraperExists Then
+                If OFSPostFiles Is Nothing Then OFSPostFiles = New Dictionary(Of String, List(Of SFile))
+                If IsSingleObjectDownload Then
+                    URL = Media.URL_BASE
+                Else
+                    URL = GetPostUrl(Me, Media)
+                End If
+                If Not URL.IsEmptyString Then
+                    Dim f As SFile = Nothing
+                    If OFSPostFiles.Count > 0 AndAlso OFSPostFiles.ContainsKey(Media.Post.ID) AndAlso OFSPostFiles(Media.Post.ID).Count > 0 Then
+                        f = OFSPostFiles(Media.Post.ID)(0)
+                        OFSPostFiles(Media.Post.ID).RemoveAt(0)
+                    Else
+                        Dim files As List(Of SFile) = OFS_DownloadFile(URL, Token)
+                        If files.ListExists Then
+                            Dim ff As SFile
+                            For i% = files.Count - 1 To 0 Step -1
+                                ff = files(i)
+                                DestinationFile.Name = ff.Name
+                                DestinationFile.Extension = ff.Extension
+                                If SFile.Move(ff, DestinationFile,,,, EDP.ThrowException) Then
+                                    files(i) = DestinationFile
+                                Else
+                                    files.RemoveAt(i)
+                                End If
+                            Next
+                            If files.Count > 0 Then
+                                f = files(0)
+                                files.RemoveAt(0)
+                                If files.Count > 0 Then OFSPostFiles.Add(Media.Post.ID, files)
+                            End If
+                        End If
+                    End If
+                    Return f
+                End If
+                Return Nothing
+            Else
+                Throw New InvalidProgramException("OF-Scraper not found")
+            End If
+        End Function
 #End Region
 #Region "DownloadingException"
         Private _DownloadingException_AuthFileUpdate As Boolean = False
@@ -546,7 +704,7 @@ Namespace API.OnlyFans
                     Return 2
                 Else
                     MySettings.SessionAborted = True
-                    MyMainLOG = $"{ToStringForLog()}: OnlyFans credentials expired"
+                    MyMainLOG = $"{ToStringForLog()} [{CInt(Responser.StatusCode)}]: OnlyFans credentials expired"
                     Return 1
                 End If
             ElseIf Responser.StatusCode = Net.HttpStatusCode.NotFound Then '404
@@ -558,7 +716,7 @@ Namespace API.OnlyFans
                 Return 1
             ElseIf Responser.StatusCode = Net.HttpStatusCode.Unauthorized Then '401
                 MySettings.SessionAborted = True
-                MyMainLOG = $"{ToStringForLog()}: OnlyFans credentials expired"
+                MyMainLOG = $"{ToStringForLog()} [{CInt(Responser.StatusCode)}]: OnlyFans credentials expired"
                 Return 1
             Else
                 Return 0
@@ -567,7 +725,13 @@ Namespace API.OnlyFans
 #End Region
 #Region "IDisposable Support"
         Protected Overrides Sub Dispose(ByVal disposing As Boolean)
-            If Not disposedValue And disposing Then CCookie.DisposeIfReady(False) : CCookie = Nothing : HighlightsList.Clear()
+            If Not disposedValue And disposing Then
+                CCookie.DisposeIfReady(False)
+                CCookie = Nothing
+                HighlightsList.Clear()
+                OFSCache.DisposeIfReady
+                OFSPostFiles.ListClearDispose
+            End If
             MyBase.Dispose(disposing)
         End Sub
 #End Region

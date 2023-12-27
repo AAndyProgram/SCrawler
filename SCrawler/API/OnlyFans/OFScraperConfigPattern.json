@@ -1,0 +1,61 @@
+{
+    "config": {
+        "main_profile": "main_profile",
+        "metadata": "{configpath}/{profile}/.data/{model_username}_{model_id}",
+        "discord": "",
+        "file_options": {
+            "save_location": "",
+            "dir_format": "",
+            "file_format": "{filename}.{ext}",
+            "textlength": 0,
+            "space-replacer": " ",
+            "date": "YYYY-MM-DD"
+        },
+        "download_options": {
+            "file_size_limit": 0,
+            "file_size_min": 0,
+            "filter": [
+                "Images",
+                "Audios",
+                "Videos"
+            ],
+            "auto_resume": false
+        },
+        "binary_options": {
+            "mp4decrypt": "",
+            "ffmpeg": ""
+        },
+        "cdm_options": {
+            "private-key": null,
+            "client-id": null,
+            "key-mode-default": "cdrm",
+            "keydb_api": ""
+        },
+        "performance_options": {
+            "download-sems": 6,
+            "maxfile-sem": 0,
+            "threads": 5
+        },
+        "advanced_options": {
+            "code-execution": false,
+            "dynamic-mode-default": "deviint",
+            "backend": "aio",
+            "downloadbars": false,
+            "cache-mode": "sqlite",
+            "appendlog": true,
+            "custom": null,
+            "sanitize_text": false,
+            "avatar": true
+        },
+        "responsetype": {
+            "timeline": "Posts",
+            "message": "Messages",
+            "archived": "Archived",
+            "paid": "Messages",
+            "stories": "Stories",
+            "highlights": "Stories",
+            "profile": "Profile",
+            "pinned": "Posts"
+        }
+    }
+}

@@ -122,7 +122,14 @@ Namespace DownloadObjects
                 Return _FilesSessionActual
             End Get
         End Property
+        Private _FilesSaving As Boolean = False
         Friend Sub FilesSave()
+            While _FilesSaving Or _FilesUpdating : Thread.Sleep(100) : End While
+            Dim i% = 0
+            While Not FilesSaveImpl() And i < 10 : i += 1 : End While
+        End Sub
+        Private Function FilesSaveImpl() As Boolean
+            _FilesSaving = True
             Try
                 If Settings.FeedStoreSessionsData And Files.Count > 0 Then
                     ClearSessions()
@@ -131,10 +138,13 @@ Namespace DownloadObjects
                         x.Save(FilesSessionActual)
                     End Using
                 End If
+                Return True
             Catch ex As Exception
-                ErrorsDescriber.Execute(EDP.SendToLog, ex, "[DownloadObjects.TDownloader.FilesSave]")
+                Return ErrorsDescriber.Execute(EDP.SendToLog, ex, "[DownloadObjects.TDownloader.FilesSave]", False)
+            Finally
+                _FilesSaving = False
             End Try
-        End Sub
+        End Function
         Private _FilesUpdating As Boolean = False
         Friend Sub FilesUpdatePendingUsers()
             _FilesUpdating = True

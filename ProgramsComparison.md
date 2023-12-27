@@ -6,11 +6,19 @@ https://github.com/yt-dlp/yt-dlp/
 
 SCrawler has advanced user management, collections, labels, groups, automatic downloads, a beautiful view, GUI, the ability to add plugins for other sites and much more. Just try it and compare.
 
+# gallery-dl
+
+https://github.com/mikf/gallery-dl
+
+**Great powerful CLI tool that supports hundreds of sites.**
+
+SCrawler has advanced user management, collections, labels, groups, automatic downloads, a beautiful view, GUI, the ability to add plugins for other sites and much more. Just try it and compare.
+
 # 4K Video Downloader
 
 https://www.4kdownload.com/-plbrz/video-downloader
 
-| Option | SCrawler | 4K Stogram |
+| Option | SCrawler | 4K Video Downloader |
 | ---- | ---- | ---- |
 | User managament | **Advanced** | No |
 | Automatic downloads | **Yes** | No |
@@ -121,10 +129,3 @@ https://github.com/RipMeApp/ripme
 | Other sites support | **Yes** | No |
 | Still supported | **Yes** | **No (last release date May 4, 2021)** |
 
-# gallery-dl
-
-https://github.com/mikf/gallery-dl
-
-**CLI tool**
-
-SCrawler has advanced user management, collections, labels, groups, automatic downloads, a beautiful view, GUI, the ability to add plugins for other sites and much more. Just try it and compare.

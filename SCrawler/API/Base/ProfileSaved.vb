@@ -47,7 +47,7 @@ Namespace API.Base
                     Progress.InformationTemporary = $"{HOST.Name} ({c - s}/{c}) Images: {_TotalImages}; Videos: {_TotalVideos}"
                 End If
             End If
-            If _FeedDataExists Then Downloader.Files.Sort()
+            If _FeedDataExists Then Downloader.Files.Sort() : Downloader.FilesSave()
         End Sub
         Private Overloads Sub Download(ByVal Host As SettingsHost, ByVal Number As Integer, ByVal Count As Integer,
                                        ByVal Token As CancellationToken, ByVal Multiple As Boolean)

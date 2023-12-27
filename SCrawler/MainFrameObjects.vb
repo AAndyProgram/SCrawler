@@ -99,7 +99,7 @@ Friend Class MainFrameObjects : Implements INotificator
                     Case $"{NotificationInternalKey}_{NotifyObj.Channels}" : MF.MyChannels.FormShowS()
                     Case $"{NotificationInternalKey}_{NotifyObj.SavedPosts}" : MF.MySavedPosts.FormShowS()
                     Case $"{NotificationInternalKey}_{NotifyObj.STDownloader}" : VideoDownloader.FormShowS()
-                    Case $"{NotificationInternalKey}_{NotifyObj.LOG}" : ShowLog()
+                    Case $"{NotificationInternalKey}_{NotifyObj.LOG}" : ControlInvokeFast(MF, AddressOf ShowLog, EDP.LogMessageValue)
                     Case Else : Focus(True)
                 End Select
             ElseIf Settings.Automation Is Nothing OrElse Not Settings.Automation.NotificationClicked(Key, found, activateForm) Then

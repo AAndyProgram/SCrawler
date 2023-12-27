@@ -26,8 +26,8 @@ Namespace API.OnlyFans
 #Region "Headers"
         Private Const HeaderBrowser As String = "sec-ch-ua"
         Private Const HeaderUserID As String = "User-Id"
-        Private Const HeaderXBC As String = "X-Bc"
-        Private Const HeaderAppToken As String = "App-Token"
+        Friend Const HeaderXBC As String = "X-Bc"
+        Friend Const HeaderAppToken As String = "App-Token"
         <PropertyOption(ControlText:=HeaderUserID, AllowNull:=False), PClonable(Clone:=False)>
         Friend ReadOnly Property HH_USER_ID As PropertyValue
         <PropertyOption(ControlText:=HeaderXBC, AllowNull:=False), PClonable(Clone:=False)>
@@ -37,7 +37,7 @@ Namespace API.OnlyFans
         <PropertyOption(ControlText:=HeaderBrowser, ControlToolTip:="Can be null", AllowNull:=True), PClonable>
         Private ReadOnly Property HH_BROWSER As PropertyValue
         <PropertyOption(AllowNull:=False), PClonable>
-        Private ReadOnly Property UserAgent As PropertyValue
+        Friend ReadOnly Property UserAgent As PropertyValue
         Private Sub UpdateHeader(ByVal PropertyName As String, ByVal Value As String)
             Dim hName$ = String.Empty
             Dim isUserAgent As Boolean = False
@@ -78,6 +78,42 @@ Namespace API.OnlyFans
                                         "Change this value only if you know what you are doing."), PXML, PClonable>
         Friend ReadOnly Property DynamicRules As PropertyValue
 #End Region
+#Region "OFScraper"
+        <PClonable, PXML("OFScraperPath")> Private ReadOnly Property OFScraperPath_XML As PropertyValue
+        <PropertyOption(ControlText:="OF-Scraper path", ControlToolTip:="The path to the 'ofscraper.exe'")>
+        Friend ReadOnly Property OFScraperPath As PropertyValue
+            Get
+                If Not DefaultInstance Is Nothing Then
+                    Return DirectCast(DefaultInstance, SiteSettings).OFScraperPath_XML
+                Else
+                    Return OFScraperPath_XML
+                End If
+            End Get
+        End Property
+        <PClonable, PXML("OFScraperMP4decrypt")> Private ReadOnly Property OFScraperMP4decrypt_XML As PropertyValue
+        <PropertyOption(ControlText:="mp4decrypt path", ControlToolTip:="The path to the 'mp4decrypt.exe'")>
+        Friend ReadOnly Property OFScraperMP4decrypt As PropertyValue
+            Get
+                If Not DefaultInstance Is Nothing Then
+                    Return DirectCast(DefaultInstance, SiteSettings).OFScraperMP4decrypt_XML
+                Else
+                    Return OFScraperMP4decrypt_XML
+                End If
+            End Get
+        End Property
+        Friend Const KeyModeDefault_Default As String = "cdrm"
+        <PClonable, PXML("KeyModeDefault")> Private ReadOnly Property KeyModeDefault_XML As PropertyValue
+        <PropertyOption(ControlText:="key-mode-default")>
+        Friend ReadOnly Property KeyModeDefault As PropertyValue
+            Get
+                If Not DefaultInstance Is Nothing Then
+                    Return DirectCast(DefaultInstance, SiteSettings).KeyModeDefault_XML
+                Else
+                    Return KeyModeDefault_XML
+                End If
+            End Get
+        End Property
+#End Region
 #End Region
 #Region "Initializer"
         Friend Sub New(ByVal AccName As String, ByVal Temp As Boolean)
@@ -117,6 +153,21 @@ Namespace API.OnlyFans
             DynamicRulesUpdateIntervalProvider = New FieldsCheckerProviderSimple(Function(v) IIf(AConvert(Of Integer)(v, 0) > 0, v, Nothing),
                                                                                  "The value of [{0}] field must be greater than 0")
             DynamicRules = New PropertyValue(String.Empty, GetType(String))
+            OFScraperPath_XML = New PropertyValue(String.Empty, GetType(String))
+            If ACheck(OFScraperPath_XML.Value) Then
+                Dim f As SFile = OFScraperPath_XML.Value
+                If Not f.Exists AndAlso f.Exists(SFO.Path, False) Then
+                    With SFile.GetFiles(f, "*.exe",, EDP.ReturnValue)
+                        If .ListExists Then
+                            f = .FirstOrDefault(Function(ff) ff.Name.StringToLower.StartsWith("ofscraper"))
+                            If f.Exists Then OFScraperPath_XML.Value = f.ToString
+                        End If
+                    End With
+                End If
+            End If
+            OFScraperMP4decrypt_XML = New PropertyValue(String.Empty, GetType(String))
+            KeyModeDefault_XML = New PropertyValue(KeyModeDefault_Default)
+
             UserRegex = RParams.DMS("onlyfans.com/([\w\._]+)", 1, EDP.ReturnValue)
             UrlPatternUser = "https://onlyfans.com/{0}"
             ImageVideoContains = "onlyfans.com"
@@ -151,6 +202,7 @@ Namespace API.OnlyFans
         End Sub
 #End Region
 #Region "GetUserUrl, GetUserPostUrl, UserOptions"
+        Friend Const UserPostPattern As String = "https://onlyfans.com/{0}/{1}"
         Friend Overrides Function GetUserUrl(ByVal User As IPluginContentProvider) As String
             Return String.Format(UrlPatternUser, If(User.ID.IsEmptyString, User.Name, $"u{User.ID}"))
         End Function
@@ -168,7 +220,7 @@ Namespace API.OnlyFans
                 If p.IsEmptyString Then
                     Return GetUserUrl(User)
                 Else
-                    Return String.Format("https://onlyfans.com/{0}/{1}", p, If(User.ID.IsEmptyString, User.Name, $"u{User.ID}"))
+                    Return String.Format(UserPostPattern, p, If(User.ID.IsEmptyString, User.Name, $"u{User.ID}"))
                 End If
             Else
                 Return String.Empty

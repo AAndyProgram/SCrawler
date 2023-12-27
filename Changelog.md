@@ -1,3 +1,17 @@
+# 2023.12.27.0
+
+*2023-12-27*
+
+- Added
+  - Notification of new log data
+  - OnlyFans: **OF-Scrapper support to download DRM protected videos**
+  - Other improvements
+- Fixed
+  - The default options are changed (`Favorite`, `Temporary`, etc.) when changing an account for a created user
+  - When changing the account for a created user, the new account does not apply to that user until SCrawler is restarted
+  - Saved posts: session file is not updated when new data is added
+  - Minor bugs
+
 # 2023.12.15.0
 
 *2023-12-15*
