@@ -19,6 +19,7 @@ Namespace API.Xhamster
     Friend Class UserData : Inherits UserDataBase
 #Region "XML names"
         Private Const Name_Gender As String = "Gender"
+        Private Const Name_IsCreator As String = "IsCreator"
 #End Region
 #Region "Declarations"
         Friend Overrides ReadOnly Property FeedIsUser As Boolean
@@ -27,6 +28,7 @@ Namespace API.Xhamster
             End Get
         End Property
         Friend Property IsChannel As Boolean = False
+        Friend Property IsCreator As Boolean = False
         Friend Property TrueName As String = String.Empty
         Friend Property Gender As String = String.Empty
         Friend Property SiteMode As SiteModes = SiteModes.User
@@ -77,7 +79,8 @@ Namespace API.Xhamster
                         If n.Length = 2 And If(Force, eObj.Options, Options).IsEmptyString Then
                             If Force Then Return False
                             TrueName = n(0)
-                            IsChannel = True
+                            IsChannel = n(1) = SiteSettings.ChannelOption
+                            IsCreator = n(1) = SiteSettings.P_Creators
                         ElseIf IsChannel Then
                             If Force Then Return False
                             TrueName = Name
@@ -89,6 +92,7 @@ Namespace API.Xhamster
                             If n2.ListExists Then
                                 IsChannel = False
                                 __Mode = CInt(n2(0))
+                                IsCreator = __Mode = SiteModes.User
                                 __Gender = n2(1)
                                 __Arguments = n2(3)
                                 __TrueName = n2.ListTake(3, 100, EDP.ReturnValue).ListToString(String.Empty)
@@ -139,6 +143,7 @@ Namespace API.Xhamster
             With Container
                 If Loading Then
                     IsChannel = .Value(Name_IsChannel).FromXML(Of Boolean)(False)
+                    IsCreator = .Value(Name_IsCreator).FromXML(Of Boolean)(False)
                     TrueName = .Value(Name_TrueName)
                     Gender = .Value(Name_Gender)
                     SiteMode = .Value(Name_SiteMode).FromXML(Of Integer)(SiteModes.User)
@@ -151,6 +156,7 @@ Namespace API.Xhamster
                         .Value(Name_FriendlyName) = FriendlyName
                     End If
                     .Add(Name_IsChannel, IsChannel.BoolToInteger)
+                    .Add(Name_IsCreator, IsCreator.BoolToInteger)
                     .Add(Name_TrueName, TrueName)
                     .Add(Name_Gender, Gender)
                     .Add(Name_SiteMode, CInt(SiteMode))
@@ -178,7 +184,7 @@ Namespace API.Xhamster
 #End Region
 #Region "Download functions"
         Friend Function GetNonUserUrl(ByVal Page As Integer) As String
-            If SiteMode = SiteModes.User Then
+            If SiteMode = SiteModes.User And Not IsCreator Then
                 Return String.Empty
             Else
                 Dim url$ = "https://xhamster.com/"
@@ -188,6 +194,7 @@ Namespace API.Xhamster
                     Case SiteModes.Categories : url &= SiteSettings.P_Categories
                     Case SiteModes.Search : url &= SiteSettings.P_Search
                     Case SiteModes.Pornstars : url &= SiteSettings.P_Pornstars
+                    Case SiteModes.User : url &= SiteSettings.P_Creators
                     Case Else : Return String.Empty
                 End Select
                 url &= $"/{TrueName}"
@@ -224,15 +231,20 @@ Namespace API.Xhamster
         Private ReadOnly SessionPosts As List(Of String)
         Private _PageVideosRepeat As Integer = 0
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
-            _TempPhotoData.Clear()
-            SearchPostsCount = 0
-            _PageVideosRepeat = 0
-            SessionPosts.Clear()
-            If DownloadVideos Then DownloadData(1, True, Token)
-            If Not IsChannel And DownloadImages And Not IsSubscription Then
-                DownloadData(1, False, Token)
-                ReparsePhoto(Token)
-            End If
+            Try
+                _TempPhotoData.Clear()
+                SearchPostsCount = 0
+                _PageVideosRepeat = 0
+                SessionPosts.Clear()
+                Responser.CookiesAsHeader = True
+                If DownloadVideos Then DownloadData(1, True, Token)
+                If Not IsChannel And Not IsCreator And DownloadImages And Not IsSubscription Then
+                    DownloadData(1, False, Token)
+                    ReparsePhoto(Token)
+                End If
+            Finally
+                Responser.CookiesAsHeader = False
+            End Try
         End Sub
         Private Overloads Sub DownloadData(ByVal Page As Integer, ByVal IsVideo As Boolean, ByVal Token As CancellationToken)
             Dim URL$ = String.Empty
@@ -260,7 +272,7 @@ Namespace API.Xhamster
                 ElseIf SiteMode = SiteModes.Search Then
                     URL = GetNonUserUrl(Page)
                     containerNodes.Add({"searchResult", "models"})
-                ElseIf SiteMode = SiteModes.Tags Or SiteMode = SiteModes.Categories Or SiteMode = SiteModes.Pornstars Then
+                ElseIf IsCreator Or SiteMode = SiteModes.Tags Or SiteMode = SiteModes.Categories Or SiteMode = SiteModes.Pornstars Then
                     URL = GetNonUserUrl(Page)
                     If SiteMode = SiteModes.Pornstars Then
                         containerNodes.Add({"trendingVideoListComponent", "models"})
@@ -269,9 +281,11 @@ Namespace API.Xhamster
                         containerNodes.Add({"pagesCategoryComponent", "trendingVideoListProps", "models"})
                         containerNodes.Add({"trendingVideoListComponent", "models"})
                     End If
+                    containerNodes.Add({"trendingVideoSectionComponent", "videoModels"})
                 Else
                     URL = $"https://xhamster.com/users/{TrueName}/{IIf(IsVideo, "videos", "photos")}{IIf(Page = 1, String.Empty, $"/{Page}")}"
                     containerNodes.Add({If(IsVideo, "userVideoCollection", "userGalleriesCollection")})
+                    containerNodes.Add(If(IsVideo, {"videoListComponent", "models"}, {"userGalleriesCollection"}))
                 End If
                 ThrowAny(Token)
 

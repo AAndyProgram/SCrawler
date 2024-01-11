@@ -105,7 +105,7 @@ Namespace DownloadObjects
         Private Sub DownloadFeedForm_Disposed(sender As Object, e As EventArgs) Handles Me.Disposed
             ClearTable()
             MyRange.Dispose()
-            BTT_CLEAR.Dispose()
+            BTT_CLEAR_DAILY.Dispose()
             DataList.Clear()
         End Sub
         Private Sub DownloadFeedForm_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
@@ -414,7 +414,7 @@ Namespace DownloadObjects
         Private Sub BTT_FEED_ADD_SPEC_Click(sender As Object, e As EventArgs) Handles BTT_FEED_ADD_SPEC.Click
             Dim c As IEnumerable(Of UserMediaD) = GetCheckedMedia()
             If c.ListExists Then
-                With FeedSpecialCollection.ChooseFeeds(False)
+                With FeedSpecialCollection.ChooseFeeds(True)
                     If .ListExists Then .ForEach(Sub(f) f.Add(c))
                 End With
             Else
@@ -518,6 +518,15 @@ Namespace DownloadObjects
             End Try
         End Sub
 #End Region
+#Region "Clear session"
+        Private Sub BTT_CLEAR_DAILY_Click(sender As Object, e As EventArgs) Handles BTT_CLEAR_DAILY.Click
+            If MsgBoxE({"Are you sure you want to clear this session data?", "Clear session"}, vbExclamation,,, {"Process", "Cancel"}) = 0 Then
+                Downloader.Files.Clear()
+                ClearTable()
+                RefillList()
+            End If
+        End Sub
+#End Region
 #End Region
 #Region "View modes"
         Private Sub OPT_Click(ByVal Sender As ToolStripMenuItem, ByVal e As EventArgs) Handles OPT_DEFAULT.Click, OPT_SUBSCRIPTIONS.Click
@@ -544,11 +553,6 @@ Namespace DownloadObjects
             BTT_REFRESH.ControlChangeColor(ToolbarTOP, Added, False)
         End Sub
         Private Sub BTT_REFRESH_Click(sender As Object, e As EventArgs) Handles BTT_REFRESH.Click
-            RefillList()
-        End Sub
-        Private Sub BTT_CLEAR_Click(sender As Object, e As EventArgs) Handles BTT_CLEAR.Click
-            Downloader.Files.Clear()
-            ClearTable()
             RefillList()
         End Sub
 #End Region

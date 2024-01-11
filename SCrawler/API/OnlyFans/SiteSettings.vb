@@ -148,7 +148,8 @@ Namespace API.OnlyFans
             DownloadChatMedia = New PropertyValue(True)
 
             LastDateUpdated_XML = New PropertyValue(Now.AddYears(-1), GetType(Date))
-            UseOldAuthRules = New PropertyValue(False)
+            'URGENT: OF [UseOldAuthRules = True]
+            UseOldAuthRules = New PropertyValue(True)
             DynamicRulesUpdateInterval = New PropertyValue(60 * 24)
             DynamicRulesUpdateIntervalProvider = New FieldsCheckerProviderSimple(Function(v) IIf(AConvert(Of Integer)(v, 0) > 0, v, Nothing),
                                                                                  "The value of [{0}] field must be greater than 0")

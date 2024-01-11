@@ -63,8 +63,6 @@ Namespace API.Instagram
         Friend Const Header_Browser As String = "Sec-Ch-Ua"
         Friend Const Header_BrowserExt As String = "Sec-Ch-Ua-Full-Version-List"
         Friend Const Header_Platform As String = "Sec-Ch-Ua-Platform-Version"
-        <PropertyOption(ControlText:="Hash", ControlToolTip:="Instagram session hash for tagged posts", IsAuth:=True), PXML("InstaHash"), ControlNumber(0), PClonable(Clone:=False)>
-        Friend ReadOnly Property HashTagged As PropertyValue
         <PropertyOption(ControlText:="x-csrftoken", IsAuth:=True, AllowNull:=False), ControlNumber(2), PClonable(Clone:=False)>
         Friend ReadOnly Property HH_CSRF_TOKEN As PropertyValue
         <PropertyOption(ControlText:="x-ig-app-id", IsAuth:=True, AllowNull:=False), ControlNumber(3), PClonable(Clone:=False)>
@@ -236,7 +234,6 @@ Namespace API.Instagram
                 .CookiesExtractedAutoSave = False
             End With
 
-            HashTagged = New PropertyValue(String.Empty, GetType(String))
             HH_CSRF_TOKEN = New PropertyValue(token, GetType(String), Sub(v) ChangeResponserFields(NameOf(HH_CSRF_TOKEN), v))
             HH_IG_APP_ID = New PropertyValue(app_id, GetType(String), Sub(v) ChangeResponserFields(NameOf(HH_IG_APP_ID), v))
             HH_ASBD_ID = New PropertyValue(asbd, GetType(String), Sub(v) ChangeResponserFields(NameOf(HH_ASBD_ID), v))
@@ -249,7 +246,7 @@ Namespace API.Instagram
             DownloadTimeline = New PropertyValue(True)
             DownloadStories = New PropertyValue(True)
             DownloadStoriesUser = New PropertyValue(True)
-            DownloadTagged = New PropertyValue(False)
+            DownloadTagged = New PropertyValue(True)
 
             RequestsWaitTimer = New PropertyValue(1000)
             RequestsWaitTimerProvider = New TimersChecker(100)

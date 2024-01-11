@@ -139,6 +139,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_TRAY_FEED_SHOW = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_TRAY_CHANNELS = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_TRAY_DOWNLOADER = New System.Windows.Forms.ToolStripMenuItem()
+        Me.BTT_TRAY_SCHEDULER = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_TRAY_SHOW_HIDE = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_TRAY_CLOSE = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_TRAY_CLOSE_NO_SCRIPT = New System.Windows.Forms.ToolStripMenuItem()
@@ -987,9 +988,9 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         '
         'TRAY_CONTEXT
         '
-        Me.TRAY_CONTEXT.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_TRAY_PAUSE_AUTOMATION, Me.BTT_TRAY_SILENT_MODE, Me.BTT_TRAY_FEED_SHOW, Me.BTT_TRAY_CHANNELS, Me.BTT_TRAY_DOWNLOADER, TRAY_SEP_1, Me.BTT_TRAY_SHOW_HIDE, TRAY_SEP_2, Me.BTT_TRAY_CLOSE, Me.BTT_TRAY_CLOSE_NO_SCRIPT})
+        Me.TRAY_CONTEXT.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_TRAY_PAUSE_AUTOMATION, Me.BTT_TRAY_SILENT_MODE, Me.BTT_TRAY_FEED_SHOW, Me.BTT_TRAY_CHANNELS, Me.BTT_TRAY_DOWNLOADER, Me.BTT_TRAY_SCHEDULER, TRAY_SEP_1, Me.BTT_TRAY_SHOW_HIDE, TRAY_SEP_2, Me.BTT_TRAY_CLOSE, Me.BTT_TRAY_CLOSE_NO_SCRIPT})
         Me.TRAY_CONTEXT.Name = "TRAY_CONTEXT"
-        Me.TRAY_CONTEXT.Size = New System.Drawing.Size(171, 192)
+        Me.TRAY_CONTEXT.Size = New System.Drawing.Size(171, 214)
         '
         'BTT_TRAY_PAUSE_AUTOMATION
         '
@@ -1031,6 +1032,13 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_TRAY_DOWNLOADER.Name = "BTT_TRAY_DOWNLOADER"
         Me.BTT_TRAY_DOWNLOADER.Size = New System.Drawing.Size(170, 22)
         Me.BTT_TRAY_DOWNLOADER.Text = "Downloader"
+        '
+        'BTT_TRAY_SCHEDULER
+        '
+        Me.BTT_TRAY_SCHEDULER.Image = Global.SCrawler.My.Resources.Resources.ScriptPic_32
+        Me.BTT_TRAY_SCHEDULER.Name = "BTT_TRAY_SCHEDULER"
+        Me.BTT_TRAY_SCHEDULER.Size = New System.Drawing.Size(170, 22)
+        Me.BTT_TRAY_SCHEDULER.Text = "Scheduler"
         '
         'BTT_TRAY_SHOW_HIDE
         '
@@ -1181,4 +1189,5 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
     Private WithEvents MENU_INFO_SHOW_QUEUE As ToolStripMenuItem
     Private WithEvents BTT_DOWN_SPEC As ToolStripKeyMenuItem
     Private WithEvents BTT_SHOW_FILTER_ADV As ToolStripMenuItem
+    Private WithEvents BTT_TRAY_SCHEDULER As ToolStripMenuItem
 End Class

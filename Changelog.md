@@ -1,3 +1,19 @@
+# 2024.1.12.0
+
+*2024-01-12*
+
+- Added
+  - Feed: added a prompt before clearing the current session
+  - xHamster: creators
+  - YouTube communities: add error to log
+  - Added scheduler to tray menu
+  - Other improvements
+- Fixed
+  - Feed: there is no option to create a new feed when adding checked items
+  - **Instagram**: downloading of tagged posts
+  - xHamster: profiles are not downloading
+  - Minor bugs
+
 # 2023.12.27.0
 
 *2023-12-27*

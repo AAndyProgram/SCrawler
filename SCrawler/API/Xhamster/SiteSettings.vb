@@ -46,7 +46,7 @@ Namespace API.Xhamster
 
             _SubscriptionsAllowed = True
             UrlPatternUser = "https://xhamster.com/{0}/{1}"
-            UserRegex = RParams.DMS($"/({UserOption}|{ChannelOption})/([^/]+)(\Z|.*)", 0, RegexReturn.ListByMatch)
+            UserRegex = RParams.DMS($"/({UserOption}|{ChannelOption}|{P_Creators})/([^/]+)(\Z|.*)", 0, RegexReturn.ListByMatch)
             ImageVideoContains = "xhamster"
         End Sub
         Friend Overrides Sub EndInit()
@@ -96,8 +96,9 @@ Namespace API.Xhamster
         Friend Const P_Search As String = "search"
         Friend Const P_Tags As String = "tags"
         Friend Const P_Categories As String = "categories"
-        Friend Const P_Pornstars = "pornstars"
-        Private ReadOnly NonUsersRegex As RParams = RParams.DM("https?://[^/]+/((gay)/|(shemale)/|)(pornstars|tags|categories|search)/([^/\?]+)[/\?]?(.*)", 0,
+        Friend Const P_Pornstars As String = "pornstars"
+        Friend Const P_Creators As String = "creators"
+        Private ReadOnly NonUsersRegex As RParams = RParams.DM("https?://[^/]+/((gay)/|(shemale)/|)(pornstars|creators|tags|categories|search)/([^/\?]+)[/\?]?(.*)", 0,
                                                                RegexReturn.ListByMatch, EDP.ReturnValue)
         Private ReadOnly PageRemover_1 As RParams = RParams.DM("[\?&]?[Pp]age=\d+", 0, RegexReturn.Replace, EDP.ReturnValue,
                                                                CType(Function(input) String.Empty, Func(Of String, String)))
@@ -106,12 +107,23 @@ Namespace API.Xhamster
         Friend Overrides Function IsMyUser(ByVal UserURL As String) As ExchangeOptions
             If Not UserURL.IsEmptyString AndAlso Domains.Domains.Count > 0 AndAlso Domains.Domains.Exists(Function(d) UserURL.ToLower.Contains(d.ToLower)) Then
                 Dim n$, opt$
+                Dim tryNext As Boolean = False
                 Dim data As List(Of String) = RegexReplace(UserURL, UserRegex)
                 If data.ListExists(3) AndAlso Not data(2).IsEmptyString Then
                     n = data(2)
-                    If Not data(1).IsEmptyString AndAlso data(1) = ChannelOption Then n &= $"@{data(1)}"
-                    Return New ExchangeOptions(Site, n)
+                    If Not data(1).IsEmptyString Then
+                        If data(1) = ChannelOption Then
+                            n &= $"@{data(1)}"
+                        ElseIf data(1) = P_Creators Then
+                            tryNext = True
+                        End If
+                    End If
+                    If Not tryNext Then Return New ExchangeOptions(Site, n)
                 Else
+                    tryNext = True
+                End If
+
+                If tryNext Then
                     data = RegexReplace(UserURL, NonUsersRegex)
                     If data.ListExists(7) AndAlso Not data(5).IsEmptyString Then
                         n = data(5).StringRemoveWinForbiddenSymbols
@@ -122,6 +134,7 @@ Namespace API.Xhamster
                                 Case P_Tags : mode = SiteModes.Tags
                                 Case P_Categories : mode = SiteModes.Categories
                                 Case P_Pornstars : mode = SiteModes.Pornstars
+                                Case P_Creators : mode = SiteModes.User
                                 Case Else : Return Nothing
                             End Select
                             n = $"{CInt(mode)}@{n}"

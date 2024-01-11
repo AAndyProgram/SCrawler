@@ -603,7 +603,7 @@ CloseResume:
         ControlInvokeFast(Toolbar_TOP, BTT_DOWN_AUTOMATION_PAUSE, Sub() BTT_DOWN_AUTOMATION_PAUSE.Visible = b)
         ControlInvokeFast(Me, Sub() BTT_TRAY_PAUSE_AUTOMATION.Visible = b)
     End Sub
-    Private Async Sub BTT_DOWN_AUTOMATION_Click(sender As Object, e As EventArgs) Handles BTT_DOWN_AUTOMATION.Click
+    Private Async Sub BTT_DOWN_AUTOMATION_Click(sender As Object, e As EventArgs) Handles BTT_DOWN_AUTOMATION.Click, BTT_TRAY_SCHEDULER.Click
         Try
             Using f As New SchedulerEditorForm : f.ShowDialog() : End Using
             Await Settings.Automation.Start(False)

@@ -255,7 +255,12 @@ Namespace API.Instagram
                 If Not IsSavedPosts AndAlso MySiteSettings.BaseAuthExists() Then
                     If CBool(MySiteSettings.DownloadStories.Value) And GetStories Then s = Sections.Stories : DownloadData(String.Empty, s, Token) : ProgressPre.Done()
                     If CBool(MySiteSettings.DownloadStoriesUser.Value) And GetStoriesUser Then s = Sections.UserStories : DownloadData(String.Empty, s, Token) : ProgressPre.Done()
-                    If CBool(MySiteSettings.DownloadTagged.Value) And ACheck(MySiteSettings.HashTagged.Value) And GetTaggedData Then s = Sections.Tagged : DownloadData(String.Empty, s, Token) : ProgressPre.Done()
+                    If CBool(MySiteSettings.DownloadTagged.Value) And GetTaggedData Then
+                        s = Sections.Tagged
+                        DownloadData(String.Empty, s, Token)
+                        ProgressPre.Done()
+                        If PostsToReparse.Count > 0 Then DownloadPosts(Token, True)
+                    End If
                 End If
                 If WaitNotificationMode = WNM.SkipTemp Or WaitNotificationMode = WNM.SkipCurrent Then WaitNotificationMode = WNM.Notify
             Catch eex As ExitException
@@ -460,12 +465,10 @@ Namespace API.Instagram
                                 SavedPostsDownload(String.Empty, Token)
                                 Exit Sub
                             Case Sections.Tagged
-                                Dim h$ = AConvert(Of String)(MySiteSettings.HashTagged.Value, String.Empty)
-                                If h.IsEmptyString Then Throw New ExitException
                                 Dim vars$ = "{""id"":" & ID & ",""first"":50,""after"":""" & Cursor & """}"
                                 vars = SymbolsConverter.ASCII.EncodeSymbolsOnly(vars)
-                                URL = $"https://www.instagram.com/graphql/query/?query_hash={h}&variables={vars}"
-                                ENode = {"data", "user", 0}
+                                URL = $"https://www.instagram.com/graphql/query/?doc_id=17946422347485809&variables={vars}"
+                                ENode = {"data", "user", "edge_user_to_photos_of_you"}
                                 SpecFolder = TaggedFolder
                             Case Sections.Stories
                                 If Not StoriesRequested Then
@@ -581,11 +584,12 @@ Namespace API.Instagram
                 ProcessException(DoEx, Token, $"data downloading error [{URL}]",, Section)
             End Try
         End Sub
-        Private Sub DownloadPosts(ByVal Token As CancellationToken)
+        Private Sub DownloadPosts(ByVal Token As CancellationToken, Optional ByVal IsTagged As Boolean = False)
             Dim URL$ = String.Empty
             Dim dValue% = 1
             Dim _Index% = 0
             Dim before%
+            Dim specFolder$ = IIf(IsTagged, "Tagged", String.Empty)
             If PostsToReparse.Count > 0 Then ProgressPre.ChangeMax(PostsToReparse.Count)
             Try
                 Do While dValue = 1
@@ -616,7 +620,7 @@ Namespace API.Instagram
                                             With j("items")
                                                 For Each jj In .Self
                                                     before = _TempMediaList.Count
-                                                    ObtainMedia(jj, PostsToReparse(i).ID)
+                                                    ObtainMedia(jj, PostsToReparse(i).ID, specFolder)
                                                     If Not before = _TempMediaList.Count Then _TotalPostsParsed += 1
                                                     If _Limit > 0 And _TotalPostsParsed >= _Limit Then Throw New ExitException
                                                 Next

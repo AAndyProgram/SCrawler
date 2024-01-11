@@ -30,6 +30,7 @@ Namespace DownloadObjects
             Dim MENU_LOAD_SEP_2 As System.Windows.Forms.ToolStripSeparator
             Dim MENU_LOAD_SEP_3 As System.Windows.Forms.ToolStripSeparator
             Dim MENU_LOAD_SEP_4 As System.Windows.Forms.ToolStripSeparator
+            Dim MENU_LOAD_SEP_5 As System.Windows.Forms.ToolStripSeparator
             Me.OPT_DEFAULT = New System.Windows.Forms.ToolStripMenuItem()
             Me.OPT_SUBSCRIPTIONS = New System.Windows.Forms.ToolStripMenuItem()
             Me.ToolbarTOP = New System.Windows.Forms.ToolStrip()
@@ -43,18 +44,18 @@ Namespace DownloadObjects
             Me.BTT_FEED_REMOVE_FAV = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_FEED_ADD_SPEC = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_FEED_REMOVE_SPEC = New System.Windows.Forms.ToolStripMenuItem()
-            Me.SEP_0 = New System.Windows.Forms.ToolStripSeparator()
-            Me.MENU_DOWN = New System.Windows.Forms.ToolStripDropDownButton()
-            Me.BTT_DOWN_ALL = New System.Windows.Forms.ToolStripMenuItem()
-            Me.BTT_DOWN_SELECTED = New System.Windows.Forms.ToolStripMenuItem()
-            Me.BTT_REFRESH = New System.Windows.Forms.ToolStripButton()
-            Me.BTT_CLEAR = New System.Windows.Forms.ToolStripButton()
-            Me.TP_DATA = New System.Windows.Forms.TableLayoutPanel()
             Me.BTT_FEED_CLEAR_FAV = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_FEED_CLEAR_SPEC = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_FEED_DELETE_SPEC = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_FEED_DELETE_DAILY_LIST = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_FEED_DELETE_DAILY_DATE = New System.Windows.Forms.ToolStripMenuItem()
+            Me.BTT_CLEAR_DAILY = New System.Windows.Forms.ToolStripMenuItem()
+            Me.SEP_0 = New System.Windows.Forms.ToolStripSeparator()
+            Me.MENU_DOWN = New System.Windows.Forms.ToolStripDropDownButton()
+            Me.BTT_DOWN_ALL = New System.Windows.Forms.ToolStripMenuItem()
+            Me.BTT_DOWN_SELECTED = New System.Windows.Forms.ToolStripMenuItem()
+            Me.BTT_REFRESH = New System.Windows.Forms.ToolStripButton()
+            Me.TP_DATA = New System.Windows.Forms.TableLayoutPanel()
             SEP_1 = New System.Windows.Forms.ToolStripSeparator()
             SEP_2 = New System.Windows.Forms.ToolStripSeparator()
             MENU_VIEW = New System.Windows.Forms.ToolStripDropDownButton()
@@ -62,6 +63,7 @@ Namespace DownloadObjects
             MENU_LOAD_SEP_2 = New System.Windows.Forms.ToolStripSeparator()
             MENU_LOAD_SEP_3 = New System.Windows.Forms.ToolStripSeparator()
             MENU_LOAD_SEP_4 = New System.Windows.Forms.ToolStripSeparator()
+            MENU_LOAD_SEP_5 = New System.Windows.Forms.ToolStripSeparator()
             Me.ToolbarTOP.SuspendLayout()
             Me.SuspendLayout()
             '
@@ -112,10 +114,15 @@ Namespace DownloadObjects
             MENU_LOAD_SEP_3.Name = "MENU_LOAD_SEP_3"
             MENU_LOAD_SEP_3.Size = New System.Drawing.Size(264, 6)
             '
+            'MENU_LOAD_SEP_4
+            '
+            MENU_LOAD_SEP_4.Name = "MENU_LOAD_SEP_4"
+            MENU_LOAD_SEP_4.Size = New System.Drawing.Size(264, 6)
+            '
             'ToolbarTOP
             '
             Me.ToolbarTOP.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden
-            Me.ToolbarTOP.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.MENU_LOAD_SESSION, Me.SEP_0, MENU_VIEW, SEP_1, Me.MENU_DOWN, Me.BTT_REFRESH, Me.BTT_CLEAR, SEP_2})
+            Me.ToolbarTOP.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.MENU_LOAD_SESSION, Me.SEP_0, MENU_VIEW, SEP_1, Me.MENU_DOWN, Me.BTT_REFRESH, SEP_2})
             Me.ToolbarTOP.Location = New System.Drawing.Point(0, 0)
             Me.ToolbarTOP.Name = "ToolbarTOP"
             Me.ToolbarTOP.Size = New System.Drawing.Size(484, 25)
@@ -124,7 +131,7 @@ Namespace DownloadObjects
             'MENU_LOAD_SESSION
             '
             Me.MENU_LOAD_SESSION.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image
-            Me.MENU_LOAD_SESSION.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_LOAD_SESSION_CURRENT, Me.BTT_LOAD_SESSION_LAST, Me.BTT_LOAD_SESSION_CHOOSE, MENU_LOAD_SEP_1, Me.BTT_LOAD_FAV, Me.BTT_LOAD_SPEC, MENU_LOAD_SEP_2, Me.BTT_FEED_ADD_FAV, Me.BTT_FEED_REMOVE_FAV, MENU_LOAD_SEP_3, Me.BTT_FEED_ADD_SPEC, Me.BTT_FEED_REMOVE_SPEC, MENU_LOAD_SEP_4, Me.BTT_FEED_CLEAR_FAV, Me.BTT_FEED_CLEAR_SPEC, Me.BTT_FEED_DELETE_SPEC, Me.BTT_FEED_DELETE_DAILY_LIST, Me.BTT_FEED_DELETE_DAILY_DATE})
+            Me.MENU_LOAD_SESSION.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_LOAD_SESSION_CURRENT, Me.BTT_LOAD_SESSION_LAST, Me.BTT_LOAD_SESSION_CHOOSE, MENU_LOAD_SEP_1, Me.BTT_LOAD_FAV, Me.BTT_LOAD_SPEC, MENU_LOAD_SEP_2, Me.BTT_FEED_ADD_FAV, Me.BTT_FEED_REMOVE_FAV, MENU_LOAD_SEP_3, Me.BTT_FEED_ADD_SPEC, Me.BTT_FEED_REMOVE_SPEC, MENU_LOAD_SEP_4, Me.BTT_FEED_CLEAR_FAV, Me.BTT_FEED_CLEAR_SPEC, Me.BTT_FEED_DELETE_SPEC, Me.BTT_FEED_DELETE_DAILY_LIST, Me.BTT_FEED_DELETE_DAILY_DATE, MENU_LOAD_SEP_5, Me.BTT_CLEAR_DAILY})
             Me.MENU_LOAD_SESSION.Image = Global.SCrawler.My.Resources.Resources.ArrowDownPic_Blue_24
             Me.MENU_LOAD_SESSION.ImageTransparentColor = System.Drawing.Color.Magenta
             Me.MENU_LOAD_SESSION.Name = "MENU_LOAD_SESSION"
@@ -194,6 +201,50 @@ Namespace DownloadObjects
             Me.BTT_FEED_REMOVE_SPEC.Size = New System.Drawing.Size(267, 22)
             Me.BTT_FEED_REMOVE_SPEC.Text = "Remove checked from special feed..."
             '
+            'BTT_FEED_CLEAR_FAV
+            '
+            Me.BTT_FEED_CLEAR_FAV.Image = Global.SCrawler.My.Resources.Resources.BrushToolPic_16
+            Me.BTT_FEED_CLEAR_FAV.Name = "BTT_FEED_CLEAR_FAV"
+            Me.BTT_FEED_CLEAR_FAV.Size = New System.Drawing.Size(267, 22)
+            Me.BTT_FEED_CLEAR_FAV.Text = "Clear Favorite"
+            '
+            'BTT_FEED_CLEAR_SPEC
+            '
+            Me.BTT_FEED_CLEAR_SPEC.Image = Global.SCrawler.My.Resources.Resources.BrushToolPic_16
+            Me.BTT_FEED_CLEAR_SPEC.Name = "BTT_FEED_CLEAR_SPEC"
+            Me.BTT_FEED_CLEAR_SPEC.Size = New System.Drawing.Size(267, 22)
+            Me.BTT_FEED_CLEAR_SPEC.Text = "Clear special feed..."
+            '
+            'BTT_FEED_DELETE_SPEC
+            '
+            Me.BTT_FEED_DELETE_SPEC.Image = Global.SCrawler.My.Resources.Resources.DeletePic_24
+            Me.BTT_FEED_DELETE_SPEC.Name = "BTT_FEED_DELETE_SPEC"
+            Me.BTT_FEED_DELETE_SPEC.Size = New System.Drawing.Size(267, 22)
+            Me.BTT_FEED_DELETE_SPEC.Text = "Delete special feed..."
+            '
+            'BTT_FEED_DELETE_DAILY_LIST
+            '
+            Me.BTT_FEED_DELETE_DAILY_LIST.Image = Global.SCrawler.My.Resources.Resources.DeletePic_24
+            Me.BTT_FEED_DELETE_DAILY_LIST.Name = "BTT_FEED_DELETE_DAILY_LIST"
+            Me.BTT_FEED_DELETE_DAILY_LIST.Size = New System.Drawing.Size(267, 22)
+            Me.BTT_FEED_DELETE_DAILY_LIST.Text = "Delete daily feed (by list)"
+            '
+            'BTT_FEED_DELETE_DAILY_DATE
+            '
+            Me.BTT_FEED_DELETE_DAILY_DATE.Image = Global.SCrawler.My.Resources.Resources.DeletePic_24
+            Me.BTT_FEED_DELETE_DAILY_DATE.Name = "BTT_FEED_DELETE_DAILY_DATE"
+            Me.BTT_FEED_DELETE_DAILY_DATE.Size = New System.Drawing.Size(267, 22)
+            Me.BTT_FEED_DELETE_DAILY_DATE.Text = "Delete daily feed (by date)"
+            '
+            'BTT_CLEAR_DAILY
+            '
+            Me.BTT_CLEAR_DAILY.Image = Global.SCrawler.My.Resources.Resources.DeletePic_24
+            Me.BTT_CLEAR_DAILY.ImageTransparentColor = System.Drawing.Color.Magenta
+            Me.BTT_CLEAR_DAILY.Name = "BTT_CLEAR_DAILY"
+            Me.BTT_CLEAR_DAILY.Size = New System.Drawing.Size(267, 22)
+            Me.BTT_CLEAR_DAILY.Text = "Clear session"
+            Me.BTT_CLEAR_DAILY.ToolTipText = "Clear data list (session)"
+            '
             'SEP_0
             '
             Me.SEP_0.Name = "SEP_0"
@@ -235,15 +286,6 @@ Namespace DownloadObjects
             Me.BTT_REFRESH.Text = "Refresh"
             Me.BTT_REFRESH.ToolTipText = "Refresh data list"
             '
-            'BTT_CLEAR
-            '
-            Me.BTT_CLEAR.Image = Global.SCrawler.My.Resources.Resources.DeletePic_24
-            Me.BTT_CLEAR.ImageTransparentColor = System.Drawing.Color.Magenta
-            Me.BTT_CLEAR.Name = "BTT_CLEAR"
-            Me.BTT_CLEAR.Size = New System.Drawing.Size(54, 22)
-            Me.BTT_CLEAR.Text = "Clear"
-            Me.BTT_CLEAR.ToolTipText = "Clear data list"
-            '
             'TP_DATA
             '
             Me.TP_DATA.AutoScroll = True
@@ -269,45 +311,10 @@ Namespace DownloadObjects
             Me.TP_DATA.Size = New System.Drawing.Size(484, 436)
             Me.TP_DATA.TabIndex = 1
             '
-            'MENU_LOAD_SEP_4
+            'MENU_LOAD_SEP_5
             '
-            MENU_LOAD_SEP_4.Name = "MENU_LOAD_SEP_4"
-            MENU_LOAD_SEP_4.Size = New System.Drawing.Size(264, 6)
-            '
-            'BTT_FEED_CLEAR_FAV
-            '
-            Me.BTT_FEED_CLEAR_FAV.Image = Global.SCrawler.My.Resources.Resources.BrushToolPic_16
-            Me.BTT_FEED_CLEAR_FAV.Name = "BTT_FEED_CLEAR_FAV"
-            Me.BTT_FEED_CLEAR_FAV.Size = New System.Drawing.Size(267, 22)
-            Me.BTT_FEED_CLEAR_FAV.Text = "Clear Favorite"
-            '
-            'BTT_FEED_CLEAR_SPEC
-            '
-            Me.BTT_FEED_CLEAR_SPEC.Image = Global.SCrawler.My.Resources.Resources.BrushToolPic_16
-            Me.BTT_FEED_CLEAR_SPEC.Name = "BTT_FEED_CLEAR_SPEC"
-            Me.BTT_FEED_CLEAR_SPEC.Size = New System.Drawing.Size(267, 22)
-            Me.BTT_FEED_CLEAR_SPEC.Text = "Clear special feed..."
-            '
-            'BTT_FEED_DELETE_SPEC
-            '
-            Me.BTT_FEED_DELETE_SPEC.Image = Global.SCrawler.My.Resources.Resources.DeletePic_24
-            Me.BTT_FEED_DELETE_SPEC.Name = "BTT_FEED_DELETE_SPEC"
-            Me.BTT_FEED_DELETE_SPEC.Size = New System.Drawing.Size(267, 22)
-            Me.BTT_FEED_DELETE_SPEC.Text = "Delete special feed..."
-            '
-            'BTT_FEED_DELETE_DAILY_LIST
-            '
-            Me.BTT_FEED_DELETE_DAILY_LIST.Image = Global.SCrawler.My.Resources.Resources.DeletePic_24
-            Me.BTT_FEED_DELETE_DAILY_LIST.Name = "BTT_FEED_DELETE_DAILY_LIST"
-            Me.BTT_FEED_DELETE_DAILY_LIST.Size = New System.Drawing.Size(267, 22)
-            Me.BTT_FEED_DELETE_DAILY_LIST.Text = "Delete daily feed (by list)"
-            '
-            'BTT_FEED_DELETE_DAILY_DATE
-            '
-            Me.BTT_FEED_DELETE_DAILY_DATE.Image = Global.SCrawler.My.Resources.Resources.DeletePic_24
-            Me.BTT_FEED_DELETE_DAILY_DATE.Name = "BTT_FEED_DELETE_DAILY_DATE"
-            Me.BTT_FEED_DELETE_DAILY_DATE.Size = New System.Drawing.Size(267, 22)
-            Me.BTT_FEED_DELETE_DAILY_DATE.Text = "Delete daily feed (by date)"
+            MENU_LOAD_SEP_5.Name = "MENU_LOAD_SEP_5"
+            MENU_LOAD_SEP_5.Size = New System.Drawing.Size(264, 6)
             '
             'DownloadFeedForm
             '
@@ -330,7 +337,7 @@ Namespace DownloadObjects
 
         End Sub
         Private WithEvents BTT_REFRESH As ToolStripButton
-        Private WithEvents BTT_CLEAR As ToolStripButton
+        Private WithEvents BTT_CLEAR_DAILY As ToolStripMenuItem
         Private WithEvents MENU_LOAD_SESSION As ToolStripDropDownButton
         Private WithEvents BTT_LOAD_SESSION_LAST As ToolStripMenuItem
         Private WithEvents BTT_LOAD_SESSION_CHOOSE As ToolStripMenuItem

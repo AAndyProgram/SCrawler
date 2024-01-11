@@ -225,6 +225,7 @@ Namespace API.YouTube
         End Sub
         Private Sub DownloadCommunity(ByVal Cursor As String, ByVal Token As CancellationToken, Optional ByVal Round As Integer = 0)
             Dim URL$ = String.Empty
+            Const errMsg$ = "community data downloading error"
             Try
                 Const postIdTemp$ = "Community_{0}"
                 Const specFolder$ = "Community"
@@ -311,6 +312,10 @@ Namespace API.YouTube
                                                 Next
                                             End If
                                         End With
+                                    Else
+                                        With j({"error"})
+                                            If .ListExists Then MyMainLOG = $"{ToStringForLog()} {errMsg} [{ .Value("code")}]: { .Value("message")}"
+                                        End With
                                     End If
                                 End With
                             End If
@@ -327,7 +332,7 @@ Namespace API.YouTube
 
                 If Not nextToken.IsEmptyString Then DownloadCommunity(nextToken, Token)
             Catch ex As Exception
-                ProcessException(ex, Token, "community data downloading error")
+                ProcessException(ex, Token, errMsg)
             End Try
         End Sub
         Private Sub GetChannelID()

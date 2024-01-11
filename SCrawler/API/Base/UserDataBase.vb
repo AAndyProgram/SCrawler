@@ -1403,7 +1403,7 @@ BlockNullPicture:
                         End If
                         ff.Name &= "_thumb"
                         ff.Extension = "jpg"
-                        f = Web.FFMPEG.TakeSnapshot(f, ff, Settings.FfmpegFile, TimeSpan.FromSeconds(1),,, EDP.LogMessageValue)
+                        f = Web.FFMPEG.TakeSnapshot(f, ff, Settings.FfmpegFile, TimeSpan.FromSeconds(1),,, EDP.SendToLog + EDP.ReturnValue)
                         If f.Exists Then DirectCast(Data, IDownloadableMedia).ThumbnailFile = f
                     End If
                 Else
