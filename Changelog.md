@@ -1,3 +1,16 @@
+# 2024.1.12.1
+
+*2024-01-12*
+
+- Added
+  - YouTube (SCrawler): data downloading by dates
+  - Feed: ability to merge multiple session feeds into one
+  - Feed: remove session number from special feeds
+- Fixed
+  - **Instagram**: stories (user) downloading with the wrong aspect ratio for some users
+  - YouTube: incorrect opening of a post from the feed
+  - YouTube: wrong date to data parsing
+
 # 2024.1.12.0
 
 *2024-01-12*

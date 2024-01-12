@@ -137,6 +137,26 @@ Namespace API.YouTube
                 Dim list As New List(Of IYouTubeMediaContainer)
                 Dim url$ = String.Empty
                 Dim maxDate As Date? = Nothing
+                Dim __minDate As Date? = DownloadDateFrom
+                Dim __maxDate As Date? = DownloadDateTo
+                Dim __getMinDate As Func(Of Date?, Date?) = Function(ByVal dInput As Date?) As Date?
+                                                                If dInput.HasValue Then
+                                                                    If __minDate.HasValue Then
+                                                                        Return {__minDate.Value, dInput.Value}.Min
+                                                                    Else
+                                                                        Return dInput
+                                                                    End If
+                                                                ElseIf __minDate.HasValue Then
+                                                                    Return __minDate
+                                                                Else
+                                                                    Return Nothing
+                                                                End If
+                                                            End Function
+                Dim shortsUrlStandardize As Action(Of IYouTubeMediaContainer, Integer) = Sub(ByVal c As IYouTubeMediaContainer, ByVal ii As Integer)
+                                                                                             Dim sUrl$ = $"https://www.youtube.com/shorts/{c.ID}"
+                                                                                             'c.URL = sUrl
+                                                                                             c.URL_BASE = sUrl
+                                                                                         End Sub
                 Dim nDate As Func(Of Date?, Date?) = Function(ByVal dInput As Date?) As Date?
                                                          If dInput.HasValue Then
                                                              If dInput.Value.AddDays(3) < Now Then Return dInput.Value.AddDays(1) Else Return dInput
@@ -144,22 +164,23 @@ Namespace API.YouTube
                                                              Return Nothing
                                                          End If
                                                      End Function
-                Dim fillList As Func(Of Date?, Boolean) = Function(ByVal lDate As Date?) As Boolean
-                                                              If Not container Is Nothing AndAlso container.HasElements Then
-                                                                  Dim ce As IEnumerable(Of IYouTubeMediaContainer)
-                                                                  ce = container.Elements
-                                                                  If ce.ListExists Then ce = ce.Where(Function(e) e.ObjectType = YouTubeMediaType.Single)
-                                                                  If ce.ListExists AndAlso lDate.HasValue Then _
-                                                                     ce = ce.Where(Function(e) e.DateAdded <= lDate.Value AndAlso
-                                                                                               Not e.ID.IsEmptyString AndAlso Not _TempPostsList.Contains(e.ID))
-                                                                  If ce.ListExists Then
-                                                                      maxDate = ce.Max(Function(e) e.DateAdded)
-                                                                      list.AddRange(ce)
-                                                                      Return True
-                                                                  End If
-                                                              End If
-                                                              Return False
-                                                          End Function
+                Dim fillList As Func(Of Date?, Boolean, Boolean) = Function(ByVal lDate As Date?, ByVal ___isShorts As Boolean) As Boolean
+                                                                       If Not container Is Nothing AndAlso container.HasElements Then
+                                                                           Dim ce As IEnumerable(Of IYouTubeMediaContainer)
+                                                                           ce = container.Elements
+                                                                           If ce.ListExists Then ce = ce.Where(Function(e) e.ObjectType = YouTubeMediaType.Single)
+                                                                           If ce.ListExists AndAlso lDate.HasValue Then _
+                                                                              ce = ce.Where(Function(e) e.DateAdded >= lDate.Value AndAlso
+                                                                                                        Not e.ID.IsEmptyString AndAlso Not _TempPostsList.Contains(e.ID))
+                                                                           If ce.ListExists Then
+                                                                               maxDate = ce.Max(Function(e) e.DateAdded)
+                                                                               If ___isShorts Then ce.ListForEach(shortsUrlStandardize, EDP.None)
+                                                                               list.AddRange(ce)
+                                                                               Return True
+                                                                           End If
+                                                                       End If
+                                                                       Return False
+                                                                   End Function
                 Dim applySpecFolder As Action(Of String, Boolean) = Sub(ByVal fName As String, ByVal isPls As Boolean)
                                                                         If If(container?.Count, 0) > 0 Then _
                                                                            container.Elements.ForEach(Sub(ByVal el As YouTubeMediaContainerBase)
@@ -175,33 +196,33 @@ Namespace API.YouTube
                     maxDate = Nothing
                     LastDownloadDatePlaylist = nDate(LastDownloadDatePlaylist)
                     url = $"https://{IIf(IsMusic, "music", "www")}.youtube.com/playlist?list={ID}"
-                    container = YouTubeFunctions.Parse(url, YTUseCookies, Token, pr,, LastDownloadDatePlaylist,, True)
+                    container = YouTubeFunctions.Parse(url, YTUseCookies, Token, pr, __getMinDate(LastDownloadDatePlaylist), __maxDate,, True)
                     applySpecFolder.Invoke(String.Empty, False)
-                    If fillList.Invoke(LastDownloadDatePlaylist) Then LastDownloadDatePlaylist = If(maxDate, Now)
+                    If fillList.Invoke(LastDownloadDatePlaylist, False) Then LastDownloadDatePlaylist = If(maxDate, Now)
                 ElseIf YTMediaType = YouTubeMediaType.Channel Then
                     If IsMusic Or DownloadYTVideos Then
                         maxDate = Nothing
                         LastDownloadDateVideos = nDate(LastDownloadDateVideos)
                         url = $"https://{IIf(IsMusic, "music", "www")}.youtube.com/{IIf(IsMusic Or IsChannelUser, $"{YouTubeFunctions.UserChannelOption}/", "@")}{ID}"
-                        container = YouTubeFunctions.Parse(url, YTUseCookies, Token, pr,, LastDownloadDateVideos,, True)
+                        container = YouTubeFunctions.Parse(url, YTUseCookies, Token, pr, __getMinDate(LastDownloadDateVideos), __maxDate,, True)
                         applySpecFolder.Invoke(IIf(IsMusic, String.Empty, "Videos"), False)
-                        If fillList.Invoke(LastDownloadDateVideos) Then LastDownloadDateVideos = If(maxDate, Now)
+                        If fillList.Invoke(LastDownloadDateVideos, False) Then LastDownloadDateVideos = If(maxDate, Now)
                     End If
                     If Not IsMusic And DownloadYTShorts Then
                         maxDate = Nothing
                         LastDownloadDateShorts = nDate(LastDownloadDateShorts)
                         url = $"https://www.youtube.com/{IIf(IsChannelUser, $"{YouTubeFunctions.UserChannelOption}/", "@")}{ID}/shorts"
-                        container = YouTubeFunctions.Parse(url, YTUseCookies, Token, pr,, LastDownloadDateShorts,, True)
+                        container = YouTubeFunctions.Parse(url, YTUseCookies, Token, pr, __getMinDate(LastDownloadDateShorts), __maxDate,, True)
                         applySpecFolder.Invoke("Shorts", False)
-                        If fillList.Invoke(LastDownloadDateShorts) Then LastDownloadDateShorts = If(maxDate, Now)
+                        If fillList.Invoke(LastDownloadDateShorts, True) Then LastDownloadDateShorts = If(maxDate, Now)
                     End If
                     If Not IsMusic And DownloadYTPlaylists Then
                         maxDate = Nothing
                         LastDownloadDatePlaylist = nDate(LastDownloadDatePlaylist)
                         url = $"https://www.youtube.com/{IIf(IsChannelUser, $"{YouTubeFunctions.UserChannelOption}/", "@")}{ID}/playlists"
-                        container = YouTubeFunctions.Parse(url, YTUseCookies, Token, pr,, LastDownloadDatePlaylist,, True)
+                        container = YouTubeFunctions.Parse(url, YTUseCookies, Token, pr, __getMinDate(LastDownloadDatePlaylist), __maxDate,, True)
                         applySpecFolder.Invoke("Playlists", True)
-                        If fillList.Invoke(LastDownloadDatePlaylist) Then LastDownloadDatePlaylist = If(maxDate, Now)
+                        If fillList.Invoke(LastDownloadDatePlaylist, False) Then LastDownloadDatePlaylist = If(maxDate, Now)
                     End If
                     If Not IsMusic And (DownloadYTCommunityImages Or DownloadYTCommunityVideos) Then DownloadCommunity(String.Empty, Token)
                 Else

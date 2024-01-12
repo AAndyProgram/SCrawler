@@ -37,6 +37,7 @@ Namespace DownloadObjects
                 Return OPT_SUBSCRIPTIONS.Checked
             End Get
         End Property
+        Private IsSession As Boolean = True
 #End Region
 #Region "Initializer"
         Friend Sub New()
@@ -171,6 +172,7 @@ Namespace DownloadObjects
             End Try
         End Sub
         Private Sub Feed_SPEC_LOAD(ByVal Source As ToolStripMenuItem, ByVal e As EventArgs)
+            IsSession = False
             Dim f As FeedSpecial = Source.Tag
             If Not f Is Nothing AndAlso Not f.Disposed Then
                 DataList.Clear()
@@ -291,12 +293,15 @@ Namespace DownloadObjects
 #Region "Feed"
 #Region "Load"
         Private Sub BTT_LOAD_SESSION_CURRENT_Click(sender As Object, e As EventArgs) Handles BTT_LOAD_SESSION_CURRENT.Click
+            IsSession = True
             RefillList()
         End Sub
         Private Sub BTT_LOAD_SESSION_LAST_Click(sender As Object, e As EventArgs) Handles BTT_LOAD_SESSION_LAST.Click
+            IsSession = True
             SessionChooser(True)
         End Sub
         Private Sub BTT_LOAD_SESSION_CHOOSE_Click(sender As Object, e As EventArgs) Handles BTT_LOAD_SESSION_CHOOSE.Click
+            IsSession = True
             SessionChooser(False)
         End Sub
         Private Sub SessionChooser(ByVal GetLast As Boolean, Optional ByVal GetFilesOnly As Boolean = False,
@@ -382,6 +387,7 @@ Namespace DownloadObjects
 #End Region
 #Region "Load fav, spec"
         Private Sub BTT_LOAD_FAV_Click(sender As Object, e As EventArgs) Handles BTT_LOAD_FAV.Click
+            IsSession = False
             DataList.Clear()
             With Settings.Feeds.Favorite
                 .RemoveNotExist(FileNotExist)
@@ -389,6 +395,7 @@ Namespace DownloadObjects
             End With
         End Sub
         Private Sub BTT_LOAD_SPEC_Click(sender As Object, e As EventArgs) Handles BTT_LOAD_SPEC.Click
+            IsSession = False
             With FeedSpecialCollection.ChooseFeeds(False)
                 If .ListExists Then
                     DataList.Clear()
@@ -527,6 +534,68 @@ Namespace DownloadObjects
             End If
         End Sub
 #End Region
+#Region "Merge feeds"
+        Private Sub MergeFeeds() Handles BTT_MERGE_SESSIONS.Click
+            Try
+                Const msgTitle$ = "Merge feeds"
+                Dim files As New List(Of SFile)
+                Dim abs% = 0, prev% = 0, curr%, i%
+                Dim x As XmlFile
+                Dim f As SFile
+                Dim um As UserMediaD
+                Dim data As New List(Of UserMediaD)
+                Dim tmpData As New List(Of UserMediaD)
+                Dim lrc As New ListAddParams(LAP.NotContainsOnly + LAP.IgnoreICopier)
+                SessionChooser(False, True, files)
+                If files.ListExists(2) Then
+                    files.Sort()
+                    For Each f In files
+                        x = New XmlFile(f,, False) With {.AllowSameNames = True, .XmlReadOnly = True}
+                        x.LoadData(EDP.None)
+                        If x.Count > 0 Then tmpData.ListAddList(x, lrc)
+                        If tmpData.Count > 0 Then tmpData.Reverse() : data.AddRange(tmpData) : tmpData.Clear()
+                        x.Dispose()
+                    Next
+                    If data.Count > 0 Then
+                        For i = 0 To data.Count - 1
+                            um = data(i)
+                            curr = um.Session
+                            If i = 0 Then
+                                abs = curr
+                            Else
+                                If curr < abs And prev <> curr Then
+                                    abs += 1
+                                ElseIf curr >= abs Then
+                                    abs = curr
+                                End If
+                            End If
+                            prev = curr
+                            um.Session = abs
+                            data(i) = um
+                        Next
+                        data.Reverse()
+                        x = New XmlFile With {.Name = TDownloader.Name_SessionXML, .AllowSameNames = True}
+                        x.AddRange(data)
+                        x.Save(files(0))
+                        x.Dispose()
+                        For i = 1 To files.Count - 1 : files(i).Delete(SFO.File, SFODelete.DeleteToRecycleBin, EDP.ReturnValue) : Next
+                        MsgBoxE({$"Session data was combined into '{files(0).Name}'.{vbCr}{vbCr}" &
+                                 files.ListToStringE(, New CustomProvider(Function(ff As SFile) ff.Name),,, EDP.ReturnValue), msgTitle})
+                        files.Clear()
+                        data.Clear()
+                    Else
+                        MsgBoxE({"There is no session data in the selected files", msgTitle}, vbExclamation)
+                    End If
+                ElseIf files.ListExists(1) Then
+                    MsgBoxE({"You must select two or more files to merge feeds", msgTitle}, vbExclamation)
+                Else
+                    MsgBoxE({"You haven't selected any feeds", msgTitle}, vbExclamation)
+                End If
+            Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "[DownloadFeedForm.MergeFeeds]")
+            End Try
+        End Sub
+#End Region
 #End Region
 #Region "View modes"
         Private Sub OPT_Click(ByVal Sender As ToolStripMenuItem, ByVal e As EventArgs) Handles OPT_DEFAULT.Click, OPT_SUBSCRIPTIONS.Click
@@ -553,6 +622,7 @@ Namespace DownloadObjects
             BTT_REFRESH.ControlChangeColor(ToolbarTOP, Added, False)
         End Sub
         Private Sub BTT_REFRESH_Click(sender As Object, e As EventArgs) Handles BTT_REFRESH.Click
+            IsSession = True
             RefillList()
         End Sub
 #End Region
@@ -763,7 +833,7 @@ Namespace DownloadObjects
                         Dim p As New TPCELL(DataRows, DataColumns)
                         Dim fmList As New List(Of FeedMedia)
                         d.ForEach(Sub(ByVal de As UserMediaD)
-                                      fmList.Add(New FeedMedia(de, w, h))
+                                      fmList.Add(New FeedMedia(de, w, h, IsSession))
                                       With fmList.Last
                                           AddHandler .MediaDeleted, AddressOf FeedMedia_MediaDeleted
                                           AddHandler .MediaDownload, AddressOf FeedMedia_Download

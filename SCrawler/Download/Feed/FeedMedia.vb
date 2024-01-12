@@ -159,7 +159,7 @@ Namespace DownloadObjects
         Public Sub New()
             InitializeComponent()
         End Sub
-        Friend Sub New(ByVal Media As UserMediaD, ByVal Width As Integer, ByVal Height As Integer)
+        Friend Sub New(ByVal Media As UserMediaD, ByVal Width As Integer, ByVal Height As Integer, ByVal IsSession As Boolean)
             Try
                 InitializeComponent()
                 Me.Media = Media
@@ -278,7 +278,7 @@ Namespace DownloadObjects
                         End With
                     End If
 
-                    If Settings.FeedAddSessionToCaption Then info = $"[{Media.Session}] {info}"
+                    If Settings.FeedAddSessionToCaption And IsSession Then info = $"[{Media.Session}] {info}"
                     If Settings.FeedAddDateToCaption Then info &= $" ({Media.Date.ToStringDate(ADateTime.Formats.BaseDateTime)})"
                     LBL_INFO.Text = info
                     If Not Media.User Is Nothing AndAlso Not Media.User.HOST Is Nothing Then

@@ -26,6 +26,7 @@ Namespace DownloadObjects
 #End Region
 #Region "Declarations"
 #Region "Files"
+        Friend Const Name_SessionXML As String = "Session"
         Friend Structure UserMediaD : Implements IComparable(Of UserMediaD), IEquatable(Of UserMediaD), IEContainerProvider
 #Region "XML Names"
             Private Const Name_Data As String = "Data"
@@ -40,7 +41,7 @@ Namespace DownloadObjects
             Friend ReadOnly Data As UserMedia
             Friend ReadOnly UserInfo As UserInfo
             Friend ReadOnly [Date] As Date
-            Friend ReadOnly Session As Integer
+            Friend Session As Integer
             Friend IsSavedPosts As Boolean
             Friend Sub New(ByVal Data As UserMedia, ByVal User As IUserData, ByVal Session As Integer)
                 Me.Data = Data
@@ -133,7 +134,7 @@ Namespace DownloadObjects
             Try
                 If Settings.FeedStoreSessionsData And Files.Count > 0 Then
                     ClearSessions()
-                    Using x As New XmlFile With {.Name = "Session", .AllowSameNames = True}
+                    Using x As New XmlFile With {.Name = Name_SessionXML, .AllowSameNames = True}
                         x.AddRange(Files)
                         x.Save(FilesSessionActual)
                     End Using

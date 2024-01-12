@@ -746,10 +746,15 @@ Namespace API.Instagram
                                   Optional ByVal PostOriginUrl As String = Nothing,
                                   Optional ByVal State As UStates = UStates.Unknown, Optional ByVal Attempts As Integer = 0)
             Try
+                Dim maxSize As Func(Of EContainer, Integer) = Function(ByVal _ss As EContainer) As Integer
+                                                                  Dim w% = AConvert(Of Integer)(_ss.Value("width"), 0)
+                                                                  Dim h% = AConvert(Of Integer)(_ss.Value("height"), 0)
+                                                                  Return Math.Max(w, h)
+                                                              End Function
                 Dim wrongData As Predicate(Of Sizes) = Function(_ss) _ss.HasError Or _ss.Data.IsEmptyString
                 Dim img As Predicate(Of EContainer) = Function(_img) Not _img.Name.IsEmptyString AndAlso _img.Name.StartsWith("image_versions") AndAlso _img.Count > 0
                 Dim vid As Predicate(Of EContainer) = Function(_vid) Not _vid.Name.IsEmptyString AndAlso _vid.Name.StartsWith("video_versions") AndAlso _vid.Count > 0
-                Dim ss As Func(Of EContainer, Sizes) = Function(_ss) New Sizes(_ss.Value("width"), _ss.Value("url"))
+                Dim ss As Func(Of EContainer, Sizes) = Function(_ss) New Sizes(maxSize(_ss), _ss.Value("url"))
                 Dim ssVid As Func(Of EContainer, Sizes) = ss
                 Dim ssPic As Func(Of EContainer, Sizes) = ss
                 Dim mDate As Func(Of EContainer, String) = Function(ByVal elem As EContainer) As String

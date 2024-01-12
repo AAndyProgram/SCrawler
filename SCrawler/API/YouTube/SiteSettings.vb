@@ -90,7 +90,11 @@ Namespace API.YouTube
         End Function
         Friend Overrides Function GetUserPostUrl(ByVal User As UserDataBase, ByVal Media As UserMedia) As String
             If Not User Is Nothing AndAlso TypeOf User Is UserData Then
-                Return $"https://{IIf(DirectCast(User, UserData).IsMusic, "music", "www")}.youtube.com/watch?v={Media.Post.ID}"
+                If DirectCast(User, UserData).IsMusic Or Media.URL_BASE.IsEmptyString Then
+                    Return $"https://{IIf(DirectCast(User, UserData).IsMusic, "music", "www")}.youtube.com/watch?v={Media.Post.ID}"
+                Else
+                    Return Media.URL_BASE
+                End If
             Else
                 Return String.Empty
             End If

@@ -49,6 +49,7 @@ Namespace DownloadObjects
             Me.BTT_FEED_DELETE_SPEC = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_FEED_DELETE_DAILY_LIST = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_FEED_DELETE_DAILY_DATE = New System.Windows.Forms.ToolStripMenuItem()
+            Me.BTT_MERGE_SESSIONS = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_CLEAR_DAILY = New System.Windows.Forms.ToolStripMenuItem()
             Me.SEP_0 = New System.Windows.Forms.ToolStripSeparator()
             Me.MENU_DOWN = New System.Windows.Forms.ToolStripDropDownButton()
@@ -119,6 +120,11 @@ Namespace DownloadObjects
             MENU_LOAD_SEP_4.Name = "MENU_LOAD_SEP_4"
             MENU_LOAD_SEP_4.Size = New System.Drawing.Size(264, 6)
             '
+            'MENU_LOAD_SEP_5
+            '
+            MENU_LOAD_SEP_5.Name = "MENU_LOAD_SEP_5"
+            MENU_LOAD_SEP_5.Size = New System.Drawing.Size(264, 6)
+            '
             'ToolbarTOP
             '
             Me.ToolbarTOP.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden
@@ -131,7 +137,7 @@ Namespace DownloadObjects
             'MENU_LOAD_SESSION
             '
             Me.MENU_LOAD_SESSION.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image
-            Me.MENU_LOAD_SESSION.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_LOAD_SESSION_CURRENT, Me.BTT_LOAD_SESSION_LAST, Me.BTT_LOAD_SESSION_CHOOSE, MENU_LOAD_SEP_1, Me.BTT_LOAD_FAV, Me.BTT_LOAD_SPEC, MENU_LOAD_SEP_2, Me.BTT_FEED_ADD_FAV, Me.BTT_FEED_REMOVE_FAV, MENU_LOAD_SEP_3, Me.BTT_FEED_ADD_SPEC, Me.BTT_FEED_REMOVE_SPEC, MENU_LOAD_SEP_4, Me.BTT_FEED_CLEAR_FAV, Me.BTT_FEED_CLEAR_SPEC, Me.BTT_FEED_DELETE_SPEC, Me.BTT_FEED_DELETE_DAILY_LIST, Me.BTT_FEED_DELETE_DAILY_DATE, MENU_LOAD_SEP_5, Me.BTT_CLEAR_DAILY})
+            Me.MENU_LOAD_SESSION.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_LOAD_SESSION_CURRENT, Me.BTT_LOAD_SESSION_LAST, Me.BTT_LOAD_SESSION_CHOOSE, MENU_LOAD_SEP_1, Me.BTT_LOAD_FAV, Me.BTT_LOAD_SPEC, MENU_LOAD_SEP_2, Me.BTT_FEED_ADD_FAV, Me.BTT_FEED_REMOVE_FAV, MENU_LOAD_SEP_3, Me.BTT_FEED_ADD_SPEC, Me.BTT_FEED_REMOVE_SPEC, MENU_LOAD_SEP_4, Me.BTT_FEED_CLEAR_FAV, Me.BTT_FEED_CLEAR_SPEC, Me.BTT_FEED_DELETE_SPEC, Me.BTT_FEED_DELETE_DAILY_LIST, Me.BTT_FEED_DELETE_DAILY_DATE, MENU_LOAD_SEP_5, Me.BTT_MERGE_SESSIONS, Me.BTT_CLEAR_DAILY})
             Me.MENU_LOAD_SESSION.Image = Global.SCrawler.My.Resources.Resources.ArrowDownPic_Blue_24
             Me.MENU_LOAD_SESSION.ImageTransparentColor = System.Drawing.Color.Magenta
             Me.MENU_LOAD_SESSION.Name = "MENU_LOAD_SESSION"
@@ -236,6 +242,15 @@ Namespace DownloadObjects
             Me.BTT_FEED_DELETE_DAILY_DATE.Size = New System.Drawing.Size(267, 22)
             Me.BTT_FEED_DELETE_DAILY_DATE.Text = "Delete daily feed (by date)"
             '
+            'BTT_MERGE_SESSIONS
+            '
+            Me.BTT_MERGE_SESSIONS.AutoToolTip = True
+            Me.BTT_MERGE_SESSIONS.Image = Global.SCrawler.My.Resources.Resources.DBPic_32
+            Me.BTT_MERGE_SESSIONS.Name = "BTT_MERGE_SESSIONS"
+            Me.BTT_MERGE_SESSIONS.Size = New System.Drawing.Size(267, 22)
+            Me.BTT_MERGE_SESSIONS.Text = "Merge sessions"
+            Me.BTT_MERGE_SESSIONS.ToolTipText = "Merge multiple session feeds into one"
+            '
             'BTT_CLEAR_DAILY
             '
             Me.BTT_CLEAR_DAILY.Image = Global.SCrawler.My.Resources.Resources.DeletePic_24
@@ -311,11 +326,6 @@ Namespace DownloadObjects
             Me.TP_DATA.Size = New System.Drawing.Size(484, 436)
             Me.TP_DATA.TabIndex = 1
             '
-            'MENU_LOAD_SEP_5
-            '
-            MENU_LOAD_SEP_5.Name = "MENU_LOAD_SEP_5"
-            MENU_LOAD_SEP_5.Size = New System.Drawing.Size(264, 6)
-            '
             'DownloadFeedForm
             '
             Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
@@ -361,5 +371,6 @@ Namespace DownloadObjects
         Private WithEvents BTT_FEED_DELETE_SPEC As ToolStripMenuItem
         Private WithEvents BTT_FEED_DELETE_DAILY_LIST As ToolStripMenuItem
         Private WithEvents BTT_FEED_DELETE_DAILY_DATE As ToolStripMenuItem
+        Private WithEvents BTT_MERGE_SESSIONS As ToolStripMenuItem
     End Class
 End Namespace
