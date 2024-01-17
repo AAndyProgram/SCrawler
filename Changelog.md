@@ -1,3 +1,13 @@
+# 2024.1.18.0
+
+*2024-01-18*
+
+- Fixed
+  - Main window: incorrect collection sorting
+  - xHamster: some user videos were not downloaded
+  - YouTube (standalone app): URL array form doesn't show scrollbars
+  - Minor bugs
+
 # 2024.1.12.1
 
 *2024-01-12*

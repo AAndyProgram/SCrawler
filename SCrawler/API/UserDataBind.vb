@@ -741,6 +741,15 @@ Namespace API
             Return GetEnumerator()
         End Function
 #End Region
+#Region "IComparable Support"
+        Friend Overrides Function CompareTo(ByVal Other As UserDataBase) As Integer
+            If TypeOf Other Is UserDataBind Then
+                Return CollectionName.CompareTo(Other.CollectionName)
+            Else
+                Return -1
+            End If
+        End Function
+#End Region
 #Region "IEquatable support"
         Friend Overrides Function Equals(ByVal Other As UserDataBase) As Boolean
             If Other.IsCollection Then

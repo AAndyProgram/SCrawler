@@ -100,6 +100,7 @@ Namespace API.YouTube.Controls
             Me.TXT_URLS.MaxLength = 2147483647
             Me.TXT_URLS.Multiline = True
             Me.TXT_URLS.Name = "TXT_URLS"
+            Me.TXT_URLS.ScrollBars = System.Windows.Forms.ScrollBars.Both
             Me.TXT_URLS.Size = New System.Drawing.Size(372, 261)
             Me.TXT_URLS.TabIndex = 0
             '

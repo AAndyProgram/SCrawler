@@ -84,10 +84,15 @@ Namespace API.Xhamster
         End Function
         Private Shared Function ObtainUrls(ByVal URL As String, ByVal Responser As Responser, ByVal UHD As Boolean) As List(Of M3U8URL)
             Try
+                Const sk$ = "/key="
                 Dim file$ = ParseFirstM3U8(URL, Responser, UHD)
                 If Not file.IsEmptyString Then
                     Responser.UseGZipStream = False
                     Dim appender$ = URL.Replace(URL.Split("/").LastOrDefault, String.Empty)
+                    If file.StartsWith(sk) Then
+                        Dim position% = InStr(URL, sk)
+                        If position > 0 Then appender = URL.Remove(position - 1)
+                    End If
                     URL = M3U8Base.CreateUrl(appender, file)
                     Dim l As List(Of M3U8URL) = ParseSecondM3U8(URL, Responser, appender)
                     If l.ListExists Then Return l

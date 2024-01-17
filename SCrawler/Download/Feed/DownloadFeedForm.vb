@@ -580,7 +580,7 @@ Namespace DownloadObjects
                         x.Dispose()
                         For i = 1 To files.Count - 1 : files(i).Delete(SFO.File, SFODelete.DeleteToRecycleBin, EDP.ReturnValue) : Next
                         MsgBoxE({$"Session data was combined into '{files(0).Name}'.{vbCr}{vbCr}" &
-                                 files.ListToStringE(, New CustomProvider(Function(ff As SFile) ff.Name),,, EDP.ReturnValue), msgTitle})
+                                 files.ListToStringE(vbCr, New CustomProvider(Function(ff As SFile) ff.Name),,, EDP.ReturnValue), msgTitle})
                         files.Clear()
                         data.Clear()
                     Else
