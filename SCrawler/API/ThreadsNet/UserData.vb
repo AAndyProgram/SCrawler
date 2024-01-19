@@ -18,14 +18,11 @@ Imports IGS = SCrawler.API.Instagram.SiteSettings
 Namespace API.ThreadsNet
     Friend Class UserData : Inherits Instagram.UserData
 #Region "Declarations"
-        Friend Const Header_FB_LSD As String = "x-fb-lsd"
         Private ReadOnly Property MySettings As SiteSettings
             Get
                 Return HOST.Source
             End Get
         End Property
-        Private ReadOnly ObtainMedia_SizeFuncPic_RegexP As RParams = RParams.DMS("_p(\d+)x(\d+)", 1, EDP.ReturnValue)
-        Private ReadOnly ObtainMedia_SizeFuncPic_RegexS As RParams = RParams.DMS("_s(\d+)x(\d+)", 1, EDP.ReturnValue)
         Private ReadOnly DefaultParser_ElemNode_Default() As Object = {"node", "thread_items", 0, "post"}
         Private OPT_LSD As String = String.Empty
         Private OPT_FB_DTSG As String = String.Empty
@@ -48,20 +45,7 @@ Namespace API.ThreadsNet
 #End Region
 #Region "Initializer"
         Friend Sub New()
-            ObtainMedia_SizeFuncPic = Function(ByVal ss As EContainer) As Sizes
-                                          If ss.Value("url").IsEmptyString Then
-                                              Return New Sizes("----", "")
-                                          ElseIf Not ss.Value("width").IsEmptyString Then
-                                              Return New Sizes(ss.Value("height").IfNullOrEmpty(ss.Value("width")), ss.Value("url"))
-                                          Else
-                                              Dim rval$ = RegexReplace(ss.Value("url"), ObtainMedia_SizeFuncPic_RegexP)
-                                              If Not rval.IsEmptyString Then Return New Sizes(rval, ss.Value("url"))
-                                              rval = RegexReplace(ss.Value("url"), ObtainMedia_SizeFuncPic_RegexS)
-                                              If Not rval.IsEmptyString Then Return New Sizes(AConvert(Of Integer)(rval, 1) * -1, ss.Value("url"))
-                                              Return New Sizes(10000, ss.Value("url"))
-                                          End If
-                                      End Function
-            ObtainMedia_SizeFuncVid = Function(ss) If(ss.Value("url").IsEmptyString, New Sizes("----", ""), New Sizes(10000, ss.Value("url")))
+            ObtainMedia_SetReelsFunc()
             ObtainMedia_AllowAbstract = True
             DefaultParser_ElemNode = DefaultParser_ElemNode_Default
             DefaultParser_PostUrlCreator = Function(post) $"https://www.threads.net/@{NameTrue}/post/{post.Code}"
@@ -174,7 +158,7 @@ Namespace API.ThreadsNet
                 Dim rr As RParams
                 Dim tt$, ttVal$
                 If Not r.IsEmptyString Then
-                    rr = RParams.DM("\[\],{""token"":""(.*?)""},\d+\]", 0, RegexReturn.List, EDP.ReturnValue)
+                    rr = RParams.DM(Instagram.PageTokenRegexPatternDefault, 0, RegexReturn.List, EDP.ReturnValue)
                     Dim tokens As List(Of String) = RegexReplace(r, rr)
                     If tokens.ListExists Then
                         With rr

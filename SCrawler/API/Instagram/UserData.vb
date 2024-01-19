@@ -15,6 +15,7 @@ Imports PersonalUtilities.Functions.XML.Base
 Imports PersonalUtilities.Functions.Messaging
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Tools.Web.Clients
+Imports PersonalUtilities.Tools.Web.Clients.Base
 Imports PersonalUtilities.Tools.Web.Documents.JSON
 Imports UTypes = SCrawler.API.Base.UserMedia.Types
 Imports UStates = SCrawler.API.Base.UserMedia.States
@@ -24,6 +25,7 @@ Namespace API.Instagram
         Private Const Name_LastCursor As String = "LastCursor"
         Private Const Name_FirstLoadingDone As String = "FirstLoadingDone"
         Private Const Name_GetTimeline As String = "GetTimeline"
+        Private Const Name_GetReels As String = "GetReels"
         Private Const Name_GetStories As String = "GetStories"
         Private Const Name_GetStoriesUser As String = "GetStoriesUser"
         Private Const Name_GetTagged As String = "GetTaggedData"
@@ -66,6 +68,7 @@ Namespace API.Instagram
                 Return New EContainer("Post", ID, {New EAttribute(Name_Section, CInt(Section)), New EAttribute(Name_Code, Code)})
             End Function
         End Structure
+        Friend Const Header_FB_LSD As String = "x-fb-lsd"
         Private ReadOnly Property MySiteSettings As SiteSettings
             Get
                 Return DirectCast(HOST.Source, SiteSettings)
@@ -76,6 +79,7 @@ Namespace API.Instagram
         Private LastCursor As String = String.Empty
         Private FirstLoadingDone As Boolean = False
         Friend Property GetTimeline As Boolean = True
+        Friend Property GetReels As Boolean = False
         Friend Property GetStories As Boolean
         Friend Property GetStoriesUser As Boolean
         Friend Property GetTaggedData As Boolean
@@ -94,6 +98,7 @@ Namespace API.Instagram
                     LastCursor = .Value(Name_LastCursor)
                     FirstLoadingDone = .Value(Name_FirstLoadingDone).FromXML(Of Boolean)(False)
                     GetTimeline = .Value(Name_GetTimeline).FromXML(Of Boolean)(CBool(MySiteSettings.GetTimeline.Value))
+                    GetReels = .Value(Name_GetReels).FromXML(Of Boolean)(MySiteSettings.GetReels.Value)
                     GetStories = .Value(Name_GetStories).FromXML(Of Boolean)(CBool(MySiteSettings.GetStories.Value))
                     GetStoriesUser = .Value(Name_GetStoriesUser).FromXML(Of Boolean)(MySiteSettings.GetStoriesUser.Value)
                     GetTaggedData = .Value(Name_GetTagged).FromXML(Of Boolean)(CBool(MySiteSettings.GetTagged.Value))
@@ -103,6 +108,7 @@ Namespace API.Instagram
                     .Add(Name_LastCursor, LastCursor)
                     .Add(Name_FirstLoadingDone, FirstLoadingDone.BoolToInteger)
                     .Add(Name_GetTimeline, GetTimeline.BoolToInteger)
+                    .Add(Name_GetReels, GetReels.BoolToInteger)
                     .Add(Name_GetStories, GetStories.BoolToInteger)
                     .Add(Name_GetStoriesUser, GetStoriesUser.BoolToInteger)
                     .Add(Name_GetTagged, GetTaggedData.BoolToInteger)
@@ -120,6 +126,7 @@ Namespace API.Instagram
             If Not Obj Is Nothing AndAlso TypeOf Obj Is EditorExchangeOptions Then
                 With DirectCast(Obj, EditorExchangeOptions)
                     GetTimeline = .GetTimeline
+                    GetReels = .GetReels
                     GetStories = .GetStories
                     GetStoriesUser = .GetStoriesUser
                     GetTaggedData = .GetTagged
@@ -253,6 +260,14 @@ Namespace API.Instagram
                 End If
                 If FirstLoadingDone Then LastCursor = String.Empty
                 If Not IsSavedPosts AndAlso MySiteSettings.BaseAuthExists() Then
+                    If CBool(MySiteSettings.DownloadReels.Value) And GetReels Then
+                        s = Sections.Reels
+                        DefaultParser_ElemNode = {"node", "media"}
+                        DownloadData(String.Empty, s, Token)
+                        DefaultParser_ElemNode = Nothing
+                        DownloadReels_SetEnvir = False
+                        ProgressPre.Done()
+                    End If
                     If CBool(MySiteSettings.DownloadStories.Value) And GetStories Then s = Sections.Stories : DownloadData(String.Empty, s, Token) : ProgressPre.Done()
                     If CBool(MySiteSettings.DownloadStoriesUser.Value) And GetStoriesUser Then s = Sections.UserStories : DownloadData(String.Empty, s, Token) : ProgressPre.Done()
                     If CBool(MySiteSettings.DownloadTagged.Value) And GetTaggedData Then
@@ -268,6 +283,8 @@ Namespace API.Instagram
                 errorFound = True
                 Throw ex
             Finally
+                DefaultParser_ElemNode = Nothing
+                DownloadReels_SetEnvir = False
                 E560Thrown = False
                 UpdateResponser()
                 ValidateExtension()
@@ -301,7 +318,7 @@ Namespace API.Instagram
         Protected Overridable Sub Responser_ResponseReceived(ByVal Sender As Object, ByVal e As EventArguments.WebDataResponse)
             Declarations.UpdateResponser(e, Responser)
         End Sub
-        Protected Enum Sections : Timeline : Tagged : Stories : UserStories : SavedPosts : End Enum
+        Protected Enum Sections : Timeline : Reels : Tagged : Stories : UserStories : SavedPosts : End Enum
         Protected Const StoriesFolder As String = "Stories"
         Private Const TaggedFolder As String = "Tagged"
 #Region "429 bypass"
@@ -441,6 +458,7 @@ Namespace API.Instagram
                     ReconfigureAwaiter()
 
                     Try
+                        Dim r$ = String.Empty
                         Dim n As EContainer, nn As EContainer
                         Dim HasNextPage As Boolean = False
                         Dim EndCursor$ = String.Empty
@@ -461,6 +479,9 @@ Namespace API.Instagram
                                 URL = $"https://www.instagram.com/api/v1/feed/user/{NameTrue}/username/?count=50" &
                                         If(Cursor.IsEmptyString, String.Empty, $"&max_id={Cursor}")
                                 ENode = Nothing
+                            Case Sections.Reels
+                                r = DownloadReels(Cursor, Token)
+                                ENode = {"data", "xdt_api__v1__clips__user__connection_v2"}
                             Case Sections.SavedPosts
                                 SavedPostsDownload(String.Empty, Token)
                                 Exit Sub
@@ -496,7 +517,7 @@ Namespace API.Instagram
                         End Select
 
                         'Get response
-                        Dim r$ = Responser.GetResponse(URL,, EDP.ThrowException)
+                        If Not Section = Sections.Reels Then r = Responser.GetResponse(URL,, EDP.ThrowException)
                         MySiteSettings.TooManyRequests(False)
                         RequestsCount += 1
                         ThrowAny(Token)
@@ -516,6 +537,20 @@ Namespace API.Instagram
                                                     If Not DefaultParser(.Item("items"), Section, Token) Then Throw New ExitException
                                                 Else
                                                     HasNextPage = False
+                                                End If
+                                            End With
+                                        Case Sections.Reels
+                                            With n
+                                                If .Contains("page_info") Then
+                                                    With .Item("page_info")
+                                                        HasNextPage = .Value("has_next_page").FromXML(Of Boolean)(False)
+                                                        EndCursor = .Value("end_cursor")
+                                                    End With
+                                                Else
+                                                    HasNextPage = False
+                                                End If
+                                                If If(.Item("edges")?.Count, 0) > 0 Then
+                                                    If Not DefaultParser(.Item("edges"), Section, Token, "Reels*") Then Throw New ExitException
                                                 End If
                                             End With
                                         Case Sections.Tagged
@@ -577,7 +612,7 @@ Namespace API.Instagram
                     End Try
                 Loop
             Catch eex2 As ExitException
-                If (Section = Sections.Timeline Or Section = Sections.Tagged) And Not Cursor.IsEmptyString Then Throw eex2
+                If Not Section = Sections.Reels And (Section = Sections.Timeline Or Section = Sections.Tagged) And Not Cursor.IsEmptyString Then Throw eex2
             Catch oex2 As OperationCanceledException When Token.IsCancellationRequested Or oex2.HelpLink = InstAborted
                 If oex2.HelpLink = InstAborted Then HasError = True
             Catch DoEx As Exception
@@ -668,6 +703,7 @@ Namespace API.Instagram
         End Sub
         Protected DefaultParser_ElemNode() As Object = Nothing
         Protected DefaultParser_IgnorePass As Boolean = False
+        Private ReadOnly DefaultParser_PostUrlCreator_Default As Func(Of PostKV, String) = Function(post) $"https://www.instagram.com/p/{post.Code}/"
         Protected DefaultParser_PostUrlCreator As Func(Of PostKV, String) = Function(post) $"https://www.instagram.com/p/{post.Code}/"
         Protected Function DefaultParser(ByVal Items As IEnumerable(Of EContainer), ByVal Section As Sections, ByVal Token As CancellationToken,
                                          Optional ByVal SpecFolder As String = Nothing, Optional ByVal State As UStates = UStates.Unknown,
@@ -717,6 +753,106 @@ Namespace API.Instagram
             End If
         End Function
 #End Region
+#Region "Get reels"
+        Private _GetReels_LSD As String = String.Empty
+        Private _GetReels_dtsg As String = String.Empty
+        Private ReadOnly Property DownloadReels_Tokens_Valid As Boolean
+            Get
+                Return Not _GetReels_LSD.IsEmptyString And Not _GetReels_dtsg.IsEmptyString
+            End Get
+        End Property
+        Private WriteOnly Property DownloadReels_SetEnvir As Boolean
+            Set(ByVal init As Boolean)
+                If init Then
+                    ObtainMedia_SetReelsFunc()
+                    DefaultParser_PostUrlCreator = Function(post) $"{MySiteSettings.GetUserUrl(Me).TrimEnd("/")}/reel/{post.Code}"
+                Else
+                    ObtainMedia_SizeFuncPic = Nothing
+                    ObtainMedia_SizeFuncVid = Nothing
+                    DefaultParser_PostUrlCreator = DefaultParser_PostUrlCreator_Default
+                End If
+            End Set
+        End Property
+        Private Class Responser2 : Inherits Responser
+            Friend Sub New(ByVal Source As Responser)
+                MyBase.New
+                Copy(Source)
+                ErrorProcessor = New ResponserErrorProcessor(Source)
+            End Sub
+        End Class
+        ''' <returns>Response</returns>
+        Private Function DownloadReels(ByVal Cursor As String, ByVal Token As CancellationToken) As String
+            Const requestPattern$ = "https://www.instagram.com/api/graphql?fb_dtsg={0}&fb_api_req_friendly_name=PolarisProfileReelsTabContentQuery&lsd={1}&doc_id=7191572580905225&variables={2}"
+
+            DownloadReels_SetEnvir = True
+
+            If Cursor.IsEmptyString And Not DownloadReels_Tokens_Valid Then GetPageTokens()
+            If Cursor.IsEmptyString And Not DownloadReels_Tokens_Valid Then Throw New ExitException
+
+            Using resp As New Responser2(Responser)
+                Try
+                    resp.Method = "POST"
+                    AddHandler resp.ResponseReceived, AddressOf Responser_ResponseReceived
+                    resp.Headers.Add(Header_FB_LSD, _GetReels_LSD)
+
+                    Dim vars$ = """data"":{""include_feed_video"":true,""page_size"":50,""target_user_id"":""" & ID & """}"
+                    If Not Cursor.IsEmptyString Then vars = $"""after"":""{Cursor}"",""before"":null,{vars},""first"":4,""last"":null"
+                    vars = "{" & vars & "}"
+
+                    Dim url$ = String.Format(requestPattern, _GetReels_dtsg, _GetReels_LSD, SymbolsConverter.ASCII.EncodeSymbolsOnly(vars))
+
+                    Return resp.GetResponse(url,, EDP.ThrowException)
+                Finally
+                    With resp
+                        Responser.Cookies.Update(.Cookies)
+                        With .Headers
+                            If .Contains(SiteSettings.Header_IG_WWW_CLAIM) Then Responser.Headers.Add(SiteSettings.Header_IG_WWW_CLAIM, .Value(SiteSettings.Header_IG_WWW_CLAIM))
+                            If .Contains(SiteSettings.Header_CSRF_TOKEN) Then Responser.Headers.Add(SiteSettings.Header_CSRF_TOKEN, .Value(SiteSettings.Header_CSRF_TOKEN))
+                        End With
+                    End With
+                End Try
+            End Using
+        End Function
+        Private Function GetPageTokens() As Boolean
+            _GetReels_LSD = String.Empty
+            _GetReels_dtsg = String.Empty
+            Try
+                Dim r$ = Responser.GetResponse(MySiteSettings.GetUserUrl(Me),, EDP.ThrowException)
+                If Not r.IsEmptyString Then
+                    Dim rr As RParams = RParams.DM(PageTokenRegexPatternDefault, 0, RegexReturn.List, EDP.ReturnValue)
+                    Dim tokens As List(Of String) = RegexReplace(r, rr)
+                    Dim tt$, ttVal$
+                    If tokens.ListExists Then
+                        With rr
+                            .Match = Nothing
+                            .MatchSub = 1
+                            .WhatGet = RegexReturn.Value
+                        End With
+                        For Each tt In tokens
+                            If Not _GetReels_LSD.IsEmptyString And Not _GetReels_dtsg.IsEmptyString Then
+                                Exit For
+                            Else
+                                ttVal = RegexReplace(tt, rr)
+                                If Not ttVal.IsEmptyString Then
+                                    If ttVal.Contains(":") Then
+                                        If _GetReels_dtsg.IsEmptyString Then _GetReels_dtsg = ttVal
+                                    Else
+                                        If _GetReels_LSD.IsEmptyString Then _GetReels_LSD = ttVal
+                                    End If
+                                End If
+                            End If
+                        Next
+                    End If
+                End If
+            Catch ex As Exception
+                Dim notFound$ = String.Empty
+                If _GetReels_dtsg.IsEmptyString Then notFound.StringAppend(Header_FB_LSD)
+                If _GetReels_LSD.IsEmptyString Then notFound.StringAppend("lsd")
+                LogError(ex, $"failed to update some{IIf(notFound.IsEmptyString, String.Empty, $" ({notFound})")} credentials", EDP.SendToLog)
+            End Try
+            Return DownloadReels_Tokens_Valid
+        End Function
+#End Region
 #Region "Code ID converters"
         Protected Function CodeToID(ByVal Code As String) As String
             Const CodeSymbols$ = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
@@ -741,6 +877,23 @@ Namespace API.Instagram
         Protected ObtainMedia_SizeFuncVid As Func(Of EContainer, Sizes) = Nothing
         Protected ObtainMedia_SizeFuncPic As Func(Of EContainer, Sizes) = Nothing
         Protected ObtainMedia_AllowAbstract As Boolean = False
+        Protected Sub ObtainMedia_SetReelsFunc()
+            ObtainMedia_SizeFuncPic = Function(ByVal ss As EContainer) As Sizes
+                                          If ss.Value("url").IsEmptyString Then
+                                              Return New Sizes("----", "")
+                                          ElseIf Not ss.Value("width").IsEmptyString Or Not ss.Value("width").IsEmptyString Then
+                                              Return New Sizes(CInt(AConvert(Of Integer)(ss.Value("width"), 0)) +
+                                                               CInt(AConvert(Of Integer)(ss.Value("height"), 0)), ss.Value("url"))
+                                          Else
+                                              Dim rval$ = RegexReplace(ss.Value("url"), ObtainMedia_SizeFuncPic_RegexP)
+                                              If Not rval.IsEmptyString Then Return New Sizes(rval, ss.Value("url"))
+                                              rval = RegexReplace(ss.Value("url"), ObtainMedia_SizeFuncPic_RegexS)
+                                              If Not rval.IsEmptyString Then Return New Sizes(AConvert(Of Integer)(rval, 1) * -1, ss.Value("url"))
+                                              Return New Sizes(10000, ss.Value("url"))
+                                          End If
+                                      End Function
+            ObtainMedia_SizeFuncVid = Function(ss) If(ss.Value("url").IsEmptyString, New Sizes("----", ""), New Sizes(10000, ss.Value("url")))
+        End Sub
         Protected Sub ObtainMedia(ByVal n As EContainer, ByVal PostID As String, Optional ByVal SpecialFolder As String = Nothing,
                                   Optional ByVal DateObj As String = Nothing, Optional ByVal InitialType As Integer = -1,
                                   Optional ByVal PostOriginUrl As String = Nothing,
@@ -1051,11 +1204,12 @@ Namespace API.Instagram
                 Dim s As Sections = DirectCast(Section, Sections)
                 Select Case s
                     Case Sections.Timeline : MySiteSettings.DownloadTimeline.Value = False
+                    Case Sections.Reels : MySiteSettings.DownloadReels.Value = False
+                    Case Sections.Tagged : MySiteSettings.DownloadTagged.Value = False
                     Case Sections.Stories, Sections.UserStories
                         MySiteSettings.DownloadTimeline.Value = False
                         MySiteSettings.DownloadStories.Value = False
                         MySiteSettings.DownloadStoriesUser.Value = False
-                    Case Else : MySiteSettings.DownloadTagged.Value = False
                 End Select
                 MyMainLOG = $"[{s}] downloading is disabled until you update your credentials".ToUpper
             End If

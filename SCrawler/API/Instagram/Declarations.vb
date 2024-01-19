@@ -15,6 +15,9 @@ Namespace API.Instagram
         Friend Const InstagramSite As String = "Instagram"
         Friend Const InstagramSiteKey As String = "AndyProgram_Instagram"
         Friend ReadOnly FilesPattern As RParams = RParams.DMS(".+?([^/\?]+?\.[\w\d]{3,4})(?=(\?|\Z))", 1, EDP.ReturnValue)
+        Friend ReadOnly ObtainMedia_SizeFuncPic_RegexP As RParams = RParams.DMS("_p(\d+)x(\d+)", 1, EDP.ReturnValue)
+        Friend ReadOnly ObtainMedia_SizeFuncPic_RegexS As RParams = RParams.DMS("_s(\d+)x(\d+)", 1, EDP.ReturnValue)
+        Friend Const PageTokenRegexPatternDefault As String = "\[\],{""token"":""(.*?)""},\d+\]"
         Friend Sub UpdateResponser(ByVal Source As IResponse, ByRef Destination As Responser)
             Const r_wwwClaimName$ = "x-ig-set-www-claim"
             Const r_tokenName$ = SiteSettings.Header_CSRF_TOKEN_COOKIE

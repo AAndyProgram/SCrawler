@@ -121,11 +121,13 @@ Namespace API.Instagram
         Private ReadOnly Property SleepTimerOnPostsLimitProvider As IFormatProvider
         <PropertyOption(ControlText:="Get timeline", ControlToolTip:="Default value for new users"), PXML, ControlNumber(23), PClonable>
         Friend ReadOnly Property GetTimeline As PropertyValue
-        <PropertyOption(ControlText:="Get stories", ControlToolTip:="Default value for new users"), PXML, ControlNumber(24), PClonable>
+        <PropertyOption(ControlText:="Get Reels", ControlToolTip:="Default value for new users"), PXML, ControlNumber(24), PClonable>
+        Friend ReadOnly Property GetReels As PropertyValue
+        <PropertyOption(ControlText:="Get stories", ControlToolTip:="Default value for new users"), PXML, ControlNumber(25), PClonable>
         Friend ReadOnly Property GetStories As PropertyValue
-        <PropertyOption(ControlText:="Get stories: user", ControlToolTip:="Default value for new users"), PXML, ControlNumber(25), PClonable>
+        <PropertyOption(ControlText:="Get stories: user", ControlToolTip:="Default value for new users"), PXML, ControlNumber(26), PClonable>
         Friend ReadOnly Property GetStoriesUser As PropertyValue
-        <PropertyOption(ControlText:="Get tagged photos", ControlToolTip:="Default value for new users"), PXML, ControlNumber(26), PClonable>
+        <PropertyOption(ControlText:="Get tagged photos", ControlToolTip:="Default value for new users"), PXML, ControlNumber(27), PClonable>
         Friend ReadOnly Property GetTagged As PropertyValue
         <PropertyOption(ControlText:="Tagged notify limit",
                         ControlToolTip:="If the number of tagged posts exceeds this number you will be notified." & vbCr &
@@ -137,11 +139,13 @@ Namespace API.Instagram
 #Region "Download ready"
         <PropertyOption(ControlText:="Download timeline", ControlToolTip:="Download timeline"), PXML, ControlNumber(10), PClonable>
         Friend ReadOnly Property DownloadTimeline As PropertyValue
-        <PropertyOption(ControlText:="Download stories", ControlToolTip:="Download stories"), PXML, ControlNumber(11), PClonable>
+        <PropertyOption(ControlText:="Download Reels", ControlToolTip:="Download Reels"), PXML, ControlNumber(11), PClonable>
+        Friend ReadOnly Property DownloadReels As PropertyValue
+        <PropertyOption(ControlText:="Download stories", ControlToolTip:="Download stories"), PXML, ControlNumber(12), PClonable>
         Friend ReadOnly Property DownloadStories As PropertyValue
-        <PropertyOption(ControlText:="Download stories: user", ControlToolTip:="Download stories (user)"), PXML, ControlNumber(12), PClonable>
+        <PropertyOption(ControlText:="Download stories: user", ControlToolTip:="Download stories (user)"), PXML, ControlNumber(13), PClonable>
         Friend ReadOnly Property DownloadStoriesUser As PropertyValue
-        <PropertyOption(ControlText:="Download tagged", ControlToolTip:="Download tagged posts"), PXML, ControlNumber(13), PClonable>
+        <PropertyOption(ControlText:="Download tagged", ControlToolTip:="Download tagged posts"), PXML, ControlNumber(14), PClonable>
         Friend ReadOnly Property DownloadTagged As PropertyValue
 #End Region
 #Region "429 bypass"
@@ -244,6 +248,7 @@ Namespace API.Instagram
             HH_USER_AGENT = New PropertyValue(useragent, GetType(String), Sub(v) ChangeResponserFields(NameOf(HH_USER_AGENT), v))
 
             DownloadTimeline = New PropertyValue(True)
+            DownloadReels = New PropertyValue(True)
             DownloadStories = New PropertyValue(True)
             DownloadStoriesUser = New PropertyValue(True)
             DownloadTagged = New PropertyValue(True)
@@ -256,6 +261,7 @@ Namespace API.Instagram
             SleepTimerOnPostsLimitProvider = New TimersChecker(10000)
 
             GetTimeline = New PropertyValue(True)
+            GetReels = New PropertyValue(False)
             GetStories = New PropertyValue(False)
             GetStoriesUser = New PropertyValue(False)
             GetTagged = New PropertyValue(False)

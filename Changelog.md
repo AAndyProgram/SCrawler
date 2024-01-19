@@ -1,3 +1,11 @@
+# 2024.1.20.0
+
+*2024-01-20*
+
+- Added
+  - Instagram: **the ability to download reels**
+  - LPSG: handle 404 error
+
 # 2024.1.18.0
 
 *2024-01-18*
