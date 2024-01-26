@@ -20,6 +20,9 @@ Namespace API.TikTok
         Private Const Name_TitleUseNative As String = "TitleUseNative"
         Private Const Name_TitleAddVideoID As String = "TitleAddVideoID"
         Private Const Name_LastDownloadDate As String = "LastDownloadDate"
+        Private Const Name_TitleUseRegexForTitle As String = "TitleUseRegexForTitle"
+        Private Const Name_TitleUseRegexForTitle_Value As String = "TitleUseRegexForTitle_Value"
+        Private Const Name_TitleUseGlobalRegexOptions As String = "TitleUseGlobalRegexOptions"
 #End Region
 #Region "Declarations"
         Private ReadOnly Property MySettings As SiteSettings
@@ -27,26 +30,37 @@ Namespace API.TikTok
                 Return HOST.Source
             End Get
         End Property
+        Private UserCache As CacheKeeper = Nothing
         Private ReadOnly Property RootCacheTikTok As ICacheKeeper
             Get
-                With Settings.Cache
-                    Dim f As SFile = $"{Settings.Cache.RootDirectory.PathWithSeparator}TikTokCache\"
-                    If .ContainsFolder(f) Then
-                        Return .GetInstance(f)
-                    Else
-                        f.Exists(SFO.Path, True)
-                        With .NewInstance(Of BatchFileExchanger)(f)
-                            .DeleteCacheOnDispose = False
-                            .DeleteRootOnDispose = False
-                            Return .Self
-                        End With
-                    End If
-                End With
+                If Not UserCache Is Nothing AndAlso Not UserCache.Disposed Then
+                    With DirectCast(UserCache.NewInstance(Of BatchFileExchanger), BatchFileExchanger)
+                        .Validate()
+                        Return .Self
+                    End With
+                Else
+                    With Settings.Cache
+                        Dim f As SFile = $"{Settings.Cache.RootDirectory.PathWithSeparator}TikTokCache\"
+                        If .ContainsFolder(f) Then
+                            Return .GetInstance(f)
+                        Else
+                            f.Exists(SFO.Path, True)
+                            With .NewInstance(Of BatchFileExchanger)(f)
+                                .DeleteCacheOnDispose = False
+                                .DeleteRootOnDispose = False
+                                Return .Self
+                            End With
+                        End If
+                    End With
+                End If
             End Get
         End Property
         Friend Property RemoveTagsFromTitle As Boolean = False
         Friend Property TitleUseNative As Boolean = True
         Friend Property TitleAddVideoID As Boolean = True
+        Friend Property TitleUseRegexForTitle As Boolean = False
+        Friend Property TitleUseRegexForTitle_Value As String = String.Empty
+        Friend Property TitleUseGlobalRegexOptions As Boolean = True
         Private Property LastDownloadDate As Date? = Nothing
         Private _TrueName As String = String.Empty
         Friend Property TrueName As String
@@ -68,6 +82,9 @@ Namespace API.TikTok
                     RemoveTagsFromTitle = .RemoveTagsFromTitle
                     TitleUseNative = .TitleUseNative
                     TitleAddVideoID = .TitleAddVideoID
+                    TitleUseRegexForTitle = .TitleUseRegexForTitle
+                    TitleUseRegexForTitle_Value = .TitleUseRegexForTitle_Value
+                    TitleUseGlobalRegexOptions = .TitleUseGlobalRegexOptions
                 End With
             End If
         End Sub
@@ -82,12 +99,18 @@ Namespace API.TikTok
                     LastDownloadDate = AConvert(Of Date)(.Value(Name_LastDownloadDate), ADateTime.Formats.BaseDateTime, Nothing)
                     If Not LastDownloadDate.HasValue Then LastDownloadDate = LastUpdated
                     _TrueName = .Value(Name_TrueName)
+                    TitleUseRegexForTitle = .Value(Name_TitleUseRegexForTitle).FromXML(Of Boolean)(False)
+                    TitleUseRegexForTitle_Value = .Value(Name_TitleUseRegexForTitle_Value)
+                    TitleUseGlobalRegexOptions = .Value(Name_TitleUseGlobalRegexOptions).FromXML(Of Boolean)(True)
                 Else
                     .Add(Name_RemoveTagsFromTitle, RemoveTagsFromTitle.BoolToInteger)
                     .Add(Name_TitleUseNative, TitleUseNative.BoolToInteger)
                     .Add(Name_TitleAddVideoID, TitleAddVideoID.BoolToInteger)
                     .Add(Name_LastDownloadDate, AConvert(Of String)(LastDownloadDate, AModes.XML, ADateTime.Formats.BaseDateTime, String.Empty))
                     .Add(Name_TrueName, _TrueName)
+                    .Add(Name_TitleUseRegexForTitle, TitleUseRegexForTitle.BoolToInteger)
+                    .Add(Name_TitleUseRegexForTitle_Value, TitleUseRegexForTitle_Value)
+                    .Add(Name_TitleUseGlobalRegexOptions, TitleUseGlobalRegexOptions.BoolToInteger)
                 End If
             End With
         End Sub
@@ -99,110 +122,145 @@ Namespace API.TikTok
         End Sub
 #End Region
 #Region "Download functions"
+        Private Function GetTitleRegex() As RParams
+            Dim titleRegex As RParams = Nothing
+            If TitleUseGlobalRegexOptions Then
+                If CBool(MySettings.TitleUseRegexForTitle.Value) AndAlso Not CStr(MySettings.TitleUseRegexForTitle_Value.Value).IsEmptyString Then _
+                   titleRegex = RParams.DM(MySettings.TitleUseRegexForTitle_Value.Value, 0, RegexReturn.List, EDP.ReturnValue)
+            ElseIf TitleUseRegexForTitle And Not TitleUseRegexForTitle_Value.IsEmptyString Then
+                titleRegex = RParams.DM(TitleUseRegexForTitle_Value, 0, RegexReturn.List, EDP.ReturnValue)
+            End If
+            If Not titleRegex Is Nothing Then
+                titleRegex.NothingExists = True
+                titleRegex.Nothing = New List(Of String)
+                titleRegex.Converter = Function(input) input.StringTrim
+            End If
+            Return titleRegex
+        End Function
+        Private Function ChangeTitleRegex(ByVal Title As String, ByVal Regex As RParams) As String
+            Try
+                If Not Regex Is Nothing Then
+                    With DirectCast(RegexReplace(Title, Regex), List(Of String))
+                        If .ListExists Then
+                            Dim newTitle$ = .ListToString(String.Empty, EDP.ReturnValue).StringTrim
+                            If Not newTitle.IsEmptyString Then Return newTitle
+                        End If
+                    End With
+                End If
+            Catch ex As Exception
+            End Try
+            Return Title
+        End Function
+        Friend Overrides Sub DownloadData(ByVal Token As CancellationToken)
+            MyBase.DownloadData(Token)
+            UserCache.DisposeIfReady(False)
+            UserCache = Nothing
+        End Sub
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
             Dim URL$ = $"https://www.tiktok.com/@{TrueName}"
-            Using cache As CacheKeeper = CreateCache()
-                Try
-                    Dim postID$, title$, postUrl$, newName$
-                    Dim postDate As Date?
-                    Dim dateAfterC As Date? = Nothing
-                    Dim dateBefore As Date? = DownloadDateTo
-                    Dim dateAfter As Date? = DownloadDateFrom
-                    Dim baseDataObtained As Boolean = False
+            UserCache = CreateCache()
+            Try
+                Dim postID$, title$, postUrl$, newName$
+                Dim postDate As Date?
+                Dim dateAfterC As Date? = Nothing
+                Dim dateBefore As Date? = DownloadDateTo
+                Dim dateAfter As Date? = DownloadDateFrom
+                Dim baseDataObtained As Boolean = False
+                Dim titleRegex As RParams = GetTitleRegex()
 
-                    If _ContentList.Count > 0 Then
-                        With (From d In _ContentList Where d.Post.Date.HasValue Select d.Post.Date.Value)
-                            If .ListExists Then dateAfterC = .Min
-                        End With
-                    End If
-
-                    With {CStr(AConvert(Of String)(dateAfter, SimpleDateConverter, String.Empty)).FromXML(Of Integer)(-1),
-                          CStr(AConvert(Of String)(dateAfterC, SimpleDateConverter, String.Empty)).FromXML(Of Integer)(-1)}.ListWithRemove(Function(d) d = -1)
-                        If .ListExists Then dateAfter = AConvert(Of Date)(CStr(.Min), SimpleDateConverter, Nothing)
+                If _ContentList.Count > 0 Then
+                    With (From d In _ContentList Where d.Post.Date.HasValue Select d.Post.Date.Value)
+                        If .ListExists Then dateAfterC = .Min
                     End With
+                End If
 
-                    If LastDownloadDate.HasValue Then
-                        If Not DownloadDateTo.HasValue And Not DownloadDateFrom.HasValue Then
-                            If LastDownloadDate.Value.AddDays(1) <= Now Then
-                                dateAfter = LastDownloadDate.Value
-                            Else
-                                dateAfter = LastDownloadDate.Value.AddDays(-1)
-                            End If
-                            dateBefore = Nothing
-                        ElseIf dateAfter.HasValue And Not DownloadDateFrom.HasValue Then
-                            If (LastDownloadDate.Value - dateAfter.Value).TotalDays > 1 Then dateAfter = dateAfter.Value.AddDays(1)
+                With {CStr(AConvert(Of String)(dateAfter, SimpleDateConverter, String.Empty)).FromXML(Of Integer)(-1),
+                      CStr(AConvert(Of String)(dateAfterC, SimpleDateConverter, String.Empty)).FromXML(Of Integer)(-1)}.ListWithRemove(Function(d) d = -1)
+                    If .ListExists Then dateAfter = AConvert(Of Date)(CStr(.Min), SimpleDateConverter, Nothing)
+                End With
+
+                If LastDownloadDate.HasValue Then
+                    If Not DownloadDateTo.HasValue And Not DownloadDateFrom.HasValue Then
+                        If LastDownloadDate.Value.AddDays(1) <= Now Then
+                            dateAfter = LastDownloadDate.Value
+                        Else
+                            dateAfter = LastDownloadDate.Value.AddDays(-1)
                         End If
+                        dateBefore = Nothing
+                    ElseIf dateAfter.HasValue And Not DownloadDateFrom.HasValue Then
+                        If (LastDownloadDate.Value - dateAfter.Value).TotalDays > 1 Then dateAfter = dateAfter.Value.AddDays(1)
                     End If
+                End If
 
-                    Using b As New YTDLP.YTDLPBatch(Token) With {.TempPostsList = _TempPostsList}
-                        b.Commands.Clear()
-                        b.ChangeDirectory(cache)
-                        b.Encoding = BatchExecutor.UnicodeEncoding
-                        b.Execute(CreateYTCommand(cache.RootDirectory, URL, False, dateBefore, dateAfter))
-                    End Using
+                Using b As New YTDLP.YTDLPBatch(Token) With {.TempPostsList = _TempPostsList}
+                    b.Commands.Clear()
+                    b.ChangeDirectory(UserCache)
+                    b.Encoding = BatchExecutor.UnicodeEncoding
+                    b.Execute(CreateYTCommand(UserCache.RootDirectory, URL, False, dateBefore, dateAfter))
+                End Using
 
-                    ThrowAny(Token)
+                ThrowAny(Token)
 
-                    Dim files As List(Of SFile) = SFile.GetFiles(cache, "*.json",, EDP.ReturnValue)
-                    If files.ListExists Then
-                        Dim j As EContainer
-                        For Each file As SFile In files
-                            j = JsonDocument.Parse(file.GetText, EDP.ReturnValue)
-                            If j.ListExists Then
-                                If j.Value("_type").StringToLower = "video" Then
-                                    If Not baseDataObtained Then
-                                        baseDataObtained = True
-                                        If ID.IsEmptyString Then
-                                            ID = j.Value("uploader_id")
-                                            If Not ID.IsEmptyString Then _ForceSaveUserInfo = True
-                                        End If
-                                        newName = j.Value("uploader")
-                                        If Not newName.IsEmptyString Then
-                                            If Not _TrueName = newName Then _ForceSaveUserInfo = True
-                                            _TrueName = newName
-                                        End If
-                                        newName = j.Value("creator")
-                                        If Not newName.IsEmptyString Then UserSiteName = newName
+                Dim files As List(Of SFile) = SFile.GetFiles(UserCache, "*.json",, EDP.ReturnValue)
+                If files.ListExists Then
+                    Dim j As EContainer
+                    For Each file As SFile In files
+                        j = JsonDocument.Parse(file.GetText, EDP.ReturnValue)
+                        If j.ListExists Then
+                            If j.Value("_type").StringToLower = "video" Then
+                                If Not baseDataObtained Then
+                                    baseDataObtained = True
+                                    If ID.IsEmptyString Then
+                                        ID = j.Value("uploader_id")
+                                        If Not ID.IsEmptyString Then _ForceSaveUserInfo = True
                                     End If
-                                    postID = j.Value("id")
-                                    If Not _TempPostsList.Contains(postID) Then
-                                        _TempPostsList.Add(postID)
-                                    Else
-                                        Exit Sub
+                                    newName = j.Value("uploader")
+                                    If Not newName.IsEmptyString Then
+                                        If Not _TrueName = newName Then _ForceSaveUserInfo = True
+                                        _TrueName = newName
                                     End If
-                                    title = j.Value("title").StringRemoveWinForbiddenSymbols
-                                    If title.IsEmptyString Or Not TitleUseNative Then
-                                        title = postID
-                                    Else
-                                        If RemoveTagsFromTitle Then title = RegexReplace(title, RegexTagsReplacer)
-                                        title = title.StringTrim
-                                        If title.IsEmptyString Then
-                                            title = postID
-                                        ElseIf TitleAddVideoID Then
-                                            title &= $" ({postID})"
-                                        End If
-                                    End If
-                                    postDate = AConvert(Of Date)(j.Value("timestamp"), UnixDate32Provider, Nothing)
-                                    If Not postDate.HasValue Then postDate = AConvert(Of Date)(j.Value("upload_date"), SimpleDateConverter, Nothing)
-                                    Select Case CheckDatesLimit(postDate, SimpleDateConverter)
-                                        Case DateResult.Skip : Continue For
-                                        Case DateResult.Exit : Exit Sub
-                                    End Select
-
-                                    postUrl = j.Value("webpage_url")
-                                    If postUrl.IsEmptyString Then postUrl = $"https://www.tiktok.com/@{Name}/video/{postID}"
-                                    _TempMediaList.Add(New UserMedia(postUrl, UserMedia.Types.Video) With {
-                                                       .File = $"{title}.mp4", .Post = New UserPost(postID, postDate)})
+                                    newName = j.Value("creator")
+                                    If Not newName.IsEmptyString Then UserSiteName = newName
                                 End If
-                                j.Dispose()
+                                postID = j.Value("id")
+                                If Not _TempPostsList.Contains(postID) Then
+                                    _TempPostsList.Add(postID)
+                                Else
+                                    Exit Sub
+                                End If
+                                title = j.Value("title").StringRemoveWinForbiddenSymbols
+                                If title.IsEmptyString Or Not TitleUseNative Then
+                                    title = postID
+                                Else
+                                    If RemoveTagsFromTitle Then title = RegexReplace(title, RegexTagsReplacer)
+                                    title = title.StringTrim
+                                    If title.IsEmptyString Then
+                                        title = postID
+                                    ElseIf TitleAddVideoID Then
+                                        title &= $" ({postID})"
+                                    End If
+                                    title = ChangeTitleRegex(title, titleRegex)
+                                End If
+                                postDate = AConvert(Of Date)(j.Value("timestamp"), UnixDate32Provider, Nothing)
+                                If Not postDate.HasValue Then postDate = AConvert(Of Date)(j.Value("upload_date"), SimpleDateConverter, Nothing)
+                                Select Case CheckDatesLimit(postDate, SimpleDateConverter)
+                                    Case DateResult.Skip : Continue For
+                                    Case DateResult.Exit : Exit Sub
+                                End Select
+
+                                postUrl = j.Value("webpage_url")
+                                If postUrl.IsEmptyString Then postUrl = $"https://www.tiktok.com/@{Name}/video/{postID}"
+                                _TempMediaList.Add(New UserMedia(postUrl, UserMedia.Types.Video) With {
+                                                   .File = $"{title}.mp4", .Post = New UserPost(postID, postDate)})
                             End If
-                        Next
-                    End If
-                    If _TempMediaList.Count > 0 Then LastDownloadDate = Now
-                Catch ex As Exception
-                    ProcessException(ex, Token, $"data downloading error [{URL}]")
-                End Try
-            End Using
+                            j.Dispose()
+                        End If
+                    Next
+                End If
+                If _TempMediaList.Count > 0 Then LastDownloadDate = Now
+            Catch ex As Exception
+                ProcessException(ex, Token, $"data downloading error [{URL}]")
+            End Try
         End Sub
 #End Region
 #Region "ReparseMissing"
@@ -292,6 +350,7 @@ Namespace API.TikTok
                 f = f.StringTrim
                 If Not f.IsEmptyString Then
                     If CBool(MySettings.TitleAddVideoID.Value) Then f &= $" ({m.File.Name})"
+                    f = ChangeTitleRegex(f, GetTitleRegex)
                     m.File.Name = f
                 End If
             End If
@@ -303,6 +362,15 @@ Namespace API.TikTok
                                                           Optional ByVal EObj As Object = Nothing) As Integer
             Return 0
         End Function
+#End Region
+#Region "IDisposable Support"
+        Protected Overrides Sub Dispose(ByVal disposing As Boolean)
+            If Not disposedValue And disposing Then
+                UserCache.DisposeIfReady(False)
+                UserCache = Nothing
+            End If
+            MyBase.Dispose(disposing)
+        End Sub
 #End Region
     End Class
 End Namespace

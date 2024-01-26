@@ -121,7 +121,7 @@ Namespace API.Instagram
         Private ReadOnly Property SleepTimerOnPostsLimitProvider As IFormatProvider
         <PropertyOption(ControlText:="Get timeline", ControlToolTip:="Default value for new users"), PXML, ControlNumber(23), PClonable>
         Friend ReadOnly Property GetTimeline As PropertyValue
-        <PropertyOption(ControlText:="Get Reels", ControlToolTip:="Default value for new users"), PXML, ControlNumber(24), PClonable>
+        <PropertyOption(ControlText:="Get reels", ControlToolTip:="Default value for new users"), PXML, ControlNumber(24), PClonable>
         Friend ReadOnly Property GetReels As PropertyValue
         <PropertyOption(ControlText:="Get stories", ControlToolTip:="Default value for new users"), PXML, ControlNumber(25), PClonable>
         Friend ReadOnly Property GetStories As PropertyValue
@@ -139,7 +139,7 @@ Namespace API.Instagram
 #Region "Download ready"
         <PropertyOption(ControlText:="Download timeline", ControlToolTip:="Download timeline"), PXML, ControlNumber(10), PClonable>
         Friend ReadOnly Property DownloadTimeline As PropertyValue
-        <PropertyOption(ControlText:="Download Reels", ControlToolTip:="Download Reels"), PXML, ControlNumber(11), PClonable>
+        <PropertyOption(ControlText:="Download reels", ControlToolTip:="Download reels"), PXML, ControlNumber(11), PClonable>
         Friend ReadOnly Property DownloadReels As PropertyValue
         <PropertyOption(ControlText:="Download stories", ControlToolTip:="Download stories"), PXML, ControlNumber(12), PClonable>
         Friend ReadOnly Property DownloadStories As PropertyValue

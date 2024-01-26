@@ -333,7 +333,7 @@ Namespace API.YouTube
                                                 Next
                                             End If
                                         End With
-                                    Else
+                                    ElseIf Not CBool(DirectCast(HOST.Source, SiteSettings).IgnoreCommunityErrors.Value) Then
                                         With j({"error"})
                                             If .ListExists Then MyMainLOG = $"{ToStringForLog()} {errMsg} [{ .Value("code")}]: { .Value("message")}"
                                         End With

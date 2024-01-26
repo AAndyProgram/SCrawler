@@ -902,8 +902,8 @@ Namespace API.Instagram
                 Dim maxSize As Func(Of EContainer, Integer) = Function(ByVal _ss As EContainer) As Integer
                                                                   Dim w% = AConvert(Of Integer)(_ss.Value("width"), 0)
                                                                   Dim h% = AConvert(Of Integer)(_ss.Value("height"), 0)
-                                                                  Return w + h
-                                                                  'Return Math.Max(w, h)
+                                                                  'Return w + h
+                                                                  Return Math.Max(w, h)
                                                               End Function
                 Dim wrongData As Predicate(Of Sizes) = Function(_ss) _ss.HasError Or _ss.Data.IsEmptyString
                 Dim img As Predicate(Of EContainer) = Function(_img) Not _img.Name.IsEmptyString AndAlso _img.Name.StartsWith("image_versions") AndAlso _img.Count > 0

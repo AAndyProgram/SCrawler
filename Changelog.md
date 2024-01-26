@@ -1,3 +1,15 @@
+# 2024.1.26.0
+
+*2024-01-26*
+
+- Added
+  - YouTube (standalone app): **the ability to reduce video FPS**
+  - TikTok: the ability to use a regex to clean the title
+  - YouTube (SCrawler): the ability to ignore community errors
+- Fixed
+  - Instagram: stories (user) downloading with the wrong aspect ratio for some users
+  - Minor bugs
+
 # 2024.1.20.0
 
 *2024-01-20*

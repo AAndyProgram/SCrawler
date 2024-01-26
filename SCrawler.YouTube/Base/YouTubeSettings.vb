@@ -15,6 +15,7 @@ Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.XML.Base
 Imports PersonalUtilities.Functions.XML.Objects
+Imports PersonalUtilities.Functions.XML.Attributes
 Imports PersonalUtilities.Functions.XML.Attributes.Specialized
 Imports PersonalUtilities.Tools
 Imports PersonalUtilities.Tools.Grid.Base
@@ -275,6 +276,71 @@ Namespace API.YouTube.Base
         <Browsable(True), GridVisible, XMLVN({"DefaultsVideo"}), Category("Defaults Video"), DisplayName("Include zero size formats"),
             Description("Include formats with zero size (or undefined size).")>
         Public ReadOnly Property DefaultVideoIncludeNullSize As XMLValue(Of Boolean)
+        <Browsable(False), XMLV("DefaultVideoFPS", {"DefaultsVideo"}, -1)>
+        Private ReadOnly Property DefaultVideoFPS_XML As XMLValue(Of Double)
+        <Browsable(True), GridVisible, Category("Defaults Video"), DisplayName("Defaults Video FPS"),
+            Description("Set default video FPS (only to reduce video FPS). Default: -1 (disabled)."),
+            TypeConverter(GetType(FieldsTypeConverter)), GridFormatProvider(GetType(FpsFormatProvider))>
+        Public Property DefaultVideoFPS As Double
+            Get
+                Return DefaultVideoFPS_XML
+            End Get
+            Set(ByVal fps As Double)
+                DefaultVideoFPS_XML.Value = fps
+            End Set
+        End Property
+        Private Function ShouldSerializeDefaultVideoFPS() As Boolean
+            Return DefaultVideoFPS <> DefaultVideoFPS_XML.Value
+        End Function
+        Private Sub ResetDefaultVideoFPS()
+            DefaultVideoFPS = -1
+        End Sub
+        Friend Class FpsFormatProvider : Implements IGridConversionProvider
+            Private Property Converter As TypeConverter Implements IGridConversionProvider.Converter
+            Private Property Context As ITypeDescriptorContext Implements IGridConversionProvider.Context
+            Private Property DataType As Type Implements IGridConversionProvider.DataType
+            Private Property Instance As Object Implements IGridConversionProvider.Instance
+            Friend Shared ReadOnly Property MyProviderDefault As ANumbers
+                Get
+                    Return New ANumbers(ANumbers.Cultures.Primitive) With {.DecimalDigits = 5, .TrimDecimalDigits = True}
+                End Get
+            End Property
+            Friend Const ErrorMessageDefault As String = "The fps value must be a number"
+            Private ReadOnly MyProvider As ANumbers = MyProviderDefault
+            Friend Function ToObject(ByVal Context As ITypeDescriptorContext, ByVal Culture As CultureInfo, ByVal Value As Object) As Object Implements IGridConversionProvider.ToObject
+                Return AConvert(Of Double)(Value, MyProvider, -1)
+            End Function
+            Friend Overloads Function ToString(ByVal Context As ITypeDescriptorContext, ByVal Culture As CultureInfo, ByVal Value As Object,
+                                               ByVal DestinationType As Type) As Object Implements IGridConversionProvider.ToString
+                If ACheck(Of Double)(Value, AModes.Var, MyProvider) Then
+                    Return Value.ToString
+                Else
+                    Return -1
+                End If
+            End Function
+            Friend Function CreateInstance(ByVal Context As ITypeDescriptorContext, ByVal NewValue As Object, ByRef RefreshGrid As Boolean) As Object Implements IGridConversionProvider.CreateInstance
+                If ACheck(Of Double)(NewValue, AModes.Var, MyProvider) Then
+                    Return NewValue
+                Else
+                    RefreshGrid = True
+                    Return -1
+                End If
+            End Function
+            Friend Function Convert(ByVal Value As Object, ByVal DestinationType As Type, ByVal Provider As IFormatProvider,
+                                    Optional ByVal NothingArg As Object = Nothing, Optional ByVal e As ErrorsDescriber = Nothing) As Object Implements ICustomProvider.Convert
+                Return AConvert(Value, AModes.Var, DestinationType,, True, -1, MyProvider, EDP.ReturnValue)
+            End Function
+            Friend Function IsValid(ByVal Context As ITypeDescriptorContext, ByVal Value As Object, ByVal DestinationType As Type) As Boolean Implements IGridValidator.IsValid
+                If ACheck(Of Double)(Value, AModes.Var, MyProvider) Then
+                    Return True
+                Else
+                    Throw New FormatException(ErrorMessageDefault)
+                End If
+            End Function
+            Private Function GetFormat(ByVal FormatType As Type) As Object Implements IFormatProvider.GetFormat
+                Throw New NotImplementedException("'GetFormat' is not available in 'FpsFormatProvider'")
+            End Function
+        End Class
 #End Region
 #Region "Defaults Audio"
         <Browsable(True), GridVisible, XMLVN({"DefaultsAudio"}, "AAC"), Category("Defaults Audio"), DisplayName("Default codec"),

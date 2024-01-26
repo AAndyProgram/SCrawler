@@ -217,6 +217,16 @@ Namespace API.YouTube.Objects
                 If HasElements Then Elements.ForEach(Sub(e) e.OutputVideoExtension = _OutputVideoExtension)
             End Set
         End Property
+        <XMLEC("OutputVideoFPS")> Protected _OutputVideoFPS As Double = -1
+        Friend Property OutputVideoFPS As Double
+            Get
+                Return _OutputVideoFPS
+            End Get
+            Set(ByVal fps As Double)
+                _OutputVideoFPS = fps
+                If HasElements Then Elements.ForEach(Sub(elem) DirectCast(elem, YouTubeMediaContainerBase).OutputVideoFPS = fps)
+            End Set
+        End Property
 #End Region
 #Region "Audio"
         <XMLEC> Friend Property SelectedAudioIndex As Integer = -1 Implements IYouTubeMediaContainer.SelectedAudioIndex
@@ -1025,6 +1035,16 @@ Namespace API.YouTube.Objects
                                     End If
                                     If fAacAudio.Exists And Not aacRequested Then fAacAudio.Delete()
                                     If fAc3Audio.Exists And Not ac3Requested And SelectedVideoIndex >= 0 Then fAc3Audio.Delete()
+                                End If
+
+                                If SelectedVideoIndex >= 0 AndAlso OutputVideoFPS > 0 AndAlso SelectedVideo.Bitrate > OutputVideoFPS Then
+                                    f = File
+                                    f.Name &= "tmp00"
+                                    .Execute($"ffmpeg -i ""{File}"" -filter:v fps={OutputVideoFPS.ToString.Replace(",", ".")} -c:a copy ""{f}""")
+                                    If f.Exists Then
+                                        File.Delete()
+                                        SFile.Rename(f, File,, EDP.LogMessageValue)
+                                    End If
                                 End If
                             End If
                         End If

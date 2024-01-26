@@ -22,6 +22,7 @@ Namespace API.YouTube.Controls
     Friend Class VideoOptionsForm : Implements IDesignXMLContainer
 #Region "Declarations"
         Private MyView As FormView
+        Private ReadOnly MyFieldsChecker As FieldsChecker
         Friend Property DesignXML As EContainer Implements IDesignXMLContainer.DesignXML
         Private Property DesignXMLNodes As String() Implements IDesignXMLContainer.DesignXMLNodes
         Private Property DesignXMLNodeName As String Implements IDesignXMLContainer.DesignXMLNodeName
@@ -30,6 +31,25 @@ Namespace API.YouTube.Controls
         Friend Property MyContainer As YouTubeMediaContainerBase
         Private Initialization As Boolean = True
         Private ReadOnly IsSavedObject As Boolean
+        Private Class FpsFieldChecker : Inherits FieldsCheckerProviderBase
+            Private ReadOnly MyProvider As ANumbers = YouTubeSettings.FpsFormatProvider.MyProviderDefault
+            Public Overrides Property ErrorMessage As String
+                Get
+                    Return IIf(HasError, YouTubeSettings.FpsFormatProvider.ErrorMessageDefault, String.Empty)
+                End Get
+                Set : End Set
+            End Property
+            Public Overrides Function Convert(ByVal Value As Object, ByVal DestinationType As Type, ByVal Provider As IFormatProvider,
+                                              Optional ByVal NothingArg As Object = Nothing, Optional ByVal e As ErrorsDescriber = Nothing) As Object
+                If ACheck(Of Double)(Value, AModes.Var, MyProvider) Then
+                    Return Value
+                Else
+                    HasError = True
+                    TypeError = True
+                    Return Nothing
+                End If
+            End Function
+        End Class
 #End Region
 #Region "Initializers"
         Friend Sub New(ByVal Container As YouTubeMediaContainerBase, Optional ByVal IsSavedObject As Boolean = False)
@@ -37,6 +57,7 @@ Namespace API.YouTube.Controls
             MyContainer = Container
             CNT_PROCESSOR = New TableControlsProcessor(TP_CONTROLS)
             Me.IsSavedObject = IsSavedObject
+            MyFieldsChecker = New FieldsChecker
         End Sub
 #End Region
 #Region "Form handlers"
@@ -132,6 +153,9 @@ Namespace API.YouTube.Controls
                     End If
                     setDef(CMB_SUBS_FORMAT, __optionValue)
 
+                    If MyYouTubeSettings.DefaultVideoFPS > 0 Then TXT_FPS.Text = MyYouTubeSettings.DefaultVideoFPS
+                    MyFieldsChecker.AddControl(Of Double)(TXT_FPS, TXT_FPS.CaptionText, True, New FpsFieldChecker)
+                    MyFieldsChecker.EndLoaderOperations()
                     TP_SUBS.Enabled = .Subtitles.Count > 0
                     TXT_SUBS_ADDIT.Enabled = .Subtitles.Count > 0
                     RefillTextBoxes()
@@ -275,6 +299,7 @@ Namespace API.YouTube.Controls
 #Region "OK, Cancel"
         Private Sub BTT_DOWN_Click(sender As Object, e As EventArgs) Handles BTT_DOWN.Click
             Try
+                If Not MyFieldsChecker.AllParamsOK Then Exit Sub
                 Dim f As SFile
                 If MyContainer.HasElements Then
                     f = TXT_FILE.Text.CSFileP
@@ -284,6 +309,7 @@ Namespace API.YouTube.Controls
                 If f.IsEmptyString Then Throw New ArgumentNullException("File", "The output file cannot be null")
                 With MyContainer
                     .OutputVideoExtension = CMB_FORMAT.Text.StringToLower
+                    .OutputVideoFPS = AConvert(Of Double)(TXT_FPS.Text, YouTubeSettings.FpsFormatProvider.MyProviderDefault, -1)
                     .OutputAudioCodec = CMB_AUDIO_CODEC.Text.StringToLower
                     .OutputSubtitlesFormat = CMB_SUBS_FORMAT.Text.StringToLower
 

@@ -11,7 +11,7 @@ Namespace API.Instagram
     Friend Class EditorExchangeOptions
         <PSetting(Caption:="Get timeline", ToolTip:="Download user timeline")>
         Friend Property GetTimeline As Boolean
-        <PSetting(Caption:="Get Reels", ToolTip:="Download user Reels")>
+        <PSetting(Caption:="Get reels", ToolTip:="Download user reels")>
         Friend Property GetReels As Boolean
         <PSetting(Caption:="Get stories", ToolTip:="Download user stories (pinned)")>
         Friend Property GetStories As Boolean
