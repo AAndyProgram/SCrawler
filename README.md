@@ -155,9 +155,13 @@ First, the program downloads the full profile. After the program downloads only 
 
 **Don't put program in the ```Program Files``` system folder (this is portable program and program settings are stored in the program folder)**
 
+**I highly doubt you can run SCrawler on Linux or Mac. SCrawler is a program that is heavily dependent on Windows.**
+
 # Updating
 
-Just download [latest](https://github.com/AAndyProgram/SCrawler/releases/latest) version and unpack it into the program folder. **Before starting a new version, I recommend making a backup copy of the program settings folder.**
+Just download [latest](https://github.com/AAndyProgram/SCrawler/releases/latest) version and unpack it into the program folder. **Before launching a new version, I recommend making a backup copy of the program settings folder and user settings/data files.**
+
+**You can also use the updater included in the release package.**
 
 # [How to build from source](CONTRIBUTING.md#how-to-build-from-source)
 
