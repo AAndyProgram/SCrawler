@@ -82,9 +82,14 @@ Friend Class MainFrameObjects : Implements INotificator
         If Settings.ProcessNotification(NotifyObj.STDownloader) Then Notification.ShowNotification(Text,, $"{NotificationInternalKey}_{NotifyObj.STDownloader}", Image)
     End Sub
     Private Const NotificationInternalKey As String = "NotificationInternalKey"
+    Private Const DEF_BTT_FEED As String = "DEF_BTT_FEED"
+    Private Const DEF_BTT_DISABLE As String = "DEF_BTT_DISABLE"
     Friend Sub ShowNotification(ByVal Sender As NotifyObj, ByVal Message As String)
         If Settings.ProcessNotification(Sender) Then
-            Using n As New Notification(Message) With {.Key = $"{NotificationInternalKey}_{Sender}"} : n.Show() : End Using
+            Dim b As List(Of IButton) = Nothing
+            If Sender = NotifyObj.Profiles Or Sender = NotifyObj.AutoDownloader Or Sender = NotifyObj.SavedPosts Then _
+               b = New List(Of IButton) From {New ToastButton("DEF_BTT_FEED", "Feed"), New ToastButton(DEF_BTT_DISABLE, "Disable")}
+            Using n As New Notification(Message) With {.Key = $"{NotificationInternalKey}_{Sender}", .Buttons = b} : n.Show() : End Using
         End If
     End Sub
     Friend Sub ClearNotifications() Implements INotificator.Clear
@@ -94,7 +99,11 @@ Friend Class MainFrameObjects : Implements INotificator
         If Not Key.IsEmptyString Then
             Dim found As Boolean = False
             Dim activateForm As Boolean = False
-            If Key.StartsWith(NotificationInternalKey) Then
+            If Key = DEF_BTT_FEED Then
+                ControlInvokeFast(MF, AddressOf MF.ShowFeed, EDP.LogMessageValue)
+            ElseIf Key = DEF_BTT_DISABLE Then
+                Exit Sub
+            ElseIf Key.StartsWith(NotificationInternalKey) Then
                 Select Case Key
                     Case $"{NotificationInternalKey}_{NotifyObj.Channels}" : MF.MyChannels.FormShowS()
                     Case $"{NotificationInternalKey}_{NotifyObj.SavedPosts}" : MF.MySavedPosts.FormShowS()

@@ -278,7 +278,7 @@ Namespace API.YouTube.Base
         Public ReadOnly Property DefaultVideoIncludeNullSize As XMLValue(Of Boolean)
         <Browsable(False), XMLV("DefaultVideoFPS", {"DefaultsVideo"}, -1)>
         Private ReadOnly Property DefaultVideoFPS_XML As XMLValue(Of Double)
-        <Browsable(True), GridVisible, Category("Defaults Video"), DisplayName("Defaults Video FPS"),
+        <Browsable(True), GridVisible, Category("Defaults Video"), DisplayName("Default video FPS"),
             Description("Set default video FPS (only to reduce video FPS). Default: -1 (disabled)."),
             TypeConverter(GetType(FieldsTypeConverter)), GridFormatProvider(GetType(FpsFormatProvider))>
         Public Property DefaultVideoFPS As Double

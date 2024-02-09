@@ -484,7 +484,7 @@ CloseResume:
         MyUserMetrics.FormShow(EDP.LogMessageValue)
     End Sub
 #End Region
-    Private Sub ShowFeed() Handles BTT_FEED.Click, BTT_TRAY_FEED_SHOW.Click
+    Friend Sub ShowFeed() Handles BTT_FEED.Click, BTT_TRAY_FEED_SHOW.Click
         If MyFeed Is Nothing Then
             MyFeed = New DownloadFeedForm
             AddHandler Downloader.FeedFilesChanged, AddressOf MyFeed.Downloader_FilesChanged

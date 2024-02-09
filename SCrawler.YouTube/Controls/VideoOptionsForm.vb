@@ -175,6 +175,7 @@ Namespace API.YouTube.Controls
         End Sub
         Private Sub VideoOptionsForm_Closing(sender As Object, e As CancelEventArgs) Handles Me.Closing
             MyView.DisposeIfReady()
+            MyFieldsChecker.DisposeIfReady()
         End Sub
 #End Region
 #Region "Refill"

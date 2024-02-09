@@ -39,6 +39,7 @@ Namespace DownloadObjects
 #Region "Notifications"
         Private Const KeyOpenFolder As String = "_____OPEN_FOLDER_SCRAWLER_AUTOMATION"
         Private Const KeyOpenSite As String = "_____OPEN_SITE_SCRAWLER_AUTOMATION"
+        Private Const KeyOpenFeed As String = "_____OPEN_FEED_SCRAWLER_AUTOMATION"
         Private Const KeyBttDismiss As String = "_____DISMISS_SCRAWLER_AUTOMATION"
         Private Const KeyBttPhoto As String = "_____PHOTO_SCRAWLER_AUTOMATION"
         Private ReadOnly UserKeys As List(Of NotifiedUser)
@@ -48,6 +49,7 @@ Namespace DownloadObjects
             Private ReadOnly Property Key As String
             Private ReadOnly Property KeyFolder As String
             Private ReadOnly Property KeySite As String
+            Private ReadOnly Property KeyFeed As String
             Private ReadOnly Property KeyDismiss As String
             Private ReadOnly Property Images As Dictionary(Of String, SFile)
             Private ReadOnly Property AutoDownloaderSource As AutoDownloader
@@ -59,6 +61,7 @@ Namespace DownloadObjects
                 Key = _Key
                 KeyFolder = $"{Key}{KeyOpenFolder}"
                 KeySite = $"{Key}{KeyOpenSite}"
+                KeyFeed = $"{Key}{KeyOpenFeed}"
                 KeyDismiss = $"{Key}{KeyBttDismiss}"
             End Sub
             Friend Sub New(ByVal _Key As String, ByRef _User As IUserData, ByRef Source As AutoDownloader)
@@ -116,7 +119,8 @@ Namespace DownloadObjects
                                     End If
                                     Notify.Buttons = {
                                         New ToastButton(KeyFolder, "Folder"),
-                                        New ToastButton(KeySite, "Site")
+                                        New ToastButton(KeySite, "Site"),
+                                        New ToastButton(KeyFeed, "Feed")
                                     }
                                     If Not uifKey.IsEmptyString Then Notify.Buttons = {New ToastButton(uifKey, "Photo")}
                                     Notify.Buttons = {New ToastButton(KeyDismiss, "Dismiss")}
@@ -149,6 +153,8 @@ Namespace DownloadObjects
                         End If
                     ElseIf KeySite = _Key Then
                         User.OpenSite()
+                    ElseIf KeyFeed = _Key Then
+                        With MainFrameObj : ControlInvokeFast(.MF, AddressOf .MF.ShowFeed, EDP.LogMessageValue) : End With
                     ElseIf Images.ContainsKey(_Key) Then
                         Images(_Key).Open()
                     End If
@@ -159,7 +165,7 @@ Namespace DownloadObjects
             End Function
             Public Overrides Function Equals(ByVal Obj As Object) As Boolean
                 With CType(Obj, NotifiedUser)
-                    Return .Key = Key Or .Key = KeyFolder Or .Key = KeySite Or .Key = KeyDismiss Or Images.ContainsKey(.Key)
+                    Return .Key = Key Or .Key = KeyFolder Or .Key = KeySite Or .Key = KeyFeed Or .Key = KeyDismiss Or Images.ContainsKey(.Key)
                 End With
             End Function
 #Region "IDisposable Support"
