@@ -107,6 +107,12 @@ Namespace Plugin.Hosts
 #End Region
 #Region "Host declarations"
         Friend ReadOnly Property Source As ISiteSettings
+        Friend Property Replacer As ReplaceInternalPluginAttribute = Nothing
+        Friend ReadOnly Property IsReplacer As Boolean
+            Get
+                Return Not Replacer Is Nothing AndAlso (Not Replacer.PluginKey.IsEmptyString Or Not Replacer.SiteName.IsEmptyString)
+            End Get
+        End Property
         Friend ReadOnly Property PropList As List(Of PropertyValueHost)
         Friend ReadOnly Property Name As String
             Get
@@ -251,6 +257,8 @@ Namespace Plugin.Hosts
                                 HasSpecialOptions = True
                             End If
                         End With
+                    ElseIf TypeOf a Is ReplaceInternalPluginAttribute Then
+                        Replacer = a
                     End If
                 Next
             End If

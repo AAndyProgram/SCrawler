@@ -90,7 +90,7 @@ Namespace API.Reddit
 
             UrlPatternUser = "https://www.reddit.com/{0}/{1}/"
             ImageVideoContains = "reddit.com"
-            UserRegex = RParams.DM("[htps:/]{7,8}.*?reddit.com/([user]{1,4})/([^/]+)", 0, RegexReturn.ListByMatch, EDP.ReturnValue)
+            UserRegex = RParams.DM("[htps:/]{7,8}.*?reddit.com/([user]{1,4})/([^/\?&]+)", 0, RegexReturn.ListByMatch, EDP.ReturnValue)
         End Sub
 #End Region
 #Region "GetInstance"

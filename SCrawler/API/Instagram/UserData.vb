@@ -16,6 +16,7 @@ Imports PersonalUtilities.Functions.Messaging
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Tools.Web.Clients
 Imports PersonalUtilities.Tools.Web.Clients.Base
+Imports PersonalUtilities.Tools.Web.Documents
 Imports PersonalUtilities.Tools.Web.Documents.JSON
 Imports UTypes = SCrawler.API.Base.UserMedia.Types
 Imports UStates = SCrawler.API.Base.UserMedia.States
@@ -142,13 +143,15 @@ Namespace API.Instagram
 #End Region
 #Region "Download data"
         Private E560Thrown As Boolean = False
+        Friend Err5xx As Integer = -1
         Private Class ExitException : Inherits Exception
+            Friend Property Is560 As Boolean = False
             Friend Shared Sub Throw560(ByRef Source As UserData)
                 If Not Source.E560Thrown Then
-                    MyMainLOG = $"{Source.ToStringForLog}: (560) Download skipped until next session"
+                    MyMainLOG = $"{Source.ToStringForLog}: ({IIf(Source.Err5xx > 0, Source.Err5xx, 560)}) Download skipped until next session"
                     Source.E560Thrown = True
                 End If
-                Throw New ExitException
+                Throw New ExitException With {.Is560 = True}
             End Sub
         End Class
         Private ReadOnly Property MyFilePostsKV As SFile
@@ -236,6 +239,7 @@ Namespace API.Instagram
             Dim s As Sections = Sections.Timeline
             Dim errorFound As Boolean = False
             Try
+                Err5xx = -1
                 _Limit = If(DownloadTopCount, -1)
                 _TotalPostsParsed = 0
                 LoadSavePostsKV(True)
@@ -450,6 +454,7 @@ Namespace API.Instagram
             Dim StoriesList As List(Of String) = Nothing
             Dim StoriesRequested As Boolean = False
             Dim dValue% = 1
+            Dim jsonArgs As New WebDocumentEventArgs With {.DeclaredError = EDP.ThrowException}
             LastCursor = Cursor
             Try
                 Do While dValue = 1
@@ -524,7 +529,7 @@ Namespace API.Instagram
 
                         'Parsing
                         If Not r.IsEmptyString Then
-                            Using j As EContainer = JsonDocument.Parse(r).XmlIfNothing
+                            Using j As EContainer = JsonDocument.Parse(r, jsonArgs).XmlIfNothing
                                 n = If(ENode Is Nothing, j, j.ItemF(ENode)).XmlIfNothing
                                 If n.Count > 0 Then
                                     Select Case Section
@@ -605,18 +610,27 @@ Namespace API.Instagram
                         End If
                         dValue = 0
                         If HasNextPage And Not EndCursor.IsEmptyString Then DownloadData(EndCursor, Section, Token)
+                    Catch jsonNull As ArgumentNullException When jsonArgs.State = WebDocumentEventArgs.States.Error And Section = Sections.Reels
+                        Throw jsonNull
                     Catch eex As ExitException
                         Throw eex
                     Catch ex As Exception
                         dValue = ProcessException(ex, Token, $"data downloading error [{URL}]",, Section, False)
                     End Try
                 Loop
+            Catch jsonNull2 As ArgumentNullException When jsonArgs.State = WebDocumentEventArgs.States.Error And Section = Sections.Reels
             Catch eex2 As ExitException
-                If Not Section = Sections.Reels And (Section = Sections.Timeline Or Section = Sections.Tagged) And Not Cursor.IsEmptyString Then Throw eex2
+                If eex2.Is560 Then
+                    Throw New Plugin.ExitException With {.Silent = True}
+                Else
+                    If Not Section = Sections.Reels And (Section = Sections.Timeline Or Section = Sections.Tagged) And Not Cursor.IsEmptyString Then Throw eex2
+                End If
             Catch oex2 As OperationCanceledException When Token.IsCancellationRequested Or oex2.HelpLink = InstAborted
                 If oex2.HelpLink = InstAborted Then HasError = True
             Catch DoEx As Exception
                 ProcessException(DoEx, Token, $"data downloading error [{URL}]",, Section)
+            Finally
+                jsonArgs.DisposeIfReady
             End Try
         End Sub
         Private Sub DownloadPosts(ByVal Token As CancellationToken, Optional ByVal IsTagged As Boolean = False)
@@ -1191,6 +1205,7 @@ Namespace API.Instagram
                 Return 1
             ElseIf Responser.StatusCode = 560 Or Responser.StatusCode = HttpStatusCode.InternalServerError Then '560, 500
                 MySiteSettings.SkipUntilNextSession = True
+                Err5xx = Responser.StatusCode
             Else
                 MyMainLOG = $"Something is wrong. Your credentials may have expired [{CInt(Responser.StatusCode)}/{CInt(Responser.Status)}]: {ToString()} [{s}]"
                 DisableSection(s)

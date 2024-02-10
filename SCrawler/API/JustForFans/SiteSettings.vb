@@ -46,7 +46,7 @@ Namespace API.JustForFans
             UserAgent = New PropertyValue(If(Responser.UserAgentExists, Responser.UserAgent, String.Empty), GetType(String), Sub(v) UpdateHeader(NameOf(UserAgent), v))
 
             _AllowUserAgentUpdate = False
-            UserRegex = RParams.DMS("https://justfor.fans/([^/\?]+)", 1, EDP.ReturnValue)
+            UserRegex = RParams.DMS(String.Format(UserRegexDefaultPattern, "justfor.fans/"), 1, EDP.ReturnValue)
             UrlPatternUser = "https://justfor.fans/{0}"
             ImageVideoContains = "justfor.fans"
         End Sub

@@ -229,6 +229,7 @@ Namespace API.TikTok
                                     Exit Sub
                                 End If
                                 title = j.Value("title").StringRemoveWinForbiddenSymbols
+                                If Not title.IsEmptyString Then title = Left(title, 150)
                                 If title.IsEmptyString Or Not TitleUseNative Then
                                     title = postID
                                 Else
@@ -320,7 +321,7 @@ Namespace API.TikTok
                 b.Encoding = BatchExecutor.UnicodeEncoding
                 b.Execute(CreateYTCommand(DestinationFile, URL, True))
             End Using
-            Return DestinationFile
+            If DestinationFile.Exists Then Return DestinationFile Else Return Nothing
         End Function
 #End Region
 #Region "DownloadSingleObject"

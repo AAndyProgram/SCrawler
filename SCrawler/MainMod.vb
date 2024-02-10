@@ -16,6 +16,7 @@ Imports SCrawler.DownloadObjects
 Friend Module MainMod
     Friend Settings As SettingsCLS
     Friend Const SettingsFolderName As String = XML.XmlFile.SettingsFolder
+    Friend Const UserRegexDefaultPattern As String = "{0}([^/\?&]+)"
     Friend ReadOnly LinkPattern As RParams = RParams.DMS("[htps:]{0,6}[/]{0,2}(.+)", 1)
     Friend ReadOnly FilesPattern As RParams = RParams.DM("[^\./]+?\.\w+", 1, EDP.ReturnValue)
     Friend Delegate Sub NotificationEventHandler(ByVal Sender As SettingsCLS.NotificationObjects, ByVal Message As String)

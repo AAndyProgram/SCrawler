@@ -40,7 +40,7 @@ Namespace API.TikTok
             UseParsedVideoDate = New PropertyValue(True)
             UseNetscapeCookies = True
             UrlPatternUser = "https://www.tiktok.com/@{0}/"
-            UserRegex = RParams.DMS("[htps:/]{7,8}.*?tiktok.com/@([^/]+)", 1)
+            UserRegex = RParams.DMS(String.Format(UserRegexDefaultPattern, "tiktok.com/@"), 1)
             ImageVideoContains = "tiktok.com"
         End Sub
         Friend Overrides Function GetInstance(ByVal What As ISiteSettings.Download) As IPluginContentProvider

@@ -210,7 +210,21 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         Plugins.AddRange(PluginHost.GetMyHosts(MyXML, GlobalPath.Value, DefaultTemporary, DefaultDownloadImages, DefaultDownloadVideos))
         Dim tmpPluginList As IEnumerable(Of PluginHost) = PluginHost.GetPluginsHosts(MyXML, GlobalPath.Value, DefaultTemporary,
                                                                                      DefaultDownloadImages, DefaultDownloadVideos)
-        If tmpPluginList.ListExists Then Plugins.AddRange(tmpPluginList)
+        If tmpPluginList.ListExists Then
+            Dim tplIndx% = -1
+            For Each tpl As PluginHost In tmpPluginList
+                If tpl.IsReplacer Then
+                    tplIndx = Plugins.FindIndex(Function(pl) pl.Key.StringToLower = tpl.Replacer.PluginKey.StringToLower Or
+                                                             pl.Name.StringToLower = tpl.Replacer.SiteName.StringToLower)
+                    If tplIndx >= 0 Then
+                        Plugins(tplIndx).Settings.ListClearDispose
+                        Plugins.RemoveAt(tplIndx)
+                        If Plugins.Count = 0 Then Exit For
+                    End If
+                End If
+            Next
+            Plugins.AddRange(tmpPluginList)
+        End If
 
         MainFrameUsersShowDefaults = New XMLValue(Of Boolean)("UsersShowDefaults", True, MyXML)
         MainFrameUsersShowSubscriptions = New XMLValue(Of Boolean)("UsersShowSubscriptions", True, MyXML)

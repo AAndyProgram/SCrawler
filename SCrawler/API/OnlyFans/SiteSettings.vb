@@ -169,7 +169,7 @@ Namespace API.OnlyFans
             OFScraperMP4decrypt_XML = New PropertyValue(String.Empty, GetType(String))
             KeyModeDefault_XML = New PropertyValue(KeyModeDefault_Default)
 
-            UserRegex = RParams.DMS("onlyfans.com/([\w\._]+)", 1, EDP.ReturnValue)
+            UserRegex = RParams.DMS(String.Format(UserRegexDefaultPattern, "onlyfans.com/"), 1, EDP.ReturnValue)
             UrlPatternUser = "https://onlyfans.com/{0}"
             ImageVideoContains = "onlyfans.com"
         End Sub

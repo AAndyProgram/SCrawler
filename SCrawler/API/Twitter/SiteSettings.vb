@@ -96,7 +96,7 @@ Namespace API.Twitter
             ConcurrentDownloads = New PropertyValue(1)
             MyConcurrentDownloadsProvider = New ConcurrentDownloadsProvider
 
-            UserRegex = RParams.DMS("[htps:/]{7,8}.*?twitter.com/([^/]+)", 1)
+            UserRegex = RParams.DMS(String.Format(UserRegexDefaultPattern, "/(twitter|x).com/"), 2)
             UrlPatternUser = "https://twitter.com/{0}"
             ImageVideoContains = "twitter"
             CheckNetscapeCookiesOnEndInit = True

@@ -25,6 +25,16 @@ Namespace Plugin.Hosts
                 Return Settings.Key
             End Get
         End Property
+        Friend ReadOnly Property Replacer As ReplaceInternalPluginAttribute
+            Get
+                Return Settings.Default.Replacer
+            End Get
+        End Property
+        Friend ReadOnly Property IsReplacer As Boolean
+            Get
+                Return Settings.Default.IsReplacer
+            End Get
+        End Property
         Friend ReadOnly Property Exists As Boolean
             Get
                 Return Not Settings Is Nothing

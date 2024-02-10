@@ -126,7 +126,7 @@ Namespace API.ThreadsNet
             HH_USER_AGENT = New PropertyValue(useragent, GetType(String), Sub(v) ChangeResponserFields(NameOf(HH_USER_AGENT), v))
 
             UrlPatternUser = "https://www.threads.net/@{0}"
-            UserRegex = RParams.DMS("threads.net/@([^/\?&]+)", 1)
+            UserRegex = RParams.DMS(String.Format(UserRegexDefaultPattern, "threads.net/@"), 1)
             ImageVideoContains = "threads.net"
         End Sub
 #End Region

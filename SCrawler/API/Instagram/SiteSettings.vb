@@ -276,7 +276,7 @@ Namespace API.Instagram
 
             _AllowUserAgentUpdate = False
             UrlPatternUser = "https://www.instagram.com/{0}/"
-            UserRegex = RParams.DMS("[htps:/]{7,8}.*?instagram.com/([^/]+)", 1)
+            UserRegex = RParams.DMS(String.Format(UserRegexDefaultPattern, "instagram.com/"), 1)
             ImageVideoContains = "instagram.com"
         End Sub
 #End Region

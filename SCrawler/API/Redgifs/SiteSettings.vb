@@ -49,7 +49,7 @@ Namespace API.RedGifs
             TokenUpdateIntervalProvider = New TokenRefreshIntervalProvider
             _AllowUserAgentUpdate = False
             UrlPatternUser = "https://www.redgifs.com/users/{0}/"
-            UserRegex = RParams.DMS("[htps:/]{7,8}.*?redgifs.com/users/([^/]+)", 1)
+            UserRegex = RParams.DMS(String.Format(UserRegexDefaultPattern, "redgifs.com/users/"), 1)
             ImageVideoContains = "redgifs"
         End Sub
 #End Region

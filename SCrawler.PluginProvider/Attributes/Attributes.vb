@@ -188,4 +188,13 @@ Namespace Plugin.Attributes
             Repository = RepoName
         End Sub
     End Class
+    ''' <summary>Replace internal plugin with the current one</summary>
+    <AttributeUsage(AttributeTargets.Class, AllowMultiple:=False, Inherited:=False)> Public NotInheritable Class ReplaceInternalPluginAttribute : Inherits Attribute
+        Public ReadOnly SiteName As String
+        Public ReadOnly PluginKey As String
+        Public Sub New(ByVal PluginKey As String, Optional ByVal SiteName As String = Nothing)
+            Me.PluginKey = PluginKey
+            Me.SiteName = SiteName
+        End Sub
+    End Class
 End Namespace

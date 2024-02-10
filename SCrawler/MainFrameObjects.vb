@@ -88,7 +88,7 @@ Friend Class MainFrameObjects : Implements INotificator
         If Settings.ProcessNotification(Sender) Then
             Dim b As List(Of IButton) = Nothing
             If Sender = NotifyObj.Profiles Or Sender = NotifyObj.AutoDownloader Or Sender = NotifyObj.SavedPosts Then _
-               b = New List(Of IButton) From {New ToastButton("DEF_BTT_FEED", "Feed"), New ToastButton(DEF_BTT_DISABLE, "Disable")}
+               b = New List(Of IButton) From {New ToastButton(DEF_BTT_FEED, "Feed"), New ToastButton(DEF_BTT_DISABLE, "Disable")}
             Using n As New Notification(Message) With {.Key = $"{NotificationInternalKey}_{Sender}", .Buttons = b} : n.Show() : End Using
         End If
     End Sub
