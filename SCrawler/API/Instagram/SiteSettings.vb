@@ -63,13 +63,14 @@ Namespace API.Instagram
         Friend Const Header_Browser As String = "Sec-Ch-Ua"
         Friend Const Header_BrowserExt As String = "Sec-Ch-Ua-Full-Version-List"
         Friend Const Header_Platform As String = "Sec-Ch-Ua-Platform-Version"
-        <PropertyOption(ControlText:="x-csrftoken", IsAuth:=True, AllowNull:=False), ControlNumber(2), PClonable(Clone:=False)>
+        <PropertyOption(ControlText:="x-csrftoken", ControlToolTip:="Can be automatically extracted from cookies", IsAuth:=True, AllowNull:=True), ControlNumber(2), PClonable(Clone:=False)>
         Friend ReadOnly Property HH_CSRF_TOKEN As PropertyValue
         <PropertyOption(ControlText:="x-ig-app-id", IsAuth:=True, AllowNull:=False), ControlNumber(3), PClonable(Clone:=False)>
         Friend Property HH_IG_APP_ID As PropertyValue
         <PropertyOption(ControlText:="x-asbd-id", IsAuth:=True, AllowNull:=True), ControlNumber(4), PClonable(Clone:=False)>
         Friend Property HH_ASBD_ID As PropertyValue
-        <PropertyOption(ControlText:="x-ig-www-claim", IsAuth:=True, AllowNull:=True), ControlNumber(5), PClonable(Clone:=False)>
+        'PropertyOption(ControlText:="x-ig-www-claim", IsAuth:=True, AllowNull:=True)
+        <ControlNumber(5), PClonable(Clone:=False)>
         Friend Property HH_IG_WWW_CLAIM As PropertyValue
         <PropertyOption(ControlText:="sec-ch-ua", IsAuth:=True, AllowNull:=True), ControlNumber(6), PClonable>
         Private Property HH_BROWSER As PropertyValue
@@ -350,6 +351,50 @@ Namespace API.Instagram
             LastDownloadDate.Value = Now
             ActiveJobs -= 1
             SkipUntilNextSession = False
+        End Sub
+#End Region
+#Region "Settings"
+        Private ____HH_CSRF_TOKEN As String = String.Empty
+        Private ____HH_IG_APP_ID As String = String.Empty
+        Private ____HH_ASBD_ID As String = String.Empty
+        Private ____HH_BROWSER As String = String.Empty
+        Private ____HH_BROWSER_EXT As String = String.Empty
+        Private ____HH_PLATFORM As String = String.Empty
+        Private ____HH_USER_AGENT As String = String.Empty
+        Private ____Cookies As CookieKeeper = Nothing
+        Friend Overrides Sub BeginEdit()
+            ____HH_CSRF_TOKEN = AConvert(Of String)(HH_CSRF_TOKEN.Value, String.Empty)
+            ____HH_IG_APP_ID = AConvert(Of String)(HH_IG_APP_ID.Value, String.Empty)
+            ____HH_ASBD_ID = AConvert(Of String)(HH_ASBD_ID.Value, String.Empty)
+            ____HH_BROWSER = AConvert(Of String)(HH_BROWSER.Value, String.Empty)
+            ____HH_BROWSER_EXT = AConvert(Of String)(HH_BROWSER_EXT.Value, String.Empty)
+            ____HH_PLATFORM = AConvert(Of String)(HH_PLATFORM.Value, String.Empty)
+            ____HH_USER_AGENT = AConvert(Of String)(HH_USER_AGENT.Value, String.Empty)
+            ____Cookies = Responser.Cookies.Copy
+            MyBase.BeginEdit()
+        End Sub
+        Friend Overrides Sub Update()
+            If _SiteEditorFormOpened Then
+                Dim vals() = {New With {.ValueOld = ____HH_CSRF_TOKEN, .ValueNew = AConvert(Of String)(HH_CSRF_TOKEN.Value, String.Empty).ToString},
+                              New With {.ValueOld = ____HH_IG_APP_ID, .ValueNew = AConvert(Of String)(HH_IG_APP_ID.Value, String.Empty).ToString},
+                              New With {.ValueOld = ____HH_ASBD_ID, .ValueNew = AConvert(Of String)(HH_ASBD_ID.Value, String.Empty).ToString},
+                              New With {.ValueOld = ____HH_BROWSER, .ValueNew = AConvert(Of String)(HH_BROWSER.Value, String.Empty).ToString},
+                              New With {.ValueOld = ____HH_BROWSER_EXT, .ValueNew = AConvert(Of String)(HH_BROWSER_EXT.Value, String.Empty).ToString},
+                              New With {.ValueOld = ____HH_PLATFORM, .ValueNew = AConvert(Of String)(HH_PLATFORM.Value, String.Empty).ToString},
+                              New With {.ValueOld = ____HH_USER_AGENT, .ValueNew = AConvert(Of String)(HH_USER_AGENT.Value, String.Empty).ToString}
+                }
+                If vals.Any(Function(v) Not v.ValueOld = v.ValueNew) OrElse
+                   Not Responser.Cookies.ListEquals(____Cookies) Then HH_IG_WWW_CLAIM.Value = 0
+                If Responser.CookiesExists Then
+                    Dim csrf$ = If(Responser.Cookies.FirstOrDefault(Function(c) c.Name.StringToLower = Header_CSRF_TOKEN_COOKIE)?.Value, String.Empty)
+                    If Not csrf.IsEmptyString Then HH_CSRF_TOKEN.Value = csrf
+                End If
+            End If
+            MyBase.Update()
+        End Sub
+        Friend Overrides Sub EndEdit()
+            If _SiteEditorFormOpened Then ____Cookies.DisposeIfReady(False) : ____Cookies = Nothing
+            MyBase.EndEdit()
         End Sub
 #End Region
 #Region "UserOptions, GetUserUrl, GetUserPostUrl"
