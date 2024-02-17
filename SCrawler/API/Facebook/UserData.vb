@@ -107,7 +107,23 @@ Namespace API.Facebook
             End With
         End Sub
 #End Region
+#Region "Initializer"
+        Friend Sub New()
+            _ResponserAutoUpdateCookies = True
+        End Sub
+#End Region
 #Region "Download functions"
+        Private Class TokensException : Inherits Plugin.ExitException
+            Friend ReadOnly Property BasicTokens As Boolean
+            Public Sub New(ByVal Message As String, ByVal _BasicTokens As Boolean)
+                MyBase.New(Message)
+                BasicTokens = _BasicTokens
+            End Sub
+            Friend Shared Sub SendToLog(ByVal Source As UserData, ByVal ex As TokensException, ByVal f As String)
+                ErrorsDescriber.Execute(EDP.SendToLog, New ErrorsDescriberException($"{Source.ToStringForLog()} ({f}): {ex.Message}",,, ex) With {
+                                        .SendToLogOnlyMessage = True, .ReplaceMainMessage = True})
+            End Sub
+        End Class
         Private Token_dtsg As String = String.Empty
         Private Token_lsd As String = String.Empty
         Private Token_Photosby As String = String.Empty
@@ -149,7 +165,7 @@ Namespace API.Facebook
                 Dim pid As PostKV
 
                 ValidateBaseTokens()
-                If Token_Photosby.IsEmptyString Then Throw New ArgumentNullException("Token_Photosby", "Unable to obtain token")
+                If Token_Photosby.IsEmptyString Then Throw New TokensException("Unable to obtain token 'Token_Photosby'", False)
 
                 URL = String.Format(Graphql_UrlPattern, Token_lsd, DocID_Photo, Header_fb_fr_name_Photo,
                                     SymbolsConverter.ASCII.EncodeSymbolsOnly(Token_dtsg),
@@ -199,6 +215,8 @@ Namespace API.Facebook
                 End If
 
                 If newPostsDetected And Not nextCursor.IsEmptyString Then DownloadData_Photo(nextCursor, Token)
+            Catch tex As TokensException When Not tex.BasicTokens
+                TokensException.SendToLog(Me, tex, "data (photo)")
             Catch ex As Exception
                 ProcessException(ex, Token, $"data (photo) downloading error [{URL}]",, Responser)
             End Try
@@ -212,7 +230,7 @@ Namespace API.Facebook
                 Dim pid As PostKV
 
                 If VideoPageID.IsEmptyString Then GetVideoPageID(Token)
-                If VideoPageID.IsEmptyString Then Throw New ArgumentNullException("VideoPageID", "Unable to obtain VideoPageID")
+                If VideoPageID.IsEmptyString Then Throw New TokensException("Unable to obtain 'VideoPageID'", False)
                 ValidateBaseTokens()
 
                 URL = String.Format(Graphql_UrlPattern, Token_lsd, DocID_Video, Header_fb_fr_name_Video,
@@ -252,6 +270,8 @@ Namespace API.Facebook
                 End If
 
                 If newPostsDetected And Not nextCursor.IsEmptyString Then DownloadData_Video(nextCursor, Token)
+            Catch tex As TokensException When Not tex.BasicTokens
+                TokensException.SendToLog(Me, tex, "data (video)")
             Catch ex As Exception
                 ProcessException(ex, Token, $"data (video) downloading error [{URL}]",, Responser)
             End Try
@@ -266,7 +286,7 @@ Namespace API.Facebook
                 Dim postDate As Date?
 
                 ValidateBaseTokens()
-                If StoryBucket.IsEmptyString Then Throw New ArgumentNullException("StoryBucket", "Unable to obtain StoryBucket")
+                If StoryBucket.IsEmptyString Then Throw New TokensException("Unable to obtain 'StoryBucket'", False)
 
                 URL = String.Format(Graphql_UrlPattern, Token_lsd, DocID_Stories, Header_fb_fr_name_Stories,
                                     SymbolsConverter.ASCII.EncodeSymbolsOnly(Token_dtsg),
@@ -320,6 +340,8 @@ Namespace API.Facebook
                         End If
                     End Using
                 End If
+            Catch tex As TokensException When Not tex.BasicTokens
+                TokensException.SendToLog(Me, tex, "data (stories)")
             Catch ex As Exception
                 ProcessException(ex, Token, $"data (stories) downloading error [{URL}]",, Responser)
             End Try
@@ -467,8 +489,10 @@ Namespace API.Facebook
 #Region "ValidateBaseTokens, GetVideoPageID, GetUserTokens"
         ''' <exception cref="ArgumentNullException"></exception>
         Private Sub ValidateBaseTokens()
-            If Token_dtsg.IsEmptyString Then Throw New ArgumentNullException("Token_dtsg", "Unable to obtain token")
-            If Token_lsd.IsEmptyString Then Throw New ArgumentNullException("Token_lsd", "Unable to obtain token")
+            Dim tokens$ = String.Empty
+            If Token_dtsg.IsEmptyString Then tokens.StringAppend("Token_dtsg")
+            If Token_lsd.IsEmptyString Then tokens.StringAppend("Token_lsd")
+            If Not tokens.IsEmptyString Then Throw New TokensException($"Unable to obtain token(s) ({tokens}){vbCr}Your credentials may have expired.", True)
         End Sub
         Private Sub GetVideoPageID(ByVal Token As CancellationToken)
             Dim URL$ = $"{GetProfileUrl()}\videos"

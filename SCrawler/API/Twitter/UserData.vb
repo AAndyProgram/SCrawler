@@ -157,7 +157,6 @@ Namespace API.Twitter
         Private Sub DownloadData_Timeline(ByVal Token As CancellationToken)
             Dim URL$ = String.Empty
             Dim tCache As CacheKeeper = Nothing
-            Dim jsonArgs As New WebDocumentEventArgs With {.DeclaredError = EDP.ThrowException}
             Try
                 Const entry$ = "entry"
                 Dim PostID$ = String.Empty
@@ -237,8 +236,7 @@ Namespace API.Twitter
                                 For i = 0 To timelineFiles.Count - 1 : timelineFiles(i) = RenameGdlFile(timelineFiles(i), i) : Next
                                 'parse files
                                 For i = 0 To timelineFiles.Count - 1
-                                    j = JsonDocument.Parse(timelineFiles(i).GetText, jsonArgs)
-                                    jsonArgs.Reset()
+                                    j = JsonDocument.Parse(timelineFiles(i).GetText)
                                     If Not j Is Nothing Then
                                         If i = 0 Then
                                             If Not userInfoParsed Then
@@ -363,7 +361,7 @@ Namespace API.Twitter
                 End If
                 DownloadModelForceApply = False
                 FirstDownloadComplete = True
-            Catch jsonNull_ex As ArgumentNullException When jsonArgs.State = WebDocumentEventArgs.States.Error
+            Catch jsonNull_ex As JsonDocumentException When jsonNull_ex.State = WebDocumentEventArgs.States.Error
                 Throw New Plugin.ExitException("No deserialized data found")
             Catch limit_ex As TwitterLimitException
                 Throw limit_ex
@@ -371,7 +369,6 @@ Namespace API.Twitter
                 ProcessException(ex, Token, $"data downloading error [{URL}]")
             Finally
                 If Not tCache Is Nothing Then tCache.Dispose()
-                jsonArgs.DisposeIfReady
                 If _TempPostsList.Count > 0 Then _TempPostsList.Sort()
             End Try
         End Sub

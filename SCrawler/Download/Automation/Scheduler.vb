@@ -129,6 +129,25 @@ Namespace DownloadObjects
             End If
             Return True
         End Function
+        Friend Function Move(ByVal Index As Integer, ByVal Up As Boolean) As Integer
+            Try
+                If Index.ValueBetween(0, Count - 1) Then
+                    Plans.ListReindex
+                    Dim v% = IIf(Up, -1, 1)
+                    Dim newIndx%
+                    Item(Index).Index += v
+                    newIndx = Item(Index).Index
+                    If newIndx.ValueBetween(0, Count - 1) Then Item(newIndx).Index += v * -1
+                    Plans.Sort()
+                    Plans.ListReindex
+                    Update()
+                    Return newIndx
+                End If
+            Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "[Scheduler.Move]")
+            End Try
+            Return -1
+        End Function
 #Region "Groups Support"
         Friend Sub GROUPS_Updated(ByVal Sender As DownloadGroup)
             If Count > 0 Then Plans.ForEach(Sub(p) p.GROUPS_Updated(Sender))

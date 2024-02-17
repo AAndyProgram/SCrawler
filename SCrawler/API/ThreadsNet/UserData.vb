@@ -49,6 +49,8 @@ Namespace API.ThreadsNet
             ObtainMedia_AllowAbstract = True
             DefaultParser_ElemNode = DefaultParser_ElemNode_Default
             DefaultParser_PostUrlCreator = Function(post) $"https://www.threads.net/@{NameTrue}/post/{post.Code}"
+            _ResponserAutoUpdateCookies = True
+            _ResponserAddResponseReceivedHandler = True
         End Sub
 #End Region
 #Region "Download functions"
@@ -56,7 +58,6 @@ Namespace API.ThreadsNet
             Dim errorFound As Boolean = False
             Try
                 Responser.Method = "POST"
-                AddHandler Responser.ResponseReceived, AddressOf Responser_ResponseReceived
                 LoadSavePostsKV(True)
                 OPT_LSD = String.Empty
                 OPT_FB_DTSG = String.Empty
@@ -154,7 +155,7 @@ Namespace API.ThreadsNet
                 Responser.Method = "GET"
                 Responser.Referer = URL
                 Responser.Headers.Remove(Header_FB_LSD)
-                Dim r$ = Responser.GetResponse(URL,, EDP.SendToLog + EDP.ThrowException)
+                Dim r$ = Responser.GetResponse(URL,, EDP.ThrowException)
                 Dim rr As RParams
                 Dim tt$, ttVal$
                 If Not r.IsEmptyString Then
@@ -189,7 +190,12 @@ Namespace API.ThreadsNet
                 If OPT_FB_DTSG.IsEmptyString Then notFound.StringAppend(Header_FB_LSD)
                 If OPT_LSD.IsEmptyString Then notFound.StringAppend("lsd")
                 If ID.IsEmptyString Then notFound.StringAppend("User ID")
-                LogError(ex, $"failed to update some{IIf(notFound.IsEmptyString, String.Empty, $" ({notFound})")} credentials", e)
+                Dim eex As New ErrorsDescriberException($"{ToStringForLog()}: failed to update some{IIf(notFound.IsEmptyString, String.Empty, $" ({notFound})")} credentials",,, ex) With {
+                    .ReplaceMainMessage = True,
+                    .SendToLogOnlyMessage = Responser.StatusCode = Net.HttpStatusCode.InternalServerError And Responser.Status = Net.WebExceptionStatus.ProtocolError
+                }
+                'LogError(ex, $"failed to update some{IIf(notFound.IsEmptyString, String.Empty, $" ({notFound})")} credentials", e)
+                LogError(eex, String.Empty, e)
                 Return False
             End Try
         End Function

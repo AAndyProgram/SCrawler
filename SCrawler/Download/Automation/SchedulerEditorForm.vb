@@ -27,6 +27,8 @@ Namespace DownloadObjects
         Private WithEvents BTT_START_FORCE As ToolStripButton
         Private WithEvents BTT_PAUSE As ToolStripDropDownButton
         Private WithEvents PauseArr As AutoDownloaderPauseButtons
+        Private WithEvents BTT_MOVE_UP As ToolStripButton
+        Private WithEvents BTT_MOVE_DOWN As ToolStripButton
 #End Region
 #Region "Initializer"
         Friend Sub New()
@@ -98,6 +100,18 @@ Namespace DownloadObjects
                 .ToolTipText = "Pause task",
                 .AutoToolTip = True
             }
+            BTT_MOVE_UP = New ToolStripButton With {
+                .Text = String.Empty,
+                .Image = PersonalUtilities.My.Resources.ArrowUpPic_Blue_32,
+                .ToolTipText = "Move the selected task higher in the list",
+                .AutoToolTip = True
+            }
+            BTT_MOVE_DOWN = New ToolStripButton With {
+                .Text = String.Empty,
+                .Image = PersonalUtilities.My.Resources.ArrowDownPic_Blue_32,
+                .ToolTipText = "Move the selected task lower in the list",
+                .AutoToolTip = True
+            }
             PauseArr = New AutoDownloaderPauseButtons(AutoDownloaderPauseButtons.ButtonsPlace.Scheduler) With {
                        .MainFrameButtonsInstance = MainFrameObj.PauseButtons}
             Icon = ImageRenderer.GetIcon(My.Resources.ScriptPic_32, EDP.ReturnValue)
@@ -108,6 +122,7 @@ Namespace DownloadObjects
             With MyDefs
                 .MyViewInitialize()
                 .AddEditToolbar({BTT_SETTINGS, ECI.Separator, ECI.Add, BTT_CLONE, ECI.Edit, ECI.Delete, ECI.Update, ECI.Separator,
+                                 BTT_MOVE_UP, BTT_MOVE_DOWN, ECI.Separator,
                                  BTT_START, BTT_START_FORCE, MENU_SKIP, BTT_PAUSE})
                 PauseArr.AddButtons(BTT_PAUSE, .MyEditToolbar.ToolStrip)
                 Refill()
@@ -331,6 +346,15 @@ Namespace DownloadObjects
         End Sub
         Private Sub PauseArr_Updating() Handles PauseArr.Updating
             Refill()
+        End Sub
+#End Region
+#Region "Move"
+        Private Sub BTT_MOVE_UP_DOWN_Click(sender As Object, e As EventArgs) Handles BTT_MOVE_UP.Click, BTT_MOVE_DOWN.Click
+            If _LatestSelected.ValueBetween(0, LIST_PLANS.Items.Count - 1) Then
+                Dim v% = Settings.Automation.Move(_LatestSelected, sender Is BTT_MOVE_UP)
+                If v >= 0 Then _LatestSelected = v
+                Refill()
+            End If
         End Sub
 #End Region
     End Class

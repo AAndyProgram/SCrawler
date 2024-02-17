@@ -12,7 +12,7 @@ Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.XML.Objects
 Imports PersonalUtilities.Tools.WEB.GitHub
 Namespace Plugin.Hosts
-    Friend Class PluginHost
+    Friend Class PluginHost : Implements IDisposable
         Friend Const PluginsPath As String = "Plugins\"
         Friend ReadOnly Property Settings As SettingsHostCollection
         Friend ReadOnly Property Name As String
@@ -123,5 +123,22 @@ Namespace Plugin.Hosts
                 Return Nothing
             End Try
         End Function
+#Region "IDisposable Support"
+        Private disposedValue As Boolean = False
+        Protected Overridable Overloads Sub Dispose(ByVal disposing As Boolean)
+            If Not disposedValue Then
+                If disposing Then Settings.Dispose()
+                disposedValue = True
+            End If
+        End Sub
+        Protected Overrides Sub Finalize()
+            Dispose(False)
+            MyBase.Finalize()
+        End Sub
+        Friend Overloads Sub Dispose() Implements IDisposable.Dispose
+            Dispose(True)
+            GC.SuppressFinalize(Me)
+        End Sub
+#End Region
     End Class
 End Namespace

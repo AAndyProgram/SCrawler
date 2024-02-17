@@ -19,7 +19,7 @@ Namespace API.ThreadsNet
 #Region "Declarations"
 #Region "Authorization"
         <PClonable(Clone:=False)> Protected ReadOnly __HH_CSRF_TOKEN As PropertyValue
-        <PropertyOption(ControlText:="x-csrftoken", AllowNull:=False, IsAuth:=True), ControlNumber(0)>
+        <PropertyOption(ControlText:="x-csrftoken", AllowNull:=True, IsAuth:=True), ControlNumber(0)>
         Friend Overridable ReadOnly Property HH_CSRF_TOKEN As PropertyValue
             Get
                 Return __HH_CSRF_TOKEN
@@ -165,6 +165,15 @@ Namespace API.ThreadsNet
                 Return ErrorsDescriber.Execute(EDP.SendToLog, ex, "Can't open user's post", String.Empty)
             End Try
         End Function
+#End Region
+#Region "Update"
+        Friend Overrides Sub Update()
+            If _SiteEditorFormOpened And Responser.CookiesExists Then
+                Dim csrf$ = If(Responser.Cookies.FirstOrDefault(Function(c) c.Name.StringToLower = IG.Header_CSRF_TOKEN_COOKIE)?.Value, String.Empty)
+                If Not csrf.IsEmptyString Then HH_CSRF_TOKEN.Value = csrf
+            End If
+            MyBase.Update()
+        End Sub
 #End Region
     End Class
 End Namespace

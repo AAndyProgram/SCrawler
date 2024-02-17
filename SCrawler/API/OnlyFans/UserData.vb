@@ -74,26 +74,33 @@ Namespace API.OnlyFans
         Private _OFScraperExists As Boolean = False
         Private OFSCache As CacheKeeper = Nothing
         Private _AbsMediaIndex As Integer = 0
+        Private FunctionErr As Integer = FunctionErrDef
+        Private Const FunctionErrDef As Integer = -100
         Private Sub ValidateOFScraper()
             _OFScraperExists = ACheck(MySettings.OFScraperPath.Value) AndAlso CStr(MySettings.OFScraperPath.Value).CSFile.Exists
         End Sub
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
-            If Not MySettings.SessionAborted Then
-                ValidateOFScraper()
-                _AbsMediaIndex = 0
-                If Not CCookie Is Nothing Then CCookie.Dispose()
-                CCookie = Responser.Cookies.Copy
-                Responser.Cookies.Clear()
-                AddHandler Responser.ResponseReceived, AddressOf OnResponseReceived
-                UpdateCookieHeader()
-                DownloadTimeline(IIf(IsSavedPosts, 0, String.Empty), Token)
-                If Not IsSavedPosts Then
-                    If MediaDownloadHighlights Then DownloadHighlights(Token)
-                    If MediaDownloadChatMedia Then DownloadChatMedia(0, Token)
+            Try
+                If Not MySettings.SessionAborted Then
+                    ValidateOFScraper()
+                    _AbsMediaIndex = 0
+                    FunctionErr = FunctionErrDef
+                    If Not CCookie Is Nothing Then CCookie.Dispose()
+                    CCookie = Responser.Cookies.Copy
+                    Responser.Cookies.Clear()
+                    AddHandler Responser.ResponseReceived, AddressOf Responser_ResponseReceived
+                    UpdateCookieHeader()
+                    DownloadTimeline(IIf(IsSavedPosts, 0, String.Empty), Token)
+                    If Not IsSavedPosts Then
+                        If MediaDownloadHighlights And FunctionErr = FunctionErrDef Then DownloadHighlights(Token)
+                        If MediaDownloadChatMedia And FunctionErr = FunctionErrDef Then DownloadChatMedia(0, Token)
+                    End If
                 End If
-            End If
+            Finally
+                Responser_ResponseReceived_RemoveHandler()
+            End Try
         End Sub
-        Private Sub OnResponseReceived(ByVal Sender As Object, ByVal e As WebDataResponse)
+        Protected Overrides Sub Responser_ResponseReceived(ByVal Sender As Object, ByVal e As WebDataResponse)
             If e.CookiesExists Then
                 CCookie.Update(e.Cookies, CookieKeeper.UpdateModes.ReplaceByNameAll,, EDP.ReturnValue)
                 UpdateCookieHeader()
@@ -102,6 +109,10 @@ Namespace API.OnlyFans
         Private Sub UpdateCookieHeader()
             Responser.Headers.Add("Cookie", CCookie.ToString(False))
         End Sub
+        Private Function ProcessFunctionErrComplete(ByVal ErrValue As Integer) As Boolean
+            If ErrValue <= 0 Or (ErrValue > 0 And ErrValue <> 2) Then FunctionErr = ErrValue
+            Return ErrValue <> 2
+        End Function
         Friend Const A_HIGHLIGHT As String = "HL"
         Friend Const A_MESSAGE As String = "MSG"
         Private Const BaseUrlPattern As String = "https://onlyfans.com{0}"
@@ -180,7 +191,7 @@ Namespace API.OnlyFans
                         DownloadTimeline(tmpCursor, Token)
                     End If
                 Catch ex As Exception
-                    _complete = Not ProcessException(ex, Token, $"data downloading error [{url}]") = 2
+                    _complete = ProcessFunctionErrComplete(ProcessException(ex, Token, $"data downloading error [{url}]"))
                 End Try
             Loop While Not _complete
         End Sub
@@ -219,7 +230,7 @@ Namespace API.OnlyFans
                     End If
                     If hasMore Then DownloadHighlights(Cursor + 5, Token)
                 Catch ex As Exception
-                    _complete = Not ProcessException(ex, Token, $"highlights downloading error [{url}]") = 2
+                    _complete = ProcessFunctionErrComplete(ProcessException(ex, Token, $"highlights downloading error [{url}]"))
                 End Try
             Loop While Not _complete
         End Sub
@@ -264,7 +275,7 @@ Namespace API.OnlyFans
                         End If
                     End If
                 Catch ex As Exception
-                    _complete = Not ProcessException(ex, Token, $"highlights downloading error [{url}]") = 2
+                    _complete = ProcessFunctionErrComplete(ProcessException(ex, Token, $"highlights downloading error [{url}]"))
                 End Try
             Loop While Not _complete
         End Sub
@@ -311,7 +322,7 @@ Namespace API.OnlyFans
                     End If
                     If hasMore Then DownloadChatMedia(Cursor + 20, Token)
                 Catch ex As Exception
-                    _complete = Not ProcessException(ex, Token, $"chats downloading error [{url}]") = 2
+                    _complete = ProcessFunctionErrComplete(ProcessException(ex, Token, $"chats downloading error [{url}]"))
                 End Try
             Loop While Not _complete
         End Sub
@@ -709,15 +720,17 @@ Namespace API.OnlyFans
                 End If
             ElseIf Responser.StatusCode = Net.HttpStatusCode.NotFound Then '404
                 UserExists = False
-                Return 1
+                Return 3
             ElseIf Responser.StatusCode = Net.HttpStatusCode.GatewayTimeout Or Responser.StatusCode = 429 Then '504, 429
                 If Responser.StatusCode = 429 Then MyMainLOG = $"[429] OnlyFans too many requests ({ToStringForLog()})"
                 MySettings.SessionAborted = True
-                Return 1
+                Return 3
             ElseIf Responser.StatusCode = Net.HttpStatusCode.Unauthorized Then '401
                 MySettings.SessionAborted = True
                 MyMainLOG = $"{ToStringForLog()} [{CInt(Responser.StatusCode)}]: OnlyFans credentials expired"
-                Return 1
+                Return 3
+            ElseIf Responser.StatusCode = Net.HttpStatusCode.InternalServerError Then '500
+                Return 3
             Else
                 Return 0
             End If

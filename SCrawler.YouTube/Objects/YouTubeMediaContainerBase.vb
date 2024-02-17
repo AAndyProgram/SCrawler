@@ -139,22 +139,26 @@ Namespace API.YouTube.Objects
 #End Region
 #Region "Data info"
         Friend ReadOnly Property MediaObjects As List(Of MediaObject) Implements IYouTubeMediaContainer.MediaObjects
+        Friend Property [Protected] As Boolean = False
+        Friend Property IsAudioSelected As Boolean = False
 #Region "Array"
         ''' <summary>[-10] = disabled; [-1] = max; [-2] = audio only</summary>
         <XMLEC> Friend Property ArrayMaxResolution As Integer = -10
         ''' <param name="Value">[-1] = max; [-2] = audio only</param>
         Friend Sub SetMaxResolution(ByVal Value As Integer)
-            ArrayMaxResolution = Value
-            SelectedVideoIndex = -1
-            If MediaObjects.Count > 0 And Value <> -2 Then
-                If Value = -1 Then
-                    SelectedVideoIndex = MediaObjects.FindIndex(Function(mo) mo.Type = UMTypes.Video)
-                Else
-                    SelectedVideoIndex = MediaObjects.FindIndex(Function(mo) mo.Type = UMTypes.Video And mo.Height <= Value)
-                    If SelectedVideoIndex = -1 Then SelectedVideoIndex = MediaObjects.FindIndex(Function(mo) mo.Type = UMTypes.Video)
+            If Not [Protected] Then
+                ArrayMaxResolution = Value
+                SelectedVideoIndex = -1
+                If MediaObjects.Count > 0 And Value <> -2 Then
+                    If Value = -1 Then
+                        SelectedVideoIndex = MediaObjects.FindIndex(Function(mo) mo.Type = UMTypes.Video)
+                    Else
+                        SelectedVideoIndex = MediaObjects.FindIndex(Function(mo) mo.Type = UMTypes.Video And mo.Height <= Value)
+                        If SelectedVideoIndex = -1 Then SelectedVideoIndex = MediaObjects.FindIndex(Function(mo) mo.Type = UMTypes.Video)
+                    End If
                 End If
+                If HasElements Then Elements.ForEach(Sub(e As YouTubeMediaContainerBase) e.SetMaxResolution(Value))
             End If
-            If HasElements Then Elements.ForEach(Sub(e As YouTubeMediaContainerBase) e.SetMaxResolution(Value))
         End Sub
 #End Region
 #Region "Thumbnails"
@@ -213,8 +217,10 @@ Namespace API.YouTube.Objects
                 Return _OutputVideoExtension
             End Get
             Set(ByVal _OutputVideoExtension As String)
-                Me._OutputVideoExtension = _OutputVideoExtension
-                If HasElements Then Elements.ForEach(Sub(e) e.OutputVideoExtension = _OutputVideoExtension)
+                If Not [Protected] Then
+                    Me._OutputVideoExtension = _OutputVideoExtension
+                    If HasElements Then Elements.ForEach(Sub(e) e.OutputVideoExtension = _OutputVideoExtension)
+                End If
             End Set
         End Property
         <XMLEC("OutputVideoFPS")> Protected _OutputVideoFPS As Double = -1
@@ -223,8 +229,10 @@ Namespace API.YouTube.Objects
                 Return _OutputVideoFPS
             End Get
             Set(ByVal fps As Double)
-                _OutputVideoFPS = fps
-                If HasElements Then Elements.ForEach(Sub(elem) DirectCast(elem, YouTubeMediaContainerBase).OutputVideoFPS = fps)
+                If Not [Protected] Then
+                    _OutputVideoFPS = fps
+                    If HasElements Then Elements.ForEach(Sub(elem) DirectCast(elem, YouTubeMediaContainerBase).OutputVideoFPS = fps)
+                End If
             End Set
         End Property
 #End Region
@@ -241,8 +249,10 @@ Namespace API.YouTube.Objects
                 Return _OutputAudioCodec
             End Get
             Set(ByVal _OutputAudioCodec As String)
-                Me._OutputAudioCodec = _OutputAudioCodec
-                If HasElements Then Elements.ForEach(Sub(e) e.OutputAudioCodec = _OutputAudioCodec)
+                If Not [Protected] Then
+                    Me._OutputAudioCodec = _OutputAudioCodec
+                    If HasElements Then Elements.ForEach(Sub(e) e.OutputAudioCodec = _OutputAudioCodec)
+                End If
             End Set
         End Property
         <XMLEC(CollectionMode:=CollectionModes.String)>
@@ -282,8 +292,10 @@ Namespace API.YouTube.Objects
                 Return _OutputSubtitlesFormat
             End Get
             Set(ByVal _OutputSubtitlesFormat As String)
-                Me._OutputSubtitlesFormat = _OutputSubtitlesFormat
-                If HasElements Then Elements.ForEach(Sub(e) e.OutputSubtitlesFormat = _OutputSubtitlesFormat)
+                If Not [Protected] Then
+                    Me._OutputSubtitlesFormat = _OutputSubtitlesFormat
+                    If HasElements Then Elements.ForEach(Sub(e) e.OutputSubtitlesFormat = _OutputSubtitlesFormat)
+                End If
             End Set
         End Property
         <XMLEC(CollectionMode:=CollectionModes.String)>
@@ -565,8 +577,10 @@ Namespace API.YouTube.Objects
                 Return _AbsolutePath
             End Get
             Set(ByVal ap As Boolean)
-                _AbsolutePath = ap
-                If Elements.Count > 0 Then Elements.ForEach(Sub(e As YouTubeMediaContainerBase) e.AbsolutePath = ap)
+                If Not [Protected] Then
+                    _AbsolutePath = ap
+                    If Elements.Count > 0 Then Elements.ForEach(Sub(e As YouTubeMediaContainerBase) e.AbsolutePath = ap)
+                End If
             End Set
         End Property
         Public Overridable Property File As SFile Implements IYouTubeMediaContainer.File
@@ -574,28 +588,30 @@ Namespace API.YouTube.Objects
                 Return _File
             End Get
             Set(ByVal f As SFile)
-                Select Case ObjectType
-                    Case YouTubeMediaType.Channel : _File = f.Path
-                    Case YouTubeMediaType.PlayList
-                        If AbsolutePath Then
-                            _File.Path = f.Path
-                        Else
-                            _File.Path = $"{f.PathWithSeparator}{GetPlayListTitle()}"
-                        End If
-                    Case YouTubeMediaType.Single
-                        If PlaylistCount > 0 And Not FileIgnorePlaylist Then
-                            _File.Path = f.Path
-                            Dim pls$ = If(AbsolutePath, String.Empty, GetPlayListTitle())
-                            If Not _File.Path.Contains(pls) Then _File.Path = $"{_File.PathWithSeparator(Not pls.IsEmptyString)}{pls}"
-                        ElseIf Not f.Name.IsEmptyString Then
-                            _File = f
-                        Else
-                            _File.Path = f.Path
-                        End If
-                    Case Else : _File = f
-                End Select
-                GenerateFileName()
-                If HasElements Then Elements.ForEach(Sub(e) e.File = _File)
+                If Not [Protected] Then
+                    Select Case ObjectType
+                        Case YouTubeMediaType.Channel : _File = f.Path
+                        Case YouTubeMediaType.PlayList
+                            If AbsolutePath Then
+                                _File.Path = f.Path
+                            Else
+                                _File.Path = $"{f.PathWithSeparator}{GetPlayListTitle()}"
+                            End If
+                        Case YouTubeMediaType.Single
+                            If PlaylistCount > 0 And Not FileIgnorePlaylist Then
+                                _File.Path = f.Path
+                                Dim pls$ = If(AbsolutePath, String.Empty, GetPlayListTitle())
+                                If Not _File.Path.Contains(pls) Then _File.Path = $"{_File.PathWithSeparator(Not pls.IsEmptyString)}{pls}"
+                            ElseIf Not f.Name.IsEmptyString Then
+                                _File = f
+                            Else
+                                _File.Path = f.Path
+                            End If
+                        Case Else : _File = f
+                    End Select
+                    GenerateFileName()
+                    If HasElements Then Elements.ForEach(Sub(e) e.File = _File)
+                End If
             End Set
         End Property
         Public Property FileSettings As SFile
@@ -624,6 +640,7 @@ Namespace API.YouTube.Objects
                 If Not File.IsEmptyString Then
                     If File.Exists Then File = SFile.IndexReindex(File)
                     Dim cmd$ = String.Empty, formats$ = String.Empty, subs$ = String.Empty, remux$ = String.Empty
+                    Dim embedThumbArgAdded As Boolean = False
                     _Size = 0
                     Height = 0
                     Bitrate = 0
@@ -636,6 +653,10 @@ Namespace API.YouTube.Objects
                         _MediaType = UMTypes.Video
                         Height = SelectedVideo.Height
                         _File.Extension = OutputVideoExtension
+                        If Not embedThumbArgAdded And MyYouTubeSettings.DefaultVideoEmbedThumbnail Then
+                            formats.StringAppend("--embed-thumbnail", " ")
+                            embedThumbArgAdded = True
+                        End If
                     Else
                         formats.StringAppend("--extract-audio", " ")
                         _MediaType = UMTypes.Audio
@@ -653,7 +674,13 @@ Namespace API.YouTube.Objects
                             formats.StringAppend($"--audio-format {OutputAudioCodec.StringToLower}", " ")
                             atCodec = OutputAudioCodec.StringToLower
                         End If
-                        If SelectedVideoIndex = -1 Then formats.StringAppend("--add-metadata", " ")
+                        If SelectedVideoIndex = -1 Then
+                            formats.StringAppend("--add-metadata", " ")
+                            If Not embedThumbArgAdded And MyYouTubeSettings.DefaultAudioEmbedThumbnail Then
+                                formats.StringAppend("--embed-thumbnail", " ")
+                                embedThumbArgAdded = True
+                            End If
+                        End If
                         _Size += SelectedAudio.Size
                         If _MediaType = UMTypes.Undefined Then _MediaType = UMTypes.Audio
                         Bitrate = SelectedAudio.Bitrate

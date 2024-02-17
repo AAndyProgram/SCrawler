@@ -139,6 +139,7 @@ Namespace API.Instagram
         Friend Sub New()
             PostsKVIDs = New List(Of PostKV)
             PostsToReparse = New List(Of PostKV)
+            _ResponserAutoUpdateCookies = True
         End Sub
 #End Region
 #Region "Download data"
@@ -313,13 +314,13 @@ Namespace API.Instagram
             Try
                 If _DownloadingInProgress AndAlso Not Responser Is Nothing AndAlso Not Responser.Disposed Then
                     _DownloadingInProgress = False
-                    RemoveHandler Responser.ResponseReceived, AddressOf Responser_ResponseReceived
+                    Responser_ResponseReceived_RemoveHandler()
                     Declarations.UpdateResponser(Responser, MySiteSettings.Responser)
                 End If
             Catch
             End Try
         End Sub
-        Protected Overridable Sub Responser_ResponseReceived(ByVal Sender As Object, ByVal e As EventArguments.WebDataResponse)
+        Protected Overrides Sub Responser_ResponseReceived(ByVal Sender As Object, ByVal e As EventArguments.WebDataResponse)
             Declarations.UpdateResponser(e, Responser)
         End Sub
         Protected Enum Sections : Timeline : Reels : Tagged : Stories : UserStories : SavedPosts : End Enum
@@ -454,7 +455,6 @@ Namespace API.Instagram
             Dim StoriesList As List(Of String) = Nothing
             Dim StoriesRequested As Boolean = False
             Dim dValue% = 1
-            Dim jsonArgs As New WebDocumentEventArgs With {.DeclaredError = EDP.ThrowException}
             LastCursor = Cursor
             Try
                 Do While dValue = 1
@@ -529,7 +529,7 @@ Namespace API.Instagram
 
                         'Parsing
                         If Not r.IsEmptyString Then
-                            Using j As EContainer = JsonDocument.Parse(r, jsonArgs).XmlIfNothing
+                            Using j As EContainer = JsonDocument.Parse(r).XmlIfNothing
                                 n = If(ENode Is Nothing, j, j.ItemF(ENode)).XmlIfNothing
                                 If n.Count > 0 Then
                                     Select Case Section
@@ -610,7 +610,7 @@ Namespace API.Instagram
                         End If
                         dValue = 0
                         If HasNextPage And Not EndCursor.IsEmptyString Then DownloadData(EndCursor, Section, Token)
-                    Catch jsonNull As ArgumentNullException When jsonArgs.State = WebDocumentEventArgs.States.Error And Section = Sections.Reels
+                    Catch jsonNull As JsonDocumentException When jsonNull.State = WebDocumentEventArgs.States.Error And Section = Sections.Reels
                         Throw jsonNull
                     Catch eex As ExitException
                         Throw eex
@@ -618,7 +618,7 @@ Namespace API.Instagram
                         dValue = ProcessException(ex, Token, $"data downloading error [{URL}]",, Section, False)
                     End Try
                 Loop
-            Catch jsonNull2 As ArgumentNullException When jsonArgs.State = WebDocumentEventArgs.States.Error And Section = Sections.Reels
+            Catch jsonNull2 As JsonDocumentException When jsonNull2.State = WebDocumentEventArgs.States.Error And Section = Sections.Reels
             Catch eex2 As ExitException
                 If eex2.Is560 Then
                     Throw New Plugin.ExitException With {.Silent = True}
@@ -629,8 +629,6 @@ Namespace API.Instagram
                 If oex2.HelpLink = InstAborted Then HasError = True
             Catch DoEx As Exception
                 ProcessException(DoEx, Token, $"data downloading error [{URL}]",, Section)
-            Finally
-                jsonArgs.DisposeIfReady
             End Try
         End Sub
         Private Sub DownloadPosts(ByVal Token As CancellationToken, Optional ByVal IsTagged As Boolean = False)
@@ -1245,7 +1243,7 @@ Namespace API.Instagram
 #End Region
 #Region "Standalone downloader"
         Protected Overrides Sub DownloadSingleObject_GetPosts(ByVal Data As IYouTubeMediaContainer, ByVal Token As CancellationToken)
-            Dim PID$ = RegexReplace(Data.URL, RParams.DMS(".*?instagram.com/p/([_\w\d]+)", 1))
+            Dim PID$ = RegexReplace(Data.URL, RParams.DMS(String.Format(UserRegexDefaultPattern, "instagram.com/p/"), 1))
             If Not PID.IsEmptyString AndAlso Not ACheck(Of Long)(PID) Then PID = CodeToID(PID)
             If Not PID.IsEmptyString Then
                 PostsToReparse.Add(New PostKV With {.ID = PID})

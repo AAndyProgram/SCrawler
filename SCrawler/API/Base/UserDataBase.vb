@@ -23,6 +23,7 @@ Imports PersonalUtilities.Tools.Web.Clients
 Imports PersonalUtilities.Tools.ImageRenderer
 Imports UStates = SCrawler.API.Base.UserMedia.States
 Imports UTypes = SCrawler.API.Base.UserMedia.Types
+Imports CookieUpdateModes = PersonalUtilities.Tools.Web.Cookies.CookieKeeper.UpdateModes
 Namespace API.Base
     Friend MustInherit Class UserDataBase : Implements IUserData, IPluginContentProvider, IThrower
         Friend Const UserFileAppender As String = "User"
@@ -1150,6 +1151,8 @@ BlockNullPicture:
         Private _EnvirChanged As Boolean = False
         Private _PictureExists As Boolean
         Private _EnvirInvokeUserUpdated As Boolean = False
+        Protected _ResponserAutoUpdateCookies As Boolean = False
+        Protected _ResponserAddResponseReceivedHandler As Boolean = False
         Protected Sub EnvirDownloadSet()
             TokenPersonal = Nothing
             ProgressPre.Reset()
@@ -1191,7 +1194,14 @@ BlockNullPicture:
                 If Not Responser Is Nothing Then Responser.Dispose()
                 Responser = New Responser
                 If Not HOST.Responser Is Nothing Then Responser.Copy(HOST.Responser)
-
+                If Not Responser Is Nothing And _ResponserAutoUpdateCookies Then
+                    If _ResponserAutoUpdateCookies Then
+                        Responser.CookiesUpdateMode = CookieUpdateModes.ReplaceByNameAll
+                        Responser.CookiesExtractMode = Responser.CookiesExtractModes.Any
+                        Responser.CookiesExtractedAutoSave = False
+                    End If
+                    If _ResponserAddResponseReceivedHandler Then AddHandler Responser.ResponseReceived, AddressOf Responser_ResponseReceived
+                End If
                 Responser.DecodersError = New ErrorsDescriber(EDP.SendToLog + EDP.ReturnValue) With {
                     .DeclaredMessage = New MMessage($"SymbolsConverter error: [{ToStringForLog()}]", ToStringForLog())}
 
@@ -1284,9 +1294,9 @@ BlockNullPicture:
             Catch exit_ex As ExitException
                 If Not exit_ex.Silent Then
                     If exit_ex.SimpleLogLine Then
-                        MyMainLOG = $"{ToStringForLog()}: downloading canceled (exit) ({exit_ex.Message})"
+                        MyMainLOG = $"{ToStringForLog()}: downloading interrupted (exit) ({exit_ex.Message})"
                     Else
-                        ErrorsDescriber.Execute(EDP.SendToLog, exit_ex, $"{ToStringForLog()}: downloading canceled (exit)")
+                        ErrorsDescriber.Execute(EDP.SendToLog, exit_ex, $"{ToStringForLog()}: downloading interrupted (exit)")
                     End If
                 End If
                 Canceled = True
@@ -1311,6 +1321,7 @@ BlockNullPicture:
                 ProgressPre.Done()
                 __DOWNLOAD_IN_PROGRESS = False
                 OnUserDownloadStateChanged(False)
+                If _ResponserAddResponseReceivedHandler Then Responser_ResponseReceived_RemoveHandler()
             End Try
         End Sub
         Protected Sub UpdateDataFiles()
@@ -1333,6 +1344,13 @@ BlockNullPicture:
             End If
         End Sub
         Protected MustOverride Sub DownloadDataF(ByVal Token As CancellationToken)
+        Protected Overridable Sub Responser_ResponseReceived(ByVal Sender As Object, ByVal e As EventArguments.WebDataResponse)
+        End Sub
+        Protected Sub Responser_ResponseReceived_RemoveHandler()
+            If Not Responser Is Nothing And _ResponserAddResponseReceivedHandler And Not Disposed Then
+                Try : RemoveHandler Responser.ResponseReceived, AddressOf Responser_ResponseReceived : Catch : End Try
+            End If
+        End Sub
         Protected Function CreateCache() As CacheKeeper
             Dim Cache As New CacheKeeper($"{DownloadContentDefault_GetRootDir()}\_tCache\")
             Cache.CacheDeleteError = CacheDeletionError(Cache)
@@ -2057,7 +2075,7 @@ BlockNullPicture:
         End Function
         Private Class FilesCopyingException : Inherits ErrorsDescriberException
             Friend Sub New(ByVal User As IUserData, ByVal Msg As String, ByVal Path As SFile)
-                SendInLogOnlyMessage = True
+                SendToLogOnlyMessage = True
                 If User.IncludedInCollection Then _MainMessage = $"[{User.CollectionName}] - "
                 _MainMessage &= $"[{User.Site}] - [{User.Name}]. {Msg}: {Path.Path}."
             End Sub

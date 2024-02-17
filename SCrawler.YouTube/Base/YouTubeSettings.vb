@@ -273,6 +273,9 @@ Namespace API.YouTube.Base
         <Browsable(True), GridVisible, XMLVN({"DefaultsVideo"}, 1080), Category("Defaults Video"), DisplayName("Default definition"),
             Description("The default maximum video resolution. -1 for max definition")>
         Public ReadOnly Property DefaultVideoDefinition As XMLValue(Of Integer)
+        <Browsable(True), GridVisible, XMLVN({"DefaultsVideo"}, False), Category("Defaults Video"), DisplayName("Embed thumbnail (video)"),
+            Description("Embed thumbnail in the video as cover art. Default: true.")>
+        Public ReadOnly Property DefaultVideoEmbedThumbnail As XMLValue(Of Boolean)
         <Browsable(True), GridVisible, XMLVN({"DefaultsVideo"}), Category("Defaults Video"), DisplayName("Include zero size formats"),
             Description("Include formats with zero size (or undefined size).")>
         Public ReadOnly Property DefaultVideoIncludeNullSize As XMLValue(Of Boolean)
@@ -360,6 +363,9 @@ Namespace API.YouTube.Base
             TypeConverter(GetType(ValueCollectionConverter)),
             Description("Additional audio format for downloading videos. This means that the audio will be extracted and saved as a separate file in these formats.")>
         Public ReadOnly Property DefaultAudioCodecAddit As XMLValuesCollection(Of String)
+        <Browsable(True), GridVisible, XMLVN({"DefaultsAudio"}, True), Category("Defaults Audio"), DisplayName("Embed thumbnail"),
+            Description("Embed thumbnail in the audio as cover art. Default: true.")>
+        Public ReadOnly Property DefaultAudioEmbedThumbnail As XMLValue(Of Boolean)
 #End Region
 #Region "Defaults Subtitles"
         <XMLVN({"DefaultsSubtitles"}, {"en"}, CollectionMode:=IXMLValuesCollection.Modes.String)>

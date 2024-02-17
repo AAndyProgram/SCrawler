@@ -30,11 +30,16 @@ Namespace DownloadObjects.STDownloader
             Me.BTT_DOWN = New System.Windows.Forms.ToolStripMenuItem()
             Me.SEP_DOWN = New System.Windows.Forms.ToolStripSeparator()
             Me.BTT_OPEN_FOLDER = New System.Windows.Forms.ToolStripMenuItem()
+            Me.BTT_OPEN_FILE = New System.Windows.Forms.ToolStripMenuItem()
             Me.SEP_FOLDER = New System.Windows.Forms.ToolStripSeparator()
+            Me.BTT_PLS_ITEM_EDIT = New System.Windows.Forms.ToolStripMenuItem()
+            Me.BTT_PLS_ITEM_EDIT_FULL = New System.Windows.Forms.ToolStripMenuItem()
+            Me.SEP_PLS_ITEM_EDIT = New System.Windows.Forms.ToolStripSeparator()
             Me.BTT_COPY_LINK = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_OPEN_IN_BROWSER = New System.Windows.Forms.ToolStripMenuItem()
             Me.SEP_DOWN_AGAIN = New System.Windows.Forms.ToolStripSeparator()
             Me.BTT_DOWN_AGAIN = New System.Windows.Forms.ToolStripMenuItem()
+            Me.BTT_VIEW_SETTINGS = New System.Windows.Forms.ToolStripMenuItem()
             Me.SEP_DEL = New System.Windows.Forms.ToolStripSeparator()
             Me.BTT_REMOVE_FROM_LIST = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_DELETE_FILE = New System.Windows.Forms.ToolStripMenuItem()
@@ -42,7 +47,6 @@ Namespace DownloadObjects.STDownloader
             Me.TP_CHECKED_TITLE = New System.Windows.Forms.TableLayoutPanel()
             Me.LBL_TITLE = New System.Windows.Forms.Label()
             Me.CH_CHECKED = New System.Windows.Forms.CheckBox()
-            Me.BTT_VIEW_SETTINGS = New System.Windows.Forms.ToolStripMenuItem()
             TP_MAIN = New System.Windows.Forms.TableLayoutPanel()
             TP_MAIN.SuspendLayout()
             CType(Me.ICON_VIDEO, System.ComponentModel.ISupportInitialize).BeginInit()
@@ -83,10 +87,10 @@ Namespace DownloadObjects.STDownloader
             '
             'CONTEXT_MAIN
             '
-            Me.CONTEXT_MAIN.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_DOWN, Me.SEP_DOWN, Me.BTT_OPEN_FOLDER, Me.SEP_FOLDER, Me.BTT_COPY_LINK, Me.BTT_OPEN_IN_BROWSER, Me.SEP_DOWN_AGAIN, Me.BTT_DOWN_AGAIN, Me.BTT_VIEW_SETTINGS, Me.SEP_DEL, Me.BTT_REMOVE_FROM_LIST, Me.BTT_DELETE_FILE})
+            Me.CONTEXT_MAIN.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_DOWN, Me.SEP_DOWN, Me.BTT_OPEN_FOLDER, Me.BTT_OPEN_FILE, Me.SEP_FOLDER, Me.BTT_PLS_ITEM_EDIT, Me.BTT_PLS_ITEM_EDIT_FULL, Me.SEP_PLS_ITEM_EDIT, Me.BTT_COPY_LINK, Me.BTT_OPEN_IN_BROWSER, Me.SEP_DOWN_AGAIN, Me.BTT_DOWN_AGAIN, Me.BTT_VIEW_SETTINGS, Me.SEP_DEL, Me.BTT_REMOVE_FROM_LIST, Me.BTT_DELETE_FILE})
             Me.CONTEXT_MAIN.Name = "CONTEXT_MAIN"
             Me.CONTEXT_MAIN.ShowItemToolTips = False
-            Me.CONTEXT_MAIN.Size = New System.Drawing.Size(185, 226)
+            Me.CONTEXT_MAIN.Size = New System.Drawing.Size(185, 298)
             '
             'BTT_DOWN
             '
@@ -107,10 +111,41 @@ Namespace DownloadObjects.STDownloader
             Me.BTT_OPEN_FOLDER.Size = New System.Drawing.Size(184, 22)
             Me.BTT_OPEN_FOLDER.Text = "Open folder"
             '
+            'BTT_OPEN_FILE
+            '
+            Me.BTT_OPEN_FILE.Image = CType(resources.GetObject("BTT_OPEN_FILE.Image"), System.Drawing.Image)
+            Me.BTT_OPEN_FILE.Name = "BTT_OPEN_FILE"
+            Me.BTT_OPEN_FILE.Size = New System.Drawing.Size(184, 22)
+            Me.BTT_OPEN_FILE.Text = "Open file"
+            '
             'SEP_FOLDER
             '
             Me.SEP_FOLDER.Name = "SEP_FOLDER"
             Me.SEP_FOLDER.Size = New System.Drawing.Size(181, 6)
+            '
+            'BTT_PLS_ITEM_EDIT
+            '
+            Me.BTT_PLS_ITEM_EDIT.Image = CType(resources.GetObject("BTT_PLS_ITEM_EDIT.Image"), System.Drawing.Image)
+            Me.BTT_PLS_ITEM_EDIT.Name = "BTT_PLS_ITEM_EDIT"
+            Me.BTT_PLS_ITEM_EDIT.Size = New System.Drawing.Size(184, 22)
+            Me.BTT_PLS_ITEM_EDIT.Text = "Edit"
+            Me.BTT_PLS_ITEM_EDIT.Visible = False
+            '
+            'BTT_PLS_ITEM_EDIT_FULL
+            '
+            Me.BTT_PLS_ITEM_EDIT_FULL.AutoToolTip = True
+            Me.BTT_PLS_ITEM_EDIT_FULL.Image = CType(resources.GetObject("BTT_PLS_ITEM_EDIT_FULL.Image"), System.Drawing.Image)
+            Me.BTT_PLS_ITEM_EDIT_FULL.Name = "BTT_PLS_ITEM_EDIT_FULL"
+            Me.BTT_PLS_ITEM_EDIT_FULL.Size = New System.Drawing.Size(184, 22)
+            Me.BTT_PLS_ITEM_EDIT_FULL.Text = "Edit (inherit settings)"
+            Me.BTT_PLS_ITEM_EDIT_FULL.ToolTipText = "Inherit settings selected in the form"
+            Me.BTT_PLS_ITEM_EDIT_FULL.Visible = False
+            '
+            'SEP_PLS_ITEM_EDIT
+            '
+            Me.SEP_PLS_ITEM_EDIT.Name = "SEP_PLS_ITEM_EDIT"
+            Me.SEP_PLS_ITEM_EDIT.Size = New System.Drawing.Size(181, 6)
+            Me.SEP_PLS_ITEM_EDIT.Visible = False
             '
             'BTT_COPY_LINK
             '
@@ -137,6 +172,13 @@ Namespace DownloadObjects.STDownloader
             Me.BTT_DOWN_AGAIN.Name = "BTT_DOWN_AGAIN"
             Me.BTT_DOWN_AGAIN.Size = New System.Drawing.Size(184, 22)
             Me.BTT_DOWN_AGAIN.Text = "Download again"
+            '
+            'BTT_VIEW_SETTINGS
+            '
+            Me.BTT_VIEW_SETTINGS.Image = Global.SCrawler.My.Resources.Resources.SettingsPic_16
+            Me.BTT_VIEW_SETTINGS.Name = "BTT_VIEW_SETTINGS"
+            Me.BTT_VIEW_SETTINGS.Size = New System.Drawing.Size(184, 22)
+            Me.BTT_VIEW_SETTINGS.Text = "View settings"
             '
             'SEP_DEL
             '
@@ -212,13 +254,6 @@ Namespace DownloadObjects.STDownloader
             Me.CH_CHECKED.TabIndex = 0
             Me.CH_CHECKED.UseVisualStyleBackColor = True
             '
-            'BTT_VIEW_SETTINGS
-            '
-            Me.BTT_VIEW_SETTINGS.Image = Global.SCrawler.My.Resources.Resources.SettingsPic_16
-            Me.BTT_VIEW_SETTINGS.Name = "BTT_VIEW_SETTINGS"
-            Me.BTT_VIEW_SETTINGS.Size = New System.Drawing.Size(184, 22)
-            Me.BTT_VIEW_SETTINGS.Text = "View settings"
-            '
             'MediaItem
             '
             Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
@@ -253,5 +288,9 @@ Namespace DownloadObjects.STDownloader
         Private WithEvents SEP_DOWN_AGAIN As ToolStripSeparator
         Private WithEvents SEP_DEL As ToolStripSeparator
         Private WithEvents BTT_VIEW_SETTINGS As ToolStripMenuItem
+        Private WithEvents BTT_OPEN_FILE As ToolStripMenuItem
+        Private WithEvents BTT_PLS_ITEM_EDIT As ToolStripMenuItem
+        Private WithEvents SEP_PLS_ITEM_EDIT As ToolStripSeparator
+        Private WithEvents BTT_PLS_ITEM_EDIT_FULL As ToolStripMenuItem
     End Class
 End Namespace

@@ -23,6 +23,8 @@ Namespace DownloadObjects.STDownloader
         Public Event DownloadAgain As MediaItemEventHandler
         Public Event DownloadRequested As MediaItemEventHandler
         Public Event CheckedChanged As MediaItemEventHandler
+        Public Event BeforeOpenEditor As MediaItemEventHandler
+        Public Event BeforeOpenEditorFull As MediaItemEventHandler
 #End Region
 #Region "Declarations"
 #Region "Controls"
@@ -51,8 +53,8 @@ Namespace DownloadObjects.STDownloader
                 ControlInvokeFast(CH_CHECKED, Sub() CH_CHECKED.Checked = _Checked, EDP.None)
             End Set
         End Property
-        <Browsable(False)> Public Property IgnoreDownloadState As Boolean = False
         Private ReadOnly FileOption As SFO = SFO.File
+        Private ReadOnly ContainerHasElements As Boolean = False
 #End Region
 #Region "Initializers"
         Public Sub New()
@@ -111,16 +113,18 @@ Namespace DownloadObjects.STDownloader
                 .ContextMenuStrip = CONTEXT_MAIN
             }
         End Sub
-        Public Sub New(ByVal Container As IYouTubeMediaContainer)
+        Public Sub New(ByVal Container As IYouTubeMediaContainer, Optional ByVal HasElements As Boolean = False)
             Me.New
             Const d$ = " " & ChrW(183) & " "
             MyContainer = Container
+            ContainerHasElements = HasElements
             With MyContainer
                 .Progress = MyProgress
+                If HasElements Then BTT_PLS_ITEM_EDIT.Visible = True : BTT_PLS_ITEM_EDIT_FULL.Visible = True : SEP_PLS_ITEM_EDIT.Visible = True
                 If .HasElements Then FileOption = SFO.Path Else FileOption = SFO.File
                 If .DownloadState = Plugin.UserMediaStates.Downloaded AndAlso
                    (.ObjectType = Base.YouTubeMediaType.Channel Or .ObjectType = Base.YouTubeMediaType.PlayList) AndAlso FileOption = SFO.File AndAlso
-                   Not .File.Exists AndAlso .File.Exists(SFO.Path, False) Then FileOption = SFO.Path
+                   Not .File.Exists AndAlso .File.Exists(SFO.Path, False) Then FileOption = SFO.Path : BTT_OPEN_FILE.Visible = False
                 If Not .SiteKey = YouTubeSiteKey Then
                     BTT_DOWN_AGAIN.Visible = False
                     SEP_DOWN_AGAIN.Visible = False
@@ -224,11 +228,17 @@ Namespace DownloadObjects.STDownloader
                     .Controls.Clear()
                     .ColumnStyles.Clear()
                     .ColumnCount = 0
-                    If IgnoreDownloadState Or MyContainer.MediaState = Plugin.UserMediaStates.Downloaded Then
+                    If ContainerHasElements Or MyContainer.MediaState = Plugin.UserMediaStates.Downloaded Then
                         If Not MyContainer.SiteKey = YouTubeSiteKey Then UpdateMediaIcon()
-                        If IgnoreDownloadState Then
+                        If ContainerHasElements Then
                             BTT_OPEN_FOLDER.Visible = False
+                            BTT_OPEN_FILE.Visible = False
                             SEP_FOLDER.Visible = False
+                            If Not ContainerHasElements Then
+                                BTT_PLS_ITEM_EDIT.Visible = False
+                                BTT_PLS_ITEM_EDIT_FULL.Visible = False
+                                SEP_PLS_ITEM_EDIT.Visible = False
+                            End If
                             BTT_DOWN_AGAIN.Visible = False
                             SEP_DOWN_AGAIN.Visible = False
                             BTT_REMOVE_FROM_LIST.Visible = False
@@ -369,7 +379,7 @@ Namespace DownloadObjects.STDownloader
                                                                                    ICON_WHAT.DoubleClick, LBL_TIME.DoubleClick, ICON_SIZE.DoubleClick, LBL_INFO.DoubleClick,
                                                                                    LBL_PROGRESS.DoubleClick, PR_MAIN.DoubleClick
             Controls_Click(sender, e)
-            If Not IgnoreDownloadState AndAlso Not MyDownloaderSettings.OnItemDoubleClick = DoubleClickBehavior.None Then
+            If Not ContainerHasElements AndAlso Not MyDownloaderSettings.OnItemDoubleClick = DoubleClickBehavior.None Then
                 Dim m As New MMessage("The specified path was not found.", "Open file/folder",, vbExclamation)
                 If MyDownloaderSettings.OnItemDoubleClick = DoubleClickBehavior.File Then
                     If FileOption = SFO.File And MyContainer.File.Exists(SFO.File, False) Then
@@ -404,6 +414,27 @@ Namespace DownloadObjects.STDownloader
 #Region "Context buttons' handlers"
         Private Sub BTT_OPEN_FOLDER_Click(sender As Object, e As EventArgs) Handles BTT_OPEN_FOLDER.Click
             If MyContainer.File.Exists(FileOption, False) Then GlobalOpenPath(MyContainer.File)
+        End Sub
+        Private Sub BTT_OPEN_FILE_Click(sender As Object, e As EventArgs) Handles BTT_OPEN_FILE.Click
+            If MyContainer.File.Exists(SFO.File) Then MyContainer.File.Open(,, EDP.ShowAllMsg)
+        End Sub
+        Private Sub BTT_PLS_ITEM_EDIT_Click(sender As Object, e As EventArgs) Handles BTT_PLS_ITEM_EDIT.Click, BTT_PLS_ITEM_EDIT_FULL.Click
+            If ContainerHasElements Then
+                With DirectCast(MyContainer, YouTubeMediaContainerBase)
+                    Dim initProtected As Boolean = .Protected
+                    Dim isFull As Boolean = sender Is BTT_PLS_ITEM_EDIT_FULL
+                    .Protected = False
+                    If isFull Then
+                        RaiseEvent BeforeOpenEditorFull(Me, MyContainer)
+                    Else
+                        RaiseEvent BeforeOpenEditor(Me, MyContainer)
+                    End If
+                    Using f As New VideoOptionsForm(MyContainer, initProtected Or isFull)
+                        f.ShowDialog()
+                        .Protected = IIf(f.DialogResult = DialogResult.OK, True, initProtected)
+                    End Using
+                End With
+            End If
         End Sub
         Private Sub BTT_COPY_LINK_Click(sender As Object, e As EventArgs) Handles BTT_COPY_LINK.Click
             If Not MyContainer.URL.IsEmptyString Then

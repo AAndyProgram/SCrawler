@@ -30,7 +30,7 @@ Namespace API.YouTube.Controls
         Private ReadOnly Property CNT_PROCESSOR As TableControlsProcessor
         Friend Property MyContainer As YouTubeMediaContainerBase
         Private Initialization As Boolean = True
-        Private ReadOnly IsSavedObject As Boolean
+        Private ReadOnly InheritsFromContainer As Boolean
         Private Class FpsFieldChecker : Inherits FieldsCheckerProviderBase
             Private ReadOnly MyProvider As ANumbers = YouTubeSettings.FpsFormatProvider.MyProviderDefault
             Public Overrides Property ErrorMessage As String
@@ -52,11 +52,11 @@ Namespace API.YouTube.Controls
         End Class
 #End Region
 #Region "Initializers"
-        Friend Sub New(ByVal Container As YouTubeMediaContainerBase, Optional ByVal IsSavedObject As Boolean = False)
+        Friend Sub New(ByVal Container As YouTubeMediaContainerBase, Optional ByVal InheritsFromContainer As Boolean = False)
             InitializeComponent()
             MyContainer = Container
             CNT_PROCESSOR = New TableControlsProcessor(TP_CONTROLS)
-            Me.IsSavedObject = IsSavedObject
+            Me.InheritsFromContainer = InheritsFromContainer
             MyFieldsChecker = New FieldsChecker
         End Sub
 #End Region
@@ -89,8 +89,8 @@ Namespace API.YouTube.Controls
                         If Not .PlaylistTitle.IsEmptyString Or Not .Title.IsEmptyString Then Text &= $" - { .PlaylistTitle.IfNullOrEmpty(.Title)}"
                         TP_MAIN.Controls.Remove(TP_HEADER_BASE)
                         TP_MAIN.RowStyles(0).Height = 0
-                        Dim def% = If(IsSavedObject, .ArrayMaxResolution, MyYouTubeSettings.DefaultVideoDefinition.Value)
-                        If IsSavedObject Then
+                        Dim def% = If(InheritsFromContainer, .ArrayMaxResolution, MyYouTubeSettings.DefaultVideoDefinition.Value)
+                        If InheritsFromContainer Then
                             __audioOnly = def = -2
                             If def <= 0 Then def = MyYouTubeSettings.DefaultVideoDefinition
                         Else
@@ -119,7 +119,7 @@ Namespace API.YouTube.Controls
                         LBL_URL.Text = .URL
                     End If
 
-                    If .IsMusic Or __audioOnly Then
+                    If .IsMusic Or __audioOnly Or (InheritsFromContainer And .IsAudioSelected) Then
                         OPT_AUDIO.Checked = True
                     Else
                         OPT_VIDEO.Checked = True
@@ -128,7 +128,7 @@ Namespace API.YouTube.Controls
 
                     arr = AvailableVideoFormats
                     CMB_FORMAT.Items.AddRange(arr)
-                    If IsSavedObject Then
+                    If InheritsFromContainer Then
                         __optionValue = .OutputVideoExtension.IfNullOrEmpty(MyYouTubeSettings.DefaultVideoFormat.Value)
                     Else
                         __optionValue = MyYouTubeSettings.DefaultVideoFormat.Value
@@ -137,7 +137,7 @@ Namespace API.YouTube.Controls
 
                     arr = AvailableAudioFormats
                     CMB_AUDIO_CODEC.Items.AddRange(arr)
-                    If IsSavedObject Then
+                    If InheritsFromContainer Then
                         __optionValue = .OutputAudioCodec.IfNullOrEmpty(IIf(.IsMusic, MyYouTubeSettings.DefaultAudioCodecMusic.Value, MyYouTubeSettings.DefaultAudioCodec.Value))
                     Else
                         __optionValue = IIf(.IsMusic, MyYouTubeSettings.DefaultAudioCodecMusic.Value, MyYouTubeSettings.DefaultAudioCodec.Value)
@@ -146,14 +146,18 @@ Namespace API.YouTube.Controls
 
                     arr = AvailableSubtitlesFormats
                     CMB_SUBS_FORMAT.Items.AddRange(arr)
-                    If IsSavedObject Then
+                    If InheritsFromContainer Then
                         __optionValue = .OutputSubtitlesFormat.IfNullOrEmpty(IIf(.IsMusic, "LRC", MyYouTubeSettings.DefaultSubtitlesFormat.Value))
                     Else
                         __optionValue = IIf(.IsMusic, "LRC", MyYouTubeSettings.DefaultSubtitlesFormat.Value)
                     End If
                     setDef(CMB_SUBS_FORMAT, __optionValue)
 
-                    If MyYouTubeSettings.DefaultVideoFPS > 0 Then TXT_FPS.Text = MyYouTubeSettings.DefaultVideoFPS
+                    If InheritsFromContainer Then
+                        If .OutputVideoFPS > 0 Then TXT_FPS.Text = .OutputVideoFPS
+                    Else
+                        If MyYouTubeSettings.DefaultVideoFPS > 0 Then TXT_FPS.Text = MyYouTubeSettings.DefaultVideoFPS
+                    End If
                     MyFieldsChecker.AddControl(Of Double)(TXT_FPS, TXT_FPS.CaptionText, True, New FpsFieldChecker)
                     MyFieldsChecker.EndLoaderOperations()
                     TP_SUBS.Enabled = .Subtitles.Count > 0
@@ -208,7 +212,7 @@ Namespace API.YouTube.Controls
                 Dim data As IEnumerable(Of Control)
 
                 If .HasElements Then
-                    data = .Elements.Select(Function(ee) New MediaItem(ee) With {.Dock = DockStyle.Fill, .Checked = ee.Checked, .IgnoreDownloadState = True})
+                    data = .Elements.Select(Function(ee) New MediaItem(ee, True) With {.Dock = DockStyle.Fill, .Checked = ee.Checked})
                 Else
                     data = (From m As MediaObject In .Self.MediaObjects
                             Where m.Type = __contentType
@@ -229,6 +233,8 @@ Namespace API.YouTube.Controls
                                                                       If MyContainer.HasElements Then
                                                                           With DirectCast(d, MediaItem)
                                                                               AddHandler .CheckedChanged, AddressOf MediaItem_CheckedChanged
+                                                                              AddHandler .BeforeOpenEditor, AddressOf MediaItem_BeforeOpenEditor
+                                                                              AddHandler .BeforeOpenEditorFull, AddressOf MediaItem_BeforeOpenEditorFull
                                                                               AddHandler .Click, AddressOf CNT_PROCESSOR.MediaItem_Click
                                                                               AddHandler .KeyDown, AddressOf CNT_PROCESSOR.MediaItem_KeyDown
                                                                           End With
@@ -295,6 +301,28 @@ Namespace API.YouTube.Controls
 #Region "Media items' handlers"
         Private Sub MediaItem_CheckedChanged(ByVal Sender As MediaItem, ByVal Container As IYouTubeMediaContainer)
             ControlInvokeFast(TP_CONTROLS, Sub() Container.Checked = Sender.Checked, EDP.None)
+        End Sub
+        Private Sub MediaItem_BeforeOpenEditor(ByVal Sender As MediaItem, ByVal Container As IYouTubeMediaContainer)
+            MediaItem_BeforeOpenEditorImpl(Sender, Container, False)
+        End Sub
+        Private Sub MediaItem_BeforeOpenEditorFull(ByVal Sender As MediaItem, ByVal Container As IYouTubeMediaContainer)
+            MediaItem_BeforeOpenEditorImpl(Sender, Container, True)
+        End Sub
+        Private Sub MediaItem_BeforeOpenEditorImpl(ByVal Sender As MediaItem, ByVal Container As IYouTubeMediaContainer, ByVal Full As Boolean)
+            If MyContainer.HasElements Then
+                ControlInvokeFast(TP_CONTROLS, Sub()
+                                                   With DirectCast(Container, YouTubeMediaContainerBase)
+                                                       .File = $"{TXT_FILE.Text.CSFilePS}{ .File.File}"
+                                                       If Full Then
+                                                           .OutputVideoExtension = CMB_FORMAT.Text.StringToLower
+                                                           .OutputVideoFPS = AConvert(Of Double)(TXT_FPS.Text, YouTubeSettings.FpsFormatProvider.MyProviderDefault, -1)
+                                                           .OutputAudioCodec = CMB_AUDIO_CODEC.Text.StringToLower
+                                                           .OutputSubtitlesFormat = CMB_SUBS_FORMAT.Text.StringToLower
+                                                           .IsAudioSelected = OPT_AUDIO.Checked
+                                                       End If
+                                                   End With
+                                               End Sub, EDP.None)
+            End If
         End Sub
 #End Region
 #Region "OK, Cancel"
@@ -373,6 +401,19 @@ Namespace API.YouTube.Controls
         Private Sub OPT_VIDEO_AUDIO_CheckedChanged(sender As Object, e As EventArgs) Handles OPT_VIDEO.CheckedChanged, OPT_AUDIO.CheckedChanged
             If Not Initialization Then
                 CMB_FORMAT.Enabled = OPT_VIDEO.Checked
+                Dim upFormat As Action(Of String) = Sub(ByVal format As String)
+                                                        If Not format.IsEmptyString Then
+                                                            format = format.ToLower
+                                                            Dim fIndex% = CMB_AUDIO_CODEC.Items.Cast(Of String).ListIndexOf(Function(f) f.ToLower = format)
+                                                            If fIndex >= 0 Then CMB_AUDIO_CODEC.SelectedIndex = fIndex
+                                                        End If
+                                                    End Sub
+                If OPT_VIDEO.Checked Then
+                    upFormat(MyYouTubeSettings.DefaultAudioCodec)
+                Else
+                    upFormat(MyYouTubeSettings.DefaultAudioCodecMusic)
+                End If
+
                 If MyContainer.HasElements Then
                     NUM_RES.Enabled = OPT_VIDEO.Checked
                 Else

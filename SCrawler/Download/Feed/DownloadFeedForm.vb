@@ -17,6 +17,7 @@ Imports DTSModes = PersonalUtilities.Forms.DateTimeSelectionForm.Modes
 Namespace DownloadObjects
     Friend Class DownloadFeedForm
 #Region "Declarations"
+        Private Const FeedTitleDefault As String = "Feed"
         Private WithEvents MyDefs As DefaultFormOptions
         Private WithEvents MyRange As RangeSwitcherToolbar(Of UserMediaD)
         Private ReadOnly DataList As List(Of UserMediaD)
@@ -37,7 +38,71 @@ Namespace DownloadObjects
                 Return OPT_SUBSCRIPTIONS.Checked
             End Get
         End Property
-        Private IsSession As Boolean = True
+#Region "Feeds options"
+        Private Enum FeedModes : Current : Saved : Special : End Enum
+        Private FeedMode As FeedModes = FeedModes.Current
+        Private ReadOnly Property IsSession As Boolean
+            Get
+                Return FeedMode = FeedModes.Current Or FeedMode = FeedModes.Saved
+            End Get
+        End Property
+        Private ReadOnly LoadedFeedNames As List(Of String)
+        Private Sub FeedChangeMode(ByVal Mode As FeedModes, Optional ByVal fNames As IEnumerable(Of String) = Nothing)
+            FeedMode = Mode
+            LoadedFeedNames.Clear()
+            If fNames.ListExists Then LoadedFeedNames.AddRange(fNames)
+            Try : ControlInvokeFast(Me, Sub()
+                                            Select Case FeedMode
+                                                Case FeedModes.Current : Text = $"{FeedTitleDefault}: current session"
+                                                Case FeedModes.Saved : Text = $"{FeedTitleDefault}: saved session(s)"
+                                                Case FeedModes.Special : Text = $"{FeedTitleDefault}: {IIf(LoadedFeedNames.Count > 1, "multiple special feeds", LoadedFeedNames.FirstOrDefault.IfNullOrEmpty("?"))}"
+                                                Case Else : Text = FeedTitleDefault
+                                            End Select
+                                        End Sub, EDP.None) : Catch : End Try
+        End Sub
+        Private Sub FeedRemoveCheckedMedia(ByVal MediaList As IEnumerable(Of UserMediaD), Optional ByVal OverriddenNames As List(Of String) = Nothing,
+                                           Optional ByVal RemoveChecked As Boolean = True, Optional ByVal ExcludingNames As IEnumerable(Of String) = Nothing,
+                                           Optional ByVal RemoveFromDataListOnly As Boolean = False)
+            Try
+                If FeedMode = FeedModes.Special Then
+                    If LoadedFeedNames.Count > 0 Then
+                        Dim dataRemoved As Boolean = False
+                        If OverriddenNames.ListExists And Not LoadedFeedNames.ListContains(OverriddenNames) Then Exit Sub
+                        If Not RemoveFromDataListOnly Then
+                            Dim eNames As IEnumerable(Of String) = If(ExcludingNames, New String() {})
+                            With If(OverriddenNames, LoadedFeedNames)
+                                .ForEach(Sub(ByVal feedName As String)
+                                             If Not eNames.Contains(feedName) Then
+                                                 Dim indx% = Settings.Feeds.IndexOf(feedName)
+                                                 If indx >= 0 Then
+                                                     If Settings.Feeds(indx).Remove(MediaList) > 0 Then dataRemoved = True
+                                                 End If
+                                             End If
+                                         End Sub)
+                            End With
+                        End If
+                        If RemoveFromDataListOnly Then
+                            RefillSpecialFeedsData()
+                        ElseIf dataRemoved Then
+                            DataList.ListDisposeRemove(MediaList)
+                            If RemoveChecked Then
+                                If RemoveCheckedMedia(False) Then RefillAfterDelete()
+                            Else
+                                RefillSpecialFeedsData()
+                            End If
+                        End If
+                    End If
+                ElseIf FeedMode = FeedModes.Current Then
+                    If OverriddenNames Is Nothing AndAlso Downloader.Files.ListDisposeRemove(MediaList) > 0 AndAlso RemoveCheckedMedia(False) Then
+                        DataList.ListDisposeRemove(MediaList)
+                        RefillAfterDelete()
+                    End If
+                End If
+            Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "[DownloadFeedForm.FeedRemoveCheckedMedia]")
+            End Try
+        End Sub
+#End Region
 #End Region
 #Region "Initializer"
         Friend Sub New()
@@ -45,6 +110,7 @@ Namespace DownloadObjects
             MyDefs = New DefaultFormOptions(Me, Settings.Design)
             MyRange = New RangeSwitcherToolbar(Of UserMediaD)(ToolbarTOP)
             DataList = New List(Of UserMediaD)
+            LoadedFeedNames = New List(Of String)
             BTT_DELETE_SELECTED = New ToolStripButton With {
                 .Text = "Delete selected",
                 .AutoToolTip = True,
@@ -79,6 +145,7 @@ Namespace DownloadObjects
                                 If Not feed.IsFavorite Then
                                     AddNewFeedItem(BTT_LOAD_SPEC, feed, My.Resources.RSSPic_512, AddressOf Feed_SPEC_LOAD)
                                     AddNewFeedItem(BTT_FEED_ADD_SPEC, feed, My.Resources.RSSPic_512, AddressOf Feed_SPEC_ADD)
+                                    AddNewFeedItem(BTT_FEED_ADD_SPEC_REMOVE, feed, My.Resources.RSSPic_512, AddressOf Feed_SPEC_ADD_REMOVE)
                                     AddNewFeedItem(BTT_FEED_REMOVE_SPEC, feed, My.Resources.RSSPic_512, AddressOf Feed_SPEC_REMOVE)
                                     AddNewFeedItem(BTT_FEED_DELETE_SPEC, feed, My.Resources.DeletePic_24, AddressOf Feed_SPEC_DELETE)
                                     AddNewFeedItem(BTT_FEED_CLEAR_SPEC, feed, My.Resources.BrushToolPic_16, AddressOf Feed_SPEC_CLEAR)
@@ -95,7 +162,8 @@ Namespace DownloadObjects
                 End With
                 MENU_DOWN.Visible = OPT_SUBSCRIPTIONS.Checked
                 UpdateSettings()
-                RefillList()
+                FeedChangeMode(FeedModes.Current)
+                RefillList(True, False)
                 .EndLoaderOperations(False)
             End With
         End Sub
@@ -106,11 +174,12 @@ Namespace DownloadObjects
         Private Sub DownloadFeedForm_Disposed(sender As Object, e As EventArgs) Handles Me.Disposed
             ClearTable()
             MyRange.Dispose()
+            LoadedFeedNames.Clear()
             BTT_CLEAR_DAILY.Dispose()
             DataList.Clear()
         End Sub
         Private Sub DownloadFeedForm_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
-            If e.KeyCode = Keys.F5 Then RefillList() : e.Handled = True
+            If e.KeyCode = Keys.F5 Then RefillList0() : e.Handled = True
         End Sub
 #End Region
 #Region "Feeds handlers"
@@ -135,6 +204,7 @@ Namespace DownloadObjects
         Private Sub Feed_FeedAdded(ByVal Source As FeedSpecialCollection, ByVal Feed As FeedSpecial)
             AddNewFeedItem(BTT_LOAD_SPEC, Feed, My.Resources.RSSPic_512, AddressOf Feed_SPEC_LOAD, True)
             AddNewFeedItem(BTT_FEED_ADD_SPEC, Feed, My.Resources.RSSPic_512, AddressOf Feed_SPEC_ADD, True)
+            AddNewFeedItem(BTT_FEED_ADD_SPEC_REMOVE, Feed, My.Resources.RSSPic_512, AddressOf Feed_SPEC_ADD_REMOVE, True)
             AddNewFeedItem(BTT_FEED_REMOVE_SPEC, Feed, My.Resources.RSSPic_512, AddressOf Feed_SPEC_REMOVE, True)
             AddNewFeedItem(BTT_FEED_DELETE_SPEC, Feed, My.Resources.DeletePic_24, AddressOf Feed_SPEC_DELETE, True)
             AddNewFeedItem(BTT_FEED_CLEAR_SPEC, Feed, My.Resources.BrushToolPic_16, AddressOf Feed_SPEC_CLEAR, True)
@@ -160,7 +230,6 @@ Namespace DownloadObjects
                                                   item = .DropDownItems(i)
                                                   If TypeOf item Is ToolStripMenuItem AndAlso Feed.Equals(DirectCast(item, ToolStripMenuItem).Tag) Then
                                                       With DirectCast(item, ToolStripMenuItem) : .Tag = Nothing : .Dispose() : End With
-                                                      '.DropDownItems.RemoveAt(i)
                                                   End If
                                               Next
                                           End If
@@ -172,33 +241,53 @@ Namespace DownloadObjects
             End Try
         End Sub
         Private Sub Feed_SPEC_LOAD(ByVal Source As ToolStripMenuItem, ByVal e As EventArgs)
-            IsSession = False
             Dim f As FeedSpecial = Source.Tag
             If Not f Is Nothing AndAlso Not f.Disposed Then
-                DataList.Clear()
-                If f.Count > 0 Then DataList.ListAddList(f) : CleanDataList()
-                RefillList(False)
+                FeedChangeMode(FeedModes.Special, {f.Name})
+                RefillSpecialFeedsData(False)
             End If
         End Sub
         Private Sub Feed_SPEC_ADD(ByVal Source As ToolStripMenuItem, ByVal e As EventArgs)
             Dim f As FeedSpecial = Source.Tag
             If Not f Is Nothing AndAlso Not f.Disposed Then f.Add(GetCheckedMedia())
         End Sub
+        Private Sub Feed_SPEC_ADD_REMOVE(ByVal Source As ToolStripMenuItem, ByVal e As EventArgs)
+            Dim f As FeedSpecial = Source.Tag
+            If Not f Is Nothing AndAlso Not f.Disposed Then
+                Dim c As IEnumerable(Of UserMediaD) = GetCheckedMedia()
+                If c.ListExists Then
+                    f.Add(c)
+                    FeedRemoveCheckedMedia(c,,, {f.Name})
+                End If
+            End If
+        End Sub
         Private Sub Feed_SPEC_CLEAR(ByVal Source As ToolStripMenuItem, ByVal e As EventArgs)
             Dim f As FeedSpecial = Source.Tag
             If Not f Is Nothing AndAlso Not f.Disposed Then
-                If MsgBoxE({$"Are you sure you want to clear the '{f.Name}' feed?", "Clear feed"}, vbExclamation,,, {"Process", "Cancel"}) = 0 Then f.Clear()
+                If MsgBoxE({$"Are you sure you want to clear the '{f.Name}' feed?", "Clear feed"}, vbExclamation,,, {"Process", "Cancel"}) = 0 Then
+                    f.Clear()
+                    If FeedMode = FeedModes.Special Then RefillSpecialFeedsData()
+                End If
             End If
         End Sub
         Private Sub Feed_SPEC_REMOVE(ByVal Source As ToolStripMenuItem, ByVal e As EventArgs)
             Dim f As FeedSpecial = Source.Tag
-            If Not f Is Nothing AndAlso Not f.Disposed Then f.Remove(GetCheckedMedia())
+            If Not f Is Nothing AndAlso Not f.Disposed Then
+                Dim m As IEnumerable(Of UserMediaD) = GetCheckedMedia()
+                If m.ListExists Then
+                    f.Remove(m)
+                    FeedRemoveCheckedMedia(m, {f.Name}.ToList)
+                End If
+            End If
         End Sub
         Private Sub Feed_SPEC_DELETE(ByVal Source As ToolStripMenuItem, ByVal e As EventArgs)
             Dim f As FeedSpecial = Source.Tag
             If Not f Is Nothing AndAlso Not f.Disposed Then
-                If MsgBoxE({$"Are you sure you want to delete the '{f.Name}' feed?", "Delete feed"}, vbExclamation,,, {"Process", "Cancel"}) = 0 AndAlso
-                   f.Delete() Then Feed_FeedRemoved(Settings.Feeds, f)
+                Dim name$ = f.Name
+                If MsgBoxE({$"Are you sure you want to delete the '{name}' feed?", "Delete feed"}, vbExclamation,,, {"Process", "Cancel"}) = 0 AndAlso f.Delete() Then
+                    Feed_FeedRemoved(Settings.Feeds, f)
+                    If LoadedFeedNames.Count > 0 AndAlso LoadedFeedNames.Contains(name) Then LoadedFeedNames.Remove(name) : RefillSpecialFeedsData()
+                End If
             End If
         End Sub
 #End Region
@@ -255,13 +344,22 @@ Namespace DownloadObjects
                 MyRange.HandlersSuspended = True
                 MyRange.Limit = c
                 MyRange.HandlersSuspended = False
-                If Not MyDefs.Initializing Then RefillList(False)
+                If Not MyDefs.Initializing Then RefillList0()
             End With
         End Sub
 #End Region
 #Region "Refill"
-        Private Sub RefillList(Optional ByVal RefillDataList As Boolean = True)
+        Private Sub RefillList0(Optional ByVal RememberPosition As Boolean? = Nothing)
+            If IsSession Then
+                RefillList(FeedMode = FeedModes.Current, If(RememberPosition, True))
+            Else
+                RefillSpecialFeedsData()
+            End If
+        End Sub
+        Private Sub RefillList(Optional ByVal RefillDataList As Boolean = True, Optional ByVal RememberPosition As Boolean = False)
             DataPopulated = False
+            Dim rIndx% = -1
+            If RememberPosition Then rIndx = MyRange.CurrentIndex
             If RefillDataList Then
                 If Not IsSubscription Then
                     Try : Downloader.Files.RemoveAll(FileNotExist) : Catch : End Try
@@ -270,6 +368,10 @@ Namespace DownloadObjects
                 DataList.ListAddList(Downloader.Files.Where(If(IsSubscription, FilterSubscriptions, FilterUsers)), LAP.NotContainsOnly)
             End If
             MyRange.Source = DataList
+            If rIndx >= 0 Then
+                If Not rIndx.ValueBetween(0, MyRange.Count - 1) Then rIndx -= 1
+                If rIndx.ValueBetween(0, MyRange.Count - 1) Then MyRange.CurrentIndex = rIndx
+            End If
             ControlInvokeFast(ToolbarTOP, BTT_REFRESH, Sub() BTT_REFRESH.ToolTipText = BttRefreshToolTipText)
             BTT_REFRESH.ControlDropColor(ToolbarTOP)
             If DataList.Count = 0 Then
@@ -293,19 +395,18 @@ Namespace DownloadObjects
 #Region "Feed"
 #Region "Load"
         Private Sub BTT_LOAD_SESSION_CURRENT_Click(sender As Object, e As EventArgs) Handles BTT_LOAD_SESSION_CURRENT.Click
-            IsSession = True
-            RefillList()
+            FeedChangeMode(FeedModes.Current)
+            RefillList(True, False)
         End Sub
         Private Sub BTT_LOAD_SESSION_LAST_Click(sender As Object, e As EventArgs) Handles BTT_LOAD_SESSION_LAST.Click
-            IsSession = True
-            SessionChooser(True)
+            SessionChooser(True,,, FeedModes.Saved)
         End Sub
         Private Sub BTT_LOAD_SESSION_CHOOSE_Click(sender As Object, e As EventArgs) Handles BTT_LOAD_SESSION_CHOOSE.Click
-            IsSession = True
-            SessionChooser(False)
+            SessionChooser(False,,, FeedModes.Saved)
         End Sub
         Private Sub SessionChooser(ByVal GetLast As Boolean, Optional ByVal GetFilesOnly As Boolean = False,
-                                   Optional ByRef ResultFilesList As List(Of SFile) = Nothing)
+                                   Optional ByRef ResultFilesList As List(Of SFile) = Nothing,
+                                   Optional ByVal SelectedMode As FeedModes = -1)
             Try
                 Downloader.ClearSessions()
                 Dim f As SFile = TDownloader.SessionsPath.CSFileP
@@ -341,6 +442,7 @@ Namespace DownloadObjects
                                     ResultFilesList.AddRange(fList)
                                 Else
                                     DataList.Clear()
+                                    If SelectedMode >= 0 Then FeedChangeMode(SelectedMode)
                                     For Each f In fList
                                         x = New XmlFile(f,, False) With {.AllowSameNames = True, .XmlReadOnly = True}
                                         x.LoadData()
@@ -348,7 +450,7 @@ Namespace DownloadObjects
                                         x.Dispose()
                                     Next
                                     CleanDataList()
-                                    RefillList(False)
+                                    RefillList(False, False)
                                 End If
                             Else
                                 MsgBoxE(m)
@@ -368,12 +470,14 @@ Namespace DownloadObjects
                         f = Downloader.FilesSessionActual(False)
                     End If
                     If f.Exists Then
+                        If SelectedMode >= 0 Then FeedChangeMode(SelectedMode)
+                        DataList.Clear()
                         x = New XmlFile(f,, False) With {.AllowSameNames = True, .XmlReadOnly = True}
                         x.LoadData()
-                        If x.Count > 0 Then DataList.Clear() : DataList.ListAddList(x, lcr)
+                        If x.Count > 0 Then DataList.ListAddList(x, lcr)
                         x.Dispose()
                         CleanDataList()
-                        RefillList(False)
+                        RefillList(False, False)
                     End If
                 Else
                     m.Text = "Saved sessions not found"
@@ -387,43 +491,68 @@ Namespace DownloadObjects
 #End Region
 #Region "Load fav, spec"
         Private Sub BTT_LOAD_FAV_Click(sender As Object, e As EventArgs) Handles BTT_LOAD_FAV.Click
-            IsSession = False
-            DataList.Clear()
-            With Settings.Feeds.Favorite
-                .RemoveNotExist(FileNotExist)
-                If .Count > 0 Then DataList.AddRange(.Self) : CleanDataList() : RefillList(False)
-            End With
+            FeedChangeMode(FeedModes.Special, {FeedSpecial.FavoriteName})
+            RefillSpecialFeedsData(False)
         End Sub
         Private Sub BTT_LOAD_SPEC_Click(sender As Object, e As EventArgs) Handles BTT_LOAD_SPEC.Click
-            IsSession = False
             With FeedSpecialCollection.ChooseFeeds(False)
                 If .ListExists Then
-                    DataList.Clear()
-                    Dim d As New List(Of UserMediaD)
-                    .ForEach(Sub(ByVal f As FeedSpecial)
-                                 f.RemoveNotExist(FileNotExist)
-                                 If f.Count > 0 Then d.AddRange(f)
-                             End Sub)
-                    If d.Count > 0 Then DataList.ListAddList(d.Distinct)
-                    CleanDataList()
-                    RefillList(False)
+                    FeedChangeMode(FeedModes.Special, .Select(Function(f) f.Name))
+                    RefillSpecialFeedsData(False)
                 End If
             End With
         End Sub
+        Private Sub RefillSpecialFeedsData(Optional ByVal RememberPosition As Boolean = True)
+            If LoadedFeedNames.Count > 0 Then
+                Dim d As New List(Of UserMediaD)
+                Dim lp As New ListAddParams(LAP.NotContainsOnly)
+                LoadedFeedNames.ForEach(Sub(ByVal fName As String)
+                                            Dim indx% = Settings.Feeds.IndexOf(fName)
+                                            If indx >= 0 Then
+                                                With Settings.Feeds(indx)
+                                                    .RemoveNotExist(FileNotExist)
+                                                    d.ListAddList(.Self, lp)
+                                                End With
+                                            End If
+                                        End Sub)
+                DataList.Clear()
+                If d.Count > 0 Then
+                    d.Sort(New FeedSpecial.SEComparer)
+                    DataList.AddRange(d)
+                    CleanDataList()
+                    d.Clear()
+                End If
+                RefillList(False, RememberPosition)
+            End If
+        End Sub
 #End Region
 #Region "Add remove fav spec"
-        Private Sub BTT_FEED_ADD_FAV_Click(sender As Object, e As EventArgs) Handles BTT_FEED_ADD_FAV.Click
-            Settings.Feeds.Favorite.Add(GetCheckedMedia())
+        Private Sub BTT_FEED_ADD_FAV_Click(sender As Object, e As EventArgs) Handles BTT_FEED_ADD_FAV.Click, BTT_FEED_ADD_FAV_REMOVE.Click
+            Dim m As IEnumerable(Of UserMediaD) = GetCheckedMedia()
+            If m.ListExists Then
+                Settings.Feeds.Favorite.Add(m)
+                If sender Is BTT_FEED_ADD_FAV_REMOVE Then FeedRemoveCheckedMedia(m,,, {FeedSpecial.FavoriteName})
+            End If
         End Sub
         Private Sub BTT_FEED_REMOVE_FAV_Click(sender As Object, e As EventArgs) Handles BTT_FEED_REMOVE_FAV.Click
-            Settings.Feeds.Favorite.Remove(GetCheckedMedia())
+            Dim m As IEnumerable(Of UserMediaD) = GetCheckedMedia()
+            If m.ListExists Then
+                Settings.Feeds.Favorite.Remove(m)
+                If FeedMode = FeedModes.Special Then FeedRemoveCheckedMedia(m, {FeedSpecial.FavoriteName}.ToList)
+            End If
         End Sub
-        Private Sub BTT_FEED_ADD_SPEC_Click(sender As Object, e As EventArgs) Handles BTT_FEED_ADD_SPEC.Click
+        Private Sub BTT_FEED_ADD_SPEC_Click(sender As Object, e As EventArgs) Handles BTT_FEED_ADD_SPEC.Click, BTT_FEED_ADD_SPEC_REMOVE.Click
             Dim c As IEnumerable(Of UserMediaD) = GetCheckedMedia()
             If c.ListExists Then
+                Dim names As New List(Of String)
                 With FeedSpecialCollection.ChooseFeeds(True)
-                    If .ListExists Then .ForEach(Sub(f) f.Add(c))
+                    If .ListExists Then .ForEach(Sub(ByVal f As FeedSpecial)
+                                                     names.Add(f.Name)
+                                                     f.Add(c)
+                                                 End Sub)
                 End With
+                If sender Is BTT_FEED_ADD_SPEC_REMOVE Then FeedRemoveCheckedMedia(c,,, names)
+                names.Clear()
             Else
                 MsgBoxE({"You haven't selected media to add to your feed(s)", "Add to feed(s)"}, vbExclamation)
             End If
@@ -431,9 +560,14 @@ Namespace DownloadObjects
         Private Sub BTT_FEED_REMOVE_SPEC_Click(sender As Object, e As EventArgs) Handles BTT_FEED_REMOVE_SPEC.Click
             Dim c As IEnumerable(Of UserMediaD) = GetCheckedMedia()
             If c.ListExists Then
+                Dim names As New List(Of String)
                 With FeedSpecialCollection.ChooseFeeds(False)
-                    If .ListExists Then .ForEach(Sub(f) f.Remove(c))
+                    If .ListExists Then .ForEach(Sub(ByVal f As FeedSpecial)
+                                                     names.Add(f.Name)
+                                                     f.Remove(c)
+                                                 End Sub)
                 End With
+                If FeedMode = FeedModes.Special Then FeedRemoveCheckedMedia(c, names)
             Else
                 MsgBoxE({"You haven't selected media to remove from your feed(s)", "Remove from feed(s)"}, vbExclamation)
             End If
@@ -457,16 +591,28 @@ Namespace DownloadObjects
         Private Sub BTT_FEED_CLEAR_SPEC_Click(sender As Object, e As EventArgs) Handles BTT_FEED_CLEAR_SPEC.Click
             With FeedSpecialCollection.ChooseFeeds(False)
                 If .ListExists Then
-                    If MsgBoxE({$"Are you sure you want to clear the following feeds?{vbCr}{vbCr}{ .ListToString(vbCr)}", "Clear feed"}, vbExclamation,,,
-                               {"Process", "Cancel"}) = 0 Then .ForEach(Sub(f) f.Clear())
+                    If MsgBoxE({$"Are you sure you want to clear the following feeds?{vbCr}{vbCr}{ .ListToString(vbCr)}", "Clear feed"}, vbExclamation,,, {"Process", "Cancel"}) = 0 Then
+                        Dim names As IEnumerable(Of String) = .Select(Function(f) f.Name)
+                        .ForEach(Sub(f) f.Clear())
+                        If FeedMode = FeedModes.Special Then
+                            LoadedFeedNames.ListDisposeRemove(names)
+                            RefillSpecialFeedsData()
+                        End If
+                    End If
                 End If
             End With
         End Sub
         Private Sub BTT_FEED_DELETE_SPEC_Click(sender As Object, e As EventArgs) Handles BTT_FEED_DELETE_SPEC.Click
             With FeedSpecialCollection.ChooseFeeds(False)
                 If .ListExists Then
-                    If MsgBoxE({$"Are you sure you want to delete the following feeds?{vbCr}{vbCr}{ .ListToString(vbCr)}", "Delete feed"}, vbExclamation,,,
-                               {"Process", "Cancel"}) = 0 Then .ForEach(Sub(f) f.Delete())
+                    If MsgBoxE({$"Are you sure you want to delete the following feeds?{vbCr}{vbCr}{ .ListToString(vbCr)}", "Delete feed"}, vbExclamation,,, {"Process", "Cancel"}) = 0 Then
+                        Dim names As IEnumerable(Of String) = .Select(Function(f) f.Name)
+                        .ForEach(Sub(f) f.Delete())
+                        If FeedMode = FeedModes.Special Then
+                            LoadedFeedNames.ListDisposeRemove(names)
+                            RefillSpecialFeedsData()
+                        End If
+                    End If
                 End If
             End With
         End Sub
@@ -530,12 +676,12 @@ Namespace DownloadObjects
             If MsgBoxE({"Are you sure you want to clear this session data?", "Clear session"}, vbExclamation,,, {"Process", "Cancel"}) = 0 Then
                 Downloader.Files.Clear()
                 ClearTable()
-                RefillList()
+                RefillList0()
             End If
         End Sub
 #End Region
 #Region "Merge feeds"
-        Private Sub MergeFeeds() Handles BTT_MERGE_SESSIONS.Click
+        Private Sub BTT_MERGE_SESSIONS_Click(sender As Object, e As EventArgs) Handles BTT_MERGE_SESSIONS.Click
             Try
                 Const msgTitle$ = "Merge feeds"
                 Dim files As New List(Of SFile)
@@ -592,10 +738,61 @@ Namespace DownloadObjects
                     MsgBoxE({"You haven't selected any feeds", msgTitle}, vbExclamation)
                 End If
             Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "[DownloadFeedForm.MergeSessions]")
+            End Try
+        End Sub
+        Private Sub BTT_MERGE_FEEDS_Click(sender As Object, e As EventArgs) Handles BTT_MERGE_FEEDS.Click
+            Try
+                Const msgTitle$ = "Merge feeds"
+                If Settings.Feeds.Count > 1 Then
+                    Dim mFrom As List(Of FeedSpecial) = FeedSpecialCollection.ChooseFeeds(False, "[SOURCE]", True)
+                    Dim mTo As FeedSpecial
+                    If mFrom.ListExists(2) Then
+                        mTo = FeedSpecialCollection.ChooseFeeds(True, "[DESTINATION]", True).FirstOrDefault
+                        If Not mTo Is Nothing Then
+                            Dim names$() = mFrom.Select(Function(f) f.Name).ToArray
+                            If MsgBoxE({$"Are you sure you want to merge the following feeds into '{mTo.Name}'?{vbCr}{vbCr}" &
+                                        names.ListToString(vbCr), msgTitle}, vbQuestion + vbYesNo) = vbYes Then
+                                mFrom.ForEach(Sub(f) mTo.Add(f, False))
+                                mTo.Save()
+                                mFrom.ForEach(Sub(f) If Not f.Equals(mTo) Then Settings.Feeds.Delete(f))
+                                MsgBoxE({$"Feeds' data was combined into '{mTo.Name}'.{vbCr}It is highly recommended to restart SCrawler!{vbCr}{vbCr}" &
+                                         names.ListToStringE(vbCr), msgTitle})
+                            Else
+                                ShowOperationCanceledMsg(msgTitle)
+                            End If
+                            mFrom.Clear()
+                        Else
+                            MsgBoxE({"No destination selected", msgTitle}, vbExclamation)
+                        End If
+                    ElseIf mfrom.ListExists(1) Then
+                        MsgBoxE({"You must select two or more files to merge feeds", msgTitle}, vbExclamation)
+                    Else
+                        MsgBoxE({"You haven't selected any feeds", msgTitle}, vbExclamation)
+                    End If
+                ElseIf Settings.Feeds.Count = 1 Then
+                    MsgBoxE({"You must have two or more files to merge feeds", msgTitle}, vbExclamation)
+                Else
+                    MsgBoxE({"No feeds found", msgTitle}, vbExclamation)
+                End If
+            Catch ex As Exception
                 ErrorsDescriber.Execute(EDP.SendToLog, ex, "[DownloadFeedForm.MergeFeeds]")
             End Try
         End Sub
 #End Region
+        Private Sub BTT_CHECK_ALL_NONE_Click(sender As Object, e As EventArgs) Handles BTT_CHECK_ALL.Click, BTT_CHECK_NONE.Click
+            Try
+                Dim checked As Boolean = sender Is BTT_CHECK_ALL
+                ControlInvokeFast(TP_DATA, Sub()
+                                               With TP_DATA
+                                                   If .Controls.Count > 0 Then
+                                                       For Each cnt As FeedMedia In .Controls : cnt.Checked = checked : Next
+                                                   End If
+                                               End With
+                                           End Sub, EDP.None)
+            Catch
+            End Try
+        End Sub
 #End Region
 #Region "View modes"
         Private Sub OPT_Click(ByVal Sender As ToolStripMenuItem, ByVal e As EventArgs) Handles OPT_DEFAULT.Click, OPT_SUBSCRIPTIONS.Click
@@ -614,7 +811,7 @@ Namespace DownloadObjects
                                   Settings.FeedLastModeSubscriptions.Value = OPT_SUBSCRIPTIONS.Checked
                                   MENU_DOWN.Visible = OPT_SUBSCRIPTIONS.Checked
                               End Sub, EDP.None)
-            If __refill Then RefillList()
+            If __refill Then RefillList0()
         End Sub
 #End Region
         Friend Sub Downloader_FilesChanged(ByVal Added As Boolean)
@@ -622,11 +819,18 @@ Namespace DownloadObjects
             BTT_REFRESH.ControlChangeColor(ToolbarTOP, Added, False)
         End Sub
         Private Sub BTT_REFRESH_Click(sender As Object, e As EventArgs) Handles BTT_REFRESH.Click
-            IsSession = True
-            RefillList()
+            RefillList0()
         End Sub
 #End Region
-#Region "Download"
+#Region "FeedMedia handlers"
+        Private Sub FeedMedia_MediaDeleted(ByVal Sender As FeedMedia)
+            Try
+                ControlInvoke(TP_DATA, Sub() TPRemoveControl(Sender, True))
+                DataList.RemoveAll(Function(dd) dd.Data.File = Sender.File)
+                RefillAfterDelete()
+            Catch
+            End Try
+        End Sub
         Private Sub FeedMedia_Download(ByVal Sender As Object, ByVal e As EventArgs) Handles BTT_DOWN_ALL.Click, BTT_DOWN_SELECTED.Click
             Try
                 Dim urls As New List(Of String)
@@ -650,38 +854,19 @@ Namespace DownloadObjects
                 ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Download subscription media")
             End Try
         End Sub
+        Private Sub FeedMedia_FeedAddWithRemove(ByVal Sender As FeedMedia, ByVal Feeds As IEnumerable(Of String), ByVal Media As UserMediaD, ByVal RemoveOperation As Boolean)
+            FeedRemoveCheckedMedia({Media},, False, Feeds, RemoveOperation)
+        End Sub
 #End Region
-#Region "Delete"
+#Region "Delete / Remove"
         Private Sub BTT_DELETE_SELECTED_Click(sender As Object, e As EventArgs) Handles BTT_DELETE_SELECTED.Click
             Const MsgTitle$ = "Deleting marked files"
             Try
-                Dim c As IEnumerable(Of FeedMedia) = ControlInvoke(TP_DATA, Function() If(TP_DATA.Controls.Count > 0, TP_DATA.Controls.ToObjectsList.Cast(Of FeedMedia)().Where(Function(f) f.Checked), New FeedMedia() {}))
+                Dim c As IEnumerable(Of FeedMedia) = GetCheckedMediaControls()
                 If c.ListExists Then
                     If MsgBoxE({$"Are you sure you want to delete {c.Count} file(s)?", MsgTitle}, vbExclamation,,, {"Process", "Cancel"}) = 0 Then
                         Dim indx% = MyRange.CurrentIndex
-                        Dim d% = 0
-                        ControlInvoke(TP_DATA, Sub()
-                                                   With TP_DATA
-                                                       .SuspendLayout()
-                                                       LatestScrollValueDisabled = True
-                                                       For Each fm As FeedMedia In c
-                                                           If fm.DeleteFile(True) Then
-                                                               d += 1
-                                                               DataList.RemoveAll(Function(dd) dd.Data.File = fm.File)
-                                                               TPRemoveControl(fm, False)
-                                                           End If
-                                                       Next
-                                                       If d = 0 Then LatestScrollValueDisabled = False
-                                                       .ResumeLayout(d = 0)
-                                                       If d > 0 Then
-                                                           .AutoScroll = False
-                                                           .AutoScroll = True
-                                                           SetScrollValue(False)
-                                                           .PerformLayout()
-                                                           LatestScrollValueDisabled = False
-                                                       End If
-                                                   End With
-                                               End Sub)
+                        Dim d% = RemoveCheckedMedia(True, c)
                         If d > 0 Then RefillAfterDelete()
                         MsgBoxE({$"{d}/{c.Count} file(s) deleted", MsgTitle})
                     Else
@@ -694,14 +879,42 @@ Namespace DownloadObjects
                 ErrorsDescriber.Execute(EDP.LogMessageValue, ex, MsgTitle)
             End Try
         End Sub
-        Private Sub FeedMedia_MediaDeleted(ByVal Sender As FeedMedia)
+        Private Function GetCheckedMediaControls() As IEnumerable(Of FeedMedia)
+            Return ControlInvoke(TP_DATA, Function() If(TP_DATA.Controls.Count > 0, TP_DATA.Controls.ToObjectsList.Cast(Of FeedMedia)().Where(Function(f) f.Checked), New FeedMedia() {}))
+        End Function
+        Private Function RemoveCheckedMedia(ByVal DeleteFiles As Boolean, Optional ByVal Controls As IEnumerable(Of FeedMedia) = Nothing) As Integer
             Try
-                ControlInvoke(TP_DATA, Sub() TPRemoveControl(Sender, True))
-                DataList.RemoveAll(Function(dd) dd.Data.File = Sender.File)
-                RefillAfterDelete()
-            Catch
+                Dim d% = 0
+                If Not Controls.ListExists Then Controls = GetCheckedMediaControls()
+                If Controls.ListExists Then
+                    ControlInvoke(TP_DATA, Sub()
+                                               With TP_DATA
+                                                   .SuspendLayout()
+                                                   LatestScrollValueDisabled = True
+                                                   For Each fm As FeedMedia In Controls
+                                                       If Not DeleteFiles OrElse fm.DeleteFile(True) Then
+                                                           d += 1
+                                                           DataList.RemoveAll(Function(dd) dd.Data.File = fm.File)
+                                                           TPRemoveControl(fm, False)
+                                                       End If
+                                                   Next
+                                                   If d = 0 Then LatestScrollValueDisabled = False
+                                                   .ResumeLayout(d = 0)
+                                                   If d > 0 Then
+                                                       .AutoScroll = False
+                                                       .AutoScroll = True
+                                                       SetScrollValue(False)
+                                                       .PerformLayout()
+                                                       LatestScrollValueDisabled = False
+                                                   End If
+                                               End With
+                                           End Sub)
+                End If
+                Return d
+            Catch ex As Exception
+                Return ErrorsDescriber.Execute(EDP.SendToLog, ex, "[DownloadFeedForm.RemoveCheckedMedia]", 0)
             End Try
-        End Sub
+        End Function
         Private Sub TPRemoveControl(ByVal CNT As FeedMedia, ByVal Suspend As Boolean)
             Dim HeightChanged As Boolean = False
             Try
@@ -811,7 +1024,7 @@ Namespace DownloadObjects
                     If d.ListExists AndAlso Not IsSubscription AndAlso d.All(FileNotExist) Then
                         i = Sender.CurrentIndex
                         Sender.HandlersSuspended = True
-                        RefillList()
+                        RefillList0(False)
                         If Sender.Count > 0 Then
                             If i.ValueBetween(0, Sender.Count - 1) Then Sender.CurrentIndex = i
                             Sender.HandlersSuspended = False
@@ -837,6 +1050,7 @@ Namespace DownloadObjects
                                       With fmList.Last
                                           AddHandler .MediaDeleted, AddressOf FeedMedia_MediaDeleted
                                           AddHandler .MediaDownload, AddressOf FeedMedia_Download
+                                          AddHandler .FeedAddWithRemove, AddressOf FeedMedia_FeedAddWithRemove
                                       End With
                                   End Sub)
                         If fmList.Count > 0 Then fmList.ListDisposeRemoveAll(Function(fm) fm Is Nothing OrElse fm.HasError)

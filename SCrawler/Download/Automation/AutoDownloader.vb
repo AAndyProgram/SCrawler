@@ -14,7 +14,7 @@ Imports PersonalUtilities.Functions.XML.Base
 Imports PersonalUtilities.Tools
 Imports PersonalUtilities.Tools.Notifications
 Namespace DownloadObjects
-    Friend Class AutoDownloader : Inherits GroupParameters : Implements IIndexable, IEContainerProvider
+    Friend Class AutoDownloader : Inherits GroupParameters : Implements IIndexable, IEContainerProvider, IComparable(Of AutoDownloader)
         Friend Event PauseChanged(ByVal Value As PauseModes)
         Friend Enum Modes As Integer
             None = 0
@@ -219,7 +219,7 @@ Namespace DownloadObjects
         Friend Property ShowPictureDownloaded As Boolean = True
         Friend Property ShowPictureUser As Boolean = True
         Friend Property ShowSimpleNotification As Boolean = False
-        Private Property Index As Integer = -1 Implements IIndexable.Index
+        Friend Property Index As Integer = -1 Implements IIndexable.Index
         Private Function SetIndex(ByVal Obj As Object, ByVal Index As Integer) As Object Implements IIndexable.SetIndex
             DirectCast(Obj, AutoDownloader).Index = Index
             Return Obj
@@ -525,6 +525,7 @@ Namespace DownloadObjects
                 Dim users As New List(Of IUserData)
                 Dim GName$
                 Dim i%
+                Dim doRound% = -1, doLim% = Settings.Plugins.Count
                 Dim DownloadedUsersCount% = 0
                 Dim DownloadedSubscriptionsCount% = 0
                 Dim simple As Boolean = ShowSimpleNotification And ShowNotifications
@@ -600,7 +601,7 @@ Namespace DownloadObjects
                     With Downloader
                         .AutoDownloaderWorking = True
                         If .Downloaded.Count > 0 Then .Downloaded.RemoveAll(Function(u) Keys.Contains(u.Key)) : .InvokeDownloadsChangeEvent()
-                        .AddRange(users, True)
+                        Do : Try : doRound += 1 : .AddRange(users, True) : Exit Do : Catch iex As IndexOutOfRangeException : Thread.Sleep(200) : End Try : Loop While doRound < doLim
                         While .Working Or .Count > 0 : notify.Invoke() : Thread.Sleep(200) : End While
                         .AutoDownloaderWorking = False
                         notify.Invoke
@@ -644,6 +645,11 @@ Namespace DownloadObjects
             Else
                 Return False
             End If
+        End Function
+#End Region
+#Region "IComparable Support"
+        Private Function CompareTo(ByVal Other As AutoDownloader) As Integer Implements IComparable(Of AutoDownloader).CompareTo
+            Return Index.CompareTo(Other.Index)
         End Function
 #End Region
 #Region "IDisposable Support"

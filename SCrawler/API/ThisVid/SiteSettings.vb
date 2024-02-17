@@ -55,8 +55,7 @@ Namespace API.ThisVid
 #End Region
 #Region "UpdateCookies"
         Friend Sub UpdateCookies(ByVal Source As Responser)
-            Responser.Cookies.Clear()
-            Responser.Cookies.AddRange(Source.Cookies)
+            Responser.Cookies.Update(Source.Cookies)
             Update_SaveCookiesNetscape(True)
         End Sub
 #End Region

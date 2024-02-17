@@ -17,7 +17,7 @@ Imports Download = SCrawler.Plugin.ISiteSettings.Download
 Imports PauseModes = SCrawler.DownloadObjects.AutoDownloader.PauseModes
 Imports MsgBoxButton = PersonalUtilities.Functions.Messaging.MsgBoxButton
 Namespace Plugin.Hosts
-    Friend Class SettingsHostCollection : Implements IEnumerable(Of SettingsHost), IMyEnumerator(Of SettingsHost)
+    Friend Class SettingsHostCollection : Implements IEnumerable(Of SettingsHost), IMyEnumerator(Of SettingsHost), IDisposable
 #Region "Declarations"
         Private Const FileNamePrefix As String = "Host_"
         Private Const FileNamePattern As String = FileNamePrefix & "{0}_{1}_"
@@ -437,6 +437,33 @@ Namespace Plugin.Hosts
         Private Function IEnumerable_GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
             Return GetEnumerator()
         End Function
+#End Region
+#Region "IDisposable Support"
+        Private disposedValue As Boolean = False
+        Protected Overridable Overloads Sub Dispose(ByVal disposing As Boolean)
+            If Not disposedValue Then
+                If disposing Then
+                    Hosts.ListClearDispose(, False, EDP.SendToLog)
+                    HostsUnavailableIndexes.Clear()
+                    HostsXml.ListClearDispose(, False, EDP.SendToLog)
+                    BTT_SETTINGS.DisposeIfReady
+                    BTT_SETTINGS_SEP_1.DisposeIfReady
+                    BTT_SETTINGS_ACTIONS_ADD.DisposeIfReady
+                End If
+                BTT_SETTINGS = Nothing
+                BTT_SETTINGS_SEP_1 = Nothing
+                BTT_SETTINGS_ACTIONS_ADD = Nothing
+                disposedValue = True
+            End If
+        End Sub
+        Protected Overrides Sub Finalize()
+            Dispose(False)
+            MyBase.Finalize()
+        End Sub
+        Friend Overloads Sub Dispose() Implements IDisposable.Dispose
+            Dispose(True)
+            GC.SuppressFinalize(Me)
+        End Sub
 #End Region
     End Class
 End Namespace

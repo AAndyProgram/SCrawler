@@ -17,6 +17,7 @@ Namespace DownloadObjects
 #Region "Events"
         Friend Event MediaDeleted(ByVal Sender As Object)
         Friend Event MediaDownload As EventHandler
+        Friend Event FeedAddWithRemove(ByVal Sender As FeedMedia, ByVal Feeds As IEnumerable(Of String), ByVal Media As UserMediaD, ByVal RemoveOperation As Boolean)
 #End Region
 #Region "Declarations"
         Private Const VideoHeight As Integer = 450
@@ -74,7 +75,7 @@ Namespace DownloadObjects
         Private ReadOnly Property IsSubscription As Boolean = False
         Private Function GetImageResize(ByVal Width As Integer, ByVal Height As Integer) As Size
             If Height > 0 Then
-                Dim h% = Height = ObjectsPaddingHeight
+                Dim h% = Height - ObjectsPaddingHeight
                 If h <= 0 Then h = Height
                 Dim s As Size = MyImage.FitToHeightF(h)
                 s = MyImage.FitToWidthF(s, Width, False)
@@ -191,8 +192,7 @@ Namespace DownloadObjects
                         End With
                         If Not imgFile.Exists Then
                             Settings.Cache.Validate()
-                            GetWebFile(Media.Data.URL, imgFile, EDP.None)
-                            If imgFile.Exists Then File = ConvertWebp(imgFile)
+                            If GetWebFile(Media.Data.URL, imgFile, EDP.None) AndAlso imgFile.Exists Then File = ConvertWebp(imgFile)
                         Else
                             File = imgFile
                         End If
@@ -228,7 +228,12 @@ Namespace DownloadObjects
                         Case UserMedia.Types.Picture, UserMedia.Types.GIF
                             Dim tmpMediaFile As SFile = ConvertWebp(File, True)
                             If tmpMediaFile.IsEmptyString Then Throw New ArgumentNullException With {.HelpLink = 1}
-                            MyImage = New ImageRenderer(tmpMediaFile)
+                            Try
+                                MyImage = New ImageRenderer(tmpMediaFile, EDP.ThrowException)
+                            Catch
+                                MyImage.DisposeIfReady
+                                MyImage = New ImageRenderer(New Bitmap(10, 10))
+                            End Try
                             Dim a As AnchorStyles = AnchorStyles.Top + If(Height > 0, 0, AnchorStyles.Left)
                             s = GetImageResize(Width, Height)
                             h = s.Height
@@ -314,6 +319,7 @@ Namespace DownloadObjects
                             For Each fItem As FeedSpecial In .Self
                                 If Not fItem.IsFavorite Then
                                     DownloadFeedForm.AddNewFeedItem(BTT_FEED_ADD_SPEC, CONTEXT_DATA, fItem, Nothing, AddressOf Feed_SPEC_ADD)
+                                    DownloadFeedForm.AddNewFeedItem(BTT_FEED_ADD_SPEC_REMOVE, CONTEXT_DATA, fItem, Nothing, AddressOf Feed_SPEC_ADD_REMOVE)
                                     DownloadFeedForm.AddNewFeedItem(BTT_FEED_REMOVE_SPEC, CONTEXT_DATA, fItem, Nothing, AddressOf Feed_SPEC_REMOVE)
                                 End If
                             Next
@@ -333,6 +339,7 @@ Namespace DownloadObjects
 #Region "Feed handlers"
         Private Sub Feed_FeedAdded(ByVal Source As FeedSpecialCollection, ByVal Feed As FeedSpecial)
             DownloadFeedForm.AddNewFeedItem(BTT_FEED_ADD_SPEC, CONTEXT_DATA, Feed, My.Resources.RSSPic_512, AddressOf Feed_SPEC_ADD, True)
+            DownloadFeedForm.AddNewFeedItem(BTT_FEED_ADD_SPEC_REMOVE, CONTEXT_DATA, Feed, My.Resources.RSSPic_512, AddressOf Feed_SPEC_ADD_REMOVE, True)
             DownloadFeedForm.AddNewFeedItem(BTT_FEED_REMOVE_SPEC, CONTEXT_DATA, Feed, My.Resources.RSSPic_512, AddressOf Feed_SPEC_REMOVE, True)
         End Sub
         Private Sub Feed_FeedRemoved(ByVal Source As FeedSpecialCollection, ByVal Feed As FeedSpecial)
@@ -340,12 +347,20 @@ Namespace DownloadObjects
             DownloadFeedForm.Feed_FeedRemoved(BTT_FEED_REMOVE_SPEC, CONTEXT_DATA, Feed)
         End Sub
         Private Sub Feed_SPEC_ADD(ByVal Source As ToolStripMenuItem, ByVal e As EventArgs)
+            Feed_SPEC_ADD_Impl(Source)
+        End Sub
+        Private Function Feed_SPEC_ADD_Impl(ByVal Source As ToolStripMenuItem) As FeedSpecial
             Dim f As FeedSpecial = Source.Tag
-            If Not f Is Nothing AndAlso Not f.Disposed Then f.Add(Media)
+            If Not f Is Nothing AndAlso Not f.Disposed Then f.Add(Media) : Return f
+            Return Nothing
+        End Function
+        Private Sub Feed_SPEC_ADD_REMOVE(ByVal Source As ToolStripMenuItem, ByVal e As EventArgs)
+            Dim f As FeedSpecial = Feed_SPEC_ADD_Impl(Source)
+            If Not f Is Nothing Then RaiseEvent FeedAddWithRemove(Me, {f.Name}, Media, False)
         End Sub
         Private Sub Feed_SPEC_REMOVE(ByVal Source As ToolStripMenuItem, ByVal e As EventArgs)
             Dim f As FeedSpecial = Source.Tag
-            If Not f Is Nothing AndAlso Not f.Disposed Then f.Remove(Media)
+            If Not f Is Nothing AndAlso Not f.Disposed Then f.Remove(Media) : RaiseEvent FeedAddWithRemove(Me, {f.Name}, Media, True)
         End Sub
 #End Region
 #Region "Dispose"
@@ -464,26 +479,34 @@ Namespace DownloadObjects
         End Sub
 #End Region
 #Region "Feed"
-        Private Sub BTT_FEED_ADD_FAV_Click(sender As Object, e As EventArgs) Handles BTT_FEED_ADD_FAV.Click
+        Private Sub BTT_FEED_ADD_FAV_Click(sender As Object, e As EventArgs) Handles BTT_FEED_ADD_FAV.Click, BTT_FEED_ADD_FAV_REMOVE.Click
             With Settings.Feeds.Favorite
                 If Not .Contains(Media) Then .Add(Media)
                 BTT_FEED_ADD_FAV.ControlChangeColor(True, False)
+                If sender Is BTT_FEED_ADD_FAV_REMOVE Then RaiseEvent FeedAddWithRemove(Me, {FeedSpecial.FavoriteName}, Media, False)
             End With
         End Sub
-        Private Sub BTT_FEED_ADD_SPEC_Click(sender As Object, e As EventArgs) Handles BTT_FEED_ADD_SPEC.Click
+        Private Sub BTT_FEED_ADD_SPEC_Click(sender As Object, e As EventArgs) Handles BTT_FEED_ADD_SPEC.Click, BTT_FEED_ADD_SPEC_REMOVE.Click
             With FeedSpecialCollection.ChooseFeeds(True)
-                If .ListExists Then .ForEach(Sub(f) f.Add(Media))
+                If .ListExists Then
+                    .ForEach(Sub(f) f.Add(Media))
+                    If sender Is BTT_FEED_ADD_SPEC_REMOVE Then RaiseEvent FeedAddWithRemove(Me, .Select(Function(f) f.Name), Media, False)
+                End If
             End With
         End Sub
         Private Sub BTT_FEED_REMOVE_FAV_Click(sender As Object, e As EventArgs) Handles BTT_FEED_REMOVE_FAV.Click
             With Settings.Feeds.Favorite
                 If .Contains(Media) Then .Remove(Media)
                 BTT_FEED_ADD_FAV.ControlChangeColor(True)
+                RaiseEvent FeedAddWithRemove(Me, {FeedSpecial.FavoriteName}, Media, True)
             End With
         End Sub
         Private Sub BTT_FEED_REMOVE_SPEC_Click(sender As Object, e As EventArgs) Handles BTT_FEED_REMOVE_SPEC.Click
             With FeedSpecialCollection.ChooseFeeds(False)
-                If .ListExists Then .ForEach(Sub(f) f.Remove(Media))
+                If .ListExists Then
+                    .ForEach(Sub(f) f.Remove(Media))
+                    RaiseEvent FeedAddWithRemove(Me, .Select(Function(f) f.Name), Media, True)
+                End If
             End With
         End Sub
 #End Region

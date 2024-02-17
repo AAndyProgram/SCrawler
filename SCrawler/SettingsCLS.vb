@@ -217,7 +217,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
                     tplIndx = Plugins.FindIndex(Function(pl) pl.Key.StringToLower = tpl.Replacer.PluginKey.StringToLower Or
                                                              pl.Name.StringToLower = tpl.Replacer.SiteName.StringToLower)
                     If tplIndx >= 0 Then
-                        Plugins(tplIndx).Settings.ListClearDispose
+                        Plugins(tplIndx).Dispose()
                         Plugins.RemoveAt(tplIndx)
                         If Plugins.Count = 0 Then Exit For
                     End If

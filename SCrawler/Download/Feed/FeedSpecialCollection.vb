@@ -8,6 +8,7 @@
 ' but WITHOUT ANY WARRANTY
 Imports PersonalUtilities.Tools
 Imports PersonalUtilities.Forms
+Imports ADB = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons
 Namespace DownloadObjects
     Friend Class FeedSpecialCollection : Implements IEnumerable(Of FeedSpecial), IMyEnumerator(Of FeedSpecial)
 #Region "Events"
@@ -115,33 +116,41 @@ Namespace DownloadObjects
         End Sub
         Private Sub Feeds_FeedDeleted(ByVal Source As FeedSpecialCollection, ByVal Feed As FeedSpecial)
             RaiseEvent FeedRemoved(Me, Feed)
-            If Count > 0 Then Feeds.Remove(Feed)
+            If Count > 0 And Not Feed Is Nothing Then Feeds.Remove(Feed)
         End Sub
 #End Region
 #Region "ChooseFeeds"
-        Friend Shared Function ChooseFeeds(ByVal AllowAdd As Boolean) As List(Of FeedSpecial)
+        Friend Shared Function ChooseFeeds(ByVal AllowAdd As Boolean, Optional ByVal AdditText As String = Nothing,
+                                           Optional ByVal ReplaceOriginalText As Boolean = False) As List(Of FeedSpecial)
             Try
                 Dim newFeed$ = String.Empty
+                If Not AdditText.IsEmptyString And Not ReplaceOriginalText Then AdditText = $" {AdditText}"
                 Using f As New SimpleListForm(Of String)(Settings.Feeds.Select(Function(ff) ff.Name), Settings.Design) With {
                     .DesignXMLNodeName = "FeedsChooserForm",
                     .Icon = My.Resources.RSSIcon_32,
-                    .FormText = "Feeds"
+                    .FormText = $"{IIf(ReplaceOriginalText, String.Empty, "Feeds")}{AdditText}"
                 }
-                    If AllowAdd Then f.AddFunction = Sub(ByVal sender As Object, ByVal e As SimpleListFormEventArgs)
-                                                         If newFeed.IsEmptyString Then
-                                                             Dim nf$ = InputBoxE("Enter a new feed name:", "New feed")
-                                                             If Not nf.IsEmptyString Then
-                                                                 If Settings.Feeds.ListExists(Function(ff) ff.Name.StringToLower = nf.ToLower) Then
-                                                                     MsgBoxE({$"A feed named '{nf}' already exists", "New feed"}, vbCritical)
-                                                                 Else
-                                                                     newFeed = nf
-                                                                     e.Item = nf
-                                                                 End If
-                                                             Else
-                                                                 MsgBoxE({"You can only create one feed at a time", "New feed"}, vbCritical)
-                                                             End If
-                                                         End If
-                                                     End Sub
+                    If AllowAdd Then
+                        f.Buttons = {ADB.Add, ADB.Clear}
+                        f.AddFunction = Sub(ByVal sender As Object, ByVal e As SimpleListFormEventArgs)
+                                            If newFeed.IsEmptyString Then
+                                                Dim nf$ = InputBoxE("Enter a new feed name:", "New feed")
+                                                If Not nf.IsEmptyString Then
+                                                    If Settings.Feeds.ListExists(Function(ff) ff.Name.StringToLower = nf.ToLower) Then
+                                                        MsgBoxE({$"A feed named '{nf}' already exists", "New feed"}, vbCritical)
+                                                        e.Result = False
+                                                    Else
+                                                        newFeed = nf
+                                                        e.Item = nf
+                                                    End If
+                                                Else
+                                                    e.Result = False
+                                                End If
+                                            Else
+                                                MsgBoxE({"You can only create one feed at a time", "New feed"}, vbCritical)
+                                            End If
+                                        End Sub
+                    End If
                     If f.ShowDialog = DialogResult.OK AndAlso f.DataResult.Count > 0 Then
                         If Not newFeed.IsEmptyString AndAlso f.DataResult.Contains(newFeed) Then Settings.Feeds.Add(newFeed)
                         Return Settings.Feeds.Where(Function(ff) f.DataResult.Contains(ff.Name)).ToList
@@ -174,7 +183,7 @@ Namespace DownloadObjects
                     Feeds.Last.Save()
                     i = Count - 1
                 Else
-                    i = Feeds.FindIndex(Function(f) f.Name = Name)
+                    i = IndexOf(Name)
                     If i = -1 Then
                         Feeds.Add(FeedSpecial.CreateSpecial(Name))
                         Feeds.Last.Save()
@@ -184,7 +193,7 @@ Namespace DownloadObjects
             End If
             If i >= 0 Then
                 Feeds.Sort(ComparerFeeds)
-                i = Feeds.FindIndex(Function(f) f.Name = Name)
+                i = IndexOf(Name)
                 If i >= 0 Then RaiseEvent FeedAdded(Me, Feeds(i))
             End If
             Return i
@@ -194,11 +203,14 @@ Namespace DownloadObjects
             Dim i% = Feeds.IndexOf(Item)
             If i >= 0 Then
                 With Feeds(i)
+                    Dim name$ = .Name
                     If .IsFavorite Then
                         result = .Clear
                     Else
                         result = .Delete
-                        If result Then
+                        i = -1
+                        If Feeds.Count > 0 Then i = Feeds.FindIndex(Function(f) f.Name = name And Not f.IsFavorite)
+                        If result And i >= 0 Then
                             .Dispose()
                             Feeds.RemoveAt(i)
                         End If
@@ -206,6 +218,12 @@ Namespace DownloadObjects
                 End With
             End If
             Return result
+        End Function
+#End Region
+#Region "IndexOf"
+        Friend Function IndexOf(ByVal Name As String) As Integer
+            If Feeds.Count > 0 Then Return Feeds.FindIndex(Function(f) f.Name = Name)
+            Return -1
         End Function
 #End Region
 #Region "UpdateUsers"

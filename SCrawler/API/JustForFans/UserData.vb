@@ -168,6 +168,7 @@ Namespace API.JustForFans
 #Region "Initializer"
         Friend Sub New()
             UseInternalM3U8Function = True
+            _ResponserAutoUpdateCookies = True
         End Sub
 #End Region
 #Region "Download functions"
@@ -191,11 +192,11 @@ Namespace API.JustForFans
                 DownloadData(0, Token)
             Finally
                 If DownloadTopCount.HasValue Then DownloadTopCount = Nothing
-                Try : RemoveHandler Responser.ResponseReceived, AddressOf Responser_ResponseReceived : Catch : End Try
+                Responser_ResponseReceived_RemoveHandler()
                 MySettings.UpdateResponser(Responser)
             End Try
         End Sub
-        Private Sub Responser_ResponseReceived(ByVal Source As Object, ByVal e As EventArguments.WebDataResponse)
+        Protected Overrides Sub Responser_ResponseReceived(ByVal Source As Object, ByVal e As EventArguments.WebDataResponse)
             If e.CookiesExists Then
                 Dim hv$ = If(e.Cookies.FirstOrDefault(Function(cc) cc.Name.StringToLower = SiteSettings.UserHash4_CookieName)?.Value, String.Empty)
                 If Not hv.IsEmptyString And Not _UserHash4 = hv Then _UserHash4 = hv

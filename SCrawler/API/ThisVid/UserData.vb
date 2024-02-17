@@ -178,6 +178,7 @@ Namespace API.ThisVid
         Friend Sub New()
             UseClientTokens = True
             SessionPosts = New List(Of String)
+            _ResponserAutoUpdateCookies = True
         End Sub
 #End Region
 #Region "Validation"
@@ -225,31 +226,34 @@ Namespace API.ThisVid
         Private AddedCount As Integer = 0
         Private _PageVideosRepeat As Integer = 0
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
-            SessionPosts.Clear()
-            AddedCount = 0
-            _PageVideosRepeat = 0
-            SessionPosts.Clear()
-            Responser.Cookies.ChangedAllowInternalDrop = False
-            Responser.Cookies.Changed = False
-            If ID.IsEmptyString Then ID = Name
-            If Not IsUser OrElse IsValid() Then
-                If IsSavedPosts Then
-                    DownloadData(1, 0, Token)
-                    DownloadData_Images(Token)
-                Else
-                    If IsUser Then
-                        If DownloadVideos Then
-                            If DownloadPublic Then DownloadData(1, 0, Token)
-                            If DownloadPrivate Then DownloadData(1, 1, Token)
-                            If DownloadFavourite Then DownloadData(1, 2, Token)
-                        End If
-                        If DownloadImages And Not IsSubscription Then DownloadData_Images(Token)
-                    Else
+            Try
+                SessionPosts.Clear()
+                AddedCount = 0
+                _PageVideosRepeat = 0
+                SessionPosts.Clear()
+                Responser.Cookies.ChangedAllowInternalDrop = False
+                Responser.Cookies.Changed = False
+                If ID.IsEmptyString Then ID = Name
+                If Not IsUser OrElse IsValid() Then
+                    If IsSavedPosts Then
                         DownloadData(1, 0, Token)
+                        DownloadData_Images(Token)
+                    Else
+                        If IsUser Then
+                            If DownloadVideos Then
+                                If DownloadPublic Then DownloadData(1, 0, Token)
+                                If DownloadPrivate Then DownloadData(1, 1, Token)
+                                If DownloadFavourite Then DownloadData(1, 2, Token)
+                            End If
+                            If DownloadImages And Not IsSubscription Then DownloadData_Images(Token)
+                        Else
+                            DownloadData(1, 0, Token)
+                        End If
                     End If
                 End If
-            End If
-            If Responser.Cookies.Changed Then MySettings.UpdateCookies(Responser) : Responser.Cookies.Changed = False
+            Finally
+                If Responser.Cookies.Changed Then MySettings.UpdateCookies(Responser) : Responser.Cookies.Changed = False
+            End Try
         End Sub
         Friend Function GetNonUserUrl(ByVal Page As Integer) As String
             Dim url$ = String.Empty
