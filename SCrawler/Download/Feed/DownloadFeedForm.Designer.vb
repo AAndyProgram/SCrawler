@@ -155,6 +155,7 @@ Namespace DownloadObjects
             '
             'MENU_LOAD_SESSION
             '
+            Me.MENU_LOAD_SESSION.AutoToolTip = False
             Me.MENU_LOAD_SESSION.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image
             Me.MENU_LOAD_SESSION.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_LOAD_SESSION_CURRENT, Me.BTT_LOAD_SESSION_LAST, Me.BTT_LOAD_SESSION_CHOOSE, MENU_LOAD_SEP_1, Me.BTT_LOAD_FAV, Me.BTT_LOAD_SPEC, MENU_LOAD_SEP_2, Me.BTT_FEED_ADD_FAV, Me.BTT_FEED_ADD_FAV_REMOVE, Me.BTT_FEED_REMOVE_FAV, MENU_LOAD_SEP_3, Me.BTT_FEED_ADD_SPEC, Me.BTT_FEED_ADD_SPEC_REMOVE, Me.BTT_FEED_REMOVE_SPEC, MENU_LOAD_SEP_4, Me.BTT_FEED_CLEAR_FAV, Me.BTT_FEED_CLEAR_SPEC, Me.BTT_FEED_DELETE_SPEC, Me.BTT_FEED_DELETE_DAILY_LIST, Me.BTT_FEED_DELETE_DAILY_DATE, MENU_LOAD_SEP_5, Me.BTT_MERGE_SESSIONS, Me.BTT_CLEAR_DAILY, MENU_LOAD_SEP_6, Me.BTT_MERGE_FEEDS, MENU_LOAD_SEP_7, Me.BTT_CHECK_ALL, Me.BTT_CHECK_NONE})
             Me.MENU_LOAD_SESSION.Image = Global.SCrawler.My.Resources.Resources.ArrowDownPic_Blue_24
@@ -286,12 +287,13 @@ Namespace DownloadObjects
             '
             'BTT_CLEAR_DAILY
             '
+            Me.BTT_CLEAR_DAILY.AutoToolTip = True
             Me.BTT_CLEAR_DAILY.Image = Global.SCrawler.My.Resources.Resources.DeletePic_24
             Me.BTT_CLEAR_DAILY.ImageTransparentColor = System.Drawing.Color.Magenta
             Me.BTT_CLEAR_DAILY.Name = "BTT_CLEAR_DAILY"
             Me.BTT_CLEAR_DAILY.Size = New System.Drawing.Size(352, 22)
             Me.BTT_CLEAR_DAILY.Text = "Clear session"
-            Me.BTT_CLEAR_DAILY.ToolTipText = "Clear data list (session)"
+            Me.BTT_CLEAR_DAILY.ToolTipText = "Clear current session"
             '
             'BTT_MERGE_FEEDS
             '

@@ -2199,18 +2199,20 @@ BlockNullPicture:
         End Sub
 #End Region
 #Region "IComparable Support"
-        Friend Overridable Function CompareTo(ByVal Other As UserDataBase) As Integer Implements IComparable(Of UserDataBase).CompareTo
-            If IsCollection Then
+        Friend Overridable Overloads Function CompareTo(ByVal Other As UserDataBase) As Integer Implements IComparable(Of UserDataBase).CompareTo
+            If TypeOf Other Is UserDataBind Then
+                Return 1
+            ElseIf IsCollection Then
                 Return Name.CompareTo(Other.Name)
             Else
                 Return FriendlyName.IfNullOrEmpty(Name).StringTrim.CompareTo(Other.FriendlyName.IfNullOrEmpty(Other.Name).StringTrim)
             End If
         End Function
-        Friend Overridable Function CompareTo(ByVal Obj As Object) As Integer Implements IComparable.CompareTo
+        Friend Overridable Overloads Function CompareTo(ByVal Obj As Object) As Integer Implements IComparable.CompareTo
             If Not Obj Is Nothing AndAlso TypeOf Obj Is UserDataBase Then
                 Return CompareTo(DirectCast(Obj, UserDataBase))
             Else
-                Return False
+                Return 0
             End If
         End Function
 #End Region
@@ -2218,7 +2220,7 @@ BlockNullPicture:
         Friend Overridable Overloads Function Equals(ByVal Other As UserDataBase) As Boolean Implements IEquatable(Of UserDataBase).Equals
             Return LVIKey = Other.LVIKey And IsSavedPosts = Other.IsSavedPosts
         End Function
-        Public Overrides Function Equals(ByVal Obj As Object) As Boolean
+        Public Overloads Overrides Function Equals(ByVal Obj As Object) As Boolean
             If Not Obj Is Nothing AndAlso TypeOf Obj Is UserDataBase Then
                 Return Equals(DirectCast(Obj, UserDataBase))
             Else

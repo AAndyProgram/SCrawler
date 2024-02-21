@@ -41,6 +41,7 @@ Namespace DownloadObjects
 #Region "Feeds options"
         Private Enum FeedModes : Current : Saved : Special : End Enum
         Private FeedMode As FeedModes = FeedModes.Current
+        Private LoadedSessionName As String = String.Empty
         Private ReadOnly Property IsSession As Boolean
             Get
                 Return FeedMode = FeedModes.Current Or FeedMode = FeedModes.Saved
@@ -54,7 +55,7 @@ Namespace DownloadObjects
             Try : ControlInvokeFast(Me, Sub()
                                             Select Case FeedMode
                                                 Case FeedModes.Current : Text = $"{FeedTitleDefault}: current session"
-                                                Case FeedModes.Saved : Text = $"{FeedTitleDefault}: saved session(s)"
+                                                Case FeedModes.Saved : Text = $"{FeedTitleDefault}: saved session {LoadedSessionName.IfNullOrEmpty("(multiple)")}"
                                                 Case FeedModes.Special : Text = $"{FeedTitleDefault}: {IIf(LoadedFeedNames.Count > 1, "multiple special feeds", LoadedFeedNames.FirstOrDefault.IfNullOrEmpty("?"))}"
                                                 Case Else : Text = FeedTitleDefault
                                             End Select
@@ -318,11 +319,6 @@ Namespace DownloadObjects
                     ForeColor = SystemColors.WindowText
                 End If
 
-                Dim fsd As Boolean = .FeedStoreSessionsData
-                ControlInvoke(ToolbarTOP, MENU_LOAD_SESSION, Sub()
-                                                                 MENU_LOAD_SESSION.Visible = fsd
-                                                                 SEP_0.Visible = fsd
-                                                             End Sub)
                 If rangeChanged Then
                     ClearTable()
                     ControlInvoke(TP_DATA, Sub()
@@ -408,6 +404,7 @@ Namespace DownloadObjects
                                    Optional ByRef ResultFilesList As List(Of SFile) = Nothing,
                                    Optional ByVal SelectedMode As FeedModes = -1)
             Try
+                LoadedSessionName = String.Empty
                 Downloader.ClearSessions()
                 Dim f As SFile = TDownloader.SessionsPath.CSFileP
                 Dim fList As List(Of SFile) = Nothing
@@ -442,7 +439,10 @@ Namespace DownloadObjects
                                     ResultFilesList.AddRange(fList)
                                 Else
                                     DataList.Clear()
-                                    If SelectedMode >= 0 Then FeedChangeMode(SelectedMode)
+                                    If SelectedMode >= 0 Then
+                                        If SelectedMode = FeedModes.Saved And fList.Count = 1 Then LoadedSessionName = fList(0).Name
+                                        FeedChangeMode(SelectedMode)
+                                    End If
                                     For Each f In fList
                                         x = New XmlFile(f,, False) With {.AllowSameNames = True, .XmlReadOnly = True}
                                         x.LoadData()
@@ -470,7 +470,10 @@ Namespace DownloadObjects
                         f = Downloader.FilesSessionActual(False)
                     End If
                     If f.Exists Then
-                        If SelectedMode >= 0 Then FeedChangeMode(SelectedMode)
+                        If SelectedMode >= 0 Then
+                            If SelectedMode = FeedModes.Saved Then LoadedSessionName = f.Name
+                            FeedChangeMode(SelectedMode)
+                        End If
                         DataList.Clear()
                         x = New XmlFile(f,, False) With {.AllowSameNames = True, .XmlReadOnly = True}
                         x.LoadData()

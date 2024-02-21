@@ -317,9 +317,8 @@ Namespace Editors
                     .FeedShowFriendlyNames.Value = CH_FEED_SHOW_FRIENDLY.Checked
                     .FeedShowSpecialFeedsMediaItem.Value = CH_FEED_SHOW_SPEC_MEDIAITEM.Checked
                     FeedParametersChanged = .FeedDataRows.ChangesDetected Or .FeedDataColumns.ChangesDetected Or
-                                            .FeedEndless.ChangesDetected Or .FeedStoreSessionsData.ChangesDetected Or
-                                            .FeedBackColor.ChangesDetected Or .FeedForeColor.ChangesDetected Or
-                                            .FeedCenterImage.ChangesDetected
+                                            .FeedEndless.ChangesDetected Or .FeedBackColor.ChangesDetected Or
+                                            .FeedForeColor.ChangesDetected Or .FeedCenterImage.ChangesDetected
 
                     .EndUpdate()
                 End With
