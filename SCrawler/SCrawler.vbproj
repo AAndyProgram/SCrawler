@@ -267,6 +267,12 @@
     <Compile Include="Download\Feed\DownloadFeedForm.vb">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="Download\Feed\FeedCopyToForm.Designer.vb">
+      <DependentUpon>FeedCopyToForm.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Download\Feed\FeedCopyToForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Download\Feed\FeedMedia.Designer.vb">
       <DependentUpon>FeedMedia.vb</DependentUpon>
     </Compile>
@@ -524,6 +530,9 @@
     <EmbeddedResource Include="Download\DownloadSavedPostsForm.resx">
       <DependentUpon>DownloadSavedPostsForm.vb</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Download\Feed\FeedCopyToForm.resx">
+      <DependentUpon>FeedCopyToForm.vb</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Download\Feed\FeedMedia.resx">
       <DependentUpon>FeedMedia.vb</DependentUpon>
     </EmbeddedResource>
@@ -731,6 +740,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Content\Pictures\SitePictures\FacebookPic_37.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Content\Pictures\CutPic_48.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

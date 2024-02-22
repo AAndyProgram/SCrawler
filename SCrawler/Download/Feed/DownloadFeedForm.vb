@@ -492,6 +492,40 @@ Namespace DownloadObjects
             End Try
         End Sub
 #End Region
+        Private Sub BTT_COPY_MOVE_TO_Click(sender As Object, e As EventArgs) Handles BTT_COPY_TO.Click, BTT_MOVE_TO.Click
+            Const MsgTitle$ = "Copy/Move checked files"
+            Try
+                Dim isCopy As Boolean = sender Is BTT_COPY_TO
+                Dim dest As SFile = Nothing
+                Dim ff As SFile, df As SFile
+                Dim files As IEnumerable(Of SFile) = Nothing
+
+                With GetCheckedMedia()
+                    If .ListExists Then files = .Select(Function(m) m.Data.File)
+                End With
+                If files.ListExists Then
+                    Using f As New FeedCopyToForm(files, isCopy)
+                        f.ShowDialog()
+                        If f.DialogResult = DialogResult.OK Then dest = f.Destination
+                    End Using
+                    If Not dest.IsEmptyString Then
+                        For Each ff In files
+                            If Not ff.IsEmptyString Then
+                                df = ff
+                                df.Path = dest.Path
+                                If isCopy Then ff.Copy(df) Else SFile.Move(ff, df)
+                            End If
+                        Next
+                        If Not isCopy Then RefillList0()
+                        MsgBoxE({$"The following files were copied to{vbCr}{dest}{vbCr}{vbCr}{files.ListToString(vbCr)}", MsgTitle})
+                    End If
+                Else
+                    MsgBoxE({"No files selected", MsgTitle}, vbExclamation)
+                End If
+            Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.LogMessageValue, ex, MsgTitle)
+            End Try
+        End Sub
 #Region "Load fav, spec"
         Private Sub BTT_LOAD_FAV_Click(sender As Object, e As EventArgs) Handles BTT_LOAD_FAV.Click
             FeedChangeMode(FeedModes.Special, {FeedSpecial.FavoriteName})

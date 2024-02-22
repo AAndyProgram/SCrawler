@@ -177,8 +177,12 @@ Namespace DownloadObjects
                     BTT_CONTEXT_DOWN.Visible = True
                     CONTEXT_SEP_0.Visible = True
                     BTT_CONTEXT_OPEN_USER.Visible = False
-                    CONTEXT_SEP_4.Visible = False
+                    CONTEXT_SEP_5.Visible = False
                     BTT_CONTEXT_DELETE.Visible = False
+
+                    CONTEXT_SEP_2.Visible = False
+                    BTT_COPY_TO.Visible = False
+                    BTT_MOVE_TO.Visible = False
 
                     If Not Media.Data.URL.IsEmptyString Then
                         Dim ext$ = Media.Data.URL.CSFile.Extension
@@ -475,6 +479,33 @@ Namespace DownloadObjects
                 End If
             Catch ex As Exception
                 ErrorsDescriber.Execute(EDP.LogMessageValue, ex, $"[FeedMedia.OpenPost({UserKey}, {Post.Post.ID})]")
+            End Try
+        End Sub
+#End Region
+#Region "Copy, Move"
+        Private Sub BTT_COPY_MOVE_TO_Click(sender As Object, e As EventArgs) Handles BTT_COPY_TO.Click, BTT_MOVE_TO.Click
+            Const MsgTitle$ = "Copy/Move checked files"
+            Try
+                If Not File.IsEmptyString Then
+                    Dim isCopy As Boolean = sender Is BTT_COPY_TO
+                    Dim dest As SFile = Nothing
+                    Dim ff As SFile = File
+                    Using f As New FeedCopyToForm({File}, isCopy)
+                        f.ShowDialog()
+                        If f.DialogResult = DialogResult.OK Then dest = f.Destination
+                    End Using
+                    If Not dest.IsEmptyString Then
+                        ff.Path = dest
+                        If isCopy Then
+                            File.Copy(ff)
+                        Else
+                            If SFile.Move(File, ff) Then RaiseEvent MediaDeleted(Me)
+                        End If
+                        MsgBoxE({$"File {IIf(isCopy, "copied", "moved")}{vbCr}Source: '{File}'{vbCr}Destination: '{ff}'", MsgTitle})
+                    End If
+                End If
+            Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.LogMessageValue, ex, MsgTitle)
             End Try
         End Sub
 #End Region

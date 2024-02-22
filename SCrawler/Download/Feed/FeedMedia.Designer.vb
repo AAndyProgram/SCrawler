@@ -24,8 +24,10 @@ Namespace DownloadObjects
         Private Sub InitializeComponent()
             Me.components = New System.ComponentModel.Container()
             Dim CONTEXT_SEP_1 As System.Windows.Forms.ToolStripSeparator
-            Dim CONTEXT_SEP_2 As System.Windows.Forms.ToolStripSeparator
             Dim TP_LBL As System.Windows.Forms.TableLayoutPanel
+            Dim CONTEXT_SEP_3 As System.Windows.Forms.ToolStripSeparator
+            Dim CONTEXT_SEP_4 As System.Windows.Forms.ToolStripSeparator
+            Me.CONTEXT_SEP_2 = New System.Windows.Forms.ToolStripSeparator()
             Me.CH_CHECKED = New System.Windows.Forms.CheckBox()
             Me.LBL_INFO = New System.Windows.Forms.Label()
             Me.CONTEXT_DATA = New System.Windows.Forms.ContextMenuStrip(Me.components)
@@ -35,23 +37,25 @@ Namespace DownloadObjects
             Me.BTT_CONTEXT_OPEN_USER = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_CONTEXT_OPEN_USER_URL = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_CONTEXT_OPEN_USER_POST = New System.Windows.Forms.ToolStripMenuItem()
+            Me.BTT_COPY_TO = New System.Windows.Forms.ToolStripMenuItem()
+            Me.BTT_MOVE_TO = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_FEED_ADD_FAV = New System.Windows.Forms.ToolStripMenuItem()
+            Me.BTT_FEED_ADD_FAV_REMOVE = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_FEED_ADD_SPEC = New System.Windows.Forms.ToolStripMenuItem()
+            Me.BTT_FEED_ADD_SPEC_REMOVE = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_FEED_REMOVE_FAV = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_FEED_REMOVE_SPEC = New System.Windows.Forms.ToolStripMenuItem()
-            Me.CONTEXT_SEP_3 = New System.Windows.Forms.ToolStripSeparator()
             Me.BTT_CONTEXT_FIND_USER = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_CONTEXT_INFO = New System.Windows.Forms.ToolStripMenuItem()
-            Me.CONTEXT_SEP_4 = New System.Windows.Forms.ToolStripSeparator()
+            Me.CONTEXT_SEP_5 = New System.Windows.Forms.ToolStripSeparator()
             Me.BTT_CONTEXT_DELETE = New System.Windows.Forms.ToolStripMenuItem()
             Me.ICON_SITE = New System.Windows.Forms.PictureBox()
             Me.TP_MAIN = New System.Windows.Forms.TableLayoutPanel()
             Me.LBL_TITLE = New System.Windows.Forms.Label()
-            Me.BTT_FEED_ADD_FAV_REMOVE = New System.Windows.Forms.ToolStripMenuItem()
-            Me.BTT_FEED_ADD_SPEC_REMOVE = New System.Windows.Forms.ToolStripMenuItem()
             CONTEXT_SEP_1 = New System.Windows.Forms.ToolStripSeparator()
-            CONTEXT_SEP_2 = New System.Windows.Forms.ToolStripSeparator()
             TP_LBL = New System.Windows.Forms.TableLayoutPanel()
+            CONTEXT_SEP_3 = New System.Windows.Forms.ToolStripSeparator()
+            CONTEXT_SEP_4 = New System.Windows.Forms.ToolStripSeparator()
             TP_LBL.SuspendLayout()
             Me.CONTEXT_DATA.SuspendLayout()
             CType(Me.ICON_SITE, System.ComponentModel.ISupportInitialize).BeginInit()
@@ -65,8 +69,8 @@ Namespace DownloadObjects
             '
             'CONTEXT_SEP_2
             '
-            CONTEXT_SEP_2.Name = "CONTEXT_SEP_2"
-            CONTEXT_SEP_2.Size = New System.Drawing.Size(302, 6)
+            Me.CONTEXT_SEP_2.Name = "CONTEXT_SEP_2"
+            Me.CONTEXT_SEP_2.Size = New System.Drawing.Size(302, 6)
             '
             'TP_LBL
             '
@@ -110,9 +114,9 @@ Namespace DownloadObjects
             '
             'CONTEXT_DATA
             '
-            Me.CONTEXT_DATA.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_CONTEXT_DOWN, Me.CONTEXT_SEP_0, Me.BTT_CONTEXT_OPEN_MEDIA, Me.BTT_CONTEXT_OPEN_USER, CONTEXT_SEP_1, Me.BTT_CONTEXT_OPEN_USER_URL, Me.BTT_CONTEXT_OPEN_USER_POST, CONTEXT_SEP_2, Me.BTT_FEED_ADD_FAV, Me.BTT_FEED_ADD_FAV_REMOVE, Me.BTT_FEED_ADD_SPEC, Me.BTT_FEED_ADD_SPEC_REMOVE, Me.BTT_FEED_REMOVE_FAV, Me.BTT_FEED_REMOVE_SPEC, Me.CONTEXT_SEP_3, Me.BTT_CONTEXT_FIND_USER, Me.BTT_CONTEXT_INFO, Me.CONTEXT_SEP_4, Me.BTT_CONTEXT_DELETE})
+            Me.CONTEXT_DATA.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_CONTEXT_DOWN, Me.CONTEXT_SEP_0, Me.BTT_CONTEXT_OPEN_MEDIA, Me.BTT_CONTEXT_OPEN_USER, CONTEXT_SEP_1, Me.BTT_CONTEXT_OPEN_USER_URL, Me.BTT_CONTEXT_OPEN_USER_POST, Me.CONTEXT_SEP_2, Me.BTT_COPY_TO, Me.BTT_MOVE_TO, CONTEXT_SEP_3, Me.BTT_FEED_ADD_FAV, Me.BTT_FEED_ADD_FAV_REMOVE, Me.BTT_FEED_ADD_SPEC, Me.BTT_FEED_ADD_SPEC_REMOVE, Me.BTT_FEED_REMOVE_FAV, Me.BTT_FEED_REMOVE_SPEC, CONTEXT_SEP_4, Me.BTT_CONTEXT_FIND_USER, Me.BTT_CONTEXT_INFO, Me.CONTEXT_SEP_5, Me.BTT_CONTEXT_DELETE})
             Me.CONTEXT_DATA.Name = "CONTEXT_PIC"
-            Me.CONTEXT_DATA.Size = New System.Drawing.Size(306, 364)
+            Me.CONTEXT_DATA.Size = New System.Drawing.Size(306, 414)
             '
             'BTT_CONTEXT_DOWN
             '
@@ -156,6 +160,25 @@ Namespace DownloadObjects
             Me.BTT_CONTEXT_OPEN_USER_POST.Size = New System.Drawing.Size(305, 22)
             Me.BTT_CONTEXT_OPEN_USER_POST.Text = "Open post"
             '
+            'BTT_COPY_TO
+            '
+            Me.BTT_COPY_TO.Image = Global.SCrawler.My.Resources.Resources.PastePic_32
+            Me.BTT_COPY_TO.Name = "BTT_COPY_TO"
+            Me.BTT_COPY_TO.Size = New System.Drawing.Size(305, 22)
+            Me.BTT_COPY_TO.Text = "Copy to..."
+            '
+            'BTT_MOVE_TO
+            '
+            Me.BTT_MOVE_TO.Image = Global.SCrawler.My.Resources.Resources.CutPic_48
+            Me.BTT_MOVE_TO.Name = "BTT_MOVE_TO"
+            Me.BTT_MOVE_TO.Size = New System.Drawing.Size(305, 22)
+            Me.BTT_MOVE_TO.Text = "Move to..."
+            '
+            'CONTEXT_SEP_3
+            '
+            CONTEXT_SEP_3.Name = "CONTEXT_SEP_3"
+            CONTEXT_SEP_3.Size = New System.Drawing.Size(302, 6)
+            '
             'BTT_FEED_ADD_FAV
             '
             Me.BTT_FEED_ADD_FAV.Image = Global.SCrawler.My.Resources.Resources.HeartPic_32
@@ -163,12 +186,26 @@ Namespace DownloadObjects
             Me.BTT_FEED_ADD_FAV.Size = New System.Drawing.Size(305, 22)
             Me.BTT_FEED_ADD_FAV.Text = "Add to Favorite"
             '
+            'BTT_FEED_ADD_FAV_REMOVE
+            '
+            Me.BTT_FEED_ADD_FAV_REMOVE.Image = Global.SCrawler.My.Resources.Resources.HeartPic_32
+            Me.BTT_FEED_ADD_FAV_REMOVE.Name = "BTT_FEED_ADD_FAV_REMOVE"
+            Me.BTT_FEED_ADD_FAV_REMOVE.Size = New System.Drawing.Size(305, 22)
+            Me.BTT_FEED_ADD_FAV_REMOVE.Text = "Add to Favorite (remove from current)"
+            '
             'BTT_FEED_ADD_SPEC
             '
             Me.BTT_FEED_ADD_SPEC.Image = Global.SCrawler.My.Resources.Resources.RSSPic_512
             Me.BTT_FEED_ADD_SPEC.Name = "BTT_FEED_ADD_SPEC"
             Me.BTT_FEED_ADD_SPEC.Size = New System.Drawing.Size(305, 22)
             Me.BTT_FEED_ADD_SPEC.Text = "Add to special feed..."
+            '
+            'BTT_FEED_ADD_SPEC_REMOVE
+            '
+            Me.BTT_FEED_ADD_SPEC_REMOVE.Image = Global.SCrawler.My.Resources.Resources.RSSPic_512
+            Me.BTT_FEED_ADD_SPEC_REMOVE.Name = "BTT_FEED_ADD_SPEC_REMOVE"
+            Me.BTT_FEED_ADD_SPEC_REMOVE.Size = New System.Drawing.Size(305, 22)
+            Me.BTT_FEED_ADD_SPEC_REMOVE.Text = "Add to special feed (remove from current)..."
             '
             'BTT_FEED_REMOVE_FAV
             '
@@ -184,10 +221,10 @@ Namespace DownloadObjects
             Me.BTT_FEED_REMOVE_SPEC.Size = New System.Drawing.Size(305, 22)
             Me.BTT_FEED_REMOVE_SPEC.Text = "Remove from special feed..."
             '
-            'CONTEXT_SEP_3
+            'CONTEXT_SEP_4
             '
-            Me.CONTEXT_SEP_3.Name = "CONTEXT_SEP_3"
-            Me.CONTEXT_SEP_3.Size = New System.Drawing.Size(302, 6)
+            CONTEXT_SEP_4.Name = "CONTEXT_SEP_4"
+            CONTEXT_SEP_4.Size = New System.Drawing.Size(302, 6)
             '
             'BTT_CONTEXT_FIND_USER
             '
@@ -203,10 +240,10 @@ Namespace DownloadObjects
             Me.BTT_CONTEXT_INFO.Size = New System.Drawing.Size(305, 22)
             Me.BTT_CONTEXT_INFO.Text = "Information"
             '
-            'CONTEXT_SEP_4
+            'CONTEXT_SEP_5
             '
-            Me.CONTEXT_SEP_4.Name = "CONTEXT_SEP_4"
-            Me.CONTEXT_SEP_4.Size = New System.Drawing.Size(302, 6)
+            Me.CONTEXT_SEP_5.Name = "CONTEXT_SEP_5"
+            Me.CONTEXT_SEP_5.Size = New System.Drawing.Size(302, 6)
             '
             'BTT_CONTEXT_DELETE
             '
@@ -252,20 +289,6 @@ Namespace DownloadObjects
             Me.LBL_TITLE.Size = New System.Drawing.Size(140, 25)
             Me.LBL_TITLE.TabIndex = 1
             '
-            'BTT_FEED_ADD_FAV_REMOVE
-            '
-            Me.BTT_FEED_ADD_FAV_REMOVE.Image = Global.SCrawler.My.Resources.Resources.HeartPic_32
-            Me.BTT_FEED_ADD_FAV_REMOVE.Name = "BTT_FEED_ADD_FAV_REMOVE"
-            Me.BTT_FEED_ADD_FAV_REMOVE.Size = New System.Drawing.Size(305, 22)
-            Me.BTT_FEED_ADD_FAV_REMOVE.Text = "Add to Favorite (remove from current)"
-            '
-            'BTT_FEED_ADD_SPEC_REMOVE
-            '
-            Me.BTT_FEED_ADD_SPEC_REMOVE.Image = Global.SCrawler.My.Resources.Resources.RSSPic_512
-            Me.BTT_FEED_ADD_SPEC_REMOVE.Name = "BTT_FEED_ADD_SPEC_REMOVE"
-            Me.BTT_FEED_ADD_SPEC_REMOVE.Size = New System.Drawing.Size(305, 22)
-            Me.BTT_FEED_ADD_SPEC_REMOVE.Text = "Add to special feed (remove from current)..."
-            '
             'FeedMedia
             '
             Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
@@ -299,7 +322,6 @@ Namespace DownloadObjects
         Private WithEvents LBL_INFO As Label
         Private WithEvents BTT_CONTEXT_INFO As ToolStripMenuItem
         Private WithEvents ICON_SITE As PictureBox
-        Private WithEvents CONTEXT_SEP_3 As ToolStripSeparator
         Private WithEvents BTT_CONTEXT_DOWN As ToolStripMenuItem
         Private WithEvents CONTEXT_SEP_0 As ToolStripSeparator
         Private WithEvents LBL_TITLE As Label
@@ -307,8 +329,11 @@ Namespace DownloadObjects
         Private WithEvents BTT_FEED_ADD_SPEC As ToolStripMenuItem
         Private WithEvents BTT_FEED_REMOVE_FAV As ToolStripMenuItem
         Private WithEvents BTT_FEED_REMOVE_SPEC As ToolStripMenuItem
-        Private WithEvents CONTEXT_SEP_4 As ToolStripSeparator
         Private WithEvents BTT_FEED_ADD_FAV_REMOVE As ToolStripMenuItem
         Private WithEvents BTT_FEED_ADD_SPEC_REMOVE As ToolStripMenuItem
+        Private WithEvents BTT_COPY_TO As ToolStripMenuItem
+        Private WithEvents BTT_MOVE_TO As ToolStripMenuItem
+        Private WithEvents CONTEXT_SEP_5 As ToolStripSeparator
+        Private WithEvents CONTEXT_SEP_2 As ToolStripSeparator
     End Class
 End Namespace
