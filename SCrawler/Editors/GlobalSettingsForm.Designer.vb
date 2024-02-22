@@ -133,6 +133,7 @@ Namespace Editors
             Me.CH_STD_SNAP_CACHE_PERMANENT = New System.Windows.Forms.CheckBox()
             Me.CH_STD_YT_CREATE_URL = New System.Windows.Forms.CheckBox()
             Me.CH_USE_DEF_ACC = New System.Windows.Forms.CheckBox()
+            Me.CH_NOTIFY_LOG = New System.Windows.Forms.CheckBox()
             Me.TXT_CHANNELS_ROWS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_CHANNELS_COLUMNS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.CH_DOWN_IMAGES_NATIVE = New System.Windows.Forms.CheckBox()
@@ -178,7 +179,7 @@ Namespace Editors
             Me.TAB_MAIN = New System.Windows.Forms.TabControl()
             Me.TAB_ENVIR = New System.Windows.Forms.TabPage()
             Me.CONTAINER_MAIN = New System.Windows.Forms.ToolStripContainer()
-            Me.CH_NOTIFY_LOG = New System.Windows.Forms.CheckBox()
+            Me.CH_FEED_UP_FILE_LOC_MOVE = New System.Windows.Forms.CheckBox()
             TP_BASIS = New System.Windows.Forms.TableLayoutPanel()
             TP_IMAGES = New System.Windows.Forms.TableLayoutPanel()
             TP_FILE_NAME = New System.Windows.Forms.TableLayoutPanel()
@@ -1037,6 +1038,18 @@ Namespace Editors
             TT_MAIN.SetToolTip(Me.CH_USE_DEF_ACC, "Use the default account if you deleted an account that you used for some users")
             Me.CH_USE_DEF_ACC.UseVisualStyleBackColor = True
             '
+            'CH_NOTIFY_LOG
+            '
+            Me.CH_NOTIFY_LOG.AutoSize = True
+            Me.CH_NOTIFY_LOG.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_NOTIFY_LOG.Location = New System.Drawing.Point(4, 212)
+            Me.CH_NOTIFY_LOG.Name = "CH_NOTIFY_LOG"
+            Me.CH_NOTIFY_LOG.Size = New System.Drawing.Size(568, 19)
+            Me.CH_NOTIFY_LOG.TabIndex = 8
+            Me.CH_NOTIFY_LOG.Text = "The log contains new data"
+            TT_MAIN.SetToolTip(Me.CH_NOTIFY_LOG, "Show a notification when the new data is added to the log.")
+            Me.CH_NOTIFY_LOG.UseVisualStyleBackColor = True
+            '
             'TP_CHANNELS_IMGS
             '
             TP_CHANNELS_IMGS.ColumnCount = 2
@@ -1507,10 +1520,11 @@ Namespace Editors
             TP_FEED.Controls.Add(Me.CH_FEED_OPEN_LAST_MODE, 0, 7)
             TP_FEED.Controls.Add(Me.CH_FEED_SHOW_FRIENDLY, 0, 8)
             TP_FEED.Controls.Add(Me.CH_FEED_SHOW_SPEC_MEDIAITEM, 0, 9)
+            TP_FEED.Controls.Add(Me.CH_FEED_UP_FILE_LOC_MOVE, 0, 10)
             TP_FEED.Dock = System.Windows.Forms.DockStyle.Fill
             TP_FEED.Location = New System.Drawing.Point(0, 0)
             TP_FEED.Name = "TP_FEED"
-            TP_FEED.RowCount = 11
+            TP_FEED.RowCount = 12
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
@@ -1518,6 +1532,7 @@ Namespace Editors
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
+            TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
@@ -2154,17 +2169,17 @@ Namespace Editors
             Me.CONTAINER_MAIN.TabIndex = 0
             Me.CONTAINER_MAIN.TopToolStripPanelVisible = False
             '
-            'CH_NOTIFY_LOG
+            'CH_FEED_UP_FILE_LOC_MOVE
             '
-            Me.CH_NOTIFY_LOG.AutoSize = True
-            Me.CH_NOTIFY_LOG.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_NOTIFY_LOG.Location = New System.Drawing.Point(4, 212)
-            Me.CH_NOTIFY_LOG.Name = "CH_NOTIFY_LOG"
-            Me.CH_NOTIFY_LOG.Size = New System.Drawing.Size(568, 19)
-            Me.CH_NOTIFY_LOG.TabIndex = 8
-            Me.CH_NOTIFY_LOG.Text = "The log contains new data"
-            TT_MAIN.SetToolTip(Me.CH_NOTIFY_LOG, "Show a notification when the new data is added to the log.")
-            Me.CH_NOTIFY_LOG.UseVisualStyleBackColor = True
+            Me.CH_FEED_UP_FILE_LOC_MOVE.AutoSize = True
+            Me.CH_FEED_UP_FILE_LOC_MOVE.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_FEED_UP_FILE_LOC_MOVE.Location = New System.Drawing.Point(4, 273)
+            Me.CH_FEED_UP_FILE_LOC_MOVE.Name = "CH_FEED_UP_FILE_LOC_MOVE"
+            Me.CH_FEED_UP_FILE_LOC_MOVE.Size = New System.Drawing.Size(568, 19)
+            Me.CH_FEED_UP_FILE_LOC_MOVE.TabIndex = 10
+            Me.CH_FEED_UP_FILE_LOC_MOVE.Text = "Update file location when moved"
+            TT_MAIN.SetToolTip(Me.CH_FEED_UP_FILE_LOC_MOVE, "The file location will be updated in the session data and in the feeds data")
+            Me.CH_FEED_UP_FILE_LOC_MOVE.UseVisualStyleBackColor = True
             '
             'GlobalSettingsForm
             '
@@ -2357,5 +2372,6 @@ Namespace Editors
         Private WithEvents CH_USE_DEF_ACC As CheckBox
         Private WithEvents CH_FEED_SHOW_SPEC_MEDIAITEM As CheckBox
         Private WithEvents CH_NOTIFY_LOG As CheckBox
+        Private WithEvents CH_FEED_UP_FILE_LOC_MOVE As CheckBox
     End Class
 End Namespace

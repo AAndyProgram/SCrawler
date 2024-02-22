@@ -18,6 +18,7 @@ Namespace DownloadObjects
         Friend Event MediaDeleted(ByVal Sender As Object)
         Friend Event MediaDownload As EventHandler
         Friend Event FeedAddWithRemove(ByVal Sender As FeedMedia, ByVal Feeds As IEnumerable(Of String), ByVal Media As UserMediaD, ByVal RemoveOperation As Boolean)
+        Friend Event MediaMove(ByVal Sender As FeedMedia, ByVal Destination As SFile, ByRef Result As Boolean)
 #End Region
 #Region "Declarations"
         Private Const VideoHeight As Integer = 450
@@ -490,6 +491,8 @@ Namespace DownloadObjects
                     Dim isCopy As Boolean = sender Is BTT_COPY_TO
                     Dim dest As SFile = Nothing
                     Dim ff As SFile = File
+                    Dim result As Boolean = False
+
                     Using f As New FeedCopyToForm({File}, isCopy)
                         f.ShowDialog()
                         If f.DialogResult = DialogResult.OK Then dest = f.Destination
@@ -497,11 +500,11 @@ Namespace DownloadObjects
                     If Not dest.IsEmptyString Then
                         ff.Path = dest
                         If isCopy Then
-                            File.Copy(ff)
+                            result = File.Copy(ff)
                         Else
-                            If SFile.Move(File, ff) Then RaiseEvent MediaDeleted(Me)
+                            RaiseEvent MediaMove(Me, dest, result)
                         End If
-                        MsgBoxE({$"File {IIf(isCopy, "copied", "moved")}{vbCr}Source: '{File}'{vbCr}Destination: '{ff}'", MsgTitle})
+                        If result Then MsgBoxE({$"File {IIf(isCopy, "copied", "moved")}{vbCr}Source: '{File}'{vbCr}Destination: '{ff}'", MsgTitle})
                     End If
                 End If
             Catch ex As Exception

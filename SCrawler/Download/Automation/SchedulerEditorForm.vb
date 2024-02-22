@@ -279,9 +279,9 @@ Namespace DownloadObjects
                                     If Not Settings.Automation.File = f AndAlso Settings.Automation.Reset(f, False) Then
                                         Settings.Automation.File = f
                                         If selectedName = defName Then
-                                            Settings.AutomationFile.Value = Nothing
+                                            Settings.AutomationFile.Value = String.Empty
                                         Else
-                                            Settings.AutomationFile.Value = f
+                                            Settings.AutomationFile.Value = f.File
                                         End If
                                         PauseArr.UpdatePauseButtons()
                                         Refill()

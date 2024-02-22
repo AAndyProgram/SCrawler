@@ -180,7 +180,7 @@ Namespace DownloadObjects
             DataList.Clear()
         End Sub
         Private Sub DownloadFeedForm_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
-            If e.KeyCode = Keys.F5 Then RefillList0() : e.Handled = True
+            If e.KeyCode = Keys.F5 Then RefillList() : e.Handled = True
         End Sub
 #End Region
 #Region "Feeds handlers"
@@ -340,19 +340,19 @@ Namespace DownloadObjects
                 MyRange.HandlersSuspended = True
                 MyRange.Limit = c
                 MyRange.HandlersSuspended = False
-                If Not MyDefs.Initializing Then RefillList0()
+                If Not MyDefs.Initializing Then RefillList()
             End With
         End Sub
 #End Region
 #Region "Refill"
-        Private Sub RefillList0(Optional ByVal RememberPosition As Boolean? = Nothing)
+        Private Overloads Sub RefillList(Optional ByVal RememberPosition As Boolean? = Nothing)
             If IsSession Then
                 RefillList(FeedMode = FeedModes.Current, If(RememberPosition, True))
             Else
                 RefillSpecialFeedsData()
             End If
         End Sub
-        Private Sub RefillList(Optional ByVal RefillDataList As Boolean = True, Optional ByVal RememberPosition As Boolean = False)
+        Private Overloads Sub RefillList(ByVal RefillDataList As Boolean, ByVal RememberPosition As Boolean)
             DataPopulated = False
             Dim rIndx% = -1
             If RememberPosition Then rIndx = MyRange.CurrentIndex
@@ -493,39 +493,136 @@ Namespace DownloadObjects
         End Sub
 #End Region
         Private Sub BTT_COPY_MOVE_TO_Click(sender As Object, e As EventArgs) Handles BTT_COPY_TO.Click, BTT_MOVE_TO.Click
+            MoveCopyFiles(True, sender, Nothing, Nothing)
+        End Sub
+        Private Function MoveCopyFiles(ByVal IsInternal As Boolean, ByVal Sender As Object, ByVal NewDestination As SFile, ByVal FeedMediaFile As SFile) As Boolean
             Const MsgTitle$ = "Copy/Move checked files"
             Try
-                Dim isCopy As Boolean = sender Is BTT_COPY_TO
+                Dim isCopy As Boolean = Not Sender Is Nothing AndAlso Sender Is BTT_COPY_TO
                 Dim dest As SFile = Nothing
-                Dim ff As SFile, df As SFile
+                Dim ff As SFile = Nothing, df As SFile
                 Dim files As IEnumerable(Of SFile) = Nothing
+                Dim mm As UserMediaD
+                Dim mm_data As API.Base.UserMedia
+                Dim indx%
+                Dim renameExisting As Boolean = False
+                Dim downloaderFilesUpdated As Boolean = False
+                Dim eFiles As IEnumerable(Of SFile)
+                Dim finder As Predicate(Of UserMediaD) = Function(media) media.Data.File = ff
+                Dim x As XmlFile
+                Dim sessionData As New List(Of UserMediaD)
+                Dim sesFile As SFile
+                Dim sesFilesReplaced As Boolean = False
+                Dim filesReplace As New List(Of KeyValuePair(Of SFile, SFile))
+                Dim updateFileLocations As Boolean = Settings.FeedUpdateFileLocationOnMove
+                Dim result As Boolean = False
 
-                With GetCheckedMedia()
-                    If .ListExists Then files = .Select(Function(m) m.Data.File)
-                End With
+                If FeedMediaFile.IsEmptyString Then
+                    With GetCheckedMedia()
+                        If .ListExists Then files = .Select(Function(m) m.Data.File)
+                    End With
+                Else
+                    files = {FeedMediaFile}
+                End If
                 If files.ListExists Then
-                    Using f As New FeedCopyToForm(files, isCopy)
-                        f.ShowDialog()
-                        If f.DialogResult = DialogResult.OK Then dest = f.Destination
-                    End Using
+                    If NewDestination.IsEmptyString Then
+                        Using f As New FeedCopyToForm(files, isCopy)
+                            f.ShowDialog()
+                            If f.DialogResult = DialogResult.OK Then dest = f.Destination
+                        End Using
+                    Else
+                        dest = NewDestination
+                    End If
                     If Not dest.IsEmptyString Then
+                        If Not isCopy Then
+                            eFiles = files.Where(Function(ByVal fff As SFile) As Boolean
+                                                     fff.Path = dest
+                                                     Return fff.Exists
+                                                 End Function)
+                            If eFiles.ListExists Then _
+                               renameExisting = MsgBoxE(New MMessage("The following files already exist at the destination. " &
+                                                                     "Do you still want to move them? These files will be renamed and moved." & vbCr &
+                                                                     $"Destination: {dest.PathWithSeparator}{vbCr}{vbCr}" &
+                                                                     eFiles.ListToString(vbCr), MsgTitle, {"Move", "Cancel"}, vbExclamation)) = 0
+
+                        End If
                         For Each ff In files
                             If Not ff.IsEmptyString Then
                                 df = ff
                                 df.Path = dest.Path
-                                If isCopy Then ff.Copy(df) Else SFile.Move(ff, df)
+                                If isCopy Then
+                                    If ff.Copy(df) Then result = True
+                                Else
+                                    If df.Exists And renameExisting Then df = SFile.IndexReindex(df,,,, New ErrorsDescriber(False, False, False, df))
+                                    If SFile.Move(ff, df) Then
+                                        result = True
+                                        If updateFileLocations Then
+                                            filesReplace.Add(New KeyValuePair(Of SFile, SFile)(ff, df))
+                                            indx = Downloader.Files.FindIndex(finder)
+                                            If indx >= 0 Then
+                                                mm = Downloader.Files(indx)
+                                                mm_data = mm.Data
+                                                mm_data.File = df
+                                                mm = New UserMediaD(mm_data, mm.User, mm.Session, mm.Date)
+                                                Downloader.Files(indx) = mm
+                                                downloaderFilesUpdated = True
+                                            End If
+                                        End If
+                                    End If
+                                End If
                             End If
                         Next
-                        If Not isCopy Then RefillList0()
-                        MsgBoxE({$"The following files were copied to{vbCr}{dest}{vbCr}{vbCr}{files.ListToString(vbCr)}", MsgTitle})
+                        If Not isCopy And updateFileLocations Then
+                            If downloaderFilesUpdated Then Downloader.FilesSave()
+                            If FeedMode = FeedModes.Saved And Not LoadedSessionName.IsEmptyString And filesReplace.Count > 0 Then
+                                sesFile = $"{TDownloader.SessionsPath.CSFilePS}{LoadedSessionName}.xml"
+                                If sesFile.Exists Then
+                                    sessionData.Clear()
+                                    x = New XmlFile(sesFile, Protector.Modes.All, False) With {.AllowSameNames = True}
+                                    x.LoadData()
+                                    If x.Count > 0 Then sessionData.ListAddList(x)
+                                    x.Dispose()
+                                    If sessionData.Count > 0 Then
+                                        For Each rfile As KeyValuePair(Of SFile, SFile) In filesReplace
+                                            ff = rfile.Key
+                                            df = rfile.Value
+                                            indx = sessionData.FindIndex(finder)
+                                            If indx >= 0 Then
+                                                mm = sessionData(indx)
+                                                mm_data = mm.Data
+                                                mm_data.File = df
+                                                mm = New UserMediaD(mm_data, mm.User, mm.Session, mm.Date)
+                                                sessionData(indx) = mm
+                                                sesFilesReplaced = True
+                                            End If
+                                        Next
+                                        If sesFilesReplaced Then
+                                            x = New XmlFile With {.AllowSameNames = True}
+                                            x.AddRange(sessionData)
+                                            x.Name = TDownloader.Name_SessionXML
+                                            x.Save(sesFile, EDP.SendToLog)
+                                            x.Dispose()
+                                        End If
+                                        sessionData.Clear()
+                                    End If
+                                End If
+                            End If
+                            If filesReplace.Count > 0 Then filesReplace.ForEach(Sub(fr) Settings.Feeds.UpdateDataByFile(fr.Key, fr.Value))
+                            filesReplace.Clear()
+                            RefillList()
+                        End If
+                        If IsInternal Then MsgBoxE({$"The following files were {IIf(isCopy, "copied", "moved")} to{vbCr}{dest}{vbCr}{vbCr}{files.ListToString(vbCr)}", MsgTitle})
                     End If
                 Else
                     MsgBoxE({"No files selected", MsgTitle}, vbExclamation)
                 End If
+                Return result
             Catch ex As Exception
-                ErrorsDescriber.Execute(EDP.LogMessageValue, ex, MsgTitle)
+                Return ErrorsDescriber.Execute(EDP.LogMessageValue, ex, MsgTitle, False)
+            Finally
+                Settings.Feeds.UpdateWhereDataReplaced()
             End Try
-        End Sub
+        End Function
 #Region "Load fav, spec"
         Private Sub BTT_LOAD_FAV_Click(sender As Object, e As EventArgs) Handles BTT_LOAD_FAV.Click
             FeedChangeMode(FeedModes.Special, {FeedSpecial.FavoriteName})
@@ -713,7 +810,7 @@ Namespace DownloadObjects
             If MsgBoxE({"Are you sure you want to clear this session data?", "Clear session"}, vbExclamation,,, {"Process", "Cancel"}) = 0 Then
                 Downloader.Files.Clear()
                 ClearTable()
-                RefillList0()
+                RefillList()
             End If
         End Sub
 #End Region
@@ -848,7 +945,7 @@ Namespace DownloadObjects
                                   Settings.FeedLastModeSubscriptions.Value = OPT_SUBSCRIPTIONS.Checked
                                   MENU_DOWN.Visible = OPT_SUBSCRIPTIONS.Checked
                               End Sub, EDP.None)
-            If __refill Then RefillList0()
+            If __refill Then RefillList()
         End Sub
 #End Region
         Friend Sub Downloader_FilesChanged(ByVal Added As Boolean)
@@ -856,10 +953,13 @@ Namespace DownloadObjects
             BTT_REFRESH.ControlChangeColor(ToolbarTOP, Added, False)
         End Sub
         Private Sub BTT_REFRESH_Click(sender As Object, e As EventArgs) Handles BTT_REFRESH.Click
-            RefillList0()
+            RefillList()
         End Sub
 #End Region
 #Region "FeedMedia handlers"
+        Private Sub FeedMedia_MediaMove(ByVal Sender As FeedMedia, ByVal Destination As SFile, ByRef Result As Boolean)
+            Result = MoveCopyFiles(False, Nothing, Destination, Sender.File)
+        End Sub
         Private Sub FeedMedia_MediaDeleted(ByVal Sender As FeedMedia)
             Try
                 ControlInvoke(TP_DATA, Sub() TPRemoveControl(Sender, True))
@@ -1061,7 +1161,7 @@ Namespace DownloadObjects
                     If d.ListExists AndAlso Not IsSubscription AndAlso d.All(FileNotExist) Then
                         i = Sender.CurrentIndex
                         Sender.HandlersSuspended = True
-                        RefillList0(False)
+                        RefillList(False)
                         If Sender.Count > 0 Then
                             If i.ValueBetween(0, Sender.Count - 1) Then Sender.CurrentIndex = i
                             Sender.HandlersSuspended = False
@@ -1087,6 +1187,7 @@ Namespace DownloadObjects
                                       With fmList.Last
                                           AddHandler .MediaDeleted, AddressOf FeedMedia_MediaDeleted
                                           AddHandler .MediaDownload, AddressOf FeedMedia_Download
+                                          AddHandler .MediaMove, AddressOf FeedMedia_MediaMove
                                           AddHandler .FeedAddWithRemove, AddressOf FeedMedia_FeedAddWithRemove
                                       End With
                                   End Sub)

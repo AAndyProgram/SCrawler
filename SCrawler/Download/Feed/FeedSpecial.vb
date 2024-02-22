@@ -30,6 +30,7 @@ Namespace DownloadObjects
         Friend Const FavoriteName As String = "Favorite"
         Friend Const SpecialName As String = "Special"
         Private ReadOnly Items As List(Of UserMediaD)
+        Private _FilesUpdated As Boolean = False
         Private _File As SFile
         Friend ReadOnly Property File As SFile
             Get
@@ -166,6 +167,26 @@ Namespace DownloadObjects
             Result = False
             Return Item
         End Function
+#End Region
+#Region "UpdateDataByFile"
+        Friend Sub UpdateDataByFile(ByVal InitialFile As SFile, ByVal NewFile As SFile)
+            Try
+                Dim indx% = Items.FindIndex(Function(ii) ii.Data.File = InitialFile)
+                If indx >= 0 Then
+                    Dim m As UserMediaD = Items(indx)
+                    Dim mm As UserMedia = m.Data
+                    mm.File = NewFile
+                    m = New UserMediaD(mm, m.User, m.Session, m.Date)
+                    Items(indx) = m
+                    _FilesUpdated = True
+                End If
+            Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "[FeedSpecial.UpdateDataByFile]")
+            End Try
+        End Sub
+        Friend Sub UpdateIfRequired()
+            If _FilesUpdated Then Save() : _FilesUpdated = False
+        End Sub
 #End Region
 #Region "Add"
         Friend Overloads Function Add(ByVal Item As UserMediaD, Optional ByVal AutoSave As Boolean = True) As Boolean

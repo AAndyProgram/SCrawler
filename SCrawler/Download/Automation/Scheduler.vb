@@ -38,7 +38,13 @@ Namespace DownloadObjects
         End Property
         Friend Sub New()
             Plans = New List(Of AutoDownloader)
-            File = Settings.AutomationFile.Value.IfNullOrEmpty(FileDefault)
+            Dim sFolder As SFile = SettingsFolderName.CSFileP
+            File = New SFile(Settings.AutomationFile.Value.IfNullOrEmpty(FileDefault.ToString))
+            If File.Path.IsEmptyString OrElse Not File.Path.StartsWith(sFolder.Path) Then
+                Dim updateSetting As Boolean = File.Path.IsEmptyString OrElse Not File.Path.StartsWith(sFolder.CutPath.Path)
+                File.Path = sFolder.Path
+                If File.Exists And updateSetting Then Settings.AutomationFile.Value = File.File
+            End If
             If Not File.Exists Then File = FileDefault
             Reset(File, True)
         End Sub

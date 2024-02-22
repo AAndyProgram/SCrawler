@@ -174,7 +174,7 @@ Namespace DownloadObjects
             End Get
         End Property
 #End Region
-#Region "Add, Delete"
+#Region "Add, Delete, UpdateDataByFile, UpdateWhereDataReplaced"
         Friend Function Add(ByVal Name As String) As Integer
             Dim i% = -1
             If Not Name.IsEmptyString Then
@@ -219,6 +219,12 @@ Namespace DownloadObjects
             End If
             Return result
         End Function
+        Friend Sub UpdateDataByFile(ByVal InitialFile As SFile, ByVal NewFile As SFile)
+            If Count > 0 Then Feeds.ForEach(Sub(f) f.UpdateDataByFile(InitialFile, NewFile))
+        End Sub
+        Friend Sub UpdateWhereDataReplaced()
+            If Count > 0 Then Feeds.ForEach(Sub(f) f.UpdateIfRequired())
+        End Sub
 #End Region
 #Region "IndexOf"
         Friend Function IndexOf(ByVal Name As String) As Integer

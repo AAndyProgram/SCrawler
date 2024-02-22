@@ -134,7 +134,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
     Friend ReadOnly Property DownloadLocations As STDownloader.DownloadLocationsCollection
     Friend ReadOnly Property GlobalLocations As STDownloader.DownloadLocationsCollection
     Friend Property Automation As Scheduler
-    Friend ReadOnly Property AutomationFile As XMLValue(Of SFile)
+    Friend ReadOnly Property AutomationFile As XMLValue(Of String)
     Friend ReadOnly Property Feeds As FeedSpecialCollection
     Friend ReadOnly Property BlackList As List(Of UserBan)
     Private ReadOnly BlackListFile As SFile = $"{SettingsFolderName}\BlackList.txt"
@@ -179,7 +179,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
 
         SeparateVideoFolder = New XMLValue(Of Boolean)("SeparateVideoFolder", True, MyXML)
         CollectionsPath = New XMLValue(Of String)("CollectionsPath", CollectionsFolderName, MyXML)
-        AutomationFile = New XMLValue(Of SFile)("AutomationFile",, MyXML)
+        AutomationFile = New XMLValue(Of String)("AutomationFile",, MyXML)
 
         UserAgent = New XMLValue(Of String)("UserAgent",, MyXML)
         If Not UserAgent.IsEmptyString Then DefaultUserAgent = UserAgent
@@ -321,6 +321,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         FeedShowFriendlyNames = New XMLValue(Of Boolean)("ShowFriendlyNames", True, MyXML, n)
         FeedShowSpecialFeedsMediaItem = New XMLValue(Of Boolean)("ShowSpecialFeedsMediaItem", False, MyXML, n)
         FeedLastCopyMoveLocation = New XMLValue(Of SFile)("LastCopyMoveLocation",, MyXML, n)
+        FeedUpdateFileLocationOnMove = New XMLValue(Of Boolean)("UpdateFileLocationOnMove", True, MyXML, n)
 
         n = {"Users"}
         FromChannelDownloadTop = New XMLValue(Of Integer)("FromChannelDownloadTop", 10, MyXML, n)
@@ -956,6 +957,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
     Friend ReadOnly Property FeedShowFriendlyNames As XMLValue(Of Boolean)
     Friend ReadOnly Property FeedShowSpecialFeedsMediaItem As XMLValue(Of Boolean)
     Friend ReadOnly Property FeedLastCopyMoveLocation As XMLValue(Of SFile)
+    Friend ReadOnly Property FeedUpdateFileLocationOnMove As XMLValue(Of Boolean)
 #End Region
 #Region "New version properties"
     Friend ReadOnly Property CheckUpdatesAtStart As XMLValue(Of Boolean)
