@@ -169,14 +169,14 @@ Namespace DownloadObjects
         End Function
 #End Region
 #Region "UpdateDataByFile"
-        Friend Sub UpdateDataByFile(ByVal InitialFile As SFile, ByVal NewFile As SFile)
+        Friend Sub UpdateDataByFile(ByVal InitialFile As SFile, ByVal NewFile As SFile, ByVal MCTOptions As FeedMoveCopyTo)
             Try
                 Dim indx% = Items.FindIndex(Function(ii) ii.Data.File = InitialFile)
                 If indx >= 0 Then
                     Dim m As UserMediaD = Items(indx)
                     Dim mm As UserMedia = m.Data
                     mm.File = NewFile
-                    m = New UserMediaD(mm, m.User, m.Session, m.Date)
+                    m = New UserMediaD(mm, If(MCTOptions.ReplaceUserProfile_Profile, m.User), m.Session, m.Date)
                     Items(indx) = m
                     _FilesUpdated = True
                 End If

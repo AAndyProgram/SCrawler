@@ -20,7 +20,7 @@ Imports ADB = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons
 Imports RButton = PersonalUtilities.Forms.Toolbars.RangeSwitcherToolbar.ControlItem
 Friend Class ChannelViewForm : Implements IChannelLimits
 #Region "Events"
-    Friend Event OnUsersAdded(ByVal StartIndex As Integer)
+    Friend Event OnUsersAdded As UsersAddedEventHandler
     Friend Event OnDownloadDone As NotificationEventHandler
 #End Region
 #Region "Appended user structure"

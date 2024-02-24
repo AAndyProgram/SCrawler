@@ -21,6 +21,7 @@ Friend Module MainMod
     Friend ReadOnly FilesPattern As RParams = RParams.DM("[^\./]+?\.\w+", 1, EDP.ReturnValue)
     Friend Delegate Sub NotificationEventHandler(ByVal Sender As SettingsCLS.NotificationObjects, ByVal Message As String)
     Friend Delegate Sub UserDownloadStateChangedEventHandler(ByVal User As IUserData, ByVal IsDownloading As Boolean)
+    Friend Delegate Sub UsersAddedEventHandler(ByVal StartIndex As Integer)
     Friend Delegate Function PathMoverHandler(ByVal User As UserInfo, ByVal DestinationPattern As SFile) As SFile
     Friend Const LVI_TempOption As String = "Temp"
     Friend Const LVI_FavOption As String = "Favorite"

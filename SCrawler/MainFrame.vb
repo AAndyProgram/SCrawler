@@ -488,6 +488,7 @@ CloseResume:
         If MyFeed Is Nothing Then
             MyFeed = New DownloadFeedForm
             AddHandler Downloader.FeedFilesChanged, AddressOf MyFeed.Downloader_FilesChanged
+            AddHandler MyFeed.UsersAdded, AddressOf OnUsersAddedHandler
             If Not MySavedPosts Is Nothing Then AddHandler MySavedPosts.FeedFilesChanged, AddressOf MyFeed.Downloader_FilesChanged
         End If
         If MyFeed.Visible Then MyFeed.BringToFront() Else MyFeed.Show()

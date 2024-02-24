@@ -320,8 +320,13 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         FeedLastModeSubscriptions = New XMLValue(Of Boolean)("LastModeSubscriptions", False, MyXML, n)
         FeedShowFriendlyNames = New XMLValue(Of Boolean)("ShowFriendlyNames", True, MyXML, n)
         FeedShowSpecialFeedsMediaItem = New XMLValue(Of Boolean)("ShowSpecialFeedsMediaItem", False, MyXML, n)
-        FeedLastCopyMoveLocation = New XMLValue(Of SFile)("LastCopyMoveLocation",, MyXML, n)
-        FeedUpdateFileLocationOnMove = New XMLValue(Of Boolean)("UpdateFileLocationOnMove", True, MyXML, n)
+        n = {"Feed", "MoveCopy"}
+        FeedMoveCopyLastLocation = New XMLValue(Of SFile)("LastLocation",, MyXML, n)
+        FeedMoveCopyUpdateFileLocationOnMove = New XMLValue(Of Boolean)("UpdateFileLocationOnMove", True, MyXML, n)
+        FeedMoveCopyIsProfileChecked = New XMLValue(Of Boolean)("IsProfileChecked", True, MyXML, n)
+        FeedMoveCopySeparateVideo = New XMLValue(Of Boolean)("SeparateVideo",, MyXML, n)
+        FeedMoveCopyReplaceUserProfile = New XMLValue(Of Boolean)("ReplaceUserProfile",, MyXML, n)
+        FeedMoveCopyCreatePathProfile = New XMLValue(Of Boolean)("CreatePathProfile",, MyXML, n)
 
         n = {"Users"}
         FromChannelDownloadTop = New XMLValue(Of Integer)("FromChannelDownloadTop", 10, MyXML, n)
@@ -956,8 +961,14 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
     Friend ReadOnly Property FeedLastModeSubscriptions As XMLValue(Of Boolean)
     Friend ReadOnly Property FeedShowFriendlyNames As XMLValue(Of Boolean)
     Friend ReadOnly Property FeedShowSpecialFeedsMediaItem As XMLValue(Of Boolean)
-    Friend ReadOnly Property FeedLastCopyMoveLocation As XMLValue(Of SFile)
-    Friend ReadOnly Property FeedUpdateFileLocationOnMove As XMLValue(Of Boolean)
+#Region "MoveCopy"
+    Friend ReadOnly Property FeedMoveCopyLastLocation As XMLValue(Of SFile)
+    Friend ReadOnly Property FeedMoveCopyUpdateFileLocationOnMove As XMLValue(Of Boolean)
+    Friend ReadOnly Property FeedMoveCopyIsProfileChecked As XMLValue(Of Boolean)
+    Friend ReadOnly Property FeedMoveCopySeparateVideo As XMLValue(Of Boolean)
+    Friend ReadOnly Property FeedMoveCopyReplaceUserProfile As XMLValue(Of Boolean)
+    Friend ReadOnly Property FeedMoveCopyCreatePathProfile As XMLValue(Of Boolean)
+#End Region
 #End Region
 #Region "New version properties"
     Friend ReadOnly Property CheckUpdatesAtStart As XMLValue(Of Boolean)

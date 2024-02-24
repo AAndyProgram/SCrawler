@@ -16,6 +16,9 @@ Imports UserMediaD = SCrawler.DownloadObjects.TDownloader.UserMediaD
 Imports DTSModes = PersonalUtilities.Forms.DateTimeSelectionForm.Modes
 Namespace DownloadObjects
     Friend Class DownloadFeedForm
+#Region "Events"
+        Friend Event UsersAdded As UsersAddedEventHandler
+#End Region
 #Region "Declarations"
         Private Const FeedTitleDefault As String = "Feed"
         Private WithEvents MyDefs As DefaultFormOptions
@@ -495,13 +498,15 @@ Namespace DownloadObjects
         Private Sub BTT_COPY_MOVE_TO_Click(sender As Object, e As EventArgs) Handles BTT_COPY_TO.Click, BTT_MOVE_TO.Click
             MoveCopyFiles(True, sender, Nothing, Nothing)
         End Sub
-        Private Function MoveCopyFiles(ByVal IsInternal As Boolean, ByVal Sender As Object, ByVal NewDestination As SFile, ByVal FeedMediaFile As SFile) As Boolean
+        Private Function MoveCopyFiles(ByVal IsInternal As Boolean, ByVal Sender As Object, ByVal MCTOptions As FeedMoveCopyTo, ByVal FeedMediaData As FeedMedia) As Boolean
             Const MsgTitle$ = "Copy/Move checked files"
             Try
                 Dim isCopy As Boolean = Not Sender Is Nothing AndAlso Sender Is BTT_COPY_TO
-                Dim dest As SFile = Nothing
+                Dim moveOptions As FeedMoveCopyTo = Nothing
                 Dim ff As SFile = Nothing, df As SFile
-                Dim files As IEnumerable(Of SFile) = Nothing
+                Dim data As IEnumerable(Of UserMediaD) = Nothing
+                Dim dd As UserMediaD
+                Dim data_files As IEnumerable(Of SFile) = Nothing
                 Dim mm As UserMediaD
                 Dim mm_data As API.Base.UserMedia
                 Dim indx%
@@ -514,42 +519,91 @@ Namespace DownloadObjects
                 Dim sesFile As SFile
                 Dim sesFilesReplaced As Boolean = False
                 Dim filesReplace As New List(Of KeyValuePair(Of SFile, SFile))
-                Dim updateFileLocations As Boolean = Settings.FeedUpdateFileLocationOnMove
+                Dim updateFileLocations As Boolean = Settings.FeedMoveCopyUpdateFileLocationOnMove
                 Dim result As Boolean = False
 
-                If FeedMediaFile.IsEmptyString Then
-                    With GetCheckedMedia()
-                        If .ListExists Then files = .Select(Function(m) m.Data.File)
+                If FeedMediaData Is Nothing Then
+                    data = GetCheckedMedia()
+                    With data
+                        If .ListExists Then data_files = .Select(Function(m) m.Data.File)
                     End With
                 Else
-                    files = {FeedMediaFile}
+                    data = {FeedMediaData.Media}
+                    data_files = {FeedMediaData.File}
                 End If
-                If files.ListExists Then
-                    If NewDestination.IsEmptyString Then
-                        Using f As New FeedCopyToForm(files, isCopy)
+                If data.ListExists Then
+                    If MCTOptions.Destination.IsEmptyString Then
+                        Using f As New FeedCopyToForm(data_files, isCopy)
                             f.ShowDialog()
-                            If f.DialogResult = DialogResult.OK Then dest = f.Destination
+                            If f.DialogResult = DialogResult.OK Then moveOptions = f.Result
                         End Using
                     Else
-                        dest = NewDestination
+                        moveOptions = MCTOptions
                     End If
-                    If Not dest.IsEmptyString Then
+
+                    With moveOptions
+                        If Not .Destination.IsEmptyString And .ReplaceUserProfile And .ReplaceUserProfile_CreateIfNull And .ReplaceUserProfile_Profile Is Nothing Then
+                            Dim existingPathInstances As IEnumerable(Of String) = Nothing
+                            Dim __user As UserInfo
+                            Dim __host As Plugin.Hosts.SettingsHost = Settings(API.PathPlugin.PluginKey).Default
+                            Dim __userName$ = .Destination.Segments.LastOrDefault
+                            If Settings.UsersList.Count > 0 Then _
+                               existingPathInstances = (From __uu As UserInfo In Settings.UsersList
+                                                        Where __uu.Plugin = API.PathPlugin.PluginKey
+                                                        Select __uu.Name.ToLower)
+                            Do
+                                __userName = InputBoxE("Enter a new username for the 'path' plugin:", MsgTitle, __userName)
+                                If __userName.IsEmptyString Then
+                                    Return False
+                                Else
+                                    If Not existingPathInstances.ListExists OrElse Not existingPathInstances.Contains(__userName.ToLower) Then
+                                        Exit Do
+                                    ElseIf MsgBoxE({$"The name you entered ({__userName}) already exists", MsgTitle}, vbCritical,,, {"Retry", "Cancel"}) = 1 Then
+                                        Return False
+                                    End If
+                                End If
+                            Loop
+                            __user = New UserInfo(__userName, __host) With {.SpecialPath = moveOptions.Destination.CSFilePS}
+                            __user.UpdateUserFile()
+                            If Settings.UsersList.Count = 0 OrElse Not Settings.UsersList.Contains(__user) Then
+                                Settings.UpdateUsersList(__user)
+                                With Settings.Users
+                                    Dim startIndx% = .Count
+                                    .Add(API.Base.UserDataBase.GetInstance(__user))
+                                    With .Last
+                                        If Not .FileExists Then .UpdateUserInformation()
+                                    End With
+                                    RaiseEvent UsersAdded(startIndx)
+                                    moveOptions.ReplaceUserProfile_Profile = .Last
+                                End With
+
+                            Else
+                                MsgBoxE({$"The user list already contains the user you want to add.{vbCr}Operation canceled.", MsgTitle}, vbCritical)
+                                Return False
+                            End If
+                        End If
+                    End With
+
+                    If Not moveOptions.Destination.IsEmptyString Then
                         If Not isCopy Then
-                            eFiles = files.Where(Function(ByVal fff As SFile) As Boolean
-                                                     fff.Path = dest
-                                                     Return fff.Exists
-                                                 End Function)
+                            Dim eFileResult As Func(Of UserMediaD, SFile) = Function(ByVal fff As UserMediaD) As SFile
+                                                                                Dim _fff As SFile = fff.Data.File
+                                                                                _fff.Path = moveOptions.DestinationTrue(fff).Path
+                                                                                Return _fff
+                                                                            End Function
+                            eFiles = (From ef As UserMediaD In data Where eFileResult.Invoke(ef).Exists Select eFileResult.Invoke(ef))
                             If eFiles.ListExists Then _
                                renameExisting = MsgBoxE(New MMessage("The following files already exist at the destination. " &
                                                                      "Do you still want to move them? These files will be renamed and moved." & vbCr &
-                                                                     $"Destination: {dest.PathWithSeparator}{vbCr}{vbCr}" &
-                                                                     eFiles.ListToString(vbCr), MsgTitle, {"Move", "Cancel"}, vbExclamation)) = 0
+                                                                     $"Destination: {moveOptions.Destination.PathWithSeparator}{vbCr}{vbCr}" &
+                                                                     eFiles.ListToString(vbCr), MsgTitle, {"Move", "Cancel"}, vbExclamation) With {.Editable = True}) = 0
 
                         End If
-                        For Each ff In files
-                            If Not ff.IsEmptyString Then
+                        For Each dd In data
+                            If Not dd.Data.File.IsEmptyString Then
+                                ff = dd.Data.File
                                 df = ff
-                                df.Path = dest.Path
+                                df.Path = moveOptions.DestinationTrue(dd).Path
                                 If isCopy Then
                                     If ff.Copy(df) Then result = True
                                 Else
@@ -563,7 +617,7 @@ Namespace DownloadObjects
                                                 mm = Downloader.Files(indx)
                                                 mm_data = mm.Data
                                                 mm_data.File = df
-                                                mm = New UserMediaD(mm_data, mm.User, mm.Session, mm.Date)
+                                                mm = New UserMediaD(mm_data, If(moveOptions.ReplaceUserProfile_Profile, mm.User), mm.Session, mm.Date)
                                                 Downloader.Files(indx) = mm
                                                 downloaderFilesUpdated = True
                                             End If
@@ -580,7 +634,7 @@ Namespace DownloadObjects
                                     sessionData.Clear()
                                     x = New XmlFile(sesFile, Protector.Modes.All, False) With {.AllowSameNames = True}
                                     x.LoadData()
-                                    If x.Count > 0 Then sessionData.ListAddList(x)
+                                    If x.Count > 0 Then sessionData.ListAddList(x, LAP.IgnoreICopier)
                                     x.Dispose()
                                     If sessionData.Count > 0 Then
                                         For Each rfile As KeyValuePair(Of SFile, SFile) In filesReplace
@@ -591,9 +645,13 @@ Namespace DownloadObjects
                                                 mm = sessionData(indx)
                                                 mm_data = mm.Data
                                                 mm_data.File = df
-                                                mm = New UserMediaD(mm_data, mm.User, mm.Session, mm.Date)
+                                                mm = New UserMediaD(mm_data, If(moveOptions.ReplaceUserProfile_Profile, mm.User), mm.Session, mm.Date)
                                                 sessionData(indx) = mm
                                                 sesFilesReplaced = True
+                                                If DataList.Count > 0 Then
+                                                    indx = DataList.FindIndex(finder)
+                                                    If indx >= 0 Then DataList(indx) = mm
+                                                End If
                                             End If
                                         Next
                                         If sesFilesReplaced Then
@@ -607,11 +665,11 @@ Namespace DownloadObjects
                                     End If
                                 End If
                             End If
-                            If filesReplace.Count > 0 Then filesReplace.ForEach(Sub(fr) Settings.Feeds.UpdateDataByFile(fr.Key, fr.Value))
+                            If filesReplace.Count > 0 Then filesReplace.ForEach(Sub(fr) Settings.Feeds.UpdateDataByFile(fr.Key, fr.Value, moveOptions))
                             filesReplace.Clear()
-                            RefillList()
                         End If
-                        If IsInternal Then MsgBoxE({$"The following files were {IIf(isCopy, "copied", "moved")} to{vbCr}{dest}{vbCr}{vbCr}{files.ListToString(vbCr)}", MsgTitle})
+                        If IsInternal Then MsgBoxE(New MMessage($"The following files were {IIf(isCopy, "copied", "moved")} to{vbCr}{moveOptions.Destination}{vbCr}{vbCr}{data_files.ListToString(vbCr)}", MsgTitle) With {.Editable = True})
+                        If Not isCopy And updateFileLocations Then RefillList()
                     End If
                 Else
                     MsgBoxE({"No files selected", MsgTitle}, vbExclamation)
@@ -899,7 +957,7 @@ Namespace DownloadObjects
                         Else
                             MsgBoxE({"No destination selected", msgTitle}, vbExclamation)
                         End If
-                    ElseIf mfrom.ListExists(1) Then
+                    ElseIf mFrom.ListExists(1) Then
                         MsgBoxE({"You must select two or more files to merge feeds", msgTitle}, vbExclamation)
                     Else
                         MsgBoxE({"You haven't selected any feeds", msgTitle}, vbExclamation)
@@ -957,8 +1015,8 @@ Namespace DownloadObjects
         End Sub
 #End Region
 #Region "FeedMedia handlers"
-        Private Sub FeedMedia_MediaMove(ByVal Sender As FeedMedia, ByVal Destination As SFile, ByRef Result As Boolean)
-            Result = MoveCopyFiles(False, Nothing, Destination, Sender.File)
+        Private Sub FeedMedia_MediaMove(ByVal Sender As FeedMedia, ByVal MCTOptions As FeedMoveCopyTo, ByRef Result As Boolean)
+            Result = MoveCopyFiles(False, Nothing, MCTOptions, Sender)
         End Sub
         Private Sub FeedMedia_MediaDeleted(ByVal Sender As FeedMedia)
             Try

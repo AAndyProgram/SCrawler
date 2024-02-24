@@ -279,6 +279,7 @@
     <Compile Include="Download\Feed\FeedMedia.vb">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Include="Download\Feed\FeedMoveCopyTo.vb" />
     <Compile Include="Download\Feed\FeedSpecial.vb" />
     <Compile Include="Download\Feed\FeedSpecialCollection.vb" />
     <Compile Include="Download\Feed\FeedVideo.Designer.vb">

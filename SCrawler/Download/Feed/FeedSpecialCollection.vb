@@ -219,8 +219,8 @@ Namespace DownloadObjects
             End If
             Return result
         End Function
-        Friend Sub UpdateDataByFile(ByVal InitialFile As SFile, ByVal NewFile As SFile)
-            If Count > 0 Then Feeds.ForEach(Sub(f) f.UpdateDataByFile(InitialFile, NewFile))
+        Friend Sub UpdateDataByFile(ByVal InitialFile As SFile, ByVal NewFile As SFile, ByVal MCTOptions As FeedMoveCopyTo)
+            If Count > 0 Then Feeds.ForEach(Sub(f) f.UpdateDataByFile(InitialFile, NewFile, MCTOptions))
         End Sub
         Friend Sub UpdateWhereDataReplaced()
             If Count > 0 Then Feeds.ForEach(Sub(f) f.UpdateIfRequired())
