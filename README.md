@@ -15,6 +15,10 @@
 A program to download photo and video from [any site](#supported-sites) (e.g. YouTube, YouTube Music, OnlyFans, Reddit, Twitter, Mastodon, Instagram, Threads, Facebook, TikTok, RedGifs, JustForFans, PornHub, XHamster, XVIDEOS, ThisVid, LPSG, Pinterest).
 
 **If you like SCrawler, please like the program on [this site](https://alternativeto.net/software/scrawler/about/) and/or [this](https://www.softpedia.com/get/Internet/Download-Managers/Social-networks-crawler.shtml)**
+
+**Join our Discord server**: https://discord.gg/uFNUXvFFmg
+<br/>*If you have problems using the program, you can get help faster on our Discord server!*
+
 <!---Do you like this program? Consider adding to my coffee fund by making a donation to show your support. :blush:
 [![ko-fi](https://www.ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/andyprogram)--->
 **Bitcoin**: BC1Q0NH839FT5TA44DD7L7RLR97XDQAG9V8D6N7XET
@@ -74,12 +78,12 @@ A program to download photo and video from [any site](#supported-sites) (e.g. Yo
 - **YouTube Music**
 - **Reddit**
 - **Twitter**
-- **OnlyFans**
+- **OnlyFans** *(partial support)*[^1]
 - **Mastodon**
 - **Instagram**
 - **Threads**
 - **Facebook**
-- JustForFans
+- JustForFans *(partial support)*[^1]
 - TikTok
 - RedGifs
 - Pinterest
@@ -163,6 +167,8 @@ Just download [latest](https://github.com/AAndyProgram/SCrawler/releases/latest)
 
 **You can also use the updater included in the release package.**
 
+# [How to report a problem](CONTRIBUTING.md#how-to-report-a-problem)
+
 # [How to build from source](CONTRIBUTING.md#how-to-build-from-source)
 
 # [How to make a plugin](https://github.com/AAndyProgram/SCrawler/wiki/Plugins)
@@ -220,3 +226,5 @@ Discord server: https://discord.gg/uFNUXvFFmg
 
 [Wire](https://account.wire.com/user-profile/?id=93985052-cf2c-4b72-ac75-bbe3231cf544): @andyprogram
 -->
+
+[^1]: Partial support means that I don't have personal accounts on paid porn sites because I don't pay for porn. If this site has stopped downloading and you want me to fix it, please be ready to give me access to an account with at least one active subscription. Otherwise, the download from this site will not be fixed.

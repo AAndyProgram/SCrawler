@@ -1,3 +1,37 @@
+# 2024.2.25.0
+
+*2024-02-25*
+
+- Added
+  - A `Feed` button has been added to notifications
+  - Feed:
+    - ability to merge multiple special feeds into one
+    - ability to select all/none media
+    - ability to add to a special feed(s) with removal from the current one
+    - the name of the loaded feed is now displayed in the form title
+    - `Refresh` button now refreshes the loaded feed
+    - ability to move/copy media
+  - Scheduler: the ability to move tasks (higher, lower) *(just a view attribute, doesn't affect the scheduler)*
+  - YouTube (standalone app): add `Open file` to the context menu
+  - YouTube (standalone app): **the ability to edit each playlist item**
+  - YouTube (standalone app): **embed thumbnail in the audio/video as cover art** (Settings: `Defaults Audio` - `Embed thumbnail`; `Defaults Video` - `Embed thumbnail (video)`)
+  - Instagram: the `csrftoken` can now be automatically extracted from cookies
+  - Instagram: remove `x-ig-www-claim` from settings
+  - Threads: the `csrftoken` can now be automatically extracted from cookies
+  - Threads: simplify 500 error when updating tokens
+  - Facebook: simplify token update errors
+  - OnlyFans: handle 500 error
+  - Plugins: added `ReplaceInternalPluginAttribute` attribute
+  - Other improvements
+- Fixed
+  - Main window: incorrect sorting of profiles and collections
+  - Standalone downloader: url array form doesn't show scrollbars
+  - Feed: image rendering bug
+  - YouTube (standalone app): audio codec does not change when changing audio/video in the video options form
+  - Instagram: error downloading single post
+  - TikTok: files with long names aren't downloaded
+  - Minor bugs
+
 # 2024.1.26.0
 
 *2024-01-26*

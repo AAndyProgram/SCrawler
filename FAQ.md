@@ -14,8 +14,6 @@ Any other questions I will keep in this file.
 
 A: https://github.com/AAndyProgram/SCrawler/wiki/Settings#how-to-set-up-cookies
 
-<!---**ATTENTION! If you need to use cookies but cannot import them, I highly recommend that you don't use SCrawler and use another program. Don't create issues, discussions, or write to me on Discord. Any issue or discussion about cookies will be deleted immediately without a response. Any user who asks me about cookies on Discord will be banned.**--->
-
 ----
 
 #### Q: **Does this program have GUI or CLI.**
@@ -41,13 +39,16 @@ A: NO.
 
 A: Check your credentials and **[SITES REQUIREMENTS](https://github.com/AAndyProgram/SCrawler/wiki/Settings#sites-requirements)**. If all settings are set, but nothing works, go to [create a new issue](https://github.com/AAndyProgram/SCrawler/issues). Don't forget to attach the LOG.
 
+**You also can join our Discord server**: https://discord.gg/uFNUXvFFmg
+<br/>*You can get help faster there!*
+
 **ATTENTION! Issues without URLs will be closed without a response!**
 
 ----
 
 #### Q: **I have set credentials but still nothing is downloading**
 
-A: Click the ```Start downloading``` button
+A: Click the `Start downloading` button or press `F5`
 
 ----
 
@@ -59,7 +60,7 @@ A: https://github.com/AAndyProgram/SCrawler/releases/latest
 
 #### Q: **How to run the program?**
 
-A: Double-click ```SCrawler.exe```
+A: Double-click `SCrawler.exe`
 
 ----
 
@@ -77,19 +78,19 @@ A: The program stored posts IDs in users' folders. For the first time, the progr
 
 #### Q: **How to redownload all data**
 
-A: Double-click on the user you want to redownload. In the opened window open folder setting. Delete the files ending with ```_Data.xml```  and ```_Posts.txt```. Restart SCrawler. Download this user again.
+A: https://github.com/AAndyProgram/SCrawler/wiki#redownload-user
 
 ----
 
 #### Q: **How to remove the label**
 
-A: There is no functionality to remove an individual label. You can open the ```Labels.txt``` file in the program settings folder and delete any label you want. You also can delete this file (```Labels.txt```). In this case, when the program starts, the list of labels list will be updated with only existing labels (from the user data files).
+A: There is no functionality to remove an individual label. You can open the `Labels.txt` file in the program settings folder and delete any label you want. You also can delete this file (`Labels.txt`). In this case, when the program starts, the list of labels list will be updated with only existing labels (from the user data files).
 
 ----
 
 #### Q: **How to remove a user from the blacklist**
 
-A: Just add that user back to the program. In the dialog box that opens, click on the ```Add and remove from blacklist``` button.
+A: Just add that user back to the program. In the dialog box that opens, click on the `Add and remove from blacklist` button.
 
 ----
 
@@ -113,8 +114,8 @@ A: I can only [suggest](#q-you-lost-me-your-program-is-too-complicated) you find
 
 #### Q: **Can you add a step-by-step guide or video on how to use the program?**
 
-A: **NO! NEVER!** The guide fully covers all the functionality of SCrawler! If you don't respect my work, I don't waste my time. If you want, you can create a video tutorial and send it to me. Then I add it. All options and what each option does described on the wiki. The wiki also contains a description of all settings and how-to configure them. For complex settings, there is a steep-by-steep guide. Read the [main](README.md) information and [GUIDE](https://github.com/AAndyProgram/SCrawler/wiki/) and you won't have any problems. I have developed a program with an intuitive interface. There is a Settings button, download buttons, a context menu that drops down when a user is clicked, and other controls. Anyone can use it.
+A: **NO!** The guide fully covers all the functionality of SCrawler! If you don't respect my work, I don't waste my time. If you want, you can create a video tutorial and send it to me. Then I add it. All options and what each option does described on the wiki. The wiki also contains a description of all settings and how-to configure them. For complex settings, there is a steep-by-steep guide. Read the [main](README.md) information and [GUIDE](https://github.com/AAndyProgram/SCrawler/wiki/) and you won't have any problems. I have developed a program with an intuitive interface. There is a Settings button, download buttons, a context menu that drops down when a user is clicked, and other controls. Anyone can use it.
 
-**The following video shows how to add credentials:**
+**The following video was recorded by a user who loves SCrawler and demonstrates how to add credentials using Instagram as an example:**
 
 [![How to configure](https://img.youtube.com/vi/XDn7zG4I700/0.jpg)](https://www.youtube.com/watch?v=XDn7zG4I700)

@@ -5,7 +5,12 @@ I welcome requests! Follow these steps to contribute:
 1. Find an [issue](https://github.com/AAndyProgram/SCrawler/issues) that needs assistance.
 1. Let me know you are working on it by posting a comment on the issue.
 1. If you find an error in the code, please provide a link to the file and the line number.
-1. If you have a code change suggestion, you can post a replacement code block. I also accept pull requests.
+1. If you have a code change suggestion, you can post a replacement code block.<!-- I also accept pull requests.-->
+
+# How to report a problem
+1. Attach a **profile URL** that you cannot download.
+1. Attach the **LOG** if it exists.
+1. **Attach information to the issue with data copied from SCrawler (click the top right info button in the main window, then the `Environment` button, then the `Copy` button, and paste the copied text into the issue).**
 
 # How to build from source
 1. Delete the `PersonalUtilities` project from the solution.

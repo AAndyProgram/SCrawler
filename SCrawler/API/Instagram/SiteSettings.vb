@@ -249,10 +249,10 @@ Namespace API.Instagram
             HH_USER_AGENT = New PropertyValue(useragent, GetType(String), Sub(v) ChangeResponserFields(NameOf(HH_USER_AGENT), v))
 
             DownloadTimeline = New PropertyValue(True)
-            DownloadReels = New PropertyValue(True)
+            DownloadReels = New PropertyValue(False)
             DownloadStories = New PropertyValue(True)
             DownloadStoriesUser = New PropertyValue(True)
-            DownloadTagged = New PropertyValue(True)
+            DownloadTagged = New PropertyValue(False)
 
             RequestsWaitTimer = New PropertyValue(1000)
             RequestsWaitTimerProvider = New TimersChecker(100)
