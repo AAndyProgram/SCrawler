@@ -628,6 +628,18 @@ Namespace API.YouTube.Objects
             If HasElements And Not IsMusic Then urls.ListAddList(Elements.SelectMany(Function(elem As YouTubeMediaContainerBase) elem.GetFiles()), LAP.NotContainsOnly)
             Return urls
         End Function
+        Private _M3U8_PlaylistFile As SFile = Nothing
+        Friend Property M3U8_PlaylistFile As SFile
+            Get
+                Return _M3U8_PlaylistFile
+            End Get
+            Set(ByVal f As SFile)
+                If Not [Protected] Then
+                    _M3U8_PlaylistFile = f
+                    If HasElements Then Elements.ForEach(Sub(e As YouTubeMediaContainerBase) e.M3U8_PlaylistFile = f)
+                End If
+            End Set
+        End Property
 #End Region
 #Region "Command"
         <XMLEC> Public Property UseCookies As Boolean = MyYouTubeSettings.DefaultUseCookies Implements IYouTubeMediaContainer.UseCookies
@@ -788,6 +800,23 @@ Namespace API.YouTube.Objects
                 Return Nothing
             End Try
         End Function
+        Private Function GetPlaylistRow(ByVal Element As YouTubeMediaContainerBase, Optional ByVal __file As SFile = Nothing) As String
+            Const m3u8DataRow$ = "#EXTINF:{0},{1}" & vbCrLf & "{2}"
+            With Element
+                Dim f As SFile = __file.IfNullOrEmpty(.File)
+                Dim fName$ = .Title.IfNullOrEmpty(f.Name)
+                If MyYouTubeSettings.MusicPlaylistCreate_M3U8_AppendNumber Then fName = $"{ .PlaylistIndex}. {fName}"
+                If Not .UserTitle.IsEmptyString Then
+                    fName = $"{ .UserTitle} - {fName}"
+                    If MyYouTubeSettings.MusicPlaylistCreate_M3U8_AppendArtist Then fName = $"{ .UserTitle} - {fName}"
+                End If
+                If MyYouTubeSettings.MusicPlaylistCreate_M3U8_AppendExt Then fName &= $".{f.Extension}"
+                Return String.Format(m3u8DataRow,
+                                     CInt(.Duration.TotalSeconds),
+                                     fName,
+                                     $"file:///{SymbolsConverter.ASCII.EncodeSymbolsOnly(f)}")
+            End With
+        End Function
         Private ReadOnly DownloadProgressPattern As RParams = RParams.DMS("\[download\]\s*([\d\.,]+)", 1, EDP.ReturnValue)
         Public Property Progress As MyProgress Implements IYouTubeMediaContainer.Progress
         Private Property IDownloadableMedia_Progress As Object Implements IDownloadableMedia.Progress
@@ -822,6 +851,27 @@ Namespace API.YouTube.Objects
                 DownloadCommand(UseCookies, Token)
             Else
                 DownloadCommandArray(UseCookies, Token)
+                If HasElements AndAlso Elements(0).ObjectType = YouTubeMediaType.Single AndAlso Elements(0).IsMusic Then
+                    Dim t As TextSaver = Nothing
+                    Try
+                        If MyYouTubeSettings.MusicPlaylistCreate_M3U8 Then
+                            t = New TextSaver
+                            t.AppendLine("#EXTM3U")
+                            Elements.ForEach(Sub(e) t.AppendLine(GetPlaylistRow(e)))
+                            t.SaveAs($"{Elements(0).File.PathWithSeparator}Playlist.m3u8", EDP.SendToLog)
+                            t.Dispose()
+                        End If
+                        If MyYouTubeSettings.MusicPlaylistCreate_M3U Then
+                            t = New TextSaver
+                            Elements.ForEach(Sub(e) t.AppendLine(e.File))
+                            t.SaveAs($"{Elements(0).File.PathWithSeparator}Playlist.m3u", EDP.SendToLog)
+                            t.Dispose()
+                        End If
+                    Catch ex As Exception
+                        ErrorsDescriber.Execute(EDP.SendToLog, ex, "[YouTubeMediaContainerBase.Download.CreatePlaylist]")
+                    End Try
+                    t.DisposeIfReady
+                End If
             End If
             RaiseEvent DataDownloaded(Me, Nothing)
         End Sub
@@ -971,6 +1021,8 @@ Namespace API.YouTube.Objects
                         If Not File.Exists Then _File.Name = File.File
                         If File.Exists Then
 
+                            M3U8_Append()
+
                             If DownloadObjects.STDownloader.MyDownloaderSettings.CreateUrlFiles Then
                                 Dim fileUrl As SFile = File
                                 fileUrl.Extension = "url"
@@ -1042,7 +1094,11 @@ Namespace API.YouTube.Objects
                                             format = format.StringToLower
                                             f = String.Format(fPattern, format)
                                             Me.Files.Add(f)
-                                            If Not format = ac3 Or Not f.Exists Then ThrowAny(Token) : .Execute($"ffmpeg -i ""{fAacAudio}"" -f {format} ""{f}""")
+                                            If Not format = ac3 Or Not f.Exists Then
+                                                ThrowAny(Token)
+                                                .Execute($"ffmpeg -i ""{fAacAudio}"" -f {format} ""{f}""")
+                                                If Not M3U8_PlaylistFile.IsEmptyString AndAlso f.Exists Then M3U8_Append(f)
+                                            End If
                                         Next
                                     End If
                                 End If
@@ -1091,6 +1147,29 @@ Namespace API.YouTube.Objects
                     RaiseEvent FileDownloaded(Me, Nothing)
                 End If
             End Try
+        End Sub
+        Private Sub M3U8_Append(Optional ByVal __file As SFile = Nothing)
+            If Not M3U8_PlaylistFile.IsEmptyString Then
+                Dim m3u8Row$ = String.Empty
+                If Not M3U8_PlaylistFile.Extension.IsEmptyString Then
+                    If M3U8_PlaylistFile.Extension.ToLower = "m3u8" Then
+                        m3u8Row = GetPlaylistRow(Me, __file)
+                    ElseIf M3U8_PlaylistFile.Extension.ToLower = "m3u" Then
+                        m3u8Row = __file.IfNullOrEmpty(File).ToString
+                    End If
+                End If
+                If Not m3u8Row.IsEmptyString Then
+                    Dim m3u8Text$
+                    If M3U8_PlaylistFile.Exists Then
+                        m3u8Text = M3U8_PlaylistFile.GetText
+                        M3U8_PlaylistFile.Delete(SFO.File, SFODelete.DeleteToRecycleBin, EDP.SendToLog)
+                    Else
+                        m3u8Text = "#EXTM3U"
+                    End If
+                    m3u8Text.StringAppendLine(m3u8Row, vbCrLf)
+                    TextSaver.SaveTextToFile(m3u8Text, M3U8_PlaylistFile,,, EDP.SendToLog)
+                End If
+            End If
         End Sub
 #End Region
 #Region "Load"

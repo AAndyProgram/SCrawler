@@ -103,7 +103,7 @@ Namespace DownloadObjects.STDownloader
                 If UseUpdate Then .EndUpdate(True)
             End With
         End Sub
-        Public Sub PopulateComboBox(ByRef CMB As ComboBoxExtended, Optional ByVal Current As SFile = Nothing)
+        Public Sub PopulateComboBox(ByRef CMB As ComboBoxExtended, Optional ByVal Current As SFile = Nothing, Optional ByVal IsFile As Boolean = False)
             Locations.Sort()
             With CMB
                 .BeginUpdate()
@@ -124,7 +124,7 @@ Namespace DownloadObjects.STDownloader
                 .EndUpdate()
 
                 If Not Current.IsEmptyString And Locations.Count > 0 Then
-                    Dim i% = IndexOf(Current.PathWithSeparator)
+                    Dim i% = IndexOf(If(IsFile, Current.ToString, Current.PathWithSeparator),, IsFile)
                     If i.ValueBetween(0, .Items.Count - 1) Then .SelectedIndex = i
                     If Current.File.IsEmptyString Then CMB.Text = Current.PathWithSeparator Else CMB.Text = Current
                 End If
@@ -158,9 +158,9 @@ Namespace DownloadObjects.STDownloader
         Public Overloads Sub Add(ByVal Item As DownloadLocation) Implements ICollection(Of DownloadLocation).Add
             Add(Item, True)
         End Sub
-        Public Overloads Sub Add(ByVal Item As DownloadLocation, ByVal AskForName As Boolean)
+        Public Overloads Sub Add(ByVal Item As DownloadLocation, ByVal AskForName As Boolean, Optional ByVal IsFile As Boolean = False)
             If Not Item.Path.IsEmptyString Then
-                Dim i% = IndexOf(Item)
+                Dim i% = IndexOf(Item,, IsFile)
                 Dim processUpdate As Boolean = True
                 If i >= 0 Then
                     If Locations(i).Model = Item.Model Then
@@ -183,8 +183,12 @@ Namespace DownloadObjects.STDownloader
         Public Function Contains(ByVal Item As DownloadLocation) As Boolean Implements ICollection(Of DownloadLocation).Contains
             Return Not Item.Path.IsEmptyString AndAlso Locations.Contains(Item)
         End Function
-        Public Function IndexOf(ByVal Item As DownloadLocation, Optional ByVal IgnoreModel As Boolean = False) As Integer
-            Return Locations.FindIndex(Function(d) d.Path = Item.Path And (d.Model = Item.Model Or IgnoreModel))
+        Public Function IndexOf(ByVal Item As DownloadLocation, Optional ByVal IgnoreModel As Boolean = False, Optional ByVal IsFile As Boolean = False) As Integer
+            If Not IsFile Then
+                Return Locations.FindIndex(Function(d) d.Path = Item.Path And (d.Model = Item.Model Or IgnoreModel))
+            Else
+                Return Locations.FindIndex(Function(d) d.Path = Item.Path)
+            End If
         End Function
         Public Function Remove(ByVal Item As DownloadLocation) As Boolean Implements ICollection(Of DownloadLocation).Remove
             If Locations.Remove(Item) Then

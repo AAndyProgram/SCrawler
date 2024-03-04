@@ -36,6 +36,7 @@ Namespace API.YouTube.Base
         <Browsable(False)> Private Property Mode As GridUpdateModes = GridUpdateModes.OnConfirm Implements IGridValuesContainer.Mode
         <Browsable(False), XMLVV(-1)> Friend ReadOnly Property PlaylistFormSplitterDistance As XMLValue(Of Integer)
         <Browsable(False)> Friend ReadOnly Property DownloadLocations As DownloadLocationsCollection
+        <Browsable(False)> Friend ReadOnly Property PlaylistsLocations As DownloadLocationsCollection
         <Browsable(False)> Public Overridable Property AccountName As String
 #Region "Environment"
 #Region "Programs"
@@ -229,6 +230,7 @@ Namespace API.YouTube.Base
         <Browsable(True), GridVisible(False), XMLVN({"Defaults"}), Category("Defaults"), DisplayName("Program description"),
             Description("Add some additional info to the program info if you need")>
         Friend ReadOnly Property ProgramDescription As XMLValue(Of String)
+        <Browsable(False), XMLVN({"Defaults"})> Friend ReadOnly Property LatestPlaylistFile As XMLValue(Of String)
 #End Region
 #Region "Defaults ChannelsDownload"
         <Browsable(True), GridVisible, XMLVN({"Defaults", "Channels"}), Category("Defaults"), DisplayName("Default download tabs for channels"),
@@ -366,6 +368,23 @@ Namespace API.YouTube.Base
         <Browsable(True), GridVisible, XMLVN({"DefaultsAudio"}, True), Category("Defaults Audio"), DisplayName("Embed thumbnail"),
             Description("Embed thumbnail in the audio as cover art. Default: true.")>
         Public ReadOnly Property DefaultAudioEmbedThumbnail As XMLValue(Of Boolean)
+#Region "Music"
+        <Browsable(True), GridVisible, XMLVN({"Playlists"}, True), Category("Music"), DisplayName("Create M3U8"),
+            Description("Create M3U8 playlist for music. Default: true.")>
+        Public ReadOnly Property MusicPlaylistCreate_M3U8 As XMLValue(Of Boolean)
+        <Browsable(True), GridVisible, XMLVN({"Playlists"}), Category("Music"), DisplayName("Create M3U"),
+            Description("Create M3U playlist for music. Default: false.")>
+        Public ReadOnly Property MusicPlaylistCreate_M3U As XMLValue(Of Boolean)
+        <Browsable(True), GridVisible, XMLVN({"Playlists"}), Category("Music"), DisplayName("M3U8 Append artist"),
+            Description("Add artist to file name. Default: false.")>
+        Public ReadOnly Property MusicPlaylistCreate_M3U8_AppendArtist As XMLValue(Of Boolean)
+        <Browsable(True), GridVisible, XMLVN({"Playlists"}), Category("Music"), DisplayName("M3U8 Append file extension"),
+            Description("Add file extension to file name. Default: false.")>
+        Public ReadOnly Property MusicPlaylistCreate_M3U8_AppendExt As XMLValue(Of Boolean)
+        <Browsable(True), GridVisible, XMLVN({"Playlists"}), Category("Music"), DisplayName("M3U8 Append file number"),
+            Description("Add file number to file name. Default: false.")>
+        Public ReadOnly Property MusicPlaylistCreate_M3U8_AppendNumber As XMLValue(Of Boolean)
+#End Region
 #End Region
 #Region "Defaults Subtitles"
         <XMLVN({"DefaultsSubtitles"}, {"en"}, CollectionMode:=IXMLValuesCollection.Modes.String)>
@@ -418,7 +437,9 @@ Namespace API.YouTube.Base
         Public Sub New(ByVal AccountName As String)
             Me.AccountName = AccountName
             DownloadLocations = New DownloadLocationsCollection
+            PlaylistsLocations = New DownloadLocationsCollection
             DownloadLocations.Load(False, True)
+            PlaylistsLocations.Load(True, True, $"{XmlFile.SettingsFolder}\DownloadLocations_Playlists.xml")
             Dim acc$ = String.Empty
             If Not AccountName.IsEmptyString Then acc = $"_{AccountName}"
             Dim f As SFile = YouTubeSettingsFile

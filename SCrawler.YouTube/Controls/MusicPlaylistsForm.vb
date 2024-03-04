@@ -52,6 +52,8 @@ Namespace API.YouTube.Controls
             End If
 
             MyYouTubeSettings.DownloadLocations.PopulateComboBox(TXT_OUTPUT_PATH)
+            MyYouTubeSettings.PlaylistsLocations.PopulateComboBox(CMB_PLS,, True)
+            CMB_PLS.Text = MyYouTubeSettings.LatestPlaylistFile.Value
 
             CMB_FORMATS.Items.AddRange(AvailableAudioFormats)
             If MyYouTubeSettings.PlaylistFormSplitterDistance > 0 Then SPLITTER_MAIN.SplitterDistancePercentageSet(MyYouTubeSettings.PlaylistFormSplitterDistance)
@@ -184,6 +186,28 @@ Namespace API.YouTube.Controls
             If Sender.DefaultButton = ADB.Open Or Sender.DefaultButton = ADB.Add Then _
                MyYouTubeSettings.DownloadLocations.ChooseNewLocation(TXT_OUTPUT_PATH, Sender.DefaultButton = ADB.Add, MyDownloaderSettings.OutputPathAskForName)
         End Sub
+        Private Sub CMB_PLS_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As ActionButtonEventArgs) Handles CMB_PLS.ActionOnButtonClick
+            Try
+                If Sender.DefaultButton = ADB.Add Or Sender.DefaultButton = ADB.Open Then
+                    Dim f As SFile = Nothing
+                    If Not CMB_PLS.Text.IsEmptyString Then
+                        f = CMB_PLS.Text
+                    ElseIf Not TXT_OUTPUT_PATH.Text.IsEmptyString Then
+                        f = TXT_OUTPUT_PATH.Text
+                    End If
+                    f = SFile.SelectFiles(f, False, "Select a playlist...", "Playlists|*.m3u;*.m3u8|All files|*.*", EDP.ReturnValue).FirstOrDefault
+                    If Not f.IsEmptyString Then
+                        If Sender.DefaultButton = ADB.Add Then
+                            MyYouTubeSettings.PlaylistsLocations.Add(f.ToString, True, True)
+                            MyYouTubeSettings.PlaylistsLocations.PopulateComboBox(CMB_PLS, f, True)
+                        End If
+                        CMB_PLS.Text = f
+                    End If
+                End If
+            Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "[API.YouTube.Controls.MusicPlaylistsForm.SelectPlaylist]")
+            End Try
+        End Sub
 #End Region
 #Region "Lists' handlers"
         Private _LatestSelected As Integer = -1
@@ -276,8 +300,11 @@ Namespace API.YouTube.Controls
                     If Not TXT_FORMATS_ADDIT.Checked Then .PostProcessing_OutputAudioFormats.Clear()
                     .AbsolutePath = TXT_OUTPUT_PATH.Checked
                     .File = TXT_OUTPUT_PATH.Text.CSFileP
+                    .M3U8_PlaylistFile = CMB_PLS.Text
                     If MyYouTubeSettings.OutputPathAutoChange Then MyYouTubeSettings.OutputPath.Value = .File
                     If MyDownloaderSettings.OutputPathAutoAddPaths Then MyYouTubeSettings.DownloadLocations.Add(.File, False)
+                    If Not CMB_PLS.Text.IsEmptyString Then MyYouTubeSettings.PlaylistsLocations.Add(CMB_PLS.Text, False, True)
+                    MyYouTubeSettings.LatestPlaylistFile.Value = CMB_PLS.Text
                 End With
                 DialogResult = DialogResult.OK
                 Close()

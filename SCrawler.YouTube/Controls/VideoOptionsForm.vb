@@ -69,6 +69,8 @@ Namespace API.YouTube.Controls
             End If
 
             MyYouTubeSettings.DownloadLocations.PopulateComboBox(TXT_FILE)
+            MyYouTubeSettings.PlaylistsLocations.PopulateComboBox(CMB_PLS,, True)
+            CMB_PLS.Text = MyYouTubeSettings.LatestPlaylistFile.Value
 
             If Not MyContainer Is Nothing Then
                 With MyContainer
@@ -313,6 +315,7 @@ Namespace API.YouTube.Controls
                 ControlInvokeFast(TP_CONTROLS, Sub()
                                                    With DirectCast(Container, YouTubeMediaContainerBase)
                                                        .File = $"{TXT_FILE.Text.CSFilePS}{ .File.File}"
+                                                       .M3U8_PlaylistFile = CMB_PLS.Text
                                                        If Full Then
                                                            .OutputVideoExtension = CMB_FORMAT.Text.StringToLower
                                                            .OutputVideoFPS = AConvert(Of Double)(TXT_FPS.Text, YouTubeSettings.FpsFormatProvider.MyProviderDefault, -1)
@@ -341,6 +344,7 @@ Namespace API.YouTube.Controls
                     .OutputVideoFPS = AConvert(Of Double)(TXT_FPS.Text, YouTubeSettings.FpsFormatProvider.MyProviderDefault, -1)
                     .OutputAudioCodec = CMB_AUDIO_CODEC.Text.StringToLower
                     .OutputSubtitlesFormat = CMB_SUBS_FORMAT.Text.StringToLower
+                    .M3U8_PlaylistFile = CMB_PLS.Text
 
                     If Not .HasElements Then
                         Dim cntIndex% = -1
@@ -377,6 +381,8 @@ Namespace API.YouTube.Controls
 
                 If MyYouTubeSettings.OutputPathAutoChange Then MyYouTubeSettings.OutputPath.Value = f
                 If MyDownloaderSettings.OutputPathAutoAddPaths Then MyYouTubeSettings.DownloadLocations.Add(f, False)
+                If Not CMB_PLS.Text.IsEmptyString Then MyYouTubeSettings.PlaylistsLocations.Add(CMB_PLS.Text, False, True)
+                MyYouTubeSettings.LatestPlaylistFile.Value = CMB_PLS.Text
 
                 DialogResult = DialogResult.OK
                 Close()
@@ -508,6 +514,26 @@ Namespace API.YouTube.Controls
         End Sub
 #End Region
 #Region "Footer"
+        Private Sub BTT_PLS_BROWSE_MouseDown(sender As Object, e As MouseEventArgs) Handles BTT_PLS_BROWSE.MouseDown
+            Try
+                Dim f As SFile = Nothing
+                If Not CMB_PLS.Text.IsEmptyString Then
+                    f = CMB_PLS.Text
+                ElseIf Not TXT_FILE.Text.IsEmptyString Then
+                    f = TXT_FILE.Text
+                End If
+                f = SFile.SelectFiles(f, False, "Select a playlist...", "Playlists|*.m3u;*.m3u8|All files|*.*", EDP.ReturnValue).FirstOrDefault
+                If Not f.IsEmptyString Then
+                    If e.Button = MouseButtons.Right Then
+                        MyYouTubeSettings.PlaylistsLocations.Add(f.ToString, True, True)
+                        MyYouTubeSettings.PlaylistsLocations.PopulateComboBox(CMB_PLS, f, True)
+                    End If
+                    CMB_PLS.Text = f
+                End If
+            Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "[API.YouTube.Controls.VideoOptionsForm.SelectPlaylist]")
+            End Try
+        End Sub
         Private _FilePathBeforeItemChange As SFile = Nothing
         Private Sub TXT_FILE_ActionSelectedItemBeforeChanged(ByVal Sender As Object, ByVal e As EventArgs, ByVal Item As ListViewItem) Handles TXT_FILE.ActionSelectedItemBeforeChanged
             If Not TXT_FILE.Text.IsEmptyString Then _FilePathBeforeItemChange = TXT_FILE.Text Else _FilePathBeforeItemChange = Nothing

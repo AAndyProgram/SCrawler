@@ -320,6 +320,9 @@ Namespace Plugin.Hosts
         End Property
 #End Region
 #Region "Forks"
+        Friend Sub ResetIndexes()
+            HostsUnavailableIndexes.Clear()
+        End Sub
         Friend Function Available(ByVal What As Download, ByVal Silent As Boolean, Optional ByVal FillIndexes As Boolean = True,
                                   Optional ByVal HostNames As IEnumerable(Of String) = Nothing,
                                   Optional ByVal HostNamesPassed As Boolean = False) As Boolean
