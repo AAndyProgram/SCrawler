@@ -628,15 +628,15 @@ Namespace API.YouTube.Objects
             If HasElements And Not IsMusic Then urls.ListAddList(Elements.SelectMany(Function(elem As YouTubeMediaContainerBase) elem.GetFiles()), LAP.NotContainsOnly)
             Return urls
         End Function
-        Private _M3U8_PlaylistFile As SFile = Nothing
-        Friend Property M3U8_PlaylistFile As SFile
+        Private _M3U8_PlaylistFiles As IEnumerable(Of SFile) = Nothing
+        Friend Property M3U8_PlaylistFiles As IEnumerable(Of SFile)
             Get
-                Return _M3U8_PlaylistFile
+                Return _M3U8_PlaylistFiles
             End Get
-            Set(ByVal f As SFile)
+            Set(ByVal f As IEnumerable(Of SFile))
                 If Not [Protected] Then
-                    _M3U8_PlaylistFile = f
-                    If HasElements Then Elements.ForEach(Sub(e As YouTubeMediaContainerBase) e.M3U8_PlaylistFile = f)
+                    _M3U8_PlaylistFiles = f
+                    If HasElements Then Elements.ForEach(Sub(e As YouTubeMediaContainerBase) e.M3U8_PlaylistFiles = f)
                 End If
             End Set
         End Property
@@ -1097,7 +1097,7 @@ Namespace API.YouTube.Objects
                                             If Not format = ac3 Or Not f.Exists Then
                                                 ThrowAny(Token)
                                                 .Execute($"ffmpeg -i ""{fAacAudio}"" -f {format} ""{f}""")
-                                                If Not M3U8_PlaylistFile.IsEmptyString AndAlso f.Exists Then M3U8_Append(f)
+                                                If Not M3U8_PlaylistFiles.ListExists AndAlso f.Exists Then M3U8_Append(f)
                                             End If
                                         Next
                                     End If
@@ -1149,26 +1149,30 @@ Namespace API.YouTube.Objects
             End Try
         End Sub
         Private Sub M3U8_Append(Optional ByVal __file As SFile = Nothing)
-            If Not M3U8_PlaylistFile.IsEmptyString Then
-                Dim m3u8Row$ = String.Empty
-                If Not M3U8_PlaylistFile.Extension.IsEmptyString Then
-                    If M3U8_PlaylistFile.Extension.ToLower = "m3u8" Then
-                        m3u8Row = GetPlaylistRow(Me, __file)
-                    ElseIf M3U8_PlaylistFile.Extension.ToLower = "m3u" Then
-                        m3u8Row = __file.IfNullOrEmpty(File).ToString
+            If M3U8_PlaylistFiles.ListExists Then
+                For Each m3u8_file As SFile In M3U8_PlaylistFiles
+                    If Not m3u8_file.IsEmptyString Then
+                        Dim m3u8Row$ = String.Empty
+                        If Not m3u8_file.Extension.IsEmptyString Then
+                            If m3u8_file.Extension.ToLower = "m3u8" Then
+                                m3u8Row = GetPlaylistRow(Me, __file)
+                            ElseIf m3u8_file.Extension.ToLower = "m3u" Then
+                                m3u8Row = __file.IfNullOrEmpty(File).ToString
+                            End If
+                        End If
+                        If Not m3u8Row.IsEmptyString Then
+                            Dim m3u8Text$
+                            If m3u8_file.Exists Then
+                                m3u8Text = m3u8_file.GetText
+                                m3u8_file.Delete(SFO.File, SFODelete.DeleteToRecycleBin, EDP.SendToLog)
+                            Else
+                                m3u8Text = "#EXTM3U"
+                            End If
+                            m3u8Text.StringAppendLine(m3u8Row, vbCrLf)
+                            TextSaver.SaveTextToFile(m3u8Text, m3u8_file,,, EDP.SendToLog)
+                        End If
                     End If
-                End If
-                If Not m3u8Row.IsEmptyString Then
-                    Dim m3u8Text$
-                    If M3U8_PlaylistFile.Exists Then
-                        m3u8Text = M3U8_PlaylistFile.GetText
-                        M3U8_PlaylistFile.Delete(SFO.File, SFODelete.DeleteToRecycleBin, EDP.SendToLog)
-                    Else
-                        m3u8Text = "#EXTM3U"
-                    End If
-                    m3u8Text.StringAppendLine(m3u8Row, vbCrLf)
-                    TextSaver.SaveTextToFile(m3u8Text, M3U8_PlaylistFile,,, EDP.SendToLog)
-                End If
+                Next
             End If
         End Sub
 #End Region

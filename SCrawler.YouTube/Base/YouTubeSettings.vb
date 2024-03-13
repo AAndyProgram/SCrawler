@@ -85,6 +85,18 @@ Namespace API.YouTube.Base
             Description("The default output path where files should be downloaded."),
             Editor(GetType(GridSFileTypeEditorPath), GetType(UITypeEditor))>
         Public ReadOnly Property OutputPath As XMLValue(Of SFile)
+        <Browsable(True), GridVisible(False), XMLVN({"Environment"}), Category("Environment"), DisplayName("Playlist file"),
+            Description("Last selected playlist file"),
+            Editor(GetType(GridSFileTypeEditor_M3U8), GetType(UITypeEditor))>
+        Public ReadOnly Property LatestPlaylistFile As XMLValue(Of SFile)
+        Private Class GridSFileTypeEditor_M3U8 : Inherits GridSFileTypeEditor
+            Public Overrides Function EditValue(ByVal Context As ITypeDescriptorContext, ByVal Provider As IServiceProvider, ByVal Value As Object) As Object
+                Dim f As SFile = SFile.SelectFiles(New SFile(CStr(AConvert(Of String)(Value, AModes.Var, String.Empty))), False,
+                                                   "Select playlist file", "Playlists|*.m3u;*.m3u8|All files|*.*", EDP.ReturnValue).FirstOrDefault()
+                If Not f.IsEmptyString() Then Value = f
+                Return Value
+            End Function
+        End Class
         <Browsable(True), GridVisible(False), XMLVN({"Environment"}), Category("Environment"), DisplayName("Output path auto change"),
             Description("Automatically change the output path when a new destination is selected in the opening forms.")>
         Public ReadOnly Property OutputPathAutoChange As XMLValue(Of Boolean)
@@ -230,7 +242,6 @@ Namespace API.YouTube.Base
         <Browsable(True), GridVisible(False), XMLVN({"Defaults"}), Category("Defaults"), DisplayName("Program description"),
             Description("Add some additional info to the program info if you need")>
         Friend ReadOnly Property ProgramDescription As XMLValue(Of String)
-        <Browsable(False), XMLVN({"Defaults"})> Friend ReadOnly Property LatestPlaylistFile As XMLValue(Of String)
 #End Region
 #Region "Defaults ChannelsDownload"
         <Browsable(True), GridVisible, XMLVN({"Defaults", "Channels"}), Category("Defaults"), DisplayName("Default download tabs for channels"),

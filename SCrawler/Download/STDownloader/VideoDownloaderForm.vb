@@ -67,6 +67,7 @@ Namespace DownloadObjects.STDownloader
                     Dim disableDown As Boolean = e.Shift
                     Dim output As SFile = Settings.LatestSavingPath
                     Dim acc$ = String.Empty
+                    Dim thumbAlong As Boolean = False
                     Dim isArr As Boolean = (__tag = UrlsArrTag Or (isExternal And ExternalUrlsTemp.Count > 1))
                     Dim formOpened As Boolean = False
                     Dim media As IYouTubeMediaContainer
@@ -79,6 +80,8 @@ Namespace DownloadObjects.STDownloader
                                                                           url = f.URL
                                                                           output = f.OutputPath
                                                                           acc = f.AccountName
+                                                                          thumbAlong = f.ThumbAlong
+                                                                          Settings.STDownloader_SnapshotsKeepWithFiles_ThumbAlong.Value = thumbAlong
                                                                           Settings.LatestSavingPath.Value = output
                                                                           If Settings.STDownloader_UpdateYouTubeOutputPath Then _
                                                                              API.YouTube.MyYouTubeSettings.OutputPath.Value = output
@@ -128,6 +131,8 @@ Namespace DownloadObjects.STDownloader
                                 urls = fa.URLs.ToList
                                 output = fa.OutputPath
                                 If fa.UseAccountName Then acc = fa.AccountName
+                                thumbAlong = fa.ThumbAlong
+                                Settings.STDownloader_SnapshotsKeepWithFiles_ThumbAlong.Value = thumbAlong
                                 If Settings.STDownloader_UpdateYouTubeOutputPath Then API.YouTube.MyYouTubeSettings.OutputPath.Value = output
                                 If Settings.STDownloader_OutputPathAutoAddPaths Then Settings.DownloadLocations.Add(output, False)
                             Else
@@ -143,7 +148,11 @@ Namespace DownloadObjects.STDownloader
                             For Each url In urls
                                 If Not TryYouTube.Invoke Then
                                     media = FindSource(url, output)
-                                    If Not media Is Nothing AndAlso ValidateContainerURL(media) Then media.AccountName = acc : ControlCreateAndAdd(media, disableDown)
+                                    If Not media Is Nothing AndAlso ValidateContainerURL(media) Then
+                                        media.AccountName = acc
+                                        If TypeOf media Is DownloadableMediaHost Then DirectCast(media, DownloadableMediaHost).ThumbAlong = thumbAlong
+                                        ControlCreateAndAdd(media, disableDown)
+                                    End If
                                 End If
                             Next
                             urls.Clear()
@@ -175,6 +184,7 @@ Namespace DownloadObjects.STDownloader
                             MsgBoxE({$"The URL you entered is not recognized by existing plugins.{vbCr}{url}", "Download video"}, vbCritical)
                         ElseIf ValidateContainerURL(media) Then
                             media.AccountName = acc
+                            If TypeOf media Is DownloadableMediaHost Then DirectCast(media, DownloadableMediaHost).ThumbAlong = thumbAlong
                             output.Exists(SFO.Path, True)
                             ControlCreateAndAdd(media, disableDown)
                         End If

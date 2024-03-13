@@ -1409,12 +1409,14 @@ BlockNullPicture:
             If _ContentNew.Count > 0 Then
                 If _ContentNew.Any(Function(mm) mm.State = UStates.Downloaded) Then
                     Data.DownloadState = UserMediaStates.Downloaded
+                    Dim thumbAlong As Boolean = False
+                    If TypeOf Data Is DownloadableMediaHost Then thumbAlong = DirectCast(Data, DownloadableMediaHost).ThumbAlong
                     If _ContentNew(0).Type = UTypes.Picture Or _ContentNew(0).Type = UTypes.GIF Then
                         DirectCast(Data, IDownloadableMedia).ThumbnailFile = _ContentNew(0).File
                     ElseIf Settings.STDownloader_TakeSnapshot And Settings.FfmpegFile.Exists And Not Settings.STDownloader_RemoveDownloadedAutomatically Then
                         Dim f As SFile = _ContentNew(0).File
                         Dim ff As SFile
-                        If Settings.STDownloader_SnapshotsKeepWithFiles Then
+                        If Settings.STDownloader_SnapshotsKeepWithFiles Or thumbAlong Then
                             ff = f
                         Else
                             ff = Settings.CacheSnapshots(Settings.STDownloader_SnapShotsCachePermamnent).NewFile

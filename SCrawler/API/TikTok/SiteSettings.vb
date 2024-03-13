@@ -17,11 +17,13 @@ Namespace API.TikTok
         Friend ReadOnly Property RemoveTagsFromTitle As PropertyValue
         <PropertyOption(ControlText:="Use native title", ControlToolTip:="Use a user-created video title for the filename instead of the video ID."), PXML, PClonable>
         Friend ReadOnly Property TitleUseNative As PropertyValue
-        <PropertyOption(ControlText:="Use native title in standalone downloader",
+        <PropertyOption(ControlText:="Use native title (standalone downloader)",
                         ControlToolTip:="Use a user-created video title for the filename instead of the video ID."), PXML, PClonable>
         Friend ReadOnly Property TitleUseNativeSTD As PropertyValue
         <PropertyOption(ControlText:="Add video ID to video title"), PXML, PClonable>
         Friend ReadOnly Property TitleAddVideoID As PropertyValue
+        <PropertyOption(ControlText:="Add video ID to video title (standalone downloader)"), PXML, PClonable>
+        Friend ReadOnly Property TitleAddVideoIDSTD As PropertyValue
         <PropertyOption(ControlText:="Use regex to clean video title"), PXML, PClonable>
         Friend ReadOnly Property TitleUseRegexForTitle As PropertyValue
         <PropertyOption(ControlText:="Title regex", ControlToolTip:="Regex to clean video title"), PXML, PClonable>
@@ -29,15 +31,20 @@ Namespace API.TikTok
         <PropertyOption(ControlText:="Use video date as file date",
                         ControlToolTip:="Set the file date to the date the video was added (website) (if available)."), PXML, PClonable>
         Friend ReadOnly Property UseParsedVideoDate As PropertyValue
+        <PropertyOption(ControlText:="Use video date as file date (standalone downloader)",
+                        ControlToolTip:="Set the file date to the date the video was added (website) (if available)."), PXML, PClonable>
+        Friend ReadOnly Property UseParsedVideoDateSTD As PropertyValue
         Friend Sub New(ByVal AccName As String, ByVal Temp As Boolean)
             MyBase.New("TikTok", "www.tiktok.com", AccName, Temp, My.Resources.SiteResources.TikTokIcon_32, My.Resources.SiteResources.TikTokPic_192)
             RemoveTagsFromTitle = New PropertyValue(False)
             TitleUseNative = New PropertyValue(True)
-            TitleUseNativeSTD = New PropertyValue(False)
+            TitleUseNativeSTD = New PropertyValue(True)
             TitleAddVideoID = New PropertyValue(True)
+            TitleAddVideoIDSTD = New PropertyValue(True)
             TitleUseRegexForTitle = New PropertyValue(False)
             TitleUseRegexForTitle_Value = New PropertyValue(String.Empty, GetType(String))
             UseParsedVideoDate = New PropertyValue(True)
+            UseParsedVideoDateSTD = New PropertyValue(False)
             UseNetscapeCookies = True
             UrlPatternUser = "https://www.tiktok.com/@{0}/"
             UserRegex = RParams.DMS(String.Format(UserRegexDefaultPattern, "tiktok.com/@"), 1)

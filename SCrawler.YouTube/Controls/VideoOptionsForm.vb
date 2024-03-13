@@ -31,6 +31,12 @@ Namespace API.YouTube.Controls
         Friend Property MyContainer As YouTubeMediaContainerBase
         Private Initialization As Boolean = True
         Private ReadOnly InheritsFromContainer As Boolean
+        Private ReadOnly M3U8Files As List(Of SFile)
+        Private ReadOnly Property M3U8FilesFull As List(Of SFile)
+            Get
+                Return ListAddList(Nothing, M3U8Files, LAP.NotContainsOnly).ListAddValue(CMB_PLS.Text, LAP.NotContainsOnly)
+            End Get
+        End Property
         Private Class FpsFieldChecker : Inherits FieldsCheckerProviderBase
             Private ReadOnly MyProvider As ANumbers = YouTubeSettings.FpsFormatProvider.MyProviderDefault
             Public Overrides Property ErrorMessage As String
@@ -54,6 +60,7 @@ Namespace API.YouTube.Controls
 #Region "Initializers"
         Friend Sub New(ByVal Container As YouTubeMediaContainerBase, Optional ByVal InheritsFromContainer As Boolean = False)
             InitializeComponent()
+            M3U8Files = New List(Of SFile)
             MyContainer = Container
             CNT_PROCESSOR = New TableControlsProcessor(TP_CONTROLS)
             Me.InheritsFromContainer = InheritsFromContainer
@@ -182,6 +189,7 @@ Namespace API.YouTube.Controls
         Private Sub VideoOptionsForm_Closing(sender As Object, e As CancelEventArgs) Handles Me.Closing
             MyView.DisposeIfReady()
             MyFieldsChecker.DisposeIfReady()
+            M3U8Files.Clear()
         End Sub
 #End Region
 #Region "Refill"
@@ -315,7 +323,7 @@ Namespace API.YouTube.Controls
                 ControlInvokeFast(TP_CONTROLS, Sub()
                                                    With DirectCast(Container, YouTubeMediaContainerBase)
                                                        .File = $"{TXT_FILE.Text.CSFilePS}{ .File.File}"
-                                                       .M3U8_PlaylistFile = CMB_PLS.Text
+                                                       .M3U8_PlaylistFiles = M3U8FilesFull
                                                        If Full Then
                                                            .OutputVideoExtension = CMB_FORMAT.Text.StringToLower
                                                            .OutputVideoFPS = AConvert(Of Double)(TXT_FPS.Text, YouTubeSettings.FpsFormatProvider.MyProviderDefault, -1)
@@ -344,7 +352,7 @@ Namespace API.YouTube.Controls
                     .OutputVideoFPS = AConvert(Of Double)(TXT_FPS.Text, YouTubeSettings.FpsFormatProvider.MyProviderDefault, -1)
                     .OutputAudioCodec = CMB_AUDIO_CODEC.Text.StringToLower
                     .OutputSubtitlesFormat = CMB_SUBS_FORMAT.Text.StringToLower
-                    .M3U8_PlaylistFile = CMB_PLS.Text
+                    .M3U8_PlaylistFiles = M3U8FilesFull
 
                     If Not .HasElements Then
                         Dim cntIndex% = -1
@@ -514,6 +522,22 @@ Namespace API.YouTube.Controls
         End Sub
 #End Region
 #Region "Footer"
+        Private Sub CMB_PLS_ActionOnButtonClick(ByVal Sender As Object, ByVal e As ActionButtonEventArgs) Handles CMB_PLS.ActionOnButtonClick
+            Select Case e.DefaultButton
+                Case ADB.List
+                    Dim result As Boolean = False
+                    Dim selectedFiles As IEnumerable(Of SFile) = MyYouTubeSettings.PlaylistsLocations.ChooseNewPlaylistArray(CMB_PLS, result)
+                    If result And selectedFiles.ListExists Then M3U8Files.ListAddList(selectedFiles, LAP.NotContainsOnly, LAP.ClearBeforeAdd)
+                Case ADB.Save
+                    With MyYouTubeSettings.PlaylistsLocations
+                        If Not CMB_PLS.Text.IsEmptyString AndAlso .IndexOf(CMB_PLS.Text,, True) = -1 Then
+                            .Add(CMB_PLS.Text, True, True)
+                            .PopulateComboBox(CMB_PLS, CMB_PLS.Text, True)
+                        End If
+                    End With
+                Case ADB.Clear : M3U8Files.Clear()
+            End Select
+        End Sub
         Private Sub BTT_PLS_BROWSE_MouseDown(sender As Object, e As MouseEventArgs) Handles BTT_PLS_BROWSE.MouseDown
             Try
                 Dim f As SFile = Nothing
@@ -554,6 +578,14 @@ Namespace API.YouTube.Controls
             Finally
                 _FilePathBeforeItemChange = Nothing
             End Try
+        End Sub
+        Private Sub TXT_FILE_ActionOnButtonClick(ByVal Sender As Object, ByVal e As ActionButtonEventArgs) Handles TXT_FILE.ActionOnButtonClick
+            If e.DefaultButton = ADB.Save And Not TXT_FILE.Text.IsEmptyString Then
+                With MyYouTubeSettings.PlaylistsLocations
+                    .Add(TXT_FILE.Text, True)
+                    .PopulateComboBox(TXT_FILE, TXT_FILE.Text)
+                End With
+            End If
         End Sub
         Private Sub BTT_BROWSE_MouseDown(sender As Object, e As MouseEventArgs) Handles BTT_BROWSE.MouseDown
             Dim f As SFile

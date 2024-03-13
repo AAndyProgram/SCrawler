@@ -504,7 +504,7 @@ Namespace DownloadObjects
                         Else
                             RaiseEvent MediaMove(Me, moveOptions, result)
                         End If
-                        If result Then MsgBoxE({$"File {IIf(isCopy, "copied", "moved")}{vbCr}Source: '{File}'{vbCr}Destination: '{ff}'", MsgTitle})
+                        If result Then MsgBoxE(New MMessage($"File {IIf(isCopy, "copied", "moved")}{vbCr}Source: '{File}'{vbCr}Destination: '{ff}'", MsgTitle) With {.Editable = True})
                     End If
                 End If
             Catch ex As Exception
@@ -549,7 +549,7 @@ Namespace DownloadObjects
             If Not UserKey.IsEmptyString Then MainFrameObj.FocusUser(UserKey, True)
         End Sub
         Private Sub BTT_CONTEXT_INFO_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_INFO.Click
-            MsgBoxE({Information, "Post information"})
+            MsgBoxE(New MMessage(Information, "Post information") With {.Editable = True})
         End Sub
 #End Region
 #Region "Delete"

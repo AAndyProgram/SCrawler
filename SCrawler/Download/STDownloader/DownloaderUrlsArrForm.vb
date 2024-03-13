@@ -31,6 +31,11 @@ Namespace DownloadObjects.STDownloader
                 Return CMB_ACCOUNT.Text
             End Get
         End Property
+        Friend ReadOnly Property ThumbAlong As Boolean
+            Get
+                Return CH_THUMB_ALONG.Checked
+            End Get
+        End Property
         Private _UseAccountName As Boolean = False
         Friend ReadOnly Property UseAccountName As Boolean
             Get
@@ -50,6 +55,7 @@ Namespace DownloadObjects.STDownloader
                 TXT_OUTPUT.Text = Settings.LatestSavingPath.Value.PathWithSeparator
                 If TXT_OUTPUT.Text.IsEmptyString Then TXT_OUTPUT.Text = Application.StartupPath.CSFileP.PathWithSeparator
                 TXT_URLS_TextChanged()
+                CH_THUMB_ALONG.Checked = Settings.STDownloader_SnapshotsKeepWithFiles_ThumbAlong
                 .MyFieldsChecker = New FieldsChecker
                 With .MyFieldsCheckerE
                     .AddControl(Of String)(TXT_OUTPUT, TXT_OUTPUT.CaptionText)

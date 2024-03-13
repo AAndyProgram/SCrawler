@@ -327,7 +327,7 @@ Namespace Editors
                 End With
 
                 If checkBuffer Then
-                    Dim tempName$ = BufferText
+                    Dim tempName$ = BufferText.StringTrim
                     If Not tempName.IsEmptyString Then
                         TXT_USER.Text = tempName
                         If CMB_SITE.SelectedIndex = -1 Then TXT_USER.Text = String.Empty
@@ -649,6 +649,7 @@ CloseForm:
             Return If(CMB_SITE.SelectedIndex >= 0, Settings(CStr(CMB_SITE.Items(CMB_SITE.SelectedIndex).Value(0))), Nothing)
         End Function
         Private Function CreateUsersByList() As Boolean
+            Const msgTitle$ = "Add user list"
             Try
                 If CH_ADD_BY_LIST.Checked Then
                     If Not TXT_DESCR.IsEmptyString Then
@@ -657,11 +658,11 @@ CloseForm:
                             Dim NonIdentified As New List(Of String)
                             Dim UsersForCreate As New List(Of UserInfo)
                             Dim UsersForCreate_Options As New List(Of String)
-                            Dim BannedUsers() As String = Nothing
+                            Dim BannedUsers$() = Nothing
                             Dim uu$
                             Dim ulabels As List(Of String) = ListAddList(Nothing, UserLabels).ListAddValue(LabelsKeeper.NoParsedUser, LAP.NotContainsOnly)
                             Dim tmpUser As UserInfo
-                            Dim s As SettingsHost = GetSiteByCheckers().Default
+                            Dim s As SettingsHost = If(GetSiteByCheckers()?.Default, Nothing)
                             Dim sObj As ExchangeOptions = Nothing
                             Dim Added% = 0
                             Dim Skipped% = 0
@@ -689,12 +690,19 @@ CloseForm:
                                         uu = sObj.UserName
                                     Else
                                         s = Nothing
+                                        uu = String.Empty
                                     End If
-                                ElseIf i = 0 Then
-                                    sObj = GetSiteByText(uu)
+                                Else
+                                    If s Is Nothing Then
+                                        MsgBoxE({$"Site not selected{vbCr}Operation canceled", msgTitle}, vbCritical)
+                                        Return False
+                                    Else
+                                        sObj = s.IsMyUser(uu)
+                                        uu = sObj.UserName
+                                    End If
                                 End If
 
-                                If Not s Is Nothing AndAlso (Not IsSubscription OrElse s.Source.SubscriptionsAllowed) Then
+                                If Not s Is Nothing AndAlso Not uu.IsEmptyString AndAlso (Not IsSubscription OrElse s.Source.SubscriptionsAllowed) Then
                                     tmpUser = New UserInfo(uu, s)
                                     tmpUser.SpecialPath = __getUserSpecialPath(tmpUser, s)
                                     tmpUser.UpdateUserFile()
@@ -740,7 +748,7 @@ CloseForm:
                                 End If
                             End If
 
-                            Dim m As New MMessage($"Added {Added} users (skipped (already exists and/or duplicated) {Skipped})")
+                            Dim m As New MMessage($"Added {Added} users (skipped (already exists and/or duplicated) {Skipped})", msgTitle)
                             If BannedUsers.ListExists Or NonIdentified.Count > 0 Then
                                 Dim t$ = String.Empty
                                 If BannedUsers.ListExists Then t.StringAppendLine($"Banned users:{vbNewLine}{BannedUsers.ListToString(vbNewLine)}")
@@ -757,10 +765,10 @@ CloseForm:
                             If Added > 0 Then MyDef.ChangesDetected = False
                             Return Added > 0 And Not BannedUsers.ListExists And NonIdentified.Count = 0
                         Else
-                            MsgBoxE("No user can be recognized", MsgBoxStyle.Exclamation)
+                            MsgBoxE({"No user can be recognized", msgTitle}, MsgBoxStyle.Exclamation)
                         End If
                     Else
-                        MsgBoxE("[Users list] is empty", MsgBoxStyle.Critical)
+                        MsgBoxE({"[Users list] is empty", msgTitle}, MsgBoxStyle.Critical)
                     End If
                 End If
                 Return False

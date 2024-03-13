@@ -36,6 +36,7 @@ Namespace DownloadObjects.STDownloader
             Me.TXT_URL = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_PATH = New PersonalUtilities.Forms.Controls.ComboBoxExtended()
             Me.CMB_ACCOUNT = New PersonalUtilities.Forms.Controls.ComboBoxExtended()
+            Me.CH_THUMB_ALONG = New System.Windows.Forms.CheckBox()
             CONTAINER_MAIN = New System.Windows.Forms.ToolStripContainer()
             TP_MAIN = New System.Windows.Forms.TableLayoutPanel()
             CONTAINER_MAIN.ContentPanel.SuspendLayout()
@@ -52,13 +53,13 @@ Namespace DownloadObjects.STDownloader
             'CONTAINER_MAIN.ContentPanel
             '
             CONTAINER_MAIN.ContentPanel.Controls.Add(TP_MAIN)
-            CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(484, 88)
+            CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(484, 114)
             CONTAINER_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
             CONTAINER_MAIN.LeftToolStripPanelVisible = False
             CONTAINER_MAIN.Location = New System.Drawing.Point(0, 0)
             CONTAINER_MAIN.Name = "CONTAINER_MAIN"
             CONTAINER_MAIN.RightToolStripPanelVisible = False
-            CONTAINER_MAIN.Size = New System.Drawing.Size(484, 113)
+            CONTAINER_MAIN.Size = New System.Drawing.Size(484, 139)
             CONTAINER_MAIN.TabIndex = 0
             CONTAINER_MAIN.TopToolStripPanelVisible = False
             '
@@ -70,15 +71,17 @@ Namespace DownloadObjects.STDownloader
             TP_MAIN.Controls.Add(Me.TXT_URL, 0, 0)
             TP_MAIN.Controls.Add(Me.TXT_PATH, 0, 1)
             TP_MAIN.Controls.Add(Me.CMB_ACCOUNT, 0, 2)
+            TP_MAIN.Controls.Add(Me.CH_THUMB_ALONG, 0, 3)
             TP_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
             TP_MAIN.Location = New System.Drawing.Point(0, 0)
             TP_MAIN.Name = "TP_MAIN"
-            TP_MAIN.RowCount = 4
+            TP_MAIN.RowCount = 5
             TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
+            TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_MAIN.Size = New System.Drawing.Size(484, 88)
+            TP_MAIN.Size = New System.Drawing.Size(484, 114)
             TP_MAIN.TabIndex = 0
             '
             'TXT_URL
@@ -158,19 +161,30 @@ Namespace DownloadObjects.STDownloader
             Me.CMB_ACCOUNT.TabIndex = 2
             Me.CMB_ACCOUNT.TextBoxBorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
             '
+            'CH_THUMB_ALONG
+            '
+            Me.CH_THUMB_ALONG.AutoSize = True
+            Me.CH_THUMB_ALONG.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_THUMB_ALONG.Location = New System.Drawing.Point(4, 91)
+            Me.CH_THUMB_ALONG.Name = "CH_THUMB_ALONG"
+            Me.CH_THUMB_ALONG.Size = New System.Drawing.Size(476, 19)
+            Me.CH_THUMB_ALONG.TabIndex = 3
+            Me.CH_THUMB_ALONG.Text = "Save thumbnail with file"
+            Me.CH_THUMB_ALONG.UseVisualStyleBackColor = True
+            '
             'DownloaderUrlForm
             '
             Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
             Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-            Me.ClientSize = New System.Drawing.Size(484, 113)
+            Me.ClientSize = New System.Drawing.Size(484, 139)
             Me.Controls.Add(CONTAINER_MAIN)
             Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle
             Me.Icon = Global.SCrawler.My.Resources.Resources.ArrowDownIcon_Blue_24
             Me.KeyPreview = True
             Me.MaximizeBox = False
-            Me.MaximumSize = New System.Drawing.Size(500, 152)
+            Me.MaximumSize = New System.Drawing.Size(500, 178)
             Me.MinimizeBox = False
-            Me.MinimumSize = New System.Drawing.Size(500, 152)
+            Me.MinimumSize = New System.Drawing.Size(500, 178)
             Me.Name = "DownloaderUrlForm"
             Me.ShowInTaskbar = False
             Me.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide
@@ -179,6 +193,7 @@ Namespace DownloadObjects.STDownloader
             CONTAINER_MAIN.ResumeLayout(False)
             CONTAINER_MAIN.PerformLayout()
             TP_MAIN.ResumeLayout(False)
+            TP_MAIN.PerformLayout()
             CType(Me.TXT_URL, System.ComponentModel.ISupportInitialize).EndInit()
             CType(Me.TXT_PATH, System.ComponentModel.ISupportInitialize).EndInit()
             CType(Me.CMB_ACCOUNT, System.ComponentModel.ISupportInitialize).EndInit()
@@ -188,5 +203,6 @@ Namespace DownloadObjects.STDownloader
         Private WithEvents TXT_URL As PersonalUtilities.Forms.Controls.TextBoxExtended
         Private WithEvents TXT_PATH As PersonalUtilities.Forms.Controls.ComboBoxExtended
         Private WithEvents CMB_ACCOUNT As PersonalUtilities.Forms.Controls.ComboBoxExtended
+        Private WithEvents CH_THUMB_ALONG As CheckBox
     End Class
 End Namespace

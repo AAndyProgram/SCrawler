@@ -24,18 +24,19 @@ Namespace DownloadObjects.STDownloader
         Private Sub InitializeComponent()
             Dim CONTAINER_MAIN As System.Windows.Forms.ToolStripContainer
             Dim TP_MAIN As System.Windows.Forms.TableLayoutPanel
-            Dim ActionButton1 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton6 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(DownloaderUrlsArrForm))
-            Dim ActionButton2 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
-            Dim ActionButton3 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
-            Dim ActionButton4 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
-            Dim ListColumn1 As PersonalUtilities.Forms.Controls.Base.ListColumn = New PersonalUtilities.Forms.Controls.Base.ListColumn()
-            Dim ListColumn2 As PersonalUtilities.Forms.Controls.Base.ListColumn = New PersonalUtilities.Forms.Controls.Base.ListColumn()
+            Dim ActionButton7 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton8 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton9 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ListColumn3 As PersonalUtilities.Forms.Controls.Base.ListColumn = New PersonalUtilities.Forms.Controls.Base.ListColumn()
+            Dim ListColumn4 As PersonalUtilities.Forms.Controls.Base.ListColumn = New PersonalUtilities.Forms.Controls.Base.ListColumn()
             Dim FRM_URLS As System.Windows.Forms.GroupBox
-            Dim ActionButton5 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton10 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Me.TXT_OUTPUT = New PersonalUtilities.Forms.Controls.ComboBoxExtended()
             Me.TXT_URLS = New System.Windows.Forms.TextBox()
             Me.CMB_ACCOUNT = New PersonalUtilities.Forms.Controls.ComboBoxExtended()
+            Me.CH_THUMB_ALONG = New System.Windows.Forms.CheckBox()
             CONTAINER_MAIN = New System.Windows.Forms.ToolStripContainer()
             TP_MAIN = New System.Windows.Forms.TableLayoutPanel()
             FRM_URLS = New System.Windows.Forms.GroupBox()
@@ -68,50 +69,52 @@ Namespace DownloadObjects.STDownloader
             TP_MAIN.ColumnCount = 1
             TP_MAIN.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
             TP_MAIN.Controls.Add(Me.TXT_OUTPUT, 0, 0)
-            TP_MAIN.Controls.Add(FRM_URLS, 0, 2)
+            TP_MAIN.Controls.Add(FRM_URLS, 0, 3)
             TP_MAIN.Controls.Add(Me.CMB_ACCOUNT, 0, 1)
+            TP_MAIN.Controls.Add(Me.CH_THUMB_ALONG, 0, 2)
             TP_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
             TP_MAIN.Location = New System.Drawing.Point(0, 0)
             TP_MAIN.Name = "TP_MAIN"
-            TP_MAIN.RowCount = 3
+            TP_MAIN.RowCount = 4
             TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
+            TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
             TP_MAIN.Size = New System.Drawing.Size(384, 261)
             TP_MAIN.TabIndex = 0
             '
             'TXT_OUTPUT
             '
-            ActionButton1.BackgroundImage = CType(resources.GetObject("ActionButton1.BackgroundImage"), System.Drawing.Image)
-            ActionButton1.Name = "Open"
-            ActionButton1.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Open
-            ActionButton1.ToolTipText = "Choose a new location (Ctrl+O)"
-            ActionButton2.BackgroundImage = CType(resources.GetObject("ActionButton2.BackgroundImage"), System.Drawing.Image)
-            ActionButton2.Name = "Add"
-            ActionButton2.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Add
-            ActionButton2.ToolTipText = "Choose a new location and add it to the list (Alt+O)"
-            ActionButton3.BackgroundImage = CType(resources.GetObject("ActionButton3.BackgroundImage"), System.Drawing.Image)
-            ActionButton3.Name = "Clear"
-            ActionButton3.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
-            ActionButton4.BackgroundImage = CType(resources.GetObject("ActionButton4.BackgroundImage"), System.Drawing.Image)
-            ActionButton4.Name = "ArrowDown"
-            ActionButton4.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.ArrowDown
-            Me.TXT_OUTPUT.Buttons.Add(ActionButton1)
-            Me.TXT_OUTPUT.Buttons.Add(ActionButton2)
-            Me.TXT_OUTPUT.Buttons.Add(ActionButton3)
-            Me.TXT_OUTPUT.Buttons.Add(ActionButton4)
+            ActionButton6.BackgroundImage = CType(resources.GetObject("ActionButton6.BackgroundImage"), System.Drawing.Image)
+            ActionButton6.Name = "Open"
+            ActionButton6.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Open
+            ActionButton6.ToolTipText = "Choose a new location (Ctrl+O)"
+            ActionButton7.BackgroundImage = CType(resources.GetObject("ActionButton7.BackgroundImage"), System.Drawing.Image)
+            ActionButton7.Name = "Add"
+            ActionButton7.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Add
+            ActionButton7.ToolTipText = "Choose a new location and add it to the list (Alt+O)"
+            ActionButton8.BackgroundImage = CType(resources.GetObject("ActionButton8.BackgroundImage"), System.Drawing.Image)
+            ActionButton8.Name = "Clear"
+            ActionButton8.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
+            ActionButton9.BackgroundImage = CType(resources.GetObject("ActionButton9.BackgroundImage"), System.Drawing.Image)
+            ActionButton9.Name = "ArrowDown"
+            ActionButton9.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.ArrowDown
+            Me.TXT_OUTPUT.Buttons.Add(ActionButton6)
+            Me.TXT_OUTPUT.Buttons.Add(ActionButton7)
+            Me.TXT_OUTPUT.Buttons.Add(ActionButton8)
+            Me.TXT_OUTPUT.Buttons.Add(ActionButton9)
             Me.TXT_OUTPUT.CaptionText = "Output path"
             Me.TXT_OUTPUT.CaptionWidth = 70.0R
-            ListColumn1.Name = "COL_NAME"
-            ListColumn1.Text = "Name"
-            ListColumn1.Width = -1
-            ListColumn2.DisplayMember = True
-            ListColumn2.Name = "COL_VALUE"
-            ListColumn2.Text = "Value"
-            ListColumn2.ValueMember = True
-            ListColumn2.Visible = False
-            Me.TXT_OUTPUT.Columns.Add(ListColumn1)
-            Me.TXT_OUTPUT.Columns.Add(ListColumn2)
+            ListColumn3.Name = "COL_NAME"
+            ListColumn3.Text = "Name"
+            ListColumn3.Width = -1
+            ListColumn4.DisplayMember = True
+            ListColumn4.Name = "COL_VALUE"
+            ListColumn4.Text = "Value"
+            ListColumn4.ValueMember = True
+            ListColumn4.Visible = False
+            Me.TXT_OUTPUT.Columns.Add(ListColumn3)
+            Me.TXT_OUTPUT.Columns.Add(ListColumn4)
             Me.TXT_OUTPUT.Dock = System.Windows.Forms.DockStyle.Fill
             Me.TXT_OUTPUT.ListAutoCompleteMode = PersonalUtilities.Forms.Controls.ComboBoxExtended.AutoCompleteModes.Disabled
             Me.TXT_OUTPUT.Location = New System.Drawing.Point(3, 3)
@@ -124,9 +127,9 @@ Namespace DownloadObjects.STDownloader
             '
             FRM_URLS.Controls.Add(Me.TXT_URLS)
             FRM_URLS.Dock = System.Windows.Forms.DockStyle.Fill
-            FRM_URLS.Location = New System.Drawing.Point(3, 59)
+            FRM_URLS.Location = New System.Drawing.Point(3, 84)
             FRM_URLS.Name = "FRM_URLS"
-            FRM_URLS.Size = New System.Drawing.Size(378, 199)
+            FRM_URLS.Size = New System.Drawing.Size(378, 174)
             FRM_URLS.TabIndex = 2
             FRM_URLS.TabStop = False
             FRM_URLS.Text = "URLs (new line as delimiter)"
@@ -139,15 +142,15 @@ Namespace DownloadObjects.STDownloader
             Me.TXT_URLS.Multiline = True
             Me.TXT_URLS.Name = "TXT_URLS"
             Me.TXT_URLS.ScrollBars = System.Windows.Forms.ScrollBars.Both
-            Me.TXT_URLS.Size = New System.Drawing.Size(372, 180)
+            Me.TXT_URLS.Size = New System.Drawing.Size(372, 155)
             Me.TXT_URLS.TabIndex = 0
             '
             'CMB_ACCOUNT
             '
-            ActionButton5.BackgroundImage = CType(resources.GetObject("ActionButton5.BackgroundImage"), System.Drawing.Image)
-            ActionButton5.Name = "ArrowDown"
-            ActionButton5.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.ArrowDown
-            Me.CMB_ACCOUNT.Buttons.Add(ActionButton5)
+            ActionButton10.BackgroundImage = CType(resources.GetObject("ActionButton10.BackgroundImage"), System.Drawing.Image)
+            ActionButton10.Name = "ArrowDown"
+            ActionButton10.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.ArrowDown
+            Me.CMB_ACCOUNT.Buttons.Add(ActionButton10)
             Me.CMB_ACCOUNT.CaptionMode = PersonalUtilities.Forms.Controls.Base.ICaptionControl.Modes.Label
             Me.CMB_ACCOUNT.CaptionText = "Account"
             Me.CMB_ACCOUNT.CaptionToolTipEnabled = True
@@ -160,6 +163,17 @@ Namespace DownloadObjects.STDownloader
             Me.CMB_ACCOUNT.Size = New System.Drawing.Size(378, 22)
             Me.CMB_ACCOUNT.TabIndex = 1
             Me.CMB_ACCOUNT.TextBoxBorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
+            '
+            'CH_THUMB_ALONG
+            '
+            Me.CH_THUMB_ALONG.AutoSize = True
+            Me.CH_THUMB_ALONG.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_THUMB_ALONG.Location = New System.Drawing.Point(3, 59)
+            Me.CH_THUMB_ALONG.Name = "CH_THUMB_ALONG"
+            Me.CH_THUMB_ALONG.Size = New System.Drawing.Size(378, 19)
+            Me.CH_THUMB_ALONG.TabIndex = 3
+            Me.CH_THUMB_ALONG.Text = "Save thumbnail with file"
+            Me.CH_THUMB_ALONG.UseVisualStyleBackColor = True
             '
             'DownloaderUrlsArrForm
             '
@@ -177,6 +191,7 @@ Namespace DownloadObjects.STDownloader
             CONTAINER_MAIN.ResumeLayout(False)
             CONTAINER_MAIN.PerformLayout()
             TP_MAIN.ResumeLayout(False)
+            TP_MAIN.PerformLayout()
             CType(Me.TXT_OUTPUT, System.ComponentModel.ISupportInitialize).EndInit()
             FRM_URLS.ResumeLayout(False)
             FRM_URLS.PerformLayout()
@@ -187,5 +202,6 @@ Namespace DownloadObjects.STDownloader
         Private WithEvents TXT_OUTPUT As PersonalUtilities.Forms.Controls.ComboBoxExtended
         Private WithEvents TXT_URLS As TextBox
         Private WithEvents CMB_ACCOUNT As PersonalUtilities.Forms.Controls.ComboBoxExtended
+        Private WithEvents CH_THUMB_ALONG As CheckBox
     End Class
 End Namespace

@@ -176,7 +176,7 @@ Namespace DownloadObjects
             Hide()
         End Sub
         Private Sub DownloadFeedForm_Disposed(sender As Object, e As EventArgs) Handles Me.Disposed
-            ClearTable()
+            'ClearTable()
             MyRange.Dispose()
             LoadedFeedNames.Clear()
             BTT_CLEAR_DAILY.Dispose()
@@ -507,6 +507,7 @@ Namespace DownloadObjects
                 Dim data As IEnumerable(Of UserMediaD) = Nothing
                 Dim dd As UserMediaD
                 Dim data_files As IEnumerable(Of SFile) = Nothing
+                Dim new_files As New List(Of SFile)
                 Dim mm As UserMediaD
                 Dim mm_data As API.Base.UserMedia
                 Dim indx%
@@ -605,10 +606,11 @@ Namespace DownloadObjects
                                 df = ff
                                 df.Path = moveOptions.DestinationTrue(dd).Path
                                 If isCopy Then
-                                    If ff.Copy(df) Then result = True
+                                    If ff.Copy(df) Then new_files.Add(df) : result = True
                                 Else
                                     If df.Exists And renameExisting Then df = SFile.IndexReindex(df,,,, New ErrorsDescriber(False, False, False, df))
                                     If SFile.Move(ff, df) Then
+                                        new_files.Add(df)
                                         result = True
                                         If updateFileLocations Then
                                             filesReplace.Add(New KeyValuePair(Of SFile, SFile)(ff, df))
@@ -668,7 +670,10 @@ Namespace DownloadObjects
                             If filesReplace.Count > 0 Then filesReplace.ForEach(Sub(fr) Settings.Feeds.UpdateDataByFile(fr.Key, fr.Value, moveOptions))
                             filesReplace.Clear()
                         End If
-                        If IsInternal Then MsgBoxE(New MMessage($"The following files were {IIf(isCopy, "copied", "moved")} to{vbCr}{moveOptions.Destination}{vbCr}{vbCr}{data_files.ListToString(vbCr)}", MsgTitle) With {.Editable = True})
+                        If IsInternal Then MsgBoxE(New MMessage($"The following files were {IIf(isCopy, "copied", "moved")} to{vbCr}{moveOptions.Destination}{vbCr}{vbCr}" &
+                                                                $"Source:{vbCr}{data_files.ListToString(vbCr)}{vbCr}" &
+                                                                $"Destination:{vbCr}{new_files.ListToString(vbCr)}", MsgTitle) With {.Editable = True})
+                        new_files.Clear()
                         If Not isCopy And updateFileLocations Then RefillList()
                     End If
                 Else

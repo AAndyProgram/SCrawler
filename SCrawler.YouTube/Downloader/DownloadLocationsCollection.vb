@@ -9,6 +9,7 @@
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.XML.Base
 Imports PersonalUtilities.Functions.XML.Attributes
+Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Forms.Controls
 Imports PersonalUtilities.Forms.Controls.Base
 Imports PersonalUtilities.Tools
@@ -140,6 +141,44 @@ Namespace DownloadObjects.STDownloader
                 End If
             End If
             Return f
+        End Function
+        Friend Function ChooseNewPlaylistArray(ByRef CMB As ComboBoxExtended, ByRef Result As Boolean) As IEnumerable(Of SFile)
+            Try
+                Dim initFiles As IEnumerable(Of SFile) = Nothing
+                Dim selectedFiles As IEnumerable(Of SFile) = Nothing
+                If Count > 0 Then initFiles = Me.Select(Function(l) l.Path.CSFile)
+                Dim addh As New EventHandler(Of SimpleListFormEventArgs)(Sub(ByVal s As Object, ByVal ee As SimpleListFormEventArgs)
+                                                                             Dim ff As List(Of SFile) = SFile.SelectFiles(,, "Select playlist files", "Playlist|*.m3u;*.m3u8|AllFiles|*.*", EDP.ReturnValue)
+                                                                             If ff.ListExists Then
+                                                                                 ee.AddItem(ff.Cast(Of Object))
+                                                                                 ee.Result = True
+                                                                             Else
+                                                                                 ee.Result = False
+                                                                             End If
+                                                                         End Sub)
+                Using f As New SimpleListForm(Of SFile)(initFiles, API.YouTube.MyYouTubeSettings.DesignXml) With {
+                    .DesignXMLNodeName = "M3U8SelectorForm",
+                    .FormText = "Playlists",
+                    .Buttons = {ActionButton.DefaultButtons.Add},
+                    .Icon = ImageRenderer.GetIcon(My.Resources.StartPic_Green_16, EDP.ReturnValue),
+                    .AddFunction = addh
+                }
+                    If f.ShowDialog = DialogResult.OK Then Result = True : selectedFiles = ListAddList(Nothing, f.DataResult, LAP.NotContainsOnly)
+                End Using
+                If selectedFiles.ListExists Then
+                    Dim added As Boolean = False
+                    selectedFiles.ListForEach(Sub(ByVal plsFile As SFile, ByVal ii As Integer)
+                                                  If IndexOf(plsFile.ToString,, True) = -1 Then Add(plsFile.ToString, True, True) : added = True
+                                              End Sub)
+                    If added Then PopulateComboBox(CMB, selectedFiles(0).ToString, True)
+                    CMB.Text = selectedFiles(0)
+                    Return selectedFiles
+                Else
+                    Return Nothing
+                End If
+            Catch ex As Exception
+                Return ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Select playlist array")
+            End Try
         End Function
         Private Sub Update()
             If Locations.Count > 0 Then

@@ -23,6 +23,12 @@ Namespace API.YouTube.Controls
         Private Property DesignXMLNodes As String() Implements IDesignXMLContainer.DesignXMLNodes
         Private Property DesignXMLNodeName As String Implements IDesignXMLContainer.DesignXMLNodeName
         Private ReadOnly MyContainer As IYouTubeMediaContainer
+        Private ReadOnly M3U8Files As List(Of SFile)
+        Private ReadOnly Property M3U8FilesFull As List(Of SFile)
+            Get
+                Return ListAddList(Nothing, M3U8Files, LAP.NotContainsOnly).ListAddValue(CMB_PLS.Text, LAP.NotContainsOnly)
+            End Get
+        End Property
         Private Initializing As Boolean = True
         Private ReadOnly Property Current As IYouTubeMediaContainer
             Get
@@ -40,6 +46,7 @@ Namespace API.YouTube.Controls
 #Region "Initializer"
         Friend Sub New(ByVal Container As IYouTubeMediaContainer)
             InitializeComponent()
+            M3U8Files = New List(Of SFile)
             MyContainer = Container
         End Sub
 #End Region
@@ -114,6 +121,7 @@ Namespace API.YouTube.Controls
         Private Sub MusicPlaylistsForm_Closing(sender As Object, e As CancelEventArgs) Handles Me.Closing
             MyYouTubeSettings.PlaylistFormSplitterDistance.Value = SPLITTER_MAIN.SplitterDistancePercentageGet
             MyView.DisposeIfReady()
+            M3U8Files.Clear()
         End Sub
         Private Sub MusicPlaylistsForm_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
             Dim b As Boolean = True
@@ -183,27 +191,49 @@ Namespace API.YouTube.Controls
             End With
         End Sub
         Private Sub TXT_OUTPUT_PATH_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As ActionButtonEventArgs) Handles TXT_OUTPUT_PATH.ActionOnButtonClick
-            If Sender.DefaultButton = ADB.Open Or Sender.DefaultButton = ADB.Add Then _
-               MyYouTubeSettings.DownloadLocations.ChooseNewLocation(TXT_OUTPUT_PATH, Sender.DefaultButton = ADB.Add, MyDownloaderSettings.OutputPathAskForName)
+            Select Case e.DefaultButton
+                Case ADB.Open, ADB.Add
+                    MyYouTubeSettings.DownloadLocations.ChooseNewLocation(TXT_OUTPUT_PATH, e.DefaultButton = ADB.Add, MyDownloaderSettings.OutputPathAskForName)
+                Case ADB.Save
+                    If Not TXT_OUTPUT_PATH.Text.IsEmptyString Then
+                        With MyYouTubeSettings.PlaylistsLocations
+                            .Add(TXT_OUTPUT_PATH.Text, True)
+                            .PopulateComboBox(TXT_OUTPUT_PATH, TXT_OUTPUT_PATH.Text)
+                        End With
+                    End If
+            End Select
         End Sub
         Private Sub CMB_PLS_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As ActionButtonEventArgs) Handles CMB_PLS.ActionOnButtonClick
             Try
-                If Sender.DefaultButton = ADB.Add Or Sender.DefaultButton = ADB.Open Then
-                    Dim f As SFile = Nothing
-                    If Not CMB_PLS.Text.IsEmptyString Then
-                        f = CMB_PLS.Text
-                    ElseIf Not TXT_OUTPUT_PATH.Text.IsEmptyString Then
-                        f = TXT_OUTPUT_PATH.Text
-                    End If
-                    f = SFile.SelectFiles(f, False, "Select a playlist...", "Playlists|*.m3u;*.m3u8|All files|*.*", EDP.ReturnValue).FirstOrDefault
-                    If Not f.IsEmptyString Then
-                        If Sender.DefaultButton = ADB.Add Then
-                            MyYouTubeSettings.PlaylistsLocations.Add(f.ToString, True, True)
-                            MyYouTubeSettings.PlaylistsLocations.PopulateComboBox(CMB_PLS, f, True)
+                Select Case e.DefaultButton
+                    Case ADB.Add, ADB.Open
+                        Dim f As SFile = Nothing
+                        If Not CMB_PLS.Text.IsEmptyString Then
+                            f = CMB_PLS.Text
+                        ElseIf Not TXT_OUTPUT_PATH.Text.IsEmptyString Then
+                            f = TXT_OUTPUT_PATH.Text
                         End If
-                        CMB_PLS.Text = f
-                    End If
-                End If
+                        f = SFile.SelectFiles(f, False, "Select a playlist...", "Playlists|*.m3u;*.m3u8|All files|*.*", EDP.ReturnValue).FirstOrDefault
+                        If Not f.IsEmptyString Then
+                            If Sender.DefaultButton = ADB.Add Then
+                                MyYouTubeSettings.PlaylistsLocations.Add(f.ToString, True, True)
+                                MyYouTubeSettings.PlaylistsLocations.PopulateComboBox(CMB_PLS, f, True)
+                            End If
+                            CMB_PLS.Text = f
+                        End If
+                    Case ADB.List
+                        Dim result As Boolean = False
+                        Dim selectedFiles As IEnumerable(Of SFile) = MyYouTubeSettings.PlaylistsLocations.ChooseNewPlaylistArray(CMB_PLS, result)
+                        If result Then M3U8Files.ListAddList(selectedFiles, LAP.NotContainsOnly, LAP.ClearBeforeAdd)
+                    Case ADB.Save
+                        With MyYouTubeSettings.PlaylistsLocations
+                            If Not CMB_PLS.Text.IsEmptyString AndAlso .IndexOf(CMB_PLS.Text,, True) = -1 Then
+                                .Add(CMB_PLS.Text, True, True)
+                                .PopulateComboBox(CMB_PLS, CMB_PLS.Text, True)
+                            End If
+                        End With
+                    Case ADB.Clear : M3U8Files.Clear()
+                End Select
             Catch ex As Exception
                 ErrorsDescriber.Execute(EDP.SendToLog, ex, "[API.YouTube.Controls.MusicPlaylistsForm.SelectPlaylist]")
             End Try
@@ -300,7 +330,7 @@ Namespace API.YouTube.Controls
                     If Not TXT_FORMATS_ADDIT.Checked Then .PostProcessing_OutputAudioFormats.Clear()
                     .AbsolutePath = TXT_OUTPUT_PATH.Checked
                     .File = TXT_OUTPUT_PATH.Text.CSFileP
-                    .M3U8_PlaylistFile = CMB_PLS.Text
+                    .M3U8_PlaylistFiles = M3U8FilesFull
                     If MyYouTubeSettings.OutputPathAutoChange Then MyYouTubeSettings.OutputPath.Value = .File
                     If MyDownloaderSettings.OutputPathAutoAddPaths Then MyYouTubeSettings.DownloadLocations.Add(.File, False)
                     If Not CMB_PLS.Text.IsEmptyString Then MyYouTubeSettings.PlaylistsLocations.Add(CMB_PLS.Text, False, True)

@@ -151,6 +151,23 @@ Namespace API.TikTok
             End Try
             Return Title
         End Function
+        Private Function GetNewFileName(ByVal Title As String, ByVal Native As Boolean, ByVal RemoveTags As Boolean, ByVal AddVideoID As Boolean,
+                                        ByVal PostID As String, ByVal TitleRegex As RParams) As String
+            If Not Title.IsEmptyString Then Title = Left(Title, 150).StringTrim
+            If Title.IsEmptyString Or Not Native Then
+                Title = PostID
+            Else
+                If RemoveTags Then Title = RegexReplace(Title, RegexTagsReplacer)
+                Title = Title.StringTrim
+                If Title.IsEmptyString Then
+                    Title = PostID
+                ElseIf AddVideoID Then
+                    Title &= $" ({PostID})"
+                End If
+                Title = ChangeTitleRegex(Title, TitleRegex)
+            End If
+            Return Title
+        End Function
         Friend Overrides Sub DownloadData(ByVal Token As CancellationToken)
             MyBase.DownloadData(Token)
             UserCache.DisposeIfReady(False)
@@ -228,20 +245,8 @@ Namespace API.TikTok
                                 Else
                                     Exit Sub
                                 End If
-                                title = j.Value("title").StringRemoveWinForbiddenSymbols
-                                If Not title.IsEmptyString Then title = Left(title, 150)
-                                If title.IsEmptyString Or Not TitleUseNative Then
-                                    title = postID
-                                Else
-                                    If RemoveTagsFromTitle Then title = RegexReplace(title, RegexTagsReplacer)
-                                    title = title.StringTrim
-                                    If title.IsEmptyString Then
-                                        title = postID
-                                    ElseIf TitleAddVideoID Then
-                                        title &= $" ({postID})"
-                                    End If
-                                    title = ChangeTitleRegex(title, titleRegex)
-                                End If
+                                title = GetNewFileName(j.Value("title").StringRemoveWinForbiddenSymbols,
+                                                       TitleUseNative, RemoveTagsFromTitle, TitleAddVideoID, postID, titleRegex)
                                 postDate = AConvert(Of Date)(j.Value("timestamp"), UnixDate32Provider, Nothing)
                                 If Not postDate.HasValue Then postDate = AConvert(Of Date)(j.Value("upload_date"), SimpleDateConverter, Nothing)
                                 Select Case CheckDatesLimit(postDate, SimpleDateConverter)
@@ -296,7 +301,7 @@ Namespace API.TikTok
             End If
             If DateBefore.HasValue Then command &= $"--datebefore {DateBefore.Value.AddDays(1).ToStringDate(SimpleDateConverter)} "
             If DateAfter.HasValue Then command &= $"--dateafter {DateAfter.Value.AddDays(-1).ToStringDate(SimpleDateConverter)} "
-            If Not CBool(MySettings.UseParsedVideoDate.Value) Then command &= "--no-mtime "
+            If Not CBool(If(IsSingleObjectDownload, MySettings.UseParsedVideoDateSTD, MySettings.UseParsedVideoDate).Value) Then command &= "--no-mtime "
             If MySettings.CookiesNetscapeFile.Exists Then command &= $"--no-cookies-from-browser --cookies ""{MySettings.CookiesNetscapeFile}"" "
             command &= $"{URL} "
             If SupportOutput Then
@@ -347,13 +352,9 @@ Namespace API.TikTok
             Dim m As New UserMedia(Data.URL, UserMedia.Types.Video)
             If Not f.IsEmptyString Then f = TitleHtmlConverter(f)
             If Not f.IsEmptyString Then
-                If CBool(MySettings.RemoveTagsFromTitle.Value) Then f = RegexReplace(f, RegexTagsReplacer)
-                f = f.StringTrim
-                If Not f.IsEmptyString Then
-                    If CBool(MySettings.TitleAddVideoID.Value) Then f &= $" ({m.File.Name})"
-                    f = ChangeTitleRegex(f, GetTitleRegex)
-                    m.File.Name = f
-                End If
+                f = GetNewFileName(f, MySettings.TitleUseNativeSTD.Value, MySettings.RemoveTagsFromTitle.Value, MySettings.TitleAddVideoIDSTD.Value,
+                                   m.File.Name, GetTitleRegex)
+                If Not f.IsEmptyString Then m.File.Name = f.StringTrim
             End If
             _TempMediaList.Add(m)
         End Sub

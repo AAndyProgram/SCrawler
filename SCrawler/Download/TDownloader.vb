@@ -511,7 +511,6 @@ Namespace DownloadObjects
                 FilesUpdatePendingUsers()
                 If FilesChanged Then FilesSave() : RaiseEvent FeedFilesChanged(True)
                 If _SessionSavedPosts <> -1 Then Session = _SessionSavedPosts : _SessionSavedPosts = -1
-                Settings.Plugins.ForEach(Sub(p) p.Settings.ResetIndexes())
             End Try
         End Sub
         Private Sub StartDownloading(ByRef _Job As Job)

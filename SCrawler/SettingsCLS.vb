@@ -293,6 +293,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         STDownloader_OnItemDoubleClick = New XMLValue(Of DoubleClickBehavior)("OnItemDoubleClick", DoubleClickBehavior.Folder, MyXML, n)
         STDownloader_TakeSnapshot = New XMLValue(Of Boolean)("TakeSnapshot", True, MyXML, n)
         STDownloader_SnapshotsKeepWithFiles = New XMLValue(Of Boolean)("SnapshotsKeepWithFiles", True, MyXML, n)
+        STDownloader_SnapshotsKeepWithFiles_ThumbAlong = New XMLValue(Of Boolean)("SnapshotsKeepWithFiles_ThumbAlong", False, MyXML, n)
         STDownloader_SnapShotsCachePermamnent = New XMLValue(Of Boolean)("SnapShotsCachePermamnent", False, MyXML, n)
         STDownloader_RemoveYTVideosOnClear = New XMLValue(Of Boolean)("RemoveYouTubeVideosOnClear", False, MyXML, n)
         STDownloader_LoadYTVideos = New XMLValue(Of Boolean)("LoadYouTubeVideos", False, MyXML, n)
@@ -824,6 +825,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
     End Property
     Friend ReadOnly Property STDownloader_TakeSnapshot As XMLValue(Of Boolean)
     Friend ReadOnly Property STDownloader_SnapshotsKeepWithFiles As XMLValue(Of Boolean)
+    Friend ReadOnly Property STDownloader_SnapshotsKeepWithFiles_ThumbAlong As XMLValue(Of Boolean)
     Friend ReadOnly Property STDownloader_SnapShotsCachePermamnent As XMLValue(Of Boolean)
     Friend ReadOnly Property STDownloader_RemoveYTVideosOnClear As XMLValue(Of Boolean)
     Friend ReadOnly Property STDownloader_LoadYTVideos As XMLValue(Of Boolean)

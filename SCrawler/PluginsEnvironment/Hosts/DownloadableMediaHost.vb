@@ -11,6 +11,7 @@ Imports SCrawler.API.Base
 Imports SCrawler.API.YouTube.Objects
 Imports SCrawler.DownloadObjects.STDownloader
 Imports PersonalUtilities.Functions.XML
+Imports PersonalUtilities.Functions.XML.Attributes
 Namespace Plugin.Hosts
     Friend Class DownloadableMediaHost : Inherits YouTubeMediaContainerBase
         Protected Overrides Property IDownloadableMedia_Instance As IPluginContentProvider
@@ -23,6 +24,7 @@ Namespace Plugin.Hosts
         End Property
         Friend Property Instance As UserDataBase
         Friend ReadOnly Property ExternalSource As IDownloadableMedia = Nothing
+        <XMLEC> Friend Property ThumbAlong As Boolean = False
         Public Overrides ReadOnly Property Exists As Boolean
             Get
                 If SiteKey = API.YouTube.YouTubeSiteKey Then
@@ -43,7 +45,7 @@ Namespace Plugin.Hosts
         End Property
         Public Overrides Sub Delete(ByVal RemoveFiles As Boolean)
             MyBase.Delete(RemoveFiles)
-            If Not RemoveFiles And Not Settings.STDownloader_SnapshotsKeepWithFiles And Settings.STDownloader_SnapShotsCachePermamnent Then _
+            If Not RemoveFiles And Not Settings.STDownloader_SnapshotsKeepWithFiles And Settings.STDownloader_SnapShotsCachePermamnent And Not ThumbAlong Then _
                ThumbnailFile.Delete(SFO.File, SFODelete.DeleteToRecycleBin, EDP.None)
         End Sub
         Friend Sub New(ByVal URL As String, ByVal OutputFile As SFile)
@@ -100,6 +102,7 @@ Namespace Plugin.Hosts
                     Site = .Site
                     SiteKey = .SiteKey
                     AccountName = .AccountName
+                    If TypeOf ExternalSource Is DownloadableMediaHost Then ThumbAlong = DirectCast(ExternalSource, DownloadableMediaHost).ThumbAlong
                     _HasError = .HasError
                     _Exists = .Exists
                 End With
@@ -147,6 +150,8 @@ Namespace Plugin.Hosts
                 d.Duration = s.Duration
                 d.Checked = s.Checked
                 d.AccountName = s.AccountName
+                If TypeOf s Is DownloadableMediaHost And TypeOf d Is DownloadableMediaHost Then _
+                   DirectCast(d, DownloadableMediaHost).ThumbAlong = DirectCast(s, DownloadableMediaHost).ThumbAlong
             End If
         End Sub
         Public Overrides Sub Load(ByVal f As SFile)

@@ -19,6 +19,11 @@ Namespace DownloadObjects.STDownloader
                 Return CMB_ACCOUNT.Text
             End Get
         End Property
+        Friend ReadOnly Property ThumbAlong As Boolean
+            Get
+                Return CH_THUMB_ALONG.Checked
+            End Get
+        End Property
         Friend Sub New()
             InitializeComponent()
             MyDefs = New DefaultFormOptions(Me, Settings.Design)
@@ -32,6 +37,7 @@ Namespace DownloadObjects.STDownloader
                 TXT_PATH.Text = Settings.LatestSavingPath.Value
                 If TXT_PATH.Text.IsEmptyString Then TXT_PATH.Text = Application.StartupPath.CSFileP.PathWithSeparator
                 TXT_URL_ActionOnTextChanged()
+                CH_THUMB_ALONG.Checked = Settings.STDownloader_SnapshotsKeepWithFiles_ThumbAlong
                 .MyFieldsChecker = New FieldsChecker
                 With .MyFieldsCheckerE
                     .AddControl(Of String)(TXT_URL, TXT_URL.CaptionText)

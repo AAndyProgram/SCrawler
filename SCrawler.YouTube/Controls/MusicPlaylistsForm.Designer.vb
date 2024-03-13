@@ -43,12 +43,15 @@ Namespace API.YouTube.Controls
             Dim ActionButton8 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim ActionButton9 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim ActionButton10 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton11 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim ListColumn1 As PersonalUtilities.Forms.Controls.Base.ListColumn = New PersonalUtilities.Forms.Controls.Base.ListColumn()
             Dim ListColumn2 As PersonalUtilities.Forms.Controls.Base.ListColumn = New PersonalUtilities.Forms.Controls.Base.ListColumn()
-            Dim ActionButton11 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim ActionButton12 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim ActionButton13 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim ActionButton14 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton15 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton16 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton17 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim TT_MAIN As System.Windows.Forms.ToolTip
             Me.BTT_DOWN = New System.Windows.Forms.Button()
             Me.BTT_CANCEL = New System.Windows.Forms.Button()
@@ -418,23 +421,28 @@ Namespace API.YouTube.Controls
             'TXT_OUTPUT_PATH
             '
             ActionButton7.BackgroundImage = CType(resources.GetObject("ActionButton7.BackgroundImage"), System.Drawing.Image)
-            ActionButton7.Name = "Open"
-            ActionButton7.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Open
-            ActionButton7.ToolTipText = "Choose a new location (Ctrl+O)"
+            ActionButton7.Name = "Save"
+            ActionButton7.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Save
+            ActionButton7.ToolTipText = "Save destination"
             ActionButton8.BackgroundImage = CType(resources.GetObject("ActionButton8.BackgroundImage"), System.Drawing.Image)
-            ActionButton8.Name = "Add"
-            ActionButton8.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Add
-            ActionButton8.ToolTipText = "Choose a new location and add it to the list (Alt+O)"
+            ActionButton8.Name = "Open"
+            ActionButton8.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Open
+            ActionButton8.ToolTipText = "Choose a new location (Ctrl+O)"
             ActionButton9.BackgroundImage = CType(resources.GetObject("ActionButton9.BackgroundImage"), System.Drawing.Image)
-            ActionButton9.Name = "Clear"
-            ActionButton9.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
+            ActionButton9.Name = "Add"
+            ActionButton9.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Add
+            ActionButton9.ToolTipText = "Choose a new location and add it to the list (Alt+O)"
             ActionButton10.BackgroundImage = CType(resources.GetObject("ActionButton10.BackgroundImage"), System.Drawing.Image)
-            ActionButton10.Name = "ArrowDown"
-            ActionButton10.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.ArrowDown
+            ActionButton10.Name = "Clear"
+            ActionButton10.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
+            ActionButton11.BackgroundImage = CType(resources.GetObject("ActionButton11.BackgroundImage"), System.Drawing.Image)
+            ActionButton11.Name = "ArrowDown"
+            ActionButton11.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.ArrowDown
             Me.TXT_OUTPUT_PATH.Buttons.Add(ActionButton7)
             Me.TXT_OUTPUT_PATH.Buttons.Add(ActionButton8)
             Me.TXT_OUTPUT_PATH.Buttons.Add(ActionButton9)
             Me.TXT_OUTPUT_PATH.Buttons.Add(ActionButton10)
+            Me.TXT_OUTPUT_PATH.Buttons.Add(ActionButton11)
             Me.TXT_OUTPUT_PATH.CaptionMode = PersonalUtilities.Forms.Controls.Base.ICaptionControl.Modes.CheckBox
             Me.TXT_OUTPUT_PATH.CaptionText = "Output path"
             Me.TXT_OUTPUT_PATH.CaptionToolTipEnabled = True
@@ -462,24 +470,34 @@ Namespace API.YouTube.Controls
             '
             'CMB_PLS
             '
-            ActionButton11.BackgroundImage = CType(resources.GetObject("ActionButton11.BackgroundImage"), System.Drawing.Image)
-            ActionButton11.Name = "Open"
-            ActionButton11.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Open
-            ActionButton11.ToolTipText = "Choose an output file"
             ActionButton12.BackgroundImage = CType(resources.GetObject("ActionButton12.BackgroundImage"), System.Drawing.Image)
-            ActionButton12.Name = "Add"
-            ActionButton12.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Add
-            ActionButton12.ToolTipText = "Choose an output file (add a new location to the list)"
+            ActionButton12.Name = "Save"
+            ActionButton12.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Save
+            ActionButton12.ToolTipText = "Save playlist"
             ActionButton13.BackgroundImage = CType(resources.GetObject("ActionButton13.BackgroundImage"), System.Drawing.Image)
-            ActionButton13.Name = "Clear"
-            ActionButton13.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
+            ActionButton13.Name = "List"
+            ActionButton13.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.List
+            ActionButton13.ToolTipText = "Select multiple playlists"
             ActionButton14.BackgroundImage = CType(resources.GetObject("ActionButton14.BackgroundImage"), System.Drawing.Image)
-            ActionButton14.Name = "ArrowDown"
-            ActionButton14.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.ArrowDown
-            Me.CMB_PLS.Buttons.Add(ActionButton11)
+            ActionButton14.Name = "Open"
+            ActionButton14.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Open
+            ActionButton14.ToolTipText = "Choose an output file"
+            ActionButton15.BackgroundImage = CType(resources.GetObject("ActionButton15.BackgroundImage"), System.Drawing.Image)
+            ActionButton15.Name = "Add"
+            ActionButton15.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Add
+            ActionButton15.ToolTipText = "Choose an output file (add a new location to the list)"
+            ActionButton16.BackgroundImage = CType(resources.GetObject("ActionButton16.BackgroundImage"), System.Drawing.Image)
+            ActionButton16.Name = "Clear"
+            ActionButton16.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
+            ActionButton17.BackgroundImage = CType(resources.GetObject("ActionButton17.BackgroundImage"), System.Drawing.Image)
+            ActionButton17.Name = "ArrowDown"
+            ActionButton17.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.ArrowDown
             Me.CMB_PLS.Buttons.Add(ActionButton12)
             Me.CMB_PLS.Buttons.Add(ActionButton13)
             Me.CMB_PLS.Buttons.Add(ActionButton14)
+            Me.CMB_PLS.Buttons.Add(ActionButton15)
+            Me.CMB_PLS.Buttons.Add(ActionButton16)
+            Me.CMB_PLS.Buttons.Add(ActionButton17)
             Me.CMB_PLS.CaptionMode = PersonalUtilities.Forms.Controls.Base.ICaptionControl.Modes.Label
             Me.CMB_PLS.CaptionText = "Playlist"
             Me.CMB_PLS.CaptionToolTipEnabled = True
