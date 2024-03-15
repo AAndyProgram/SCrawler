@@ -29,8 +29,6 @@ Namespace API.Facebook
                 Return __HH_CSRF_TOKEN
             End Get
         End Property
-        <PropertyOption(ControlText:="sec-ch-ua-platform-ver", ControlToolTip:="sec-ch-ua-platform-version", IsAuth:=True, LeftOffset:=120), ControlNumber(51), PXML, PClonable>
-        Friend ReadOnly Property HH_PLATFORM_VER As PropertyValue
 #End Region
 #Region "Defaults"
         <PropertyOption(ControlText:="Download photos", IsAuth:=False), PXML, PClonable>
@@ -51,7 +49,6 @@ Namespace API.Facebook
                 .Remove(DeclaredNames.Header_FB_FRIENDLY_NAME)
             End With
             Header_Accept = New PropertyValue(String.Empty, GetType(String))
-            HH_PLATFORM_VER = New PropertyValue(String.Empty, GetType(String))
             ParsePhotoBlock = New PropertyValue(True)
             ParseVideoBlock = New PropertyValue(True)
             ParseStoriesBlock = New PropertyValue(True)

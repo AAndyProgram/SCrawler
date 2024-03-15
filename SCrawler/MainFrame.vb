@@ -323,6 +323,11 @@ CloseResume:
                     TrayIcon.Visible = .CloseToTray
                     LIST_PROFILES.ShowGroups = .UseGrouping
                     If f.FeedParametersChanged And Not MyFeed Is Nothing Then MyFeed.UpdateSettings()
+                    If f.HeadersChanged Then
+                        Settings.BeginUpdate()
+                        Settings.Plugins.ForEach(Sub(p) p.Settings.UpdateInheritance())
+                        Settings.EndUpdate()
+                    End If
                     UpdateSilentButtons()
                     UpdateImageColor()
                 End If

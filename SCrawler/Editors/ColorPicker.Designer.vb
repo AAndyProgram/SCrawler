@@ -23,23 +23,78 @@ Namespace Editors
         <System.Diagnostics.DebuggerStepThrough()>
         Private Sub InitializeComponent()
             Me.components = New System.ComponentModel.Container()
-            Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(ColorPicker))
             Dim TT_MAIN As System.Windows.Forms.ToolTip
-            Me.TP_MAIN = New System.Windows.Forms.TableLayoutPanel()
-            Me.LBL_CAPTION = New System.Windows.Forms.Label()
-            Me.LBL_COLORS = New System.Windows.Forms.Label()
+            Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(ColorPicker))
             Me.BTT_COLORS_FORE = New System.Windows.Forms.Button()
             Me.BTT_COLORS_BACK = New System.Windows.Forms.Button()
             Me.BTT_COLORS_CLEAR = New System.Windows.Forms.Button()
+            Me.BTT_SELECT = New System.Windows.Forms.Button()
+            Me.TP_MAIN = New System.Windows.Forms.TableLayoutPanel()
+            Me.LBL_CAPTION = New System.Windows.Forms.Label()
+            Me.LBL_COLORS = New System.Windows.Forms.Label()
             TT_MAIN = New System.Windows.Forms.ToolTip(Me.components)
             Me.TP_MAIN.SuspendLayout()
             Me.SuspendLayout()
             '
+            'BTT_COLORS_FORE
+            '
+            Me.BTT_COLORS_FORE.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.BTT_COLORS_FORE.Location = New System.Drawing.Point(254, 2)
+            Me.BTT_COLORS_FORE.Margin = New System.Windows.Forms.Padding(2)
+            Me.BTT_COLORS_FORE.Name = "BTT_COLORS_FORE"
+            Me.BTT_COLORS_FORE.Size = New System.Drawing.Size(18, 24)
+            Me.BTT_COLORS_FORE.TabIndex = 2
+            Me.BTT_COLORS_FORE.Tag = "F"
+            Me.BTT_COLORS_FORE.Text = "F"
+            TT_MAIN.SetToolTip(Me.BTT_COLORS_FORE, "Font color")
+            Me.BTT_COLORS_FORE.UseVisualStyleBackColor = True
+            '
+            'BTT_COLORS_BACK
+            '
+            Me.BTT_COLORS_BACK.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.BTT_COLORS_BACK.Location = New System.Drawing.Point(276, 2)
+            Me.BTT_COLORS_BACK.Margin = New System.Windows.Forms.Padding(2)
+            Me.BTT_COLORS_BACK.Name = "BTT_COLORS_BACK"
+            Me.BTT_COLORS_BACK.Size = New System.Drawing.Size(18, 24)
+            Me.BTT_COLORS_BACK.TabIndex = 3
+            Me.BTT_COLORS_BACK.Tag = "C"
+            Me.BTT_COLORS_BACK.Text = "C"
+            TT_MAIN.SetToolTip(Me.BTT_COLORS_BACK, "Back color")
+            Me.BTT_COLORS_BACK.UseVisualStyleBackColor = True
+            '
+            'BTT_COLORS_CLEAR
+            '
+            Me.BTT_COLORS_CLEAR.BackgroundImage = CType(resources.GetObject("BTT_COLORS_CLEAR.BackgroundImage"), System.Drawing.Image)
+            Me.BTT_COLORS_CLEAR.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom
+            Me.BTT_COLORS_CLEAR.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.BTT_COLORS_CLEAR.Location = New System.Drawing.Point(320, 2)
+            Me.BTT_COLORS_CLEAR.Margin = New System.Windows.Forms.Padding(2)
+            Me.BTT_COLORS_CLEAR.Name = "BTT_COLORS_CLEAR"
+            Me.BTT_COLORS_CLEAR.Size = New System.Drawing.Size(18, 24)
+            Me.BTT_COLORS_CLEAR.TabIndex = 4
+            Me.BTT_COLORS_CLEAR.Tag = "D"
+            TT_MAIN.SetToolTip(Me.BTT_COLORS_CLEAR, "Reset")
+            Me.BTT_COLORS_CLEAR.UseVisualStyleBackColor = True
+            '
+            'BTT_SELECT
+            '
+            Me.BTT_SELECT.BackgroundImage = CType(resources.GetObject("BTT_SELECT.BackgroundImage"), System.Drawing.Image)
+            Me.BTT_SELECT.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom
+            Me.BTT_SELECT.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.BTT_SELECT.Location = New System.Drawing.Point(298, 2)
+            Me.BTT_SELECT.Margin = New System.Windows.Forms.Padding(2)
+            Me.BTT_SELECT.Name = "BTT_SELECT"
+            Me.BTT_SELECT.Size = New System.Drawing.Size(18, 24)
+            Me.BTT_SELECT.TabIndex = 5
+            TT_MAIN.SetToolTip(Me.BTT_SELECT, "Select color from saved ones")
+            Me.BTT_SELECT.UseVisualStyleBackColor = True
+            '
             'TP_MAIN
             '
-            Me.TP_MAIN.ColumnCount = 5
+            Me.TP_MAIN.ColumnCount = 6
             Me.TP_MAIN.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 105.0!))
             Me.TP_MAIN.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            Me.TP_MAIN.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 22.0!))
             Me.TP_MAIN.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 22.0!))
             Me.TP_MAIN.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 22.0!))
             Me.TP_MAIN.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 22.0!))
@@ -47,7 +102,8 @@ Namespace Editors
             Me.TP_MAIN.Controls.Add(Me.LBL_COLORS, 1, 0)
             Me.TP_MAIN.Controls.Add(Me.BTT_COLORS_FORE, 2, 0)
             Me.TP_MAIN.Controls.Add(Me.BTT_COLORS_BACK, 3, 0)
-            Me.TP_MAIN.Controls.Add(Me.BTT_COLORS_CLEAR, 4, 0)
+            Me.TP_MAIN.Controls.Add(Me.BTT_COLORS_CLEAR, 5, 0)
+            Me.TP_MAIN.Controls.Add(Me.BTT_SELECT, 4, 0)
             Me.TP_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
             Me.TP_MAIN.Location = New System.Drawing.Point(0, 0)
             Me.TP_MAIN.Margin = New System.Windows.Forms.Padding(0)
@@ -74,50 +130,10 @@ Namespace Editors
             Me.LBL_COLORS.Location = New System.Drawing.Point(108, 3)
             Me.LBL_COLORS.Margin = New System.Windows.Forms.Padding(3)
             Me.LBL_COLORS.Name = "LBL_COLORS"
-            Me.LBL_COLORS.Size = New System.Drawing.Size(163, 22)
+            Me.LBL_COLORS.Size = New System.Drawing.Size(141, 22)
             Me.LBL_COLORS.TabIndex = 1
             Me.LBL_COLORS.Text = "Here's what it looks like."
             Me.LBL_COLORS.TextAlign = System.Drawing.ContentAlignment.MiddleCenter
-            '
-            'BTT_COLORS_FORE
-            '
-            Me.BTT_COLORS_FORE.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.BTT_COLORS_FORE.Location = New System.Drawing.Point(276, 2)
-            Me.BTT_COLORS_FORE.Margin = New System.Windows.Forms.Padding(2)
-            Me.BTT_COLORS_FORE.Name = "BTT_COLORS_FORE"
-            Me.BTT_COLORS_FORE.Size = New System.Drawing.Size(18, 24)
-            Me.BTT_COLORS_FORE.TabIndex = 2
-            Me.BTT_COLORS_FORE.Tag = "F"
-            Me.BTT_COLORS_FORE.Text = "F"
-            TT_MAIN.SetToolTip(Me.BTT_COLORS_FORE, "Font color")
-            Me.BTT_COLORS_FORE.UseVisualStyleBackColor = True
-            '
-            'BTT_COLORS_BACK
-            '
-            Me.BTT_COLORS_BACK.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.BTT_COLORS_BACK.Location = New System.Drawing.Point(298, 2)
-            Me.BTT_COLORS_BACK.Margin = New System.Windows.Forms.Padding(2)
-            Me.BTT_COLORS_BACK.Name = "BTT_COLORS_BACK"
-            Me.BTT_COLORS_BACK.Size = New System.Drawing.Size(18, 24)
-            Me.BTT_COLORS_BACK.TabIndex = 3
-            Me.BTT_COLORS_BACK.Tag = "C"
-            Me.BTT_COLORS_BACK.Text = "C"
-            TT_MAIN.SetToolTip(Me.BTT_COLORS_BACK, "Back color")
-            Me.BTT_COLORS_BACK.UseVisualStyleBackColor = True
-            '
-            'BTT_COLORS_CLEAR
-            '
-            Me.BTT_COLORS_CLEAR.BackgroundImage = CType(resources.GetObject("BTT_COLORS_CLEAR.BackgroundImage"), System.Drawing.Image)
-            Me.BTT_COLORS_CLEAR.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom
-            Me.BTT_COLORS_CLEAR.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.BTT_COLORS_CLEAR.Location = New System.Drawing.Point(320, 2)
-            Me.BTT_COLORS_CLEAR.Margin = New System.Windows.Forms.Padding(2)
-            Me.BTT_COLORS_CLEAR.Name = "BTT_COLORS_CLEAR"
-            Me.BTT_COLORS_CLEAR.Size = New System.Drawing.Size(18, 24)
-            Me.BTT_COLORS_CLEAR.TabIndex = 4
-            Me.BTT_COLORS_CLEAR.Tag = "D"
-            TT_MAIN.SetToolTip(Me.BTT_COLORS_CLEAR, "Reset")
-            Me.BTT_COLORS_CLEAR.UseVisualStyleBackColor = True
             '
             'ColorPicker
             '
@@ -137,5 +153,6 @@ Namespace Editors
         Private WithEvents BTT_COLORS_CLEAR As Button
         Private WithEvents TP_MAIN As TableLayoutPanel
         Private WithEvents LBL_CAPTION As Label
+        Private WithEvents BTT_SELECT As Button
     End Class
 End Namespace

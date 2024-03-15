@@ -346,6 +346,13 @@
     <Compile Include="Editors\ColorPicker.vb">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Include="Editors\ColorPickerInternalForm.Designer.vb">
+      <DependentUpon>ColorPickerInternalForm.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Editors\ColorPickerInternalForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Editors\DataColor.vb" />
     <Compile Include="Editors\GlobalLocationsChooserForm.Designer.vb">
       <DependentUpon>GlobalLocationsChooserForm.vb</DependentUpon>
     </Compile>
@@ -566,6 +573,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Editors\ColorPicker.resx">
       <DependentUpon>ColorPicker.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Editors\ColorPickerInternalForm.resx">
+      <DependentUpon>ColorPickerInternalForm.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Editors\GlobalLocationsChooserForm.resx">
       <DependentUpon>GlobalLocationsChooserForm.vb</DependentUpon>

@@ -29,6 +29,13 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
     Friend Const CollectionsFolderName As String = "Collections"
     Private Const PermanentCacheSnapshotsPath As String = "_CacheSnapshots\"
     Friend Const DefaultCmdEncoding As Integer = BatchExecutor.UnicodeEncoding
+#Region "CONSTANTS"
+    Friend Const HEADER_DEF_sec_ch_ua As String = "sec-ch-ua"
+    Friend Const HEADER_DEF_sec_ch_ua_full_version_list As String = "sec-ch-ua-full-version-list"
+    Friend Const HEADER_DEF_sec_ch_ua_platform As String = "sec-ch-ua-platform"
+    Friend Const HEADER_DEF_sec_ch_ua_platform_version As String = "sec-ch-ua-platform-version"
+    Friend Const HEADER_DEF_UserAgent As String = "UserAgent"
+#End Region
     Friend ReadOnly Design As XmlFile
     Private ReadOnly MyXML As XmlFile
 #Region "Media environment"
@@ -137,6 +144,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
     Friend ReadOnly Property AutomationFile As XMLValue(Of String)
     Friend ReadOnly Property Feeds As FeedSpecialCollection
     Friend ReadOnly Property BlackList As List(Of UserBan)
+    Friend ReadOnly Property Colors As Editors.DataColorCollection
     Private ReadOnly BlackListFile As SFile = $"{SettingsFolderName}\BlackList.txt"
     Private ReadOnly UsersSettingsFile As SFile = $"{SettingsFolderName}\Users.xml"
     Friend Sub New()
@@ -156,6 +164,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         GlobalLocations = New STDownloader.DownloadLocationsCollection
         GlobalLocations.Load(True,, $"{SettingsFolderName}\GlobalLocations.xml")
         Feeds = New FeedSpecialCollection
+        Colors = New Editors.DataColorCollection
 
         Dim n() As String = {"MediaEnvironment"}
 
@@ -183,6 +192,13 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
 
         UserAgent = New XMLValue(Of String)("UserAgent",, MyXML)
         If Not UserAgent.IsEmptyString Then DefaultUserAgent = UserAgent
+
+        n = {"DefaultHeaders"}
+        HEADER_sec_ch_ua = New XMLValue(Of String)("sec_ch_ua",, MyXML, n)
+        HEADER_sec_ch_ua_full_version_list = New XMLValue(Of String)("sec_ch_ua_full_version_list",, MyXML, n)
+        HEADER_sec_ch_ua_platform = New XMLValue(Of String)("sec_ch_ua_platform",, MyXML, n)
+        HEADER_sec_ch_ua_platform_version = New XMLValue(Of String)("sec_ch_ua_platform_version",, MyXML, n)
+        HEADER_UserAgent = New XMLValue(Of String)("UserAgent",, MyXML, n)
 
         n = {"Search"}
         SearchInName = New XMLValue(Of Boolean)("SearchInName", True, MyXML, n)
@@ -766,6 +782,13 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
     Friend ReadOnly Property AddMissingToLog As XMLValue(Of Boolean)
     Friend ReadOnly Property AddMissingErrorsToLog As XMLValue(Of Boolean)
     Friend ReadOnly Property UserAgent As XMLValue(Of String)
+#Region "Default headers"
+    Friend ReadOnly Property HEADER_sec_ch_ua As XMLValue(Of String)
+    Friend ReadOnly Property HEADER_sec_ch_ua_full_version_list As XMLValue(Of String)
+    Friend ReadOnly Property HEADER_sec_ch_ua_platform As XMLValue(Of String)
+    Friend ReadOnly Property HEADER_sec_ch_ua_platform_version As XMLValue(Of String)
+    Friend ReadOnly Property HEADER_UserAgent As XMLValue(Of String)
+#End Region
 #Region "Search"
     Friend ReadOnly Property SearchInName As XMLValue(Of Boolean)
     Friend ReadOnly Property SearchInDescription As XMLValue(Of Boolean)

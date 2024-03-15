@@ -38,6 +38,8 @@ Namespace Plugin.Attributes
         Public Property LabelTextAlign As Drawing.ContentAlignment = Drawing.ContentAlignment.TopCenter
         ''' <summary>This is an authorization property</summary>
         Public Property IsAuth As Boolean = False
+        Public Property Category As String = Nothing
+        Public Property InheritanceName As String = Nothing
         ''' <summary>Initialize a new property option attribute</summary>
         ''' <param name="PropertyName">Property name</param>
         Public Sub New(<CallerMemberName()> Optional ByVal PropertyName As String = Nothing)
@@ -57,6 +59,7 @@ Namespace Plugin.Attributes
     ''' <summary>Store property value in settings XML file</summary>
     <AttributeUsage(AttributeTargets.Property, AllowMultiple:=False, Inherited:=False)> Public NotInheritable Class PXML : Inherits Attribute
         Public ReadOnly ElementName As String
+        Public Property OnlyForChecked As Boolean = False
         ''' <summary>Initialize a new XML attribute</summary>
         ''' <param name="XMLElementName">XML element name</param>
         Public Sub New(<CallerMemberName()> Optional ByVal XMLElementName As String = Nothing)

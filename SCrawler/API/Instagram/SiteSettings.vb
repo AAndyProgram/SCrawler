@@ -62,7 +62,7 @@ Namespace API.Instagram
         Friend Const Header_ASBD_ID As String = "X-Asbd-Id"
         Friend Const Header_Browser As String = "Sec-Ch-Ua"
         Friend Const Header_BrowserExt As String = "Sec-Ch-Ua-Full-Version-List"
-        Friend Const Header_Platform As String = "Sec-Ch-Ua-Platform-Version"
+        Friend Const Header_Platform_Verion As String = "Sec-Ch-Ua-Platform-Version"
         <PropertyOption(ControlText:="x-csrftoken", ControlToolTip:="Can be automatically extracted from cookies", IsAuth:=True, AllowNull:=True), ControlNumber(2), PClonable(Clone:=False)>
         Friend ReadOnly Property HH_CSRF_TOKEN As PropertyValue
         <PropertyOption(ControlText:="x-ig-app-id", IsAuth:=True, AllowNull:=False), ControlNumber(3), PClonable(Clone:=False)>
@@ -72,13 +72,17 @@ Namespace API.Instagram
         'PropertyOption(ControlText:="x-ig-www-claim", IsAuth:=True, AllowNull:=True)
         <ControlNumber(5), PClonable(Clone:=False)>
         Friend Property HH_IG_WWW_CLAIM As PropertyValue
-        <PropertyOption(ControlText:="sec-ch-ua", IsAuth:=True, AllowNull:=True), ControlNumber(6), PClonable>
+        <PropertyOption(ControlText:="sec-ch-ua", IsAuth:=True, AllowNull:=True,
+                        InheritanceName:=SettingsCLS.HEADER_DEF_sec_ch_ua), ControlNumber(6), PClonable, PXML(OnlyForChecked:=True)>
         Private Property HH_BROWSER As PropertyValue
-        <PropertyOption(ControlText:="sec-ch-ua-full", ControlToolTip:="sec-ch-ua-full-version-list", IsAuth:=True, AllowNull:=True), ControlNumber(7), PClonable>
+        <PropertyOption(ControlText:="sec-ch-ua-full", ControlToolTip:="sec-ch-ua-full-version-list", IsAuth:=True, AllowNull:=True,
+                        InheritanceName:=SettingsCLS.HEADER_DEF_sec_ch_ua_full_version_list), ControlNumber(7), PClonable, PXML(OnlyForChecked:=True)>
         Private Property HH_BROWSER_EXT As PropertyValue
-        <PropertyOption(ControlText:="sec-ch-ua-platform-ver", ControlToolTip:="sec-ch-ua-platform-version", IsAuth:=True, AllowNull:=True), ControlNumber(8), PClonable>
+        <PropertyOption(ControlText:="sec-ch-ua-platform-ver", ControlToolTip:="sec-ch-ua-platform-version", IsAuth:=True, AllowNull:=True, LeftOffset:=135,
+                        InheritanceName:=SettingsCLS.HEADER_DEF_sec_ch_ua_platform_version), ControlNumber(8), PClonable, PXML(OnlyForChecked:=True)>
         Private Property HH_PLATFORM As PropertyValue
-        <PropertyOption(ControlText:="UserAgent", IsAuth:=True, AllowNull:=True), ControlNumber(9), PClonable>
+        <PropertyOption(ControlText:="UserAgent", IsAuth:=True, AllowNull:=True,
+                        InheritanceName:=SettingsCLS.HEADER_DEF_UserAgent), ControlNumber(9), PClonable, PXML(OnlyForChecked:=True)>
         Private Property HH_USER_AGENT As PropertyValue
         Friend Overrides Function BaseAuthExists() As Boolean
             Return Responser.CookiesExists And ACheck(HH_IG_APP_ID.Value) And ACheck(HH_CSRF_TOKEN.Value)
@@ -95,7 +99,7 @@ Namespace API.Instagram
                     Case NameOf(HH_CSRF_TOKEN) : f = Header_CSRF_TOKEN
                     Case NameOf(HH_BROWSER) : f = Header_Browser
                     Case NameOf(HH_BROWSER_EXT) : f = Header_BrowserExt
-                    Case NameOf(HH_PLATFORM) : f = Header_Platform
+                    Case NameOf(HH_PLATFORM) : f = Header_Platform_Verion
                     Case NameOf(HH_USER_AGENT) : isUserAgent = True
                 End Select
                 If Not f.IsEmptyString Then
@@ -140,14 +144,19 @@ Namespace API.Instagram
 #Region "Download ready"
         <PropertyOption(ControlText:="Download timeline", ControlToolTip:="Download timeline"), PXML, ControlNumber(10), PClonable>
         Friend ReadOnly Property DownloadTimeline As PropertyValue
+        <PXML> Private ReadOnly Property DownloadTimeline_Def As PropertyValue
         <PropertyOption(ControlText:="Download reels", ControlToolTip:="Download reels"), PXML, ControlNumber(11), PClonable>
         Friend ReadOnly Property DownloadReels As PropertyValue
+        <PXML> Private ReadOnly Property DownloadReels_Def As PropertyValue
         <PropertyOption(ControlText:="Download stories", ControlToolTip:="Download stories"), PXML, ControlNumber(12), PClonable>
         Friend ReadOnly Property DownloadStories As PropertyValue
+        <PXML> Private ReadOnly Property DownloadStories_Def As PropertyValue
         <PropertyOption(ControlText:="Download stories: user", ControlToolTip:="Download stories (user)"), PXML, ControlNumber(13), PClonable>
         Friend ReadOnly Property DownloadStoriesUser As PropertyValue
+        <PXML> Private ReadOnly Property DownloadStoriesUser_Def As PropertyValue
         <PropertyOption(ControlText:="Download tagged", ControlToolTip:="Download tagged posts"), PXML, ControlNumber(14), PClonable>
         Friend ReadOnly Property DownloadTagged As PropertyValue
+        <PXML> Private ReadOnly Property DownloadTagged_Def As PropertyValue
 #End Region
 #Region "429 bypass"
         <PXML("InstagramDownloadingErrorDate")>
@@ -224,7 +233,7 @@ Namespace API.Instagram
                         asbd = .Value(Header_ASBD_ID)
                         browser = .Value(Header_Browser)
                         browserExt = .Value(Header_BrowserExt)
-                        platform = .Value(Header_Platform)
+                        platform = .Value(Header_Platform_Verion)
                     End If
                     .Add("Dnt", 1)
                     .Add("Sec-Ch-Ua-Mobile", "?0")
@@ -249,10 +258,15 @@ Namespace API.Instagram
             HH_USER_AGENT = New PropertyValue(useragent, GetType(String), Sub(v) ChangeResponserFields(NameOf(HH_USER_AGENT), v))
 
             DownloadTimeline = New PropertyValue(True)
+            DownloadTimeline_Def = New PropertyValue(DownloadTimeline.Value, GetType(Boolean))
             DownloadReels = New PropertyValue(False)
+            DownloadReels_Def = New PropertyValue(DownloadReels.Value, GetType(Boolean))
             DownloadStories = New PropertyValue(True)
+            DownloadStories_Def = New PropertyValue(DownloadStories.Value, GetType(Boolean))
             DownloadStoriesUser = New PropertyValue(True)
+            DownloadStoriesUser_Def = New PropertyValue(DownloadStoriesUser.Value, GetType(Boolean))
             DownloadTagged = New PropertyValue(False)
+            DownloadTagged_Def = New PropertyValue(DownloadTagged.Value, GetType(Boolean))
 
             RequestsWaitTimer = New PropertyValue(1000)
             RequestsWaitTimerProvider = New TimersChecker(100)
@@ -362,6 +376,11 @@ Namespace API.Instagram
         Private ____HH_PLATFORM As String = String.Empty
         Private ____HH_USER_AGENT As String = String.Empty
         Private ____Cookies As CookieKeeper = Nothing
+        Private __DownloadTimeline As Boolean = False
+        Private __DownloadReels As Boolean = False
+        Private __DownloadStories As Boolean = False
+        Private __DownloadStoriesUser As Boolean = False
+        Private __DownloadTagged As Boolean = False
         Friend Overrides Sub BeginEdit()
             ____HH_CSRF_TOKEN = AConvert(Of String)(HH_CSRF_TOKEN.Value, String.Empty)
             ____HH_IG_APP_ID = AConvert(Of String)(HH_IG_APP_ID.Value, String.Empty)
@@ -371,6 +390,11 @@ Namespace API.Instagram
             ____HH_PLATFORM = AConvert(Of String)(HH_PLATFORM.Value, String.Empty)
             ____HH_USER_AGENT = AConvert(Of String)(HH_USER_AGENT.Value, String.Empty)
             ____Cookies = Responser.Cookies.Copy
+            __DownloadTimeline = DownloadTimeline.Value
+            __DownloadReels = DownloadReels.Value
+            __DownloadStories = DownloadStories.Value
+            __DownloadStoriesUser = DownloadStoriesUser.Value
+            __DownloadTagged = DownloadTagged.Value
             MyBase.BeginEdit()
         End Sub
         Friend Overrides Sub Update()
@@ -383,12 +407,33 @@ Namespace API.Instagram
                               New With {.ValueOld = ____HH_PLATFORM, .ValueNew = AConvert(Of String)(HH_PLATFORM.Value, String.Empty).ToString},
                               New With {.ValueOld = ____HH_USER_AGENT, .ValueNew = AConvert(Of String)(HH_USER_AGENT.Value, String.Empty).ToString}
                 }
+                Dim credentialsUpdated As Boolean = False
                 If vals.Any(Function(v) Not v.ValueOld = v.ValueNew) OrElse
-                   Not Responser.Cookies.ListEquals(____Cookies) Then HH_IG_WWW_CLAIM.Value = 0
+                   Not Responser.Cookies.ListEquals(____Cookies) Then HH_IG_WWW_CLAIM.Value = 0 : credentialsUpdated = True
                 If Responser.CookiesExists Then
                     Dim csrf$ = If(Responser.Cookies.FirstOrDefault(Function(c) c.Name.StringToLower = Header_CSRF_TOKEN_COOKIE)?.Value, String.Empty)
-                    If Not csrf.IsEmptyString Then HH_CSRF_TOKEN.Value = csrf
+                    If Not csrf.IsEmptyString Then
+                        If Not AEquals(Of String)(CStr(HH_CSRF_TOKEN.Value), csrf) Then credentialsUpdated = True
+                        HH_CSRF_TOKEN.Value = csrf
+                    End If
                 End If
+                If credentialsUpdated AndAlso {New With {.ValueOld = __DownloadTimeline, .ValueNew = CBool(DownloadTimeline.Value)},
+                                               New With {.ValueOld = __DownloadReels, .ValueNew = CBool(DownloadReels.Value)},
+                                               New With {.ValueOld = __DownloadStories, .ValueNew = CBool(DownloadStories.Value)},
+                                               New With {.ValueOld = __DownloadStoriesUser, .ValueNew = CBool(DownloadStoriesUser.Value)},
+                                               New With {.ValueOld = __DownloadTagged, .ValueNew = CBool(DownloadTagged.Value)}}.
+                                               All(Function(v) v.ValueOld = v.ValueNew) Then
+                    DownloadTimeline.Value = DownloadTimeline_Def.Value
+                    DownloadReels.Value = DownloadReels_Def.Value
+                    DownloadStories.Value = DownloadStories_Def.Value
+                    DownloadStoriesUser.Value = DownloadStoriesUser_Def.Value
+                    DownloadTagged.Value = DownloadTagged_Def.Value
+                End If
+                DownloadTimeline_Def.Value = DownloadTimeline.Value
+                DownloadReels_Def.Value = DownloadReels.Value
+                DownloadStories_Def.Value = DownloadStories.Value
+                DownloadStoriesUser_Def.Value = DownloadStoriesUser.Value
+                DownloadTagged_Def.Value = DownloadTagged.Value
             End If
             MyBase.Update()
         End Sub

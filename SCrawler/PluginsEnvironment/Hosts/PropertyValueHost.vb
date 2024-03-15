@@ -24,6 +24,15 @@ Namespace Plugin.Hosts
         Protected Source As Object 'ReadOnly
         Protected Member As MemberInfo
         Private ReadOnly MemberRef As MemberInfo
+        Friend ReadOnly Property MemberRefObj As PropertyValue
+            Get
+                Try
+                    If Not MemberRef Is Nothing AndAlso Not Source Is Nothing Then Return MemberRef.GetMemberValue(Source)
+                Catch ex As Exception
+                End Try
+                Return Nothing
+            End Get
+        End Property
         Friend ReadOnly Options As PropertyOption
         Friend Overridable ReadOnly Property Name As String
         Protected _Type As Type
@@ -39,6 +48,7 @@ Namespace Plugin.Hosts
         Friend ReadOnly Exists As Boolean = False
 #Region "XML"
         Private ReadOnly _XmlName As String
+        Private ReadOnly _XmlNameChecked As String
 #End Region
 #Region "Control"
         Friend Property Control As Control
@@ -115,6 +125,12 @@ Namespace Plugin.Hosts
                 Else
                     Control = New TextBoxExtended
                     With DirectCast(Control, TextBoxExtended)
+                        If Not If(Options?.InheritanceName, String.Empty).IsEmptyString OrElse Not If(ExternalValue?.OnCheckboxCheckedChange, Nothing) Is Nothing Then
+                            .CaptionMode = ICaptionControl.Modes.CheckBox
+                            .ChangeControlsEnableOnCheckedChange = False
+                            .Checked = Checked
+                            AddHandler .ActionOnCheckedChange, AddressOf TextBoxCheckedChanged
+                        End If
                         .CaptionText = Control_Caption
                         .CaptionToolTipEnabled = Not Control_ToolTip.IsEmptyString
                         If LeftOffset > 0 Then
@@ -123,6 +139,11 @@ Namespace Plugin.Hosts
                             Using l As New Label : .CaptionWidth = .CaptionText.MeasureTextDefault(l.Font).Width : End Using
                         End If
                         If Not Control_ToolTip.IsEmptyString Then .CaptionToolTipText = Control_ToolTip : .CaptionToolTipEnabled = True
+                        If .CaptionMode = ICaptionControl.Modes.CheckBox AndAlso Not If(Options?.InheritanceName, String.Empty).IsEmptyString Then
+                            If Not .CaptionToolTipText.IsEmptyString Then .CaptionToolTipText &= vbCr
+                            .CaptionToolTipText &= "If checked, the value will be inherited from the global settings default values."
+                            .CaptionToolTipEnabled = True
+                        End If
                         .Text = CStr(AConvert(Of String)(Value, String.Empty))
                         With .Buttons
                             .BeginInit()
@@ -172,6 +193,39 @@ Namespace Plugin.Hosts
                 If Not t = .Text Then .Text = t : .Select(s, 0)
             End With
         End Sub
+        Private _TextBoxCheckedChangedInternal As Boolean = False
+        Private Sub TextBoxCheckedChanged(ByVal Sender As Object, ByVal e As EventArgs, ByVal Checked As Boolean)
+            Try
+                If Not _TextBoxCheckedChangedInternal Then
+                    Dim ee As New PropertyValueEventArgs With {.Checked = DirectCast(Sender, TextBoxExtended).Checked,
+                                                               .ControlEnabled = DirectCast(Sender, TextBoxExtended).Enabled}
+                    If ExternalValueExists Then
+                        With DirectCast(Sender, TextBoxExtended)
+                            If Not ExternalValue.OnCheckboxCheckedChange Is Nothing Then
+                                ExternalValue.OnCheckboxCheckedChange.Invoke(ExternalValue, ee)
+                                _TextBoxCheckedChangedInternal = True
+                                .Checked = ee.Checked
+                                _TextBoxCheckedChangedInternal = False
+                                .Enabled(False) = .Enabled
+                            End If
+                            If Not If(Options?.InheritanceName, String.Empty).IsEmptyString Then
+                                Dim setProp As Action(Of String) = Sub(newValue) If .Checked And Not newValue.IsEmptyString Then .Text = newValue
+                                With Settings
+                                    Select Case Options.InheritanceName
+                                        Case SettingsCLS.HEADER_DEF_sec_ch_ua : setProp(.HEADER_sec_ch_ua)
+                                        Case SettingsCLS.HEADER_DEF_sec_ch_ua_full_version_list : setProp(.HEADER_sec_ch_ua_full_version_list)
+                                        Case SettingsCLS.HEADER_DEF_sec_ch_ua_platform : setProp(.HEADER_sec_ch_ua_platform)
+                                        Case SettingsCLS.HEADER_DEF_sec_ch_ua_platform_version : setProp(.HEADER_sec_ch_ua_platform_version)
+                                        Case SettingsCLS.HEADER_DEF_UserAgent : setProp(.HEADER_UserAgent)
+                                    End Select
+                                End With
+                            End If
+                        End With
+                    End If
+                End If
+            Catch ex As Exception
+            End Try
+        End Sub
         Friend Sub UpdateValueByControl()
             If Not Control Is Nothing AndAlso Not TypeOf Control Is Label Then
                 If TypeOf Control Is CheckBox Then
@@ -181,6 +235,7 @@ Namespace Plugin.Hosts
                 Else
                     UpdateProviderPropertyName()
                     Value = AConvert(DirectCast(Control, TextBoxExtended).Text, AModes.Var, [Type],,,, ProviderValue)
+                    Checked = DirectCast(Control, TextBoxExtended).Checked
                 End If
             End If
         End Sub
@@ -254,8 +309,18 @@ Namespace Plugin.Hosts
                 UpdateMember()
                 Options = Member.GetCustomAttribute(Of PropertyOption)()
                 IsTaskCounter = Not Member.GetCustomAttribute(Of TaskCounter)() Is Nothing
-                _XmlName = If(Member.GetCustomAttribute(Of PXML)()?.ElementName, String.Empty)
-                If Not _XmlName.IsEmptyString Then XValue = CreateXMLValueInstance([Type], True)
+                With Member.GetCustomAttribute(Of PXML)
+                    If Not .Self Is Nothing Then
+                        _XmlName = .ElementName
+                        If Not _XmlName.IsEmptyString Then
+                            If Not If(Options?.InheritanceName, String.Empty).IsEmptyString OrElse
+                               Not If(MemberRefObj?.OnCheckboxCheckedChange, Nothing) Is Nothing Then _XmlNameChecked = $"{_XmlName}_Checked"
+                            If .OnlyForChecked Then _XmlName = String.Empty
+                            If Not _XmlName.IsEmptyString Then XValue = CreateXMLValueInstance([Type], True)
+                            If Not _XmlNameChecked.IsEmptyString Then XValueChecked = New XMLValue(Of Boolean)
+                        End If
+                    End If
+                End With
                 DependentNames.ListAddList(Member.GetCustomAttribute(Of DependentFields)?.Fields, LAP.NotContainsOnly)
                 Exists = Not If(Member.GetCustomAttribute(Of DoNotUse)()?.Value, False)
             End If
@@ -265,6 +330,10 @@ Namespace Plugin.Hosts
             If Not _XmlName.IsEmptyString And Not XValue Is Nothing Then
                 XValue.SetEnvironment(_XmlName, _Value, Container, _Nodes, If(ProviderValue, FormatProvider))
                 Value(False) = XValue.Value
+            End If
+            If Not _XmlNameChecked.IsEmptyString And Not XValueChecked Is Nothing Then
+                XValueChecked.SetEnvironment(_XmlNameChecked, _Checked, Container, _Nodes)
+                Checked(False) = XValueChecked.Value
             End If
         End Sub
         Friend Sub SetDependents(ByVal Props As List(Of PropertyValueHost))
@@ -277,10 +346,13 @@ Namespace Plugin.Hosts
         Friend Sub UpdateMember()
             If Not ExternalValue Is Nothing Then
                 Try : RemoveHandler ExternalValue.ValueChanged, AddressOf ExternalValueChanged : Catch : End Try
+                Try : RemoveHandler ExternalValue.CheckedChanged, AddressOf ExternalCheckedChanged : Catch : End Try
             End If
             _ExternalValue = DirectCast(DirectCast(MemberRef, PropertyInfo).GetValue(Source), PropertyValue)
             _Value = ExternalValue.Value
+            _Checked = ExternalValue.Checked
             AddHandler ExternalValue.ValueChanged, AddressOf ExternalValueChanged
+            AddHandler ExternalValue.CheckedChanged, AddressOf ExternalCheckedChanged
         End Sub
 #End Region
 #Region "Value"
@@ -289,6 +361,33 @@ Namespace Plugin.Hosts
             Get
                 Return _ExternalValue
             End Get
+        End Property
+        Private ReadOnly Property ExternalValueExists As Boolean
+            Get
+                Return Not ExternalValue Is Nothing
+            End Get
+        End Property
+        Friend ReadOnly Property XValueChecked As XMLValue(Of Boolean)
+        Private ReadOnly Property CheckedExists As Boolean
+            Get
+                Return Not _XmlNameChecked.IsEmptyString
+            End Get
+        End Property
+        Private _Checked As Boolean = False
+        Friend Overloads Property Checked As Boolean
+            Get
+                Return _Checked
+            End Get
+            Set(ByVal _Checked As Boolean)
+                Checked(True) = _Checked
+            End Set
+        End Property
+        Private Overloads WriteOnly Property Checked(ByVal UpdateXML As Boolean) As Boolean
+            Set(ByVal _Checked As Boolean)
+                Me._Checked = _Checked
+                If Not ExternalValue Is Nothing And Not _ExternalInvoked Then ExternalValue.Checked = _Checked
+                If UpdateXML And Not XValueChecked Is Nothing Then XValueChecked.Value = _Checked
+            End Set
         End Property
         Friend ReadOnly Property XValue As IXMLValue
         Protected _Value As Object
@@ -317,6 +416,13 @@ Namespace Plugin.Hosts
                 _ExternalInvoked = False
             End If
         End Sub
+        Private Sub ExternalCheckedChanged(ByVal NewValue As Object)
+            If Not _ExternalInvoked Then
+                _ExternalInvoked = True
+                Checked = NewValue
+                _ExternalInvoked = False
+            End If
+        End Sub
 #End Region
 #Region "IComparable Support"
         Private Function CompareTo(ByVal Other As PropertyValueHost) As Integer Implements IComparable(Of PropertyValueHost).CompareTo
@@ -337,6 +443,7 @@ Namespace Plugin.Hosts
                     UpdateMethod = Nothing
                     UpdateMethodArguments = Nothing
                     XValue.DisposeIfReady
+                    XValueChecked.DisposeIfReady
                     DisposeControl()
                     DependentNames.Clear()
                     Dependents.Clear()

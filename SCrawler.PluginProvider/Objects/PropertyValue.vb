@@ -9,8 +9,23 @@
 Namespace Plugin
     Public NotInheritable Class PropertyValue : Implements IPropertyValue
         Public Event ValueChanged As IPropertyValue.ValueChangedEventHandler Implements IPropertyValue.ValueChanged
+        Public Event CheckedChanged As IPropertyValue.ValueChangedEventHandler
         Public Property [Type] As Type Implements IPropertyValue.Type
         Public Property OnChangeFunction As IPropertyValue.ValueChangedEventHandler
+        Public Property OnCheckboxCheckedChange As EventHandler(Of PropertyValueEventArgs)
+        Private _Checked As Boolean = False
+        Public Property Checked As Boolean
+            Get
+                Return _Checked
+            End Get
+            Set(ByVal IsChecked As Boolean)
+                _Checked = IsChecked
+                If Not _Initialization Then
+                    If Not OnCheckboxCheckedChange Is Nothing Then OnCheckboxCheckedChange.Invoke(Me, EventArgs.Empty)
+                    RaiseEvent CheckedChanged(_Checked)
+                End If
+            End Set
+        End Property
         Private _Initialization As Boolean = False
         ''' <inheritdoc cref="PropertyValue.New(Object, Type, ByRef IPropertyValue.ValueChangedEventHandler)"/>
         ''' <exception cref="ArgumentNullException"></exception>
@@ -59,6 +74,7 @@ Namespace Plugin
             Type = Source.Type
             OnChangeFunction = Source.OnChangeFunction
             _Value = Source._Value
+            _Checked = Source._Checked
             _Initialization = False
         End Sub
     End Class
@@ -71,4 +87,8 @@ Namespace Plugin
         ''' <summary>Property value</summary>
         Property Value As Object
     End Interface
+    Public Class PropertyValueEventArgs : Inherits EventArgs
+        Public Property Checked As Boolean = False
+        Public Property ControlEnabled As Boolean = True
+    End Class
 End Namespace

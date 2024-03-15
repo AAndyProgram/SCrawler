@@ -15,6 +15,7 @@ Namespace Editors
     Friend Class GlobalSettingsForm
         Private WithEvents MyDefs As DefaultFormOptions
         Friend Property FeedParametersChanged As Boolean = False
+        Friend Property HeadersChanged As Boolean = False
         Friend Sub New()
             InitializeComponent()
             MyDefs = New DefaultFormOptions(Me, Settings.Design)
@@ -52,6 +53,12 @@ Namespace Editors
                         TXT_YTDLP.Text = .YtdlpFile.File
                         TXT_GALLERYDL.Text = .GalleryDLFile.File
                         TXT_CMD_ENCODING.Text = .CMDEncoding
+                        'Headers
+                        TXT_H_DEF_UserAgent.Text = .HEADER_UserAgent
+                        TXT_H_DEF_sec_ch_ua.Text = .HEADER_sec_ch_ua
+                        TXT_H_DEF_sec_ch_ua_full_version_list.Text = .HEADER_sec_ch_ua_full_version_list
+                        TXT_H_DEF_sec_ch_ua_platform.Text = .HEADER_sec_ch_ua_platform
+                        TXT_H_DEF_sec_ch_ua_platform_version.Text = .HEADER_sec_ch_ua_platform_version
                         'Behavior
                         CH_EXIT_CONFIRM.Checked = .ExitConfirm
                         CH_CLOSE_TO_TRAY.Checked = .CloseToTray
@@ -228,6 +235,14 @@ Namespace Editors
                     .YtdlpFile.File = TXT_YTDLP.Text
                     .GalleryDLFile.File = TXT_GALLERYDL.Text
                     .CMDEncoding.Value = AConvert(Of Integer)(TXT_CMD_ENCODING.Text, SettingsCLS.DefaultCmdEncoding)
+                    'Headers
+                    .HEADER_UserAgent.Value = TXT_H_DEF_UserAgent.Text
+                    .HEADER_sec_ch_ua.Value = TXT_H_DEF_sec_ch_ua.Text
+                    .HEADER_sec_ch_ua_full_version_list.Value = TXT_H_DEF_sec_ch_ua_full_version_list.Text
+                    .HEADER_sec_ch_ua_platform.Value = TXT_H_DEF_sec_ch_ua_platform.Text
+                    .HEADER_sec_ch_ua_platform_version.Value = TXT_H_DEF_sec_ch_ua_platform_version.Text
+                    HeadersChanged = { .HEADER_UserAgent, .HEADER_sec_ch_ua, .HEADER_sec_ch_ua_full_version_list,
+                                       .HEADER_sec_ch_ua_platform, .HEADER_sec_ch_ua_platform_version}.Any(Function(hh) hh.ChangesDetected)
                     'Behavior
                     .ExitConfirm.Value = CH_EXIT_CONFIRM.Checked
                     .CloseToTray.Value = CH_CLOSE_TO_TRAY.Checked

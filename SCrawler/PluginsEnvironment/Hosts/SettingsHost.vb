@@ -114,6 +114,33 @@ Namespace Plugin.Hosts
             End Get
         End Property
         Friend ReadOnly Property PropList As List(Of PropertyValueHost)
+        Friend ReadOnly Property InheritanceValueExists As Boolean
+            Get
+                Return PropList.Count > 0 AndAlso PropList.Exists(Function(p) Not If(p.Options?.InheritanceName, String.Empty).IsEmptyString)
+            End Get
+        End Property
+        Friend Sub UpdateInheritance()
+            If InheritanceValueExists Then
+                Dim pp As PropertyValue = Nothing
+                Dim dataChanged As Boolean = False
+                Dim setProp As Action(Of String) = Sub(newValue) If pp.Checked And Not newValue.IsEmptyString Then pp.Value = newValue : dataChanged = True
+                For Each p As PropertyValueHost In PropList
+                    pp = p.MemberRefObj
+                    If Not pp Is Nothing And Not If(p.Options?.InheritanceName, String.Empty).IsEmptyString Then
+                        With Settings
+                            Select Case p.Options.InheritanceName
+                                Case SettingsCLS.HEADER_DEF_sec_ch_ua : setProp(.HEADER_sec_ch_ua)
+                                Case SettingsCLS.HEADER_DEF_sec_ch_ua_full_version_list : setProp(.HEADER_sec_ch_ua_full_version_list)
+                                Case SettingsCLS.HEADER_DEF_sec_ch_ua_platform : setProp(.HEADER_sec_ch_ua_platform)
+                                Case SettingsCLS.HEADER_DEF_sec_ch_ua_platform_version : setProp(.HEADER_sec_ch_ua_platform_version)
+                                Case SettingsCLS.HEADER_DEF_UserAgent : setProp(.HEADER_UserAgent)
+                            End Select
+                        End With
+                    End If
+                Next
+                If dataChanged Then Source.Update()
+            End If
+        End Sub
         Friend ReadOnly Property Name As String
             Get
                 Return Source.Site

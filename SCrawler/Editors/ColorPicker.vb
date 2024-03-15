@@ -9,6 +9,7 @@
 Imports System.ComponentModel
 Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Functions.XML.Objects
+Imports ADB = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons
 Namespace Editors
     Public Class ColorPicker : Implements IChangeDetectorCompatible
         Private Event DataChanged As EventHandler Implements IChangeDetectorCompatible.DataChanged
@@ -38,6 +39,7 @@ Namespace Editors
             Set(ByVal m As Padding)
                 BTT_COLORS_BACK.Margin = m
                 BTT_COLORS_FORE.Margin = m
+                BTT_SELECT.Margin = m
                 BTT_COLORS_CLEAR.Margin = m
             End Set
         End Property
@@ -70,6 +72,15 @@ Namespace Editors
                 End If
             End Set
         End Property
+        <Category("Appearance2"), DefaultValue(True)>
+        Public Property ListButtonEnabled As Boolean
+            Get
+                Return BTT_SELECT.Enabled
+            End Get
+            Set(ByVal Enabled As Boolean)
+                BTT_SELECT.Enabled = Enabled
+            End Set
+        End Property
 #End Region
 #Region "Colors"
         Private BackColorDefault As Color = DefaultBackColor
@@ -96,7 +107,7 @@ Namespace Editors
         End Property
 #End Region
 #Region "Get, Set"
-        Friend Sub ColorsSet(ByVal b As XMLValue(Of Color), ByVal f As XMLValue(Of Color), ByVal bDefault As Color, ByVal fDefault As Color)
+        Friend Overloads Sub ColorsSet(ByVal b As XMLValue(Of Color), ByVal f As XMLValue(Of Color), ByVal bDefault As Color, ByVal fDefault As Color)
             BackColorDefault = bDefault
             If b.Exists Then
                 BackColorImpl = b.Value
@@ -110,20 +121,41 @@ Namespace Editors
                 ForeColorImpl = Nothing
             End If
         End Sub
+        Friend Overloads Sub ColorsSet(ByVal c As DataColor)
+            BackColorImpl = c.BackColor
+            ForeColorImpl = c.ForeColor
+        End Sub
         Friend Sub ColorsSetUser(ByVal b As Color?, ByVal f As Color?)
             BackColorImpl = b
             ForeColorImpl = f
         End Sub
-        Friend Sub ColorsGet(ByRef b As XMLValue(Of Color), ByRef f As XMLValue(Of Color))
+        Friend Overloads Sub ColorsGet(ByRef b As XMLValue(Of Color), ByRef f As XMLValue(Of Color))
             If BackColorImpl.HasValue Then b.Value = BackColorImpl.Value Else b.ValueF = Nothing
             If ForeColorImpl.HasValue Then f.Value = ForeColorImpl.Value Else f.ValueF = Nothing
         End Sub
+        Friend Overloads Function ColorsGet() As DataColor
+            Return New DataColor With {.BackColor = BackColorImpl, .ForeColor = ForeColorImpl}
+        End Function
         Friend Sub ColorsGetUser(ByRef b As Color?, ByRef f As Color?)
             b = BackColorImpl
             f = ForeColorImpl
         End Sub
 #End Region
 #Region "Buttons handlers"
+        Friend Sub RemoveAllButtons()
+            With TP_MAIN
+                With .Controls
+                    .Remove(BTT_COLORS_BACK)
+                    .Remove(BTT_COLORS_FORE)
+                    .Remove(BTT_COLORS_CLEAR)
+                    .Remove(BTT_SELECT)
+                End With
+                With .ColumnStyles
+                    For i% = 2 To .Count - 1 : .Item(i).Width = 0 : Next
+                End With
+                .Refresh()
+            End With
+        End Sub
         Private Sub COLOR_BUTTONS_Click(ByVal Sender As Button, ByVal e As EventArgs) Handles BTT_COLORS_BACK.Click,
                                                                                               BTT_COLORS_FORE.Click,
                                                                                               BTT_COLORS_CLEAR.Click
@@ -133,6 +165,48 @@ Namespace Editors
                 Case "D" : BackColorImpl = Nothing : ForeColorImpl = Nothing
             End Select
             RaiseEvent DataChanged(Me, Nothing)
+        End Sub
+        Private Sub BTT_SELECT_Click(sender As Object, e As EventArgs) Handles BTT_SELECT.Click
+            Try
+                Using f As New SimpleListForm(Of DataColor)(Settings.Colors, Settings.Design) With {
+                    .DesignXMLNodeName = "ColorsChooserForm",
+                    .Buttons = {ADB.Add, ADB.Edit},
+                    .AddFunction = Sub(ByVal __Sender As Object, ByVal ee As SimpleListFormEventArgs)
+                                       Dim newColor As DataColor = Nothing
+                                       Using ff As New ColorPickerInternalForm
+                                           ff.ShowDialog()
+                                           If ff.DialogResult = DialogResult.OK Then newColor = ff.ResultColor
+                                       End Using
+                                       If Settings.Colors.IndexOf(newColor) = -1 And newColor.Exists Then
+                                           Settings.Colors.Add(newColor)
+                                           ee.Item = newColor
+                                           ee.Result = True
+                                       Else
+                                           ee.Result = False
+                                       End If
+                                   End Sub,
+                    .FormText = "Colors",
+                    .Mode = SimpleListFormModes.SelectedItems,
+                    .MultiSelect = False
+                }
+                    AddHandler f.EditClick, Sub(ByVal __Sender As Object, ByVal ee As SimpleListFormEventArgs)
+                                                If Not IsNothing(ee.Item) AndAlso TypeOf ee.Item Is DataColor Then
+                                                    Using ff As New ColorPickerInternalForm With {.ResultColor = ee.Item} : ff.ShowDialog() : End Using
+                                                End If
+                                                ee.Result = False
+                                            End Sub
+                    Dim i% = Settings.Colors.IndexOf(New DataColor With {.BackColor = BackColorImpl, .ForeColor = ForeColorImpl})
+                    If i >= 0 Then f.DataSelectedIndexes.Add(i)
+                    If f.ShowDialog = DialogResult.OK Then
+                        RaiseEvent DataChanged(Me, Nothing)
+                        Dim resultColor As DataColor = f.DataResult.FirstOrDefault
+                        BackColorImpl = resultColor.BackColor
+                        ForeColorImpl = resultColor.ForeColor
+                    End If
+                End Using
+            Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "[ColorPicker.SelectColor]")
+            End Try
         End Sub
 #End Region
     End Class

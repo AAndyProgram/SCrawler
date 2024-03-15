@@ -34,13 +34,17 @@ Namespace API.ThreadsNet
         End Property
         <PropertyOption(ControlText:="x-asbd-id", AllowNull:=True, IsAuth:=True), ControlNumber(20), PClonable>
         Friend ReadOnly Property HH_ASBD_ID As PropertyValue
-        <PropertyOption(ControlText:="sec-ch-ua", AllowNull:=True, IsAuth:=True), ControlNumber(30), PClonable>
+        <PropertyOption(ControlText:="sec-ch-ua", AllowNull:=True, IsAuth:=True,
+                        InheritanceName:=SettingsCLS.HEADER_DEF_sec_ch_ua), ControlNumber(30), PClonable, PXML(OnlyForChecked:=True)>
         Private ReadOnly Property HH_BROWSER As PropertyValue
-        <PropertyOption(ControlText:="sec-ch-ua-full", ControlToolTip:="sec-ch-ua-full-version-list", AllowNull:=True, IsAuth:=True), ControlNumber(40), PClonable>
+        <PropertyOption(ControlText:="sec-ch-ua-full", ControlToolTip:=SettingsCLS.HEADER_DEF_sec_ch_ua_full_version_list, AllowNull:=True, IsAuth:=True,
+                        InheritanceName:=SettingsCLS.HEADER_DEF_sec_ch_ua_full_version_list), ControlNumber(40), PClonable, PXML(OnlyForChecked:=True)>
         Private ReadOnly Property HH_BROWSER_EXT As PropertyValue
-        <PropertyOption(ControlText:="sec-ch-ua-platform", ControlToolTip:="sec-ch-ua-platform", AllowNull:=True, IsAuth:=True, LeftOffset:=120), ControlNumber(50), PClonable>
-        Private ReadOnly Property HH_PLATFORM As PropertyValue
-        <PropertyOption(ControlText:="UserAgent", IsAuth:=True), ControlNumber(60), PClonable>
+        <PropertyOption(ControlText:="sec-ch-ua-platform-ver", ControlToolTip:=SettingsCLS.HEADER_DEF_sec_ch_ua_platform_version, AllowNull:=True, IsAuth:=True, LeftOffset:=135,
+                        InheritanceName:=SettingsCLS.HEADER_DEF_sec_ch_ua_platform_version), ControlNumber(50), PClonable, PXML(OnlyForChecked:=True)>
+        Friend ReadOnly Property HH_PLATFORM_VER As PropertyValue
+        <PropertyOption(ControlText:="UserAgent", IsAuth:=True,
+                        InheritanceName:=SettingsCLS.HEADER_DEF_UserAgent), ControlNumber(60), PClonable, PXML(OnlyForChecked:=True)>
         Private ReadOnly Property HH_USER_AGENT As PropertyValue
         Private Sub ChangeResponserFields(ByVal PropName As String, ByVal Value As Object)
             If Not PropName.IsEmptyString Then
@@ -52,7 +56,7 @@ Namespace API.ThreadsNet
                     Case NameOf(HH_CSRF_TOKEN) : f = IG.Header_CSRF_TOKEN
                     Case NameOf(HH_BROWSER) : f = IG.Header_Browser
                     Case NameOf(HH_BROWSER_EXT) : f = IG.Header_BrowserExt
-                    Case NameOf(HH_PLATFORM) : f = IG.Header_Platform
+                    Case NameOf(HH_PLATFORM_VER) : f = IG.Header_Platform_Verion
                     Case NameOf(HH_USER_AGENT) : isUserAgent = True
                 End Select
                 If Not f.IsEmptyString Then
@@ -96,7 +100,7 @@ Namespace API.ThreadsNet
                         asbd = .Value(IG.Header_ASBD_ID)
                         browser = .Value(IG.Header_Browser)
                         browserExt = .Value(IG.Header_BrowserExt)
-                        platform = .Value(IG.Header_Platform)
+                        platform = .Value(IG.Header_Platform_Verion)
                     End If
                     .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.Authority, "www.threads.net"))
                     .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.Origin, "https://www.threads.net"))
@@ -122,7 +126,7 @@ Namespace API.ThreadsNet
             HH_ASBD_ID = New PropertyValue(asbd, GetType(String), Sub(v) ChangeResponserFields(NameOf(HH_ASBD_ID), v))
             HH_BROWSER = New PropertyValue(browser, GetType(String), Sub(v) ChangeResponserFields(NameOf(HH_BROWSER), v))
             HH_BROWSER_EXT = New PropertyValue(browserExt, GetType(String), Sub(v) ChangeResponserFields(NameOf(HH_BROWSER_EXT), v))
-            HH_PLATFORM = New PropertyValue(platform, GetType(String), Sub(v) ChangeResponserFields(NameOf(HH_PLATFORM), v))
+            HH_PLATFORM_VER = New PropertyValue(platform, GetType(String), Sub(v) ChangeResponserFields(NameOf(HH_PLATFORM_VER), v))
             HH_USER_AGENT = New PropertyValue(useragent, GetType(String), Sub(v) ChangeResponserFields(NameOf(HH_USER_AGENT), v))
 
             UrlPatternUser = "https://www.threads.net/@{0}"

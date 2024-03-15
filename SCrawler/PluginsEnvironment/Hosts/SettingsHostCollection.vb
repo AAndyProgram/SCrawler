@@ -68,6 +68,9 @@ Namespace Plugin.Hosts
                 Return Hosts(0)
             End Get
         End Property
+        Friend Sub UpdateInheritance()
+            If [Default].InheritanceValueExists Then Hosts.ForEach(Sub(h) h.UpdateInheritance())
+        End Sub
 #End Region
 #Region "Initializer"
         Friend Sub New(ByVal Plugin As Type, ByRef _XML As XmlFile, ByVal GlobalPath As SFile,
@@ -401,9 +404,14 @@ Namespace Plugin.Hosts
 #Region "BeginUpdate, EndUpdate"
         Friend Sub BeginUpdate()
             Hosts.ForEach(Sub(h) h.Source.BeginUpdate())
+            HostsXml.ForEach(Sub(x) x.BeginUpdate())
         End Sub
         Friend Sub EndUpdate()
             Hosts.ForEach(Sub(h) h.Source.EndUpdate())
+            If HostsXml.Count > 0 Then HostsXml.ForEach(Sub(ByVal x As XmlFile)
+                                                            x.EndUpdate()
+                                                            If x.ChangesDetected Then x.UpdateData(EDP.SendToLog)
+                                                        End Sub)
         End Sub
 #End Region
 #Region "CreateAbstract"

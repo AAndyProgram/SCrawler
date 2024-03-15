@@ -560,10 +560,10 @@ Namespace API.Facebook
                     If Not h.IsEmptyString Then .Add(IG.Header_Browser, h)
                     h = Responser.Headers.Value(IG.Header_BrowserExt)
                     If Not h.IsEmptyString Then .Add(IG.Header_BrowserExt, h)
-                    h = .Value(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.SecChUaPlatform))
+                    h = Responser.Headers.Value(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.SecChUaPlatform))
                     If Not h.IsEmptyString Then .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.SecChUaPlatform, h))
-                    If ACheck(MySettings.HH_PLATFORM_VER.Value) Then _
-                       .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.SecChUaPlatformVersion, MySettings.HH_PLATFORM_VER.Value))
+                    h = Responser.Headers.Value(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.SecChUaPlatformVersion))
+                    If Not h.IsEmptyString Then .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.SecChUaPlatformVersion, h))
                     .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.SecChUaMobile, "?0"))
                     .Add("Sec-Ch-Ua-Model", "")
                 End With

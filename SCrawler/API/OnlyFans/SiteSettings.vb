@@ -34,9 +34,10 @@ Namespace API.OnlyFans
         Private ReadOnly Property HH_X_BC As PropertyValue
         <PropertyOption(ControlText:=HeaderAppToken, AllowNull:=False), PClonable(Clone:=False)>
         Private ReadOnly Property HH_APP_TOKEN As PropertyValue
-        <PropertyOption(ControlText:=HeaderBrowser, ControlToolTip:="Can be null", AllowNull:=True), PClonable>
+        <PropertyOption(ControlText:=HeaderBrowser, ControlToolTip:="Can be null", AllowNull:=True,
+                        InheritanceName:=SettingsCLS.HEADER_DEF_sec_ch_ua), PClonable, PXML(OnlyForChecked:=True)>
         Private ReadOnly Property HH_BROWSER As PropertyValue
-        <PropertyOption(AllowNull:=False), PClonable>
+        <PropertyOption(AllowNull:=False, InheritanceName:=SettingsCLS.HEADER_DEF_UserAgent), PClonable, PXML(OnlyForChecked:=True)>
         Friend ReadOnly Property UserAgent As PropertyValue
         Private Sub UpdateHeader(ByVal PropertyName As String, ByVal Value As String)
             Dim hName$ = String.Empty
