@@ -22,6 +22,8 @@ Imports UStates = SCrawler.API.Base.UserMedia.States
 Namespace API.OnlyFans
     Friend Class UserData : Inherits UserDataBase
 #Region "XML names"
+        Private Const Name_MediaDownloadTimeline As String = "MediaDownloadTimeline"
+        Private Const Name_MediaDownloadStories As String = "MediaDownloadStories"
         Private Const Name_MediaDownloadHighlights As String = "DownloadHighlights"
         Private Const Name_MediaDownloadChatMedia As String = "DownloadChatMedia"
 #End Region
@@ -30,6 +32,8 @@ Namespace API.OnlyFans
         Private Const HeaderSign As String = "Sign"
         Private Const HeaderTime As String = "Time"
         Private ReadOnly HighlightsList As List(Of String)
+        Friend Property MediaDownloadTimeline As Boolean = True
+        Friend Property MediaDownloadStories As Boolean = True
         Friend Property MediaDownloadHighlights As Boolean = True
         Friend Property MediaDownloadChatMedia As Boolean = True
         Private ReadOnly Property MySettings As SiteSettings
@@ -42,9 +46,13 @@ Namespace API.OnlyFans
         Protected Overrides Sub LoadUserInformation_OptionalFields(ByRef Container As XmlFile, ByVal Loading As Boolean)
             With Container
                 If Loading Then
+                    MediaDownloadTimeline = .Value(Name_MediaDownloadTimeline).FromXML(Of Boolean)(True)
+                    MediaDownloadStories = .Value(Name_MediaDownloadStories).FromXML(Of Boolean)(True)
                     MediaDownloadHighlights = .Value(Name_MediaDownloadHighlights).FromXML(Of Boolean)(True)
                     MediaDownloadChatMedia = .Value(Name_MediaDownloadChatMedia).FromXML(Of Boolean)(True)
                 Else
+                    .Add(Name_MediaDownloadTimeline, MediaDownloadTimeline.BoolToInteger)
+                    .Add(Name_MediaDownloadStories, MediaDownloadStories.BoolToInteger)
                     .Add(Name_MediaDownloadHighlights, MediaDownloadHighlights.BoolToInteger)
                     .Add(Name_MediaDownloadChatMedia, MediaDownloadChatMedia.BoolToInteger)
                 End If
@@ -58,6 +66,8 @@ Namespace API.OnlyFans
         Friend Overrides Sub ExchangeOptionsSet(ByVal Obj As Object)
             If Not Obj Is Nothing AndAlso TypeOf Obj Is UserExchangeOptions Then
                 With DirectCast(Obj, UserExchangeOptions)
+                    MediaDownloadTimeline = .DownloadTimeline
+                    MediaDownloadStories = .DownloadStories
                     MediaDownloadHighlights = .DownloadHighlights
                     MediaDownloadChatMedia = .DownloadChatMedia
                 End With
@@ -90,8 +100,15 @@ Namespace API.OnlyFans
                     Responser.Cookies.Clear()
                     AddHandler Responser.ResponseReceived, AddressOf Responser_ResponseReceived
                     UpdateCookieHeader()
-                    DownloadTimeline(IIf(IsSavedPosts, 0, String.Empty), Token)
+
                     If Not IsSavedPosts Then
+                        If ID.IsEmptyString Then GetUserID()
+                        If ID.IsEmptyString Then Throw New ArgumentNullException("ID", "Unable to get user ID")
+                    End If
+
+                    If MediaDownloadTimeline Then DownloadTimeline(IIf(IsSavedPosts, 0, String.Empty), Token)
+                    If Not IsSavedPosts Then
+                        If MediaDownloadStories And FunctionErr = FunctionErrDef Then DownloadStories(Token)
                         If MediaDownloadHighlights And FunctionErr = FunctionErrDef Then DownloadHighlights(Token)
                         If MediaDownloadChatMedia And FunctionErr = FunctionErrDef Then DownloadChatMedia(0, Token)
                     End If
@@ -114,6 +131,7 @@ Namespace API.OnlyFans
             Return ErrValue <> 2
         End Function
         Friend Const A_HIGHLIGHT As String = "HL"
+        Friend Const A_STORIES As String = "ST"
         Friend Const A_MESSAGE As String = "MSG"
         Private Const BaseUrlPattern As String = "https://onlyfans.com{0}"
 #Region "Download timeline"
@@ -133,9 +151,6 @@ Namespace API.OnlyFans
                     If IsSavedPosts Then
                         path = $"/api2/v2/posts/bookmarks/all/?format=infinite&limit=10&offset={Cursor}"
                     Else
-                        If ID.IsEmptyString Then GetUserID()
-                        If ID.IsEmptyString Then Throw New ArgumentNullException("ID", "Unable to get user ID")
-
                         path = $"/api2/v2/users/{ID}/posts/medias?limit=50&order=publish_date_desc&skip_users=all&format=infinite&counters=1"
                         If Not Cursor.IsEmptyString Then path &= $"&counters=0&beforePublishTime={Cursor}" Else path &= "&counters=1"
                     End If
@@ -250,7 +265,7 @@ Namespace API.OnlyFans
                         If Not r.IsEmptyString Then
                             Using j As EContainer = JsonDocument.Parse(r)
                                 If j.ListExists Then
-                                    specFolder = j.Value("title").StringRemoveWinForbiddenSymbols.IfNullOrEmpty(HLID)
+                                    specFolder = "Highlights\" & j.Value("title").StringRemoveWinForbiddenSymbols.IfNullOrEmpty(HLID)
                                     specFolder &= "*"
                                     With j("stories")
                                         If .ListExists Then
@@ -276,6 +291,57 @@ Namespace API.OnlyFans
                     End If
                 Catch ex As Exception
                     _complete = ProcessFunctionErrComplete(ProcessException(ex, Token, $"highlights downloading error [{url}]"))
+                End Try
+            Loop While Not _complete
+        End Sub
+#End Region
+#Region "Download stories"
+        Private Sub DownloadStories(ByVal Token As CancellationToken)
+            Dim url$ = String.Empty
+            Dim _complete As Boolean = True
+            Do
+                Try
+                    Dim specFolder$ = "Stories"
+                    Dim postID$, postDate$
+                    Dim media As List(Of UserMedia)
+                    Dim result As Boolean
+                    Dim path$ = $"/api2/v2/users/{ID}/stories"
+                    If UpdateSignature(path) Then
+                        url = String.Format(BaseUrlPattern, path)
+                        ThrowAny(Token)
+                        Dim r$ = Responser.GetResponse(url)
+                        If Not r.IsEmptyString Then
+                            Using j As EContainer = JsonDocument.Parse(r)
+                                If j.ListExists Then
+                                    ProgressPre.ChangeMax(j.Count)
+                                    For Each n As EContainer In j
+                                        ProgressPre.Perform()
+                                        With n.ItemF({"media", 0})
+                                            If .ListExists Then
+                                                postID = $"{A_STORIES}_{ .Value("id")}"
+                                                postDate = .Value("createdAt")
+                                            Else
+                                                postID = String.Empty
+                                                postDate = String.Empty
+                                            End If
+                                        End With
+                                        If Not postID.IsEmptyString Then
+                                            If Not _TempPostsList.Contains(postID) Then
+                                                _TempPostsList.Add(postID)
+                                            Else
+                                                Exit Sub
+                                            End If
+                                        End If
+                                        result = False
+                                        media = TryCreateMedia(n, postID, postDate, result, True, specFolder,, False)
+                                        If result Then _TempMediaList.ListAddList(media, LNC)
+                                    Next
+                                End If
+                            End Using
+                        End If
+                    End If
+                Catch ex As Exception
+                    _complete = ProcessFunctionErrComplete(ProcessException(ex, Token, $"stories downloading error [{url}]"))
                 End Try
             Loop While Not _complete
         End Sub
@@ -329,7 +395,8 @@ Namespace API.OnlyFans
 #End Region
         Private Function TryCreateMedia(ByVal n As EContainer, ByVal PostID As String, Optional ByVal PostDate As String = Nothing,
                                         Optional ByRef Result As Boolean = False, Optional ByVal IsHL As Boolean = False,
-                                        Optional ByVal SpecFolder As String = Nothing, Optional ByVal PostUserID As String = Nothing) As List(Of UserMedia)
+                                        Optional ByVal SpecFolder As String = Nothing, Optional ByVal PostUserID As String = Nothing,
+                                        Optional ByVal TryUseOFS As Boolean = True) As List(Of UserMedia)
             Dim postUrl$, postUrlBase$, ext$
             Dim t As UTypes
             Dim mList As New List(Of UserMedia)
@@ -348,7 +415,7 @@ Namespace API.OnlyFans
                             Case "video"
                                 t = UTypes.Video
                                 ext = "mp4"
-                                If postUrl.IsEmptyString And Not IsHL Then
+                                If postUrl.IsEmptyString And Not IsHL And TryUseOFS Then
                                     t = UTypes.VideoPre
                                     _AbsMediaIndex += 1
                                     If Not PostUserID.IsEmptyString And IsSingleObjectDownload Then _

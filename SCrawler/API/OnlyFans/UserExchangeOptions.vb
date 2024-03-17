@@ -9,17 +9,25 @@
 Imports SCrawler.Plugin.Attributes
 Namespace API.OnlyFans
     Friend Class UserExchangeOptions
+        <PSetting(NameOf(SiteSettings.DownloadTimeline), NameOf(MySettings))>
+        Friend Property DownloadTimeline As Boolean
+        <PSetting(NameOf(SiteSettings.DownloadStories), NameOf(MySettings))>
+        Friend Property DownloadStories As Boolean
         <PSetting(NameOf(SiteSettings.DownloadHighlights), NameOf(MySettings))>
         Friend Property DownloadHighlights As Boolean
         <PSetting(NameOf(SiteSettings.DownloadChatMedia), NameOf(MySettings))>
         Friend Property DownloadChatMedia As Boolean
         Private ReadOnly MySettings As SiteSettings
         Friend Sub New(ByVal u As UserData)
+            DownloadTimeline = u.MediaDownloadTimeline
+            DownloadStories = u.MediaDownloadStories
             DownloadHighlights = u.MediaDownloadHighlights
             DownloadChatMedia = u.MediaDownloadChatMedia
             MySettings = u.HOST.Source
         End Sub
         Friend Sub New(ByVal s As SiteSettings)
+            DownloadTimeline = s.DownloadTimeline.Value
+            DownloadStories = s.DownloadStories.Value
             DownloadHighlights = s.DownloadHighlights.Value
             DownloadChatMedia = s.DownloadChatMedia.Value
             MySettings = s

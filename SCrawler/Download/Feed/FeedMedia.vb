@@ -498,7 +498,7 @@ Namespace DownloadObjects
                         If f.DialogResult = DialogResult.OK Then moveOptions = f.Result
                     End Using
                     If Not moveOptions.Destination.IsEmptyString Then
-                        ff.Path = moveOptions.Destination.Path
+                        ff.Path = moveOptions.DestinationTrue(Media).Path
                         If isCopy Then
                             result = File.Copy(ff)
                         Else

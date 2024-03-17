@@ -18,10 +18,14 @@ Namespace API.OnlyFans
     Friend Class SiteSettings : Inherits SiteSettingsBase
 #Region "Declarations"
 #Region "Options"
+        <PropertyOption(ControlText:="Download timeline", ControlToolTip:="Download user timeline"), PXML, PClonable>
+        Friend ReadOnly Property DownloadTimeline As PropertyValue
+        <PropertyOption(ControlText:="Download stories", ControlToolTip:="Download profile stories if they exists"), PXML, PClonable>
+        Friend ReadOnly Property DownloadStories As PropertyValue
         <PropertyOption(ControlText:="Download highlights", ControlToolTip:="Download profile highlights if they exists"), PXML, PClonable>
-        Friend Property DownloadHighlights As PropertyValue
+        Friend ReadOnly Property DownloadHighlights As PropertyValue
         <PropertyOption(ControlText:="Download chat", ControlToolTip:="Download unlocked chat media"), PXML, PClonable>
-        Friend Property DownloadChatMedia As PropertyValue
+        Friend ReadOnly Property DownloadChatMedia As PropertyValue
 #End Region
 #Region "Headers"
         Private Const HeaderBrowser As String = "sec-ch-ua"
@@ -145,6 +149,8 @@ Namespace API.OnlyFans
                 UserAgent = New PropertyValue(IIf(.UserAgentExists, .UserAgent, String.Empty), GetType(String), Sub(v) UpdateHeader(NameOf(UserAgent), v))
             End With
 
+            DownloadTimeline = New PropertyValue(True)
+            DownloadStories = New PropertyValue(True)
             DownloadHighlights = New PropertyValue(True)
             DownloadChatMedia = New PropertyValue(True)
 
