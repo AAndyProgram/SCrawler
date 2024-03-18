@@ -184,6 +184,7 @@ Namespace API.Xhamster
 #End Region
 #Region "Download functions"
         Friend Function GetNonUserUrl(ByVal Page As Integer) As String
+            Const newest$ = "/newest"
             If SiteMode = SiteModes.User And Not IsCreator Then
                 Return String.Empty
             Else
@@ -200,6 +201,7 @@ Namespace API.Xhamster
                 url &= $"/{TrueName}"
 
                 Dim args$ = Arguments
+                If (args.IsEmptyString OrElse Not args.Contains(newest)) And Not SiteMode = SiteModes.Search Then url &= newest
                 If Page > 1 Then
                     If args.IsEmptyString Then
                         If SiteMode = SiteModes.Search Then
@@ -263,29 +265,47 @@ Namespace API.Xhamster
                 Dim checkLimit As Func(Of Boolean) = Function() limit > 0 And SearchPostsCount >= limit And IsVideo
 
                 If IsSavedPosts Then
+                    containerNodes.Add(If(IsVideo, {"favoriteVideoListComponent", "models"}, {"favoritesGalleriesAndPhotosCollection"}))
+                ElseIf Not SiteMode = SiteModes.Search Then
+                    If IsVideo Then
+                        containerNodes.Add({"trendingVideoListComponent", "models"})
+                        containerNodes.Add({"pagesCategoryComponent", "trendingVideoListProps", "models"})
+                        containerNodes.Add({"trendingVideoSectionComponent", "videoModels"})
+                        containerNodes.Add({"trendingVideoSectionComponent", "videoListProps", "videoThumbProps"})
+                        containerNodes.Add({"userVideoCollection"})
+                        containerNodes.Add({"videoListComponent", "models"})
+                        containerNodes.Add({"videoListComponent", "videoThumbProps"})
+                    Else
+                        containerNodes.Add({"userGalleriesCollection"})
+                    End If
+                End If
+
+                'TODELETE: xHamster remove old container nodes attachments 
+
+                If IsSavedPosts Then
                     URL = $"https://xhamster.com/my/favorites/{IIf(IsVideo, "videos", "photos-and-galleries")}{IIf(Page = 1, String.Empty, $"/{Page}")}"
                     containerNodes.Add(If(IsVideo, {"favoriteVideoListComponent", "models"}, {"favoritesGalleriesAndPhotosCollection"}))
                 ElseIf IsChannel Then
                     URL = $"https://xhamster.com/channels/{TrueName}/newest{IIf(Page = 1, String.Empty, $"/{Page}")}"
-                    containerNodes.Add({"trendingVideoListComponent", "models"})
-                    containerNodes.Add({"pagesCategoryComponent", "trendingVideoListProps", "models"})
+                    'containerNodes.Add({"trendingVideoListComponent", "models"})
+                    'containerNodes.Add({"pagesCategoryComponent", "trendingVideoListProps", "models"})
                 ElseIf SiteMode = SiteModes.Search Then
                     URL = GetNonUserUrl(Page)
                     containerNodes.Add({"searchResult", "models"})
                 ElseIf IsCreator Or SiteMode = SiteModes.Tags Or SiteMode = SiteModes.Categories Or SiteMode = SiteModes.Pornstars Then
                     URL = GetNonUserUrl(Page)
-                    If SiteMode = SiteModes.Pornstars Then
-                        containerNodes.Add({"trendingVideoListComponent", "models"})
-                        containerNodes.Add({"pagesCategoryComponent", "trendingVideoListProps", "models"})
-                    Else
-                        containerNodes.Add({"pagesCategoryComponent", "trendingVideoListProps", "models"})
-                        containerNodes.Add({"trendingVideoListComponent", "models"})
-                    End If
-                    containerNodes.Add({"trendingVideoSectionComponent", "videoModels"})
+                    'If SiteMode = SiteModes.Pornstars Then
+                    '    containerNodes.Add({"trendingVideoListComponent", "models"})
+                    '    containerNodes.Add({"pagesCategoryComponent", "trendingVideoListProps", "models"})
+                    'Else
+                    '    containerNodes.Add({"pagesCategoryComponent", "trendingVideoListProps", "models"})
+                    '    containerNodes.Add({"trendingVideoListComponent", "models"})
+                    'End If
+                    'containerNodes.Add({"trendingVideoSectionComponent", "videoModels"})
                 Else
                     URL = $"https://xhamster.com/users/{TrueName}/{IIf(IsVideo, "videos", "photos")}{IIf(Page = 1, String.Empty, $"/{Page}")}"
-                    containerNodes.Add({If(IsVideo, "userVideoCollection", "userGalleriesCollection")})
-                    containerNodes.Add(If(IsVideo, {"videoListComponent", "models"}, {"userGalleriesCollection"}))
+                    'containerNodes.Add({If(IsVideo, "userVideoCollection", "userGalleriesCollection")})
+                    'containerNodes.Add(If(IsVideo, {"videoListComponent", "models"}, {"userGalleriesCollection"}))
                 End If
                 ThrowAny(Token)
 
