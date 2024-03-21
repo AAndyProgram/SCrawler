@@ -196,10 +196,15 @@ Namespace DownloadObjects
                         files = SFile.GetFiles(SessionsPath.CSFileP, "*.xml",, EDP.ReturnValue)
                         If files.ListExists Then files.RemoveAll(Settings.Feeds.FeedSpecialRemover)
                     End If
+                    If files.ListExists Then
+                        Const ds$ = "yyyyMMdd"
+                        Dim nd$ = Now.ToString(ds), d1$ = Now.AddDays(-1).ToString(ds), d2$ = Now.AddDays(-2).ToString(ds)
+                        files.RemoveAll(Function(f) f.Name.StartsWith(nd) Or f.Name.StartsWith(d1) Or f.Name.StartsWith(d2))
+                    End If
                     Dim filesCount% = Settings.FeedStoredSessionsNumber
                     If files.ListExists And filesCount > 0 Then
                         Dim fe As New ErrorsDescriber(EDP.None)
-                        Do While files.Count > filesCount : files(0).Delete(,, fe) : files.RemoveAt(0) : Loop
+                        Do While files.Count > filesCount And files.Count > 0 : files(0).Delete(,, fe) : files.RemoveAt(0) : Loop
                     End If
                 End If
             Catch ex As Exception

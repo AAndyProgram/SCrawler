@@ -14,6 +14,8 @@ Namespace DownloadObjects
     Friend Class UserDownloadQueueForm
         Private MyVew As FormView
         Private ReadOnly Tokens As List(Of CancellationTokenSource)
+        Private Loaded As Boolean = False
+        Private ReadOnly Pending As List(Of ListUser)
         Private Structure ListUser
             Friend IsDownloading As Boolean
             Private ReadOnly _UserString As String
@@ -23,11 +25,16 @@ Namespace DownloadObjects
                 End Get
             End Property
             Friend ReadOnly Key As String
+            Friend ReadOnly User As IUserData
             Friend Sub New(ByVal _User As IUserData)
-                Key = _User.Key
-                IsDownloading = True
-                _UserString = DirectCast(_User, UserDataBase).ToStringForLog()
-                If Not _User.FriendlyName.IsEmptyString Then _UserString &= $" ({_User.FriendlyName})"
+                Try
+                    User = _User
+                    Key = _User.Key
+                    IsDownloading = True
+                    _UserString = DirectCast(_User, UserDataBase).ToStringForLog()
+                    If Not _User.FriendlyName.IsEmptyString Then _UserString &= $" ({_User.FriendlyName})"
+                Catch
+                End Try
             End Sub
             Public Shared Widening Operator CType(ByVal _User As UserDataBase) As ListUser
                 Return New ListUser(_User)
@@ -46,6 +53,7 @@ Namespace DownloadObjects
         Public Sub New()
             InitializeComponent()
             Tokens = New List(Of CancellationTokenSource)
+            Pending = New List(Of ListUser)
         End Sub
         Private Sub UserDownloadQueueForm_Load(sender As Object, e As EventArgs) Handles Me.Load
             Try
@@ -54,6 +62,15 @@ Namespace DownloadObjects
                     MyVew.Import()
                     MyVew.SetFormSize()
                 End If
+            Catch
+            Finally
+                Loaded = True
+                FillPending()
+            End Try
+        End Sub
+        Private Sub FillPending()
+            Try
+                If Pending.Count > 0 Then Pending.ForEach(Sub(u) Downloader_UserDownloadStateChanged(u.User, u.IsDownloading)) : Pending.Clear()
             Catch
             End Try
         End Sub
@@ -64,6 +81,7 @@ Namespace DownloadObjects
         Private Sub UserDownloadQueueForm_Disposed(sender As Object, e As EventArgs) Handles Me.Disposed
             MyVew.DisposeIfReady
             Tokens.ListClearDispose
+            Pending.Clear()
         End Sub
         Private Sub UserDownloadQueueForm_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
             Dim b As Boolean = True
@@ -78,43 +96,68 @@ Namespace DownloadObjects
         End Sub
         Friend Sub Downloader_Downloading(ByVal Value As Boolean)
             Try
-                If Not Value Then ControlInvokeFast(LIST_QUEUE, Sub()
-                                                                    LIST_QUEUE.Items.Clear()
-                                                                    Tokens.ListClearDispose
-                                                                End Sub, EDP.None)
+                If Not Value Then
+                    If Not Loaded Then
+                        Pending.Clear()
+                    Else
+                        ControlInvokeFast(LIST_QUEUE, Sub()
+                                                          LIST_QUEUE.Items.Clear()
+                                                          Tokens.ListClearDispose
+                                                      End Sub, EDP.None)
+                    End If
+                End If
             Catch
             End Try
         End Sub
         Friend Sub Downloader_UserDownloadStateChanged(ByVal User As IUserData, ByVal IsDownloading As Boolean)
             Try
-                ControlInvokeFast(LIST_QUEUE, Sub()
-                                                  Dim u As New ListUser(User)
-                                                  ApplyHandlers(User, IsDownloading)
-                                                  If IsDownloading Then
-                                                      LIST_QUEUE.Items.Add(u)
-                                                  Else
-                                                      LIST_QUEUE.Items.Remove(u)
-                                                  End If
-                                                  LIST_QUEUE.Refresh()
-                                              End Sub, EDP.None)
+                If Not Loaded Then
+                    Dim newUser As New ListUser(User)
+                    If IsDownloading Then
+                        If Pending.Count = 0 OrElse Not Pending.Contains(newUser) Then Pending.Add(newUser)
+                    Else
+                        If Pending.Count > 0 Then Pending.Remove(newUser)
+                    End If
+                Else
+                    ControlInvokeFast(LIST_QUEUE, Sub()
+                                                      Dim u As New ListUser(User)
+                                                      ApplyHandlers(User, IsDownloading)
+                                                      If IsDownloading Then
+                                                          LIST_QUEUE.Items.Add(u)
+                                                      Else
+                                                          LIST_QUEUE.Items.Remove(u)
+                                                      End If
+                                                      LIST_QUEUE.Refresh()
+                                                  End Sub, EDP.None)
+                End If
             Catch
             End Try
         End Sub
         Private Sub User_UserDownloadStateChanged(ByVal User As IUserData, ByVal IsDownloading As Boolean)
             Try
-                ControlInvokeFast(LIST_QUEUE,
-                                  Sub()
-                                      Dim lu As New ListUser(User)
-                                      Dim i% = LIST_QUEUE.Items.IndexOf(lu)
-                                      If i >= 0 Then
-                                          lu = LIST_QUEUE.Items(i)
-                                          If Not lu.Key.IsEmptyString And Not lu.IsDownloading = IsDownloading Then
-                                              lu.IsDownloading = IsDownloading
-                                              LIST_QUEUE.Items(i) = lu
-                                              LIST_QUEUE.Refresh()
-                                          End If
-                                      End If
-                                  End Sub, EDP.None)
+                If Not Loaded Then
+                    Dim __user As New ListUser(User)
+                    If Pending.Count > 0 Then
+                        Dim uIndx% = Pending.IndexOf(__user)
+                        If uIndx >= 0 Then
+                            __user.IsDownloading = IsDownloading
+                            Pending(uIndx) = __user
+                        End If
+                    End If
+                Else
+                    ControlInvokeFast(LIST_QUEUE, Sub()
+                                                      Dim lu As New ListUser(User)
+                                                      Dim i% = LIST_QUEUE.Items.IndexOf(lu)
+                                                      If i >= 0 Then
+                                                          lu = LIST_QUEUE.Items(i)
+                                                          If Not lu.Key.IsEmptyString And Not lu.IsDownloading = IsDownloading Then
+                                                              lu.IsDownloading = IsDownloading
+                                                              LIST_QUEUE.Items(i) = lu
+                                                              LIST_QUEUE.Refresh()
+                                                          End If
+                                                      End If
+                                                  End Sub, EDP.None)
+                End If
             Catch
             End Try
         End Sub

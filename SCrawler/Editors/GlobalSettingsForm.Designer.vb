@@ -83,6 +83,11 @@ Namespace Editors
             Dim ActionButton26 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim ActionButton27 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim TP_HEADERS_DEF As System.Windows.Forms.TableLayoutPanel
+            Dim ActionButton28 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton29 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton30 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton31 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton32 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim TAB_HEADERS As System.Windows.Forms.TabPage
             Me.TXT_GLOBAL_PATH = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_IMAGE_LARGE = New PersonalUtilities.Forms.Controls.TextBoxExtended()
@@ -2179,6 +2184,10 @@ Namespace Editors
             '
             'TXT_H_DEF_UserAgent
             '
+            ActionButton28.BackgroundImage = CType(resources.GetObject("ActionButton28.BackgroundImage"), System.Drawing.Image)
+            ActionButton28.Name = "Clear"
+            ActionButton28.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
+            Me.TXT_H_DEF_UserAgent.Buttons.Add(ActionButton28)
             Me.TXT_H_DEF_UserAgent.CaptionText = "UserAgent"
             Me.TXT_H_DEF_UserAgent.CaptionWidth = 140.0R
             Me.TXT_H_DEF_UserAgent.Dock = System.Windows.Forms.DockStyle.Fill
@@ -2189,6 +2198,10 @@ Namespace Editors
             '
             'TXT_H_DEF_sec_ch_ua
             '
+            ActionButton29.BackgroundImage = CType(resources.GetObject("ActionButton29.BackgroundImage"), System.Drawing.Image)
+            ActionButton29.Name = "Clear"
+            ActionButton29.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
+            Me.TXT_H_DEF_sec_ch_ua.Buttons.Add(ActionButton29)
             Me.TXT_H_DEF_sec_ch_ua.CaptionText = "sec-ch-ua"
             Me.TXT_H_DEF_sec_ch_ua.CaptionWidth = 140.0R
             Me.TXT_H_DEF_sec_ch_ua.Dock = System.Windows.Forms.DockStyle.Fill
@@ -2199,6 +2212,10 @@ Namespace Editors
             '
             'TXT_H_DEF_sec_ch_ua_full_version_list
             '
+            ActionButton30.BackgroundImage = CType(resources.GetObject("ActionButton30.BackgroundImage"), System.Drawing.Image)
+            ActionButton30.Name = "Clear"
+            ActionButton30.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
+            Me.TXT_H_DEF_sec_ch_ua_full_version_list.Buttons.Add(ActionButton30)
             Me.TXT_H_DEF_sec_ch_ua_full_version_list.CaptionText = "sec-ch-ua-full-version-list"
             Me.TXT_H_DEF_sec_ch_ua_full_version_list.CaptionWidth = 140.0R
             Me.TXT_H_DEF_sec_ch_ua_full_version_list.Dock = System.Windows.Forms.DockStyle.Fill
@@ -2209,6 +2226,10 @@ Namespace Editors
             '
             'TXT_H_DEF_sec_ch_ua_platform
             '
+            ActionButton31.BackgroundImage = CType(resources.GetObject("ActionButton31.BackgroundImage"), System.Drawing.Image)
+            ActionButton31.Name = "Clear"
+            ActionButton31.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
+            Me.TXT_H_DEF_sec_ch_ua_platform.Buttons.Add(ActionButton31)
             Me.TXT_H_DEF_sec_ch_ua_platform.CaptionText = "sec-ch-ua-platform"
             Me.TXT_H_DEF_sec_ch_ua_platform.CaptionWidth = 140.0R
             Me.TXT_H_DEF_sec_ch_ua_platform.Dock = System.Windows.Forms.DockStyle.Fill
@@ -2219,6 +2240,10 @@ Namespace Editors
             '
             'TXT_H_DEF_sec_ch_ua_platform_version
             '
+            ActionButton32.BackgroundImage = CType(resources.GetObject("ActionButton32.BackgroundImage"), System.Drawing.Image)
+            ActionButton32.Name = "Clear"
+            ActionButton32.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
+            Me.TXT_H_DEF_sec_ch_ua_platform_version.Buttons.Add(ActionButton32)
             Me.TXT_H_DEF_sec_ch_ua_platform_version.CaptionText = "sec-ch-ua-platform-version"
             Me.TXT_H_DEF_sec_ch_ua_platform_version.CaptionWidth = 140.0R
             Me.TXT_H_DEF_sec_ch_ua_platform_version.Dock = System.Windows.Forms.DockStyle.Fill

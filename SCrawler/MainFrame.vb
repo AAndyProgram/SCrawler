@@ -467,20 +467,7 @@ CloseResume:
         InfoForm.FormShow(EDP.LogMessageValue)
     End Sub
     Private Sub MENU_INFO_SHOW_QUEUE_Click(sender As Object, e As EventArgs) Handles MENU_INFO_SHOW_QUEUE.Click
-        ShowDownloadQueueForm()
-    End Sub
-    Private Sub ShowDownloadQueueForm(Optional ByVal Round As Integer = 0)
-        Try
-            DownloadQueue.FormShow(EDP.LogMessageValue)
-        Catch ex As Exception
-            If Round = 0 Then
-                ErrorsDescriber.Execute(EDP.SendToLog, ex, "ShowDownloadQueueForm_0")
-                If Not DownloadQueue Is Nothing Then DownloadQueue.Dispose() : DownloadQueue = Nothing
-                ShowDownloadQueueForm(Round + 1)
-            Else
-                ErrorsDescriber.Execute(EDP.SendToLog, ex, "ShowDownloadQueueForm")
-            End If
-        End Try
+        Try : DownloadQueue.FormShow(EDP.LogMessageValue) : Catch : End Try
     End Sub
     Private Sub MENU_INFO_SHOW_MISSING_Click(sender As Object, e As EventArgs) Handles MENU_INFO_SHOW_MISSING.Click
         MyMissingPosts.FormShow(EDP.LogMessageValue)

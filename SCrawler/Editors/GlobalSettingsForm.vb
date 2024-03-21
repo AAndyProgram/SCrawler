@@ -9,6 +9,7 @@
 Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Forms.Controls
 Imports PersonalUtilities.Forms.Controls.Base
+Imports PersonalUtilities.Functions.XML.Objects
 Imports ADB = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons
 Imports StdDblClck = SCrawler.DownloadObjects.STDownloader.DoubleClickBehavior
 Namespace Editors
@@ -207,6 +208,7 @@ Namespace Editors
                                 "If this case, the functionality of SCrawler will be limited, and some sites will not work at all.",
                                 "Environment missing"}, vbExclamation,,, {"Process", "Cancel"}) = 1 Then Exit Sub
 
+                    Dim detector As Func(Of IXMLValue, Boolean) = Function(hh) hh.ChangesDetected
                     .BeginUpdate()
 
                     'Basis
@@ -242,7 +244,7 @@ Namespace Editors
                     .HEADER_sec_ch_ua_platform.Value = TXT_H_DEF_sec_ch_ua_platform.Text
                     .HEADER_sec_ch_ua_platform_version.Value = TXT_H_DEF_sec_ch_ua_platform_version.Text
                     HeadersChanged = { .HEADER_UserAgent, .HEADER_sec_ch_ua, .HEADER_sec_ch_ua_full_version_list,
-                                       .HEADER_sec_ch_ua_platform, .HEADER_sec_ch_ua_platform_version}.Any(Function(hh) hh.ChangesDetected)
+                                       .HEADER_sec_ch_ua_platform, .HEADER_sec_ch_ua_platform_version}.Cast(Of IXMLValue).Any(detector)
                     'Behavior
                     .ExitConfirm.Value = CH_EXIT_CONFIRM.Checked
                     .CloseToTray.Value = CH_CLOSE_TO_TRAY.Checked
@@ -333,9 +335,8 @@ Namespace Editors
                     .FeedShowFriendlyNames.Value = CH_FEED_SHOW_FRIENDLY.Checked
                     .FeedShowSpecialFeedsMediaItem.Value = CH_FEED_SHOW_SPEC_MEDIAITEM.Checked
                     .FeedMoveCopyUpdateFileLocationOnMove.Value = CH_FEED_UP_FILE_LOC_MOVE.Checked
-                    FeedParametersChanged = .FeedDataRows.ChangesDetected Or .FeedDataColumns.ChangesDetected Or
-                                            .FeedEndless.ChangesDetected Or .FeedBackColor.ChangesDetected Or
-                                            .FeedForeColor.ChangesDetected Or .FeedCenterImage.ChangesDetected
+                    FeedParametersChanged = { .FeedDataRows, .FeedDataColumns, .FeedEndless, .FeedBackColor,
+                                              .FeedForeColor, .FeedCenterImage}.Cast(Of IXMLValue).Any(detector)
 
                     .EndUpdate()
                 End With
