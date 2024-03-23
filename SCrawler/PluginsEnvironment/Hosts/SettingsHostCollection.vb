@@ -327,7 +327,10 @@ Namespace Plugin.Hosts
                                   Optional ByVal HostNames As IEnumerable(Of String) = Nothing,
                                   Optional ByVal HostNamesPassed As Boolean = False) As Boolean
             If FillIndexes Then HostsUnavailableIndexes.Clear()
+            Dim hnExists As Boolean = HostNames.ListExists
             If Count = 1 Then
+                If Not Silent AndAlso HostNamesPassed AndAlso
+                   (Not hnExists OrElse Not HostNames.Contains([Default].AccountName.IfNullOrEmpty(SettingsHost.NameAccountNameDefault))) Then Silent = True
                 If [Default].Available(What, Silent) Then
                     Return True
                 Else
@@ -338,7 +341,6 @@ Namespace Plugin.Hosts
                 Dim a As Boolean = False, n As Boolean = False
                 Dim t$ = String.Empty
                 Dim tExists As Boolean = False
-                Dim hnExists As Boolean = HostNames.ListExists
                 Dim singleHost As Boolean = hnExists AndAlso HostNames.Count = 1
                 Dim m As New MMessage("", "Some of the hosts are unavailable",, vbExclamation)
                 For i% = 0 To Count - 1

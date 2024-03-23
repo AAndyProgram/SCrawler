@@ -610,7 +610,8 @@ Namespace API.Instagram
                         End If
                         dValue = 0
                         If HasNextPage And Not EndCursor.IsEmptyString Then DownloadData(EndCursor, Section, Token)
-                    Catch jsonNull As JsonDocumentException When jsonNull.State = WebDocumentEventArgs.States.Error And Section = Sections.Reels
+                    Catch jsonNull As JsonDocumentException When jsonNull.State = WebDocumentEventArgs.States.Error And
+                                                                 (Section = Sections.Reels Or Section = Sections.SavedPosts)
                         Throw jsonNull
                     Catch eex As ExitException
                         Throw eex
@@ -618,7 +619,9 @@ Namespace API.Instagram
                         dValue = ProcessException(ex, Token, $"data downloading error [{URL}]",, Section, False)
                     End Try
                 Loop
-            Catch jsonNull2 As JsonDocumentException When jsonNull2.State = WebDocumentEventArgs.States.Error And Section = Sections.Reels
+            Catch jsonNull2 As JsonDocumentException When jsonNull2.State = WebDocumentEventArgs.States.Error And
+                                                          (Section = Sections.Reels Or Section = Sections.SavedPosts)
+                If Section = Sections.SavedPosts Then DisableSection(Section)
             Catch eex2 As ExitException
                 If eex2.Is560 Then
                     Throw New Plugin.ExitException With {.Silent = True}
@@ -1216,10 +1219,9 @@ Namespace API.Instagram
             If Not IsNothing(Section) AndAlso TypeOf Section Is Sections Then
                 Dim s As Sections = DirectCast(Section, Sections)
                 Select Case s
-                    Case Sections.Timeline : MySiteSettings.DownloadTimeline.Value = False
                     Case Sections.Reels : MySiteSettings.DownloadReels.Value = False
                     Case Sections.Tagged : MySiteSettings.DownloadTagged.Value = False
-                    Case Sections.Stories, Sections.UserStories
+                    Case Sections.Timeline, Sections.Stories, Sections.UserStories, Sections.SavedPosts
                         MySiteSettings.DownloadTimeline.Value = False
                         MySiteSettings.DownloadStories.Value = False
                         MySiteSettings.DownloadStoriesUser.Value = False

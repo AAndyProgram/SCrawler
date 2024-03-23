@@ -59,6 +59,7 @@ Namespace Editors
                     If x.Count > 0 Then Colors.ListAddList(x, LAP.IgnoreICopier)
                 End Using
             End If
+            If Colors.Count > 0 Then Colors.Sort()
         End Sub
         Friend ReadOnly Property Item(ByVal Index As Integer) As DataColor Implements IMyEnumerator(Of DataColor).MyEnumeratorObject
             Get
@@ -72,6 +73,7 @@ Namespace Editors
         End Property
         Friend Sub Update()
             If Count > 0 Then
+                Colors.Sort()
                 Using x As New XmlFile With {.AllowSameNames = True}
                     x.AddRange(Colors)
                     x.Name = "Colors"

@@ -43,6 +43,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Dim MENU_DOWN_ALL_SEP_4 As System.Windows.Forms.ToolStripSeparator
         Dim MENU_INFO As System.Windows.Forms.ToolStripDropDownButton
         Dim MENU_VIEW_SEP_1 As System.Windows.Forms.ToolStripSeparator
+        Dim MENU_VIEW_SEP_5 As System.Windows.Forms.ToolStripSeparator
         Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(MainFrame))
         Me.MENU_INFO_SHOW_INFO = New System.Windows.Forms.ToolStripMenuItem()
         Me.MENU_INFO_SHOW_QUEUE = New System.Windows.Forms.ToolStripMenuItem()
@@ -97,9 +98,12 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_SHOW_EXCLUDED_LABELS = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_SHOW_EXCLUDED_LABELS_IGNORE = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_SHOW_SHOW_GROUPS = New System.Windows.Forms.ToolStripMenuItem()
+        Me.BTT_SHOW_GROUP_USERS = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_SHOW_FILTER_ADV = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_SHOW_LIMIT_DATES_NOT = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_SHOW_LIMIT_DATES_IN = New System.Windows.Forms.ToolStripMenuItem()
+        Me.BTT_VIEW_FILTER_SAVE = New System.Windows.Forms.ToolStripMenuItem()
+        Me.BTT_VIEW_FILTER_LOAD = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_LOG = New System.Windows.Forms.ToolStripButton()
         Me.BTT_VERSION_INFO = New System.Windows.Forms.ToolStripButton()
         Me.BTT_DONATE = New System.Windows.Forms.ToolStripButton()
@@ -164,6 +168,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         MENU_DOWN_ALL_SEP_4 = New System.Windows.Forms.ToolStripSeparator()
         MENU_INFO = New System.Windows.Forms.ToolStripDropDownButton()
         MENU_VIEW_SEP_1 = New System.Windows.Forms.ToolStripSeparator()
+        MENU_VIEW_SEP_5 = New System.Windows.Forms.ToolStripSeparator()
         Me.Toolbar_TOP.SuspendLayout()
         Me.Toolbar_BOTTOM.SuspendLayout()
         Me.USER_CONTEXT.SuspendLayout()
@@ -315,6 +320,11 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         '
         MENU_VIEW_SEP_1.Name = "MENU_VIEW_SEP_1"
         MENU_VIEW_SEP_1.Size = New System.Drawing.Size(228, 6)
+        '
+        'MENU_VIEW_SEP_5
+        '
+        MENU_VIEW_SEP_5.Name = "MENU_VIEW_SEP_5"
+        MENU_VIEW_SEP_5.Size = New System.Drawing.Size(228, 6)
         '
         'MENU_SETTINGS
         '
@@ -582,7 +592,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         'MENU_VIEW
         '
         Me.MENU_VIEW.AutoToolTip = False
-        Me.MENU_VIEW.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_VIEW_LARGE, Me.BTT_VIEW_SMALL, Me.BTT_VIEW_LIST, Me.BTT_VIEW_DETAILS, MENU_VIEW_SEP_1, Me.BTT_MODE_SHOW_USERS, Me.BTT_MODE_SHOW_SUBSCRIPTIONS, MENU_VIEW_SEP_2, Me.BTT_SITE_ALL, Me.BTT_SITE_SPECIFIC, MENU_VIEW_SEP_3, Me.BTT_SHOW_ALL, Me.BTT_SHOW_REGULAR, Me.BTT_SHOW_TEMP, Me.BTT_SHOW_FAV, Me.BTT_SHOW_DELETED, Me.BTT_SHOW_SUSPENDED, Me.BTT_SHOW_LABELS, Me.BTT_SHOW_NO_LABELS, Me.BTT_SHOW_EXCLUDED_LABELS, Me.BTT_SHOW_EXCLUDED_LABELS_IGNORE, Me.BTT_SHOW_SHOW_GROUPS, Me.BTT_SHOW_FILTER_ADV, MENU_VIEW_SEP_4, Me.BTT_SHOW_LIMIT_DATES_NOT, Me.BTT_SHOW_LIMIT_DATES_IN})
+        Me.MENU_VIEW.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_VIEW_LARGE, Me.BTT_VIEW_SMALL, Me.BTT_VIEW_LIST, Me.BTT_VIEW_DETAILS, MENU_VIEW_SEP_1, Me.BTT_MODE_SHOW_USERS, Me.BTT_MODE_SHOW_SUBSCRIPTIONS, MENU_VIEW_SEP_2, Me.BTT_SITE_ALL, Me.BTT_SITE_SPECIFIC, MENU_VIEW_SEP_3, Me.BTT_SHOW_ALL, Me.BTT_SHOW_REGULAR, Me.BTT_SHOW_TEMP, Me.BTT_SHOW_FAV, Me.BTT_SHOW_DELETED, Me.BTT_SHOW_SUSPENDED, Me.BTT_SHOW_LABELS, Me.BTT_SHOW_NO_LABELS, Me.BTT_SHOW_EXCLUDED_LABELS, Me.BTT_SHOW_EXCLUDED_LABELS_IGNORE, Me.BTT_SHOW_SHOW_GROUPS, Me.BTT_SHOW_GROUP_USERS, Me.BTT_SHOW_FILTER_ADV, MENU_VIEW_SEP_4, Me.BTT_SHOW_LIMIT_DATES_NOT, Me.BTT_SHOW_LIMIT_DATES_IN, MENU_VIEW_SEP_5, Me.BTT_VIEW_FILTER_SAVE, Me.BTT_VIEW_FILTER_LOAD})
         Me.MENU_VIEW.Image = CType(resources.GetObject("MENU_VIEW.Image"), System.Drawing.Image)
         Me.MENU_VIEW.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.MENU_VIEW.Name = "MENU_VIEW"
@@ -709,6 +719,14 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_SHOW_SHOW_GROUPS.Size = New System.Drawing.Size(231, 22)
         Me.BTT_SHOW_SHOW_GROUPS.Text = "Show groups instead of labels"
         '
+        'BTT_SHOW_GROUP_USERS
+        '
+        Me.BTT_SHOW_GROUP_USERS.AutoToolTip = True
+        Me.BTT_SHOW_GROUP_USERS.Name = "BTT_SHOW_GROUP_USERS"
+        Me.BTT_SHOW_GROUP_USERS.Size = New System.Drawing.Size(231, 22)
+        Me.BTT_SHOW_GROUP_USERS.Text = "Group users"
+        Me.BTT_SHOW_GROUP_USERS.ToolTipText = "Group users by site or labels"
+        '
         'BTT_SHOW_FILTER_ADV
         '
         Me.BTT_SHOW_FILTER_ADV.AutoToolTip = True
@@ -732,6 +750,20 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_SHOW_LIMIT_DATES_IN.Size = New System.Drawing.Size(231, 22)
         Me.BTT_SHOW_LIMIT_DATES_IN.Text = "Limit dates (in range)"
         Me.BTT_SHOW_LIMIT_DATES_IN.ToolTipText = "Filter users whose last download date is in the selected date range"
+        '
+        'BTT_VIEW_FILTER_SAVE
+        '
+        Me.BTT_VIEW_FILTER_SAVE.Name = "BTT_VIEW_FILTER_SAVE"
+        Me.BTT_VIEW_FILTER_SAVE.Size = New System.Drawing.Size(231, 22)
+        Me.BTT_VIEW_FILTER_SAVE.Text = "Save current view"
+        '
+        'BTT_VIEW_FILTER_LOAD
+        '
+        Me.BTT_VIEW_FILTER_LOAD.AutoToolTip = True
+        Me.BTT_VIEW_FILTER_LOAD.Name = "BTT_VIEW_FILTER_LOAD"
+        Me.BTT_VIEW_FILTER_LOAD.Size = New System.Drawing.Size(231, 22)
+        Me.BTT_VIEW_FILTER_LOAD.Text = "Load view (from saved)"
+        Me.BTT_VIEW_FILTER_LOAD.ToolTipText = "Load one of your previously saved views"
         '
         'BTT_LOG
         '
@@ -1190,4 +1222,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
     Private WithEvents BTT_DOWN_SPEC As ToolStripKeyMenuItem
     Private WithEvents BTT_SHOW_FILTER_ADV As ToolStripMenuItem
     Private WithEvents BTT_TRAY_SCHEDULER As ToolStripMenuItem
+    Private WithEvents BTT_SHOW_GROUP_USERS As ToolStripMenuItem
+    Private WithEvents BTT_VIEW_FILTER_SAVE As ToolStripMenuItem
+    Private WithEvents BTT_VIEW_FILTER_LOAD As ToolStripMenuItem
 End Class

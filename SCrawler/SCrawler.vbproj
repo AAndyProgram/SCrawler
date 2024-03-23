@@ -504,6 +504,7 @@
     <Compile Include="UserSearchForm.vb">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="ViewFilter.vb" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="API\BaseObjects\InternalSettingsForm.resx">

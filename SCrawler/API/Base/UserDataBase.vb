@@ -868,7 +868,7 @@ BlockNullPicture:
                             If Settings.Labels.Current.Contains(Labels(i)) Then Return Destination.Groups.Item(Labels(i))
                         Next
                     End If
-                ElseIf Settings.ShowGroups Then
+                ElseIf Settings.GroupUsers Then
                     Return Destination.Groups.Item(GetLviGroupName(HOST, Temporary, Favorite, IsCollection))
                 End If
                 Return Destination.Groups.Item(LabelsKeeper.NoLabeledName)

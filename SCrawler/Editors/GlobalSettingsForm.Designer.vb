@@ -97,8 +97,6 @@ Namespace Editors
             Me.TXT_MAX_JOBS_CHANNELS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.CH_CHECK_VER_START = New System.Windows.Forms.CheckBox()
             Me.TXT_IMGUR_CLIENT_ID = New PersonalUtilities.Forms.Controls.TextBoxExtended()
-            Me.CH_SHOW_GROUPS = New System.Windows.Forms.CheckBox()
-            Me.CH_USERS_GROUPING = New System.Windows.Forms.CheckBox()
             Me.TXT_USER_AGENT = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.OPT_FILE_NAME_REPLACE = New System.Windows.Forms.RadioButton()
             Me.OPT_FILE_NAME_ADD_DATE = New System.Windows.Forms.RadioButton()
@@ -304,13 +302,11 @@ Namespace Editors
             TP_BASIS.Controls.Add(Me.TXT_MAX_JOBS_CHANNELS, 0, 4)
             TP_BASIS.Controls.Add(Me.CH_CHECK_VER_START, 0, 5)
             TP_BASIS.Controls.Add(Me.TXT_IMGUR_CLIENT_ID, 0, 7)
-            TP_BASIS.Controls.Add(Me.CH_SHOW_GROUPS, 0, 8)
-            TP_BASIS.Controls.Add(Me.CH_USERS_GROUPING, 0, 9)
             TP_BASIS.Controls.Add(Me.TXT_USER_AGENT, 0, 6)
             TP_BASIS.Dock = System.Windows.Forms.DockStyle.Fill
             TP_BASIS.Location = New System.Drawing.Point(3, 3)
             TP_BASIS.Name = "TP_BASIS"
-            TP_BASIS.RowCount = 11
+            TP_BASIS.RowCount = 9
             TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
@@ -319,12 +315,7 @@ Namespace Editors
             TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
-            TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
-            TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
-            TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
-            TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
             TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
             TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
             TP_BASIS.Size = New System.Drawing.Size(615, 393)
@@ -470,30 +461,6 @@ Namespace Editors
             Me.TXT_IMGUR_CLIENT_ID.Name = "TXT_IMGUR_CLIENT_ID"
             Me.TXT_IMGUR_CLIENT_ID.Size = New System.Drawing.Size(607, 22)
             Me.TXT_IMGUR_CLIENT_ID.TabIndex = 7
-            '
-            'CH_SHOW_GROUPS
-            '
-            Me.CH_SHOW_GROUPS.AutoSize = True
-            Me.CH_SHOW_GROUPS.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_SHOW_GROUPS.Location = New System.Drawing.Point(4, 233)
-            Me.CH_SHOW_GROUPS.Name = "CH_SHOW_GROUPS"
-            Me.CH_SHOW_GROUPS.Size = New System.Drawing.Size(607, 19)
-            Me.CH_SHOW_GROUPS.TabIndex = 8
-            Me.CH_SHOW_GROUPS.Text = "Show groups"
-            TT_MAIN.SetToolTip(Me.CH_SHOW_GROUPS, "Grouping users by site")
-            Me.CH_SHOW_GROUPS.UseVisualStyleBackColor = True
-            '
-            'CH_USERS_GROUPING
-            '
-            Me.CH_USERS_GROUPING.AutoSize = True
-            Me.CH_USERS_GROUPING.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_USERS_GROUPING.Location = New System.Drawing.Point(4, 259)
-            Me.CH_USERS_GROUPING.Name = "CH_USERS_GROUPING"
-            Me.CH_USERS_GROUPING.Size = New System.Drawing.Size(607, 19)
-            Me.CH_USERS_GROUPING.TabIndex = 9
-            Me.CH_USERS_GROUPING.Text = "Use user grouping"
-            TT_MAIN.SetToolTip(Me.CH_USERS_GROUPING, "Group users by groups and/or labels")
-            Me.CH_USERS_GROUPING.UseVisualStyleBackColor = True
             '
             'TXT_USER_AGENT
             '
@@ -2442,8 +2409,6 @@ Namespace Editors
         Private WithEvents TXT_FOLDER_CMD As PersonalUtilities.Forms.Controls.TextBoxExtended
         Private WithEvents CH_RECYCLE_DEL As CheckBox
         Private WithEvents TXT_SCRIPT As PersonalUtilities.Forms.Controls.TextBoxExtended
-        Private WithEvents CH_SHOW_GROUPS As CheckBox
-        Private WithEvents CH_USERS_GROUPING As CheckBox
         Private WithEvents CH_DOWN_OPEN_INFO As CheckBox
         Private WithEvents CH_DOWN_OPEN_PROGRESS As CheckBox
         Private WithEvents TXT_CLOSE_SCRIPT As PersonalUtilities.Forms.Controls.TextBoxExtended

@@ -180,19 +180,12 @@
   <metadata name="MENU_VIEW_SEP_1.GenerateMember" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>False</value>
   </metadata>
+  <metadata name="MENU_VIEW_SEP_5.GenerateMember" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>False</value>
+  </metadata>
   <metadata name="Toolbar_TOP.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>132, 17</value>
   </metadata>
-  <data name="BTT_DOWN_SITE_FULL.ToolTipText" xml:space="preserve">
-    <value>Download all users from specific sites. The 'Ready for download' option will be ignored.
-Shift+Click to download, including non-existent users.
-Ctrl+Shift+Click to download, excluding from the feed, including non-existent users.</value>
-  </data>
-  <data name="BTT_DOWN_SITE_FULL_SUBSCR.ToolTipText" xml:space="preserve">
-    <value>Download all subscriptions from specific sites. The 'Ready for download' option will be ignored.
-Shift+Click to download, including non-existent users.
-Ctrl+Shift+Click to download, excluding from the feed, including non-existent users.</value>
-  </data>
   <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
   <data name="MENU_VIEW.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
@@ -228,6 +221,16 @@ Ctrl+Shift+Click to download, excluding from the feed, including non-existent us
         kx0g8BTA3aZlButjSTyjODq/WcQcW/B/Je4OQhLvKQDnzN1mp0nnkvAhR8VuMzNrpm1mpjgkoVwB/v8D
         TgDQASA1MVpwzwAAAABJRU5ErkJggg==
 </value>
+  </data>
+  <data name="BTT_DOWN_SITE_FULL.ToolTipText" xml:space="preserve">
+    <value>Download all users from specific sites. The 'Ready for download' option will be ignored.
+Shift+Click to download, including non-existent users.
+Ctrl+Shift+Click to download, excluding from the feed, including non-existent users.</value>
+  </data>
+  <data name="BTT_DOWN_SITE_FULL_SUBSCR.ToolTipText" xml:space="preserve">
+    <value>Download all subscriptions from specific sites. The 'Ready for download' option will be ignored.
+Shift+Click to download, including non-existent users.
+Ctrl+Shift+Click to download, excluding from the feed, including non-existent users.</value>
   </data>
   <metadata name="Toolbar_BOTTOM.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>239, 17</value>

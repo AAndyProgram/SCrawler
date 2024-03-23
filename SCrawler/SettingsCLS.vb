@@ -145,6 +145,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
     Friend ReadOnly Property Feeds As FeedSpecialCollection
     Friend ReadOnly Property BlackList As List(Of UserBan)
     Friend ReadOnly Property Colors As Editors.DataColorCollection
+    Friend ReadOnly Property SavedFilters As ViewFilterCollection
     Private ReadOnly BlackListFile As SFile = $"{SettingsFolderName}\BlackList.txt"
     Private ReadOnly UsersSettingsFile As SFile = $"{SettingsFolderName}\Users.xml"
     Friend Sub New()
@@ -165,6 +166,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         GlobalLocations.Load(True,, $"{SettingsFolderName}\GlobalLocations.xml")
         Feeds = New FeedSpecialCollection
         Colors = New Editors.DataColorCollection
+        SavedFilters = New ViewFilterCollection
 
         Dim n() As String = {"MediaEnvironment"}
 
@@ -270,8 +272,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         ViewMode = New XMLValue(Of Integer)("ViewMode", ViewModes.IconLarge, MyXML)
         ShowingMode = New XMLValue(Of Integer)("ShowingMode", ShowingModes.All, MyXML)
         ShowGroupsInsteadLabels = New XMLValue(Of Boolean)("ShowGroupsInsteadLabels", False, MyXML)
-        ShowGroups = New XMLValue(Of Boolean)("ShowGroups", True, MyXML)
-        UseGrouping = New XMLValue(Of Boolean)("UseGrouping", True, MyXML)
+        GroupUsers = New XMLValue(Of Boolean)("UseGrouping", True, MyXML)
 
         AddMissingToLog = New XMLValue(Of Boolean)("AddMissingToLog", True, MyXML)
         AddMissingErrorsToLog = New XMLValue(Of Boolean)("AddMissingErrorsToLog", False, MyXML)
@@ -390,6 +391,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         AdvancedFilter = New Groups.DownloadGroup
         AdvancedFilter.LoadFromFile($"{SettingsFolderName}\AdvancedFilter.xml")
         Labels.AddRange({AdvancedFilter}.GetGroupsLabels, False)
+        Labels.AddRange(SavedFilters.GetAllLabels, False)
 
         MyXML.EndUpdate()
         If MyXML.ChangesDetected Then MyXML.Sort() : MyXML.UpdateData()
@@ -930,8 +932,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         End Get
     End Property
     Friend ReadOnly Property ShowingMode As XMLValue(Of Integer)
-    Friend ReadOnly Property ShowGroups As XMLValue(Of Boolean)
-    Friend ReadOnly Property UseGrouping As XMLValue(Of Boolean)
+    Friend ReadOnly Property GroupUsers As XMLValue(Of Boolean)
     Friend ReadOnly Property ShowGroupsInsteadLabels As XMLValue(Of Boolean)
     Friend ReadOnly Property SelectedSites As XMLValuesCollection(Of String)
 #Region "View dates"

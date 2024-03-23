@@ -37,8 +37,6 @@ Namespace Editors
                         CH_CHECK_VER_START.Checked = .CheckUpdatesAtStart
                         TXT_USER_AGENT.Text = .UserAgent
                         TXT_IMGUR_CLIENT_ID.Text = .ImgurClientID
-                        CH_SHOW_GROUPS.Checked = .ShowGroups
-                        CH_USERS_GROUPING.Checked = .UseGrouping
                         'Design
                         TXT_PRG_TITLE.Text = .ProgramText
                         TXT_PRG_DESCR.Text = .ProgramDescription
@@ -222,8 +220,6 @@ Namespace Editors
                     .UserAgent.Value = TXT_USER_AGENT.Text
                     DefaultUserAgent = TXT_USER_AGENT.Text
                     .ImgurClientID.Value = TXT_IMGUR_CLIENT_ID.Text
-                    .ShowGroups.Value = CH_SHOW_GROUPS.Checked
-                    .UseGrouping.Value = CH_USERS_GROUPING.Checked
                     'Design
                     .ProgramText.Value = TXT_PRG_TITLE.Text
                     .ProgramDescription.Value = TXT_PRG_DESCR.Text

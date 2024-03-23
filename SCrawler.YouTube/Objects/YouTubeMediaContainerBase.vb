@@ -805,7 +805,7 @@ Namespace API.YouTube.Objects
             With Element
                 Dim f As SFile = __file.IfNullOrEmpty(.File)
                 Dim fName$ = .Title.IfNullOrEmpty(f.Name)
-                If MyYouTubeSettings.MusicPlaylistCreate_M3U8_AppendNumber Then fName = $"{ .PlaylistIndex}. {fName}"
+                If MyYouTubeSettings.MusicPlaylistCreate_M3U8_AppendNumber And .PlaylistIndex > 0 Then fName = $"{ .PlaylistIndex}. {fName}"
                 If Not .UserTitle.IsEmptyString Then
                     fName = $"{ .UserTitle} - {fName}"
                     If MyYouTubeSettings.MusicPlaylistCreate_M3U8_AppendArtist Then fName = $"{ .UserTitle} - {fName}"

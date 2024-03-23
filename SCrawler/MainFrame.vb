@@ -98,7 +98,7 @@ Public Class MainFrame
         End With
         With Settings
             LIST_PROFILES.View = .ViewMode
-            LIST_PROFILES.ShowGroups = .UseGrouping
+            LIST_PROFILES.ShowGroups = .GroupUsers
             ApplyViewPattern(.ViewMode.Value)
             AddHandler .Labels.NewLabelAdded, AddressOf UpdateLabelsGroups
             UpdateImageColor()
@@ -107,14 +107,7 @@ Public Class MainFrame
             UpdateLabelsGroups()
             SetShowButtonsCheckers(.ShowingMode.Value)
             CheckVersion(False)
-            BTT_MODE_SHOW_USERS.Checked = .MainFrameUsersShowDefaults
-            BTT_MODE_SHOW_SUBSCRIPTIONS.Checked = .MainFrameUsersShowSubscriptions
-            BTT_SITE_ALL.Checked = .SelectedSites.Count = 0
-            BTT_SITE_SPECIFIC.Checked = .SelectedSites.Count > 0
-            BTT_SHOW_LIMIT_DATES_NOT.Tag = ShowingDates.Not
-            BTT_SHOW_LIMIT_DATES_NOT.Checked = .ViewDateMode.Value = ShowingDates.Not
-            BTT_SHOW_LIMIT_DATES_IN.Tag = ShowingDates.In
-            BTT_SHOW_LIMIT_DATES_IN.Checked = .ViewDateMode.Value = ShowingDates.In
+            ApplyView_Users_Sites_Dates()
             With .Groups
                 AddHandler .Added, AddressOf GROUPS_Added
                 AddHandler .Deleted, AddressOf GROUPS_Deleted
@@ -313,15 +306,12 @@ CloseResume:
         With Settings
             Dim mhl% = .MaxLargeImageHeight.Value
             Dim mhs% = .MaxSmallImageHeight.Value
-            Dim sg As Boolean = .ShowGroups
             Using f As New GlobalSettingsForm
                 f.ShowDialog()
                 If f.DialogResult = DialogResult.OK Then
                     UpdateYouTubeSettings()
-                    If ((Not .MaxLargeImageHeight = mhl Or Not .MaxSmallImageHeight = mhs) And .ViewModeIsPicture) Or
-                        (Not sg = Settings.ShowGroups And .UseGrouping) Then RefillList()
+                    If (Not .MaxLargeImageHeight = mhl Or Not .MaxSmallImageHeight = mhs) And .ViewModeIsPicture Then RefillList()
                     TrayIcon.Visible = .CloseToTray
-                    LIST_PROFILES.ShowGroups = .UseGrouping
                     If f.FeedParametersChanged And Not MyFeed Is Nothing Then MyFeed.UpdateSettings()
                     If f.HeadersChanged Then
                         Settings.BeginUpdate()
@@ -636,10 +626,10 @@ CloseResume:
     Private Sub BTT_VIEW_DETAILS_Click(sender As Object, e As EventArgs) Handles BTT_VIEW_DETAILS.Click
         ApplyViewPattern(ViewModes.Details)
     End Sub
-    Private Sub ApplyViewPattern(ByVal v As ViewModes)
+    Private Sub ApplyViewPattern(ByVal v As ViewModes, Optional ByVal OnlyButtons As Boolean = False)
         LIST_PROFILES.View = v
         Dim b As Boolean = Not (Settings.ViewMode.Value = v)
-        Settings.ViewMode.Value = v
+        If Not OnlyButtons Then Settings.ViewMode.Value = v
 
         BTT_VIEW_LARGE.Checked = v = ViewModes.IconLarge
         BTT_VIEW_SMALL.Checked = v = ViewModes.IconSmall
@@ -656,7 +646,7 @@ CloseResume:
             If Settings.ViewModeIsPicture Then
                 With LIST_PROFILES : .LargeImageList.Images.Clear() : .SmallImageList.Images.Clear() : End With
             End If
-            RefillList()
+            If Not OnlyButtons Then RefillList()
         End If
     End Sub
 #End Region
@@ -740,7 +730,7 @@ CloseResume:
         If Settings.ShowingMode.Value = ShowingModes.Labels Then RefillList()
         SetShowButtonsCheckers(Settings.ShowingMode.Value)
     End Sub
-    Private Sub SetShowButtonsCheckers(ByVal m As ShowingModes, Optional ByVal ForceRefill As Boolean = False)
+    Private Sub SetShowButtonsCheckers(ByVal m As ShowingModes, Optional ByVal ForceRefill As Boolean = False, Optional ByVal OnlyButtons As Boolean = False)
         BTT_SHOW_ALL.Checked = m = ShowingModes.All
         BTT_SHOW_REGULAR.Checked = m = ShowingModes.Regular
         BTT_SHOW_TEMP.Checked = m = ShowingModes.Temporary
@@ -752,15 +742,17 @@ CloseResume:
         BTT_SHOW_SHOW_GROUPS.Checked = Settings.ShowGroupsInsteadLabels
         BTT_SHOW_FILTER_ADV.Checked = m = ShowingModes.AdvancedFilter
         SetExcludedButtonChecker()
-        With Settings
-            If Not m = ShowingModes.Labels Then .Labels.Current.Clear() : .Labels.Current.Update()
-            If Not .ShowingMode.Value = m Or ForceRefill Then
-                .ShowingMode.Value = m
-                RefillList()
-            Else
-                .ShowingMode.Value = m
-            End If
-        End With
+        If Not OnlyButtons Then
+            With Settings
+                If Not m = ShowingModes.Labels Then .Labels.Current.Clear() : .Labels.Current.Update()
+                If Not .ShowingMode.Value = m Or ForceRefill Then
+                    .ShowingMode.Value = m
+                    RefillList()
+                Else
+                    .ShowingMode.Value = m
+                End If
+            End With
+        End If
     End Sub
     Private Sub SetExcludedButtonChecker()
         BTT_SHOW_EXCLUDED_LABELS.Checked = Settings.Labels.Excluded.Count > 0
@@ -777,6 +769,14 @@ CloseResume:
             End If
         End Using
     End Function
+    Private Sub BTT_SHOW_GROUP_USERS_Click(sender As Object, e As EventArgs) Handles BTT_SHOW_GROUP_USERS.Click
+        With Settings.GroupUsers
+            .Value = Not .Value
+            BTT_SHOW_GROUP_USERS.Checked = .Value
+            LIST_PROFILES.ShowGroups = .Value
+        End With
+        RefillList()
+    End Sub
     Private Sub BTT_SHOW_FILTER_ADV_Click(sender As Object, e As EventArgs) Handles BTT_SHOW_FILTER_ADV.Click
         Try
             Using g As New Groups.GroupEditorForm(Settings.AdvancedFilter) With {.FilterMode = True}
@@ -831,6 +831,72 @@ CloseResume:
         BTT_SHOW_LIMIT_DATES_NOT.Checked = Settings.ViewDateMode.Value = ShowingDates.Not
         BTT_SHOW_LIMIT_DATES_IN.Checked = Settings.ViewDateMode.Value = ShowingDates.In
         If r Then RefillList()
+    End Sub
+#End Region
+#Region "6 - saved filters"
+    Private Sub BTT_VIEW_FILTER_SAVE_Click(sender As Object, e As EventArgs) Handles BTT_VIEW_FILTER_SAVE.Click
+        Dim fName$ = String.Empty
+        Dim __process As Boolean = False
+        Do
+            fName = InputBoxE("Enter a new name for the view:", "Filter name", fName)
+            If Not fName.IsEmptyString Then
+                If Settings.SavedFilters.IndexOf(fName) >= 0 Then
+                    Select Case MsgBoxE({$"The '{fName}' filter already exists!", "Save filter"}, vbExclamation,,, {"Try again", "Replace", "Cancel"}).Index
+                        Case 1 : __process = True
+                        Case 2 : Exit Sub
+                    End Select
+                Else
+                    __process = True
+                End If
+            Else
+                Exit Sub
+            End If
+        Loop While Not __process
+        If __process Then
+            Settings.SavedFilters.Add(ViewFilter.FromCurrent(fName))
+            MsgBoxE({$"The '{fName}' filter has been saved", "Save filter"})
+        End If
+    End Sub
+    Private Sub BTT_VIEW_FILTER_LOAD_Click(sender As Object, e As EventArgs) Handles BTT_VIEW_FILTER_LOAD.Click
+        Try
+            If Settings.SavedFilters.Count = 0 Then
+                MsgBoxE({"There are no saved filters", "Load filter"}, vbExclamation)
+            Else
+                Using f As New SimpleListForm(Of ViewFilter)(Settings.SavedFilters, Settings.Design) With {
+                    .DesignXMLNodeName = "SavedFiletrsForm",
+                    .FormText = "Filters",
+                    .Mode = SimpleListFormModes.SelectedItems,
+                    .MultiSelect = False
+                }
+                    If f.ShowDialog = DialogResult.OK Then
+                        Dim filter As ViewFilter = f.DataResult.FirstOrDefault
+                        If Not filter.Name.IsEmptyString Then
+                            filter.Populate()
+                            ApplyViewPattern(Settings.ViewMode.Value, True)
+                            SetShowButtonsCheckers(Settings.ShowingMode.Value,, True)
+                            ApplyView_Users_Sites_Dates()
+                            RefillList()
+                        End If
+                    End If
+                End Using
+            End If
+        Catch ex As Exception
+            ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Load filter")
+        End Try
+    End Sub
+    Private Sub ApplyView_Users_Sites_Dates()
+        With Settings
+            BTT_SHOW_GROUP_USERS.Checked = Settings.GroupUsers
+            LIST_PROFILES.ShowGroups = Settings.GroupUsers
+            BTT_MODE_SHOW_USERS.Checked = .MainFrameUsersShowDefaults
+            BTT_MODE_SHOW_SUBSCRIPTIONS.Checked = .MainFrameUsersShowSubscriptions
+            BTT_SITE_ALL.Checked = .SelectedSites.Count = 0
+            BTT_SITE_SPECIFIC.Checked = .SelectedSites.Count > 0
+            BTT_SHOW_LIMIT_DATES_NOT.Tag = ShowingDates.Not
+            BTT_SHOW_LIMIT_DATES_NOT.Checked = .ViewDateMode.Value = ShowingDates.Not
+            BTT_SHOW_LIMIT_DATES_IN.Tag = ShowingDates.In
+            BTT_SHOW_LIMIT_DATES_IN.Checked = .ViewDateMode.Value = ShowingDates.In
+        End With
     End Sub
 #End Region
 #End Region

@@ -245,7 +245,7 @@ Namespace DownloadObjects.Groups
         End Sub
 #End Region
 #Region "IEContainerProvider Support"
-        Private Function ToEContainer(Optional ByVal e As ErrorsDescriber = Nothing) As EContainer Implements IEContainerProvider.ToEContainer
+        Friend Function ToEContainer(Optional ByVal e As ErrorsDescriber = Nothing) As EContainer Implements IEContainerProvider.ToEContainer
             Return Export(New EContainer("Group"))
         End Function
 #End Region
