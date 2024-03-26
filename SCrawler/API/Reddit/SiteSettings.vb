@@ -60,6 +60,10 @@ Namespace API.Reddit
 #Region "Other"
         <PropertyOption(ControlText:="Use M3U8", ControlToolTip:="Use M3U8 or mp4 for Reddit videos", IsAuth:=False), PXML, PClonable>
         Friend ReadOnly Property UseM3U8 As PropertyValue
+        <PropertyOption(ControlText:="Check image", ControlToolTip:="Check the image if it exists before downloading (it makes downloading very slow)", IsAuth:=False), PXML, PClonable>
+        Friend ReadOnly Property CheckImage As PropertyValue
+        <PropertyOption(ControlText:="Check image: get original", ControlToolTip:="Get the original image if it exists", IsAuth:=False), PXML, PClonable>
+        Friend ReadOnly Property CheckImageReturnOrig As PropertyValue
 #End Region
 #End Region
 #Region "Initializer"
@@ -87,6 +91,8 @@ Namespace API.Reddit
             SavedPostsUserName = New PropertyValue(String.Empty, GetType(String))
 
             UseM3U8 = New PropertyValue(True)
+            CheckImage = New PropertyValue(False)
+            CheckImageReturnOrig = New PropertyValue(True)
 
             UrlPatternUser = "https://www.reddit.com/{0}/{1}/"
             ImageVideoContains = "reddit.com"

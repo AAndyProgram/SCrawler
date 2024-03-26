@@ -146,6 +146,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
     Friend ReadOnly Property BlackList As List(Of UserBan)
     Friend ReadOnly Property Colors As Editors.DataColorCollection
     Friend ReadOnly Property SavedFilters As ViewFilterCollection
+    Friend Property FeedViews As FeedViewCollection
     Private ReadOnly BlackListFile As SFile = $"{SettingsFolderName}\BlackList.txt"
     Private ReadOnly UsersSettingsFile As SFile = $"{SettingsFolderName}\Users.xml"
     Friend Sub New()

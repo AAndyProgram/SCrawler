@@ -27,7 +27,7 @@ Public Class MainFrame
     Friend MySavedPosts As DownloadSavedPostsForm
     Private MyMissingPosts As MissingPostsForm
     Private DownloadQueue As UserDownloadQueueForm
-    Private MyFeed As DownloadFeedForm
+    Friend MyFeed As DownloadFeedForm
     Private MySearch As UserSearchForm
     Private MyUserMetrics As UsersInfoForm = Nothing
     Private _UFinit As Boolean = True
@@ -199,10 +199,10 @@ CloseResume:
         If Not _UFinit Then UpdateImageColor()
     End Sub
     Private ListImageLastWidth As Integer = -1
-    Private Sub UpdateImageColor(Optional ByVal UpdateOnlyImage As Boolean = False)
+    Private Sub UpdateImageColor(Optional ByVal UpdateOnlyImage As Boolean = False, Optional ByVal ForceImageUpdate As Boolean = False)
         Try
             If Settings.UserListImage.Value.Exists Then
-                If Not ListImageLastWidth = LIST_PROFILES.Width Or LIST_PROFILES.BackgroundImage Is Nothing Then
+                If ForceImageUpdate Or Not ListImageLastWidth = LIST_PROFILES.Width Or LIST_PROFILES.BackgroundImage Is Nothing Then
                     ListImageLastWidth = LIST_PROFILES.Width
                     Using ir As New ImageRenderer(Settings.UserListImage) : LIST_PROFILES.BackgroundImage = ir.FitToWidth(LIST_PROFILES.Width) : End Using
                 End If
@@ -292,8 +292,8 @@ CloseResume:
     End Function
 #End Region
 #Region "List refill, update"
-    Friend Sub RefillList()
-        UpdateImageColor(True)
+    Friend Sub RefillList(Optional ByVal ForceImageUpdate As Boolean = False)
+        UpdateImageColor(True, ForceImageUpdate)
         UserListLoader.Update()
     End Sub
     Private Sub UserListUpdate(ByVal User As IUserData, ByVal Add As Boolean)
@@ -310,7 +310,11 @@ CloseResume:
                 f.ShowDialog()
                 If f.DialogResult = DialogResult.OK Then
                     UpdateYouTubeSettings()
-                    If (Not .MaxLargeImageHeight = mhl Or Not .MaxSmallImageHeight = mhs) And .ViewModeIsPicture Then RefillList()
+                    If (Not .MaxLargeImageHeight = mhl Or Not .MaxSmallImageHeight = mhs) And .ViewModeIsPicture Then
+                        RefillList(f.PictureChanged)
+                    ElseIf f.PictureChanged Then
+                        UpdateImageColor(True, True)
+                    End If
                     TrayIcon.Visible = .CloseToTray
                     If f.FeedParametersChanged And Not MyFeed Is Nothing Then MyFeed.UpdateSettings()
                     If f.HeadersChanged Then

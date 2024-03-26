@@ -34,6 +34,7 @@ Namespace DownloadObjects
             Dim MENU_LOAD_SEP_6 As System.Windows.Forms.ToolStripSeparator
             Dim MENU_LOAD_SEP_7 As System.Windows.Forms.ToolStripSeparator
             Dim MENU_LOAD_SEP_0 As System.Windows.Forms.ToolStripSeparator
+            Dim MENU_LOAD_SEP_8 As System.Windows.Forms.ToolStripSeparator
             Me.OPT_DEFAULT = New System.Windows.Forms.ToolStripMenuItem()
             Me.OPT_SUBSCRIPTIONS = New System.Windows.Forms.ToolStripMenuItem()
             Me.ToolbarTOP = New System.Windows.Forms.ToolStrip()
@@ -67,6 +68,8 @@ Namespace DownloadObjects
             Me.BTT_DOWN_SELECTED = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_REFRESH = New System.Windows.Forms.ToolStripButton()
             Me.TP_DATA = New System.Windows.Forms.TableLayoutPanel()
+            Me.BTT_VIEW_SAVE = New System.Windows.Forms.ToolStripMenuItem()
+            Me.BTT_VIEW_LOAD = New System.Windows.Forms.ToolStripMenuItem()
             SEP_1 = New System.Windows.Forms.ToolStripSeparator()
             SEP_2 = New System.Windows.Forms.ToolStripSeparator()
             MENU_VIEW = New System.Windows.Forms.ToolStripDropDownButton()
@@ -78,6 +81,7 @@ Namespace DownloadObjects
             MENU_LOAD_SEP_6 = New System.Windows.Forms.ToolStripSeparator()
             MENU_LOAD_SEP_7 = New System.Windows.Forms.ToolStripSeparator()
             MENU_LOAD_SEP_0 = New System.Windows.Forms.ToolStripSeparator()
+            MENU_LOAD_SEP_8 = New System.Windows.Forms.ToolStripSeparator()
             Me.ToolbarTOP.SuspendLayout()
             Me.SuspendLayout()
             '
@@ -166,7 +170,7 @@ Namespace DownloadObjects
             '
             Me.MENU_LOAD_SESSION.AutoToolTip = False
             Me.MENU_LOAD_SESSION.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image
-            Me.MENU_LOAD_SESSION.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_LOAD_SESSION_CURRENT, Me.BTT_LOAD_SESSION_LAST, Me.BTT_LOAD_SESSION_CHOOSE, MENU_LOAD_SEP_0, Me.BTT_COPY_TO, Me.BTT_MOVE_TO, MENU_LOAD_SEP_1, Me.BTT_LOAD_FAV, Me.BTT_LOAD_SPEC, MENU_LOAD_SEP_2, Me.BTT_FEED_ADD_FAV, Me.BTT_FEED_ADD_FAV_REMOVE, Me.BTT_FEED_REMOVE_FAV, MENU_LOAD_SEP_3, Me.BTT_FEED_ADD_SPEC, Me.BTT_FEED_ADD_SPEC_REMOVE, Me.BTT_FEED_REMOVE_SPEC, MENU_LOAD_SEP_4, Me.BTT_FEED_CLEAR_FAV, Me.BTT_FEED_CLEAR_SPEC, Me.BTT_FEED_DELETE_SPEC, Me.BTT_FEED_DELETE_DAILY_LIST, Me.BTT_FEED_DELETE_DAILY_DATE, MENU_LOAD_SEP_5, Me.BTT_MERGE_SESSIONS, Me.BTT_CLEAR_DAILY, MENU_LOAD_SEP_6, Me.BTT_MERGE_FEEDS, MENU_LOAD_SEP_7, Me.BTT_CHECK_ALL, Me.BTT_CHECK_NONE})
+            Me.MENU_LOAD_SESSION.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_LOAD_SESSION_CURRENT, Me.BTT_LOAD_SESSION_LAST, Me.BTT_LOAD_SESSION_CHOOSE, MENU_LOAD_SEP_0, Me.BTT_COPY_TO, Me.BTT_MOVE_TO, MENU_LOAD_SEP_1, Me.BTT_LOAD_FAV, Me.BTT_LOAD_SPEC, MENU_LOAD_SEP_2, Me.BTT_FEED_ADD_FAV, Me.BTT_FEED_ADD_FAV_REMOVE, Me.BTT_FEED_REMOVE_FAV, MENU_LOAD_SEP_3, Me.BTT_FEED_ADD_SPEC, Me.BTT_FEED_ADD_SPEC_REMOVE, Me.BTT_FEED_REMOVE_SPEC, MENU_LOAD_SEP_4, Me.BTT_FEED_CLEAR_FAV, Me.BTT_FEED_CLEAR_SPEC, Me.BTT_FEED_DELETE_SPEC, Me.BTT_FEED_DELETE_DAILY_LIST, Me.BTT_FEED_DELETE_DAILY_DATE, MENU_LOAD_SEP_5, Me.BTT_MERGE_SESSIONS, Me.BTT_CLEAR_DAILY, MENU_LOAD_SEP_6, Me.BTT_MERGE_FEEDS, MENU_LOAD_SEP_7, Me.BTT_CHECK_ALL, Me.BTT_CHECK_NONE, MENU_LOAD_SEP_8, Me.BTT_VIEW_SAVE, Me.BTT_VIEW_LOAD})
             Me.MENU_LOAD_SESSION.Image = Global.SCrawler.My.Resources.Resources.ArrowDownPic_Blue_24
             Me.MENU_LOAD_SESSION.ImageTransparentColor = System.Drawing.Color.Magenta
             Me.MENU_LOAD_SESSION.Name = "MENU_LOAD_SESSION"
@@ -405,6 +409,25 @@ Namespace DownloadObjects
             Me.TP_DATA.Size = New System.Drawing.Size(484, 436)
             Me.TP_DATA.TabIndex = 1
             '
+            'MENU_LOAD_SEP_8
+            '
+            MENU_LOAD_SEP_8.Name = "MENU_LOAD_SEP_8"
+            MENU_LOAD_SEP_8.Size = New System.Drawing.Size(349, 6)
+            '
+            'BTT_VIEW_SAVE
+            '
+            Me.BTT_VIEW_SAVE.Name = "BTT_VIEW_SAVE"
+            Me.BTT_VIEW_SAVE.Size = New System.Drawing.Size(352, 22)
+            Me.BTT_VIEW_SAVE.Text = "Save current view"
+            '
+            'BTT_VIEW_LOAD
+            '
+            Me.BTT_VIEW_LOAD.AutoToolTip = True
+            Me.BTT_VIEW_LOAD.Name = "BTT_VIEW_LOAD"
+            Me.BTT_VIEW_LOAD.Size = New System.Drawing.Size(352, 22)
+            Me.BTT_VIEW_LOAD.Text = "Load view (from saved)"
+            Me.BTT_VIEW_LOAD.ToolTipText = "Load one of your previously saved views"
+            '
             'DownloadFeedForm
             '
             Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
@@ -458,5 +481,7 @@ Namespace DownloadObjects
         Private WithEvents BTT_CHECK_NONE As ToolStripMenuItem
         Private WithEvents BTT_COPY_TO As ToolStripMenuItem
         Private WithEvents BTT_MOVE_TO As ToolStripMenuItem
+        Private WithEvents BTT_VIEW_SAVE As ToolStripMenuItem
+        Private WithEvents BTT_VIEW_LOAD As ToolStripMenuItem
     End Class
 End Namespace

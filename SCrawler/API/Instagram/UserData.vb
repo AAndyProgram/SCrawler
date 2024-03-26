@@ -912,7 +912,8 @@ Namespace API.Instagram
         Protected Sub ObtainMedia(ByVal n As EContainer, ByVal PostID As String, Optional ByVal SpecialFolder As String = Nothing,
                                   Optional ByVal DateObj As String = Nothing, Optional ByVal InitialType As Integer = -1,
                                   Optional ByVal PostOriginUrl As String = Nothing,
-                                  Optional ByVal State As UStates = UStates.Unknown, Optional ByVal Attempts As Integer = 0)
+                                  Optional ByVal State As UStates = UStates.Unknown, Optional ByVal Attempts As Integer = 0,
+                                  Optional ByVal TryExtractImage As Boolean = False)
             Try
                 Dim maxSize As Func(Of EContainer, Integer) = Function(ByVal _ss As EContainer) As Integer
                                                                   Dim w% = AConvert(Of Integer)(_ss.Value("width"), 0)
@@ -956,7 +957,10 @@ Namespace API.Instagram
                     '2 - one video
                     '1 - one picture
                     t = n.Value("media_type").FromXML(Of Integer)(-1)
-                    If t = -1 And InitialType = 8 And ObtainMedia_AllowAbstract Then
+                    If TryExtractImage Then
+                        t = 1
+                        abstractDecision = True
+                    ElseIf t = -1 And InitialType = 8 And ObtainMedia_AllowAbstract Then
                         If n.Contains(vid) Then
                             t = 2
                             abstractDecision = True
@@ -967,7 +971,7 @@ Namespace API.Instagram
                     End If
                     If t >= 0 Then
                         Select Case t
-                            Case 1
+                            Case 1 'one picture
                                 If n.Contains(img) Then
                                     If Not abstractDecision Then t = n.Value("media_type").FromXML(Of Integer)(-1)
                                     DateObj = mDate(n)
@@ -986,7 +990,7 @@ Namespace API.Instagram
                                         End With
                                     End If
                                 End If
-                            Case 2
+                            Case 2 'one video
                                 If n.Contains(vid) Then
                                     DateObj = mDate(n)
                                     With n.ItemF({vid}).XmlIfNothing
@@ -1002,7 +1006,8 @@ Namespace API.Instagram
                                         End If
                                     End With
                                 End If
-                            Case 8
+                                If Not TryExtractImage Then ObtainMedia(n, PostID, SpecialFolder, DateObj, InitialType, PostOriginUrl, State, Attempts, True)
+                            Case 8 'gallery
                                 DateObj = mDate(n)
                                 With n("carousel_media").XmlIfNothing
                                     If .Count > 0 Then

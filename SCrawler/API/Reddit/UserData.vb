@@ -681,12 +681,16 @@ Namespace API.Reddit
         End Function
         Private Function TryImage(ByVal URL As String) As Boolean
             Try
-                Dim img As Image = GetImage(SFile.GetBytesFromNet(URL, EDP.ThrowException), EDP.ThrowException)
-                If Not img Is Nothing Then
-                    img.Dispose()
-                    Return True
+                If Not CBool(MySiteSettings.CheckImage.Value) Then
+                    Return MySiteSettings.CheckImageReturnOrig.Value
                 Else
-                    Return False
+                    Dim img As Image = GetImage(SFile.GetBytesFromNet(URL, EDP.ThrowException), EDP.ThrowException)
+                    If Not img Is Nothing Then
+                        img.Dispose()
+                        Return True
+                    Else
+                        Return False
+                    End If
                 End If
             Catch
                 Return False

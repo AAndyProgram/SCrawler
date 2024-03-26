@@ -17,6 +17,7 @@ Namespace Editors
         Private WithEvents MyDefs As DefaultFormOptions
         Friend Property FeedParametersChanged As Boolean = False
         Friend Property HeadersChanged As Boolean = False
+        Friend Property PictureChanged As Boolean = False
         Friend Sub New()
             InitializeComponent()
             MyDefs = New DefaultFormOptions(Me, Settings.Design)
@@ -224,6 +225,7 @@ Namespace Editors
                     .ProgramText.Value = TXT_PRG_TITLE.Text
                     .ProgramDescription.Value = TXT_PRG_DESCR.Text
                     .UserListImage.Value = TXT_USER_LIST_IMAGE.Text
+                    PictureChanged = .UserListImage.ChangesDetected
                     COLORS_USERLIST.ColorsGet(.UserListBackColor, .UserListForeColor)
                     COLORS_SUBSCRIPTIONS.ColorsGet(.MainFrameUsersSubscriptionsColorBack, .MainFrameUsersSubscriptionsColorFore)
                     COLORS_SUBSCRIPTIONS_USERS.ColorsGet(.MainFrameUsersSubscriptionsColorBack_USERS, .MainFrameUsersSubscriptionsColorFore_USERS)

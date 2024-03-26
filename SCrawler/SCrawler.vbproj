@@ -288,6 +288,7 @@
     <Compile Include="Download\Feed\FeedVideo.vb">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Include="Download\Feed\FeedView.vb" />
     <Compile Include="Download\Groups\DownloadGroup.vb" />
     <Compile Include="Download\DownloadProgress.vb" />
     <Compile Include="Download\Groups\DownloadGroupCollection.vb" />

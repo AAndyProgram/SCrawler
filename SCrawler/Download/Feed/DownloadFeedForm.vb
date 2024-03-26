@@ -21,13 +21,14 @@ Namespace DownloadObjects
 #End Region
 #Region "Declarations"
         Private Const FeedTitleDefault As String = "Feed"
-        Private WithEvents MyDefs As DefaultFormOptions
+        Friend WithEvents MyDefs As DefaultFormOptions
         Private WithEvents MyRange As RangeSwitcherToolbar(Of UserMediaD)
         Private ReadOnly DataList As List(Of UserMediaD)
         Private WithEvents BTT_DELETE_SELECTED As ToolStripButton
         Private DataRows As Integer = 10
         Private DataColumns As Integer = 1
         Private FeedEndless As Boolean = False
+        Private ReadOnly GoToButton As New ButtonKey(Keys.G, True)
         Private ReadOnly FilterSubscriptions As New FPredicate(Of UserMediaD)(Function(d) If(d.User?.IsSubscription, False))
         Private ReadOnly FilterUsers As New FPredicate(Of UserMediaD)(Function(d) Not FilterSubscriptions.Invoke(d))
         Private ReadOnly FileNotExist As New FPredicate(Of UserMediaD)(Function(d) Not d.Data.File.Exists And Not FilterSubscriptions.Invoke(d))
@@ -133,9 +134,14 @@ Namespace DownloadObjects
                 With MyRange
                     .AutoToolTip = True
                     .Buttons = {RCI.First, RCI.Previous, RCI.Label, RCI.Next, RCI.Last, RCI.Separator, RCI.GoTo}
-                    .ButtonKey(RCI.Previous) = Keys.F3
-                    .ButtonKey(RCI.Next) = Keys.F4
-                    .ButtonKey(RCI.GoTo) = New ButtonKey(Keys.G, True)
+                    '.ButtonKey(RCI.Previous) = Keys.F3
+                    '.ButtonKey(RCI.Next) = Keys.F4
+                    '.ButtonKey(RCI.GoTo) = GoToButton
+                    .ToolTip(RCI.First) = "Go to first page (Home)"
+                    .ToolTip(RCI.Last) = "Go to last page (End)"
+                    .ToolTip(RCI.Previous) = "Previous (F3, Up, Page Up)"
+                    .ToolTip(RCI.Next) = "Next (F4, Down, Page Down)"
+                    .ToolTip(RCI.GoTo) = "GoTo (Ctrl+G)"
                     .AddThisToolbar()
                 End With
                 ToolbarTOP.Items.AddRange({New ToolStripSeparator, BTT_DELETE_SELECTED})
@@ -183,7 +189,35 @@ Namespace DownloadObjects
             DataList.Clear()
         End Sub
         Private Sub DownloadFeedForm_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
-            If e.KeyCode = Keys.F5 Then RefillList() : e.Handled = True
+            'If e.KeyCode = Keys.F5 Then RefillList() : e.Handled = True
+            If Not e.Handled Then
+                Dim b As Boolean = False
+                If e = GoToButton Then
+                    b = True
+                    MyRange.GoToF()
+                Else
+                    Dim changePage%? = Nothing
+                    Dim gotoHome As Boolean? = Nothing
+                    Select Case e.KeyCode
+                        Case Keys.F5 : RefillList() : b = True
+                        Case Keys.F3 : changePage = -1
+                        Case Keys.F4 : changePage = 1
+                        Case Keys.Up, Keys.Left, Keys.PageUp : changePage = -1
+                        Case Keys.Down, Keys.Right, Keys.PageDown : changePage = 1
+                        Case Keys.Home : gotoHome = True
+                        Case Keys.End : gotoHome = False
+                    End Select
+                    If changePage.HasValue Then
+                        b = True
+                        If MyRange.TryMove(changePage.Value) Then MyRange.Move(changePage.Value)
+                    ElseIf gotoHome.HasValue Then
+                        b = True
+                        Dim indx% = IIf(gotoHome.Value, 0, MyRange.Count - 1)
+                        If MyRange.CurrentIndex <> indx Then MyRange.GoTo(indx)
+                    End If
+                End If
+                If b Then e.Handled = True
+            End If
         End Sub
 #End Region
 #Region "Feeds handlers"
@@ -1011,6 +1045,59 @@ Namespace DownloadObjects
             If __refill Then RefillList()
         End Sub
 #End Region
+#Region "View changer"
+        Private Sub BTT_VIEW_SAVE_Click(sender As Object, e As EventArgs) Handles BTT_VIEW_SAVE.Click
+            Dim fName$ = String.Empty
+            Dim __process As Boolean = False
+            If Settings.FeedViews Is Nothing Then Settings.FeedViews = New FeedViewCollection
+            Do
+                fName = InputBoxE("Enter a new name for the view:", "Feed view name", fName)
+                If Not fName.IsEmptyString Then
+                    If Settings.FeedViews.IndexOf(fName) >= 0 Then
+                        Select Case MsgBoxE({$"The '{fName}' feed view already exists!", "Save view"}, vbExclamation,,, {"Try again", "Replace", "Cancel"}).Index
+                            Case 1 : __process = True
+                            Case 2 : Exit Sub
+                        End Select
+                    Else
+                        __process = True
+                    End If
+                Else
+                    Exit Sub
+                End If
+            Loop While Not __process
+            If __process Then
+                Settings.FeedViews.Add(FeedView.FromCurrent(fName))
+                MsgBoxE({$"The '{fName}' feed view has been saved", "Save view"})
+            End If
+        End Sub
+        Private Sub BTT_VIEW_LOAD_Click(sender As Object, e As EventArgs) Handles BTT_VIEW_LOAD.Click
+            Try
+                If Settings.FeedViews Is Nothing Then Settings.FeedViews = New FeedViewCollection
+                If Settings.FeedViews.Count = 0 Then
+                    MsgBoxE({"There are no saved feed views", "Load feed view"}, vbExclamation)
+                Else
+                    Using f As New SimpleListForm(Of FeedView)(Settings.FeedViews, Settings.Design) With {
+                        .DesignXMLNodeName = "SavedFeedViewsForm",
+                        .FormText = "Feed view",
+                        .Mode = SimpleListFormModes.SelectedItems,
+                        .MultiSelect = False
+                    }
+                        If f.ShowDialog = DialogResult.OK Then
+                            Dim v As FeedView = f.DataResult.FirstOrDefault
+                            If Not v.Name.IsEmptyString Then
+                                ControlInvokeFast(Me, Sub() WindowState = FormWindowState.Normal)
+                                v.Populate()
+                                ControlInvokeFast(Me, Sub() MyDefs.MyView.SetFormSize())
+                                UpdateSettings()
+                            End If
+                        End If
+                    End Using
+                End If
+            Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Load feed view")
+            End Try
+        End Sub
+#End Region
         Friend Sub Downloader_FilesChanged(ByVal Added As Boolean)
             ControlInvokeFast(ToolbarTOP, BTT_REFRESH, Sub() BTT_REFRESH.ToolTipText = If(Added, "New files found", "Some files have been removed"))
             BTT_REFRESH.ControlChangeColor(ToolbarTOP, Added, False)
@@ -1287,6 +1374,10 @@ Namespace DownloadObjects
                     DataPopulated = True
                     IndexChanged = True
                 End If
+                ControlInvokeFast(Me, Sub()
+                                          Activate()
+                                          Focus()
+                                      End Sub, EDP.None)
             End Try
         End Sub
 #End Region
