@@ -46,17 +46,6 @@ Friend Module MainMod
         List = View.Tile
         Details = View.Details
     End Enum
-    Friend Enum ShowingModes As Integer
-        All = 0
-        Regular = 20
-        Temporary = 50
-        Favorite = 100
-        Labels = 500
-        NoLabels = 1000
-        Deleted = 10000
-        Suspended = 12000
-        AdvancedFilter = 100000
-    End Enum
     Friend Enum ShowingDates As Integer
         [Off] = 0
         [Not] = 1
@@ -88,9 +77,6 @@ Friend Module MainMod
     Friend ReadOnly DateTimeDefaultProvider As New ADateTime(ADateTime.Formats.BaseDateTime)
     Friend ReadOnly SessionDateTimeProvider As New ADateTime("yyyyMMdd_HHmmss")
     Friend ReadOnly FeedVideoLengthProvider As New ADateTime("hh\:mm\:ss") With {.TimeParseMode = ADateTime.TimeModes.TimeSpan}
-    Friend ReadOnly UserExistsPredicate As New FPredicate(Of IUserData)(Function(u) u.Exists)
-    Friend ReadOnly UserExistsSubscriptionsPredicate As New FPredicate(Of IUserData)(Function(u) u.Exists And u.IsSubscription)
-    Friend ReadOnly UserExistsNonSubscriptionsPredicate As New FPredicate(Of IUserData)(Function(u) u.Exists And Not u.IsSubscription)
     Friend ReadOnly LogConnector As New LogHost
     Friend DefaultUserAgent As String = String.Empty
 #Region "NonExistingUsersLog"

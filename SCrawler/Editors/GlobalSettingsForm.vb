@@ -72,6 +72,9 @@ Namespace Editors
                         TXT_FOLDER_CMD.Checked = .OpenFolderInOtherProgram.Attribute
                         TXT_CLOSE_SCRIPT.Text = .ClosingCommand
                         TXT_CLOSE_SCRIPT.Checked = .ClosingCommand.Attribute
+                        CH_DOWN_ALL_F6_USE.Checked = .DownloadAll_UseF6
+                        CH_DOWN_ALL_F6_NOTIFY.Checked = .DownloadAll_UseF6_Confirm
+                        CH_DOWN_ALL_NOTIFY.Checked = .DownloadAll_Confirm
                         'Notifications
                         CH_NOTIFY_SILENT.Checked = .NotificationsSilentMode
                         CH_NOTIFY_SHOW_BASE.Checked = .ShowNotifications
@@ -108,7 +111,7 @@ Namespace Editors
                         CH_STD_YT_CREATE_URL.Checked = .STDownloader_CreateUrlFiles
                         'Downloading
                         CH_UDESCR_UP.Checked = .UpdateUserDescriptionEveryTime
-                        CH_UNAME_UP.Checked = .UserSiteNameUpdateEveryTime
+                        CH_UNAME_UP.Checked = .UpdateUserSiteNameEveryTime
                         CH_UICON_UP.Checked = .UpdateUserIconBannerEveryTime
                         TXT_SCRIPT.Checked = .ScriptData.Attribute
                         TXT_SCRIPT.Text = .ScriptData.Value
@@ -135,6 +138,7 @@ Namespace Editors
                         CH_COPY_CHANNEL_USER_IMAGE_ALL.Checked = .ChannelsAddUserImagesFromAllChannels
                         CH_COPY_CHANNEL_USER_IMAGE_ALL.Enabled = CH_COPY_CHANNEL_USER_IMAGE.Checked
                         CH_CHANNELS_USERS_TEMP.Checked = .ChannelsDefaultTemporary
+                        CH_CHANNELS_USERS_READY_MARK.Checked = .ChannelsDefaultReadyForDownload
                         'Feed
                         TXT_FEED_ROWS.Value = .FeedDataRows.Value
                         TXT_FEED_COLUMNS.Value = .FeedDataColumns.Value
@@ -256,6 +260,9 @@ Namespace Editors
                     .OpenFolderInOtherProgram.Attribute.Value = TXT_FOLDER_CMD.Checked
                     .ClosingCommand.Value = TXT_CLOSE_SCRIPT.Text
                     .ClosingCommand.Attribute.Value = TXT_CLOSE_SCRIPT.Checked
+                    .DownloadAll_UseF6.Value = CH_DOWN_ALL_F6_USE.Checked
+                    .DownloadAll_UseF6_Confirm.Value = CH_DOWN_ALL_F6_NOTIFY.Checked
+                    .DownloadAll_Confirm.Value = CH_DOWN_ALL_NOTIFY.Checked
                     'Notifications
                     .NotificationsSilentMode = CH_NOTIFY_SILENT.Checked
                     .ShowNotifications.Value = CH_NOTIFY_SHOW_BASE.Checked
@@ -289,7 +296,7 @@ Namespace Editors
                     .STDownloader_CreateUrlFiles.Value = CH_STD_YT_CREATE_URL.Checked
                     'Downloading
                     .UpdateUserDescriptionEveryTime.Value = CH_UDESCR_UP.Checked
-                    .UserSiteNameUpdateEveryTime.Value = CH_UNAME_UP.Checked
+                    .UpdateUserSiteNameEveryTime.Value = CH_UNAME_UP.Checked
                     .UpdateUserIconBannerEveryTime.Value = CH_UICON_UP.Checked
                     .ScriptData.Value = TXT_SCRIPT.Text
                     .ScriptData.Attribute.Value = TXT_SCRIPT.Checked
@@ -320,6 +327,7 @@ Namespace Editors
                     .FromChannelCopyImageToUser.Value = CH_COPY_CHANNEL_USER_IMAGE.Checked
                     .ChannelsAddUserImagesFromAllChannels.Value = CH_COPY_CHANNEL_USER_IMAGE_ALL.Checked
                     .ChannelsDefaultTemporary.Value = CH_CHANNELS_USERS_TEMP.Checked
+                    .ChannelsDefaultReadyForDownload.Value = CH_CHANNELS_USERS_READY_MARK.Checked
                     'Feed
                     .FeedDataRows.Value = CInt(TXT_FEED_ROWS.Value)
                     .FeedDataColumns.Value = CInt(TXT_FEED_COLUMNS.Value)

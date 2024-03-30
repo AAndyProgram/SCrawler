@@ -50,6 +50,7 @@ Namespace Editors
             Dim ActionButton10 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim TP_OPEN_INFO As System.Windows.Forms.TableLayoutPanel
             Dim TP_OPEN_PROGRESS As System.Windows.Forms.TableLayoutPanel
+            Dim TP_BEHAVIOR_F6 As System.Windows.Forms.TableLayoutPanel
             Dim TAB_DOWN As System.Windows.Forms.TabPage
             Dim TP_DOWNLOADING As System.Windows.Forms.TableLayoutPanel
             Dim ActionButton11 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
@@ -140,6 +141,8 @@ Namespace Editors
             Me.CH_USE_DEF_ACC = New System.Windows.Forms.CheckBox()
             Me.CH_NOTIFY_LOG = New System.Windows.Forms.CheckBox()
             Me.CH_FEED_UP_FILE_LOC_MOVE = New System.Windows.Forms.CheckBox()
+            Me.CH_DOWN_ALL_F6_NOTIFY = New System.Windows.Forms.CheckBox()
+            Me.CH_DOWN_ALL_NOTIFY = New System.Windows.Forms.CheckBox()
             Me.TXT_CHANNELS_ROWS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_CHANNELS_COLUMNS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.CH_DOWN_IMAGES_NATIVE = New System.Windows.Forms.CheckBox()
@@ -151,6 +154,7 @@ Namespace Editors
             Me.CH_DOWN_OPEN_INFO = New System.Windows.Forms.CheckBox()
             Me.CH_RECYCLE_DEL = New System.Windows.Forms.CheckBox()
             Me.CH_DOWN_OPEN_PROGRESS = New System.Windows.Forms.CheckBox()
+            Me.CH_DOWN_ALL_F6_USE = New System.Windows.Forms.CheckBox()
             Me.TXT_SCRIPT = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_DOWN_COMPLETE_SCRIPT = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.CH_UNAME_UP = New System.Windows.Forms.CheckBox()
@@ -190,6 +194,7 @@ Namespace Editors
             Me.TAB_MAIN = New System.Windows.Forms.TabControl()
             Me.TAB_ENVIR = New System.Windows.Forms.TabPage()
             Me.CONTAINER_MAIN = New System.Windows.Forms.ToolStripContainer()
+            Me.CH_CHANNELS_USERS_READY_MARK = New System.Windows.Forms.CheckBox()
             TP_BASIS = New System.Windows.Forms.TableLayoutPanel()
             TP_IMAGES = New System.Windows.Forms.TableLayoutPanel()
             TP_FILE_NAME = New System.Windows.Forms.TableLayoutPanel()
@@ -206,6 +211,7 @@ Namespace Editors
             TP_BEHAVIOR = New System.Windows.Forms.TableLayoutPanel()
             TP_OPEN_INFO = New System.Windows.Forms.TableLayoutPanel()
             TP_OPEN_PROGRESS = New System.Windows.Forms.TableLayoutPanel()
+            TP_BEHAVIOR_F6 = New System.Windows.Forms.TableLayoutPanel()
             TAB_DOWN = New System.Windows.Forms.TabPage()
             TP_DOWNLOADING = New System.Windows.Forms.TableLayoutPanel()
             TP_MISSING_DATA = New System.Windows.Forms.TableLayoutPanel()
@@ -248,6 +254,7 @@ Namespace Editors
             CType(Me.TXT_CLOSE_SCRIPT, System.ComponentModel.ISupportInitialize).BeginInit()
             TP_OPEN_INFO.SuspendLayout()
             TP_OPEN_PROGRESS.SuspendLayout()
+            TP_BEHAVIOR_F6.SuspendLayout()
             TAB_DOWN.SuspendLayout()
             TP_DOWNLOADING.SuspendLayout()
             CType(Me.TXT_SCRIPT, System.ComponentModel.ISupportInitialize).BeginInit()
@@ -1050,6 +1057,30 @@ Namespace Editors
             TT_MAIN.SetToolTip(Me.CH_FEED_UP_FILE_LOC_MOVE, "The file location will be updated in the session data and in the feeds data")
             Me.CH_FEED_UP_FILE_LOC_MOVE.UseVisualStyleBackColor = True
             '
+            'CH_DOWN_ALL_F6_NOTIFY
+            '
+            Me.CH_DOWN_ALL_F6_NOTIFY.AutoSize = True
+            Me.CH_DOWN_ALL_F6_NOTIFY.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_DOWN_ALL_F6_NOTIFY.Location = New System.Drawing.Point(210, 4)
+            Me.CH_DOWN_ALL_F6_NOTIFY.Name = "CH_DOWN_ALL_F6_NOTIFY"
+            Me.CH_DOWN_ALL_F6_NOTIFY.Size = New System.Drawing.Size(199, 17)
+            Me.CH_DOWN_ALL_F6_NOTIFY.TabIndex = 1
+            Me.CH_DOWN_ALL_F6_NOTIFY.Text = "'F6' confirmation"
+            TT_MAIN.SetToolTip(Me.CH_DOWN_ALL_F6_NOTIFY, "Request confirmation to download all users when pressing 'F6'")
+            Me.CH_DOWN_ALL_F6_NOTIFY.UseVisualStyleBackColor = True
+            '
+            'CH_DOWN_ALL_NOTIFY
+            '
+            Me.CH_DOWN_ALL_NOTIFY.AutoSize = True
+            Me.CH_DOWN_ALL_NOTIFY.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_DOWN_ALL_NOTIFY.Location = New System.Drawing.Point(416, 4)
+            Me.CH_DOWN_ALL_NOTIFY.Name = "CH_DOWN_ALL_NOTIFY"
+            Me.CH_DOWN_ALL_NOTIFY.Size = New System.Drawing.Size(199, 17)
+            Me.CH_DOWN_ALL_NOTIFY.TabIndex = 2
+            Me.CH_DOWN_ALL_NOTIFY.Text = "Confirmation of downloading all"
+            TT_MAIN.SetToolTip(Me.CH_DOWN_ALL_NOTIFY, "Request confirmation to download all users anyway")
+            Me.CH_DOWN_ALL_NOTIFY.UseVisualStyleBackColor = True
+            '
             'TP_CHANNELS_IMGS
             '
             TP_CHANNELS_IMGS.ColumnCount = 2
@@ -1171,12 +1202,14 @@ Namespace Editors
             TP_CHANNELS.Controls.Add(Me.CH_COPY_CHANNEL_USER_IMAGE, 0, 2)
             TP_CHANNELS.Controls.Add(Me.CH_CHANNELS_USERS_TEMP, 0, 4)
             TP_CHANNELS.Controls.Add(Me.CH_COPY_CHANNEL_USER_IMAGE_ALL, 0, 3)
+            TP_CHANNELS.Controls.Add(Me.CH_CHANNELS_USERS_READY_MARK, 0, 5)
             TP_CHANNELS.Dock = System.Windows.Forms.DockStyle.Fill
             TP_CHANNELS.Location = New System.Drawing.Point(3, 3)
             TP_CHANNELS.Name = "TP_CHANNELS"
-            TP_CHANNELS.RowCount = 6
+            TP_CHANNELS.RowCount = 7
             TP_CHANNELS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_CHANNELS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
+            TP_CHANNELS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_CHANNELS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_CHANNELS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_CHANNELS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
@@ -1226,10 +1259,11 @@ Namespace Editors
             TP_BEHAVIOR.Controls.Add(TP_OPEN_INFO, 0, 4)
             TP_BEHAVIOR.Controls.Add(Me.CH_RECYCLE_DEL, 0, 3)
             TP_BEHAVIOR.Controls.Add(TP_OPEN_PROGRESS, 0, 5)
+            TP_BEHAVIOR.Controls.Add(TP_BEHAVIOR_F6, 0, 8)
             TP_BEHAVIOR.Dock = System.Windows.Forms.DockStyle.Fill
             TP_BEHAVIOR.Location = New System.Drawing.Point(0, 0)
             TP_BEHAVIOR.Name = "TP_BEHAVIOR"
-            TP_BEHAVIOR.RowCount = 9
+            TP_BEHAVIOR.RowCount = 10
             TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
@@ -1238,7 +1272,9 @@ Namespace Editors
             TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
+            TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
             TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
             TP_BEHAVIOR.Size = New System.Drawing.Size(621, 399)
             TP_BEHAVIOR.TabIndex = 0
@@ -1375,6 +1411,36 @@ Namespace Editors
             Me.CH_DOWN_OPEN_PROGRESS.TabIndex = 0
             Me.CH_DOWN_OPEN_PROGRESS.Text = "Open the 'Progress' form when the download starts"
             Me.CH_DOWN_OPEN_PROGRESS.UseVisualStyleBackColor = True
+            '
+            'TP_BEHAVIOR_F6
+            '
+            TP_BEHAVIOR_F6.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
+            TP_BEHAVIOR_F6.ColumnCount = 3
+            TP_BEHAVIOR_F6.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33333!))
+            TP_BEHAVIOR_F6.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33333!))
+            TP_BEHAVIOR_F6.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33333!))
+            TP_BEHAVIOR_F6.Controls.Add(Me.CH_DOWN_ALL_F6_USE, 0, 0)
+            TP_BEHAVIOR_F6.Controls.Add(Me.CH_DOWN_ALL_F6_NOTIFY, 1, 0)
+            TP_BEHAVIOR_F6.Controls.Add(Me.CH_DOWN_ALL_NOTIFY, 2, 0)
+            TP_BEHAVIOR_F6.Dock = System.Windows.Forms.DockStyle.Fill
+            TP_BEHAVIOR_F6.Location = New System.Drawing.Point(1, 215)
+            TP_BEHAVIOR_F6.Margin = New System.Windows.Forms.Padding(0)
+            TP_BEHAVIOR_F6.Name = "TP_BEHAVIOR_F6"
+            TP_BEHAVIOR_F6.RowCount = 1
+            TP_BEHAVIOR_F6.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            TP_BEHAVIOR_F6.Size = New System.Drawing.Size(619, 25)
+            TP_BEHAVIOR_F6.TabIndex = 8
+            '
+            'CH_DOWN_ALL_F6_USE
+            '
+            Me.CH_DOWN_ALL_F6_USE.AutoSize = True
+            Me.CH_DOWN_ALL_F6_USE.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_DOWN_ALL_F6_USE.Location = New System.Drawing.Point(4, 4)
+            Me.CH_DOWN_ALL_F6_USE.Name = "CH_DOWN_ALL_F6_USE"
+            Me.CH_DOWN_ALL_F6_USE.Size = New System.Drawing.Size(199, 17)
+            Me.CH_DOWN_ALL_F6_USE.TabIndex = 0
+            Me.CH_DOWN_ALL_F6_USE.Text = "Use 'F6' to download all users"
+            Me.CH_DOWN_ALL_F6_USE.UseVisualStyleBackColor = True
             '
             'TAB_DOWN
             '
@@ -2273,6 +2339,17 @@ Namespace Editors
             Me.CONTAINER_MAIN.TabIndex = 0
             Me.CONTAINER_MAIN.TopToolStripPanelVisible = False
             '
+            'CH_CHANNELS_USERS_READY_MARK
+            '
+            Me.CH_CHANNELS_USERS_READY_MARK.AutoSize = True
+            Me.CH_CHANNELS_USERS_READY_MARK.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_CHANNELS_USERS_READY_MARK.Location = New System.Drawing.Point(4, 140)
+            Me.CH_CHANNELS_USERS_READY_MARK.Name = "CH_CHANNELS_USERS_READY_MARK"
+            Me.CH_CHANNELS_USERS_READY_MARK.Size = New System.Drawing.Size(607, 19)
+            Me.CH_CHANNELS_USERS_READY_MARK.TabIndex = 5
+            Me.CH_CHANNELS_USERS_READY_MARK.Text = "Set the user's mark 'Ready for download' when add from channels"
+            Me.CH_CHANNELS_USERS_READY_MARK.UseVisualStyleBackColor = True
+            '
             'GlobalSettingsForm
             '
             Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
@@ -2325,6 +2402,8 @@ Namespace Editors
             TP_OPEN_INFO.PerformLayout()
             TP_OPEN_PROGRESS.ResumeLayout(False)
             TP_OPEN_PROGRESS.PerformLayout()
+            TP_BEHAVIOR_F6.ResumeLayout(False)
+            TP_BEHAVIOR_F6.PerformLayout()
             TAB_DOWN.ResumeLayout(False)
             TP_DOWNLOADING.ResumeLayout(False)
             TP_DOWNLOADING.PerformLayout()
@@ -2475,5 +2554,9 @@ Namespace Editors
         Private WithEvents TXT_H_DEF_sec_ch_ua_full_version_list As PersonalUtilities.Forms.Controls.TextBoxExtended
         Private WithEvents TXT_H_DEF_sec_ch_ua_platform As PersonalUtilities.Forms.Controls.TextBoxExtended
         Private WithEvents TXT_H_DEF_sec_ch_ua_platform_version As PersonalUtilities.Forms.Controls.TextBoxExtended
+        Private WithEvents CH_DOWN_ALL_F6_USE As CheckBox
+        Private WithEvents CH_DOWN_ALL_F6_NOTIFY As CheckBox
+        Private WithEvents CH_DOWN_ALL_NOTIFY As CheckBox
+        Private WithEvents CH_CHANNELS_USERS_READY_MARK As CheckBox
     End Class
 End Namespace

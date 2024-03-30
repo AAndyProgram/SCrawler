@@ -15,6 +15,7 @@ Imports SCrawler.API
 Imports SCrawler.API.Base
 Imports SCrawler.Editors
 Imports SCrawler.DownloadObjects
+Imports SCrawler.DownloadObjects.Groups
 Imports SCrawler.Plugin.Hosts
 Imports PauseModes = SCrawler.DownloadObjects.AutoDownloader.PauseModes
 Public Class MainFrame
@@ -23,6 +24,9 @@ Public Class MainFrame
     Private WithEvents MyActivator As FormActivator
     Private WithEvents BTT_IMPORT_USERS As ToolStripMenuItem
     Private WithEvents BTT_NEW_PROFILE As ToolStripMenuItem
+    Private BTT_SHOW_ALL_GROUPS_ADDED As Boolean = False
+    Private WithEvents BTT_SHOW_ALL_GROUPS As ToolStripMenuItem
+    Private WithEvents BTT_GROUPS_OTHER As ToolStripMenuItem
     Friend MyChannels As ChannelViewForm
     Friend MySavedPosts As DownloadSavedPostsForm
     Private MyMissingPosts As MissingPostsForm
@@ -50,6 +54,8 @@ Public Class MainFrame
         MENU_SETTINGS.DropDownItems.Insert(MENU_SETTINGS.DropDownItems.Count - 2, BTT_NEW_PROFILE)
         MENU_SETTINGS.DropDownItems.AddRange({New ToolStripSeparator, BTT_IMPORT_USERS})
         BTT_BUG_REPORT.Image = My.Resources.MailPic_16
+        BTT_GROUPS_OTHER = New ToolStripMenuItem("Other groups", DownloadGroup.GroupImage)
+        BTT_SHOW_ALL_GROUPS = New ToolStripMenuItem("Show all groups", DownloadGroup.GroupImage)
     End Sub
 #End Region
 #Region "Form handlers"
@@ -105,15 +111,15 @@ Public Class MainFrame
             UserListLoader = New ListImagesLoader(LIST_PROFILES)
             RefillList()
             UpdateLabelsGroups()
-            SetShowButtonsCheckers(.ShowingMode.Value)
+            SetShowButtonsCheckers(.ShowAllUsers)
             CheckVersion(False)
-            ApplyView_Users_Sites_Dates()
+            UpdateUserGroupControls()
             With .Groups
                 AddHandler .Added, AddressOf GROUPS_Added
                 AddHandler .Deleted, AddressOf GROUPS_Deleted
                 AddHandler .Updated, AddressOf GROUPS_Updated
                 If .Count > 0 Then
-                    For Each ugroup As Groups.DownloadGroup In Settings.Groups : GROUPS_Added(ugroup) : Next
+                    For Each ugroup As DownloadGroup In Settings.Groups : GROUPS_Added(ugroup) : Next
                 End If
             End With
             .Automation = New Scheduler
@@ -229,7 +235,7 @@ CloseResume:
             Case Keys.F1 : BTT_VERSION_INFO.PerformClick()
             Case Keys.F3 : EditSelectedUser()
             Case Keys.F5 : DownloadSelectedUser(DownUserLimits.None, New MyKeyEventArgs(e).IncludeInTheFeed)
-            Case Keys.F6 : BTT_DOWN_ALL_FULL_KeyClick(Nothing, New MyKeyEventArgs(e))
+            Case Keys.F6 : BTT_DOWN_ALL_KeyClick(Nothing, New MyKeyEventArgs(e))
             Case Else : b = NumGroup(e)
         End Select
 
@@ -502,77 +508,122 @@ CloseResume:
     Private Sub BTT_DOWN_SELECTED_KeyClick(ByVal Sender As Object, ByVal e As MyKeyEventArgs) Handles BTT_DOWN_SELECTED.KeyClick
         DownloadSelectedUser(DownUserLimits.None, e.IncludeInTheFeed)
     End Sub
-#Region "Down all"
     Private Sub BTT_DOWN_ALL_KeyClick(ByVal Sender As Object, ByVal e As MyKeyEventArgs) Handles BTT_DOWN_ALL.KeyClick
-        Downloader.AddRange(Settings.GetUsers(Function(u) u.ReadyForDownload And UserExistsNonSubscriptionsPredicate.Invoke(u)), e.IncludeInTheFeed)
+        Dim ask As Boolean = False
+        With Settings
+            If e.KeyCode = Keys.F6 Then
+                If .DownloadAll_UseF6 Then
+                    ask = .DownloadAll_UseF6_Confirm
+                Else
+                    Exit Sub
+                End If
+            Else
+                ask = .DownloadAll_Confirm
+            End If
+        End With
+        If ask AndAlso MsgBoxE({"Are you sure you want to download all users?", "Download ALL"}, vbExclamation,,, {"Process", "Cancel"}) = 1 Then Exit Sub
+        Using group As New DownloadGroup(False) With {.DownloadSubscriptions = e.IncludeInTheFeed} : group.ProcessDownloadUsers(e.IncludeInTheFeed, False) : End Using
     End Sub
-    Private Sub BTT_DOWN_ALL_SUBSCR_KeyClick(ByVal Sender As Object, ByVal e As MyKeyEventArgs) Handles BTT_DOWN_ALL_SUBSCR.KeyClick
-        Downloader.AddRange(Settings.GetUsers(Function(u) u.ReadyForDownload And UserExistsSubscriptionsPredicate.Invoke(u)), e.IncludeInTheFeed)
-    End Sub
-    Private Sub BTT_DOWN_SITE_KeyClick(ByVal Sender As Object, ByVal e As MyKeyEventArgs) Handles BTT_DOWN_SITE.KeyClick
-        DownloadSiteFull(True, e.IncludeInTheFeed, False)
-    End Sub
-    Private Sub BTT_DOWN_SITE_SUBSCR_KeyClick(ByVal Sender As Object, ByVal e As MyKeyEventArgs) Handles BTT_DOWN_SITE_SUBSCR.KeyClick
-        DownloadSiteFull(True, e.IncludeInTheFeed, True)
-    End Sub
-#End Region
-#Region "Down full"
     Private Sub BTT_DOWN_ALL_FULL_KeyClick(ByVal Sender As Object, ByVal e As MyKeyEventArgs) Handles BTT_DOWN_ALL_FULL.KeyClick
-        Downloader.AddRange(Settings.GetUsers(UserExistsNonSubscriptionsPredicate), e.IncludeInTheFeed)
+        Using group As New DownloadGroup(False) With {.DownloadSubscriptions = e.IncludeInTheFeed, .ReadyForDownloadIgnore = True} : group.ProcessDownloadUsers(e.IncludeInTheFeed, False) : End Using
     End Sub
-    Private Sub BTT_DOWN_ALL_FULL_SUBSCR_KeyClick(ByVal Sender As Object, ByVal e As MyKeyEventArgs) Handles BTT_DOWN_ALL_FULL_SUBSCR.KeyClick
-        Downloader.AddRange(Settings.GetUsers(UserExistsSubscriptionsPredicate), e.IncludeInTheFeed)
-    End Sub
-    Private Sub BTT_DOWN_SITE_FULL_KeyClick(ByVal Sender As Object, ByVal e As MyKeyEventArgs) Handles BTT_DOWN_SITE_FULL.KeyClick
-        DownloadSiteFull(False, e.IncludeInTheFeed, False, e.Shift)
-    End Sub
-    Private Sub BTT_DOWN_SITE_FULL_SUBSCR_KeyClick(ByVal Sender As Object, ByVal e As MyKeyEventArgs) Handles BTT_DOWN_SITE_FULL_SUBSCR.KeyClick
-        DownloadSiteFull(False, e.IncludeInTheFeed, True, e.Shift)
-    End Sub
-#End Region
     Private Sub BTT_DOWN_SPEC_KeyClick(ByVal Sender As Object, ByVal e As MyKeyEventArgs) Handles BTT_DOWN_SPEC.KeyClick
-        Dim group As Groups.DownloadGroup = Nothing
-        Using f As New Groups.GroupEditorForm(Nothing) With {.DownloadMode = True}
+        Dim group As DownloadGroup = Nothing
+        Using f As New GroupEditorForm(Nothing) With {.DownloadMode = True}
             f.ShowDialog()
             If f.DialogResult = DialogResult.OK AndAlso Not f.MyGroup Is Nothing Then group = f.MyGroup
         End Using
-        If Not group Is Nothing Then group.DownloadUsers(e.IncludeInTheFeed,, e.Shift) : group.Dispose()
-    End Sub
-    Private Sub DownloadSiteFull(ByVal ReadyForDownloadOnly As Boolean, ByVal IncludeInTheFeed As Boolean,
-                                 ByVal Subscription As Boolean, Optional ByVal IgnoreExists As Boolean = False)
-        Using f As New SiteSelectionForm(Settings.LatestDownloadedSites.ValuesList)
-            f.ShowDialog()
-            If f.DialogResult = DialogResult.OK AndAlso f.SelectedSites.Count > 0 Then
-                Settings.LatestDownloadedSites.Clear()
-                Settings.LatestDownloadedSites.AddRange(f.SelectedSites)
-                Settings.LatestDownloadedSites.Update()
-                Using g As New Groups.DownloadGroup
-                    g.Sites.AddRange(f.SelectedSites)
-                    g.ReadyForDownload = True
-                    g.ReadyForDownloadIgnore = Not ReadyForDownloadOnly
-                    If Subscription Then
-                        g.Subscriptions = True
-                        g.SubscriptionsOnly = True
-                    End If
-                    g.DownloadUsers(IncludeInTheFeed, ReadyForDownloadOnly, IgnoreExists)
-                End Using
-            End If
-        End Using
+        If Not group Is Nothing Then group.ProcessDownloadUsers(e.IncludeInTheFeed, False) : group.Dispose()
     End Sub
 #Region "Download groups"
+    Private Sub GROUPS_AddRemoveAllGroupsButton(Optional ByVal DValue As Integer = 0)
+        Try
+            If Settings.Groups.LongCount(Function(g) Not g.IsViewFilter) - DValue > 0 Then
+                If Not BTT_SHOW_ALL_GROUPS_ADDED Then
+                    Dim i% = GetGroupIndex()
+                    If i >= 0 Then
+                        BTT_SHOW_ALL_GROUPS_ADDED = True
+                        ControlInvoke(Toolbar_TOP, MENU_DOWN_ALL, Sub() MENU_DOWN_ALL.DropDownItems.Insert(i, BTT_SHOW_ALL_GROUPS))
+                    End If
+                End If
+            ElseIf BTT_SHOW_ALL_GROUPS_ADDED Then
+                ControlInvoke(Toolbar_TOP, MENU_DOWN_ALL, Sub() MENU_DOWN_ALL.DropDownItems.Remove(BTT_SHOW_ALL_GROUPS))
+                BTT_SHOW_ALL_GROUPS_ADDED = False
+            End If
+        Catch
+        End Try
+    End Sub
+    Private Function GetGroupIndex() As Integer
+        If BTT_SHOW_ALL_GROUPS_ADDED Then
+            Return MENU_DOWN_ALL.DropDownItems.IndexOf(BTT_SHOW_ALL_GROUPS)
+        Else
+            Return MENU_DOWN_ALL.DropDownItems.IndexOf(BTT_ADD_NEW_GROUP)
+        End If
+    End Function
     Private Sub BTT_ADD_NEW_GROUP_Click(sender As Object, e As EventArgs) Handles BTT_ADD_NEW_GROUP.Click
         Settings.Groups.Add()
     End Sub
-    Private Sub GROUPS_Added(ByVal Sender As Groups.DownloadGroup)
-        Dim i% = MENU_DOWN_ALL.DropDownItems.IndexOf(BTT_ADD_NEW_GROUP)
-        ControlInvoke(Toolbar_TOP, MENU_DOWN_ALL, Sub() MENU_DOWN_ALL.DropDownItems.Insert(i, Sender.GetControl))
+    Private Sub GROUPS_Added(ByVal Sender As DownloadGroup)
+        If Not Sender.IsViewFilter Then
+            Dim i%
+            If Sender.Index > 8 Then
+                If MENU_DOWN_ALL.DropDownItems.IndexOf(BTT_GROUPS_OTHER) = -1 Then
+                    i = GetGroupIndex()
+                    If i >= 0 Then MENU_DOWN_ALL.DropDownItems.Insert(i, BTT_GROUPS_OTHER)
+                End If
+                ControlInvoke(Toolbar_TOP, BTT_GROUPS_OTHER, Sub() BTT_GROUPS_OTHER.DropDownItems.Add(Sender.GetControl))
+            Else
+                i = GetGroupIndex()
+                ControlInvoke(Toolbar_TOP, MENU_DOWN_ALL, Sub() MENU_DOWN_ALL.DropDownItems.Insert(i, Sender.GetControl))
+            End If
+            GROUPS_AddRemoveAllGroupsButton()
+        End If
     End Sub
-    Private Sub GROUPS_Updated(ByVal Sender As Groups.DownloadGroup)
-        Dim i% = MENU_DOWN_ALL.DropDownItems.IndexOf(Sender.GetControl)
-        If i >= 0 Then ControlInvoke(Toolbar_TOP, MENU_DOWN_ALL, Sub() MENU_DOWN_ALL.DropDownItems(i).Text = Sender.ToString)
+    Private Sub GROUPS_Updated(ByVal Sender As DownloadGroup)
+        If Not Sender.IsViewFilter Then
+            Dim i% = BTT_GROUPS_OTHER.DropDownItems.IndexOf(Sender.GetControl)
+            If i >= 0 Then
+                ControlInvoke(Toolbar_TOP, BTT_GROUPS_OTHER, Sub() BTT_GROUPS_OTHER.DropDownItems(i).Text = Sender.ToString)
+            Else
+                i = MENU_DOWN_ALL.DropDownItems.IndexOf(Sender.GetControl)
+                If i >= 0 Then ControlInvoke(Toolbar_TOP, MENU_DOWN_ALL, Sub() MENU_DOWN_ALL.DropDownItems(i).Text = Sender.ToString)
+            End If
+        End If
     End Sub
-    Private Sub GROUPS_Deleted(ByVal Sender As Groups.DownloadGroup)
-        MENU_DOWN_ALL.DropDownItems.Remove(Sender.GetControl)
+    Private Sub GROUPS_Deleted(ByVal Sender As DownloadGroup)
+        If Not Sender.IsViewFilter Then
+            MENU_DOWN_ALL.DropDownItems.Remove(Sender.GetControl)
+            BTT_GROUPS_OTHER.DropDownItems.Remove(Sender.GetControl)
+            If BTT_GROUPS_OTHER.DropDownItems.Count = 0 Then MENU_DOWN_ALL.DropDownItems.Remove(BTT_GROUPS_OTHER)
+            GROUPS_AddRemoveAllGroupsButton(1)
+        End If
+    End Sub
+    Private Sub BTT_SHOW_ALL_GROUPS_Click(sender As Object, e As EventArgs) Handles BTT_SHOW_ALL_GROUPS.Click
+        Try
+            Using f As New GroupListForm(False)
+                f.ShowDialog()
+                Dim g As DownloadGroup
+                With Settings.Groups
+                    If .Count > 0 Then
+                        If f.GroupsUpdated Then
+                            For Each g In .Self
+                                If Not g.IsViewFilter Then GROUPS_Deleted(g)
+                            Next
+                            For Each g In .Self
+                                If Not g.IsViewFilter Then GROUPS_Added(g)
+                            Next
+                        End If
+                        If Not f.GroupToDownload.IsEmptyString Then
+                            Dim i% = .IndexOf(f.GroupToDownload)
+                            If i >= 0 Then .Item(i).ProcessDownloadUsers(f.GroupToDownloadIncludeInTheFeed)
+                        End If
+                    End If
+                End With
+            End Using
+        Catch ex As Exception
+            ErrorsDescriber.Execute(EDP.SendToLog, ex, "[MainFrame.ShowGroups]")
+            MainFrameObj.UpdateLogButton()
+        End Try
     End Sub
 #End Region
     Private Sub BTT_SILENT_MODE_Click(sender As Object, e As EventArgs) Handles BTT_SILENT_MODE.Click, BTT_TRAY_SILENT_MODE.Click
@@ -654,125 +705,30 @@ CloseResume:
         End If
     End Sub
 #End Region
-#Region "2 - view mode users"
-    Private Sub BTT_MODE_SHOW_USERS_Click(sender As Object, e As EventArgs) Handles BTT_MODE_SHOW_USERS.Click
-        Settings.MainFrameUsersShowDefaults.Value = BTT_MODE_SHOW_USERS.Checked
-        RefillList()
-    End Sub
-    Private Sub BTT_MODE_SHOW_SUBSCRIPTIONS_Click(sender As Object, e As EventArgs) Handles BTT_MODE_SHOW_SUBSCRIPTIONS.Click
-        Settings.MainFrameUsersShowSubscriptions.Value = BTT_MODE_SHOW_SUBSCRIPTIONS.Checked
-        RefillList()
-    End Sub
-#End Region
-#Region "3 - view site"
-    Private Sub BTT_SITE_ALL_Click(sender As Object, e As EventArgs) Handles BTT_SITE_ALL.Click
-        Settings.SelectedSites.Clear()
-        Settings.SelectedSites.Update()
-        If Not BTT_SITE_ALL.Checked Then RefillList()
-        BTT_SITE_ALL.Checked = True
-        BTT_SITE_SPECIFIC.Checked = False
-    End Sub
-    Private Sub BTT_SITE_SPECIFIC_Click(sender As Object, e As EventArgs) Handles BTT_SITE_SPECIFIC.Click
-        Using f As New SiteSelectionForm(Settings.SelectedSites.ValuesList)
-            f.ShowDialog()
-            If f.DialogResult = DialogResult.OK Then
-                Settings.SelectedSites.Clear()
-                Settings.SelectedSites.AddRange(f.SelectedSites)
-                Settings.SelectedSites.Update()
-                BTT_SITE_SPECIFIC.Checked = Settings.SelectedSites.Count > 0
-                BTT_SITE_ALL.Checked = Settings.SelectedSites.Count = 0
-                RefillList()
-            End If
-        End Using
-    End Sub
-#End Region
-#Region "4 - view filters"
+#Region "2 - view filters"
     Private Sub BTT_SHOW_ALL_Click(sender As Object, e As EventArgs) Handles BTT_SHOW_ALL.Click
-        SetShowButtonsCheckers(ShowingModes.All)
-    End Sub
-    Private Sub BTT_SHOW_REGULAR_Click(sender As Object, e As EventArgs) Handles BTT_SHOW_REGULAR.Click
-        SetShowButtonsCheckers(ShowingModes.Regular)
-    End Sub
-    Private Sub BTT_SHOW_TEMP_Click(sender As Object, e As EventArgs) Handles BTT_SHOW_TEMP.Click
-        SetShowButtonsCheckers(ShowingModes.Temporary)
-    End Sub
-    Private Sub BTT_SHOW_FAV_Click(sender As Object, e As EventArgs) Handles BTT_SHOW_FAV.Click
-        SetShowButtonsCheckers(ShowingModes.Favorite)
-    End Sub
-    Private Sub BTT_SHOW_DELETED_Click(sender As Object, e As EventArgs) Handles BTT_SHOW_DELETED.Click
-        SetShowButtonsCheckers(ShowingModes.Deleted)
-    End Sub
-    Private Sub BTT_SHOW_SUSPENDED_Click(sender As Object, e As EventArgs) Handles BTT_SHOW_SUSPENDED.Click
-        SetShowButtonsCheckers(ShowingModes.Suspended)
-    End Sub
-    Private Sub BTT_SHOW_LABELS_Click(sender As Object, e As EventArgs) Handles BTT_SHOW_LABELS.Click
-        Dim b As Boolean = OpenLabelsForm(Settings.Labels.Current)
-        Dim m As ShowingModes
-        If Settings.Labels.Current.Count = 0 Then
-            m = Settings.ShowingMode.Value
-            If m = ShowingModes.Labels Then m = ShowingModes.All
-        Else
-            m = ShowingModes.Labels
-        End If
-        SetShowButtonsCheckers(m, Settings.ShowingMode.Value = ShowingModes.Labels And m = ShowingModes.Labels And b)
-    End Sub
-    Private Sub BTT_SHOW_NO_LABELS_Click(sender As Object, e As EventArgs) Handles BTT_SHOW_NO_LABELS.Click
-        SetShowButtonsCheckers(ShowingModes.NoLabels)
-    End Sub
-    Private Sub BTT_SHOW_EXCLUDED_LABELS_Click(sender As Object, e As EventArgs) Handles BTT_SHOW_EXCLUDED_LABELS.Click
-        Dim b As Boolean = OpenLabelsForm(Settings.Labels.Excluded)
-        SetExcludedButtonChecker()
-        If b Then RefillList()
-    End Sub
-    Private Sub BTT_SHOW_EXCLUDED_LABELS_IGNORE_Click(sender As Object, e As EventArgs) Handles BTT_SHOW_EXCLUDED_LABELS_IGNORE.Click
-        Settings.Labels.ExcludedIgnore.Value = Not Settings.Labels.ExcludedIgnore.Value
-        If Settings.Labels.Excluded.Count > 0 Then RefillList()
-        SetExcludedButtonChecker()
+        SetShowButtonsCheckers(True)
     End Sub
     Private Sub BTT_SHOW_SHOW_GROUPS_Click(sender As Object, e As EventArgs) Handles BTT_SHOW_SHOW_GROUPS.Click
         Settings.ShowGroupsInsteadLabels.Value = Not Settings.ShowGroupsInsteadLabels.Value
-        If Settings.ShowingMode.Value = ShowingModes.Labels Then RefillList()
-        SetShowButtonsCheckers(Settings.ShowingMode.Value)
+        SetShowButtonsCheckers(Settings.ShowAllUsers,, True)
+        RefillList()
     End Sub
-    Private Sub SetShowButtonsCheckers(ByVal m As ShowingModes, Optional ByVal ForceRefill As Boolean = False, Optional ByVal OnlyButtons As Boolean = False)
-        BTT_SHOW_ALL.Checked = m = ShowingModes.All
-        BTT_SHOW_REGULAR.Checked = m = ShowingModes.Regular
-        BTT_SHOW_TEMP.Checked = m = ShowingModes.Temporary
-        BTT_SHOW_FAV.Checked = m = ShowingModes.Favorite
-        BTT_SHOW_DELETED.Checked = m = ShowingModes.Deleted
-        BTT_SHOW_SUSPENDED.Checked = m = ShowingModes.Suspended
-        BTT_SHOW_LABELS.Checked = m = ShowingModes.Labels
-        BTT_SHOW_NO_LABELS.Checked = m = ShowingModes.NoLabels
+    Private Sub SetShowButtonsCheckers(ByVal ShowAll As Boolean, Optional ByVal ForceRefill As Boolean = False, Optional ByVal OnlyButtons As Boolean = False)
+        BTT_SHOW_ALL.Checked = ShowAll
         BTT_SHOW_SHOW_GROUPS.Checked = Settings.ShowGroupsInsteadLabels
-        BTT_SHOW_FILTER_ADV.Checked = m = ShowingModes.AdvancedFilter
-        SetExcludedButtonChecker()
+        BTT_SHOW_FILTER_ADV.Checked = Not ShowAll
         If Not OnlyButtons Then
             With Settings
-                If Not m = ShowingModes.Labels Then .Labels.Current.Clear() : .Labels.Current.Update()
-                If Not .ShowingMode.Value = m Or ForceRefill Then
-                    .ShowingMode.Value = m
+                If Not .ShowAllUsers = ShowAll Or ForceRefill Then
+                    .ShowAllUsers.Value = ShowAll
                     RefillList()
                 Else
-                    .ShowingMode.Value = m
+                    .ShowAllUsers.Value = ShowAll
                 End If
             End With
         End If
     End Sub
-    Private Sub SetExcludedButtonChecker()
-        BTT_SHOW_EXCLUDED_LABELS.Checked = Settings.Labels.Excluded.Count > 0
-        BTT_SHOW_EXCLUDED_LABELS_IGNORE.Checked = Settings.Labels.ExcludedIgnore
-    End Sub
-    Private Function OpenLabelsForm(ByRef ll As XML.Objects.XMLValuesCollection(Of String)) As Boolean
-        Using f As New LabelsForm(ll) With {.WithDeleteButton = True}
-            f.ShowDialog()
-            If f.DialogResult = DialogResult.OK Then
-                With ll : .Clear() : .AddRange(f.LabelsList) : .Update() : End With
-                Return True
-            Else
-                Return False
-            End If
-        End Using
-    End Function
     Private Sub BTT_SHOW_GROUP_USERS_Click(sender As Object, e As EventArgs) Handles BTT_SHOW_GROUP_USERS.Click
         With Settings.GroupUsers
             .Value = Not .Value
@@ -783,11 +739,11 @@ CloseResume:
     End Sub
     Private Sub BTT_SHOW_FILTER_ADV_Click(sender As Object, e As EventArgs) Handles BTT_SHOW_FILTER_ADV.Click
         Try
-            Using g As New Groups.GroupEditorForm(Settings.AdvancedFilter) With {.FilterMode = True}
+            Using g As New GroupEditorForm(Settings.AdvancedFilter) With {.FilterMode = True}
                 g.ShowDialog()
                 If g.DialogResult = DialogResult.OK Then
                     Settings.AdvancedFilter.UpdateFile()
-                    SetShowButtonsCheckers(ShowingModes.AdvancedFilter, True)
+                    SetShowButtonsCheckers(False, True)
                 End If
             End Using
         Catch ex As Exception
@@ -795,57 +751,17 @@ CloseResume:
         End Try
     End Sub
 #End Region
-#Region "5 - view dates"
-    Private Sub BTT_SHOW_LIMIT_DATES_NOT_IN_Click(ByVal Sender As ToolStripMenuItem, ByVal e As EventArgs) Handles BTT_SHOW_LIMIT_DATES_NOT.Click,
-                                                                                                                   BTT_SHOW_LIMIT_DATES_IN.Click
-        Dim r As Boolean = False
-        Dim UpSettings As Action(Of Date?, Date?, ShowingDates) = Sub(ByVal _from As Date?, ByVal _to As Date?, ByVal Mode As ShowingDates)
-                                                                      With Settings
-                                                                          .BeginUpdate()
-                                                                          If Not .ViewDateMode.Value = CInt(Mode) Then r = True
-                                                                          .ViewDateMode.Value = CInt(Mode)
-                                                                          If Not Mode = ShowingDates.Off Then
-                                                                              If .ViewDateFrom.HasValue And _from.HasValue Then
-                                                                                  If Not .ViewDateFrom.Value.Date = _from.Value.Date Then r = True
-                                                                              Else
-                                                                                  r = True
-                                                                              End If
-                                                                              .ViewDateFrom = _from
-                                                                              If .ViewDateTo.HasValue And _to.HasValue Then
-                                                                                  If Not .ViewDateTo.Value.Date = _to.Value.Date Then r = True
-                                                                              Else
-                                                                                  r = True
-                                                                              End If
-                                                                              .ViewDateTo = _to
-                                                                          End If
-                                                                          .EndUpdate()
-                                                                      End With
-                                                                  End Sub
-        Using f As New DateTimeSelectionForm(DateTimeSelectionForm.ModesAllDate, Settings.Design) With {
-            .MyDateStart = Settings.ViewDateFrom,
-            .MyDateEnd = Settings.ViewDateTo,
-            .UseDeleteButton = True
-        }
-            f.ShowDialog()
-            Select Case f.DialogResult
-                Case DialogResult.Abort : UpSettings(f.MyDateStart, f.MyDateEnd, ShowingDates.Off)
-                Case DialogResult.OK : UpSettings(f.MyDateStart, f.MyDateEnd, Sender.Tag)
-            End Select
-        End Using
-        BTT_SHOW_LIMIT_DATES_NOT.Checked = Settings.ViewDateMode.Value = ShowingDates.Not
-        BTT_SHOW_LIMIT_DATES_IN.Checked = Settings.ViewDateMode.Value = ShowingDates.In
-        If r Then RefillList()
-    End Sub
-#End Region
-#Region "6 - saved filters"
-    Private Sub BTT_VIEW_FILTER_SAVE_Click(sender As Object, e As EventArgs) Handles BTT_VIEW_FILTER_SAVE.Click
+#Region "3 - saved filters"
+    Private Sub BTT_VIEW_FILTER_SAVE_Click(sender As Object, e As EventArgs) Handles BTT_VIEW_FILTER_SAVE.Click, BTT_VIEW_FILTER_SAVE_AS_GROUP.Click
         Dim fName$ = String.Empty
+        Dim isFilter As Boolean = sender Is BTT_VIEW_FILTER_SAVE
         Dim __process As Boolean = False
         Do
-            fName = InputBoxE("Enter a new name for the view:", "Filter name", fName)
+            fName = InputBoxE($"Enter a new name for the {IIf(isFilter, "view", "group")}:", $"{IIf(isFilter, "Filter", "Group")} name", fName)
             If Not fName.IsEmptyString Then
-                If Settings.SavedFilters.IndexOf(fName) >= 0 Then
-                    Select Case MsgBoxE({$"The '{fName}' filter already exists!", "Save filter"}, vbExclamation,,, {"Try again", "Replace", "Cancel"}).Index
+                If Settings.Groups.IndexOf(fName, isFilter) >= 0 Then
+                    Select Case MsgBoxE({$"The '{fName}' {IIf(isFilter, "filter", "group")} already exists!", $"Save {IIf(isFilter, "filter", "group")}"},
+                                        vbExclamation,,, {"Try again", "Replace", "Cancel"}).Index
                         Case 1 : __process = True
                         Case 2 : Exit Sub
                     End Select
@@ -857,49 +773,76 @@ CloseResume:
             End If
         Loop While Not __process
         If __process Then
-            Settings.SavedFilters.Add(ViewFilter.FromCurrent(fName))
-            MsgBoxE({$"The '{fName}' filter has been saved", "Save filter"})
+            Dim f As New DownloadGroup(Not isFilter)
+            f.Copy(Settings.AdvancedFilter)
+            f.IsViewFilter = isFilter
+            f.FilterViewMode = Settings.ViewMode
+            f.FilterGroupUsers = Settings.GroupUsers
+            f.FilterShowGroupsInsteadLabels = Settings.ShowGroupsInsteadLabels
+            f.Name = fName
+            Settings.Groups.Add(f, isFilter, True)
+            MsgBoxE({$"The '{fName}' {IIf(isFilter, "filter", "group")} has been saved", $"Save {IIf(isFilter, "filter", "group")}"})
         End If
     End Sub
     Private Sub BTT_VIEW_FILTER_LOAD_Click(sender As Object, e As EventArgs) Handles BTT_VIEW_FILTER_LOAD.Click
+        Const msgTitle$ = "Load filter"
         Try
-            If Settings.SavedFilters.Count = 0 Then
+            If Settings.Groups.Count + Settings.Automation.Count = 0 Then
                 MsgBoxE({"There are no saved filters", "Load filter"}, vbExclamation)
             Else
-                Using f As New SimpleListForm(Of ViewFilter)(Settings.SavedFilters, Settings.Design) With {
-                    .DesignXMLNodeName = "SavedFiletrsForm",
-                    .FormText = "Filters",
-                    .Mode = SimpleListFormModes.SelectedItems,
-                    .MultiSelect = False
-                }
-                    If f.ShowDialog = DialogResult.OK Then
-                        Dim filter As ViewFilter = f.DataResult.FirstOrDefault
-                        If Not filter.Name.IsEmptyString Then
-                            filter.Populate()
-                            ApplyViewPattern(Settings.ViewMode.Value, True)
-                            SetShowButtonsCheckers(Settings.ShowingMode.Value,, True)
-                            ApplyView_Users_Sites_Dates()
+                Using f As New GroupListForm(True)
+                    f.ShowDialog()
+                    If f.DialogResult = DialogResult.OK Then
+                        Dim filter As GroupParameters = f.FilterSelected
+                        If Not filter Is Nothing AndAlso TypeOf filter Is AutoDownloader Then
+                            With DirectCast(filter, AutoDownloader)
+                                If .Mode = AutoDownloader.Modes.Groups Then
+                                    If .Groups.Count = 0 Then
+                                        MsgBoxE({"The scheduler plan you select doesn't contain any group!", msgTitle}, vbCritical)
+                                        Exit Sub
+                                    ElseIf .Groups.Count > 1 Then
+                                        MsgBoxE({"The scheduler plan you select contains more than one group." & vbCr &
+                                                 "You need to choose a plan with one group or without groups!", msgTitle}, vbCritical)
+                                        Exit Sub
+                                    Else
+                                        Dim i% = Settings.Groups.IndexOf(.Groups(0))
+                                        If i >= 0 Then
+                                            filter = Settings.Groups(i).Copy
+                                        Else
+                                            MsgBoxE({$"A group named '{ .Groups(0)}' cannot be found in existing groups.", msgTitle}, vbCritical)
+                                            filter = Nothing
+                                            Exit Sub
+                                        End If
+                                    End If
+                                End If
+                            End With
+                        End If
+                        If Not filter Is Nothing Then
+                            If filter.IsViewFilter Then
+                                With DirectCast(filter, DownloadGroup)
+                                    Settings.ViewMode.Value = .FilterViewMode
+                                    Settings.GroupUsers.Value = .FilterGroupUsers
+                                    Settings.ShowGroupsInsteadLabels.Value = .FilterShowGroupsInsteadLabels
+                                End With
+                                ApplyViewPattern(Settings.ViewMode.Value, True)
+                            End If
+                            Settings.AdvancedFilter.Copy(filter)
+                            Settings.AdvancedFilter.UpdateFile()
+                            SetShowButtonsCheckers(Settings.ShowAllUsers,, True)
+                            UpdateUserGroupControls()
                             RefillList()
                         End If
                     End If
                 End Using
             End If
         Catch ex As Exception
-            ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Load filter")
+            ErrorsDescriber.Execute(EDP.LogMessageValue, ex, msgTitle)
         End Try
     End Sub
-    Private Sub ApplyView_Users_Sites_Dates()
+    Private Sub UpdateUserGroupControls()
         With Settings
             BTT_SHOW_GROUP_USERS.Checked = Settings.GroupUsers
             LIST_PROFILES.ShowGroups = Settings.GroupUsers
-            BTT_MODE_SHOW_USERS.Checked = .MainFrameUsersShowDefaults
-            BTT_MODE_SHOW_SUBSCRIPTIONS.Checked = .MainFrameUsersShowSubscriptions
-            BTT_SITE_ALL.Checked = .SelectedSites.Count = 0
-            BTT_SITE_SPECIFIC.Checked = .SelectedSites.Count > 0
-            BTT_SHOW_LIMIT_DATES_NOT.Tag = ShowingDates.Not
-            BTT_SHOW_LIMIT_DATES_NOT.Checked = .ViewDateMode.Value = ShowingDates.Not
-            BTT_SHOW_LIMIT_DATES_IN.Tag = ShowingDates.In
-            BTT_SHOW_LIMIT_DATES_IN.Checked = .ViewDateMode.Value = ShowingDates.In
         End With
     End Sub
 #End Region

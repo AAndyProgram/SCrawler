@@ -124,7 +124,11 @@ Friend Class MainFrameObjects : Implements INotificator
 #Region "LOG events support"
     Private _LogNotificationsEnabled As Boolean = True
     Private Sub ProgramLog_TextAdded(ByVal Sender As Object, ByVal e As EventArgs)
-        If _LogNotificationsEnabled Then _LogNotificationsEnabled = False : ShowNotification(NotifyObj.LOG, "There is new data in the log")
+        If _LogNotificationsEnabled Then
+            _LogNotificationsEnabled = False
+            ShowNotification(NotifyObj.LOG, "There is new data in the log")
+            Try : ControlInvokeFast(MF.Toolbar_TOP, MF.BTT_LOG, AddressOf UpdateLogButton, EDP.None) : Catch : End Try
+        End If
     End Sub
     Private Sub ProgramLog_TextCleared(ByVal Sender As Object, ByVal e As EventArgs)
         _LogNotificationsEnabled = True

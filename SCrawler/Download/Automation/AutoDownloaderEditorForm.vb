@@ -46,11 +46,14 @@ Namespace DownloadObjects
                 With Plan
                     Select Case .Mode
                         Case DModes.None : OPT_DISABLED.Checked = True
-                        Case DModes.All : OPT_ALL.Checked = True
-                        Case DModes.Default : OPT_DEFAULT.Checked = True
                         Case DModes.Specified : OPT_SPEC.Checked = True
                         Case DModes.Groups : OPT_GROUP.Checked = True
                     End Select
+
+                    TXT_GROUPS.CaptionWidth = Groups.GroupDefaults.CaptionWidthDefault
+                    TXT_TIMER.CaptionWidth = Groups.GroupDefaults.CaptionWidthDefault
+                    NUM_DELAY.CaptionWidth = Groups.GroupDefaults.CaptionWidthDefault
+
                     DEF_GROUP.Set(Plan)
                     If MyGroups.Count > 0 Then TXT_GROUPS.Text = MyGroups.ListToString
                     If Settings.Groups.Count = 0 Then TXT_GROUPS.Clear() : TXT_GROUPS.Enabled = False
@@ -83,8 +86,6 @@ Namespace DownloadObjects
                 With Plan
                     Select Case True
                         Case OPT_DISABLED.Checked : .Mode = DModes.None
-                        Case OPT_ALL.Checked : .Mode = DModes.All
-                        Case OPT_DEFAULT.Checked : .Mode = DModes.Default
                         Case OPT_SPEC.Checked : .Mode = DModes.Specified
                         Case OPT_GROUP.Checked : .Mode = DModes.Groups
                     End Select
@@ -107,17 +108,17 @@ Namespace DownloadObjects
         Private Sub TXT_GROUPS_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As EventArgs) Handles TXT_GROUPS.ActionOnButtonClick
             Select Case Sender.DefaultButton
                 Case ActionButton.DefaultButtons.Edit
-                    Using f As New LabelsForm(MyGroups, Settings.Groups.Select(Function(g) g.Name)) With {.Text = "Groups", .Icon = My.Resources.GroupByIcon_16}
+                    Using f As New LabelsForm(MyGroups, (From g As Groups.DownloadGroup In Settings.Groups Where Not g.IsViewFilter Select g.Name)) With {.Text = "Groups", .Icon = My.Resources.GroupByIcon_16}
                         f.ShowDialog()
                         If f.DialogResult = DialogResult.OK Then MyGroups.ListAddList(f.LabelsList, LAP.ClearBeforeAdd) : TXT_GROUPS.Text = MyGroups.ListToString
                     End Using
                 Case ActionButton.DefaultButtons.Clear : MyGroups.Clear()
             End Select
         End Sub
-        Private Sub ChangeEnabled() Handles OPT_DISABLED.CheckedChanged, OPT_ALL.CheckedChanged, OPT_DEFAULT.CheckedChanged,
+        Private Sub ChangeEnabled() Handles OPT_DISABLED.CheckedChanged,
                                             OPT_SPEC.CheckedChanged, OPT_GROUP.CheckedChanged,
                                             CH_NOTIFY.CheckedChanged, CH_NOTIFY_SIMPLE.CheckedChanged
-            DEF_GROUP.Enabled(OPT_ALL.Checked Or OPT_DEFAULT.Checked Or OPT_SPEC.Checked, OPT_ALL.Checked) = OPT_SPEC.Checked
+            DEF_GROUP.Enabled = OPT_SPEC.Checked
             TXT_GROUPS.Enabled = OPT_GROUP.Checked
             TXT_TIMER.Enabled = Not OPT_DISABLED.Checked
             NUM_DELAY.Enabled = Not OPT_DISABLED.Checked

@@ -301,6 +301,12 @@
     <Compile Include="Download\Groups\GroupEditorForm.vb">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="Download\Groups\GroupListForm.Designer.vb">
+      <DependentUpon>GroupListForm.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Download\Groups\GroupListForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Download\Groups\GroupParameters.vb" />
     <Compile Include="Download\MissingPostsForm.Designer.vb">
       <DependentUpon>MissingPostsForm.vb</DependentUpon>
@@ -505,7 +511,6 @@
     <Compile Include="UserSearchForm.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="ViewFilter.vb" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="API\BaseObjects\InternalSettingsForm.resx">
@@ -551,6 +556,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Download\Groups\GroupEditorForm.resx">
       <DependentUpon>GroupEditorForm.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Download\Groups\GroupListForm.resx">
+      <DependentUpon>GroupListForm.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Download\MissingPostsForm.resx">
       <DependentUpon>MissingPostsForm.vb</DependentUpon>

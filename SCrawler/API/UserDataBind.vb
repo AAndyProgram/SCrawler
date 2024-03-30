@@ -276,11 +276,6 @@ Namespace API
             Set(ByVal NewDate As Date?)
             End Set
         End Property
-        Friend Overrides ReadOnly Property FitToAddParams As Boolean
-            Get
-                Return Count > 0 AndAlso Collections.Exists(Function(c) c.FitToAddParams)
-            End Get
-        End Property
         Friend Overrides Property ScriptUse As Boolean
             Get
                 Return Count > 0 AndAlso Collections.All(Function(c) c.ScriptUse)

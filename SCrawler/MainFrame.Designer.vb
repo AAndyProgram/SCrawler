@@ -33,8 +33,6 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Dim CONTEXT_SEP_5 As System.Windows.Forms.ToolStripSeparator
         Dim SEP_4 As System.Windows.Forms.ToolStripSeparator
         Dim MENU_VIEW_SEP_2 As System.Windows.Forms.ToolStripSeparator
-        Dim MENU_VIEW_SEP_4 As System.Windows.Forms.ToolStripSeparator
-        Dim MENU_VIEW_SEP_3 As System.Windows.Forms.ToolStripSeparator
         Dim TRAY_SEP_1 As System.Windows.Forms.ToolStripSeparator
         Dim MENU_DOWN_ALL_SEP_1 As System.Windows.Forms.ToolStripSeparator
         Dim TRAY_SEP_2 As System.Windows.Forms.ToolStripSeparator
@@ -43,7 +41,6 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Dim MENU_DOWN_ALL_SEP_4 As System.Windows.Forms.ToolStripSeparator
         Dim MENU_INFO As System.Windows.Forms.ToolStripDropDownButton
         Dim MENU_VIEW_SEP_1 As System.Windows.Forms.ToolStripSeparator
-        Dim MENU_VIEW_SEP_5 As System.Windows.Forms.ToolStripSeparator
         Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(MainFrame))
         Me.MENU_INFO_SHOW_INFO = New System.Windows.Forms.ToolStripMenuItem()
         Me.MENU_INFO_SHOW_QUEUE = New System.Windows.Forms.ToolStripMenuItem()
@@ -61,16 +58,8 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_DOWN_SAVED = New System.Windows.Forms.ToolStripButton()
         Me.MENU_DOWN_ALL = New System.Windows.Forms.ToolStripDropDownButton()
         Me.BTT_DOWN_SELECTED = New SCrawler.ToolStripKeyMenuItem()
-        Me.MENU_D_DOWN_ALL = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_DOWN_ALL = New SCrawler.ToolStripKeyMenuItem()
-        Me.BTT_DOWN_ALL_SUBSCR = New SCrawler.ToolStripKeyMenuItem()
-        Me.BTT_DOWN_SITE = New SCrawler.ToolStripKeyMenuItem()
-        Me.BTT_DOWN_SITE_SUBSCR = New SCrawler.ToolStripKeyMenuItem()
-        Me.MENU_D_DOWN_ALL_SITE = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_DOWN_ALL_FULL = New SCrawler.ToolStripKeyMenuItem()
-        Me.BTT_DOWN_ALL_FULL_SUBSCR = New SCrawler.ToolStripKeyMenuItem()
-        Me.BTT_DOWN_SITE_FULL = New SCrawler.ToolStripKeyMenuItem()
-        Me.BTT_DOWN_SITE_FULL_SUBSCR = New SCrawler.ToolStripKeyMenuItem()
         Me.BTT_DOWN_SPEC = New SCrawler.ToolStripKeyMenuItem()
         Me.BTT_DOWN_VIDEO = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_ADD_NEW_GROUP = New System.Windows.Forms.ToolStripMenuItem()
@@ -83,26 +72,12 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_VIEW_SMALL = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_VIEW_LIST = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_VIEW_DETAILS = New System.Windows.Forms.ToolStripMenuItem()
-        Me.BTT_MODE_SHOW_USERS = New System.Windows.Forms.ToolStripMenuItem()
-        Me.BTT_MODE_SHOW_SUBSCRIPTIONS = New System.Windows.Forms.ToolStripMenuItem()
-        Me.BTT_SITE_ALL = New System.Windows.Forms.ToolStripMenuItem()
-        Me.BTT_SITE_SPECIFIC = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_SHOW_ALL = New System.Windows.Forms.ToolStripMenuItem()
-        Me.BTT_SHOW_REGULAR = New System.Windows.Forms.ToolStripMenuItem()
-        Me.BTT_SHOW_TEMP = New System.Windows.Forms.ToolStripMenuItem()
-        Me.BTT_SHOW_FAV = New System.Windows.Forms.ToolStripMenuItem()
-        Me.BTT_SHOW_DELETED = New System.Windows.Forms.ToolStripMenuItem()
-        Me.BTT_SHOW_SUSPENDED = New System.Windows.Forms.ToolStripMenuItem()
-        Me.BTT_SHOW_LABELS = New System.Windows.Forms.ToolStripMenuItem()
-        Me.BTT_SHOW_NO_LABELS = New System.Windows.Forms.ToolStripMenuItem()
-        Me.BTT_SHOW_EXCLUDED_LABELS = New System.Windows.Forms.ToolStripMenuItem()
-        Me.BTT_SHOW_EXCLUDED_LABELS_IGNORE = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_SHOW_SHOW_GROUPS = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_SHOW_GROUP_USERS = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_SHOW_FILTER_ADV = New System.Windows.Forms.ToolStripMenuItem()
-        Me.BTT_SHOW_LIMIT_DATES_NOT = New System.Windows.Forms.ToolStripMenuItem()
-        Me.BTT_SHOW_LIMIT_DATES_IN = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_VIEW_FILTER_SAVE = New System.Windows.Forms.ToolStripMenuItem()
+        Me.BTT_VIEW_FILTER_SAVE_AS_GROUP = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_VIEW_FILTER_LOAD = New System.Windows.Forms.ToolStripMenuItem()
         Me.BTT_LOG = New System.Windows.Forms.ToolStripButton()
         Me.BTT_VERSION_INFO = New System.Windows.Forms.ToolStripButton()
@@ -158,8 +133,6 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         CONTEXT_SEP_5 = New System.Windows.Forms.ToolStripSeparator()
         SEP_4 = New System.Windows.Forms.ToolStripSeparator()
         MENU_VIEW_SEP_2 = New System.Windows.Forms.ToolStripSeparator()
-        MENU_VIEW_SEP_4 = New System.Windows.Forms.ToolStripSeparator()
-        MENU_VIEW_SEP_3 = New System.Windows.Forms.ToolStripSeparator()
         TRAY_SEP_1 = New System.Windows.Forms.ToolStripSeparator()
         MENU_DOWN_ALL_SEP_1 = New System.Windows.Forms.ToolStripSeparator()
         TRAY_SEP_2 = New System.Windows.Forms.ToolStripSeparator()
@@ -168,7 +141,6 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         MENU_DOWN_ALL_SEP_4 = New System.Windows.Forms.ToolStripSeparator()
         MENU_INFO = New System.Windows.Forms.ToolStripDropDownButton()
         MENU_VIEW_SEP_1 = New System.Windows.Forms.ToolStripSeparator()
-        MENU_VIEW_SEP_5 = New System.Windows.Forms.ToolStripSeparator()
         Me.Toolbar_TOP.SuspendLayout()
         Me.Toolbar_BOTTOM.SuspendLayout()
         Me.USER_CONTEXT.SuspendLayout()
@@ -228,17 +200,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         'MENU_VIEW_SEP_2
         '
         MENU_VIEW_SEP_2.Name = "MENU_VIEW_SEP_2"
-        MENU_VIEW_SEP_2.Size = New System.Drawing.Size(228, 6)
-        '
-        'MENU_VIEW_SEP_4
-        '
-        MENU_VIEW_SEP_4.Name = "MENU_VIEW_SEP_4"
-        MENU_VIEW_SEP_4.Size = New System.Drawing.Size(228, 6)
-        '
-        'MENU_VIEW_SEP_3
-        '
-        MENU_VIEW_SEP_3.Name = "MENU_VIEW_SEP_3"
-        MENU_VIEW_SEP_3.Size = New System.Drawing.Size(228, 6)
+        MENU_VIEW_SEP_2.Size = New System.Drawing.Size(268, 6)
         '
         'TRAY_SEP_1
         '
@@ -319,12 +281,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         'MENU_VIEW_SEP_1
         '
         MENU_VIEW_SEP_1.Name = "MENU_VIEW_SEP_1"
-        MENU_VIEW_SEP_1.Size = New System.Drawing.Size(228, 6)
-        '
-        'MENU_VIEW_SEP_5
-        '
-        MENU_VIEW_SEP_5.Name = "MENU_VIEW_SEP_5"
-        MENU_VIEW_SEP_5.Size = New System.Drawing.Size(228, 6)
+        MENU_VIEW_SEP_1.Size = New System.Drawing.Size(268, 6)
         '
         'MENU_SETTINGS
         '
@@ -419,7 +376,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         'MENU_DOWN_ALL
         '
         Me.MENU_DOWN_ALL.AutoToolTip = False
-        Me.MENU_DOWN_ALL.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_DOWN_SELECTED, Me.MENU_D_DOWN_ALL, Me.MENU_D_DOWN_ALL_SITE, Me.BTT_DOWN_SPEC, MENU_DOWN_ALL_SEP_1, Me.BTT_DOWN_VIDEO, MENU_DOWN_ALL_SEP_2, Me.BTT_ADD_NEW_GROUP, MENU_DOWN_ALL_SEP_3, Me.BTT_SILENT_MODE, MENU_DOWN_ALL_SEP_4, Me.BTT_DOWN_AUTOMATION, Me.BTT_DOWN_AUTOMATION_PAUSE})
+        Me.MENU_DOWN_ALL.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_DOWN_SELECTED, Me.BTT_DOWN_ALL, Me.BTT_DOWN_ALL_FULL, Me.BTT_DOWN_SPEC, MENU_DOWN_ALL_SEP_1, Me.BTT_DOWN_VIDEO, MENU_DOWN_ALL_SEP_2, Me.BTT_ADD_NEW_GROUP, MENU_DOWN_ALL_SEP_3, Me.BTT_SILENT_MODE, MENU_DOWN_ALL_SEP_4, Me.BTT_DOWN_AUTOMATION, Me.BTT_DOWN_AUTOMATION_PAUSE})
         Me.MENU_DOWN_ALL.Image = Global.SCrawler.My.Resources.Resources.StartPic_Green_16
         Me.MENU_DOWN_ALL.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.MENU_DOWN_ALL.Name = "MENU_DOWN_ALL"
@@ -436,96 +393,25 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_DOWN_SELECTED.Text = "Download selected (F5)"
         Me.BTT_DOWN_SELECTED.ToolTipText = "Download selected user." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "F5: download, include in the feed."
         '
-        'MENU_D_DOWN_ALL
-        '
-        Me.MENU_D_DOWN_ALL.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_DOWN_ALL, Me.BTT_DOWN_ALL_SUBSCR, Me.BTT_DOWN_SITE, Me.BTT_DOWN_SITE_SUBSCR})
-        Me.MENU_D_DOWN_ALL.Image = Global.SCrawler.My.Resources.Resources.StartPic_Green_16
-        Me.MENU_D_DOWN_ALL.Name = "MENU_D_DOWN_ALL"
-        Me.MENU_D_DOWN_ALL.Size = New System.Drawing.Size(221, 22)
-        Me.MENU_D_DOWN_ALL.Text = "Download all (F6)"
-        '
         'BTT_DOWN_ALL
         '
         Me.BTT_DOWN_ALL.AutoToolTip = True
         Me.BTT_DOWN_ALL.Image = Global.SCrawler.My.Resources.Resources.StartPic_Green_16
         Me.BTT_DOWN_ALL.Name = "BTT_DOWN_ALL"
-        Me.BTT_DOWN_ALL.Size = New System.Drawing.Size(237, 22)
+        Me.BTT_DOWN_ALL.Size = New System.Drawing.Size(221, 22)
         Me.BTT_DOWN_ALL.Text = "Download all (F6)"
         Me.BTT_DOWN_ALL.ToolTipText = "Download all users marked 'Ready for download' from all sites." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "F6: download, inc" &
     "lude in the feed."
-        '
-        'BTT_DOWN_ALL_SUBSCR
-        '
-        Me.BTT_DOWN_ALL_SUBSCR.AutoToolTip = True
-        Me.BTT_DOWN_ALL_SUBSCR.Image = Global.SCrawler.My.Resources.Resources.StartPic_Green_16
-        Me.BTT_DOWN_ALL_SUBSCR.Name = "BTT_DOWN_ALL_SUBSCR"
-        Me.BTT_DOWN_ALL_SUBSCR.Size = New System.Drawing.Size(237, 22)
-        Me.BTT_DOWN_ALL_SUBSCR.Text = "Download all subscriptions"
-        Me.BTT_DOWN_ALL_SUBSCR.ToolTipText = "Download all subscriptions marked 'Ready for download' from all sites."
-        '
-        'BTT_DOWN_SITE
-        '
-        Me.BTT_DOWN_SITE.AutoToolTip = True
-        Me.BTT_DOWN_SITE.Image = Global.SCrawler.My.Resources.Resources.StartPic_Green_16
-        Me.BTT_DOWN_SITE.Name = "BTT_DOWN_SITE"
-        Me.BTT_DOWN_SITE.Size = New System.Drawing.Size(237, 22)
-        Me.BTT_DOWN_SITE.Text = "Download all site users"
-        Me.BTT_DOWN_SITE.ToolTipText = "Download all users marked 'Ready for download' from specific sites."
-        '
-        'BTT_DOWN_SITE_SUBSCR
-        '
-        Me.BTT_DOWN_SITE_SUBSCR.AutoToolTip = True
-        Me.BTT_DOWN_SITE_SUBSCR.Image = Global.SCrawler.My.Resources.Resources.StartPic_Green_16
-        Me.BTT_DOWN_SITE_SUBSCR.Name = "BTT_DOWN_SITE_SUBSCR"
-        Me.BTT_DOWN_SITE_SUBSCR.Size = New System.Drawing.Size(237, 22)
-        Me.BTT_DOWN_SITE_SUBSCR.Text = "Download all site subscriptions"
-        Me.BTT_DOWN_SITE_SUBSCR.ToolTipText = "Download all subscriptions marked 'Ready for download' from specific sites."
-        '
-        'MENU_D_DOWN_ALL_SITE
-        '
-        Me.MENU_D_DOWN_ALL_SITE.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_DOWN_ALL_FULL, Me.BTT_DOWN_ALL_FULL_SUBSCR, Me.BTT_DOWN_SITE_FULL, Me.BTT_DOWN_SITE_FULL_SUBSCR})
-        Me.MENU_D_DOWN_ALL_SITE.Image = Global.SCrawler.My.Resources.Resources.StartPic_Green_16
-        Me.MENU_D_DOWN_ALL_SITE.Name = "MENU_D_DOWN_ALL_SITE"
-        Me.MENU_D_DOWN_ALL_SITE.Size = New System.Drawing.Size(221, 22)
-        Me.MENU_D_DOWN_ALL_SITE.Text = "Download all [FULL]"
         '
         'BTT_DOWN_ALL_FULL
         '
         Me.BTT_DOWN_ALL_FULL.AutoToolTip = True
         Me.BTT_DOWN_ALL_FULL.Image = Global.SCrawler.My.Resources.Resources.StartPic_Green_16
         Me.BTT_DOWN_ALL_FULL.Name = "BTT_DOWN_ALL_FULL"
-        Me.BTT_DOWN_ALL_FULL.Size = New System.Drawing.Size(274, 22)
+        Me.BTT_DOWN_ALL_FULL.Size = New System.Drawing.Size(221, 22)
         Me.BTT_DOWN_ALL_FULL.Text = "Download all [FULL]"
         Me.BTT_DOWN_ALL_FULL.ToolTipText = "Download all users from all sites. The 'Ready for download' option will be ignore" &
     "d."
-        '
-        'BTT_DOWN_ALL_FULL_SUBSCR
-        '
-        Me.BTT_DOWN_ALL_FULL_SUBSCR.AutoToolTip = True
-        Me.BTT_DOWN_ALL_FULL_SUBSCR.Image = Global.SCrawler.My.Resources.Resources.StartPic_Green_16
-        Me.BTT_DOWN_ALL_FULL_SUBSCR.Name = "BTT_DOWN_ALL_FULL_SUBSCR"
-        Me.BTT_DOWN_ALL_FULL_SUBSCR.Size = New System.Drawing.Size(274, 22)
-        Me.BTT_DOWN_ALL_FULL_SUBSCR.Text = "Download all subscriptions [FULL]"
-        Me.BTT_DOWN_ALL_FULL_SUBSCR.ToolTipText = "Download all subscriptions from all sites. The 'Ready for download' option will b" &
-    "e ignored."
-        '
-        'BTT_DOWN_SITE_FULL
-        '
-        Me.BTT_DOWN_SITE_FULL.AutoToolTip = True
-        Me.BTT_DOWN_SITE_FULL.Image = Global.SCrawler.My.Resources.Resources.StartPic_Green_16
-        Me.BTT_DOWN_SITE_FULL.Name = "BTT_DOWN_SITE_FULL"
-        Me.BTT_DOWN_SITE_FULL.Size = New System.Drawing.Size(274, 22)
-        Me.BTT_DOWN_SITE_FULL.Text = "Download all site users [FULL]"
-        Me.BTT_DOWN_SITE_FULL.ToolTipText = resources.GetString("BTT_DOWN_SITE_FULL.ToolTipText")
-        '
-        'BTT_DOWN_SITE_FULL_SUBSCR
-        '
-        Me.BTT_DOWN_SITE_FULL_SUBSCR.AutoToolTip = True
-        Me.BTT_DOWN_SITE_FULL_SUBSCR.Image = Global.SCrawler.My.Resources.Resources.StartPic_Green_16
-        Me.BTT_DOWN_SITE_FULL_SUBSCR.Name = "BTT_DOWN_SITE_FULL_SUBSCR"
-        Me.BTT_DOWN_SITE_FULL_SUBSCR.Size = New System.Drawing.Size(274, 22)
-        Me.BTT_DOWN_SITE_FULL_SUBSCR.Text = "Download all site subscriptions [FULL]"
-        Me.BTT_DOWN_SITE_FULL_SUBSCR.ToolTipText = resources.GetString("BTT_DOWN_SITE_FULL_SUBSCR.ToolTipText")
         '
         'BTT_DOWN_SPEC
         '
@@ -592,7 +478,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         'MENU_VIEW
         '
         Me.MENU_VIEW.AutoToolTip = False
-        Me.MENU_VIEW.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_VIEW_LARGE, Me.BTT_VIEW_SMALL, Me.BTT_VIEW_LIST, Me.BTT_VIEW_DETAILS, MENU_VIEW_SEP_1, Me.BTT_MODE_SHOW_USERS, Me.BTT_MODE_SHOW_SUBSCRIPTIONS, MENU_VIEW_SEP_2, Me.BTT_SITE_ALL, Me.BTT_SITE_SPECIFIC, MENU_VIEW_SEP_3, Me.BTT_SHOW_ALL, Me.BTT_SHOW_REGULAR, Me.BTT_SHOW_TEMP, Me.BTT_SHOW_FAV, Me.BTT_SHOW_DELETED, Me.BTT_SHOW_SUSPENDED, Me.BTT_SHOW_LABELS, Me.BTT_SHOW_NO_LABELS, Me.BTT_SHOW_EXCLUDED_LABELS, Me.BTT_SHOW_EXCLUDED_LABELS_IGNORE, Me.BTT_SHOW_SHOW_GROUPS, Me.BTT_SHOW_GROUP_USERS, Me.BTT_SHOW_FILTER_ADV, MENU_VIEW_SEP_4, Me.BTT_SHOW_LIMIT_DATES_NOT, Me.BTT_SHOW_LIMIT_DATES_IN, MENU_VIEW_SEP_5, Me.BTT_VIEW_FILTER_SAVE, Me.BTT_VIEW_FILTER_LOAD})
+        Me.MENU_VIEW.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_VIEW_LARGE, Me.BTT_VIEW_SMALL, Me.BTT_VIEW_LIST, Me.BTT_VIEW_DETAILS, MENU_VIEW_SEP_1, Me.BTT_SHOW_ALL, Me.BTT_SHOW_SHOW_GROUPS, Me.BTT_SHOW_GROUP_USERS, Me.BTT_SHOW_FILTER_ADV, MENU_VIEW_SEP_2, Me.BTT_VIEW_FILTER_SAVE, Me.BTT_VIEW_FILTER_SAVE_AS_GROUP, Me.BTT_VIEW_FILTER_LOAD})
         Me.MENU_VIEW.Image = CType(resources.GetObject("MENU_VIEW.Image"), System.Drawing.Image)
         Me.MENU_VIEW.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.MENU_VIEW.Name = "MENU_VIEW"
@@ -602,128 +488,44 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         'BTT_VIEW_LARGE
         '
         Me.BTT_VIEW_LARGE.Name = "BTT_VIEW_LARGE"
-        Me.BTT_VIEW_LARGE.Size = New System.Drawing.Size(231, 22)
+        Me.BTT_VIEW_LARGE.Size = New System.Drawing.Size(271, 22)
         Me.BTT_VIEW_LARGE.Text = "Large images"
         '
         'BTT_VIEW_SMALL
         '
         Me.BTT_VIEW_SMALL.Name = "BTT_VIEW_SMALL"
-        Me.BTT_VIEW_SMALL.Size = New System.Drawing.Size(231, 22)
+        Me.BTT_VIEW_SMALL.Size = New System.Drawing.Size(271, 22)
         Me.BTT_VIEW_SMALL.Text = "Small images"
         '
         'BTT_VIEW_LIST
         '
         Me.BTT_VIEW_LIST.Name = "BTT_VIEW_LIST"
-        Me.BTT_VIEW_LIST.Size = New System.Drawing.Size(231, 22)
+        Me.BTT_VIEW_LIST.Size = New System.Drawing.Size(271, 22)
         Me.BTT_VIEW_LIST.Text = "List"
         '
         'BTT_VIEW_DETAILS
         '
         Me.BTT_VIEW_DETAILS.Name = "BTT_VIEW_DETAILS"
-        Me.BTT_VIEW_DETAILS.Size = New System.Drawing.Size(231, 22)
+        Me.BTT_VIEW_DETAILS.Size = New System.Drawing.Size(271, 22)
         Me.BTT_VIEW_DETAILS.Text = "Details"
-        '
-        'BTT_MODE_SHOW_USERS
-        '
-        Me.BTT_MODE_SHOW_USERS.CheckOnClick = True
-        Me.BTT_MODE_SHOW_USERS.Name = "BTT_MODE_SHOW_USERS"
-        Me.BTT_MODE_SHOW_USERS.Size = New System.Drawing.Size(231, 22)
-        Me.BTT_MODE_SHOW_USERS.Text = "Show users"
-        '
-        'BTT_MODE_SHOW_SUBSCRIPTIONS
-        '
-        Me.BTT_MODE_SHOW_SUBSCRIPTIONS.CheckOnClick = True
-        Me.BTT_MODE_SHOW_SUBSCRIPTIONS.Name = "BTT_MODE_SHOW_SUBSCRIPTIONS"
-        Me.BTT_MODE_SHOW_SUBSCRIPTIONS.Size = New System.Drawing.Size(231, 22)
-        Me.BTT_MODE_SHOW_SUBSCRIPTIONS.Text = "Show subscriptions"
-        '
-        'BTT_SITE_ALL
-        '
-        Me.BTT_SITE_ALL.Name = "BTT_SITE_ALL"
-        Me.BTT_SITE_ALL.Size = New System.Drawing.Size(231, 22)
-        Me.BTT_SITE_ALL.Text = "All"
-        '
-        'BTT_SITE_SPECIFIC
-        '
-        Me.BTT_SITE_SPECIFIC.Name = "BTT_SITE_SPECIFIC"
-        Me.BTT_SITE_SPECIFIC.Size = New System.Drawing.Size(231, 22)
-        Me.BTT_SITE_SPECIFIC.Text = "Specific sites"
         '
         'BTT_SHOW_ALL
         '
         Me.BTT_SHOW_ALL.Name = "BTT_SHOW_ALL"
-        Me.BTT_SHOW_ALL.Size = New System.Drawing.Size(231, 22)
+        Me.BTT_SHOW_ALL.Size = New System.Drawing.Size(271, 22)
         Me.BTT_SHOW_ALL.Text = "All"
-        '
-        'BTT_SHOW_REGULAR
-        '
-        Me.BTT_SHOW_REGULAR.Name = "BTT_SHOW_REGULAR"
-        Me.BTT_SHOW_REGULAR.Size = New System.Drawing.Size(231, 22)
-        Me.BTT_SHOW_REGULAR.Text = "Regular"
-        '
-        'BTT_SHOW_TEMP
-        '
-        Me.BTT_SHOW_TEMP.Name = "BTT_SHOW_TEMP"
-        Me.BTT_SHOW_TEMP.Size = New System.Drawing.Size(231, 22)
-        Me.BTT_SHOW_TEMP.Text = "Temporary"
-        '
-        'BTT_SHOW_FAV
-        '
-        Me.BTT_SHOW_FAV.Name = "BTT_SHOW_FAV"
-        Me.BTT_SHOW_FAV.Size = New System.Drawing.Size(231, 22)
-        Me.BTT_SHOW_FAV.Text = "Favorites"
-        '
-        'BTT_SHOW_DELETED
-        '
-        Me.BTT_SHOW_DELETED.BackColor = System.Drawing.Color.FromArgb(CType(CType(255, Byte), Integer), CType(CType(192, Byte), Integer), CType(CType(192, Byte), Integer))
-        Me.BTT_SHOW_DELETED.ForeColor = System.Drawing.Color.Maroon
-        Me.BTT_SHOW_DELETED.Name = "BTT_SHOW_DELETED"
-        Me.BTT_SHOW_DELETED.Size = New System.Drawing.Size(231, 22)
-        Me.BTT_SHOW_DELETED.Text = "Deleted"
-        '
-        'BTT_SHOW_SUSPENDED
-        '
-        Me.BTT_SHOW_SUSPENDED.BackColor = System.Drawing.Color.PapayaWhip
-        Me.BTT_SHOW_SUSPENDED.ForeColor = System.Drawing.Color.SaddleBrown
-        Me.BTT_SHOW_SUSPENDED.Name = "BTT_SHOW_SUSPENDED"
-        Me.BTT_SHOW_SUSPENDED.Size = New System.Drawing.Size(231, 22)
-        Me.BTT_SHOW_SUSPENDED.Text = "Suspended"
-        '
-        'BTT_SHOW_LABELS
-        '
-        Me.BTT_SHOW_LABELS.Name = "BTT_SHOW_LABELS"
-        Me.BTT_SHOW_LABELS.Size = New System.Drawing.Size(231, 22)
-        Me.BTT_SHOW_LABELS.Text = "Labels"
-        '
-        'BTT_SHOW_NO_LABELS
-        '
-        Me.BTT_SHOW_NO_LABELS.Name = "BTT_SHOW_NO_LABELS"
-        Me.BTT_SHOW_NO_LABELS.Size = New System.Drawing.Size(231, 22)
-        Me.BTT_SHOW_NO_LABELS.Text = "No labels"
-        '
-        'BTT_SHOW_EXCLUDED_LABELS
-        '
-        Me.BTT_SHOW_EXCLUDED_LABELS.Name = "BTT_SHOW_EXCLUDED_LABELS"
-        Me.BTT_SHOW_EXCLUDED_LABELS.Size = New System.Drawing.Size(231, 22)
-        Me.BTT_SHOW_EXCLUDED_LABELS.Text = "Excluded labels"
-        '
-        'BTT_SHOW_EXCLUDED_LABELS_IGNORE
-        '
-        Me.BTT_SHOW_EXCLUDED_LABELS_IGNORE.Name = "BTT_SHOW_EXCLUDED_LABELS_IGNORE"
-        Me.BTT_SHOW_EXCLUDED_LABELS_IGNORE.Size = New System.Drawing.Size(231, 22)
-        Me.BTT_SHOW_EXCLUDED_LABELS_IGNORE.Text = "Ignore excluded labels"
         '
         'BTT_SHOW_SHOW_GROUPS
         '
         Me.BTT_SHOW_SHOW_GROUPS.Name = "BTT_SHOW_SHOW_GROUPS"
-        Me.BTT_SHOW_SHOW_GROUPS.Size = New System.Drawing.Size(231, 22)
+        Me.BTT_SHOW_SHOW_GROUPS.Size = New System.Drawing.Size(271, 22)
         Me.BTT_SHOW_SHOW_GROUPS.Text = "Show groups instead of labels"
         '
         'BTT_SHOW_GROUP_USERS
         '
         Me.BTT_SHOW_GROUP_USERS.AutoToolTip = True
         Me.BTT_SHOW_GROUP_USERS.Name = "BTT_SHOW_GROUP_USERS"
-        Me.BTT_SHOW_GROUP_USERS.Size = New System.Drawing.Size(231, 22)
+        Me.BTT_SHOW_GROUP_USERS.Size = New System.Drawing.Size(271, 22)
         Me.BTT_SHOW_GROUP_USERS.Text = "Group users"
         Me.BTT_SHOW_GROUP_USERS.ToolTipText = "Group users by site or labels"
         '
@@ -731,37 +533,27 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         '
         Me.BTT_SHOW_FILTER_ADV.AutoToolTip = True
         Me.BTT_SHOW_FILTER_ADV.Name = "BTT_SHOW_FILTER_ADV"
-        Me.BTT_SHOW_FILTER_ADV.Size = New System.Drawing.Size(231, 22)
-        Me.BTT_SHOW_FILTER_ADV.Text = "Advanced filter"
-        Me.BTT_SHOW_FILTER_ADV.ToolTipText = "Advanced filter of users you want to display"
-        '
-        'BTT_SHOW_LIMIT_DATES_NOT
-        '
-        Me.BTT_SHOW_LIMIT_DATES_NOT.AutoToolTip = True
-        Me.BTT_SHOW_LIMIT_DATES_NOT.Name = "BTT_SHOW_LIMIT_DATES_NOT"
-        Me.BTT_SHOW_LIMIT_DATES_NOT.Size = New System.Drawing.Size(231, 22)
-        Me.BTT_SHOW_LIMIT_DATES_NOT.Text = "Limit dates (not in range)"
-        Me.BTT_SHOW_LIMIT_DATES_NOT.ToolTipText = "Filter users whose last download date is not in the selected date range"
-        '
-        'BTT_SHOW_LIMIT_DATES_IN
-        '
-        Me.BTT_SHOW_LIMIT_DATES_IN.AutoToolTip = True
-        Me.BTT_SHOW_LIMIT_DATES_IN.Name = "BTT_SHOW_LIMIT_DATES_IN"
-        Me.BTT_SHOW_LIMIT_DATES_IN.Size = New System.Drawing.Size(231, 22)
-        Me.BTT_SHOW_LIMIT_DATES_IN.Text = "Limit dates (in range)"
-        Me.BTT_SHOW_LIMIT_DATES_IN.ToolTipText = "Filter users whose last download date is in the selected date range"
+        Me.BTT_SHOW_FILTER_ADV.Size = New System.Drawing.Size(271, 22)
+        Me.BTT_SHOW_FILTER_ADV.Text = "Filter"
+        Me.BTT_SHOW_FILTER_ADV.ToolTipText = "Filter of users you want to display"
         '
         'BTT_VIEW_FILTER_SAVE
         '
         Me.BTT_VIEW_FILTER_SAVE.Name = "BTT_VIEW_FILTER_SAVE"
-        Me.BTT_VIEW_FILTER_SAVE.Size = New System.Drawing.Size(231, 22)
+        Me.BTT_VIEW_FILTER_SAVE.Size = New System.Drawing.Size(271, 22)
         Me.BTT_VIEW_FILTER_SAVE.Text = "Save current view"
+        '
+        'BTT_VIEW_FILTER_SAVE_AS_GROUP
+        '
+        Me.BTT_VIEW_FILTER_SAVE_AS_GROUP.Name = "BTT_VIEW_FILTER_SAVE_AS_GROUP"
+        Me.BTT_VIEW_FILTER_SAVE_AS_GROUP.Size = New System.Drawing.Size(271, 22)
+        Me.BTT_VIEW_FILTER_SAVE_AS_GROUP.Text = "Save current view as download group"
         '
         'BTT_VIEW_FILTER_LOAD
         '
         Me.BTT_VIEW_FILTER_LOAD.AutoToolTip = True
         Me.BTT_VIEW_FILTER_LOAD.Name = "BTT_VIEW_FILTER_LOAD"
-        Me.BTT_VIEW_FILTER_LOAD.Size = New System.Drawing.Size(231, 22)
+        Me.BTT_VIEW_FILTER_LOAD.Size = New System.Drawing.Size(271, 22)
         Me.BTT_VIEW_FILTER_LOAD.Text = "Load view (from saved)"
         Me.BTT_VIEW_FILTER_LOAD.ToolTipText = "Load one of your previously saved views"
         '
@@ -1154,39 +946,23 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
     Private WithEvents BTT_CONTEXT_ADD_TO_COL As ToolStripMenuItem
     Private WithEvents BTT_REFRESH As ToolStripButton
     Private WithEvents BTT_SHOW_ALL As ToolStripMenuItem
-    Private WithEvents BTT_SHOW_REGULAR As ToolStripMenuItem
-    Private WithEvents BTT_SHOW_TEMP As ToolStripMenuItem
-    Private WithEvents BTT_SHOW_FAV As ToolStripMenuItem
-    Private WithEvents BTT_SHOW_LABELS As ToolStripMenuItem
-    Private WithEvents BTT_SHOW_NO_LABELS As ToolStripMenuItem
     Private WithEvents BTT_EDIT_USER As ToolStripButton
     Private WithEvents BTT_CONTEXT_GROUPS As PersonalUtilities.Forms.Controls.KeyClick.ToolStripMenuItemKeyClick
     Private WithEvents BTT_VERSION_INFO As ToolStripButton
     Private WithEvents BTT_CONTEXT_DOWN_LIMITED As ToolStripKeyMenuItem
     Private WithEvents BTT_CONTEXT_READY As ToolStripMenuItem
-    Private WithEvents BTT_SITE_ALL As ToolStripMenuItem
-    Private WithEvents BTT_SITE_SPECIFIC As ToolStripMenuItem
     Private WithEvents BTT_CONTEXT_CHANGE_FOLDER As ToolStripMenuItem
     Private WithEvents BTT_DOWN_SAVED As ToolStripButton
     Friend WithEvents TrayIcon As NotifyIcon
     Private WithEvents BTT_TRAY_SHOW_HIDE As ToolStripMenuItem
     Private WithEvents BTT_TRAY_CLOSE As ToolStripMenuItem
     Private WithEvents BTT_DONATE As ToolStripButton
-    Private WithEvents BTT_SHOW_DELETED As ToolStripMenuItem
-    Private WithEvents BTT_SHOW_SUSPENDED As ToolStripMenuItem
-    Private WithEvents BTT_SHOW_LIMIT_DATES_NOT As ToolStripMenuItem
     Private WithEvents BTT_VIEW_DETAILS As ToolStripMenuItem
     Private WithEvents COL_DEF As ColumnHeader
     Private WithEvents MENU_SETTINGS As ToolStripDropDownButton
     Private WithEvents BTT_PR_INFO As ToolStripStatusLabel
     Private WithEvents BTT_CONTEXT_DOWN_DATE_LIMIT As ToolStripKeyMenuItem
-    Private WithEvents BTT_DOWN_ALL As ToolStripKeyMenuItem
-    Private WithEvents BTT_DOWN_SITE As ToolStripKeyMenuItem
-    Private WithEvents BTT_DOWN_ALL_FULL As ToolStripKeyMenuItem
-    Private WithEvents BTT_DOWN_SITE_FULL As ToolStripKeyMenuItem
     Private WithEvents BTT_CONTEXT_SCRIPT As ToolStripMenuItem
-    Private WithEvents BTT_SHOW_EXCLUDED_LABELS As ToolStripMenuItem
-    Private WithEvents BTT_SHOW_EXCLUDED_LABELS_IGNORE As ToolStripMenuItem
     Private WithEvents BTT_SHOW_SHOW_GROUPS As ToolStripMenuItem
     Private WithEvents BTT_ADD_NEW_GROUP As ToolStripMenuItem
     Friend WithEvents BTT_TRAY_CLOSE_NO_SCRIPT As ToolStripMenuItem
@@ -1195,7 +971,6 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
     Friend WithEvents BTT_LOG As ToolStripButton
     Friend WithEvents Toolbar_TOP As ToolStrip
     Private WithEvents BTT_FEED As ToolStripButton
-    Private WithEvents BTT_SHOW_LIMIT_DATES_IN As ToolStripMenuItem
     Private WithEvents BTT_CONTEXT_COPY_TO_FOLDER As ToolStripMenuItem
     Private WithEvents BTT_TRAY_SILENT_MODE As ToolStripMenuItem
     Friend WithEvents BTT_TRAY_PAUSE_AUTOMATION As ToolStripMenuItem
@@ -1209,14 +984,8 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
     Private WithEvents BTT_CONTEXT_ERASE As ToolStripMenuItem
     Private WithEvents MENU_INFO_SHOW_MISSING As ToolStripMenuItem
     Private WithEvents MENU_INFO_SHOW_USER_METRICS As ToolStripMenuItem
-    Private WithEvents BTT_MODE_SHOW_USERS As ToolStripMenuItem
-    Private WithEvents BTT_MODE_SHOW_SUBSCRIPTIONS As ToolStripMenuItem
-    Private WithEvents MENU_D_DOWN_ALL As ToolStripMenuItem
-    Private WithEvents MENU_D_DOWN_ALL_SITE As ToolStripMenuItem
-    Private WithEvents BTT_DOWN_ALL_SUBSCR As ToolStripKeyMenuItem
-    Private WithEvents BTT_DOWN_SITE_SUBSCR As ToolStripKeyMenuItem
-    Private WithEvents BTT_DOWN_ALL_FULL_SUBSCR As ToolStripKeyMenuItem
-    Private WithEvents BTT_DOWN_SITE_FULL_SUBSCR As ToolStripKeyMenuItem
+    Private WithEvents BTT_DOWN_ALL As ToolStripKeyMenuItem
+    Private WithEvents BTT_DOWN_ALL_FULL As ToolStripKeyMenuItem
     Private WithEvents BTT_BUG_REPORT As ToolStripButton
     Private WithEvents MENU_INFO_SHOW_QUEUE As ToolStripMenuItem
     Private WithEvents BTT_DOWN_SPEC As ToolStripKeyMenuItem
@@ -1225,4 +994,5 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
     Private WithEvents BTT_SHOW_GROUP_USERS As ToolStripMenuItem
     Private WithEvents BTT_VIEW_FILTER_SAVE As ToolStripMenuItem
     Private WithEvents BTT_VIEW_FILTER_LOAD As ToolStripMenuItem
+    Private WithEvents BTT_VIEW_FILTER_SAVE_AS_GROUP As ToolStripMenuItem
 End Class

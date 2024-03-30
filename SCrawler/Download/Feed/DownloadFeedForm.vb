@@ -1449,6 +1449,9 @@ Namespace DownloadObjects
                                                                           If Not b Then ScrollSuspended = False
                                                                       End Sub)
         End Sub
+        Private Sub DownloadFeedForm_Deactivate(sender As Object, e As EventArgs) Handles Me.Deactivate
+            If Not LatestScrollValueDisabled Then LatestScrollValue = ControlInvokeFast(TP_DATA, Function() TP_DATA.VerticalScroll.Value, 0, EDP.ReturnValue)
+        End Sub
         Private Sub TP_DATA_Paint(sender As Object, e As PaintEventArgs) Handles TP_DATA.Paint
             If Not MyDefs.Initializing And Not ScrollSuspended And FeedEndless Then
                 If Not LatestScrollValueDisabled Then LatestScrollValue = ControlInvokeFast(TP_DATA, Function() TP_DATA.VerticalScroll.Value, 0)

@@ -13,6 +13,8 @@ Namespace DownloadObjects.Groups
         Friend Property MyGroup As DownloadGroup
         Friend Property DownloadMode As Boolean = False
         Friend Property FilterMode As Boolean = False
+        Friend Property IsTemporaryGroup As Boolean = False
+        Friend Property IsClone As Boolean
         Friend Sub New(ByRef g As DownloadGroup)
             InitializeComponent()
             MyGroup = g
@@ -60,7 +62,7 @@ Namespace DownloadObjects.Groups
                     Text = "New Group"
                 End If
                 .MyFieldsChecker = New FieldsChecker
-                If DownloadMode Or FilterMode Then
+                If DownloadMode Or FilterMode Or IsTemporaryGroup Then
                     DEFS_GROUP.HideName()
                     Dim s As Size = Size
                     s.Height -= 31
@@ -71,15 +73,16 @@ Namespace DownloadObjects.Groups
                     MaximumSize = s
                 Else
                     .MyFieldsCheckerE.AddControl(Of String)(DEFS_GROUP.TXT_NAME, DEFS_GROUP.TXT_NAME.CaptionText,,
-                                                            New NameChecker(If(MyGroup?.Name, String.Empty), Settings.Groups, "Group"))
+                                                            New NameChecker(If(Not IsClone, If(MyGroup?.Name, String.Empty), String.Empty), Settings.Groups, "Group"))
                 End If
                 .MyFieldsChecker.EndLoaderOperations()
                 .EndLoaderOperations()
+                .MyOkCancel.EnableOK = True
             End With
         End Sub
         Private Sub MyDefs_ButtonOkClick(ByVal Sender As Object, ByVal e As KeyHandleEventArgs) Handles MyDefs.ButtonOkClick
             If MyDefs.MyFieldsChecker.AllParamsOK Then
-                If MyGroup Is Nothing Then MyGroup = New DownloadGroup
+                If MyGroup Is Nothing Then MyGroup = New DownloadGroup(Not FilterMode)
                 With MyGroup
                     .NameBefore = .Name
                     DEFS_GROUP.Get(MyGroup)

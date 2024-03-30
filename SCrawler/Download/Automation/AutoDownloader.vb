@@ -18,8 +18,6 @@ Namespace DownloadObjects
         Friend Event PauseChanged(ByVal Value As PauseModes)
         Friend Enum Modes As Integer
             None = 0
-            [Default] = 1
-            All = 2
             Specified = 3
             Groups = 4
         End Enum
@@ -295,6 +293,9 @@ Namespace DownloadObjects
                 Return $"{Name} ({GetWorkingState()}): last download date: {GetLastDateString()}; next run: {GetNextDateString()}"
             End If
         End Function
+        Friend Overrides Function ToStringViewFilters() As String
+            Return $"Scheduler plan '{Name}'{IIf(IsManual, " (manual)", String.Empty)}"
+        End Function
 #End Region
 #End Region
 #Region "Initializer"
@@ -314,7 +315,9 @@ Namespace DownloadObjects
         Friend Sub New(ByVal x As EContainer)
             Me.New
             Initialization = True
-            Mode = x.Value(Name_Mode).FromXML(Of Integer)(Modes.None)
+            Dim m% = x.Value(Name_Mode).FromXML(Of Integer)(Modes.None)
+            If m = 1 Or m = 2 Then m = Modes.Specified
+            Mode = m
             Import(x)
             If Name.IsEmptyString Then Name = "Default"
             Groups.ListAddList(x.Value(Name_Groups).StringToList(Of String)("|"), LAP.NotContainsOnly)
@@ -555,38 +558,6 @@ Namespace DownloadObjects
                                            End Try
                                        End Sub
                 Select Case Mode
-                    Case Modes.All
-                        Dim CheckLabels As Predicate(Of IUserData) = Function(ByVal u As IUserData) As Boolean
-                                                                         If LabelsExcluded.Count = 0 Then
-                                                                             Return True
-                                                                         ElseIf u.Labels.Count = 0 Then
-                                                                             Return True
-                                                                         Else
-                                                                             Return Not u.Labels.ListContains(LabelsExcluded)
-                                                                         End If
-                                                                     End Function
-                        Dim CheckSites As Predicate(Of IUserData) = Function(u) SitesExcluded.Count = 0 OrElse Not SitesExcluded.Contains(u.Site)
-                        Dim ExistsPredicate As Predicate(Of IUserData)
-                        If Subscriptions Then
-                            If SubscriptionsOnly Then
-                                ExistsPredicate = UserExistsSubscriptionsPredicate
-                            Else
-                                ExistsPredicate = UserExistsPredicate
-                            End If
-                        Else
-                            ExistsPredicate = UserExistsNonSubscriptionsPredicate
-                        End If
-                        users.ListAddList(Settings.GetUsers(Function(u) ExistsPredicate(u) And CheckLabels.Invoke(u) And CheckSites.Invoke(u)))
-                        If UsersCount <> 0 And users.Count > 0 Then
-                            users = users.ListTake(If(UsersCount > 0, -1, -2), Math.Abs(UsersCount))
-                            If UsersCount < 0 Then users = users.ListReverse
-                        End If
-                    Case Modes.Default
-                        Using g As New GroupParameters
-                            g.LabelsExcluded.ListAddList(LabelsExcluded)
-                            g.SitesExcluded.ListAddList(SitesExcluded)
-                            users.ListAddList(DownloadGroup.GetUsers(g))
-                        End Using
                     Case Modes.Specified : users.ListAddList(DownloadGroup.GetUsers(Me))
                     Case Modes.Groups
                         If Groups.Count > 0 And Settings.Groups.Count > 0 Then

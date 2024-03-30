@@ -11,6 +11,14 @@ Imports SCrawler.API
 Imports SCrawler.API.Base
 Friend Class ListImagesLoader
     Private ReadOnly Property MyList As ListView
+    Private Class AdvDistinctComparer : Implements IEqualityComparer(Of IUserData)
+        Private Overloads Function Equals(ByVal x As IUserData, ByVal y As IUserData) As Boolean Implements IEqualityComparer(Of IUserData).Equals
+            Return DirectCast(x, UserDataBase).LVIKey.CompareTo(DirectCast(y, UserDataBase).LVIKey)
+        End Function
+        Private Overloads Function GetHashCode(ByVal Obj As IUserData) As Integer Implements IEqualityComparer(Of IUserData).GetHashCode
+            Return DirectCast(Obj, UserDataBase).GetHashCode
+        End Function
+    End Class
     Private Structure UserOption : Implements IComparable(Of UserOption)
         Friend ReadOnly User As IUserData
         Friend ReadOnly LVI As ListViewItem
@@ -110,10 +118,10 @@ Friend Class ListImagesLoader
                         If Settings.FastProfilesLoading Then
                             Settings.Users.ListReindex
 
-                            If Settings.ShowingMode.Value = ShowingModes.AdvancedFilter Then
+                            If Not Settings.ShowAllUsers Then
                                 UserDataList = GetAdvancedFilteredUsers(Of UserOption)()
                             Else
-                                UserDataList = (From u As IUserData In Settings.Users Where u.FitToAddParams Select New UserOption(u, MyList)).ListIfNothing
+                                UserDataList = Settings.Users.Select(Function(u) New UserOption(u, MyList)).ToList
                             End If
 
                             If UserDataList.ListExists Then UserDataList.Sort()
@@ -134,18 +142,16 @@ Friend Class ListImagesLoader
                             Dim t As New List(Of Task)
                             Dim advUsers As List(Of IUserData) = Nothing
                             Dim isAdv As Boolean = False
-                            If Settings.ShowingMode.Value = ShowingModes.AdvancedFilter Then
+                            If Not Settings.ShowAllUsers Then
                                 isAdv = True
                                 advUsers = GetAdvancedFilteredUsers(Of IUserData)()
                                 If Not advUsers.ListExists Then UpdateInProgress = False : MyList.EndUpdate() : Exit Sub
                             End If
                             For Each User As IUserData In If(isAdv, advUsers, Settings.Users)
-                                If User.FitToAddParams Then
-                                    If Settings.ViewModeIsPicture Then
-                                        t.Add(Task.Run(Sub() UpdateUser(User, True)))
-                                    Else
-                                        UpdateUser(User, True)
-                                    End If
+                                If Settings.ViewModeIsPicture Then
+                                    t.Add(Task.Run(Sub() UpdateUser(User, True)))
+                                Else
+                                    UpdateUser(User, True)
                                 End If
                             Next
                             If t.Count > 0 Then Task.WhenAll(t.ToArray) : t.Clear()
@@ -168,7 +174,11 @@ Friend Class ListImagesLoader
         With Settings.AdvancedFilter.GetUsers
             If .ListExists Then
                 With ListAddList(Nothing, .Select(Function(u) Settings.GetUser(u, True)), LAP.NotContainsOnly, LAP.IgnoreICopier)
-                    If .ListExists Then Return If(GetType(T) Is GetType(UserOption), .Select(Function(u) New UserOption(u, MyList)).ToList, .Self)
+                    If .ListExists Then
+                        With .Distinct(New AdvDistinctComparer)
+                            Return If(GetType(T) Is GetType(UserOption), .Select(Function(u) New UserOption(u, MyList)).ToList, .Self.ToList)
+                        End With
+                    End If
                 End With
             End If
         End With

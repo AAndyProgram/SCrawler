@@ -59,7 +59,6 @@ Namespace API.Base
         ReadOnly Property DownloadedTotal(Optional ByVal Total As Boolean = True) As Integer
         ReadOnly Property DownloadedInformation As String
         Property HasError As Boolean
-        ReadOnly Property FitToAddParams As Boolean
         ReadOnly Property Key As String
         Property DownloadImages As Boolean
         Property DownloadVideos As Boolean

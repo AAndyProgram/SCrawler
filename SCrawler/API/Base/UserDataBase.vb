@@ -312,7 +312,7 @@ Namespace API.Base
             End Set
         End Property
         Protected Sub UserSiteNameUpdate(ByVal NewName As String)
-            If Not NewName.IsEmptyString And (UserSiteName.IsEmptyString Or Settings.UserSiteNameUpdateEveryTime) Then UserSiteName = NewName
+            If Not NewName.IsEmptyString And (UserSiteName.IsEmptyString Or Settings.UpdateUserSiteNameEveryTime) Then UserSiteName = NewName
         End Sub
         Friend ReadOnly Property UserModel As UsageModel Implements IUserData.UserModel
             Get
@@ -829,48 +829,19 @@ BlockNullPicture:
                 Return ListImagesLoader.ApplyLVIColor(Me, New ListViewItem(ToString(), GetLVIGroup(Destination)) With {.Name = LVIKey, .Tag = LVIKey}, True)
             End If
         End Function
-        Friend Overridable ReadOnly Property FitToAddParams As Boolean Implements IUserData.FitToAddParams
-            Get
-                With Settings
-                    If IsSubscription And Not .MainFrameUsersShowSubscriptions Then Return False
-                    If Not IsSubscription And Not .MainFrameUsersShowDefaults Then Return False
-                    If LastUpdated.HasValue And Not .ViewDateMode.Value = ShowingDates.Off Then
-                        Dim f As Date = If(.ViewDateFrom.HasValue, .ViewDateFrom.Value.Date, Date.MinValue.Date)
-                        Dim t As Date = If(.ViewDateTo.HasValue, .ViewDateTo.Value.Date, Date.MaxValue.Date)
-                        Select Case DirectCast(.ViewDateMode.Value, ShowingDates)
-                            Case ShowingDates.In : If Not LastUpdated.Value.ValueBetween(f, t) Then Return False
-                            Case ShowingDates.Not : If LastUpdated.Value.ValueBetween(f, t) Then Return False
-                        End Select
-                    End If
-                    If Not .Labels.ExcludedIgnore AndAlso .Labels.Excluded.ValuesList.ListContains(Labels) Then Return False
-                    If .SelectedSites.Count = 0 OrElse .SelectedSites.Contains(Site) Then
-                        Select Case .ShowingMode.Value
-                            Case ShowingModes.Regular : Return Not Temporary And Not Favorite
-                            Case ShowingModes.Temporary : Return Temporary
-                            Case ShowingModes.Favorite : Return Favorite
-                            Case ShowingModes.Deleted : Return Not UserExists
-                            Case ShowingModes.Suspended : Return UserSuspended
-                            Case ShowingModes.Labels : Return Settings.Labels.Current.ValuesList.ListContains(Labels)
-                            Case ShowingModes.NoLabels : Return Labels.Count = 0
-                            Case Else : Return True
-                        End Select
-                    Else
-                        Return False
-                    End If
-                End With
-            End Get
-        End Property
         Friend Function GetLVIGroup(ByVal Destination As ListView) As ListViewGroup Implements IUserData.GetLVIGroup
             Try
-                If Settings.ShowingMode.Value = ShowingModes.Labels And Not Settings.ShowGroupsInsteadLabels Then
-                    If Labels.Count > 0 And Settings.Labels.Current.Count > 0 Then
-                        For i% = 0 To Labels.Count - 1
-                            If Settings.Labels.Current.Contains(Labels(i)) Then Return Destination.Groups.Item(Labels(i))
-                        Next
+                With Settings
+                    If Not .ShowAllUsers.Value AndAlso (.AdvancedFilter.Labels.Count > 0 Or .AdvancedFilter.LabelsNo) AndAlso Not .ShowGroupsInsteadLabels Then
+                        If Labels.Count > 0 And .AdvancedFilter.Labels.Count > 0 Then
+                            For i% = 0 To Labels.Count - 1
+                                If .AdvancedFilter.Labels.Contains(Labels(i)) Then Return Destination.Groups.Item(Labels(i))
+                            Next
+                        End If
+                    ElseIf Settings.GroupUsers Then
+                        Return Destination.Groups.Item(GetLviGroupName(HOST, Temporary, Favorite, IsCollection))
                     End If
-                ElseIf Settings.GroupUsers Then
-                    Return Destination.Groups.Item(GetLviGroupName(HOST, Temporary, Favorite, IsCollection))
-                End If
+                End With
                 Return Destination.Groups.Item(LabelsKeeper.NoLabeledName)
             Catch ex As Exception
                 Return Destination.Groups.Item(LabelsKeeper.NoLabeledName)
@@ -1269,8 +1240,10 @@ BlockNullPicture:
                 Dim mca& = If(ContentMissingExists, _ContentList.LongCount(Function(c) MissingFinder(c)), 0)
                 If DownloadedTotal(False) > 0 Or _EnvirChanged Or Not mcb = mca Or _ForceSaveUserData Then
                     If Not __isChannelsSupport Then
-                        LastUpdated = Now
-                        RunScript()
+                        If DownloadedTotal(False) > 0 Then
+                            LastUpdated = Now
+                            RunScript()
+                        End If
                         DownloadedPictures(True) = SFile.GetFiles(MyFile.CutPath, "*.jpg|*.jpeg|*.png|*.gif|*.webm",, EDP.ReturnValue).Count
                         DownloadedVideos(True) = SFile.GetFiles(MyFile.CutPath, "*.mp4|*.mkv|*.mov", SearchOption.AllDirectories, EDP.ReturnValue).Count
                         If Labels.Contains(LabelsKeeper.NoParsedUser) Then Labels.Remove(LabelsKeeper.NoParsedUser)

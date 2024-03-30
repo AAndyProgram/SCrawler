@@ -10,11 +10,16 @@ Imports PersonalUtilities.Tools
 Imports PersonalUtilities.Functions.XML
 Namespace DownloadObjects.Groups
     Friend Class DownloadGroupCollection : Implements IEnumerable(Of DownloadGroup), IMyEnumerator(Of DownloadGroup)
+#Region "Events"
         Friend Event Deleted As DownloadGroup.GroupEventHandler
         Friend Event Added As DownloadGroup.GroupEventHandler
         Friend Event Updated As DownloadGroup.GroupEventHandler
+#End Region
+#Region "Declarations"
         Private ReadOnly GroupsList As List(Of DownloadGroup)
         Private ReadOnly GroupFile As SFile = "Settings\Groups.xml"
+#End Region
+#Region "Initializer"
         Friend Sub New()
             GroupsList = New List(Of DownloadGroup)
             If GroupFile.Exists Then
@@ -34,6 +39,8 @@ Namespace DownloadObjects.Groups
             End If
             GroupsList.ListReindex
         End Sub
+#End Region
+#Region "Base properties"
         Default Friend ReadOnly Property Item(ByVal Index As Integer) As DownloadGroup Implements IMyEnumerator(Of DownloadGroup).MyEnumeratorObject
             Get
                 Return GroupsList(Index)
@@ -44,19 +51,43 @@ Namespace DownloadObjects.Groups
                 Return GroupsList.Count
             End Get
         End Property
+#End Region
+#Region "Update, BeginUpdate, EndUpdate"
         Friend Sub Update()
-            If Count > 0 Then
-                Using x As New XmlFile With {.Name = "Groups", .AllowSameNames = True} : x.AddRange(GroupsList) : x.Save(GroupFile) : End Using
-            Else
-                GroupFile.Delete()
+            If Not _UpdateMode Then
+                If Count > 0 Then
+                    Using x As New XmlFile With {.Name = "Groups", .AllowSameNames = True} : x.AddRange(GroupsList) : x.Save(GroupFile) : End Using
+                Else
+                    GroupFile.Delete()
+                End If
             End If
         End Sub
+        Private _UpdateMode As Boolean = False
+        Friend Sub BeginUpdate()
+            _UpdateMode = True
+        End Sub
+        Friend Sub EndUpdate()
+            _UpdateMode = False
+        End Sub
+#End Region
+#Region "Sort, Reindex"
+        Friend Sub Sort()
+            GroupsList.Sort()
+        End Sub
+        Friend Sub Reindex()
+            GroupsList.ListReindex
+        End Sub
+#End Region
+#Region "Group handlers"
         Private _GroupAddInProgress As Boolean = False
         Private Sub OnGroupUpdated(ByVal Sender As DownloadGroup)
-            If Not _GroupAddInProgress Then Update() : RaiseEvent Updated(Sender)
+            If Not _GroupAddInProgress Then
+                Update()
+                If Not Sender.IsViewFilter Then RaiseEvent Updated(Sender)
+            End If
         End Sub
         Private Sub OnGroupDeleted(ByVal Sender As DownloadGroup)
-            RaiseEvent Deleted(Sender)
+            If Not Sender.IsViewFilter Then RaiseEvent Deleted(Sender)
             Dim i% = GroupsList.FindIndex(Function(g) g.Key = Sender.Key)
             If i >= 0 Then
                 GroupsList(i).Dispose()
@@ -65,38 +96,77 @@ Namespace DownloadObjects.Groups
                 Update()
             End If
         End Sub
-        Friend Sub Add()
-            Using f As New GroupEditorForm(Nothing)
+#End Region
+#Region "Add"
+        Friend Sub CloneAndAdd(ByVal Group As DownloadGroup)
+            Using f As New GroupEditorForm(Group.Copy) With {.IsClone = True}
                 f.ShowDialog()
-                If f.DialogResult = DialogResult.OK Then
-                    _GroupAddInProgress = True
-                    GroupsList.Add(f.MyGroup)
-                    With GroupsList.Last
-                        AddHandler .Deleted, AddressOf OnGroupDeleted
-                        AddHandler .Updated, AddressOf OnGroupUpdated
-                    End With
-                    GroupsList.ListReindex
-                    RaiseEvent Added(GroupsList.Last)
-                    Update()
-                    _GroupAddInProgress = False
-                End If
+                If f.DialogResult = DialogResult.OK Then Add(f.MyGroup)
             End Using
         End Sub
-        Friend Function DownloadGroupIfExists(ByVal Index As Integer) As Boolean
-            If Index.ValueBetween(0, Count - 1) Then Item(Index).DownloadUsers() : Return True Else Return False
+        Friend Overloads Function Add() As Integer
+            Using f As New GroupEditorForm(Nothing)
+                f.ShowDialog()
+                If f.DialogResult = DialogResult.OK Then Add(f.MyGroup) : Return IndexOf(f.MyGroup.Name)
+            End Using
+            Return -1
         End Function
-        Friend Function IndexOf(ByVal Name As String) As Integer
+        Friend Overloads Sub Add(ByVal Item As DownloadGroup, Optional ByVal IsFilter As Boolean = False, Optional ByVal ReplaceExisting As Boolean = False)
+            Dim i% = IndexOf(Item.Name, IsFilter)
+            Dim exists As Boolean = i >= 0
+            _GroupAddInProgress = True
+
+            If exists Then
+                If ReplaceExisting Then
+                    GroupsList(i).Dispose()
+                    GroupsList(i) = Item
+                Else
+                    i = -1
+                End If
+            Else
+                GroupsList.Add(Item)
+                i = Count - 1
+            End If
+
+            If i >= 0 Then
+                With GroupsList(i)
+                    AddHandler .Deleted, AddressOf OnGroupDeleted
+                    AddHandler .Updated, AddressOf OnGroupUpdated
+                    If Not exists Then
+                        GroupsList.ListReindex
+                        GroupsList.Sort()
+                        GroupsList.ListReindex
+                        If Not Item.IsViewFilter And Not _UpdateMode Then RaiseEvent Added(.Self)
+                    Else
+                        If Not Item.IsViewFilter And Not _UpdateMode Then RaiseEvent Updated(.Self)
+                    End If
+                End With
+                Update()
+            End If
+            _GroupAddInProgress = False
+        End Sub
+#End Region
+#Region "DownloadGroupIfExists"
+        Friend Function DownloadGroupIfExists(ByVal Index As Integer) As Boolean
+            If Index.ValueBetween(0, Count - 1) Then Item(Index).ProcessDownloadUsers() : Return True Else Return False
+        End Function
+#End Region
+#Region "IndexOf"
+        Friend Function IndexOf(ByVal Name As String, Optional ByVal IsFilter As Boolean = False) As Integer
             If Count > 0 Then
-                Return GroupsList.FindIndex(Function(g) g.Name = Name)
+                Return GroupsList.FindIndex(Function(g) g.Name = Name And g.IsViewFilter = IsFilter)
             Else
                 Return -1
             End If
         End Function
+#End Region
+#Region "IEnumerable Support"
         Private Function GetEnumerator() As IEnumerator(Of DownloadGroup) Implements IEnumerable(Of DownloadGroup).GetEnumerator
             Return New MyEnumerator(Of DownloadGroup)(Me)
         End Function
         Private Function IEnumerable_GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
             Return GetEnumerator()
         End Function
+#End Region
     End Class
 End Namespace

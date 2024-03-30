@@ -25,16 +25,14 @@ Namespace DownloadObjects
             Me.components = New System.ComponentModel.Container()
             Dim CONTAINER_MAIN As System.Windows.Forms.ToolStripContainer
             Dim TP_MODE As System.Windows.Forms.TableLayoutPanel
-            Dim ActionButton5 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton1 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(AutoDownloaderEditorForm))
-            Dim ActionButton6 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton2 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim TP_NOTIFY As System.Windows.Forms.TableLayoutPanel
-            Dim ActionButton7 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
-            Dim ActionButton8 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton3 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton4 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim TT_MAIN As System.Windows.Forms.ToolTip
             Me.DEF_GROUP = New SCrawler.DownloadObjects.Groups.GroupDefaults()
-            Me.OPT_ALL = New System.Windows.Forms.RadioButton()
-            Me.OPT_DEFAULT = New System.Windows.Forms.RadioButton()
             Me.OPT_SPEC = New System.Windows.Forms.RadioButton()
             Me.OPT_DISABLED = New System.Windows.Forms.RadioButton()
             Me.OPT_GROUP = New System.Windows.Forms.RadioButton()
@@ -67,13 +65,13 @@ Namespace DownloadObjects
             'CONTAINER_MAIN.ContentPanel
             '
             CONTAINER_MAIN.ContentPanel.Controls.Add(Me.DEF_GROUP)
-            CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(476, 388)
+            CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(476, 519)
             CONTAINER_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
             CONTAINER_MAIN.LeftToolStripPanelVisible = False
             CONTAINER_MAIN.Location = New System.Drawing.Point(0, 0)
             CONTAINER_MAIN.Name = "CONTAINER_MAIN"
             CONTAINER_MAIN.RightToolStripPanelVisible = False
-            CONTAINER_MAIN.Size = New System.Drawing.Size(476, 413)
+            CONTAINER_MAIN.Size = New System.Drawing.Size(476, 519)
             CONTAINER_MAIN.TabIndex = 0
             CONTAINER_MAIN.TopToolStripPanelVisible = False
             '
@@ -83,22 +81,26 @@ Namespace DownloadObjects
             Me.DEF_GROUP.ColumnCount = 1
             Me.DEF_GROUP.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
             Me.DEF_GROUP.Controls.Add(TP_MODE, 0, 0)
-            Me.DEF_GROUP.Controls.Add(Me.TXT_GROUPS, 0, 8)
-            Me.DEF_GROUP.Controls.Add(TP_NOTIFY, 0, 9)
-            Me.DEF_GROUP.Controls.Add(Me.TXT_TIMER, 0, 11)
-            Me.DEF_GROUP.Controls.Add(Me.NUM_DELAY, 0, 12)
-            Me.DEF_GROUP.Controls.Add(Me.LBL_LAST_TIME_UP, 0, 13)
-            Me.DEF_GROUP.Controls.Add(Me.CH_MANUAL, 0, 10)
+            Me.DEF_GROUP.Controls.Add(Me.TXT_GROUPS, 0, 12)
+            Me.DEF_GROUP.Controls.Add(TP_NOTIFY, 0, 13)
+            Me.DEF_GROUP.Controls.Add(Me.TXT_TIMER, 0, 15)
+            Me.DEF_GROUP.Controls.Add(Me.NUM_DELAY, 0, 16)
+            Me.DEF_GROUP.Controls.Add(Me.LBL_LAST_TIME_UP, 0, 17)
+            Me.DEF_GROUP.Controls.Add(Me.CH_MANUAL, 0, 14)
             Me.DEF_GROUP.Dock = System.Windows.Forms.DockStyle.Fill
             Me.DEF_GROUP.Location = New System.Drawing.Point(0, 0)
             Me.DEF_GROUP.Name = "DEF_GROUP"
-            Me.DEF_GROUP.RowCount = 15
+            Me.DEF_GROUP.RowCount = 19
             Me.DEF_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             Me.DEF_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             Me.DEF_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             Me.DEF_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             Me.DEF_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            Me.DEF_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            Me.DEF_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             Me.DEF_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
+            Me.DEF_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
+            Me.DEF_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             Me.DEF_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             Me.DEF_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             Me.DEF_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
@@ -108,23 +110,21 @@ Namespace DownloadObjects
             Me.DEF_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             Me.DEF_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             Me.DEF_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            Me.DEF_GROUP.Size = New System.Drawing.Size(476, 388)
+            Me.DEF_GROUP.Size = New System.Drawing.Size(476, 519)
             Me.DEF_GROUP.TabIndex = 0
             '
             'TP_MODE
             '
             TP_MODE.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.[Single]
-            TP_MODE.ColumnCount = 5
-            TP_MODE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 20.0!))
-            TP_MODE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 20.0!))
-            TP_MODE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 20.0!))
-            TP_MODE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 20.0!))
-            TP_MODE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 20.0!))
-            TP_MODE.Controls.Add(Me.OPT_ALL, 1, 0)
-            TP_MODE.Controls.Add(Me.OPT_DEFAULT, 2, 0)
-            TP_MODE.Controls.Add(Me.OPT_SPEC, 3, 0)
+            TP_MODE.ColumnCount = 3
+            TP_MODE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33333!))
+            TP_MODE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33333!))
+            TP_MODE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33333!))
+            TP_MODE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
+            TP_MODE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
+            TP_MODE.Controls.Add(Me.OPT_SPEC, 1, 0)
             TP_MODE.Controls.Add(Me.OPT_DISABLED, 0, 0)
-            TP_MODE.Controls.Add(Me.OPT_GROUP, 4, 0)
+            TP_MODE.Controls.Add(Me.OPT_GROUP, 2, 0)
             TP_MODE.Dock = System.Windows.Forms.DockStyle.Fill
             TP_MODE.Location = New System.Drawing.Point(1, 1)
             TP_MODE.Margin = New System.Windows.Forms.Padding(0)
@@ -134,39 +134,13 @@ Namespace DownloadObjects
             TP_MODE.Size = New System.Drawing.Size(474, 25)
             TP_MODE.TabIndex = 0
             '
-            'OPT_ALL
-            '
-            Me.OPT_ALL.AutoSize = True
-            Me.OPT_ALL.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.OPT_ALL.Location = New System.Drawing.Point(98, 4)
-            Me.OPT_ALL.Name = "OPT_ALL"
-            Me.OPT_ALL.Size = New System.Drawing.Size(87, 17)
-            Me.OPT_ALL.TabIndex = 1
-            Me.OPT_ALL.TabStop = True
-            Me.OPT_ALL.Text = "ALL"
-            TT_MAIN.SetToolTip(Me.OPT_ALL, "Download all users")
-            Me.OPT_ALL.UseVisualStyleBackColor = True
-            '
-            'OPT_DEFAULT
-            '
-            Me.OPT_DEFAULT.AutoSize = True
-            Me.OPT_DEFAULT.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.OPT_DEFAULT.Location = New System.Drawing.Point(192, 4)
-            Me.OPT_DEFAULT.Name = "OPT_DEFAULT"
-            Me.OPT_DEFAULT.Size = New System.Drawing.Size(87, 17)
-            Me.OPT_DEFAULT.TabIndex = 2
-            Me.OPT_DEFAULT.TabStop = True
-            Me.OPT_DEFAULT.Text = "Default"
-            TT_MAIN.SetToolTip(Me.OPT_DEFAULT, "All users marked ""Ready for download""")
-            Me.OPT_DEFAULT.UseVisualStyleBackColor = True
-            '
             'OPT_SPEC
             '
             Me.OPT_SPEC.AutoSize = True
             Me.OPT_SPEC.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.OPT_SPEC.Location = New System.Drawing.Point(286, 4)
+            Me.OPT_SPEC.Location = New System.Drawing.Point(161, 4)
             Me.OPT_SPEC.Name = "OPT_SPEC"
-            Me.OPT_SPEC.Size = New System.Drawing.Size(87, 17)
+            Me.OPT_SPEC.Size = New System.Drawing.Size(150, 17)
             Me.OPT_SPEC.TabIndex = 3
             Me.OPT_SPEC.TabStop = True
             Me.OPT_SPEC.Text = "Specified"
@@ -179,7 +153,7 @@ Namespace DownloadObjects
             Me.OPT_DISABLED.Dock = System.Windows.Forms.DockStyle.Fill
             Me.OPT_DISABLED.Location = New System.Drawing.Point(4, 4)
             Me.OPT_DISABLED.Name = "OPT_DISABLED"
-            Me.OPT_DISABLED.Size = New System.Drawing.Size(87, 17)
+            Me.OPT_DISABLED.Size = New System.Drawing.Size(150, 17)
             Me.OPT_DISABLED.TabIndex = 0
             Me.OPT_DISABLED.TabStop = True
             Me.OPT_DISABLED.Text = "Disabled"
@@ -190,9 +164,9 @@ Namespace DownloadObjects
             '
             Me.OPT_GROUP.AutoSize = True
             Me.OPT_GROUP.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.OPT_GROUP.Location = New System.Drawing.Point(380, 4)
+            Me.OPT_GROUP.Location = New System.Drawing.Point(318, 4)
             Me.OPT_GROUP.Name = "OPT_GROUP"
-            Me.OPT_GROUP.Size = New System.Drawing.Size(90, 17)
+            Me.OPT_GROUP.Size = New System.Drawing.Size(152, 17)
             Me.OPT_GROUP.TabIndex = 4
             Me.OPT_GROUP.TabStop = True
             Me.OPT_GROUP.Text = "Groups"
@@ -201,16 +175,16 @@ Namespace DownloadObjects
             '
             'TXT_GROUPS
             '
-            ActionButton5.BackgroundImage = CType(resources.GetObject("ActionButton5.BackgroundImage"), System.Drawing.Image)
-            ActionButton5.Name = "Edit"
-            ActionButton6.BackgroundImage = CType(resources.GetObject("ActionButton6.BackgroundImage"), System.Drawing.Image)
-            ActionButton6.Name = "Clear"
-            Me.TXT_GROUPS.Buttons.Add(ActionButton5)
-            Me.TXT_GROUPS.Buttons.Add(ActionButton6)
+            ActionButton1.BackgroundImage = CType(resources.GetObject("ActionButton1.BackgroundImage"), System.Drawing.Image)
+            ActionButton1.Name = "Edit"
+            ActionButton2.BackgroundImage = CType(resources.GetObject("ActionButton2.BackgroundImage"), System.Drawing.Image)
+            ActionButton2.Name = "Clear"
+            Me.TXT_GROUPS.Buttons.Add(ActionButton1)
+            Me.TXT_GROUPS.Buttons.Add(ActionButton2)
             Me.TXT_GROUPS.CaptionText = "Groups"
             Me.TXT_GROUPS.CaptionWidth = 50.0R
             Me.TXT_GROUPS.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_GROUPS.Location = New System.Drawing.Point(4, 224)
+            Me.TXT_GROUPS.Location = New System.Drawing.Point(4, 331)
             Me.TXT_GROUPS.Name = "TXT_GROUPS"
             Me.TXT_GROUPS.Size = New System.Drawing.Size(468, 22)
             Me.TXT_GROUPS.TabIndex = 1
@@ -228,7 +202,7 @@ Namespace DownloadObjects
             TP_NOTIFY.Controls.Add(Me.CH_SHOW_PIC_USER, 3, 0)
             TP_NOTIFY.Controls.Add(Me.CH_NOTIFY_SIMPLE, 1, 0)
             TP_NOTIFY.Dock = System.Windows.Forms.DockStyle.Fill
-            TP_NOTIFY.Location = New System.Drawing.Point(1, 250)
+            TP_NOTIFY.Location = New System.Drawing.Point(1, 357)
             TP_NOTIFY.Margin = New System.Windows.Forms.Padding(0)
             TP_NOTIFY.Name = "TP_NOTIFY"
             TP_NOTIFY.RowCount = 1
@@ -286,24 +260,24 @@ Namespace DownloadObjects
             '
             'TXT_TIMER
             '
-            ActionButton7.BackgroundImage = CType(resources.GetObject("ActionButton7.BackgroundImage"), System.Drawing.Image)
-            ActionButton7.Name = "Refresh"
-            Me.TXT_TIMER.Buttons.Add(ActionButton7)
+            ActionButton3.BackgroundImage = CType(resources.GetObject("ActionButton3.BackgroundImage"), System.Drawing.Image)
+            ActionButton3.Name = "Refresh"
+            Me.TXT_TIMER.Buttons.Add(ActionButton3)
             Me.TXT_TIMER.CaptionText = "Timer"
             Me.TXT_TIMER.CaptionToolTipEnabled = True
             Me.TXT_TIMER.CaptionToolTipText = "Timer (in minutes)"
             Me.TXT_TIMER.CaptionWidth = 50.0R
             Me.TXT_TIMER.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_TIMER.Location = New System.Drawing.Point(4, 308)
+            Me.TXT_TIMER.Location = New System.Drawing.Point(4, 415)
             Me.TXT_TIMER.Name = "TXT_TIMER"
             Me.TXT_TIMER.Size = New System.Drawing.Size(468, 22)
             Me.TXT_TIMER.TabIndex = 4
             '
             'NUM_DELAY
             '
-            ActionButton8.BackgroundImage = CType(resources.GetObject("ActionButton8.BackgroundImage"), System.Drawing.Image)
-            ActionButton8.Name = "Refresh"
-            Me.NUM_DELAY.Buttons.Add(ActionButton8)
+            ActionButton4.BackgroundImage = CType(resources.GetObject("ActionButton4.BackgroundImage"), System.Drawing.Image)
+            ActionButton4.Name = "Refresh"
+            Me.NUM_DELAY.Buttons.Add(ActionButton4)
             Me.NUM_DELAY.CaptionText = "Delay"
             Me.NUM_DELAY.CaptionToolTipEnabled = True
             Me.NUM_DELAY.CaptionToolTipText = "Startup delay"
@@ -311,7 +285,7 @@ Namespace DownloadObjects
             Me.NUM_DELAY.ClearTextByButtonClear = False
             Me.NUM_DELAY.ControlMode = PersonalUtilities.Forms.Controls.TextBoxExtended.ControlModes.NumericUpDown
             Me.NUM_DELAY.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.NUM_DELAY.Location = New System.Drawing.Point(4, 337)
+            Me.NUM_DELAY.Location = New System.Drawing.Point(4, 444)
             Me.NUM_DELAY.Name = "NUM_DELAY"
             Me.NUM_DELAY.NumberMaximum = New Decimal(New Integer() {1440, 0, 0, 0})
             Me.NUM_DELAY.NumberUpDownAlign = System.Windows.Forms.LeftRightAlignment.Left
@@ -324,7 +298,7 @@ Namespace DownloadObjects
             Me.LBL_LAST_TIME_UP.AutoSize = True
             Me.LBL_LAST_TIME_UP.Dock = System.Windows.Forms.DockStyle.Fill
             Me.LBL_LAST_TIME_UP.Font = New System.Drawing.Font("Microsoft Sans Serif", 8.25!, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, CType(204, Byte))
-            Me.LBL_LAST_TIME_UP.Location = New System.Drawing.Point(4, 363)
+            Me.LBL_LAST_TIME_UP.Location = New System.Drawing.Point(4, 470)
             Me.LBL_LAST_TIME_UP.Name = "LBL_LAST_TIME_UP"
             Me.LBL_LAST_TIME_UP.Size = New System.Drawing.Size(468, 25)
             Me.LBL_LAST_TIME_UP.TabIndex = 6
@@ -335,7 +309,7 @@ Namespace DownloadObjects
             '
             Me.CH_MANUAL.AutoSize = True
             Me.CH_MANUAL.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_MANUAL.Location = New System.Drawing.Point(4, 282)
+            Me.CH_MANUAL.Location = New System.Drawing.Point(4, 389)
             Me.CH_MANUAL.Name = "CH_MANUAL"
             Me.CH_MANUAL.Size = New System.Drawing.Size(468, 19)
             Me.CH_MANUAL.TabIndex = 3
@@ -348,15 +322,15 @@ Namespace DownloadObjects
             '
             Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
             Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-            Me.ClientSize = New System.Drawing.Size(476, 413)
+            Me.ClientSize = New System.Drawing.Size(476, 519)
             Me.Controls.Add(CONTAINER_MAIN)
             Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle
             Me.Icon = Global.SCrawler.My.Resources.Resources.ArrowDownIcon_Blue_24
             Me.KeyPreview = True
             Me.MaximizeBox = False
-            Me.MaximumSize = New System.Drawing.Size(492, 452)
+            Me.MaximumSize = New System.Drawing.Size(492, 558)
             Me.MinimizeBox = False
-            Me.MinimumSize = New System.Drawing.Size(492, 452)
+            Me.MinimumSize = New System.Drawing.Size(492, 558)
             Me.Name = "AutoDownloaderEditorForm"
             Me.ShowInTaskbar = False
             Me.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide
@@ -378,8 +352,6 @@ Namespace DownloadObjects
         End Sub
         Private WithEvents DEF_GROUP As DownloadObjects.Groups.GroupDefaults
         Private WithEvents TXT_GROUPS As PersonalUtilities.Forms.Controls.TextBoxExtended
-        Private WithEvents OPT_ALL As RadioButton
-        Private WithEvents OPT_DEFAULT As RadioButton
         Private WithEvents OPT_SPEC As RadioButton
         Private WithEvents OPT_DISABLED As RadioButton
         Private WithEvents CH_NOTIFY As CheckBox

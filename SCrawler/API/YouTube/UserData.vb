@@ -230,7 +230,7 @@ Namespace API.YouTube
                 End If
                 If list.Count > 0 Then
                     With list(0)
-                        If Settings.UserSiteNameUpdateEveryTime Or UserSiteName.IsEmptyString Then UserSiteName = .UserTitle
+                        If Settings.UpdateUserSiteNameEveryTime Or UserSiteName.IsEmptyString Then UserSiteName = .UserTitle
                         If FriendlyName.IsEmptyString Then FriendlyName = UserSiteName
                     End With
                     _TempMediaList.AddRange(list.Select(Function(c) New UserMedia(c) With {.URL = If(IsSubscription, c.ThumbnailUrlMedia, .URL)}))

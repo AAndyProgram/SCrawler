@@ -22,19 +22,22 @@ Friend Class LabelsKeeper : Implements ICollection(Of String), IMyEnumerator(Of 
             Return NewLabels.Count > 0
         End Get
     End Property
-    Friend ReadOnly Property Current As XMLValuesCollection(Of String)
-    Friend ReadOnly Property Excluded As XMLValuesCollection(Of String)
-    Friend ReadOnly Property ExcludedIgnore As XMLValue(Of Boolean)
+    'URGENT: remove these properties (2024.03)
+    <Obsolete> Friend ReadOnly Property Current As XMLValuesCollection(Of String)
+    <Obsolete> Friend ReadOnly Property Excluded As XMLValuesCollection(Of String)
+    <Obsolete> Friend ReadOnly Property ExcludedIgnore As XMLValue(Of Boolean)
     Friend Sub New(ByRef x As XmlFile)
         LabelsList = New List(Of String)
         NewLabels = New List(Of String)
         If LabelsFile.Exists Then LabelsList.ListAddList(IO.File.ReadAllLines(LabelsFile), LAP.NotContainsOnly)
+#Disable Warning BC40008
         Current = New XMLValuesCollection(Of String)(IXMLValuesCollection.Modes.String, "LatestSelectedLabels",, x) With {.ListAddParameters = LAP.NotContainsOnly}
         Excluded = New XMLValuesCollection(Of String)(IXMLValuesCollection.Modes.String, "LatestExcludedLabels",, x) With {.ListAddParameters = LAP.NotContainsOnly}
         ExcludedIgnore = New XMLValue(Of Boolean)("LatestExcludedLabelsIgnore", False, x)
         Dim lp As New ListAddParams(LAP.NotContainsOnly + LAP.IgnoreICopier)
         If Current.Count > 0 Then LabelsList.ListAddList(Current, lp)
         If Excluded.Count > 0 Then LabelsList.ListAddList(Excluded, lp)
+#Enable Warning
     End Sub
     Friend ReadOnly Property ToList As List(Of String)
         Get
@@ -109,7 +112,9 @@ Friend Class LabelsKeeper : Implements ICollection(Of String), IMyEnumerator(Of 
     Private disposedValue As Boolean = False
     Protected Overridable Overloads Sub Dispose(ByVal disposing As Boolean)
         If Not disposedValue Then
+#Disable Warning BC40008
             If disposing Then Clear() : Current.Dispose() : Excluded.Dispose()
+#Enable Warning
             disposedValue = True
         End If
     End Sub
