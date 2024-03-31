@@ -131,7 +131,12 @@ Namespace DownloadObjects
             End With
         End Sub
         Private Sub SchedulerEditorForm_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
-            If e.KeyCode = Keys.Escape Then Close()
+            If e.KeyCode = Keys.Escape Then
+                Close()
+            ElseIf e = ShowUsersButtonKey Then
+                ShowPlanUsers()
+                e.Handled = True
+            End If
         End Sub
         Private Sub SchedulerEditorForm_Disposed(sender As Object, e As EventArgs) Handles Me.Disposed
             PauseArr.Dispose()
@@ -241,7 +246,7 @@ Namespace DownloadObjects
                 If l.Count > 0 Then
                     Using chooser As New SimpleListForm(Of String)(l.Values.Cast(Of String), Settings.Design) With {
                         .DesignXMLNodeName = "SchedulerChooserForm",
-                        .Icon = PersonalUtilities.Tools.ImageRenderer.GetIcon(My.Resources.ScriptPic_32, EDP.ReturnValue),
+                        .Icon = ImageRenderer.GetIcon(My.Resources.ScriptPic_32, EDP.ReturnValue),
                         .FormText = "Schedulers",
                         .Mode = SimpleListFormModes.SelectedItems,
                         .MultiSelect = False
@@ -355,6 +360,34 @@ Namespace DownloadObjects
                 If v >= 0 Then _LatestSelected = v
                 Refill()
             End If
+        End Sub
+#End Region
+#Region "ShowPlanUsers"
+        Private Sub ShowPlanUsers()
+            Try
+                If _LatestSelected.ValueBetween(0, Settings.Automation.Count - 1) Then
+                    With Settings.Automation(_LatestSelected)
+                        Dim users As New List(Of API.Base.IUserData)
+                        If Not .Mode = AutoDownloader.Modes.None Then
+                            If .Mode = AutoDownloader.Modes.Groups Then
+                                If .Groups.Count > 0 Then
+                                    Dim i%
+                                    For Each groupName$ In .Groups
+                                        i = Settings.Groups.IndexOf(groupName)
+                                        If i >= 0 Then users.ListAddList(Groups.DownloadGroup.GetUsers(Settings.Groups(i)), LAP.NotContainsOnly, LAP.IgnoreICopier)
+                                    Next
+                                End If
+                            Else
+                                users.ListAddList(Groups.DownloadGroup.GetUsers(.Self))
+                            End If
+                        End If
+                        Groups.GroupUsersViewer.Show(users)
+                        users.Clear()
+                    End With
+                End If
+            Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Show plan users")
+            End Try
         End Sub
 #End Region
     End Class

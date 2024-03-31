@@ -80,6 +80,18 @@ Namespace DownloadObjects.Groups
                 .MyOkCancel.EnableOK = True
             End With
         End Sub
+        Private Sub GroupEditorForm_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
+            Try
+                If e = ShowUsersButtonKey Then
+                    Using g As New GroupParameters
+                        DEFS_GROUP.Get(g)
+                        GroupUsersViewer.Show(DownloadGroup.GetUsers(g))
+                    End Using
+                End If
+            Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Show plan users")
+            End Try
+        End Sub
         Private Sub MyDefs_ButtonOkClick(ByVal Sender As Object, ByVal e As KeyHandleEventArgs) Handles MyDefs.ButtonOkClick
             If MyDefs.MyFieldsChecker.AllParamsOK Then
                 If MyGroup Is Nothing Then MyGroup = New DownloadGroup(Not FilterMode)

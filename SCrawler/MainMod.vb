@@ -74,6 +74,8 @@ Friend Module MainMod
     Friend UserListLoader As ListImagesLoader
     Friend MyProgressForm As ActiveDownloadingProgress
     Friend MainFrameObj As MainFrameObjects
+    ''' <summary>Alt+F1</summary>
+    Friend ReadOnly ShowUsersButtonKey As New PersonalUtilities.Forms.ButtonKey(Keys.F1,, True)
     Friend ReadOnly DateTimeDefaultProvider As New ADateTime(ADateTime.Formats.BaseDateTime)
     Friend ReadOnly SessionDateTimeProvider As New ADateTime("yyyyMMdd_HHmmss")
     Friend ReadOnly FeedVideoLengthProvider As New ADateTime("hh\:mm\:ss") With {.TimeParseMode = ADateTime.TimeModes.TimeSpan}

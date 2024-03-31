@@ -18,6 +18,7 @@ Namespace Editors
         Friend Property FeedParametersChanged As Boolean = False
         Friend Property HeadersChanged As Boolean = False
         Friend Property PictureChanged As Boolean = False
+        Friend Property EnvironmentProgramsChanged As Boolean = False
         Friend Sub New()
             InitializeComponent()
             MyDefs = New DefaultFormOptions(Me, Settings.Design)
@@ -239,6 +240,8 @@ Namespace Editors
                     .YtdlpFile.File = TXT_YTDLP.Text
                     .GalleryDLFile.File = TXT_GALLERYDL.Text
                     .CMDEncoding.Value = AConvert(Of Integer)(TXT_CMD_ENCODING.Text, SettingsCLS.DefaultCmdEncoding)
+                    EnvironmentProgramsChanged = { .FfmpegFile, .CurlFile, .YtdlpFile, .GalleryDLFile}.Any(Function(p) p.ChangesDetected) Or
+                                                 .CMDEncoding.ChangesDetected
                     'Headers
                     .HEADER_UserAgent.Value = TXT_H_DEF_UserAgent.Text
                     .HEADER_sec_ch_ua.Value = TXT_H_DEF_sec_ch_ua.Text
@@ -404,17 +407,35 @@ Namespace Editors
                                                                                                                               TXT_CURL.ActionOnButtonClick,
                                                                                                                               TXT_YTDLP.ActionOnButtonClick,
                                                                                                                               TXT_GALLERYDL.ActionOnButtonClick
-            If Sender.DefaultButton = ADB.Open AndAlso Not e Is Nothing AndAlso Not e.AssociatedControl Is Nothing Then
-                Dim __chooseNewFile As Action(Of TextBoxExtended, String) = Sub(ByVal cnt As TextBoxExtended, ByVal __name As String)
-                                                                                Dim f As SFile = cnt.Text
-                                                                                f = SFile.SelectFiles(f, False, $"Select the {__name} program file.", "EXE|*.exe", EDP.ReturnValue).FirstOrDefault
-                                                                                If Not f.IsEmptyString Then cnt.Text = f
-                                                                            End Sub
+            If (e.DefaultButton = ADB.Open Or e.DefaultButton = ADB.Refresh) And Not e.AssociatedControl Is Nothing Then
+                Dim __chooseNewFile As Action(Of TextBoxExtended, String) =
+                    Sub(ByVal cnt As TextBoxExtended, ByVal __name As String)
+                        Dim f As SFile = cnt.Text
+                        f = SFile.SelectFiles(f, False, $"Select the {__name} program file.", "EXE|*.exe", EDP.ReturnValue).FirstOrDefault
+                        If Not f.IsEmptyString Then cnt.Text = f
+                    End Sub
+                Dim __findEnvir As Action(Of TextBoxExtended, String, String) =
+                    Sub(ByVal cnt As TextBoxExtended, ByVal program As String, ByVal additPath As String)
+                        Dim f As SFile = SettingsCLS.ProgramFile.Find(program, additPath)
+                        If Not f.IsEmptyString Then
+                            cnt.Text = f
+                        Else
+                            MsgBoxE({$"'{program}' not found in the environment!", "Find a program..."}, vbCritical)
+                        End If
+                    End Sub
+                Dim __autoDecision As Action(Of TextBoxExtended, String, String, String) =
+                    Sub(ByVal cnt As TextBoxExtended, ByVal __name As String, ByVal program As String, ByVal additPath As String)
+                        If e.DefaultButton = ADB.Open Then
+                            __chooseNewFile.Invoke(cnt, __name)
+                        ElseIf e.DefaultButton = ADB.Refresh Then
+                            __findEnvir.Invoke(cnt, program, additPath)
+                        End If
+                    End Sub
                 Select Case CStr(DirectCast(e.AssociatedControl, Control).Tag)
-                    Case "f" : __chooseNewFile.Invoke(e.AssociatedControl, "ffmpeg")
-                    Case "c" : __chooseNewFile.Invoke(e.AssociatedControl, "curl")
-                    Case "y" : __chooseNewFile.Invoke(e.AssociatedControl, "yt-dlp")
-                    Case "g" : __chooseNewFile.Invoke(e.AssociatedControl, "gallery-dl")
+                    Case "f" : __autoDecision.Invoke(e.AssociatedControl, "ffmpeg", SettingsCLS.ProgramFile.File_FFMPEG, String.Empty)
+                    Case "c" : __autoDecision.Invoke(e.AssociatedControl, "curl", SettingsCLS.ProgramFile.File_CURL, SettingsCLS.ProgramFile.File_CIRL_ADDIT_PATH)
+                    Case "y" : __autoDecision.Invoke(e.AssociatedControl, "yt-dlp", SettingsCLS.ProgramFile.File_YTDLP, String.Empty)
+                    Case "g" : __autoDecision.Invoke(e.AssociatedControl, "gallery-dl", SettingsCLS.ProgramFile.File_GDL, String.Empty)
                 End Select
             End If
         End Sub

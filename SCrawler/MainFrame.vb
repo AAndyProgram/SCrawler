@@ -162,6 +162,7 @@ Public Class MainFrame
                                            While Downloader.Working Or ChannelsWorking.Invoke Or SP_Working.Invoke : Thread.Sleep(500) : End While
                                        End Sub)
                     End If
+                    MainFrameObj.OpenedGroupUsersForms.ListClearDispose
                     Downloader.Dispose()
                     MyProgressForm.Dispose()
                     InfoForm.Dispose()
@@ -322,6 +323,7 @@ CloseResume:
                         UpdateImageColor(True, True)
                     End If
                     TrayIcon.Visible = .CloseToTray
+                    If f.EnvironmentProgramsChanged Then Settings.UpdateEnvironmentPrograms()
                     If f.FeedParametersChanged And Not MyFeed Is Nothing Then MyFeed.UpdateSettings()
                     If f.HeadersChanged Then
                         Settings.BeginUpdate()

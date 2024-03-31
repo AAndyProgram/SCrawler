@@ -435,6 +435,11 @@ Namespace Plugin.Hosts
             Return New SettingsHost(Source.Clone(False), Path, Temporary, DownloadImages, DownloadVideos) With {.SavedPostsPath = SavedPostsPath, .Path = Path}
         End Function
 #Region "Forks"
+        Friend Sub UpdateEnvironmentPrograms(ByVal EnvironmentPrograms As IEnumerable(Of String), ByVal CMDEncoding As String)
+            Source.EnvironmentPrograms = EnvironmentPrograms
+            Source.CMDEncoding = CMDEncoding
+            Source.EnvironmentProgramsUpdated()
+        End Sub
         Friend Function IsMyUser(ByVal UserURL As String) As ExchangeOptions
             Dim s As ExchangeOptions = Source.IsMyUser(UserURL)
             If Not s.UserName.IsEmptyString Then s.HostKey = Key

@@ -13,10 +13,12 @@ Imports PersonalUtilities.Tools.Notifications
 Imports NotifyObj = SCrawler.SettingsCLS.NotificationObjects
 Friend Class MainFrameObjects : Implements INotificator
     Friend ReadOnly Property MF As MainFrame
+    Friend ReadOnly OpenedGroupUsersForms As List(Of DownloadObjects.Groups.GroupUsersViewer)
     Private WithEvents Notificator As NotificationsManager
     Friend ReadOnly Property PauseButtons As DownloadObjects.AutoDownloaderPauseButtons
     Friend Sub New(ByRef f As MainFrame)
         MF = f
+        OpenedGroupUsersForms = New List(Of DownloadObjects.Groups.GroupUsersViewer)
         Notificator = New NotificationsManager
         PauseButtons = New DownloadObjects.AutoDownloaderPauseButtons(DownloadObjects.AutoDownloaderPauseButtons.ButtonsPlace.MainFrame)
         ProgramLogInitialize()

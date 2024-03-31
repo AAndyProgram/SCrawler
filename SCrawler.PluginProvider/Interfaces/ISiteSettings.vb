@@ -17,6 +17,9 @@ Namespace Plugin
         ReadOnly Property Icon As Icon
         ReadOnly Property Image As Image
         ReadOnly Property Site As String
+        Property CMDEncoding As String
+        Property EnvironmentPrograms As IEnumerable(Of String)
+        Sub EnvironmentProgramsUpdated()
         Property AccountName As String
         Property Temporary As Boolean
         Property DefaultInstance As ISiteSettings

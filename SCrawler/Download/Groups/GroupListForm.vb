@@ -144,7 +144,11 @@ Namespace DownloadObjects.Groups
             If GroupsUpdated Then Settings.Groups.Update()
         End Sub
         Private Sub GroupListForm_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
-            If e.KeyCode = Keys.Escape Then Close()
+            If e.KeyCode = Keys.Escape Then
+                Close()
+            ElseIf e = ShowUsersButtonKey Then
+                ShowUsers()
+            End If
         End Sub
 #End Region
 #Region "Refill"
@@ -294,6 +298,46 @@ Namespace DownloadObjects.Groups
             Else
                 EditItem()
             End If
+        End Sub
+#End Region
+#Region "ShowUsers"
+        Private Sub ShowUsers()
+            Try
+                If _LatestSelected.ValueBetween(0, MyGroups.Count - 1) Then
+                    Dim i%
+                    Dim users As New List(Of API.Base.IUserData)
+                    If Not IsViewFilter Then
+                        i = Settings.Groups.IndexOf(MyGroups(_LatestSelected))
+                        If i >= 0 Then users.ListAddList(DownloadGroup.GetUsers(Settings.Groups(i)))
+                    ElseIf _LatestSelected.ValueBetween(0, MyGroupParams.Count - 1) Then
+                        With MyGroupParams(_LatestSelected)
+                            If TypeOf .Self Is AutoDownloader Then
+                                With DirectCast(.Self, AutoDownloader)
+                                    If Not .Mode = AutoDownloader.Modes.None Then
+                                        If .Mode = AutoDownloader.Modes.Groups Then
+                                            If .Groups.Count > 0 Then
+                                                For Each groupName$ In .Groups
+                                                    i = Settings.Groups.IndexOf(groupName)
+                                                    If i >= 0 Then users.ListAddList(DownloadGroup.GetUsers(Settings.Groups(i)), LAP.NotContainsOnly, LAP.IgnoreICopier)
+                                                Next
+                                            End If
+                                        Else
+                                            users.ListAddList(DownloadGroup.GetUsers(.Self))
+                                        End If
+                                    End If
+                                End With
+                            ElseIf TypeOf .Self Is DownloadGroup Then
+                                i = Settings.Groups.IndexOf(.Name, .IsViewFilter)
+                                If i >= 0 Then users.ListAddList(DownloadGroup.GetUsers(Settings.Groups(i)))
+                            End If
+                        End With
+                    End If
+                    GroupUsersViewer.Show(users)
+                    users.Clear()
+                End If
+            Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Show plan users")
+            End Try
         End Sub
 #End Region
     End Class

@@ -54,6 +54,12 @@ Namespace API.Base
             End Set
         End Property
 #End Region
+#Region "EnvironmentPrograms"
+        Private Property CMDEncoding As String Implements ISiteSettings.CMDEncoding
+        Private Property EnvironmentPrograms As IEnumerable(Of String) Implements ISiteSettings.EnvironmentPrograms
+        Private Sub EnvironmentProgramsUpdated() Implements ISiteSettings.EnvironmentProgramsUpdated
+        End Sub
+#End Region
 #Region "Responser and cookies support"
         Private _CookiesNetscapeFile As SFile = Nothing
         Friend ReadOnly Property CookiesNetscapeFile As SFile

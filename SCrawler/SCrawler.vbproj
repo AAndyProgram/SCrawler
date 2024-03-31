@@ -308,6 +308,7 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Download\Groups\GroupParameters.vb" />
+    <Compile Include="Download\Groups\GroupUsersViewer.vb" />
     <Compile Include="Download\MissingPostsForm.Designer.vb">
       <DependentUpon>MissingPostsForm.vb</DependentUpon>
     </Compile>

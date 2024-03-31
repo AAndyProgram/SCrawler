@@ -43,7 +43,22 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
     Private ReadOnly MyXML As XmlFile
 #End Region
 #Region "Media environment"
+    Friend ReadOnly Property EnvironmentProgramsList As List(Of String)
+    Friend Sub UpdateEnvironmentPrograms()
+        Dim a As Action(Of ProgramFile) = Sub(f) If f.Exists Then EnvironmentProgramsList.Add(f.File.ToString)
+        EnvironmentProgramsList.Clear()
+        a.Invoke(FfmpegFile)
+        a.Invoke(YtdlpFile)
+        a.Invoke(GalleryDLFile)
+        a.Invoke(CurlFile)
+        Plugins.ForEach(Sub(p) p.Settings.UpdateEnvironmentPrograms(EnvironmentProgramsList, CMDEncoding.Value))
+    End Sub
     Friend Class ProgramFile
+        Friend Const File_FFMPEG As String = "ffmpeg.exe"
+        Friend Const File_YTDLP As String = "yt-dlp.exe"
+        Friend Const File_GDL As String = "gallery-dl.exe"
+        Friend Const File_CURL As String = "curl.exe"
+        Friend Const File_CIRL_ADDIT_PATH As String = "cURL"
         Private ReadOnly XML As XMLValue(Of SFile)
         Friend Property File As SFile
             Get
@@ -60,25 +75,35 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
                 Return _Exists
             End Get
         End Property
+        Friend ReadOnly Property ChangesDetected As Boolean
+            Get
+                Return XML.ChangesDetected
+            End Get
+        End Property
         Friend Sub New(ByVal ElementName As String, ByRef Container As EContainer, ByVal Nodes As String(), ByVal Program As String,
                        Optional ByVal AdditPath As String = Nothing)
             XML = New XMLValue(Of SFile)(ElementName,, Container, Nodes)
             If Not XML.Value.Exists Then
                 If Program.CSFile.Exists Then
                     XML.Value = Program
-                ElseIf $"{EnvironmentPath}{Program}".CSFile.Exists Then
-                    XML.Value = $"{EnvironmentPath}{Program}"
-                ElseIf Not AdditPath.IsEmptyString AndAlso $"{AdditPath}\{Program}".CSFile.Exists Then
-                    XML.Value = $"{AdditPath}\{Program}"
-                ElseIf Not AdditPath.IsEmptyString AndAlso $"{EnvironmentPath}{AdditPath}\{Program}".CSFile.Exists Then
-                    XML.Value = $"{EnvironmentPath}{AdditPath}\{Program}"
                 Else
-                    XML.Value = SystemEnvironment.FindFileInPaths(Program).ListIfNothing.FirstOrDefault
+                    XML.Value = Find(Program, AdditPath)
                 End If
             End If
             If Not XML.Value.Exists Then XML.Value = Nothing
             _Exists = File.Exists
         End Sub
+        Friend Shared Function Find(ByVal Program As String, Optional ByVal AdditPath As String = Nothing) As SFile
+            If $"{EnvironmentPath}{Program}".CSFile.Exists Then
+                Return $"{EnvironmentPath}{Program}"
+            ElseIf Not AdditPath.IsEmptyString AndAlso $"{AdditPath}\{Program}".CSFile.Exists Then
+                Return $"{AdditPath}\{Program}"
+            ElseIf Not AdditPath.IsEmptyString AndAlso $"{EnvironmentPath}{AdditPath}\{Program}".CSFile.Exists Then
+                Return $"{EnvironmentPath}{AdditPath}\{Program}"
+            Else
+                Return SystemEnvironment.FindFileInPaths(Program).ListIfNothing.FirstOrDefault
+            End If
+        End Function
         Public Shared Widening Operator CType(ByVal f As ProgramFile) As SFile
             Return f.File
         End Operator
@@ -173,6 +198,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         GlobalLocations.Load(True,, $"{SettingsFolderName}\GlobalLocations.xml")
         Feeds = New FeedSpecialCollection
         Colors = New Editors.DataColorCollection
+        EnvironmentProgramsList = New List(Of String)
 
         AutomationFile = New XMLValue(Of String)("AutomationFile",, MyXML)
 
@@ -188,7 +214,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         'Environment
         n = {"MediaEnvironment"}
         EnvironmentPath.CSFileP.Exists(SFO.Path, True)
-        FfmpegFile = New ProgramFile("ffmpeg", MyXML, n, "ffmpeg.exe")
+        FfmpegFile = New ProgramFile("ffmpeg", MyXML, n, ProgramFile.File_FFMPEG)
         FFMPEGNotification = New XMLValue(Of Boolean)("FFMPEGNotification", True, MyXML, n)
         If Not FfmpegFile.Exists Then
             If FFMPEGNotification.Value AndAlso
@@ -197,9 +223,10 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         Else
             FFMPEGNotification.Value = True
         End If
-        YtdlpFile = New ProgramFile("ytdlp", MyXML, n, "yt-dlp.exe")
-        GalleryDLFile = New ProgramFile("gallerydl", MyXML, n, "gallery-dl.exe")
-        CurlFile = New ProgramFile("curl", MyXML, n, "curl.exe", "cURL")
+
+        YtdlpFile = New ProgramFile("ytdlp", MyXML, n, ProgramFile.File_YTDLP)
+        GalleryDLFile = New ProgramFile("gallerydl", MyXML, n, ProgramFile.File_GDL)
+        CurlFile = New ProgramFile("curl", MyXML, n, ProgramFile.File_CURL, ProgramFile.File_CIRL_ADDIT_PATH)
         CMDEncoding = New XMLValue(Of Integer)("CMDEncoding", DefaultCmdEncoding, MyXML, n)
 #End Region
 #Region "Properties"
@@ -428,6 +455,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
             Next
             Plugins.AddRange(tmpPluginList)
         End If
+        UpdateEnvironmentPrograms()
 #End Region
 
         Labels = New LabelsKeeper(MyXML)

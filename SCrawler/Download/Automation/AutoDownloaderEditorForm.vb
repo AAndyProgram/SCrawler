@@ -6,6 +6,7 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
+Imports SCrawler.DownloadObjects.Groups
 Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Forms.Controls.Base
 Imports DModes = SCrawler.DownloadObjects.AutoDownloader.Modes
@@ -50,9 +51,9 @@ Namespace DownloadObjects
                         Case DModes.Groups : OPT_GROUP.Checked = True
                     End Select
 
-                    TXT_GROUPS.CaptionWidth = Groups.GroupDefaults.CaptionWidthDefault
-                    TXT_TIMER.CaptionWidth = Groups.GroupDefaults.CaptionWidthDefault
-                    NUM_DELAY.CaptionWidth = Groups.GroupDefaults.CaptionWidthDefault
+                    TXT_GROUPS.CaptionWidth = GroupDefaults.CaptionWidthDefault
+                    TXT_TIMER.CaptionWidth = GroupDefaults.CaptionWidthDefault
+                    NUM_DELAY.CaptionWidth = GroupDefaults.CaptionWidthDefault
 
                     DEF_GROUP.Set(Plan)
                     If MyGroups.Count > 0 Then TXT_GROUPS.Text = MyGroups.ListToString
@@ -70,7 +71,7 @@ Namespace DownloadObjects
                 .MyFieldsChecker = New FieldsChecker
                 With .MyFieldsCheckerE
                     .AddControl(Of String)(DEF_GROUP.TXT_NAME, DEF_GROUP.TXT_NAME.CaptionText,,
-                                           New Groups.GroupEditorForm.NameChecker(Plan.Name, Settings.Automation, "Plan"))
+                                           New GroupEditorForm.NameChecker(Plan.Name, Settings.Automation, "Plan"))
                     .AddControl(Of Integer)(TXT_TIMER, TXT_TIMER.CaptionText,, New AutomationTimerChecker)
                     .EndLoaderOperations()
                 End With
@@ -80,6 +81,31 @@ Namespace DownloadObjects
         End Sub
         Private Sub AutoDownloaderEditorForm_Disposed(sender As Object, e As EventArgs) Handles Me.Disposed
             MyGroups.Clear()
+        End Sub
+        Private Sub AutoDownloaderEditorForm_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
+            Try
+                If e = ShowUsersButtonKey AndAlso Not OPT_DISABLED.Checked Then
+                    Dim users As New List(Of API.Base.IUserData)
+                    If OPT_GROUP.Checked Then
+                        If MyGroups.Count > 0 Then
+                            Dim i%
+                            For Each groupName$ In MyGroups
+                                i = Settings.Groups.IndexOf(groupName)
+                                If i >= 0 Then users.ListAddList(DownloadGroup.GetUsers(Settings.Groups(i)), LAP.NotContainsOnly, LAP.IgnoreICopier)
+                            Next
+                        End If
+                    Else
+                        Using g As New GroupParameters
+                            DEF_GROUP.Get(g)
+                            users.ListAddList(DownloadGroup.GetUsers(g))
+                        End Using
+                    End If
+                    GroupUsersViewer.Show(users)
+                    users.Clear()
+                End If
+            Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Show plan users")
+            End Try
         End Sub
         Private Sub MyDefs_ButtonOkClick(ByVal Sender As Object, ByVal e As KeyHandleEventArgs) Handles MyDefs.ButtonOkClick
             If MyDefs.MyFieldsChecker.AllParamsOK Then
@@ -108,7 +134,7 @@ Namespace DownloadObjects
         Private Sub TXT_GROUPS_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As EventArgs) Handles TXT_GROUPS.ActionOnButtonClick
             Select Case Sender.DefaultButton
                 Case ActionButton.DefaultButtons.Edit
-                    Using f As New LabelsForm(MyGroups, (From g As Groups.DownloadGroup In Settings.Groups Where Not g.IsViewFilter Select g.Name)) With {.Text = "Groups", .Icon = My.Resources.GroupByIcon_16}
+                    Using f As New LabelsForm(MyGroups, (From g As DownloadGroup In Settings.Groups Where Not g.IsViewFilter Select g.Name)) With {.Text = "Groups", .Icon = My.Resources.GroupByIcon_16}
                         f.ShowDialog()
                         If f.DialogResult = DialogResult.OK Then MyGroups.ListAddList(f.LabelsList, LAP.ClearBeforeAdd) : TXT_GROUPS.Text = MyGroups.ListToString
                     End Using

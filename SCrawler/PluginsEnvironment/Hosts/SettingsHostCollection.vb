@@ -393,6 +393,9 @@ Namespace Plugin.Hosts
             Hosts.ForEach(Sub(h) h.DownloadDone(What))
             HostsUnavailableIndexes.Clear()
         End Sub
+        Friend Sub UpdateEnvironmentPrograms(ByVal EnvironmentPrograms As IEnumerable(Of String), ByVal CMDEncoding As String)
+            If Count > 0 Then Hosts.ForEach(Sub(h) h.UpdateEnvironmentPrograms(EnvironmentPrograms, CMDEncoding))
+        End Sub
         Friend Function IsMyUser(ByVal UserURL As String) As ExchangeOptions
             Return [Default].IsMyUser(UserURL)
         End Function
