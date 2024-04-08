@@ -178,6 +178,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
     Friend Property FeedViews As FeedViewCollection
     Private ReadOnly BlackListFile As SFile = $"{SettingsFolderName}\BlackList.txt"
     Private ReadOnly UsersSettingsFile As SFile = $"{SettingsFolderName}\Users.xml"
+    Private ReadOnly Property SettingsVersion As XMLValue(Of Integer)
 #End Region
 #Region "Initializer"
     Friend Sub New()
@@ -201,6 +202,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         EnvironmentProgramsList = New List(Of String)
 
         AutomationFile = New XMLValue(Of String)("AutomationFile",, MyXML)
+        SiteSettingsShowHiddenControls = MyXML.Value("SiteSettingsShowHiddenControls").FromXML(Of Boolean)(False)
 
         Dim n() As String
         Dim n_old() As String 'URGENT: remove this line
@@ -209,6 +211,8 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         SettingsReoranized2 = New XMLValue(Of Boolean)("SettingsReoranized2", rn, MyXML) 'URGENT: remove this line
         Dim forceSaveXML As Boolean = Not SettingsReoranized 'URGENT: remove this line
         Dim forceSaveXML2 As Boolean = Not SettingsReoranized OrElse Not SettingsReoranized2 'URGENT: remove this line
+
+        SettingsVersion = New XMLValue(Of Integer)("SettingsVersion", 0, MyXML)
 
 #Region "Properties: environment"
         'Environment

@@ -174,7 +174,7 @@ Namespace API.YouTube.Base
                                                ByVal ObjType As YouTubeMediaType, ByVal ChannelTab As YouTubeChannelTab,
                                                ByVal IsMusic As Boolean, ByVal UrlAsIs As Boolean) As Boolean
             Try
-                Dim command$ = "yt-dlp --write-info-json --skip-download"
+                Dim command$ = $"{YTDLP_NAME} --write-info-json --skip-download"
                 command.StringAppend(GetCookiesCommand(UseCookies, CookiesFile), " ")
                 If DateAfter.HasValue Then command.StringAppend($"--dateafter {DateAfter.Value:yyyyMMdd}", " ")
                 If DateBefore.HasValue Then command.StringAppend($"--datebefore {DateBefore.Value:yyyyMMdd}", " ")

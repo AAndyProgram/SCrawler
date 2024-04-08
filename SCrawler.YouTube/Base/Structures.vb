@@ -81,6 +81,7 @@ Namespace API.YouTube.Base
     Public Structure MediaObject : Implements IIndexable, IComparable(Of MediaObject)
         Public Type As Plugin.UserMediaTypes
         Public ID As String
+        Public ID_DRC As Boolean
         Public Extension As String
         Public Width As Integer
         Public Height As Integer
@@ -110,10 +111,14 @@ Namespace API.YouTube.Base
         End Function
         Private Function CompareTo(ByVal Other As MediaObject) As Integer Implements IComparable(Of MediaObject).CompareTo
             If Type = Other.Type Then
-                If Width.CompareTo(Other.Width) = 0 Then
-                    Return Size.CompareTo(Other.Size) * -1
+                If ID_DRC.CompareTo(Other.ID_DRC) = 0 Then
+                    If Width.CompareTo(Other.Width) = 0 Then
+                        Return Size.CompareTo(Other.Size) * -1
+                    Else
+                        Return Width.CompareTo(Other.Width) * -1
+                    End If
                 Else
-                    Return Width.CompareTo(Other.Width) * -1
+                    Return ID_DRC.CompareTo(Other.ID_DRC)
                 End If
             Else
                 Return CInt(Type).CompareTo(CInt(Other.Type))

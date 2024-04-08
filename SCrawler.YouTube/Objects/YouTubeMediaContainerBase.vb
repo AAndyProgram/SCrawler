@@ -123,6 +123,15 @@ Namespace API.YouTube.Objects
         <XMLEC> Public Property UserTitle As String Implements IYouTubeMediaContainer.UserTitle
 #End Region
 #Region "Playlist support"
+        Private _ElementsNumber As Integer = 0
+        <XMLEC> Protected Property ElementsNumber As Integer
+            Get
+                Return If(HasElements, Count, _ElementsNumber)
+            End Get
+            Set(ByVal _ElementsNumber As Integer)
+                Me._ElementsNumber = _ElementsNumber
+            End Set
+        End Property
         Friend ReadOnly Property Elements As List(Of IYouTubeMediaContainer) Implements IYouTubeMediaContainer.Elements
         Friend ReadOnly Property HasElements As Boolean Implements IYouTubeMediaContainer.HasElements
             Get
@@ -265,6 +274,18 @@ Namespace API.YouTube.Objects
                 PostProcessing_OutputAudioFormats.RemoveAll(Function(s) s = -1)
             End If
         End Sub
+        <XMLEC("OutputAudioBitrate")> Protected _OutputAudioBitrate As Integer = -1
+        Friend Property OutputAudioBitrate As Integer
+            Get
+                Return _OutputAudioBitrate
+            End Get
+            Set(ByVal NewBitrate As Integer)
+                If Not [Protected] Then
+                    _OutputAudioBitrate = NewBitrate
+                    If HasElements Then Elements.ForEach(Sub(elem) DirectCast(elem, YouTubeMediaContainerBase).OutputAudioBitrate = NewBitrate)
+                End If
+            End Set
+        End Property
 #End Region
 #Region "Subtitles"
         Protected ReadOnly _Subtitles As List(Of Subtitles)
@@ -376,10 +397,13 @@ Namespace API.YouTube.Objects
             End Set
         End Property
         Protected _Size As Integer = 0
+        <XMLEC("SizeRecalculated")> Protected _SizeRecalculated As Boolean = False
         <XMLEC> Public Overridable Property Size As Integer Implements IDownloadableMedia.Size
             Get
                 If HasElements Then
                     Return Elements.Sum(Function(e) If(e.Checked, e.Size, 0))
+                ElseIf _SizeRecalculated Then
+                    Return _Size
                 Else
                     If Checked Then
                         If IsMusic And SelectedAudioIndex.ValueBetween(0, MediaObjects.Count - 1) Then
@@ -559,7 +583,25 @@ Namespace API.YouTube.Objects
             If ObjectType = YouTubeMediaType.Single AndAlso Not GetPlayListTitle.IsEmptyString Then _SpecialPath.StringAppend(GetPlayListTitle(), "\")
             If Elements.Count > 0 Then Elements.ForEach(Sub(e) e.SpecialFolder = Path)
         End Sub
-        <XMLEC> Protected Friend ReadOnly Property Files As List(Of SFile) Implements IYouTubeMediaContainer.Files
+        Private ReadOnly _Files As List(Of SFile)
+        <XMLEC> Protected Friend Property Files As List(Of SFile) Implements IYouTubeMediaContainer.Files
+            Get
+                If HasElements Then
+                    Return GetFilesFiles()
+                Else
+                    Return _Files
+                End If
+            End Get
+            Set(ByVal f As List(Of SFile))
+                _Files.ListAddList(f, LAP.NotContainsOnly)
+            End Set
+        End Property
+        Protected Overloads Sub AddFile(ByVal f As SFile)
+            _Files.ListAddValue(f, LAP.NotContainsOnly)
+        End Sub
+        Protected Overloads Sub AddFile(ByVal f As IEnumerable(Of SFile))
+            _Files.ListAddList(f, LAP.NotContainsOnly)
+        End Sub
         <XMLEC> Protected _File As SFile
         <XMLEC> Protected Friend Property FileSetManually As Boolean = False
         Public Property FileIgnorePlaylist As Boolean = False
@@ -628,6 +670,14 @@ Namespace API.YouTube.Objects
             If HasElements And Not IsMusic Then urls.ListAddList(Elements.SelectMany(Function(elem As YouTubeMediaContainerBase) elem.GetFiles()), LAP.NotContainsOnly)
             Return urls
         End Function
+        Private Function GetFilesFiles() As IEnumerable(Of SFile)
+            Dim f As New List(Of SFile)
+            If File.Exists Then f.Add(File)
+            If _Files.Count > 0 Then f.AddRange(_Files)
+            If ThumbnailFile.Exists Then f.Add(ThumbnailFile)
+            If HasElements Then f.ListAddList(Elements.SelectMany(Function(elem As YouTubeMediaContainerBase) elem.GetFilesFiles()), LAP.NotContainsOnly)
+            Return f
+        End Function
         Private _M3U8_PlaylistFiles As IEnumerable(Of SFile) = Nothing
         Friend Property M3U8_PlaylistFiles As IEnumerable(Of SFile)
             Get
@@ -647,6 +697,7 @@ Namespace API.YouTube.Objects
         Private Const aac As String = "aac"
         Private Const ac3 As String = "ac3"
         Protected PostProcessing_AudioAC3 As Boolean = False
+        Protected PostProcessing_AudioMP3 As Boolean = False
         Public Overridable ReadOnly Property Command(ByVal WithCookies As Boolean) As String Implements IYouTubeMediaContainer.Command
             Get
                 If Not File.IsEmptyString Then
@@ -680,6 +731,10 @@ Namespace API.YouTube.Objects
                         cmd.StringAppend(SelectedAudio.ID, "+")
                         If OutputAudioCodec.StringToLower = ac3 Then
                             PostProcessing_AudioAC3 = True
+                            formats.StringAppend($"--audio-format {aac}", " ")
+                            atCodec = aac
+                        ElseIf SelectedVideoIndex >= 0 And OutputAudioCodec.StringToLower = mp3 Then
+                            PostProcessing_AudioMP3 = True
                             formats.StringAppend($"--audio-format {aac}", " ")
                             atCodec = aac
                         Else
@@ -716,7 +771,8 @@ Namespace API.YouTube.Objects
                     If Not cmd.IsEmptyString Then
                         'URGENT: 2023.3.4 -> 2023.7.6
                         'cmd = $"yt-dlp -f ""{cmd}"""
-                        cmd = $"yt-dlp -f {cmd}"
+                        'cmd = $"yt-dlp -f {cmd}"
+                        cmd = $"{YTDLP_NAME} -f {cmd}"
                         If Not MyYouTubeSettings.ReplaceModificationDate Then cmd &= " --no-mtime"
                         cmd.StringAppend(formats, " ")
                         cmd.StringAppend(subs, " ")
@@ -738,7 +794,7 @@ Namespace API.YouTube.Objects
             _SubtitlesDelegated = New List(Of Subtitles)
             SubtitlesSelectedIndexes = New List(Of Integer)
             MediaObjects = New List(Of MediaObject)
-            Files = New List(Of SFile)
+            _Files = New List(Of SFile)
 
             PostProcessing_OutputSubtitlesFormats = New List(Of String)
             PostProcessing_OutputSubtitlesFormats.ListAddList(MyYouTubeSettings.DefaultSubtitlesFormatAddit)
@@ -767,9 +823,19 @@ Namespace API.YouTube.Objects
             If RemoveFiles Then
                 Dim fErr As New ErrorsDescriber(EDP.None)
                 Dim dMode As SFODelete = SFODelete.DeleteToRecycleBin
+                Dim paths As New List(Of SFile)
+                Dim l As New ListAddParams(LAP.NotContainsOnly) With {.Comparer = New FComparer(Of SFile)(Function(x, y) x.PathNoSeparator = y.PathNoSeparator)}
+                Dim isArr As Boolean = ObjectType <> YouTubeMediaType.Single And ObjectType <> YouTubeMediaType.Undefined
+                If isArr And AbsolutePath Then paths.ListAddValue(File, l)
                 File.Delete(SFO.File, dMode, fErr)
+                If isArr Then paths.ListAddValue(ThumbnailFile, l)
                 ThumbnailFile.Delete(SFO.File, dMode, fErr)
-                If Files.Count > 0 Then Files.ForEach(Sub(f) f.Delete(SFO.File, dMode, fErr))
+                If Files.Count > 0 Then
+                    If isArr Then paths.ListAddList(Files, l)
+                    Files.ForEach(Sub(f) f.Delete(SFO.File, dMode, fErr))
+                End If
+                If paths.Count > 0 Then paths.ForEach(Sub(p) If SFile.GetFiles(p,, IO.SearchOption.AllDirectories, EDP.ReturnValue).Count = 0 Then _
+                                                                p.Delete(SFO.Path, dMode, EDP.SendToLog))
             End If
             If HasElements Then Elements.ForEach(Sub(e) e.Delete(RemoveFiles))
         End Sub
@@ -854,17 +920,22 @@ Namespace API.YouTube.Objects
                 If HasElements AndAlso Elements(0).ObjectType = YouTubeMediaType.Single AndAlso Elements(0).IsMusic Then
                     Dim t As TextSaver = Nothing
                     Try
+                        Dim f As SFile
                         If MyYouTubeSettings.MusicPlaylistCreate_M3U8 Then
                             t = New TextSaver
                             t.AppendLine("#EXTM3U")
                             Elements.ForEach(Sub(e) t.AppendLine(GetPlaylistRow(e)))
-                            t.SaveAs($"{Elements(0).File.PathWithSeparator}Playlist.m3u8", EDP.SendToLog)
+                            f = $"{Elements(0).File.PathWithSeparator}Playlist.m3u8"
+                            t.SaveAs(f, EDP.SendToLog)
+                            If f.Exists Then AddFile(f)
                             t.Dispose()
                         End If
                         If MyYouTubeSettings.MusicPlaylistCreate_M3U Then
                             t = New TextSaver
                             Elements.ForEach(Sub(e) t.AppendLine(e.File))
-                            t.SaveAs($"{Elements(0).File.PathWithSeparator}Playlist.m3u", EDP.SendToLog)
+                            f = $"{Elements(0).File.PathWithSeparator}Playlist.m3u"
+                            t.SaveAs(f, EDP.SendToLog)
+                            If f.Exists Then AddFile(f)
                             t.Dispose()
                         End If
                     Catch ex As Exception
@@ -941,7 +1012,7 @@ Namespace API.YouTube.Objects
                     ff.Name = "album"
                     ff.Extension = "url"
                     CreateUrlFile(url, ff)
-                    If ff.Exists Then Files.Add(ff)
+                    If ff.Exists Then AddFile(ff)
                 End If
                 If MyYouTubeSettings.CreateThumbnails_Music Then
                     Using resp As New Responser
@@ -967,7 +1038,7 @@ Namespace API.YouTube.Objects
                                 url = LinkFormatterSecure(u)
                                 f.Name = "cover"
                                 f.Extension = "jpg"
-                                If resp.DownloadFile(url, f, EDP.ReturnValue) And f.Exists Then CoverDownloaded = True
+                                If resp.DownloadFile(url, f, EDP.ReturnValue) And f.Exists Then CoverDownloaded = True : AddFile(f)
                             End If
                         End If
                     End Using
@@ -976,19 +1047,61 @@ Namespace API.YouTube.Objects
                 ErrorsDescriber.Execute(EDP.SendToLog, ex, $"DownloadPlaylistCover({PlsId}, {f})")
             End Try
         End Sub
+        Private Structure TempFileConversion
+            Friend File As SFile
+            Friend Requested As Boolean
+            Friend ToReplace As Boolean
+            Friend ReadOnly Property Exists As Boolean
+                Get
+                    Return File.Exists
+                End Get
+            End Property
+            Friend Sub Delete()
+                If Not Requested Then File.Delete()
+            End Sub
+            Private Sub New(ByVal f As SFile)
+                File = f
+                Requested = False
+                ToReplace = False
+            End Sub
+            Friend Sub New(ByVal f As SFile, ByVal Source As YouTubeMediaContainerBase)
+                Me.New(f)
+                Requested = Source.PostProcessing_OutputAudioFormats.Count > 0 AndAlso
+                            Source.PostProcessing_OutputAudioFormats.Exists(Function(af) af.StringToLower = f.Extension)
+            End Sub
+            Public Shared Widening Operator CType(ByVal f As SFile) As TempFileConversion
+                Return New TempFileConversion(f)
+            End Operator
+            Public Shared Widening Operator CType(ByVal f As TempFileConversion) As SFile
+                Return f.File
+            End Operator
+            Public Overrides Function Equals(ByVal Obj As Object) As Boolean
+                If Not IsNothing(Obj) Then
+                    If TypeOf Obj Is TempFileConversion Then
+                        Return DirectCast(Obj, TempFileConversion).File = File
+                    ElseIf TypeOf Obj Is SFile Then
+                        Return DirectCast(Obj, SFile) = File
+                    ElseIf TypeOf Obj Is String Then
+                        Return New TempFileConversion(CStr(Obj)).File = File
+                    End If
+                End If
+                Return False
+            End Function
+        End Structure
         Protected Sub DownloadCommand(ByVal UseCookies As Boolean, ByVal Token As CancellationToken)
             Dim dCommand$ = String.Empty
             Try
                 ThrowAny(Token)
                 If MediaState = UMStates.Downloaded Or Not Checked Then Exit Sub
-                Dim h As DataReceivedEventHandler = Sub(ByVal Sender As Object, ByVal e As DataReceivedEventArgs)
-                                                        If Not e.Data.IsEmptyString Then
-                                                            Dim v# = AConvert(Of Double)(RegexReplace(e.Data, DownloadProgressPattern), NumberProvider, -1)
-                                                            If v >= 0 Then Progress.Value = v : Progress.Perform(0)
-                                                        End If
-                                                    End Sub
                 RaiseEvent FileDownloadStarted(Me, Nothing)
                 Using batch As New BatchExecutor(True) With {.Encoding = 65001}
+                    Dim h As DataReceivedEventHandler = Sub(ByVal Sender As Object, ByVal e As DataReceivedEventArgs)
+                                                            If Not e.Data.IsEmptyString Then
+                                                                Dim v# = AConvert(Of Double)(RegexReplace(e.Data, DownloadProgressPattern), NumberProvider, -1)
+                                                                If v >= 0 Then Progress.Value = v : Progress.Perform(0)
+                                                                If Token.IsCancellationRequested Then batch.Kill()
+                                                            End If
+                                                        End Sub
                     With batch
                         Dim prExists As Boolean = Not Progress Is Nothing
                         If prExists Then
@@ -1001,7 +1114,7 @@ Namespace API.YouTube.Objects
                                 .Information = $"Download {MediaType}"
                             End With
                         End If
-                        .MainProcessName = "yt-dlp"
+                        .MainProcessName = MyYouTubeSettings.YTDLP.Name '"yt-dlp"
                         .FileExchanger = MyCache.NewInstance(Of BatchFileExchanger)(CachePath, EDP.ReturnValue)
                         .FileExchanger.DeleteCacheOnDispose = True
                         .AddCommand("chcp 65001")
@@ -1027,14 +1140,14 @@ Namespace API.YouTube.Objects
                                 Dim fileUrl As SFile = File
                                 fileUrl.Extension = "url"
                                 CreateUrlFile(URL, fileUrl)
-                                If fileUrl.Exists Then Files.Add(fileUrl)
+                                If fileUrl.Exists Then AddFile(fileUrl)
                             End If
 
                             If MyYouTubeSettings.CreateDescriptionFiles And Not Description.IsEmptyString Then
                                 Dim fileDesr As SFile = File
                                 fileDesr.Extension = "txt"
                                 TextSaver.SaveTextToFile(Description, fileDesr,,, EDP.None)
-                                If fileDesr.Exists Then Files.Add(fileDesr)
+                                If fileDesr.Exists Then AddFile(fileDesr)
                             End If
 
                             If PlaylistCount > 0 And Not CoverDownloaded And Not PlaylistID.IsEmptyString Then DownloadPlaylistCover(PlaylistID, File, UseCookies)
@@ -1058,22 +1171,63 @@ Namespace API.YouTube.Objects
                                 Dim format$
                                 Dim fPattern$ = $"{File.PathWithSeparator}{File.Name}." & "{0}"
                                 Dim fPatternFiles$ = $"{File.Name}*." & "{0}"
-                                Dim fAacAudio As New SFile(String.Format(fPattern, aac))
-                                Dim fAc3Audio As New SFile(String.Format(fPattern, ac3))
-                                Dim aacRequested As Boolean = PostProcessing_OutputAudioFormats.Count > 0 AndAlso
-                                                              PostProcessing_OutputAudioFormats.Exists(Function(af) af.StringToLower = aac)
-                                Dim ac3Requested As Boolean = PostProcessing_OutputAudioFormats.Count > 0 AndAlso
-                                                              PostProcessing_OutputAudioFormats.Exists(Function(af) af.StringToLower = ac3)
+                                Dim fAacAudio As New TempFileConversion(New SFile(String.Format(fPattern, aac)), Me)
+                                Dim mp3ThumbEmbedded As Boolean = False
 
+                                Dim tempFilesList As New List(Of TempFileConversion)
+                                Dim ttFile As TempFileConversion
+
+                                Dim __updateBitrate As Boolean = OutputAudioBitrate > 0 AndAlso (SelectedAudioIndex = -1 OrElse SelectedAudio.Bitrate <> OutputAudioBitrate)
+                                If __updateBitrate Then Bitrate = OutputAudioBitrate
+                                Dim updateBitrate As Action(Of SFile) =
+                                    Sub(ByVal sourceFile As SFile)
+                                        If __updateBitrate AndAlso sourceFile.Exists Then
+                                            Dim destFile As SFile = sourceFile
+                                            destFile.Name &= "_new00"
+                                            .Execute($"ffmpeg -i ""{sourceFile}"" -crf {MyYouTubeSettings.DefaultAudioBitrate_crf.Value} -b:a {OutputAudioBitrate}k ""{destFile}""")
+                                            If destFile.Exists AndAlso sourceFile.Delete Then SFile.Rename(destFile, sourceFile)
+                                        End If
+                                    End Sub
+                                Dim __getAAC_tried As Boolean = False
+                                Dim AACExists As Func(Of Boolean) = Function() As Boolean
+                                                                        If Not __getAAC_tried Then
+                                                                            __getAAC_tried = True
+                                                                            .Execute($"ffmpeg -i ""{File}"" -vn -acodec {aac} ""{fAacAudio.File}""")
+                                                                            tempFilesList.Add(fAacAudio)
+                                                                            updateBitrate.Invoke(fAacAudio.File)
+                                                                        End If
+                                                                        Return fAacAudio.Exists
+                                                                    End Function
+                                Dim tryToConvert As Action(Of String, SFile) =
+                                    Sub(ByVal codec As String, ByVal dFile As SFile)
+                                        ThrowAny(Token)
+                                        .Execute($"ffmpeg -i ""{File}"" -vn -acodec {codec} ""{dFile}""")
+                                        If Not codec = aac AndAlso Not dFile.Exists AndAlso AACExists.Invoke Then
+                                            ThrowAny(Token)
+                                            .Execute($"ffmpeg -i ""{fAacAudio.File}"" -f {codec} ""{dFile}""")
+                                        End If
+                                    End Sub
+                                Dim embedThumbTo As Action(Of SFile) =
+                                    Sub(ByVal dFile As SFile)
+                                        If dFile.Exists And ThumbnailFile.Exists Then
+                                            Dim dFileNew As SFile = dFile
+                                            dFileNew.Name &= "_NEW"
+                                            .Execute($"ffmpeg -i ""{dFile}"" -i ""{ThumbnailFile}"" -map 0:0 -map 1:0 -c copy -id3v2_version 3 -metadata:s:v title=""Cover"" -metadata:s:v comment=""Cover"" ""{dFileNew}""")
+                                            If dFileNew.Exists AndAlso dFile.Delete(,, EDP.ReturnValue) Then SFile.Rename(dFileNew, dFile)
+                                        End If
+                                    End Sub
+
+                                'Subtitles
                                 ThrowAny(Token)
                                 If PostProcessing_OutputSubtitlesFormats.Count > 0 Then
                                     files = SFile.GetFiles(File, String.Format(fPatternFiles, OutputSubtitlesFormat.StringToLower),, EDP.ReturnValue)
+                                    AddFile(files)
                                     If files.ListExists Then
                                         For Each f In files
                                             For Each format In PostProcessing_OutputSubtitlesFormats
                                                 format = format.StringToLower
                                                 commandFile = $"{f.PathWithSeparator}{f.Name}.{format}"
-                                                Me.Files.Add(commandFile)
+                                                AddFile(commandFile)
                                                 ThrowAny(Token)
                                                 .Execute($"ffmpeg -i ""{f}"" ""{commandFile}""")
                                             Next
@@ -1081,46 +1235,81 @@ Namespace API.YouTube.Objects
                                     End If
                                 End If
 
+                                'Audio
                                 ThrowAny(Token)
-                                If PostProcessing_OutputAudioFormats.Count > 0 Or PostProcessing_AudioAC3 Then
-                                    If Not fAacAudio.Exists Then .Execute($"ffmpeg -i ""{File}"" -vn -acodec {aac} ""{fAacAudio}""")
-                                    If PostProcessing_AudioAC3 And Not fAc3Audio.Exists Then
-                                        ThrowAny(Token)
-                                        .Execute($"ffmpeg -i ""{File}"" -vn -acodec {ac3} ""{fAc3Audio}""")
-                                        If Not fAc3Audio.Exists And fAacAudio.Exists Then ThrowAny(Token) : .Execute($"ffmpeg -i ""{fAacAudio}"" -f {ac3} ""{fAc3Audio}""")
+                                If PostProcessing_OutputAudioFormats.Count > 0 Or PostProcessing_AudioAC3 Or PostProcessing_AudioMP3 Or __updateBitrate Then
+
+                                    If PostProcessing_AudioAC3 Then
+                                        ttFile = New TempFileConversion(New SFile(String.Format(fPattern, ac3)), Me) With {.ToReplace = True}
+                                        tempFilesList.Add(ttFile)
+                                        If Not ttFile.Exists Then tryToConvert.Invoke(ac3, ttFile.File)
+                                        updateBitrate.Invoke(ttFile.File)
                                     End If
+
+                                    If PostProcessing_AudioMP3 Then
+                                        ttFile = New TempFileConversion(New SFile(String.Format(fPattern, mp3)), Me) With {.ToReplace = True}
+                                        tempFilesList.Add(ttFile)
+                                        If Not ttFile.Requested Then ttFile.Requested = SelectedVideoIndex = -1 And OutputAudioCodec.StringToLower = mp3
+                                        If Not ttFile.Exists Then tryToConvert.Invoke(mp3, ttFile.File)
+                                        updateBitrate.Invoke(ttFile.File)
+                                        embedThumbTo.Invoke(ttFile.File)
+                                        mp3ThumbEmbedded = True
+                                    End If
+
+                                    If __updateBitrate Then
+                                        format = OutputAudioCodec.StringToLower
+                                        If Not format.IsEmptyString Then
+                                            f = String.Format(fPattern, format)
+                                            ttFile = New TempFileConversion(f, Me) With {.ToReplace = True}
+                                            If Not ttFile.Requested Then ttFile.Requested = SelectedVideoIndex = -1
+                                            If Not f.Exists Then
+                                                tempFilesList.ListAddValue(ttFile, LAP.NotContainsOnly)
+                                                tryToConvert.Invoke(format, f)
+                                                updateBitrate.Invoke(f)
+                                            ElseIf Not tempFilesList.Contains(ttFile) Then
+                                                tempFilesList.Add(ttFile)
+                                                updateBitrate.Invoke(f)
+                                            End If
+                                        End If
+                                    End If
+
                                     If PostProcessing_OutputAudioFormats.Count > 0 Then
                                         For Each format In PostProcessing_OutputAudioFormats
                                             format = format.StringToLower
                                             f = String.Format(fPattern, format)
-                                            Me.Files.Add(f)
-                                            If Not format = ac3 Or Not f.Exists Then
-                                                ThrowAny(Token)
-                                                .Execute($"ffmpeg -i ""{fAacAudio}"" -f {format} ""{f}""")
+                                            AddFile(f)
+                                            If Not f.Exists Then
+                                                tryToConvert.Invoke(format, f)
+                                                updateBitrate(f)
+                                                If format = mp3 And Not mp3ThumbEmbedded And MyYouTubeSettings.DefaultAudioEmbedThumbnail_ExtractedFiles Then _
+                                                   embedThumbTo.Invoke(f) : mp3ThumbEmbedded = True
                                                 If Not M3U8_PlaylistFiles.ListExists AndAlso f.Exists Then M3U8_Append(f)
                                             End If
                                         Next
                                     End If
                                 End If
 
+                                'Update video
                                 ThrowAny(Token)
-                                If PostProcessing_AudioAC3 Then
+                                If SelectedVideoIndex >= 0 AndAlso tempFilesList.Count > 0 AndAlso tempFilesList.Exists(Function(tf) tf.ToReplace) Then
                                     f = File
-                                    If SelectedVideoIndex >= 0 Then
-                                        f.Name &= "tmp00"
-                                    Else
-                                        f.Extension = ac3
+                                    f.Name &= "tmp00"
+                                    Dim tfr As SFile = tempFilesList.FirstOrDefault(Function(tf) tf.ToReplace).File
+                                    If tfr.Exists And Not f.Exists Then
+                                        ThrowAny(Token)
+                                        .Execute($"ffmpeg -i ""{File}"" -i ""{tfr}"" -c:v copy -c copy -map 0:v:0 -map 1:a:0 ""{f}""")
                                     End If
-                                    If Not f.Exists Then ThrowAny(Token) : .Execute($"ffmpeg -i ""{File}"" -i ""{fAc3Audio}"" -c:v copy -c copy -map 0:v:0 -map 1:a:0 ""{f}""")
                                     If f.Exists Then
                                         File.Delete()
                                         If SelectedVideoIndex >= 0 Then SFile.Rename(f, File,, EDP.LogMessageValue)
                                     End If
-                                    If fAacAudio.Exists And Not aacRequested Then fAacAudio.Delete()
-                                    If fAc3Audio.Exists And Not ac3Requested And SelectedVideoIndex >= 0 Then fAc3Audio.Delete()
                                 End If
 
-                                If SelectedVideoIndex >= 0 AndAlso OutputVideoFPS > 0 AndAlso SelectedVideo.Bitrate > OutputVideoFPS Then
+                                'Delete unrequsted files
+                                If tempFilesList.Count > 0 Then tempFilesList.ForEach(Sub(tfr) If Not tfr.Requested Then tfr.File.Delete(,, EDP.None)) : tempFilesList.Clear()
+
+                                'Update video FPS
+                                If SelectedVideoIndex >= 0 AndAlso OutputVideoFPS > 0 AndAlso SelectedVideo.Bitrate <> OutputVideoFPS Then
                                     f = File
                                     f.Name &= "tmp00"
                                     .Execute($"ffmpeg -i ""{File}"" -filter:v fps={OutputVideoFPS.ToString.Replace(",", ".")} -c:a copy ""{f}""")
@@ -1132,6 +1321,12 @@ Namespace API.YouTube.Objects
                             End If
                         End If
                     End With
+
+                    Dim newSize# = 0
+                    If File.Exists Then newSize += File.Size
+                    If Files.Count > 0 Then newSize += (From eFile As SFile In Files Where eFile.Exists Select eFile.Size).Sum
+                    If ThumbnailFile.Exists Then newSize += ThumbnailFile.Size
+                    If newSize > 0 Then newSize /= 1024 : Size = newSize : _SizeRecalculated = True
                 End Using
                 _MediaState = UMStates.Downloaded
             Catch oex As OperationCanceledException When Token.IsCancellationRequested
@@ -1304,6 +1499,7 @@ Namespace API.YouTube.Objects
         End Sub
 #End Region
 #Region "Parse"
+        Friend Const DRC As String = "drc"
         Public Overridable Function Parse(ByVal Container As EContainer, ByVal Path As SFile, ByVal IsMusic As Boolean,
                                           Optional ByVal Token As CancellationToken = Nothing, Optional ByVal Progress As IMyProgress = Nothing) As Boolean Implements IYouTubeMediaContainer.Parse
             Try
@@ -1366,6 +1562,7 @@ Namespace API.YouTube.Objects
                             _File.Name = $"{ID}.{ext}"
                         End If
                         If Not MyYouTubeSettings.OutputPath.IsEmptyString Then _File.Path = MyYouTubeSettings.OutputPath.Value.Path
+                        _File = CleanFileName(_File)
                         File = _File
 
                         If .Contains("duration") Then
@@ -1455,7 +1652,8 @@ Namespace API.YouTube.Objects
                     obj = New MediaObject With {
                         .ID = ee.Value("format_id"),
                         .URL = ee.Value("url"),
-                        .Extension = ee.Value("ext")
+                        .Extension = ee.Value("ext"),
+                        .ID_DRC = Not .ID.IsEmptyString AndAlso .ID.StringToLower.Contains(DRC)
                     }
                     obj.Width = AConvert(Of Integer)(ee.Value("width"), NumberProvider, -1)
                     obj.Height = AConvert(Of Integer)(ee.Value("height"), NumberProvider, -1)
@@ -1509,6 +1707,14 @@ Namespace API.YouTube.Objects
                                 If MediaObjects.LongCount(CountWebm) > 0 Then MediaObjects.RemoveAll(RemoveWebm)
                                 If MediaObjects.Count > 0 AndAlso MediaObjects.LongCount(CountAVC) > 0 Then MediaObjects.RemoveAll(RemoveAVC)
                             Next
+                        End If
+                        If t = UMTypes.Audio And MediaObjects.Count > 0 Then
+                            Dim __audioComparerCount As Func(Of MediaObject, MediaObject, Boolean) =
+                                Function(mo, mo2) (mo2.Type = t And mo2.Extension = mo.Extension And mo2.Bitrate = mo.Bitrate) AndAlso
+                                                   mo2.Size.RoundDown = mo.Size.RoundDown AndAlso ACheck(Of Integer)(mo2.ID)
+                            Dim RemoveDRC As Predicate(Of MediaObject) = Function(mo) mo.Type = t AndAlso Not ACheck(Of Integer)(mo.ID) AndAlso
+                                                                                      MediaObjects.LongCount(Function(mo2) __audioComparerCount.Invoke(mo, mo2)) > 0
+                            MediaObjects.RemoveAll(RemoveDRC)
                         End If
                     End Sub
                 Dim protocolCleaner As Action =
@@ -1691,7 +1897,7 @@ Namespace API.YouTube.Objects
                     _SubtitlesDelegated.Clear()
                     SubtitlesSelectedIndexes.Clear()
                     MediaObjects.Clear()
-                    Files.Clear()
+                    _Files.Clear()
                     PostProcessing_OutputAudioFormats.Clear()
                     PostProcessing_OutputSubtitlesFormats.Clear()
                 End If

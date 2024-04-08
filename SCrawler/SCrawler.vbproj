@@ -181,6 +181,7 @@
     <Compile Include="API\Facebook\UserData.vb" />
     <Compile Include="API\Facebook\UserExchangeOptions.vb" />
     <Compile Include="API\Instagram\EditorExchangeOptions.vb" />
+    <Compile Include="API\Instagram\UserData.GQL.vb" />
     <Compile Include="API\JustForFans\Declarations.vb" />
     <Compile Include="API\JustForFans\M3U8.vb" />
     <Compile Include="API\JustForFans\SiteSettings.vb" />

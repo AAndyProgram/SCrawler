@@ -91,19 +91,49 @@ Namespace Plugin.Hosts
                 End If
             End With
             HostsUnavailableIndexes = New List(Of Integer)
-            Hosts = New List(Of SettingsHost) From {New SettingsHost(CreateInstance(), True, _XML, GlobalPath, _Temp, _Imgs, _Vids)}
-            HostsXml = New List(Of XmlFile)
+            Dim defInstance As ISiteSettings = CreateInstance()
+            HostsXml = New List(Of XmlFile) From {
+                GetNewXmlFile($"{SettingsFolderName}\{SiteSettingsBase.ResponserFilePrefix}{defInstance.Site}_Settings.xml", defInstance.Site, _XML)
+            }
+            Hosts = New List(Of SettingsHost) From {New SettingsHost(defInstance, True, HostsXml(0), GlobalPath, _Temp, _Imgs, _Vids)}
+
             Dim hostFiles As List(Of SFile) = SFile.GetFiles(SettingsFolderName.CSFileP, $"{String.Format(FileNamePattern, Key, Name)}*.xml",, EDP.ReturnValue)
             If hostFiles.ListExists Then
                 For Each f As SFile In hostFiles
-                    HostsXml.Add(New XmlFile(f) With {.AutoUpdateFile = True})
-                    Hosts.Add(New SettingsHost(CreateInstance(HostsXml.Last.Value({SettingsCLS.Name_Node_Sites, [Default].Name}, SettingsHost.NameXML_AccountName)), False, HostsXml.Last,
+                    HostsXml.Add(GetNewXmlFile(f, [Default].Name))
+                    Hosts.Add(New SettingsHost(CreateInstance(HostsXml.Last.Value(SettingsHost.NameXML_AccountName)), False, HostsXml.Last,
                                                GlobalPath, _Temp, _Imgs, _Vids))
                 Next
             End If
             Hosts.ListReindex
             Hosts.ForEach(Sub(h) SetHostHandlers(h))
         End Sub
+        Private Function GetNewXmlFile(ByVal f As SFile, ByVal SiteName As String, Optional ByVal SourceXml As XmlFile = Nothing) As XmlFile
+            Dim x As New XmlFile(f,, False) With {.AutoUpdateFile = True}
+            If Not f.Exists Then x.Name = "SiteSettings"
+            x.LoadData()
+            'URGENT: reorganization of settings: remove the following code
+            Dim n$() = {SettingsCLS.Name_Node_Sites, SiteName}
+            Dim processed As Boolean = False
+            With If(SourceXml, x)
+                If .Count > 0 AndAlso .Contains(n) Then
+                    With .Item(n)
+                        If .ListExists Then
+                            For Each container As EContainer In .Self : x.Add(container.Name, container.Value) : Next
+                            processed = True
+                        End If
+                    End With
+                    If processed Then
+                        .Remove(n)
+                        If SourceXml Is Nothing Then .Remove(SettingsCLS.Name_Node_Sites)
+                        x.Name = "SiteSettings"
+                        x.UpdateData()
+                    End If
+                End If
+            End With
+            '-----END REMOVE-----
+            Return x
+        End Function
 #End Region
 #Region "CreateInstance"
         Private Function CreateInstance(Optional ByVal Name As String = Nothing, Optional ByVal Abstract As Boolean = False) As ISiteSettings
@@ -121,15 +151,33 @@ Namespace Plugin.Hosts
         End Function
 #End Region
 #Region "Host handlers"
+#Region "Edit"
+        Private Sub Hosts_OnBeginEdit(ByVal Obj As SettingsHost)
+            If Obj.Index.ValueBetween(0, HostsXml.Count - 1) Then HostsXml(Obj.Index).BeginUpdate()
+        End Sub
+        Private Sub Hosts_OnUpdate(ByVal Obj As SettingsHost)
+        End Sub
+        Private Sub Hosts_OnEndEdit(ByVal Obj As SettingsHost)
+            If Obj.Index.ValueBetween(0, HostsXml.Count - 1) Then
+                With HostsXml(Obj.Index)
+                    .EndUpdate()
+                    If .ChangesDetected Then .UpdateData(EDP.SendToLog)
+                End With
+            End If
+        End Sub
+#End Region
         Private Sub SetHostHandlers(ByVal Host As SettingsHost)
             AddHandler Host.OkClick, AddressOf Hosts_OkClick
             AddHandler Host.Deleted, AddressOf Hosts_Deleted
             AddHandler Host.CloneClick, AddressOf Hosts_CloneClick
+            AddHandler Host.OnBeginEdit, AddressOf Hosts_OnBeginEdit
+            AddHandler Host.OnUpdate, AddressOf Hosts_OnUpdate
+            AddHandler Host.OnEndEdit, AddressOf Hosts_OnEndEdit
             If Host.Index > 0 Then Host.Source.DefaultInstance = [Default].Source : Host.DefaultInstanceChanged()
         End Sub
         Private Sub Hosts_OkClick(ByVal Obj As SettingsHost)
             If Obj.Index = -1 Then
-                HostsXml.Add(New XmlFile($"{SettingsFolderName}\{String.Format(FileNamePatternFull, Key, Name, Obj.AccountName)}.xml") With {.AutoUpdateFile = True})
+                HostsXml.Add(GetNewXmlFile($"{SettingsFolderName}\{String.Format(FileNamePatternFull, Key, Name, Obj.AccountName)}.xml", Name))
                 With Settings : Hosts.Add(Obj.Apply(HostsXml.Last, .GlobalPath,
                                                     .DefaultTemporary, .DefaultDownloadImages, .DefaultDownloadVideos)) : End With
                 HostsXml.Last.UpdateData()
@@ -157,11 +205,11 @@ Namespace Plugin.Hosts
                             MsgBoxE({$"An error occurred while changing user accounts (see log for details).{vbCr}Operation canceled.", ChngUACC_MsgTitle}, vbCritical)
                             Exit Sub
                     End Select
-                    With HostsXml(Obj.Index - 1)
+                    With HostsXml(Obj.Index)
                         .File.Delete(SFO.File, SFODelete.DeleteToRecycleBin, EDP.None)
                         .Dispose()
                     End With
-                    HostsXml.RemoveAt(Obj.Index - 1)
+                    HostsXml.RemoveAt(Obj.Index)
                     Hosts.RemoveAt(Obj.Index)
                     Hosts.ListReindex
                     Obj.Source.Delete()

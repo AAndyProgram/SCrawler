@@ -37,7 +37,7 @@ Namespace DownloadObjects.Groups
                     End If
                 End With
             End If
-            GroupsList.ListReindex
+            Reindex()
         End Sub
 #End Region
 #Region "Base properties"
@@ -75,7 +75,10 @@ Namespace DownloadObjects.Groups
             GroupsList.Sort()
         End Sub
         Friend Sub Reindex()
+            Dim initUpValue As Boolean = _UpdateMode
+            BeginUpdate()
             GroupsList.ListReindex
+            If Not initUpValue Then EndUpdate()
         End Sub
 #End Region
 #Region "Group handlers"
@@ -92,7 +95,7 @@ Namespace DownloadObjects.Groups
             If i >= 0 Then
                 GroupsList(i).Dispose()
                 GroupsList.RemoveAt(i)
-                GroupsList.ListReindex
+                Reindex()
                 Update()
             End If
         End Sub
@@ -133,9 +136,9 @@ Namespace DownloadObjects.Groups
                     AddHandler .Deleted, AddressOf OnGroupDeleted
                     AddHandler .Updated, AddressOf OnGroupUpdated
                     If Not exists Then
-                        GroupsList.ListReindex
+                        Reindex()
                         GroupsList.Sort()
-                        GroupsList.ListReindex
+                        Reindex()
                         If Not Item.IsViewFilter And Not _UpdateMode Then RaiseEvent Added(.Self)
                     Else
                         If Not Item.IsViewFilter And Not _UpdateMode Then RaiseEvent Updated(.Self)

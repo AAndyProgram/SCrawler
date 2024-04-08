@@ -11,7 +11,7 @@ Namespace API.Base.YTDLP
         Friend Sub New(ByVal _Token As Threading.CancellationToken)
             MyBase.New(_Token)
             Commands.Clear()
-            MainProcessName = "yt-dlp"
+            MainProcessName = Settings.YtdlpFile.File.Name '"yt-dlp"
             ChangeDirectory(Settings.YtdlpFile.File)
         End Sub
     End Class

@@ -24,11 +24,9 @@ Namespace API.ThreadsNet
             End Get
         End Property
         Private ReadOnly DefaultParser_ElemNode_Default() As Object = {"node", "thread_items", 0, "post"}
-        Private OPT_LSD As String = String.Empty
-        Private OPT_FB_DTSG As String = String.Empty
         Private ReadOnly Property Valid As Boolean
             Get
-                Return Not OPT_LSD.IsEmptyString And Not OPT_FB_DTSG.IsEmptyString And Not ID.IsEmptyString
+                Return ValidateBaseTokens() And Not ID.IsEmptyString
             End Get
         End Property
 #End Region
@@ -54,23 +52,31 @@ Namespace API.ThreadsNet
         End Sub
 #End Region
 #Region "Download functions"
+        Private Sub WaitTimer()
+            If CInt(MySettings.RequestsWaitTimer_Any.Value) > 0 Then Thread.Sleep(CInt(MySettings.RequestsWaitTimer_Any.Value))
+        End Sub
+        Private Sub DisableDownload()
+            MySettings.DownloadData_Impl.Value = False
+            MyMainLOG = $"{Site} downloading is disabled until you update your credentials"
+        End Sub
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
-            Dim errorFound As Boolean = False
-            Try
-                Responser.Method = "POST"
-                LoadSavePostsKV(True)
-                OPT_LSD = String.Empty
-                OPT_FB_DTSG = String.Empty
-                DownloadData(String.Empty, Token)
-            Catch ex As Exception
-                errorFound = True
-                Throw ex
-            Finally
-                Responser.Method = "POST"
-                UpdateResponser()
-                MySettings.UpdateResponserData(Responser)
-                If Not errorFound Then LoadSavePostsKV(False)
-            End Try
+            If CBool(MySettings.DownloadData_Impl.Value) Then
+                Dim errorFound As Boolean = False
+                Try
+                    Responser.Method = "POST"
+                    LoadSavePostsKV(True)
+                    ResetBaseTokens()
+                    DownloadData(String.Empty, Token)
+                Catch ex As Exception
+                    errorFound = True
+                    Throw ex
+                Finally
+                    Responser.Method = "POST"
+                    UpdateResponser()
+                    MySettings.UpdateResponserData(Responser)
+                    If Not errorFound Then LoadSavePostsKV(False)
+                End Try
+            End If
         End Sub
         Protected Overrides Sub UpdateResponser()
             If Not Responser Is Nothing AndAlso Not Responser.Disposed Then
@@ -95,11 +101,11 @@ Namespace API.ThreadsNet
                     UpdateCredentials()
                     If idIsNull And Not ID.IsEmptyString Then _ForceSaveUserInfo = True
                 End If
-                If Not Valid Then Throw New Plugin.ExitException("Some credentials are missing")
+                If Not Valid Then DisableDownload() : Throw New Plugin.ExitException("Some credentials are missing")
 
                 Responser.Method = "POST"
                 Responser.Referer = $"https://www.threads.net/@{NameTrue}"
-                Responser.Headers.Add(Header_FB_LSD, OPT_LSD)
+                Responser.Headers.Add(GQL_HEADER_FB_LSD, Token_lsd)
 
                 Dim nextCursor$ = String.Empty
                 Dim dataFound As Boolean = False
@@ -112,7 +118,7 @@ Namespace API.ThreadsNet
                 End If
                 vars = SymbolsConverter.ASCII.EncodeSymbolsOnly("{" & vars & "}")
 
-                URL = String.Format(urlPattern, OPT_LSD, vars, SymbolsConverter.ASCII.EncodeSymbolsOnly(OPT_FB_DTSG))
+                URL = String.Format(urlPattern, Token_lsd, vars, Token_dtsg_Var)
 
                 Using j As EContainer = GetDocument(URL, Token)
                     If j.ListExists Then
@@ -135,8 +141,9 @@ Namespace API.ThreadsNet
         Private Function GetDocument(ByVal URL As String, ByVal Token As CancellationToken, Optional ByVal Round As Integer = 0) As EContainer
             Try
                 ThrowAny(Token)
-                If Round > 0 AndAlso Not UpdateCredentials() Then Throw New Exception("Failed to update credentials")
+                If Round > 0 AndAlso Not UpdateCredentials() Then DisableDownload() : Throw New Exception("Failed to update credentials")
                 ThrowAny(Token)
+                WaitTimer()
                 Dim r$ = Responser.GetResponse(URL)
                 If Not r.IsEmptyString Then Return JsonDocument.Parse(r) Else Throw New Exception("Failed to get a response")
             Catch ex As Exception
@@ -149,12 +156,12 @@ Namespace API.ThreadsNet
         End Function
         Private Function UpdateCredentials(Optional ByVal e As ErrorsDescriber = Nothing) As Boolean
             Dim URL$ = $"https://www.threads.net/@{NameTrue}"
-            OPT_LSD = String.Empty
-            OPT_FB_DTSG = String.Empty
+            ResetBaseTokens()
             Try
                 Responser.Method = "GET"
                 Responser.Referer = URL
-                Responser.Headers.Remove(Header_FB_LSD)
+                Responser.Headers.Remove(GQL_HEADER_FB_LSD)
+                WaitTimer()
                 Dim r$ = Responser.GetResponse(URL,, EDP.ThrowException)
                 Dim rr As RParams
                 Dim tt$, ttVal$
@@ -168,15 +175,15 @@ Namespace API.ThreadsNet
                             .WhatGet = RegexReturn.Value
                         End With
                         For Each tt In tokens
-                            If Not OPT_FB_DTSG.IsEmptyString And Not OPT_LSD.IsEmptyString Then
+                            If Not Token_dtsg.IsEmptyString And Not Token_lsd.IsEmptyString Then
                                 Exit For
                             Else
                                 ttVal = RegexReplace(tt, rr)
                                 If Not ttVal.IsEmptyString Then
                                     If ttVal.Contains(":") Then
-                                        If OPT_FB_DTSG.IsEmptyString Then OPT_FB_DTSG = ttVal
+                                        If Token_dtsg.IsEmptyString Then Token_dtsg = ttVal
                                     Else
-                                        If OPT_LSD.IsEmptyString Then OPT_LSD = ttVal
+                                        If Token_lsd.IsEmptyString Then Token_lsd = ttVal
                                     End If
                                 End If
                             End If
@@ -187,9 +194,9 @@ Namespace API.ThreadsNet
                 Return Valid
             Catch ex As Exception
                 Dim notFound$ = String.Empty
-                If OPT_FB_DTSG.IsEmptyString Then notFound.StringAppend(Header_FB_LSD)
-                If OPT_LSD.IsEmptyString Then notFound.StringAppend("lsd")
+                ValidateBaseTokens(notFound)
                 If ID.IsEmptyString Then notFound.StringAppend("User ID")
+                DisableDownload()
                 Dim eex As New ErrorsDescriberException($"{ToStringForLog()}: failed to update some{IIf(notFound.IsEmptyString, String.Empty, $" ({notFound})")} credentials",,, ex) With {
                     .ReplaceMainMessage = True,
                     .SendToLogOnlyMessage = Responser.StatusCode = Net.HttpStatusCode.InternalServerError And Responser.Status = Net.WebExceptionStatus.ProtocolError
@@ -224,7 +231,7 @@ Namespace API.ThreadsNet
                         If m.State = UserMedia.States.Missing And Not m.Post.ID.IsEmptyString Then
                             ThrowAny(Token)
                             vars = SymbolsConverter.ASCII.EncodeSymbolsOnly("{" & String.Format(varsPattern, m.Post.ID.Split("_").FirstOrDefault, ID) & "}")
-                            URL = String.Format(urlPattern, OPT_LSD, vars, SymbolsConverter.ASCII.EncodeSymbolsOnly(OPT_FB_DTSG))
+                            URL = String.Format(urlPattern, Token_lsd, vars, Token_dtsg_Var)
 
                             j = GetDocument(URL, Token)
                             If j.ListExists Then

@@ -49,7 +49,7 @@ Namespace API.Base
             End Sub
             Public Overrides Function Convert(ByVal Value As Object, ByVal DestinationType As Type, ByVal Provider As IFormatProvider,
                                               Optional ByVal NothingArg As Object = Nothing, Optional ByVal e As ErrorsDescriber = Nothing) As Object
-                Dim v% = AConvert(Of Integer)(Value, -1)
+                Dim v% = AConvert(Of Integer)(Value, -1, EDP.ReturnValue)
                 If v > 0 Then
                     Return Value
                 ElseIf Not ACheck(Of Integer)(Value) Then

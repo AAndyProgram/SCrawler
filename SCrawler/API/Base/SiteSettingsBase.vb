@@ -17,6 +17,7 @@ Imports Download = SCrawler.Plugin.ISiteSettings.Download
 Namespace API.Base
     Friend MustInherit Class SiteSettingsBase : Implements ISiteSettings, IResponserContainer
 #Region "Declarations"
+        <PXML> Protected ReadOnly Property SettingsVersion As PropertyValue
         Friend ReadOnly Property Site As String Implements ISiteSettings.Site
         Protected _Icon As Icon = Nothing
         Friend Overridable ReadOnly Property Icon As Icon Implements ISiteSettings.Icon
@@ -61,6 +62,7 @@ Namespace API.Base
         End Sub
 #End Region
 #Region "Responser and cookies support"
+        Friend Const ResponserFilePrefix As String = "Responser_"
         Private _CookiesNetscapeFile As SFile = Nothing
         Friend ReadOnly Property CookiesNetscapeFile As SFile
             Get
@@ -91,7 +93,7 @@ Namespace API.Base
         End Property
         Protected Sub UpdateResponserFile()
             Dim acc$ = If(AccountName.IsEmptyString OrElse AccountName = Hosts.SettingsHost.NameAccountNameDefault, String.Empty, $"_{AccountName}")
-            Responser.File = $"{SettingsFolderName}\Responser_{Site}{acc}.xml"
+            Responser.File = $"{SettingsFolderName}\{ResponserFilePrefix}{Site}{acc}.xml"
             _CookiesNetscapeFile = Responser.File
             _CookiesNetscapeFile.Name &= "_Cookies_Netscape"
             _CookiesNetscapeFile.Extension = "txt"
@@ -106,6 +108,7 @@ Namespace API.Base
             _Icon = __Icon
             _Image = __Image
             Responser = New Responser With {.DeclaredError = EDP.ThrowException}
+            SettingsVersion = New PropertyValue(0)
             UpdateResponserFile()
         End Sub
         Friend Sub New(ByVal SiteName As String, ByVal CookiesDomain As String, ByVal AccName As String, ByVal Temp As Boolean,

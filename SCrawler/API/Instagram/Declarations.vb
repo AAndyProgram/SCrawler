@@ -18,7 +18,7 @@ Namespace API.Instagram
         Friend ReadOnly ObtainMedia_SizeFuncPic_RegexP As RParams = RParams.DMS("_p(\d+)x(\d+)", 1, EDP.ReturnValue)
         Friend ReadOnly ObtainMedia_SizeFuncPic_RegexS As RParams = RParams.DMS("_s(\d+)x(\d+)", 1, EDP.ReturnValue)
         Friend Const PageTokenRegexPatternDefault As String = "\[\],{""token"":""(.*?)""},\d+\]"
-        Friend Sub UpdateResponser(ByVal Source As IResponse, ByRef Destination As Responser)
+        Friend Sub UpdateResponser(ByVal Source As IResponse, ByRef Destination As Responser, ByVal UpdateWwwClaim As Boolean)
             Const r_wwwClaimName$ = "x-ig-set-www-claim"
             Const r_tokenName$ = SiteSettings.Header_CSRF_TOKEN_COOKIE
             If Not Source Is Nothing Then
@@ -35,17 +35,17 @@ Namespace API.Instagram
                 Dim token$ = String.Empty
                 With Source
                     If isInternal Then
-                        If .HeadersExists Then wwwClaim = .Headers.Value(wwwClaimName)
+                        If UpdateWwwClaim And .HeadersExists Then wwwClaim = .Headers.Value(wwwClaimName)
                         If .CookiesExists Then token = If(.Cookies.FirstOrDefault(Function(c) c.Name = tokenName)?.Value, String.Empty)
                     Else
                         If .HeadersExists Then
-                            wwwClaim = .Headers.Value(wwwClaimName)
+                            If UpdateWwwClaim Then wwwClaim = .Headers.Value(wwwClaimName)
                             token = .Headers.Value(tokenName)
                         End If
                     End If
                 End With
 
-                If Not wwwClaim.IsEmptyString Then Destination.Headers.Add(SiteSettings.Header_IG_WWW_CLAIM, wwwClaim)
+                If UpdateWwwClaim And Not wwwClaim.IsEmptyString Then Destination.Headers.Add(SiteSettings.Header_IG_WWW_CLAIM, wwwClaim)
                 If Not token.IsEmptyString Then Destination.Headers.Add(SiteSettings.Header_CSRF_TOKEN, token)
                 If Not isInternal Then
                     Destination.Cookies.Update(Source.Cookies, CookieKeeper.UpdateModes.ReplaceByNameAll, False, EDP.SendToLog)

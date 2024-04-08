@@ -27,6 +27,7 @@ Namespace API.YouTube.Controls
         Friend Sub New(ByVal m As MediaObject, Optional ByVal SelectedAudio As MediaObject = Nothing)
             Me.New
             Const d$ = " " & ChrW(183) & " "
+            Const DRC$ = Objects.YouTubeMediaContainerBase.DRC
             MyMedia = m
             If m.Type = Plugin.UserMediaTypes.Audio Then
                 If m.Bitrate >= 320 Then
@@ -38,6 +39,7 @@ Namespace API.YouTube.Controls
                 End If
                 LBL_DEFINITION.Text = $"{m.Bitrate}k"
                 LBL_CODECS.Text = $"{m.Extension} {d} {m.Codec} {d} {m.Bitrate}k"
+                If Not m.ID.IsEmptyString AndAlso m.ID.StringToLower.Contains(DRC) Then LBL_CODECS.Text &= $" {d} DRC"
             Else
                 If m.Height >= 1440 Then
                     LBL_DEFINITION_INFO.Text = "Ultra High Definition"
@@ -53,7 +55,9 @@ Namespace API.YouTube.Controls
                 LBL_DEFINITION.Text = $"{m.Height}p"
                 LBL_CODECS.Text = $"{m.Extension.StringToUpper}{d}{m.Codec.StringToUpper}{d}{m.FPS}fps{d}{m.Bitrate}k"
                 If Not m.Protocol.IsEmptyString Then LBL_CODECS.Text &= $" ({m.Protocol})"
+                If Not m.ID.IsEmptyString AndAlso m.ID.StringToLower.Contains(DRC) Then LBL_CODECS.Text &= $"{d}DRC"
                 If Not SelectedAudio.ID.IsEmptyString Then LBL_CODECS.Text &= $" / {SelectedAudio.Extension}{d}{SelectedAudio.Codec}{d}{SelectedAudio.Bitrate}k"
+                If Not SelectedAudio.ID.IsEmptyString AndAlso SelectedAudio.ID.StringToLower.Contains(DRC) Then LBL_CODECS.Text &= $"{d}DRC"
             End If
 
             Dim sv% = m.Size / 1024

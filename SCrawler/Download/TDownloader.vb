@@ -192,10 +192,6 @@ Namespace DownloadObjects
                     _FilesSessionCleared = True
                     Dim files As List(Of SFile) = SFile.GetFiles(SessionsPath.CSFileP, "*.xml",, EDP.ReturnValue)
                     If files.ListExists Then files.RemoveAll(Settings.Feeds.FeedSpecialRemover)
-                    If RenameOldFileNames(files) Then
-                        files = SFile.GetFiles(SessionsPath.CSFileP, "*.xml",, EDP.ReturnValue)
-                        If files.ListExists Then files.RemoveAll(Settings.Feeds.FeedSpecialRemover)
-                    End If
                     If files.ListExists Then
                         Const ds$ = "yyyyMMdd"
                         Dim nd$ = Now.ToString(ds), d1$ = Now.AddDays(-1).ToString(ds), d2$ = Now.AddDays(-2).ToString(ds)
@@ -211,26 +207,6 @@ Namespace DownloadObjects
                 ErrorsDescriber.Execute(EDP.SendToLog, ex, "[DownloadObjects.TDownloader.ClearSessions]")
             End Try
         End Sub
-        Private Function RenameOldFileNames(ByVal files As List(Of SFile)) As Boolean
-            Dim result As Boolean = False
-            Try
-                If files.ListExists AndAlso files.Exists(Function(ff) ff.Name.StringToLower.StartsWith("latest")) Then
-                    Dim d As Date
-                    Dim fileCurrent As SFile, fileNew As SFile
-                    For Each fileCurrent In files
-                        If fileCurrent.Name.StringToLower.StartsWith("latest") Then
-                            d = IO.File.GetLastWriteTime(fileCurrent)
-                            fileNew = fileCurrent
-                            fileNew.Name = AConvert(Of String)(d, SessionDateTimeProvider)
-                            SFile.Rename(fileCurrent, fileNew,, EDP.None)
-                            result = True
-                        End If
-                    Next
-                End If
-            Catch
-            End Try
-            Return result
-        End Function
 #End Region
         Friend ReadOnly Property Downloaded As List(Of IUserData)
         Private ReadOnly NProv As IFormatProvider

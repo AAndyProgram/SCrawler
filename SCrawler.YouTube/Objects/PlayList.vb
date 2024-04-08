@@ -19,17 +19,18 @@ Namespace API.YouTube.Objects
             Dim __title$ = $" - {Title}"
             If Not s.IsEmptyString Then s = $" [{s}]"
             If Not PlaylistTitle.IsEmptyString And Not ForMediaItem Then t = $"{PlaylistTitle} - "
+            Dim c% = {Count, ElementsNumber}.Max
             If IsMusic Then
-                If Count <= 1 Then t &= "Single" Else t &= "Album"
+                If c <= 1 Then t &= "Single" Else t &= "Album"
             Else
                 t &= "Playlist"
             End If
             If Not PlaylistTitle.IsEmptyString And Not ForMediaItem Then t &= $" - {PlaylistTitle}"
             If PlaylistTitle = Title Then __title = String.Empty
             If ForMediaItem Then
-                Return $"{t} ({Count}){__title}"
+                Return $"{t} ({c}){__title}"
             Else
-                Return $"{t} ({Count}){__title} ({AConvert(Of String)(Duration, TimeToStringProvider)}){s}"
+                Return $"{t} ({c}){__title} ({AConvert(Of String)(Duration, TimeToStringProvider)}){s}"
             End If
         End Function
         Public Overrides Function Parse(ByVal Container As EContainer, ByVal Path As SFile, ByVal IsMusic As Boolean,

@@ -124,26 +124,34 @@ Namespace API.Facebook
                                         .SendToLogOnlyMessage = True, .ReplaceMainMessage = True})
             End Sub
         End Class
-        Private Token_dtsg As String = String.Empty
-        Private Token_lsd As String = String.Empty
         Private Token_Photosby As String = String.Empty
         Private Limit As Integer = -1
+        Private Sub WaitTimer()
+            If CInt(MySettings.RequestsWaitTimer_Any.Value) > 0 Then Thread.Sleep(CInt(MySettings.RequestsWaitTimer_Any.Value))
+        End Sub
+        Private Sub DisableDownload()
+            MySettings.DownloadData_Impl.Value = False
+            MyMainLOG = $"{Site} downloading is disabled until you update your credentials"
+        End Sub
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
-            Try
-                GetUserTokens(Token)
-                LoadSavePostsKV(True)
-                Limit = If(DownloadTopCount, -1)
-                If IsSavedPosts Then
-                    DownloadData_SavedPosts(String.Empty, Token)
-                Else
-                    If DownloadImages And ParsePhotoBlock Then DownloadData_Photo(String.Empty, Token)
-                    If DownloadVideos And ParseVideoBlock Then DownloadData_Video(String.Empty, Token)
-                    If (DownloadImages Or DownloadVideos) And ParseStoriesBlock Then DownloadData_Stories(Token)
-                End If
-                LoadSavePostsKV(False)
-            Finally
-                MySettings.UpdateResponserData(Responser)
-            End Try
+            If CBool(MySettings.DownloadData_Impl.Value) Then
+                Try
+                    ResetBaseTokens()
+                    GetUserTokens(Token)
+                    LoadSavePostsKV(True)
+                    Limit = If(DownloadTopCount, -1)
+                    If IsSavedPosts Then
+                        DownloadData_SavedPosts(String.Empty, Token)
+                    Else
+                        If DownloadImages And ParsePhotoBlock Then DownloadData_Photo(String.Empty, Token)
+                        If DownloadVideos And ParseVideoBlock Then DownloadData_Video(String.Empty, Token)
+                        If (DownloadImages Or DownloadVideos) And ParseStoriesBlock Then DownloadData_Stories(Token)
+                    End If
+                    LoadSavePostsKV(False)
+                Finally
+                    MySettings.UpdateResponserData(Responser)
+                End Try
+            End If
         End Sub
         Private Const Header_fb_fr_name_Photo As String = "ProfileCometAppCollectionPhotosRendererPaginationQuery"
         Private Const Header_fb_fr_name_Video As String = "PagesCometChannelTabAllVideosCardImplPaginationQuery"
@@ -167,13 +175,13 @@ Namespace API.Facebook
                 ValidateBaseTokens()
                 If Token_Photosby.IsEmptyString Then Throw New TokensException("Unable to obtain token 'Token_Photosby'", False)
 
-                URL = String.Format(Graphql_UrlPattern, Token_lsd, DocID_Photo, Header_fb_fr_name_Photo,
-                                    SymbolsConverter.ASCII.EncodeSymbolsOnly(Token_dtsg),
+                URL = String.Format(Graphql_UrlPattern, Token_lsd, DocID_Photo, Header_fb_fr_name_Photo, Token_dtsg_Var,
                                     SymbolsConverter.ASCII.EncodeSymbolsOnly("{" & String.Format(VarPattern, Cursor, Token_Photosby) & "}"))
 
                 ResponserApplyDefs(Header_fb_fr_name_Photo)
                 ThrowAny(Token)
 
+                WaitTimer()
                 Dim r$ = Responser.GetResponse(URL)
                 If Not r.IsEmptyString Then
                     Using j As EContainer = JsonDocument.Parse(r)
@@ -233,13 +241,13 @@ Namespace API.Facebook
                 If VideoPageID.IsEmptyString Then Throw New TokensException("Unable to obtain 'VideoPageID'", False)
                 ValidateBaseTokens()
 
-                URL = String.Format(Graphql_UrlPattern, Token_lsd, DocID_Video, Header_fb_fr_name_Video,
-                                    SymbolsConverter.ASCII.EncodeSymbolsOnly(Token_dtsg),
+                URL = String.Format(Graphql_UrlPattern, Token_lsd, DocID_Video, Header_fb_fr_name_Video, Token_dtsg_Var,
                                     SymbolsConverter.ASCII.EncodeSymbolsOnly("{" & String.Format(VarPattern, If(Cursor.IsEmptyString, "null", $"""{Cursor}"""), VideoPageID) & "}"))
 
                 ResponserApplyDefs(Header_fb_fr_name_Video)
                 ThrowAny(Token)
 
+                WaitTimer()
                 Dim r$ = Responser.GetResponse(URL)
                 If Not r.IsEmptyString Then
                     Using j As EContainer = JsonDocument.Parse(r)
@@ -288,13 +296,13 @@ Namespace API.Facebook
                 ValidateBaseTokens()
                 If StoryBucket.IsEmptyString Then Throw New TokensException("Unable to obtain 'StoryBucket'", False)
 
-                URL = String.Format(Graphql_UrlPattern, Token_lsd, DocID_Stories, Header_fb_fr_name_Stories,
-                                    SymbolsConverter.ASCII.EncodeSymbolsOnly(Token_dtsg),
+                URL = String.Format(Graphql_UrlPattern, Token_lsd, DocID_Stories, Header_fb_fr_name_Stories, Token_dtsg_Var,
                                     SymbolsConverter.ASCII.EncodeSymbolsOnly("{" & String.Format(VarPattern, StoryBucket) & "}"))
 
                 ResponserApplyDefs(Header_fb_fr_name_Stories)
                 ThrowAny(Token)
 
+                WaitTimer()
                 Dim r$ = Responser.GetResponse(URL)
                 If Not r.IsEmptyString Then r = RegexReplace(r, RParams.DM("[^\r\n]+", 0, EDP.ReturnValue))
                 If Not r.IsEmptyString Then
@@ -357,13 +365,13 @@ Namespace API.Facebook
                 Dim pid As PostKV
 
                 ValidateBaseTokens()
-                URL = String.Format(Graphql_UrlPattern, Token_lsd, DocID_SavedPosts, Header_fb_fr_name_SavedPosts,
-                                    SymbolsConverter.ASCII.EncodeSymbolsOnly(Token_dtsg),
+                URL = String.Format(Graphql_UrlPattern, Token_lsd, DocID_SavedPosts, Header_fb_fr_name_SavedPosts, Token_dtsg_Var,
                                     SymbolsConverter.ASCII.EncodeSymbolsOnly("{" & String.Format(VarPattern, If(Cursor.IsEmptyString, "null", $"""{Cursor}""")) & "}"))
 
                 ResponserApplyDefs(Header_fb_fr_name_SavedPosts)
                 ThrowAny(Token)
 
+                WaitTimer()
                 Dim r$ = Responser.GetResponse(URL)
                 If Not r.IsEmptyString Then
                     Using j As EContainer = JsonDocument.Parse(r)
@@ -421,6 +429,7 @@ Namespace API.Facebook
                 If Round > 0 Then ThrowAny(Token)
                 Dim script$, newUrl$
                 Dim jNode As EContainer, jNode2 As EContainer
+                WaitTimer()
                 Dim r$ = resp.GetResponse(PostUrl)
 
                 If Not r.IsEmptyString Then
@@ -488,16 +497,20 @@ Namespace API.Facebook
 #End Region
 #Region "ValidateBaseTokens, GetVideoPageID, GetUserTokens"
         ''' <exception cref="ArgumentNullException"></exception>
-        Private Sub ValidateBaseTokens()
+        Protected Overrides Function ValidateBaseTokens() As Boolean
             Dim tokens$ = String.Empty
-            If Token_dtsg.IsEmptyString Then tokens.StringAppend("Token_dtsg")
-            If Token_lsd.IsEmptyString Then tokens.StringAppend("Token_lsd")
-            If Not tokens.IsEmptyString Then Throw New TokensException($"Unable to obtain token(s) ({tokens}){vbCr}Your credentials may have expired.", True)
-        End Sub
+            If Not ValidateBaseTokens(tokens) Then
+                DisableDownload()
+                Throw New TokensException($"Unable to obtain token(s) ({tokens}). Your credentials may have expired.", True)
+            Else
+                Return True
+            End If
+        End Function
         Private Sub GetVideoPageID(ByVal Token As CancellationToken)
             Dim URL$ = $"{GetProfileUrl()}\videos"
             Dim resp As Responser = HtmlResponserCreate()
             Try
+                WaitTimer()
                 Dim r$ = resp.GetResponse(URL)
                 If Not r.IsEmptyString Then VideoPageID = RegexReplace(r, Regex_VideoPageID)
             Catch ex As Exception
@@ -510,9 +523,9 @@ Namespace API.Facebook
             Dim URL$ = If(IsSavedPosts, "https://www.facebook.com/saved", GetProfileUrl())
             Dim resp As Responser = HtmlResponserCreate()
             Try
-                Token_dtsg = String.Empty
-                Token_lsd = String.Empty
+                ResetBaseTokens()
                 Token_Photosby = String.Empty
+                WaitTimer()
                 Dim r$ = resp.GetResponse(URL)
                 If Not r.IsEmptyString Then
                     If Responser.CookiesExists Then Responser.Cookies.Update(resp.Cookies)
@@ -535,8 +548,7 @@ Namespace API.Facebook
 #Region "Responser options"
         Private Sub ResponserApplyDefs(ByVal __fb_friendly_name As String)
             With Responser
-                .Headers.Add(ThreadsNet.UserData.Header_FB_LSD, Token_lsd)
-                .Headers.Add(DeclaredNames.Header_FB_FRIENDLY_NAME, __fb_friendly_name)
+                UpdateHeadersGQL(__fb_friendly_name)
                 .Method = "POST"
                 .Accept = "*/*"
                 .Referer = GetProfileUrl()
@@ -655,6 +667,7 @@ Namespace API.Facebook
                 Else
                     URL = String.Format(VideoHtmlUrlPattern, m.Post.ID)
                 End If
+                WaitTimer()
                 r = resp.GetResponse(URL)
                 If Not r.IsEmptyString Then
                     re.Pattern = String.Format(pattern, nameHD)

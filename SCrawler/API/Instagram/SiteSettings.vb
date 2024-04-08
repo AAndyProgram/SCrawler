@@ -19,7 +19,7 @@ Namespace API.Instagram
     Friend Class SiteSettings : Inherits SiteSettingsBase
 #Region "Declarations"
 #Region "Providers"
-        Private Class TimersChecker : Inherits FieldsCheckerProviderBase
+        Friend Class TimersChecker : Inherits FieldsCheckerProviderBase
             Private ReadOnly LVProvider As New ANumbers With {.FormatOptions = ANumbers.Options.GroupIntegral}
             Private ReadOnly _LowestValue As Integer
             Friend Sub New(ByVal LowestValue As Integer)
@@ -32,7 +32,7 @@ Namespace API.Instagram
                 If Not ACheck(Of Integer)(Value) Then
                     TypeError = True
                 ElseIf CInt(Value) < _LowestValue Then
-                    ErrorMessage = $"The value of [{Name}] field must be greater than or equal to {_LowestValue.NumToString(LVProvider)}"
+                    ErrorMessage = $"The value of '{Name}' field must be greater than or equal to {_LowestValue.NumToString(LVProvider)}"
                     HasError = True
                 Else
                     Return Value
@@ -47,7 +47,7 @@ Namespace API.Instagram
                 If v > 0 Or v = -1 Then
                     Return Value
                 Else
-                    ErrorMessage = $"The value of [{Name}] field must be greater than 0 or equal to -1"
+                    ErrorMessage = $"The value of '{Name}' field must be greater than 0 or equal to -1"
                     HasError = True
                     Return Nothing
                 End If
@@ -66,24 +66,30 @@ Namespace API.Instagram
         <PropertyOption(ControlText:="x-csrftoken", ControlToolTip:="Can be automatically extracted from cookies", IsAuth:=True, AllowNull:=True), ControlNumber(2), PClonable(Clone:=False)>
         Friend ReadOnly Property HH_CSRF_TOKEN As PropertyValue
         <PropertyOption(ControlText:="x-ig-app-id", IsAuth:=True, AllowNull:=False), ControlNumber(3), PClonable(Clone:=False)>
-        Friend Property HH_IG_APP_ID As PropertyValue
+        Friend ReadOnly Property HH_IG_APP_ID As PropertyValue
         <PropertyOption(ControlText:="x-asbd-id", IsAuth:=True, AllowNull:=True), ControlNumber(4), PClonable(Clone:=False)>
-        Friend Property HH_ASBD_ID As PropertyValue
+        Friend ReadOnly Property HH_ASBD_ID As PropertyValue
         'PropertyOption(ControlText:="x-ig-www-claim", IsAuth:=True, AllowNull:=True)
         <ControlNumber(5), PClonable(Clone:=False)>
-        Friend Property HH_IG_WWW_CLAIM As PropertyValue
+        Friend ReadOnly Property HH_IG_WWW_CLAIM As PropertyValue
+        Private ReadOnly Property HH_IG_WWW_CLAIM_IS_ZERO As Boolean
+            Get
+                Dim v$ = AConvert(Of String)(HH_IG_WWW_CLAIM.Value, String.Empty)
+                Return Not v.IsEmptyString AndAlso v = "0"
+            End Get
+        End Property
         <PropertyOption(ControlText:="sec-ch-ua", IsAuth:=True, AllowNull:=True,
                         InheritanceName:=SettingsCLS.HEADER_DEF_sec_ch_ua), ControlNumber(6), PClonable, PXML(OnlyForChecked:=True)>
-        Private Property HH_BROWSER As PropertyValue
+        Private ReadOnly Property HH_BROWSER As PropertyValue
         <PropertyOption(ControlText:="sec-ch-ua-full", ControlToolTip:="sec-ch-ua-full-version-list", IsAuth:=True, AllowNull:=True,
                         InheritanceName:=SettingsCLS.HEADER_DEF_sec_ch_ua_full_version_list), ControlNumber(7), PClonable, PXML(OnlyForChecked:=True)>
-        Private Property HH_BROWSER_EXT As PropertyValue
+        Private ReadOnly Property HH_BROWSER_EXT As PropertyValue
         <PropertyOption(ControlText:="sec-ch-ua-platform-ver", ControlToolTip:="sec-ch-ua-platform-version", IsAuth:=True, AllowNull:=True, LeftOffset:=135,
                         InheritanceName:=SettingsCLS.HEADER_DEF_sec_ch_ua_platform_version), ControlNumber(8), PClonable, PXML(OnlyForChecked:=True)>
-        Private Property HH_PLATFORM As PropertyValue
+        Private ReadOnly Property HH_PLATFORM As PropertyValue
         <PropertyOption(ControlText:="UserAgent", IsAuth:=True, AllowNull:=True,
                         InheritanceName:=SettingsCLS.HEADER_DEF_UserAgent), ControlNumber(9), PClonable, PXML(OnlyForChecked:=True)>
-        Private Property HH_USER_AGENT As PropertyValue
+        Private ReadOnly Property HH_USER_AGENT As PropertyValue
         Friend Overrides Function BaseAuthExists() As Boolean
             Return Responser.CookiesExists And ACheck(HH_IG_APP_ID.Value) And ACheck(HH_CSRF_TOKEN.Value)
         End Function
@@ -110,17 +116,55 @@ Namespace API.Instagram
                 End If
             End If
         End Sub
+#Region "HH_IG_WWW_CLAIM"
+        <PropertyOption(ControlText:="ig-www-claim update interval", IsAuth:=True, LeftOffset:=150), PXML, ControlNumber(10), PClonable, HiddenControl>
+        Private ReadOnly Property HH_IG_WWW_CLAIM_UPDATE_INTERVAL As PropertyValue
+        <PropertyOption(ControlText:="ig-www-claim: always 0", ControlToolTip:="Keep token value always = 0", IsAuth:=True),
+            PXML, ControlNumber(11), PClonable, HiddenControl>
+        Friend ReadOnly Property HH_IG_WWW_CLAIM_ALWAYS_ZERO As PropertyValue
+        <PropertyOption(ControlText:="ig-www-claim: reset each session", ControlToolTip:="Set 'x-ig-www-claim' to '0' before each session", IsAuth:=True),
+            PXML, ControlNumber(12), PClonable, HiddenControl>
+        Friend ReadOnly Property HH_IG_WWW_CLAIM_RESET_EACH_SESSION As PropertyValue
+        <PropertyOption(ControlText:="ig-www-claim: reset each target", ControlToolTip:="Set 'x-ig-www-claim' to '0' before each target", IsAuth:=True),
+            PXML, ControlNumber(13), PClonable, HiddenControl>
+        Friend ReadOnly Property HH_IG_WWW_CLAIM_RESET_EACH_TARGET As PropertyValue
+        <PropertyOption(ControlText:="ig-www-claim: use in requests", IsAuth:=True), PXML, ControlNumber(14), PClonable, HiddenControl>
+        Friend ReadOnly Property HH_IG_WWW_CLAIM_USE As PropertyValue
+        <PropertyOption(ControlText:="ig-www-claim: use default algorithm to update", IsAuth:=True), PXML, ControlNumber(15), PClonable, HiddenControl>
+        Friend ReadOnly Property HH_IG_WWW_CLAIM_USE_DEFAULT_ALGO As PropertyValue
+        <Provider(NameOf(HH_IG_WWW_CLAIM_UPDATE_INTERVAL), FieldsChecker:=True)>
+        Private ReadOnly Property TokenUpdateIntervalProvider As IFormatProvider
+#End Region
+        <PropertyOption(ControlText:="Use GraphQL to download", IsAuth:=True), PXML, ControlNumber(16), PClonable>
+        Friend ReadOnly Property USE_GQL As PropertyValue
 #End Region
 #Region "Download properties"
-        <PropertyOption(ControlText:="Request timer", AllowNull:=False), PXML("RequestsWaitTimer"), ControlNumber(20), PClonable>
+        Friend Const TimersUrgentTip As String = vbCr & "It is highly recommended not to change the default value."
+        <PropertyOption(ControlText:="Request timer (any)",
+                        ControlToolTip:="The timer (in milliseconds) that SCrawler should wait before executing the next request." &
+                        vbCr & "The default value is 1'000." & vbCr & "The minimum value is 0." & TimersUrgentTip, AllowNull:=False),
+                        PXML, ControlNumber(19), PClonable>
+        Friend ReadOnly Property RequestsWaitTimer_Any As PropertyValue
+        <Provider(NameOf(RequestsWaitTimer_Any), FieldsChecker:=True)>
+        Private ReadOnly Property RequestsWaitTimer_AnyProvider As IFormatProvider
+        <PropertyOption(ControlText:="Request timer",
+                        ControlToolTip:="The time value (in milliseconds) that the program will wait before processing the next 'Request time counter' request." &
+                                        vbCr & "The default value is 1'000." & vbCr & "The minimum value is 100." & TimersUrgentTip,
+                        AllowNull:=False), PXML, ControlNumber(20), PClonable>
         Friend ReadOnly Property RequestsWaitTimer As PropertyValue
         <Provider(NameOf(RequestsWaitTimer), FieldsChecker:=True)>
         Private ReadOnly Property RequestsWaitTimerProvider As IFormatProvider
-        <PropertyOption(ControlText:="Request timer counter", AllowNull:=False, LeftOffset:=120), PXML("RequestsWaitTimerTaskCount"), ControlNumber(21), PClonable>
+        <PropertyOption(ControlText:="Request timer counter",
+                        ControlToolTip:="How many requests will be sent to Instagram before the program waits 'Request timer'." &
+                                        vbCr & "The default value is 1." & vbCr & "The minimum value is 1." & TimersUrgentTip,
+                        AllowNull:=False, LeftOffset:=120), PXML, ControlNumber(21), PClonable>
         Friend ReadOnly Property RequestsWaitTimerTaskCount As PropertyValue
         <Provider(NameOf(RequestsWaitTimerTaskCount), FieldsChecker:=True)>
         Private ReadOnly Property RequestsWaitTimerTaskCountProvider As IFormatProvider
-        <PropertyOption(ControlText:="Posts limit timer", AllowNull:=False), PXML("SleepTimerOnPostsLimit"), ControlNumber(22), PClonable>
+        <PropertyOption(ControlText:="Posts limit timer",
+                        ControlToolTip:="The time value (in milliseconds) the program will wait before processing the next request after 195 requests." &
+                                        vbCr & "The default value is 60'000." & vbCr & "The minimum value is 10'000." & TimersUrgentTip,
+                        AllowNull:=False), PXML, ControlNumber(22), PClonable>
         Friend ReadOnly Property SleepTimerOnPostsLimit As PropertyValue
         <Provider(NameOf(SleepTimerOnPostsLimit), FieldsChecker:=True)>
         Private ReadOnly Property SleepTimerOnPostsLimitProvider As IFormatProvider
@@ -161,6 +205,21 @@ Namespace API.Instagram
 #Region "429 bypass"
         <PXML("InstagramDownloadingErrorDate")>
         Private ReadOnly Property DownloadingErrorDate As PropertyValue
+        <Provider(NameOf(DownloadingErrorDate))>
+        Private ReadOnly Property DownloadingErrorDateProvider As IFormatProvider =
+                                  New CustomProvider(Function(ByVal v As Object, ByVal d As Type) As Object
+                                                         If d Is GetType(Date) Then
+                                                             Return AConvert(Of Date)(v, AModes.Var, Nothing)
+                                                         ElseIf d Is GetType(String) Then
+                                                             If Not IsNothing(v) AndAlso TypeOf v Is Date AndAlso CDate(v) = Date.MinValue Then
+                                                                 Return String.Empty
+                                                             Else
+                                                                 Return AConvert(Of String)(v, AModes.XML, String.Empty)
+                                                             End If
+                                                         Else
+                                                             Return Nothing
+                                                         End If
+                                                     End Function)
         Friend Property LastApplyingValue As Integer? = Nothing
         Friend ReadOnly Property ReadyForDownload As Boolean
             Get
@@ -174,11 +233,64 @@ Namespace API.Instagram
                 End With
             End Get
         End Property
+        Private Const LastDownloadDateResetInterval As Integer = 60
         <PXML> Private ReadOnly Property LastDownloadDate As PropertyValue
         <PXML> Private ReadOnly Property LastRequestsCount As PropertyValue
+        Private ReadOnly MyLastRequests As Dictionary(Of Date, Integer)
+        Private ReadOnly Property MyLastRequestsDate As Date
+            Get
+                Try
+                    Return If(MyLastRequests.Count > 0, MyLastRequests.Keys.Max, Now.AddDays(-1))
+                Catch ex As Exception
+                    Return ErrorsDescriber.Execute(EDP.SendToLog + EDP.ReturnValue, ex, "[SiteSettings.Instagram.MyLastRequestsDate]", Now.AddDays(-1))
+                End Try
+            End Get
+        End Property
+        Private Property MyLastRequestsCount As Integer
+            Get
+                Try
+                    Return If(MyLastRequests.Count > 0, MyLastRequests.Values.Sum, 0)
+                Catch ex As Exception
+                    Return ErrorsDescriber.Execute(EDP.SendToLog + EDP.ReturnValue, ex, "[SiteSettings.Instagram.MyLastRequestsCount]", 0)
+                End Try
+            End Get
+            Set(ByVal NewValue As Integer)
+                If Not MyLastRequests.ContainsKey(ActiveSessionDate) Then
+                    MyLastRequests.Add(ActiveSessionDate, NewValue)
+                Else
+                    MyLastRequests(ActiveSessionDate) += NewValue
+                End If
+            End Set
+        End Property
+        Private Sub RefreshMyLastRequests(Optional ByVal DateToReplace As Date? = Nothing)
+            Try
+                With MyLastRequests
+                    If .Count > 0 Then
+                        Dim d As Date
+                        For i% = .Count - 1 To 0 Step -1
+                            d = .Keys(i)
+                            If (Not DateToReplace.HasValue OrElse ActiveJobs < 1 OrElse d <> ActiveSessionDate) And
+                               d.AddMinutes(LastDownloadDateResetInterval) < Now Then .Remove(d)
+                        Next
+                    End If
+                    If .Count > 0 Then
+                        If DateToReplace.HasValue Then
+                            If .Keys.Contains(ActiveSessionDate) Then
+                                Dim v% = .Item(ActiveSessionDate)
+                                .Remove(ActiveSessionDate)
+                                .Add(DateToReplace.Value, v)
+                            End If
+                        End If
+                        LastDownloadDate.Value = .Keys.Max
+                        LastRequestsCount.Value = .Values.Sum
+                    End If
+                End With
+            Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "[SiteSettings.Instagram.RefreshMyLastRequests]")
+            End Try
+        End Sub
         <PropertyOption(IsInformationLabel:=True), ControlNumber(100)>
-        Private Property LastRequestsCountLabel As PropertyValue
-        Private ReadOnly LastRequestsCountLabelStr As Func(Of Integer, String) = Function(r) $"Number of spent requests: {r.NumToGroupIntegral}"
+        Private ReadOnly Property LastRequestsCountLabel As PropertyValue
         Private TooManyRequestsReadyForCatch As Boolean = True
         Friend Function GetWaitDate() As Date
             With DownloadingErrorDate
@@ -235,11 +347,14 @@ Namespace API.Instagram
                         browserExt = .Value(Header_BrowserExt)
                         platform = .Value(Header_Platform_Verion)
                     End If
+                    '.Add(Header_IG_WWW_CLAIM, 0)
                     .Add("Dnt", 1)
+                    .Add("Dpr", 1)
                     .Add("Sec-Ch-Ua-Mobile", "?0")
+                    .Add("Sec-Ch-Ua-Model", """""")
                     .Add("Sec-Ch-Ua-Platform", """Windows""")
-                    .Add("Sec-Fetch-Dest", "empty")
-                    .Add("Sec-Fetch-Mode", "cors")
+                    .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.SecFetchDest, "empty"))
+                    .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.SecFetchMode, "cors"))
                     .Add("Sec-Fetch-Site", "same-origin")
                     .Add("X-Requested-With", "XMLHttpRequest")
                 End With
@@ -257,6 +372,15 @@ Namespace API.Instagram
             HH_PLATFORM = New PropertyValue(platform, GetType(String), Sub(v) ChangeResponserFields(NameOf(HH_PLATFORM), v))
             HH_USER_AGENT = New PropertyValue(useragent, GetType(String), Sub(v) ChangeResponserFields(NameOf(HH_USER_AGENT), v))
 
+            HH_IG_WWW_CLAIM_UPDATE_INTERVAL = New PropertyValue(120)
+            HH_IG_WWW_CLAIM_ALWAYS_ZERO = New PropertyValue(False)
+            HH_IG_WWW_CLAIM_RESET_EACH_SESSION = New PropertyValue(True)
+            HH_IG_WWW_CLAIM_RESET_EACH_TARGET = New PropertyValue(True)
+            HH_IG_WWW_CLAIM_USE = New PropertyValue(True)
+            HH_IG_WWW_CLAIM_USE_DEFAULT_ALGO = New PropertyValue(True)
+            TokenUpdateIntervalProvider = New TokenRefreshIntervalProvider
+            USE_GQL = New PropertyValue(False)
+
             DownloadTimeline = New PropertyValue(True)
             DownloadTimeline_Def = New PropertyValue(DownloadTimeline.Value, GetType(Boolean))
             DownloadReels = New PropertyValue(False)
@@ -268,6 +392,8 @@ Namespace API.Instagram
             DownloadTagged = New PropertyValue(False)
             DownloadTagged_Def = New PropertyValue(DownloadTagged.Value, GetType(Boolean))
 
+            RequestsWaitTimer_Any = New PropertyValue(1000)
+            RequestsWaitTimer_AnyProvider = New TimersChecker(0)
             RequestsWaitTimer = New PropertyValue(1000)
             RequestsWaitTimerProvider = New TimersChecker(100)
             RequestsWaitTimerTaskCount = New PropertyValue(1)
@@ -283,16 +409,21 @@ Namespace API.Instagram
             TaggedNotifyLimit = New PropertyValue(200)
             TaggedNotifyLimitProvider = New TaggedNotifyLimitChecker
 
-            DownloadingErrorDate = New PropertyValue(Nothing, GetType(Date))
+            DownloadingErrorDate = New PropertyValue(Now.AddYears(10), GetType(Date))
             LastDownloadDate = New PropertyValue(Now.AddDays(-1))
             LastRequestsCount = New PropertyValue(0)
-            LastRequestsCountLabel = New PropertyValue(LastRequestsCountLabelStr.Invoke(LastRequestsCount.Value))
-            LastRequestsCount.OnChangeFunction = Sub(vv) LastRequestsCountLabel.Value = LastRequestsCountLabelStr.Invoke(vv)
+            LastRequestsCountLabel = New PropertyValue(String.Empty, GetType(String))
+            MyLastRequests = New Dictionary(Of Date, Integer)
 
             _AllowUserAgentUpdate = False
             UrlPatternUser = "https://www.instagram.com/{0}/"
             UserRegex = RParams.DMS(String.Format(UserRegexDefaultPattern, "instagram.com/"), 1)
             ImageVideoContains = "instagram.com"
+        End Sub
+        Friend Overrides Sub EndInit()
+            Try : MyLastRequests.Add(LastDownloadDate.Value, LastRequestsCount.Value) : Catch : End Try
+            If Not CBool(HH_IG_WWW_CLAIM_USE.Value) Then Responser.Headers.Remove(Header_IG_WWW_CLAIM)
+            MyBase.EndInit()
         End Sub
 #End Region
 #Region "PropertiesDataChecker"
@@ -326,11 +457,23 @@ Namespace API.Instagram
             Return ActiveJobs < 2 AndAlso Not SkipUntilNextSession AndAlso ReadyForDownload AndAlso BaseAuthExists() AndAlso DownloadTimeline.Value
         End Function
         Private ActiveJobs As Integer = 0
+        Private ActiveSessionDate As Date
         Private _NextWNM As UserData.WNM = UserData.WNM.Notify
         Private _NextTagged As Boolean = True
         Friend Overrides Sub DownloadStarted(ByVal What As Download)
             ActiveJobs += 1
-            If CDate(LastDownloadDate.Value).AddMinutes(120) < Now Or Not ACheck(HH_IG_WWW_CLAIM.Value) Then HH_IG_WWW_CLAIM.Value = "0"
+            If ActiveJobs = 1 Then ActiveSessionDate = Now
+            If Not HH_IG_WWW_CLAIM_IS_ZERO AndAlso
+               (
+                    (CBool(HH_IG_WWW_CLAIM_USE_DEFAULT_ALGO.Value) AndAlso MyLastRequestsDate.AddMinutes(HH_IG_WWW_CLAIM_UPDATE_INTERVAL.Value) < Now) Or
+                    Not ACheck(HH_IG_WWW_CLAIM.Value) Or
+                    (
+                        Not (
+                             CBool(HH_IG_WWW_CLAIM_USE_DEFAULT_ALGO.Value) And
+                             (CBool(HH_IG_WWW_CLAIM_RESET_EACH_SESSION.Value) Or CBool(HH_IG_WWW_CLAIM_ALWAYS_ZERO.Value))
+                            )
+                    )
+                ) Then HH_IG_WWW_CLAIM.Value = "0"
         End Sub
         Friend Overrides Sub BeforeStartDownload(ByVal User As Object, ByVal What As Download)
             With DirectCast(User, UserData)
@@ -338,10 +481,9 @@ Namespace API.Instagram
                     .WaitNotificationMode = _NextWNM
                     .TaggedCheckSession = _NextTagged
                 End If
-                If CDate(LastDownloadDate.Value).AddMinutes(60) > Now Then
-                    .RequestsCount = LastRequestsCount.Value
+                If MyLastRequestsDate.AddMinutes(LastDownloadDateResetInterval) > Now Then
+                    .RequestsCount = MyLastRequestsCount
                 Else
-                    LastRequestsCount.Value = 0
                     .RequestsCount = 0
                 End If
             End With
@@ -351,8 +493,7 @@ Namespace API.Instagram
                 _NextWNM = .WaitNotificationMode
                 If _NextWNM = UserData.WNM.SkipTemp Or _NextWNM = UserData.WNM.SkipCurrent Then _NextWNM = UserData.WNM.Notify
                 _NextTagged = .TaggedCheckSession
-                LastDownloadDate.Value = Now
-                LastRequestsCount.Value = .RequestsCount
+                MyLastRequestsCount = .RequestsCountSession
                 _FieldsChangerSuspended = True
                 HH_IG_WWW_CLAIM.Value = Responser.Headers.Value(Header_IG_WWW_CLAIM)
                 HH_CSRF_TOKEN.Value = Responser.Headers.Value(Header_CSRF_TOKEN)
@@ -362,7 +503,7 @@ Namespace API.Instagram
         Friend Overrides Sub DownloadDone(ByVal What As Download)
             _NextWNM = UserData.WNM.Notify
             _NextTagged = True
-            LastDownloadDate.Value = Now
+            RefreshMyLastRequests(Now)
             ActiveJobs -= 1
             SkipUntilNextSession = False
         End Sub
@@ -382,6 +523,11 @@ Namespace API.Instagram
         Private __DownloadStoriesUser As Boolean = False
         Private __DownloadTagged As Boolean = False
         Friend Overrides Sub BeginEdit()
+            RefreshMyLastRequests()
+            Dim v% = MyLastRequestsCount
+            Dim d$ = String.Empty
+            If v > 0 Then d = $" ({MyLastRequestsDate.ToStringDate(DateTimeDefaultProvider)})"
+            LastRequestsCountLabel.Value = $"Number of spent requests: {v.NumToGroupIntegral}{d}"
             ____HH_CSRF_TOKEN = AConvert(Of String)(HH_CSRF_TOKEN.Value, String.Empty)
             ____HH_IG_APP_ID = AConvert(Of String)(HH_IG_APP_ID.Value, String.Empty)
             ____HH_ASBD_ID = AConvert(Of String)(HH_ASBD_ID.Value, String.Empty)
@@ -460,6 +606,12 @@ Namespace API.Instagram
                 Return ErrorsDescriber.Execute(EDP.SendToLog, ex, "Can't open user's post", String.Empty)
             End Try
         End Function
+#End Region
+#Region "IDisposable Support"
+        Protected Overrides Sub Dispose(ByVal disposing As Boolean)
+            If Not disposedValue And disposing And Not MyLastRequests Is Nothing Then MyLastRequests.Clear()
+            MyBase.Dispose(disposing)
+        End Sub
 #End Region
     End Class
 End Namespace

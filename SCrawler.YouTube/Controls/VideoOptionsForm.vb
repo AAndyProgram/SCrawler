@@ -26,7 +26,7 @@ Namespace API.YouTube.Controls
         Friend Property DesignXML As EContainer Implements IDesignXMLContainer.DesignXML
         Private Property DesignXMLNodes As String() Implements IDesignXMLContainer.DesignXMLNodes
         Private Property DesignXMLNodeName As String Implements IDesignXMLContainer.DesignXMLNodeName
-        Private Const ControlsRow As Integer = 6
+        Private Const ControlsRow As Integer = 7
         Private ReadOnly Property CNT_PROCESSOR As TableControlsProcessor
         Friend Property MyContainer As YouTubeMediaContainerBase
         Private Initialization As Boolean = True
@@ -164,11 +164,16 @@ Namespace API.YouTube.Controls
 
                     If InheritsFromContainer Then
                         If .OutputVideoFPS > 0 Then TXT_FPS.Text = .OutputVideoFPS
+                        If .OutputAudioBitrate > 0 Then TXT_AUDIO_BITRATE.Text = .OutputAudioBitrate
                     Else
                         If MyYouTubeSettings.DefaultVideoFPS > 0 Then TXT_FPS.Text = MyYouTubeSettings.DefaultVideoFPS
+                        If MyYouTubeSettings.DefaultAudioBitrate > 0 Then TXT_AUDIO_BITRATE.Text = MyYouTubeSettings.DefaultAudioBitrate.Value
                     End If
-                    MyFieldsChecker.AddControl(Of Double)(TXT_FPS, TXT_FPS.CaptionText, True, New FpsFieldChecker)
-                    MyFieldsChecker.EndLoaderOperations()
+                    With MyFieldsChecker
+                        .AddControl(Of Double)(TXT_FPS, TXT_FPS.CaptionText, True, New FpsFieldChecker)
+                        .AddControl(Of Integer)(TXT_AUDIO_BITRATE, TXT_AUDIO_BITRATE.CaptionText, True)
+                        .EndLoaderOperations()
+                    End With
                     TP_SUBS.Enabled = .Subtitles.Count > 0
                     TXT_SUBS_ADDIT.Enabled = .Subtitles.Count > 0
                     RefillTextBoxes()
@@ -327,6 +332,7 @@ Namespace API.YouTube.Controls
                                                        If Full Then
                                                            .OutputVideoExtension = CMB_FORMAT.Text.StringToLower
                                                            .OutputVideoFPS = AConvert(Of Double)(TXT_FPS.Text, YouTubeSettings.FpsFormatProvider.MyProviderDefault, -1)
+                                                           .OutputAudioBitrate = AConvert(Of Integer)(TXT_AUDIO_BITRATE.Text, -1)
                                                            .OutputAudioCodec = CMB_AUDIO_CODEC.Text.StringToLower
                                                            .OutputSubtitlesFormat = CMB_SUBS_FORMAT.Text.StringToLower
                                                            .IsAudioSelected = OPT_AUDIO.Checked
@@ -346,10 +352,12 @@ Namespace API.YouTube.Controls
                 Else
                     f = TXT_FILE.Text
                 End If
+                f = CleanFileName(f)
                 If f.IsEmptyString Then Throw New ArgumentNullException("File", "The output file cannot be null")
                 With MyContainer
                     .OutputVideoExtension = CMB_FORMAT.Text.StringToLower
                     .OutputVideoFPS = AConvert(Of Double)(TXT_FPS.Text, YouTubeSettings.FpsFormatProvider.MyProviderDefault, -1)
+                    .OutputAudioBitrate = AConvert(Of Integer)(TXT_AUDIO_BITRATE.Text, -1)
                     .OutputAudioCodec = CMB_AUDIO_CODEC.Text.StringToLower
                     .OutputSubtitlesFormat = CMB_SUBS_FORMAT.Text.StringToLower
                     .M3U8_PlaylistFiles = M3U8FilesFull
@@ -369,6 +377,7 @@ Namespace API.YouTube.Controls
                         Else
                             .SelectedVideoIndex = -1
                             .SelectedAudioIndex = cntIndex
+                            .MediaType = UMTypes.Audio
                         End If
                         .FileSetManually = True
                         .File = f
@@ -379,6 +388,7 @@ Namespace API.YouTube.Controls
                     Else
                         If OPT_AUDIO.Checked Then
                             .SetMaxResolution(-2)
+                            .MediaType = UMTypes.Audio
                         Else
                             .SetMaxResolution(NUM_RES.Value)
                         End If
@@ -595,12 +605,15 @@ Namespace API.YouTube.Controls
                 f = SFile.SelectPath(f, "Select the destination of the video files", EDP.ReturnValue)
             Else
                 f = TXT_FILE.Text
-                Dim sPattern$ = $"Video|{AvailableVideoFormats.Select(Function(vf) $"*.{vf.ToLower}").ListToString(";")}" &
-                                $"|Audio|{AvailableAudioFormats.Select(Function(af) $"*.{af.ToLower}").ListToString(";")}" &
-                                "|All Files|*.*"
-                f = SFile.SaveAs(f, "Select the destination of the video file",,, sPattern, EDP.ReturnValue)
+                Dim ext$ = f.Extension
+                Dim sPattern$ = "All Files|*.*|" &
+                                $"Video|{AvailableVideoFormats.Select(Function(vf) $"*.{vf.ToLower}").ListToString(";")}" &
+                                $"|Audio|{AvailableAudioFormats.Select(Function(af) $"*.{af.ToLower}").ListToString(";")}"
+                f = SFile.SaveAs(f, "Select the destination of the video file",, ext, sPattern, EDP.ReturnValue)
+                f.Extension = ext
             End If
 #Enable Warning
+            f = CleanFileName(f)
             If Not f.IsEmptyString Then
                 If e.Button = MouseButtons.Right Then
                     MyYouTubeSettings.DownloadLocations.Add(f, MyDownloaderSettings.OutputPathAskForName)

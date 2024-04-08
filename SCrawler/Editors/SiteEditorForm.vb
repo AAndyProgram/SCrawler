@@ -138,6 +138,7 @@ Namespace Editors
             End Function
         End Class
 #End Region
+        Private ReadOnly PropertyValid As Predicate(Of PropertyValueHost) = Function(p) (Not p.IsHidden Or SiteSettingsShowHiddenControls) And Not p.Options Is Nothing
         Private ReadOnly Property Host As SettingsHost
         Private Property HostCollection As SettingsHostCollection
         Friend Sub New(ByVal h As SettingsHost)
@@ -147,7 +148,7 @@ Namespace Editors
             If Not Host.Responser Is Nothing Then Cookies = Host.Responser.Cookies.Copy
             LBL_AUTH = New Label With {.Text = "Authorization", .TextAlign = ContentAlignment.MiddleCenter, .Dock = DockStyle.Fill}
             LBL_OTHER = New Label With {.Text = "Other Parameters", .TextAlign = ContentAlignment.MiddleCenter, .Dock = DockStyle.Fill}
-            Host.Source.BeginEdit()
+            Host.BeginEdit()
         End Sub
         Private Sub SiteEditorForm_Load(sender As Object, e As EventArgs) Handles Me.Load
             Try
@@ -216,7 +217,7 @@ Namespace Editors
                             If .PropList.Exists(Function(p) p.ControlNumber >= 0) Then .PropList.Sort()
                             For Each pAuth As Boolean In pArr
                                 For Each prop As PropertyValueHost In .PropList
-                                    If Not prop.Options Is Nothing Then
+                                    If PropertyValid.Invoke(prop) Then
                                         With prop
                                             If .Options.IsAuth = pAuth Then
 
@@ -286,7 +287,7 @@ Namespace Editors
             If Not SpecialButton Is Nothing Then SpecialButton.Dispose()
             LBL_AUTH.Dispose()
             LBL_OTHER.Dispose()
-            Host.Source.EndEdit()
+            Host.EndEdit()
             If Not Cookies Is Nothing Then Cookies.Dispose()
         End Sub
         Private Sub MyDefs_ButtonOkClick(ByVal Sender As Object, ByVal e As KeyHandleEventArgs) Handles MyDefs.ButtonOkClick
@@ -311,8 +312,6 @@ Namespace Editors
                         Next
                     End If
 
-                    Settings.BeginUpdate()
-
                     SiteDefaultsFunctions.SetPropByChecker(TP_SITE_PROPS, Host)
                     If TXT_PATH.IsEmptyString Then .Path = Nothing Else .Path = TXT_PATH.Text
                     .SavedPostsPath = TXT_PATH_SAVED_POSTS.Text
@@ -327,12 +326,10 @@ Namespace Editors
                         End With
                     End If
 
-                    If .PropList.Count > 0 Then .PropList.ForEach(Sub(p) If Not p.Options Is Nothing Then p.UpdateValueByControl())
+                    If .PropList.Count > 0 Then .PropList.ForEach(Sub(p) If PropertyValid.Invoke(p) Then p.UpdateValueByControl())
 
-                    .Source.Update()
+                    .Update()
                 End With
-
-                Settings.EndUpdate()
 
                 MyDefs.CloseForm()
             End If

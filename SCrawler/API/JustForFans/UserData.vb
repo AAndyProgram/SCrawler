@@ -336,7 +336,7 @@ Namespace API.JustForFans
             DownloadContentDefault(Token)
         End Sub
         Protected Overrides Function DownloadM3U8(ByVal URL As String, ByVal Media As UserMedia, ByVal DestinationFile As SFile, ByVal Token As CancellationToken) As SFile
-            Return M3U8.Download(Media, DestinationFile, ResponserNoHandlers, Me, Progress, Not IsSingleObjectDownload, Token)
+            Return M3U8.Download(Media, DestinationFile, ResponserNoHandlers, Me, Progress, Not IsSingleObjectDownload)
         End Function
 #End Region
 #Region "DownloadSingleObject"

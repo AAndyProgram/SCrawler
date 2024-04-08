@@ -23,6 +23,9 @@ Namespace Plugin.Hosts
         Friend Event Deleted As SettingsHostActionEventHandler
         Friend Event OkClick As SettingsHostActionEventHandler
         Friend Event CloneClick As SettingsHostActionEventHandler
+        Friend Event OnBeginEdit As SettingsHostActionEventHandler
+        Friend Event OnEndEdit As SettingsHostActionEventHandler
+        Friend Event OnUpdate As SettingsHostActionEventHandler
 #End Region
 #Region "Controls"
         Private WithEvents BTT_SETTINGS As ToolStripMenuItem
@@ -258,7 +261,11 @@ Namespace Plugin.Hosts
             Source = Plugin
             Source.Logger = LogConnector
             [Default] = IsDef
-            If _XML Is Nothing Then IsAbstract = True
+            If _XML Is Nothing Then
+                IsAbstract = True
+            Else
+                _XML.BeginUpdate()
+            End If
 
             PropList = New List(Of PropertyValueHost)
 
@@ -289,11 +296,11 @@ Namespace Plugin.Hosts
                     End If
                 Next
             End If
+            If _Key = API.PathPlugin.PluginKey And Not _XML Is Nothing Then _XML.XmlReadOnly = True
 
             Dim i%
-            Dim n() As String = {SettingsCLS.Name_Node_Sites, Name}
 
-            _AccountName = New XMLValue(Of String)(NameXML_AccountName,, _XML, n)
+            _AccountName = New XMLValue(Of String)(NameXML_AccountName,, _XML)
             Source.AccountName = _AccountName
 
             Source.BeginInit()
@@ -373,34 +380,42 @@ Namespace Plugin.Hosts
                 PropList.ForEach(Sub(p) p.SetDependents(PropList))
             End If
 
-            _Path = New XMLValue(Of SFile)("Path",, _XML, n, New XMLToFilePathProvider)
-            _SavedPostsPath = New XMLValue(Of SFile)("SavedPostsPath",, _XML, n, New XMLToFilePathProvider)
-            DownloadSavedPosts = New XMLValue(Of Boolean)("DownloadSavedPosts", True, _XML, n)
+            _Path = New XMLValue(Of SFile)("Path",, _XML,, New XMLToFilePathProvider)
+            _SavedPostsPath = New XMLValue(Of SFile)("SavedPostsPath",, _XML,, New XMLToFilePathProvider)
+            DownloadSavedPosts = New XMLValue(Of Boolean)("DownloadSavedPosts", True, _XML)
 
             Temporary = New XMLValue(Of Boolean)
-            Temporary.SetExtended("Temporary", False, _XML, n)
+            Temporary.SetExtended("Temporary", False, _XML)
             Temporary.SetDefault(_Temp)
+            Temporary.Update()
 
             DownloadImages = New XMLValue(Of Boolean)
-            DownloadImages.SetExtended("DownloadImages", True, _XML, n)
+            DownloadImages.SetExtended("DownloadImages", True, _XML)
             DownloadImages.SetDefault(_Imgs)
+            DownloadImages.Update()
 
             DownloadVideos = New XMLValue(Of Boolean)
-            DownloadVideos.SetExtended("DownloadVideos", True, _XML, n)
+            DownloadVideos.SetExtended("DownloadVideos", True, _XML)
             DownloadVideos.SetDefault(_Vids)
+            DownloadVideos.Update()
 
-            DownloadSiteData = New XMLValue(Of Boolean)("DownloadSiteData", True, _XML, n)
+            DownloadSiteData = New XMLValue(Of Boolean)("DownloadSiteData", True, _XML)
 
-            GetUserMediaOnly = New XMLValue(Of Boolean)("GetUserMediaOnly", True, _XML, n)
+            GetUserMediaOnly = New XMLValue(Of Boolean)("GetUserMediaOnly", True, _XML)
             If PropList.Count > 0 Then
                 Dim MaxOffset% = Math.Max(PropList.Max(Function(pp) pp.LeftOffset), PropertyValueHost.LeftOffsetDefault)
                 For Each p As PropertyValueHost In PropList
-                    If Not IsAbstract Then p.SetXmlEnvironment(_XML, n)
+                    If Not IsAbstract Then p.SetXmlEnvironment(_XML)
                     p.LeftOffset = MaxOffset
                 Next
             End If
 
             Source.EndInit()
+
+            If Not _XML Is Nothing Then
+                _XML.EndUpdate()
+                If _XML.ChangesDetected Then _XML.UpdateData(EDP.SendToLog)
+            End If
         End Sub
         Friend Function Apply(ByVal _XML As XmlFile, ByVal GlobalPath As SFile,
                               ByRef _Temp As XMLValue(Of Boolean), ByRef _Imgs As XMLValue(Of Boolean), ByRef _Vids As XMLValue(Of Boolean)) As SettingsHost
@@ -522,6 +537,20 @@ Namespace Plugin.Hosts
         Private Function ConvertUser(ByVal User As IUserData) As Object
             Return If(DirectCast(User, UserDataBase).ExternalPlugin, User)
         End Function
+#Region "Edit"
+        Friend Sub BeginEdit()
+            Source.BeginEdit()
+            RaiseEvent OnBeginEdit(Me)
+        End Sub
+        Friend Sub Update()
+            Source.Update()
+            RaiseEvent OnUpdate(Me)
+        End Sub
+        Friend Sub EndEdit()
+            Source.EndEdit()
+            RaiseEvent OnEndEdit(Me)
+        End Sub
+#End Region
 #End Region
 #Region "IEquatable Support"
         Friend Overloads Function Equals(ByVal Other As SettingsHost) As Boolean Implements IEquatable(Of SettingsHost).Equals

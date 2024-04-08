@@ -27,6 +27,7 @@ Namespace API.YouTube.Objects
                 Else
                     _File.Extension = mp3
                 End If
+                _File = CleanFileName(_File)
             End If
         End Sub
         Public Overrides Function ToString(ByVal ForMediaItem As Boolean) As String
@@ -46,12 +47,17 @@ Namespace API.YouTube.Objects
             _ObjectType = Base.YouTubeMediaType.Single
             Me.IsMusic = IsMusic
             If MyBase.Parse(Container, Path, IsMusic, Token, Progress) Then
-                Dim f As SFile = MyYouTubeSettings.OutputPath
-                If f.IsEmptyString Then f = "YouTubeDownloads\OutputFile.mp3"
-                Dim ext$ = MyYouTubeSettings.DefaultAudioCodec.Value.StringToLower
-                If ext.IsEmptyString Then ext = "mp3"
-                f.Extension = ext
-                File = f
+                With MyYouTubeSettings
+                    Dim f As SFile = .OutputPath
+                    If f.IsEmptyString Then f = "YouTubeDownloads\OutputFile.mp3"
+                    Dim ext$ = .DefaultAudioCodecMusic.Value.StringToLower.IfNullOrEmpty(.DefaultAudioCodec.Value.StringToLower)
+                    If ext.IsEmptyString Then ext = "mp3"
+                    f.Extension = ext
+                    'If f.Name.IsEmptyString Then f.Name = File.Name
+                    File = f
+                    If _File.Extension.IsEmptyString Then _File.Extension = ext
+                    _File = CleanFileName(_File)
+                End With
                 Return True
             Else
                 Return False

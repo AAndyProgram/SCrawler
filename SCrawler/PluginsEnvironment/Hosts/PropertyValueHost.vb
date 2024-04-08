@@ -46,6 +46,7 @@ Namespace Plugin.Hosts
         End Property
         Friend ReadOnly IsTaskCounter As Boolean
         Friend ReadOnly Exists As Boolean = False
+        Friend ReadOnly IsHidden As Boolean = False
 #Region "XML"
         Private ReadOnly _XmlName As String
         Private ReadOnly _XmlNameChecked As String
@@ -309,6 +310,7 @@ Namespace Plugin.Hosts
                 UpdateMember()
                 Options = Member.GetCustomAttribute(Of PropertyOption)()
                 IsTaskCounter = Not Member.GetCustomAttribute(Of TaskCounter)() Is Nothing
+                IsHidden = If(Member.GetCustomAttribute(Of HiddenControlAttribute)?.IsHidden, False)
                 With Member.GetCustomAttribute(Of PXML)
                     If Not .Self Is Nothing Then
                         _XmlName = .ElementName

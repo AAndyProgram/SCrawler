@@ -12,6 +12,7 @@ Imports SCrawler.API.YouTube.Objects
 Imports SCrawler.API.YouTube.Controls
 Imports PersonalUtilities.Tools
 Imports PersonalUtilities.Forms.Toolbars
+Imports PersonalUtilities.Functions.Messaging
 Namespace DownloadObjects.STDownloader
     Public Delegate Sub MediaItemEventHandler(ByVal Sender As MediaItem, ByVal Container As IYouTubeMediaContainer)
     <DefaultEvent("DoubleClick"), DesignTimeVisible(False), ToolboxItem(False)>
@@ -135,7 +136,7 @@ Namespace DownloadObjects.STDownloader
                 LBL_TITLE.Text = .ToString(True)
                 If Not .SiteKey = YouTubeSiteKey And .ContentType = Plugin.UserMediaTypes.Picture Then
                     LBL_INFO.Text = .File.Extension.StringToUpper
-                ElseIf Not .IsMusic Then
+                ElseIf Not .IsMusic And Not (.MediaType = Plugin.UserMediaTypes.Audio Or .MediaType = Plugin.UserMediaTypes.AudioPre) Then
                     If .Height > 0 Then
                         LBL_INFO.Text = $"{ .File.Extension.StringToUpper}{d}{ .Height}p"
                     Else
@@ -180,10 +181,10 @@ Namespace DownloadObjects.STDownloader
                                       With MyContainer
                                           If Not .SiteKey = YouTubeSiteKey And .ContentType = Plugin.UserMediaTypes.Picture Then
                                               ICON_WHAT.Image = My.Resources.ImagePic_32
-                                          ElseIf Not .IsMusic Then
-                                              ICON_WHAT.Image = My.Resources.VideoCamera_32
-                                          Else
+                                          ElseIf .IsMusic Or .MediaType = Plugin.UserMediaTypes.Audio Or .MediaType = Plugin.UserMediaTypes.AudioPre Then
                                               ICON_WHAT.Image = My.Resources.AudioMusic_32
+                                          Else
+                                              ICON_WHAT.Image = My.Resources.VideoCamera_32
                                           End If
                                       End With
                                   End Sub, EDP.None)
@@ -229,7 +230,7 @@ Namespace DownloadObjects.STDownloader
                     .ColumnStyles.Clear()
                     .ColumnCount = 0
                     If ContainerHasElements Or MyContainer.MediaState = Plugin.UserMediaStates.Downloaded Then
-                        If Not MyContainer.SiteKey = YouTubeSiteKey Then UpdateMediaIcon()
+                        UpdateMediaIcon()
                         If ContainerHasElements Then
                             BTT_OPEN_FOLDER.Visible = False
                             BTT_OPEN_FILE.Visible = False
@@ -476,12 +477,28 @@ Namespace DownloadObjects.STDownloader
             RaiseEvent Removal(Me, MyContainer)
         End Sub
         Private Sub BTT_DELETE_FILE_Click(sender As Object, e As EventArgs) Handles BTT_DELETE_FILE.Click
-            If MsgBoxE({$"Are you sure you want to delete the following {FileOption.ToString.ToLower}:{vbCr}" &
-                        If(FileOption = SFO.File, MyContainer.File.ToString, MyContainer.File.PathWithSeparator),
-                        $"Deleting a {FileOption.ToString.ToLower}"}, vbExclamation,,, {"Process", "Cancel"}) = 0 Then
+            Dim opt$
+            Dim opt2$ = String.Empty
+            If FileOption = SFO.File Then
+                opt = "file"
+            Else
+                opt = "item"
+                opt2 = "THE ITEM MAY CONTAIN MULTIPLE FILES" & vbCr
+            End If
+            Dim b As New List(Of MsgBoxButton) From {New MsgBoxButton("Process")}
+            If Not opt2.IsEmptyString Then _
+               b.Add(New MsgBoxButton("Show files", "Show files to delete") With {
+                     .IsDialogResultButton = False,
+                     .CallBack = Function(r, m, bb) MsgBoxE(New MMessage($"The following files will be deleted:{vbCr}{vbCr}{MyContainer.Files.ListToString(vbCr)}",
+                                                                         "Files to delete",, vbExclamation) With {.Editable = True})})
+            b.Add(New MsgBoxButton("Cancel"))
+            If MsgBoxE({$"Are you sure you want to delete the following {opt}:{vbCr}{opt2}" &
+                        If(FileOption = SFO.File, MyContainer.File.ToString, MyContainer.ToString(True)),
+                        $"Deleting {opt}"}, vbExclamation,,, b) = 0 Then
                 MyContainer.Delete(True)
                 RaiseEvent Removal(Me, MyContainer)
             End If
+            b.Clear()
         End Sub
 #End Region
 #Region "ISupportInitialize Support"

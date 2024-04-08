@@ -19,6 +19,7 @@ Namespace API.YouTube.Controls
     Friend Class MusicPlaylistsForm : Implements IDesignXMLContainer
 #Region "Declarations"
         Private MyView As FormView
+        Private ReadOnly MyFieldsChecker As FieldsChecker
         Friend Property DesignXML As EContainer Implements IDesignXMLContainer.DesignXML
         Private Property DesignXMLNodes As String() Implements IDesignXMLContainer.DesignXMLNodes
         Private Property DesignXMLNodeName As String Implements IDesignXMLContainer.DesignXMLNodeName
@@ -48,6 +49,7 @@ Namespace API.YouTube.Controls
             InitializeComponent()
             M3U8Files = New List(Of SFile)
             MyContainer = Container
+            MyFieldsChecker = New FieldsChecker
         End Sub
 #End Region
 #Region "Form handlers"
@@ -61,6 +63,7 @@ Namespace API.YouTube.Controls
             MyYouTubeSettings.DownloadLocations.PopulateComboBox(TXT_OUTPUT_PATH)
             MyYouTubeSettings.PlaylistsLocations.PopulateComboBox(CMB_PLS,, True)
             CMB_PLS.Text = MyYouTubeSettings.LatestPlaylistFile.Value
+            If MyYouTubeSettings.DefaultAudioBitrate > 0 Then TXT_AUDIO_BITRATE.Text = MyYouTubeSettings.DefaultAudioBitrate.Value
 
             CMB_FORMATS.Items.AddRange(AvailableAudioFormats)
             If MyYouTubeSettings.PlaylistFormSplitterDistance > 0 Then SPLITTER_MAIN.SplitterDistancePercentageSet(MyYouTubeSettings.PlaylistFormSplitterDistance)
@@ -113,6 +116,9 @@ Namespace API.YouTube.Controls
                     Text = .PlaylistTitle
                 End If
 
+                MyFieldsChecker.AddControl(Of Integer)(TXT_AUDIO_BITRATE, TXT_AUDIO_BITRATE.CaptionText, True)
+                MyFieldsChecker.EndLoaderOperations()
+
                 UpdateSizeText()
             End With
             RefillAddit()
@@ -120,7 +126,8 @@ Namespace API.YouTube.Controls
         End Sub
         Private Sub MusicPlaylistsForm_Closing(sender As Object, e As CancelEventArgs) Handles Me.Closing
             MyYouTubeSettings.PlaylistFormSplitterDistance.Value = SPLITTER_MAIN.SplitterDistancePercentageGet
-            MyView.DisposeIfReady()
+            MyView.DisposeIfReady
+            MyFieldsChecker.DisposeIfReady
             M3U8Files.Clear()
         End Sub
         Private Sub MusicPlaylistsForm_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
@@ -322,7 +329,7 @@ Namespace API.YouTube.Controls
         Private Sub BTT_DOWN_Click(sender As Object, e As EventArgs) Handles BTT_DOWN.Click
             If TXT_OUTPUT_PATH.IsEmptyString Then
                 MsgBoxE({"The output path cannot be null.", "Download music"}, vbCritical)
-            Else
+            ElseIf MyFieldsChecker.AllParamsOK Then
                 With DirectCast(MyContainer, YouTubeMediaContainerBase)
                     .OutputSubtitlesFormat = IIf(CH_DOWN_LYRICS.Checked, "LRC", String.Empty)
                     If Not TXT_SUBS.Checked Then .PostProcessing_OutputSubtitlesFormats.Clear()
@@ -331,6 +338,7 @@ Namespace API.YouTube.Controls
                     .AbsolutePath = TXT_OUTPUT_PATH.Checked
                     .File = TXT_OUTPUT_PATH.Text.CSFileP
                     .M3U8_PlaylistFiles = M3U8FilesFull
+                    .OutputAudioBitrate = AConvert(Of Integer)(TXT_AUDIO_BITRATE.Text, -1)
                     If MyYouTubeSettings.OutputPathAutoChange Then MyYouTubeSettings.OutputPath.Value = .File
                     If MyDownloaderSettings.OutputPathAutoAddPaths Then MyYouTubeSettings.DownloadLocations.Add(.File, False)
                     If Not CMB_PLS.Text.IsEmptyString Then MyYouTubeSettings.PlaylistsLocations.Add(CMB_PLS.Text, False, True)

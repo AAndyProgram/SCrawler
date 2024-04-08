@@ -46,7 +46,7 @@ Namespace API.Facebook
             With Responser.Headers
                 .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.Authority, "www.facebook.com"))
                 .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.Origin, "https://www.facebook.com"))
-                .Remove(DeclaredNames.Header_FB_FRIENDLY_NAME)
+                .Remove(Instagram.UserData.GQL_HEADER_FB_FRINDLY_NAME)
             End With
             Header_Accept = New PropertyValue(String.Empty, GetType(String))
             ParsePhotoBlock = New PropertyValue(True)
@@ -74,7 +74,7 @@ Namespace API.Facebook
 #End Region
 #Region "BaseAuthExists, GetUserUrl, GetUserPostUrl, IsMyUser, IsMyImageVideo"
         Friend Overrides Function BaseAuthExists() As Boolean
-            Return Responser.CookiesExists And ACheck(HH_IG_APP_ID.Value)
+            Return Responser.CookiesExists And ACheck(HH_IG_APP_ID.Value) And CBool(DownloadData_Impl.Value)
         End Function
         Friend Overrides Function GetUserUrl(ByVal User As IPluginContentProvider) As String
             Return DirectCast(User, UserData).GetProfileUrl

@@ -17,10 +17,21 @@ Namespace API.YouTube
         Public Const DownloaderDataFolderYouTube As String = DownloadObjects.STDownloader.DownloaderDataFolder & "YouTube\"
         Friend Const YouTubeDownloadPathDefault As String = "YouTubeDownloads\"
         Friend Const SimpleArraysFormNode As String = "SimpleFormatsChooserForm"
+        Private Const YTDLP_DefaultName As String = "yt-dlp"
         Public Property MyYouTubeSettings As Base.YouTubeSettings
         Public Property MyCache As CacheKeeper
         Friend ReadOnly Property MyCacheSettings As New CacheKeeper(DownloaderDataFolderYouTube) With {.DeleteCacheOnDispose = False, .DeleteRootOnDispose = False}
         Public ReadOnly Property YouTubeCookieNetscapeFile As New SFile($"Settings\Responser_{YouTubeSite}_Cookies_Netscape.txt")
+        Friend ReadOnly Property YTDLP_NAME As String
+            Get
+                Dim n$ = MyYouTubeSettings.YTDLP.Value.Name
+                If Not n.IsEmptyString Then
+                    Return If(n.ToLower = YTDLP_DefaultName, n, $"""{n}""")
+                Else
+                    Return YTDLP_DefaultName
+                End If
+            End Get
+        End Property
         Friend ReadOnly Property AvailableSubtitlesFormats As String()
             Get
                 Return {"ASS", "LRC", "SRT", "VTT"}
@@ -45,6 +56,17 @@ Namespace API.YouTube
         Friend ReadOnly TitleHtmlConverter As Func(Of String, String) = Function(Input) Input.StringRemoveWinForbiddenSymbols().StringTrim()
         Friend ReadOnly ProgressProvider As IMyProgressNumberProvider = MyProgressNumberProvider.Percentage
         Public ReadOnly TrueUrlRegEx As RParams = RParams.DM(Base.YouTubeFunctions.TrueUrlPattern, 0, EDP.ReturnValue)
+        Friend Function CleanFileName(ByVal f As SFile) As SFile
+            If Not f.IsEmptyString And Not f.Name.IsEmptyString Then
+                Dim ff As SFile = f
+                ff.Name = ff.Name.StringRemoveWinForbiddenSymbols
+                If Not ff.Name.IsEmptyString Then ff.Name = ff.Name.Replace("%", String.Empty)
+                If ff.Name.IsEmptyString Then ff.Name = "file"
+                Return ff
+            Else
+                Return f
+            End If
+        End Function
         Private Class TimeToStringConverter : Implements ICustomProvider
             Private ReadOnly _Provider As New ADateTime("mm\:ss") With {.TimeParseMode = ADateTime.TimeModes.TimeSpan}
             Private ReadOnly _ProviderWithHours As New ADateTime("h\:mm\:ss") With {.TimeParseMode = ADateTime.TimeModes.TimeSpan}

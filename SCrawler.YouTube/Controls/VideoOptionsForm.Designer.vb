@@ -47,6 +47,7 @@ Namespace API.YouTube.Controls
             Dim LBL_FORMAT As System.Windows.Forms.Label
             Dim LBL_SUBS_FORMAT As System.Windows.Forms.Label
             Dim TT_MAIN As System.Windows.Forms.ToolTip
+            Dim TP_FPS_BITRATE As System.Windows.Forms.TableLayoutPanel
             Dim ActionButton7 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim ActionButton8 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim ActionButton9 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
@@ -57,6 +58,7 @@ Namespace API.YouTube.Controls
             Dim ActionButton14 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim ActionButton15 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim ActionButton16 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton17 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Me.ICON_VIDEO = New System.Windows.Forms.PictureBox()
             Me.LBL_TITLE = New System.Windows.Forms.Label()
             Me.TP_HEADER_INFO_2 = New System.Windows.Forms.TableLayoutPanel()
@@ -71,6 +73,8 @@ Namespace API.YouTube.Controls
             Me.OPT_VIDEO = New System.Windows.Forms.RadioButton()
             Me.OPT_AUDIO = New System.Windows.Forms.RadioButton()
             Me.LBL_AUDIO_CODEC = New System.Windows.Forms.Label()
+            Me.TXT_FPS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
+            Me.TXT_AUDIO_BITRATE = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TP_HEADER_BASE = New System.Windows.Forms.TableLayoutPanel()
             Me.TP_SUBS = New System.Windows.Forms.TableLayoutPanel()
             Me.TXT_SUBS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
@@ -80,7 +84,6 @@ Namespace API.YouTube.Controls
             Me.CMB_FORMAT = New System.Windows.Forms.ComboBox()
             Me.CMB_AUDIO_CODEC = New System.Windows.Forms.ComboBox()
             Me.NUM_RES = New System.Windows.Forms.NumericUpDown()
-            Me.TXT_FPS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TP_CONTROLS = New System.Windows.Forms.TableLayoutPanel()
             Me.TXT_SUBS_ADDIT = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_EXTRA_AUDIO_FORMATS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
@@ -99,6 +102,7 @@ Namespace API.YouTube.Controls
             LBL_FORMAT = New System.Windows.Forms.Label()
             LBL_SUBS_FORMAT = New System.Windows.Forms.Label()
             TT_MAIN = New System.Windows.Forms.ToolTip(Me.components)
+            TP_FPS_BITRATE = New System.Windows.Forms.TableLayoutPanel()
             TP_HEADER.SuspendLayout()
             CType(Me.ICON_VIDEO, System.ComponentModel.ISupportInitialize).BeginInit()
             TP_HEADER_INFO.SuspendLayout()
@@ -112,13 +116,15 @@ Namespace API.YouTube.Controls
             TP_PLS.SuspendLayout()
             CType(Me.CMB_PLS, System.ComponentModel.ISupportInitialize).BeginInit()
             TP_WHAT.SuspendLayout()
+            TP_FPS_BITRATE.SuspendLayout()
+            CType(Me.TXT_FPS, System.ComponentModel.ISupportInitialize).BeginInit()
+            CType(Me.TXT_AUDIO_BITRATE, System.ComponentModel.ISupportInitialize).BeginInit()
             Me.TP_HEADER_BASE.SuspendLayout()
             Me.TP_SUBS.SuspendLayout()
             CType(Me.TXT_SUBS, System.ComponentModel.ISupportInitialize).BeginInit()
             Me.TP_MAIN.SuspendLayout()
             Me.TP_OPTIONS.SuspendLayout()
             CType(Me.NUM_RES, System.ComponentModel.ISupportInitialize).BeginInit()
-            CType(Me.TXT_FPS, System.ComponentModel.ISupportInitialize).BeginInit()
             CType(Me.TXT_SUBS_ADDIT, System.ComponentModel.ISupportInitialize).BeginInit()
             CType(Me.TXT_EXTRA_AUDIO_FORMATS, System.ComponentModel.ISupportInitialize).BeginInit()
             Me.SuspendLayout()
@@ -137,7 +143,7 @@ Namespace API.YouTube.Controls
             TP_HEADER.Name = "TP_HEADER"
             TP_HEADER.RowCount = 1
             TP_HEADER.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_HEADER.Size = New System.Drawing.Size(719, 63)
+            TP_HEADER.Size = New System.Drawing.Size(599, 63)
             TP_HEADER.TabIndex = 0
             '
             'ICON_VIDEO
@@ -166,7 +172,7 @@ Namespace API.YouTube.Controls
             TP_HEADER_INFO.RowCount = 2
             TP_HEADER_INFO.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
             TP_HEADER_INFO.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
-            TP_HEADER_INFO.Size = New System.Drawing.Size(589, 63)
+            TP_HEADER_INFO.Size = New System.Drawing.Size(469, 63)
             TP_HEADER_INFO.TabIndex = 0
             '
             'LBL_TITLE
@@ -175,7 +181,7 @@ Namespace API.YouTube.Controls
             Me.LBL_TITLE.Font = New System.Drawing.Font("Arial", 9.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(204, Byte))
             Me.LBL_TITLE.Location = New System.Drawing.Point(3, 0)
             Me.LBL_TITLE.Name = "LBL_TITLE"
-            Me.LBL_TITLE.Size = New System.Drawing.Size(583, 31)
+            Me.LBL_TITLE.Size = New System.Drawing.Size(463, 31)
             Me.LBL_TITLE.TabIndex = 0
             Me.LBL_TITLE.Text = "Video title"
             Me.LBL_TITLE.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
@@ -197,7 +203,7 @@ Namespace API.YouTube.Controls
             Me.TP_HEADER_INFO_2.Name = "TP_HEADER_INFO_2"
             Me.TP_HEADER_INFO_2.RowCount = 1
             Me.TP_HEADER_INFO_2.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            Me.TP_HEADER_INFO_2.Size = New System.Drawing.Size(589, 32)
+            Me.TP_HEADER_INFO_2.Size = New System.Drawing.Size(469, 32)
             Me.TP_HEADER_INFO_2.TabIndex = 1
             '
             'ICON_CLOCK
@@ -244,7 +250,7 @@ Namespace API.YouTube.Controls
             Me.LBL_URL.LinkColor = System.Drawing.Color.FromArgb(CType(CType(0, Byte), Integer), CType(CType(0, Byte), Integer), CType(CType(192, Byte), Integer))
             Me.LBL_URL.Location = New System.Drawing.Point(115, 0)
             Me.LBL_URL.Name = "LBL_URL"
-            Me.LBL_URL.Size = New System.Drawing.Size(471, 32)
+            Me.LBL_URL.Size = New System.Drawing.Size(351, 32)
             Me.LBL_URL.TabIndex = 1
             Me.LBL_URL.TabStop = True
             Me.LBL_URL.Text = "https://www.youtube.com/watch?v=abcdefghijk"
@@ -258,14 +264,14 @@ Namespace API.YouTube.Controls
             TP_FOOTER.Controls.Add(TP_OK_CANCEL, 0, 2)
             TP_FOOTER.Controls.Add(TP_PLS, 0, 0)
             TP_FOOTER.Dock = System.Windows.Forms.DockStyle.Fill
-            TP_FOOTER.Location = New System.Drawing.Point(6, 215)
+            TP_FOOTER.Location = New System.Drawing.Point(6, 243)
             TP_FOOTER.Margin = New System.Windows.Forms.Padding(6, 3, 6, 3)
             TP_FOOTER.Name = "TP_FOOTER"
             TP_FOOTER.RowCount = 3
             TP_FOOTER.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 33.33333!))
             TP_FOOTER.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 33.33333!))
             TP_FOOTER.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 33.33333!))
-            TP_FOOTER.Size = New System.Drawing.Size(709, 81)
+            TP_FOOTER.Size = New System.Drawing.Size(589, 81)
             TP_FOOTER.TabIndex = 5
             '
             'TP_DESTINATION
@@ -281,7 +287,7 @@ Namespace API.YouTube.Controls
             TP_DESTINATION.Name = "TP_DESTINATION"
             TP_DESTINATION.RowCount = 1
             TP_DESTINATION.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_DESTINATION.Size = New System.Drawing.Size(709, 27)
+            TP_DESTINATION.Size = New System.Drawing.Size(589, 27)
             TP_DESTINATION.TabIndex = 0
             '
             'TXT_FILE
@@ -310,14 +316,14 @@ Namespace API.YouTube.Controls
             Me.TXT_FILE.Location = New System.Drawing.Point(1, 1)
             Me.TXT_FILE.Margin = New System.Windows.Forms.Padding(1)
             Me.TXT_FILE.Name = "TXT_FILE"
-            Me.TXT_FILE.Size = New System.Drawing.Size(627, 22)
+            Me.TXT_FILE.Size = New System.Drawing.Size(507, 22)
             Me.TXT_FILE.TabIndex = 0
             Me.TXT_FILE.TextBoxBorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
             '
             'BTT_BROWSE
             '
             Me.BTT_BROWSE.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.BTT_BROWSE.Location = New System.Drawing.Point(632, 2)
+            Me.BTT_BROWSE.Location = New System.Drawing.Point(512, 2)
             Me.BTT_BROWSE.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
             Me.BTT_BROWSE.Name = "BTT_BROWSE"
             Me.BTT_BROWSE.Size = New System.Drawing.Size(74, 23)
@@ -341,13 +347,13 @@ Namespace API.YouTube.Controls
             TP_OK_CANCEL.RowCount = 1
             TP_OK_CANCEL.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
             TP_OK_CANCEL.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 27.0!))
-            TP_OK_CANCEL.Size = New System.Drawing.Size(709, 27)
+            TP_OK_CANCEL.Size = New System.Drawing.Size(589, 27)
             TP_OK_CANCEL.TabIndex = 1
             '
             'BTT_DOWN
             '
             Me.BTT_DOWN.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.BTT_DOWN.Location = New System.Drawing.Point(552, 2)
+            Me.BTT_DOWN.Location = New System.Drawing.Point(432, 2)
             Me.BTT_DOWN.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
             Me.BTT_DOWN.Name = "BTT_DOWN"
             Me.BTT_DOWN.Size = New System.Drawing.Size(74, 23)
@@ -359,7 +365,7 @@ Namespace API.YouTube.Controls
             '
             Me.BTT_CANCEL.DialogResult = System.Windows.Forms.DialogResult.Cancel
             Me.BTT_CANCEL.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.BTT_CANCEL.Location = New System.Drawing.Point(632, 2)
+            Me.BTT_CANCEL.Location = New System.Drawing.Point(512, 2)
             Me.BTT_CANCEL.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
             Me.BTT_CANCEL.Name = "BTT_CANCEL"
             Me.BTT_CANCEL.Size = New System.Drawing.Size(74, 23)
@@ -381,7 +387,7 @@ Namespace API.YouTube.Controls
             TP_PLS.RowCount = 1
             TP_PLS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
             TP_PLS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 27.0!))
-            TP_PLS.Size = New System.Drawing.Size(709, 27)
+            TP_PLS.Size = New System.Drawing.Size(589, 27)
             TP_PLS.TabIndex = 2
             '
             'CMB_PLS
@@ -414,14 +420,14 @@ Namespace API.YouTube.Controls
             Me.CMB_PLS.Location = New System.Drawing.Point(1, 1)
             Me.CMB_PLS.Margin = New System.Windows.Forms.Padding(1)
             Me.CMB_PLS.Name = "CMB_PLS"
-            Me.CMB_PLS.Size = New System.Drawing.Size(627, 22)
+            Me.CMB_PLS.Size = New System.Drawing.Size(507, 22)
             Me.CMB_PLS.TabIndex = 0
             Me.CMB_PLS.TextBoxBorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
             '
             'BTT_PLS_BROWSE
             '
             Me.BTT_PLS_BROWSE.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.BTT_PLS_BROWSE.Location = New System.Drawing.Point(632, 2)
+            Me.BTT_PLS_BROWSE.Location = New System.Drawing.Point(512, 2)
             Me.BTT_PLS_BROWSE.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
             Me.BTT_PLS_BROWSE.Name = "BTT_PLS_BROWSE"
             Me.BTT_PLS_BROWSE.Size = New System.Drawing.Size(74, 23)
@@ -434,20 +440,20 @@ Namespace API.YouTube.Controls
             '
             LB_SEP_1.Anchor = CType((System.Windows.Forms.AnchorStyles.Left Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
             LB_SEP_1.BackColor = System.Drawing.SystemColors.ControlDark
-            LB_SEP_1.Location = New System.Drawing.Point(6, 179)
+            LB_SEP_1.Location = New System.Drawing.Point(6, 207)
             LB_SEP_1.Margin = New System.Windows.Forms.Padding(6, 0, 6, 0)
             LB_SEP_1.Name = "LB_SEP_1"
-            LB_SEP_1.Size = New System.Drawing.Size(709, 1)
+            LB_SEP_1.Size = New System.Drawing.Size(589, 1)
             LB_SEP_1.TabIndex = 3
             '
             'LB_SEP_2
             '
             LB_SEP_2.Anchor = CType((System.Windows.Forms.AnchorStyles.Left Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
             LB_SEP_2.BackColor = System.Drawing.SystemColors.ControlDark
-            LB_SEP_2.Location = New System.Drawing.Point(6, 209)
+            LB_SEP_2.Location = New System.Drawing.Point(6, 237)
             LB_SEP_2.Margin = New System.Windows.Forms.Padding(6, 0, 6, 0)
             LB_SEP_2.Name = "LB_SEP_2"
-            LB_SEP_2.Size = New System.Drawing.Size(709, 1)
+            LB_SEP_2.Size = New System.Drawing.Size(589, 1)
             LB_SEP_2.TabIndex = 5
             '
             'TP_WHAT
@@ -519,7 +525,7 @@ Namespace API.YouTube.Controls
             '
             LBL_SUBS_FORMAT.AutoSize = True
             LBL_SUBS_FORMAT.Dock = System.Windows.Forms.DockStyle.Fill
-            LBL_SUBS_FORMAT.Location = New System.Drawing.Point(552, 0)
+            LBL_SUBS_FORMAT.Location = New System.Drawing.Point(432, 0)
             LBL_SUBS_FORMAT.Name = "LBL_SUBS_FORMAT"
             LBL_SUBS_FORMAT.Size = New System.Drawing.Size(74, 28)
             LBL_SUBS_FORMAT.TabIndex = 2
@@ -531,13 +537,66 @@ Namespace API.YouTube.Controls
             '
             Me.LBL_AUDIO_CODEC.AutoSize = True
             Me.LBL_AUDIO_CODEC.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.LBL_AUDIO_CODEC.Location = New System.Drawing.Point(552, 0)
+            Me.LBL_AUDIO_CODEC.Location = New System.Drawing.Point(432, 0)
             Me.LBL_AUDIO_CODEC.Name = "LBL_AUDIO_CODEC"
             Me.LBL_AUDIO_CODEC.Size = New System.Drawing.Size(74, 28)
             Me.LBL_AUDIO_CODEC.TabIndex = 5
             Me.LBL_AUDIO_CODEC.Text = "Audio Codec"
             Me.LBL_AUDIO_CODEC.TextAlign = System.Drawing.ContentAlignment.MiddleRight
             TT_MAIN.SetToolTip(Me.LBL_AUDIO_CODEC, "Output Audio Codec")
+            '
+            'TP_FPS_BITRATE
+            '
+            TP_FPS_BITRATE.ColumnCount = 2
+            TP_FPS_BITRATE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
+            TP_FPS_BITRATE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
+            TP_FPS_BITRATE.Controls.Add(Me.TXT_FPS, 0, 0)
+            TP_FPS_BITRATE.Controls.Add(Me.TXT_AUDIO_BITRATE, 1, 0)
+            TP_FPS_BITRATE.Dock = System.Windows.Forms.DockStyle.Fill
+            TP_FPS_BITRATE.Location = New System.Drawing.Point(6, 93)
+            TP_FPS_BITRATE.Margin = New System.Windows.Forms.Padding(6, 0, 6, 0)
+            TP_FPS_BITRATE.Name = "TP_FPS_BITRATE"
+            TP_FPS_BITRATE.RowCount = 1
+            TP_FPS_BITRATE.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            TP_FPS_BITRATE.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
+            TP_FPS_BITRATE.Size = New System.Drawing.Size(589, 28)
+            TP_FPS_BITRATE.TabIndex = 6
+            '
+            'TXT_FPS
+            '
+            ActionButton7.BackgroundImage = CType(resources.GetObject("ActionButton7.BackgroundImage"), System.Drawing.Image)
+            ActionButton7.Name = "Clear"
+            ActionButton7.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
+            Me.TXT_FPS.Buttons.Add(ActionButton7)
+            Me.TXT_FPS.CaptionText = "Video FPS"
+            Me.TXT_FPS.CaptionToolTipEnabled = True
+            Me.TXT_FPS.CaptionToolTipText = "Set the video FPS by setting the FPS value in this field. Leave blank so as not t" &
+    "o change"
+            Me.TXT_FPS.CaptionWidth = 60.0R
+            Me.TXT_FPS.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.TXT_FPS.Location = New System.Drawing.Point(3, 2)
+            Me.TXT_FPS.Margin = New System.Windows.Forms.Padding(3, 2, 3, 3)
+            Me.TXT_FPS.Name = "TXT_FPS"
+            Me.TXT_FPS.Size = New System.Drawing.Size(288, 22)
+            Me.TXT_FPS.TabIndex = 0
+            Me.TXT_FPS.TextBoxWidthMinimal = 30
+            '
+            'TXT_AUDIO_BITRATE
+            '
+            ActionButton8.BackgroundImage = CType(resources.GetObject("ActionButton8.BackgroundImage"), System.Drawing.Image)
+            ActionButton8.Name = "Clear"
+            ActionButton8.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
+            Me.TXT_AUDIO_BITRATE.Buttons.Add(ActionButton8)
+            Me.TXT_AUDIO_BITRATE.CaptionText = "Audio bitrate"
+            Me.TXT_AUDIO_BITRATE.CaptionToolTipEnabled = True
+            Me.TXT_AUDIO_BITRATE.CaptionToolTipText = "Set the video FPS if you want to change it during download. Leave blank so as not" &
+    " to change."
+            Me.TXT_AUDIO_BITRATE.CaptionWidth = 75.0R
+            Me.TXT_AUDIO_BITRATE.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.TXT_AUDIO_BITRATE.Location = New System.Drawing.Point(297, 3)
+            Me.TXT_AUDIO_BITRATE.Name = "TXT_AUDIO_BITRATE"
+            Me.TXT_AUDIO_BITRATE.Size = New System.Drawing.Size(289, 22)
+            Me.TXT_AUDIO_BITRATE.TabIndex = 1
             '
             'TP_HEADER_BASE
             '
@@ -553,8 +612,8 @@ Namespace API.YouTube.Controls
             Me.TP_HEADER_BASE.RowCount = 1
             Me.TP_HEADER_BASE.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
             Me.TP_HEADER_BASE.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 64.0!))
-            Me.TP_HEADER_BASE.Size = New System.Drawing.Size(721, 65)
-            Me.TP_HEADER_BASE.TabIndex = 6
+            Me.TP_HEADER_BASE.Size = New System.Drawing.Size(601, 65)
+            Me.TP_HEADER_BASE.TabIndex = 7
             '
             'TP_SUBS
             '
@@ -566,31 +625,31 @@ Namespace API.YouTube.Controls
             Me.TP_SUBS.Controls.Add(LBL_SUBS_FORMAT, 1, 0)
             Me.TP_SUBS.Controls.Add(Me.CMB_SUBS_FORMAT, 2, 0)
             Me.TP_SUBS.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TP_SUBS.Location = New System.Drawing.Point(6, 93)
+            Me.TP_SUBS.Location = New System.Drawing.Point(6, 121)
             Me.TP_SUBS.Margin = New System.Windows.Forms.Padding(6, 0, 6, 0)
             Me.TP_SUBS.Name = "TP_SUBS"
             Me.TP_SUBS.RowCount = 1
             Me.TP_SUBS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            Me.TP_SUBS.Size = New System.Drawing.Size(709, 28)
+            Me.TP_SUBS.Size = New System.Drawing.Size(589, 28)
             Me.TP_SUBS.TabIndex = 2
             '
             'TXT_SUBS
             '
-            ActionButton7.BackgroundImage = CType(resources.GetObject("ActionButton7.BackgroundImage"), System.Drawing.Image)
-            ActionButton7.Name = "Open"
-            ActionButton7.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Open
-            ActionButton7.ToolTipText = "Choose subtitles"
-            ActionButton8.BackgroundImage = CType(resources.GetObject("ActionButton8.BackgroundImage"), System.Drawing.Image)
-            ActionButton8.Name = "Refresh"
-            ActionButton8.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Refresh
-            ActionButton8.ToolTipText = "Reset subtitles to initial selected"
             ActionButton9.BackgroundImage = CType(resources.GetObject("ActionButton9.BackgroundImage"), System.Drawing.Image)
-            ActionButton9.Name = "Clear"
-            ActionButton9.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
-            ActionButton9.ToolTipText = "Clear subtitles selection (don't download subtitles)"
-            Me.TXT_SUBS.Buttons.Add(ActionButton7)
-            Me.TXT_SUBS.Buttons.Add(ActionButton8)
+            ActionButton9.Name = "Open"
+            ActionButton9.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Open
+            ActionButton9.ToolTipText = "Choose subtitles"
+            ActionButton10.BackgroundImage = CType(resources.GetObject("ActionButton10.BackgroundImage"), System.Drawing.Image)
+            ActionButton10.Name = "Refresh"
+            ActionButton10.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Refresh
+            ActionButton10.ToolTipText = "Reset subtitles to initial selected"
+            ActionButton11.BackgroundImage = CType(resources.GetObject("ActionButton11.BackgroundImage"), System.Drawing.Image)
+            ActionButton11.Name = "Clear"
+            ActionButton11.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
+            ActionButton11.ToolTipText = "Clear subtitles selection (don't download subtitles)"
             Me.TXT_SUBS.Buttons.Add(ActionButton9)
+            Me.TXT_SUBS.Buttons.Add(ActionButton10)
+            Me.TXT_SUBS.Buttons.Add(ActionButton11)
             Me.TXT_SUBS.CaptionText = "Subtitles"
             Me.TXT_SUBS.CaptionToolTipEnabled = True
             Me.TXT_SUBS.CaptionToolTipText = "The selected subtitles will also be downloaded"
@@ -599,7 +658,7 @@ Namespace API.YouTube.Controls
             Me.TXT_SUBS.Dock = System.Windows.Forms.DockStyle.Fill
             Me.TXT_SUBS.Location = New System.Drawing.Point(3, 3)
             Me.TXT_SUBS.Name = "TXT_SUBS"
-            Me.TXT_SUBS.Size = New System.Drawing.Size(543, 22)
+            Me.TXT_SUBS.Size = New System.Drawing.Size(423, 22)
             Me.TXT_SUBS.TabIndex = 0
             Me.TXT_SUBS.TextBoxReadOnly = True
             '
@@ -608,7 +667,7 @@ Namespace API.YouTube.Controls
             Me.CMB_SUBS_FORMAT.Dock = System.Windows.Forms.DockStyle.Fill
             Me.CMB_SUBS_FORMAT.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
             Me.CMB_SUBS_FORMAT.FormattingEnabled = True
-            Me.CMB_SUBS_FORMAT.Location = New System.Drawing.Point(632, 3)
+            Me.CMB_SUBS_FORMAT.Location = New System.Drawing.Point(512, 3)
             Me.CMB_SUBS_FORMAT.Name = "CMB_SUBS_FORMAT"
             Me.CMB_SUBS_FORMAT.Size = New System.Drawing.Size(74, 21)
             Me.CMB_SUBS_FORMAT.TabIndex = 1
@@ -618,19 +677,21 @@ Namespace API.YouTube.Controls
             Me.TP_MAIN.ColumnCount = 1
             Me.TP_MAIN.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
             Me.TP_MAIN.Controls.Add(Me.TP_HEADER_BASE, 0, 0)
-            Me.TP_MAIN.Controls.Add(TP_FOOTER, 0, 8)
+            Me.TP_MAIN.Controls.Add(TP_FOOTER, 0, 9)
             Me.TP_MAIN.Controls.Add(Me.TP_OPTIONS, 0, 1)
-            Me.TP_MAIN.Controls.Add(Me.TP_CONTROLS, 0, 6)
-            Me.TP_MAIN.Controls.Add(LB_SEP_1, 0, 5)
-            Me.TP_MAIN.Controls.Add(LB_SEP_2, 0, 7)
-            Me.TP_MAIN.Controls.Add(Me.TP_SUBS, 0, 2)
-            Me.TP_MAIN.Controls.Add(Me.TXT_SUBS_ADDIT, 0, 3)
-            Me.TP_MAIN.Controls.Add(Me.TXT_EXTRA_AUDIO_FORMATS, 0, 4)
+            Me.TP_MAIN.Controls.Add(Me.TP_CONTROLS, 0, 7)
+            Me.TP_MAIN.Controls.Add(LB_SEP_1, 0, 6)
+            Me.TP_MAIN.Controls.Add(LB_SEP_2, 0, 8)
+            Me.TP_MAIN.Controls.Add(Me.TP_SUBS, 0, 3)
+            Me.TP_MAIN.Controls.Add(Me.TXT_SUBS_ADDIT, 0, 4)
+            Me.TP_MAIN.Controls.Add(Me.TXT_EXTRA_AUDIO_FORMATS, 0, 5)
+            Me.TP_MAIN.Controls.Add(TP_FPS_BITRATE, 0, 2)
             Me.TP_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
             Me.TP_MAIN.Location = New System.Drawing.Point(0, 0)
             Me.TP_MAIN.Name = "TP_MAIN"
-            Me.TP_MAIN.RowCount = 10
+            Me.TP_MAIN.RowCount = 11
             Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 65.0!))
+            Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
@@ -640,33 +701,32 @@ Namespace API.YouTube.Controls
             Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 5.0!))
             Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 87.0!))
             Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle())
-            Me.TP_MAIN.Size = New System.Drawing.Size(721, 300)
+            Me.TP_MAIN.Size = New System.Drawing.Size(601, 328)
             Me.TP_MAIN.TabIndex = 0
             '
             'TP_OPTIONS
             '
-            Me.TP_OPTIONS.ColumnCount = 7
+            Me.TP_OPTIONS.ColumnCount = 6
             Me.TP_OPTIONS.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
             Me.TP_OPTIONS.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 80.0!))
             Me.TP_OPTIONS.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 80.0!))
             Me.TP_OPTIONS.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 80.0!))
-            Me.TP_OPTIONS.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 120.0!))
             Me.TP_OPTIONS.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 80.0!))
             Me.TP_OPTIONS.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 80.0!))
+            Me.TP_OPTIONS.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
             Me.TP_OPTIONS.Controls.Add(LBL_FORMAT, 1, 0)
             Me.TP_OPTIONS.Controls.Add(TP_WHAT, 0, 0)
             Me.TP_OPTIONS.Controls.Add(Me.CMB_FORMAT, 2, 0)
-            Me.TP_OPTIONS.Controls.Add(Me.LBL_AUDIO_CODEC, 5, 0)
-            Me.TP_OPTIONS.Controls.Add(Me.CMB_AUDIO_CODEC, 6, 0)
+            Me.TP_OPTIONS.Controls.Add(Me.LBL_AUDIO_CODEC, 4, 0)
+            Me.TP_OPTIONS.Controls.Add(Me.CMB_AUDIO_CODEC, 5, 0)
             Me.TP_OPTIONS.Controls.Add(Me.NUM_RES, 3, 0)
-            Me.TP_OPTIONS.Controls.Add(Me.TXT_FPS, 4, 0)
             Me.TP_OPTIONS.Dock = System.Windows.Forms.DockStyle.Fill
             Me.TP_OPTIONS.Location = New System.Drawing.Point(6, 65)
             Me.TP_OPTIONS.Margin = New System.Windows.Forms.Padding(6, 0, 6, 0)
             Me.TP_OPTIONS.Name = "TP_OPTIONS"
             Me.TP_OPTIONS.RowCount = 1
             Me.TP_OPTIONS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            Me.TP_OPTIONS.Size = New System.Drawing.Size(709, 28)
+            Me.TP_OPTIONS.Size = New System.Drawing.Size(589, 28)
             Me.TP_OPTIONS.TabIndex = 1
             '
             'CMB_FORMAT
@@ -684,7 +744,7 @@ Namespace API.YouTube.Controls
             Me.CMB_AUDIO_CODEC.Dock = System.Windows.Forms.DockStyle.Fill
             Me.CMB_AUDIO_CODEC.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
             Me.CMB_AUDIO_CODEC.FormattingEnabled = True
-            Me.CMB_AUDIO_CODEC.Location = New System.Drawing.Point(632, 3)
+            Me.CMB_AUDIO_CODEC.Location = New System.Drawing.Point(512, 3)
             Me.CMB_AUDIO_CODEC.Name = "CMB_AUDIO_CODEC"
             Me.CMB_AUDIO_CODEC.Size = New System.Drawing.Size(74, 21)
             Me.CMB_AUDIO_CODEC.TabIndex = 3
@@ -701,57 +761,39 @@ Namespace API.YouTube.Controls
             Me.NUM_RES.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
             Me.NUM_RES.Value = New Decimal(New Integer() {1080, 0, 0, 0})
             '
-            'TXT_FPS
-            '
-            ActionButton10.BackgroundImage = CType(resources.GetObject("ActionButton10.BackgroundImage"), System.Drawing.Image)
-            ActionButton10.Name = "Clear"
-            ActionButton10.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
-            Me.TXT_FPS.Buttons.Add(ActionButton10)
-            Me.TXT_FPS.CaptionText = "FPS"
-            Me.TXT_FPS.CaptionToolTipEnabled = True
-            Me.TXT_FPS.CaptionToolTipText = "You can reduce the video FPS by setting the FPS value in this field."
-            Me.TXT_FPS.CaptionWidth = 30.0R
-            Me.TXT_FPS.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_FPS.Location = New System.Drawing.Point(432, 2)
-            Me.TXT_FPS.Margin = New System.Windows.Forms.Padding(3, 2, 3, 3)
-            Me.TXT_FPS.Name = "TXT_FPS"
-            Me.TXT_FPS.Size = New System.Drawing.Size(114, 22)
-            Me.TXT_FPS.TabIndex = 6
-            Me.TXT_FPS.TextBoxWidthMinimal = 30
-            '
             'TP_CONTROLS
             '
             Me.TP_CONTROLS.ColumnCount = 1
             Me.TP_CONTROLS.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
             Me.TP_CONTROLS.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TP_CONTROLS.Location = New System.Drawing.Point(3, 182)
+            Me.TP_CONTROLS.Location = New System.Drawing.Point(3, 210)
             Me.TP_CONTROLS.Margin = New System.Windows.Forms.Padding(3, 0, 3, 0)
             Me.TP_CONTROLS.Name = "TP_CONTROLS"
             Me.TP_CONTROLS.RowCount = 1
             Me.TP_CONTROLS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            Me.TP_CONTROLS.Size = New System.Drawing.Size(715, 25)
+            Me.TP_CONTROLS.Size = New System.Drawing.Size(595, 25)
             Me.TP_CONTROLS.TabIndex = 0
             '
             'TXT_SUBS_ADDIT
             '
-            ActionButton11.BackgroundImage = CType(resources.GetObject("ActionButton11.BackgroundImage"), System.Drawing.Image)
-            ActionButton11.Enabled = False
-            ActionButton11.Name = "Open"
-            ActionButton11.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Open
-            ActionButton11.ToolTipText = "Choose additional formats"
             ActionButton12.BackgroundImage = CType(resources.GetObject("ActionButton12.BackgroundImage"), System.Drawing.Image)
             ActionButton12.Enabled = False
-            ActionButton12.Name = "Refresh"
-            ActionButton12.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Refresh
-            ActionButton12.ToolTipText = "Fill in additional formats from the defaults"
+            ActionButton12.Name = "Open"
+            ActionButton12.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Open
+            ActionButton12.ToolTipText = "Choose additional formats"
             ActionButton13.BackgroundImage = CType(resources.GetObject("ActionButton13.BackgroundImage"), System.Drawing.Image)
             ActionButton13.Enabled = False
-            ActionButton13.Name = "Clear"
-            ActionButton13.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
-            ActionButton13.ToolTipText = "Remove all additional formats"
-            Me.TXT_SUBS_ADDIT.Buttons.Add(ActionButton11)
+            ActionButton13.Name = "Refresh"
+            ActionButton13.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Refresh
+            ActionButton13.ToolTipText = "Fill in additional formats from the defaults"
+            ActionButton14.BackgroundImage = CType(resources.GetObject("ActionButton14.BackgroundImage"), System.Drawing.Image)
+            ActionButton14.Enabled = False
+            ActionButton14.Name = "Clear"
+            ActionButton14.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
+            ActionButton14.ToolTipText = "Remove all additional formats"
             Me.TXT_SUBS_ADDIT.Buttons.Add(ActionButton12)
             Me.TXT_SUBS_ADDIT.Buttons.Add(ActionButton13)
+            Me.TXT_SUBS_ADDIT.Buttons.Add(ActionButton14)
             Me.TXT_SUBS_ADDIT.CaptionMode = PersonalUtilities.Forms.Controls.Base.ICaptionControl.Modes.CheckBox
             Me.TXT_SUBS_ADDIT.CaptionText = "Additional subtitle formats"
             Me.TXT_SUBS_ADDIT.CaptionToolTipEnabled = True
@@ -759,44 +801,44 @@ Namespace API.YouTube.Controls
             Me.TXT_SUBS_ADDIT.CaptionWidth = 150.0R
             Me.TXT_SUBS_ADDIT.ClearTextByButtonClear = False
             Me.TXT_SUBS_ADDIT.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_SUBS_ADDIT.Location = New System.Drawing.Point(6, 124)
+            Me.TXT_SUBS_ADDIT.Location = New System.Drawing.Point(6, 152)
             Me.TXT_SUBS_ADDIT.Margin = New System.Windows.Forms.Padding(6, 3, 6, 3)
             Me.TXT_SUBS_ADDIT.Name = "TXT_SUBS_ADDIT"
-            Me.TXT_SUBS_ADDIT.Size = New System.Drawing.Size(709, 22)
+            Me.TXT_SUBS_ADDIT.Size = New System.Drawing.Size(589, 22)
             Me.TXT_SUBS_ADDIT.TabIndex = 3
             Me.TXT_SUBS_ADDIT.Tag = "s"
             Me.TXT_SUBS_ADDIT.TextBoxReadOnly = True
             '
             'TXT_EXTRA_AUDIO_FORMATS
             '
-            ActionButton14.BackgroundImage = CType(resources.GetObject("ActionButton14.BackgroundImage"), System.Drawing.Image)
-            ActionButton14.Enabled = False
-            ActionButton14.Name = "Open"
-            ActionButton14.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Open
-            ActionButton14.ToolTipText = "Choose additional formats"
             ActionButton15.BackgroundImage = CType(resources.GetObject("ActionButton15.BackgroundImage"), System.Drawing.Image)
             ActionButton15.Enabled = False
-            ActionButton15.Name = "Refresh"
-            ActionButton15.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Refresh
-            ActionButton15.ToolTipText = "Fill in additional formats from the defaults"
+            ActionButton15.Name = "Open"
+            ActionButton15.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Open
+            ActionButton15.ToolTipText = "Choose additional formats"
             ActionButton16.BackgroundImage = CType(resources.GetObject("ActionButton16.BackgroundImage"), System.Drawing.Image)
             ActionButton16.Enabled = False
-            ActionButton16.Name = "Clear"
-            ActionButton16.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
-            ActionButton16.ToolTipText = "Choose additional formats"
-            Me.TXT_EXTRA_AUDIO_FORMATS.Buttons.Add(ActionButton14)
+            ActionButton16.Name = "Refresh"
+            ActionButton16.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Refresh
+            ActionButton16.ToolTipText = "Fill in additional formats from the defaults"
+            ActionButton17.BackgroundImage = CType(resources.GetObject("ActionButton17.BackgroundImage"), System.Drawing.Image)
+            ActionButton17.Enabled = False
+            ActionButton17.Name = "Clear"
+            ActionButton17.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
+            ActionButton17.ToolTipText = "Choose additional formats"
             Me.TXT_EXTRA_AUDIO_FORMATS.Buttons.Add(ActionButton15)
             Me.TXT_EXTRA_AUDIO_FORMATS.Buttons.Add(ActionButton16)
+            Me.TXT_EXTRA_AUDIO_FORMATS.Buttons.Add(ActionButton17)
             Me.TXT_EXTRA_AUDIO_FORMATS.CaptionMode = PersonalUtilities.Forms.Controls.Base.ICaptionControl.Modes.CheckBox
             Me.TXT_EXTRA_AUDIO_FORMATS.CaptionText = "Additional audio formats"
             Me.TXT_EXTRA_AUDIO_FORMATS.CaptionToolTipEnabled = True
             Me.TXT_EXTRA_AUDIO_FORMATS.CaptionWidth = 150.0R
             Me.TXT_EXTRA_AUDIO_FORMATS.ClearTextByButtonClear = False
             Me.TXT_EXTRA_AUDIO_FORMATS.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_EXTRA_AUDIO_FORMATS.Location = New System.Drawing.Point(6, 152)
+            Me.TXT_EXTRA_AUDIO_FORMATS.Location = New System.Drawing.Point(6, 180)
             Me.TXT_EXTRA_AUDIO_FORMATS.Margin = New System.Windows.Forms.Padding(6, 3, 6, 3)
             Me.TXT_EXTRA_AUDIO_FORMATS.Name = "TXT_EXTRA_AUDIO_FORMATS"
-            Me.TXT_EXTRA_AUDIO_FORMATS.Size = New System.Drawing.Size(709, 22)
+            Me.TXT_EXTRA_AUDIO_FORMATS.Size = New System.Drawing.Size(589, 22)
             Me.TXT_EXTRA_AUDIO_FORMATS.TabIndex = 4
             Me.TXT_EXTRA_AUDIO_FORMATS.Tag = "a"
             Me.TXT_EXTRA_AUDIO_FORMATS.TextBoxReadOnly = True
@@ -807,14 +849,14 @@ Namespace API.YouTube.Controls
             Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
             Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
             Me.CancelButton = Me.BTT_CANCEL
-            Me.ClientSize = New System.Drawing.Size(721, 300)
+            Me.ClientSize = New System.Drawing.Size(601, 328)
             Me.Controls.Add(Me.TP_MAIN)
             Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle
             Me.Icon = Global.SCrawler.My.Resources.SiteYouTube.YouTubeIcon_32
             Me.KeyPreview = True
             Me.MaximizeBox = False
             Me.MinimizeBox = False
-            Me.MinimumSize = New System.Drawing.Size(737, 339)
+            Me.MinimumSize = New System.Drawing.Size(617, 367)
             Me.Name = "VideoOptionsForm"
             Me.ShowInTaskbar = False
             Me.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide
@@ -834,6 +876,9 @@ Namespace API.YouTube.Controls
             CType(Me.CMB_PLS, System.ComponentModel.ISupportInitialize).EndInit()
             TP_WHAT.ResumeLayout(False)
             TP_WHAT.PerformLayout()
+            TP_FPS_BITRATE.ResumeLayout(False)
+            CType(Me.TXT_FPS, System.ComponentModel.ISupportInitialize).EndInit()
+            CType(Me.TXT_AUDIO_BITRATE, System.ComponentModel.ISupportInitialize).EndInit()
             Me.TP_HEADER_BASE.ResumeLayout(False)
             Me.TP_SUBS.ResumeLayout(False)
             Me.TP_SUBS.PerformLayout()
@@ -842,7 +887,6 @@ Namespace API.YouTube.Controls
             Me.TP_OPTIONS.ResumeLayout(False)
             Me.TP_OPTIONS.PerformLayout()
             CType(Me.NUM_RES, System.ComponentModel.ISupportInitialize).EndInit()
-            CType(Me.TXT_FPS, System.ComponentModel.ISupportInitialize).EndInit()
             CType(Me.TXT_SUBS_ADDIT, System.ComponentModel.ISupportInitialize).EndInit()
             CType(Me.TXT_EXTRA_AUDIO_FORMATS, System.ComponentModel.ISupportInitialize).EndInit()
             Me.ResumeLayout(False)
@@ -875,5 +919,6 @@ Namespace API.YouTube.Controls
         Private WithEvents TXT_FPS As PersonalUtilities.Forms.Controls.TextBoxExtended
         Private WithEvents CMB_PLS As PersonalUtilities.Forms.Controls.ComboBoxExtended
         Private WithEvents BTT_PLS_BROWSE As Button
+        Private WithEvents TXT_AUDIO_BITRATE As PersonalUtilities.Forms.Controls.TextBoxExtended
     End Class
 End Namespace

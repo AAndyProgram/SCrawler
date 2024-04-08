@@ -38,6 +38,7 @@ Namespace API.YouTube.Base
         <Browsable(False)> Friend ReadOnly Property DownloadLocations As DownloadLocationsCollection
         <Browsable(False)> Friend ReadOnly Property PlaylistsLocations As DownloadLocationsCollection
         <Browsable(False)> Public Overridable Property AccountName As String
+        <Browsable(False), XMLVV(0)> Private ReadOnly Property SettingsVersion As XMLValue(Of Integer)
 #Region "Environment"
 #Region "Programs"
         <Browsable(True), GridVisible(False), XMLVN({"Environment"}), Category("Environment programs"), DisplayName("Path to yt-dlp.exe"),
@@ -379,6 +380,15 @@ Namespace API.YouTube.Base
         <Browsable(True), GridVisible, XMLVN({"DefaultsAudio"}, True), Category("Defaults Audio"), DisplayName("Embed thumbnail"),
             Description("Embed thumbnail in the audio as cover art. Default: true.")>
         Public ReadOnly Property DefaultAudioEmbedThumbnail As XMLValue(Of Boolean)
+        <Browsable(True), GridVisible, XMLVN({"DefaultsAudio"}, True), Category("Defaults Audio"), DisplayName("Embed thumbnail (extracted files)"),
+            Description("Embed thumbnail in the extracted (additional file ('mp3' only)) audio as cover art. Default: true.")>
+        Public ReadOnly Property DefaultAudioEmbedThumbnail_ExtractedFiles As XMLValue(Of Boolean)
+        <Browsable(True), GridVisible, XMLVN({"DefaultsAudio"}, -1), Category("Defaults Audio"), DisplayName("Bitrate"),
+            Description("Default audio bitrate if you want to change it during download. -1 to disable. Default: -1.")>
+        Public ReadOnly Property DefaultAudioBitrate As XMLValue(Of Integer)
+        <Browsable(True), GridVisible, XMLVN({"DefaultsAudio"}, 20), Category("Defaults Audio"), DisplayName("Bitrate: ffmpeg crf"),
+            Description("This is the ffmpeg argument. Change it only if you know what you're doing. Default: 20.")>
+        Public ReadOnly Property DefaultAudioBitrate_crf As XMLValue(Of Integer)
 #Region "Music"
         <Browsable(True), GridVisible, XMLVN({"Playlists"}, True), Category("Music"), DisplayName("Create M3U8"),
             Description("Create M3U8 playlist for music. Default: true.")>

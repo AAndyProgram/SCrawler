@@ -45,4 +45,12 @@ Namespace Plugin.Attributes
         Public Clone As Boolean = True
         Public Update As Boolean = True
     End Class
+    Public Class HiddenControlAttribute : Inherits Attribute
+        Public ReadOnly IsHidden As Boolean = True
+        Public Sub New()
+        End Sub
+        Public Sub New(ByVal _IsHidden As Boolean)
+            IsHidden = _IsHidden
+        End Sub
+    End Class
 End Namespace

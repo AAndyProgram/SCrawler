@@ -1165,7 +1165,7 @@ BlockNullPicture:
                 If Not Responser Is Nothing Then Responser.Dispose()
                 Responser = New Responser
                 If Not HOST.Responser Is Nothing Then Responser.Copy(HOST.Responser)
-                If Not Responser Is Nothing And _ResponserAutoUpdateCookies Then
+                If Not Responser Is Nothing And (_ResponserAutoUpdateCookies Or _ResponserAddResponseReceivedHandler) Then
                     If _ResponserAutoUpdateCookies Then
                         Responser.CookiesUpdateMode = CookieUpdateModes.ReplaceByNameAll
                         Responser.CookiesExtractMode = Responser.CookiesExtractModes.Any
@@ -1339,6 +1339,7 @@ BlockNullPicture:
                 ResetHost()
                 URL = Data.URL
                 AccountName = Data.AccountName
+                TokenQueue = Token
                 If HOST Is Nothing Then Throw New ExitException($"Host '{AccountName}' not found")
                 Data.DownloadState = UserMediaStates.Tried
                 Progress = Data.Progress
@@ -1399,6 +1400,9 @@ BlockNullPicture:
                         f = Web.FFMPEG.TakeSnapshot(f, ff, Settings.FfmpegFile, TimeSpan.FromSeconds(1),,, EDP.SendToLog + EDP.ReturnValue)
                         If f.Exists Then DirectCast(Data, IDownloadableMedia).ThumbnailFile = f
                     End If
+                    Dim filesSize# = (From mm As UserMedia In _ContentNew Where mm.State = UStates.Downloaded AndAlso mm.File.Exists Select mm.File.Size).Sum
+                    If filesSize > 0 Then filesSize /= 1024
+                    Data.Size = filesSize
                 Else
                     Data.DownloadState = UserMediaStates.Missing
                 End If
@@ -1771,6 +1775,7 @@ BlockNullPicture:
         Protected Overridable Function ValidateDownloadFile(ByVal URL As String, ByVal Media As UserMedia, ByRef Interrupt As Boolean) As Boolean
             Return True
         End Function
+        ''' <returns><c>MyFile.CutPath(IIf(IsSingleObjectDownload, 0, 1)).PathNoSeparator</c></returns>
         Protected Overridable Function DownloadContentDefault_GetRootDir() As String
             Return MyFile.CutPath(IIf(IsSingleObjectDownload, 0, 1)).PathNoSeparator
         End Function

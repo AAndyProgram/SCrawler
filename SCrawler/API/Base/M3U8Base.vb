@@ -42,6 +42,13 @@ Namespace API.Base
     Friend NotInheritable Class M3U8Base
         Friend Const TempCacheFolderName As String = "tmpCache"
         Friend Const TempFilePrefix As String = "ConPart_"
+        Friend Const TempFileDefaultExtension As String = "ts"
+        ''' <summary><c>SFileNumbers.NumberProviderDefault</c></summary>
+        Friend Shared ReadOnly Property NumberProviderDefault As ANumbers
+            Get
+                Return SFileNumbers.NumberProviderDefault
+            End Get
+        End Property
         Private Sub New()
         End Sub
         Friend Shared Function CreateUrl(ByVal Appender As String, ByVal File As String) As String
@@ -63,8 +70,7 @@ Namespace API.Base
         Friend Overloads Shared Function Download(ByVal URLs As List(Of M3U8URL), ByVal DestinationFile As SFile, Optional ByVal Responser As Responser = Nothing,
                                                   Optional ByVal Token As CancellationToken = Nothing, Optional ByVal Progress As MyProgress = Nothing,
                                                   Optional ByVal UsePreProgress As Boolean = True, Optional ByVal ExistingCache As CacheKeeper = Nothing,
-                                                  Optional ByVal OnlyDownload As Boolean = False) As SFile
-            Const defaultExtension$ = "ts"
+                                                  Optional ByVal OnlyDownload As Boolean = False, Optional ByVal SkipBroken As Boolean = False) As SFile
             Dim Cache As CacheKeeper = Nothing
             Using tmpPr As New PreProgress(Progress)
                 Try
@@ -89,13 +95,13 @@ Namespace API.Base
                                 End If
                             End If
                             Dim p As SFileNumbers = SFileNumbers.Default(ConcatFile.Name)
-                            Dim pNum As ANumbers = SFileNumbers.NumberProviderDefault
+                            Dim pNum As ANumbers = NumberProviderDefault
                             p.NumberProvider = pNum
                             DirectCast(p.NumberProvider, ANumbers).GroupSize = {URLs.Count.ToString.Length, 3}.Max
                             ConcatFile = SFile.IndexReindex(ConcatFile,,, p, EDP.ReturnValue)
                             Dim i%
                             Dim dFile As SFile = cache2.RootDirectory
-                            dFile.Extension = defaultExtension
+                            dFile.Extension = TempFileDefaultExtension
                             Using w As New DownloadObjects.WebClient2(Responser)
                                 For i = 0 To URLs.Count - 1
                                     If progressExists Then
@@ -107,9 +113,13 @@ Namespace API.Base
                                     End If
                                     Token.ThrowIfCancellationRequested()
                                     dFile.Name = $"{TempFilePrefix}{i.NumToString(pNum)}"
-                                    dFile.Extension = URLs(i).Extension.IfNullOrEmpty(defaultExtension)
-                                    w.DownloadFile(URLs(i).URL, dFile)
-                                    cache2.AddFile(dFile, True)
+                                    dFile.Extension = URLs(i).Extension.IfNullOrEmpty(TempFileDefaultExtension)
+                                    Try
+                                        w.DownloadFile(URLs(i).URL, dFile)
+                                        cache2.AddFile(dFile, True)
+                                    Catch ex As Exception
+                                        If Not SkipBroken Then Throw ex
+                                    End Try
                                 Next
                             End Using
                             If Not OnlyDownload Then _

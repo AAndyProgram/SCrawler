@@ -69,7 +69,6 @@ Namespace API.Instagram
                 Return New EContainer("Post", ID, {New EAttribute(Name_Section, CInt(Section)), New EAttribute(Name_Code, Code)})
             End Function
         End Structure
-        Friend Const Header_FB_LSD As String = "x-fb-lsd"
         Private ReadOnly Property MySiteSettings As SiteSettings
             Get
                 Return DirectCast(HOST.Source, SiteSettings)
@@ -139,20 +138,29 @@ Namespace API.Instagram
         Friend Sub New()
             PostsKVIDs = New List(Of PostKV)
             PostsToReparse = New List(Of PostKV)
-            _ResponserAutoUpdateCookies = True
         End Sub
 #End Region
 #Region "Download data"
+        Private WwwClaimUpdate As Boolean = True
+        Private WwwClaimUpdate_R As Boolean = True
+        Private WwwClaimDefaultAlgo As Boolean = True
+        Private WwwClaimUse As Boolean = True
         Private E560Thrown As Boolean = False
         Friend Err5xx As Integer = -1
         Private Class ExitException : Inherits Exception
             Friend Property Is560 As Boolean = False
+            Friend Property IsTokens As Boolean = False
+            Friend Property TokensData As String = String.Empty
             Friend Shared Sub Throw560(ByRef Source As UserData)
                 If Not Source.E560Thrown Then
                     MyMainLOG = $"{Source.ToStringForLog}: ({IIf(Source.Err5xx > 0, Source.Err5xx, 560)}) Download skipped until next session"
                     Source.E560Thrown = True
                 End If
                 Throw New ExitException With {.Is560 = True}
+            End Sub
+            Friend Shared Sub ThrowTokens(ByRef Source As UserData, ByVal Data As String)
+                MyMainLOG = $"{Source.ToStringForLog}: failed to update some{IIf(Data.IsEmptyString, String.Empty, $" ({Data})")} credentials"
+                Throw New ExitException With {.IsTokens = True, .TokensData = Data}
             End Sub
         End Class
         Private ReadOnly Property MyFilePostsKV As SFile
@@ -235,8 +243,75 @@ Namespace API.Instagram
         Private _DownloadingInProgress As Boolean = False
         Private _Limit As Integer = -1
         Private _TotalPostsParsed As Integer = 0
+        Private _LastWwwClaim As String = String.Empty
+        Private _ResponserGQLMode As Boolean = False
+        Private _UseGQL As Boolean = False
+        Private Sub ChangeResponserMode(ByVal GQL As Boolean, Optional ByVal Force As Boolean = False)
+            If Not _ResponserGQLMode = GQL Or Force Then
+                _ResponserGQLMode = GQL
+                ChangeResponserMode_StoreWwwClaim()
+                Responser.Headers.Clear()
+                Responser.Headers.AddRange(MySiteSettings.Responser.Headers)
+                If GQL Then
+                    WwwClaimUpdate = False
+                    With Responser
+                        .Method = "POST"
+                        .ContentType = "application/x-www-form-urlencoded"
+                        .Referer = MySiteSettings.GetUserUrl(Me)
+                        .CookiesExtractMode = Responser.CookiesExtractModes.Any
+                        With .Headers
+                            .Remove(SiteSettings.Header_IG_WWW_CLAIM)
+                            .Add("origin", "https://www.instagram.com")
+                            .Add("authority", "www.instagram.com")
+                        End With
+                    End With
+                Else
+                    WwwClaimUpdate = WwwClaimUpdate_R
+                    With Responser
+                        .Method = "GET"
+                        .ContentType = Nothing
+                        .Referer = Nothing
+                        .CookiesExtractMode = MySiteSettings.Responser.CookiesExtractMode
+                        With .Headers
+                            .Remove("origin")
+                            .Remove("authority")
+                            .Remove(GQL_HEADER_FB_FRINDLY_NAME)
+                            .Remove(GQL_HEADER_FB_LSD)
+                            Dim hv$ = MySiteSettings.Responser.Headers.Value(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.SecFetchDest)).IfNullOrEmpty("empty")
+                            .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.SecFetchDest, hv))
+                            hv = MySiteSettings.Responser.Headers.Value(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.SecFetchMode)).IfNullOrEmpty("cors")
+                            .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.SecFetchMode, hv))
+                            If Not _UseGQL And WwwClaimUse Then .Add(SiteSettings.Header_IG_WWW_CLAIM, _LastWwwClaim)
+                        End With
+                    End With
+                End If
+            End If
+        End Sub
+        Private Sub ChangeResponserMode_StoreWwwClaim()
+            If Not _UseGQL Then
+                With Responser.Headers
+                    If .Contains(SiteSettings.Header_IG_WWW_CLAIM) AndAlso Not .Value(SiteSettings.Header_IG_WWW_CLAIM).IsEmptyString Then _LastWwwClaim = .Value(SiteSettings.Header_IG_WWW_CLAIM)
+                End With
+            End If
+        End Sub
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
+            ResetBaseTokens()
             UserNameRequested = False
+            RequestsCountSession = 0
+            _LastWwwClaim = String.Empty
+            _ResponserGQLMode = False
+            _UseGQL = MySiteSettings.USE_GQL.Value
+            WwwClaimUse = MySiteSettings.HH_IG_WWW_CLAIM_USE.Value
+            WwwClaimDefaultAlgo = MySiteSettings.HH_IG_WWW_CLAIM_USE_DEFAULT_ALGO.Value
+            With MySiteSettings : WwwClaimUpdate = (Not CBool(.HH_IG_WWW_CLAIM_ALWAYS_ZERO.Value) And CBool(.HH_IG_WWW_CLAIM_USE.Value)) Or
+                                                    WwwClaimDefaultAlgo : End With
+            WwwClaimUpdate_R = WwwClaimUpdate
+            Dim upClaimRequest As Action = Sub() If WwwClaimUpdate And Not WwwClaimDefaultAlgo And CBool(MySiteSettings.HH_IG_WWW_CLAIM_RESET_EACH_TARGET.Value) Then _
+                                                 Responser.Headers.Add(SiteSettings.Header_IG_WWW_CLAIM, 0)
+
+            DefaultParser_ElemNode = Nothing
+            ChangeResponserMode(_UseGQL)
+
             Dim s As Sections = Sections.Timeline
             Dim errorFound As Boolean = False
             Try
@@ -251,6 +326,7 @@ Namespace API.Instagram
                 Dim dt As Func(Of Boolean) = Function() (CBool(MySiteSettings.DownloadTimeline.Value) And GetTimeline) Or IsSavedPosts
                 If dt.Invoke And Not LastCursor.IsEmptyString Then
                     s = IIf(IsSavedPosts, Sections.SavedPosts, Sections.Timeline)
+                    upClaimRequest.Invoke
                     DownloadData(LastCursor, s, Token)
                     ProgressPre.Done()
                     ThrowAny(Token)
@@ -258,27 +334,51 @@ Namespace API.Instagram
                 End If
                 If dt.Invoke And Not HasError Then
                     s = IIf(IsSavedPosts, Sections.SavedPosts, Sections.Timeline)
+                    upClaimRequest.Invoke
+                    ChangeResponserMode(_UseGQL)
                     DownloadData(String.Empty, s, Token)
                     ProgressPre.Done()
                     ThrowAny(Token)
                     If Not HasError Then FirstLoadingDone = True
                 End If
+                DefaultParser_ElemNode = Nothing
                 If FirstLoadingDone Then LastCursor = String.Empty
                 If Not IsSavedPosts AndAlso MySiteSettings.BaseAuthExists() Then
+                    DefaultParser_ElemNode = Nothing
+                    ChangeResponserMode(_UseGQL)
                     If CBool(MySiteSettings.DownloadReels.Value) And GetReels Then
                         s = Sections.Reels
                         DefaultParser_ElemNode = {"node", "media"}
+                        upClaimRequest.Invoke
+                        ChangeResponserMode(True)
                         DownloadData(String.Empty, s, Token)
-                        DefaultParser_ElemNode = Nothing
-                        DownloadReels_SetEnvir = False
+                        GetReelsGQL_SetEnvir = False
                         ProgressPre.Done()
                     End If
-                    If CBool(MySiteSettings.DownloadStories.Value) And GetStories Then s = Sections.Stories : DownloadData(String.Empty, s, Token) : ProgressPre.Done()
-                    If CBool(MySiteSettings.DownloadStoriesUser.Value) And GetStoriesUser Then s = Sections.UserStories : DownloadData(String.Empty, s, Token) : ProgressPre.Done()
-                    If CBool(MySiteSettings.DownloadTagged.Value) And GetTaggedData Then
-                        s = Sections.Tagged
+                    DefaultParser_ElemNode = Nothing
+                    ChangeResponserMode(_UseGQL)
+                    If CBool(MySiteSettings.DownloadStories.Value) And GetStories Then
+                        s = Sections.Stories
+                        upClaimRequest.Invoke
                         DownloadData(String.Empty, s, Token)
                         ProgressPre.Done()
+                    End If
+                    DefaultParser_ElemNode = Nothing
+                    ChangeResponserMode(_UseGQL)
+                    If CBool(MySiteSettings.DownloadStoriesUser.Value) And GetStoriesUser Then
+                        s = Sections.UserStories
+                        upClaimRequest.Invoke
+                        DownloadData(String.Empty, s, Token)
+                        ProgressPre.Done()
+                    End If
+                    DefaultParser_ElemNode = Nothing
+                    ChangeResponserMode(_UseGQL)
+                    If CBool(MySiteSettings.DownloadTagged.Value) And GetTaggedData Then
+                        s = Sections.Tagged
+                        upClaimRequest.Invoke
+                        DownloadData(String.Empty, s, Token)
+                        ProgressPre.Done()
+                        DefaultParser_ElemNode = Nothing
                         If PostsToReparse.Count > 0 Then DownloadPosts(Token, True)
                     End If
                 End If
@@ -289,7 +389,7 @@ Namespace API.Instagram
                 Throw ex
             Finally
                 DefaultParser_ElemNode = Nothing
-                DownloadReels_SetEnvir = False
+                GetReelsGQL_SetEnvir = False
                 E560Thrown = False
                 UpdateResponser()
                 ValidateExtension()
@@ -315,13 +415,13 @@ Namespace API.Instagram
                 If _DownloadingInProgress AndAlso Not Responser Is Nothing AndAlso Not Responser.Disposed Then
                     _DownloadingInProgress = False
                     Responser_ResponseReceived_RemoveHandler()
-                    Declarations.UpdateResponser(Responser, MySiteSettings.Responser)
+                    Declarations.UpdateResponser(Responser, MySiteSettings.Responser, WwwClaimUpdate)
                 End If
             Catch
             End Try
         End Sub
         Protected Overrides Sub Responser_ResponseReceived(ByVal Sender As Object, ByVal e As EventArguments.WebDataResponse)
-            Declarations.UpdateResponser(e, Responser)
+            Declarations.UpdateResponser(e, Responser, WwwClaimUpdate)
         End Sub
         Protected Enum Sections : Timeline : Reels : Tagged : Stories : UserStories : SavedPosts : End Enum
         Protected Const StoriesFolder As String = "Stories"
@@ -329,6 +429,12 @@ Namespace API.Instagram
 #Region "429 bypass"
         Private Const MaxPostsCount As Integer = 200
         Friend Property RequestsCount As Integer = 0
+        Friend Property RequestsCountSession As Integer = 0
+        Private Sub UpdateRequestNumber()
+            If CInt(MySiteSettings.RequestsWaitTimer_Any.Value) > 0 Then Thread.Sleep(CInt(MySiteSettings.RequestsWaitTimer_Any.Value))
+            RequestsCount += 1
+            RequestsCountSession += 1
+        End Sub
         Friend Enum WNM As Integer
             Notify = 0
             SkipCurrent = 1
@@ -468,46 +574,74 @@ Namespace API.Instagram
                         Dim HasNextPage As Boolean = False
                         Dim EndCursor$ = String.Empty
                         Dim PostID$ = String.Empty, PostDate$ = String.Empty, SpecFolder$ = String.Empty
+                        Dim TokensErrData$ = String.Empty
                         Dim PostIDKV As PostKV
                         Dim ENode() As Object = Nothing
+                        Dim processGetResponse As Boolean = True
                         NextRequest(True)
 
                         'Check environment
                         If Not IsSavedPosts Then
-                            If ID.IsEmptyString Then GetUserId()
+                            If ID.IsEmptyString Then GetUserData()
                             If ID.IsEmptyString Then Throw New Plugin.ExitException("can't get user ID")
+                            If _UseGQL And Cursor.IsEmptyString And Not Section = Sections.SavedPosts Then
+                                If Not ValidateBaseTokens() Then GetPageTokens()
+                                If Not ValidateBaseTokens(TokensErrData) Then ValidateBaseTokens_Error(TokensErrData)
+                            End If
                         End If
 
                         'Create query
                         Select Case Section
                             Case Sections.Timeline
-                                URL = $"https://www.instagram.com/api/v1/feed/user/{NameTrue}/username/?count=50" &
-                                        If(Cursor.IsEmptyString, String.Empty, $"&max_id={Cursor}")
-                                ENode = Nothing
+                                If _UseGQL Then
+                                    EndCursor = GetTimelineGQL(Cursor, Token)
+                                    HasNextPage = Not EndCursor.IsEmptyString
+                                    MySiteSettings.TooManyRequests(False)
+                                    GoTo NextPageBlock
+                                Else
+                                    URL = $"https://www.instagram.com/api/v1/feed/user/{NameTrue}/username/?count=50" &
+                                           If(Cursor.IsEmptyString, String.Empty, $"&max_id={Cursor}")
+                                    ENode = Nothing
+                                End If
                             Case Sections.Reels
-                                r = DownloadReels(Cursor, Token)
+                                ChangeResponserMode(True)
+                                r = GetReelsGQL(Cursor)
                                 ENode = {"data", "xdt_api__v1__clips__user__connection_v2"}
+                                processGetResponse = False
                             Case Sections.SavedPosts
-                                SavedPostsDownload(String.Empty, Token)
-                                Exit Sub
+                                ChangeResponserMode(False)
+                                EndCursor = SavedPostsDownload(String.Empty, Token)
+                                HasNextPage = Not EndCursor.IsEmptyString
+                                MySiteSettings.TooManyRequests(False)
+                                ThrowAny(Token)
+                                GoTo NextPageBlock
                             Case Sections.Tagged
-                                Dim vars$ = "{""id"":" & ID & ",""first"":50,""after"":""" & Cursor & """}"
-                                vars = SymbolsConverter.ASCII.EncodeSymbolsOnly(vars)
-                                URL = $"https://www.instagram.com/graphql/query/?doc_id=17946422347485809&variables={vars}"
-                                ENode = {"data", "user", "edge_user_to_photos_of_you"}
                                 SpecFolder = TaggedFolder
+                                If _UseGQL Then
+                                    r = GetTaggedGQL(Cursor)
+                                    ENode = {"data", "xdt_api__v1__usertags__user_id__feed_connection"}
+                                    processGetResponse = False
+                                Else
+                                    Dim vars$ = "{""id"":" & ID & ",""first"":50,""after"":""" & Cursor & """}"
+                                    vars = SymbolsConverter.ASCII.EncodeSymbolsOnly(vars)
+                                    URL = $"https://www.instagram.com/graphql/query/?doc_id=17946422347485809&variables={vars}"
+                                    ENode = {"data", "user", "edge_user_to_photos_of_you"}
+                                End If
                             Case Sections.Stories
                                 If Not StoriesRequested Then
-                                    StoriesList = GetStoriesList()
+                                    StoriesList = If(_UseGQL, GetHighlightsGQL_List(), GetStoriesList())
                                     StoriesRequested = True
                                     MySiteSettings.TooManyRequests(False)
-                                    RequestsCount += 1
                                     ThrowAny(Token)
+                                    Continue Do
                                 End If
                                 If StoriesList.ListExists Then
-                                    GetStoriesData(StoriesList, False, Token)
+                                    If _UseGQL Then
+                                        GetHighlightsGQL(StoriesList, Token)
+                                    Else
+                                        GetStoriesData(StoriesList, False, Token)
+                                    End If
                                     MySiteSettings.TooManyRequests(False)
-                                    RequestsCount += 1
                                 End If
                                 If StoriesList.ListExists Then
                                     Continue Do
@@ -515,16 +649,17 @@ Namespace API.Instagram
                                     Throw New ExitException
                                 End If
                             Case Sections.UserStories
-                                GetStoriesData(Nothing, True, Token)
+                                If _UseGQL Then GetUserStoriesGQL(Token) Else GetStoriesData(Nothing, True, Token)
                                 MySiteSettings.TooManyRequests(False)
-                                RequestsCount += 1
                                 Throw New ExitException
                         End Select
 
                         'Get response
-                        If Not Section = Sections.Reels Then r = Responser.GetResponse(URL,, EDP.ThrowException)
+                        If processGetResponse Then
+                            UpdateRequestNumber()
+                            r = Responser.GetResponse(URL)
+                        End If
                         MySiteSettings.TooManyRequests(False)
-                        RequestsCount += 1
                         ThrowAny(Token)
 
                         'Parsing
@@ -608,6 +743,7 @@ Namespace API.Instagram
                         Else
                             Throw New ExitException
                         End If
+NextPageBlock:
                         dValue = 0
                         If HasNextPage And Not EndCursor.IsEmptyString Then DownloadData(EndCursor, Section, Token)
                     Catch jsonNull As JsonDocumentException When jsonNull.State = WebDocumentEventArgs.States.Error And
@@ -625,6 +761,8 @@ Namespace API.Instagram
             Catch eex2 As ExitException
                 If eex2.Is560 Then
                     Throw New Plugin.ExitException With {.Silent = True}
+                ElseIf eex2.IsTokens And _UseGQL Then
+                    Throw New Plugin.ExitException With {.Silent = True}
                 Else
                     If Not Section = Sections.Reels And (Section = Sections.Timeline Or Section = Sections.Tagged) And Not Cursor.IsEmptyString Then Throw eex2
                 End If
@@ -641,6 +779,7 @@ Namespace API.Instagram
             Dim before%
             Dim specFolder$ = IIf(IsTagged, "Tagged", String.Empty)
             If PostsToReparse.Count > 0 Then ProgressPre.ChangeMax(PostsToReparse.Count)
+            ChangeResponserMode(False)
             Try
                 Do While dValue = 1
                     ThrowAny(Token)
@@ -660,9 +799,9 @@ Namespace API.Instagram
                                 ThrowAny(Token)
                                 NextRequest(((i + 1) Mod 5) = 0)
                                 ThrowAny(Token)
+                                UpdateRequestNumber()
                                 r = Responser.GetResponse(URL,, e)
                                 MySiteSettings.TooManyRequests(False)
-                                RequestsCount += 1
                                 If Not r.IsEmptyString Then
                                     j = JsonDocument.Parse(r)
                                     If Not j Is Nothing Then
@@ -695,27 +834,30 @@ Namespace API.Instagram
                 ProcessException(DoEx, Token, $"downloading posts error [{URL}]",, Sections.Tagged)
             End Try
         End Sub
-        Private Sub SavedPostsDownload(ByVal Cursor As String, ByVal Token As CancellationToken)
+        ''' <summary>Cursor</summary>
+        Private Function SavedPostsDownload(ByVal Cursor As String, ByVal Token As CancellationToken) As String
             Dim URL$ = $"https://www.instagram.com/api/v1/feed/saved/posts/?max_id={Cursor}"
             Dim HasNextPage As Boolean = False
             Dim NextCursor$ = String.Empty
-            ThrowAny(Token)
+            Dim processNext As Boolean = False
+            UpdateRequestNumber()
             Dim r$ = Responser.GetResponse(URL)
             Dim nodes As IEnumerable(Of EContainer) = Nothing
             If Not r.IsEmptyString Then
                 Using e As EContainer = JsonDocument.Parse(r)
-                    If If(e?.Count, 0) > 0 Then
+                    If e.ListExists Then
                         With e
                             HasNextPage = .Value("more_available").FromXML(Of Boolean)(False)
                             NextCursor = .Value("next_max_id")
                             If .Contains("items") Then nodes = (From ee As EContainer In .Item("items") Where ee.Count > 0 Select ee(0))
                         End With
                         If nodes.ListExists AndAlso DefaultParser(nodes, Sections.SavedPosts, Token) AndAlso
-                           HasNextPage AndAlso Not NextCursor.IsEmptyString Then SavedPostsDownload(NextCursor, Token)
+                           HasNextPage AndAlso Not NextCursor.IsEmptyString Then processNext = True
                     End If
                 End Using
             End If
-        End Sub
+            Return If(processNext, NextCursor, String.Empty)
+        End Function
         Protected DefaultParser_ElemNode() As Object = Nothing
         Protected DefaultParser_IgnorePass As Boolean = False
         Private ReadOnly DefaultParser_PostUrlCreator_Default As Func(Of PostKV, String) = Function(post) $"https://www.instagram.com/p/{post.Code}/"
@@ -740,25 +882,29 @@ Namespace API.Instagram
                 For Each nn In Items
                     ProgressPre.Perform()
                     With If(Not DefaultParser_ElemNode Is Nothing, nn.ItemF(DefaultParser_ElemNode), nn)
-                        PostIDKV = New PostKV(.Value("code"), .Value("id"), Section)
-                        PostOriginUrl = DefaultParser_PostUrlCreator(PostIDKV)
-                        Pinned = .Contains("timeline_pinned_user_ids")
-                        If Not DefaultParser_IgnorePass AndAlso PostKvExists(PostIDKV) Then
-                            If Not Pinned Then Return False
-                        Else
-                            _TempPostsList.Add(PostIDKV.ID)
-                            PostsKVIDs.ListAddValue(PostIDKV, LNC)
-                            PostDate = .Value("taken_at")
-                            If Not DefaultParser_IgnorePass And Not IsSavedPosts Then
-                                Select Case CheckDatesLimit(PostDate, UnixDate32Provider)
-                                    Case DateResult.Skip : Continue For
-                                    Case DateResult.Exit : If Not Pinned Then Return False
-                                End Select
+                        If .ListExists Then
+                            PostIDKV = New PostKV(.Value("code"), .Value("id"), Section)
+                            PostOriginUrl = DefaultParser_PostUrlCreator(PostIDKV)
+                            Pinned = .Contains("timeline_pinned_user_ids")
+                            If (Section = Sections.Timeline And Not DefaultParser_IgnorePass) AndAlso PostKvExists(PostIDKV) Then
+                                If Not Pinned Then Return False
+                            Else
+                                _TempPostsList.Add(PostIDKV.ID)
+                                PostsKVIDs.ListAddValue(PostIDKV, LNC)
+                                PostDate = .Value("taken_at")
+                                If Not DefaultParser_IgnorePass And Not IsSavedPosts Then
+                                    Select Case CheckDatesLimit(PostDate, UnixDate32Provider)
+                                        Case DateResult.Skip : Continue For
+                                        Case DateResult.Exit : If Not Pinned Then Return False
+                                    End Select
+                                End If
+                                before = _TempMediaList.Count
+                                ObtainMedia(.Self, PostIDKV.ID, SpecFolder, PostDate,, PostOriginUrl, State, Attempts)
+                                If Not before = _TempMediaList.Count Then _TotalPostsParsed += 1
+                                If _Limit > 0 And _TotalPostsParsed >= _Limit Then Return False
                             End If
-                            before = _TempMediaList.Count
-                            ObtainMedia(.Self, PostIDKV.ID, SpecFolder, PostDate,, PostOriginUrl, State, Attempts)
-                            If Not before = _TempMediaList.Count Then _TotalPostsParsed += 1
-                            If _Limit > 0 And _TotalPostsParsed >= _Limit Then Return False
+                        Else
+                            Return False
                         End If
                     End With
                 Next
@@ -766,106 +912,6 @@ Namespace API.Instagram
             Else
                 Return False
             End If
-        End Function
-#End Region
-#Region "Get reels"
-        Private _GetReels_LSD As String = String.Empty
-        Private _GetReels_dtsg As String = String.Empty
-        Private ReadOnly Property DownloadReels_Tokens_Valid As Boolean
-            Get
-                Return Not _GetReels_LSD.IsEmptyString And Not _GetReels_dtsg.IsEmptyString
-            End Get
-        End Property
-        Private WriteOnly Property DownloadReels_SetEnvir As Boolean
-            Set(ByVal init As Boolean)
-                If init Then
-                    ObtainMedia_SetReelsFunc()
-                    DefaultParser_PostUrlCreator = Function(post) $"{MySiteSettings.GetUserUrl(Me).TrimEnd("/")}/reel/{post.Code}"
-                Else
-                    ObtainMedia_SizeFuncPic = Nothing
-                    ObtainMedia_SizeFuncVid = Nothing
-                    DefaultParser_PostUrlCreator = DefaultParser_PostUrlCreator_Default
-                End If
-            End Set
-        End Property
-        Private Class Responser2 : Inherits Responser
-            Friend Sub New(ByVal Source As Responser)
-                MyBase.New
-                Copy(Source)
-                ErrorProcessor = New ResponserErrorProcessor(Source)
-            End Sub
-        End Class
-        ''' <returns>Response</returns>
-        Private Function DownloadReels(ByVal Cursor As String, ByVal Token As CancellationToken) As String
-            Const requestPattern$ = "https://www.instagram.com/api/graphql?fb_dtsg={0}&fb_api_req_friendly_name=PolarisProfileReelsTabContentQuery&lsd={1}&doc_id=7191572580905225&variables={2}"
-
-            DownloadReels_SetEnvir = True
-
-            If Cursor.IsEmptyString And Not DownloadReels_Tokens_Valid Then GetPageTokens()
-            If Cursor.IsEmptyString And Not DownloadReels_Tokens_Valid Then Throw New ExitException
-
-            Using resp As New Responser2(Responser)
-                Try
-                    resp.Method = "POST"
-                    AddHandler resp.ResponseReceived, AddressOf Responser_ResponseReceived
-                    resp.Headers.Add(Header_FB_LSD, _GetReels_LSD)
-
-                    Dim vars$ = """data"":{""include_feed_video"":true,""page_size"":50,""target_user_id"":""" & ID & """}"
-                    If Not Cursor.IsEmptyString Then vars = $"""after"":""{Cursor}"",""before"":null,{vars},""first"":4,""last"":null"
-                    vars = "{" & vars & "}"
-
-                    Dim url$ = String.Format(requestPattern, _GetReels_dtsg, _GetReels_LSD, SymbolsConverter.ASCII.EncodeSymbolsOnly(vars))
-
-                    Return resp.GetResponse(url,, EDP.ThrowException)
-                Finally
-                    With resp
-                        Responser.Cookies.Update(.Cookies)
-                        With .Headers
-                            If .Contains(SiteSettings.Header_IG_WWW_CLAIM) Then Responser.Headers.Add(SiteSettings.Header_IG_WWW_CLAIM, .Value(SiteSettings.Header_IG_WWW_CLAIM))
-                            If .Contains(SiteSettings.Header_CSRF_TOKEN) Then Responser.Headers.Add(SiteSettings.Header_CSRF_TOKEN, .Value(SiteSettings.Header_CSRF_TOKEN))
-                        End With
-                    End With
-                End Try
-            End Using
-        End Function
-        Private Function GetPageTokens() As Boolean
-            _GetReels_LSD = String.Empty
-            _GetReels_dtsg = String.Empty
-            Try
-                Dim r$ = Responser.GetResponse(MySiteSettings.GetUserUrl(Me),, EDP.ThrowException)
-                If Not r.IsEmptyString Then
-                    Dim rr As RParams = RParams.DM(PageTokenRegexPatternDefault, 0, RegexReturn.List, EDP.ReturnValue)
-                    Dim tokens As List(Of String) = RegexReplace(r, rr)
-                    Dim tt$, ttVal$
-                    If tokens.ListExists Then
-                        With rr
-                            .Match = Nothing
-                            .MatchSub = 1
-                            .WhatGet = RegexReturn.Value
-                        End With
-                        For Each tt In tokens
-                            If Not _GetReels_LSD.IsEmptyString And Not _GetReels_dtsg.IsEmptyString Then
-                                Exit For
-                            Else
-                                ttVal = RegexReplace(tt, rr)
-                                If Not ttVal.IsEmptyString Then
-                                    If ttVal.Contains(":") Then
-                                        If _GetReels_dtsg.IsEmptyString Then _GetReels_dtsg = ttVal
-                                    Else
-                                        If _GetReels_LSD.IsEmptyString Then _GetReels_LSD = ttVal
-                                    End If
-                                End If
-                            End If
-                        Next
-                    End If
-                End If
-            Catch ex As Exception
-                Dim notFound$ = String.Empty
-                If _GetReels_dtsg.IsEmptyString Then notFound.StringAppend(Header_FB_LSD)
-                If _GetReels_LSD.IsEmptyString Then notFound.StringAppend("lsd")
-                LogError(ex, $"failed to update some{IIf(notFound.IsEmptyString, String.Empty, $" ({notFound})")} credentials", EDP.SendToLog)
-            End Try
-            Return DownloadReels_Tokens_Valid
         End Function
 #End Region
 #Region "Code ID converters"
@@ -1024,11 +1070,12 @@ Namespace API.Instagram
         End Sub
 #End Region
 #Region "GetUserId, GetUserName"
-        Private Sub GetUserId()
+        Private Sub GetUserData()
             Dim __idFound As Boolean = False
             Try
-                RequestsCount += 1
-                Dim r$ = Responser.GetResponse($"https://i.instagram.com/api/v1/users/web_profile_info/?username={NameTrue}",, EDP.ThrowException)
+                ChangeResponserMode(False)
+                UpdateRequestNumber()
+                Dim r$ = Responser.GetResponse($"https://i.instagram.com/api/v1/users/web_profile_info/?username={NameTrue}")
                 If Not r.IsEmptyString Then
                     Using j As EContainer = JsonDocument.Parse(r)
                         If Not j Is Nothing AndAlso j.Contains({"data", "user"}) Then
@@ -1042,7 +1089,7 @@ Namespace API.Instagram
                                 Dim eUrl$ = .Value("external_url")
                                 If Not eUrl.IsEmptyString AndAlso (descr.IsEmptyString OrElse Not descr.Contains(eUrl)) Then descr.StringAppendLine(eUrl)
                                 UserDescriptionUpdate(descr)
-                                Dim f As New SFile With {.Path = MyFile.CutPath.Path, .Name = "ProfilePicture", .Extension = "jpg"}
+                                Dim f As New SFile With {.Path = DownloadContentDefault_GetRootDir(), .Name = "ProfilePicture", .Extension = "jpg"}
                                 If Not f.Exists Then
                                     Dim profilePicture$ = .Value("profile_pic_url_hd")
                                     If profilePicture.IsEmptyString OrElse Not GetWebFile(profilePicture, f, EDP.ReturnValue) Then
@@ -1062,13 +1109,15 @@ Namespace API.Instagram
                         LogError(ex, "get Instagram user ID")
                     End If
                 End If
+            Finally
+                ChangeResponserMode(_UseGQL)
             End Try
         End Sub
         Private Function GetUserNameById() As Boolean
             UserNameRequested = True
             Try
                 If Not ID.IsEmptyString Then
-                    RequestsCount += 1
+                    UpdateRequestNumber()
                     Dim r$ = Responser.GetResponse($"https://i.instagram.com/api/v1/users/{ID}/info/",, EDP.ReturnValue)
                     If Not r.IsEmptyString Then
                         Using j As EContainer = JsonDocument.Parse(r, EDP.ReturnValue)
@@ -1101,9 +1150,9 @@ Namespace API.Instagram
         Private Sub GetStoriesData(ByRef StoriesList As List(Of String), ByVal GetUserStory As Boolean, ByVal Token As CancellationToken)
             Const ReqUrl$ = "https://i.instagram.com/api/v1/feed/reels_media/?{0}"
             Dim tmpList As IEnumerable(Of String) = Nothing
-            Dim qStr$, r$, sFolder$, storyID$, pid$
+            Dim qStr$, r$
             Dim i% = -1
-            Dim jj As EContainer, s As EContainer
+            Dim jj As EContainer
             ThrowAny(Token)
             If StoriesList.ListExists Or GetUserStory Then
                 If Not GetUserStory Then tmpList = StoriesList.Take(5)
@@ -1113,38 +1162,14 @@ Namespace API.Instagram
                     Else
                         qStr = String.Format(ReqUrl, tmpList.Select(Function(q) $"reel_ids=highlight:{q}").ListToString("&"))
                     End If
+                    UpdateRequestNumber()
                     r = Responser.GetResponse(qStr,, EDP.ThrowException)
                     ThrowAny(Token)
                     If Not r.IsEmptyString Then
                         Using j As EContainer = JsonDocument.Parse(r).XmlIfNothing
                             If j.Contains("reels") Then
                                 ProgressPre.ChangeMax(j("reels").Count)
-                                For Each jj In j("reels")
-                                    ProgressPre.Perform()
-                                    i += 1
-                                    sFolder = jj.Value("title").StringRemoveWinForbiddenSymbols
-                                    storyID = jj.Value("id").Replace("highlight:", String.Empty)
-                                    If GetUserStory Then
-                                        sFolder = $"{StoriesFolder} (user)"
-                                    Else
-                                        If sFolder.IsEmptyString Then sFolder = $"Story_{storyID}"
-                                        If sFolder.IsEmptyString Then sFolder = $"Story_{i}"
-                                        sFolder = $"{StoriesFolder}\{sFolder}"
-                                    End If
-                                    If Not storyID.IsEmptyString Then storyID &= ":"
-                                    With jj("items").XmlIfNothing
-                                        If .Count > 0 Then
-                                            For Each s In .Self
-                                                pid = storyID & s.Value("id")
-                                                If Not _TempPostsList.Contains(pid) Then
-                                                    ThrowAny(Token)
-                                                    ObtainMedia(s, pid, sFolder)
-                                                    _TempPostsList.Add(pid)
-                                                End If
-                                            Next
-                                        End If
-                                    End With
-                                Next
+                                For Each jj In j("reels") : GetStoriesData_ParseSingleHighlight(jj, i, GetUserStory, Token) : Next
                             End If
                         End Using
                     End If
@@ -1152,8 +1177,39 @@ Namespace API.Instagram
                 End If
             End If
         End Sub
+        Private Sub GetStoriesData_ParseSingleHighlight(ByVal Node As EContainer, ByRef Index As Integer, ByVal GetUserStory As Boolean, ByVal Token As CancellationToken)
+            If Not Node Is Nothing Then
+                With Node
+                    ProgressPre.Perform()
+                    Index += 1
+                    Dim pid$
+                    Dim sFolder$ = .Value("title").StringRemoveWinForbiddenSymbols
+                    Dim storyID$ = .Value("id").Replace("highlight:", String.Empty)
+                    If GetUserStory Then
+                        sFolder = $"{StoriesFolder} (user)"
+                    Else
+                        If sFolder.IsEmptyString Then sFolder = $"Story_{storyID.IfNullOrEmpty(Index)}"
+                        sFolder = $"{StoriesFolder}\{sFolder}"
+                    End If
+                    If Not storyID.IsEmptyString Then storyID &= ":"
+                    With .Item("items")
+                        If .ListExists Then
+                            For Each s As EContainer In .Self
+                                pid = storyID & s.Value("id")
+                                If Not _TempPostsList.Contains(pid) Then
+                                    ThrowAny(Token)
+                                    ObtainMedia(s, pid, sFolder)
+                                    _TempPostsList.Add(pid)
+                                End If
+                            Next
+                        End If
+                    End With
+                End With
+            End If
+        End Sub
         Private Function GetStoriesList() As List(Of String)
             Try
+                UpdateRequestNumber()
                 Dim r$ = Responser.GetResponse($"https://i.instagram.com/api/v1/highlights/{ID}/highlights_tray/",, EDP.ThrowException)
                 If Not r.IsEmptyString Then
                     Dim ee As New ErrorsDescriber(EDP.ReturnValue) With {.DeclaredMessage = New MMessage($"{ToStringForLog()}:")}
@@ -1223,15 +1279,26 @@ Namespace API.Instagram
         Private Sub DisableSection(ByVal Section As Object)
             If Not IsNothing(Section) AndAlso TypeOf Section Is Sections Then
                 Dim s As Sections = DirectCast(Section, Sections)
-                Select Case s
-                    Case Sections.Reels : MySiteSettings.DownloadReels.Value = False
-                    Case Sections.Tagged : MySiteSettings.DownloadTagged.Value = False
-                    Case Sections.Timeline, Sections.Stories, Sections.UserStories, Sections.SavedPosts
-                        MySiteSettings.DownloadTimeline.Value = False
-                        MySiteSettings.DownloadStories.Value = False
-                        MySiteSettings.DownloadStoriesUser.Value = False
-                End Select
-                MyMainLOG = $"[{s}] downloading is disabled until you update your credentials".ToUpper
+                Dim ss As New List(Of Sections)([Enum].GetValues(GetType(Sections)).ToObjectsList(Of Sections))
+                If s = Sections.Reels And Not _UseGQL Then
+                    ss.Clear()
+                    ss.Add(s)
+                ElseIf s = Sections.Tagged Then
+                    ss.Clear()
+                    ss.Add(s)
+                End If
+                If ss.Count > 0 Then
+                    For Each s In ss
+                        Select Case s
+                            Case Sections.Reels : MySiteSettings.DownloadReels.Value = False
+                            Case Sections.Tagged : MySiteSettings.DownloadTagged.Value = False
+                            Case Sections.Timeline, Sections.SavedPosts : MySiteSettings.DownloadTimeline.Value = False
+                            Case Sections.Stories : MySiteSettings.DownloadStories.Value = False
+                            Case Sections.UserStories : MySiteSettings.DownloadStoriesUser.Value = False
+                        End Select
+                    Next
+                    MyMainLOG = $"[{ss.ListToStringE(, New ANumbers.EnumToStringProvider(GetType(Sections)))}] downloading is disabled until you update your credentials".ToUpper
+                End If
             End If
         End Sub
 #End Region

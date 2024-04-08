@@ -68,6 +68,19 @@ Namespace API.ThreadsNet
             End If
         End Sub
 #End Region
+#Region "Other properties"
+        <PropertyOption(ControlText:="Request timer (any)",
+                        ControlToolTip:="The timer (in milliseconds) that SCrawler should wait before executing the next request." &
+                        vbCr & "The default value is 1'000." & vbCr & "The minimum value is 0." & IG.TimersUrgentTip, AllowNull:=False),
+                        PXML, PClonable>
+        Friend ReadOnly Property RequestsWaitTimer_Any As PropertyValue
+        <Provider(NameOf(RequestsWaitTimer_Any), FieldsChecker:=True)>
+        Private ReadOnly Property RequestsWaitTimer_AnyProvider As IFormatProvider
+        <PropertyOption(ControlText:="Download data",
+                        ControlToolTip:="The internal value indicates that site data should be downloaded." & vbCr &
+                                        "It becomes unchecked when the site returns an error."), PXML>
+        Friend ReadOnly Property DownloadData_Impl As PropertyValue
+#End Region
 #End Region
 #Region "Initializer"
         Friend Sub New(ByVal AccName As String, ByVal Temp As Boolean)
@@ -112,7 +125,7 @@ Namespace API.ThreadsNet
                     .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.SecFetchMode, "cors"))
                     .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.SecFetchSite, "same-origin"))
                     .Add("Sec-Fetch-User", "?1")
-                    .Add(DeclaredNames.Header_FB_FRIENDLY_NAME, "BarcelonaProfileThreadsTabRefetchableQuery")
+                    .Add(Instagram.UserData.GQL_HEADER_FB_FRINDLY_NAME, "BarcelonaProfileThreadsTabRefetchableQuery")
                 End With
                 .CookiesExtractMode = Responser.CookiesExtractModes.Any
                 .CookiesUpdateMode = CookieKeeper.UpdateModes.ReplaceByNameAll
@@ -128,6 +141,10 @@ Namespace API.ThreadsNet
             HH_BROWSER_EXT = New PropertyValue(browserExt, GetType(String), Sub(v) ChangeResponserFields(NameOf(HH_BROWSER_EXT), v))
             HH_PLATFORM_VER = New PropertyValue(platform, GetType(String), Sub(v) ChangeResponserFields(NameOf(HH_PLATFORM_VER), v))
             HH_USER_AGENT = New PropertyValue(useragent, GetType(String), Sub(v) ChangeResponserFields(NameOf(HH_USER_AGENT), v))
+
+            RequestsWaitTimer_Any = New PropertyValue(1000)
+            RequestsWaitTimer_AnyProvider = New IG.TimersChecker(0)
+            DownloadData_Impl = New PropertyValue(True)
 
             UrlPatternUser = "https://www.threads.net/@{0}"
             UserRegex = RParams.DMS(String.Format(UserRegexDefaultPattern, "threads.net/@"), 1)
@@ -155,7 +172,7 @@ Namespace API.ThreadsNet
 #End Region
 #Region "BaseAuthExists, GetUserUrl, GetUserPostUrl"
         Friend Overrides Function BaseAuthExists() As Boolean
-            Return Responser.CookiesExists And {HH_CSRF_TOKEN, HH_IG_APP_ID}.All(Function(v) ACheck(Of String)(v.Value))
+            Return Responser.CookiesExists And {HH_CSRF_TOKEN, HH_IG_APP_ID}.All(Function(v) ACheck(Of String)(v.Value)) And CBool(DownloadData_Impl.Value)
         End Function
         Friend Overrides Function GetUserUrl(ByVal User As IPluginContentProvider) As String
             Return String.Format(UrlPatternUser, DirectCast(User, UserData).NameTrue)
@@ -171,12 +188,22 @@ Namespace API.ThreadsNet
         End Function
 #End Region
 #Region "Update"
+        Private __Cookies As CookieKeeper = Nothing
+        Friend Overrides Sub BeginEdit()
+            __Cookies = Responser.Cookies.Copy
+            MyBase.BeginEdit()
+        End Sub
         Friend Overrides Sub Update()
             If _SiteEditorFormOpened And Responser.CookiesExists Then
                 Dim csrf$ = If(Responser.Cookies.FirstOrDefault(Function(c) c.Name.StringToLower = IG.Header_CSRF_TOKEN_COOKIE)?.Value, String.Empty)
                 If Not csrf.IsEmptyString Then HH_CSRF_TOKEN.Value = csrf
+                If Not __Cookies Is Nothing AndAlso Not __Cookies.ListEquals(Responser.Cookies) Then DownloadData_Impl.Value = True
             End If
             MyBase.Update()
+        End Sub
+        Friend Overrides Sub EndEdit()
+            __Cookies.DisposeIfReady
+            MyBase.EndEdit()
         End Sub
 #End Region
     End Class
