@@ -1,3 +1,71 @@
+# 2024.4.10.0
+
+*2024-04-10*
+
+**For those of you who use TikTok, it is highly recommended to update TikTok plugin (using [these instructions](https://github.com/AAndyProgram/SCrawler/wiki/Settings#how-to-install-yt-dlp-ttuser-plugin)) to the latest version!**
+
+**ATTENTION! This version includes changes to downloading groups (including the scheduler) and the settings file. Once you start using it, you won't be able to downgrade. I recommend making a backup of your SCrawler settings folder. It is also recommended to check all of your download groups settings and scheduler plans settings.**
+
+- Added
+  - Sites
+    - TikTok: more settings for standalone downloader
+    - Instagram:
+      - automatically reset download options after updating credentials
+      - **ability to extract an image (if it exists) from a video that contains a static image**
+      - updated reels downloading function
+      - GraphQL support
+      - request timers (per request)
+    - OnlyFans:
+      - **download stories**
+      - option to disable timeline downloading
+    - Reddit: added `Check image` setting (unchecked by default) to make Reddit downloading faster
+  - **YouTube (standalone app)**:
+    - **the ability to add downloaded item(s) to a playlist**
+    - **the ability to create a playlist from downloaded music**
+    - calculation and display of the actual size of downloaded files
+    - **the ability to change audio bitrate** *(you can also set the default bitrate in  `Defaults Audio` - `Bitrate`)*
+    - **embed thumbnail in the extracted audio (`mp3` only) as cover art** (Settings: `Defaults Audio` - `Embed thumbnail (extracted files)`)
+    - Exclude `drc` *(dynamic range compression)* from parsing results
+  - Standalone downloader: 
+    - allow thumbnail to be saved with file
+    - calculation and display of the actual size of downloaded files
+  - Feed:
+    - add hotkeys: `Home`, `End`, `Up`, `Page Up`, `Down`, `Page Down`
+    - ability to save/load views
+  - Scheduler: **`All` and `Default` options removed.** *Only `Disabled`, `Specified` and `Groups` are available.*
+  - Download groups: **filter users who have been (not)downloaded in the last `x` days** *(download groups, advanced filter (main window), scheduler)*.
+  - Main window:
+    - ability to save/load views (`View` - `Save/Load view`)
+    - **all filter options from the `View` menu have now been moved to `Filter`**
+  - Settings:
+    - ability to confirm mass download using the `F6` key *(to protect against accidental pressing) (`Settings` - `Behavior`)*
+    - the ability to find the program environment
+    - default headers (`Settings` - `Headers`)
+  - Added the ability to display group users *(works in scheduler, scheduler plans, download groups)*
+  - Added exclusion of last 3 days from deleting session files
+  - Other improvements
+- Updated
+  - **yt-dlp up to version 2024.04.09**
+- PluginProvider
+  - Add `PropertyValueEventArgs` class
+  - PropertyValue:
+    - add `Checked` parameter
+    - add `OnCheckboxCheckedChange` handler
+  - ISiteSettings:
+    - add `CMDEncoding`, `EnvironmentPrograms` properties
+    - add `EnvironmentProgramsUpdated` function
+- Fixed
+  - Sites
+    - PornHub: some videos won't download
+    - xHamster:
+      - some videos are missing when downloading creators
+      - user videos aren't downloading
+    - **JustForFans: fixed video downloading**
+    - TikTok (standalone downloader): files with long names aren't downloaded
+  - Users: incorrect decision to set last update date, which resulted in an incorrect last download date for some users
+  - Feed: a scrolling bug where the feed scrolls up after returning to it
+  - Minor bugs
+
 # 2024.2.25.0
 
 *2024-02-25*

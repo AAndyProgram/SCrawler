@@ -8,9 +8,10 @@ I welcome requests! Follow these steps to contribute:
 1. If you have a code change suggestion, you can post a replacement code block.<!-- I also accept pull requests.-->
 
 # How to report a problem
-1. Attach a **profile URL** that you cannot download.
+1. Attach the **profile URLs or links** that you cannot download.
 1. Attach the **LOG** if it exists.
-1. **Attach information to the issue with data copied from SCrawler (click the top right info button in the main window, then the `Environment` button, then the `Copy` button, and paste the copied text into the issue).**
+1. **Attach the environment information copied from SCrawler (click the top right info button in the main window, then the `Environment` button, then the `Copy` button, and paste the copied text into the issue).**
+1. *Add screenshots to illustrate the problem (**optional**)*
 
 # How to build from source
 1. Delete the `PersonalUtilities` project from the solution.
