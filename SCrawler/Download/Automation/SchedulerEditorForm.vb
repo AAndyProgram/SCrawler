@@ -381,7 +381,7 @@ Namespace DownloadObjects
                                 users.ListAddList(Groups.DownloadGroup.GetUsers(.Self))
                             End If
                         End If
-                        Groups.GroupUsersViewer.Show(users)
+                        Groups.GroupUsersViewer.Show(users, $"S { .Name}")
                         users.Clear()
                     End With
                 End If

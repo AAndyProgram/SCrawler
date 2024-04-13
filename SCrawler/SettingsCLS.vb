@@ -825,14 +825,19 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
             Return _UserListUpdateRequired
         End Get
     End Property
-    Friend Overloads Sub UpdateUsersList(ByVal u As UserInfo)
+    Friend Overloads Sub UpdateUsersList(ByVal u As UserInfo, Optional ByVal OnlyDiff As Boolean = False)
+        Dim result As Boolean = True
         Dim i% = UsersList.IndexOf(u)
         If i >= 0 Then
-            UsersList(i) = u
+            If Not OnlyDiff OrElse Not UserInfo.ExactEquals(UsersList(i), u) Then
+                UsersList(i) = u
+            Else
+                result = False
+            End If
         Else
             UsersList.Add(u)
         End If
-        UpdateUsersList()
+        If result Then UpdateUsersList()
     End Sub
     Friend Overloads Sub UpdateUsersList()
         Try

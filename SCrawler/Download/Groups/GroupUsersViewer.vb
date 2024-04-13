@@ -10,11 +10,16 @@ Imports SCrawler.API.Base
 Imports PersonalUtilities.Forms
 Namespace DownloadObjects.Groups
     Friend Class GroupUsersViewer : Inherits SimpleListForm(Of IUserData)
-        Friend Sub New(ByVal Users As IEnumerable(Of IUserData))
+        Friend Sub New(ByVal Users As IEnumerable(Of IUserData), ByVal AdditText As String)
             MyBase.New(Users, Settings.Design)
             DesignXMLNodeName = "GroupUsersViewer"
             Provider = New CustomProvider(Function(u As UserDataBase) u.ToStringForLog)
-            FormText = "Users"
+            FormText = $"Users ({If(Users?.Count, 0)})"
+            If Not AdditText.IsEmptyString Then
+                Dim a$ = AdditText.Trim.Take(100).ListToStringE(String.Empty,,, " ", EDP.ReturnValue)
+                If Not a = AdditText Then AdditText &= "..."
+                FormText &= $" [{a}]"
+            End If
             Icon = My.Resources.UsersIcon_32
             MyDefs.DelegateClosingChecker = False
             Mode = SimpleListFormModes.SelectedItems
@@ -23,18 +28,26 @@ Namespace DownloadObjects.Groups
         End Sub
         Protected Overrides Sub MyForm_KeyDown(sender As Object, e As KeyEventArgs)
             Try
+                Dim b As Boolean = True
                 If e.KeyCode = Keys.F And e.Control Then
-                    e.Handled = True
                     FocusUser()
+                ElseIf e.KeyCode = Keys.F3 Then
+                    EditUser(e.Alt)
                 ElseIf e = ShowUsersButtonKey Then
                     MsgBoxE(New MMessage(DataSourceCollection.ListToStringE(vbCr, Provider,,, EDP.LogMessageValue), "User list") With {.Editable = True})
+                ElseIf e.KeyCode = Keys.F1 And Not e.Alt And Not e.Control Then
+                    MsgBoxE({$"Hotkeys:{vbCr}Alt+F1 - show user list{vbCr}Ctrl+F - find the selected user in the main window{vbCr}" &
+                             $"F3 - edit selected user{vbCr}Alt+F3 - edit selected collection", "Hotkeys"})
+                Else
+                    b = False
                 End If
+                If b Then e.Handled = True
             Catch
             End Try
         End Sub
-        Friend Overloads Shared Sub Show(ByVal Users As IEnumerable(Of IUserData))
+        Friend Overloads Shared Sub Show(ByVal Users As IEnumerable(Of IUserData), ByVal AdditText As String)
             If Users.ListExists Then
-                MainFrameObj.OpenedGroupUsersForms.Add(New GroupUsersViewer(Users))
+                MainFrameObj.OpenedGroupUsersForms.Add(New GroupUsersViewer(Users, AdditText))
                 MainFrameObj.OpenedGroupUsersForms.Last.Show()
             Else
                 MsgBoxE({"No users were found based on the selected parameters", "Show group users"}, vbExclamation)
@@ -46,6 +59,15 @@ Namespace DownloadObjects.Groups
         Private Sub FocusUser()
             Try
                 If _LatestSelected.ValueBetween(0, DataSourceCollection.Count - 1) Then MainFrameObj.FocusUser(DataSourceCollection(_LatestSelected).Key, True)
+            Catch
+            End Try
+        End Sub
+        Private Sub EditUser(ByVal EditCollection As Boolean)
+            Try
+                If _LatestSelected.ValueBetween(0, DataSourceCollection.Count - 1) Then
+                    Dim u As IUserData = Settings.GetUser(DataSourceCollection(_LatestSelected).Key, EditCollection)
+                    If Not u Is Nothing Then ControlInvokeFast(MainFrameObj.MF, Sub() MainFrameObj.MF.EditSelectedUser(u), EDP.None)
+                End If
             Catch
             End Try
         End Sub

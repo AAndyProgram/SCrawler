@@ -104,6 +104,9 @@ Namespace Plugin.Hosts
                 End With
             End If
         End Sub
+        Protected Overrides Sub EraseData_AdditionalDataFiles()
+            ExternalPlugin.ResetHistoryData()
+        End Sub
         Protected Overrides Function DownloadingException(ByVal ex As Exception, ByVal Message As String, Optional ByVal FromPE As Boolean = False,
                                                           Optional ByVal EObj As Object = Nothing) As Integer
             LogError(ex, Message)

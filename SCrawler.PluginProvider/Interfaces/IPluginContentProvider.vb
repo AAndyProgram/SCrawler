@@ -40,5 +40,6 @@ Namespace Plugin
         Sub GetMedia(ByVal Token As Threading.CancellationToken)
         Sub Download(ByVal Token As Threading.CancellationToken)
         Sub DownloadSingleObject(ByVal Data As IDownloadableMedia, ByVal Token As Threading.CancellationToken)
+        Sub ResetHistoryData()
     End Interface
 End Namespace

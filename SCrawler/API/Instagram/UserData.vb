@@ -886,8 +886,8 @@ NextPageBlock:
                             PostIDKV = New PostKV(.Value("code"), .Value("id"), Section)
                             PostOriginUrl = DefaultParser_PostUrlCreator(PostIDKV)
                             Pinned = .Contains("timeline_pinned_user_ids")
-                            If (Section = Sections.Timeline And Not DefaultParser_IgnorePass) AndAlso PostKvExists(PostIDKV) Then
-                                If Not Pinned Then Return False
+                            If Not DefaultParser_IgnorePass AndAlso PostKvExists(PostIDKV) Then
+                                If Not Section = Sections.Timeline OrElse Not Pinned Then Return False
                             Else
                                 _TempPostsList.Add(PostIDKV.ID)
                                 PostsKVIDs.ListAddValue(PostIDKV, LNC)
@@ -1233,6 +1233,7 @@ NextPageBlock:
         Protected Overrides Sub EraseData_AdditionalDataFiles()
             Dim f As SFile = MyFilePostsKV
             If f.Exists Then f.Delete(SFO.File, SFODelete.DeleteToRecycleBin, EDP.ReturnValue)
+            FirstLoadingDone = False
         End Sub
 #End Region
 #Region "Exceptions"

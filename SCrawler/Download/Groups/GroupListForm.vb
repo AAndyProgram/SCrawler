@@ -305,10 +305,11 @@ Namespace DownloadObjects.Groups
             Try
                 If _LatestSelected.ValueBetween(0, MyGroups.Count - 1) Then
                     Dim i%
+                    Dim n$ = String.Empty
                     Dim users As New List(Of API.Base.IUserData)
                     If Not IsViewFilter Then
                         i = Settings.Groups.IndexOf(MyGroups(_LatestSelected))
-                        If i >= 0 Then users.ListAddList(DownloadGroup.GetUsers(Settings.Groups(i)))
+                        If i >= 0 Then users.ListAddList(DownloadGroup.GetUsers(Settings.Groups(i))) : n = $"F {Settings.Groups(i).Name}"
                     ElseIf _LatestSelected.ValueBetween(0, MyGroupParams.Count - 1) Then
                         With MyGroupParams(_LatestSelected)
                             If TypeOf .Self Is AutoDownloader Then
@@ -325,14 +326,15 @@ Namespace DownloadObjects.Groups
                                             users.ListAddList(DownloadGroup.GetUsers(.Self))
                                         End If
                                     End If
+                                    n = $"S { .Name}"
                                 End With
                             ElseIf TypeOf .Self Is DownloadGroup Then
                                 i = Settings.Groups.IndexOf(.Name, .IsViewFilter)
-                                If i >= 0 Then users.ListAddList(DownloadGroup.GetUsers(Settings.Groups(i)))
+                                If i >= 0 Then users.ListAddList(DownloadGroup.GetUsers(Settings.Groups(i))) : n = $"G {Settings.Groups(i).Name}"
                             End If
                         End With
                     End If
-                    GroupUsersViewer.Show(users)
+                    GroupUsersViewer.Show(users, n)
                     users.Clear()
                 End If
             Catch ex As Exception

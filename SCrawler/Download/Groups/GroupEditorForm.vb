@@ -85,7 +85,7 @@ Namespace DownloadObjects.Groups
                 If e = ShowUsersButtonKey Then
                     Using g As New GroupParameters
                         DEFS_GROUP.Get(g)
-                        GroupUsersViewer.Show(DownloadGroup.GetUsers(g))
+                        GroupUsersViewer.Show(DownloadGroup.GetUsers(g), $"{IIf(FilterMode, "F", "G")} {g.Name}")
                     End Using
                 End If
             Catch ex As Exception

@@ -1001,7 +1001,7 @@ BlockNullPicture:
 
                     x.Save(MyFileSettings)
                 End Using
-                If Not IsSavedPosts Then Settings.UpdateUsersList(User)
+                If Not IsSavedPosts Then Settings.UpdateUsersList(User, True)
             Catch ex As Exception
                 LogError(ex, "user information saving error")
             End Try
@@ -1894,7 +1894,9 @@ BlockNullPicture:
                         If m.Contains(IUserData.EraseMode.History) Then
                             If MyFilePosts.Delete(SFO.File, SFODelete.DeleteToRecycleBin, e) Then result = True
                             If MyFileData.Delete(SFO.File, SFODelete.DeleteToRecycleBin, e) Then result = True
+                            LastUpdated = Nothing
                             EraseData_AdditionalDataFiles()
+                            UpdateUserInformation()
                         End If
                         If m.Contains(IUserData.EraseMode.Data) Then
                             Dim files As List(Of SFile) = SFile.GetFiles(DownloadContentDefault_GetRootDir.CSFileP,, SearchOption.AllDirectories, e)
@@ -1916,7 +1918,7 @@ BlockNullPicture:
                 Return ErrorsDescriber.Execute(EDP.SendToLog + EDP.ReturnValue, ex, $"EraseData({CInt(Mode)}): {ToStringForLog()}", False)
             End Try
         End Function
-        Protected Overridable Sub EraseData_AdditionalDataFiles()
+        Protected Overridable Sub EraseData_AdditionalDataFiles() Implements IPluginContentProvider.ResetHistoryData
         End Sub
         Friend Overridable Function Delete(Optional ByVal Multiple As Boolean = False, Optional ByVal CollectionValue As Integer = -1) As Integer Implements IUserData.Delete
             Dim f As SFile = SFile.GetPath(MyFile.CutPath.Path)

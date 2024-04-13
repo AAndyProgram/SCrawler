@@ -467,6 +467,13 @@ Namespace API.YouTube
             _TempMediaList.Add(New UserMedia(Data))
         End Sub
 #End Region
+#Region "EraseData"
+        Protected Overrides Sub EraseData_AdditionalDataFiles()
+            LastDownloadDateVideos = Nothing
+            LastDownloadDateShorts = Nothing
+            LastDownloadDatePlaylist = Nothing
+        End Sub
+#End Region
 #Region "DownloadingException"
         Protected Overrides Function DownloadingException(ByVal ex As Exception, ByVal Message As String, Optional ByVal FromPE As Boolean = False,
                                                           Optional ByVal EObj As Object = Nothing) As Integer

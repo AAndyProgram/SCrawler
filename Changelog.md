@@ -1,3 +1,17 @@
+# 2024.4.13.0
+
+*2024-04-13*
+
+- Added
+  - Minor improvements
+- PluginProvider
+  - IPluginContentProvider: added `ResetHistoryData` function
+- Fixed
+  - Sites
+    - TikTok: remove last download date when erasing history data
+    - YouTube: remove last download date when erasing history data
+    - Instagram: **saved posts aren't downloading**
+
 # 2024.4.10.0
 
 *2024-04-10*

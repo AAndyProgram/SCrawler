@@ -1219,19 +1219,21 @@ Namespace API.YouTube.Objects
 
                                 'Subtitles
                                 ThrowAny(Token)
-                                If PostProcessing_OutputSubtitlesFormats.Count > 0 Then
+                                If SubtitlesSelectedIndexes.Count > 0 And Not OutputSubtitlesFormat.IsEmptyString Then
                                     files = SFile.GetFiles(File, String.Format(fPatternFiles, OutputSubtitlesFormat.StringToLower),, EDP.ReturnValue)
-                                    AddFile(files)
                                     If files.ListExists Then
-                                        For Each f In files
-                                            For Each format In PostProcessing_OutputSubtitlesFormats
-                                                format = format.StringToLower
-                                                commandFile = $"{f.PathWithSeparator}{f.Name}.{format}"
-                                                AddFile(commandFile)
-                                                ThrowAny(Token)
-                                                .Execute($"ffmpeg -i ""{f}"" ""{commandFile}""")
+                                        AddFile(files)
+                                        If PostProcessing_OutputSubtitlesFormats.Count > 0 Then
+                                            For Each f In files
+                                                For Each format In PostProcessing_OutputSubtitlesFormats
+                                                    format = format.StringToLower
+                                                    commandFile = $"{f.PathWithSeparator}{f.Name}.{format}"
+                                                    AddFile(commandFile)
+                                                    ThrowAny(Token)
+                                                    .Execute($"ffmpeg -i ""{f}"" ""{commandFile}""")
+                                                Next
                                             Next
-                                        Next
+                                        End If
                                     End If
                                 End If
 

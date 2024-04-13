@@ -100,7 +100,7 @@ Namespace DownloadObjects
                             users.ListAddList(DownloadGroup.GetUsers(g))
                         End Using
                     End If
-                    GroupUsersViewer.Show(users)
+                    GroupUsersViewer.Show(users, $"S {DEF_GROUP.TXT_NAME.Text}")
                     users.Clear()
                 End If
             Catch ex As Exception

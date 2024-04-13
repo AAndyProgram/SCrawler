@@ -1706,9 +1706,9 @@ ResumeDownloadingOperation:
             End If
         End If
     End Sub
-    Private Sub EditSelectedUser()
+    Friend Sub EditSelectedUser(Optional ByVal CUser As IUserData = Nothing)
         Const MsgTitle$ = "User update"
-        Dim user As IUserData = GetSelectedUser()
+        Dim user As IUserData = If(CUser, GetSelectedUser())
         If Not user Is Nothing Then
             On Error Resume Next
             If Not user.IsCollection OrElse DirectCast(user, UserDataBind).Count > 0 Then

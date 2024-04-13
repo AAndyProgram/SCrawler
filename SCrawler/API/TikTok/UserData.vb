@@ -359,6 +359,11 @@ Namespace API.TikTok
             _TempMediaList.Add(m)
         End Sub
 #End Region
+#Region "EraseData"
+        Protected Overrides Sub EraseData_AdditionalDataFiles()
+            LastDownloadDate = Nothing
+        End Sub
+#End Region
 #Region "Exception"
         Protected Overrides Function DownloadingException(ByVal ex As Exception, ByVal Message As String, Optional ByVal FromPE As Boolean = False,
                                                           Optional ByVal EObj As Object = Nothing) As Integer

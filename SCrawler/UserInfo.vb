@@ -182,6 +182,22 @@ Partial Friend Module MainMod
         End Function
 #End Region
 #Region "IEquatable Support"
+        Friend Shared Function ExactEquals(ByVal x As UserInfo, ByVal y As UserInfo) As Boolean
+            Return x.Name = y.Name And
+                   x.Site = y.Site And
+                   x.Plugin = y.Plugin And
+                   x.AccountName = y.AccountName And
+                   x.File = y.File And
+                   x.IsSubscription = y.IsSubscription And
+                   x.SpecialPath = y.SpecialPath And
+                   x.SpecialCollectionPath = y.SpecialCollectionPath And
+                   x.Merged = y.Merged And
+                   x.UserModel = y.UserModel And
+                   x.CollectionName = y.CollectionName And
+                   x.CollectionModel = y.CollectionModel And
+                   x.[Protected] = y.[Protected] And
+                   AEquals(Of Date)(x.LastSeen, y.LastSeen)
+        End Function
         Friend Overloads Function Equals(ByVal Other As UserInfo) As Boolean Implements IEquatable(Of UserInfo).Equals
             Return Site.StringToLower = Other.Site.StringToLower And Name.StringToLower = Other.Name.StringToLower And
                    IsSubscription = Other.IsSubscription And (Not Plugin = PathPlugin.PluginKey Or SpecialPath = Other.SpecialPath)
