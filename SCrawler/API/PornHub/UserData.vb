@@ -29,7 +29,6 @@ Namespace API.PornHub
         Private Const Name_DownloadFavorite As String = "DownloadFavorite"
         Private Const Name_DownloadGifs As String = "DownloadGifs"
         Private Const Name_DownloadPhotoOnlyFromModelHub As String = "DownloadPhotoOnlyFromModelHub"
-        <Obsolete> Private Const Name_IsUser As String = "IsUser"
 #End Region
 #Region "Structures"
         Private Structure FlashVar : Implements IRegExCreator
@@ -254,14 +253,7 @@ Namespace API.PornHub
                     DownloadFavorite = .Value(Name_DownloadFavorite).FromXML(Of Boolean)(False)
                     DownloadGifs = .Value(Name_DownloadGifs).FromXML(Of Integer)(False)
                     DownloadPhotoOnlyFromModelHub = .Value(Name_DownloadPhotoOnlyFromModelHub).FromXML(Of Boolean)(True)
-                    If .Contains(Name_SiteMode) Then
-                        SiteMode = .Value(Name_SiteMode).FromXML(Of Integer)(SiteModes.User)
-                    Else
-                        'TODELETE: PornHub 'IsUser' 20231113
-#Disable Warning BC40008
-                        SiteMode = IIf(.Value(Name_IsUser).FromXML(Of Boolean)(True), SiteModes.User, SiteModes.Search)
-#Enable Warning
-                    End If
+                    SiteMode = .Value(Name_SiteMode).FromXML(Of Integer)(SiteModes.User)
                     UpdateUserOptions()
                 Else
                     If UpdateUserOptions() Then .Value(Name_LabelsName) = LabelsString
@@ -404,7 +396,6 @@ Namespace API.PornHub
                 Dim r$ = Responser.GetResponse(URL)
                 If Not r.IsEmptyString Then
                     Dim l As List(Of UserVideo) = RegexFields(Of UserVideo)(r, {RegexUserVideos}, {6, 7, 3, 10})
-                    'URGENT: PornHub: changed list trimming
                     'If l.ListExists And Not SiteMode = SiteModes.Playlists Then l = l.ListTake(3, l.Count).ToList
                     If l.ListExists And Not SiteMode = SiteModes.Playlists Then l = l.ListTake(1, l.Count).ToList
                     If l.ListExists Then

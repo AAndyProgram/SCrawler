@@ -157,38 +157,22 @@ Namespace API.ThreadsNet
         Private Function UpdateCredentials(Optional ByVal e As ErrorsDescriber = Nothing) As Boolean
             Dim URL$ = $"https://www.threads.net/@{NameTrue}"
             ResetBaseTokens()
+            Dim headers As New HttpHeaderCollection
+            headers.AddRange(Responser.Headers)
             Try
-                Responser.Method = "GET"
-                Responser.Referer = URL
-                Responser.Headers.Remove(GQL_HEADER_FB_LSD)
+                With Responser
+                    .Method = "GET"
+                    .Referer = URL
+                    With .Headers
+                        .Remove(GQL_HEADER_FB_LSD)
+                        .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.SecFetchDest, "document"))
+                        .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.SecFetchMode, "navigate"))
+                    End With
+                End With
                 WaitTimer()
                 Dim r$ = Responser.GetResponse(URL,, EDP.ThrowException)
-                Dim rr As RParams
-                Dim tt$, ttVal$
                 If Not r.IsEmptyString Then
-                    rr = RParams.DM(Instagram.PageTokenRegexPatternDefault, 0, RegexReturn.List, EDP.ReturnValue)
-                    Dim tokens As List(Of String) = RegexReplace(r, rr)
-                    If tokens.ListExists Then
-                        With rr
-                            .Match = Nothing
-                            .MatchSub = 1
-                            .WhatGet = RegexReturn.Value
-                        End With
-                        For Each tt In tokens
-                            If Not Token_dtsg.IsEmptyString And Not Token_lsd.IsEmptyString Then
-                                Exit For
-                            Else
-                                ttVal = RegexReplace(tt, rr)
-                                If Not ttVal.IsEmptyString Then
-                                    If ttVal.Contains(":") Then
-                                        If Token_dtsg.IsEmptyString Then Token_dtsg = ttVal
-                                    Else
-                                        If Token_lsd.IsEmptyString Then Token_lsd = ttVal
-                                    End If
-                                End If
-                            End If
-                        Next
-                    End If
+                    ParseTokens(r, 0)
                     If ID.IsEmptyString Then ID = RegexReplace(r, RParams.DMS("""props"":\{""user_id"":""(\d+)""\},", 1, EDP.ReturnValue))
                 End If
                 Return Valid
@@ -204,6 +188,12 @@ Namespace API.ThreadsNet
                 'LogError(ex, $"failed to update some{IIf(notFound.IsEmptyString, String.Empty, $" ({notFound})")} credentials", e)
                 LogError(eex, String.Empty, e)
                 Return False
+            Finally
+                If headers.ListExists Then
+                    Responser.Headers.Clear()
+                    Responser.Headers.AddRange(headers)
+                    headers.Dispose()
+                End If
             End Try
         End Function
 #End Region

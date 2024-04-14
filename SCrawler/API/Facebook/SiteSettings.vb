@@ -18,7 +18,7 @@ Namespace API.Facebook
 #Region "Auth"
         <PropertyOption(AllowNull:=False, ControlText:="Accept", ControlToolTip:="Header 'Accept'", IsAuth:=True), ControlNumber(21), PXML, PClonable>
         Friend ReadOnly Property Header_Accept As PropertyValue
-        <PropertyOption(ControlText:="x-ig-app-id", AllowNull:=True, IsAuth:=True)>
+        <PropertyOption(ControlText:="x-ig-app-id", AllowNull:=True, IsAuth:=True), HiddenControl>
         Friend Overrides ReadOnly Property HH_IG_APP_ID As PropertyValue
             Get
                 Return __HH_IG_APP_ID
@@ -74,7 +74,7 @@ Namespace API.Facebook
 #End Region
 #Region "BaseAuthExists, GetUserUrl, GetUserPostUrl, IsMyUser, IsMyImageVideo"
         Friend Overrides Function BaseAuthExists() As Boolean
-            Return Responser.CookiesExists And ACheck(HH_IG_APP_ID.Value) And CBool(DownloadData_Impl.Value)
+            Return Responser.CookiesExists And CBool(DownloadData_Impl.Value) 'And ACheck(HH_IG_APP_ID.Value)
         End Function
         Friend Overrides Function GetUserUrl(ByVal User As IPluginContentProvider) As String
             Return DirectCast(User, UserData).GetProfileUrl

@@ -11,9 +11,8 @@ Imports PersonalUtilities.Functions.XML.Base
 Imports PersonalUtilities.Functions.RegularExpressions
 Namespace API.Facebook
     Friend Module Declarations
-        Friend ReadOnly Regex_UserToken_dtsg As RParams = RParams.DMS("DTSGInitialData.:.?{\s*.token.:\s*""([^""]+)", 1, EDP.ReturnValue)
-        Friend ReadOnly Regex_UserToken_lsd As RParams = RParams.DMS("LSD.:.?{\s*.token.:\s*""([^""]+)", 1, EDP.ReturnValue)
         Friend ReadOnly Regex_UserID As RParams = RParams.DMS("userid.:.(\d+)", 1, RegexOptions.IgnoreCase, EDP.ReturnValue)
+        Friend ReadOnly Regex_AppID As RParams = RParams.DMS("APP_ID.:.(\d+)", 1, RegexOptions.IgnoreCase, EDP.ReturnValue)
 
         Friend ReadOnly Regex_Photos_by As RParams = RParams.DMS("photos_by"",""id"":""([^""]+)", 1, EDP.ReturnValue)
         Friend ReadOnly Regex_FileName As RParams = RParams.DM("([^/\?]+\..{3,4})(?=(\?|\Z))", 0, EDP.ReturnValue)

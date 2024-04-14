@@ -709,7 +709,7 @@ Namespace API.YouTube.Objects
                     Bitrate = 0
                     _MediaType = UMTypes.Undefined
                     If SelectedVideoIndex >= 0 Then
-                        'URGENT: 2023.3.4 -> 2023.7.6
+                        '2023.3.4 -> 2023.7.6
                         'cmd.StringAppend($"bv*[format_id={SelectedVideo.ID}]")
                         cmd.StringAppend(SelectedVideo.ID)
                         _Size = SelectedVideo.Size
@@ -726,7 +726,7 @@ Namespace API.YouTube.Objects
                     End If
                     If SelectedAudioIndex >= 0 Then
                         Dim atCodec$
-                        'URGENT: 2023.3.4 -> 2023.7.6
+                        '2023.3.4 -> 2023.7.6
                         'cmd.StringAppend($"ba*[format_id={SelectedAudio.ID}]", "+")
                         cmd.StringAppend(SelectedAudio.ID, "+")
                         If OutputAudioCodec.StringToLower = ac3 Then
@@ -769,7 +769,7 @@ Namespace API.YouTube.Objects
                         subs = $"--write-subs --write-auto-subs --sub-format {OutputSubtitlesFormat.StringToLower} --sub-langs ""{subs}"" --convert-subs {OutputSubtitlesFormat.StringToLower}"
                     End If
                     If Not cmd.IsEmptyString Then
-                        'URGENT: 2023.3.4 -> 2023.7.6
+                        '2023.3.4 -> 2023.7.6
                         'cmd = $"yt-dlp -f ""{cmd}"""
                         'cmd = $"yt-dlp -f {cmd}"
                         cmd = $"{YTDLP_NAME} -f {cmd}"

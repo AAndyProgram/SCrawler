@@ -103,8 +103,6 @@ Namespace API.ThreadsNet
 
             With Responser
                 .Accept = "*/*"
-                'URGENT: remove after debug
-                .DeclaredError = EDP.SendToLog + EDP.ThrowException
                 If .UserAgentExists Then useragent = .UserAgent
                 With .Headers
                     If .Count > 0 Then
@@ -125,6 +123,8 @@ Namespace API.ThreadsNet
                     .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.SecFetchMode, "cors"))
                     .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.SecFetchSite, "same-origin"))
                     .Add("Sec-Fetch-User", "?1")
+                    .Add("dht", 1)
+                    .Add("drp", 1)
                     .Add(Instagram.UserData.GQL_HEADER_FB_FRINDLY_NAME, "BarcelonaProfileThreadsTabRefetchableQuery")
                 End With
                 .CookiesExtractMode = Responser.CookiesExtractModes.Any

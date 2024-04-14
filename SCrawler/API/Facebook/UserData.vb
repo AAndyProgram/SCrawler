@@ -136,6 +136,7 @@ Namespace API.Facebook
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
             If CBool(MySettings.DownloadData_Impl.Value) Then
                 Try
+                    If Responser.Headers.Value(IG.Header_IG_APP_ID).IsEmptyString Then Responser.Headers.Remove(IG.Header_IG_APP_ID)
                     ResetBaseTokens()
                     GetUserTokens(Token)
                     LoadSavePostsKV(True)
@@ -529,8 +530,14 @@ Namespace API.Facebook
                 Dim r$ = resp.GetResponse(URL)
                 If Not r.IsEmptyString Then
                     If Responser.CookiesExists Then Responser.Cookies.Update(resp.Cookies)
-                    Token_dtsg = RegexReplace(r, Regex_UserToken_dtsg)
-                    Token_lsd = RegexReplace(r, Regex_UserToken_lsd)
+                    ParseTokens(r, 0)
+                    Dim app_id$ = RegexReplace(r, Regex_AppID)
+                    If Not app_id.IsEmptyString Then
+                        If Not AEquals(Of String)(MySettings.HH_IG_APP_ID.Value, app_id) Then
+                            MySettings.HH_IG_APP_ID.Value = app_id
+                            Responser.Headers.Add(IG.Header_IG_APP_ID, app_id)
+                        End If
+                    End If
                     Token_Photosby = RegexReplace(r, Regex_Photos_by)
                     If StoryBucket.IsEmptyString Then StoryBucket = RegexReplace(r, Regex_StoryBucket)
                     If ID.IsEmptyString Then
@@ -568,14 +575,14 @@ Namespace API.Facebook
                     .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.SecFetchSite, "none"))
                     .Add("Sec-Fetch-User", "?1")
                     .Add("Upgrade-Insecure-Requests", 1)
-                    Dim h$ = Responser.Headers.Value(IG.Header_Browser)
-                    If Not h.IsEmptyString Then .Add(IG.Header_Browser, h)
-                    h = Responser.Headers.Value(IG.Header_BrowserExt)
-                    If Not h.IsEmptyString Then .Add(IG.Header_BrowserExt, h)
-                    h = Responser.Headers.Value(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.SecChUaPlatform))
-                    If Not h.IsEmptyString Then .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.SecChUaPlatform, h))
-                    h = Responser.Headers.Value(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.SecChUaPlatformVersion))
-                    If Not h.IsEmptyString Then .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.SecChUaPlatformVersion, h))
+                    Dim cloneHeader As Action(Of String) = Sub(ByVal hName As String)
+                                                               Dim hValue$ = Responser.Headers.Value(hName)
+                                                               If Not hValue.IsEmptyString Then .Add(hName, hValue)
+                                                           End Sub
+                    cloneHeader.Invoke(IG.Header_Browser)
+                    cloneHeader.Invoke(IG.Header_BrowserExt)
+                    cloneHeader.Invoke(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.SecChUaPlatform).Name)
+                    cloneHeader.Invoke(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.SecChUaPlatformVersion).Name)
                     .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.SecChUaMobile, "?0"))
                     .Add("Sec-Ch-Ua-Model", "")
                 End With

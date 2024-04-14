@@ -297,35 +297,49 @@ Namespace API.Instagram
                     End With
                 End With
                 Dim r$ = Responser.GetResponse(MySiteSettings.GetUserUrl(Me))
-                If Not r.IsEmptyString Then
-                    Dim rr As RParams = RParams.DM(PageTokenRegexPatternDefault, 0, RegexReturn.List, EDP.ReturnValue)
-                    Dim tokens As List(Of String) = RegexReplace(r, rr)
-                    Dim tt$, ttVal$
-                    If tokens.ListExists Then
-                        With rr
-                            .Match = Nothing
-                            .MatchSub = 1
-                            .WhatGet = RegexReturn.Value
-                        End With
-                        For Each tt In tokens
-                            If Not Token_lsd.IsEmptyString And Not Token_dtsg.IsEmptyString Then
-                                Exit For
-                            Else
-                                ttVal = RegexReplace(tt, rr)
-                                If Not ttVal.IsEmptyString Then
-                                    If ttVal.Contains(":") Then
-                                        If Token_dtsg.IsEmptyString Then Token_dtsg = ttVal
-                                    Else
-                                        If Token_lsd.IsEmptyString Then Token_lsd = ttVal
-                                    End If
-                                End If
-                            End If
-                        Next
-                    End If
-                End If
+                ParseTokens(r, 0)
             Catch ex As Exception
             Finally
                 ChangeResponserMode(_UseGQL, Not _UseGQL)
+            End Try
+        End Sub
+        Protected Sub ParseTokens(ByVal r As String, ByVal Attempt As Integer)
+            Try
+                If Not r.IsEmptyString Then
+                    ResetBaseTokens()
+                    Select Case Attempt
+                        Case 0
+                            Dim rr As RParams = RParams.DM(PageTokenRegexPatternDefault, 0, RegexReturn.List, EDP.ReturnValue)
+                            Dim tokens As List(Of String) = RegexReplace(r, rr)
+                            Dim tt$, ttVal$
+                            If tokens.ListExists Then
+                                With rr
+                                    .Match = Nothing
+                                    .MatchSub = 1
+                                    .WhatGet = RegexReturn.Value
+                                End With
+                                For Each tt In tokens
+                                    If Not Token_lsd.IsEmptyString And Not Token_dtsg.IsEmptyString Then
+                                        Exit For
+                                    Else
+                                        ttVal = RegexReplace(tt, rr)
+                                        If Not ttVal.IsEmptyString Then
+                                            If ttVal.Contains(":") Then
+                                                If Token_dtsg.IsEmptyString Then Token_dtsg = ttVal
+                                            Else
+                                                If Token_lsd.IsEmptyString Then Token_lsd = ttVal
+                                            End If
+                                        End If
+                                    End If
+                                Next
+                            End If
+                        Case 1
+                            Token_dtsg = RegexReplace(r, Regex_UserToken_dtsg)
+                            Token_lsd = RegexReplace(r, Regex_UserToken_lsd)
+                    End Select
+                    If Not ValidateBaseTokens() And Attempt = 0 Then ParseTokens(r, Attempt + 1)
+                End If
+            Catch
             End Try
         End Sub
 #End Region

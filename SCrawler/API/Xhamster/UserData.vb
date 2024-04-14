@@ -280,32 +280,18 @@ Namespace API.Xhamster
                     End If
                 End If
 
-                'TODELETE: xHamster remove old container nodes attachments 
-
                 If IsSavedPosts Then
                     URL = $"https://xhamster.com/my/favorites/{IIf(IsVideo, "videos", "photos-and-galleries")}{IIf(Page = 1, String.Empty, $"/{Page}")}"
                     containerNodes.Add(If(IsVideo, {"favoriteVideoListComponent", "models"}, {"favoritesGalleriesAndPhotosCollection"}))
                 ElseIf IsChannel Then
                     URL = $"https://xhamster.com/channels/{TrueName}/newest{IIf(Page = 1, String.Empty, $"/{Page}")}"
-                    'containerNodes.Add({"trendingVideoListComponent", "models"})
-                    'containerNodes.Add({"pagesCategoryComponent", "trendingVideoListProps", "models"})
                 ElseIf SiteMode = SiteModes.Search Then
                     URL = GetNonUserUrl(Page)
                     containerNodes.Add({"searchResult", "models"})
                 ElseIf IsCreator Or SiteMode = SiteModes.Tags Or SiteMode = SiteModes.Categories Or SiteMode = SiteModes.Pornstars Then
                     URL = GetNonUserUrl(Page)
-                    'If SiteMode = SiteModes.Pornstars Then
-                    '    containerNodes.Add({"trendingVideoListComponent", "models"})
-                    '    containerNodes.Add({"pagesCategoryComponent", "trendingVideoListProps", "models"})
-                    'Else
-                    '    containerNodes.Add({"pagesCategoryComponent", "trendingVideoListProps", "models"})
-                    '    containerNodes.Add({"trendingVideoListComponent", "models"})
-                    'End If
-                    'containerNodes.Add({"trendingVideoSectionComponent", "videoModels"})
                 Else
                     URL = $"https://xhamster.com/users/{TrueName}/{IIf(IsVideo, "videos", "photos")}{IIf(Page = 1, String.Empty, $"/{Page}")}"
-                    'containerNodes.Add({If(IsVideo, "userVideoCollection", "userGalleriesCollection")})
-                    'containerNodes.Add(If(IsVideo, {"videoListComponent", "models"}, {"userGalleriesCollection"}))
                 End If
                 ThrowAny(Token)
 
