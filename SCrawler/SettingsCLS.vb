@@ -30,6 +30,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
     Friend Const CollectionsFolderName As String = "Collections"
     Private Const PermanentCacheSnapshotsPath As String = "_CacheSnapshots\"
     Friend Const DefaultCmdEncoding As Integer = BatchExecutor.UnicodeEncoding
+    Friend Const FeedCurrentLoadLastSessionDefault As Integer = 60 * 6
 #End Region
 #Region "Constants: headers"
     Friend Const HEADER_DEF_sec_ch_ua As String = "sec-ch-ua"
@@ -396,6 +397,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         FeedAddDateToCaption = New XMLValue(Of Boolean)("AddDateToCaption", True, MyXML, n)
         FeedStoreSessionsData = New XMLValue(Of Boolean)("StoreSessionsData", True, MyXML, n)
         FeedStoredSessionsNumber = New XMLValue(Of Integer)("StoredSessionsNumber", 20, MyXML, n)
+        FeedCurrentTryLoadLastSession = New XMLValue(Of Integer)("CurrentTryLoadLastSession", FeedCurrentLoadLastSessionDefault, MyXML, n)
         FeedOpenLastMode = New XMLValue(Of Boolean)("OpenLastMode", False, MyXML, n)
         FeedLastModeSubscriptions = New XMLValue(Of Boolean)("LastModeSubscriptions", False, MyXML, n)
         FeedShowFriendlyNames = New XMLValue(Of Boolean)("ShowFriendlyNames", True, MyXML, n)
@@ -1250,6 +1252,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
     Friend ReadOnly Property FeedAddDateToCaption As XMLValue(Of Boolean)
     Friend ReadOnly Property FeedStoreSessionsData As XMLValue(Of Boolean)
     Friend ReadOnly Property FeedStoredSessionsNumber As XMLValue(Of Integer)
+    Friend ReadOnly Property FeedCurrentTryLoadLastSession As XMLValue(Of Integer)
     Friend ReadOnly Property FeedOpenLastMode As XMLValue(Of Boolean)
     Friend ReadOnly Property FeedLastModeSubscriptions As XMLValue(Of Boolean)
     Friend ReadOnly Property FeedShowFriendlyNames As XMLValue(Of Boolean)

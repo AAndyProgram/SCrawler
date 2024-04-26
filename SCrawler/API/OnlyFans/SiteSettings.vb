@@ -59,6 +59,16 @@ Namespace API.OnlyFans
                 Responser.UserAgent = Value
             End If
         End Sub
+        <CookieValueExtractor(NameOf(HH_USER_ID)), CookieValueExtractor(NameOf(HH_X_BC))>
+        Private Function GetValueFromCookies(ByVal PropName As String, ByVal c As CookieKeeper) As String
+            If c.ListExists Then
+                Select Case PropName
+                    Case NameOf(HH_USER_ID) : Return c.GetCookieValue("auth_id")
+                    Case NameOf(HH_X_BC) : Return c.GetCookieValue("fp")
+                End Select
+            End If
+            Return String.Empty
+        End Function
 #End Region
 #Region "Rules"
         <PXML("LastDateUpdated")> Private ReadOnly Property LastDateUpdated_XML As PropertyValue

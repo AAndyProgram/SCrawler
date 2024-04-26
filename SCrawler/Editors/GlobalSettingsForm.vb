@@ -152,6 +152,7 @@ Namespace Editors
                         CH_FEED_ADD_DATE.Checked = .FeedAddDateToCaption
                         NUM_FEED_STORE_SESSION_DATA.Checked = .FeedStoreSessionsData
                         NUM_FEED_STORE_SESSION_DATA.Value = .FeedStoredSessionsNumber.Value
+                        NUM_FEED_SES_CURR_LOAD_LAST.Value = .FeedCurrentTryLoadLastSession.Value
                         CH_FEED_OPEN_LAST_MODE.Checked = .FeedOpenLastMode
                         CH_FEED_SHOW_FRIENDLY.Checked = .FeedShowFriendlyNames
                         CH_FEED_SHOW_SPEC_MEDIAITEM.Checked = .FeedShowSpecialFeedsMediaItem
@@ -340,6 +341,7 @@ Namespace Editors
                     .FeedAddDateToCaption.Value = CH_FEED_ADD_DATE.Checked
                     .FeedStoreSessionsData.Value = NUM_FEED_STORE_SESSION_DATA.Checked
                     .FeedStoredSessionsNumber.Value = NUM_FEED_STORE_SESSION_DATA.Value
+                    .FeedCurrentTryLoadLastSession.Value = NUM_FEED_SES_CURR_LOAD_LAST.Value
                     .FeedOpenLastMode.Value = CH_FEED_OPEN_LAST_MODE.Checked
                     .FeedShowFriendlyNames.Value = CH_FEED_SHOW_FRIENDLY.Checked
                     .FeedShowSpecialFeedsMediaItem.Value = CH_FEED_SHOW_SPEC_MEDIAITEM.Checked
@@ -402,6 +404,12 @@ Namespace Editors
         End Sub
         Private Sub TXT_FEED_COLUMNS_ActionOnValueChanged(sender As Object, e As EventArgs) Handles TXT_FEED_COLUMNS.ActionOnValueChanged
             TXT_FEED_CENTER_IMAGE.Enabled = TXT_FEED_COLUMNS.Value = 1
+        End Sub
+        Private Sub NUM_FEED_SES_CURR_LOAD_LAST_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As ActionButtonEventArgs) Handles NUM_FEED_SES_CURR_LOAD_LAST.ActionOnButtonClick
+            Select Case e.DefaultButton
+                Case ADB.Clear : NUM_FEED_SES_CURR_LOAD_LAST.Value = -1
+                Case ADB.Refresh : NUM_FEED_SES_CURR_LOAD_LAST.Value = SettingsCLS.FeedCurrentLoadLastSessionDefault
+            End Select
         End Sub
         Private Sub EnvirPrograms_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As ActionButtonEventArgs) Handles TXT_FFMPEG.ActionOnButtonClick,
                                                                                                                               TXT_CURL.ActionOnButtonClick,

@@ -173,6 +173,7 @@ Namespace DownloadObjects
                 MENU_DOWN.Visible = OPT_SUBSCRIPTIONS.Checked
                 UpdateSettings()
                 FeedChangeMode(FeedModes.Current)
+                Downloader.FilesLoadLastSession()
                 RefillList(True, False)
                 .EndLoaderOperations(False)
             End With

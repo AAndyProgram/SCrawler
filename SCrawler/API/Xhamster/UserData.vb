@@ -265,7 +265,12 @@ Namespace API.Xhamster
                 Dim checkLimit As Func(Of Boolean) = Function() limit > 0 And SearchPostsCount >= limit And IsVideo
 
                 If IsSavedPosts Then
-                    containerNodes.Add(If(IsVideo, {"favoriteVideoListComponent", "models"}, {"favoritesGalleriesAndPhotosCollection"}))
+                    If IsVideo Then
+                        containerNodes.Add({"favoriteVideoListComponent", "models"})
+                        containerNodes.Add({"favoriteVideoListComponent", "videoThumbProps"})
+                    Else
+                        containerNodes.Add({"favoritesGalleriesAndPhotosCollection"})
+                    End If
                 ElseIf Not SiteMode = SiteModes.Search Then
                     If IsVideo Then
                         containerNodes.Add({"trendingVideoListComponent", "models"})

@@ -1,3 +1,16 @@
+# 2024.4.26.0
+
+*2024-04-26*
+
+- Added
+  - Site settings: the values that can be extracted from cookies immediately populate fields
+  - Feed: ability to load the last session of the current day (if it exists) as the current session after restarting SCrawler
+  - Users search: include friendly name matches in search result
+- Updated
+  - gallery-dl up to version **1.26.9**
+- Fixed
+  - xHamster: **saved posts aren't downloading**
+
 # 2024.4.14.0
 
 *2024-04-14*

@@ -312,6 +312,7 @@ Namespace Plugin.Hosts
                 Dim Updaters As New List(Of MemberInfo)
                 Dim Providers As New List(Of MemberInfo)
                 Dim PropCheckers As New List(Of MemberInfo)
+                Dim CookieValueExtractors As New List(Of MemberInfo)
 
                 Dim m As MemberInfo
                 For Each m In Members
@@ -329,6 +330,8 @@ Namespace Plugin.Hosts
                                         Updaters.Add(m)
                                     ElseIf .ElementAt(i).GetType Is GetType(PropertiesDataChecker) Then
                                         PropCheckers.Add(m)
+                                    ElseIf .ElementAt(i).GetType Is GetType(CookieValueExtractorAttribute) Then
+                                        CookieValueExtractors.Add(m)
                                     End If
                                 Next
                             ElseIf m.MemberType = MemberTypes.Property Then
@@ -376,6 +379,20 @@ Namespace Plugin.Hosts
                         End If
                     Next
                     PropCheckers.Clear()
+                End If
+                If CookieValueExtractors.Count > 0 Then
+                    Dim cve As IEnumerable(Of CookieValueExtractorAttribute)
+                    Dim _cve As CookieValueExtractorAttribute
+                    For Each m In CookieValueExtractors
+                        cve = m.GetCustomAttributes(Of CookieValueExtractorAttribute)()
+                        If cve.ListExists Then
+                            For Each _cve In cve
+                                i = PropList.FindIndex(Function(p) p.Name = _cve.PropertyName)
+                                If i >= 0 Then PropList(i).CookieValueExtractor = m
+                            Next
+                        End If
+                    Next
+                    CookieValueExtractors.Clear()
                 End If
                 PropList.ForEach(Sub(p) p.SetDependents(PropList))
             End If

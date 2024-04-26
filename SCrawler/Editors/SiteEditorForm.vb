@@ -20,6 +20,7 @@ Namespace Editors
         Private WithEvents MyDefs As DefaultFormOptions
         Private WithEvents SpecialButton As Button
         Private Property Cookies As CookieKeeper
+        Private ReadOnly CookiesControlsInteraction As List(Of PropertyValueHost)
         Private CookiesChanged As Boolean = False
 #Region "Providers"
         Private Class SavedPostsChecker : Inherits AccountsNameChecker
@@ -145,6 +146,7 @@ Namespace Editors
             InitializeComponent()
             MyDefs = New DefaultFormOptions(Me, Settings.Design)
             Host = h
+            CookiesControlsInteraction = New List(Of PropertyValueHost)
             If Not Host.Responser Is Nothing Then Cookies = Host.Responser.Cookies.Copy
             LBL_AUTH = New Label With {.Text = "Authorization", .TextAlign = ContentAlignment.MiddleCenter, .Dock = DockStyle.Fill}
             LBL_OTHER = New Label With {.Text = "Other Parameters", .TextAlign = ContentAlignment.MiddleCenter, .Dock = DockStyle.Fill}
@@ -221,6 +223,8 @@ Namespace Editors
                                         With prop
                                             If .Options.IsAuth = pAuth Then
 
+                                                If .CookieValueExtractorExists Then CookiesControlsInteraction.Add(prop)
+
                                                 If pArr.Length = 2 Then
                                                     Select Case pAuth
                                                         Case True
@@ -285,6 +289,7 @@ Namespace Editors
         Private Sub SiteEditorForm_Disposed(sender As Object, e As EventArgs) Handles Me.Disposed
             If Host.PropList.Count > 0 Then Host.PropList.ForEach(Sub(p) p.DisposeControl())
             If Not SpecialButton Is Nothing Then SpecialButton.Dispose()
+            CookiesControlsInteraction.Clear()
             LBL_AUTH.Dispose()
             LBL_OTHER.Dispose()
             Host.EndEdit()
@@ -378,6 +383,7 @@ Namespace Editors
                                 CookiesChanged = True
                                 f.GetCollection(Cookies)
                                 MyDefs.MyOkCancel.EnableOK = True
+                                If Cookies.ListExists And CookiesControlsInteraction.Count > 0 Then CookiesControlsInteraction.ForEach(Sub(c) c.GetValueFromCookies(Cookies))
                             End If
                         End Using
                         SetCookieText()

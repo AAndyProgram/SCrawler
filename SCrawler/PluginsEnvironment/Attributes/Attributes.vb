@@ -53,4 +53,11 @@ Namespace Plugin.Attributes
             IsHidden = _IsHidden
         End Sub
     End Class
+    <AttributeUsage(AttributeTargets.Method, AllowMultiple:=True)>
+    Public Class CookieValueExtractorAttribute : Inherits Attribute
+        Public ReadOnly PropertyName As String
+        Public Sub New(ByVal _PropertyName As String)
+            PropertyName = _PropertyName
+        End Sub
+    End Class
 End Namespace

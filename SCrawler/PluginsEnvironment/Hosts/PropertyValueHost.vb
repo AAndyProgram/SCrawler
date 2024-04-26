@@ -254,6 +254,14 @@ Namespace Plugin.Hosts
                 Return Nothing
             End If
         End Function
+        Friend Sub GetValueFromCookies(ByVal Cookies As PersonalUtilities.Tools.Web.Cookies.CookieKeeper)
+            Try
+                Dim v$ = CookieValueExtractor.GetMemberValue(Source, {Name, Cookies})
+                If Not v.IsEmptyString Then Control.Text = v
+            Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "[PropertyValueHost.GetValueFromCookies]")
+            End Try
+        End Sub
 #End Region
 #Region "Providers"
         Friend Property ProviderFieldsChecker As IFormatProvider
@@ -278,6 +286,22 @@ Namespace Plugin.Hosts
         Friend PropertiesCheckingMethod As MethodInfo
         Private UpdateMethod As MethodInfo
         Private UpdateMethodArguments As String()
+        Private _CookieValueExtractor As MethodInfo
+        Private _CookieValueExtractorExists As Boolean = False
+        Friend Property CookieValueExtractor As MethodInfo
+            Get
+                Return _CookieValueExtractor
+            End Get
+            Set(ByVal m As MethodInfo)
+                _CookieValueExtractor = m
+                _CookieValueExtractorExists = Not _CookieValueExtractor Is Nothing
+            End Set
+        End Property
+        Friend ReadOnly Property CookieValueExtractorExists As Boolean
+            Get
+                Return _CookieValueExtractorExists
+            End Get
+        End Property
         Friend Sub SetUpdateMethod(ByVal m As MethodInfo, ByVal _UpdateMethodArguments As String())
             UpdateMethod = m
             UpdateMethodArguments = _UpdateMethodArguments

@@ -116,8 +116,10 @@ Namespace DownloadObjects
         Friend Const SessionsPath As String = "Settings\Sessions\"
         Private _FilesSessionCleared As Boolean = False
         Private _FilesSessionActual As SFile = Nothing
+        Private _FilesSessionChecked As Boolean = False
         Friend ReadOnly Property FilesSessionActual(Optional ByVal GenerateFileName As Boolean = True) As SFile
             Get
+                FilesLoadLastSession()
                 If _FilesSessionActual.IsEmptyString And GenerateFileName Then _
                    _FilesSessionActual = $"{SessionsPath}{AConvert(Of String)(Now, SessionDateTimeProvider)}.xml"
                 Return _FilesSessionActual
@@ -146,6 +148,47 @@ Namespace DownloadObjects
                 _FilesSaving = False
             End Try
         End Function
+        Private _FilesSessionChecked_Impl As Boolean = False
+        Friend Sub FilesLoadLastSession()
+            Try
+                If Not _FilesSessionChecked And Not _FilesSessionChecked_Impl And _FilesSessionActual.IsEmptyString Then
+                    _FilesSessionChecked = True
+                    _FilesSessionChecked_Impl = True
+                    Dim settingValue% = Settings.FeedCurrentTryLoadLastSession
+                    If settingValue >= 0 Then
+                        Dim startTime As Date = Process.GetCurrentProcess.StartTime
+                        Dim files As List(Of SFile) = SFile.GetFiles(SessionsPath.CSFileP, "*.xml",, EDP.ReturnValue)
+                        If files.ListExists Then files.RemoveAll(Settings.Feeds.FeedSpecialRemover)
+                        If files.ListExists Then
+                            Dim nd$ = Now.ToString("yyyyMMdd")
+                            files.RemoveAll(Function(f) Not f.Name.StartsWith(nd))
+                        End If
+                        If files.ListExists Then
+                            files.Sort()
+                            Dim lastDate As Date = AConvert(Of Date)(files.Last.Name, SessionDateTimeProvider)
+                            If lastDate.Date = startTime.Date Then
+                                Dim __files As New List(Of UserMediaD)
+                                Using x As New XmlFile(files.Last, Protector.Modes.All, False) With {.AllowSameNames = True, .XmlReadOnly = True}
+                                    x.LoadData()
+                                    If x.Count > 0 Then __files.ListAddList(x, LAP.IgnoreICopier)
+                                    If __files.Count > 0 AndAlso (settingValue = 0 OrElse
+                                                                  (startTime - {lastDate, __files.Max(Function(f) f.Date)}.Max).TotalMinutes <= settingValue) Then
+                                        _Session = __files.Max(Function(f) f.Session)
+                                        Me.Files.AddRange(__files)
+                                        _FilesSessionActual = files.Last
+                                    End If
+                                    __files.Clear()
+                                End Using
+                            End If
+                        End If
+                    End If
+                    _FilesSessionChecked_Impl = False
+                End If
+            Catch ex As Exception
+                _FilesSessionChecked_Impl = False
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "[TDownloader.FilesLoadLastSession]")
+            End Try
+        End Sub
         Private _FilesUpdating As Boolean = False
         Friend Sub FilesUpdatePendingUsers()
             _FilesUpdating = True
@@ -444,7 +487,16 @@ Namespace DownloadObjects
                 End If
             End Set
         End Property
-        Private Session As Integer = 0
+        Private _Session As Integer = 0
+        Private Property Session As Integer
+            Get
+                FilesLoadLastSession()
+                Return _Session
+            End Get
+            Set(ByVal _Session As Integer)
+                Me._Session = _Session
+            End Set
+        End Property
         Private Sub [Start]()
             If Not AutoDownloaderWorking AndAlso MyProgressForm.ReadyToOpen AndAlso Pool.LongCount(Function(p) p.Count > 0) > 1 Then MyProgressForm.Show() : MainFrameObj.Focus()
             If Not If(CheckerThread?.IsAlive, False) Then

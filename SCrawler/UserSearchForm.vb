@@ -109,6 +109,7 @@ Friend Class UserSearchForm
                     Dim __urlFound As Boolean = False
                     Dim _p_url As Predicate(Of IUserData) = Function(u) __urlFound AndAlso ((u.Site = s.SiteName Or u.HOST.Key = s.HostKey) And u.Name.ToLower = s.UserName.ToLower)
                     Dim _p_descr As Predicate(Of IUserData) = Function(u) __descr AndAlso Not u.Description.IsEmptyString AndAlso u.Description.ToLower.Contains(t)
+                    Dim _p_name_friendly As Predicate(Of IUserData) = Function(u) Not u.FriendlyName.IsEmptyString AndAlso u.FriendlyName.ToLower.Contains(t)
                     Dim _p_labels_p As Predicate(Of String) = Function(l) l.ToLower.Contains(t)
                     Dim _p_labels As Predicate(Of IUserData) = Function(u) __lbl AndAlso u.Labels.ListExists AndAlso u.Labels.Exists(_p_labels_p)
                     Dim _addValue As Action(Of IUserData, SearchResult.Modes, Predicate(Of IUserData)) = Sub(u, m, p) If p.Invoke(u) Then Results.ListAddValue(New SearchResult(u, m), RLP)
@@ -122,13 +123,14 @@ Friend Class UserSearchForm
                     End If
 
                     For Each user As IUserData In .Users
-                        If Not __isUrl AndAlso __name AndAlso user.Name.ToLower.Contains(t) Then Results.ListAddValue(New SearchResult(user, SearchResult.Modes.Name), RLP)
+                        If Not __isUrl AndAlso __name AndAlso (user.Name.ToLower.Contains(t) OrElse _p_name_friendly.Invoke(user)) Then Results.ListAddValue(New SearchResult(user, SearchResult.Modes.Name), RLP)
                         If user.IsCollection Then
                             With DirectCast(user, UserDataBind)
                                 If .Count > 0 Then
                                     For i = 0 To .Count - 1
                                         With .Item(i)
-                                            If Not __isUrl AndAlso __name AndAlso .Self.Name.ToLower.Contains(t) Then Results.ListAddValue(New SearchResult(.Self, SearchResult.Modes.Name), RLP)
+                                            If Not __isUrl AndAlso __name AndAlso (.Self.Name.ToLower.Contains(t) OrElse _p_name_friendly.Invoke(.Self)) Then _
+                                               Results.ListAddValue(New SearchResult(.Self, SearchResult.Modes.Name), RLP)
                                             _addValue(.Self, SearchResult.Modes.URL, _p_url)
                                             _addValue(.Self, SearchResult.Modes.Description, _p_descr)
                                             _addValue(.Self, SearchResult.Modes.Label, _p_labels)

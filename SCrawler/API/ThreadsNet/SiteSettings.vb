@@ -25,6 +25,10 @@ Namespace API.ThreadsNet
                 Return __HH_CSRF_TOKEN
             End Get
         End Property
+        <CookieValueExtractor(NameOf(HH_CSRF_TOKEN))>
+        Private Function GetValueFromCookies(ByVal PropName As String, ByVal c As CookieKeeper) As String
+            Return c.GetCookieValue(IG.Header_CSRF_TOKEN_COOKIE, PropName, NameOf(HH_CSRF_TOKEN))
+        End Function
         <PClonable> Protected ReadOnly __HH_IG_APP_ID As PropertyValue
         <PropertyOption(ControlText:="x-ig-app-id", AllowNull:=False, IsAuth:=True), ControlNumber(10)>
         Friend Overridable ReadOnly Property HH_IG_APP_ID As PropertyValue
@@ -195,7 +199,7 @@ Namespace API.ThreadsNet
         End Sub
         Friend Overrides Sub Update()
             If _SiteEditorFormOpened And Responser.CookiesExists Then
-                Dim csrf$ = If(Responser.Cookies.FirstOrDefault(Function(c) c.Name.StringToLower = IG.Header_CSRF_TOKEN_COOKIE)?.Value, String.Empty)
+                Dim csrf$ = GetValueFromCookies(NameOf(HH_CSRF_TOKEN), Responser.Cookies)
                 If Not csrf.IsEmptyString Then HH_CSRF_TOKEN.Value = csrf
                 If Not __Cookies Is Nothing AndAlso Not __Cookies.ListEquals(Responser.Cookies) Then DownloadData_Impl.Value = True
             End If

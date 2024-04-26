@@ -65,6 +65,10 @@ Namespace API.Instagram
         Friend Const Header_Platform_Verion As String = "Sec-Ch-Ua-Platform-Version"
         <PropertyOption(ControlText:="x-csrftoken", ControlToolTip:="Can be automatically extracted from cookies", IsAuth:=True, AllowNull:=True), ControlNumber(2), PClonable(Clone:=False)>
         Friend ReadOnly Property HH_CSRF_TOKEN As PropertyValue
+        <CookieValueExtractor(NameOf(HH_CSRF_TOKEN))>
+        Private Function GetValueFromCookies(ByVal PropName As String, ByVal c As CookieKeeper) As String
+            Return c.GetCookieValue(Header_CSRF_TOKEN_COOKIE, PropName, NameOf(HH_CSRF_TOKEN))
+        End Function
         <PropertyOption(ControlText:="x-ig-app-id", IsAuth:=True, AllowNull:=False), ControlNumber(3), PClonable(Clone:=False)>
         Friend ReadOnly Property HH_IG_APP_ID As PropertyValue
         <PropertyOption(ControlText:="x-asbd-id", IsAuth:=True, AllowNull:=True), ControlNumber(4), PClonable(Clone:=False)>
@@ -557,7 +561,7 @@ Namespace API.Instagram
                 If vals.Any(Function(v) Not v.ValueOld = v.ValueNew) OrElse
                    Not Responser.Cookies.ListEquals(____Cookies) Then HH_IG_WWW_CLAIM.Value = 0 : credentialsUpdated = True
                 If Responser.CookiesExists Then
-                    Dim csrf$ = If(Responser.Cookies.FirstOrDefault(Function(c) c.Name.StringToLower = Header_CSRF_TOKEN_COOKIE)?.Value, String.Empty)
+                    Dim csrf$ = GetValueFromCookies(NameOf(HH_CSRF_TOKEN), Responser.Cookies)
                     If Not csrf.IsEmptyString Then
                         If Not AEquals(Of String)(CStr(HH_CSRF_TOKEN.Value), csrf) Then credentialsUpdated = True
                         HH_CSRF_TOKEN.Value = csrf

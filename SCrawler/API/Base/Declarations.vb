@@ -6,6 +6,7 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
+Imports System.Runtime.CompilerServices
 Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Functions.RegularExpressions
 Namespace API.Base
@@ -71,6 +72,13 @@ Namespace API.Base
                             "It is highly recommended to add a new user with this query instead of changing current one." & vbCr &
                             $"Current query: [{CurrentQuery}]{vbCr}New query: [{NewQuery}]",
                             "Changing a query"}, vbExclamation,,, {"Process", "Cancel"}) = 0
+        End Function
+        <Extension> Friend Function GetCookieValue(ByVal Cookies As IEnumerable(Of System.Net.Cookie), ByVal CookieName As String) As String
+            If Cookies.ListExists Then Return If(Cookies.FirstOrDefault(Function(c) c.Name.ToLower = CookieName.ToLower)?.Value, String.Empty) Else Return String.Empty
+        End Function
+        <Extension> Friend Function GetCookieValue(ByVal Cookies As IEnumerable(Of System.Net.Cookie), ByVal CookieName As String,
+                                                   ByVal PropName As String, ByVal PropNameComp As String) As String
+            Return If(PropName = PropNameComp, Cookies.GetCookieValue(CookieName), String.Empty)
         End Function
     End Module
 End Namespace

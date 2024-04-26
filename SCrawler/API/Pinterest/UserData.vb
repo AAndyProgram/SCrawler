@@ -287,7 +287,7 @@ Namespace API.Pinterest
             End Function
         End Class
         Private Function GetDataFromGalleryDL(ByVal URL As String, ByVal IsBoardsRequested As Boolean, ByVal Token As CancellationToken) As List(Of String)
-            Dim command$ = $"gallery-dl --verbose --simulate "
+            Dim command$ = $"""{Settings.GalleryDLFile.File}"" --verbose --simulate "
             Try
                 If Not URL.IsEmptyString Then
                     If MySettings.CookiesNetscapeFile.Exists Then command &= $"--cookies ""{MySettings.CookiesNetscapeFile}"" "

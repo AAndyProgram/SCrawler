@@ -20,6 +20,10 @@ Namespace API.JustForFans
         Friend ReadOnly Property UserID As PropertyValue
         <PropertyOption, PXML, PClonable(Clone:=False)>
         Friend ReadOnly Property UserHash4 As PropertyValue
+        <CookieValueExtractor(NameOf(UserHash4))>
+        Private Function GetValueFromCookies(ByVal PropName As String, ByVal c As CookieKeeper) As String
+            Return c.GetCookieValue(UserHash4_CookieName, PropName, NameOf(UserHash4))
+        End Function
         <PropertyOption(ControlText:="Accept", ControlToolTip:="Header 'Accept'"), PClonable>
         Friend ReadOnly Property HeaderAccept As PropertyValue
         <PropertyOption(InheritanceName:=SettingsCLS.HEADER_DEF_UserAgent), PClonable, PXML(OnlyForChecked:=True)>
@@ -61,7 +65,7 @@ Namespace API.JustForFans
         Private Sub UpdateUserHash4()
             If Responser.CookiesExists Then
                 Dim hv_current$ = UserHash4.Value
-                Dim hv_cookie$ = If(Responser.Cookies.FirstOrDefault(Function(cc) cc.Name.ToLower = UserHash4_CookieName)?.Value, String.Empty)
+                Dim hv_cookie$ = GetValueFromCookies(NameOf(UserHash4), Responser.Cookies)
                 If Not hv_cookie.IsEmptyString And Not hv_cookie = hv_current And Responser.Cookies.Changed Then UserHash4.Value = hv_cookie
             End If
         End Sub
