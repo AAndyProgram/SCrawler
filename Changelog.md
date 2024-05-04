@@ -1,3 +1,18 @@
+# 2024.5.4.0
+
+*2024-05-04*
+
+- Added
+  - YouTube (standalone app): setting to remove specific characters (`Defaults` - `Remove characters`)
+  - Instagram: simplify the `Connection closed` error
+  - Users search: add 'FriendlyName' to search results
+- Fixed
+  - YouTube (standalone app): incorrect download processing when the file name ends with a dot (Issue #188)
+  - The program is freezes when editing users in some cases
+  - Sites
+    - Reddit: token update error
+    - Threads: unable to obtain credentials (ID)
+
 # 2024.4.26.0
 
 *2024-04-26*

@@ -236,7 +236,7 @@ Namespace DownloadObjects
         Friend Sub UpdateUsers(ByVal InitialUser As UserInfo, ByVal NewUser As UserInfo)
             Try
                 Load()
-                If Count > 0 Then
+                If Count > 0 AndAlso Not UserInfo.ExactEquals(InitialUser, NewUser) Then
                     Feeds.ForEach(Sub(f) f.UpdateUsers(InitialUser, NewUser))
                     If Downloader.Files.Count > 0 Then
                         PendingUsersToUpdate.Add(New KeyValuePair(Of UserInfo, UserInfo)(InitialUser, NewUser))

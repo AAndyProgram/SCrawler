@@ -59,8 +59,10 @@ Namespace API.YouTube
         Friend Function CleanFileName(ByVal f As SFile) As SFile
             If Not f.IsEmptyString And Not f.Name.IsEmptyString Then
                 Dim ff As SFile = f
-                ff.Name = ff.Name.StringRemoveWinForbiddenSymbols
-                If Not ff.Name.IsEmptyString Then ff.Name = ff.Name.Replace("%", String.Empty)
+                ff.Name = ff.Name.StringRemoveWinForbiddenSymbols.StringTrim
+                ff.Name = ff.Name.StringTrimEnd(".")
+                If Not ff.Name.IsEmptyString And Not MyYouTubeSettings.FileRemoveCharacters.IsEmptyString Then _
+                   ff.Name = ff.Name.StringReplaceSymbols(MyYouTubeSettings.FileRemoveCharacters.Value.AsList.ListCast(Of String).ToArray, String.Empty, EDP.ReturnValue)
                 If ff.Name.IsEmptyString Then ff.Name = "file"
                 Return ff
             Else

@@ -572,7 +572,19 @@ Namespace DownloadObjects
                     With Downloader
                         .AutoDownloaderWorking = True
                         If .Downloaded.Count > 0 Then .Downloaded.RemoveAll(Function(u) Keys.Contains(u.Key)) : .InvokeDownloadsChangeEvent()
-                        Do : Try : doRound += 1 : .AddRange(users, True) : Exit Do : Catch iex As IndexOutOfRangeException : Thread.Sleep(200) : End Try : Loop While doRound < doLim
+                        Do
+                            Try
+                                doRound += 1
+                                .AddRange(users, True)
+                                Exit Do
+                            Catch iex As Exception
+                                If doRound = doLim Then
+                                    Throw iex
+                                Else
+                                    Thread.Sleep(200)
+                                End If
+                            End Try
+                        Loop While doRound <= doLim
                         While .Working Or .Count > 0 : notify.Invoke() : Thread.Sleep(200) : End While
                         .AutoDownloaderWorking = False
                         notify.Invoke
@@ -586,7 +598,7 @@ Namespace DownloadObjects
                     End With
                 End If
             Catch ex As Exception
-                ErrorsDescriber.Execute(EDP.SendToLog, ex, "[AutoDownloader.Download]")
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, $"[AutoDownloader.Download({Name})]")
             Finally
                 Keys.Clear()
                 LastDownloadDate = Now

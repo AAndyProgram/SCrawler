@@ -1269,6 +1269,9 @@ NextPageBlock:
             ElseIf Responser.StatusCode = 560 Or Responser.StatusCode = HttpStatusCode.InternalServerError Then '560, 500
                 MySiteSettings.SkipUntilNextSession = True
                 Err5xx = Responser.StatusCode
+            ElseIf Responser.StatusCode = -1 And Responser.Status = -1 Then
+                MySiteSettings.SkipUntilNextSession = True
+                Err5xx = Responser.StatusCode
             Else
                 MyMainLOG = $"Something is wrong. Your credentials may have expired [{CInt(Responser.StatusCode)}/{CInt(Responser.Status)}]: {ToString()} [{s}]"
                 DisableSection(s)

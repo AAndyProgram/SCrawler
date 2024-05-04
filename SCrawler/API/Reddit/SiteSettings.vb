@@ -10,6 +10,7 @@ Imports SCrawler.API.Base
 Imports SCrawler.Plugin
 Imports SCrawler.Plugin.Attributes
 Imports PersonalUtilities.Tools.Web.Clients
+Imports PersonalUtilities.Tools.Web.Clients.Base
 Imports PersonalUtilities.Tools.Web.Documents.JSON
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.RegularExpressions
@@ -34,6 +35,8 @@ Namespace API.Reddit
                                         "You can find different tokens in the responses. Make sure that bearer token belongs to Reddit and not RedGifs." & vbCr &
                                         "There is not need to add a token if you are not using cookies to download the timeline.", IsAuth:=True)>
         Friend ReadOnly Property BearerToken As PropertyValue
+        <PropertyOption(ControlText:="Use 'cUrl' to get a token", IsAuth:=True), PXML, PClonable, HiddenControl>
+        Private ReadOnly Property BearerTokenUseCurl As PropertyValue
 #Region "TokenUpdateInterval"
         <PropertyOption(ControlText:="Token refresh interval", ControlToolTip:="Interval (in minutes) to refresh the token",
                         AllowNull:=False, LeftOffset:=120, IsAuth:=True), PXML, PClonable>
@@ -82,6 +85,7 @@ Namespace API.Reddit
             ApiClientID = New PropertyValue(String.Empty, GetType(String))
             ApiClientSecret = New PropertyValue(String.Empty, GetType(String))
             BearerToken = New PropertyValue(token, GetType(String), Sub(v) Responser.Headers.Add(DeclaredNames.Header_Authorization, v))
+            BearerTokenUseCurl = New PropertyValue(True)
             TokenUpdateInterval = New PropertyValue(60 * 12)
             TokenUpdateIntervalProvider = New TokenRefreshIntervalProvider
             BearerTokenDateUpdate = New PropertyValue(Now.AddYears(-1))
@@ -269,29 +273,51 @@ Namespace API.Reddit
                     result = False
                     Dim r$ = String.Empty
                     Dim c% = 0
-                    Dim _found As Boolean
+                    Dim useCurl As Boolean = Settings.CurlFile.Exists And CBool(BearerTokenUseCurl.Value)
+                    Dim curlUsed As Boolean = useCurl
                     Do
                         c += 1
                         Using resp As New Responser With {
                             .Method = "POST",
-                            .ProcessExceptionDecision = Function(status, obj, ee) If(status.StatusCode = 429, EDP.ReturnValue, ee)
+                            .ProcessExceptionDecision = Function(ByVal status As IResponserStatus, ByVal nullArg As Object, ByVal currErr As ErrorsDescriber) As ErrorsDescriber
+                                                            If status.StatusCode = 429 Then
+                                                                useCurl = False
+                                                                Return EDP.ReturnValue
+                                                            ElseIf status.StatusCode = Net.HttpStatusCode.Forbidden And Not useCurl And Settings.CurlFile.Exists Then
+                                                                useCurl = True
+                                                                Return EDP.ReturnValue
+                                                            Else
+                                                                Return currErr
+                                                            End If
+                                                        End Function
                         }
                             With resp
-                                With .PayLoadValues
-                                    .Add("grant_type", "password")
-                                    .Add("username", UserName)
-                                    .Add("password", Password)
-                                End With
-                                .CredentialsUserName = ClientID
-                                .CredentialsPassword = ClientSecret
-                                .PreAuthenticate = True
+                                If useCurl Then
+                                    If Settings.CurlFile.Exists Then
+                                        curlUsed = True
+                                        .Mode = Responser.Modes.Curl
+                                        .CurlPath = Settings.CurlFile
+                                        .CurlArgumentsLeft = $"-d ""grant_type=password&username={UserName}&password={Password}"" --user ""{ClientID}:{ClientSecret}"""
+                                    Else
+                                        Throw New ArgumentNullException("cUrl file", "The path to the cUrl file is not specified")
+                                    End If
+                                Else
+                                    .Mode = Responser.Modes.Default
+                                    With .PayLoadValues
+                                        .Add("grant_type", "password")
+                                        .Add("username", UserName)
+                                        .Add("password", Password)
+                                    End With
+                                    .CredentialsUserName = ClientID
+                                    .CredentialsPassword = ClientSecret
+                                    .PreAuthenticate = True
+                                End If
                             End With
                             r = resp.GetResponse("https://www.reddit.com/api/v1/access_token",, EDP.ThrowException)
                         End Using
                         If Not r.IsEmptyString Then
                             Using j As EContainer = JsonDocument.Parse(r)
                                 If j.ListExists Then
-                                    _found = True
                                     Dim newToken$ = j.Value("access_token")
                                     If Not newToken.IsEmptyString Then
                                         BearerToken.Value = $"Bearer {newToken}"
@@ -302,7 +328,7 @@ Namespace API.Reddit
                                 End If
                             End Using
                         End If
-                    Loop While c < 5 And Not _found
+                    Loop While c < 5 And Not result
                 End If
                 Return result
             Catch ex As Exception

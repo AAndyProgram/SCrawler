@@ -40,10 +40,10 @@ Namespace API.ThreadsNet
         Friend ReadOnly Property HH_ASBD_ID As PropertyValue
         <PropertyOption(ControlText:="sec-ch-ua", AllowNull:=True, IsAuth:=True,
                         InheritanceName:=SettingsCLS.HEADER_DEF_sec_ch_ua), ControlNumber(30), PClonable, PXML(OnlyForChecked:=True)>
-        Private ReadOnly Property HH_BROWSER As PropertyValue
+        Friend ReadOnly Property HH_BROWSER As PropertyValue
         <PropertyOption(ControlText:="sec-ch-ua-full", ControlToolTip:=SettingsCLS.HEADER_DEF_sec_ch_ua_full_version_list, AllowNull:=True, IsAuth:=True,
                         InheritanceName:=SettingsCLS.HEADER_DEF_sec_ch_ua_full_version_list), ControlNumber(40), PClonable, PXML(OnlyForChecked:=True)>
-        Private ReadOnly Property HH_BROWSER_EXT As PropertyValue
+        Friend ReadOnly Property HH_BROWSER_EXT As PropertyValue
         <PropertyOption(ControlText:="sec-ch-ua-platform-ver", ControlToolTip:=SettingsCLS.HEADER_DEF_sec_ch_ua_platform_version, AllowNull:=True, IsAuth:=True, LeftOffset:=135,
                         InheritanceName:=SettingsCLS.HEADER_DEF_sec_ch_ua_platform_version), ControlNumber(50), PClonable, PXML(OnlyForChecked:=True)>
         Friend ReadOnly Property HH_PLATFORM_VER As PropertyValue
@@ -127,9 +127,10 @@ Namespace API.ThreadsNet
                     .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.SecFetchMode, "cors"))
                     .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.SecFetchSite, "same-origin"))
                     .Add("Sec-Fetch-User", "?1")
-                    .Add("dht", 1)
+                    .Add("dnt", 1)
                     .Add("drp", 1)
                     .Add(Instagram.UserData.GQL_HEADER_FB_FRINDLY_NAME, "BarcelonaProfileThreadsTabRefetchableQuery")
+                    .Remove("dht")
                 End With
                 .CookiesExtractMode = Responser.CookiesExtractModes.Any
                 .CookiesUpdateMode = CookieKeeper.UpdateModes.ReplaceByNameAll

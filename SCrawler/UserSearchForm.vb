@@ -31,6 +31,7 @@ Friend Class UserSearchForm
             Else
                 If User.IncludedInCollection Then Text &= $"[{User.CollectionName}] "
                 Text &= $"[{User.Site}] [{User.Name}]"
+                If Not User.FriendlyName.IsEmptyString Then Text &= $" ({User.FriendlyName})"
             End If
         End Sub
         Private Function CompareTo(ByVal Other As SearchResult) As Integer Implements IComparable(Of SearchResult).CompareTo

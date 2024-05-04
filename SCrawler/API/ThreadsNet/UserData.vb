@@ -164,16 +164,28 @@ Namespace API.ThreadsNet
                     .Method = "GET"
                     .Referer = URL
                     With .Headers
-                        .Remove(GQL_HEADER_FB_LSD)
+                        .Clear()
+                        .Add("dnt", 1)
+                        .Add("drp", 1)
+                        .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.Authority, "www.threads.net"))
+                        .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.Origin, "https://www.threads.net"))
+                        .Add("Sec-Ch-Ua-Model", "")
+                        .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.SecChUaMobile, "?0"))
+                        .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.SecChUaPlatform, """Windows"""))
                         .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.SecFetchDest, "document"))
                         .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.SecFetchMode, "navigate"))
+                        .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.SecFetchSite, "none"))
+                        .Add("Upgrade-Insecure-Requests", 1)
+                        .Add("Sec-Fetch-User", "?1")
+                        .Add(IGS.Header_Browser, MySettings.HH_BROWSER.Value)
+                        .Add(IGS.Header_BrowserExt, MySettings.HH_BROWSER_EXT.Value)
                     End With
                 End With
                 WaitTimer()
                 Dim r$ = Responser.GetResponse(URL,, EDP.ThrowException)
                 If Not r.IsEmptyString Then
                     ParseTokens(r, 0)
-                    If ID.IsEmptyString Then ID = RegexReplace(r, RParams.DMS("""props"":\{""user_id"":""(\d+)""\},", 1, EDP.ReturnValue))
+                    If ID.IsEmptyString Then ID = RegexReplace(r, RParams.DMS("""props"":\{""user_id"":""(\d+)""", 1, EDP.ReturnValue))
                 End If
                 Return Valid
             Catch ex As Exception

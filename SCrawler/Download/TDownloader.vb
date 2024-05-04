@@ -191,9 +191,9 @@ Namespace DownloadObjects
         End Sub
         Private _FilesUpdating As Boolean = False
         Friend Sub FilesUpdatePendingUsers()
-            _FilesUpdating = True
             Try
                 If Files.Count > 0 Then
+                    _FilesUpdating = True
                     With Settings.Feeds
                         Dim pUsers As List(Of KeyValuePair(Of UserInfo, UserInfo))
                         Dim pendingUser As KeyValuePair(Of UserInfo, UserInfo)
@@ -214,19 +214,21 @@ Namespace DownloadObjects
                                         Next
                                     End If
                                 End With
-                                If changed Then FilesSave()
+                                If changed Then _FilesUpdating = False : FilesSave()
                             Next
                             pUsers.Clear()
                         End While
                     End With
+                    _FilesUpdating = False
                 End If
             Catch aex As ArgumentOutOfRangeException
+                _FilesUpdating = False
             Catch iex As IndexOutOfRangeException
+                _FilesUpdating = False
             Catch ex As Exception
+                _FilesUpdating = False
                 ErrorsDescriber.Execute(EDP.SendToLog, ex, "[TDownloader.FilesUpdatePendingUsers]")
                 MainFrameObj.UpdateLogButton()
-            Finally
-                _FilesUpdating = False
             End Try
         End Sub
         Friend Sub ClearSessions()

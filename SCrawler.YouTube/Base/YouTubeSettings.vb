@@ -243,6 +243,9 @@ Namespace API.YouTube.Base
         <Browsable(True), GridVisible(False), XMLVN({"Defaults"}), Category("Defaults"), DisplayName("Program description"),
             Description("Add some additional info to the program info if you need")>
         Friend ReadOnly Property ProgramDescription As XMLValue(Of String)
+        <Browsable(True), GridVisible(False), XMLVN({"Defaults"}, "%"""), Category("Defaults"), DisplayName("Remove characters"),
+            Description("Remove specific characters from a file name")>
+        Friend ReadOnly Property FileRemoveCharacters As XMLValue(Of String)
 #End Region
 #Region "Defaults ChannelsDownload"
         <Browsable(True), GridVisible, XMLVN({"Defaults", "Channels"}), Category("Defaults"), DisplayName("Default download tabs for channels"),
