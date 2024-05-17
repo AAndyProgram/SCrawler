@@ -950,7 +950,10 @@ BlockNullPicture:
                 LogError(ex, "user information loading error")
             End Try
         End Sub
-        Friend Overridable Sub UpdateUserInformation() Implements IUserData.UpdateUserInformation
+        Friend Overridable Overloads Sub UpdateUserInformation() Implements IUserData.UpdateUserInformation
+            UpdateUserInformation(False)
+        End Sub
+        Friend Overridable Overloads Sub UpdateUserInformation(ByVal DisableUserInfoUpdate As Boolean)
             Try
                 UpdateDataFiles()
                 MyFileSettings.Exists(SFO.Path)
@@ -1001,7 +1004,7 @@ BlockNullPicture:
 
                     x.Save(MyFileSettings)
                 End Using
-                If Not IsSavedPosts Then Settings.UpdateUsersList(User, True)
+                If Not IsSavedPosts And Not DisableUserInfoUpdate Then Settings.UpdateUsersList(User, True)
             Catch ex As Exception
                 LogError(ex, "user information saving error")
             End Try
@@ -1934,7 +1937,18 @@ BlockNullPicture:
                 Return 0
             End If
         End Function
-        Friend Overridable Function MoveFiles(ByVal __CollectionName As String, ByVal __SpecialCollectionPath As SFile) As Boolean Implements IUserData.MoveFiles
+        Friend Function SplitCollectionGetNewUserInfo() As SplitCollectionUserInfo
+            Dim u As New SplitCollectionUserInfo With {.UserOrig = User, .UserNew = User}
+            With u.UserNew
+                .CollectionName = String.Empty
+                .SpecialCollectionPath = Nothing
+                .UserModel = UsageModel.Default
+                .CollectionModel = UsageModel.Default
+                .UpdateUserFile()
+            End With
+            Return u
+        End Function
+        Friend Overridable Function MoveFiles(ByVal __CollectionName As String, ByVal __SpecialCollectionPath As SFile, Optional ByVal NewUser As SplitCollectionUserInfo? = Nothing) As Boolean Implements IUserData.MoveFiles
             Dim UserBefore As UserInfo = User
             Dim Removed As Boolean = True
             Dim _TurnBack As Boolean = False
@@ -1950,6 +1964,7 @@ BlockNullPicture:
                     User.SpecialCollectionPath = String.Empty
                     User.UserModel = UsageModel.Default
                     User.CollectionModel = UsageModel.Default
+                    If NewUser.HasValue Then User.SpecialPath = NewUser.Value.UserNew.SpecialPath
                 Else
                     Settings.Users.Remove(Me)
                     Removed = True

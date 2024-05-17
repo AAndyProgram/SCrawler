@@ -54,6 +54,14 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         a.Invoke(CurlFile)
         Plugins.ForEach(Sub(p) p.Settings.UpdateEnvironmentPrograms(EnvironmentProgramsList, CMDEncoding.Value))
     End Sub
+    Friend Sub UpdatePluginsUserAgent(Optional ByVal InvokeUpdate As Boolean = True)
+        If Not UserAgent.IsEmptyString Then
+            If InvokeUpdate Then BeginUpdate()
+            Dim __userAgent$ = UserAgent
+            Plugins.ForEach(Sub(p) p.Settings.ListForEach(Sub(ps, psi) ps.Source.UserAgentDefault = __userAgent))
+            If InvokeUpdate Then EndUpdate()
+        End If
+    End Sub
     Friend Class ProgramFile
         Friend Const File_FFMPEG As String = "ffmpeg.exe"
         Friend Const File_YTDLP As String = "yt-dlp.exe"
@@ -244,7 +252,6 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         MaxUsersJobsCount = New XMLValue(Of Integer)("MaxJobsCount", DefaultMaxDownloadingTasks, MyXML, n)
         UserAgent = New XMLValue(Of String)("UserAgent",, MyXML, n)
         If Not SettingsReoranized Then UserAgent.Value = New XMLValue(Of String)("UserAgent",, MyXML).Value 'URGENT: remove this line
-        If Not UserAgent.IsEmptyString Then DefaultUserAgent = UserAgent
         ImgurClientID = New XMLValue(Of String)("ImgurClientID", String.Empty, MyXML, {Name_Node_Sites})
 
         'Basis: new version
@@ -462,6 +469,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
             Plugins.AddRange(tmpPluginList)
         End If
         UpdateEnvironmentPrograms()
+        UpdatePluginsUserAgent(False)
 #End Region
 
         Labels = New LabelsKeeper(MyXML)
@@ -1001,7 +1009,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
     Friend ReadOnly Property CollectionsPathF As SFile
         Get
             If GlobalPath.IsEmptyString Then
-                Throw New ArgumentNullException("GlobalPath", "GlobalPath not set")
+                Throw New ArgumentNullException("GlobalPath", "Global path not set")
             Else
                 Return SFile.GetPath($"{GlobalPath.Value.PathWithSeparator}{CollectionsPath.Value}")
             End If

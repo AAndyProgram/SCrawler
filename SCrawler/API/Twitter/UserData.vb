@@ -33,6 +33,7 @@ Namespace API.Twitter
             Media = 1
             Profile = 2
             Search = 5
+            Likes = 10
         End Enum
         Private FirstDownloadComplete As Boolean = False
         Friend Property DownloadModelForceApply As Boolean = False
@@ -41,6 +42,7 @@ Namespace API.Twitter
         Friend Property GifsDownload As Boolean = True
         Friend Property GifsSpecialFolder As String = String.Empty
         Friend Property GifsPrefix As String = String.Empty
+        Private ReadOnly LikesPosts As List(Of String)
         Private ReadOnly _DataNames As List(Of String)
         Private ReadOnly Property MySettings As SiteSettings
             Get
@@ -74,6 +76,7 @@ Namespace API.Twitter
                     If .DownloadModelMedia Then DownloadModel += DownloadModels.Media
                     If .DownloadModelProfile Then DownloadModel += DownloadModels.Profile
                     If .DownloadModelSearch Then DownloadModel += DownloadModels.Search
+                    If .DownloadModelLikes Then DownloadModel += DownloadModels.Likes
                 End With
             End If
         End Sub
@@ -81,6 +84,7 @@ Namespace API.Twitter
 #Region "Initializer, loader"
         Friend Sub New()
             _DataNames = New List(Of String)
+            LikesPosts = New List(Of String)
         End Sub
         Protected Overrides Sub LoadUserInformation_OptionalFields(ByRef Container As XmlFile, ByVal Loading As Boolean)
             With Container
@@ -142,21 +146,32 @@ Namespace API.Twitter
             }
         End Function
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
-            If MySettings.LIMIT_ABORT Then
-                Throw New TwitterLimitException(Me)
-            Else
-                If IsSavedPosts Then
-                    If _ContentList.Count > 0 Then _DataNames.ListAddList(_ContentList.Select(Function(c) c.Post.ID), LAP.ClearBeforeAdd, LAP.NotContainsOnly)
-                    DownloadData_SavedPosts(Token)
+            Try
+                If MySettings.LIMIT_ABORT Then
+                    Throw New TwitterLimitException(Me)
                 Else
-                    If _ContentList.Count > 0 Then _DataNames.ListAddList(_ContentList.Select(Function(c) c.File.File), LAP.ClearBeforeAdd, LAP.NotContainsOnly)
-                    DownloadData_Timeline(Token)
+                    If IsSavedPosts Then
+                        If _ContentList.Count > 0 Then _DataNames.ListAddList(_ContentList.Select(Function(c) c.Post.ID), LAP.ClearBeforeAdd, LAP.NotContainsOnly)
+                        DownloadData_SavedPosts(Token)
+                    Else
+                        LikesPosts.Clear()
+                        If _ContentList.Count > 0 Then _DataNames.ListAddList(_ContentList.Select(Function(c) c.File.File), LAP.ClearBeforeAdd, LAP.NotContainsOnly)
+                        DownloadData_Timeline(Token)
+                        If LikesPosts.Count > 0 Then
+                            _ReparseLikes = True
+                            ReparseMissing(Token)
+                            _ReparseLikes = False
+                        End If
+                    End If
                 End If
-            End If
+            Finally
+                _ReparseLikes = False
+            End Try
         End Sub
         Private Sub DownloadData_Timeline(ByVal Token As CancellationToken)
             Dim URL$ = String.Empty
             Dim tCache As CacheKeeper = Nothing
+            Dim likesDetected As Boolean = False
             Try
                 Const entry$ = "entry"
                 Dim PostID$ = String.Empty
@@ -199,6 +214,7 @@ Namespace API.Twitter
 
                             If Not _TempPostsList.Contains(PostID) Then
                                 _TempPostsList.Add(PostID)
+                            ElseIf dirIndx = 3 Then
                             ElseIf isPins Then
                                 Return False
                             Else
@@ -211,9 +227,22 @@ Namespace API.Twitter
                             If tmpUserId.IsEmptyString Then tmpUserId = nn.ItemF({"extended_entities", "media", 0, sourceIdPredicate}).XmlIfNothingValue.
                                                                                 IfNullOrEmpty(nn.Value("user_id")).IfNullOrEmpty(nn.Value("user_id_str")).IfNullOrEmpty("/")
 
-                            If Not ParseUserMediaOnly OrElse
+                            If (Not ParseUserMediaOnly Or dirIndx = 3) OrElse
                                (dirIndx = 0 AndAlso MediaModelAllowNonUserTweets) OrElse
-                               (Not ID.IsEmptyString AndAlso tmpUserId = ID) Then ObtainMedia(nn, PostID, PostDate)
+                               (Not ID.IsEmptyString AndAlso tmpUserId = ID) Then
+                                If dirIndx = 3 Then
+                                    Dim lUrl$ = nn.ItemF({"content", "itemContent", "tweet_results", "result", "legacy", "entities", "media", 0}, "expanded_url").XmlIfNothingValue
+                                    If Not lUrl.IsEmptyString Then
+                                        lUrl = RegexReplace(lUrl, StatusRegEx)
+                                        If Not lUrl.IsEmptyString Then
+                                            If Not _TempPostsList.Contains(lUrl) Then _TempPostsList.Add(lUrl) Else Return False
+                                            LikesPosts.ListAddValue(lUrl, LNC)
+                                        End If
+                                    End If
+                                Else
+                                    ObtainMedia(nn, PostID, PostDate)
+                                End If
+                            End If
                         End If
                         Return True
                     End Function
@@ -224,6 +253,8 @@ Namespace API.Twitter
                 If dirs.ListExists Then
                     For Each dir As SFile In dirs
                         dirIndx += 1
+
+                        If dirIndx = 3 Then likesDetected = True
 
                         ExistsDetected = False
 
@@ -287,17 +318,22 @@ Namespace API.Twitter
                                                 End If
                                             End If
                                         Else
-                                            For pIndx = 0 To IIf(dirIndx < 2, 1, 0)
+                                            For pIndx = 0 To IIf(dirIndx < 2 Or dirIndx = 3, 1, 0)
                                                 optionalNode = Nothing
                                                 Select Case dirIndx
-                                                    Case 0, 1
+                                                    Case 0, 1, 3
                                                         rootNode = j({"data", "user", "result", "timeline_v2", "timeline", "instructions"})
                                                         If rootNode.ListExists Then
-                                                            p = If(pIndx = 0, pinNode, timelineNode)
-                                                            isPins = pIndx = 0
+                                                            If dirIndx = 3 Then
+                                                                p = entriesNode
+                                                                isPins = False
+                                                            Else
+                                                                p = If(pIndx = 0, pinNode, timelineNode)
+                                                                isPins = pIndx = 0
+                                                            End If
                                                             optionalNode = rootNode
-                                                            rootNode = rootNode.Find(p, False)
-                                                            If rootNode.ListExists Then rootNode = rootNode.Find(entriesNode, False)
+                                                            rootNode = rootNode.Find(p, dirIndx = 3)
+                                                            If dirIndx <> 3 And rootNode.ListExists Then rootNode = rootNode.Find(entriesNode, dirIndx = 3)
                                                         End If
                                                     Case Else
                                                         isPins = False
@@ -369,12 +405,12 @@ Namespace API.Twitter
                 ProcessException(ex, Token, $"data downloading error [{URL}]")
             Finally
                 If Not tCache Is Nothing Then tCache.Dispose()
-                If _TempPostsList.Count > 0 Then _TempPostsList.Sort()
+                If _TempPostsList.Count > 0 And Not likesDetected Then _TempPostsList.Sort()
             End Try
         End Sub
         Private Sub DownloadData_SavedPosts(ByVal Token As CancellationToken)
             Try
-                Dim f As SFile = GetDataFromGalleryDL("https://twitter.com/i/bookmarks", Settings.Cache, True, Token)
+                Dim f As SFile = GetDataFromGalleryDL("https://x.com/i/bookmarks", Settings.Cache, True, Token)
                 Dim files As List(Of SFile) = SFile.GetFiles(f, "*.txt")
                 If files.ListExists Then
                     ResetFileNameProvider(Math.Max(files.Count.ToString.Length, 3))
@@ -417,21 +453,24 @@ Namespace API.Twitter
 #End Region
 #Region "Obtain media"
         Private Sub ObtainMedia(ByVal e As EContainer, ByVal PostID As String, ByVal PostDate As String, Optional ByVal State As UStates = UStates.Unknown,
-                                Optional ByVal Attempts As Integer = 0)
+                                Optional ByVal Attempts As Integer = 0, Optional ByVal SpecialFolder As String = Nothing)
             Dim s As EContainer = e({"extended_entities", "media"})
             If If(s?.Count, 0) = 0 Then s = e({"retweeted_status", "extended_entities", "media"})
             If If(s?.Count, 0) = 0 Then s = e({"retweeted_status_result", "result", "legacy", "extended_entities", "media"})
 
             If If(s?.Count, 0) > 0 Then
                 Dim mUrl$
+                Dim media As UserMedia
                 For Each m As EContainer In s
-                    If Not CheckVideoNode(m, PostID, PostDate, State) Then
+                    If Not CheckVideoNode(m, PostID, PostDate, State, SpecialFolder) Then
                         mUrl = m.Value("media_url").IfNullOrEmpty(m.Value("media_url_https"))
                         If Not mUrl.IsEmptyString Then
                             Dim dName$ = UrlFile(mUrl)
                             If Not dName.IsEmptyString AndAlso Not _DataNames.Contains(dName) Then
                                 _DataNames.Add(dName)
-                                _TempMediaList.ListAddValue(MediaFromData(mUrl, PostID, PostDate, GetPictureOption(m), State, UTypes.Picture, Attempts), LNC)
+                                media = MediaFromData(mUrl, PostID, PostDate, GetPictureOption(m), State, UTypes.Picture, Attempts)
+                                If Not SpecialFolder.IsEmptyString Then media.SpecialFolder = SpecialFolder
+                                _TempMediaList.ListAddValue(media, LNC)
                             End If
                         End If
                     End If
@@ -439,15 +478,17 @@ Namespace API.Twitter
             End If
         End Sub
         Private Function CheckVideoNode(ByVal w As EContainer, ByVal PostID As String, ByVal PostDate As String,
-                                        Optional ByVal State As UStates = UStates.Unknown) As Boolean
+                                        Optional ByVal State As UStates = UStates.Unknown, Optional ByVal SpecialFolder As String = Nothing) As Boolean
             Try
-                If CheckForGif(w, PostID, PostDate, State) Then Return True
+                If CheckForGif(w, PostID, PostDate, State, SpecialFolder) Then Return True
                 Dim URL$ = GetVideoNodeURL(w)
                 If Not URL.IsEmptyString Then
                     Dim f$ = UrlFile(URL)
                     If Not f.IsEmptyString AndAlso Not _DataNames.Contains(f) Then
                         _DataNames.Add(f)
-                        _TempMediaList.ListAddValue(MediaFromData(URL, PostID, PostDate,, State, UTypes.Video), LNC)
+                        Dim m As UserMedia = MediaFromData(URL, PostID, PostDate,, State, UTypes.Video)
+                        If Not SpecialFolder.IsEmptyString Then m.SpecialFolder = SpecialFolder
+                        _TempMediaList.ListAddValue(m, LNC)
                     End If
                     Return True
                 End If
@@ -458,7 +499,7 @@ Namespace API.Twitter
             End Try
         End Function
         Private Function CheckForGif(ByVal w As EContainer, ByVal PostID As String, ByVal PostDate As String,
-                                     Optional ByVal State As UStates = UStates.Unknown) As Boolean
+                                     Optional ByVal State As UStates = UStates.Unknown, Optional ByVal SpecialFolder As String = Nothing) As Boolean
             Try
                 Dim gifUrl As Predicate(Of EContainer) = Function(e) Not e.Value("content_type").IsEmptyString AndAlso
                                                                      e.Value("content_type").Contains("mp4") AndAlso
@@ -477,9 +518,13 @@ Namespace API.Twitter
                                         If Not ff.IsEmptyString Then
                                             If GifsDownload And Not _DataNames.Contains(ff) Then
                                                 m = MediaFromData(url, PostID, PostDate,, State, UTypes.Video)
+                                                If Not SpecialFolder.IsEmptyString Then m.SpecialFolder = SpecialFolder
                                                 f = m.File
                                                 If Not f.IsEmptyString And Not GifsPrefix.IsEmptyString Then f.Name = $"{GifsPrefix}{f.Name}" : m.File = f
-                                                If Not GifsSpecialFolder.IsEmptyString Then m.SpecialFolder = $"{GifsSpecialFolder}*"
+                                                If Not GifsSpecialFolder.IsEmptyString Then
+                                                    If Not m.SpecialFolder.IsEmptyString Then m.SpecialFolder &= "\"
+                                                    m.SpecialFolder &= $"{GifsSpecialFolder}*"
+                                                End If
                                                 _TempMediaList.ListAddValue(m, LNC)
                                             End If
                                             Return True
@@ -621,11 +666,12 @@ Namespace API.Twitter
                     .AutoClear = True,
                     .AutoReset = True,
                     .CommandPermanent = $"chcp {BatchExecutor.UnicodeEncoding}",
-                    .FileExchanger = confCache
+                    .FileExchanger = confCache,
+                    .DebugMode = True
                 }
                     tgdl.FileExchanger.DeleteCacheOnDispose = False
                     tgdl.FileExchanger.DeleteRootOnDispose = False
-                    For i As Byte = 0 To 2
+                    For i As Byte = 0 To 3
                         dir = rootDir.NewPath
                         dir.Exists(SFO.Path, True, EDP.ThrowException)
                         outList.Add(dir)
@@ -633,9 +679,10 @@ Namespace API.Twitter
                         command = $"""{Settings.GalleryDLFile}"" --verbose --no-download --no-skip --config ""{conf}"" --write-pages "
                         command &= GdlGetIdFilterString()
                         Select Case i
-                            Case 0 : command &= $"https://twitter.com/{Name}/media" : process = dm.Contains(DownloadModels.Media)
-                            Case 1 : command &= $"https://twitter.com/{Name}" : process = dm.Contains(DownloadModels.Profile)
-                            Case 2 : command &= $"-o search-endpoint=graphql https://twitter.com/search?q=from:{Name}+include:nativeretweets" : process = dm.Contains(DownloadModels.Search)
+                            Case 0 : command &= $"https://x.com/{Name}/media" : process = dm.Contains(DownloadModels.Media)
+                            Case 1 : command &= $"https://x.com/{Name}" : process = dm.Contains(DownloadModels.Profile)
+                            Case 2 : command &= $"-o search-endpoint=graphql https://x.com/search?q=from:{Name}+include:nativeretweets" : process = dm.Contains(DownloadModels.Search)
+                            Case 3 : command &= $"https://x.com/{Name}/likes" : process = dm.Contains(DownloadModels.Likes)
                             Case Else : process = False
                         End Select
                         '#If DEBUG Then
@@ -687,13 +734,14 @@ Namespace API.Twitter
         End Function
 #End Region
 #Region "ReparseMissing"
+        Private _ReparseLikes As Boolean = False
         Protected Overrides Sub ReparseMissing(ByVal Token As CancellationToken)
-            Const SinglePostPattern$ = "https://twitter.com/{0}/status/{1}"
+            Const SinglePostPattern$ = "https://x.com/{0}/status/{1}"
             Dim rList As New List(Of Integer)
             Dim URL$ = String.Empty
             Dim cache As CacheKeeper = Nothing
             Try
-                If ContentMissingExists Then
+                If ContentMissingExists Or (_ReparseLikes And LikesPosts.Count > 0) Then
                     Dim m As UserMedia
                     Dim PostDate$
                     Dim nodes As List(Of String()) = GetContainerSubnodes()
@@ -702,22 +750,29 @@ Namespace API.Twitter
                     Dim f As SFile
                     Dim i%, ii%
                     Dim files As List(Of SFile)
+                    Dim lim%
+                    Dim specFolder$ = IIf(_ReparseLikes, "Likes", String.Empty)
                     ResetFileNameProvider()
                     If IsSingleObjectDownload Then
                         cache = Settings.Cache
+                    ElseIf _ReparseLikes Then
+                        cache = CreateCache()
                     Else
                         cache = New CacheKeeper(DownloadContentDefault_GetRootDir.CSFilePS)
                         cache.CacheDeleteError = CacheDeletionError(cache)
                     End If
-                    ProgressPre.ChangeMax(_ContentList.Count)
-                    For i = 0 To _ContentList.Count - 1
+                    If _ReparseLikes Then lim = LikesPosts.Count Else lim = _ContentList.Count
+                    ProgressPre.ChangeMax(lim)
+                    For i = 0 To lim - 1
                         ProgressPre.Perform()
-                        If _ContentList(i).State = UStates.Missing Then
-                            m = _ContentList(i)
-                            If Not m.Post.ID.IsEmptyString Or (IsSingleObjectDownload And Not m.URL_BASE.IsEmptyString) Then
+                        If _ReparseLikes OrElse _ContentList(i).State = UStates.Missing Then
+                            m = If(_ReparseLikes, Nothing, _ContentList(i))
+                            If Not m.Post.ID.IsEmptyString Or (IsSingleObjectDownload And Not m.URL_BASE.IsEmptyString) Or _ReparseLikes Then
                                 ThrowAny(Token)
                                 If IsSingleObjectDownload Then
                                     URL = m.URL_BASE
+                                ElseIf _ReparseLikes Then
+                                    URL = LikesPosts(i)
                                 Else
                                     URL = String.Format(SinglePostPattern, Name, m.Post.ID)
                                 End If
@@ -737,7 +792,7 @@ Namespace API.Twitter
                                                                     If .ListExists Then
                                                                         PostDate = String.Empty
                                                                         If .Contains("created_at") Then PostDate = .Value("created_at") Else PostDate = String.Empty
-                                                                        ObtainMedia(.Self, m.Post.ID, PostDate, UStates.Missing, m.Attempts)
+                                                                        ObtainMedia(.Self, m.Post.ID, PostDate, UStates.Missing, m.Attempts, specFolder)
                                                                         rList.ListAddValue(i, LNC)
                                                                     End If
                                                                 End With
@@ -759,7 +814,7 @@ Namespace API.Twitter
                 ProcessException(ex, Token, $"ReparseMissing error [{URL}]")
             Finally
                 If Not cache Is Nothing And Not IsSingleObjectDownload Then cache.Dispose()
-                If rList.Count > 0 Then
+                If rList.Count > 0 And Not _ReparseLikes Then
                     For i% = rList.Count - 1 To 0 Step -1 : _ContentList.RemoveAt(rList(i)) : Next
                     rList.Clear()
                 End If
@@ -856,7 +911,7 @@ Namespace API.Twitter
 #End Region
 #Region "IDisposable support"
         Protected Overrides Sub Dispose(ByVal disposing As Boolean)
-            If Not disposedValue And disposing Then _DataNames.Clear()
+            If Not disposedValue And disposing Then _DataNames.Clear() : LikesPosts.Clear()
             MyBase.Dispose(disposing)
         End Sub
 #End Region

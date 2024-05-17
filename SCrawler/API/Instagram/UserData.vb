@@ -862,15 +862,20 @@ NextPageBlock:
         Protected DefaultParser_IgnorePass As Boolean = False
         Private ReadOnly DefaultParser_PostUrlCreator_Default As Func(Of PostKV, String) = Function(post) $"https://www.instagram.com/p/{post.Code}/"
         Protected DefaultParser_PostUrlCreator As Func(Of PostKV, String) = Function(post) $"https://www.instagram.com/p/{post.Code}/"
+        Protected DefaultParser_Pinned As Func(Of IEnumerable(Of EContainer), Integer, Boolean) = Nothing
+        Protected DefaultParser_SkipPost As Func(Of IEnumerable(Of EContainer), Integer, PostKV, Boolean) = Nothing
         Protected Function DefaultParser(ByVal Items As IEnumerable(Of EContainer), ByVal Section As Sections, ByVal Token As CancellationToken,
                                          Optional ByVal SpecFolder As String = Nothing, Optional ByVal State As UStates = UStates.Unknown,
                                          Optional ByVal Attempts As Integer = 0) As Boolean
             ThrowAny(Token)
-            If Items.Count > 0 Then
+            If Items.ListExists Then
                 Dim PostIDKV As PostKV
                 Dim Pinned As Boolean
                 Dim PostDate$, PostOriginUrl$
-                Dim before%
+                Dim i%, before%
+                Dim usePinFunc As Boolean = Not DefaultParser_Pinned Is Nothing
+                Dim skipPostFuncExists As Boolean = Not DefaultParser_SkipPost Is Nothing
+                Dim nn As EContainer
                 If SpecFolder.IsEmptyString Then
                     Select Case Section
                         Case Sections.Tagged : SpecFolder = TaggedFolder
@@ -879,14 +884,21 @@ NextPageBlock:
                     End Select
                 End If
                 ProgressPre.ChangeMax(Items.Count)
-                For Each nn In Items
+                For i = 0 To Items.Count - 1
+                    nn = Items(i)
                     ProgressPre.Perform()
                     With If(Not DefaultParser_ElemNode Is Nothing, nn.ItemF(DefaultParser_ElemNode), nn)
                         If .ListExists Then
                             PostIDKV = New PostKV(.Value("code"), .Value("id"), Section)
                             PostOriginUrl = DefaultParser_PostUrlCreator(PostIDKV)
-                            Pinned = .Contains("timeline_pinned_user_ids")
-                            If Not DefaultParser_IgnorePass AndAlso PostKvExists(PostIDKV) Then
+                            'Pinned = .Contains("timeline_pinned_user_ids")
+                            If usePinFunc Then
+                                Pinned = DefaultParser_Pinned.Invoke(Items, i)
+                            Else
+                                Pinned = If(.Item("timeline_pinned_user_ids")?.Count, 0) > 0
+                            End If
+                            If skipPostFuncExists AndAlso DefaultParser_SkipPost.Invoke(Items, i, PostIDKV) Then
+                            ElseIf Not DefaultParser_IgnorePass AndAlso PostKvExists(PostIDKV) Then
                                 If Not Section = Sections.Timeline OrElse Not Pinned Then Return False
                             Else
                                 _TempPostsList.Add(PostIDKV.ID)

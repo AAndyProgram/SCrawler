@@ -17,6 +17,10 @@ Imports PersonalUtilities.Tools.Web.Clients.EventArguments
 Imports IGS = SCrawler.API.Instagram.SiteSettings
 Namespace API.ThreadsNet
     Friend Class UserData : Inherits Instagram.UserData
+#Region "XML names"
+        Private Const Name_MaxLastDownDate As String = "MaxLastDownDate"
+        Private Const Name_FirstLoadingDone As String = "FirstLoadingDone"
+#End Region
 #Region "Declarations"
         Private ReadOnly Property MySettings As SiteSettings
             Get
@@ -29,9 +33,20 @@ Namespace API.ThreadsNet
                 Return ValidateBaseTokens() And Not ID.IsEmptyString
             End Get
         End Property
+        Private Property MaxLastDownDate As Date? = Nothing
+        Private Property FirstLoadingDone As Boolean = False
 #End Region
 #Region "Loader"
         Protected Overrides Sub LoadUserInformation_OptionalFields(ByRef Container As XmlFile, ByVal Loading As Boolean)
+            With Container
+                If Loading Then
+                    MaxLastDownDate = AConvert(Of Date)(.Value(Name_MaxLastDownDate), DateTimeDefaultProvider, Nothing)
+                    FirstLoadingDone = .Value(Name_FirstLoadingDone).FromXML(Of Boolean)(False)
+                Else
+                    .Add(Name_MaxLastDownDate, AConvert(Of String)(MaxLastDownDate, DateTimeDefaultProvider, String.Empty))
+                    .Add(Name_FirstLoadingDone, FirstLoadingDone.BoolToInteger)
+                End If
+            End With
         End Sub
 #End Region
 #Region "Exchange"
@@ -49,6 +64,7 @@ Namespace API.ThreadsNet
             DefaultParser_PostUrlCreator = Function(post) $"https://www.threads.net/@{NameTrue}/post/{post.Code}"
             _ResponserAutoUpdateCookies = True
             _ResponserAddResponseReceivedHandler = True
+            DefaultParser_Pinned = AddressOf IsPinnedPost
         End Sub
 #End Region
 #Region "Download functions"
@@ -66,7 +82,27 @@ Namespace API.ThreadsNet
                     Responser.Method = "POST"
                     LoadSavePostsKV(True)
                     ResetBaseTokens()
+                    Dim setMaxPostDate As Action(Of List(Of UserMedia)) =
+                        Sub(ByVal l As List(Of UserMedia))
+                            With (From c As UserMedia In l Where c.Post.Date.HasValue Select c.Post.Date.Value)
+                                If .ListExists Then MaxLastDownDate = .Max : _ForceSaveUserInfo = True
+                            End With
+                        End Sub
+                    If FirstLoadingDone Then
+                        If Not MaxLastDownDate.HasValue And _ContentList.Count > 0 Then setMaxPostDate.Invoke(_ContentList)
+                    Else
+                        If _ContentList.Count > 0 Then
+                            FirstLoadingDone = True
+                            If Not MaxLastDownDate.HasValue Then setMaxPostDate.Invoke(_ContentList)
+                        End If
+                    End If
+                    If FirstLoadingDone Then
+                        DefaultParser_SkipPost = Nothing
+                    Else
+                        DefaultParser_SkipPost = AddressOf SkipPost
+                    End If
                     DownloadData(String.Empty, Token)
+                    If _TempMediaList.Count > 0 Then FirstLoadingDone = True : setMaxPostDate.Invoke(_TempMediaList)
                 Catch ex As Exception
                     errorFound = True
                     Throw ex
@@ -78,6 +114,21 @@ Namespace API.ThreadsNet
                 End Try
             End If
         End Sub
+        Private Function IsPinnedPost(ByVal Items As IEnumerable(Of EContainer), ByVal Index As Integer) As Boolean
+            Try
+                If MaxLastDownDate.HasValue Then
+                    Dim d As Date? = AConvert(Of Date)(Items(Index).ItemF(DefaultParser_ElemNode_Default).Value("taken_at"), UnixDate32Provider, Nothing)
+                    If d.HasValue Then Return d.Value < MaxLastDownDate.Value
+                End If
+                Return Not FirstLoadingDone
+            Catch ex As Exception
+                LogError(ex, "IsPinnedPost")
+                Return Not FirstLoadingDone
+            End Try
+        End Function
+        Private Function SkipPost(ByVal Items As IEnumerable(Of EContainer), ByVal Index As Integer, ByVal Post As PostKV) As Boolean
+            Return PostKvExists(Post)
+        End Function
         Protected Overrides Sub UpdateResponser()
             If Not Responser Is Nothing AndAlso Not Responser.Disposed Then
                 RemoveHandler Responser.ResponseReceived, AddressOf Responser_ResponseReceived
@@ -166,7 +217,6 @@ Namespace API.ThreadsNet
                     With .Headers
                         .Clear()
                         .Add("dnt", 1)
-                        .Add("drp", 1)
                         .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.Authority, "www.threads.net"))
                         .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.Origin, "https://www.threads.net"))
                         .Add("Sec-Ch-Ua-Model", "")

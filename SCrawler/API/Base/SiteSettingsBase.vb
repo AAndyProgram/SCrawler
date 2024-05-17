@@ -34,6 +34,16 @@ Namespace API.Base
         Friend Property AccountName As String Implements ISiteSettings.AccountName
         Friend Property Temporary As Boolean = False Implements ISiteSettings.Temporary
         Friend Property DefaultInstance As ISiteSettings = Nothing Implements ISiteSettings.DefaultInstance
+        Protected _UserAgentDefault As String = String.Empty
+        Friend Overridable Property UserAgentDefault As String Implements ISiteSettings.UserAgentDefault
+            Get
+                Return _UserAgentDefault
+            End Get
+            Set(ByVal _UserAgentDefault As String)
+                Me._UserAgentDefault = _UserAgentDefault
+                If _AllowUserAgentUpdate And Not Responser Is Nothing And Not _UserAgentDefault.IsEmptyString Then Responser.UserAgent = _UserAgentDefault
+            End Set
+        End Property
         Protected _AllowUserAgentUpdate As Boolean = True
         Protected _SubscriptionsAllowed As Boolean = False
         Friend ReadOnly Property SubscriptionsAllowed As Boolean Implements ISiteSettings.SubscriptionsAllowed
@@ -138,7 +148,6 @@ Namespace API.Base
         Friend Overridable Sub BeginInit() Implements ISiteSettings.BeginInit
         End Sub
         Friend Overridable Sub EndInit() Implements ISiteSettings.EndInit
-            If _AllowUserAgentUpdate And Not DefaultUserAgent.IsEmptyString And Not Responser Is Nothing Then Responser.UserAgent = DefaultUserAgent
             If CheckNetscapeCookiesOnEndInit Then Update_SaveCookiesNetscape(, True)
         End Sub
 #End Region

@@ -8,6 +8,7 @@
 ' but WITHOUT ANY WARRANTY
 Imports System.Net
 Imports System.Threading
+Imports SCrawler.API.Base
 Imports SCrawler.API.Reddit.M3U8_Declarations
 Imports PersonalUtilities.Tools
 Imports PersonalUtilities.Tools.Web
@@ -61,15 +62,18 @@ Namespace API.Reddit
         Private ReadOnly ProgressExists As Boolean
         Private ReadOnly Property ProgressPre As PreProgress
         Private ReadOnly UsePreProgress As Boolean
+        Private ReadOnly Media As UserMedia
 #End Region
-        Private Sub New(ByVal URL As String, ByVal OutFile As SFile, ByVal Progress As MyProgress, ByVal UsePreProgress As Boolean)
+        Private Sub New(ByVal URL As String, ByVal Media As UserMedia, ByVal OutFile As SFile, ByVal Progress As MyProgress, ByVal UsePreProgress As Boolean)
             PlayListURL = URL
+            Me.Media = Media
             BaseURL = RegexReplace(URL, BaseUrlPattern)
             Video = New List(Of String)
             Audio = New List(Of String)
             Me.OutFile = OutFile
             Me.OutFile.Name = "PlayListFile"
             Me.OutFile.Extension = "mp4"
+            If Media.Post.Date.HasValue Then Me.OutFile.Name = Media.Post.Date.Value.ToString("yyyyMMdd_HHmmss")
             Me.Progress = Progress
             ProgressExists = Not Me.Progress Is Nothing
             ProgressPre = New PreProgress(Progress)
@@ -202,9 +206,9 @@ Namespace API.Reddit
         End Function
 #End Region
 #Region "Statics"
-        Friend Shared Function Download(ByVal URL As String, ByVal f As SFile, ByVal Token As CancellationToken,
+        Friend Shared Function Download(ByVal URL As String, ByVal Media As UserMedia, ByVal f As SFile, ByVal Token As CancellationToken,
                                         ByVal Progress As MyProgress, ByVal UsePreProgress As Boolean) As SFile
-            Using m As New M3U8(URL, f, Progress, UsePreProgress) : Return m.Download(Token) : End Using
+            Using m As New M3U8(URL, Media, f, Progress, UsePreProgress) : Return m.Download(Token) : End Using
         End Function
 #End Region
 #Region "IDisposable Support"

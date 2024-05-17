@@ -58,6 +58,11 @@ Namespace API.YouTube.Controls
                 If Not m.ID.IsEmptyString AndAlso m.ID.StringToLower.Contains(DRC) Then LBL_CODECS.Text &= $"{d}DRC"
                 If Not SelectedAudio.ID.IsEmptyString Then LBL_CODECS.Text &= $" / {SelectedAudio.Extension}{d}{SelectedAudio.Codec}{d}{SelectedAudio.Bitrate}k"
                 If Not SelectedAudio.ID.IsEmptyString AndAlso SelectedAudio.ID.StringToLower.Contains(DRC) Then LBL_CODECS.Text &= $"{d}DRC"
+
+                If MyYouTubeSettings.DefaultVideoHighlightFPS_H > 0 AndAlso m.FPS > MyYouTubeSettings.DefaultVideoHighlightFPS_H Then _
+                   BackColor = MyColor.DeleteBack : ForeColor = MyColor.DeleteFore
+                If MyYouTubeSettings.DefaultVideoHighlightFPS_L > 0 AndAlso m.FPS < MyYouTubeSettings.DefaultVideoHighlightFPS_L Then _
+                   BackColor = MyColor.UpdateBack : ForeColor = MyColor.UpdateFore
             End If
 
             Dim sv% = m.Size / 1024

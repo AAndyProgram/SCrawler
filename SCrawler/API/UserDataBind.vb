@@ -558,7 +558,7 @@ Namespace API
         End Sub
 #End Region
 #Region "Move, Merge"
-        Friend Overrides Function MoveFiles(ByVal __CollectionName As String, ByVal __SpecialCollectionPath As SFile) As Boolean
+        Friend Overrides Function MoveFiles(ByVal __CollectionName As String, ByVal __SpecialCollectionPath As SFile, Optional ByVal NewUser As SplitCollectionUserInfo? = Nothing) As Boolean
             Throw New NotImplementedException("Move files is not available in the collection context")
         End Function
         Friend Overloads Sub MergeData(ByVal Merging As Boolean)
@@ -601,7 +601,19 @@ Namespace API
                         "Operation canceled", MsgBoxStyle.Critical)
                 Return False
             Else
-                _Item.MoveFiles(String.Empty, Nothing)
+                Dim uObj As SplitCollectionUserInfo? = DirectCast(_Item, UserDataBase).SplitCollectionGetNewUserInfo
+                If uObj.Value.SameDrive Then
+                    uObj = Nothing
+                Else
+                    Using f As New SplitCollectionUserInfoChangePathsForm({uObj})
+                        f.ShowDialog()
+                        Select Case f.DialogResult
+                            Case DialogResult.OK : If f.Users(0).Changed Then uObj = f.Users(0) Else uObj = Nothing
+                            Case DialogResult.Abort : Return False
+                        End Select
+                    End Using
+                End If
+                _Item.MoveFiles(String.Empty, Nothing, uObj)
                 MainFrameObj.ImageHandler(_Item)
                 AddRemoveBttDeleteHandler(_Item, False)
                 RaiseEvent OnUserRemoved(_Item)
@@ -618,7 +630,7 @@ Namespace API
                 End If
                 Dim m As New MMessage($"Collection [{CollectionName} (number of profiles: {Count})] may contain data" & vbCr &
                                       "Are you sure you want to delete the collection and all of its files?", MsgTitle,
-                                      {New MsgBoxButton("Delete") With {.ToolTip = "Delete the collection and all files", .KeyCode = Keys.Enter},
+                                      {New MsgBoxButton("Delete", "Delete the collection and all files") With {.KeyCode = Keys.Enter},
                                        New MsgBoxButton("Split") With {
                                         .ToolTip = "Users will be removed from the collection and will be displayed in the program as separate users." & vbCr &
                                                    "All user data will remain.",
@@ -653,12 +665,31 @@ Namespace API
                             MsgBoxE({$"Collection [{CollectionName}] data merged{vbCr}Unable to split merged collection{vbCr}Operation canceled", MsgTitle}, vbExclamation)
                             Return 0
                         Else
-                            Collections.ForEach(Sub(ByVal c As IUserData)
-                                                    If c.MoveFiles(String.Empty, Nothing) Then
-                                                        UserListLoader.UpdateUser(Settings.GetUser(c), True)
-                                                        MainFrameObj.ImageHandler(c)
-                                                    End If
-                                                End Sub)
+                            Dim uu As New List(Of SplitCollectionUserInfo)(Collections.Select(Function(uuu As UserDataBase) uuu.SplitCollectionGetNewUserInfo))
+                            If uu.All(Function(uuu) uuu.SameDrive) Then
+                                uu.Clear()
+                            Else
+                                Using colPaths As New SplitCollectionUserInfoChangePathsForm(uu)
+                                    colPaths.ShowDialog()
+                                    Select Case colPaths.DialogResult
+                                        Case DialogResult.OK
+                                            If colPaths.Users.Any(Function(uuu) uuu.Changed) Then
+                                                uu = New List(Of SplitCollectionUserInfo)(colPaths.Users)
+                                            Else
+                                                uu.Clear()
+                                            End If
+                                        Case DialogResult.Abort : Return 0
+                                    End Select
+                                End Using
+                            End If
+                            Collections.ListForEach(Sub(ByVal c As IUserData, ByVal indx As Integer)
+                                                        Dim uObj As SplitCollectionUserInfo? = Nothing
+                                                        If uu.Count > 0 AndAlso indx.ValueBetween(0, uu.Count - 1) AndAlso uu(indx).Changed Then uObj = uu(indx)
+                                                        If c.MoveFiles(String.Empty, Nothing, uObj) Then
+                                                            UserListLoader.UpdateUser(Settings.GetUser(c), True)
+                                                            MainFrameObj.ImageHandler(c)
+                                                        End If
+                                                    End Sub)
                             If Collections.All(Function(c) c.CollectionName.IsEmptyString) Then
                                 Settings.Users.Remove(Me)
                                 Collections.Clear()

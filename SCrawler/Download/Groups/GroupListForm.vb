@@ -117,6 +117,8 @@ Namespace DownloadObjects.Groups
                     RefillList()
                     If Not IsViewFilter Then Settings.Groups.BeginUpdate()
 
+                    If IsViewFilter And LIST_GROUPS.Items.Count > 0 Then .MyOkCancel.EnableOK = True : _LatestSelected = 0
+
                     .DelegateClosingChecker = False
 
                     .EndLoaderOperations()

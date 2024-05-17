@@ -25,6 +25,7 @@ Namespace Plugin.Hosts
         Private ReadOnly Hosts As List(Of SettingsHost)
         Private ReadOnly HostsUnavailableIndexes As List(Of Integer)
         Private ReadOnly HostsXml As List(Of XmlFile)
+        Private Const NoPauseMode As Integer = DownloadObjects.AutoDownloader.NoPauseMode
 #Region "Controls"
         Private WithEvents BTT_SETTINGS As ToolStripMenuItem
         Private BTT_SETTINGS_SEP_1 As ToolStripSeparator
@@ -226,8 +227,7 @@ Namespace Plugin.Hosts
         ''' 1 - error
         ''' </summary>
         Private Function Hosts_Deleted_MoveAcc(ByVal Obj As SettingsHost) As Integer
-            Const np% = -100
-            Dim p As PauseModes = np
+            Dim p As PauseModes = NoPauseMode
             Dim changedUsers As New List(Of String)
             Try
                 With Settings
@@ -294,10 +294,10 @@ Namespace Plugin.Hosts
                                 .UpdateUsersList()
                             End If
                         Else
-                            p = np
+                            p = NoPauseMode
                         End If
                     Else
-                        p = np
+                        p = NoPauseMode
                     End If
                 End With
                 Return 0
@@ -309,11 +309,13 @@ Namespace Plugin.Hosts
                 End If
                 Return ErrorsDescriber.Execute(EDP.SendToLog, ex, msg, 1)
             Finally
-                If p <> np Then Settings.Automation.Pause = p
+                If p <> NoPauseMode Then Settings.Automation.Pause = p
             End Try
         End Function
-        Friend Shared Sub UpdateUserAccount(ByRef ChangingUser As UserInfo, ByVal HostOld As SettingsHost, ByVal HostNew As SettingsHost,
-                                            ByVal UpdateUserInTheList As Boolean, Optional ByRef UserIndex As Integer = -1)
+        Friend Shared Function UpdateUserAccount(ByRef ChangingUser As UserInfo, ByVal HostOld As SettingsHost, ByVal HostNew As SettingsHost,
+                                                 ByVal UpdateUserInTheList As Boolean, Optional ByRef UserIndex As Integer = -1,
+                                                 Optional ByVal ForceCollections As Boolean = False) As Boolean
+            Dim result As Boolean = False
             With Settings
                 UserIndex = .UsersList.IndexOf(ChangingUser)
                 If UserIndex = -1 Then
@@ -322,16 +324,17 @@ Namespace Plugin.Hosts
                     Dim processUserPath As Boolean
                     Dim samePath As Boolean = HostOld.Path(False) = HostNew.Path(False)
                     With ChangingUser
-                        If Not samePath AndAlso .SpecialPath.IsEmptyString AndAlso .SpecialCollectionPath.IsEmptyString Then
+                        If (Not samePath Or ForceCollections) AndAlso .SpecialPath.IsEmptyString AndAlso .SpecialCollectionPath.IsEmptyString Then
                             processUserPath = False
                             If .IncludedInCollection Then
                                 If Not .IsVirtual Then
                                     .SpecialCollectionPath = .GetCollectionRootPath
+                                    result = True
                                 Else
-                                    processUserPath = True
+                                    If Not samePath Then processUserPath = True
                                 End If
                             End If
-                            If Not .IncludedInCollection Or processUserPath Then .SpecialPath = .File.CutPath.PathWithSeparator
+                            If Not .IncludedInCollection Or processUserPath Then .SpecialPath = .File.CutPath.PathWithSeparator : result = True
                         End If
                     End With
                     ChangingUser.AccountName = HostNew.AccountName
@@ -339,7 +342,108 @@ Namespace Plugin.Hosts
                     If UpdateUserInTheList Then .UsersList(UserIndex) = ChangingUser
                 End If
             End With
-        End Sub
+            Return result
+        End Function
+        Friend Shared Function UpdateHostPath_CheckDownloader() As Boolean
+            If Downloader.Working Then
+                MsgBoxE({"You cannot change global paths while the downloader is working!", "Changing paths"}, vbCritical)
+                Return False
+            Else
+                Return True
+            End If
+        End Function
+        Friend Overloads Shared Function UpdateHostPath(ByVal PathOld As SFile, ByVal PathNew As SFile,
+                                                        ByVal ColNameOld As String, ByVal ColNameNew As String) As Boolean
+            Dim p As PauseModes = NoPauseMode
+            Try
+                If UpdateHostPath_CheckDownloader() Then Return False
+                If Not AEquals(Of String)(PathOld.PathWithSeparator, PathNew.PathWithSeparator) Or Not AEquals(Of String)(ColNameOld, ColNameNew) Then
+                    p = Settings.Automation.Pause
+                    Settings.Automation.Pause = PauseModes.Unlimited
+                    With Settings.Plugins
+                        If .Count > 0 Then
+                            Dim h As SettingsHost
+                            For Each plugin As PluginHost In .Self
+                                If plugin.Settings.Count > 0 Then
+                                    For Each h In plugin.Settings
+                                        If Not UpdateHostPath(h, PathOld, PathNew, False, False, Not ColNameOld = ColNameNew) Then Return False
+                                    Next
+                                End If
+                            Next
+                        End If
+                    End With
+                End If
+                Return True
+            Catch ex As Exception
+                Return ErrorsDescriber.Execute(EDP.SendToLog, ex, "[SettingsHostCollection.UpdateHostPath]", False)
+            Finally
+                If p <> NoPauseMode Then Settings.Automation.Pause = p
+            End Try
+        End Function
+        Friend Overloads Shared Function UpdateHostPath(ByVal Host As SettingsHost, ByVal PathOld As SFile, ByVal PathNew As SFile,
+                                                        Optional ByVal Abs As Boolean = True,
+                                                        Optional ByVal PauseDownloader As Boolean = True,
+                                                        Optional ByVal ForceCollections As Boolean = False) As Boolean
+            Dim p As PauseModes = NoPauseMode
+            Try
+                If UpdateHostPath_CheckDownloader() Then Return False
+                If Not PathNew.IsEmptyString And Settings.UsersList.Count > 0 Then
+                    Dim hp As SFile = Host.Path(False, True)
+                    Dim diffPaths As Boolean = (Abs And hp.PathWithSeparator = PathOld.PathWithSeparator) Or
+                                               (Not Abs And hp.PathWithSeparator.StartsWith(PathOld.PathWithSeparator))
+                    If Not hp.IsEmptyString AndAlso (diffPaths Or ForceCollections) Then
+                        If PauseDownloader Then
+                            p = Settings.Automation.Pause
+                            Settings.Automation.Pause = PauseModes.Unlimited
+                        End If
+                        Dim checkAccName As Func(Of UserInfo, Boolean) = Function(u) _
+                            (
+                                (Host.AccountName.IsEmptyString Or Host.AccountName = SettingsHost.NameAccountNameDefault) And
+                                (u.AccountName.IsEmptyString Or u.AccountName = SettingsHost.NameAccountNameDefault)
+                            ) Or
+                            (Host.AccountName = u.AccountName)
+                        Dim tUser As UserInfo, tUserNew As UserInfo
+                        Dim tUserBase As UserDataBase
+                        Dim i%
+                        Dim newHost As SettingsHost = Nothing
+                        Dim userListUpdated As Boolean = False
+                        For i = 0 To Settings.UsersList.Count - 1
+                            tUser = Settings.UsersList(i)
+                            tUserNew = tUser
+                            If tUser.Plugin = Host.Key And checkAccName.Invoke(tUser) Then
+                                If newHost Is Nothing Then
+                                    newHost = Host.Clone
+                                    newHost.AccountName = Host.AccountName
+                                    If Abs Then
+                                        newHost.Path = PathNew
+                                    Else
+                                        newHost.Path = $"{PathNew.PathWithSeparator}{Host.Source.Site}".CSFileP
+                                    End If
+                                End If
+                                If UpdateUserAccount(tUserNew, Host, newHost, False,, ForceCollections) Then
+                                    tUserBase = Settings.GetUser(tUser)
+                                    If Not tUserBase Is Nothing Then tUserBase.User = tUserNew : tUserBase.UpdateUserInformation(True)
+                                    Settings.UsersList(i) = tUserNew
+                                    userListUpdated = True
+                                End If
+                            End If
+                        Next
+                        newHost.DisposeIfReady(False)
+                        If userListUpdated Then Settings.UpdateUsersList()
+                        If Abs Then
+                            Host.Path = PathNew
+                        Else
+                            Host.Path = $"{PathNew.PathWithSeparator}{Host.Source.Site}".CSFileP
+                        End If
+                    End If
+                End If
+                Return True
+            Catch ex As Exception
+                Return ErrorsDescriber.Execute(EDP.SendToLog, ex, "[SettingsHostCollection.UpdateHostPath(HOST)]", False)
+            Finally
+                If p <> NoPauseMode Then Settings.Automation.Pause = p
+            End Try
+        End Function
 #End Region
 #Region "Count, Item"
         Friend ReadOnly Property Count As Integer Implements IMyEnumerator(Of SettingsHost).MyEnumeratorCount

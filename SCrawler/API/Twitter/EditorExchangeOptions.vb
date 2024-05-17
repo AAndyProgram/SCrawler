@@ -28,16 +28,20 @@ Namespace API.Twitter
         Friend Overridable Property MediaModelAllowNonUserTweets As Boolean = False
         <PSetting(Address:=SettingAddress.User,
                   Caption:="Download model 'Media'",
-                  ToolTip:="Download the data using the 'https://twitter.com/UserName/media' command.", LeftOffset:=DefaultOffset)>
+                  ToolTip:="Download the data using the 'https://x.com/UserName/media' command.", LeftOffset:=DefaultOffset)>
         Friend Overridable Property DownloadModelMedia As Boolean = False
         <PSetting(Address:=SettingAddress.User,
                   Caption:="Download model 'Profile'",
-                  ToolTip:="Download the data using the 'https://twitter.com/UserName' command.", LeftOffset:=DefaultOffset)>
+                  ToolTip:="Download the data using the 'https://x.com/UserName' command.", LeftOffset:=DefaultOffset)>
         Friend Overridable Property DownloadModelProfile As Boolean = False
         <PSetting(Address:=SettingAddress.User,
                   Caption:="Download model 'Search'",
-                  ToolTip:="Download the data using the 'https://twitter.com/search?q=from:UserName+include:nativeretweets' command.", LeftOffset:=DefaultOffset)>
+                  ToolTip:="Download the data using the 'https://x.com/search?q=from:UserName+include:nativeretweets' command.", LeftOffset:=DefaultOffset)>
         Friend Overridable Property DownloadModelSearch As Boolean = False
+        <PSetting(Address:=SettingAddress.User,
+                  Caption:="Download model 'Likes'",
+                  ToolTip:="Download the data using the 'https://x.com/UserName/likes' command.", LeftOffset:=DefaultOffset)>
+        Friend Overridable Property DownloadModelLikes As Boolean = False
         <PSetting(Address:=SettingAddress.User,
                   Caption:="Force apply",
                   ToolTip:="Force overrides the default parameters for the first download." & vbCr & "Applies to first download only.", LeftOffset:=DefaultOffset)>
@@ -73,6 +77,7 @@ Namespace API.Twitter
                     DownloadModelMedia = dm.Contains(DModels.Media)
                     DownloadModelProfile = dm.Contains(DModels.Profile)
                     DownloadModelSearch = dm.Contains(DModels.Search)
+                    DownloadModelLikes = dm.Contains(DModels.Likes)
                 End If
             End If
             MySettings = u.HOST.Source

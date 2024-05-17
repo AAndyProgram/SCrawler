@@ -11,6 +11,9 @@ Namespace API.Base
         Friend Const Header_Authorization As String = "authorization"
         Friend Const Header_CSRFToken As String = "x-csrf-token"
 
+        Friend Const CAT_UserDefs As String = "New user defaults"
+        Friend Const CAT_Timers As String = "Timers"
+
         Friend Const ConcurrentDownloadsCaption As String = "Concurrent downloads"
         Friend Const ConcurrentDownloadsToolTip As String = "The number of concurrent downloads."
         Friend Const SavedPostsUserNameCaption As String = "Saved posts user"

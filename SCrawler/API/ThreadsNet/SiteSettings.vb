@@ -13,6 +13,7 @@ Imports PersonalUtilities.Tools.Web.Clients
 Imports PersonalUtilities.Tools.Web.Cookies
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports IG = SCrawler.API.Instagram.SiteSettings
+Imports DN = SCrawler.API.Base.DeclaredNames
 Namespace API.ThreadsNet
     <Manifest("AndyProgram_ThreadsNet"), SeparatedTasks(1)>
     Friend Class SiteSettings : Inherits SiteSettingsBase
@@ -75,14 +76,14 @@ Namespace API.ThreadsNet
 #Region "Other properties"
         <PropertyOption(ControlText:="Request timer (any)",
                         ControlToolTip:="The timer (in milliseconds) that SCrawler should wait before executing the next request." &
-                        vbCr & "The default value is 1'000." & vbCr & "The minimum value is 0." & IG.TimersUrgentTip, AllowNull:=False),
+                        vbCr & "The default value is 1'000." & vbCr & "The minimum value is 0." & IG.TimersUrgentTip, AllowNull:=False, Category:=DN.CAT_Timers),
                         PXML, PClonable>
         Friend ReadOnly Property RequestsWaitTimer_Any As PropertyValue
         <Provider(NameOf(RequestsWaitTimer_Any), FieldsChecker:=True)>
         Private ReadOnly Property RequestsWaitTimer_AnyProvider As IFormatProvider
         <PropertyOption(ControlText:="Download data",
                         ControlToolTip:="The internal value indicates that site data should be downloaded." & vbCr &
-                                        "It becomes unchecked when the site returns an error."), PXML>
+                                        "It becomes unchecked when the site returns an error.", Category:="Download"), PXML>
         Friend ReadOnly Property DownloadData_Impl As PropertyValue
 #End Region
 #End Region

@@ -14,6 +14,7 @@ Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Tools.Web.Clients
 Imports PersonalUtilities.Tools.Web.Cookies
 Imports Download = SCrawler.Plugin.ISiteSettings.Download
+Imports DN = SCrawler.API.Base.DeclaredNames
 Namespace API.Instagram
     <Manifest(InstagramSiteKey), SeparatedTasks(1), SavedPosts, SpecialForm(False)>
     Friend Class SiteSettings : Inherits SiteSettingsBase
@@ -53,6 +54,9 @@ Namespace API.Instagram
                 End If
             End Function
         End Class
+#End Region
+#Region "Categories"
+        Private Const CAT_DOWN As String = "Download data"
 #End Region
 #Region "Authorization properties"
         Friend Const Header_IG_APP_ID As String = "x-ig-app-id"
@@ -143,10 +147,19 @@ Namespace API.Instagram
         Friend ReadOnly Property USE_GQL As PropertyValue
 #End Region
 #Region "Download properties"
+        <PropertyOption(ControlText:="DownDetector",
+                        ControlToolTip:="Use 'DownDetector' to determine if the site is accessible. -1 to disable." & vbCr &
+                                        "The value represents the average number of error reports over the last 4 hours"),
+            PClonable, PXML, ControlNumber(17)>
+        Private ReadOnly Property DownDetectorValue As PropertyValue
+        <Provider(NameOf(DownDetectorValue), FieldsChecker:=True)>
+        Private ReadOnly Property DownDetectorValueProvider As IFormatProvider
+        <PropertyOption(ControlText:="Add 'DownDetector' information to the log."), PClonable, PXML, ControlNumber(18), HiddenControl>
+        Private ReadOnly Property DownDetectorValueAddToLog As PropertyValue
         Friend Const TimersUrgentTip As String = vbCr & "It is highly recommended not to change the default value."
         <PropertyOption(ControlText:="Request timer (any)",
                         ControlToolTip:="The timer (in milliseconds) that SCrawler should wait before executing the next request." &
-                        vbCr & "The default value is 1'000." & vbCr & "The minimum value is 0." & TimersUrgentTip, AllowNull:=False),
+                        vbCr & "The default value is 1'000." & vbCr & "The minimum value is 0." & TimersUrgentTip, AllowNull:=False, Category:=DN.CAT_Timers),
                         PXML, ControlNumber(19), PClonable>
         Friend ReadOnly Property RequestsWaitTimer_Any As PropertyValue
         <Provider(NameOf(RequestsWaitTimer_Any), FieldsChecker:=True)>
@@ -154,33 +167,33 @@ Namespace API.Instagram
         <PropertyOption(ControlText:="Request timer",
                         ControlToolTip:="The time value (in milliseconds) that the program will wait before processing the next 'Request time counter' request." &
                                         vbCr & "The default value is 1'000." & vbCr & "The minimum value is 100." & TimersUrgentTip,
-                        AllowNull:=False), PXML, ControlNumber(20), PClonable>
+                        AllowNull:=False, Category:=DN.CAT_Timers), PXML, ControlNumber(20), PClonable>
         Friend ReadOnly Property RequestsWaitTimer As PropertyValue
         <Provider(NameOf(RequestsWaitTimer), FieldsChecker:=True)>
         Private ReadOnly Property RequestsWaitTimerProvider As IFormatProvider
         <PropertyOption(ControlText:="Request timer counter",
                         ControlToolTip:="How many requests will be sent to Instagram before the program waits 'Request timer'." &
                                         vbCr & "The default value is 1." & vbCr & "The minimum value is 1." & TimersUrgentTip,
-                        AllowNull:=False, LeftOffset:=120), PXML, ControlNumber(21), PClonable>
+                        AllowNull:=False, LeftOffset:=120, Category:=DN.CAT_Timers), PXML, ControlNumber(21), PClonable>
         Friend ReadOnly Property RequestsWaitTimerTaskCount As PropertyValue
         <Provider(NameOf(RequestsWaitTimerTaskCount), FieldsChecker:=True)>
         Private ReadOnly Property RequestsWaitTimerTaskCountProvider As IFormatProvider
         <PropertyOption(ControlText:="Posts limit timer",
                         ControlToolTip:="The time value (in milliseconds) the program will wait before processing the next request after 195 requests." &
                                         vbCr & "The default value is 60'000." & vbCr & "The minimum value is 10'000." & TimersUrgentTip,
-                        AllowNull:=False), PXML, ControlNumber(22), PClonable>
+                        AllowNull:=False, Category:=DN.CAT_Timers), PXML, ControlNumber(22), PClonable>
         Friend ReadOnly Property SleepTimerOnPostsLimit As PropertyValue
         <Provider(NameOf(SleepTimerOnPostsLimit), FieldsChecker:=True)>
         Private ReadOnly Property SleepTimerOnPostsLimitProvider As IFormatProvider
-        <PropertyOption(ControlText:="Get timeline", ControlToolTip:="Default value for new users"), PXML, ControlNumber(23), PClonable>
+        <PropertyOption(ControlText:="Get timeline", ControlToolTip:="Default value for new users", Category:=DN.CAT_UserDefs), PXML, ControlNumber(23), PClonable>
         Friend ReadOnly Property GetTimeline As PropertyValue
-        <PropertyOption(ControlText:="Get reels", ControlToolTip:="Default value for new users"), PXML, ControlNumber(24), PClonable>
+        <PropertyOption(ControlText:="Get reels", ControlToolTip:="Default value for new users", Category:=DN.CAT_UserDefs), PXML, ControlNumber(24), PClonable>
         Friend ReadOnly Property GetReels As PropertyValue
-        <PropertyOption(ControlText:="Get stories", ControlToolTip:="Default value for new users"), PXML, ControlNumber(25), PClonable>
+        <PropertyOption(ControlText:="Get stories", ControlToolTip:="Default value for new users", Category:=DN.CAT_UserDefs), PXML, ControlNumber(25), PClonable>
         Friend ReadOnly Property GetStories As PropertyValue
-        <PropertyOption(ControlText:="Get stories: user", ControlToolTip:="Default value for new users"), PXML, ControlNumber(26), PClonable>
+        <PropertyOption(ControlText:="Get stories: user", ControlToolTip:="Default value for new users", Category:=DN.CAT_UserDefs), PXML, ControlNumber(26), PClonable>
         Friend ReadOnly Property GetStoriesUser As PropertyValue
-        <PropertyOption(ControlText:="Get tagged photos", ControlToolTip:="Default value for new users"), PXML, ControlNumber(27), PClonable>
+        <PropertyOption(ControlText:="Get tagged photos", ControlToolTip:="Default value for new users", Category:=DN.CAT_UserDefs), PXML, ControlNumber(27), PClonable>
         Friend ReadOnly Property GetTagged As PropertyValue
         <PropertyOption(ControlText:="Tagged notify limit",
                         ControlToolTip:="If the number of tagged posts exceeds this number you will be notified." & vbCr &
@@ -190,19 +203,19 @@ Namespace API.Instagram
         Private ReadOnly Property TaggedNotifyLimitProvider As IFormatProvider
 #End Region
 #Region "Download ready"
-        <PropertyOption(ControlText:="Download timeline", ControlToolTip:="Download timeline"), PXML, ControlNumber(10), PClonable>
+        <PropertyOption(ControlText:="Download timeline", ControlToolTip:="Download timeline", Category:=CAT_DOWN), PXML, ControlNumber(10), PClonable>
         Friend ReadOnly Property DownloadTimeline As PropertyValue
         <PXML> Private ReadOnly Property DownloadTimeline_Def As PropertyValue
-        <PropertyOption(ControlText:="Download reels", ControlToolTip:="Download reels"), PXML, ControlNumber(11), PClonable>
+        <PropertyOption(ControlText:="Download reels", ControlToolTip:="Download reels", Category:=CAT_DOWN), PXML, ControlNumber(11), PClonable>
         Friend ReadOnly Property DownloadReels As PropertyValue
         <PXML> Private ReadOnly Property DownloadReels_Def As PropertyValue
-        <PropertyOption(ControlText:="Download stories", ControlToolTip:="Download stories"), PXML, ControlNumber(12), PClonable>
+        <PropertyOption(ControlText:="Download stories", ControlToolTip:="Download stories", Category:=CAT_DOWN), PXML, ControlNumber(12), PClonable>
         Friend ReadOnly Property DownloadStories As PropertyValue
         <PXML> Private ReadOnly Property DownloadStories_Def As PropertyValue
-        <PropertyOption(ControlText:="Download stories: user", ControlToolTip:="Download stories (user)"), PXML, ControlNumber(13), PClonable>
+        <PropertyOption(ControlText:="Download stories: user", ControlToolTip:="Download stories (user)", Category:=CAT_DOWN), PXML, ControlNumber(13), PClonable>
         Friend ReadOnly Property DownloadStoriesUser As PropertyValue
         <PXML> Private ReadOnly Property DownloadStoriesUser_Def As PropertyValue
-        <PropertyOption(ControlText:="Download tagged", ControlToolTip:="Download tagged posts"), PXML, ControlNumber(14), PClonable>
+        <PropertyOption(ControlText:="Download tagged", ControlToolTip:="Download tagged posts", Category:=CAT_DOWN), PXML, ControlNumber(14), PClonable>
         Friend ReadOnly Property DownloadTagged As PropertyValue
         <PXML> Private ReadOnly Property DownloadTagged_Def As PropertyValue
 #End Region
@@ -352,8 +365,11 @@ Namespace API.Instagram
                         platform = .Value(Header_Platform_Verion)
                     End If
                     '.Add(Header_IG_WWW_CLAIM, 0)
+                    .Add("Origin", "https://www.instagram.com")
+                    .Add("authority", "www.instagram.com")
                     .Add("Dnt", 1)
-                    .Add("Dpr", 1)
+                    '.Add("Dpr", 1)
+                    .Remove("Dpr")
                     .Add("Sec-Ch-Ua-Mobile", "?0")
                     .Add("Sec-Ch-Ua-Model", """""")
                     .Add("Sec-Ch-Ua-Platform", """Windows""")
@@ -396,6 +412,9 @@ Namespace API.Instagram
             DownloadTagged = New PropertyValue(False)
             DownloadTagged_Def = New PropertyValue(DownloadTagged.Value, GetType(Boolean))
 
+            DownDetectorValue = New PropertyValue(20)
+            DownDetectorValueProvider = New TimersChecker(-1)
+            DownDetectorValueAddToLog = New PropertyValue(False)
             RequestsWaitTimer_Any = New PropertyValue(1000)
             RequestsWaitTimer_AnyProvider = New TimersChecker(0)
             RequestsWaitTimer = New PropertyValue(1000)
@@ -413,7 +432,7 @@ Namespace API.Instagram
             TaggedNotifyLimit = New PropertyValue(200)
             TaggedNotifyLimitProvider = New TaggedNotifyLimitChecker
 
-            DownloadingErrorDate = New PropertyValue(Now.AddYears(10), GetType(Date))
+            DownloadingErrorDate = New PropertyValue(Now.AddYears(-10), GetType(Date))
             LastDownloadDate = New PropertyValue(Now.AddDays(-1))
             LastRequestsCount = New PropertyValue(0)
             LastRequestsCountLabel = New PropertyValue(String.Empty, GetType(String))
@@ -456,16 +475,85 @@ Namespace API.Instagram
         End Function
 #End Region
 #Region "Downloading"
+        Private ____DownloadStarted As Boolean = False
+        Private ____AvailableRequested As Boolean = False
+        Private ____AvailableSilent As Boolean = True
+        Private ____AvailableChecked As Boolean = False
+        Private ____AvailableResult As Boolean = False
+        Friend Overrides Function Available(ByVal What As Download, ByVal Silent As Boolean) As Boolean
+            If MyBase.Available(What, Silent) Then
+                If CInt(DownDetectorValue.Value) >= 0 Then
+                    If ____DownloadStarted Then
+                        ____AvailableRequested = True
+                        ____AvailableSilent = Silent
+                        Return True
+                    Else
+                        Return AvailableImpl(What, Silent)
+                    End If
+                Else
+                    Return True
+                End If
+            Else
+                Return False
+            End If
+        End Function
+#Disable Warning IDE0060
+        Private Function AvailableImpl(ByVal What As Download, ByVal Silent As Boolean) As Boolean
+#Enable Warning
+            Try
+                AvailableText = String.Empty
+                If CInt(DownDetectorValue.Value) = -1 Then
+                    Return True
+                Else
+                    Dim dl As List(Of DownDetector.Data) = DownDetector.GetData("instagram")
+                    If dl.ListExists Then
+                        dl = dl.Take(4).ToList
+                        Dim avg% = dl.Average(Function(d) d.Value)
+                        If avg > CInt(DownDetectorValue.Value) Then
+                            AvailableText = "Over the past hour, Instagram has received an average of " &
+                                            avg.NumToString(New ANumbers With {.FormatOptions = ANumbers.Options.GroupIntegral}) & " outage reports:" & vbCr &
+                                            dl.ListToString(vbCr)
+                            If CBool(DownDetectorValueAddToLog.Value) Then MyMainLOG = AvailableText
+                            If Silent Then
+                                Return False
+                            Else
+                                Return MsgBoxE({$"{AvailableText}{vbCr}{vbCr}Do you want to continue parsing Instagram data?",
+                                               "There are outage reports on Instagram"}, vbYesNo) = vbYes
+                            End If
+                        End If
+                    End If
+                    Return True
+                End If
+            Catch ex As Exception
+                Return ErrorsDescriber.Execute(EDP.SendToLog + EDP.ReturnValue, ex, "[API.Instagram.SiteSettings.Available]", True)
+            End Try
+        End Function
         Friend Property SkipUntilNextSession As Boolean = False
         Friend Overrides Function ReadyToDownload(ByVal What As Download) As Boolean
-            Return ActiveJobs < 2 AndAlso Not SkipUntilNextSession AndAlso ReadyForDownload AndAlso BaseAuthExists() AndAlso DownloadTimeline.Value
+            If ActiveJobs < 2 AndAlso Not SkipUntilNextSession AndAlso ReadyForDownload AndAlso BaseAuthExists() AndAlso CBool(DownloadTimeline.Value) Then
+                If ____DownloadStarted And ____AvailableRequested Then
+                    ____AvailableResult = AvailableImpl(What, ____AvailableSilent)
+                    ____AvailableChecked = True
+                    ____AvailableRequested = False
+                    Return ____AvailableResult
+                ElseIf ____AvailableChecked Then
+                    Return ____AvailableResult
+                Else
+                    Return True
+                End If
+            Else
+                Return False
+            End If
         End Function
         Private ActiveJobs As Integer = 0
         Private ActiveSessionDate As Date
+        Private ActiveSessionRequestsExists As Boolean = False
         Private _NextWNM As UserData.WNM = UserData.WNM.Notify
         Private _NextTagged As Boolean = True
         Friend Overrides Sub DownloadStarted(ByVal What As Download)
+            If ActiveJobs = 0 Then ActiveSessionRequestsExists = False
             ActiveJobs += 1
+            If What = Download.Main Then ____DownloadStarted = True
             If ActiveJobs = 1 Then ActiveSessionDate = Now
             If Not HH_IG_WWW_CLAIM_IS_ZERO AndAlso
                (
@@ -498,6 +586,7 @@ Namespace API.Instagram
                 If _NextWNM = UserData.WNM.SkipTemp Or _NextWNM = UserData.WNM.SkipCurrent Then _NextWNM = UserData.WNM.Notify
                 _NextTagged = .TaggedCheckSession
                 MyLastRequestsCount = .RequestsCountSession
+                If .RequestsCountSession > 0 Then ActiveSessionRequestsExists = True
                 _FieldsChangerSuspended = True
                 HH_IG_WWW_CLAIM.Value = Responser.Headers.Value(Header_IG_WWW_CLAIM)
                 HH_CSRF_TOKEN.Value = Responser.Headers.Value(Header_CSRF_TOKEN)
@@ -507,9 +596,16 @@ Namespace API.Instagram
         Friend Overrides Sub DownloadDone(ByVal What As Download)
             _NextWNM = UserData.WNM.Notify
             _NextTagged = True
-            RefreshMyLastRequests(Now)
+            If ActiveSessionRequestsExists Then RefreshMyLastRequests(Now)
             ActiveJobs -= 1
             SkipUntilNextSession = False
+            If What = Download.Main Then ____DownloadStarted = False
+            If ActiveJobs = 0 Then
+                ____AvailableRequested = False
+                ____AvailableChecked = False
+                ____AvailableSilent = True
+                ____AvailableResult = False
+            End If
         End Sub
 #End Region
 #Region "Settings"

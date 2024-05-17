@@ -11,6 +11,7 @@ Imports SCrawler.Plugin
 Imports SCrawler.Plugin.Attributes
 Imports PersonalUtilities.Tools.Web.Clients
 Imports PersonalUtilities.Functions.RegularExpressions
+Imports DN = SCrawler.API.Base.DeclaredNames
 Namespace API.Facebook
     <Manifest("AndyProgram_Facebook"), SavedPosts, SeparatedTasks(1), SpecialForm(False)>
     Friend Class SiteSettings : Inherits ThreadsNet.SiteSettings
@@ -31,11 +32,11 @@ Namespace API.Facebook
         End Property
 #End Region
 #Region "Defaults"
-        <PropertyOption(ControlText:="Download photos", IsAuth:=False), PXML, PClonable>
+        <PropertyOption(ControlText:="Download photos", IsAuth:=False, Category:=DN.CAT_UserDefs), PXML, PClonable>
         Friend ReadOnly Property ParsePhotoBlock As PropertyValue
-        <PropertyOption(ControlText:="Download videos", IsAuth:=False), PXML, PClonable>
+        <PropertyOption(ControlText:="Download videos", IsAuth:=False, Category:=DN.CAT_UserDefs), PXML, PClonable>
         Friend ReadOnly Property ParseVideoBlock As PropertyValue
-        <PropertyOption(ControlText:="Download stories", IsAuth:=False), PXML, PClonable>
+        <PropertyOption(ControlText:="Download stories", IsAuth:=False, Category:=DN.CAT_UserDefs), PXML, PClonable>
         Friend ReadOnly Property ParseStoriesBlock As PropertyValue
 #End Region
 #End Region

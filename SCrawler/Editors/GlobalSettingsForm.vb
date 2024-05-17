@@ -19,6 +19,7 @@ Namespace Editors
         Friend Property HeadersChanged As Boolean = False
         Friend Property PictureChanged As Boolean = False
         Friend Property EnvironmentProgramsChanged As Boolean = False
+        Friend Property UserAgentChanged As Boolean = False
         Friend Sub New()
             InitializeComponent()
             MyDefs = New DefaultFormOptions(Me, Settings.Design)
@@ -183,6 +184,7 @@ Namespace Editors
                                                 "Do you really want to continue?",
                                                 "Increasing download tasks"},
                                                vbExclamation,,, {"Confirm", $"Set to default ({SettingsCLS.DefaultMaxDownloadingTasks})", "Cancel"})
+
                     If CInt(TXT_MAX_JOBS_USERS.Value) > SettingsCLS.DefaultMaxDownloadingTasks Then
                         Select Case a.Invoke("users", TXT_MAX_JOBS_USERS.Value)
                             Case 1 : TXT_MAX_JOBS_USERS.Value = SettingsCLS.DefaultMaxDownloadingTasks
@@ -213,6 +215,25 @@ Namespace Editors
                                 "If this case, the functionality of SCrawler will be limited, and some sites will not work at all.",
                                 "Environment missing"}, vbExclamation,,, {"Process", "Cancel"}) = 1 Then Exit Sub
 
+                    If Not .GlobalPath.Value.PathWithSeparator = TXT_GLOBAL_PATH.Text.CSFilePS Or Not .CollectionsPath.Value = TXT_COLLECTIONS_PATH.Text Then
+                        If Not Plugin.Hosts.SettingsHostCollection.UpdateHostPath_CheckDownloader Then Exit Sub
+                        If MsgBoxE({"You have changed the global path or collections folder!" & vbCr & vbCr &
+                                    $"Global path ({IIf(.GlobalPath.Value.PathWithSeparator = TXT_GLOBAL_PATH.Text.CSFilePS, "not changed", "CHANGED")})" & vbCr &
+                                    $"Current: { .GlobalPath.Value}" & vbCr &
+                                    $"New: {TXT_GLOBAL_PATH.Text}" & vbCr & vbCr &
+                                    $"Collections folder ({IIf(.CollectionsPath.Value = TXT_COLLECTIONS_PATH.Text, "not changed", "CHANGED")})" & vbCr &
+                                    $"Current: { .CollectionsPath.Value}" & vbCr &
+                                    $"New: {TXT_COLLECTIONS_PATH.Text}" & vbCr & vbCr &
+                                    "Are you sure you want to continue?",
+                                    "Global path changed"}, vbExclamation,,, {"Process", "Cancel"}) = 0 Then
+                            If Not Plugin.Hosts.SettingsHostCollection.UpdateHostPath(.GlobalPath, TXT_GLOBAL_PATH.Text.CSFileP,
+                                                                                      .CollectionsPath, TXT_COLLECTIONS_PATH.Text) Then _
+                               MsgBoxE({"Something went wrong while updating the global paths.", "Global path changed"}, vbCritical)
+                        Else
+                            Exit Sub
+                        End If
+                    End If
+
                     Dim detector As Func(Of IXMLValue, Boolean) = Function(hh) hh.ChangesDetected
                     .BeginUpdate()
 
@@ -225,7 +246,7 @@ Namespace Editors
                     .ChannelsMaxJobsCount.Value = TXT_MAX_JOBS_CHANNELS.Value
                     .CheckUpdatesAtStart.Value = CH_CHECK_VER_START.Checked
                     .UserAgent.Value = TXT_USER_AGENT.Text
-                    DefaultUserAgent = TXT_USER_AGENT.Text
+                    UserAgentChanged = .UserAgent.ChangesDetected
                     .ImgurClientID.Value = TXT_IMGUR_CLIENT_ID.Text
                     'Design
                     .ProgramText.Value = TXT_PRG_TITLE.Text

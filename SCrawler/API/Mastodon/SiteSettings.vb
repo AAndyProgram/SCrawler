@@ -63,15 +63,15 @@ Namespace API.Mastodon
         End Sub
 #End Region
 #Region "Other properties"
-        <PropertyOption(IsAuth:=False, ControlText:=DN.GifsDownloadCaption), PXML, PClonable>
+        <PropertyOption(IsAuth:=False, ControlText:=DN.GifsDownloadCaption, Category:=DN.CAT_UserDefs), PXML, PClonable>
         Friend ReadOnly Property GifsDownload As PropertyValue
-        <PropertyOption(IsAuth:=False, ControlText:=DN.GifsSpecialFolderCaption, ControlToolTip:=DN.GifsSpecialFolderToolTip), PXML, PClonable>
+        <PropertyOption(IsAuth:=False, ControlText:=DN.GifsSpecialFolderCaption, ControlToolTip:=DN.GifsSpecialFolderToolTip, Category:=DN.CAT_UserDefs), PXML, PClonable>
         Friend ReadOnly Property GifsSpecialFolder As PropertyValue
-        <PropertyOption(IsAuth:=False, ControlText:=DN.GifsPrefixCaption, ControlToolTip:=DN.GifsPrefixToolTip), PXML, PClonable>
+        <PropertyOption(IsAuth:=False, ControlText:=DN.GifsPrefixCaption, ControlToolTip:=DN.GifsPrefixToolTip, Category:=DN.CAT_UserDefs), PXML, PClonable>
         Friend ReadOnly Property GifsPrefix As PropertyValue
         <Provider(NameOf(GifsSpecialFolder), Interaction:=True), Provider(NameOf(GifsPrefix), Interaction:=True)>
         Private ReadOnly Property GifStringChecker As IFormatProvider
-        <PropertyOption(IsAuth:=False, ControlText:=DN.UseMD5ComparisonCaption, ControlToolTip:=DN.UseMD5ComparisonToolTip), PXML, PClonable>
+        <PropertyOption(IsAuth:=False, ControlText:=DN.UseMD5ComparisonCaption, ControlToolTip:=DN.UseMD5ComparisonToolTip, Category:=DN.CAT_UserDefs), PXML, PClonable>
         Friend ReadOnly Property UseMD5Comparison As PropertyValue
         <PropertyOption(IsAuth:=False, ControlText:="User related to my domain",
                         ControlToolTip:="Open user profiles and user posts through my domain."), PXML, PClonable>

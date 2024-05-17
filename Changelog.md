@@ -1,3 +1,30 @@
+# 2024.5.18.0
+
+*2024-05-18*
+
+- Added
+  - YouTube (standalone app): highlight frame rates higher/lower than this value (`Settings` - `Defaults Video` - `Highlight FPS (higher/lower)`).
+  - Sites
+    - Instagram: 'DownDetector' support to determine if the site is accessible
+    - Reddit: change the naming method of video files (hosted on Reddit) to the `YYYYMMDD_HHMMSS` pattern
+    - Twitter
+      - `Likes` downloading *(user settings)*
+      - **changed domain from twitter.com to x.com**
+  - Site settings: group options by category
+  - Minor improvements
+- PluginProvider
+  - `PropertyOption` attribute: set category name when `IsAuth = True`
+  - `ISiteSettings`: added `UserAgentDefault` property
+- Updated
+  - gallery-dl up to version **1.27.0-dev**
+- Fixed
+  - Sites
+    - Instagram: incorrect definition of pinned posts
+    - Threads: new posts are no longer downloaded from profiles with pinned posts
+    - Reddit: bypass error 429 for saved posts
+    - Twitter: **data is not downloading due to domain change from twitter.com to x.com**
+  - Minor bugs
+
 # 2024.5.4.0
 
 *2024-05-04*
@@ -5,13 +32,13 @@
 - Added
   - YouTube (standalone app): setting to remove specific characters (`Defaults` - `Remove characters`)
   - Instagram: simplify the `Connection closed` error
-  - Users search: add 'FriendlyName' to search results
+  - Users search: add `Friendly name` to search results
 - Fixed
   - YouTube (standalone app): incorrect download processing when the file name ends with a dot (Issue #188)
   - The program is freezes when editing users in some cases
   - Sites
     - Reddit: token update error
-    - Threads: unable to obtain credentials (ID)
+    - Threads: unable to obtain credentials (`ID`)
 
 # 2024.4.26.0
 

@@ -28,9 +28,10 @@ Namespace DownloadObjects
             Dim ActionButton1 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(AutoDownloaderEditorForm))
             Dim ActionButton2 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
-            Dim TP_NOTIFY As System.Windows.Forms.TableLayoutPanel
             Dim ActionButton3 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim TP_NOTIFY As System.Windows.Forms.TableLayoutPanel
             Dim ActionButton4 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton5 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim TT_MAIN As System.Windows.Forms.ToolTip
             Me.DEF_GROUP = New SCrawler.DownloadObjects.Groups.GroupDefaults()
             Me.OPT_SPEC = New System.Windows.Forms.RadioButton()
@@ -178,9 +179,14 @@ Namespace DownloadObjects
             ActionButton1.BackgroundImage = CType(resources.GetObject("ActionButton1.BackgroundImage"), System.Drawing.Image)
             ActionButton1.Name = "Edit"
             ActionButton2.BackgroundImage = CType(resources.GetObject("ActionButton2.BackgroundImage"), System.Drawing.Image)
-            ActionButton2.Name = "Clear"
+            ActionButton2.Name = "Info"
+            ActionButton2.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Info
+            ActionButton2.ToolTipText = "Open group"
+            ActionButton3.BackgroundImage = CType(resources.GetObject("ActionButton3.BackgroundImage"), System.Drawing.Image)
+            ActionButton3.Name = "Clear"
             Me.TXT_GROUPS.Buttons.Add(ActionButton1)
             Me.TXT_GROUPS.Buttons.Add(ActionButton2)
+            Me.TXT_GROUPS.Buttons.Add(ActionButton3)
             Me.TXT_GROUPS.CaptionText = "Groups"
             Me.TXT_GROUPS.CaptionWidth = 50.0R
             Me.TXT_GROUPS.Dock = System.Windows.Forms.DockStyle.Fill
@@ -260,9 +266,9 @@ Namespace DownloadObjects
             '
             'TXT_TIMER
             '
-            ActionButton3.BackgroundImage = CType(resources.GetObject("ActionButton3.BackgroundImage"), System.Drawing.Image)
-            ActionButton3.Name = "Refresh"
-            Me.TXT_TIMER.Buttons.Add(ActionButton3)
+            ActionButton4.BackgroundImage = CType(resources.GetObject("ActionButton4.BackgroundImage"), System.Drawing.Image)
+            ActionButton4.Name = "Refresh"
+            Me.TXT_TIMER.Buttons.Add(ActionButton4)
             Me.TXT_TIMER.CaptionText = "Timer"
             Me.TXT_TIMER.CaptionToolTipEnabled = True
             Me.TXT_TIMER.CaptionToolTipText = "Timer (in minutes)"
@@ -275,9 +281,9 @@ Namespace DownloadObjects
             '
             'NUM_DELAY
             '
-            ActionButton4.BackgroundImage = CType(resources.GetObject("ActionButton4.BackgroundImage"), System.Drawing.Image)
-            ActionButton4.Name = "Refresh"
-            Me.NUM_DELAY.Buttons.Add(ActionButton4)
+            ActionButton5.BackgroundImage = CType(resources.GetObject("ActionButton5.BackgroundImage"), System.Drawing.Image)
+            ActionButton5.Name = "Refresh"
+            Me.NUM_DELAY.Buttons.Add(ActionButton5)
             Me.NUM_DELAY.CaptionText = "Delay"
             Me.NUM_DELAY.CaptionToolTipEnabled = True
             Me.NUM_DELAY.CaptionToolTipText = "Startup delay"

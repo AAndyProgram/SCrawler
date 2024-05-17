@@ -225,6 +225,7 @@ Namespace API.Reddit
 #End Region
 #Region "Download Overrides"
         Friend Overrides Sub DownloadData(ByVal Token As CancellationToken)
+            Err429Count = 0
             _CrossPosts.Clear()
             If CreatedByChannel And Settings.FromChannelDownloadTopUse And Settings.FromChannelDownloadTop > 0 Then _
                DownloadTopCount = Settings.FromChannelDownloadTop.Value
@@ -287,6 +288,7 @@ Namespace API.Reddit
         End Sub
 #End Region
 #Region "Download Functions (User, Channel)"
+        Private Err429Count As Integer = 0
         Private _TotalPostsDownloaded As Integer = 0
         Private ReadOnly _CrossPosts As List(Of String)
         Private Const SiteGfycatKey As String = "gfycat"
@@ -375,6 +377,7 @@ Namespace API.Reddit
             Loop While Not _completed
         End Sub
         Private Sub DownloadDataChannel(ByVal POST As String, ByVal Token As CancellationToken)
+            Const savedPostsSleepTimer% = 2000
             Dim eObj% = 0
             Dim round% = 0
             Dim URL$ = String.Empty
@@ -392,12 +395,14 @@ Namespace API.Reddit
 
                     If IsSavedPosts Then
                         URL = $"https://www.reddit.com/user/{TrueName}/saved.json?after={POST}"
+                        If Not POST.IsEmptyString Then Thread.Sleep(savedPostsSleepTimer)
                     Else
                         URL = $"https://reddit.com/r/{TrueName}/{View}.json?allow_quarantined=true&allow_over18=1&include=identity&after={POST}&dist=25&sort={View}&t={Period}&layout=classic"
                     End If
 
                     ThrowAny(Token)
                     Dim r$ = Responser.GetResponse(URL)
+                    If IsSavedPosts Then Err429Count = 0
                     If Not r.IsEmptyString Then
                         Using w As EContainer = JsonDocument.Parse(r).XmlIfNothing
                             If w.Count > 0 Then
@@ -458,8 +463,12 @@ Namespace API.Reddit
                     End If
                     _completed = True
                 Catch ex As Exception
-                    If ProcessException(ex, Token, $"channel data downloading error [{URL}]",, eObj) = HttpStatusCode.InternalServerError Then
+                    Dim errValue% = ProcessException(ex, Token, $"{IIf(IsSavedPosts, "saved posts", "channel")} data downloading error [{URL}]",, eObj)
+                    If errValue = HttpStatusCode.InternalServerError Then
                         If round = 2 Then eObj = HttpStatusCode.InternalServerError
+                    ElseIf errValue = 429 And round = 0 Then
+                        Thread.Sleep(savedPostsSleepTimer)
+                        round += 1
                     Else
                         _completed = True
                     End If
@@ -975,7 +984,7 @@ Namespace API.Reddit
             Dim m As New UserMedia(_URL, t) With {.Post = New UserPost With {.ID = PostID, .UserID = _UserID}}
             If t = UTypes.Picture Or t = UTypes.GIF Then m.File = CreateFileFromUrl(m.URL) Else m.File = Nothing
             If ReplacePreview And m.URL.Contains("preview") And Not t = UTypes.Picture Then m.URL = $"https://i.redd.it/{m.File.File}"
-            If Not PostDate.IsEmptyString Then m.Post.Date = AConvert(Of Date)(PostDate, DateTrueProvider(IsChannel), Nothing) Else m.Post.Date = Nothing
+            If Not PostDate.IsEmptyString Then m.Post.Date = AConvert(Of Date)(PostDate, DateTrueProvider(IsChannel Or IsSavedPosts), Nothing) Else m.Post.Date = Nothing
             Return m
         End Function
         Private Function TryFile(ByVal URL As String) As Boolean
@@ -1027,7 +1036,7 @@ Namespace API.Reddit
             Return URL.Contains(SiteRedGifsKey)
         End Function
         Protected Overrides Function DownloadM3U8(ByVal URL As String, ByVal Media As UserMedia, ByVal DestinationFile As SFile, ByVal Token As CancellationToken) As SFile
-            Return M3U8.Download(URL, DestinationFile, Token, Progress, Not IsSingleObjectDownload)
+            Return M3U8.Download(URL, Media, DestinationFile, Token, Progress, Not IsSingleObjectDownload)
         End Function
         Protected Overrides Function ChangeFileNameByProvider(ByVal f As SFile, ByVal m As UserMedia) As SFile
             If Not IsChannel Or Not SaveToCache Then
@@ -1057,8 +1066,11 @@ Namespace API.Reddit
                 ElseIf .StatusCode = HttpStatusCode.InternalServerError Then '500
                     If Not IsNothing(EObj) AndAlso IsNumeric(EObj) AndAlso CInt(EObj) = HttpStatusCode.InternalServerError Then Return 1
                     Return HttpStatusCode.InternalServerError
+                ElseIf .StatusCode = 429 And IsSavedPosts And Err429Count = 0 Then
+                    Err429Count += 1
+                    Return 429
                 ElseIf .StatusCode = 429 AndAlso
-                       ((Not IsSavedPosts And CBool(MySiteSettings.UseTokenForTimelines.Value)) Or (IsSavedPosts And MySiteSettings.UseTokenForSavedPosts.Value)) AndAlso
+                       ((Not IsSavedPosts And CBool(MySiteSettings.UseTokenForTimelines.Value)) Or (IsSavedPosts And CBool(MySiteSettings.UseTokenForSavedPosts.Value))) AndAlso
                        Not MySiteSettings.CredentialsExists Then '429
                     MyMainLOG = $"{ToStringForLog()}: [{CInt(Responser.StatusCode)}] You should use OAuth authorization or disable " &
                                 IIf(IsSavedPosts, "token usage for downloading saved posts", "the use of token and cookies for downloading timelines")

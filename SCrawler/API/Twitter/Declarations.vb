@@ -15,6 +15,7 @@ Namespace API.Twitter
         Friend Const TwitterSiteKey As String = "AndyProgram_Twitter"
         Friend ReadOnly DateProvider As ADateTime = GetDateProvider()
         Friend ReadOnly VideoSizeRegEx As RParams = RParams.DMS("\d+x(\d+)", 1, EDP.ReturnValue)
+        Friend ReadOnly StatusRegEx As RParams = RParams.DM(".*?(twitter|x)\.com/\S+/status/\d+", 0, EDP.ReturnValue)
         Private Function GetDateProvider() As ADateTime
             Dim n As DateTimeFormatInfo = CultureInfo.GetCultureInfo("en-us").DateTimeFormat.Clone
             n.FullDateTimePattern = "ddd MMM dd HH:mm:ss +ffff yyyy"

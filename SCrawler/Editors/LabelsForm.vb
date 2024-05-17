@@ -27,6 +27,7 @@ Friend Class LabelsForm
     End Property
     Friend Property WithDeleteButton As Boolean = False
     Private ReadOnly AddNoParsed As Boolean = False
+    Friend Property IsGroups As Boolean = False
     Friend Sub New(ByVal LabelsArr As IEnumerable(Of String), Optional ByVal AddNoParsed As Boolean = True)
         InitializeComponent()
         Me.AddNoParsed = AddNoParsed
@@ -65,7 +66,15 @@ Friend Class LabelsForm
         End Try
     End Sub
     Private Sub LabelsForm_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
-        If e.KeyCode = Keys.Insert And _Source Is Nothing Then AddNewLabel() : e.Handled = True
+        Dim b As Boolean = True
+        If e.KeyCode = Keys.Insert And _Source Is Nothing Then
+            AddNewLabel()
+        ElseIf e.KeyCode = Keys.F3 And IsGroups Then
+            EditSelectedGroup()
+        Else
+            b = False
+        End If
+        If b Then e.Handled = True
     End Sub
     Private Sub LabelsForm_Disposed(sender As Object, e As EventArgs) Handles Me.Disposed
         LabelsList.Clear()
@@ -100,5 +109,21 @@ Friend Class LabelsForm
                 CMB_LABELS.Items.Add(nl)
             End If
         End If
+    End Sub
+    Private Sub EditSelectedGroup()
+        Try
+            If CMB_LABELS.Count > 0 And CMB_LABELS.SelectedIndex >= 0 Then
+                Dim gName$ = CMB_LABELS.Value
+                Dim i%
+                If Not gName.IsEmptyString Then
+                    i = Settings.Groups.IndexOf(gName)
+                    If i >= 0 Then
+                        Using f As New DownloadObjects.Groups.GroupEditorForm(Settings.Groups(i)) : f.ShowDialog() : End Using
+                    End If
+                End If
+            End If
+        Catch ex As Exception
+            ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Show group")
+        End Try
     End Sub
 End Class

@@ -173,6 +173,19 @@
     <Compile Include="API\Base\M3U8Base.vb" />
     <Compile Include="API\Base\ProfileSaved.vb" />
     <Compile Include="API\Base\SiteSettingsBase.vb" />
+    <Compile Include="API\Base\SplitCollectionUserInfo.vb" />
+    <Compile Include="API\Base\SplitCollectionUserInfoChangePathsForm.Designer.vb">
+      <DependentUpon>SplitCollectionUserInfoChangePathsForm.vb</DependentUpon>
+    </Compile>
+    <Compile Include="API\Base\SplitCollectionUserInfoChangePathsForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="API\Base\SplitCollectionUserInfoPathForm.Designer.vb">
+      <DependentUpon>SplitCollectionUserInfoPathForm.vb</DependentUpon>
+    </Compile>
+    <Compile Include="API\Base\SplitCollectionUserInfoPathForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="API\Base\Structures.vb" />
     <Compile Include="API\Base\TokenBatch.vb" />
     <Compile Include="API\Base\YTDLP.vb" />
@@ -517,6 +530,12 @@
   <ItemGroup>
     <EmbeddedResource Include="API\BaseObjects\InternalSettingsForm.resx">
       <DependentUpon>InternalSettingsForm.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="API\Base\SplitCollectionUserInfoChangePathsForm.resx">
+      <DependentUpon>SplitCollectionUserInfoChangePathsForm.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="API\Base\SplitCollectionUserInfoPathForm.resx">
+      <DependentUpon>SplitCollectionUserInfoPathForm.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="API\OnlyFans\OFResources.resx">
       <CustomToolNamespace>My.Resources</CustomToolNamespace>

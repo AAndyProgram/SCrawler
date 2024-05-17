@@ -36,8 +36,22 @@ Namespace Plugin.Attributes
         Public Property IsInformationLabel As Boolean = False
         ''' <summary>Label text alignment.<br/>Default: <see cref="Drawing.ContentAlignment.TopCenter"/></summary>
         Public Property LabelTextAlign As Drawing.ContentAlignment = Drawing.ContentAlignment.TopCenter
+        Private _IsAuth As Boolean = False
         ''' <summary>This is an authorization property</summary>
-        Public Property IsAuth As Boolean = False
+        Public Property IsAuth As Boolean
+            Get
+                Return _IsAuth
+            End Get
+            Set(ByVal _IsAuth As Boolean)
+                Me._IsAuth = _IsAuth
+                If _IsAuth And String.IsNullOrEmpty(Category) Then
+                    Category = CategoryAuth
+                ElseIf Not _IsAuth AndAlso Not String.IsNullOrEmpty(Category) AndAlso Category = CategoryAuth Then
+                    Category = String.Empty
+                End If
+            End Set
+        End Property
+        Public Const CategoryAuth As String = "Authorization"
         Public Property Category As String = Nothing
         Public Property InheritanceName As String = Nothing
         ''' <summary>Initialize a new property option attribute</summary>

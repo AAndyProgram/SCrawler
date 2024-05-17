@@ -58,7 +58,6 @@ Namespace API.Reddit
                 Return {AuthUserName.Value, AuthPassword.Value, ApiClientID.Value, ApiClientSecret.Value}.All(Function(v$) Not v.IsEmptyString)
             End Get
         End Property
-
 #End Region
 #Region "Other"
         <PropertyOption(ControlText:="Use M3U8", ControlToolTip:="Use M3U8 or mp4 for Reddit videos", IsAuth:=False), PXML, PClonable>

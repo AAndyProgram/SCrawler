@@ -219,10 +219,10 @@ Namespace Plugin.Hosts
         Friend ReadOnly Property DownloadImages As XMLValue(Of Boolean)
         Friend ReadOnly Property DownloadVideos As XMLValue(Of Boolean)
         Private ReadOnly _Path As XMLValue(Of SFile)
-        Friend Property Path(Optional ByVal SetProp As Boolean = True) As SFile
+        Friend Property Path(Optional ByVal SetProp As Boolean = True, Optional ByVal GetActualValue As Boolean = False) As SFile
             Get
-                If _Path.IsEmptyString Then
-                    Dim tmpPath As SFile = SFile.GetPath($"{Settings.GlobalPath.Value.PathWithSeparator}{Source.Site}")
+                If Not GetActualValue And _Path.IsEmptyString Then
+                    Dim tmpPath As SFile = PathGenerate()
                     If SetProp Then _Path.Value = tmpPath Else Return tmpPath
                 End If
                 Return _Path.Value
@@ -231,6 +231,9 @@ Namespace Plugin.Hosts
                 _Path.Value = NewPath
             End Set
         End Property
+        Friend Function PathGenerate() As SFile
+            Return SFile.GetPath($"{Settings.GlobalPath.Value.PathWithSeparator}{Source.Site}")
+        End Function
         Friend Const SavedPostsFolderName As String = "!Saved"
         Private ReadOnly _SavedPostsPath As XMLValue(Of SFile)
         Friend Property SavedPostsPath(Optional ByVal GetAny As Boolean = True) As SFile

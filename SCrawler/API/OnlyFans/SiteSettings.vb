@@ -13,18 +13,22 @@ Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Tools.Web.Clients
 Imports PersonalUtilities.Tools.Web.Cookies
 Imports PersonalUtilities.Functions.RegularExpressions
+Imports DN = SCrawler.API.Base.DeclaredNames
 Namespace API.OnlyFans
     <Manifest("AndyProgram_OnlyFans"), SavedPosts, SpecialForm(False), SeparatedTasks(1)>
     Friend Class SiteSettings : Inherits SiteSettingsBase
 #Region "Declarations"
+#Region "Categories"
+        Private Const CAT_OFS As String = "OF-Scraper support"
+#End Region
 #Region "Options"
-        <PropertyOption(ControlText:="Download timeline", ControlToolTip:="Download user timeline"), PXML, PClonable>
+        <PropertyOption(ControlText:="Download timeline", ControlToolTip:="Download user timeline", Category:=DN.CAT_UserDefs), PXML, PClonable>
         Friend ReadOnly Property DownloadTimeline As PropertyValue
-        <PropertyOption(ControlText:="Download stories", ControlToolTip:="Download profile stories if they exists"), PXML, PClonable>
+        <PropertyOption(ControlText:="Download stories", ControlToolTip:="Download profile stories if they exists", Category:=DN.CAT_UserDefs), PXML, PClonable>
         Friend ReadOnly Property DownloadStories As PropertyValue
-        <PropertyOption(ControlText:="Download highlights", ControlToolTip:="Download profile highlights if they exists"), PXML, PClonable>
+        <PropertyOption(ControlText:="Download highlights", ControlToolTip:="Download profile highlights if they exists", Category:=DN.CAT_UserDefs), PXML, PClonable>
         Friend ReadOnly Property DownloadHighlights As PropertyValue
-        <PropertyOption(ControlText:="Download chat", ControlToolTip:="Download unlocked chat media"), PXML, PClonable>
+        <PropertyOption(ControlText:="Download chat", ControlToolTip:="Download unlocked chat media", Category:=DN.CAT_UserDefs), PXML, PClonable>
         Friend ReadOnly Property DownloadChatMedia As PropertyValue
 #End Region
 #Region "Headers"
@@ -32,16 +36,16 @@ Namespace API.OnlyFans
         Private Const HeaderUserID As String = "User-Id"
         Friend Const HeaderXBC As String = "X-Bc"
         Friend Const HeaderAppToken As String = "App-Token"
-        <PropertyOption(ControlText:=HeaderUserID, AllowNull:=False), PClonable(Clone:=False)>
+        <PropertyOption(ControlText:=HeaderUserID, AllowNull:=False, IsAuth:=True), PClonable(Clone:=False)>
         Friend ReadOnly Property HH_USER_ID As PropertyValue
-        <PropertyOption(ControlText:=HeaderXBC, AllowNull:=False), PClonable(Clone:=False)>
+        <PropertyOption(ControlText:=HeaderXBC, AllowNull:=False, IsAuth:=True), PClonable(Clone:=False)>
         Private ReadOnly Property HH_X_BC As PropertyValue
-        <PropertyOption(ControlText:=HeaderAppToken, AllowNull:=False), PClonable(Clone:=False)>
+        <PropertyOption(ControlText:=HeaderAppToken, AllowNull:=False, IsAuth:=True), PClonable(Clone:=False)>
         Private ReadOnly Property HH_APP_TOKEN As PropertyValue
         <PropertyOption(ControlText:=HeaderBrowser, ControlToolTip:="Can be null", AllowNull:=True,
-                        InheritanceName:=SettingsCLS.HEADER_DEF_sec_ch_ua), PClonable, PXML(OnlyForChecked:=True)>
+                        InheritanceName:=SettingsCLS.HEADER_DEF_sec_ch_ua, IsAuth:=True), PClonable, PXML(OnlyForChecked:=True)>
         Private ReadOnly Property HH_BROWSER As PropertyValue
-        <PropertyOption(AllowNull:=False, InheritanceName:=SettingsCLS.HEADER_DEF_UserAgent), PClonable, PXML(OnlyForChecked:=True)>
+        <PropertyOption(AllowNull:=False, InheritanceName:=SettingsCLS.HEADER_DEF_UserAgent, IsAuth:=True), PClonable, PXML(OnlyForChecked:=True)>
         Friend ReadOnly Property UserAgent As PropertyValue
         Private Sub UpdateHeader(ByVal PropertyName As String, ByVal Value As String)
             Dim hName$ = String.Empty
@@ -82,20 +86,21 @@ Namespace API.OnlyFans
         End Property
         <PropertyOption(ControlText:="Use old authorization rules",
                         ControlToolTip:="Use old dynamic rules (from 'DATAHOARDERS') or new ones (from 'DIGITALCRIMINALS')." & vbCr &
-                                        "Change this value only if you know what you are doing."), PXML, PClonable>
+                                        "Change this value only if you know what you are doing.", IsAuth:=True), PXML, PClonable>
         Friend ReadOnly Property UseOldAuthRules As PropertyValue
-        <PropertyOption(ControlText:="Dynamic rules update", ControlToolTip:="'Dynamic rules' update interval (minutes). Default: 1440", LeftOffset:=110), PXML, PClonable>
+        <PropertyOption(ControlText:="Dynamic rules update", ControlToolTip:="'Dynamic rules' update interval (minutes). Default: 1440",
+                        LeftOffset:=110, IsAuth:=True), PXML, PClonable>
         Friend ReadOnly Property DynamicRulesUpdateInterval As PropertyValue
         <Provider(NameOf(DynamicRulesUpdateInterval), FieldsChecker:=True)>
         Private ReadOnly Property DynamicRulesUpdateIntervalProvider As IFormatProvider
         <PropertyOption(ControlText:="Dynamic rules",
                         ControlToolTip:="Overwrite 'Dynamic rules' with this URL" & vbCr &
-                                        "Change this value only if you know what you are doing."), PXML, PClonable>
+                                        "Change this value only if you know what you are doing.", IsAuth:=True), PXML, PClonable>
         Friend ReadOnly Property DynamicRules As PropertyValue
 #End Region
 #Region "OFScraper"
         <PClonable, PXML("OFScraperPath")> Private ReadOnly Property OFScraperPath_XML As PropertyValue
-        <PropertyOption(ControlText:="OF-Scraper path", ControlToolTip:="The path to the 'ofscraper.exe'")>
+        <PropertyOption(ControlText:="OF-Scraper path", ControlToolTip:="The path to the 'ofscraper.exe'", Category:=CAT_OFS)>
         Friend ReadOnly Property OFScraperPath As PropertyValue
             Get
                 If Not DefaultInstance Is Nothing Then
@@ -106,7 +111,7 @@ Namespace API.OnlyFans
             End Get
         End Property
         <PClonable, PXML("OFScraperMP4decrypt")> Private ReadOnly Property OFScraperMP4decrypt_XML As PropertyValue
-        <PropertyOption(ControlText:="mp4decrypt path", ControlToolTip:="The path to the 'mp4decrypt.exe'")>
+        <PropertyOption(ControlText:="mp4decrypt path", ControlToolTip:="The path to the 'mp4decrypt.exe'", Category:=CAT_OFS)>
         Friend ReadOnly Property OFScraperMP4decrypt As PropertyValue
             Get
                 If Not DefaultInstance Is Nothing Then
@@ -118,7 +123,7 @@ Namespace API.OnlyFans
         End Property
         Friend Const KeyModeDefault_Default As String = "cdrm"
         <PClonable, PXML("KeyModeDefault")> Private ReadOnly Property KeyModeDefault_XML As PropertyValue
-        <PropertyOption(ControlText:="key-mode-default")>
+        <PropertyOption(ControlText:="key-mode-default", Category:=CAT_OFS)>
         Friend ReadOnly Property KeyModeDefault As PropertyValue
             Get
                 If Not DefaultInstance Is Nothing Then
@@ -133,6 +138,8 @@ Namespace API.OnlyFans
 #Region "Initializer"
         Friend Sub New(ByVal AccName As String, ByVal Temp As Boolean)
             MyBase.New("OnlyFans", ".onlyfans.com", AccName, Temp, My.Resources.SiteResources.OnlyFansIcon_32, My.Resources.SiteResources.OnlyFansPic_32)
+
+            _AllowUserAgentUpdate = False
 
             With Responser
                 .Accept = "application/json, text/plain, */*"

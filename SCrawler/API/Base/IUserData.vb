@@ -77,7 +77,7 @@ Namespace API.Base
         ''' </summary>
         Function Delete(Optional ByVal Multiple As Boolean = False, Optional ByVal CollectionValue As Integer = -1) As Integer
         Function EraseData(ByVal Mode As EraseMode) As Boolean
-        Function MoveFiles(ByVal CollectionName As String, ByVal SpecialCollectionPath As SFile) As Boolean
+        Function MoveFiles(ByVal CollectionName As String, ByVal SpecialCollectionPath As SFile, Optional ByVal NewUser As SplitCollectionUserInfo? = Nothing) As Boolean
         Function CopyFiles(ByVal DestinationPath As SFile, Optional ByVal e As ErrorsDescriber = Nothing) As Boolean
         Sub OpenFolder()
         Property DownloadTopCount As Integer?

@@ -19,6 +19,7 @@ Namespace Plugin
         ReadOnly Property Site As String
         Property CMDEncoding As String
         Property EnvironmentPrograms As IEnumerable(Of String)
+        Property UserAgentDefault As String
         Sub EnvironmentProgramsUpdated()
         Property AccountName As String
         Property Temporary As Boolean

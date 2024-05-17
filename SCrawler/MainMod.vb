@@ -80,7 +80,6 @@ Friend Module MainMod
     Friend ReadOnly SessionDateTimeProvider As New ADateTime("yyyyMMdd_HHmmss")
     Friend ReadOnly FeedVideoLengthProvider As New ADateTime("hh\:mm\:ss") With {.TimeParseMode = ADateTime.TimeModes.TimeSpan}
     Friend ReadOnly LogConnector As New LogHost
-    Friend DefaultUserAgent As String = String.Empty
     Friend SiteSettingsShowHiddenControls As Boolean = False
 #Region "NonExistingUsersLog"
     Friend ReadOnly NonExistingUsersLog As New TextSaver($"LOGs\NonExistingUsers.txt") With {.LogMode = True, .AutoSave = True}

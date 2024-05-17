@@ -325,9 +325,10 @@ CloseResume:
                     TrayIcon.Visible = .CloseToTray
                     If f.EnvironmentProgramsChanged Then Settings.UpdateEnvironmentPrograms()
                     If f.FeedParametersChanged And Not MyFeed Is Nothing Then MyFeed.UpdateSettings()
-                    If f.HeadersChanged Then
+                    If f.HeadersChanged Or (f.UserAgentChanged And Not Settings.UserAgent.IsEmptyString) Then
                         Settings.BeginUpdate()
-                        Settings.Plugins.ForEach(Sub(p) p.Settings.UpdateInheritance())
+                        If f.UserAgentChanged Then Settings.UpdatePluginsUserAgent(False)
+                        If f.HeadersChanged Then Settings.Plugins.ForEach(Sub(p) p.Settings.UpdateInheritance())
                         Settings.EndUpdate()
                     End If
                     UpdateSilentButtons()
@@ -781,6 +782,7 @@ CloseResume:
             f.FilterViewMode = Settings.ViewMode
             f.FilterGroupUsers = Settings.GroupUsers
             f.FilterShowGroupsInsteadLabels = Settings.ShowGroupsInsteadLabels
+            f.FilterShowAllUsers = Settings.ShowAllUsers
             f.Name = fName
             Settings.Groups.Add(f, isFilter, True)
             MsgBoxE({$"The '{fName}' {IIf(isFilter, "filter", "group")} has been saved", $"Save {IIf(isFilter, "filter", "group")}"})
@@ -825,8 +827,11 @@ CloseResume:
                                     Settings.ViewMode.Value = .FilterViewMode
                                     Settings.GroupUsers.Value = .FilterGroupUsers
                                     Settings.ShowGroupsInsteadLabels.Value = .FilterShowGroupsInsteadLabels
+                                    Settings.ShowAllUsers.Value = .FilterShowAllUsers
                                 End With
                                 ApplyViewPattern(Settings.ViewMode.Value, True)
+                            Else
+                                Settings.ShowAllUsers.Value = False
                             End If
                             Settings.AdvancedFilter.Copy(filter)
                             Settings.AdvancedFilter.UpdateFile()

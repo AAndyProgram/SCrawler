@@ -361,6 +361,12 @@ Namespace API.YouTube.Base
                 Throw New NotImplementedException("'GetFormat' is not available in 'FpsFormatProvider'")
             End Function
         End Class
+        <Browsable(True), GridVisible, XMLVN({"DefaultsVideo"}, 30), Category("Defaults Video"), DisplayName("Highlight FPS (higher)"),
+            Description("Highlight frame rates higher than this value." & vbCr & "Default: 30" & vbCr & "-1 to disable")>
+        Public ReadOnly Property DefaultVideoHighlightFPS_H As XMLValue(Of Integer)
+        <Browsable(True), GridVisible, XMLVN({"DefaultsVideo"}, -1), Category("Defaults Video"), DisplayName("Highlight FPS (lower)"),
+            Description("Highlight frame rates lower than this value." & vbCr & "Default: -1" & vbCr & "-1 to disable")>
+        Public ReadOnly Property DefaultVideoHighlightFPS_L As XMLValue(Of Integer)
 #End Region
 #Region "Defaults Audio"
         <Browsable(True), GridVisible, XMLVN({"DefaultsAudio"}, "AAC"), Category("Defaults Audio"), DisplayName("Default codec"),

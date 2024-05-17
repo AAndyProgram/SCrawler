@@ -190,6 +190,18 @@
   </data>
   <data name="ActionButton2.BackgroundImage" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
+        iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAIGNIUk0AAHolAACAgwAA+f8AAIDpAAB1
+        MAAA6mAAADqYAAAXb5JfxUYAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAFQSURBVFhH7ZfNDcIwFIMZoXcm
+        YBtGYRHECIgTR1ZhBsS9YoJgQ1Poi5sfqhIOWPqkqvV7dWlI0oVzriry5Dd5HSS0PFwasAEn0AJn4Dle
+        o6fpykaVHYDNwB7YG6ZgzWiQrABosAbqaXNh7bprN1AyAAp3b42msuva9ooGYIFpELA931D2FI+VxzAI
+        gTIdAEb+7KpBz+p4RclQyifoXwdKwgAwcMAl3/mEAOz9GJgokQGyR/sHr8CzlwFwgU+vCuagUQE4gSjz
+        HGxUAM5iyiyxUp4IJ5QEAYomHCvlidCiJAigjKNYKU8M6B/g9wJUH4TV/4ZFE5GV8kSQE1HRVGylPBHC
+        qbh0MbJSnhH0YtQFyFqOiZXyCOLLMQVDckNCrJRHEN+QeMGY3JJZKY8hb0vmxQLTYAplm1IvFNbblnuh
+        Qb0Pk3exGZjv06wW8uT3cIs7jQnSONrSxH0AAAAASUVORK5CYII=
+</value>
+  </data>
+  <data name="ActionButton3.BackgroundImage" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAO
         xAAADsQBlSsOGwAAAIZJREFUOE+1j10KwCAMgz2b755xl/IsvnaL2K20UfbDAmEako+ZROSTafjE12Go
         tbbB43rK5xSAQq1VYFtmeQBoqZTSreVZvgTknM8yyyjA/qodsDF9gspD2Bj6B+DH+NqzhQQAG+POMnSX
@@ -204,7 +216,7 @@
 This means that if any user data has been downloaded with the plan, a simple notification will be shown with the number of users downloaded.
 The 'Image' and 'User icon' parameters will be ignored.</value>
   </data>
-  <data name="ActionButton3.BackgroundImage" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+  <data name="ActionButton4.BackgroundImage" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGOfPtRkwAAACBjSFJNAAB6
         JQAAgIMAAPn/AACA6QAAdTAAAOpgAAA6mAAAF2+SX8VGAAAACXBIWXMAAAsTAAALEwEAmpwYAAACOElE
@@ -220,7 +232,7 @@ The 'Image' and 'User icon' parameters will be ignored.</value>
         VnR1MIwhwMTCyqEQ37qEmZVDFF0OE/9nAACtFF4Ey6OP+wAAAABJRU5ErkJggg==
 </value>
   </data>
-  <data name="ActionButton4.BackgroundImage" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+  <data name="ActionButton5.BackgroundImage" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGOfPtRkwAAACBjSFJNAAB6
         JQAAgIMAAPn/AACA6QAAdTAAAOpgAAA6mAAAF2+SX8VGAAAACXBIWXMAAAsTAAALEwEAmpwYAAACOElE

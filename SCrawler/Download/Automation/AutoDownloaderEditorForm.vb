@@ -134,11 +134,26 @@ Namespace DownloadObjects
         Private Sub TXT_GROUPS_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As EventArgs) Handles TXT_GROUPS.ActionOnButtonClick
             Select Case Sender.DefaultButton
                 Case ActionButton.DefaultButtons.Edit
-                    Using f As New LabelsForm(MyGroups, (From g As DownloadGroup In Settings.Groups Where Not g.IsViewFilter Select g.Name)) With {.Text = "Groups", .Icon = My.Resources.GroupByIcon_16}
+                    Using f As New LabelsForm(MyGroups, (From g As DownloadGroup In Settings.Groups Where Not g.IsViewFilter Select g.Name)) With {
+                        .Text = "Groups (F3 to edit)",
+                        .Icon = My.Resources.GroupByIcon_16,
+                        .IsGroups = True
+                    }
                         f.ShowDialog()
                         If f.DialogResult = DialogResult.OK Then MyGroups.ListAddList(f.LabelsList, LAP.ClearBeforeAdd) : TXT_GROUPS.Text = MyGroups.ListToString
                     End Using
                 Case ActionButton.DefaultButtons.Clear : MyGroups.Clear()
+                Case ActionButton.DefaultButtons.Info
+                    Try
+                        If MyGroups.Count > 0 Then
+                            Dim i% = Settings.Groups.IndexOf(MyGroups(0))
+                            If i >= 0 Then
+                                Using gf As New GroupEditorForm(Settings.Groups(i)) : gf.ShowDialog() : End Using
+                            End If
+                        End If
+                    Catch ex As Exception
+                        ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Show group")
+                    End Try
             End Select
         End Sub
         Private Sub ChangeEnabled() Handles OPT_DISABLED.CheckedChanged,

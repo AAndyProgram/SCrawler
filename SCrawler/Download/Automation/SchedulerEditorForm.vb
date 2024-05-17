@@ -8,6 +8,8 @@
 ' but WITHOUT ANY WARRANTY
 Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Forms.Toolbars
+Imports PersonalUtilities.Forms.Controls.Base
+Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Tools
 Imports ECI = PersonalUtilities.Forms.Toolbars.EditToolbar.ControlItem
 Imports ADB = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons
@@ -235,6 +237,25 @@ Namespace DownloadObjects
         Private Function GetSchedulerFiles() As List(Of SFile)
             Return SFile.GetFiles(SettingsFolderName.CSFileP, $"{Scheduler.FileNameDefault}*.xml",, EDP.ReturnValue)
         End Function
+        Private Class SchedulerList : Inherits SimpleListForm(Of String)
+            Friend Sub New(ByVal Source As IEnumerable(Of String), Optional ByRef DesignXML As EContainer = Nothing)
+                MyBase.New(Source, DesignXML)
+            End Sub
+            Protected Overrides Sub MyForm_Load(sender As Object, e As EventArgs)
+                MyBase.MyForm_Load(sender, e)
+                CMB_DATA.Button(ADB.Add).ToolTipText = "Create a new scheduler"
+                CMB_DATA.Button(ADB.SaveAs).ToolTipText = "Clone an existing scheduler and save it as a new one"
+                CMB_DATA.Button(ADB.Delete).ToolTipText = "Delete the selected scheduler"
+                CMB_DATA.Buttons.UpdateButtonsPositions()
+            End Sub
+            Protected Overrides Sub CMB_DATA_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As ActionButtonEventArgs)
+                If e.DefaultButton = ADB.SaveAs Then
+                    AddNewItem(e, e.Key, e.KeyEventArgs)
+                Else
+                    MyBase.CMB_DATA_ActionOnButtonClick(Sender, e)
+                End If
+            End Sub
+        End Class
         Private Sub BTT_SETTINGS_Click(sender As Object, e As EventArgs) Handles BTT_SETTINGS.Click
             Const msgTitle$ = "Change scheduler"
             Try
@@ -244,7 +265,7 @@ Namespace DownloadObjects
                     If .ListExists Then .ForEach(Sub(ff) l.Add(ff, ff.Name.Replace(Scheduler.FileNameDefault, String.Empty).StringTrimStart("_").IfNullOrEmpty(defName)))
                 End With
                 If l.Count > 0 Then
-                    Using chooser As New SimpleListForm(Of String)(l.Values.Cast(Of String), Settings.Design) With {
+                    Using chooser As New SchedulerList(l.Values.Cast(Of String), Settings.Design) With {
                         .DesignXMLNodeName = "SchedulerChooserForm",
                         .Icon = ImageRenderer.GetIcon(My.Resources.ScriptPic_32, EDP.ReturnValue),
                         .FormText = "Schedulers",
@@ -256,17 +277,56 @@ Namespace DownloadObjects
                             Dim f As SFile
                             Dim selectedName$
                             Dim addedObj$ = String.Empty
+                            Dim addedObjIsClone As Boolean = False
+                            Dim createSchedulerPath As Func(Of String, SFile) = Function(n) $"{SettingsFolderName}\{Scheduler.FileNameDefault}_{n.StringRemoveWinForbiddenSymbols}.xml"
                             .ClearButtons()
-                            .Buttons = {ADB.Add, ADB.Delete}
+                            .Buttons = {ADB.Add, ADB.SaveAs, ADB.Delete}
                             AddHandler .AddClick, Sub(ByVal obj As Object, ByVal args As SimpleListFormEventArgs)
                                                       If addedObj.IsEmptyString Then
                                                           addedObj = InputBoxE("Enter a new scheduler name:", msgTitle)
                                                           args.Result = Not addedObj.IsEmptyString
-                                                          If args.Result Then args.Item = addedObj
+                                                          If args.Result Then
+                                                              If l.Values.Count > 0 AndAlso l.Values.ListIndexOf(Function(n) n.StringToLower = addedObj.StringToLower) >= 0 Then
+                                                                  args.Result = False
+                                                                  MsgBoxE({$"A scheduler named '{addedObj}' already exists", msgTitle}, vbCritical)
+                                                              Else
+                                                                  args.Item = addedObj
+                                                                  addedObjIsClone = Not args.ButtonEventArgs Is Nothing AndAlso
+                                                                                    TypeOf args.ButtonEventArgs Is ActionButtonEventArgs AndAlso
+                                                                                    DirectCast(args.ButtonEventArgs, ActionButtonEventArgs).DefaultButton = ADB.SaveAs
+                                                                  If addedObjIsClone Then
+                                                                      Dim cloneF As SFile = createSchedulerPath.Invoke(addedObj)
+                                                                      If Not cloneF.Exists And Settings.Automation.File.Exists Then
+                                                                          Using x As New XmlFile(Settings.Automation.File, Protector.Modes.All, False) With {.AllowSameNames = True, .XmlReadOnly = True}
+                                                                              x.LoadData()
+                                                                              x.Save(cloneF, EDP.SendToLog)
+                                                                          End Using
+                                                                      End If
+                                                                  End If
+                                                              End If
+                                                          End If
                                                       Else
                                                           MsgBoxE({"You can only create one scheduler at a time", "Create a new scheduler"}, vbCritical)
                                                       End If
                                                   End Sub
+                            AddHandler .DeleteClick, Sub(ByVal obj As Object, ByVal args As SimpleListFormEventArgs)
+                                                         Dim n$ = AConvert(Of String)(args.Item, String.Empty)
+                                                         If Not n.IsEmptyString Then
+                                                             If MsgBoxE({$"Are you sure you want to delete the '{n}' scheduler?", msgTitle}, vbExclamation,,,
+                                                                        {"Process", "Cancel"}) = 0 Then
+                                                                 Dim delF As SFile = createSchedulerPath.Invoke(n)
+                                                                 If delF.Exists AndAlso delF.Delete Then
+                                                                     args.Result = True
+                                                                     If l.ContainsKey(delF) Then
+                                                                         l.Remove(delF)
+                                                                     Else
+                                                                         Dim delIndx% = l.ListIndexOf(Function(dd) dd.Value = n)
+                                                                         If delIndx >= 0 Then l.Remove(l.Keys(delIndx))
+                                                                     End If
+                                                                 End If
+                                                             End If
+                                                         End If
+                                                     End Sub
                             If Settings.Automation.File.Name = Scheduler.FileNameDefault Then
                                 .DataSelectedIndexes.Add(0)
                             Else
@@ -279,7 +339,7 @@ Namespace DownloadObjects
                                     If selectedName = defName Then
                                         f = Settings.Automation.FileDefault
                                     Else
-                                        f = $"{SettingsFolderName}\{Scheduler.FileNameDefault}_{selectedName.StringRemoveWinForbiddenSymbols}.xml"
+                                        f = createSchedulerPath.Invoke(selectedName)
                                     End If
                                     If Not Settings.Automation.File = f AndAlso Settings.Automation.Reset(f, False) Then
                                         Settings.Automation.File = f

@@ -54,6 +54,7 @@ Namespace Plugin.Hosts
 #Region "Control"
         Friend Property Control As Control
         Friend Property ControlNumber As Integer = -1
+        Friend Property Category As String = String.Empty
         Friend ReadOnly Property ControlHeight As Integer
             Get
                 If Not Control Is Nothing Then
@@ -333,6 +334,8 @@ Namespace Plugin.Hosts
             If DirectCast(Member, PropertyInfo).PropertyType Is GetType(PropertyValue) Then
                 UpdateMember()
                 Options = Member.GetCustomAttribute(Of PropertyOption)()
+                Category = If(Options?.Category, String.Empty)
+                If Category.IsEmptyString Then Category = If(Member.GetCustomAttribute(Of ComponentModel.CategoryAttribute)?.Category, String.Empty)
                 IsTaskCounter = Not Member.GetCustomAttribute(Of TaskCounter)() Is Nothing
                 IsHidden = If(Member.GetCustomAttribute(Of HiddenControlAttribute)?.IsHidden, False)
                 With Member.GetCustomAttribute(Of PXML)

@@ -21,6 +21,7 @@ Namespace DownloadObjects
             Specified = 3
             Groups = 4
         End Enum
+        Friend Const NoPauseMode As Integer = -100
         Friend Enum PauseModes As Integer
             Disabled = -2
             Enabled = -1

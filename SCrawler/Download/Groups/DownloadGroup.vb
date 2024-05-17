@@ -20,6 +20,7 @@ Namespace DownloadObjects.Groups
         Private Const Name_FilterViewMode As String = "FilterViewMode"
         Private Const Name_FilterGroupUsers As String = "FilterGroupUsers"
         Private Const Name_FilterShowGroupsInsteadLabels As String = "FilterShowGroupsInsteadLabels"
+        Private Const Name_FilterShowAllUsers As String = "FilterShowAllUsers"
 #End Region
 #Region "Declarations"
 #Region "Controls"
@@ -36,6 +37,7 @@ Namespace DownloadObjects.Groups
         Friend Property FilterViewMode As ViewModes = ViewModes.IconLarge
         Friend Property FilterGroupUsers As Boolean = True
         Friend Property FilterShowGroupsInsteadLabels As Boolean = True
+        Friend Property FilterShowAllUsers As Boolean = False
 #End Region
         Private File As SFile = Nothing
         Friend Overrides Property Name As String
@@ -144,13 +146,15 @@ Namespace DownloadObjects.Groups
                 FilterViewMode = e.Value(Name_FilterViewMode).FromXML(Of Integer)(ViewModes.IconLarge)
                 FilterGroupUsers = e.Value(Name_FilterGroupUsers).FromXML(Of Boolean)(True)
                 FilterShowGroupsInsteadLabels = e.Value(Name_FilterShowGroupsInsteadLabels).FromXML(Of Boolean)(True)
+                FilterShowAllUsers = e.Value(Name_FilterShowAllUsers).FromXML(Of Boolean)(False)
             End If
         End Sub
         Protected Overrides Function Export(ByVal e As EContainer) As EContainer
             MyBase.Export(e)
             e.AddRange({New EContainer(Name_FilterViewMode, CInt(FilterViewMode)),
                         New EContainer(Name_FilterGroupUsers, FilterGroupUsers.BoolToInteger),
-                        New EContainer(Name_FilterShowGroupsInsteadLabels, FilterShowGroupsInsteadLabels.BoolToInteger)})
+                        New EContainer(Name_FilterShowGroupsInsteadLabels, FilterShowGroupsInsteadLabels.BoolToInteger),
+                        New EContainer(Name_FilterShowAllUsers, FilterShowAllUsers.BoolToInteger)})
             Return e
         End Function
 #End Region
@@ -166,6 +170,7 @@ Namespace DownloadObjects.Groups
                         FilterViewMode = .FilterViewMode
                         FilterGroupUsers = .FilterGroupUsers
                         FilterShowGroupsInsteadLabels = .FilterShowGroupsInsteadLabels
+                        FilterShowAllUsers = .FilterShowAllUsers
                     End If
                 End With
             End If

@@ -7,6 +7,7 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports SCrawler.Plugin
+Imports SCrawler.Plugin.Attributes
 Imports SCrawler.Plugin.Hosts
 Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Forms.Controls
@@ -15,13 +16,13 @@ Imports PersonalUtilities.Tools.Web.Cookies
 Imports ADB = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons
 Namespace Editors
     Friend Class SiteEditorForm
-        Private ReadOnly LBL_AUTH As Label
-        Private ReadOnly LBL_OTHER As Label
         Private WithEvents MyDefs As DefaultFormOptions
         Private WithEvents SpecialButton As Button
         Private Property Cookies As CookieKeeper
         Private ReadOnly CookiesControlsInteraction As List(Of PropertyValueHost)
         Private CookiesChanged As Boolean = False
+        Private Const OtherOptionsText As String = "Other Parameters"
+        Private ReadOnly LabelControls As List(Of Label)
 #Region "Providers"
         Private Class SavedPostsChecker : Inherits AccountsNameChecker
             Friend ReadOnly PathControl As TextBoxExtended
@@ -139,6 +140,108 @@ Namespace Editors
             End Function
         End Class
 #End Region
+#Region "CatReorder"
+        Private Class CatReorder : Implements IDisposable
+            Private ReadOnly Items As Dictionary(Of String, List(Of PropertyValueHost))
+            Private Const EmptyCat As String = "----"
+            Friend Sub New()
+                Items = New Dictionary(Of String, List(Of PropertyValueHost))
+            End Sub
+            Friend ReadOnly Property Count As Integer
+                Get
+                    Return Items.Count
+                End Get
+            End Property
+            Friend Sub Add(ByVal Item As PropertyValueHost)
+                Dim category$ = Item.Category.IfNullOrEmpty(EmptyCat)
+                If Items.ContainsKey(category) Then
+                    Items(category).Add(Item)
+                Else
+                    Items.Add(category, New List(Of PropertyValueHost) From {Item})
+                End If
+            End Sub
+            Friend Overloads Shared Sub AddToTable(ByRef Form As SiteEditorForm, ByVal cnt As Control, ByVal _height As Integer,
+                                                   ByRef h As Integer, ByRef c As Integer)
+                With Form.TP_SITE_PROPS
+                    .RowStyles.Add(New RowStyle(SizeType.Absolute, _height))
+                    .RowCount += 1
+                    .Controls.Add(cnt, 0, .RowStyles.Count - 1)
+                End With
+                h += _height
+                c += 1
+            End Sub
+            Friend Overloads Sub AddToTable(ByRef Form As SiteEditorForm, ByRef h As Integer, ByRef c As Integer, ByRef offset As Integer)
+                If Items.Count > 0 Then
+                    Dim iCount% = Items.Count
+                    Dim otherOptionsCat As KeyValuePair(Of String, List(Of PropertyValueHost)) = Nothing
+                    Dim otherOptionsCatExists As Boolean = False
+                    Dim AuthCat As KeyValuePair(Of String, List(Of PropertyValueHost)) = Nothing
+                    Dim AuthCatExists As Boolean = False
+                    If Items.Count > 1 Then
+                        Dim catIndx% = Items.ListIndexOf(Function(cc) Not cc.Key.IsEmptyString AndAlso (cc.Key = EmptyCat Or cc.Key = OtherOptionsText))
+                        If catIndx >= 0 Then
+                            otherOptionsCat = New KeyValuePair(Of String, List(Of PropertyValueHost))(Items.Keys(catIndx), Items(Items.Keys(catIndx)))
+                            otherOptionsCatExists = True
+                            Items.Remove(otherOptionsCat.Key)
+                        End If
+                        catIndx = Items.ListIndexOf(Function(cc) Not cc.Key.IsEmptyString AndAlso (cc.Key = PropertyOption.CategoryAuth))
+                        If catIndx >= 0 Then
+                            AuthCat = New KeyValuePair(Of String, List(Of PropertyValueHost))(Items.Keys(catIndx), Items(Items.Keys(catIndx)))
+                            AuthCatExists = True
+                            Items.Remove(AuthCat.Key)
+                        End If
+                    End If
+                    If AuthCatExists Then AddToTable(Form, iCount, AuthCat, h, c, offset)
+                    For Each obj As KeyValuePair(Of String, List(Of PropertyValueHost)) In Items
+                        AddToTable(Form, iCount, obj, h, c, offset)
+                    Next
+                    If otherOptionsCatExists Then AddToTable(Form, iCount, otherOptionsCat, h, c, offset)
+                End If
+            End Sub
+            Private Overloads Sub AddToTable(ByRef Form As SiteEditorForm, ByVal ItemsCount As Integer,
+                                             ByVal obj As KeyValuePair(Of String, List(Of PropertyValueHost)),
+                                             ByRef h As Integer, ByRef c As Integer, ByRef offset As Integer)
+                If ItemsCount > 1 And obj.Value.Count > 0 Then
+                    Dim category$ = obj.Key.IfNullOrEmpty(OtherOptionsText)
+                    If category = EmptyCat Then category = OtherOptionsText
+                    Form.LabelControls.Add(New Label With {.Text = category,
+                                                               .TextAlign = ContentAlignment.MiddleCenter,
+                                                               .Dock = DockStyle.Fill})
+                    AddToTable(Form, Form.LabelControls.Last, 25, h, c)
+                End If
+                If obj.Value.Count > 0 Then
+                    For Each prop As PropertyValueHost In obj.Value
+                        With prop
+                            If .CookieValueExtractorExists Then Form.CookiesControlsInteraction.Add(prop)
+                            .CreateControl(Form.TT_MAIN)
+                            AddToTable(Form, .Control, .ControlHeight, h, c)
+                            If .LeftOffset > offset Then offset = .LeftOffset
+                            If Not .Options.AllowNull Or Not .ProviderFieldsChecker Is Nothing Then _
+                                   Form.MyDefs.MyFieldsCheckerE.AddControl(.Control, .Options.ControlText, .Type,
+                                                                           .Options.AllowNull, .ProviderFieldsChecker)
+                        End With
+                    Next
+                End If
+            End Sub
+#Region "IDisposable Support"
+            Private disposedValue As Boolean = False
+            Protected Overridable Overloads Sub Dispose(ByVal disposing As Boolean)
+                If Not disposedValue Then
+                    If disposing And Items.Count > 0 Then Items.Clear()
+                    disposedValue = True
+                End If
+            End Sub
+            Protected Overrides Sub Finalize()
+                Dispose(False)
+                MyBase.Finalize()
+            End Sub
+            Friend Overloads Sub Dispose() Implements IDisposable.Dispose
+                Dispose(True)
+                GC.SuppressFinalize(Me)
+            End Sub
+#End Region
+        End Class
+#End Region
         Private ReadOnly PropertyValid As Predicate(Of PropertyValueHost) = Function(p) (Not p.IsHidden Or SiteSettingsShowHiddenControls) And Not p.Options Is Nothing
         Private ReadOnly Property Host As SettingsHost
         Private Property HostCollection As SettingsHostCollection
@@ -148,8 +251,7 @@ Namespace Editors
             Host = h
             CookiesControlsInteraction = New List(Of PropertyValueHost)
             If Not Host.Responser Is Nothing Then Cookies = Host.Responser.Cookies.Copy
-            LBL_AUTH = New Label With {.Text = "Authorization", .TextAlign = ContentAlignment.MiddleCenter, .Dock = DockStyle.Fill}
-            LBL_OTHER = New Label With {.Text = "Other Parameters", .TextAlign = ContentAlignment.MiddleCenter, .Dock = DockStyle.Fill}
+            LabelControls = New List(Of Label)
             Host.BeginEdit()
         End Sub
         Private Sub SiteEditorForm_Load(sender As Object, e As EventArgs) Handles Me.Load
@@ -191,13 +293,6 @@ Namespace Editors
 
                         Dim offset% = PropertyValueHost.LeftOffsetDefault
                         Dim h% = 0, c% = 0
-                        Dim AddTpControl As Action(Of Control, Integer) = Sub(ByVal cnt As Control, ByVal _height As Integer)
-                                                                              TP_SITE_PROPS.RowStyles.Add(New RowStyle(SizeType.Absolute, _height))
-                                                                              TP_SITE_PROPS.RowCount += 1
-                                                                              TP_SITE_PROPS.Controls.Add(cnt, 0, TP_SITE_PROPS.RowStyles.Count - 1)
-                                                                              h += _height
-                                                                              c += 1
-                                                                          End Sub
 
                         If Host.Responser Is Nothing Then
                             h -= 28
@@ -214,41 +309,17 @@ Namespace Editors
 
                             Dim laAdded As Boolean = False
                             Dim loAdded As Boolean = False
-                            Dim pArr() As Boolean
-                            If .PropList.Exists(Function(p) If(p.Options?.IsAuth, False)) Then pArr = {True, False} Else pArr = {False}
                             If .PropList.Exists(Function(p) p.ControlNumber >= 0) Then .PropList.Sort()
-                            For Each pAuth As Boolean In pArr
+                            Using pc As New CatReorder
                                 For Each prop As PropertyValueHost In .PropList
-                                    If PropertyValid.Invoke(prop) Then
-                                        With prop
-                                            If .Options.IsAuth = pAuth Then
-
-                                                If .CookieValueExtractorExists Then CookiesControlsInteraction.Add(prop)
-
-                                                If pArr.Length = 2 Then
-                                                    Select Case pAuth
-                                                        Case True
-                                                            If Not laAdded Then AddTpControl(LBL_AUTH, 25) : laAdded = True
-                                                        Case False
-                                                            If Not loAdded Then AddTpControl(LBL_OTHER, 25) : loAdded = True
-                                                    End Select
-                                                End If
-
-                                                .CreateControl(TT_MAIN)
-                                                AddTpControl(.Control, .ControlHeight)
-                                                If .LeftOffset > offset Then offset = .LeftOffset
-                                                If Not .Options.AllowNull Or Not .ProviderFieldsChecker Is Nothing Then _
-                                                   MyDefs.MyFieldsCheckerE.AddControl(.Control, .Options.ControlText, .Type,
-                                                                                      .Options.AllowNull, .ProviderFieldsChecker)
-                                            End If
-                                        End With
-                                    End If
+                                    If PropertyValid.Invoke(prop) Then pc.Add(prop)
                                 Next
-                            Next
+                                If pc.Count > 0 Then pc.AddToTable(Me, h, c, offset)
+                            End Using
                         End If
 
                         SpecialButton = .GetSettingsButtonInternal
-                        If Not SpecialButton Is Nothing Then AddTpControl(SpecialButton, 28)
+                        If Not SpecialButton Is Nothing Then CatReorder.AddToTable(Me, SpecialButton, 28, h, c)
                         TP_SITE_PROPS.BaseControlsPadding = New Padding(offset, 0, 0, 0)
                         offset += PaddingE.GetOf({TP_SITE_PROPS}).Left
                         TXT_PATH.CaptionWidth = offset
@@ -290,8 +361,7 @@ Namespace Editors
             If Host.PropList.Count > 0 Then Host.PropList.ForEach(Sub(p) p.DisposeControl())
             If Not SpecialButton Is Nothing Then SpecialButton.Dispose()
             CookiesControlsInteraction.Clear()
-            LBL_AUTH.Dispose()
-            LBL_OTHER.Dispose()
+            LabelControls.ListClearDispose
             Host.EndEdit()
             If Not Cookies Is Nothing Then Cookies.Dispose()
         End Sub
@@ -315,6 +385,13 @@ Namespace Editors
                             Next
                             If pList.Count > 0 AndAlso Not CBool(.PropList(indxList(i)).PropertiesCheckingMethod.Invoke(.Source, {pList})) Then Exit Sub
                         Next
+                    End If
+
+                    If TXT_PATH.Text.IsEmptyString Then TXT_PATH.Text = .PathGenerate.CSFilePS
+                    If Not .Path.PathWithSeparator = TXT_PATH.Text Then
+                        If Not SettingsHostCollection.UpdateHostPath_CheckDownloader Then Exit Sub
+                        If Not SettingsHostCollection.UpdateHostPath(.Self, .Path, TXT_PATH.Text.CSFileP, True) Then _
+                           MsgBoxE({"Something went wrong while updating the site path.", "Site path changed"}, vbCritical)
                     End If
 
                     SiteDefaultsFunctions.SetPropByChecker(TP_SITE_PROPS, Host)

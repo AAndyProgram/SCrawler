@@ -18,9 +18,9 @@ Namespace API.RedGifs
     <Manifest(RedGifsSiteKey)>
     Friend Class SiteSettings : Inherits SiteSettingsBase
 #Region "Declarations"
-        <PropertyOption(ControlToolTip:="Bearer token", AllowNull:=False), DependentFields(NameOf(UserAgent)), ControlNumber(1), PClonable(Clone:=False)>
+        <PropertyOption(ControlToolTip:="Bearer token", AllowNull:=False), DependentFields(NameOf(UserAgent)), ControlNumber(1), PClonable(Clone:=False), HiddenControl>
         Friend ReadOnly Property Token As PropertyValue
-        <PropertyOption, ControlNumber(2), PClonable>
+        <PropertyOption, ControlNumber(2), PClonable, HiddenControl>
         Private ReadOnly Property UserAgent As PropertyValue
         <PXML> Friend ReadOnly Property TokenLastDateUpdated As PropertyValue
         Private Const TokenName As String = "authorization"
@@ -107,7 +107,9 @@ Namespace API.RedGifs
         Friend Overrides Sub Update()
             If _SiteEditorFormOpened Then
                 Dim NewToken$ = AConvert(Of String)(Token.Value, AModes.Var, String.Empty)
-                If Not _LastTokenValue = NewToken Then TokenLastDateUpdated.Value = Now
+                If Not _LastTokenValue = NewToken And Not NewToken.IsEmptyString Then TokenLastDateUpdated.Value = Now
+                If Responser.CookiesExists AndAlso MsgBoxE({"RedGifs doesn't require cookies! Do you still want to use cookies?", "RedGifs cookies"},
+                                                           vbExclamation,,, {"Use", "Don't use"}) = 1 Then Responser.Cookies.Clear()
             End If
             MyBase.Update()
         End Sub
