@@ -666,8 +666,7 @@ Namespace API.Twitter
                     .AutoClear = True,
                     .AutoReset = True,
                     .CommandPermanent = $"chcp {BatchExecutor.UnicodeEncoding}",
-                    .FileExchanger = confCache,
-                    .DebugMode = True
+                    .FileExchanger = confCache
                 }
                     tgdl.FileExchanger.DeleteCacheOnDispose = False
                     tgdl.FileExchanger.DeleteRootOnDispose = False

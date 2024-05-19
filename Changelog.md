@@ -1,3 +1,12 @@
+# 2024.5.19.0
+
+*2024-05-19*
+
+- Added
+  - YouTube (standalone app): add upload date to description (request #192) (`Settings` - `Info` - `Create description files: add upload date`, `Create description files: create without description`).
+- Fixed
+  - YouTube (SCrawler): advanced settings are not saved when changed
+
 # 2024.5.18.0
 
 *2024-05-18*

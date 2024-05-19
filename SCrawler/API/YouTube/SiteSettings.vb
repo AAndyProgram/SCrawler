@@ -59,10 +59,10 @@ Namespace API.YouTube
                             .Cookies.Clear()
                             .Cookies.AddRange(Responser.Cookies)
                             .CookiesUpdated = True
-                            .PerformUpdate()
                         End With
                     End If
                 End With
+                DirectCast(MyYouTubeSettings, YTSettings_Internal).PerformUpdate()
             End If
             MyBase.Update()
         End Sub

@@ -1143,12 +1143,22 @@ Namespace API.YouTube.Objects
                                 If fileUrl.Exists Then AddFile(fileUrl)
                             End If
 
-                            If MyYouTubeSettings.CreateDescriptionFiles And Not Description.IsEmptyString Then
-                                Dim fileDesr As SFile = File
-                                fileDesr.Extension = "txt"
-                                TextSaver.SaveTextToFile(Description, fileDesr,,, EDP.None)
-                                If fileDesr.Exists Then AddFile(fileDesr)
-                            End If
+                            With MyYouTubeSettings
+                                If .CreateDescriptionFiles And (Not Description.IsEmptyString Or
+                                                                (.CreateDescriptionFiles_CreateWithNoDescription And .CreateDescriptionFiles_AddUploadDate)) Then
+                                    Dim fileDesr As SFile = File
+                                    fileDesr.Extension = "txt"
+                                    Using fileDesrText As New TextSaver(fileDesr)
+                                        If .CreateDescriptionFiles_AddUploadDate Then fileDesrText.Append($"Uploaded: {DateAdded:yyyy-MM-dd HH:mm:ss}")
+                                        If Not Description.IsEmptyString Then
+                                            If Not fileDesrText.IsEmptyString Then fileDesrText.AppendLine.AppendLine()
+                                            fileDesrText.Append(Description)
+                                        End If
+                                        fileDesrText.Save(EDP.None)
+                                    End Using
+                                    If fileDesr.Exists Then AddFile(fileDesr)
+                                End If
+                            End With
 
                             If PlaylistCount > 0 And Not CoverDownloaded And Not PlaylistID.IsEmptyString Then DownloadPlaylistCover(PlaylistID, File, UseCookies)
                             If prExists Then Progress.InformationTemporary = $"Download {MediaType}: post processing"
