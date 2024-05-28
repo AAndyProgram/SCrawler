@@ -139,7 +139,6 @@ Namespace DownloadObjects
                 End If
             Catch ex As Exception
                 ErrorsDescriber.Execute(EDP.SendToLog, ex, "[FeedSpecial.UpdateUsers]")
-                MainFrameObj.UpdateLogButton()
             End Try
         End Sub
         Friend Overloads Shared Function UpdateUsers(ByVal Item As UserMediaD, ByVal InitialUser As UserInfo, ByVal NewUser As UserInfo,

@@ -228,7 +228,6 @@ Namespace DownloadObjects
             Catch ex As Exception
                 _FilesUpdating = False
                 ErrorsDescriber.Execute(EDP.SendToLog, ex, "[TDownloader.FilesUpdatePendingUsers]")
-                MainFrameObj.UpdateLogButton()
             End Try
         End Sub
         Friend Sub ClearSessions()
@@ -536,10 +535,8 @@ Namespace DownloadObjects
                 If Pool.Count > 0 Then Pool.ForEach(Sub(p) If Not p.Progress Is Nothing Then p.Progress.Maximum = 0)
                 ExecuteCommand(Settings.DownloadsCompleteCommand)
                 UpdateJobsLabel()
-                If MissingPostsDetected And Settings.AddMissingToLog Then
-                    MyMainLOG = "Some posts didn't download. You can see them in the 'Missing posts' form."
-                    MainFrameObj.UpdateLogButton()
-                End If
+                If MissingPostsDetected And Settings.AddMissingToLog Then _
+                   MyMainLOG = "Some posts didn't download. You can see them in the 'Missing posts' form."
                 Files.Sort()
                 FilesChanged = Not fBefore = Files.Count
                 RaiseEvent Downloading(False)
@@ -612,6 +609,7 @@ Namespace DownloadObjects
                     Dim limitIndex%
                     Dim limits As New List(Of HostLimit)
                     Dim Keys As New List(Of String)
+                    Dim KeysSkipped As New List(Of String)
                     Dim h As Boolean = False
                     Dim host As SettingsHost = Nothing
                     Dim hostAvailable As Boolean
@@ -638,6 +636,8 @@ Namespace DownloadObjects
                                     limit = limit.Next
                                     limits(limitIndex) = limit
                                     If limit.Value >= limit.Limit Then Exit For
+                                Else
+                                    KeysSkipped.Add(_Item.Key)
                                 End If
                             End If
                         End If
@@ -655,24 +655,27 @@ Namespace DownloadObjects
                             For Each k$ In Keys
                                 i = _Job.Items.FindIndex(Function(ii) ii.Key = k)
                                 If i >= 0 Then
-                                    With _Job.Items(i)
-                                        If DirectCast(.Self, UserDataBase).ContentMissingExists Then MissingPostsDetected = True
-                                        RaiseEvent UserDownloadStateChanged(.Self, False)
-                                        host = _Job.UserHost(.Self)
-                                        host.AfterDownload(.Self, Download.Main)
-                                        If Not .Disposed AndAlso Not .IsCollection AndAlso .DownloadedTotal(False) > 0 Then
-                                            If Not Downloaded.Contains(.Self) Then Downloaded.Add(Settings.GetUser(.Self))
-                                            With DirectCast(.Self, UserDataBase)
-                                                If .LatestData.Count > 0 And .IncludeInTheFeed Then Files.ListAddList(.LatestData.Select(Function(d) New UserMediaD(d, .Self, Session)), FilesLP)
-                                            End With
-                                            dcc = True
-                                        End If
-                                    End With
+                                    If KeysSkipped.Count = 0 OrElse Not KeysSkipped.Contains(k) Then
+                                        With _Job.Items(i)
+                                            If DirectCast(.Self, UserDataBase).ContentMissingExists Then MissingPostsDetected = True
+                                            RaiseEvent UserDownloadStateChanged(.Self, False)
+                                            host = _Job.UserHost(.Self)
+                                            host.AfterDownload(.Self, Download.Main)
+                                            If Not .Disposed AndAlso Not .IsCollection AndAlso .DownloadedTotal(False) > 0 Then
+                                                If Not Downloaded.Contains(.Self) Then Downloaded.Add(Settings.GetUser(.Self))
+                                                With DirectCast(.Self, UserDataBase)
+                                                    If .LatestData.Count > 0 And .IncludeInTheFeed Then Files.ListAddList(.LatestData.Select(Function(d) New UserMediaD(d, .Self, Session)), FilesLP)
+                                                End With
+                                                dcc = True
+                                            End If
+                                        End With
+                                    End If
                                     _Job.Items.RemoveAt(i)
                                 End If
                             Next
                         End If
                         Keys.Clear()
+                        KeysSkipped.Clear()
                         _Job.Items.RemoveAll(Function(ii) ii.Disposed)
                         If dcc Then Downloaded.RemoveAll(Function(u) u Is Nothing)
                         If dcc And Downloaded.Count > 0 Then RaiseEvent DownloadCountChange()

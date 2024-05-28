@@ -16,6 +16,7 @@ Imports PersonalUtilities.Tools.Notifications
 Namespace DownloadObjects
     Friend Class AutoDownloader : Inherits GroupParameters : Implements IIndexable, IEContainerProvider, IComparable(Of AutoDownloader)
         Friend Event PauseChanged(ByVal Value As PauseModes)
+        Friend Event PlanChanged As Scheduler.PlanChangedEventHandler
         Friend Enum Modes As Integer
             None = 0
             Specified = 3
@@ -199,6 +200,52 @@ Namespace DownloadObjects
         Private Const Name_ShowSimpleNotification As String = "ShowSimpleNotification"
 #End Region
 #Region "Declarations"
+        Private _LVIState As Integer = 0
+        Friend Function LVIStateChanged() As Boolean
+            Dim ____LVIState%
+            Dim result As Boolean
+            If Downloading Then
+                ____LVIState = 1
+            ElseIf DownloadReady(True, True) Or ForceStartRequested Then
+                ____LVIState = 2
+            ElseIf Not Working And Not IsManual Then
+                ____LVIState = 3
+            ElseIf IsPaused Then
+                ____LVIState = 4
+            ElseIf Settings.AutomationBrushUndownloadedPlansMinutes.Value > 0 AndAlso
+                   LastDownloadDate.AddMinutes(Settings.AutomationBrushUndownloadedPlansMinutes.Value) < Now Then
+                ____LVIState = 5
+            Else
+                ____LVIState = 0
+            End If
+            result = Not _LVIState = ____LVIState
+            _LVIState = ____LVIState
+            Return result
+        End Function
+        Friend ReadOnly Property LVI As ListViewItem
+            Get
+                Dim l As New ListViewItem(ToString)
+                If Downloading Then
+                    l.BackColor = MyColor.OkBack
+                    l.ForeColor = MyColor.OkFore
+                ElseIf DownloadReady(True, True) Or ForceStartRequested Then
+                    l.BackColor = MyColor.EditBack
+                    l.ForeColor = MyColor.EditFore
+                ElseIf Not Working And Not IsManual Then
+                    l.BackColor = MyColor.DeleteBack
+                    l.ForeColor = MyColor.DeleteFore
+                ElseIf Working And IsPaused And Not IsManual Then
+                    l.BackColor = MyColor.UpdateBack
+                    l.ForeColor = MyColor.UpdateFore
+                ElseIf Settings.AutomationBrushUndownloadedPlansMinutes.Value > 0 AndAlso
+                       LastDownloadDate.AddMinutes(Settings.AutomationBrushUndownloadedPlansMinutes.Value) < Now Then
+                    l.BackColor = Color.FromArgb(224, 224, 224)
+                    l.ForeColor = Color.FromArgb(64, 64, 64)
+                End If
+                LVIStateChanged()
+                Return l
+            End Get
+        End Property
         Friend Property Source As Scheduler
         Private _Mode As Modes = Modes.None
         Friend Property Mode As Modes
@@ -267,11 +314,15 @@ Namespace DownloadObjects
         End Property
         Private Function GetWorkingState() As String
             Dim OutStr$
-            If Working Then
-                If StartupDelay > 0 And _StartTime.AddMinutes(StartupDelay) > Now Then
-                    OutStr = $"delayed until {_StartTime.AddMinutes(StartupDelay).ToStringDate(ADateTime.Formats.BaseDateTime)}"
+            If Working And Not IsManual Then
+                If _Downloading Then
+                    OutStr = "downloading"
+                ElseIf _ForceStartRequested Then
+                    OutStr = "force start pending"
                 ElseIf _StopRequested Then
                     OutStr = "stopping"
+                ElseIf StartupDelay > 0 And _StartTime.AddMinutes(StartupDelay) > Now Then
+                    OutStr = $"delayed ({StartupDelay}) until {_StartTime.AddMinutes(StartupDelay).ToStringDate(ADateTime.Formats.BaseDateTime)}"
                 Else
                     OutStr = "working"
                 End If
@@ -282,14 +333,26 @@ Namespace DownloadObjects
                         Case Else : OutStr &= $", paused ([{Pause}] until {AConvert(Of String)(_PauseValue, ADateTime.Formats.BaseDateTime, "?")})"
                     End Select
                 End If
+            ElseIf IsManual Then
+                If _Downloading Then
+                    OutStr = "downloading"
+                ElseIf _ForceStartRequested Then
+                    OutStr = "force start pending"
+                Else
+                    OutStr = String.Empty
+                End If
             Else
                 OutStr = "stopped"
             End If
             Return OutStr
         End Function
+        Private Function GetWorkingState_Manual() As String
+            Dim OutStr$ = GetWorkingState()
+            If Not OutStr.IsEmptyString Then Return $" ({OutStr})" Else Return String.Empty
+        End Function
         Public Overrides Function ToString() As String
             If IsManual Then
-                Return $"{Name} (manual): last download date: {GetLastDateString()}"
+                Return $"{Name} (manual{GetWorkingState_Manual()}): last download date: {GetLastDateString()}"
             Else
                 Return $"{Name} ({GetWorkingState()}): last download date: {GetLastDateString()}; next run: {GetNextDateString()}"
             End If
@@ -316,6 +379,7 @@ Namespace DownloadObjects
         Friend Sub New(ByVal x As EContainer)
             Me.New
             Initialization = True
+            'URGENT: replace this line
             Dim m% = x.Value(Name_Mode).FromXML(Of Integer)(Modes.None)
             If m = 1 Or m = 2 Then m = Modes.Specified
             Mode = m
@@ -395,10 +459,10 @@ Namespace DownloadObjects
         End Function
 #End Region
 #Region "Execution"
-        Private AThread As Thread
+        Private _Working As Boolean = False
         Friend ReadOnly Property Working As Boolean
             Get
-                Return If(AThread?.IsAlive, False)
+                Return _Working
             End Get
         End Property
         Private _StartTime As Date = Now
@@ -406,11 +470,8 @@ Namespace DownloadObjects
             If Not IsManual Or Force Then
                 If Init Then _StartTime = Now
                 _IsNewPlan = False
-                If Not Working And Not Mode = Modes.None Then
-                    AThread = New Thread(New ThreadStart(AddressOf Checker))
-                    AThread.SetApartmentState(ApartmentState.MTA)
-                    AThread.Start()
-                End If
+                If Not Working And Not Mode = Modes.None Then _Working = True
+                RaiseEvent PlanChanged(Me)
             End If
         End Sub
         Private _StopRequested As Boolean = False
@@ -434,6 +495,7 @@ Namespace DownloadObjects
                     Case Else : _PauseValue = Nothing
                 End Select
                 RaiseEvent PauseChanged(p)
+                RaiseEvent PlanChanged(Me)
             End Set
         End Property
         Private ReadOnly Property IsPaused As Boolean
@@ -457,7 +519,10 @@ Namespace DownloadObjects
             End Get
         End Property
         Friend Sub [Stop]()
-            If Working Then _StopRequested = True
+            If Working Then
+                If Downloading Then _StopRequested = True Else _Working = False
+                RaiseEvent PlanChanged(Me)
+            End If
         End Sub
         Friend Overloads Sub Skip()
             If LastDownloadDate.AddMinutes(Timer) <= Now Then
@@ -465,65 +530,59 @@ Namespace DownloadObjects
             Else
                 _LastDownloadDateSkip = LastDownloadDate.AddMinutes(Timer)
             End If
+            RaiseEvent PlanChanged(Me)
         End Sub
         Friend Overloads Sub Skip(ByVal Minutes As Integer)
             _LastDownloadDateSkip = If(_LastDownloadDateSkip, Now).AddMinutes(Minutes)
+            RaiseEvent PlanChanged(Me)
         End Sub
         Friend Overloads Sub Skip(ByVal ToDate As Date)
             _LastDownloadDateSkip = ToDate
+            RaiseEvent PlanChanged(Me)
         End Sub
         Friend Sub SkipReset()
             _LastDownloadDateSkip = Nothing
+            RaiseEvent PlanChanged(Me)
         End Sub
         Friend Sub ForceStart()
             _ForceStartRequested = True
             If IsManual Then Start(False, True)
+            RaiseEvent PlanChanged(Me)
         End Sub
         Private _ForceStartRequested As Boolean = False
-        Private _SpecialDelayUse As Boolean = False
-        Private _SpecialDelayTime As Date? = Nothing
-        Private Sub Checker()
-            Try
-                Dim _StartDownload As Boolean
-                While (Not _StopRequested Or Downloader.Working) And Not Mode = Modes.None
-                    If ((IsManual And _ForceStartRequested) Or (NextExecutionDate < Now And Not IsPaused) Or _ForceStartRequested) And
-                       Not _StopRequested And Not Mode = Modes.None Then
-                        If Downloader.Working Then
-                            _SpecialDelayUse = True
-                        Else
-                            If _SpecialDelayUse And Not _SpecialDelayTime.HasValue Then _SpecialDelayTime = Now.AddSeconds(10)
-                            If Not _SpecialDelayUse OrElse (_SpecialDelayTime.HasValue AndAlso _SpecialDelayTime.Value < Now) Then
-                                _SpecialDelayUse = False
-                                _SpecialDelayTime = Nothing
-                                _StartDownload = False
-                                If Settings.Automation.Count = 1 Or _ForceStartRequested Or Index = -1 Then
-                                    _StartDownload = True
-                                Else
-                                    _StartDownload = NextExecutionDate.AddMilliseconds(1000 * (Index + 1)).Ticks <= Now.Ticks
-                                End If
-                                If _StartDownload Then
-                                    Download()
-                                    If IsManual Then Exit While
-                                End If
-                            End If
-                        End If
+        Friend ReadOnly Property ForceStartRequested As Boolean
+            Get
+                Return _ForceStartRequested
+            End Get
+        End Property
+        Friend ReadOnly Property DownloadReady(Optional ByVal IgnorePause As Boolean = False, Optional ByVal IgnoreDownloaderWorking As Boolean = False) As Boolean
+            Get
+                If _StopRequested Then _Working = False
+                Return (Working Or IsManual) And ((IsManual And _ForceStartRequested) Or (Not IsManual And NextExecutionDate < Now And (Not IsPaused Or IgnorePause)) Or _ForceStartRequested) And
+                       Not _StopRequested And Not Mode = Modes.None And (Not Downloader.Working Or IgnoreDownloaderWorking)
+            End Get
+        End Property
+        Friend ReadOnly Property NextDate As Date?
+            Get
+                If Not _StopRequested And Not Mode = Modes.None Then
+                    If IsManual Or _ForceStartRequested Then
+                        Return Now.AddYears(-10)
+                    ElseIf Not IsPaused And Not IsManual And Working Then
+                        Return NextExecutionDate
                     End If
-                    Thread.Sleep(500)
-                End While
-            Catch ex As Exception
-                ErrorsDescriber.Execute(EDP.SendToLog, ex, "[AutoDownloader.Checker]")
-            Finally
-                _StopRequested = False
-            End Try
-        End Sub
+                End If
+                Return Nothing
+            End Get
+        End Property
         Private _Downloading As Boolean = False
         Friend ReadOnly Property Downloading As Boolean
             Get
                 Return _Downloading
             End Get
         End Property
-        Private Sub Download()
+        Friend Sub Download()
             _Downloading = True
+            RaiseEvent PlanChanged(Me)
             Dim Keys As New List(Of String)
             Try
                 Dim users As New List(Of IUserData)
@@ -589,7 +648,7 @@ Namespace DownloadObjects
                         While .Working Or .Count > 0 : notify.Invoke() : Thread.Sleep(200) : End While
                         .AutoDownloaderWorking = False
                         notify.Invoke
-                        If simple And DownloadedUsersCount + DownloadedSubscriptionsCount > 0 Then
+                        If simple And (DownloadedUsersCount + DownloadedSubscriptionsCount) > 0 Then
                             Dim msg$ = String.Empty
                             If DownloadedUsersCount > 0 Then msg = $"{DownloadedUsersCount} user(s) "
                             If DownloadedSubscriptionsCount > 0 Then msg &= $"{IIf(DownloadedUsersCount > 0, "and ", String.Empty)}{DownloadedSubscriptionsCount} subscription(s) "
@@ -607,6 +666,8 @@ Namespace DownloadObjects
                 _Downloading = False
                 _ForceStartRequested = False
                 _LastDownloadDateSkip = Nothing
+                If _StopRequested Then _Working = False
+                RaiseEvent PlanChanged(Me)
             End Try
         End Sub
         Private Sub ShowNotification(ByVal u As IUserData)

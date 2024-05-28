@@ -276,7 +276,6 @@ Namespace DownloadObjects
                 End With
             Catch ex As Exception
                 ErrorsDescriber.Execute(EDP.SendToLog, ex, "Feed removed")
-                MainFrameObj.UpdateLogButton()
             End Try
         End Sub
         Private Sub Feed_SPEC_LOAD(ByVal Source As ToolStripMenuItem, ByVal e As EventArgs)
@@ -861,7 +860,6 @@ Namespace DownloadObjects
                 End If
             Catch ex As Exception
                 ErrorsDescriber.Execute(EDP.SendToLog, ex, "Delete daily sessions (by list)")
-                MainFrameObj.UpdateLogButton()
             End Try
         End Sub
         Private Sub BTT_FEED_DELETE_DAILY_DATE_Click(sender As Object, e As EventArgs) Handles BTT_FEED_DELETE_DAILY_DATE.Click
@@ -899,7 +897,6 @@ Namespace DownloadObjects
                 End Using
             Catch ex As Exception
                 ErrorsDescriber.Execute(EDP.SendToLog, ex, "Delete daily sessions (by date)")
-                MainFrameObj.UpdateLogButton()
             End Try
         End Sub
 #End Region

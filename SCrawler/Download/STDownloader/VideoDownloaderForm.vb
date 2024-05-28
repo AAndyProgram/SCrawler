@@ -226,9 +226,5 @@ Namespace DownloadObjects.STDownloader
                 RemoveControls(ControlNonYT, False)
             End If
         End Sub
-        Protected Overrides Sub MyJob_Finished(ByVal Sender As Object, ByVal e As EventArgs)
-            MainFrameObj.UpdateLogButton()
-            MyBase.MyJob_Finished(Sender, e)
-        End Sub
     End Class
 End Namespace

@@ -93,7 +93,6 @@ Namespace DownloadObjects.STDownloader
                 End With
             Catch ex As Exception
                 ErrorsDescriber.Execute(EDP.SendToLog, ex, "[STDownloader.DownloaderUrlForm.TXT_URL_ActionOnTextChanged]")
-                MainFrameObj.UpdateLogButton()
             End Try
         End Sub
         Private Sub TXT_PATH_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As ActionButtonEventArgs) Handles TXT_PATH.ActionOnButtonClick

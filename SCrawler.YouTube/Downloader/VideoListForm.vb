@@ -247,7 +247,7 @@ Namespace DownloadObjects.STDownloader
                 Dim useCookiesParse As Boolean? = Nothing
                 If useCookies Then useCookiesParse = True
                 Dim standardizeUrls As Boolean = MyYouTubeSettings.StandardizeURLs
-                Dim standardize As Func(Of String, String) = Function(input) If(standardizeUrls, YouTubeFunctions.StandardizeURL(input), input)
+                Dim standardize As Func(Of String, String) = Function(input) If(standardizeUrls, YouTubeFunctions.StandardizeURL(input), input.StringTrim)
 
                 Dim c As IYouTubeMediaContainer = Nothing
                 Dim url$ = String.Empty

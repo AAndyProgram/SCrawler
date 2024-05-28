@@ -356,6 +356,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         DownloadsCompleteCommand = New XMLValueAttribute(Of String, Boolean)("DownloadsCompleteCommand", "Use",,, MyXML, n)
         ReparseMissingInTheRoutine = New XMLValue(Of Boolean)("ReparseMissingInTheRoutine", False, MyXML, n)
         UseDefaultAccountIfMissing = New XMLValue(Of Boolean)("UseDefaultAccountIfMissing", True, MyXML, n)
+        AutomationBrushUndownloadedPlansMinutes = New XMLValue(Of Integer)("AutomationBrushUndownloadedPlansMinutes", 10080, MyXML, n)
 
         'Downloading: file naming
         n_old = {"Users", "FileName"}
@@ -1001,6 +1002,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         End Get
     End Property
 #End Region
+#Region "Properties"
 #Region "Basis"
     Friend ReadOnly Property GlobalPath As XMLValue(Of SFile)
     Friend ReadOnly Property MaxLargeImageHeight As XMLValue(Of Integer)
@@ -1204,6 +1206,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
     Friend ReadOnly Property DownloadsCompleteCommand As XMLValueAttribute(Of String, Boolean)
     Friend ReadOnly Property ReparseMissingInTheRoutine As XMLValue(Of Boolean)
     Friend ReadOnly Property UseDefaultAccountIfMissing As XMLValue(Of Boolean)
+    Friend ReadOnly Property AutomationBrushUndownloadedPlansMinutes As XMLValue(Of Integer)
 #End Region
 #Region "Downloading: file naming"
     Friend ReadOnly Property FileAddDateToFileName As XMLValue(Of Boolean)
@@ -1308,6 +1311,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
     Friend ReadOnly Property LastCopyPath As XMLValue(Of SFile)
     Friend ReadOnly Property LatestSavingPath As XMLValue(Of SFile)
     Friend ReadOnly Property LatestSelectedChannel As XMLValue(Of String)
+#End Region
 #End Region
 #Region "IDisposable Support"
     Private disposedValue As Boolean = False

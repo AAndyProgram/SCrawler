@@ -14,15 +14,19 @@ Imports PauseModes = SCrawler.DownloadObjects.AutoDownloader.PauseModes
 Namespace DownloadObjects
     Friend Class Scheduler : Implements IEnumerable(Of AutoDownloader), IMyEnumerator(Of AutoDownloader), IDisposable
         Friend Const Name_Plan As String = "Plan"
+        Friend Delegate Sub PlanChangedEventHandler(ByVal Plan As AutoDownloader)
         Friend Event PauseChanged As AutoDownloader.PauseChangedEventHandler
         Private Sub OnPauseChanged(ByVal Value As PauseModes)
             RaiseEvent PauseChanged(Pause)
+        End Sub
+        Friend Event PlanChanged As PlanChangedEventHandler
+        Private Sub OnPlanChanged(ByVal Plan As AutoDownloader)
+            Try : RaiseEvent PlanChanged(Plan) : Catch : End Try
         End Sub
         Private ReadOnly Plans As List(Of AutoDownloader)
         Friend Const FileNameDefault As String = "AutoDownload"
         Friend ReadOnly FileDefault As SFile = $"{SettingsFolderName}\{FileNameDefault}.xml"
         Friend File As SFile = Nothing
-        Private ReadOnly PlanWorking As Predicate(Of AutoDownloader) = Function(Plan) Plan.Working
         Private ReadOnly PlanDownloading As Predicate(Of AutoDownloader) = Function(Plan) Plan.Downloading
         Private ReadOnly PlansWaiter As Action(Of Predicate(Of AutoDownloader)) = Sub(ByVal Predicate As Predicate(Of AutoDownloader))
                                                                                       While Plans.Exists(Predicate) : Thread.Sleep(200) : End While
@@ -69,6 +73,7 @@ Namespace DownloadObjects
         Friend Sub Add(ByVal Plan As AutoDownloader)
             Plan.Source = Me
             AddHandler Plan.PauseChanged, AddressOf OnPauseChanged
+            AddHandler Plan.PlanChanged, AddressOf OnPlanChanged
             Plans.Add(Plan)
             Plans.ListReindex
             Update()
@@ -77,9 +82,9 @@ Namespace DownloadObjects
             If Index.ValueBetween(0, Count - 1) Then
                 With Plans(Index)
                     .Stop()
-                    If .Working Then
+                    If .Downloading Then
                         Await Task.Run(Sub()
-                                           While .Working : Thread.Sleep(510) : End While
+                                           While .Downloading : Thread.Sleep(510) : End While
                                        End Sub)
                     End If
                     .Dispose()
@@ -103,10 +108,10 @@ Namespace DownloadObjects
             End Try
         End Sub
         Friend Function Reset(ByVal f As SFile, ByVal IsInit As Boolean) As Boolean
-            If Plans.Count > 0 Then
-                If Not Plans.Exists(PlanWorking) Then
+            If Count > 0 Then
+                If Not Plans.Exists(PlanDownloading) Then
                     Pause = PauseModes.Unlimited
-                    If Plans.Exists(PlanWorking) Then
+                    If Plans.Exists(PlanDownloading) Then
                         MsgBoxE({$"Some plans are already being worked.{vbCr}Wait for the plans to complete their work and try again.",
                                  "Change scheduler"}, vbCritical)
                         Pause = PauseModes.Unlimited
@@ -114,6 +119,7 @@ Namespace DownloadObjects
                     End If
                 End If
                 [Stop]()
+                While Working : Thread.Sleep(200) : End While
                 If _UpdateRequired Then Update()
                 Plans.ListClearDispose(,, EDP.LogMessageValue)
             End If
@@ -127,11 +133,12 @@ Namespace DownloadObjects
                         Plans.Add(New AutoDownloader(x))
                     End If
                 End Using
-                If Plans.Count > 0 Then Plans.ForEach(Sub(ByVal p As AutoDownloader)
-                                                          p.Source = Me
-                                                          If Not IsInit Then p.Pause = PauseModes.Unlimited
-                                                          AddHandler p.PauseChanged, AddressOf OnPauseChanged
-                                                      End Sub) : Plans.ListReindex
+                If Count > 0 Then Plans.ForEach(Sub(ByVal p As AutoDownloader)
+                                                    p.Source = Me
+                                                    If Not IsInit Then p.Pause = PauseModes.Unlimited
+                                                    AddHandler p.PauseChanged, AddressOf OnPauseChanged
+                                                    AddHandler p.PlanChanged, AddressOf OnPlanChanged
+                                                End Sub) : Plans.ListReindex
             End If
             Return True
         End Function
@@ -163,38 +170,94 @@ Namespace DownloadObjects
         End Sub
 #End Region
 #Region "Execution"
+        Private AThread As Thread = Nothing
+        Private _StopRequested As Boolean = False
+        Friend ReadOnly Property Working As Boolean
+            Get
+                Return If(AThread?.IsAlive, False)
+            End Get
+        End Property
         Friend Async Function Start(ByVal Init As Boolean) As Task
             Try
+                _StopRequested = False
                 Await Task.Run(Sub()
                                    Dim r% = 0
                                    Do
                                        r += 1
                                        Try
-                                           If Count > 0 Then
-                                               If Plans.Exists(PlanDownloading) Then PlansWaiter(PlanDownloading)
-                                               For Each Plan In Plans
-                                                   Plan.Start(Init)
-                                                   PlansWaiter(PlanDownloading)
-                                                   Thread.Sleep(1000)
-                                               Next
-                                           End If
+                                           If Count > 0 Then PlansWaiter(PlanDownloading) : Plans.ForEach(Sub(p) p.Start(Init))
                                            Exit Do
                                        Catch io_ex As InvalidOperationException 'Collection was modified; enumeration operation may not execute
                                        End Try
                                    Loop While r < 10
                                End Sub)
+                If Not Working Then
+                    AThread = New Thread(New ThreadStart(AddressOf Checker))
+                    AThread.SetApartmentState(ApartmentState.MTA)
+                    AThread.Start()
+                End If
             Catch ex As Exception
                 If Init Then
                     ErrorsDescriber.Execute(EDP.SendToLog, ex, "Start automation")
-                    MainFrameObj.UpdateLogButton()
                 Else
                     Throw ex
                 End If
             End Try
         End Function
         Friend Sub [Stop]()
+            If Working Then _StopRequested = True
             If Count > 0 Then Plans.ForEach(Sub(p) p.Stop())
         End Sub
+        Private Sub Checker()
+            Do
+                Try
+                    If Count = 0 Or _StopRequested Then Exit Sub
+                    PlansWaiter.Invoke(PlanDownloading)
+                    Dim i% = Checker_GetNextPlanIndex()
+                    If i >= 0 Then Checker_DownloadPlan(i)
+                    Thread.Sleep(500)
+                Catch dex As ArgumentOutOfRangeException When disposedValue Or _StopRequested
+                Catch ex As Exception
+                    ErrorsDescriber.Execute(EDP.SendToLog, ex, "[Scheduler.Checker]")
+                End Try
+            Loop While Not _StopRequested
+            _StopRequested = False
+        End Sub
+        Private Sub Checker_DownloadPlan(ByVal PlanIndex As Integer)
+            While Downloader.Working : Thread.Sleep(200) : End While
+            With Plans(PlanIndex)
+                If .Downloading Then
+                    PlansWaiter.Invoke(PlanDownloading)
+                ElseIf .DownloadReady Then
+                    .Download()
+                End If
+            End With
+        End Sub
+        Private Function Checker_GetNextPlanIndex() As Integer
+            Try
+                Dim result% = -1
+                Dim l As New List(Of KeyValuePair(Of Integer, Date))
+                Dim d As Date?
+                If Count > 0 Then
+                    For i% = 0 To Count - 1
+                        With Plans(i)
+                            If .DownloadReady Then
+                                d = .NextDate
+                                If d.HasValue Then l.Add(New KeyValuePair(Of Integer, Date)(i, d.Value))
+                            End If
+                        End With
+                    Next
+                End If
+                If l.Count > 0 Then
+                    Dim md As Date = l.Min(Function(p) p.Value)
+                    result = l.Find(Function(p) p.Value = md).Key
+                    l.Clear()
+                End If
+                Return result
+            Catch
+                Return -1
+            End Try
+        End Function
         Friend Property Pause(Optional ByVal LimitDate As Date? = Nothing) As PauseModes
             Get
                 If Count > 0 Then Return Plans.FirstOrDefault(Function(p) p.Pause >= PauseModes.Disabled).Pause Else Return PauseModes.Disabled
@@ -218,7 +281,8 @@ Namespace DownloadObjects
             If Not disposedValue Then
                 If disposing Then
                     [Stop]()
-                    If Plans.Exists(PlanWorking) Then Task.WaitAll(Task.Run(Sub() PlansWaiter(PlanWorking)))
+                    If Plans.Exists(PlanDownloading) Then Task.WaitAll(Task.Run(Sub() PlansWaiter(PlanDownloading)))
+                    While Working : Thread.Sleep(200) : End While
                     If _UpdateRequired Then Update()
                     Plans.ListClearDispose
                 End If

@@ -108,7 +108,6 @@ Namespace DownloadObjects.STDownloader
             Catch ex As Exception
                 _UseAccountName = True
                 ErrorsDescriber.Execute(EDP.SendToLog, ex, "[STDownloader.DownloaderUrlsArrForm.TXT_URLS_TextChanged]")
-                MainFrameObj.UpdateLogButton()
             End Try
         End Sub
     End Class

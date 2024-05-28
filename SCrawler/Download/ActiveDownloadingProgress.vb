@@ -58,7 +58,6 @@ Namespace DownloadObjects
                 End If
             Catch ex As Exception
                 ErrorsDescriber.Execute(EDP.SendToLog, ex, "Change 'ActiveDownloadingProgress' size")
-                MainFrameObj.UpdateLogButton()
             End Try
         End Sub
         Private Sub Downloader_Reconfigured()

@@ -6,6 +6,7 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
+Imports System.Runtime.CompilerServices
 Imports PersonalUtilities.Tools
 Imports PersonalUtilities.Forms.Toolbars
 Imports PersonalUtilities.Functions.RegularExpressions
@@ -56,6 +57,11 @@ Namespace API.YouTube
         Friend ReadOnly TitleHtmlConverter As Func(Of String, String) = Function(Input) Input.StringRemoveWinForbiddenSymbols().StringTrim()
         Friend ReadOnly ProgressProvider As IMyProgressNumberProvider = MyProgressNumberProvider.Percentage
         Public ReadOnly TrueUrlRegEx As RParams = RParams.DM(Base.YouTubeFunctions.TrueUrlPattern, 0, EDP.ReturnValue)
+        Friend ReadOnly MusicUrlApply As RParams = RParams.DMS("https://([w\.]*)youtube.com.+", 1, RegexReturn.Replace, EDP.ReturnValue,
+                                                               CType(Function(input$) "music.", Func(Of String, String)), String.Empty)
+        <Extension> Friend Function ToMusicUrl(ByVal URL As String, ByVal IsMusic As Boolean) As String
+            Try : Return If(IsMusic And Not URL.IsEmptyString, CStr(RegexReplace(URL, MusicUrlApply)).IfNullOrEmpty(URL), URL) : Catch : Return URL : End Try
+        End Function
         Friend Function CleanFileName(ByVal f As SFile) As SFile
             If Not f.IsEmptyString And Not f.Name.IsEmptyString Then
                 Dim ff As SFile = f

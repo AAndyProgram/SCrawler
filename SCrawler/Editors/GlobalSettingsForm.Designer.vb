@@ -167,6 +167,7 @@ Namespace Editors
             Me.TXT_DOWN_COMPLETE_SCRIPT = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.CH_UNAME_UP = New System.Windows.Forms.CheckBox()
             Me.CH_UICON_UP = New System.Windows.Forms.CheckBox()
+            Me.TXT_AUTO_BRUSH_MIN = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_FEED_ROWS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_FEED_COLUMNS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.CH_FEED_ENDLESS = New System.Windows.Forms.CheckBox()
@@ -269,6 +270,7 @@ Namespace Editors
             CType(Me.TXT_SCRIPT, System.ComponentModel.ISupportInitialize).BeginInit()
             CType(Me.TXT_DOWN_COMPLETE_SCRIPT, System.ComponentModel.ISupportInitialize).BeginInit()
             TP_MISSING_DATA.SuspendLayout()
+            CType(Me.TXT_AUTO_BRUSH_MIN, System.ComponentModel.ISupportInitialize).BeginInit()
             TAB_FEED.SuspendLayout()
             TP_FEED.SuspendLayout()
             TP_FEED_IMG_COUNT.SuspendLayout()
@@ -1488,10 +1490,11 @@ Namespace Editors
             TP_DOWNLOADING.Controls.Add(Me.CH_UNAME_UP, 0, 1)
             TP_DOWNLOADING.Controls.Add(Me.CH_UICON_UP, 0, 2)
             TP_DOWNLOADING.Controls.Add(Me.CH_USE_DEF_ACC, 0, 9)
+            TP_DOWNLOADING.Controls.Add(Me.TXT_AUTO_BRUSH_MIN, 0, 10)
             TP_DOWNLOADING.Dock = System.Windows.Forms.DockStyle.Fill
             TP_DOWNLOADING.Location = New System.Drawing.Point(0, 0)
             TP_DOWNLOADING.Name = "TP_DOWNLOADING"
-            TP_DOWNLOADING.RowCount = 11
+            TP_DOWNLOADING.RowCount = 12
             TP_DOWNLOADING.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_DOWNLOADING.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_DOWNLOADING.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
@@ -1502,6 +1505,7 @@ Namespace Editors
             TP_DOWNLOADING.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_DOWNLOADING.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_DOWNLOADING.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            TP_DOWNLOADING.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_DOWNLOADING.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
             TP_DOWNLOADING.Size = New System.Drawing.Size(621, 399)
             TP_DOWNLOADING.TabIndex = 1
@@ -1583,6 +1587,24 @@ Namespace Editors
             Me.CH_UICON_UP.TabIndex = 2
             Me.CH_UICON_UP.Text = "Update user icon and banner every time (where supported)"
             Me.CH_UICON_UP.UseVisualStyleBackColor = True
+            '
+            'TXT_AUTO_BRUSH_MIN
+            '
+            Me.TXT_AUTO_BRUSH_MIN.CaptionText = "Highlight undownloaded plans (minutes)"
+            Me.TXT_AUTO_BRUSH_MIN.CaptionToolTipEnabled = True
+            Me.TXT_AUTO_BRUSH_MIN.CaptionToolTipText = "Highlight (in gray) the scheduler plans that have not been downloaded in 'x' minu" &
+    "tes." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "-1 to disable."
+            Me.TXT_AUTO_BRUSH_MIN.CaptionWidth = 200.0R
+            Me.TXT_AUTO_BRUSH_MIN.ControlMode = PersonalUtilities.Forms.Controls.TextBoxExtended.ControlModes.NumericUpDown
+            Me.TXT_AUTO_BRUSH_MIN.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.TXT_AUTO_BRUSH_MIN.Location = New System.Drawing.Point(4, 280)
+            Me.TXT_AUTO_BRUSH_MIN.Name = "TXT_AUTO_BRUSH_MIN"
+            Me.TXT_AUTO_BRUSH_MIN.NumberMaximum = New Decimal(New Integer() {2147483646, 0, 0, 0})
+            Me.TXT_AUTO_BRUSH_MIN.NumberMinimum = New Decimal(New Integer() {1, 0, 0, -2147483648})
+            Me.TXT_AUTO_BRUSH_MIN.NumberUpDownAlign = System.Windows.Forms.LeftRightAlignment.Left
+            Me.TXT_AUTO_BRUSH_MIN.Size = New System.Drawing.Size(613, 22)
+            Me.TXT_AUTO_BRUSH_MIN.TabIndex = 10
+            Me.TXT_AUTO_BRUSH_MIN.Text = "-1"
             '
             'TAB_FEED
             '
@@ -2486,6 +2508,7 @@ Namespace Editors
             CType(Me.TXT_DOWN_COMPLETE_SCRIPT, System.ComponentModel.ISupportInitialize).EndInit()
             TP_MISSING_DATA.ResumeLayout(False)
             TP_MISSING_DATA.PerformLayout()
+            CType(Me.TXT_AUTO_BRUSH_MIN, System.ComponentModel.ISupportInitialize).EndInit()
             TAB_FEED.ResumeLayout(False)
             TP_FEED.ResumeLayout(False)
             TP_FEED.PerformLayout()
@@ -2636,5 +2659,6 @@ Namespace Editors
         Private WithEvents CH_DOWN_ALL_NOTIFY As CheckBox
         Private WithEvents CH_CHANNELS_USERS_READY_MARK As CheckBox
         Private WithEvents NUM_FEED_SES_CURR_LOAD_LAST As PersonalUtilities.Forms.Controls.TextBoxExtended
+        Private WithEvents TXT_AUTO_BRUSH_MIN As PersonalUtilities.Forms.Controls.TextBoxExtended
     End Class
 End Namespace

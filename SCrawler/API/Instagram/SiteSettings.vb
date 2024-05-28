@@ -480,8 +480,24 @@ Namespace API.Instagram
         Private ____AvailableSilent As Boolean = True
         Private ____AvailableChecked As Boolean = False
         Private ____AvailableResult As Boolean = False
+        Private Sub ResetDownloadOptions()
+            If ActiveJobs < 1 Then
+                ____DownloadStarted = False
+                ____AvailableRequested = False
+                ____AvailableChecked = False
+                ____AvailableSilent = True
+                ____AvailableResult = False
+                If ActiveSessionRequestsExists Then RefreshMyLastRequests(Now)
+                ActiveSessionRequestsExists = False
+                _NextWNM = UserData.WNM.Notify
+                _NextTagged = True
+                SkipUntilNextSession = False
+                AvailableText = String.Empty
+                ActiveJobs = 0
+            End If
+        End Sub
         Friend Overrides Function Available(ByVal What As Download, ByVal Silent As Boolean) As Boolean
-            If MyBase.Available(What, Silent) Then
+            If MyBase.Available(What, Silent) And ActiveJobs < 2 Then
                 If CInt(DownDetectorValue.Value) >= 0 Then
                     If ____DownloadStarted Then
                         ____AvailableRequested = True
@@ -551,10 +567,9 @@ Namespace API.Instagram
         Private _NextWNM As UserData.WNM = UserData.WNM.Notify
         Private _NextTagged As Boolean = True
         Friend Overrides Sub DownloadStarted(ByVal What As Download)
-            If ActiveJobs = 0 Then ActiveSessionRequestsExists = False
+            ResetDownloadOptions()
             ActiveJobs += 1
-            If What = Download.Main Then ____DownloadStarted = True
-            If ActiveJobs = 1 Then ActiveSessionDate = Now
+            If ActiveJobs = 1 Then ____DownloadStarted = True : ActiveSessionDate = Now
             If Not HH_IG_WWW_CLAIM_IS_ZERO AndAlso
                (
                     (CBool(HH_IG_WWW_CLAIM_USE_DEFAULT_ALGO.Value) AndAlso MyLastRequestsDate.AddMinutes(HH_IG_WWW_CLAIM_UPDATE_INTERVAL.Value) < Now) Or
@@ -594,18 +609,8 @@ Namespace API.Instagram
             End With
         End Sub
         Friend Overrides Sub DownloadDone(ByVal What As Download)
-            _NextWNM = UserData.WNM.Notify
-            _NextTagged = True
-            If ActiveSessionRequestsExists Then RefreshMyLastRequests(Now)
             ActiveJobs -= 1
-            SkipUntilNextSession = False
-            If What = Download.Main Then ____DownloadStarted = False
-            If ActiveJobs = 0 Then
-                ____AvailableRequested = False
-                ____AvailableChecked = False
-                ____AvailableSilent = True
-                ____AvailableResult = False
-            End If
+            ResetDownloadOptions()
         End Sub
 #End Region
 #Region "Settings"

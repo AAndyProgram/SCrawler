@@ -313,7 +313,6 @@ Namespace Editors
                                                               BTT_START.Enabled = Not Working
                                                               BTT_CANCEL.Enabled = Working
                                                           End Sub, EDP.None)
-                If Not Working Then MainFrameObj.UpdateLogButton()
             Catch
             End Try
         End Sub

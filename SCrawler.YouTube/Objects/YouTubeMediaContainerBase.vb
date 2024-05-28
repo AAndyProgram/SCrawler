@@ -1544,7 +1544,7 @@ Namespace API.YouTube.Objects
                         ID = .Value("id")
                         Title = TitleHtmlConverter.Invoke(.Value("title"))
                         Description = .Value("description")
-                        URL = .Value("webpage_url")
+                        URL = .Value("webpage_url").ToMusicUrl(IsMusic)
 
                         PlaylistID = .Value("playlist_id")
                         PlaylistCount = .Value("n_entries").IfNullOrEmpty(.Value("playlist_count")).FromXML(Of Integer)(0)

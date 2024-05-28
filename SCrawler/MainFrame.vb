@@ -131,7 +131,6 @@ Public Class MainFrame
             Await .Automation.Start(True)
         End With
         UpdatePauseButtonsVisibility()
-        MainFrameObj.UpdateLogButton()
     End Sub
     Private _CloseInvoked As Boolean = False
     Private _IgnoreTrayOptions As Boolean = False
@@ -625,7 +624,6 @@ CloseResume:
             End Using
         Catch ex As Exception
             ErrorsDescriber.Execute(EDP.SendToLog, ex, "[MainFrame.ShowGroups]")
-            MainFrameObj.UpdateLogButton()
         End Try
     End Sub
 #End Region
@@ -652,7 +650,6 @@ CloseResume:
             MainFrameObj.PauseButtons.UpdatePauseButtons()
         Catch ex As Exception
             ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Start automation")
-            MainFrameObj.UpdateLogButton()
         End Try
     End Sub
     Private Sub BTT_DOWN_AUTOMATION_PAUSE_Click(sender As Object, e As EventArgs) Handles BTT_DOWN_AUTOMATION_PAUSE.Click, BTT_TRAY_PAUSE_AUTOMATION.Click
@@ -2022,7 +2019,6 @@ ResumeDownloadingOperation:
     End Sub
     Private Sub Downloader_UpdateJobsCount(ByVal TotalCount As Integer)
         ControlInvokeFast(Toolbar_BOTTOM, LBL_JOBS_COUNT, Sub() LBL_JOBS_COUNT.Text = IIf(TotalCount = 0, String.Empty, $"[Jobs {TotalCount}]"))
-        MainFrameObj.UpdateLogButton()
     End Sub
     Private Sub Downloader_Downloading(ByVal Value As Boolean)
         Dim __isDownloading As Boolean = Value Or Downloader.Working(False)

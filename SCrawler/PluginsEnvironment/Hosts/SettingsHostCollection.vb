@@ -202,7 +202,6 @@ Namespace Plugin.Hosts
                     Select Case Hosts_Deleted_MoveAcc(Obj)
                         Case -1 : ShowOperationCanceledMsg(ChngUACC_MsgTitle) : Exit Sub
                         Case 1
-                            MainFrameObj.UpdateLogButton()
                             MsgBoxE({$"An error occurred while changing user accounts (see log for details).{vbCr}Operation canceled.", ChngUACC_MsgTitle}, vbCritical)
                             Exit Sub
                     End Select

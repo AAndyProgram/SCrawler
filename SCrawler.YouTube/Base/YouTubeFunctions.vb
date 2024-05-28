@@ -22,6 +22,7 @@ Namespace API.YouTube.Base
         End Sub
         Public Shared Function StandardizeURL(ByVal URL As String) As String
             Try
+                URL = URL.StringTrim
                 Dim isMusic As Boolean = False, isShorts As Boolean = False
                 If Info_GetUrlType(URL, isMusic, isShorts) = YouTubeMediaType.Single Then
                     If Not isMusic And Not isShorts Then
@@ -45,6 +46,7 @@ Namespace API.YouTube.Base
         End Function
         Public Shared Function StandardizeURL_Channel(ByVal URL As String, Optional ByVal Process As Boolean = True) As String
             Try
+                URL = URL.StringTrim
                 Dim ct As YouTubeChannelTab = YouTubeChannelTab.All
                 Dim isMusic As Boolean = False
                 If Process AndAlso Info_GetUrlType(URL, isMusic,,,, ct) = YouTubeMediaType.Channel AndAlso Not isMusic Then
@@ -72,6 +74,7 @@ Namespace API.YouTube.Base
         Public Shared Function Info_GetUrlType(ByVal URL As String, Optional ByRef IsMusic As Boolean = False, Optional ByRef IsShorts As Boolean = False,
                                                Optional ByRef IsChannelUser As Boolean = False, Optional ByRef Id As String = Nothing,
                                                Optional ByRef ChannelOptions As YouTubeChannelTab = YouTubeChannelTab.All) As YouTubeMediaType
+            URL = URL.StringTrim
             If Not URL.IsEmptyString Then
                 IsMusic = URL.Contains("music.youtube.com")
                 IsChannelUser = False
@@ -118,6 +121,7 @@ Namespace API.YouTube.Base
                                      Optional ByVal Token As Threading.CancellationToken = Nothing, Optional ByVal Progress As IMyProgress = Nothing,
                                      Optional ByVal DateAfter As Date? = Nothing, Optional ByVal DateBefore As Date? = Nothing,
                                      Optional ByVal ChannelOption As YouTubeChannelTab? = Nothing, Optional ByVal UrlAsIs As Boolean = False) As IYouTubeMediaContainer
+            URL = URL.StringTrim
             If URL.IsEmptyString Then Throw New ArgumentNullException("URL", "URL cannot be null")
             If Not MyYouTubeSettings.YTDLP.Value.Exists Then Throw New IO.FileNotFoundException("Path to 'yt-dlp.exe' not set or program not found at destination", MyYouTubeSettings.YTDLP.Value.ToString)
             Dim urlOrig$ = URL
@@ -162,7 +166,7 @@ Namespace API.YouTube.Base
 
                 If result Then
                     container.Parse(Nothing, _CachePathDefault, isMusic, Token, Progress)
-                    If Not container.HasError Then container.URL = URL : container.IsShorts = isShorts : Return container
+                    If Not container.HasError Then container.URL = URL.ToMusicUrl(isMusic) : container.IsShorts = isShorts : Return container
                 End If
                 container.Dispose()
             End If

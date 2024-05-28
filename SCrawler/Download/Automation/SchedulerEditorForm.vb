@@ -6,6 +6,8 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
+Imports System.Threading
+Imports System.ComponentModel
 Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Forms.Toolbars
 Imports PersonalUtilities.Forms.Controls.Base
@@ -131,6 +133,16 @@ Namespace DownloadObjects
                 SetTitle()
                 .EndLoaderOperations(False)
             End With
+            SchedulerCheckerThread = New Thread(New ThreadStart(AddressOf SchedulerChecker))
+            SchedulerCheckerThread.SetApartmentState(ApartmentState.MTA)
+            SchedulerCheckerThread.Start()
+            Try : AddHandler Settings.Automation.PlanChanged, AddressOf Scheduler_PauseChanged : Catch : End Try
+        End Sub
+        Private _CloseRequested As Boolean = False
+        Private Sub SchedulerEditorForm_Closing(sender As Object, e As CancelEventArgs) Handles Me.Closing
+            _CloseRequested = True
+            While If(SchedulerCheckerThread?.IsAlive, False) : Thread.Sleep(200) : End While
+            Try : RemoveHandler Settings.Automation.PlanChanged, AddressOf Scheduler_PauseChanged : Catch : End Try
         End Sub
         Private Sub SchedulerEditorForm_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
             If e.KeyCode = Keys.Escape Then
@@ -143,21 +155,48 @@ Namespace DownloadObjects
         Private Sub SchedulerEditorForm_Disposed(sender As Object, e As EventArgs) Handles Me.Disposed
             PauseArr.Dispose()
         End Sub
+        Private Sub SchedulerEditorForm_SizeChanged(sender As Object, e As EventArgs) Handles Me.SizeChanged
+            Try : ControlInvokeFast(LIST_PLANS, Sub()
+                                                    COL_MAIN.Width = -2
+                                                    LIST_PLANS.Refresh()
+                                                End Sub, EDP.None) : Catch : End Try
+        End Sub
 #End Region
+        Private Property ListSelectedIndex As Integer
+            Get
+                Return If(LIST_PLANS.SelectedIndices.Count > 0, LIST_PLANS.SelectedIndices(0), -1)
+            End Get
+            Set(ByVal indx As Integer)
+                Try : ControlInvokeFast(LIST_PLANS, Sub()
+                                                        With LIST_PLANS
+                                                            .SelectedItems.Clear()
+                                                            .Items(indx).Selected = True
+                                                            .FocusedItem = .Items(indx)
+                                                            .Refresh()
+                                                            .EnsureVisible(indx)
+                                                        End With
+                                                    End Sub, EDP.None) : Catch : End Try
+            End Set
+        End Property
         Private _RefillInProgress As Boolean = False
         Private Sub Refill() Handles MyDefs.ButtonUpdateClick
             Try
-                If Not _RefillInProgress Then
-                    _RefillInProgress = True
-                    LIST_PLANS.Items.Clear()
-                    If Settings.Automation.Count > 0 Then
-                        LIST_PLANS.Items.AddRange(Settings.Automation.Select(Function(a) a.ToString()).Cast(Of Object).ToArray)
-                        If _LatestSelected.ValueBetween(0, LIST_PLANS.Items.Count - 1) Then LIST_PLANS.SelectedIndex = _LatestSelected
-                    Else
-                        _LatestSelected = -1
+                ControlInvokeFast(LIST_PLANS,
+                Sub()
+                    If Not _RefillInProgress Then
+                        _RefillInProgress = True
+                        With LIST_PLANS.Items
+                            .Clear()
+                            If Settings.Automation.Count > 0 Then
+                                .AddRange(Settings.Automation.Select(Function(a) a.LVI).ToArray)
+                                If _LatestSelected.ValueBetween(0, .Count - 1) Then ListSelectedIndex = _LatestSelected
+                            Else
+                                _LatestSelected = -1
+                            End If
+                        End With
+                        _RefillInProgress = False
                     End If
-                    _RefillInProgress = False
-                End If
+                End Sub)
             Catch ex As Exception
                 ErrorsDescriber.Execute(EDP.SendToLog, ex, "[DownloadObjects.SchedulerEditorForm.Refill]")
             End Try
@@ -196,7 +235,7 @@ Namespace DownloadObjects
         Private Sub Edit() Handles MyDefs.ButtonEditClick
             If _LatestSelected.ValueBetween(0, LIST_PLANS.Items.Count - 1) Then
                 Using f As New AutoDownloaderEditorForm(Settings.Automation(_LatestSelected)) : f.ShowDialog() : End Using
-                Refill()
+                LIST_PLANS_Refresh(_LatestSelected)
             Else
                 MsgBoxE("You have not selected a plan to edit.", vbExclamation)
             End If
@@ -224,13 +263,58 @@ Namespace DownloadObjects
 #End Region
 #Region "List handlers"
         Private _LatestSelected As Integer = -1
+        Private _LatestSelectedChangeEnabled As Boolean = True
         Private Sub LIST_PLANS_SelectedIndexChanged(sender As Object, e As EventArgs) Handles LIST_PLANS.SelectedIndexChanged
-            _LatestSelected = LIST_PLANS.SelectedIndex
-            PauseArr.PlanIndex = _LatestSelected
-            PauseArr.UpdatePauseButtons(False)
+            If _LatestSelectedChangeEnabled Then
+                _LatestSelected = ListSelectedIndex
+                PauseArr.PlanIndex = _LatestSelected
+                PauseArr.UpdatePauseButtons(False)
+            End If
         End Sub
         Private Sub LIST_PLANS_MouseDoubleClick(sender As Object, e As MouseEventArgs) Handles LIST_PLANS.MouseDoubleClick
             Edit()
+        End Sub
+        Private Sub LIST_PLANS_Refresh(Optional ByVal PlanIndex As Integer = -1)
+            _LatestSelectedChangeEnabled = False
+            Try
+                ControlInvokeFast(LIST_PLANS,
+                  Sub()
+                      Dim indx% = If(PlanIndex >= 0, PlanIndex, ListSelectedIndex)
+                      If indx = -1 And PlanIndex = -1 Then indx = _LatestSelected
+                      If indx.ValueBetween(0, Settings.Automation.Count - 1) Then _
+                         LIST_PLANS.Items(indx) = Settings.Automation(indx).LVI
+                      If _LatestSelected.ValueBetween(0, LIST_PLANS.Items.Count - 1) Then ListSelectedIndex = _LatestSelected
+                  End Sub, EDP.None)
+            Catch
+            Finally
+                _LatestSelectedChangeEnabled = True
+            End Try
+        End Sub
+        Private Sub Scheduler_PauseChanged(ByVal Plan As AutoDownloader)
+            LIST_PLANS_Refresh(Plan.Index)
+        End Sub
+        Private SchedulerCheckerThread As Thread
+        Private Sub SchedulerChecker()
+            Try
+                While Not _CloseRequested
+                    Try
+                        With Settings.Automation
+                            If .Count > 0 Then
+                                For i% = 0 To .Count - 1
+                                    If .Item(i).LVIStateChanged Then LIST_PLANS_Refresh(i)
+                                    If _CloseRequested Then Exit Sub
+                                    Thread.Sleep(200)
+                                Next
+                            Else
+                                If _CloseRequested Then Exit Sub
+                                Thread.Sleep(200)
+                            End If
+                        End With
+                    Catch
+                    End Try
+                End While
+            Catch
+            End Try
         End Sub
 #End Region
 #Region "Settings, Start, Skip, Pause"
@@ -372,13 +456,13 @@ Namespace DownloadObjects
         Private Sub BTT_START_Click(sender As Object, e As EventArgs) Handles BTT_START.Click
             If _LatestSelected.ValueBetween(0, LIST_PLANS.Items.Count - 1) Then
                 With Settings.Automation(_LatestSelected) : .Start(.IsNewPlan) : End With
-                Refill()
+                LIST_PLANS_Refresh(_LatestSelected)
             End If
         End Sub
         Private Sub BTT_START_FORCE_Click(sender As Object, e As EventArgs) Handles BTT_START_FORCE.Click
             If _LatestSelected.ValueBetween(0, LIST_PLANS.Items.Count - 1) Then
                 With Settings.Automation(_LatestSelected)
-                    If .Working Or .IsManual Then .ForceStart() : Refill()
+                    If .Working Or .IsManual Then .ForceStart() : LIST_PLANS_Refresh(_LatestSelected)
                 End With
             End If
         End Sub
@@ -388,10 +472,10 @@ Namespace DownloadObjects
                 Select Case mode
                     Case String.Empty
                         Settings.Automation(_LatestSelected).Skip()
-                        Refill()
+                        LIST_PLANS_Refresh(_LatestSelected)
                     Case "m"
                         Dim mins% = AConvert(Of Integer)(InputBoxE("Enter a number of minutes you want to delay:", Sender.Text, 60), -1)
-                        If mins > 0 Then Settings.Automation(_LatestSelected).Skip(mins) : Refill()
+                        If mins > 0 Then Settings.Automation(_LatestSelected).Skip(mins) : LIST_PLANS_Refresh(_LatestSelected)
                     Case "d"
                         Dim d As Date? = Nothing
                         Using f As New DateTimeSelectionForm(DateTimeSelectionForm.Modes.Date +
@@ -402,15 +486,12 @@ Namespace DownloadObjects
                             f.ShowDialog()
                             If f.DialogResult = DialogResult.OK Then d = f.MyDateStart
                         End Using
-                        If d.HasValue Then Settings.Automation(_LatestSelected).Skip(d.Value) : Refill()
+                        If d.HasValue Then Settings.Automation(_LatestSelected).Skip(d.Value) : LIST_PLANS_Refresh(_LatestSelected)
                     Case "r"
                         Settings.Automation(_LatestSelected).SkipReset()
-                        Refill()
+                        LIST_PLANS_Refresh(_LatestSelected)
                 End Select
             End If
-        End Sub
-        Private Sub PauseArr_Updating() Handles PauseArr.Updating
-            Refill()
         End Sub
 #End Region
 #Region "Move"

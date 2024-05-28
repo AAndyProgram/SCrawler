@@ -752,14 +752,7 @@ Namespace API.Twitter
                     Dim lim%
                     Dim specFolder$ = IIf(_ReparseLikes, "Likes", String.Empty)
                     ResetFileNameProvider()
-                    If IsSingleObjectDownload Then
-                        cache = Settings.Cache
-                    ElseIf _ReparseLikes Then
-                        cache = CreateCache()
-                    Else
-                        cache = New CacheKeeper(DownloadContentDefault_GetRootDir.CSFilePS)
-                        cache.CacheDeleteError = CacheDeletionError(cache)
-                    End If
+                    cache = If(IsSingleObjectDownload, Settings.Cache, CreateCache())
                     If _ReparseLikes Then lim = LikesPosts.Count Else lim = _ContentList.Count
                     ProgressPre.ChangeMax(lim)
                     For i = 0 To lim - 1

@@ -54,9 +54,8 @@ Namespace API.Base
             Dim aStr$ = String.Empty
             If Count > 1 Then aStr = $" ({Number}/{Count})"
             Try
-                If Host.Source.ReadyToDownload(PDownload.SavedPosts) Then
-                    If Host.Available(PDownload.SavedPosts, Multiple Or Count > 1) Then
-                        Host.DownloadStarted(PDownload.SavedPosts)
+                If Host.Available(PDownload.SavedPosts, Multiple Or Count > 1) Then
+                    If Host.Source.ReadyToDownload(PDownload.SavedPosts) Then
                         If Count > 1 Then Progress.Information = $"{Host.Name} - {Host.AccountName.IfNullOrEmpty(SettingsHost.NameAccountNameDefault)}"
                         Using user As IUserData = Host.GetInstance(PDownload.SavedPosts, Nothing, False, False)
                             If Not user Is Nothing Then
@@ -83,11 +82,11 @@ Namespace API.Base
                         End Using
                     Else
                         _Unavailable += 1
-                        Progress.InformationTemporary = $"Host [{Host.Name}{aStr}] is unavailable"
+                        Progress.InformationTemporary = $"Host [{Host.Name}{aStr}] is not ready"
                     End If
                 Else
                     _NotReady += 1
-                    Progress.InformationTemporary = $"Host [{Host.Name}{aStr}] is not ready"
+                    Progress.InformationTemporary = $"Host [{Host.Name}{aStr}] is unavailable"
                 End If
             Catch oex As OperationCanceledException When Token.IsCancellationRequested
                 _ErrorCount += 1
@@ -96,9 +95,6 @@ Namespace API.Base
                 _ErrorCount += 1
                 Progress.InformationTemporary = $"{Host.Name}{aStr} downloading error"
                 ErrorsDescriber.Execute(EDP.SendToLog, ex, $"[API.Base.ProfileSaved.Download({Host.Key}{aStr})]")
-            Finally
-                Host.DownloadDone(PDownload.SavedPosts)
-                MainFrameObj.UpdateLogButton()
             End Try
         End Sub
     End Class

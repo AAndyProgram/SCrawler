@@ -111,7 +111,6 @@ Namespace DownloadObjects
                 End If
             Catch ex As Exception
                 ErrorsDescriber.Execute(EDP.SendToLog, ex, "[FeedSpecialCollection.Load]")
-                MainFrameObj.UpdateLogButton()
             End Try
         End Sub
         Private Sub Feeds_FeedDeleted(ByVal Source As FeedSpecialCollection, ByVal Feed As FeedSpecial)
@@ -245,7 +244,6 @@ Namespace DownloadObjects
                 End If
             Catch ex As Exception
                 ErrorsDescriber.Execute(EDP.SendToLog, ex, "[FeedSpecialCollection.UpdateUsers]")
-                MainFrameObj.UpdateLogButton()
             End Try
         End Sub
 #End Region

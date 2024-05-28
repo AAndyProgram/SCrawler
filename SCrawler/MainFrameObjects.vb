@@ -66,17 +66,17 @@ Friend Class MainFrameObjects : Implements INotificator
         ControlInvokeFast(MF.TRAY_CONTEXT, Sub() MF.BTT_TRAY_CLOSE_NO_SCRIPT.Visible =
                                                  Settings.ClosingCommand.Attribute And Not Settings.ClosingCommand.IsEmptyString)
     End Sub
-    Friend Sub UpdateLogButton()
-        MyMainLOG_UpdateLogButton(MF.BTT_LOG, MF.Toolbar_TOP)
+    Private Sub UpdateLogButton()
+        Try : MyMainLOG_UpdateLogButton(MF.BTT_LOG, MF.Toolbar_TOP) : Catch : End Try
     End Sub
     Friend Function GetUserListProvider(ByVal WithCollections As Boolean) As IFormatProvider
         Return MF.GetUserListProvider(WithCollections)
     End Function
     Friend Sub ShowLog()
-        MyMainLOG_ShowForm(Settings.Design,,,, Sub()
-                                                   UpdateLogButton()
-                                                   LogFormClosed()
-                                               End Sub)
+        Try : MyMainLOG_ShowForm(Settings.Design,,,, Sub()
+                                                         UpdateLogButton()
+                                                         LogFormClosed()
+                                                     End Sub) : Catch : End Try
     End Sub
 #End Region
 #Region "Notifications"
