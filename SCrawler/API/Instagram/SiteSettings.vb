@@ -446,6 +446,11 @@ Namespace API.Instagram
         Friend Overrides Sub EndInit()
             Try : MyLastRequests.Add(LastDownloadDate.Value, LastRequestsCount.Value) : Catch : End Try
             If Not CBool(HH_IG_WWW_CLAIM_USE.Value) Then Responser.Headers.Remove(Header_IG_WWW_CLAIM)
+            If CInt(SettingsVersion.Value) < 1 Then
+                SettingsVersion.Value = 1
+                HH_IG_WWW_CLAIM_UPDATE_INTERVAL.Value = 59
+                HH_IG_WWW_CLAIM_USE_DEFAULT_ALGO.Value = 0
+            End If
             MyBase.EndInit()
         End Sub
 #End Region

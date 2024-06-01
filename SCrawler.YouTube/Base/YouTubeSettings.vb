@@ -249,9 +249,18 @@ Namespace API.YouTube.Base
         <Browsable(True), GridVisible(False), XMLVN({"Defaults"}), Category("Defaults"), DisplayName("Program description"),
             Description("Add some additional info to the program info if you need")>
         Friend ReadOnly Property ProgramDescription As XMLValue(Of String)
-        <Browsable(True), GridVisible(False), XMLVN({"Defaults"}, "%"""), Category("Defaults"), DisplayName("Remove characters"),
+        <Browsable(True), GridVisible, XMLVN({"Defaults"}, "%"""), Category("Defaults"), DisplayName("Remove characters"),
             Description("Remove specific characters from a file name")>
-        Friend ReadOnly Property FileRemoveCharacters As XMLValue(Of String)
+        Public ReadOnly Property FileRemoveCharacters As XMLValue(Of String)
+        <Browsable(True), GridVisible, XMLVN({"Defaults"}, FileDateMode.None), Category("Defaults"), DisplayName("Add date to file name"),
+            Description("Add the video upload date before/after the file name")>
+        Public ReadOnly Property FileAddDateToFileName As XMLValue(Of FileDateMode)
+        <Browsable(True), GridVisible, XMLVN({"Defaults"}), Category("Defaults"), DisplayName("Add date to title: video form"),
+            Description("Add video upload date before video title (visual only) in the video form")>
+        Public ReadOnly Property FileAddDateToFileName_VideoForm As XMLValue(Of Boolean)
+        <Browsable(True), GridVisible, XMLVN({"Defaults"}), Category("Defaults"), DisplayName("Add date to title: video list"),
+            Description("Add video upload date before video title (visual only) in the video list")>
+        Public ReadOnly Property FileAddDateToFileName_VideoList As XMLValue(Of Boolean)
 #End Region
 #Region "Defaults ChannelsDownload"
         <Browsable(True), GridVisible, XMLVN({"Defaults", "Channels"}), Category("Defaults"), DisplayName("Default download tabs for channels"),

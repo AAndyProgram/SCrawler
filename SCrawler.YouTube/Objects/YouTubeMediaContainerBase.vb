@@ -656,6 +656,15 @@ Namespace API.YouTube.Objects
                 End If
             End Set
         End Property
+        Friend Sub FileDateUpdate()
+            Dim n$ = _File.Name.StringTrim
+            Dim s$ = IIf(n.IsEmptyString, String.Empty, " ")
+            Select Case MyYouTubeSettings.FileAddDateToFileName.Value
+                Case FileDateMode.Before : n = $"[{DateAdded:yyyy-MM-dd}]{s}{n}"
+                Case FileDateMode.After : n = $"{n}{s}[{DateAdded:yyyy-MM-dd}]"
+            End Select
+            _File.Name = n
+        End Sub
         Public Property FileSettings As SFile
         Private Property IUserMedia_File As String Implements IUserMedia.File
             Get
@@ -1582,6 +1591,7 @@ Namespace API.YouTube.Objects
                             If tValue.HasValue Then Duration = TimeSpan.FromSeconds(tValue.Value)
                         End If
                         DateAdded = AConvert(Of Date)(.Value("release_date").IfNullOrEmpty(.Value("upload_date")), DateAddedProvider, New Date)
+                        If Not IsMusic Then FileDateUpdate()
 
                         ParseFormats(.Self)
 

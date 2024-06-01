@@ -914,19 +914,24 @@ Namespace API.Reddit
                     Dim RedGifsHost As SettingsHost = Settings(RedGifs.RedGifsSiteKey, RedGifsAccount)
                     If RedGifsHost Is Nothing Then RedGifsHost = Settings(RedGifs.RedGifsSiteKey).Default
                     RedGifsResponser = RedGifsHost.Responser.Copy
+                    Dim respNoHeaders As Responser = Responser.Copy
                     Dim m As UserMedia, m2 As UserMedia
-                    Dim r$
+                    Dim r$, url$
                     Dim j As EContainer
                     Dim lastCount%, li%
+                    Dim rv As New ErrorsDescriber(EDP.ReturnValue)
+                    respNoHeaders.Headers.Clear()
                     ProgressPre.ChangeMax(_ContentList.Count)
                     For i% = 0 To _ContentList.Count - 1
                         m = _ContentList(i)
                         ProgressPre.Perform()
                         If m.State = UStates.Missing AndAlso Not m.Post.ID.IsEmptyString Then
                             ThrowAny(Token)
-                            r = Responser.GetResponse($"https://www.reddit.com/comments/{m.Post.ID.Split("_").LastOrDefault}/.json",, EDP.ReturnValue)
+                            url = $"https://www.reddit.com/comments/{m.Post.ID.Split("_").LastOrDefault}/.json"
+                            r = Responser.GetResponse(url,, rv)
+                            If r.IsEmptyString Then r = respNoHeaders.GetResponse(url,, rv)
                             If Not r.IsEmptyString Then
-                                j = JsonDocument.Parse(r, EDP.ReturnValue)
+                                j = JsonDocument.Parse(r, rv)
                                 If Not j Is Nothing Then
                                     If j.Count > 0 Then
                                         lastCount = _TempMediaList.Count

@@ -121,7 +121,7 @@ Namespace API.YouTube.Controls
                             img = ImageRenderer.GetImage(SFile.GetBytesFromNet(imgUrl, EDP.ReturnValue), EDP.ReturnValue)
                             If Not img Is Nothing Then ICON_VIDEO.Image = img : ICON_VIDEO.InitialImage = img
                         End If
-                        LBL_TITLE.Text = .Title
+                        LBL_TITLE.Text = $"{If(MyYouTubeSettings.FileAddDateToFileName_VideoForm.Value, $"[{ .DateAdded:yyyy-MM-dd}] ", String.Empty)}{ .Title}"
                         LBL_TIME.Text = AConvert(Of String)(.Duration, TimeToStringProvider, String.Empty)
                         TP_HEADER_INFO_2.ColumnStyles(1).Width = MeasureTextDefault(LBL_TIME.Text, LBL_TIME.Font).Width + PaddingE.GetOf({LBL_TIME}).Horizontal
                         TP_HEADER_INFO_2.Refresh()

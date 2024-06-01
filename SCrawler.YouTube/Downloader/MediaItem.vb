@@ -133,7 +133,7 @@ Namespace DownloadObjects.STDownloader
 
                 ICON_SITE.Image = .SiteIcon
                 LBL_TIME.Text = AConvert(Of String)(.Duration, TimeToStringProvider, String.Empty)
-                LBL_TITLE.Text = .ToString(True)
+                LBL_TITLE.Text = $"{If(MyYouTubeSettings.FileAddDateToFileName_VideoList.Value, $"[{ .DateAdded:yyyy-MM-dd}] ", String.Empty)}{ .ToString(True)}"
                 If Not .SiteKey = YouTubeSiteKey And .ContentType = Plugin.UserMediaTypes.Picture Then
                     LBL_INFO.Text = .File.Extension.StringToUpper
                 ElseIf Not .IsMusic And Not (.MediaType = Plugin.UserMediaTypes.Audio Or .MediaType = Plugin.UserMediaTypes.AudioPre) Then
@@ -221,7 +221,7 @@ Namespace DownloadObjects.STDownloader
                     t = 0
                 End If
 
-                LBL_TITLE.Text = MyContainer.ToString(True)
+                LBL_TITLE.Text = $"{If(MyYouTubeSettings.FileAddDateToFileName_VideoList.Value, $"[{ .DateAdded:yyyy-MM-dd}] ", String.Empty)}{ .ToString(True)}"
 
                 If Not .SiteKey = YouTubeSiteKey Then BTT_VIEW_SETTINGS.Visible = False
 

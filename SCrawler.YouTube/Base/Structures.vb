@@ -78,6 +78,12 @@ Namespace API.YouTube.Base
         https = 1
         m3u8 = 2
     End Enum
+    <Editor(GetType(EnumDropDownEditor), GetType(UITypeEditor))>
+    Public Enum FileDateMode As Integer
+        None = 0
+        Before = 1
+        After = 2
+    End Enum
     Public Structure MediaObject : Implements IIndexable, IComparable(Of MediaObject)
         Public Type As Plugin.UserMediaTypes
         Public ID As String
