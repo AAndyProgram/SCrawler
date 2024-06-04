@@ -439,7 +439,9 @@ Namespace DownloadObjects
         End Sub
         Private Sub SessionChooser(ByVal GetLast As Boolean, Optional ByVal GetFilesOnly As Boolean = False,
                                    Optional ByRef ResultFilesList As List(Of SFile) = Nothing,
-                                   Optional ByVal SelectedMode As FeedModes = -1)
+                                   Optional ByVal SelectedMode As FeedModes = -1,
+                                   Optional ByVal GetSessionFile As Boolean = False,
+                                   Optional ByRef SessionFile As SFile = Nothing)
             Try
                 LoadedSessionName = String.Empty
                 Downloader.ClearSessions()
@@ -474,6 +476,12 @@ Namespace DownloadObjects
                             If fList.ListExists Then
                                 If GetFilesOnly Then
                                     ResultFilesList.AddRange(fList)
+                                ElseIf GetSessionFile Then
+                                    If fList.Count > 1 Then
+                                        MsgBoxE({"You must select one session file", "Get session file"}, vbExclamation)
+                                    Else
+                                        SessionFile = fList(0)
+                                    End If
                                 Else
                                     DataList.Clear()
                                     If SelectedMode >= 0 Then
@@ -900,16 +908,31 @@ Namespace DownloadObjects
             End Try
         End Sub
 #End Region
-#Region "Clear session"
-        Private Sub BTT_CLEAR_DAILY_Click(sender As Object, e As EventArgs) Handles BTT_CLEAR_DAILY.Click
-            If MsgBoxE({"Are you sure you want to clear this session data?", "Clear session"}, vbExclamation,,, {"Process", "Cancel"}) = 0 Then
-                Downloader.Files.Clear()
-                ClearTable()
-                RefillList()
-            End If
+#Region "Sessions set, merge, clear"
+        Private Sub BTT_CURR_SESSION_SET_Click(sender As Object, e As EventArgs) Handles BTT_CURR_SESSION_SET.Click
+            Try
+                Dim f As SFile = Nothing
+                SessionChooser(False,,,, True, f)
+                If f.Exists Then
+                    Using x As New XmlFile(f, Protector.Modes.All, False) With {.AllowSameNames = True, .XmlReadOnly = True}
+                        x.LoadData()
+                        If x.Count > 0 Then
+                            With Downloader
+                                .Files.Clear()
+                                .Files.ListAddList(x, LAP.NotContainsOnly, LAP.IgnoreICopier)
+                                .FilesLoadLastSession(f)
+                            End With
+                            FeedChangeMode(FeedModes.Current)
+                            RefillList(True, False)
+                        Else
+                            MsgBoxE({"There is no data in the selected session", "Replace current session"}, vbCritical)
+                        End If
+                    End Using
+                End If
+            Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Replace current session")
+            End Try
         End Sub
-#End Region
-#Region "Merge feeds"
         Private Sub BTT_MERGE_SESSIONS_Click(sender As Object, e As EventArgs) Handles BTT_MERGE_SESSIONS.Click
             Try
                 Const msgTitle$ = "Merge feeds"
@@ -970,6 +993,15 @@ Namespace DownloadObjects
                 ErrorsDescriber.Execute(EDP.SendToLog, ex, "[DownloadFeedForm.MergeSessions]")
             End Try
         End Sub
+        Private Sub BTT_CLEAR_DAILY_Click(sender As Object, e As EventArgs) Handles BTT_CLEAR_DAILY.Click
+            If MsgBoxE({"Are you sure you want to clear this session data?", "Clear session"}, vbExclamation,,, {"Process", "Cancel"}) = 0 Then
+                Downloader.Files.Clear()
+                ClearTable()
+                RefillList()
+            End If
+        End Sub
+#End Region
+#Region "Merge feeds"
         Private Sub BTT_MERGE_FEEDS_Click(sender As Object, e As EventArgs) Handles BTT_MERGE_FEEDS.Click
             Try
                 Const msgTitle$ = "Merge feeds"

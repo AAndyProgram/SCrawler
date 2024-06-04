@@ -1,5 +1,5 @@
-<!-- # :rainbow_flag: Happy LGBT Pride Month :tada:
--->
+# 🏳️‍🌈 Happy LGBT Pride Month 🎉
+
 # 🏳️‍🌈 Social networks crawler 🏳️‍🌈
 
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/AAndyProgram/SCrawler)](https://github.com/AAndyProgram/SCrawler/releases/latest)
@@ -37,8 +37,8 @@ A program to download photo and video from [any site](#supported-sites) (e.g. Yo
   - YouTube videos, shorts, community feeds, users, artists, playlists, music, tracks;
   - Reddit images, galleries of images, videos, saved posts;
   - Redgifs videos (https://www.redgifs.com/);
-  - Twitter images and videos, saved (bookmarked) posts;
-  - OnlyFans images and videos, saved (bookmarked) posts;
+  - Twitter images and videos, saved (bookmarked) posts, likes, communities;
+  - OnlyFans images and videos, saved (bookmarked) posts, stories;
   - JustForFans images and videos, saved (bookmarked) posts;
   - Mastodon images and videos, saved (bookmarked) posts;
   - Instagram images and videos, tagged posts, stories, saved posts;
@@ -79,11 +79,11 @@ A program to download photo and video from [any site](#supported-sites) (e.g. Yo
 - **Reddit**
 - **Twitter**
 - **OnlyFans** *(partial support)*[^1]
-- **Mastodon**
 - **Instagram**
 - **Threads**
 - **Facebook**
 - JustForFans *(partial support)*[^1]
+- Mastodon *(out of support)*
 - TikTok
 - RedGifs
 - Pinterest

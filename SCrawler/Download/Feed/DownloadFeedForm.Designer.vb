@@ -62,14 +62,15 @@ Namespace DownloadObjects
             Me.BTT_MERGE_FEEDS = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_CHECK_ALL = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_CHECK_NONE = New System.Windows.Forms.ToolStripMenuItem()
+            Me.BTT_VIEW_SAVE = New System.Windows.Forms.ToolStripMenuItem()
+            Me.BTT_VIEW_LOAD = New System.Windows.Forms.ToolStripMenuItem()
             Me.SEP_0 = New System.Windows.Forms.ToolStripSeparator()
             Me.MENU_DOWN = New System.Windows.Forms.ToolStripDropDownButton()
             Me.BTT_DOWN_ALL = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_DOWN_SELECTED = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_REFRESH = New System.Windows.Forms.ToolStripButton()
             Me.TP_DATA = New System.Windows.Forms.TableLayoutPanel()
-            Me.BTT_VIEW_SAVE = New System.Windows.Forms.ToolStripMenuItem()
-            Me.BTT_VIEW_LOAD = New System.Windows.Forms.ToolStripMenuItem()
+            Me.BTT_CURR_SESSION_SET = New System.Windows.Forms.ToolStripMenuItem()
             SEP_1 = New System.Windows.Forms.ToolStripSeparator()
             SEP_2 = New System.Windows.Forms.ToolStripSeparator()
             MENU_VIEW = New System.Windows.Forms.ToolStripDropDownButton()
@@ -157,6 +158,11 @@ Namespace DownloadObjects
             MENU_LOAD_SEP_0.Name = "MENU_LOAD_SEP_0"
             MENU_LOAD_SEP_0.Size = New System.Drawing.Size(349, 6)
             '
+            'MENU_LOAD_SEP_8
+            '
+            MENU_LOAD_SEP_8.Name = "MENU_LOAD_SEP_8"
+            MENU_LOAD_SEP_8.Size = New System.Drawing.Size(349, 6)
+            '
             'ToolbarTOP
             '
             Me.ToolbarTOP.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden
@@ -170,7 +176,7 @@ Namespace DownloadObjects
             '
             Me.MENU_LOAD_SESSION.AutoToolTip = False
             Me.MENU_LOAD_SESSION.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image
-            Me.MENU_LOAD_SESSION.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_LOAD_SESSION_CURRENT, Me.BTT_LOAD_SESSION_LAST, Me.BTT_LOAD_SESSION_CHOOSE, MENU_LOAD_SEP_0, Me.BTT_COPY_TO, Me.BTT_MOVE_TO, MENU_LOAD_SEP_1, Me.BTT_LOAD_FAV, Me.BTT_LOAD_SPEC, MENU_LOAD_SEP_2, Me.BTT_FEED_ADD_FAV, Me.BTT_FEED_ADD_FAV_REMOVE, Me.BTT_FEED_REMOVE_FAV, MENU_LOAD_SEP_3, Me.BTT_FEED_ADD_SPEC, Me.BTT_FEED_ADD_SPEC_REMOVE, Me.BTT_FEED_REMOVE_SPEC, MENU_LOAD_SEP_4, Me.BTT_FEED_CLEAR_FAV, Me.BTT_FEED_CLEAR_SPEC, Me.BTT_FEED_DELETE_SPEC, Me.BTT_FEED_DELETE_DAILY_LIST, Me.BTT_FEED_DELETE_DAILY_DATE, MENU_LOAD_SEP_5, Me.BTT_MERGE_SESSIONS, Me.BTT_CLEAR_DAILY, MENU_LOAD_SEP_6, Me.BTT_MERGE_FEEDS, MENU_LOAD_SEP_7, Me.BTT_CHECK_ALL, Me.BTT_CHECK_NONE, MENU_LOAD_SEP_8, Me.BTT_VIEW_SAVE, Me.BTT_VIEW_LOAD})
+            Me.MENU_LOAD_SESSION.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_LOAD_SESSION_CURRENT, Me.BTT_LOAD_SESSION_LAST, Me.BTT_LOAD_SESSION_CHOOSE, MENU_LOAD_SEP_0, Me.BTT_COPY_TO, Me.BTT_MOVE_TO, MENU_LOAD_SEP_1, Me.BTT_LOAD_FAV, Me.BTT_LOAD_SPEC, MENU_LOAD_SEP_2, Me.BTT_FEED_ADD_FAV, Me.BTT_FEED_ADD_FAV_REMOVE, Me.BTT_FEED_REMOVE_FAV, MENU_LOAD_SEP_3, Me.BTT_FEED_ADD_SPEC, Me.BTT_FEED_ADD_SPEC_REMOVE, Me.BTT_FEED_REMOVE_SPEC, MENU_LOAD_SEP_4, Me.BTT_FEED_CLEAR_FAV, Me.BTT_FEED_CLEAR_SPEC, Me.BTT_FEED_DELETE_SPEC, Me.BTT_FEED_DELETE_DAILY_LIST, Me.BTT_FEED_DELETE_DAILY_DATE, MENU_LOAD_SEP_5, Me.BTT_CURR_SESSION_SET, Me.BTT_MERGE_SESSIONS, Me.BTT_CLEAR_DAILY, MENU_LOAD_SEP_6, Me.BTT_MERGE_FEEDS, MENU_LOAD_SEP_7, Me.BTT_CHECK_ALL, Me.BTT_CHECK_NONE, MENU_LOAD_SEP_8, Me.BTT_VIEW_SAVE, Me.BTT_VIEW_LOAD})
             Me.MENU_LOAD_SESSION.Image = Global.SCrawler.My.Resources.Resources.ArrowDownPic_Blue_24
             Me.MENU_LOAD_SESSION.ImageTransparentColor = System.Drawing.Color.Magenta
             Me.MENU_LOAD_SESSION.Name = "MENU_LOAD_SESSION"
@@ -343,6 +349,20 @@ Namespace DownloadObjects
             Me.BTT_CHECK_NONE.Size = New System.Drawing.Size(352, 22)
             Me.BTT_CHECK_NONE.Text = "Select none"
             '
+            'BTT_VIEW_SAVE
+            '
+            Me.BTT_VIEW_SAVE.Name = "BTT_VIEW_SAVE"
+            Me.BTT_VIEW_SAVE.Size = New System.Drawing.Size(352, 22)
+            Me.BTT_VIEW_SAVE.Text = "Save current view"
+            '
+            'BTT_VIEW_LOAD
+            '
+            Me.BTT_VIEW_LOAD.AutoToolTip = True
+            Me.BTT_VIEW_LOAD.Name = "BTT_VIEW_LOAD"
+            Me.BTT_VIEW_LOAD.Size = New System.Drawing.Size(352, 22)
+            Me.BTT_VIEW_LOAD.Text = "Load view (from saved)"
+            Me.BTT_VIEW_LOAD.ToolTipText = "Load one of your previously saved views"
+            '
             'SEP_0
             '
             Me.SEP_0.Name = "SEP_0"
@@ -409,24 +429,14 @@ Namespace DownloadObjects
             Me.TP_DATA.Size = New System.Drawing.Size(484, 436)
             Me.TP_DATA.TabIndex = 1
             '
-            'MENU_LOAD_SEP_8
+            'BTT_CURR_SESSION_SET
             '
-            MENU_LOAD_SEP_8.Name = "MENU_LOAD_SEP_8"
-            MENU_LOAD_SEP_8.Size = New System.Drawing.Size(349, 6)
-            '
-            'BTT_VIEW_SAVE
-            '
-            Me.BTT_VIEW_SAVE.Name = "BTT_VIEW_SAVE"
-            Me.BTT_VIEW_SAVE.Size = New System.Drawing.Size(352, 22)
-            Me.BTT_VIEW_SAVE.Text = "Save current view"
-            '
-            'BTT_VIEW_LOAD
-            '
-            Me.BTT_VIEW_LOAD.AutoToolTip = True
-            Me.BTT_VIEW_LOAD.Name = "BTT_VIEW_LOAD"
-            Me.BTT_VIEW_LOAD.Size = New System.Drawing.Size(352, 22)
-            Me.BTT_VIEW_LOAD.Text = "Load view (from saved)"
-            Me.BTT_VIEW_LOAD.ToolTipText = "Load one of your previously saved views"
+            Me.BTT_CURR_SESSION_SET.AutoToolTip = True
+            Me.BTT_CURR_SESSION_SET.Image = Global.SCrawler.My.Resources.Resources.ArrowDownPic_Blue_24
+            Me.BTT_CURR_SESSION_SET.Name = "BTT_CURR_SESSION_SET"
+            Me.BTT_CURR_SESSION_SET.Size = New System.Drawing.Size(352, 22)
+            Me.BTT_CURR_SESSION_SET.Text = "Set current session..."
+            Me.BTT_CURR_SESSION_SET.ToolTipText = "Select one of the download sessions and set it as the current session"
             '
             'DownloadFeedForm
             '
@@ -483,5 +493,6 @@ Namespace DownloadObjects
         Private WithEvents BTT_MOVE_TO As ToolStripMenuItem
         Private WithEvents BTT_VIEW_SAVE As ToolStripMenuItem
         Private WithEvents BTT_VIEW_LOAD As ToolStripMenuItem
+        Private WithEvents BTT_CURR_SESSION_SET As ToolStripMenuItem
     End Class
 End Namespace

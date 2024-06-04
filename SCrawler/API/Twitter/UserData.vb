@@ -26,8 +26,24 @@ Namespace API.Twitter
         Private Const Name_GifsDownload As String = "GifsDownload"
         Private Const Name_GifsSpecialFolder As String = "GifsSpecialFolder"
         Private Const Name_GifsPrefix As String = "GifsPrefix"
+        Private Const Name_IsCommunity As String = "IsCommunity"
 #End Region
 #Region "Declarations"
+        Private Const Label_Community As String = "Community"
+        Private _NameTrue As String = String.Empty
+        Friend Property NameTrue As String
+            Get
+                Return _NameTrue.IfNullOrEmpty(Name)
+            End Get
+            Set(ByVal NewName As String)
+                _NameTrue = NewName
+            End Set
+        End Property
+        Friend Overrides ReadOnly Property SpecialLabels As IEnumerable(Of String)
+            Get
+                Return {Label_Community}
+            End Get
+        End Property
         Friend Enum DownloadModels As Integer
             Undefined = 0
             Media = 1
@@ -42,6 +58,7 @@ Namespace API.Twitter
         Friend Property GifsDownload As Boolean = True
         Friend Property GifsSpecialFolder As String = String.Empty
         Friend Property GifsPrefix As String = String.Empty
+        Friend Property IsCommunity As Boolean = False
         Private ReadOnly LikesPosts As List(Of String)
         Private ReadOnly _DataNames As List(Of String)
         Private ReadOnly Property MySettings As SiteSettings
@@ -56,6 +73,9 @@ Namespace API.Twitter
         End Sub
         Private Function RenameGdlFile(ByVal Input As SFile, ByVal i As Integer) As SFile
             Return SFile.Rename(Input, $"{Input.PathWithSeparator}{i.NumToString(FileNameProvider)}.{Input.Extension}",, EDP.ThrowException)
+        End Function
+        Friend Function GetUserUrl() As String
+            Return $"https://x.com{IIf(IsCommunity, SiteSettings.CommunitiesUser, String.Empty)}/{NameTrue}"
         End Function
 #End Region
 #Region "Exchange options"
@@ -121,7 +141,20 @@ Namespace API.Twitter
                     RemoveExistingDuplicates = .Value(Name_RemoveExistingDuplicates).FromXML(Of Boolean)(False)
                     StartMD5Checked = .Value(Name_StartMD5Checked).FromXML(Of Boolean)(False)
                     MediaModelAllowNonUserTweets = .Value(Name_MediaModelAllowNonUserTweets).FromXML(Of Boolean)(False)
+                    IsCommunity = .Value(Name_IsCommunity).FromXML(Of Boolean)(False)
+                    _NameTrue = .Value(Name_TrueName)
                 Else
+                    If Name.Contains("@") And Not IsCommunity Then
+                        IsCommunity = True
+                        _NameTrue = Name.Split("@")(0)
+                        ID = _NameTrue
+                        ParseUserMediaOnly = False
+                        Labels.ListAddValue(Label_Community, LNC)
+                        Labels.Sort()
+                        .Add(Name_UserID, ID)
+                        .Add(Name_LabelsName, LabelsString)
+                        .Add(Name_ParseUserMediaOnly, ParseUserMediaOnly.BoolToInteger)
+                    End If
                     .Add(Name_FirstDownloadComplete, FirstDownloadComplete.BoolToInteger)
                     .Add(Name_DownloadModelForceApply, DownloadModelForceApply.BoolToInteger)
                     .Add(Name_DownloadModel, CInt(DownloadModel))
@@ -132,6 +165,8 @@ Namespace API.Twitter
                     .Add(Name_RemoveExistingDuplicates, RemoveExistingDuplicates.BoolToInteger)
                     .Add(Name_StartMD5Checked, StartMD5Checked.BoolToInteger)
                     .Add(Name_MediaModelAllowNonUserTweets, MediaModelAllowNonUserTweets.BoolToInteger)
+                    .Add(Name_IsCommunity, IsCommunity.BoolToInteger)
+                    .Add(Name_TrueName, _NameTrue)
                 End If
             End With
         End Sub
@@ -188,14 +223,15 @@ Namespace API.Twitter
                 Dim newTwitterNodes() As Object = {0, "content", "items"}
                 Dim p As Predicate(Of EContainer)
                 Dim pIndx%
+                Dim indxChanged As Boolean = False
                 Dim isOneNode As Boolean, isPins As Boolean, ExistsDetected As Boolean, userInfoParsed As Boolean = False
                 Dim j As EContainer, rootNode As EContainer, optionalNode As EContainer, workingNode As EContainer, tmpNode As EContainer, nn As EContainer = Nothing
 
                 Dim __parseContainer As Func(Of EContainer, Boolean) =
                     Function(ByVal ee As EContainer) As Boolean
                         nn = Nothing
-                        If dirIndx > 1 Then nn = ee
-                        If Not nn.ListExists Then
+                        If dirIndx > 1 Or IsCommunity Then nn = ee
+                        If Not nn.ListExists Or IsCommunity Then
                             For Each node In nodes
                                 nn = ee(node)
                                 If nn.ListExists Then Exit For
@@ -269,10 +305,22 @@ Namespace API.Twitter
                                 For i = 0 To timelineFiles.Count - 1
                                     j = JsonDocument.Parse(timelineFiles(i).GetText)
                                     If Not j Is Nothing Then
-                                        If i = 0 Then
+                                        If i = 0 And Not indxChanged Then
                                             If Not userInfoParsed Then
                                                 userInfoParsed = True
-                                                Dim resValue$ = j.Value({"data", "user", "result"}, "__typename").StringTrim.StringToLower
+                                                Dim resValue$ = j.Value({"data", IIf(IsCommunity, "communityResults", "user"), "result"}, "__typename").StringTrim.StringToLower
+                                                Dim icon$
+                                                Dim __getImage As Action(Of String) = Sub(ByVal img As String)
+                                                                                          If Not img.IsEmptyString Then
+                                                                                              Dim __imgFile As SFile = UrlFile(img, True)
+                                                                                              If Not __imgFile.Name.IsEmptyString Then
+                                                                                                  If __imgFile.Extension.IsEmptyString Then __imgFile.Extension = "jpg"
+                                                                                                  __imgFile.Path = MyFile.CutPath.Path
+                                                                                                  If Not __imgFile.Exists Then GetWebFile(img, __imgFile, EDP.None)
+                                                                                                  If __imgFile.Exists Then IconBannerDownloaded = True
+                                                                                              End If
+                                                                                          End If
+                                                                                      End Sub
                                                 If resValue.IsEmptyString Then
                                                     UserExists = False
                                                     j.Dispose()
@@ -281,6 +329,29 @@ Namespace API.Twitter
                                                     UserSuspended = True
                                                     j.Dispose()
                                                     Exit Sub
+                                                ElseIf IsCommunity Then
+                                                    With j({"data", "communityResults", "result", "community_media_timeline", "timeline", "instructions"})
+                                                        If .ListExists Then
+                                                            With .Find(entriesNode, True)
+                                                                If .ListExists Then
+                                                                    With .ItemF({0, "content", "items", 0, "item", "itemContent", "tweet_results", "result", "tweet", "community_results", "result"})
+                                                                        If .ListExists Then
+                                                                            If ID = .Value("id_str") Then
+                                                                                UserSiteNameUpdate(.Value("name"))
+                                                                                UserDescriptionUpdate(.Value("description"))
+
+                                                                                icon = .Value({"custom_banner_media", "media_info"}, "original_img_url").
+                                                                                       IfNullOrEmpty(.Value({"default_banner_media", "media_info"}, "original_img_url"))
+                                                                                If Not icon.IsEmptyString And DownloadIconBanner Then __getImage.Invoke(icon)
+                                                                            End If
+                                                                        End If
+                                                                    End With
+                                                                End If
+                                                            End With
+                                                        End If
+                                                    End With
+                                                    i = -1
+                                                    indxChanged = True
                                                 Else
                                                     With j({"data", "user", "result"})
                                                         If .ListExists Then
@@ -290,21 +361,11 @@ Namespace API.Twitter
                                                             End If
                                                             With .Item({"legacy"})
                                                                 If .ListExists Then
-                                                                    If .Value("screen_name").StringToLower = Name.ToLower Then
+                                                                    If .Value("screen_name").StringToLower = NameTrue.ToLower Then
                                                                         UserSiteNameUpdate(.Value("name"))
                                                                         UserDescriptionUpdate(.Value("description"))
-                                                                        Dim __getImage As Action(Of String) = Sub(ByVal img As String)
-                                                                                                                  If Not img.IsEmptyString Then
-                                                                                                                      Dim __imgFile As SFile = UrlFile(img, True)
-                                                                                                                      If Not __imgFile.Name.IsEmptyString Then
-                                                                                                                          If __imgFile.Extension.IsEmptyString Then __imgFile.Extension = "jpg"
-                                                                                                                          __imgFile.Path = MyFile.CutPath.Path
-                                                                                                                          If Not __imgFile.Exists Then GetWebFile(img, __imgFile, EDP.None)
-                                                                                                                          If __imgFile.Exists Then IconBannerDownloaded = True
-                                                                                                                      End If
-                                                                                                                  End If
-                                                                                                              End Sub
-                                                                        Dim icon$ = .Value("profile_image_url_https")
+
+                                                                        icon = .Value("profile_image_url_https")
                                                                         If Not icon.IsEmptyString Then icon = icon.Replace("_normal", String.Empty)
                                                                         If DownloadIconBanner Then
                                                                             __getImage.Invoke(.Value("profile_banner_url"))
@@ -316,34 +377,55 @@ Namespace API.Twitter
                                                         End If
                                                     End With
                                                 End If
+                                            ElseIf IsCommunity Then
+                                                i = -1
+                                                indxChanged = True
                                             End If
                                         Else
                                             For pIndx = 0 To IIf(dirIndx < 2 Or dirIndx = 3, 1, 0)
                                                 optionalNode = Nothing
-                                                Select Case dirIndx
-                                                    Case 0, 1, 3
-                                                        rootNode = j({"data", "user", "result", "timeline_v2", "timeline", "instructions"})
-                                                        If rootNode.ListExists Then
-                                                            If dirIndx = 3 Then
-                                                                p = entriesNode
-                                                                isPins = False
+                                                rootNode = Nothing
+                                                If IsCommunity Then
+                                                    With j({"data", "communityResults", "result", "community_media_timeline", "timeline", "instructions"})
+                                                        If .ListExists Then
+                                                            If i = 0 Then
+                                                                rootNode = .Find(entriesNode, True)
                                                             Else
-                                                                p = If(pIndx = 0, pinNode, timelineNode)
-                                                                isPins = pIndx = 0
+                                                                rootNode = .Find(moduleItemsPredicate, True)
                                                             End If
                                                             optionalNode = rootNode
-                                                            rootNode = rootNode.Find(p, dirIndx = 3)
-                                                            If dirIndx <> 3 And rootNode.ListExists Then rootNode = rootNode.Find(entriesNode, dirIndx = 3)
                                                         End If
-                                                    Case Else
-                                                        isPins = False
-                                                        rootNode = j({"globalObjects", "tweets"})
-                                                        optionalNode = rootNode
-                                                End Select
+                                                    End With
+                                                Else
+                                                    Select Case dirIndx
+                                                        Case 0, 1, 3
+                                                            rootNode = j({"data", "user", "result", "timeline_v2", "timeline", "instructions"})
+                                                            If rootNode.ListExists Then
+                                                                If dirIndx = 3 Then
+                                                                    p = entriesNode
+                                                                    isPins = False
+                                                                Else
+                                                                    p = If(pIndx = 0, pinNode, timelineNode)
+                                                                    isPins = pIndx = 0
+                                                                End If
+                                                                optionalNode = rootNode
+                                                                rootNode = rootNode.Find(p, dirIndx = 3)
+                                                                If dirIndx <> 3 And rootNode.ListExists Then rootNode = rootNode.Find(entriesNode, dirIndx = 3)
+                                                            End If
+                                                        Case Else
+                                                            isPins = False
+                                                            rootNode = j({"globalObjects", "tweets"})
+                                                            optionalNode = rootNode
+                                                    End Select
+                                                End If
 
                                                 If rootNode.ListExists Then
                                                     With rootNode
-                                                        isOneNode = dirIndx < 2 AndAlso .Name = entry
+                                                        If IsCommunity Then
+                                                            isOneNode = pIndx = 0
+                                                        Else
+                                                            isOneNode = dirIndx < 2 AndAlso .Name = entry
+                                                        End If
                                                         ProgressPre.ChangeMax(If(isOneNode, 1, .Count))
                                                         If isOneNode Then
                                                             ProgressPre.Perform()
@@ -660,6 +742,7 @@ Namespace API.Twitter
                 Dim dir As SFile
                 Dim dm As List(Of DownloadModels) = EnumExtract(Of DownloadModels)(DownloadModel).ListIfNothing
                 Dim process As Boolean
+                Dim urlPrePattern$ = $"https://x.com{IIf(IsCommunity, SiteSettings.CommunitiesUser, String.Empty)}/"
 
                 Using tgdl As New TwitterGDL(Nothing, Token, MySettings.AbortOnLimit.Value) With {
                     .TempPostsList = _TempPostsList,
@@ -670,7 +753,7 @@ Namespace API.Twitter
                 }
                     tgdl.FileExchanger.DeleteCacheOnDispose = False
                     tgdl.FileExchanger.DeleteRootOnDispose = False
-                    For i As Byte = 0 To 3
+                    For i As Byte = 0 To IIf(IsCommunity, 0, 3)
                         dir = rootDir.NewPath
                         dir.Exists(SFO.Path, True, EDP.ThrowException)
                         outList.Add(dir)
@@ -678,10 +761,10 @@ Namespace API.Twitter
                         command = $"""{Settings.GalleryDLFile}"" --verbose --no-download --no-skip --config ""{conf}"" --write-pages "
                         command &= GdlGetIdFilterString()
                         Select Case i
-                            Case 0 : command &= $"https://x.com/{Name}/media" : process = dm.Contains(DownloadModels.Media)
-                            Case 1 : command &= $"https://x.com/{Name}" : process = dm.Contains(DownloadModels.Profile)
-                            Case 2 : command &= $"-o search-endpoint=graphql https://x.com/search?q=from:{Name}+include:nativeretweets" : process = dm.Contains(DownloadModels.Search)
-                            Case 3 : command &= $"https://x.com/{Name}/likes" : process = dm.Contains(DownloadModels.Likes)
+                            Case 0 : command &= $"{urlPrePattern}{NameTrue}/media" : process = dm.Contains(DownloadModels.Media) Or IsCommunity
+                            Case 1 : command &= $"{urlPrePattern}{NameTrue}" : process = dm.Contains(DownloadModels.Profile)
+                            Case 2 : command &= $"-o search-endpoint=graphql https://x.com/search?q=from:{NameTrue}+include:nativeretweets" : process = dm.Contains(DownloadModels.Search) And Not IsCommunity
+                            Case 3 : command &= $"{urlPrePattern}{NameTrue}/likes" : process = dm.Contains(DownloadModels.Likes)
                             Case Else : process = False
                         End Select
                         '#If DEBUG Then
@@ -735,7 +818,6 @@ Namespace API.Twitter
 #Region "ReparseMissing"
         Private _ReparseLikes As Boolean = False
         Protected Overrides Sub ReparseMissing(ByVal Token As CancellationToken)
-            Const SinglePostPattern$ = "https://x.com/{0}/status/{1}"
             Dim rList As New List(Of Integer)
             Dim URL$ = String.Empty
             Dim cache As CacheKeeper = Nothing
@@ -766,7 +848,7 @@ Namespace API.Twitter
                                 ElseIf _ReparseLikes Then
                                     URL = LikesPosts(i)
                                 Else
-                                    URL = String.Format(SinglePostPattern, Name, m.Post.ID)
+                                    URL = String.Format(SiteSettings.SinglePostPattern, m.Post.ID)
                                 End If
                                 f = GetDataFromGalleryDL(URL, cache, False, Token)
                                 If Not f.IsEmptyString Then

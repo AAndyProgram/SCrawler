@@ -149,24 +149,30 @@ Namespace DownloadObjects
             End Try
         End Function
         Private _FilesSessionChecked_Impl As Boolean = False
-        Friend Sub FilesLoadLastSession()
+        Friend Sub FilesLoadLastSession(Optional ByVal SelectedSessionFile As SFile = Nothing)
             Try
-                If Not _FilesSessionChecked And Not _FilesSessionChecked_Impl And _FilesSessionActual.IsEmptyString Then
+                If Not SelectedSessionFile.IsEmptyString Or (Not _FilesSessionChecked And Not _FilesSessionChecked_Impl And _FilesSessionActual.IsEmptyString) Then
                     _FilesSessionChecked = True
                     _FilesSessionChecked_Impl = True
                     Dim settingValue% = Settings.FeedCurrentTryLoadLastSession
-                    If settingValue >= 0 Then
+                    Dim ssfExists As Boolean = Not SelectedSessionFile.IsEmptyString AndAlso SelectedSessionFile.Exists
+                    If settingValue >= 0 Or ssfExists Then
                         Dim startTime As Date = Process.GetCurrentProcess.StartTime
-                        Dim files As List(Of SFile) = SFile.GetFiles(SessionsPath.CSFileP, "*.xml",, EDP.ReturnValue)
-                        If files.ListExists Then files.RemoveAll(Settings.Feeds.FeedSpecialRemover)
-                        If files.ListExists Then
-                            Dim nd$ = Now.ToString("yyyyMMdd")
-                            files.RemoveAll(Function(f) Not f.Name.StartsWith(nd))
+                        Dim files As List(Of SFile)
+                        If ssfExists Then
+                            files = New List(Of SFile) From {SelectedSessionFile}
+                        Else
+                            files = SFile.GetFiles(SessionsPath.CSFileP, "*.xml",, EDP.ReturnValue)
+                            If files.ListExists Then files.RemoveAll(Settings.Feeds.FeedSpecialRemover)
+                            If files.ListExists Then
+                                Dim nd$ = Now.ToString("yyyyMMdd")
+                                files.RemoveAll(Function(f) Not f.Name.StartsWith(nd))
+                            End If
                         End If
                         If files.ListExists Then
                             files.Sort()
                             Dim lastDate As Date = AConvert(Of Date)(files.Last.Name, SessionDateTimeProvider)
-                            If lastDate.Date = startTime.Date Then
+                            If ssfExists Or lastDate.Date = startTime.Date Then
                                 Dim __files As New List(Of UserMediaD)
                                 Using x As New XmlFile(files.Last, Protector.Modes.All, False) With {.AllowSameNames = True, .XmlReadOnly = True}
                                     x.LoadData()

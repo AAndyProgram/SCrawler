@@ -101,7 +101,7 @@ Namespace API.Twitter
             ConcurrentDownloads = New PropertyValue(1)
             MyConcurrentDownloadsProvider = New ConcurrentDownloadsProvider
 
-            UserRegex = RParams.DMS(String.Format(UserRegexDefaultPattern, "/(twitter|x).com/"), 2)
+            UserRegex = RParams.DMS(String.Format(UserRegexDefaultPattern, $"/(twitter|x).com({CommunitiesUser}|)/"), 3)
             UrlPatternUser = "https://x.com/{0}"
             ImageVideoContains = "twitter"
             CheckNetscapeCookiesOnEndInit = True
@@ -110,8 +110,9 @@ Namespace API.Twitter
         Friend Overrides Function GetInstance(ByVal What As ISiteSettings.Download) As IPluginContentProvider
             Return New UserData
         End Function
+        Friend Const SinglePostPattern As String = "https://x.com/i/web/status/{0}"
         Friend Overrides Function GetUserPostUrl(ByVal User As UserDataBase, ByVal Media As UserMedia) As String
-            Return $"https://x.com/{User.Name}/status/{Media.Post.ID}"
+            Return String.Format(SinglePostPattern, Media.Post.ID)
         End Function
         Friend Overrides Function BaseAuthExists() As Boolean
             Return Responser.CookiesExists
@@ -151,5 +152,18 @@ Namespace API.Twitter
             End If
             MyBase.Update()
         End Sub
+        Friend Const CommunitiesUser As String = "/i/communities"
+        Friend Overrides Function IsMyUser(ByVal UserURL As String) As ExchangeOptions
+            Dim e As ExchangeOptions = MyBase.IsMyUser(UserURL)
+            If Not e.UserName.IsEmptyString Then
+                If UserURL.Contains(CommunitiesUser) Then e.Options = CommunitiesUser : e.UserName &= "@c"
+                Return e
+            Else
+                Return Nothing
+            End If
+        End Function
+        Friend Overrides Function GetUserUrl(ByVal User As IPluginContentProvider) As String
+            Return DirectCast(User, UserData).GetUserUrl
+        End Function
     End Class
 End Namespace

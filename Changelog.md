@@ -1,3 +1,22 @@
+# 2024.6.4.0
+
+*2024-06-04*
+
+**If you were using the [`yt-dlp-TTUser`](https://github.com/bashonly/yt-dlp-TTUser) plugin, you should remove it because this plugin was added to yt-dlp itself! Read more [here](https://github.com/AAndyProgram/SCrawler/wiki/Settings#tiktok-requirements).**
+
+- Added
+  - Added highlighting of scheduler plans (working, stopped, pending, etc.)
+  - YouTube (standalone app): add option to add the video upload date before/after the file name (`Settings` - `Defaults` - `Add date to file name`)
+  - Twitter: **`Communities` downloading**
+  - Feed: ability to select one of the download sessions and set it as the current session
+  - Minor improvements
+- Updated
+  - yt-dlp up to version **2024.05.27**
+  - gallery-dl up to version **1.27.0**
+- Fixed
+  - Twitter: deleting user directory when redownloading missing posts
+  - Minor bugs
+
 # 2024.5.19.0
 
 *2024-05-19*

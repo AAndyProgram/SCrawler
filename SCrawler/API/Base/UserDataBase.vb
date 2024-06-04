@@ -143,7 +143,7 @@ Namespace API.Base
         Protected Const Name_UserID As String = "UserID"
         Protected Const Name_Options As String = "Options"
         Protected Const Name_Description As String = "Description"
-        Private Const Name_ParseUserMediaOnly As String = "ParseUserMediaOnly"
+        Protected Const Name_ParseUserMediaOnly As String = "ParseUserMediaOnly"
         Private Const Name_IsSubscription As String = UserInfo.Name_IsSubscription
         Private Const Name_Temporary As String = "Temporary"
         Private Const Name_Favorite As String = "Favorite"
