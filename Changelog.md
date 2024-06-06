@@ -1,3 +1,19 @@
+# 2024.6.6.0
+
+*2024-06-06*
+
+**ATTENTION!**
+1. **To support downloading of DRM protected videos (OnlyFans), please update OF-Scraper to version [3.10](https://github.com/datawhores/OF-Scraper/releases/tag/3.10) (download `zip`, not `exe`).**
+2. **If there is a `OFScraperConfigPattern.json` file in the SCrawler settings folder, replace the text of the file with [this text](https://github.com/AAndyProgram/SCrawler/blob/main/SCrawler/API/OnlyFans/OFScraperConfigPattern.json).**
+3. **Set the value to `Dynamic rules` (in the site settings) = `https://raw.githubusercontent.com/Growik/onlyfans-dynamic-rules/main/rules.json`.**
+
+- Added
+  - OnlyFans: new OF-Scraper option (`keydb_api`)
+  - Minor improvements
+- Fixed
+  - OnlyFans: **data is not downloading**
+  - Minor bugs
+
 # 2024.6.4.0
 
 *2024-06-04*

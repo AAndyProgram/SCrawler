@@ -115,6 +115,9 @@
   <ItemGroup>
     <Compile Include="Attributes\GridVisibleAttribute.vb" />
     <Compile Include="Base\TableControlsProcessor.vb" />
+    <Compile Include="Controls\ButtonRC.vb">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Controls\ChannelTabsChooserForm.Designer.vb">
       <DependentUpon>ChannelTabsChooserForm.vb</DependentUpon>
     </Compile>

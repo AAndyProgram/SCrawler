@@ -177,7 +177,7 @@ Namespace DownloadObjects
                                 Using x As New XmlFile(files.Last, Protector.Modes.All, False) With {.AllowSameNames = True, .XmlReadOnly = True}
                                     x.LoadData()
                                     If x.Count > 0 Then __files.ListAddList(x, LAP.IgnoreICopier)
-                                    If __files.Count > 0 AndAlso (settingValue = 0 OrElse
+                                    If __files.Count > 0 AndAlso (settingValue = 0 OrElse ssfExists OrElse
                                                                   (startTime - {lastDate, __files.Max(Function(f) f.Date)}.Max).TotalMinutes <= settingValue) Then
                                         _Session = __files.Max(Function(f) f.Session)
                                         Me.Files.AddRange(__files)

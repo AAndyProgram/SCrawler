@@ -133,11 +133,24 @@ Namespace API.OnlyFans
                 End If
             End Get
         End Property
+        <PClonable, PXML("keydb_api")> Private ReadOnly Property Keydb_Api_XML As PropertyValue
+        <PropertyOption(ControlText:="keydb_api", Category:=CAT_OFS)>
+        Friend ReadOnly Property Keydb_Api As PropertyValue
+            Get
+                If Not DefaultInstance Is Nothing Then
+                    Return DirectCast(DefaultInstance, SiteSettings).Keydb_Api_XML
+                Else
+                    Return Keydb_Api_XML
+                End If
+            End Get
+        End Property
 #End Region
 #End Region
 #Region "Initializer"
         Friend Sub New(ByVal AccName As String, ByVal Temp As Boolean)
             MyBase.New("OnlyFans", ".onlyfans.com", AccName, Temp, My.Resources.SiteResources.OnlyFansIcon_32, My.Resources.SiteResources.OnlyFansPic_32)
+
+            CheckOFSConfig()
 
             _AllowUserAgentUpdate = False
 
@@ -192,6 +205,7 @@ Namespace API.OnlyFans
             End If
             OFScraperMP4decrypt_XML = New PropertyValue(String.Empty, GetType(String))
             KeyModeDefault_XML = New PropertyValue(KeyModeDefault_Default)
+            Keydb_Api_XML = New PropertyValue(String.Empty, GetType(String))
 
             UserRegex = RParams.DMS(String.Format(UserRegexDefaultPattern, "onlyfans.com/"), 1, EDP.ReturnValue)
             UrlPatternUser = "https://onlyfans.com/{0}"
@@ -204,8 +218,19 @@ Namespace API.OnlyFans
         End Function
 #End Region
 #Region "Update"
+        Private __UseOldAuthRules As Boolean = True
+        Private __DynamicRules As String = String.Empty
+        Friend Overrides Sub BeginUpdate()
+            __UseOldAuthRules = UseOldAuthRules.Value
+            __DynamicRules = AConvert(Of String)(DynamicRules.Value, String.Empty)
+            MyBase.BeginUpdate()
+        End Sub
         Friend Overrides Sub Update()
-            If _SiteEditorFormOpened Then Responser.Cookies.Changed = False
+            If _SiteEditorFormOpened Then
+                If Not __UseOldAuthRules = CBool(UseOldAuthRules.Value) Or Not AEquals(Of String)(__DynamicRules, DynamicRules.Value) Then _
+                   LastDateUpdated = LastDateUpdated.AddYears(-1)
+                Responser.Cookies.Changed = False
+            End If
             MyBase.Update()
         End Sub
 #End Region

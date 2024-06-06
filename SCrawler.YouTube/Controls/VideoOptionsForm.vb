@@ -610,7 +610,7 @@ Namespace API.YouTube.Controls
                                 $"Video|{AvailableVideoFormats.Select(Function(vf) $"*.{vf.ToLower}").ListToString(";")}" &
                                 $"|Audio|{AvailableAudioFormats.Select(Function(af) $"*.{af.ToLower}").ListToString(";")}"
                 f = SFile.SaveAs(f, "Select the destination of the video file",, ext, sPattern, EDP.ReturnValue)
-                f.Extension = ext
+                If Not f.IsEmptyString Then f.Extension = ext
             End If
 #Enable Warning
             f = CleanFileName(f)

@@ -913,21 +913,10 @@ Namespace DownloadObjects
             Try
                 Dim f As SFile = Nothing
                 SessionChooser(False,,,, True, f)
-                If f.Exists Then
-                    Using x As New XmlFile(f, Protector.Modes.All, False) With {.AllowSameNames = True, .XmlReadOnly = True}
-                        x.LoadData()
-                        If x.Count > 0 Then
-                            With Downloader
-                                .Files.Clear()
-                                .Files.ListAddList(x, LAP.NotContainsOnly, LAP.IgnoreICopier)
-                                .FilesLoadLastSession(f)
-                            End With
-                            FeedChangeMode(FeedModes.Current)
-                            RefillList(True, False)
-                        Else
-                            MsgBoxE({"There is no data in the selected session", "Replace current session"}, vbCritical)
-                        End If
-                    End Using
+                If Not f.IsEmptyString AndAlso f.Exists Then
+                    Downloader.FilesLoadLastSession(f)
+                    FeedChangeMode(FeedModes.Current)
+                    RefillList(True, False)
                 End If
             Catch ex As Exception
                 ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Replace current session")

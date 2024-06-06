@@ -549,7 +549,8 @@ Namespace API.OnlyFans
                                          Optional ByVal Round As Integer = 0) As Boolean
             Try
                 If UpdateAuthFile(ForceUpdateAuth) Then
-                    Const nullMsg$ = "The auth parameter is null"
+                    Const nullMsg$ = "The auth parameter(s) is null"
+                    Const formatMidPart$ = ":{0}:{1:x}:"
                     Dim j As EContainer
                     Try
                         j = JsonDocument.Parse(AuthFile.GetText)
@@ -565,8 +566,16 @@ Namespace API.OnlyFans
                     End Try
                     If Not j Is Nothing Then
                         Dim pattern$ = j.Value("format")
-                        If pattern.IsEmptyString Then Throw New ArgumentNullException("format", nullMsg)
-                        pattern = pattern.Replace("{}", "{0}").Replace("{:x}", "{1:x}")
+
+                        If Not pattern.IsEmptyString Then
+                            pattern = pattern.Replace("{}", "{0}").Replace("{:x}", "{1:x}")
+                        ElseIf Not j.Value("prefix").IsEmptyString And Not j.Value("suffix").IsEmptyString Then
+                            pattern = j.Value("prefix") & formatMidPart & j.Value("suffix")
+                        ElseIf Not j.Value("start").IsEmptyString And Not j.Value("end").IsEmptyString Then
+                            pattern = j.Value("start") & formatMidPart & j.Value("end")
+                        Else
+                            Throw New ArgumentNullException("format", nullMsg)
+                        End If
 
                         Dim li%() = j("checksum_indexes").Select(Function(e) CInt(e(0).Value)).ToArray
 
@@ -607,10 +616,14 @@ Namespace API.OnlyFans
                     Dim r$ = GetWebString(If(ACheck(Of String)(MySettings.DynamicRules.Value),
                                              CStr(MySettings.DynamicRules.Value),
                                              IIf(MySettings.UseOldAuthRules.Value, urlOld, urlNew)),, EDP.ReturnValue)
+                    Dim checkFormat As Func(Of EContainer, Boolean) =
+                        Function(jj) Not jj.Value("format").IsEmptyString OrElse
+                                     (Not jj.Value("prefix").IsEmptyString And Not jj.Value("suffix").IsEmptyString) OrElse
+                                     (Not jj.Value("start").IsEmptyString And Not jj.Value("start").IsEmptyString)
                     If Not r.IsEmptyString Then
                         Using j As EContainer = JsonDocument.Parse(r, EDP.ReturnValue)
                             If j.ListExists Then
-                                If Not j.Value("format").IsEmptyString And j("checksum_indexes").ListExists And
+                                If checkFormat(j) And j("checksum_indexes").ListExists And
                                    Not j.Value("static_param").IsEmptyString And Not j.Value("checksum_constant").IsEmptyString Then _
                                    TextSaver.SaveTextToFile(r, AuthFile, True, False, EDP.ThrowException) : MySettings.LastDateUpdated = Now
                             End If
@@ -658,12 +671,9 @@ Namespace API.OnlyFans
                 currentCache.Validate()
                 Dim cacheRoot As SFile = currentCache.NewPath
                 cacheRoot.Exists(SFO.Path, True, EDP.ThrowException)
-                Dim f As SFile = $"{SettingsFolderName}\OFScraperConfigPattern.json"
+                Dim f As SFile = OFScraperConfigPatternFile
                 Dim configText$
-                If Not f.Exists Then
-                    configText = Text.Encoding.UTF8.GetString(My.Resources.OFResources.OFScraperConfigPattern)
-                    TextSaver.SaveTextToFile(configText, f, True)
-                End If
+                CheckOFSConfig()
                 If f.Exists Then
                     Dim replaceValue$ = String.Empty
                     Dim rp As RParams = RParams.DMS(String.Empty, 1, RegexReturn.Replace, RegexOptions.IgnoreCase,
@@ -684,6 +694,7 @@ Namespace API.OnlyFans
                         End If
                         If Settings.FfmpegFile.Exists Then updateConf("ffmpeg", Settings.FfmpegFile.File.ToString.Replace("\", "/"))
                         updateConf("key-mode-default", CStr(MySettings.KeyModeDefault.Value).IfNullOrEmpty(SiteSettings.KeyModeDefault_Default))
+                        updateConf("keydb_api", CStr(MySettings.Keydb_Api.Value))
                         f = currentCache
                         f.Name = "config"
                         f.Extension = "json"

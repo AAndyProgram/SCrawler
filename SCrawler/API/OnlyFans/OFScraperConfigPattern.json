@@ -38,14 +38,18 @@
         },
         "advanced_options": {
             "code-execution": false,
-            "dynamic-mode-default": "deviint",
+            "dynamic-mode-default": "sneaky",
             "backend": "aio",
             "downloadbars": false,
             "cache-mode": "sqlite",
             "appendlog": true,
             "custom": null,
             "sanitize_text": false,
-            "avatar": true
+            "avatar": true,
+            "custom_values": {
+                "SNEAKY": "https://raw.githubusercontent.com/Growik/onlyfans-dynamic-rules/main/rules.json",
+                "CDRM": "https://old.cdrm-project.com/wv"
+            }
         },
         "responsetype": {
             "timeline": "Posts",

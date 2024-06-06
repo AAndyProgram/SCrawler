@@ -11,5 +11,15 @@ Namespace API.OnlyFans
     Friend Module Declarations
         Friend ReadOnly DateProvider As New ADateTime("O")
         Friend ReadOnly RegExPostID As RParams = RParams.DM("(?<=onlyfans\.com/)(\d+)", 0, EDP.ReturnValue)
+        Friend ReadOnly OFScraperConfigPatternFile As SFile = $"{SettingsFolderName}\OFScraperConfigPattern.json"
+        Friend Function CheckOFSConfig() As Boolean
+            If Not OFScraperConfigPatternFile.Exists Then
+                Dim t$ = Text.Encoding.UTF8.GetString(My.Resources.OFResources.OFScraperConfigPattern)
+                TextSaver.SaveTextToFile(t, OFScraperConfigPatternFile, True)
+                Return OFScraperConfigPatternFile.Exists
+            Else
+                Return True
+            End If
+        End Function
     End Module
 End Namespace

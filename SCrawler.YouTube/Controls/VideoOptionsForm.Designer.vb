@@ -65,11 +65,11 @@ Namespace API.YouTube.Controls
             Me.LBL_TIME = New System.Windows.Forms.Label()
             Me.LBL_URL = New System.Windows.Forms.LinkLabel()
             Me.TXT_FILE = New PersonalUtilities.Forms.Controls.ComboBoxExtended()
-            Me.BTT_BROWSE = New System.Windows.Forms.Button()
+            Me.BTT_BROWSE = New SCrawler.API.YouTube.Controls.ButtonRC()
             Me.BTT_DOWN = New System.Windows.Forms.Button()
             Me.BTT_CANCEL = New System.Windows.Forms.Button()
             Me.CMB_PLS = New PersonalUtilities.Forms.Controls.ComboBoxExtended()
-            Me.BTT_PLS_BROWSE = New System.Windows.Forms.Button()
+            Me.BTT_PLS_BROWSE = New SCrawler.API.YouTube.Controls.ButtonRC()
             Me.OPT_VIDEO = New System.Windows.Forms.RadioButton()
             Me.OPT_AUDIO = New System.Windows.Forms.RadioButton()
             Me.LBL_AUDIO_CODEC = New System.Windows.Forms.Label()
@@ -912,13 +912,13 @@ Namespace API.YouTube.Controls
         Private WithEvents TXT_SUBS_ADDIT As PersonalUtilities.Forms.Controls.TextBoxExtended
         Private WithEvents TXT_EXTRA_AUDIO_FORMATS As PersonalUtilities.Forms.Controls.TextBoxExtended
         Private WithEvents TXT_FILE As PersonalUtilities.Forms.Controls.ComboBoxExtended
-        Private WithEvents BTT_BROWSE As Button
+        Private WithEvents BTT_BROWSE As SCrawler.API.YouTube.Controls.ButtonRC
         Private WithEvents BTT_DOWN As Button
         Private WithEvents BTT_CANCEL As Button
         Private WithEvents TP_HEADER_INFO_2 As TableLayoutPanel
         Private WithEvents TXT_FPS As PersonalUtilities.Forms.Controls.TextBoxExtended
         Private WithEvents CMB_PLS As PersonalUtilities.Forms.Controls.ComboBoxExtended
-        Private WithEvents BTT_PLS_BROWSE As Button
+        Private WithEvents BTT_PLS_BROWSE As SCrawler.API.YouTube.Controls.ButtonRC
         Private WithEvents TXT_AUDIO_BITRATE As PersonalUtilities.Forms.Controls.TextBoxExtended
     End Class
 End Namespace
