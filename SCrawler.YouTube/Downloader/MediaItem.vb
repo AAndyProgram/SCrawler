@@ -134,17 +134,24 @@ Namespace DownloadObjects.STDownloader
                 ICON_SITE.Image = .SiteIcon
                 LBL_TIME.Text = AConvert(Of String)(.Duration, TimeToStringProvider, String.Empty)
                 LBL_TITLE.Text = $"{If(MyYouTubeSettings.FileAddDateToFileName_VideoList.Value, $"[{ .DateAdded:yyyy-MM-dd}] ", String.Empty)}{ .ToString(True)}"
+                Dim h%, b%
+                If .Self.GetType Is GetType(YouTubeMediaContainerBase) OrElse (Not .Self.GetType.BaseType Is Nothing AndAlso .Self.GetType.BaseType Is GetType(YouTubeMediaContainerBase)) Then
+                    With DirectCast(.Self, YouTubeMediaContainerBase) : h = .HeightBase : b = .BitrateBase : End With
+                Else
+                    h = .Height
+                    b = .Bitrate
+                End If
                 If Not .SiteKey = YouTubeSiteKey And .ContentType = Plugin.UserMediaTypes.Picture Then
                     LBL_INFO.Text = .File.Extension.StringToUpper
                 ElseIf Not .IsMusic And Not (.MediaType = Plugin.UserMediaTypes.Audio Or .MediaType = Plugin.UserMediaTypes.AudioPre) Then
-                    If .Height > 0 Then
-                        LBL_INFO.Text = $"{ .File.Extension.StringToUpper}{d}{ .Height}p"
+                    If h > 0 Then
+                        LBL_INFO.Text = $"{ .File.Extension.StringToUpper}{d}{h}p"
                     Else
                         LBL_INFO.Text = .File.Extension.StringToUpper
                     End If
                 Else
-                    If .Bitrate > 0 Then
-                        LBL_INFO.Text = $"{ .File.Extension.StringToUpper}{d}{ .Bitrate}k"
+                    If b > 0 Then
+                        LBL_INFO.Text = $"{ .File.Extension.StringToUpper}{d}{b}k"
                     Else
                         LBL_INFO.Text = .File.Extension.StringToUpper
                     End If

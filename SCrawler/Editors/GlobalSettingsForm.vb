@@ -151,6 +151,8 @@ Namespace Editors
                         COLORS_FEED.ColorsSet(.FeedBackColor, .FeedForeColor, SystemColors.Window, SystemColors.WindowText)
                         CH_FEED_ENDLESS.Checked = .FeedEndless
                         CH_FEED_ADD_SESSION.Checked = .FeedAddSessionToCaption
+                        CH_FEED_ADD_SITE.Checked = .FeedAddSiteToCaption
+                        CH_FEED_ADD_TYPE.Checked = .FeedAddTypeToCaption
                         CH_FEED_ADD_DATE.Checked = .FeedAddDateToCaption
                         NUM_FEED_STORE_SESSION_DATA.Checked = .FeedStoreSessionsData
                         NUM_FEED_STORE_SESSION_DATA.Value = .FeedStoredSessionsNumber.Value
@@ -361,6 +363,8 @@ Namespace Editors
                     COLORS_FEED.ColorsGet(.FeedBackColor, .FeedForeColor)
                     .FeedEndless.Value = CH_FEED_ENDLESS.Checked
                     .FeedAddSessionToCaption.Value = CH_FEED_ADD_SESSION.Checked
+                    .FeedAddSiteToCaption.Value = CH_FEED_ADD_SITE.Checked
+                    .FeedAddTypeToCaption.Value = CH_FEED_ADD_TYPE.Checked
                     .FeedAddDateToCaption.Value = CH_FEED_ADD_DATE.Checked
                     .FeedStoreSessionsData.Value = NUM_FEED_STORE_SESSION_DATA.Checked
                     .FeedStoredSessionsNumber.Value = NUM_FEED_STORE_SESSION_DATA.Value

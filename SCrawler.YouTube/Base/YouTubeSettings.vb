@@ -382,6 +382,9 @@ Namespace API.YouTube.Base
         <Browsable(True), GridVisible, XMLVN({"DefaultsVideo"}, -1), Category("Defaults Video"), DisplayName("Highlight FPS (lower)"),
             Description("Highlight frame rates lower than this value." & vbCr & "Default: -1" & vbCr & "-1 to disable")>
         Public ReadOnly Property DefaultVideoHighlightFPS_L As XMLValue(Of Integer)
+        <Browsable(True), GridVisible, XMLVN({"DefaultsVideo"}), Category("Defaults Video"), DisplayName("Add extracted MP3 to playlist"),
+            Description("If you also extract MP3 when download the video, add the extracted MP3 to the playlist. Default: false.")>
+        Public ReadOnly Property VideoPlaylist_AddExtractedMP3 As XMLValue(Of Boolean)
 #End Region
 #Region "Defaults Audio"
         <Browsable(True), GridVisible, XMLVN({"DefaultsAudio"}, "AAC"), Category("Defaults Audio"), DisplayName("Default codec"),

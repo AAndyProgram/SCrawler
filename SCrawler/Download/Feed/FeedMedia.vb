@@ -221,8 +221,8 @@ Namespace DownloadObjects
                     Information = $"Type: {Media.Data.Type}"
                     Information.StringAppendLine($"File: {File.File}")
                     Information.StringAppendLine($"Address: {File}")
-                    Information.StringAppendLine($"Downloaded: {Media.Date.ToStringDate(ADateTime.Formats.BaseDateTime)}")
-                    If Media.Data.Post.Date.HasValue Then Information.StringAppendLine($"Posted: {Media.Data.Post.Date.Value.ToStringDate(ADateTime.Formats.BaseDateTime)}")
+                    Information.StringAppendLine($"Downloaded: {Media.Date.ToStringDateDef}")
+                    If Media.Data.Post.Date.HasValue Then Information.StringAppendLine($"Post date: {Media.Data.Post.Date.Value.ToStringDateDef}")
                     Dim infoType As UserMedia.Types = If(IsSubscription, UserMedia.Types.Picture, Media.Data.Type)
                     Dim h%
                     Dim s As Size
@@ -267,23 +267,27 @@ Namespace DownloadObjects
                             BTT_CONTEXT_OPEN_MEDIA.Text &= " video"
                             BTT_CONTEXT_DELETE.Text &= " video"
                             h = VideoHeight
+                            AddHandler MyVideo.DoubleClick, AddressOf MyPicture_DoubleClick
                         Case Else : Throw New ArgumentNullException With {.HelpLink = 1}
                     End Select
 
-                    Dim info$ = $"[{infoType}] - "
+                    Dim info$ = If(Settings.FeedAddTypeToCaption.Value And Not IsSubscription, $"[{infoType}] - ", String.Empty)
 
                     If Not Media.User Is Nothing Then
                         With Media.User
+                            Dim otherName$ = If(Media.IsSavedPosts, "Saved", Media.UserInfo.Name)
+                            Dim site$ = If(Settings.FeedAddSiteToCaption.Value, $"{ .Site} - ", String.Empty)
+
                             UserKey = .Key
                             Information &= vbNewLine.StringDup(2)
                             If .IncludedInCollection Then Information.StringAppendLine($"User collection: { .CollectionName}")
                             Information.StringAppendLine($"User site: { .Site}")
-                            Information.StringAppendLine($"User name: {IIf(Not .FriendlyName.IsEmptyString And Not .IncludedInCollection, .FriendlyName, .Name)}")
+                            Information.StringAppendLine($"User name: {CStr(IIf(Not .FriendlyName.IsEmptyString And Not .IncludedInCollection, .FriendlyName, .Name)).IfNullOrEmpty(otherName)}")
                             If .IncludedInCollection Then info &= $"[{ .CollectionName}]: "
                             If Settings.FeedShowFriendlyNames Or Not DirectCast(.Self, UserDataBase).FeedIsUser Then
-                                info &= $"{ .Site} - { .FriendlyName.IfNullOrEmpty(.Name)}"
+                                info &= $"{site}{ .FriendlyName.IfNullOrEmpty(.Name).IfNullOrEmpty(otherName)}"
                             Else
-                                info &= $"{ .Site} - {IIf(Not .FriendlyName.IsEmptyString And Not .IncludedInCollection, .FriendlyName, .Name)}"
+                                info &= $"{site}{CStr(IIf(Not .FriendlyName.IsEmptyString And Not .IncludedInCollection, .FriendlyName, .Name)).IfNullOrEmpty(otherName)}"
                             End If
                         End With
                     End If

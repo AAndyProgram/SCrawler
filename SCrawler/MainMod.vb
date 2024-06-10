@@ -77,6 +77,12 @@ Friend Module MainMod
     ''' <summary>Alt+F1</summary>
     Friend ReadOnly ShowUsersButtonKey As New PersonalUtilities.Forms.ButtonKey(Keys.F1,, True)
     Friend ReadOnly DateTimeDefaultProvider As New ADateTime(ADateTime.Formats.BaseDateTime)
+    <Extension> Friend Function ToStringDateDef(ByVal _DateN As Date?) As String
+        Return If(_DateN.HasValue, AConvert(Of String)(_DateN, DateTimeDefaultProvider, String.Empty), String.Empty)
+    End Function
+    <Extension> Friend Function ToStringDateDef(ByVal _Date As Date) As String
+        Return ToStringDateDef(_DateN:=_Date)
+    End Function
     Friend ReadOnly SessionDateTimeProvider As New ADateTime("yyyyMMdd_HHmmss")
     Friend ReadOnly FeedVideoLengthProvider As New ADateTime("hh\:mm\:ss") With {.TimeParseMode = ADateTime.TimeModes.TimeSpan}
     Friend ReadOnly LogConnector As New LogHost

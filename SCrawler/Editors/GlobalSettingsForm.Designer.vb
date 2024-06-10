@@ -179,6 +179,7 @@ Namespace Editors
             Me.CH_FEED_SHOW_SPEC_MEDIAITEM = New System.Windows.Forms.CheckBox()
             Me.NUM_FEED_STORE_SESSION_DATA = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.NUM_FEED_SES_CURR_LOAD_LAST = New PersonalUtilities.Forms.Controls.TextBoxExtended()
+            Me.CH_FEED_ADD_SITE = New System.Windows.Forms.CheckBox()
             Me.TXT_YTDLP = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_FFMPEG = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_CURL = New PersonalUtilities.Forms.Controls.TextBoxExtended()
@@ -204,6 +205,7 @@ Namespace Editors
             Me.TAB_MAIN = New System.Windows.Forms.TabControl()
             Me.TAB_ENVIR = New System.Windows.Forms.TabPage()
             Me.CONTAINER_MAIN = New System.Windows.Forms.ToolStripContainer()
+            Me.CH_FEED_ADD_TYPE = New System.Windows.Forms.CheckBox()
             TP_BASIS = New System.Windows.Forms.TableLayoutPanel()
             TP_IMAGES = New System.Windows.Forms.TableLayoutPanel()
             TP_FILE_NAME = New System.Windows.Forms.TableLayoutPanel()
@@ -949,10 +951,10 @@ Namespace Editors
             '
             Me.CH_FEED_OPEN_LAST_MODE.AutoSize = True
             Me.CH_FEED_OPEN_LAST_MODE.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_FEED_OPEN_LAST_MODE.Location = New System.Drawing.Point(4, 195)
+            Me.CH_FEED_OPEN_LAST_MODE.Location = New System.Drawing.Point(4, 247)
             Me.CH_FEED_OPEN_LAST_MODE.Name = "CH_FEED_OPEN_LAST_MODE"
             Me.CH_FEED_OPEN_LAST_MODE.Size = New System.Drawing.Size(613, 19)
-            Me.CH_FEED_OPEN_LAST_MODE.TabIndex = 7
+            Me.CH_FEED_OPEN_LAST_MODE.TabIndex = 9
             Me.CH_FEED_OPEN_LAST_MODE.Text = "Open last mode (users or subscriptions)"
             TT_MAIN.SetToolTip(Me.CH_FEED_OPEN_LAST_MODE, "If disabled, the user mode will be used when initializing the feed.")
             Me.CH_FEED_OPEN_LAST_MODE.UseVisualStyleBackColor = True
@@ -1062,10 +1064,10 @@ Namespace Editors
             '
             Me.CH_FEED_UP_FILE_LOC_MOVE.AutoSize = True
             Me.CH_FEED_UP_FILE_LOC_MOVE.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_FEED_UP_FILE_LOC_MOVE.Location = New System.Drawing.Point(4, 273)
+            Me.CH_FEED_UP_FILE_LOC_MOVE.Location = New System.Drawing.Point(4, 325)
             Me.CH_FEED_UP_FILE_LOC_MOVE.Name = "CH_FEED_UP_FILE_LOC_MOVE"
             Me.CH_FEED_UP_FILE_LOC_MOVE.Size = New System.Drawing.Size(613, 19)
-            Me.CH_FEED_UP_FILE_LOC_MOVE.TabIndex = 10
+            Me.CH_FEED_UP_FILE_LOC_MOVE.TabIndex = 12
             Me.CH_FEED_UP_FILE_LOC_MOVE.Text = "Update file location when moved"
             TT_MAIN.SetToolTip(Me.CH_FEED_UP_FILE_LOC_MOVE, "The file location will be updated in the session data and in the feeds data")
             Me.CH_FEED_UP_FILE_LOC_MOVE.UseVisualStyleBackColor = True
@@ -1611,7 +1613,7 @@ Namespace Editors
             TAB_FEED.Controls.Add(TP_FEED)
             TAB_FEED.Location = New System.Drawing.Point(4, 22)
             TAB_FEED.Name = "TAB_FEED"
-            TAB_FEED.Size = New System.Drawing.Size(621, 399)
+            TAB_FEED.Size = New System.Drawing.Size(621, 374)
             TAB_FEED.TabIndex = 7
             TAB_FEED.Text = "Feed"
             '
@@ -1623,20 +1625,24 @@ Namespace Editors
             TP_FEED.Controls.Add(TP_FEED_IMG_COUNT, 0, 0)
             TP_FEED.Controls.Add(Me.CH_FEED_ENDLESS, 0, 3)
             TP_FEED.Controls.Add(Me.CH_FEED_ADD_SESSION, 0, 4)
-            TP_FEED.Controls.Add(Me.CH_FEED_ADD_DATE, 0, 5)
+            TP_FEED.Controls.Add(Me.CH_FEED_ADD_DATE, 0, 7)
             TP_FEED.Controls.Add(Me.TXT_FEED_CENTER_IMAGE, 0, 1)
             TP_FEED.Controls.Add(Me.COLORS_FEED, 0, 2)
-            TP_FEED.Controls.Add(Me.CH_FEED_OPEN_LAST_MODE, 0, 7)
-            TP_FEED.Controls.Add(Me.CH_FEED_SHOW_FRIENDLY, 0, 8)
-            TP_FEED.Controls.Add(Me.CH_FEED_SHOW_SPEC_MEDIAITEM, 0, 9)
-            TP_FEED.Controls.Add(Me.CH_FEED_UP_FILE_LOC_MOVE, 0, 10)
-            TP_FEED.Controls.Add(TP_FEED_SES, 0, 6)
+            TP_FEED.Controls.Add(Me.CH_FEED_OPEN_LAST_MODE, 0, 9)
+            TP_FEED.Controls.Add(Me.CH_FEED_SHOW_FRIENDLY, 0, 10)
+            TP_FEED.Controls.Add(Me.CH_FEED_SHOW_SPEC_MEDIAITEM, 0, 11)
+            TP_FEED.Controls.Add(Me.CH_FEED_UP_FILE_LOC_MOVE, 0, 12)
+            TP_FEED.Controls.Add(TP_FEED_SES, 0, 8)
+            TP_FEED.Controls.Add(Me.CH_FEED_ADD_SITE, 0, 5)
+            TP_FEED.Controls.Add(Me.CH_FEED_ADD_TYPE, 0, 6)
             TP_FEED.Dock = System.Windows.Forms.DockStyle.Fill
             TP_FEED.Location = New System.Drawing.Point(0, 0)
             TP_FEED.Name = "TP_FEED"
-            TP_FEED.RowCount = 12
+            TP_FEED.RowCount = 14
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
+            TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
@@ -1647,8 +1653,7 @@ Namespace Editors
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
-            TP_FEED.Size = New System.Drawing.Size(621, 399)
+            TP_FEED.Size = New System.Drawing.Size(621, 374)
             TP_FEED.TabIndex = 0
             '
             'TP_FEED_IMG_COUNT
@@ -1726,10 +1731,10 @@ Namespace Editors
             '
             Me.CH_FEED_ADD_DATE.AutoSize = True
             Me.CH_FEED_ADD_DATE.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_FEED_ADD_DATE.Location = New System.Drawing.Point(4, 140)
+            Me.CH_FEED_ADD_DATE.Location = New System.Drawing.Point(4, 192)
             Me.CH_FEED_ADD_DATE.Name = "CH_FEED_ADD_DATE"
             Me.CH_FEED_ADD_DATE.Size = New System.Drawing.Size(613, 19)
-            Me.CH_FEED_ADD_DATE.TabIndex = 5
+            Me.CH_FEED_ADD_DATE.TabIndex = 7
             Me.CH_FEED_ADD_DATE.Text = "Add the date to the post title"
             Me.CH_FEED_ADD_DATE.UseVisualStyleBackColor = True
             '
@@ -1769,10 +1774,10 @@ Namespace Editors
             '
             Me.CH_FEED_SHOW_FRIENDLY.AutoSize = True
             Me.CH_FEED_SHOW_FRIENDLY.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_FEED_SHOW_FRIENDLY.Location = New System.Drawing.Point(4, 221)
+            Me.CH_FEED_SHOW_FRIENDLY.Location = New System.Drawing.Point(4, 273)
             Me.CH_FEED_SHOW_FRIENDLY.Name = "CH_FEED_SHOW_FRIENDLY"
             Me.CH_FEED_SHOW_FRIENDLY.Size = New System.Drawing.Size(613, 19)
-            Me.CH_FEED_SHOW_FRIENDLY.TabIndex = 8
+            Me.CH_FEED_SHOW_FRIENDLY.TabIndex = 10
             Me.CH_FEED_SHOW_FRIENDLY.Text = "Show friendly names instead of usernames"
             Me.CH_FEED_SHOW_FRIENDLY.UseVisualStyleBackColor = True
             '
@@ -1780,10 +1785,10 @@ Namespace Editors
             '
             Me.CH_FEED_SHOW_SPEC_MEDIAITEM.AutoSize = True
             Me.CH_FEED_SHOW_SPEC_MEDIAITEM.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_FEED_SHOW_SPEC_MEDIAITEM.Location = New System.Drawing.Point(4, 247)
+            Me.CH_FEED_SHOW_SPEC_MEDIAITEM.Location = New System.Drawing.Point(4, 299)
             Me.CH_FEED_SHOW_SPEC_MEDIAITEM.Name = "CH_FEED_SHOW_SPEC_MEDIAITEM"
             Me.CH_FEED_SHOW_SPEC_MEDIAITEM.Size = New System.Drawing.Size(613, 19)
-            Me.CH_FEED_SHOW_SPEC_MEDIAITEM.TabIndex = 9
+            Me.CH_FEED_SHOW_SPEC_MEDIAITEM.TabIndex = 11
             Me.CH_FEED_SHOW_SPEC_MEDIAITEM.Text = "Show special feeds in media items"
             Me.CH_FEED_SHOW_SPEC_MEDIAITEM.UseVisualStyleBackColor = True
             '
@@ -1795,14 +1800,14 @@ Namespace Editors
             TP_FEED_SES.Controls.Add(Me.NUM_FEED_STORE_SESSION_DATA, 0, 0)
             TP_FEED_SES.Controls.Add(Me.NUM_FEED_SES_CURR_LOAD_LAST, 1, 0)
             TP_FEED_SES.Dock = System.Windows.Forms.DockStyle.Fill
-            TP_FEED_SES.Location = New System.Drawing.Point(1, 163)
+            TP_FEED_SES.Location = New System.Drawing.Point(1, 215)
             TP_FEED_SES.Margin = New System.Windows.Forms.Padding(0)
             TP_FEED_SES.Name = "TP_FEED_SES"
             TP_FEED_SES.RowCount = 1
             TP_FEED_SES.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
             TP_FEED_SES.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_FEED_SES.Size = New System.Drawing.Size(619, 28)
-            TP_FEED_SES.TabIndex = 6
+            TP_FEED_SES.TabIndex = 8
             '
             'NUM_FEED_STORE_SESSION_DATA
             '
@@ -1850,6 +1855,17 @@ Namespace Editors
             Me.NUM_FEED_SES_CURR_LOAD_LAST.Size = New System.Drawing.Size(304, 22)
             Me.NUM_FEED_SES_CURR_LOAD_LAST.TabIndex = 1
             Me.NUM_FEED_SES_CURR_LOAD_LAST.Text = "0"
+            '
+            'CH_FEED_ADD_SITE
+            '
+            Me.CH_FEED_ADD_SITE.AutoSize = True
+            Me.CH_FEED_ADD_SITE.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_FEED_ADD_SITE.Location = New System.Drawing.Point(4, 140)
+            Me.CH_FEED_ADD_SITE.Name = "CH_FEED_ADD_SITE"
+            Me.CH_FEED_ADD_SITE.Size = New System.Drawing.Size(613, 19)
+            Me.CH_FEED_ADD_SITE.TabIndex = 5
+            Me.CH_FEED_ADD_SITE.Text = "Add the site name to the post title"
+            Me.CH_FEED_ADD_SITE.UseVisualStyleBackColor = True
             '
             'TAB_NOTIFY
             '
@@ -2419,7 +2435,7 @@ Namespace Editors
             Me.TAB_MAIN.Location = New System.Drawing.Point(0, 0)
             Me.TAB_MAIN.Name = "TAB_MAIN"
             Me.TAB_MAIN.SelectedIndex = 0
-            Me.TAB_MAIN.Size = New System.Drawing.Size(629, 425)
+            Me.TAB_MAIN.Size = New System.Drawing.Size(629, 400)
             Me.TAB_MAIN.TabIndex = 1
             '
             'TAB_ENVIR
@@ -2437,7 +2453,7 @@ Namespace Editors
             'CONTAINER_MAIN.ContentPanel
             '
             Me.CONTAINER_MAIN.ContentPanel.Controls.Add(Me.TAB_MAIN)
-            Me.CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(629, 425)
+            Me.CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(629, 400)
             Me.CONTAINER_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
             Me.CONTAINER_MAIN.LeftToolStripPanelVisible = False
             Me.CONTAINER_MAIN.Location = New System.Drawing.Point(0, 0)
@@ -2446,6 +2462,17 @@ Namespace Editors
             Me.CONTAINER_MAIN.Size = New System.Drawing.Size(629, 425)
             Me.CONTAINER_MAIN.TabIndex = 0
             Me.CONTAINER_MAIN.TopToolStripPanelVisible = False
+            '
+            'CH_FEED_ADD_TYPE
+            '
+            Me.CH_FEED_ADD_TYPE.AutoSize = True
+            Me.CH_FEED_ADD_TYPE.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_FEED_ADD_TYPE.Location = New System.Drawing.Point(4, 166)
+            Me.CH_FEED_ADD_TYPE.Name = "CH_FEED_ADD_TYPE"
+            Me.CH_FEED_ADD_TYPE.Size = New System.Drawing.Size(613, 19)
+            Me.CH_FEED_ADD_TYPE.TabIndex = 6
+            Me.CH_FEED_ADD_TYPE.Text = "Add the file type to the post title"
+            Me.CH_FEED_ADD_TYPE.UseVisualStyleBackColor = True
             '
             'GlobalSettingsForm
             '
@@ -2660,5 +2687,7 @@ Namespace Editors
         Private WithEvents CH_CHANNELS_USERS_READY_MARK As CheckBox
         Private WithEvents NUM_FEED_SES_CURR_LOAD_LAST As PersonalUtilities.Forms.Controls.TextBoxExtended
         Private WithEvents TXT_AUTO_BRUSH_MIN As PersonalUtilities.Forms.Controls.TextBoxExtended
+        Private WithEvents CH_FEED_ADD_SITE As CheckBox
+        Private WithEvents CH_FEED_ADD_TYPE As CheckBox
     End Class
 End Namespace

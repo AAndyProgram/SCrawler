@@ -540,14 +540,19 @@ Namespace DownloadObjects
         Private Sub BTT_COPY_MOVE_TO_Click(sender As Object, e As EventArgs) Handles BTT_COPY_TO.Click, BTT_MOVE_TO.Click
             MoveCopyFiles(True, sender, Nothing, Nothing)
         End Sub
-        Private Function MoveCopyFiles(ByVal IsInternal As Boolean, ByVal Sender As Object, ByVal MCTOptions As FeedMoveCopyTo, ByVal FeedMediaData As FeedMedia) As Boolean
+        Private Sub BTT_COPY_MOVE_SPEC_TO_Click(sender As Object, e As EventArgs) Handles BTT_COPY_SPEC_TO.Click, BTT_MOVE_SPEC_TO.Click
+            MoveCopyFiles(True, sender, Nothing, Nothing, False)
+        End Sub
+        Private Function MoveCopyFiles(ByVal IsInternal As Boolean, ByVal Sender As Object, ByVal MCTOptions As FeedMoveCopyTo,
+                                       ByVal FeedMediaData As FeedMedia, Optional ByVal GetChecked As Boolean = True) As Boolean
             Const MsgTitle$ = "Copy/Move checked files"
             Try
-                Dim isCopy As Boolean = Not Sender Is Nothing AndAlso Sender Is BTT_COPY_TO
+                Dim isCopy As Boolean = Not Sender Is Nothing AndAlso (Sender Is BTT_COPY_TO OrElse Sender Is BTT_COPY_SPEC_TO)
                 Dim moveOptions As FeedMoveCopyTo = Nothing
                 Dim ff As SFile = Nothing, df As SFile
                 Dim data As IEnumerable(Of UserMediaD) = Nothing
                 Dim dd As UserMediaD
+                Dim __user As UserInfo
                 Dim data_files As IEnumerable(Of SFile) = Nothing
                 Dim new_files As New List(Of SFile)
                 Dim mm As UserMediaD
@@ -566,7 +571,12 @@ Namespace DownloadObjects
                 Dim result As Boolean = False
 
                 If FeedMediaData Is Nothing Then
-                    data = GetCheckedMedia()
+                    If GetChecked Then
+                        data = GetCheckedMedia()
+                    ElseIf DataList.Count > 0 Then
+                        data = DataList.Where(Function(__dd) Not If(__dd.User?.IsSubscription, __dd.UserInfo.IsSubscription) AndAlso __dd.Data.File.Exists)
+                    End If
+
                     With data
                         If .ListExists Then data_files = .Select(Function(m) m.Data.File)
                     End With
@@ -587,7 +597,6 @@ Namespace DownloadObjects
                     With moveOptions
                         If Not .Destination.IsEmptyString And .ReplaceUserProfile And .ReplaceUserProfile_CreateIfNull And .ReplaceUserProfile_Profile Is Nothing Then
                             Dim existingPathInstances As IEnumerable(Of String) = Nothing
-                            Dim __user As UserInfo
                             Dim __host As Plugin.Hosts.SettingsHost = Settings(API.PathPlugin.PluginKey).Default
                             Dim __userName$ = .Destination.Segments.LastOrDefault
                             If Settings.UsersList.Count > 0 Then _
@@ -659,9 +668,11 @@ Namespace DownloadObjects
                                             indx = Downloader.Files.FindIndex(finder)
                                             If indx >= 0 Then
                                                 mm = Downloader.Files(indx)
+                                                __user = mm.UserInfo
                                                 mm_data = mm.Data
                                                 mm_data.File = df
-                                                mm = New UserMediaD(mm_data, If(moveOptions.ReplaceUserProfile_Profile, mm.User), mm.Session, mm.Date)
+                                                mm = New UserMediaD(mm_data, If(moveOptions.ReplaceUserProfile_Profile, mm.User), mm.Session, mm.Date) With {.IsSavedPosts = mm.IsSavedPosts}
+                                                If moveOptions.ReplaceUserProfile_Profile Is Nothing And mm.IsSavedPosts Then mm.UserInfo = __user
                                                 Downloader.Files(indx) = mm
                                                 downloaderFilesUpdated = True
                                             End If
@@ -687,9 +698,11 @@ Namespace DownloadObjects
                                             indx = sessionData.FindIndex(finder)
                                             If indx >= 0 Then
                                                 mm = sessionData(indx)
+                                                __user = mm.UserInfo
                                                 mm_data = mm.Data
                                                 mm_data.File = df
-                                                mm = New UserMediaD(mm_data, If(moveOptions.ReplaceUserProfile_Profile, mm.User), mm.Session, mm.Date)
+                                                mm = New UserMediaD(mm_data, If(moveOptions.ReplaceUserProfile_Profile, mm.User), mm.Session, mm.Date) With {.IsSavedPosts = mm.IsSavedPosts}
+                                                If moveOptions.ReplaceUserProfile_Profile Is Nothing And mm.IsSavedPosts Then mm.UserInfo = __user
                                                 sessionData(indx) = mm
                                                 sesFilesReplaced = True
                                                 If DataList.Count > 0 Then
@@ -987,6 +1000,14 @@ Namespace DownloadObjects
                 Downloader.Files.Clear()
                 ClearTable()
                 RefillList()
+            End If
+        End Sub
+        Private Sub BTT_RESET_DAILY_Click(sender As Object, e As EventArgs) Handles BTT_RESET_DAILY.Click
+            If MsgBoxE({"Are you sure you want to reset the current session?" & vbCr &
+                        "A new file will be created for the current session", "Reset current session"}, vbExclamation,,, {"Process", "Cancel"}) = 0 Then
+                Downloader.ResetSession()
+                FeedChangeMode(FeedModes.Current)
+                RefillList(True, False)
             End If
         End Sub
 #End Region

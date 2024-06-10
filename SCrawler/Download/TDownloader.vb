@@ -39,7 +39,7 @@ Namespace DownloadObjects
 #End Region
             Friend ReadOnly User As IUserData
             Friend ReadOnly Data As UserMedia
-            Friend ReadOnly UserInfo As UserInfo
+            Friend UserInfo As UserInfo
             Friend ReadOnly [Date] As Date
             Friend Session As Integer
             Friend IsSavedPosts As Boolean
@@ -256,6 +256,13 @@ Namespace DownloadObjects
             Catch ex As Exception
                 ErrorsDescriber.Execute(EDP.SendToLog, ex, "[DownloadObjects.TDownloader.ClearSessions]")
             End Try
+        End Sub
+        Friend Sub ResetSession()
+            Files.Clear()
+            _FilesSessionActual = Nothing
+            _FilesSessionChecked = True
+            _Session = 0
+            _SessionSavedPosts = -1
         End Sub
 #End Region
         Friend ReadOnly Property Downloaded As List(Of IUserData)

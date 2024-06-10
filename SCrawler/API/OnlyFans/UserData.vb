@@ -619,7 +619,7 @@ Namespace API.OnlyFans
                     Dim checkFormat As Func(Of EContainer, Boolean) =
                         Function(jj) Not jj.Value("format").IsEmptyString OrElse
                                      (Not jj.Value("prefix").IsEmptyString And Not jj.Value("suffix").IsEmptyString) OrElse
-                                     (Not jj.Value("start").IsEmptyString And Not jj.Value("start").IsEmptyString)
+                                     (Not jj.Value("start").IsEmptyString And Not jj.Value("end").IsEmptyString)
                     If Not r.IsEmptyString Then
                         Using j As EContainer = JsonDocument.Parse(r, EDP.ReturnValue)
                             If j.ListExists Then

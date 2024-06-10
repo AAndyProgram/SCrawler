@@ -1,3 +1,16 @@
+# 2024.6.10.0
+
+*2024-06-10*
+
+- Added
+  - YouTube (standalone app): add option to add extracted MP3 to playlist (`Settings` - `Defaults Video` - `Add extracted MP3 to playlist`)
+  - Feed
+    - settings to show/hide site name and file type from media title
+    - ability to move/copy files of a loaded feed/session to another location
+    - ability to reset current session
+- Fixed
+  - Minor bugs
+
 # 2024.6.6.0
 
 *2024-06-06*

@@ -267,12 +267,11 @@ Namespace API.YouTube.Objects
         <XMLEC(CollectionMode:=CollectionModes.String)>
         Friend ReadOnly Property PostProcessing_OutputAudioFormats As List(Of String)
         Friend Sub PostProcessing_OutputAudioFormats_Reset()
-            PostProcessing_OutputAudioFormats.Clear()
-            PostProcessing_OutputAudioFormats.ListAddList(MyYouTubeSettings.DefaultAudioCodecAddit)
-            If PostProcessing_OutputAudioFormats.Count > 0 Then
-                PostProcessing_OutputAudioFormats.Sort()
-                PostProcessing_OutputAudioFormats.RemoveAll(Function(s) s = -1)
-            End If
+            With PostProcessing_OutputAudioFormats
+                .Clear()
+                .ListAddList(MyYouTubeSettings.DefaultAudioCodecAddit)
+                If .Count > 0 Then .Sort()
+            End With
         End Sub
         <XMLEC("OutputAudioBitrate")> Protected _OutputAudioBitrate As Integer = -1
         Friend Property OutputAudioBitrate As Integer
@@ -322,21 +321,19 @@ Namespace API.YouTube.Objects
         <XMLEC(CollectionMode:=CollectionModes.String)>
         Friend ReadOnly Property PostProcessing_OutputSubtitlesFormats As List(Of String)
         Friend Sub PostProcessing_OutputSubtitlesFormats_Reset()
-            PostProcessing_OutputSubtitlesFormats.Clear()
-            PostProcessing_OutputSubtitlesFormats.ListAddList(MyYouTubeSettings.DefaultSubtitlesFormatAddit)
-            If PostProcessing_OutputSubtitlesFormats.Count > 0 Then
-                PostProcessing_OutputSubtitlesFormats.Sort()
-                PostProcessing_OutputSubtitlesFormats.RemoveAll(Function(s) s = -1)
-            End If
+            With PostProcessing_OutputSubtitlesFormats
+                .Clear()
+                .ListAddList(MyYouTubeSettings.DefaultSubtitlesFormatAddit)
+                If .Count > 0 Then .Sort()
+            End With
         End Sub
         Friend Sub SubtitlesSelectedIndexesReset()
-            SubtitlesSelectedIndexes.Clear()
-            Dim subs As List(Of Subtitles) = Subtitles
-            SubtitlesSelectedIndexes.ListAddList(MyYouTubeSettings.DefaultSubtitles.Select(Function(s) subs.FindIndex(Function(ss) ss.ID = s)))
-            If SubtitlesSelectedIndexes.Count > 0 Then
-                SubtitlesSelectedIndexes.Sort()
-                SubtitlesSelectedIndexes.RemoveAll(Function(s) s = -1)
-            End If
+            With SubtitlesSelectedIndexes
+                .Clear()
+                Dim subs As List(Of Subtitles) = Subtitles
+                .ListAddList(MyYouTubeSettings.DefaultSubtitles.Select(Function(s) subs.FindIndex(Function(ss) ss.ID = s)))
+                If .Count > 0 Then .Sort() : .RemoveAll(Function(s) s = -1)
+            End With
         End Sub
         Private Sub SetElementsSubtitles(ByVal Source As YouTubeMediaContainerBase)
             If Not Source Is Nothing And HasElements Then
@@ -442,6 +439,19 @@ Namespace API.YouTube.Objects
             End Get
         End Property
         <XMLEC> Public Property Height As Integer Implements IYouTubeMediaContainer.Height
+        Friend ReadOnly Property HeightBase As Integer
+            Get
+                If Height > 0 Then
+                    Return Height
+                ElseIf SelectedVideoIndex.ValueBetween(0, MediaObjects.Count - 1) Then
+                    Return SelectedVideo.Height
+                ElseIf SelectedAudioIndex.ValueBetween(0, MediaObjects.Count - 1) Then
+                    Return SelectedAudio.Height
+                Else
+                    Return 0
+                End If
+            End Get
+        End Property
         Protected _Bitrate As Integer = 0
         <XMLEC> Public Overridable Property Bitrate As Integer Implements IYouTubeMediaContainer.Bitrate
             Get
@@ -458,6 +468,20 @@ Namespace API.YouTube.Objects
             Set(ByVal _Bitrate As Integer)
                 Me._Bitrate = _Bitrate
             End Set
+        End Property
+        Friend ReadOnly Property BitrateBase As Integer
+            Get
+                If Bitrate > 0 Then
+                    Return Bitrate
+                ElseIf OutputAudioBitrate > 0 Then
+                    Return OutputAudioBitrate
+                ElseIf HasElements Then
+                    Try : Return Elements.Average(Function(e) DirectCast(e, YouTubeMediaContainerBase).BitrateBase) : Catch : End Try
+                ElseIf SelectedAudioIndex.ValueBetween(0, MediaObjects.Count - 1) Then
+                    Return SelectedAudio.Bitrate
+                End If
+                Return 0
+            End Get
         End Property
         <XMLEC> Public Property DateCreated As Date = Now Implements IYouTubeMediaContainer.DateCreated
         <XMLEC> Public Property DateAdded As Date Implements IYouTubeMediaContainer.DateAdded
@@ -975,7 +999,7 @@ Namespace API.YouTube.Objects
                             .Visible = True
                             .Value = 0
                             .Maximum = DownloadGetElemCountSingle()
-                            .Information = $"Download {ObjectType}"
+                            .Information = "Downloading"
                         End With
                     End If
 
@@ -1120,7 +1144,7 @@ Namespace API.YouTube.Objects
                                 .Value = 0
                                 .Maximum = 100
                                 .Provider = ProgressProvider
-                                .Information = $"Download {MediaType}"
+                                .Information = "Downloading"
                             End With
                         End If
                         .MainProcessName = MyYouTubeSettings.YTDLP.Name '"yt-dlp"
@@ -1305,6 +1329,7 @@ Namespace API.YouTube.Objects
                                                 If format = mp3 And Not mp3ThumbEmbedded And MyYouTubeSettings.DefaultAudioEmbedThumbnail_ExtractedFiles Then _
                                                    embedThumbTo.Invoke(f) : mp3ThumbEmbedded = True
                                                 If Not M3U8_PlaylistFiles.ListExists AndAlso f.Exists Then M3U8_Append(f)
+                                                If format = mp3 AndAlso f.Exists AndAlso MyYouTubeSettings.VideoPlaylist_AddExtractedMP3.Value Then M3U8_Append(f)
                                             End If
                                         Next
                                     End If

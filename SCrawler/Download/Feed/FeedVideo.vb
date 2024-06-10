@@ -176,5 +176,9 @@ Namespace DownloadObjects
                 ErrorsDescriber.Execute(EDP.SendToLog, ex, $"An error occurred while performing action [{ActionName}] on file [{MediaFile}]")
             End Try
         End Function
+        Private Sub MyVideo_DoubleClick(sender As Object, e As EventArgs) Handles MyVideo.DoubleClick
+            [Stop]()
+            OnDoubleClick(e)
+        End Sub
     End Class
 End Namespace

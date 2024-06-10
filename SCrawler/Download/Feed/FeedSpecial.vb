@@ -147,6 +147,7 @@ Namespace DownloadObjects
             Dim user As IUserData
             Dim path$ = InitialUser.File.CutPath.PathWithSeparator
             Dim pathNew$ = NewUser.File.CutPath.PathWithSeparator
+            Dim isSaved As Boolean = Item.IsSavedPosts
             If Item.UserInfo.Equals(InitialUser) Or Item.UserInfo.Equals(NewUser) Then
                 If Item.Data.File.PathWithSeparator.Contains(path) Then
                     data = Item.Data
@@ -157,7 +158,7 @@ Namespace DownloadObjects
                         user = Item.User
                     End If
                     If Not If(user?.IsSubscription, False) Then
-                        Item = New UserMediaD(data, user, Item.Session, Item.Date)
+                        Item = New UserMediaD(data, user, Item.Session, Item.Date) With {.IsSavedPosts = isSaved}
                         Result = True
                         Return Item
                     End If
@@ -174,8 +175,10 @@ Namespace DownloadObjects
                 If indx >= 0 Then
                     Dim m As UserMediaD = Items(indx)
                     Dim mm As UserMedia = m.Data
+                    Dim user As UserInfo = m.UserInfo
                     mm.File = NewFile
-                    m = New UserMediaD(mm, If(MCTOptions.ReplaceUserProfile_Profile, m.User), m.Session, m.Date)
+                    m = New UserMediaD(mm, If(MCTOptions.ReplaceUserProfile_Profile, m.User), m.Session, m.Date) With {.IsSavedPosts = m.IsSavedPosts}
+                    If MCTOptions.ReplaceUserProfile_Profile Is Nothing And m.IsSavedPosts Then m.UserInfo = user
                     Items(indx) = m
                     _FilesUpdated = True
                 End If

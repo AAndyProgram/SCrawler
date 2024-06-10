@@ -228,7 +228,7 @@ Namespace API.OnlyFans
         Friend Overrides Sub Update()
             If _SiteEditorFormOpened Then
                 If Not __UseOldAuthRules = CBool(UseOldAuthRules.Value) Or Not AEquals(Of String)(__DynamicRules, DynamicRules.Value) Then _
-                   LastDateUpdated = LastDateUpdated.AddYears(-1)
+                   LastDateUpdated = Now.AddYears(-1)
                 Responser.Cookies.Changed = False
             End If
             MyBase.Update()

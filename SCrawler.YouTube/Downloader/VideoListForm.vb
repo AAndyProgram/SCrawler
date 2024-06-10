@@ -57,6 +57,12 @@ Namespace DownloadObjects.STDownloader
                 End If
                 MyNotificator = New YTNotificator(Me)
                 MyDownloaderSettings = MyYouTubeSettings
+                ProgramLogInitialize()
+                With ProgramLog
+                    AddHandler .TextAdded, AddressOf ProgramLog_TextAdded
+                    AddHandler .TextCleared, AddressOf ProgramLog_TextCleared
+                End With
+                UpdateLogButton()
             End If
 
             With MyView : .Import() : .SetFormSize() : End With
@@ -157,7 +163,7 @@ Namespace DownloadObjects.STDownloader
                                                    If PerformClick Then cnt.PerformClick()
                                                    If Not DisableDownload And MyDownloaderSettings.DownloadAutomatically Then AddToDownload(cnt, True)
                                                End With
-                                           End Sub, EDP.None)
+                                           End Sub, EDP.SendToLog)
         End Sub
 #Region "Controls rendering"
         Private Overloads Sub OffsetControls()
@@ -449,12 +455,26 @@ Namespace DownloadObjects.STDownloader
             End Try
         End Sub
 #End Region
+#Region "LOG"
         Private Sub BTT_LOG_Click(sender As Object, e As EventArgs) Handles BTT_LOG.Click
             MyMainLOG_ShowForm(DesignXML,,,, AddressOf UpdateLogButton)
         End Sub
-        Friend Sub UpdateLogButton()
-            If AppMode Then MyMainLOG_UpdateLogButton(BTT_LOG, TOOLBAR_TOP)
+        Private Sub UpdateLogButton()
+            If AppMode Then
+                Try : MyMainLOG_UpdateLogButton(BTT_LOG, TOOLBAR_TOP) : Catch : End Try
+            End If
         End Sub
+        Private _LogUpdateButtonSuspended As Boolean = False
+        Private Sub ProgramLog_TextAdded(ByVal Sender As Object, ByVal e As EventArgs)
+            If Not _LogUpdateButtonSuspended Then
+                _LogUpdateButtonSuspended = True
+                Try : ControlInvokeFast(TOOLBAR_TOP, BTT_LOG, AddressOf UpdateLogButton, EDP.None) : Catch : End Try
+            End If
+        End Sub
+        Private Sub ProgramLog_TextCleared(ByVal Sender As Object, ByVal e As EventArgs)
+            _LogUpdateButtonSuspended = False
+        End Sub
+#End Region
         Private Sub BTT_BUG_REPORT_Click(sender As Object, e As EventArgs) Handles BTT_BUG_REPORT.Click
             Try
                 With MyYouTubeSettings
