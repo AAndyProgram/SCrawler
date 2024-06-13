@@ -454,7 +454,6 @@ Namespace API.Twitter
                                                 End If
                                             Next
 
-                                            'TODO: Twitter: is this line needed?
                                             If ExistsDetected And i = 1 Then Exit For Else ExistsDetected = False
                                         End If
                                         j.Dispose()

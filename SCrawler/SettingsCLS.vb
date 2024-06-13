@@ -214,12 +214,6 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         SiteSettingsShowHiddenControls = MyXML.Value("SiteSettingsShowHiddenControls").FromXML(Of Boolean)(False)
 
         Dim n() As String
-        Dim n_old() As String 'URGENT: remove this line
-        Dim rn As Boolean = Not MyXML.File.Exists
-        SettingsReoranized = New XMLValue(Of Boolean)("SettingsReoranized", rn, MyXML) 'URGENT: remove this line
-        SettingsReoranized2 = New XMLValue(Of Boolean)("SettingsReoranized2", rn, MyXML) 'URGENT: remove this line
-        Dim forceSaveXML As Boolean = Not SettingsReoranized 'URGENT: remove this line
-        Dim forceSaveXML2 As Boolean = Not SettingsReoranized OrElse Not SettingsReoranized2 'URGENT: remove this line
 
         SettingsVersion = New XMLValue(Of Integer)("SettingsVersion", 0, MyXML)
 
@@ -251,7 +245,6 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         CollectionsPath = New XMLValue(Of String)("CollectionsPath", CollectionsFolderName, MyXML, n)
         MaxUsersJobsCount = New XMLValue(Of Integer)("MaxJobsCount", DefaultMaxDownloadingTasks, MyXML, n)
         UserAgent = New XMLValue(Of String)("UserAgent",, MyXML, n)
-        If Not SettingsReoranized Then UserAgent.Value = New XMLValue(Of String)("UserAgent",, MyXML).Value 'URGENT: remove this line
         ImgurClientID = New XMLValue(Of String)("ImgurClientID", String.Empty, MyXML, {Name_Node_Sites})
 
         'Basis: new version
@@ -294,13 +287,6 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         DownloadOpenInfo = New XMLValueAttribute(Of Boolean, Boolean)("DownloadOpenInfo", "OpenAgain", False, False, MyXML, n)
         DownloadOpenProgress = New XMLValueAttribute(Of Boolean, Boolean)("DownloadOpenProgress", "OpenAgain", False, False, MyXML, n)
         ClosingCommand = New XMLValueAttribute(Of String, Boolean)("ClosingCommand", "Use",,, MyXML, n)
-        'URGENT: remove these lines
-        If Not SettingsReoranized Then
-            With New XMLValueAttribute(Of String, Boolean)("ClosingCommand", "Use",,, MyXML)
-                ClosingCommand.Value = .Value
-                ClosingCommand.AttributeValue = .AttributeValue
-            End With
-        End If
         AddHandler ClosingCommand.ValueChanged, Sub(s, ev) MainFrameObj?.ChangeCloseVisible()
         DownloadAll_UseF6 = New XMLValue(Of Boolean)("DownloadAll_UseF6", True, MyXML, n)
         DownloadAll_UseF6_Confirm = New XMLValue(Of Boolean)("DownloadAll_UseF6_Confirm", False, MyXML, n)
@@ -359,19 +345,14 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         AutomationBrushUndownloadedPlansMinutes = New XMLValue(Of Integer)("AutomationBrushUndownloadedPlansMinutes", 10080, MyXML, n)
 
         'Downloading: file naming
-        n_old = {"Users", "FileName"}
         n = {"Downloading", "FileName"}
         FileAddDateToFileName = New XMLValue(Of Boolean)("FileAddDateToFileName", False, MyXML, n)
-        If Not SettingsReoranized Then FileAddDateToFileName.Value = New XMLValue(Of Boolean)("FileAddDateToFileName", False, MyXML, n_old).Value 'URGENT: remove this line
         AddHandler FileAddDateToFileName.ValueChanged, AddressOf ChangeDateProvider
         FileAddTimeToFileName = New XMLValue(Of Boolean)("FileAddTimeToFileName", False, MyXML, n)
-        If Not SettingsReoranized Then FileAddTimeToFileName.Value = New XMLValue(Of Boolean)("FileAddTimeToFileName", False, MyXML, n_old).Value 'URGENT: remove this line
         AddHandler FileAddTimeToFileName.ValueChanged, AddressOf ChangeDateProvider
         FileDateTimePositionEnd = New XMLValue(Of Boolean)("FileDateTimePositionEnd", True, MyXML, n)
-        If Not SettingsReoranized Then FileDateTimePositionEnd.Value = New XMLValue(Of Boolean)("FileDateTimePositionEnd", True, MyXML, n_old).Value 'URGENT: remove this line
         AddHandler FileDateTimePositionEnd.ValueChanged, AddressOf ChangeDateProvider
         FileReplaceNameByDate = New XMLValue(Of Integer)("FileReplaceNameByDate", FileNameReplaceMode.None, MyXML, n)
-        If Not SettingsReoranized Then FileReplaceNameByDate.Value = New XMLValue(Of Integer)("FileReplaceNameByDate", FileNameReplaceMode.None, MyXML, n_old).Value 'URGENT: remove this line
 
         'Downloading: script
         n = {"Downloading", "Script"}
@@ -451,7 +432,6 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         LatestSavingPath = New XMLValue(Of SFile)("LatestSavingPath", Nothing, MyXML, n, New XMLToFilePathProvider)
         LatestSelectedChannel = New XMLValue(Of String)("LatestSelectedChannel",, MyXML, n)
 #End Region
-        ReorganizeSettingsFile()
 #Region "Loading plugins"
         Plugins.AddRange(PluginHost.GetMyHosts(MyXML, GlobalPath.Value, DefaultTemporary, DefaultDownloadImages, DefaultDownloadVideos))
         Dim tmpPluginList As IEnumerable(Of PluginHost) = PluginHost.GetPluginsHosts(MyXML, GlobalPath.Value, DefaultTemporary,
@@ -475,7 +455,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         UpdatePluginsUserAgent(False)
 #End Region
 
-        Labels = New LabelsKeeper(MyXML)
+        Labels = New LabelsKeeper
         Groups = New Groups.DownloadGroupCollection
         Labels.AddRange(Groups.GetGroupsLabels, False)
         AdvancedFilter = New Groups.DownloadGroup(False) With {.IsViewFilter = True}
@@ -483,61 +463,8 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         AdvancedFilter.IsViewFilter = True
         Labels.AddRange({AdvancedFilter}.GetGroupsLabels, False)
 
-        'URGENT: remove this code (2024.03)
-#Region "To delete"
-        'delete this property:
-        ViewReorganized = New XMLValue(Of Boolean)("ViewReorganized", rn, MyXML)
-        If Not ViewReorganized.Value Then
-            ViewReorganized.Value = True
-            Dim oldShowMode% = MyXML.Value("ShowingMode").FromXML(Of Integer)(0)
-            Dim MainFrameUsersShowDefaults As Boolean = MyXML.Value("UsersShowDefaults").FromXML(Of Boolean)(True)
-            Dim MainFrameUsersShowSubscriptions As Boolean = MyXML.Value("UsersShowSubscriptions").FromXML(Of Boolean)(True)
-            ShowAllUsers.Value = oldShowMode = 0 And MainFrameUsersShowDefaults And MainFrameUsersShowSubscriptions
-            Dim ViewDateMode As New XMLValue(Of Integer)("ViewDateMode", ShowingDates.Off, MyXML)
-            Dim SelectedSites As New XMLValuesCollection(Of String)(IXMLValuesCollection.Modes.String, "SelectedSites",, MyXML, {Name_Node_Sites})
-            If Not ShowAllUsers Or SelectedSites.Count > 0 Or Not ViewDateMode.Value = ShowingDates.Off Then
-                ShowAllUsers.Value = False
-                With AdvancedFilter
-                    .DownloadUsers = MainFrameUsersShowDefaults
-                    .DownloadSubscriptions = MainFrameUsersShowSubscriptions
-                    If SelectedSites.Count > 0 Then .Sites.AddRange(SelectedSites)
-#Disable Warning BC40008
-                    Select Case oldShowMode
-                        Case 20 : .Regular = True : .Temporary = False : .Favorite = False
-                        Case 50 : .Regular = False : .Temporary = True : .Favorite = False
-                        Case 100 : .Regular = False : .Temporary = False : .Favorite = True
-                        Case 500 : If Labels.Current.Count > 0 Then .Labels.Clear() : .Labels.AddRange(Labels.Current)
-                        Case 1000 : .LabelsNo = True
-                        Case 10000 : .UserExists = False : .UserDeleted = True : .UserSuspended = False
-                        Case 12000 : .UserExists = False : .UserDeleted = False : .UserSuspended = True
-                    End Select
-                    If Labels.Excluded.Count > 0 Then .LabelsExcluded.AddRange(Labels.Excluded)
-                    .LabelsExcludedIgnore = Labels.ExcludedIgnore
-#Enable Warning
-
-                    Dim _ViewDateFrom As New XMLValue(Of Date)
-                    _ViewDateFrom.SetExtended("ViewDateFrom",, MyXML)
-                    Dim _ViewDateTo As New XMLValue(Of Date)
-                    _ViewDateTo.SetExtended("ViewDateTo",, MyXML)
-
-                    If Not ViewDateMode.Value = ShowingDates.Off Then
-                        .DateMode = ViewDateMode
-                        If _ViewDateFrom.Exists Then .DateFrom = _ViewDateFrom.Value Else .DateFrom = Nothing
-                        If _ViewDateTo.Exists Then .DateTo = _ViewDateTo.Value Else .DateTo = Nothing
-                    End If
-                    _ViewDateFrom.Dispose()
-                    _ViewDateTo.Dispose()
-                    .UpdateFile()
-                End With
-            End If
-            ViewDateMode.Dispose()
-            SelectedSites.Dispose()
-        End If
-#End Region
-
-        If Not forceSaveXML And forceSaveXML2 Then SettingsReoranized2.Value = True
         MyXML.EndUpdate()
-        If MyXML.ChangesDetected Or forceSaveXML Or forceSaveXML2 Then MyXML.Sort() : MyXML.UpdateData()
+        If MyXML.ChangesDetected Then MyXML.Sort() : MyXML.UpdateData()
 
         If BlackListFile.Exists Then
             BlackList.ListAddList(IO.File.ReadAllLines(BlackListFile), LAP.NotContainsOnly)
@@ -545,107 +472,6 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         End If
         _UpdatesSuspended = False
         ChangeDateProvider(Nothing, Nothing)
-    End Sub
-#End Region
-    'URGENT: remove 'Reorganize' code (2024.03)
-#Region "Reorganize"
-    Private Property SettingsReoranized As XMLValue(Of Boolean)
-    Private Property SettingsReoranized2 As XMLValue(Of Boolean)
-    Private Sub ReorganizeSettingsFile()
-        If Not SettingsReoranized Then
-            SettingsReoranized.Value = True
-
-            Dim n$()
-
-            GlobalPath.Value = New XMLValue(Of SFile)("GlobalPath", "Data\".CSFileP, MyXML,, New XMLToFilePathProvider).Value
-            MaxLargeImageHeight.Value = New XMLValue(Of Integer)("MaxLargeImageHeight", 150, MyXML).Value
-            MaxSmallImageHeight.Value = New XMLValue(Of Integer)("MaxSmallImageHeight", 15, MyXML).Value
-            CollectionsPath.Value = New XMLValue(Of String)("CollectionsPath", CollectionsFolderName, MyXML).Value
-            MaxUsersJobsCount.Value = New XMLValue(Of Integer)("MaxJobsCount", DefaultMaxDownloadingTasks, MyXML, {"Users", "FileName"}).Value
-
-            CheckUpdatesAtStart.Value = New XMLValue(Of Boolean)("CheckUpdatesAtStart", True, MyXML).Value
-            ShowNewVersionNotification.Value = New XMLValue(Of Boolean)("ShowNewVersionNotification", True, MyXML).Value
-            LatestVersion.Value = New XMLValue(Of String)("LatestVersion", String.Empty, MyXML).Value
-
-            ProgramText.Value = New XMLValue(Of String)("ProgramText",, MyXML).Value
-            ProgramDescription.Value = New XMLValue(Of String)("ProgramDescription",, MyXML).Value
-
-            UserListImage.Value = New XMLValue(Of SFile)("UserListImage",, MyXML).Value
-
-            Dim __UserListBackColor As New XMLValue(Of Color)
-            __UserListBackColor.SetExtended("UserListBackColor",, MyXML)
-            UserListBackColor.ValueF = __UserListBackColor.ValueF
-            Dim __UserListForeColor As New XMLValue(Of Color)
-            __UserListForeColor.SetExtended("UserListForeColor",, MyXML)
-            UserListForeColor.ValueF = __UserListForeColor.ValueF
-
-            MainFrameUsersSubscriptionsColorBack.Value = New XMLValue(Of Color)("UsersSubscriptionsColorBack", MyColor.OkBack, MyXML).Value
-            MainFrameUsersSubscriptionsColorFore.Value = New XMLValue(Of Color)("UsersSubscriptionsColorFore", MyColor.OkFore, MyXML).Value
-            Dim __MainFrameUsersSubscriptionsColorBack_USERS As New XMLValue(Of Color)
-            __MainFrameUsersSubscriptionsColorBack_USERS.SetExtended("UsersSubscriptionsColorBack_USERS",, MyXML)
-            MainFrameUsersSubscriptionsColorBack_USERS.ValueF = __MainFrameUsersSubscriptionsColorBack_USERS.ValueF
-            Dim __MainFrameUsersSubscriptionsColorFore_USERS As New XMLValue(Of Color)
-            __MainFrameUsersSubscriptionsColorFore_USERS.SetExtended("UsersSubscriptionsColorFore_USERS",, MyXML)
-            MainFrameUsersSubscriptionsColorFore_USERS.ValueF = __MainFrameUsersSubscriptionsColorFore_USERS.ValueF
-
-            CMDEncoding.Value = New XMLValue(Of Integer)("CMDEncoding", DefaultCmdEncoding, MyXML, {"Defaults"}).Value
-
-            ExitConfirm.Value = New XMLValue(Of Boolean)("ExitConfirm", True, MyXML).Value
-            CloseToTray.Value = New XMLValue(Of Boolean)("CloseToTray", True, MyXML).Value
-            With New XMLValueUse(Of String)("OpenFolderInOtherProgram",,, MyXML)
-                OpenFolderInOtherProgram.Value = .Value
-                OpenFolderInOtherProgram.Use = .Use
-            End With
-            DeleteToRecycleBin.Value = New XMLValue(Of Boolean)("DeleteToRecycleBin", True, MyXML).Value
-            FastProfilesLoading.Value = New XMLValue(Of Boolean)("FastProfilesLoading", True, MyXML).Value
-            With New XMLValueAttribute(Of Boolean, Boolean)("DownloadOpenInfo", "OpenAgain", False, False, MyXML)
-                DownloadOpenInfo.Value = .Value
-                DownloadOpenInfo.AttributeValue = .AttributeValue
-            End With
-            With New XMLValueAttribute(Of Boolean, Boolean)("DownloadOpenProgress", "OpenAgain", False, False, MyXML)
-                DownloadOpenProgress.Value = .Value
-                DownloadOpenProgress.AttributeValue = .AttributeValue
-            End With
-
-            SeparateVideoFolder.Value = New XMLValue(Of Boolean)("SeparateVideoFolder", True, MyXML).Value
-
-            AddMissingToLog.Value = New XMLValue(Of Boolean)("AddMissingToLog", True, MyXML).Value
-            AddMissingErrorsToLog.Value = New XMLValue(Of Boolean)("AddMissingErrorsToLog", False, MyXML).Value
-            With New XMLValueAttribute(Of String, Boolean)("DownloadsCompleteCommand", "Use",,, MyXML)
-                DownloadsCompleteCommand.Value = .Value
-                DownloadsCompleteCommand.AttributeValue = .AttributeValue
-            End With
-
-            n = {"Users"}
-            UpdateUserDescriptionEveryTime.Value = New XMLValue(Of Boolean)("UpdateUserDescriptionEveryTime", True, MyXML, n).Value
-            UpdateUserIconBannerEveryTime.Value = New XMLValue(Of Boolean)("UpdateUserIconBannerEveryTime", True, MyXML, n).Value
-
-            n = {"Defaults"}
-            UpdateUserSiteNameEveryTime.Value = New XMLValue(Of Boolean)("UserSiteNameUpdateEveryTime", False, MyXML, n).Value
-            ReparseMissingInTheRoutine.Value = New XMLValue(Of Boolean)("ReparseMissingInTheRoutine", False, MyXML, n).Value
-            UseDefaultAccountIfMissing.Value = New XMLValue(Of Boolean)("UseDefaultAccountIfMissing", True, MyXML, n).Value
-
-            n = {"Users"}
-            FromChannelDownloadTop.Value = New XMLValue(Of Integer)("FromChannelDownloadTop", 10, MyXML, n).Value
-            FromChannelDownloadTopUse.Value = New XMLValue(Of Boolean)("FromChannelDownloadTopUse", False, MyXML, n).Value
-            FromChannelCopyImageToUser.Value = New XMLValue(Of Boolean)("FromChannelCopyImageToUser", True, MyXML, n).Value
-
-            With New XMLValueAttribute(Of String, Boolean)("ScriptData", "Use",,, MyXML, n)
-                ScriptData.Value = .Value
-                ScriptData.AttributeValue = .AttributeValue
-            End With
-
-            ViewMode.Value = New XMLValue(Of Integer)("ViewMode", ViewModes.IconLarge, MyXML).Value
-            GroupUsers.Value = New XMLValue(Of Boolean)("UseGrouping", True, MyXML).Value
-            ShowGroupsInsteadLabels.Value = New XMLValue(Of Boolean)("ShowGroupsInsteadLabels", False, MyXML).Value
-
-            InfoViewMode.Value = New XMLValue(Of Integer)("InfoViewMode", DownloadObjects.DownloadedInfoForm.ViewModes.Session, MyXML).Value
-            InfoViewDefault.Value = New XMLValue(Of Boolean)("InfoViewDefault", True, MyXML).Value
-
-            LatestSavingPath.Value = New XMLValue(Of SFile)("LatestSavingPath", Nothing, MyXML,, New XMLToFilePathProvider).Value
-            LatestSelectedChannel.Value = New XMLValue(Of String)("LatestSelectedChannel",, MyXML).Value
-            LastCopyPath.Value = New XMLValue(Of SFile)("LastCopyPath",, MyXML,, New XMLToFilePathProvider).Value
-        End If
     End Sub
 #End Region
 #Region "Users"
@@ -1292,7 +1118,6 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         End Get
     End Property
     Friend ReadOnly Property ShowAllUsers As XMLValue(Of Boolean)
-    Private ReadOnly Property ViewReorganized As XMLValue(Of Boolean)
     Friend ReadOnly Property GroupUsers As XMLValue(Of Boolean)
     Friend ReadOnly Property ShowGroupsInsteadLabels As XMLValue(Of Boolean)
 #End Region

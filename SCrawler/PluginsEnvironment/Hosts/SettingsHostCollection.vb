@@ -94,14 +94,14 @@ Namespace Plugin.Hosts
             HostsUnavailableIndexes = New List(Of Integer)
             Dim defInstance As ISiteSettings = CreateInstance()
             HostsXml = New List(Of XmlFile) From {
-                GetNewXmlFile($"{SettingsFolderName}\{SiteSettingsBase.ResponserFilePrefix}{defInstance.Site}_Settings.xml", defInstance.Site, _XML)
+                GetNewXmlFile($"{SettingsFolderName}\{SiteSettingsBase.ResponserFilePrefix}{defInstance.Site}_Settings.xml")
             }
             Hosts = New List(Of SettingsHost) From {New SettingsHost(defInstance, True, HostsXml(0), GlobalPath, _Temp, _Imgs, _Vids)}
 
             Dim hostFiles As List(Of SFile) = SFile.GetFiles(SettingsFolderName.CSFileP, $"{String.Format(FileNamePattern, Key, Name)}*.xml",, EDP.ReturnValue)
             If hostFiles.ListExists Then
                 For Each f As SFile In hostFiles
-                    HostsXml.Add(GetNewXmlFile(f, [Default].Name))
+                    HostsXml.Add(GetNewXmlFile(f))
                     Hosts.Add(New SettingsHost(CreateInstance(HostsXml.Last.Value(SettingsHost.NameXML_AccountName)), False, HostsXml.Last,
                                                GlobalPath, _Temp, _Imgs, _Vids))
                 Next
@@ -109,30 +109,10 @@ Namespace Plugin.Hosts
             Hosts.ListReindex
             Hosts.ForEach(Sub(h) SetHostHandlers(h))
         End Sub
-        Private Function GetNewXmlFile(ByVal f As SFile, ByVal SiteName As String, Optional ByVal SourceXml As XmlFile = Nothing) As XmlFile
+        Private Function GetNewXmlFile(ByVal f As SFile) As XmlFile
             Dim x As New XmlFile(f,, False) With {.AutoUpdateFile = True}
             If Not f.Exists Then x.Name = "SiteSettings"
             x.LoadData()
-            'URGENT: reorganization of settings: remove the following code
-            Dim n$() = {SettingsCLS.Name_Node_Sites, SiteName}
-            Dim processed As Boolean = False
-            With If(SourceXml, x)
-                If .Count > 0 AndAlso .Contains(n) Then
-                    With .Item(n)
-                        If .ListExists Then
-                            For Each container As EContainer In .Self : x.Add(container.Name, container.Value) : Next
-                            processed = True
-                        End If
-                    End With
-                    If processed Then
-                        .Remove(n)
-                        If SourceXml Is Nothing Then .Remove(SettingsCLS.Name_Node_Sites)
-                        x.Name = "SiteSettings"
-                        x.UpdateData()
-                    End If
-                End If
-            End With
-            '-----END REMOVE-----
             Return x
         End Function
 #End Region
@@ -178,7 +158,7 @@ Namespace Plugin.Hosts
         End Sub
         Private Sub Hosts_OkClick(ByVal Obj As SettingsHost)
             If Obj.Index = -1 Then
-                HostsXml.Add(GetNewXmlFile($"{SettingsFolderName}\{String.Format(FileNamePatternFull, Key, Name, Obj.AccountName)}.xml", Name))
+                HostsXml.Add(GetNewXmlFile($"{SettingsFolderName}\{String.Format(FileNamePatternFull, Key, Name, Obj.AccountName)}.xml"))
                 With Settings : Hosts.Add(Obj.Apply(HostsXml.Last, .GlobalPath,
                                                     .DefaultTemporary, .DefaultDownloadImages, .DefaultDownloadVideos)) : End With
                 HostsXml.Last.UpdateData()

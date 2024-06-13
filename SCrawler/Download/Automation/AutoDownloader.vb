@@ -379,10 +379,7 @@ Namespace DownloadObjects
         Friend Sub New(ByVal x As EContainer)
             Me.New
             Initialization = True
-            'URGENT: replace this line
-            Dim m% = x.Value(Name_Mode).FromXML(Of Integer)(Modes.None)
-            If m = 1 Or m = 2 Then m = Modes.Specified
-            Mode = m
+            Mode = x.Value(Name_Mode).FromXML(Of Integer)(Modes.None)
             Import(x)
             If Name.IsEmptyString Then Name = "Default"
             Groups.ListAddList(x.Value(Name_Groups).StringToList(Of String)("|"), LAP.NotContainsOnly)
