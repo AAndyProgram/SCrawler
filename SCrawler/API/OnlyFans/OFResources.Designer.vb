@@ -65,12 +65,36 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to https://github.com/datawhores/onlyfans-dynamic-rules/blob/main/dynamicRules.json
+        '''https://github.com/riley-access-labs/onlyfans-dynamic-rules-1/blob/main/dynamicRules.json
+        '''https://github.com/riley-access-labs/onlyfans-dynamic-rules-1/blob/patch-1/dynamicRules.json
+        '''https://github.com/DATAHOARDERS/dynamic-rules/blob/main/onlyfans.json
+        '''https://github.com/DIGITALCRIMINAL/dynamic-rules/blob/main/onlyfans.json
+        '''https://github.com/deviint/onlyfans-dynamic-rules/blob/main/dynamicRules.json.
+        '''</summary>
+        Friend Shared ReadOnly Property DynamicRules() As String
+            Get
+                Return ResourceManager.GetString("DynamicRules", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized resource of type System.Byte[].
         '''</summary>
         Friend Shared ReadOnly Property OFScraperConfigPattern() As Byte()
             Get
                 Dim obj As Object = ResourceManager.GetObject("OFScraperConfigPattern", resourceCulture)
                 Return CType(obj,Byte())
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to dynamic-mode-default=generic
+        '''RULE_VALUE=DYNAMIC_GENERIC_URL.
+        '''</summary>
+        Friend Shared ReadOnly Property OFScraperConfigPatternConstants() As String
+            Get
+                Return ResourceManager.GetString("OFScraperConfigPatternConstants", resourceCulture)
             End Get
         End Property
     End Class

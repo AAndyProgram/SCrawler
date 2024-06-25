@@ -1,3 +1,17 @@
+# 2024.6.25.0
+
+*2024-06-25*
+
+**ATTENTION! To support downloading of DRM protected videos (OnlyFans), please update OF-Scraper to version [3.10.7](https://github.com/datawhores/OF-Scraper/releases/tag/3.10.7) (download `zip`, not `exe`).**
+
+- Added
+  - OnlyFans: **new dynamic rules updating algorithm**
+  - Feed: ability to set the last session as the current one
+- Updated
+  - gallery-dl up to version **1.27.1**
+- Fixed
+  - Minor bugs
+
 # 2024.6.10.0
 
 *2024-06-10*

@@ -91,6 +91,7 @@ Namespace API.OnlyFans
         End Sub
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
             Try
+                _DownloadingException_AuthFileUpdate = False
                 If Not MySettings.SessionAborted Then
                     ValidateOFScraper()
                     _AbsMediaIndex = 0
@@ -537,45 +538,16 @@ Namespace API.OnlyFans
         End Sub
 #End Region
 #Region "Auth"
-        Private ReadOnly Property AuthFile As SFile
-            Get
-                Dim f As SFile = MySettings.Responser.File
-                f.Name &= "_Auth"
-                f.Extension = "json"
-                Return f
-            End Get
-        End Property
-        Private Function UpdateSignature(ByVal Path As String, Optional ByVal ForceUpdateAuth As Boolean = False,
-                                         Optional ByVal Round As Integer = 0) As Boolean
+        Private Function UpdateSignature(ByVal Path As String) As Boolean
             Try
-                If UpdateAuthFile(ForceUpdateAuth) Then
+                If Not Rules.Update(False) Then Rules.Update(True)
+                If Rules.Exists Then
                     Const nullMsg$ = "The auth parameter(s) is null"
-                    Const formatMidPart$ = ":{0}:{1:x}:"
-                    Dim j As EContainer
-                    Try
-                        j = JsonDocument.Parse(AuthFile.GetText)
-                    Catch jex As Exception
-                        If Round = 0 Then
-                            AuthFile.Delete()
-                            UpdateAuthFile(True)
-                            Return UpdateSignature(Path, ForceUpdateAuth, Round + 1)
-                        Else
-                            MySettings.SessionAborted = True
-                            Return False
-                        End If
-                    End Try
+                    Dim j As EContainer = Rules.CurrentContainer
                     If Not j Is Nothing Then
-                        Dim pattern$ = j.Value("format")
+                        Dim pattern$ = DynamicRulesEnv.GetFormat(j)
 
-                        If Not pattern.IsEmptyString Then
-                            pattern = pattern.Replace("{}", "{0}").Replace("{:x}", "{1:x}")
-                        ElseIf Not j.Value("prefix").IsEmptyString And Not j.Value("suffix").IsEmptyString Then
-                            pattern = j.Value("prefix") & formatMidPart & j.Value("suffix")
-                        ElseIf Not j.Value("start").IsEmptyString And Not j.Value("end").IsEmptyString Then
-                            pattern = j.Value("start") & formatMidPart & j.Value("end")
-                        Else
-                            Throw New ArgumentNullException("format", nullMsg)
-                        End If
+                        If pattern.IsEmptyString Then Throw New ArgumentNullException("format", nullMsg)
 
                         Dim li%() = j("checksum_indexes").Select(Function(e) CInt(e(0).Value)).ToArray
 
@@ -599,40 +571,14 @@ Namespace API.OnlyFans
                         Responser.Headers.Add(HeaderSign, sign)
                         Responser.Headers.Add(HeaderTime, t)
 
-                        j.Dispose()
                         Return True
                     End If
+                Else
+                    MySettings.SessionAborted = True
                 End If
                 Return False
             Catch ex As Exception
                 Return ErrorsDescriber.Execute(EDP.SendToLog + EDP.ReturnValue, ex, $"{ToStringForLog()}: UpdateSignature", False)
-            End Try
-        End Function
-        Private Function UpdateAuthFile(ByVal Force As Boolean) As Boolean
-            Const urlOld$ = "https://raw.githubusercontent.com/DATAHOARDERS/dynamic-rules/main/onlyfans.json"
-            Const urlNew$ = "https://raw.githubusercontent.com/DIGITALCRIMINALS/dynamic-rules/main/onlyfans.json"
-            Try
-                If MySettings.LastDateUpdated.AddMinutes(CInt(MySettings.DynamicRulesUpdateInterval.Value)) < Now Or Not AuthFile.Exists Or Force Then
-                    Dim r$ = GetWebString(If(ACheck(Of String)(MySettings.DynamicRules.Value),
-                                             CStr(MySettings.DynamicRules.Value),
-                                             IIf(MySettings.UseOldAuthRules.Value, urlOld, urlNew)),, EDP.ReturnValue)
-                    Dim checkFormat As Func(Of EContainer, Boolean) =
-                        Function(jj) Not jj.Value("format").IsEmptyString OrElse
-                                     (Not jj.Value("prefix").IsEmptyString And Not jj.Value("suffix").IsEmptyString) OrElse
-                                     (Not jj.Value("start").IsEmptyString And Not jj.Value("end").IsEmptyString)
-                    If Not r.IsEmptyString Then
-                        Using j As EContainer = JsonDocument.Parse(r, EDP.ReturnValue)
-                            If j.ListExists Then
-                                If checkFormat(j) And j("checksum_indexes").ListExists And
-                                   Not j.Value("static_param").IsEmptyString And Not j.Value("checksum_constant").IsEmptyString Then _
-                                   TextSaver.SaveTextToFile(r, AuthFile, True, False, EDP.ThrowException) : MySettings.LastDateUpdated = Now
-                            End If
-                        End Using
-                    End If
-                End If
-                Return AuthFile.Exists
-            Catch ex As Exception
-                Return ErrorsDescriber.Execute(EDP.SendToLog + EDP.ReturnValue, ex, $"{ToStringForLog()}: UpdateAuthFile", False)
             End Try
         End Function
         Private Function GetHashSha1(ByVal Input As String) As String
@@ -666,35 +612,51 @@ Namespace API.OnlyFans
         Private Function OFS_CreateConfig() As SFile
             Try
                 Const confMainPattern$ = "{0}"": ""([^""]*)"""
+                Const confMainPatternRulesManual$ = "DYNAMIC_RULE"": (""[^""]*"")"
                 If OFSCache Is Nothing Then OFSCache = If(IsSingleObjectDownload, Settings.Cache.NewInstance, CreateCache())
                 Dim currentCache As CacheKeeper = OFSCache.NewInstance
                 currentCache.Validate()
                 Dim cacheRoot As SFile = currentCache.NewPath
                 cacheRoot.Exists(SFO.Path, True, EDP.ThrowException)
-                Dim f As SFile = OFScraperConfigPatternFile
+                Dim f As SFile = Rules.OFScraperConfigPatternFile
                 Dim configText$
-                CheckOFSConfig()
                 If f.Exists Then
                     Dim replaceValue$ = String.Empty
                     Dim rp As RParams = RParams.DMS(String.Empty, 1, RegexReturn.Replace, RegexOptions.IgnoreCase,
                                                     CType(Function(input) replaceValue, Func(Of String, String)), String.Empty, EDP.ReturnValue)
                     Dim ff As SFile
                     configText = f.GetText
-                    Dim updateConf As Action(Of String, String) = Sub(ByVal patternValue As String, ByVal __replaceValue As String)
-                                                                      rp.Pattern = String.Format(confMainPattern, patternValue)
-                                                                      rp.Nothing = configText
-                                                                      replaceValue = __replaceValue
-                                                                      configText = RegexReplace(configText, rp)
-                                                                  End Sub
+                    Dim updateConf As Action(Of String, String, Boolean) =
+                        Sub(ByVal patternValue As String, ByVal __replaceValue As String, ByVal __isRules As Boolean)
+                            rp.Pattern = String.Format(IIf(__isRules, confMainPatternRulesManual, confMainPattern), patternValue)
+                            rp.Nothing = configText
+                            replaceValue = __replaceValue
+                            configText = RegexReplace(configText, rp)
+                        End Sub
                     If Not configText.IsEmptyString Then
-                        updateConf("save_location", cacheRoot.PathNoSeparator.Replace("\", "/"))
+                        updateConf("save_location", cacheRoot.PathNoSeparator.Replace("\", "/"), False)
                         If ACheck(MySettings.OFScraperMP4decrypt.Value) Then
                             ff = CStr(MySettings.OFScraperMP4decrypt.Value)
-                            If ff.Exists Then updateConf("mp4decrypt", ff.ToString.Replace("\", "/"))
+                            If ff.Exists Then updateConf("mp4decrypt", ff.ToString.Replace("\", "/"), False)
                         End If
-                        If Settings.FfmpegFile.Exists Then updateConf("ffmpeg", Settings.FfmpegFile.File.ToString.Replace("\", "/"))
-                        updateConf("key-mode-default", CStr(MySettings.KeyModeDefault.Value).IfNullOrEmpty(SiteSettings.KeyModeDefault_Default))
-                        updateConf("keydb_api", CStr(MySettings.Keydb_Api.Value))
+                        If Settings.FfmpegFile.Exists Then updateConf("ffmpeg", Settings.FfmpegFile.File.ToString.Replace("\", "/"), False)
+                        updateConf("key-mode-default", CStr(MySettings.KeyModeDefault.Value).IfNullOrEmpty(SiteSettings.KeyModeDefault_Default), False)
+                        updateConf("keydb_api", CStr(MySettings.Keydb_Api.Value), False)
+                        If Rules.RulesReplaceConfig Then
+                            If Rules.RulesConfigManualMode Then
+                                updateConf(DynamicRulesEnv.DynamicRulesConfig_Mode_NodeName, "manual", False)
+                                configText = configText.Replace(DynamicRulesEnv.DynamicRulesConfigNodeName_URL, DynamicRulesEnv.DynamicRulesConfigNodeName_RULES)
+                                updateConf(DynamicRulesEnv.DynamicRulesConfigNodeName_RULES, Rules.CurrentContainerRulesText, True)
+                            Else
+                                Dim confUrlNode$ = If(Rules.RulesConstants.ContainsKey(DynamicRulesEnv.DynamicRulesConfigNodeName_URL_CONST_NAME),
+                                                      Rules.RulesConstants(DynamicRulesEnv.DynamicRulesConfigNodeName_URL_CONST_NAME),
+                                                      DynamicRulesEnv.DynamicRulesConfigNodeName_URL)
+                                updateConf(DynamicRulesEnv.DynamicRulesConfigNodeName_URL, Rules.CurrentRule.UrlRaw, False)
+                                configText = configText.Replace(DynamicRulesEnv.DynamicRulesConfigNodeName_URL, confUrlNode)
+                                If Rules.RulesConstants.ContainsKey(DynamicRulesEnv.DynamicRulesConfig_Mode_NodeName) Then _
+                                   updateConf(DynamicRulesEnv.DynamicRulesConfig_Mode_NodeName, Rules.RulesConstants(DynamicRulesEnv.DynamicRulesConfig_Mode_NodeName), False)
+                            End If
+                        End If
                         f = currentCache
                         f.Name = "config"
                         f.Extension = "json"
@@ -788,7 +750,7 @@ Namespace API.OnlyFans
         Protected Overrides Function DownloadingException(ByVal ex As Exception, ByVal Message As String, Optional ByVal FromPE As Boolean = False,
                                                           Optional ByVal EObj As Object = Nothing) As Integer
             If Responser.StatusCode = Net.HttpStatusCode.BadRequest Then '400
-                If Not _DownloadingException_AuthFileUpdate AndAlso UpdateAuthFile(True) Then
+                If Not _DownloadingException_AuthFileUpdate AndAlso Rules.Update(True) Then
                     _DownloadingException_AuthFileUpdate = True
                     Return 2
                 Else

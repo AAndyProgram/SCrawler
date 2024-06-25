@@ -9,13 +9,12 @@
 Imports SCrawler.API.Base
 Imports SCrawler.Plugin
 Imports SCrawler.Plugin.Attributes
-Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Tools.Web.Clients
 Imports PersonalUtilities.Tools.Web.Cookies
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports DN = SCrawler.API.Base.DeclaredNames
 Namespace API.OnlyFans
-    <Manifest("AndyProgram_OnlyFans"), SavedPosts, SpecialForm(False), SeparatedTasks(1)>
+    <Manifest("AndyProgram_OnlyFans"), SavedPosts, SpecialForm(False), SpecialForm(True), SeparatedTasks(1)>
     Friend Class SiteSettings : Inherits SiteSettingsBase
 #Region "Declarations"
 #Region "Categories"
@@ -74,30 +73,6 @@ Namespace API.OnlyFans
             Return String.Empty
         End Function
 #End Region
-#Region "Rules"
-        <PXML("LastDateUpdated")> Private ReadOnly Property LastDateUpdated_XML As PropertyValue
-        Friend Property LastDateUpdated As Date
-            Get
-                Return LastDateUpdated_XML.Value
-            End Get
-            Set(ByVal d As Date)
-                LastDateUpdated_XML.Value = d
-            End Set
-        End Property
-        <PropertyOption(ControlText:="Use old authorization rules",
-                        ControlToolTip:="Use old dynamic rules (from 'DATAHOARDERS') or new ones (from 'DIGITALCRIMINALS')." & vbCr &
-                                        "Change this value only if you know what you are doing.", IsAuth:=True), PXML, PClonable>
-        Friend ReadOnly Property UseOldAuthRules As PropertyValue
-        <PropertyOption(ControlText:="Dynamic rules update", ControlToolTip:="'Dynamic rules' update interval (minutes). Default: 1440",
-                        LeftOffset:=110, IsAuth:=True), PXML, PClonable>
-        Friend ReadOnly Property DynamicRulesUpdateInterval As PropertyValue
-        <Provider(NameOf(DynamicRulesUpdateInterval), FieldsChecker:=True)>
-        Private ReadOnly Property DynamicRulesUpdateIntervalProvider As IFormatProvider
-        <PropertyOption(ControlText:="Dynamic rules",
-                        ControlToolTip:="Overwrite 'Dynamic rules' with this URL" & vbCr &
-                                        "Change this value only if you know what you are doing.", IsAuth:=True), PXML, PClonable>
-        Friend ReadOnly Property DynamicRules As PropertyValue
-#End Region
 #Region "OFScraper"
         <PClonable, PXML("OFScraperPath")> Private ReadOnly Property OFScraperPath_XML As PropertyValue
         <PropertyOption(ControlText:="OF-Scraper path", ControlToolTip:="The path to the 'ofscraper.exe'", Category:=CAT_OFS)>
@@ -150,7 +125,10 @@ Namespace API.OnlyFans
         Friend Sub New(ByVal AccName As String, ByVal Temp As Boolean)
             MyBase.New("OnlyFans", ".onlyfans.com", AccName, Temp, My.Resources.SiteResources.OnlyFansIcon_32, My.Resources.SiteResources.OnlyFansPic_32)
 
-            CheckOFSConfig()
+            If Rules Is Nothing Then
+                Rules = New DynamicRulesEnv
+                Rules.Update(False, True)
+            End If
 
             _AllowUserAgentUpdate = False
 
@@ -184,13 +162,6 @@ Namespace API.OnlyFans
             DownloadHighlights = New PropertyValue(True)
             DownloadChatMedia = New PropertyValue(True)
 
-            LastDateUpdated_XML = New PropertyValue(Now.AddYears(-1), GetType(Date))
-            'URGENT: OF [UseOldAuthRules = True]
-            UseOldAuthRules = New PropertyValue(True)
-            DynamicRulesUpdateInterval = New PropertyValue(60 * 24)
-            DynamicRulesUpdateIntervalProvider = New FieldsCheckerProviderSimple(Function(v) IIf(AConvert(Of Integer)(v, 0) > 0, v, Nothing),
-                                                                                 "The value of [{0}] field must be greater than 0")
-            DynamicRules = New PropertyValue(String.Empty, GetType(String))
             OFScraperPath_XML = New PropertyValue(String.Empty, GetType(String))
             If ACheck(OFScraperPath_XML.Value) Then
                 Dim f As SFile = OFScraperPath_XML.Value
@@ -218,20 +189,27 @@ Namespace API.OnlyFans
         End Function
 #End Region
 #Region "Update"
-        Private __UseOldAuthRules As Boolean = True
-        Private __DynamicRules As String = String.Empty
         Friend Overrides Sub BeginUpdate()
-            __UseOldAuthRules = UseOldAuthRules.Value
-            __DynamicRules = AConvert(Of String)(DynamicRules.Value, String.Empty)
+            _TempSettingsEnv.DisposeIfReady
+            _TempSettingsEnv = Nothing
             MyBase.BeginUpdate()
         End Sub
         Friend Overrides Sub Update()
             If _SiteEditorFormOpened Then
-                If Not __UseOldAuthRules = CBool(UseOldAuthRules.Value) Or Not AEquals(Of String)(__DynamicRules, DynamicRules.Value) Then _
-                   LastDateUpdated = Now.AddYears(-1)
                 Responser.Cookies.Changed = False
+                If If(_TempSettingsEnv?.NeedToSave, False) Then Rules.Copy(_TempSettingsEnv, True) : Rules.Save()
             End If
             MyBase.Update()
+        End Sub
+        Friend Overrides Sub EndUpdate()
+            _TempSettingsEnv.DisposeIfReady
+            _TempSettingsEnv = Nothing
+            MyBase.EndUpdate()
+        End Sub
+        Private _TempSettingsEnv As DynamicRulesEnv = Nothing
+        Friend Overrides Sub OpenSettingsForm()
+            If _TempSettingsEnv Is Nothing Then _TempSettingsEnv = New DynamicRulesEnv : _TempSettingsEnv.Copy(Rules, False)
+            Using f As New OnlyFansAdvancedSettingsForm(_TempSettingsEnv) : f.ShowDialog() : End Using
         End Sub
 #End Region
 #Region "Download"

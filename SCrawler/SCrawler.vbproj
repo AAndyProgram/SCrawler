@@ -208,10 +208,17 @@
     <Compile Include="API\Mastodon\SiteSettings.vb" />
     <Compile Include="API\Mastodon\UserData.vb" />
     <Compile Include="API\OnlyFans\Declarations.vb" />
+    <Compile Include="API\OnlyFans\DynamicRulesEnv.vb" />
     <Compile Include="API\OnlyFans\OFResources.Designer.vb">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>OFResources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="API\OnlyFans\OnlyFansAdvancedSettingsForm.Designer.vb">
+      <DependentUpon>OnlyFansAdvancedSettingsForm.vb</DependentUpon>
+    </Compile>
+    <Compile Include="API\OnlyFans\OnlyFansAdvancedSettingsForm.vb">
+      <SubType>Form</SubType>
     </Compile>
     <Compile Include="API\OnlyFans\SiteSettings.vb" />
     <Compile Include="API\OnlyFans\UserData.vb" />
@@ -542,6 +549,9 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>OFResources.Designer.vb</LastGenOutput>
     </EmbeddedResource>
+    <EmbeddedResource Include="API\OnlyFans\OnlyFansAdvancedSettingsForm.resx">
+      <DependentUpon>OnlyFansAdvancedSettingsForm.vb</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="API\Reddit\RedditViewSettingsForm.resx">
       <DependentUpon>RedditViewSettingsForm.vb</DependentUpon>
     </EmbeddedResource>
@@ -784,6 +794,9 @@
     <None Include="Content\Pictures\SitePictures\FacebookPic_37.png" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="API\OnlyFans\DynamicRules.txt" />
+    <Content Include="API\OnlyFans\DynamicRulesAll.txt" />
+    <Content Include="API\OnlyFans\OFScraperConfigPatternConstants.txt" />
     <Content Include="Content\Pictures\CutPic_48.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />

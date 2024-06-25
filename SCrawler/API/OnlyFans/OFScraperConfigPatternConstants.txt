@@ -1,0 +1,2 @@
+dynamic-mode-default=generic
+RULE_VALUE=DYNAMIC_GENERIC_URL

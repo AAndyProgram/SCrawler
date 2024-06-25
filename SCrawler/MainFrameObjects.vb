@@ -26,6 +26,7 @@ Friend Class MainFrameObjects : Implements INotificator
             AddHandler .TextAdded, AddressOf ProgramLog_TextAdded
             AddHandler .TextCleared, AddressOf ProgramLog_TextCleared
         End With
+        UpdateLogButton()
     End Sub
 #Region "Users"
     Friend Sub FocusUser(ByVal Key As String, Optional ByVal ActivateForm As Boolean = False)

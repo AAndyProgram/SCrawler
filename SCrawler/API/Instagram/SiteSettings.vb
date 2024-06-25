@@ -449,8 +449,11 @@ Namespace API.Instagram
             If CInt(SettingsVersion.Value) < 2 Then
                 SettingsVersion.Value = 2
                 HH_IG_WWW_CLAIM_UPDATE_INTERVAL.Value = 120
-                HH_IG_WWW_CLAIM_USE_DEFAULT_ALGO.Value = 1
-                HH_IG_WWW_CLAIM_RESET_EACH_TARGET.Value = 0
+                HH_IG_WWW_CLAIM_ALWAYS_ZERO.Value = False
+                HH_IG_WWW_CLAIM_RESET_EACH_SESSION.Value = True
+                HH_IG_WWW_CLAIM_RESET_EACH_TARGET.Value = True
+                HH_IG_WWW_CLAIM_USE.Value = True
+                HH_IG_WWW_CLAIM_USE_DEFAULT_ALGO.Value = True
             End If
             MyBase.EndInit()
         End Sub

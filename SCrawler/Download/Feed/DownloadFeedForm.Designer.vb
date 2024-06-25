@@ -45,6 +45,8 @@ Namespace DownloadObjects
             Me.BTT_LOAD_SESSION_CHOOSE = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_COPY_TO = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_MOVE_TO = New System.Windows.Forms.ToolStripMenuItem()
+            Me.BTT_COPY_SPEC_TO = New System.Windows.Forms.ToolStripMenuItem()
+            Me.BTT_MOVE_SPEC_TO = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_LOAD_FAV = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_LOAD_SPEC = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_FEED_ADD_FAV = New System.Windows.Forms.ToolStripMenuItem()
@@ -61,6 +63,7 @@ Namespace DownloadObjects
             Me.BTT_CURR_SESSION_SET = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_MERGE_SESSIONS = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_CLEAR_DAILY = New System.Windows.Forms.ToolStripMenuItem()
+            Me.BTT_RESET_DAILY = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_MERGE_FEEDS = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_CHECK_ALL = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_CHECK_NONE = New System.Windows.Forms.ToolStripMenuItem()
@@ -72,9 +75,7 @@ Namespace DownloadObjects
             Me.BTT_DOWN_SELECTED = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_REFRESH = New System.Windows.Forms.ToolStripButton()
             Me.TP_DATA = New System.Windows.Forms.TableLayoutPanel()
-            Me.BTT_COPY_SPEC_TO = New System.Windows.Forms.ToolStripMenuItem()
-            Me.BTT_MOVE_SPEC_TO = New System.Windows.Forms.ToolStripMenuItem()
-            Me.BTT_RESET_DAILY = New System.Windows.Forms.ToolStripMenuItem()
+            Me.BTT_CURR_SESSION_SET_LAST = New System.Windows.Forms.ToolStripMenuItem()
             SEP_1 = New System.Windows.Forms.ToolStripSeparator()
             SEP_2 = New System.Windows.Forms.ToolStripSeparator()
             MENU_VIEW = New System.Windows.Forms.ToolStripDropDownButton()
@@ -168,6 +169,11 @@ Namespace DownloadObjects
             MENU_LOAD_SEP_8.Name = "MENU_LOAD_SEP_8"
             MENU_LOAD_SEP_8.Size = New System.Drawing.Size(349, 6)
             '
+            'MENU_LOAD_SEP_9
+            '
+            MENU_LOAD_SEP_9.Name = "MENU_LOAD_SEP_9"
+            MENU_LOAD_SEP_9.Size = New System.Drawing.Size(349, 6)
+            '
             'ToolbarTOP
             '
             Me.ToolbarTOP.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden
@@ -181,7 +187,7 @@ Namespace DownloadObjects
             '
             Me.MENU_LOAD_SESSION.AutoToolTip = False
             Me.MENU_LOAD_SESSION.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image
-            Me.MENU_LOAD_SESSION.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_LOAD_SESSION_CURRENT, Me.BTT_LOAD_SESSION_LAST, Me.BTT_LOAD_SESSION_CHOOSE, MENU_LOAD_SEP_0, Me.BTT_COPY_TO, Me.BTT_MOVE_TO, MENU_LOAD_SEP_1, Me.BTT_COPY_SPEC_TO, Me.BTT_MOVE_SPEC_TO, MENU_LOAD_SEP_2, Me.BTT_LOAD_FAV, Me.BTT_LOAD_SPEC, MENU_LOAD_SEP_3, Me.BTT_FEED_ADD_FAV, Me.BTT_FEED_ADD_FAV_REMOVE, Me.BTT_FEED_REMOVE_FAV, MENU_LOAD_SEP_4, Me.BTT_FEED_ADD_SPEC, Me.BTT_FEED_ADD_SPEC_REMOVE, Me.BTT_FEED_REMOVE_SPEC, MENU_LOAD_SEP_5, Me.BTT_FEED_CLEAR_FAV, Me.BTT_FEED_CLEAR_SPEC, Me.BTT_FEED_DELETE_SPEC, Me.BTT_FEED_DELETE_DAILY_LIST, Me.BTT_FEED_DELETE_DAILY_DATE, MENU_LOAD_SEP_6, Me.BTT_CURR_SESSION_SET, Me.BTT_MERGE_SESSIONS, Me.BTT_CLEAR_DAILY, Me.BTT_RESET_DAILY, MENU_LOAD_SEP_7, Me.BTT_MERGE_FEEDS, MENU_LOAD_SEP_8, Me.BTT_CHECK_ALL, Me.BTT_CHECK_NONE, MENU_LOAD_SEP_9, Me.BTT_VIEW_SAVE, Me.BTT_VIEW_LOAD})
+            Me.MENU_LOAD_SESSION.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_LOAD_SESSION_CURRENT, Me.BTT_LOAD_SESSION_LAST, Me.BTT_LOAD_SESSION_CHOOSE, MENU_LOAD_SEP_0, Me.BTT_COPY_TO, Me.BTT_MOVE_TO, MENU_LOAD_SEP_1, Me.BTT_COPY_SPEC_TO, Me.BTT_MOVE_SPEC_TO, MENU_LOAD_SEP_2, Me.BTT_LOAD_FAV, Me.BTT_LOAD_SPEC, MENU_LOAD_SEP_3, Me.BTT_FEED_ADD_FAV, Me.BTT_FEED_ADD_FAV_REMOVE, Me.BTT_FEED_REMOVE_FAV, MENU_LOAD_SEP_4, Me.BTT_FEED_ADD_SPEC, Me.BTT_FEED_ADD_SPEC_REMOVE, Me.BTT_FEED_REMOVE_SPEC, MENU_LOAD_SEP_5, Me.BTT_FEED_CLEAR_FAV, Me.BTT_FEED_CLEAR_SPEC, Me.BTT_FEED_DELETE_SPEC, Me.BTT_FEED_DELETE_DAILY_LIST, Me.BTT_FEED_DELETE_DAILY_DATE, MENU_LOAD_SEP_6, Me.BTT_CURR_SESSION_SET, Me.BTT_CURR_SESSION_SET_LAST, Me.BTT_MERGE_SESSIONS, Me.BTT_CLEAR_DAILY, Me.BTT_RESET_DAILY, MENU_LOAD_SEP_7, Me.BTT_MERGE_FEEDS, MENU_LOAD_SEP_8, Me.BTT_CHECK_ALL, Me.BTT_CHECK_NONE, MENU_LOAD_SEP_9, Me.BTT_VIEW_SAVE, Me.BTT_VIEW_LOAD})
             Me.MENU_LOAD_SESSION.Image = Global.SCrawler.My.Resources.Resources.ArrowDownPic_Blue_24
             Me.MENU_LOAD_SESSION.ImageTransparentColor = System.Drawing.Color.Magenta
             Me.MENU_LOAD_SESSION.Name = "MENU_LOAD_SESSION"
@@ -222,6 +228,24 @@ Namespace DownloadObjects
             Me.BTT_MOVE_TO.Name = "BTT_MOVE_TO"
             Me.BTT_MOVE_TO.Size = New System.Drawing.Size(352, 22)
             Me.BTT_MOVE_TO.Text = "Move checked to..."
+            '
+            'BTT_COPY_SPEC_TO
+            '
+            Me.BTT_COPY_SPEC_TO.AutoToolTip = True
+            Me.BTT_COPY_SPEC_TO.Image = Global.SCrawler.My.Resources.Resources.PastePic_32
+            Me.BTT_COPY_SPEC_TO.Name = "BTT_COPY_SPEC_TO"
+            Me.BTT_COPY_SPEC_TO.Size = New System.Drawing.Size(352, 22)
+            Me.BTT_COPY_SPEC_TO.Text = "Copy feed/session files to..."
+            Me.BTT_COPY_SPEC_TO.ToolTipText = "Copy all the files of the loaded feed/session to..."
+            '
+            'BTT_MOVE_SPEC_TO
+            '
+            Me.BTT_MOVE_SPEC_TO.AutoToolTip = True
+            Me.BTT_MOVE_SPEC_TO.Image = Global.SCrawler.My.Resources.Resources.CutPic_48
+            Me.BTT_MOVE_SPEC_TO.Name = "BTT_MOVE_SPEC_TO"
+            Me.BTT_MOVE_SPEC_TO.Size = New System.Drawing.Size(352, 22)
+            Me.BTT_MOVE_SPEC_TO.Text = "Move feed/session files to..."
+            Me.BTT_MOVE_SPEC_TO.ToolTipText = "Move all the files of the loaded feed/session to..."
             '
             'BTT_LOAD_FAV
             '
@@ -342,6 +366,15 @@ Namespace DownloadObjects
             Me.BTT_CLEAR_DAILY.Text = "Clear session"
             Me.BTT_CLEAR_DAILY.ToolTipText = "Clear current session"
             '
+            'BTT_RESET_DAILY
+            '
+            Me.BTT_RESET_DAILY.AutoToolTip = True
+            Me.BTT_RESET_DAILY.Image = Global.SCrawler.My.Resources.Resources.RefreshPic_24
+            Me.BTT_RESET_DAILY.Name = "BTT_RESET_DAILY"
+            Me.BTT_RESET_DAILY.Size = New System.Drawing.Size(352, 22)
+            Me.BTT_RESET_DAILY.Text = "Reset current session"
+            Me.BTT_RESET_DAILY.ToolTipText = "A new file will be created for the current session"
+            '
             'BTT_MERGE_FEEDS
             '
             Me.BTT_MERGE_FEEDS.AutoToolTip = True
@@ -443,37 +476,12 @@ Namespace DownloadObjects
             Me.TP_DATA.Size = New System.Drawing.Size(484, 436)
             Me.TP_DATA.TabIndex = 1
             '
-            'MENU_LOAD_SEP_9
+            'BTT_CURR_SESSION_SET_LAST
             '
-            MENU_LOAD_SEP_9.Name = "MENU_LOAD_SEP_9"
-            MENU_LOAD_SEP_9.Size = New System.Drawing.Size(349, 6)
-            '
-            'BTT_COPY_SPEC_TO
-            '
-            Me.BTT_COPY_SPEC_TO.AutoToolTip = True
-            Me.BTT_COPY_SPEC_TO.Image = Global.SCrawler.My.Resources.Resources.PastePic_32
-            Me.BTT_COPY_SPEC_TO.Name = "BTT_COPY_SPEC_TO"
-            Me.BTT_COPY_SPEC_TO.Size = New System.Drawing.Size(352, 22)
-            Me.BTT_COPY_SPEC_TO.Text = "Copy feed/session files to..."
-            Me.BTT_COPY_SPEC_TO.ToolTipText = "Copy all the files of the loaded feed/session to..."
-            '
-            'BTT_MOVE_SPEC_TO
-            '
-            Me.BTT_MOVE_SPEC_TO.AutoToolTip = True
-            Me.BTT_MOVE_SPEC_TO.Image = Global.SCrawler.My.Resources.Resources.CutPic_48
-            Me.BTT_MOVE_SPEC_TO.Name = "BTT_MOVE_SPEC_TO"
-            Me.BTT_MOVE_SPEC_TO.Size = New System.Drawing.Size(352, 22)
-            Me.BTT_MOVE_SPEC_TO.Text = "Move feed/session files to..."
-            Me.BTT_MOVE_SPEC_TO.ToolTipText = "Move all the files of the loaded feed/session to..."
-            '
-            'BTT_RESET_DAILY
-            '
-            Me.BTT_RESET_DAILY.AutoToolTip = True
-            Me.BTT_RESET_DAILY.Image = Global.SCrawler.My.Resources.Resources.RefreshPic_24
-            Me.BTT_RESET_DAILY.Name = "BTT_RESET_DAILY"
-            Me.BTT_RESET_DAILY.Size = New System.Drawing.Size(352, 22)
-            Me.BTT_RESET_DAILY.Text = "Reset current session"
-            Me.BTT_RESET_DAILY.ToolTipText = "A new file will be created for the current session"
+            Me.BTT_CURR_SESSION_SET_LAST.Image = Global.SCrawler.My.Resources.Resources.ArrowDownPic_Blue_24
+            Me.BTT_CURR_SESSION_SET_LAST.Name = "BTT_CURR_SESSION_SET_LAST"
+            Me.BTT_CURR_SESSION_SET_LAST.Size = New System.Drawing.Size(352, 22)
+            Me.BTT_CURR_SESSION_SET_LAST.Text = "Set last download session as current session"
             '
             'DownloadFeedForm
             '
@@ -534,5 +542,6 @@ Namespace DownloadObjects
         Private WithEvents BTT_COPY_SPEC_TO As ToolStripMenuItem
         Private WithEvents BTT_MOVE_SPEC_TO As ToolStripMenuItem
         Private WithEvents BTT_RESET_DAILY As ToolStripMenuItem
+        Private WithEvents BTT_CURR_SESSION_SET_LAST As ToolStripMenuItem
     End Class
 End Namespace

@@ -83,6 +83,9 @@ Friend Module MainMod
     <Extension> Friend Function ToStringDateDef(ByVal _Date As Date) As String
         Return ToStringDateDef(_DateN:=_Date)
     End Function
+    <Extension> Friend Function ToDateDef(ByVal DateStr As String, Optional ByVal NothingArg As Object = Nothing) As Object
+        Return AConvert(Of Date)(DateStr, DateTimeDefaultProvider, NothingArg)
+    End Function
     Friend ReadOnly SessionDateTimeProvider As New ADateTime("yyyyMMdd_HHmmss")
     Friend ReadOnly FeedVideoLengthProvider As New ADateTime("hh\:mm\:ss") With {.TimeParseMode = ADateTime.TimeModes.TimeSpan}
     Friend ReadOnly LogConnector As New LogHost

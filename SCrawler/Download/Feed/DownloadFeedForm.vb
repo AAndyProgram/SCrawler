@@ -515,17 +515,21 @@ Namespace DownloadObjects
                         f = Downloader.FilesSessionActual(False)
                     End If
                     If f.Exists Then
-                        If SelectedMode >= 0 Then
-                            If SelectedMode = FeedModes.Saved Then LoadedSessionName = f.Name
-                            FeedChangeMode(SelectedMode)
+                        If GetSessionFile Then
+                            If Not Downloader.FilesSessionActual(False) = f Then SessionFile = f
+                        Else
+                            If SelectedMode >= 0 Then
+                                If SelectedMode = FeedModes.Saved Then LoadedSessionName = f.Name
+                                FeedChangeMode(SelectedMode)
+                            End If
+                            DataList.Clear()
+                            x = New XmlFile(f,, False) With {.AllowSameNames = True, .XmlReadOnly = True}
+                            x.LoadData()
+                            If x.Count > 0 Then DataList.ListAddList(x, lcr)
+                            x.Dispose()
+                            CleanDataList()
+                            RefillList(False, False)
                         End If
-                        DataList.Clear()
-                        x = New XmlFile(f,, False) With {.AllowSameNames = True, .XmlReadOnly = True}
-                        x.LoadData()
-                        If x.Count > 0 Then DataList.ListAddList(x, lcr)
-                        x.Dispose()
-                        CleanDataList()
-                        RefillList(False, False)
                     End If
                 Else
                     m.Text = "Saved sessions not found"
@@ -553,6 +557,7 @@ Namespace DownloadObjects
                 Dim data As IEnumerable(Of UserMediaD) = Nothing
                 Dim dd As UserMediaD
                 Dim __user As UserInfo
+                Dim __isSavedPosts As Boolean
                 Dim data_files As IEnumerable(Of SFile) = Nothing
                 Dim new_files As New List(Of SFile)
                 Dim mm As UserMediaD
@@ -671,8 +676,9 @@ Namespace DownloadObjects
                                                 __user = mm.UserInfo
                                                 mm_data = mm.Data
                                                 mm_data.File = df
-                                                mm = New UserMediaD(mm_data, If(moveOptions.ReplaceUserProfile_Profile, mm.User), mm.Session, mm.Date) With {.IsSavedPosts = mm.IsSavedPosts}
-                                                If moveOptions.ReplaceUserProfile_Profile Is Nothing And mm.IsSavedPosts Then mm.UserInfo = __user
+                                                __isSavedPosts = mm.IsSavedPosts And moveOptions.ReplaceUserProfile_Profile Is Nothing
+                                                mm = New UserMediaD(mm_data, If(moveOptions.ReplaceUserProfile_Profile, mm.User), mm.Session, mm.Date) With {.IsSavedPosts = __isSavedPosts}
+                                                If __isSavedPosts Then mm.UserInfo = __user
                                                 Downloader.Files(indx) = mm
                                                 downloaderFilesUpdated = True
                                             End If
@@ -701,8 +707,9 @@ Namespace DownloadObjects
                                                 __user = mm.UserInfo
                                                 mm_data = mm.Data
                                                 mm_data.File = df
-                                                mm = New UserMediaD(mm_data, If(moveOptions.ReplaceUserProfile_Profile, mm.User), mm.Session, mm.Date) With {.IsSavedPosts = mm.IsSavedPosts}
-                                                If moveOptions.ReplaceUserProfile_Profile Is Nothing And mm.IsSavedPosts Then mm.UserInfo = __user
+                                                __isSavedPosts = mm.IsSavedPosts And moveOptions.ReplaceUserProfile_Profile Is Nothing
+                                                mm = New UserMediaD(mm_data, If(moveOptions.ReplaceUserProfile_Profile, mm.User), mm.Session, mm.Date) With {.IsSavedPosts = __isSavedPosts}
+                                                If __isSavedPosts Then mm.UserInfo = __user
                                                 sessionData(indx) = mm
                                                 sesFilesReplaced = True
                                                 If DataList.Count > 0 Then
@@ -922,10 +929,10 @@ Namespace DownloadObjects
         End Sub
 #End Region
 #Region "Sessions set, merge, clear"
-        Private Sub BTT_CURR_SESSION_SET_Click(sender As Object, e As EventArgs) Handles BTT_CURR_SESSION_SET.Click
+        Private Sub BTT_CURR_SESSION_SET_Click(sender As Object, e As EventArgs) Handles BTT_CURR_SESSION_SET.Click, BTT_CURR_SESSION_SET_LAST.Click
             Try
                 Dim f As SFile = Nothing
-                SessionChooser(False,,,, True, f)
+                SessionChooser(sender Is BTT_CURR_SESSION_SET_LAST,,,, True, f)
                 If Not f.IsEmptyString AndAlso f.Exists Then
                     Downloader.FilesLoadLastSession(f)
                     FeedChangeMode(FeedModes.Current)

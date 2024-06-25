@@ -1194,7 +1194,7 @@ Namespace API.YouTube.Objects
                             End With
 
                             If PlaylistCount > 0 And Not CoverDownloaded And Not PlaylistID.IsEmptyString Then DownloadPlaylistCover(PlaylistID, File, UseCookies)
-                            If prExists Then Progress.InformationTemporary = $"Download {MediaType}: post processing"
+                            If prExists Then Progress.InformationTemporary = "Downloading: post processing"
                             _ThumbnailFile = File
                             _ThumbnailFile.Name &= "_thumb"
                             _ThumbnailFile.Extension = "jpg"

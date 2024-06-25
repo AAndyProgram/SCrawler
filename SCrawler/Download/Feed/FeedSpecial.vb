@@ -157,6 +157,7 @@ Namespace DownloadObjects
                     Else
                         user = Item.User
                     End If
+                    If isSaved Then isSaved = Item.UserInfo.Equals(DirectCast(user, UserDataBase).User)
                     If Not If(user?.IsSubscription, False) Then
                         Item = New UserMediaD(data, user, Item.Session, Item.Date) With {.IsSavedPosts = isSaved}
                         Result = True
@@ -176,9 +177,10 @@ Namespace DownloadObjects
                     Dim m As UserMediaD = Items(indx)
                     Dim mm As UserMedia = m.Data
                     Dim user As UserInfo = m.UserInfo
+                    Dim __isSavedPosts As Boolean = m.IsSavedPosts And MCTOptions.ReplaceUserProfile_Profile Is Nothing
                     mm.File = NewFile
-                    m = New UserMediaD(mm, If(MCTOptions.ReplaceUserProfile_Profile, m.User), m.Session, m.Date) With {.IsSavedPosts = m.IsSavedPosts}
-                    If MCTOptions.ReplaceUserProfile_Profile Is Nothing And m.IsSavedPosts Then m.UserInfo = user
+                    m = New UserMediaD(mm, If(MCTOptions.ReplaceUserProfile_Profile, m.User), m.Session, m.Date) With {.IsSavedPosts = __isSavedPosts}
+                    If __isSavedPosts Then m.UserInfo = user
                     Items(indx) = m
                     _FilesUpdated = True
                 End If
