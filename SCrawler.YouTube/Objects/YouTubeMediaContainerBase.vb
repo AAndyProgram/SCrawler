@@ -899,10 +899,13 @@ Namespace API.YouTube.Objects
                 Return Nothing
             End Try
         End Function
-        Private Function GetPlaylistRow(ByVal Element As YouTubeMediaContainerBase, Optional ByVal __file As SFile = Nothing) As String
+        Private Function GetPlaylistRow(ByVal Element As YouTubeMediaContainerBase, Optional ByVal __file As SFile = Nothing,
+                                        Optional ByVal Mode As M3U8CreationMode = M3U8CreationMode.Absolute) As String
             Const m3u8DataRow$ = "#EXTINF:{0},{1}" & vbCrLf & "{2}"
             With Element
                 Dim f As SFile = __file.IfNullOrEmpty(.File)
+                Dim __f$ = SymbolsConverter.ASCII.EncodeSymbolsOnly(If(Mode = M3U8CreationMode.Absolute, f.ToString, f.File))
+                If Mode = M3U8CreationMode.Absolute Then __f = $"file:///{__f}"
                 Dim fName$ = .Title.IfNullOrEmpty(f.Name)
                 If MyYouTubeSettings.MusicPlaylistCreate_M3U8_AppendNumber And .PlaylistIndex > 0 Then fName = $"{ .PlaylistIndex}. {fName}"
                 If Not .UserTitle.IsEmptyString Then
@@ -910,10 +913,7 @@ Namespace API.YouTube.Objects
                     If MyYouTubeSettings.MusicPlaylistCreate_M3U8_AppendArtist Then fName = $"{ .UserTitle} - {fName}"
                 End If
                 If MyYouTubeSettings.MusicPlaylistCreate_M3U8_AppendExt Then fName &= $".{f.Extension}"
-                Return String.Format(m3u8DataRow,
-                                     CInt(.Duration.TotalSeconds),
-                                     fName,
-                                     $"file:///{SymbolsConverter.ASCII.EncodeSymbolsOnly(f)}")
+                Return String.Format(m3u8DataRow, CInt(.Duration.TotalSeconds), fName, __f)
             End With
         End Function
         Private ReadOnly DownloadProgressPattern As RParams = RParams.DMS("\[download\]\s*([\d\.,]+)", 1, EDP.ReturnValue)
@@ -954,23 +954,41 @@ Namespace API.YouTube.Objects
                     Dim t As TextSaver = Nothing
                     Try
                         Dim f As SFile
-                        If MyYouTubeSettings.MusicPlaylistCreate_M3U8 Then
-                            t = New TextSaver
-                            t.AppendLine("#EXTM3U")
-                            Elements.ForEach(Sub(e) t.AppendLine(GetPlaylistRow(e)))
-                            f = $"{Elements(0).File.PathWithSeparator}Playlist.m3u8"
-                            t.SaveAs(f, EDP.SendToLog)
-                            If f.Exists Then AddFile(f)
-                            t.Dispose()
-                        End If
-                        If MyYouTubeSettings.MusicPlaylistCreate_M3U Then
-                            t = New TextSaver
-                            Elements.ForEach(Sub(e) t.AppendLine(e.File))
-                            f = $"{Elements(0).File.PathWithSeparator}Playlist.m3u"
-                            t.SaveAs(f, EDP.SendToLog)
-                            If f.Exists Then AddFile(f)
-                            t.Dispose()
-                        End If
+                        Dim arr As M3U8CreationMode() = If(MyYouTubeSettings.MusicPlaylistCreate_CreationMode.Value = M3U8CreationMode.Both,
+                                                           {M3U8CreationMode.Relative, M3U8CreationMode.Absolute},
+                                                           {MyYouTubeSettings.MusicPlaylistCreate_CreationMode.Value})
+                        Dim postfix$
+                        Dim added As Boolean
+                        Dim checkFile As Func(Of IYouTubeMediaContainer, Boolean) = Function(ByVal e As IYouTubeMediaContainer) As Boolean
+                                                                                        If e.File.Exists Then
+                                                                                            added = True
+                                                                                            Return True
+                                                                                        Else
+                                                                                            Return False
+                                                                                        End If
+                                                                                    End Function
+                        For Each cm As M3U8CreationMode In arr
+                            If arr.Length > 1 AndAlso cm = M3U8CreationMode.Absolute Then postfix = "Abs" Else postfix = String.Empty
+                            added = False
+                            If MyYouTubeSettings.MusicPlaylistCreate_M3U8 Then
+                                t = New TextSaver
+                                t.AppendLine("#EXTM3U")
+                                Elements.ForEach(Sub(e) If checkFile(e) Then t.AppendLine(GetPlaylistRow(e,, cm)))
+                                f = $"{Elements(0).File.PathWithSeparator}Playlist{postfix}.m3u8"
+                                If added Then t.SaveAs(f, EDP.SendToLog)
+                                If f.Exists Then AddFile(f)
+                                t.Dispose()
+                            End If
+                            added = False
+                            If MyYouTubeSettings.MusicPlaylistCreate_M3U Then
+                                t = New TextSaver
+                                Elements.ForEach(Sub(e) If checkFile(e) Then t.AppendLine(If(cm = M3U8CreationMode.Relative, e.File.File, e.File.ToString)))
+                                f = $"{Elements(0).File.PathWithSeparator}Playlist{postfix}.m3u"
+                                If added Then t.SaveAs(f, EDP.SendToLog)
+                                If f.Exists Then AddFile(f)
+                                t.Dispose()
+                            End If
+                        Next
                     Catch ex As Exception
                         ErrorsDescriber.Execute(EDP.SendToLog, ex, "[YouTubeMediaContainerBase.Download.CreatePlaylist]")
                     End Try
@@ -1354,15 +1372,29 @@ Namespace API.YouTube.Objects
                                 'Delete unrequsted files
                                 If tempFilesList.Count > 0 Then tempFilesList.ForEach(Sub(tfr) If Not tfr.Requested Then tfr.File.Delete(,, EDP.None)) : tempFilesList.Clear()
 
-                                'Update video FPS
-                                If SelectedVideoIndex >= 0 AndAlso OutputVideoFPS > 0 AndAlso SelectedVideo.Bitrate <> OutputVideoFPS Then
-                                    f = File
-                                    f.Name &= "tmp00"
-                                    .Execute($"ffmpeg -i ""{File}"" -filter:v fps={OutputVideoFPS.ToString.Replace(",", ".")} -c:a copy ""{f}""")
-                                    If f.Exists Then
-                                        File.Delete()
-                                        SFile.Rename(f, File,, EDP.LogMessageValue)
-                                    End If
+                                If SelectedVideoIndex >= 0 Then
+                                    Dim reencodeFile As Action(Of String) =
+                                        Sub(ByVal ffmpegCommand As String)
+                                            f = File
+                                            f.Name &= "tmp00"
+                                            .Execute(String.Format(ffmpegCommand, File.ToString, f.ToString))
+                                            If f.Exists Then
+                                                If f.Size > 0 Then
+                                                    File.Delete()
+                                                    SFile.Rename(f, File,, EDP.LogMessageValue)
+                                                Else
+                                                    f.Delete(, SFODelete.DeletePermanently, EDP.None)
+                                                End If
+                                            End If
+                                        End Sub
+                                    'Change video codec to AVC
+                                    If MyYouTubeSettings.DefaultVideoConvertNonAVC.Value AndAlso
+                                       Not SelectedVideo.Codec.IsEmptyString AndAlso Not SelectedVideo.Codec.Trim.ToLower.StartsWith("avc") Then _
+                                       reencodeFile("ffmpeg -i ""{0}"" -c:a copy -c:v libx264 ""{1}""")
+
+                                    'Update video FPS
+                                    If OutputVideoFPS > 0 AndAlso SelectedVideo.Bitrate <> OutputVideoFPS Then _
+                                       reencodeFile("ffmpeg -i ""{0}"" -filter:v fps=" & OutputVideoFPS.ToString.Replace(", ", ".") & " -c:a copy ""{1}""")
                                 End If
                             End If
                         End If

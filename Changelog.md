@@ -1,3 +1,26 @@
+# 2024.7.24.0
+
+*2024-07-24*
+
+- Added
+  - YouTube (standalone app)
+    - ability to convert non-`AVC` codecs (eg `VP9`) to `AVC` (`Settings` - `Defaults Video` - `Convert non-AVC codecs to AVC`)
+    - add the ability to set the playlist creation mode: absolute links, relative links, or both (`Settings` - `Music` - `Create M3U8: creation mode`)
+  - Threads: **saved posts downloading**
+  - Feed
+    - hotkeys `Esc` and `Ctrl+W` to close the form
+    - the ability to search for missing files in *special feeds*
+  - Scheduler: the ability to execute a script after the scheduler plan is executed *(`Settings` - `Behavior`)*
+  - Main window:
+    - added hotkey `Ctrl+F` to show the feed
+    - changed the hotkey from `Ctrl+F` to `Alt+F` to show the search form
+- Updated
+  - yt-dlp up to version **2024.07.16**
+- Fixed
+  - YouTube (standalone app): video files with line breaks in the name do not download correctly
+  - OnlyFans: rules parsing bug
+  - Minor bugs
+
 # 2024.6.25.0
 
 *2024-06-25*

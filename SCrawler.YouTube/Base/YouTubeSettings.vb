@@ -131,22 +131,28 @@ Namespace API.YouTube.Base
         <Browsable(True), GridVisible(False), Category("EnvironmentFolder"), DisplayName("Open folders in another program"), DefaultValue(False)>
         Private Property IDownloaderSettings_OpenFolderInOtherProgram As Boolean Implements IDownloaderSettings.OpenFolderInOtherProgram
             Get
-                Return OpenFolderInOtherProgram.Use
+                Return OpenFolderInOtherProgram.Attribute.ValueTemp
             End Get
             Set(ByVal use As Boolean)
-                OpenFolderInOtherProgram.Use = use
+                OpenFolderInOtherProgram.Attribute.ValueTemp = use
             End Set
         End Property
+        Private Function ShouldSerializeIDownloaderSettings_OpenFolderInOtherProgram() As Boolean
+            Return DirectCast(OpenFolderInOtherProgram.Attribute, IGridValue).ShouldSerializeValue
+        End Function
         <Browsable(True), GridVisible(False), Category("EnvironmentFolder"), DisplayName("Open folders in another program (command)"),
             Description("The command to open a folder."), DefaultValue("")>
         Private Property IDownloaderSettings_OpenFolderInOtherProgram_Command As String Implements IDownloaderSettings.OpenFolderInOtherProgram_Command
             Get
-                Return OpenFolderInOtherProgram
+                Return OpenFolderInOtherProgram.ValueTemp
             End Get
             Set(ByVal command As String)
-                OpenFolderInOtherProgram.Value = command
+                OpenFolderInOtherProgram.ValueTemp = command
             End Set
         End Property
+        Private Function ShouldSerializeIDownloaderSettings_OpenFolderInOtherProgram_Command() As Boolean
+            Return DirectCast(OpenFolderInOtherProgram, IGridValue).ShouldSerializeValue
+        End Function
         <Browsable(True), GridVisible(False), XMLVN({"Environment"}, True), Category("Environment"), DisplayName("Check new version at start")>
         Friend ReadOnly Property CheckUpdatesAtStart As XMLValue(Of Boolean)
 #End Region
@@ -305,6 +311,9 @@ Namespace API.YouTube.Base
         <Browsable(True), GridVisible, XMLVN({"DefaultsVideo"}, 1080), Category("Defaults Video"), DisplayName("Default definition"),
             Description("The default maximum video resolution. -1 for max definition")>
         Public ReadOnly Property DefaultVideoDefinition As XMLValue(Of Integer)
+        <Browsable(True), GridVisible, XMLVN({"DefaultsVideo"}), Category("Defaults Video"), DisplayName("Convert non-AVC codecs to AVC"),
+            Description("Convert non-AVC codecs (eg 'VP9') to AVC. Not recommended due to high CPU usage!")>
+        Public ReadOnly Property DefaultVideoConvertNonAVC As XMLValue(Of Boolean)
         <Browsable(True), GridVisible, XMLVN({"DefaultsVideo"}, False), Category("Defaults Video"), DisplayName("Embed thumbnail (video)"),
             Description("Embed thumbnail in the video as cover art. Default: true.")>
         Public ReadOnly Property DefaultVideoEmbedThumbnail As XMLValue(Of Boolean)
@@ -432,6 +441,9 @@ Namespace API.YouTube.Base
         <Browsable(True), GridVisible, XMLVN({"Playlists"}), Category("Music"), DisplayName("M3U8 Append file number"),
             Description("Add file number to file name. Default: false.")>
         Public ReadOnly Property MusicPlaylistCreate_M3U8_AppendNumber As XMLValue(Of Boolean)
+        <Browsable(True), GridVisible, XMLVN({"Playlists"}, M3U8CreationMode.Relative), Category("Music"), DisplayName("Create M3U8: creation mode"),
+            Description("Set the playlist creation mode: absolute links, relative links, or both. If 'Both' is selected, two playlists will be created. Default: 'Relative'.")>
+        Public ReadOnly Property MusicPlaylistCreate_CreationMode As XMLValue(Of M3U8CreationMode)
 #End Region
 #End Region
 #Region "Defaults Subtitles"

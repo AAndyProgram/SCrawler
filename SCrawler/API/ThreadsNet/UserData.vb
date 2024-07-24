@@ -101,7 +101,12 @@ Namespace API.ThreadsNet
                     Else
                         DefaultParser_SkipPost = AddressOf SkipPost
                     End If
-                    DownloadData(String.Empty, Token)
+                    If IsSavedPosts Then
+                        DefaultParser_ElemNode = {"node", "thread_items", 0, "post"}
+                        DownloadSavedPosts(String.Empty, Token)
+                    Else
+                        DownloadData(String.Empty, Token)
+                    End If
                     If _TempMediaList.Count > 0 Then FirstLoadingDone = True : setMaxPostDate.Invoke(_TempMediaList)
                 Catch ex As Exception
                     errorFound = True
@@ -116,11 +121,15 @@ Namespace API.ThreadsNet
         End Sub
         Private Function IsPinnedPost(ByVal Items As IEnumerable(Of EContainer), ByVal Index As Integer) As Boolean
             Try
-                If MaxLastDownDate.HasValue Then
-                    Dim d As Date? = AConvert(Of Date)(Items(Index).ItemF(DefaultParser_ElemNode_Default).Value("taken_at"), UnixDate32Provider, Nothing)
-                    If d.HasValue Then Return d.Value < MaxLastDownDate.Value
+                If IsSavedPosts Then
+                    Return False
+                Else
+                    If MaxLastDownDate.HasValue Then
+                        Dim d As Date? = AConvert(Of Date)(Items(Index).ItemF(DefaultParser_ElemNode_Default).Value("taken_at"), UnixDate32Provider, Nothing)
+                        If d.HasValue Then Return d.Value < MaxLastDownDate.Value
+                    End If
+                    Return Not FirstLoadingDone
                 End If
-                Return Not FirstLoadingDone
             Catch ex As Exception
                 LogError(ex, "IsPinnedPost")
                 Return Not FirstLoadingDone
@@ -141,22 +150,32 @@ Namespace API.ThreadsNet
                    Responser.Headers.Add(IGS.Header_CSRF_TOKEN, csrf)
             End If
         End Sub
+        Private Const GQL_Q As String = "https://www.threads.net/api/graphql?lsd={0}&fb_dtsg={1}&doc_id={2}&fb_api_req_friendly_name={3}&server_timestamps=true&variables={4}"
+        Private Const GQL_P_DOC_ID As String = "6371597506283707"
+        Private Const GQL_P_NAME As String = "BarcelonaProfileThreadsTabRefetchableQuery"
+        Private Const GQL_S_DOC_ID_1 As String = "7758166704280174"
+        Private Const GQL_S_NAME_1 As String = "BarcelonaSavedPageViewerQuery"
+        Private Const GQL_S_DOC_ID_2 As String = "8617275414954442"
+        Private Const GQL_S_NAME_2 As String = "BarcelonaSavedPageRefetchableQuery"
+        Private Sub DownloadCheckCredentials()
+            If Not Valid Then
+                Dim idIsNull As Boolean = ID.IsEmptyString
+                UpdateCredentials()
+                If idIsNull And Not ID.IsEmptyString Then _ForceSaveUserInfo = True
+            End If
+            If Not Valid Then DisableDownload() : Throw New Plugin.ExitException("Some credentials are missing")
+        End Sub
         Private Overloads Sub DownloadData(ByVal Cursor As String, ByVal Token As CancellationToken)
-            Const urlPattern$ = "https://www.threads.net/api/graphql?lsd={0}&variables={1}&doc_id=6371597506283707&fb_api_req_friendly_name=BarcelonaProfileThreadsTabRefetchableQuery&server_timestamps=true&fb_dtsg={2}"
             Const var_init$ = """userID"":""{0}"""
             Const var_cursor$ = """after"":""{1}"",""before"":null,""first"":25,""last"":null,""userID"":""{0}"",""__relay_internal__pv__BarcelonaIsLoggedInrelayprovider"":true,""__relay_internal__pv__BarcelonaIsFeedbackHubEnabledrelayprovider"":false"
             Dim URL$ = String.Empty
             Try
-                If Not Valid Then
-                    Dim idIsNull As Boolean = ID.IsEmptyString
-                    UpdateCredentials()
-                    If idIsNull And Not ID.IsEmptyString Then _ForceSaveUserInfo = True
-                End If
-                If Not Valid Then DisableDownload() : Throw New Plugin.ExitException("Some credentials are missing")
+                DownloadCheckCredentials()
 
                 Responser.Method = "POST"
                 Responser.Referer = $"https://www.threads.net/@{NameTrue}"
                 Responser.Headers.Add(GQL_HEADER_FB_LSD, Token_lsd)
+                Responser.Headers.Add(GQL_HEADER_FB_FRINDLY_NAME, GQL_P_NAME)
 
                 Dim nextCursor$ = String.Empty
                 Dim dataFound As Boolean = False
@@ -169,7 +188,7 @@ Namespace API.ThreadsNet
                 End If
                 vars = SymbolsConverter.ASCII.EncodeSymbolsOnly("{" & vars & "}")
 
-                URL = String.Format(urlPattern, Token_lsd, vars, Token_dtsg_Var)
+                URL = String.Format(GQL_Q, Token_lsd, Token_dtsg_Var, GQL_P_DOC_ID, GQL_P_NAME, vars)
 
                 Using j As EContainer = GetDocument(URL, Token)
                     If j.ListExists Then
@@ -189,6 +208,47 @@ Namespace API.ThreadsNet
                 ProcessException(ex, Token, $"data downloading error [{URL}]")
             End Try
         End Sub
+        Private Sub DownloadSavedPosts(ByVal Cursor As String, ByVal Token As CancellationToken)
+            Const var_init$ = """__relay_internal__pv__BarcelonaIsLoggedInrelayprovider"":true,""__relay_internal__pv__BarcelonaIsInlineReelsEnabledrelayprovider"":false,""__relay_internal__pv__BarcelonaUseCometVideoPlaybackEnginerelayprovider"":false,""__relay_internal__pv__BarcelonaOptionalCookiesEnabledrelayprovider"":true,""__relay_internal__pv__BarcelonaIsTextFragmentsEnabledForPostCaptionsrelayprovider"":true,""__relay_internal__pv__BarcelonaShouldShowFediverseM075Featuresrelayprovider"":true"
+            Const var_cursor$ = """after"":""{0}"",""first"":25,""__relay_internal__pv__BarcelonaIsLoggedInrelayprovider"":true,""__relay_internal__pv__BarcelonaIsInlineReelsEnabledrelayprovider"":false,""__relay_internal__pv__BarcelonaUseCometVideoPlaybackEnginerelayprovider"":false,""__relay_internal__pv__BarcelonaOptionalCookiesEnabledrelayprovider"":true,""__relay_internal__pv__BarcelonaIsTextFragmentsEnabledForPostCaptionsrelayprovider"":true,""__relay_internal__pv__BarcelonaShouldShowFediverseM075Featuresrelayprovider"":true"
+            Dim URL$ = String.Empty
+            Try
+                DownloadCheckCredentials()
+
+                Responser.Method = "POST"
+                Responser.Referer = "https://www.threads.net/"
+                Responser.Headers.Add(GQL_HEADER_FB_LSD, Token_lsd)
+                Responser.Headers.Add(GQL_HEADER_FB_FRINDLY_NAME, If(Cursor.IsEmptyString, GQL_S_NAME_1, GQL_S_NAME_2))
+
+                Dim nextCursor$ = String.Empty
+                Dim dataFound As Boolean = False
+
+                Dim vars$ = SymbolsConverter.ASCII.EncodeSymbolsOnly("{" & If(Cursor.IsEmptyString, var_init, String.Format(var_cursor, Cursor)) & "}")
+
+                If Cursor.IsEmptyString Then
+                    URL = String.Format(GQL_Q, Token_lsd, Token_dtsg_Var, GQL_S_DOC_ID_1, GQL_S_NAME_1, vars)
+                Else
+                    URL = String.Format(GQL_Q, Token_lsd, Token_dtsg_Var, GQL_S_DOC_ID_2, GQL_S_NAME_2, vars)
+                End If
+
+                Using j As EContainer = GetDocument(URL, Token)
+                    If j.ListExists Then
+                        With j({"data", "xdt_viewer", "text_app_saved_media"})
+                            If .ListExists Then
+                                nextCursor = .Value({"page_info"}, "end_cursor")
+                                With .Item({"edges"})
+                                    If .ListExists Then dataFound = DefaultParser(.Self, Sections.Timeline, Token)
+                                End With
+                            End If
+                        End With
+                    End If
+                End Using
+
+                If dataFound And Not nextCursor.IsEmptyString Then DownloadSavedPosts(nextCursor, Token)
+            Catch ex As Exception
+                ProcessException(ex, Token, $"saved posts downloading error [{URL}]")
+            End Try
+        End Sub
         Private Function GetDocument(ByVal URL As String, ByVal Token As CancellationToken, Optional ByVal Round As Integer = 0) As EContainer
             Try
                 ThrowAny(Token)
@@ -206,7 +266,7 @@ Namespace API.ThreadsNet
             End Try
         End Function
         Private Function UpdateCredentials(Optional ByVal e As ErrorsDescriber = Nothing) As Boolean
-            Dim URL$ = $"https://www.threads.net/@{NameTrue}"
+            Dim URL$ = If(IsSavedPosts, "https://www.threads.net/", $"https://www.threads.net/@{NameTrue}")
             ResetBaseTokens()
             Dim headers As New HttpHeaderCollection
             headers.AddRange(Responser.Headers)

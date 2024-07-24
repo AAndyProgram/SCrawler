@@ -190,7 +190,6 @@ Namespace DownloadObjects
             DataList.Clear()
         End Sub
         Private Sub DownloadFeedForm_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
-            'If e.KeyCode = Keys.F5 Then RefillList() : e.Handled = True
             If Not e.Handled Then
                 Dim b As Boolean = False
                 If e = GoToButton Then
@@ -207,6 +206,8 @@ Namespace DownloadObjects
                         Case Keys.Down, Keys.Right, Keys.PageDown : changePage = 1
                         Case Keys.Home : gotoHome = True
                         Case Keys.End : gotoHome = False
+                        Case Keys.Escape : If Settings.FeedEscToClose Then Close()
+                        Case Else : If e.Control And e.KeyCode = Keys.W Then Close()
                     End Select
                     If changePage.HasValue Then
                         b = True

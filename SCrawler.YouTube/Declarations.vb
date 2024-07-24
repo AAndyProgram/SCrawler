@@ -66,6 +66,7 @@ Namespace API.YouTube
             If Not f.IsEmptyString And Not f.Name.IsEmptyString Then
                 Dim ff As SFile = f
                 ff.Name = ff.Name.StringRemoveWinForbiddenSymbols.StringTrim
+                ff.Name = ff.Name.StringReplaceSymbols({vbLf, vbCr, vbCrLf}, String.Empty, EDP.ReturnValue)
                 ff.Name = ff.Name.StringTrimEnd(".")
                 If Not ff.Name.IsEmptyString And Not MyYouTubeSettings.FileRemoveCharacters.IsEmptyString Then _
                    ff.Name = ff.Name.StringReplaceSymbols(MyYouTubeSettings.FileRemoveCharacters.Value.AsList.ListCast(Of String).ToArray, String.Empty, EDP.ReturnValue)

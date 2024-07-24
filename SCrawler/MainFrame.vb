@@ -242,11 +242,13 @@ CloseResume:
         If Not b Then
             b = True
             If e.Control And e.KeyCode = Keys.F Then
-                MySearch.FormShow()
+                BTT_FEED.PerformClick()
             ElseIf e.Alt And e.KeyCode = Keys.A Then
                 BTT_DOWN_AUTOMATION.PerformClick()
             ElseIf e.Alt And e.KeyCode = Keys.P Then
                 BTT_PR_INFO.PerformClick()
+            ElseIf e.Alt And e.KeyCode = Keys.F Then
+                MySearch.FormShow()
             Else
                 b = False
             End If

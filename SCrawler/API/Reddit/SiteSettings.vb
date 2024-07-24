@@ -85,7 +85,7 @@ Namespace API.Reddit
             ApiClientSecret = New PropertyValue(String.Empty, GetType(String))
             BearerToken = New PropertyValue(token, GetType(String), Sub(v) Responser.Headers.Add(DeclaredNames.Header_Authorization, v))
             BearerTokenUseCurl = New PropertyValue(True)
-            TokenUpdateInterval = New PropertyValue(60 * 12)
+            TokenUpdateInterval = New PropertyValue(360)
             TokenUpdateIntervalProvider = New TokenRefreshIntervalProvider
             BearerTokenDateUpdate = New PropertyValue(Now.AddYears(-1))
             UseTokenForTimelines = New PropertyValue(False)
@@ -100,6 +100,14 @@ Namespace API.Reddit
             UrlPatternUser = "https://www.reddit.com/{0}/{1}/"
             ImageVideoContains = "reddit.com"
             UserRegex = RParams.DM("[htps:/]{7,8}.*?reddit.com/([user]{1,4})/([^/\?&]+)", 0, RegexReturn.ListByMatch, EDP.ReturnValue)
+        End Sub
+        Private Const SettingsVersionCurrent As Integer = 1
+        Friend Overrides Sub EndInit()
+            If CInt(SettingsVersion.Value) < SettingsVersionCurrent Then
+                SettingsVersion.Value = SettingsVersionCurrent
+                TokenUpdateInterval.Value = 360
+            End If
+            MyBase.EndInit()
         End Sub
 #End Region
 #Region "GetInstance"

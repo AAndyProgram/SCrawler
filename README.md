@@ -33,16 +33,16 @@ A program to download photo and video from [any site](#supported-sites) (e.g. Yo
 ![YouTube application](ProgramScreenshots/AppYouTube.png)
 
 # What can program do:
-- Download pictures and videos from users' profiles and subreddits:
+- Download pictures and videos from user profiles:
   - YouTube videos, shorts, community feeds, users, artists, playlists, music, tracks;
   - Reddit images, galleries of images, videos, saved posts;
-  - Redgifs videos (https://www.redgifs.com/);
+  - Redgifs images and videos (https://www.redgifs.com/);
   - Twitter images and videos, saved (bookmarked) posts, likes, communities;
   - OnlyFans images and videos, saved (bookmarked) posts, stories;
   - JustForFans images and videos, saved (bookmarked) posts;
   - Mastodon images and videos, saved (bookmarked) posts;
   - Instagram images and videos, tagged posts, stories, saved posts;
-  - Threads images and videos;
+  - Threads images and videos, saved posts;
   - Facebook images and videos, stories, saved posts;
   - TikTok videos;
   - Pinterest boards, users, saved posts;
@@ -57,7 +57,7 @@ A program to download photo and video from [any site](#supported-sites) (e.g. Yo
 - Download [saved posts](https://github.com/AAndyProgram/SCrawler/wiki/Home#saved-posts)
 - Add users from parsed channel
 - **Advanced user management**
-- **Automation** ([downloading data automatically](https://github.com/AAndyProgram/SCrawler/wiki/Settings#automation) every ```X``` minutes)
+- **Automation** ([downloading data automatically](https://github.com/AAndyProgram/SCrawler/wiki/Settings#automation) every `X` minutes)
 - **Feed** ([feed](https://github.com/AAndyProgram/SCrawler/wiki#feed) of downloaded media files and subscriptions posts)
 - Multiple accounts support
 - Labeling users
@@ -87,7 +87,7 @@ A program to download photo and video from [any site](#supported-sites) (e.g. Yo
 - TikTok
 - RedGifs
 - Pinterest
-- Imgur
+- Imgur *(out of support)*
 - Gfycat
 - LPSG
 - **PornHub**
@@ -109,7 +109,7 @@ First, the program downloads the full profile. After the program downloads only 
 
 # Requirements
 
-- Windows 10, 11 with NET Framework 4.6.1 or higher (v4.6.1 must be installed). You can check version compatibility with this [tool](Tools/NET.FrameworkVersion.ps1).
+- **Windows 10, 11** with NET Framework 4.6.1 or higher (v4.6.1 must be installed). You can check version compatibility with this [tool](Tools/NET.FrameworkVersion.ps1).
 - **[SITES REQUIREMENTS](https://github.com/AAndyProgram/SCrawler/wiki/Settings#sites-requirements)**
 
 # Guide
@@ -157,7 +157,7 @@ First, the program downloads the full profile. After the program downloads only 
 
 **Just download the [latest release](https://github.com/AAndyProgram/SCrawler/releases/latest), unzip the program archive to any folder and enjoy.** :blush:
 
-**Don't put program in the ```Program Files``` system folder (this is portable program and program settings are stored in the program folder)**
+**Don't put program in the `Program Files` system folder (this is portable program and program settings are stored in the program folder)**
 
 **I highly doubt you can run SCrawler on Linux or Mac. SCrawler is a program that is heavily dependent on Windows.**
 
@@ -183,7 +183,7 @@ The program has an intuitive interface.
 
 [![How to configure](https://img.youtube.com/vi/XDn7zG4I700/0.jpg)](https://www.youtube.com/watch?v=XDn7zG4I700)
 
-Just add a user profile and **click the ```Download``` button**.
+Just add a user profile and **click the `Download` button**.
 
 ```mermaid
 stateDiagram

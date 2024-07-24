@@ -179,8 +179,12 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
     Friend ReadOnly Property LastCollections As List(Of String)
     Friend ReadOnly Property DownloadLocations As STDownloader.DownloadLocationsCollection
     Friend ReadOnly Property GlobalLocations As STDownloader.DownloadLocationsCollection
+#Region "Scheduler"
     Friend Property Automation As Scheduler
     Friend ReadOnly Property AutomationFile As XMLValue(Of String)
+    Friend ReadOnly Property AutomationScript As XMLValueUse(Of String)
+    Friend ReadOnly Property AutomationScript_ExcludeManual As XMLValue(Of Boolean)
+#End Region
     Friend ReadOnly Property Feeds As FeedSpecialCollection
     Friend ReadOnly Property BlackList As List(Of UserBan)
     Friend ReadOnly Property Colors As Editors.DataColorCollection
@@ -188,6 +192,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
     Private ReadOnly BlackListFile As SFile = $"{SettingsFolderName}\BlackList.txt"
     Private ReadOnly UsersSettingsFile As SFile = $"{SettingsFolderName}\Users.xml"
     Private ReadOnly Property SettingsVersion As XMLValue(Of Integer)
+    Private Const SettingsVersionCurrent As Integer = 1
 #End Region
 #Region "Initializer"
     Friend Sub New()
@@ -210,12 +215,15 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         Colors = New Editors.DataColorCollection
         EnvironmentProgramsList = New List(Of String)
 
-        AutomationFile = New XMLValue(Of String)("AutomationFile",, MyXML)
-        SiteSettingsShowHiddenControls = MyXML.Value("SiteSettingsShowHiddenControls").FromXML(Of Boolean)(False)
-
-        Dim n() As String
-
         SettingsVersion = New XMLValue(Of Integer)("SettingsVersion", 0, MyXML)
+
+        Dim n() As String = {"Scheduler"}
+        AutomationFile = New XMLValue(Of String)("File",, MyXML, n)
+        If SettingsVersion.Value = 0 AndAlso MyXML.Contains(AutomationFile.Name) Then AutomationFile.Value = MyXML.Value(AutomationFile.Name)
+        AutomationScript = New XMLValueUse(Of String)("Script", String.Empty,, MyXML, n)
+        AutomationScript_ExcludeManual = New XMLValue(Of Boolean)("ScriptExcludeManual", True, MyXML, n)
+
+        SiteSettingsShowHiddenControls = MyXML.Value("SiteSettingsShowHiddenControls").FromXML(Of Boolean)(False)
 
 #Region "Properties: environment"
         'Environment
@@ -393,6 +401,9 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         FeedLastModeSubscriptions = New XMLValue(Of Boolean)("LastModeSubscriptions", False, MyXML, n)
         FeedShowFriendlyNames = New XMLValue(Of Boolean)("ShowFriendlyNames", True, MyXML, n)
         FeedShowSpecialFeedsMediaItem = New XMLValue(Of Boolean)("ShowSpecialFeedsMediaItem", False, MyXML, n)
+        FeedEscToClose = New XMLValue(Of Boolean)("EscToClose", True, MyXML, n)
+        FeedSpecialSearchForMissing = New XMLValue(Of Boolean)("FeedSpecialSearchForMissing", True, MyXML, n)
+        FeedSpecialSearchForMissing_Deep = New XMLValue(Of Boolean)("FeedSpecialSearchForMissing_Deep", False, MyXML, n)
         n = {"Feed", "MoveCopy"}
         FeedMoveCopyLastLocation = New XMLValue(Of SFile)("LastLocation",, MyXML, n)
         FeedMoveCopyUpdateFileLocationOnMove = New XMLValue(Of Boolean)("UpdateFileLocationOnMove", True, MyXML, n)
@@ -462,6 +473,8 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         AdvancedFilter.LoadFromFile($"{SettingsFolderName}\AdvancedFilter.xml")
         AdvancedFilter.IsViewFilter = True
         Labels.AddRange({AdvancedFilter}.GetGroupsLabels, False)
+
+        SettingsVersion.Value = SettingsVersionCurrent
 
         MyXML.EndUpdate()
         If MyXML.ChangesDetected Then MyXML.Sort() : MyXML.UpdateData()
@@ -1098,6 +1111,9 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
     Friend ReadOnly Property FeedLastModeSubscriptions As XMLValue(Of Boolean)
     Friend ReadOnly Property FeedShowFriendlyNames As XMLValue(Of Boolean)
     Friend ReadOnly Property FeedShowSpecialFeedsMediaItem As XMLValue(Of Boolean)
+    Friend ReadOnly Property FeedEscToClose As XMLValue(Of Boolean)
+    Friend ReadOnly Property FeedSpecialSearchForMissing As XMLValue(Of Boolean)
+    Friend ReadOnly Property FeedSpecialSearchForMissing_Deep As XMLValue(Of Boolean)
 #Region "MoveCopy"
     Friend ReadOnly Property FeedMoveCopyLastLocation As XMLValue(Of SFile)
     Friend ReadOnly Property FeedMoveCopyUpdateFileLocationOnMove As XMLValue(Of Boolean)

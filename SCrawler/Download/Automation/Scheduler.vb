@@ -230,6 +230,8 @@ Namespace DownloadObjects
                     PlansWaiter.Invoke(PlanDownloading)
                 ElseIf .DownloadReady Then
                     .Download()
+                    If Settings.AutomationScript.Use AndAlso Not Settings.AutomationScript.Value.IsEmptyString AndAlso
+                       (Not .IsManual Or Not Settings.AutomationScript_ExcludeManual) Then ExecuteCommand(Settings.AutomationScript)
                 End If
             End With
         End Sub

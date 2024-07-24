@@ -353,7 +353,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_FEED.Name = "BTT_FEED"
         Me.BTT_FEED.Size = New System.Drawing.Size(52, 22)
         Me.BTT_FEED.Text = "Feed"
-        Me.BTT_FEED.ToolTipText = "Feed of recently downloaded data"
+        Me.BTT_FEED.ToolTipText = "Feed of recently downloaded data (Ctrl+F)"
         '
         'BTT_CHANNELS
         '

@@ -15,7 +15,7 @@ Imports PersonalUtilities.Functions.RegularExpressions
 Imports IG = SCrawler.API.Instagram.SiteSettings
 Imports DN = SCrawler.API.Base.DeclaredNames
 Namespace API.ThreadsNet
-    <Manifest("AndyProgram_ThreadsNet"), SeparatedTasks(1)>
+    <Manifest("AndyProgram_ThreadsNet"), SavedPosts, SeparatedTasks(1)>
     Friend Class SiteSettings : Inherits SiteSettingsBase
 #Region "Declarations"
 #Region "Authorization"

@@ -235,7 +235,62 @@ Namespace DownloadObjects
         Friend Function RemoveNotExist(ByVal p As Predicate(Of UserMediaD)) As Integer
             If Count > 0 And Not _NotExistRemoved Then
                 _NotExistRemoved = True
-                Dim ri% = Items.RemoveAll(p)
+                Dim ri% = 0
+                If Settings.FeedSpecialSearchForMissing Then
+                    Dim i% = -1
+                    Dim d As UserMediaD = Nothing
+                    Dim m As UserMedia
+                    Dim f As SFile = Nothing
+                    Dim ff As SFile
+                    Dim user As IUserData
+                    Dim processRemove As Boolean
+                    Dim userArr As New List(Of IUserData)
+
+                    Dim updateUser As Func(Of IUserData, Boolean) =
+                        Function(ByVal replaceUser As IUserData) As Boolean
+                            If f.Exists(SFO.Path, False) Then
+                                ff = SFile.GetFiles(f, d.Data.File.File, IO.SearchOption.AllDirectories, EDP.ReturnValue).FirstOrDefault
+                                If Not ff.IsEmptyString Then
+                                    m = d.Data
+                                    m.File = ff
+                                    d = New UserMediaD(m, If(replaceUser, d.User), d.Session, d.Date) With {
+                                        .IsSavedPosts = If(replaceUser Is Nothing, d.IsSavedPosts, DirectCast(replaceUser, UserDataBase).IsSavedPosts)
+                                    }
+                                    Items(i) = d
+                                    ri += 1
+                                    processRemove = False
+                                    Return True
+                                End If
+                            End If
+                            Return False
+                        End Function
+
+                    For i = Count - 1 To 0 Step -1
+                        If p.Invoke(Items(i)) Then
+                            d = Items(i)
+                            f = Nothing
+                            ff = Nothing
+                            processRemove = True
+
+                            f = If(d.User?.File, New SFile).IfNullOrEmpty(d.UserInfo.File).CutPath
+                            If updateUser(Nothing) Then Continue For
+
+                            If Settings.FeedSpecialSearchForMissing_Deep Then
+                                If userArr.Count = 0 Then userArr.ListAddList(Settings.GetUsers(Function(u) True))
+                                If userArr.Count > 0 Then
+                                    For Each user In userArr
+                                        f = user.File.CutPath
+                                        If updateUser(user) Then Exit For
+                                    Next
+                                End If
+                            End If
+
+                            If processRemove Then Items.RemoveAt(i) : ri += 1
+                        End If
+                    Next
+                Else
+                    ri = Items.RemoveAll(p)
+                End If
                 If ri > 0 Then Save()
                 Return ri
             Else

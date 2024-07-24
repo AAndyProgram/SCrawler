@@ -77,6 +77,9 @@ Namespace Editors
                         CH_DOWN_ALL_F6_USE.Checked = .DownloadAll_UseF6
                         CH_DOWN_ALL_F6_NOTIFY.Checked = .DownloadAll_UseF6_Confirm
                         CH_DOWN_ALL_NOTIFY.Checked = .DownloadAll_Confirm
+                        TXT_SCHEDULER_SCRIPT.Text = .AutomationScript
+                        TXT_SCHEDULER_SCRIPT.Checked = .AutomationScript.Use
+                        CH_SCHEDULER_SCRIPT_EX_MANUAL.Checked = .AutomationScript_ExcludeManual
                         'Notifications
                         CH_NOTIFY_SILENT.Checked = .NotificationsSilentMode
                         CH_NOTIFY_SHOW_BASE.Checked = .ShowNotifications
@@ -161,6 +164,9 @@ Namespace Editors
                         CH_FEED_SHOW_FRIENDLY.Checked = .FeedShowFriendlyNames
                         CH_FEED_SHOW_SPEC_MEDIAITEM.Checked = .FeedShowSpecialFeedsMediaItem
                         CH_FEED_UP_FILE_LOC_MOVE.Checked = .FeedMoveCopyUpdateFileLocationOnMove
+                        CH_FEED_ESC_TO_CLOSE.Checked = .FeedEscToClose
+                        CH_FEED_SPEC_SEARCH.Checked = .FeedSpecialSearchForMissing
+                        CH_FEED_SPEC_SEARCH_DEEP.Checked = .FeedSpecialSearchForMissing_Deep
                     End With
                     .MyFieldsChecker = New FieldsChecker
                     With .MyFieldsCheckerE
@@ -291,6 +297,9 @@ Namespace Editors
                     .DownloadAll_UseF6.Value = CH_DOWN_ALL_F6_USE.Checked
                     .DownloadAll_UseF6_Confirm.Value = CH_DOWN_ALL_F6_NOTIFY.Checked
                     .DownloadAll_Confirm.Value = CH_DOWN_ALL_NOTIFY.Checked
+                    .AutomationScript.Value = TXT_SCHEDULER_SCRIPT.Text
+                    .AutomationScript.Use = TXT_SCHEDULER_SCRIPT.Checked
+                    .AutomationScript_ExcludeManual.Value = CH_SCHEDULER_SCRIPT_EX_MANUAL.Checked
                     'Notifications
                     .NotificationsSilentMode = CH_NOTIFY_SILENT.Checked
                     .ShowNotifications.Value = CH_NOTIFY_SHOW_BASE.Checked
@@ -373,6 +382,9 @@ Namespace Editors
                     .FeedShowFriendlyNames.Value = CH_FEED_SHOW_FRIENDLY.Checked
                     .FeedShowSpecialFeedsMediaItem.Value = CH_FEED_SHOW_SPEC_MEDIAITEM.Checked
                     .FeedMoveCopyUpdateFileLocationOnMove.Value = CH_FEED_UP_FILE_LOC_MOVE.Checked
+                    .FeedEscToClose.Value = CH_FEED_ESC_TO_CLOSE.Checked
+                    .FeedSpecialSearchForMissing.Value = CH_FEED_SPEC_SEARCH.Checked
+                    .FeedSpecialSearchForMissing_Deep.Value = CH_FEED_SPEC_SEARCH_DEEP.Checked
                     FeedParametersChanged = { .FeedDataRows, .FeedDataColumns, .FeedEndless, .FeedBackColor,
                                               .FeedForeColor, .FeedCenterImage}.Cast(Of IXMLValue).Any(detector)
 

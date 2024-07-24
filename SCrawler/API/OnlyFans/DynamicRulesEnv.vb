@@ -353,7 +353,7 @@ Namespace API.OnlyFans
 #Region "Load, Save"
         Private Function GetTextLines(ByVal Input As String) As List(Of String)
             If Not Input.IsEmptyString Then
-                Return ListAddList(Nothing, Input.StringTrim.Split(vbCrLf), LAP.NotContainsOnly, EDP.ReturnValue,
+                Return ListAddList(Nothing, Input.StringTrim.Split(vbLf), LAP.NotContainsOnly, EDP.ReturnValue,
                                    CType(Function(inp$) inp.StringTrim, Func(Of Object, Object)))
             Else
                 Return New List(Of String)
@@ -546,6 +546,13 @@ Namespace API.OnlyFans
                             If Not LoadListOnly Then LastUpdateTimeRules = Now : updated = True
                             textLocal = GetTextLines(DynamicRulesFile.GetText(OFError))
                             If textLocal.ListExists Then
+                                If Not LoadListOnly And Count > 0 Then
+                                    For i = 0 To Count - 1
+                                        rule = Rules(i)
+                                        rule.Exists = False
+                                        Rules(i) = rule
+                                    Next
+                                End If
                                 For Each url$ In textLocal
                                     url = url.StringTrim
                                     If Not url.IsEmptyString Then
@@ -563,6 +570,7 @@ Namespace API.OnlyFans
 
                                         If Not LoadListOnly Then
                                             If i >= 0 And rule.Valid And Not rule.UrlLatestCommit.IsEmptyString Then
+                                                rule.Exists = True
                                                 r = Responser.GetResponse(rule.UrlLatestCommit)
                                                 If Not r.IsEmptyString Then
                                                     e = JsonDocument.Parse(r, OFError)
@@ -578,6 +586,7 @@ Namespace API.OnlyFans
                                                 End If
                                                 Rules(i) = rule
                                             End If
+                                            If Rules.RemoveAll(Function(rr) Not rr.Exists) > 0 Then updated = True
                                         End If
                                     End If
                                 Next

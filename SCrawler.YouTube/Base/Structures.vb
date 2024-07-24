@@ -84,6 +84,11 @@ Namespace API.YouTube.Base
         Before = 1
         After = 2
     End Enum
+    Public Enum M3U8CreationMode As Integer
+        Relative = 0
+        Absolute = 1
+        Both = 2
+    End Enum
     Public Structure MediaObject : Implements IIndexable, IComparable(Of MediaObject)
         Public Type As Plugin.UserMediaTypes
         Public ID As String
