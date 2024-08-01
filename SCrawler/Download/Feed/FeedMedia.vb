@@ -455,6 +455,8 @@ Namespace DownloadObjects
                 Dim url$ = String.Empty
                 If IsSubscription Then
                     url = Post.URL_BASE
+                ElseIf Not Media.PostUrl.IsEmptyString Then
+                    url = Media.PostUrl
                 Else
                     If Not UserKey.IsEmptyString And Not Post.Post.ID.IsEmptyString Then
                         Dim u As IUserData

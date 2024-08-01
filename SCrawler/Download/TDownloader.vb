@@ -36,6 +36,7 @@ Namespace DownloadObjects
             Private Const Name_Session As String = "Session"
             Private Const Name_File As String = "File"
             Private Const Name_IsSavedPosts As String = "IsSavedPosts"
+            Private Const Name_PostUrl As String = "PostUrl"
 #End Region
             Friend ReadOnly User As IUserData
             Friend ReadOnly Data As UserMedia
@@ -43,6 +44,48 @@ Namespace DownloadObjects
             Friend ReadOnly [Date] As Date
             Friend Session As Integer
             Friend IsSavedPosts As Boolean
+            Private _PostUrl As String
+            Friend Property PostUrl(Optional ByVal Generate As Boolean = False) As String
+                Get
+                    Try
+                        If Not _PostUrl.IsEmptyString Then
+                            Return _PostUrl
+                        ElseIf Generate Then
+                            Dim url$ = String.Empty
+                            With UserInfo
+                                If Not .Plugin.IfNullOrEmpty(.Site).IsEmptyString And Not .Name.IsEmptyString And Not Data.Post.ID.IsEmptyString Then
+                                    Dim u As IUserData
+                                    If IsSavedPosts Then
+                                        If Not .Plugin.IsEmptyString Then
+                                            Dim host As SettingsHostCollection = Settings(.Plugin)
+                                            If Not host Is Nothing Then
+                                                u = host.Default.GetInstance(Download.SavedPosts, UserInfo, False, False)
+                                                If Not u Is Nothing AndAlso Not u.HOST Is Nothing Then
+                                                    With DirectCast(u, UserDataBase)
+                                                        .IsSavedPosts = True
+                                                        .HostStatic = True
+                                                    End With
+                                                    Try : url = u.HOST.Source.GetUserPostUrl(u, Data) : Catch : End Try
+                                                    u.Dispose()
+                                                End If
+                                            End If
+                                        End If
+                                    Else
+                                        u = Settings.GetUser(UserInfo)
+                                        If Not u Is Nothing Then url = UserDataBase.GetPostUrl(u, Data)
+                                    End If
+                                End If
+                            End With
+                            Return url
+                        End If
+                    Catch
+                    End Try
+                    Return String.Empty
+                End Get
+                Set(ByVal _PostUrl As String)
+                    Me._PostUrl = _PostUrl
+                End Set
+            End Property
             Friend Sub New(ByVal Data As UserMedia, ByVal User As IUserData, ByVal Session As Integer)
                 Me.Data = Data
                 Me.User = User
@@ -78,6 +121,7 @@ Namespace DownloadObjects
                     Data = New UserMedia(e(Name_Media), User)
                     [Date] = AConvert(Of Date)(e.Value(Name_Date), DateTimeDefaultProvider, Now)
                     Session = e.Value(Name_Session).FromXML(Of Integer)(0)
+                    _PostUrl = e.Value(Name_PostUrl)
                     Dim f As SFile = e.Value(Name_File)
                     If f.Exists Then Data.File = f
                 End If
@@ -106,7 +150,8 @@ Namespace DownloadObjects
                                         New EContainer(Name_Date, AConvert(Of String)([Date], DateTimeDefaultProvider, String.Empty)),
                                         New EContainer(Name_Session, Session),
                                         New EContainer(Name_File, Data.File),
-                                        New EContainer(Name_IsSavedPosts, IsSavedPosts.BoolToInteger)},
+                                        New EContainer(Name_IsSavedPosts, IsSavedPosts.BoolToInteger),
+                                        New EContainer(Name_PostUrl, _PostUrl)},
                                     If(IsSavedPosts, UserInfo.ToEContainer, If(Not User Is Nothing, DirectCast(User, UserDataBase).User.ToEContainer, Nothing)), LAP.IgnoreICopier)
             End Function
         End Structure

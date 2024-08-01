@@ -195,6 +195,7 @@ Namespace DownloadObjects
 #Region "Add"
         Friend Overloads Function Add(ByVal Item As UserMediaD, Optional ByVal AutoSave As Boolean = True) As Boolean
             If Not Items.Contains(Item) Then
+                Item.PostUrl = Item.PostUrl(True)
                 Items.Add(Item)
                 If AutoSave Then Save()
                 Return True
@@ -242,6 +243,7 @@ Namespace DownloadObjects
                     Dim m As UserMedia
                     Dim f As SFile = Nothing
                     Dim ff As SFile
+                    Dim postUrl$ = String.Empty
                     Dim user As IUserData
                     Dim processRemove As Boolean
                     Dim userArr As New List(Of IUserData)
@@ -254,7 +256,8 @@ Namespace DownloadObjects
                                     m = d.Data
                                     m.File = ff
                                     d = New UserMediaD(m, If(replaceUser, d.User), d.Session, d.Date) With {
-                                        .IsSavedPosts = If(replaceUser Is Nothing, d.IsSavedPosts, DirectCast(replaceUser, UserDataBase).IsSavedPosts)
+                                        .IsSavedPosts = If(replaceUser Is Nothing, d.IsSavedPosts, DirectCast(replaceUser, UserDataBase).IsSavedPosts),
+                                        .PostUrl = postUrl
                                     }
                                     Items(i) = d
                                     ri += 1
@@ -268,6 +271,7 @@ Namespace DownloadObjects
                     For i = Count - 1 To 0 Step -1
                         If p.Invoke(Items(i)) Then
                             d = Items(i)
+                            postUrl = d.PostUrl(True)
                             f = Nothing
                             ff = Nothing
                             processRemove = True

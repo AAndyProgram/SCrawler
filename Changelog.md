@@ -1,3 +1,12 @@
+# 2024.8.1.0
+
+*2024-08-01*
+
+- Added
+  - Minor improvements
+- Updated
+  - yt-dlp up to version **2024.08.01**
+
 # 2024.7.24.0
 
 *2024-07-24*

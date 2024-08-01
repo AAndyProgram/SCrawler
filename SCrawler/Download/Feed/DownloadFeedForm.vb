@@ -574,6 +574,7 @@ Namespace DownloadObjects
                 Dim sesFilesReplaced As Boolean = False
                 Dim filesReplace As New List(Of KeyValuePair(Of SFile, SFile))
                 Dim updateFileLocations As Boolean = Settings.FeedMoveCopyUpdateFileLocationOnMove
+                Dim postUrl$
                 Dim result As Boolean = False
 
                 If FeedMediaData Is Nothing Then
@@ -678,7 +679,11 @@ Namespace DownloadObjects
                                                 mm_data = mm.Data
                                                 mm_data.File = df
                                                 __isSavedPosts = mm.IsSavedPosts And moveOptions.ReplaceUserProfile_Profile Is Nothing
-                                                mm = New UserMediaD(mm_data, If(moveOptions.ReplaceUserProfile_Profile, mm.User), mm.Session, mm.Date) With {.IsSavedPosts = __isSavedPosts}
+                                                postUrl = mm.PostUrl(True)
+                                                mm = New UserMediaD(mm_data, If(moveOptions.ReplaceUserProfile_Profile, mm.User), mm.Session, mm.Date) With {
+                                                    .IsSavedPosts = __isSavedPosts,
+                                                    .PostUrl = postUrl
+                                                }
                                                 If __isSavedPosts Then mm.UserInfo = __user
                                                 Downloader.Files(indx) = mm
                                                 downloaderFilesUpdated = True
@@ -709,7 +714,11 @@ Namespace DownloadObjects
                                                 mm_data = mm.Data
                                                 mm_data.File = df
                                                 __isSavedPosts = mm.IsSavedPosts And moveOptions.ReplaceUserProfile_Profile Is Nothing
-                                                mm = New UserMediaD(mm_data, If(moveOptions.ReplaceUserProfile_Profile, mm.User), mm.Session, mm.Date) With {.IsSavedPosts = __isSavedPosts}
+                                                postUrl = mm.PostUrl(True)
+                                                mm = New UserMediaD(mm_data, If(moveOptions.ReplaceUserProfile_Profile, mm.User), mm.Session, mm.Date) With {
+                                                    .IsSavedPosts = __isSavedPosts,
+                                                    .PostUrl = postUrl
+                                                }
                                                 If __isSavedPosts Then mm.UserInfo = __user
                                                 sessionData(indx) = mm
                                                 sesFilesReplaced = True
