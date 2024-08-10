@@ -1,3 +1,15 @@
+# 2024.8.10.0
+
+*2024-08-10*
+
+- Added
+  - Feed: button to open file folder
+- Updated
+  - yt-dlp up to version **2024.08.06**
+  - gallery-dl up to version **1.27.2**
+- Fixed
+  - YouTube (standalone app): **video is being parsed using cookies but is not downloading** *(Issue #205)*
+
 # 2024.8.1.0
 
 *2024-08-01*

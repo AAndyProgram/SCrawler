@@ -32,6 +32,7 @@ Namespace API.YouTube.Controls
         Private Initialization As Boolean = True
         Private ReadOnly InheritsFromContainer As Boolean
         Private ReadOnly M3U8Files As List(Of SFile)
+        Friend Property UseCookies As Boolean = False
         Private ReadOnly Property M3U8FilesFull As List(Of SFile)
             Get
                 Return ListAddList(Nothing, M3U8Files, LAP.NotContainsOnly).ListAddValue(CMB_PLS.Text, LAP.NotContainsOnly)
@@ -65,6 +66,7 @@ Namespace API.YouTube.Controls
             CNT_PROCESSOR = New TableControlsProcessor(TP_CONTROLS)
             Me.InheritsFromContainer = InheritsFromContainer
             MyFieldsChecker = New FieldsChecker
+            UseCookies = MyYouTubeSettings.DefaultUseCookies
         End Sub
 #End Region
 #Region "Form handlers"
@@ -227,7 +229,7 @@ Namespace API.YouTube.Controls
                 Dim data As IEnumerable(Of Control)
 
                 If .HasElements Then
-                    data = .Elements.Select(Function(ee) New MediaItem(ee, True) With {.Dock = DockStyle.Fill, .Checked = ee.Checked})
+                    data = .Elements.Select(Function(ee) New MediaItem(ee, True) With {.Dock = DockStyle.Fill, .Checked = ee.Checked, .UseCookies = UseCookies})
                 Else
                     data = (From m As MediaObject In .Self.MediaObjects
                             Where m.Type = __contentType

@@ -437,7 +437,7 @@ Namespace DownloadObjects.STDownloader
                     Else
                         RaiseEvent BeforeOpenEditor(Me, MyContainer)
                     End If
-                    Using f As New VideoOptionsForm(MyContainer, initProtected Or isFull)
+                    Using f As New VideoOptionsForm(MyContainer, initProtected Or isFull) With {.UseCookies = UseCookies}
                         f.ShowDialog()
                         .Protected = IIf(f.DialogResult = DialogResult.OK, True, initProtected)
                     End Using
@@ -465,12 +465,12 @@ Namespace DownloadObjects.STDownloader
             If Not MyContainer Is Nothing Then
                 Dim f As Form = Nothing
                 Select Case MyContainer.ObjectType
-                    Case Base.YouTubeMediaType.Single : f = New VideoOptionsForm(MyContainer, True)
+                    Case Base.YouTubeMediaType.Single : f = New VideoOptionsForm(MyContainer, True) With {.UseCookies = UseCookies}
                     Case Base.YouTubeMediaType.Channel, Base.YouTubeMediaType.PlayList
                         If MyContainer.IsMusic Then
                             f = New MusicPlaylistsForm(MyContainer)
                         Else
-                            f = New VideoOptionsForm(MyContainer, True)
+                            f = New VideoOptionsForm(MyContainer, True) With {.UseCookies = UseCookies}
                         End If
                 End Select
                 If Not f Is Nothing Then

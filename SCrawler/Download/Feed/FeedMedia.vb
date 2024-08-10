@@ -178,6 +178,7 @@ Namespace DownloadObjects
                     BTT_CONTEXT_DOWN.Visible = True
                     CONTEXT_SEP_0.Visible = True
                     BTT_CONTEXT_OPEN_USER.Visible = False
+                    BTT_CONTEXT_OPEN_FILE_FOLDER.Visible = False
                     CONTEXT_SEP_5.Visible = False
                     BTT_CONTEXT_DELETE.Visible = False
 
@@ -416,8 +417,12 @@ Namespace DownloadObjects
         End Sub
 #End Region
 #Region "Open media, folder"
-        Private Sub BTT_CONTEXT_OPEN_MEDIA_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_OPEN_MEDIA.Click
-            File.Open()
+        Private Sub BTT_CONTEXT_OPEN_MEDIA_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_OPEN_MEDIA.Click, BTT_CONTEXT_OPEN_FILE_FOLDER.Click
+            If Not sender Is Nothing AndAlso sender Is BTT_CONTEXT_OPEN_FILE_FOLDER Then
+                GlobalOpenPath(File)
+            Else
+                File.Open()
+            End If
         End Sub
         Private Sub BTT_CONTEXT_OPEN_USER_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_OPEN_USER.Click
             If Not UserKey.IsEmptyString Then

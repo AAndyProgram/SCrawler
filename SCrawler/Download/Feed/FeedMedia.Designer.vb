@@ -27,7 +27,6 @@ Namespace DownloadObjects
             Dim TP_LBL As System.Windows.Forms.TableLayoutPanel
             Dim CONTEXT_SEP_3 As System.Windows.Forms.ToolStripSeparator
             Dim CONTEXT_SEP_4 As System.Windows.Forms.ToolStripSeparator
-            Me.CONTEXT_SEP_2 = New System.Windows.Forms.ToolStripSeparator()
             Me.CH_CHECKED = New System.Windows.Forms.CheckBox()
             Me.LBL_INFO = New System.Windows.Forms.Label()
             Me.CONTEXT_DATA = New System.Windows.Forms.ContextMenuStrip(Me.components)
@@ -37,6 +36,7 @@ Namespace DownloadObjects
             Me.BTT_CONTEXT_OPEN_USER = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_CONTEXT_OPEN_USER_URL = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_CONTEXT_OPEN_USER_POST = New System.Windows.Forms.ToolStripMenuItem()
+            Me.CONTEXT_SEP_2 = New System.Windows.Forms.ToolStripSeparator()
             Me.BTT_COPY_TO = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_MOVE_TO = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_FEED_ADD_FAV = New System.Windows.Forms.ToolStripMenuItem()
@@ -52,6 +52,7 @@ Namespace DownloadObjects
             Me.ICON_SITE = New System.Windows.Forms.PictureBox()
             Me.TP_MAIN = New System.Windows.Forms.TableLayoutPanel()
             Me.LBL_TITLE = New System.Windows.Forms.Label()
+            Me.BTT_CONTEXT_OPEN_FILE_FOLDER = New System.Windows.Forms.ToolStripMenuItem()
             CONTEXT_SEP_1 = New System.Windows.Forms.ToolStripSeparator()
             TP_LBL = New System.Windows.Forms.TableLayoutPanel()
             CONTEXT_SEP_3 = New System.Windows.Forms.ToolStripSeparator()
@@ -66,11 +67,6 @@ Namespace DownloadObjects
             '
             CONTEXT_SEP_1.Name = "CONTEXT_SEP_1"
             CONTEXT_SEP_1.Size = New System.Drawing.Size(302, 6)
-            '
-            'CONTEXT_SEP_2
-            '
-            Me.CONTEXT_SEP_2.Name = "CONTEXT_SEP_2"
-            Me.CONTEXT_SEP_2.Size = New System.Drawing.Size(302, 6)
             '
             'TP_LBL
             '
@@ -114,9 +110,9 @@ Namespace DownloadObjects
             '
             'CONTEXT_DATA
             '
-            Me.CONTEXT_DATA.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_CONTEXT_DOWN, Me.CONTEXT_SEP_0, Me.BTT_CONTEXT_OPEN_MEDIA, Me.BTT_CONTEXT_OPEN_USER, CONTEXT_SEP_1, Me.BTT_CONTEXT_OPEN_USER_URL, Me.BTT_CONTEXT_OPEN_USER_POST, Me.CONTEXT_SEP_2, Me.BTT_COPY_TO, Me.BTT_MOVE_TO, CONTEXT_SEP_3, Me.BTT_FEED_ADD_FAV, Me.BTT_FEED_ADD_FAV_REMOVE, Me.BTT_FEED_ADD_SPEC, Me.BTT_FEED_ADD_SPEC_REMOVE, Me.BTT_FEED_REMOVE_FAV, Me.BTT_FEED_REMOVE_SPEC, CONTEXT_SEP_4, Me.BTT_CONTEXT_FIND_USER, Me.BTT_CONTEXT_INFO, Me.CONTEXT_SEP_5, Me.BTT_CONTEXT_DELETE})
+            Me.CONTEXT_DATA.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_CONTEXT_DOWN, Me.CONTEXT_SEP_0, Me.BTT_CONTEXT_OPEN_MEDIA, Me.BTT_CONTEXT_OPEN_USER, Me.BTT_CONTEXT_OPEN_FILE_FOLDER, CONTEXT_SEP_1, Me.BTT_CONTEXT_OPEN_USER_URL, Me.BTT_CONTEXT_OPEN_USER_POST, Me.CONTEXT_SEP_2, Me.BTT_COPY_TO, Me.BTT_MOVE_TO, CONTEXT_SEP_3, Me.BTT_FEED_ADD_FAV, Me.BTT_FEED_ADD_FAV_REMOVE, Me.BTT_FEED_ADD_SPEC, Me.BTT_FEED_ADD_SPEC_REMOVE, Me.BTT_FEED_REMOVE_FAV, Me.BTT_FEED_REMOVE_SPEC, CONTEXT_SEP_4, Me.BTT_CONTEXT_FIND_USER, Me.BTT_CONTEXT_INFO, Me.CONTEXT_SEP_5, Me.BTT_CONTEXT_DELETE})
             Me.CONTEXT_DATA.Name = "CONTEXT_PIC"
-            Me.CONTEXT_DATA.Size = New System.Drawing.Size(306, 414)
+            Me.CONTEXT_DATA.Size = New System.Drawing.Size(306, 436)
             '
             'BTT_CONTEXT_DOWN
             '
@@ -159,6 +155,11 @@ Namespace DownloadObjects
             Me.BTT_CONTEXT_OPEN_USER_POST.Name = "BTT_CONTEXT_OPEN_USER_POST"
             Me.BTT_CONTEXT_OPEN_USER_POST.Size = New System.Drawing.Size(305, 22)
             Me.BTT_CONTEXT_OPEN_USER_POST.Text = "Open post"
+            '
+            'CONTEXT_SEP_2
+            '
+            Me.CONTEXT_SEP_2.Name = "CONTEXT_SEP_2"
+            Me.CONTEXT_SEP_2.Size = New System.Drawing.Size(302, 6)
             '
             'BTT_COPY_TO
             '
@@ -289,6 +290,13 @@ Namespace DownloadObjects
             Me.LBL_TITLE.Size = New System.Drawing.Size(140, 25)
             Me.LBL_TITLE.TabIndex = 1
             '
+            'BTT_CONTEXT_OPEN_FILE_FOLDER
+            '
+            Me.BTT_CONTEXT_OPEN_FILE_FOLDER.Image = Global.SCrawler.My.Resources.Resources.FolderPic_32
+            Me.BTT_CONTEXT_OPEN_FILE_FOLDER.Name = "BTT_CONTEXT_OPEN_FILE_FOLDER"
+            Me.BTT_CONTEXT_OPEN_FILE_FOLDER.Size = New System.Drawing.Size(305, 22)
+            Me.BTT_CONTEXT_OPEN_FILE_FOLDER.Text = "Open file folder"
+            '
             'FeedMedia
             '
             Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
@@ -335,5 +343,6 @@ Namespace DownloadObjects
         Private WithEvents BTT_MOVE_TO As ToolStripMenuItem
         Private WithEvents CONTEXT_SEP_5 As ToolStripSeparator
         Private WithEvents CONTEXT_SEP_2 As ToolStripSeparator
+        Private WithEvents BTT_CONTEXT_OPEN_FILE_FOLDER As ToolStripMenuItem
     End Class
 End Namespace

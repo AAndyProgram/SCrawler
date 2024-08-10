@@ -132,7 +132,8 @@ Namespace DownloadObjects.STDownloader
 #End Region
 #Region "Controls"
         Protected Sub ControlCreateAndAdd(ByVal Container As IYouTubeMediaContainer, Optional ByVal DisableDownload As Boolean = False,
-                                          Optional ByVal PerformClick As Boolean = True, Optional ByVal IsLoading As Boolean = False)
+                                          Optional ByVal PerformClick As Boolean = True, Optional ByVal IsLoading As Boolean = False,
+                                          Optional ByVal UseCookies As Boolean = False)
             ControlInvokeFast(TP_CONTROLS, Sub()
                                                With TP_CONTROLS
                                                    .SuspendLayout()
@@ -142,7 +143,7 @@ Namespace DownloadObjects.STDownloader
                                                    .RowStyles.Insert(0, New RowStyle(SizeType.Absolute, 60))
                                                    .RowCount = .RowStyles.Count
                                                    OffsetControls(0, True)
-                                                   Dim cnt As New MediaItem(Container) With {.Dock = DockStyle.Fill, .Margin = New Padding(0)}
+                                                   Dim cnt As New MediaItem(Container) With {.Dock = DockStyle.Fill, .Margin = New Padding(0), .UseCookies = UseCookies}
                                                    AddHandler cnt.FileDownloaded, AddressOf MediaControl_FileDownloaded
                                                    AddHandler cnt.Removal, AddressOf MediaControl_Removal
                                                    AddHandler cnt.DownloadAgain, AddressOf MediaControl_DownloadAgain
@@ -333,19 +334,19 @@ Namespace DownloadObjects.STDownloader
                     If Not c Is Nothing Then
                         Dim f As Form
                         Select Case c.ObjectType
-                            Case YouTubeMediaType.Single : f = New VideoOptionsForm(c)
+                            Case YouTubeMediaType.Single : f = New VideoOptionsForm(c) With {.UseCookies = useCookies}
                             Case YouTubeMediaType.Channel, YouTubeMediaType.PlayList
                                 If c.IsMusic Then
                                     f = New MusicPlaylistsForm(c)
                                 Else
-                                    f = New VideoOptionsForm(c)
+                                    f = New VideoOptionsForm(c) With {.UseCookies = useCookies}
                                 End If
                             Case Else : c.Dispose() : Throw New ArgumentException($"Object type {c.ObjectType} not implemented", "IYouTubeMediaContainer.ObjectType")
                         End Select
                         If Not f Is Nothing Then
                             If TypeOf f Is IDesignXMLContainer Then DirectCast(f, IDesignXMLContainer).DesignXML = DesignXML
                             f.ShowDialog()
-                            If f.DialogResult = DialogResult.OK AndAlso ValidateContainerURL(c) Then ControlCreateAndAdd(c, disableDown)
+                            If f.DialogResult = DialogResult.OK AndAlso ValidateContainerURL(c) Then ControlCreateAndAdd(c, disableDown,,, useCookies)
                             f.Dispose()
                         End If
                     End If
