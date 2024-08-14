@@ -1,120 +1,87 @@
-# Frequently asked questions
 
-**Please read the [GUIDE](https://github.com/AAndyProgram/SCrawler/wiki/) Before asking a question!**
+**Join our Discord server**: https://discord.gg/uFNUXvFFmg
+<br/>*You can get help faster there!*
 
-**Also read [here](README.md) for basic information.**
+# Docs
+- Basic info: https://github.com/AAndyProgram/SCrawler/blob/main/README.md
+- **GUIDE**: https://github.com/AAndyProgram/SCrawler/wiki/
+- Settings: https://github.com/AAndyProgram/SCrawler/wiki/Settings
+- Discord: https://discord.gg/uFNUXvFFmg
 
 Most of your questions are already answered. All settings, functions, buttons and everything else described in the guide.
 
-Any other questions I will keep in this file.
-
-----
-
-#### Q: **HOW TO SETUP COOKIES**
-
-A: https://github.com/AAndyProgram/SCrawler/wiki/Settings#how-to-set-up-cookies
-
-----
-
-#### Q: **Does this program have GUI or CLI.**
-
-A: This is a GUI program.
-
-----
-
-#### Q: **Will CLI be added in the future?**
-
-A: NO.
-
-----
-
-#### Q: **I want to add "...." site. How to request.**
-
-<!---A: How to request a new site you can read [here](CONTRIBUTING.md#how-to-request-a-new-site)--->
-**I'm currently not accepting requests to develop new sites.**
-
-----
-
-#### Q: **Site download failed.**
-
-A: Check your credentials and **[SITES REQUIREMENTS](https://github.com/AAndyProgram/SCrawler/wiki/Settings#sites-requirements)**. If all settings are set, but nothing works, go to [create a new issue](https://github.com/AAndyProgram/SCrawler/issues). Don't forget to attach the LOG.
-
-**You also can join our Discord server**: https://discord.gg/uFNUXvFFmg
-<br/>*You can get help faster there!*
+# How to report a problem
+1. **Post your problem [here](https://github.com/AAndyProgram/SCrawler/issues) or in the [help channel](https://discord.com/channels/1124032649682493462/1124281838056259614) on our Discord server**
+2. Attach the **profile URLs or links** that you cannot download.
+3. Attach the **LOG** if it exists.
+4. Attach **the environment information** copied from SCrawler (click the top right info button in the main window, then the `Environment` button, then the `Copy` button, and paste the copied text into the message).
+5. *Add screenshots to illustrate the problem (**optional**)*
 
 **ATTENTION! Issues without URLs will be closed without a response!**
 
-----
+# Most frequently questions about SCrawler
 
-#### Q: **I have set credentials but still nothing is downloading**
+**Is something doesn't download, always check the [SITE'S REQUIREMENTS](https://github.com/AAndyProgram/SCrawler/wiki/Settings#sites-requirements) before asking questions!**
 
-A: Click the `Start downloading` button or press `F5`
+## General questions
+- **PROFILES**
+    - I added a profile but **nothing downloaded**: check your cookies and [site requirements](https://github.com/AAndyProgram/SCrawler/wiki/Settings#sites-requirements). If there are any optional fields that you don't fill in, do so.
+    - User downloading failed: check your credentials and **[SITES REQUIREMENTS](https://github.com/AAndyProgram/SCrawler/wiki/Settings#sites-requirements)**. If all settings are set and nothing works, [report it](#how-to-report-a-problem). <u>Don't forget to attach the LOG.</u>
+    - [How to redownload user](https://github.com/AAndyProgram/SCrawler/wiki#redownload-user)
+    - How to **add profile** to download: copy the **[profile URL](https://github.com/AAndyProgram/SCrawler/wiki#add-user)** and press `Insert` or `Ctrl+Insert`. **ALWAYS PASTE THE USER PROFILE URL**. After that select this user and press `F5` or click the `Download selected` button.
+- How to download **[saved posts](https://github.com/AAndyProgram/SCrawler/wiki#saved-posts)**
+- **[HOW TO ADD COOKIES](https://github.com/AAndyProgram/SCrawler/wiki/Settings#how-to-set-up-cookies)**
+- [How to report a problem](#how-to-report-a-problem)
+- I want you to **add the site** to SCrawler: **I'm not currently accepting requests to add new sites**, but you can [create a plugin](https://github.com/AAndyProgram/SCrawler/wiki/Plugins) (for your site) for SCrawler.
+- What language is SCrawler written in: vb.net
+- I don't know vb.net and I can't write a plugin. You can write a plugin in `C#`
+- I have a suggestion, will it be added: maybe if it interested me.
+- How to name files using a pattern (e.g. `Site_PostID_Name.jpg`): **there is no such functionality and there are no such plans**.
+- **DON'T CHANGE THE DEFAULT SITE SETTINGS UNLESS YOU KNOW EXACTLY WHAT YOU'RE DOING!** SCrawler already has all the default settings to work. You only need to add credentials (where [required](https://github.com/AAndyProgram/SCrawler/wiki/Settings#sites-requirements)).
+- Installation, update and configuration
+    - How to install: https://github.com/AAndyProgram/SCrawler#installation
+    - How to update: https://github.com/AAndyProgram/SCrawler#updating
+    - What file executes the program: **`SCrawler.exe`**
+    - Where to find binaries: https://github.com/AAndyProgram/SCrawler/releases/latest
+	- [How to build from source](https://github.com/AAndyProgram/SCrawler/blob/main/CONTRIBUTING.md#how-to-build-from-source)
+    - [Video how to configure](#video-how-to-configure)
+- **Antivirus**
+    - **Antivirus detects SCrawler as a virus**: SCrawler doesn't contain any viruses at all. All code is posted on GitHub. You can review it. I have nothing to hide. SCrawler just downloads pictures and videos. That's all. If you trust SCrawler, you should just add it to the antivirus exceptions, as I did. Sometimes antiviruses identify SCawler as a virus. This is usually related to the number of files being edited (users' settings files) and the number of files being downloaded. In this case, the antivirus can also remove these files, which will damage users' settings. **If you don't trust SCrawler, just delete it.**
+    - **Antivirus detects gallery-dl as a virus**: it's a trustworthy program that is trusted by thousands of people around the world. Antiviruses identify some builds as containing viruses, but this is not true. **If you don't trust gallery-dl, you can simply delete it**. **But if you delete it, you won't be able to download [Twitter & Pinterest](https://github.com/AAndyProgram/SCrawler/wiki/Settings#gallery-dl).** You should decide for yourself.
 
-----
+## Sites questions
+- Reddit: don't use credentials at all or configure [OAuth](https://github.com/AAndyProgram/SCrawler/wiki/Settings#how-to-get-reddit-credentials)
+- **META** (Instagram, Threads, Facebook): you need **cookies** and fill in **all fields**
+- **Instagram saved posts**: I don't consider questions like "I have 10k saved posts and only 1000 were downloaded". Download posts, remove them from saved posts, delete the `Saved posts` **settings folder**, repeat.
+- TikTok: works via yt-dlp. If something doesn't download, we need to wait until yt-dlp fixes it. TikTok doesn't require cookies to download.
+- Porn sites: **COOKIES**!
+- ThisVid: https://github.com/AAndyProgram/SCrawler/wiki/Settings#thisvid-faq
+- **OnlyFans**: cookies + **all fields** + [OF-Scraper (download the correct version that I pointed)](https://github.com/AAndyProgram/SCrawler/wiki/Settings#of-scraper) & [mp4decrypt](https://www.bento4.com/downloads/) to download DRM protected videos. [OF-Scraper support](https://github.com/AAndyProgram/SCrawler/wiki/Settings#of-scraper-support). Also read [this](https://github.com/AAndyProgram/SCrawler/wiki/Settings#onlyfans-faq)
+- **JustForFans**: **THE VIDEO ISN'T DOWNLOADING AT THE MOMENT** ([Issue](https://discord.com/channels/1124032649682493462/1205547615199039551/1231349555132366870))
 
-#### Q: **Where can I find the release?**
+## Other questions
 
-A: https://github.com/AAndyProgram/SCrawler/releases/latest
+### Does the program remember the last download and check for new posts, downloading only new posts, or does the program download the entire profile every time
+The program stored posts IDs in users' folders. For the first time, the program downloads the entire profile. All subsequent times the program will check for new posts and download **only new posts**!
 
-----
+### Does this program have a GUI or CLI, and will a CLI be added in the future
+This is a GUI program and **NO**, <u>CLI will not be added</u>
 
-#### Q: **How to run the program?**
+### How to remove the label
+There is no functionality to remove an individual label. You can open the `Labels.txt` file in the program settings folder and delete any label you want. You also can delete this file (`Labels.txt`). In this case, when SCrawler is launched, the list of labels will be populated only with existing labels (from the user data files).
 
-A: Double-click `SCrawler.exe`
+### How to remove a user from the blacklist
+Just add that user back to the program. In the dialog box that opens, click the `Add and remove from blacklist` button.
 
-----
+### You lost me. Your program is too complicated.
+**I'm fine with that**. If the program is too complicated for you or you can't configure it, I can only suggest you find another (easier) program. I really don't mind! The program is free. I develop SCrawler for myself and publish it on GitHub because people found my program useful. If someone can't use it or doesn't like it, I'm okay with it.
 
-#### Q: **Where to find binaries?**
+### Add a step-by-step guide or video on how to use the program
+**NO!** The guide fully covers all the functionality of SCrawler! If you don't respect my work, I don't waste my time. If you want, you can create a video tutorial and send it to me. Then I'll add it. All options and their purposes are described on the wiki. The wiki also contains a description of all the settings and how to configure them. For complex settings there is a step-by-step guide. Read the [main](README.md) information and [GUIDE](https://github.com/AAndyProgram/SCrawler/wiki/) and you won't have any problems. I've developed a program with an intuitive interface. There is a `Settings` button, download buttons, a context menu that appears when you right-click on a user, and other controls. Anyone can use it.
 
-A: https://github.com/AAndyProgram/SCrawler/releases/latest
+**There is already a [video](#video-how-to-configure) example of how to configure a site.**
 
-----
-
-#### Q: **Does the program remember the last download and check for new posts, downloading only new posts? Or does the program download the entire profile every time?**
-
-A: The program stored posts IDs in users' folders. For the first time, the program downloads the entire profile. All subsequent times the program will check for new posts and download **only new posts**!
-
-----
-
-#### Q: **How to redownload all data**
-
-A: https://github.com/AAndyProgram/SCrawler/wiki#redownload-user
-
-----
-
-#### Q: **How to remove the label**
-
-A: There is no functionality to remove an individual label. You can open the `Labels.txt` file in the program settings folder and delete any label you want. You also can delete this file (`Labels.txt`). In this case, when the program starts, the list of labels list will be updated with only existing labels (from the user data files).
-
-----
-
-#### Q: **How to remove a user from the blacklist**
-
-A: Just add that user back to the program. In the dialog box that opens, click on the `Add and remove from blacklist` button.
-
-----
-
-#### Q: **Why don't you answer how it works**
-
-A: Because **I don't want to**. I don't want to waste my time explaining things that are already covered in the **[GUIDE](https://github.com/AAndyProgram/SCrawler/wiki)**! If you didn't bother to read the guide, why would I waste my time?! ALL FUNCTIONALITY IS DESCRIBED IN THE GUIDE. Before publishing a new release, I update the guide. If you don't respect my work, I don't waste my time.
-
-----
-
-#### Q: **You lost me. Your program is too complicated.**
-
-A: **I'm fine with that**. If the program is difficult for you or you can't configure it, I can only suggest you find another (easier) program. I really don't mind! The program is free. I am develop SCrawler for myself and publish on GitHub because people found my program useful. If someone can't use it or doesn't like it, I'm fine.
-
-----
-
-#### Q: **I can't configure something**
-
-A: I can only [suggest](#q-you-lost-me-your-program-is-too-complicated) you find another (easier) program.
-
-----
-
-#### Q: **Can you add a step-by-step guide or video on how to use the program?**
-
-A: **NO!** The guide fully covers all the functionality of SCrawler! If you don't respect my work, I don't waste my time. If you want, you can create a video tutorial and send it to me. Then I add it. All options and what each option does described on the wiki. The wiki also contains a description of all settings and how-to configure them. For complex settings, there is a steep-by-steep guide. Read the [main](README.md) information and [GUIDE](https://github.com/AAndyProgram/SCrawler/wiki/) and you won't have any problems. I have developed a program with an intuitive interface. There is a Settings button, download buttons, a context menu that drops down when a user is clicked, and other controls. Anyone can use it.
+# Video how to configure
 
 **The following video was recorded by a user who loves SCrawler and demonstrates how to add credentials using Instagram as an example:**
 

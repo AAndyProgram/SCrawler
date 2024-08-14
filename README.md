@@ -82,7 +82,7 @@ A program to download photo and video from [any site](#supported-sites) (e.g. Yo
 - **Instagram**
 - **Threads**
 - **Facebook**
-- JustForFans *(partial support)*[^1]
+- JustForFans *(partial support) ([video issue](https://discord.com/channels/1124032649682493462/1205547615199039551/1231349555132366870))*[^1]
 - Mastodon *(out of support)*
 - TikTok
 - RedGifs

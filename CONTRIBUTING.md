@@ -1,17 +1,14 @@
 # Contributor's Guide
 
-I welcome requests! Follow these steps to contribute:
-
+Follow these steps to contribute:
 1. Find an [issue](https://github.com/AAndyProgram/SCrawler/issues) that needs assistance.
-1. Let me know you are working on it by posting a comment on the issue.
-1. If you find an error in the code, please provide a link to the file and the line number.
+1. Let me know you're working on this by posting a comment on this issue.
+1. If you find a bug in the code, please provide a link to the file and line number.
 1. If you have a code change suggestion, you can post a replacement code block.<!-- I also accept pull requests.-->
 
 # How to report a problem
-1. Attach the **profile URLs or links** that you cannot download.
-1. Attach the **LOG** if it exists.
-1. **Attach the environment information copied from SCrawler (click the top right info button in the main window, then the `Environment` button, then the `Copy` button, and paste the copied text into the issue).**
-1. *Add screenshots to illustrate the problem (**optional**)*
+
+**[Read here](https://github.com/AAndyProgram/SCrawler/blob/main/FAQ.md#how-to-report-a-problem)**
 
 # How to build from source
 1. Delete the `PersonalUtilities` project from the solution.
@@ -30,7 +27,7 @@ I welcome requests! Follow these steps to contribute:
 **I'm currently not accepting requests to develop new sites.**
 
 1. Check [issues](https://github.com/AAndyProgram/SCrawler/issues) (open and [closed](https://github.com/AAndyProgram/SCrawler/issues?q=is%3Aissue+is%3Aclosed)) and [discussions](https://github.com/AAndyProgram/SCrawler/discussions) to find your issue. Perhaps I have already answered your request.
-1. If you don't find anything, create a new issue with your request. I usually reply as soon as possible (within the next few hours).
+1. If you don't find anything, create a new issue with your request.
 
 # Requirements for new site requests
 
