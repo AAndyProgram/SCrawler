@@ -12,6 +12,7 @@ Most of your questions are already answered. All settings, functions, buttons an
 
 # Backup
 I strongly recommend you to **regularly** create backup copies of the settings files. **An [example script](https://github.com/AAndyProgram/SCrawler/blob/main/Tools/ArchiveSCrawlerUsersDataFiles.bat) for this** on GitHub (you **should adapt** it to your environment, and you can use it when [SCrawler is closed](https://github.com/AAndyProgram/SCrawler/wiki/Settings#behavior)).
+
 **This way you'll always have the latest backup of your settings files and can restore it if something goes wrong!**
 
 # How to report a problem
@@ -42,6 +43,7 @@ I strongly recommend you to **regularly** create backup copies of the settings f
 - I have a suggestion, will it be added: maybe if it interested me.
 - How to name files using a pattern (e.g. `Site_PostID_Name.jpg`): **there is no such functionality and there are no such plans**.
 - **DON'T CHANGE THE DEFAULT SITE SETTINGS UNLESS YOU KNOW EXACTLY WHAT YOU'RE DOING!** SCrawler already has all the default settings to work. You only need to add credentials (where [required](https://github.com/AAndyProgram/SCrawler/wiki/Settings#sites-requirements)).
+- My computer shut down while SCrawler was running and now **SCrawler won't start or some users are missing**: restore user settings from [backup](#backup).
 - Installation, update and configuration
     - How to install: https://github.com/AAndyProgram/SCrawler#installation
     - How to update: https://github.com/AAndyProgram/SCrawler#updating
