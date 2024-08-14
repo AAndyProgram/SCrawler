@@ -10,6 +10,10 @@
 
 Most of your questions are already answered. All settings, functions, buttons and everything else described in the guide.
 
+# Backup
+I strongly recommend you to **regularly** create backup copies of the settings files. **An [example script](https://github.com/AAndyProgram/SCrawler/blob/main/Tools/ArchiveSCrawlerUsersDataFiles.bat) for this** on GitHub (you **should adapt** it to your environment, and you can use it when [SCrawler is closed](https://github.com/AAndyProgram/SCrawler/wiki/Settings#behavior)).
+**This way you'll always have the latest backup of your settings files and can restore it if something goes wrong!**
+
 # How to report a problem
 1. **Post your problem [here](https://github.com/AAndyProgram/SCrawler/issues) or in the [help channel](https://discord.com/channels/1124032649682493462/1124281838056259614) on our Discord server**
 2. Attach the **profile URLs or links** that you cannot download.
