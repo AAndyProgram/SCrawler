@@ -1,3 +1,19 @@
+# 2024.9.2.0
+
+*2024-09-02*
+
+- Added
+  - Instagram: options to enable/disable image extraction from video
+  - Feed: **prompt before moving entire feed/session**
+  - Main window: hotkeys `Alt+U` and `Ctrl+U` to open the user search form
+  - Minor improvements
+- Updated
+  - gallery-dl up to version **1.27.3**
+- Fixed
+  - **OnlyFans**: data is not downloading
+  - YouTube (SCrawler): incorrect parsing of video page
+  - Minor bugs
+
 # 2024.8.10.0
 
 *2024-08-10*

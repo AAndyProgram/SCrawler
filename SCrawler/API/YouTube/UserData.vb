@@ -203,7 +203,7 @@ Namespace API.YouTube
                     If IsMusic Or DownloadYTVideos Then
                         maxDate = Nothing
                         LastDownloadDateVideos = nDate(LastDownloadDateVideos)
-                        url = $"https://{IIf(IsMusic, "music", "www")}.youtube.com/{IIf(IsMusic Or IsChannelUser, $"{YouTubeFunctions.UserChannelOption}/", "@")}{ID}"
+                        url = $"https://{IIf(IsMusic, "music", "www")}.youtube.com/{IIf(IsMusic Or IsChannelUser, $"{YouTubeFunctions.UserChannelOption}/", "@")}{ID}/videos"
                         container = YouTubeFunctions.Parse(url, YTUseCookies, Token, pr, __getMinDate(LastDownloadDateVideos), __maxDate,, True)
                         applySpecFolder.Invoke(IIf(IsMusic, String.Empty, "Videos"), False)
                         If fillList.Invoke(LastDownloadDateVideos, False) Then LastDownloadDateVideos = If(maxDate, Now)

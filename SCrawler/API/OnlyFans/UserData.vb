@@ -394,6 +394,14 @@ Namespace API.OnlyFans
             Loop While Not _complete
         End Sub
 #End Region
+        Private Function GetMediaURL(ByVal m As EContainer) As String
+            Dim v$
+            For Each node As Object() In FilesSources
+                v = If(m.ItemF(node)?.Value, String.Empty)
+                If Not v.IsEmptyString Then Return v
+            Next
+            Return String.Empty
+        End Function
         Private Function TryCreateMedia(ByVal n As EContainer, ByVal PostID As String, Optional ByVal PostDate As String = Nothing,
                                         Optional ByRef Result As Boolean = False, Optional ByVal IsHL As Boolean = False,
                                         Optional ByVal SpecFolder As String = Nothing, Optional ByVal PostUserID As String = Nothing,
@@ -405,11 +413,14 @@ Namespace API.OnlyFans
             With n("media")
                 If .ListExists Then
                     For Each m In .Self
-                        If IsHL Then
-                            postUrl = m.Value({"files", "source"}, "url")
-                        Else
-                            postUrl = m.Value({"source"}, "source").IfNullOrEmpty(m.Value("full"))
-                        End If
+                        postUrl = GetMediaURL(m)
+                        'If IsHL Then
+                        '    'postUrl = m.Value({"files", "source"}, "url")
+                        '    postUrl = GetMediaURL(m)
+                        'Else
+                        '    'postUrl = m.Value({"source"}, "source").IfNullOrEmpty(m.Value("full"))
+                        '    postUrl = GetMediaURL(m)
+                        'End If
                         postUrlBase = String.Empty
                         Select Case m.Value("type")
                             Case "photo" : t = UTypes.Picture : ext = "jpg"

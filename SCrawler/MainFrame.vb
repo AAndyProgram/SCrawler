@@ -247,7 +247,7 @@ CloseResume:
                 BTT_DOWN_AUTOMATION.PerformClick()
             ElseIf e.Alt And e.KeyCode = Keys.P Then
                 BTT_PR_INFO.PerformClick()
-            ElseIf e.Alt And e.KeyCode = Keys.F Then
+            ElseIf (e.Alt And (e.KeyCode = Keys.F Or e.KeyCode = Keys.U)) Or (e.Control And e.KeyCode = Keys.U) Then
                 MySearch.FormShow()
             Else
                 b = False

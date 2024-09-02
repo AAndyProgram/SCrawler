@@ -57,6 +57,7 @@ Namespace API.Instagram
 #End Region
 #Region "Categories"
         Private Const CAT_DOWN As String = "Download data"
+        Private Const CAT_UserDefs_VIDEO As String = DN.CAT_UserDefs & ": extract image from video"
 #End Region
 #Region "Authorization properties"
         Friend Const Header_IG_APP_ID As String = "x-ig-app-id"
@@ -187,14 +188,28 @@ Namespace API.Instagram
         Private ReadOnly Property SleepTimerOnPostsLimitProvider As IFormatProvider
         <PropertyOption(ControlText:="Get timeline", ControlToolTip:="Default value for new users", Category:=DN.CAT_UserDefs), PXML, ControlNumber(23), PClonable>
         Friend ReadOnly Property GetTimeline As PropertyValue
+        <PropertyOption(ControlText:="From timeline", ControlToolTip:="Default value for new users", Category:=CAT_UserDefs_VIDEO), PXML, ControlNumber(23), PClonable>
+        Friend ReadOnly Property GetTimeline_VideoPic As PropertyValue
         <PropertyOption(ControlText:="Get reels", ControlToolTip:="Default value for new users", Category:=DN.CAT_UserDefs), PXML, ControlNumber(24), PClonable>
         Friend ReadOnly Property GetReels As PropertyValue
+        <PropertyOption(ControlText:="From reels", ControlToolTip:="Default value for new users", Category:=CAT_UserDefs_VIDEO), PXML, ControlNumber(24), PClonable>
+        Friend ReadOnly Property GetReels_VideoPic As PropertyValue
         <PropertyOption(ControlText:="Get stories", ControlToolTip:="Default value for new users", Category:=DN.CAT_UserDefs), PXML, ControlNumber(25), PClonable>
         Friend ReadOnly Property GetStories As PropertyValue
+        <PropertyOption(ControlText:="From stories", ControlToolTip:="Default value for new users", Category:=CAT_UserDefs_VIDEO), PXML, ControlNumber(25), PClonable>
+        Friend ReadOnly Property GetStories_VideoPic As PropertyValue
         <PropertyOption(ControlText:="Get stories: user", ControlToolTip:="Default value for new users", Category:=DN.CAT_UserDefs), PXML, ControlNumber(26), PClonable>
         Friend ReadOnly Property GetStoriesUser As PropertyValue
-        <PropertyOption(ControlText:="Get tagged photos", ControlToolTip:="Default value for new users", Category:=DN.CAT_UserDefs), PXML, ControlNumber(27), PClonable>
+        <PropertyOption(ControlText:="From stories: user", ControlToolTip:="Default value for new users", Category:=CAT_UserDefs_VIDEO), PXML, ControlNumber(26), PClonable>
+        Friend ReadOnly Property GetStoriesUser_VideoPic As PropertyValue
+        <PropertyOption(ControlText:="Get tagged posts", ControlToolTip:="Default value for new users", Category:=DN.CAT_UserDefs), PXML, ControlNumber(27), PClonable>
         Friend ReadOnly Property GetTagged As PropertyValue
+        <PropertyOption(ControlText:="From tagged posts", ControlToolTip:="Default value for new users", Category:=CAT_UserDefs_VIDEO), PXML, ControlNumber(27), PClonable>
+        Friend ReadOnly Property GetTagged_VideoPic As PropertyValue
+        <PropertyOption(ControlText:="From saved posts", ControlToolTip:="Default value for new users", Category:=CAT_UserDefs_VIDEO), PXML, ControlNumber(28), PClonable>
+        Friend ReadOnly Property GetSavedPosts_VideoPic As PropertyValue
+        <PropertyOption(ControlText:="Place the extracted image into the video folder", ControlToolTip:="Default value for new users", Category:=CAT_UserDefs_VIDEO), PXML, ControlNumber(29), PClonable>
+        Friend ReadOnly Property PutImageVideoFolder As PropertyValue
         <PropertyOption(ControlText:="Tagged notify limit",
                         ControlToolTip:="If the number of tagged posts exceeds this number you will be notified." & vbCr &
                         "-1 to disable"), PXML, ControlNumber(27), PClonable>
@@ -203,19 +218,19 @@ Namespace API.Instagram
         Private ReadOnly Property TaggedNotifyLimitProvider As IFormatProvider
 #End Region
 #Region "Download ready"
-        <PropertyOption(ControlText:="Download timeline", ControlToolTip:="Download timeline", Category:=CAT_DOWN), PXML, ControlNumber(10), PClonable>
+        <PropertyOption(ControlText:="Download timeline", Category:=CAT_DOWN), PXML, ControlNumber(10), PClonable>
         Friend ReadOnly Property DownloadTimeline As PropertyValue
         <PXML> Private ReadOnly Property DownloadTimeline_Def As PropertyValue
-        <PropertyOption(ControlText:="Download reels", ControlToolTip:="Download reels", Category:=CAT_DOWN), PXML, ControlNumber(11), PClonable>
+        <PropertyOption(ControlText:="Download reels", Category:=CAT_DOWN), PXML, ControlNumber(11), PClonable>
         Friend ReadOnly Property DownloadReels As PropertyValue
         <PXML> Private ReadOnly Property DownloadReels_Def As PropertyValue
-        <PropertyOption(ControlText:="Download stories", ControlToolTip:="Download stories", Category:=CAT_DOWN), PXML, ControlNumber(12), PClonable>
+        <PropertyOption(ControlText:="Download stories", Category:=CAT_DOWN), PXML, ControlNumber(12), PClonable>
         Friend ReadOnly Property DownloadStories As PropertyValue
         <PXML> Private ReadOnly Property DownloadStories_Def As PropertyValue
-        <PropertyOption(ControlText:="Download stories: user", ControlToolTip:="Download stories (user)", Category:=CAT_DOWN), PXML, ControlNumber(13), PClonable>
+        <PropertyOption(ControlText:="Download stories: user", Category:=CAT_DOWN), PXML, ControlNumber(13), PClonable>
         Friend ReadOnly Property DownloadStoriesUser As PropertyValue
         <PXML> Private ReadOnly Property DownloadStoriesUser_Def As PropertyValue
-        <PropertyOption(ControlText:="Download tagged", ControlToolTip:="Download tagged posts", Category:=CAT_DOWN), PXML, ControlNumber(14), PClonable>
+        <PropertyOption(ControlText:="Download tagged posts", Category:=CAT_DOWN), PXML, ControlNumber(14), PClonable>
         Friend ReadOnly Property DownloadTagged As PropertyValue
         <PXML> Private ReadOnly Property DownloadTagged_Def As PropertyValue
 #End Region
@@ -425,10 +440,17 @@ Namespace API.Instagram
             SleepTimerOnPostsLimitProvider = New TimersChecker(10000)
 
             GetTimeline = New PropertyValue(True)
+            GetTimeline_VideoPic = New PropertyValue(True)
             GetReels = New PropertyValue(False)
+            GetReels_VideoPic = New PropertyValue(True)
             GetStories = New PropertyValue(False)
+            GetStories_VideoPic = New PropertyValue(True)
             GetStoriesUser = New PropertyValue(False)
+            GetStoriesUser_VideoPic = New PropertyValue(True)
             GetTagged = New PropertyValue(False)
+            GetTagged_VideoPic = New PropertyValue(True)
+            GetSavedPosts_VideoPic = New PropertyValue(True)
+            PutImageVideoFolder = New PropertyValue(False)
             TaggedNotifyLimit = New PropertyValue(200)
             TaggedNotifyLimitProvider = New TaggedNotifyLimitChecker
 

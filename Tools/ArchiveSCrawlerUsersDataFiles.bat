@@ -4,4 +4,8 @@ REM Replace 'd:\Downloads\SocialNetworks\' with the path to your SCrawler data f
 REM THIS SCRIPT IS NOT SUITABLE FOR 7ZIP OR OTHER ARCHIVING PROGRAMS.
 REM But I believe 7Zip also has CLI commands
 
-"C:\Program Files\WinRAR\WinRAR.exe" a -r -ep1 -o+ -ag_YYYYMMDD_HHMMSS -m5 -tl -n*.txt -n*.xml "d:\Downloads\SocialNetworks\SCrawlerBackup.rar" "d:\Downloads\SocialNetworks\"
+REM This line archives SCrawler settings files.
+"C:\Program Files\WinRAR\WinRAR.exe" a -r -ep1 -o+ -ag_YYYYMMDD_HHMMSS -m5 -tl "D:\MyPrograms\SCrawler\Backup\Settings.rar" "D:\MyPrograms\SCrawler\Settings\"
+
+REM This line archives SCrawler users' settings files.
+"C:\Program Files\WinRAR\WinRAR.exe" a -r -ep1 -o+ -ag_YYYYMMDD_HHMMSS -m5 -tl -n*.txt -n*.xml "D:\MyPrograms\SCrawler\Backup\SCrawlerBackup.rar" "D:\MyPrograms\SCrawler\Data\"

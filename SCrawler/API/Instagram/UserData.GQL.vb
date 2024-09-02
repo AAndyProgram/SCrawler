@@ -194,7 +194,7 @@ Namespace API.Instagram
                             With j({"data", "xdt_api__v1__feed__reels_media__connection", "edges"})
                                 If .ListExists Then
                                     ProgressPre.ChangeMax(.Count)
-                                    For Each n As EContainer In .Self : GetStoriesData_ParseSingleHighlight(n("node"), i, False, Token) : Next
+                                    For Each n As EContainer In .Self : GetStoriesData_ParseSingleHighlight(n("node"), i, False, Token, Sections.Stories) : Next
                                 End If
                             End With
                         End If
@@ -217,7 +217,7 @@ Namespace API.Instagram
                 Using j As EContainer = JsonDocument.Parse(r)
                     If j.ListExists Then
                         Dim i% = -1
-                        GetStoriesData_ParseSingleHighlight(j.ItemF({"data", "xdt_api__v1__feed__reels_media", "reels_media", 0}), i, True, Token)
+                        GetStoriesData_ParseSingleHighlight(j.ItemF({"data", "xdt_api__v1__feed__reels_media", "reels_media", 0}), i, True, Token, Sections.UserStories)
                     End If
                 End Using
             End If

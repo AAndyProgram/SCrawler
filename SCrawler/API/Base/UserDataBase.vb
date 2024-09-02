@@ -410,9 +410,7 @@ Namespace API.Base
         End Function
         Friend Overridable Sub SetPicture(ByVal f As SFile) Implements IUserData.SetPicture
             Try
-                If f.Exists Then
-                    Using p As New UserImage(f, MyFile) : p.Save() : End Using
-                End If
+                If f.Exists Then UserImage.NewUserPicture(f, MyFile)
             Catch
             End Try
         End Sub
@@ -451,11 +449,7 @@ BlockPictureScan:
                                                      New ErrorsDescriber(EDP.ReturnValue) With {
                                                          .ReturnValue = New List(Of SFile),
                                                          .ReturnValueExists = True}).FirstOrDefault
-            If NewPicFile.Exists Then
-                p = New UserImage(NewPicFile, MyFile)
-                p.Save()
-                GoTo BlockReturn
-            End If
+            If NewPicFile.Exists Then p = UserImage.NewUserPicture(NewPicFile, MyFile,, True) : GoTo BlockReturn
 BlockDeletePictureFolder:
             On Error GoTo BlockReturn
             If DelPath Then
@@ -654,6 +648,7 @@ BlockNullPicture:
         End Sub
         Protected ReadOnly _TempMediaList As List(Of UserMedia)
         Protected ReadOnly _TempPostsList As List(Of String)
+        Private ReadOnly _MD5List As List(Of String)
         Friend Function GetLastImageAddress() As SFile
             If _ContentList.Count > 0 Then
                 Return _ContentList.LastOrDefault(Function(c) c.Type = UTypes.Picture And Not c.File.IsEmptyString And Not c.File.Extension = "gif").File
@@ -679,6 +674,7 @@ BlockNullPicture:
         Protected MyFileSettings As SFile
         Protected MyFileData As SFile
         Protected MyFilePosts As SFile
+        Private MyMD5File As SFile
         Friend Overridable Property FileExists As Boolean = False Implements IUserData.FileExists
         Friend Overridable Property DataMerging As Boolean
             Get
@@ -856,6 +852,7 @@ BlockNullPicture:
             LatestData = New List(Of UserMedia)
             _TempMediaList = New List(Of UserMedia)
             _TempPostsList = New List(Of String)
+            _MD5List = New List(Of String)
             Labels = New List(Of String)
             UserUpdatedEventHandlers = New List(Of IUserData.UserUpdatedEventHandler)
             UserDownloadStateChangedEventHandlers = New List(Of UserDownloadStateChangedEventHandler)
@@ -1037,6 +1034,8 @@ BlockNullPicture:
                     If _ContentList.Count > 0 Then x.AddRange(_ContentList)
                     x.Save(MyFileData)
                 End Using
+                If Not MyMD5File.IsEmptyString And _MD5List.Count > 0 Then _
+                   TextSaver.SaveTextToFile(_MD5List.ListToString(Environment.NewLine), MyMD5File, True,, EDP.None)
             Catch ex As Exception
                 LogError(ex, "history saving error")
             End Try
@@ -1131,6 +1130,7 @@ BlockNullPicture:
             TokenPersonal = Nothing
             ProgressPre.Reset()
             UpdateDataFiles()
+            _MD5Loaded = False
             _DownloadInProgress = True
             _DescriptionChecked = False
             _DescriptionEveryTime = Settings.UpdateUserDescriptionEveryTime
@@ -1212,7 +1212,7 @@ BlockNullPicture:
                 ProgressPre.Done()
                 ThrowAny(Token)
 
-                If UseMD5Comparison And Not IsSubscription Then ValidateMD5(Token) : ProgressPre.Done() : ThrowAny(Token)
+                If RemoveExistingDuplicates And Not IsSubscription Then ValidateMD5(Token) : ProgressPre.Done() : ThrowAny(Token)
 
                 If _TempPostsList.Count > 0 And Not DownloadMissingOnly And Not __isChannelsSupport Then
                     If _TempPostsList.Count > 1000 Then _TempPostsList.ListAddList(_TempPostsList.ListTake(-2, 1000, EDP.ReturnValue).ListReverse, LAP.ClearBeforeAdd)
@@ -1315,6 +1315,11 @@ BlockNullPicture:
                 MyFilePosts = MyFileSettings
                 MyFilePosts.Name &= "_Posts"
                 MyFilePosts.Extension = "txt"
+                If Not IsSavedPosts Then
+                    MyMD5File = MyFileSettings
+                    MyMD5File.Name &= "_MD5"
+                    MyMD5File.Extension = "txt"
+                End If
             Else
                 Throw New ArgumentNullException("User.File", "User file not detected")
             End If
@@ -1438,81 +1443,94 @@ BlockNullPicture:
         End Sub
 #End Region
 #Region "MD5 support"
-        Protected Const VALIDATE_MD5_ERROR As String = "VALIDATE_MD5_ERROR"
+        Private Const VALIDATE_MD5_ERROR As String = "VALIDATE_MD5_ERROR"
         Friend Property UseMD5Comparison As Boolean = False
         Protected Property StartMD5Checked As Boolean = False
         Friend Property RemoveExistingDuplicates As Boolean = False
-        Protected Overridable Sub ValidateMD5(ByVal Token As CancellationToken)
+        Private ReadOnly ErrMD5 As New ErrorsDescriber(EDP.ReturnValue)
+        Private _MD5Loaded As Boolean = False
+        Private Sub LoadMD5()
+            Try
+                If Not _MD5Loaded Then
+                    _MD5Loaded = True
+                    _MD5List.Clear()
+                    If _ContentList.Count > 0 Then _MD5List.ListAddList(_ContentList.Select(Function(c) c.MD5), LAP.NotContainsOnly, EDP.ReturnValue)
+                    If MyMD5File.Exists Then _MD5List.ListAddList(MyMD5File.GetLines, LAP.NotContainsOnly, EDP.ThrowException)
+                End If
+            Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "LoadMD5")
+            End Try
+        End Sub
+        Private Function ValidateMD5_GetMD5(ByVal __data As UserMedia, ByVal IsUrl As Boolean) As String
+            Try
+                Dim ImgFormat As Imaging.ImageFormat = Nothing
+                Dim hash$ = String.Empty
+                Dim __isGif As Boolean = False
+                If __data.Type = UTypes.GIF Then
+                    ImgFormat = Imaging.ImageFormat.Gif
+                    __isGif = True
+                ElseIf Not __data.File.IsEmptyString Then
+                    ImgFormat = GetImageFormat(__data.File)
+                End If
+                If ImgFormat Is Nothing Then ImgFormat = Imaging.ImageFormat.Jpeg
+                If IsUrl And Not __isGif Then
+                    hash = ByteArrayToString(GetMD5(SFile.GetBytesFromNet(__data.URL.IfNullOrEmpty(__data.URL_BASE), ErrMD5), ImgFormat, ErrMD5))
+                ElseIf IsUrl And __isGif Then
+                    hash = ByteArrayToString(GetMD5FromBytes(SFile.GetBytesFromNet(__data.URL.IfNullOrEmpty(__data.URL_BASE), ErrMD5), ErrMD5))
+                Else
+                    hash = ByteArrayToString(GetMD5(SFile.GetBytes(__data.File, ErrMD5), ImgFormat, ErrMD5))
+                End If
+                If hash.IsEmptyString And Not __isGif Then
+                    If ImgFormat Is Imaging.ImageFormat.Jpeg Then ImgFormat = Imaging.ImageFormat.Png Else ImgFormat = Imaging.ImageFormat.Jpeg
+                    If IsUrl Then
+                        hash = ByteArrayToString(GetMD5(SFile.GetBytesFromNet(__data.URL.IfNullOrEmpty(__data.URL_BASE), ErrMD5), ImgFormat, ErrMD5))
+                    Else
+                        hash = ByteArrayToString(GetMD5(SFile.GetBytes(__data.File, ErrMD5), ImgFormat, ErrMD5))
+                    End If
+                End If
+                Return hash
+            Catch
+                Return String.Empty
+            End Try
+        End Function
+        Private Sub ValidateMD5(ByVal Token As CancellationToken)
             Try
                 Dim missingMD5 As Predicate(Of UserMedia) = Function(d) (d.Type = UTypes.GIF Or d.Type = UTypes.Picture) And d.MD5.IsEmptyString
-                If UseMD5Comparison And _TempMediaList.Exists(missingMD5) Then
+                If RemoveExistingDuplicates Then
+                    RemoveExistingDuplicates = False
+                    _ForceSaveUserInfo = True
+                    LoadMD5()
                     Dim i%
                     Dim itemsCount% = 0
                     Dim limit% = If(DownloadTopCount, 0)
                     Dim data As UserMedia = Nothing
-                    Dim hashList As New Dictionary(Of String, SFile)
                     Dim f As SFile
-                    Dim ErrMD5 As New ErrorsDescriber(EDP.ReturnValue)
-                    Dim __getMD5 As Func(Of UserMedia, Boolean, String) =
-                        Function(ByVal __data As UserMedia, ByVal IsUrl As Boolean) As String
-                            Try
-                                Dim ImgFormat As Imaging.ImageFormat = Nothing
-                                Dim hash$ = String.Empty
-                                Dim __isGif As Boolean = False
-                                If __data.Type = UTypes.GIF Then
-                                    ImgFormat = Imaging.ImageFormat.Gif
-                                    __isGif = True
-                                ElseIf Not __data.File.IsEmptyString Then
-                                    ImgFormat = GetImageFormat(__data.File)
-                                End If
-                                If ImgFormat Is Nothing Then ImgFormat = Imaging.ImageFormat.Jpeg
-                                If IsUrl And Not __isGif Then
-                                    hash = ByteArrayToString(GetMD5(SFile.GetBytesFromNet(__data.URL.IfNullOrEmpty(__data.URL_BASE), ErrMD5), ImgFormat, ErrMD5))
-                                ElseIf IsUrl And __isGif Then
-                                    hash = ByteArrayToString(GetMD5FromBytes(SFile.GetBytesFromNet(__data.URL.IfNullOrEmpty(__data.URL_BASE), ErrMD5), ErrMD5))
-                                Else
-                                    hash = ByteArrayToString(GetMD5(SFile.GetBytes(__data.File, ErrMD5), ImgFormat, ErrMD5))
-                                End If
-                                If hash.IsEmptyString And Not __isGif Then
-                                    If ImgFormat Is Imaging.ImageFormat.Jpeg Then ImgFormat = Imaging.ImageFormat.Png Else ImgFormat = Imaging.ImageFormat.Jpeg
-                                    If IsUrl Then
-                                        hash = ByteArrayToString(GetMD5(SFile.GetBytesFromNet(__data.URL.IfNullOrEmpty(__data.URL_BASE), ErrMD5), ImgFormat, ErrMD5))
-                                    Else
-                                        hash = ByteArrayToString(GetMD5(SFile.GetBytes(__data.File, ErrMD5), ImgFormat, ErrMD5))
-                                    End If
-                                End If
-                                Return hash
-                            Catch
-                                Return String.Empty
-                            End Try
-                        End Function
+
                     If Not StartMD5Checked Then
                         StartMD5Checked = True
-                        If _ContentList.Exists(missingMD5) Then
-                            Dim existingFiles As List(Of SFile) = SFile.GetFiles(MyFileSettings.CutPath, "*.jpg|*.jpeg|*.png|*.gif",, EDP.ReturnValue).ListIfNothing
-                            Dim eIndx%
-                            Dim eFinder As Predicate(Of SFile) = Function(ff) ff.File = data.File.File
-                            If RemoveExistingDuplicates Then
-                                RemoveExistingDuplicates = False
-                                _ForceSaveUserInfo = True
-                                If existingFiles.Count > 0 Then
-                                    Dim h$
-                                    ProgressPre.ChangeMax(existingFiles.Count)
-                                    For i = existingFiles.Count - 1 To 0 Step -1
-                                        ProgressPre.Perform()
-                                        h = __getMD5(New UserMedia With {.File = existingFiles(i)}, False)
-                                        If Not h.IsEmptyString Then
-                                            If hashList.ContainsKey(h) Then
-                                                MyMainLOG = $"{ToStringForLog()}: Removed image [{existingFiles(i).File}] (duplicate of [{hashList(h).File}])"
-                                                existingFiles(i).Delete(SFO.File, SFODelete.DeleteToRecycleBin, ErrMD5)
-                                                existingFiles.RemoveAt(i)
-                                            Else
-                                                hashList.Add(h, existingFiles(i))
-                                            End If
-                                        End If
-                                    Next
+                        Dim existingFiles As List(Of SFile) = SFile.GetFiles(MyFileSettings.CutPath, "*.jpg|*.jpeg|*.png|*.gif",, EDP.ReturnValue).ListIfNothing
+                        Dim eIndx%
+                        Dim eFinder As Predicate(Of SFile) = Function(ff) ff.File = data.File.File
+
+                        If existingFiles.Count > 0 Then
+                            Dim h$
+                            ProgressPre.ChangeMax(existingFiles.Count)
+                            For i = existingFiles.Count - 1 To 0 Step -1
+                                ProgressPre.Perform()
+                                h = ValidateMD5_GetMD5(New UserMedia With {.File = existingFiles(i)}, False)
+                                If Not h.IsEmptyString Then
+                                    If _MD5List.Contains(h) Then
+                                        MyMainLOG = $"{ToStringForLog()}: Removed image [{existingFiles(i).File}] (duplicate)"
+                                        existingFiles(i).Delete(SFO.File, SFODelete.DeleteToRecycleBin, ErrMD5)
+                                        existingFiles.RemoveAt(i)
+                                    Else
+                                        _MD5List.Add(h)
+                                    End If
                                 End If
-                            End If
+                            Next
+                        End If
+
+                        If _ContentList.Count > 0 AndAlso _ContentList.Exists(missingMD5) Then
                             ProgressPre.ChangeMax(_ContentList.Count)
                             For i = 0 To _ContentList.Count - 1
                                 data = _ContentList(i)
@@ -1522,61 +1540,34 @@ BlockNullPicture:
                                         ThrowAny(Token)
                                         eIndx = existingFiles.FindIndex(eFinder)
                                         If eIndx >= 0 Then
-                                            data.MD5 = __getMD5(New UserMedia With {.File = existingFiles(eIndx)}, False)
+                                            data.MD5 = ValidateMD5_GetMD5(New UserMedia With {.File = existingFiles(eIndx)}, False)
                                             If Not data.MD5.IsEmptyString Then _ContentList(i) = data : _ForceSaveUserData = True
                                         End If
                                     End If
                                     existingFiles.RemoveAll(eFinder)
                                 End If
                             Next
-                            If existingFiles.Count > 0 Then
-                                ProgressPre.ChangeMax(existingFiles.Count)
-                                For i = 0 To existingFiles.Count - 1
-                                    f = existingFiles(i)
-                                    ProgressPre.Perform()
-                                    data = New UserMedia(f.File) With {
-                                        .State = UStates.Downloaded,
-                                        .Type = IIf(f.Extension = "gif", UTypes.GIF, UTypes.Picture),
-                                        .File = f
-                                    }
-                                    ThrowAny(Token)
-                                    data.MD5 = __getMD5(data, False)
-                                    If Not data.MD5.IsEmptyString Then _ContentList.Add(data) : _ForceSaveUserData = True
-                                Next
-                                existingFiles.Clear()
-                            End If
                         End If
-                    End If
 
-                    If _ContentList.Count > 0 Then
-                        With _ContentList.Select(Function(d) d.MD5)
-                            If .ListExists Then .ToList.ForEach(Sub(md5value) _
-                               If Not md5value.IsEmptyString AndAlso Not hashList.ContainsKey(md5value) Then hashList.Add(md5value, New SFile))
-                        End With
-                    End If
-
-                    ProgressPre.ChangeMax(_TempMediaList.Count)
-                    For i = _TempMediaList.Count - 1 To 0 Step -1
-                        ProgressPre.Perform()
-                        If limit > 0 And itemsCount >= limit Then
-                            _TempMediaList.RemoveAt(i)
-                        Else
-                            data = _TempMediaList(i)
-                            If missingMD5(data) Then
+                        If existingFiles.Count > 0 Then
+                            ProgressPre.ChangeMax(existingFiles.Count)
+                            For i = 0 To existingFiles.Count - 1
+                                f = existingFiles(i)
+                                ProgressPre.Perform()
+                                data = New UserMedia(f.File) With {
+                                    .State = UStates.Downloaded,
+                                    .Type = IIf(f.Extension = "gif", UTypes.GIF, UTypes.Picture),
+                                    .File = f
+                                }
                                 ThrowAny(Token)
-                                data.MD5 = __getMD5(data, True)
-                                If Not data.MD5.IsEmptyString Then
-                                    If hashList.ContainsKey(data.MD5) Then
-                                        _TempMediaList.RemoveAt(i)
-                                    Else
-                                        hashList.Add(data.MD5, New SFile)
-                                        _TempMediaList(i) = data
-                                        itemsCount += 1
-                                    End If
-                                End If
-                            End If
+                                data.MD5 = ValidateMD5_GetMD5(data, False)
+                                If Not data.MD5.IsEmptyString Then _ContentList.Add(data) : _ForceSaveUserData = True
+                            Next
+                            existingFiles.Clear()
                         End If
-                    Next
+                    End If
+
+                    If _ContentList.Count > 0 Then _MD5List.ListAddList(_ContentList.Select(Function(d) d.MD5), LAP.NotContainsOnly, EDP.ReturnValue)
                 End If
             Catch iex As ArgumentOutOfRangeException When Disposed
             Catch ex As Exception
@@ -1614,6 +1605,7 @@ BlockNullPicture:
                 Source.Progress.Done()
             End Sub
         End Class
+        Protected Const VideoFolderName As String = "Video"
         Protected Sub DownloadContentDefault(ByVal Token As CancellationToken)
             Try
                 Dim i%
@@ -1622,6 +1614,7 @@ BlockNullPicture:
                 If _ContentNew.Count > 0 Then
                     _ContentNew.RemoveAll(Function(c) c.URL.IsEmptyString)
                     If _ContentNew.Count > 0 Then
+                        If UseMD5Comparison Then LoadMD5()
                         MyFile.Exists(SFO.Path)
                         Dim MissingErrorsAdd As Boolean = Settings.AddMissingErrorsToLog
                         Dim MyDir$ = DownloadContentDefault_GetRootDir()
@@ -1630,6 +1623,7 @@ BlockNullPicture:
                         Dim __interrupt As Boolean
                         Dim f As SFile
                         Dim v As UserMedia
+                        Dim __fileDeleted As Boolean
                         Dim fileNumProvider As SFileNumbers = SFileNumbers.Default
                         Dim __deleteFile As Action(Of SFile, String) = Sub(ByVal FileToDelete As SFile, ByVal FileUrl As String)
                                                                            Try
@@ -1641,9 +1635,21 @@ BlockNullPicture:
                                                                                ErrorsDescriber.Execute(EDP.SendToLog, file_del_ex)
                                                                            End Try
                                                                        End Sub
+                        Dim updateDownCount As Action = Sub()
+                                                            Dim __n% = IIf(__fileDeleted, -1, 1)
+                                                            If __isVideo Then
+                                                                v.Type = UTypes.Video
+                                                                DownloadedVideos(False) += __n
+                                                            ElseIf v.Type = UTypes.GIF Then
+                                                                DownloadedPictures(False) += __n
+                                                            Else
+                                                                v.Type = UTypes.Picture
+                                                                DownloadedPictures(False) += __n
+                                                            End If
+                                                        End Sub
 
                         Using w As New OptionalWebClient(Me)
-                            If vsf Then CSFileP($"{MyDir}\Video\").Exists(SFO.Path)
+                            If vsf Then CSFileP($"{MyDir}\{VideoFolderName}\").Exists(SFO.Path)
                             Progress.Maximum += _ContentNew.Count
                             If IsSingleObjectDownload Then
                                 If _ContentNew.Count = 1 And _ContentNew(0).Type = UTypes.Video Then
@@ -1671,6 +1677,8 @@ BlockNullPicture:
 
                                 If v.URL_BASE.IsEmptyString Then v.URL_BASE = v.URL
 
+                                __fileDeleted = False
+
                                 If Not f.IsEmptyString And Not v.URL.IsEmptyString Then
                                     Try
                                         __isVideo = v.Type = UTypes.Video Or f.Extension = "mp4" Or v.Type = UTypes.m3u8
@@ -1691,7 +1699,7 @@ BlockNullPicture:
                                         End If
                                         If __isVideo And vsf Then
                                             If v.SpecialFolder.IsEmptyString OrElse Not v.SpecialFolder.EndsWith("*") Then
-                                                f.Path = $"{f.PathWithSeparator}Video"
+                                                f.Path = $"{f.PathWithSeparator}{VideoFolderName}"
                                                 If Not v.SpecialFolder.IsEmptyString Then f.Exists(SFO.Path)
                                             End If
                                         End If
@@ -1715,19 +1723,26 @@ BlockNullPicture:
                                             End If
                                         End If
 
-                                        If __isVideo Then
-                                            v.Type = UTypes.Video
-                                            DownloadedVideos(False) += 1
-                                        ElseIf v.Type = UTypes.GIF Then
-                                            DownloadedPictures(False) += 1
-                                        Else
-                                            v.Type = UTypes.Picture
-                                            DownloadedPictures(False) += 1
-                                        End If
+                                        updateDownCount()
 
                                         v.File = ChangeFileNameByProvider(f, v)
                                         v.State = UStates.Downloaded
                                         DownloadContentDefault_PostProcessing(v, f, Token)
+                                        If UseMD5Comparison And (v.Type = UTypes.GIF Or v.Type = UTypes.Picture) Then
+                                            If v.File.Exists Then
+                                                v.MD5 = ValidateMD5_GetMD5(v, False)
+                                                If Not v.MD5.IsEmptyString Then
+                                                    If _MD5List.Contains(v.MD5) Then
+                                                        __fileDeleted = v.File.Delete(SFO.File, SFODelete.DeletePermanently, EDP.ReturnValue)
+                                                        If __fileDeleted Then dCount -= 1 : updateDownCount()
+                                                    Else
+                                                        _MD5List.Add(v.MD5)
+                                                    End If
+                                                End If
+                                            Else
+                                                dCount -= 1
+                                            End If
+                                        End If
                                         dCount += 1
                                     Catch woex As OperationCanceledException When Token.IsCancellationRequested
                                         __deleteFile.Invoke(f, v.URL_BASE)
@@ -1745,7 +1760,7 @@ BlockNullPicture:
                                 Else
                                     v.State = UStates.Skipped
                                 End If
-                                _ContentNew(i) = v
+                                If Not __fileDeleted Then _ContentNew(i) = v
                                 If DownloadTopCount.HasValue AndAlso dCount >= DownloadTopCount.Value Then
                                     Progress.Perform(_ContentNew.Count - dTotal)
                                     Exit Sub
@@ -2240,6 +2255,7 @@ BlockNullPicture:
                     LatestData.Clear()
                     _TempMediaList.Clear()
                     _TempPostsList.Clear()
+                    _MD5List.Clear()
                     TokenPersonal = Nothing
                     If Not ProgressPre Is Nothing Then ProgressPre.Reset() : ProgressPre.Dispose()
                     If Not Responser Is Nothing Then Responser.Dispose()

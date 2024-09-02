@@ -90,6 +90,7 @@ Namespace API.Twitter
                     GifsPrefix = .GifsPrefix
                     UseMD5Comparison = .UseMD5Comparison
                     RemoveExistingDuplicates = .RemoveExistingDuplicates
+                    If RemoveExistingDuplicates Then StartMD5Checked = False
                     DownloadModel = DownloadModels.Undefined
                     DownloadModelForceApply = .DownloadModelForceApply
                     MediaModelAllowNonUserTweets = .MediaModelAllowNonUserTweets

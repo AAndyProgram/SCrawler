@@ -13,6 +13,25 @@ Friend Class UserImage : Inherits ImageRenderer
     Friend Const ImagePostfix_Small As String = "_Small"
     Private _LargeAddress As SFile
     Private _SmallAddress As SFile
+    Private _ForceSaveOrig As Boolean = False
+    Friend Shared Function NewUserPicture(ByVal ImageOrig As SFile, ByVal Destination As SFile,
+                                          Optional ByVal Save As Boolean = True, Optional ByVal GetInstance As Boolean = False) As UserImage
+        Dim uImg As New UserImage(ImageOrig, Destination)
+        With uImg
+            ._ForceSaveOrig = ImageOrig.Extension.IsEmptyString OrElse ImageOrig.Extension.ToLower = "gif" OrElse Not {"jpg", "jpeg", "png"}.Contains(ImageOrig.Extension.ToLower)
+            If Not ._ForceSaveOrig Then
+                If .Address.Exists AndAlso Not .Address.Delete(SFO.File,, EDP.ReturnValue) Then ._ForceSaveOrig = True
+                If Not ._ForceSaveOrig AndAlso Not ImageOrig.Copy(.Address) Then ._ForceSaveOrig = True
+            End If
+            If Not ._ForceSaveOrig Then
+                ._SmallAddress.Extension = .Address.Extension
+                ._LargeAddress.Extension = .Address.Extension
+            End If
+            If Save Then .Save()
+        End With
+        If Not GetInstance Then uImg.Dispose() : uImg = Nothing
+        Return uImg
+    End Function
     Friend Sub New(ByVal _ImgOriginal As SFile, ByVal Destination As SFile, Optional ByVal GenerateLargeSmallPictures As Boolean = True)
         MyBase.New(_ImgOriginal)
         Dim f As SFile = Destination
@@ -71,7 +90,7 @@ Friend Class UserImage : Inherits ImageRenderer
         End With
     End Function
     Public Overrides Sub Save()
-        MyBase.Save()
+        If _ForceSaveOrig Then MyBase.Save()
         Small.Save(_SmallAddress)
         Large.Save(_LargeAddress)
     End Sub

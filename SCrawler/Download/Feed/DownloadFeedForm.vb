@@ -550,7 +550,7 @@ Namespace DownloadObjects
         End Sub
         Private Function MoveCopyFiles(ByVal IsInternal As Boolean, ByVal Sender As Object, ByVal MCTOptions As FeedMoveCopyTo,
                                        ByVal FeedMediaData As FeedMedia, Optional ByVal GetChecked As Boolean = True) As Boolean
-            Const MsgTitle$ = "Copy/Move checked files"
+            Dim MsgTitle$ = "Copy/Move checked files"
             Try
                 Dim isCopy As Boolean = Not Sender Is Nothing AndAlso (Sender Is BTT_COPY_TO OrElse Sender Is BTT_COPY_SPEC_TO)
                 Dim moveOptions As FeedMoveCopyTo = Nothing
@@ -591,7 +591,18 @@ Namespace DownloadObjects
                     data = {FeedMediaData.Media}
                     data_files = {FeedMediaData.File}
                 End If
+
+                MsgTitle = $"{IIf(isCopy, "Copy", "Move")} {IIf(Not FeedMediaData Is Nothing Or GetChecked, "checked", "ALL")} files"
+
                 If data.ListExists Then
+
+                    If (FeedMediaData Is Nothing And Not GetChecked And Not isCopy) AndAlso
+                       MsgBoxE({$"YOU ARE TRYING TO MOVE ALL FEED/SESSION DATA.{vbCr}EVERY FILE WILL BE MOVED, NOT JUST THE SELECTED ONES.", MsgTitle},
+                               vbExclamation,,, {"Process", "Cancel"}) = 1 Then
+                        ShowOperationCanceledMsg(MsgTitle)
+                        Return False
+                    End If
+
                     If MCTOptions.Destination.IsEmptyString Then
                         Using f As New FeedCopyToForm(data_files, isCopy)
                             f.ShowDialog()

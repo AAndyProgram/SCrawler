@@ -28,22 +28,24 @@ I strongly recommend you to **regularly** create backup copies of the settings f
 
 **Is something doesn't download, always check the [SITE'S REQUIREMENTS](https://github.com/AAndyProgram/SCrawler/wiki/Settings#sites-requirements) before asking questions!**
 
+*How to use: find your problem in the list and read the answer.*
+
 ## General questions
 - **PROFILES**
-    - I added a profile but **nothing downloaded**: check your cookies and [site requirements](https://github.com/AAndyProgram/SCrawler/wiki/Settings#sites-requirements). If there are any optional fields that you don't fill in, do so.
-    - User downloading failed: check your credentials and **[SITES REQUIREMENTS](https://github.com/AAndyProgram/SCrawler/wiki/Settings#sites-requirements)**. If all settings are set and nothing works, [report it](#how-to-report-a-problem). <u>Don't forget to attach the LOG.</u>
+    - I added a profile but **nothing downloaded** :arrow_forward: check your cookies and [site requirements](https://github.com/AAndyProgram/SCrawler/wiki/Settings#sites-requirements). If there are any optional fields that you don't fill in, do so. Still nothing works - [report it](#how-to-report-a-problem)!
+    - User downloading failed :arrow_forward: check your credentials and **[SITES REQUIREMENTS](https://github.com/AAndyProgram/SCrawler/wiki/Settings#sites-requirements)**. If all settings are set and nothing works, [report it](#how-to-report-a-problem). <u>Don't forget to attach the LOG.</u>
     - [How to redownload user](https://github.com/AAndyProgram/SCrawler/wiki#redownload-user)
-    - How to **add profile** to download: copy the **[profile URL](https://github.com/AAndyProgram/SCrawler/wiki#add-user)** and press `Insert` or `Ctrl+Insert`. **ALWAYS PASTE THE USER PROFILE URL**. After that select this user and press `F5` or click the `Download selected` button.
+    - How to **add profile** to download :arrow_forward: copy the **[profile URL](https://github.com/AAndyProgram/SCrawler/wiki#add-user)** and press `Insert` or `Ctrl+Insert`. **ALWAYS PASTE THE USER PROFILE URL**. After that select this user and press `F5` or click the `Download selected` button.
 - How to download **[saved posts](https://github.com/AAndyProgram/SCrawler/wiki#saved-posts)**
 - **[HOW TO ADD COOKIES](https://github.com/AAndyProgram/SCrawler/wiki/Settings#how-to-set-up-cookies)**
 - [How to report a problem](#how-to-report-a-problem)
-- I want you to **add the site** to SCrawler: **I'm not currently accepting requests to add new sites**, but you can [create a plugin](https://github.com/AAndyProgram/SCrawler/wiki/Plugins) (for your site) for SCrawler.
-- What language is SCrawler written in: vb.net
-- I don't know vb.net and I can't write a plugin. You can write a plugin in `C#`
-- I have a suggestion, will it be added: maybe if it interested me.
-- How to name files using a pattern (e.g. `Site_PostID_Name.jpg`): **there is no such functionality and there are no such plans**.
+- I want you to **add the site** to SCrawler :arrow_forward: **I'm not currently accepting requests to add new sites**, but you can [create a plugin](https://github.com/AAndyProgram/SCrawler/wiki/Plugins) (for your site) for SCrawler.
+- What language is SCrawler written in :arrow_forward: vb.net
+- I don't know vb.net and I can't write a plugin :arrow_forward: you can write a plugin in `C#`
+- I have a suggestion, will it be added :arrow_forward: maybe if it interested me.
+- How to name files using a pattern (e.g. `Site_PostID_Name.jpg`) :arrow_forward: **there is no such functionality and there are no such plans**.
 - **DON'T CHANGE THE DEFAULT SITE SETTINGS UNLESS YOU KNOW EXACTLY WHAT YOU'RE DOING!** SCrawler already has all the default settings to work. You only need to add credentials (where [required](https://github.com/AAndyProgram/SCrawler/wiki/Settings#sites-requirements)).
-- My computer shut down while SCrawler was running and now **SCrawler won't start or some users are missing**: restore user settings from [backup](#backup).
+- My computer shut down while SCrawler was running and now **SCrawler won't start or some users are missing** :arrow_forward: restore user settings from [backup](#backup).
 - Installation, update and configuration
     - How to install: https://github.com/AAndyProgram/SCrawler#installation
     - How to update: https://github.com/AAndyProgram/SCrawler#updating
@@ -52,12 +54,15 @@ I strongly recommend you to **regularly** create backup copies of the settings f
 	- [How to build from source](https://github.com/AAndyProgram/SCrawler/blob/main/CONTRIBUTING.md#how-to-build-from-source)
     - [Video how to configure](#video-how-to-configure)
 - **Antivirus**
-    - **Antivirus detects SCrawler as a virus**: SCrawler doesn't contain any viruses at all. All code is posted on GitHub. You can review it. I have nothing to hide. SCrawler just downloads pictures and videos. That's all. If you trust SCrawler, you should just add it to the antivirus exceptions, as I did. Sometimes antiviruses identify SCawler as a virus. This is usually related to the number of files being edited (users' settings files) and the number of files being downloaded. In this case, the antivirus can also remove these files, which will damage users' settings. **If you don't trust SCrawler, just delete it.**
-    - **Antivirus detects gallery-dl as a virus**: it's a trustworthy program that is trusted by thousands of people around the world. Antiviruses identify some builds as containing viruses, but this is not true. **If you don't trust gallery-dl, you can simply delete it**. **But if you delete it, you won't be able to download [Twitter & Pinterest](https://github.com/AAndyProgram/SCrawler/wiki/Settings#gallery-dl).** You should decide for yourself.
+    - **Antivirus detects SCrawler as a virus** :arrow_forward: SCrawler doesn't contain any viruses at all. All code is posted on GitHub. You can review it. I have nothing to hide. SCrawler just downloads pictures and videos. That's all. If you trust SCrawler, you should just add it to the antivirus exceptions, as I did. Sometimes antiviruses identify SCawler as a virus. This is usually related to the number of files being edited (users' settings files) and the number of files being downloaded. In this case, the antivirus can also remove these files, which will damage users' settings. **If you don't trust SCrawler, just delete it.**
+    - **Antivirus detects gallery-dl as a virus** :arrow_forward: it's a trustworthy program that is trusted by thousands of people around the world. Antiviruses identify some builds as containing viruses, but this is not true. **If you don't trust gallery-dl, you can simply delete it**. **But if you delete it, you won't be able to download [Twitter & Pinterest](https://github.com/AAndyProgram/SCrawler/wiki/Settings#gallery-dl).** You should decide for yourself.
 
 ## Sites questions
-- Reddit: don't use credentials at all or configure [OAuth](https://github.com/AAndyProgram/SCrawler/wiki/Settings#how-to-get-reddit-credentials)
-- **META** (Instagram, Threads, Facebook): you need **cookies** and fill in **all fields**
+
+*How to use: find the site you need in the list and read the answer.*
+
+- Reddit: don't use credentials at all or configure [OAuth](https://github.com/AAndyProgram/SCrawler/wiki/Settings#how-to-get-reddit-credentials). **Reddit profiles can be downloaded without any credentials at all. Subreddits require OAuth! If nothing downloads, use OAuth!**
+- **META** (**Instagram**, Threads, Facebook): you need **cookies** and fill in **all fields**
 - **Instagram saved posts**: I don't consider questions like "I have 10k saved posts and only 1000 were downloaded". Download posts, remove them from saved posts, delete the `Saved posts` **settings folder**, repeat.
 - TikTok: works via yt-dlp. If something doesn't download, we need to wait until yt-dlp fixes it. TikTok doesn't require cookies to download.
 - Porn sites: **COOKIES**!

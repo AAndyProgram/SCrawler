@@ -11,6 +11,11 @@ Namespace API.OnlyFans
     Friend Module Declarations
         Friend ReadOnly DateProvider As New ADateTime("O")
         Friend ReadOnly RegExPostID As RParams = RParams.DM("(?<=onlyfans\.com/)(\d+)", 0, EDP.ReturnValue)
+        Friend ReadOnly FilesSources As New List(Of Object()) From {
+            {{"source", "source"}},
+            {{"files", "source", "url"}},
+            {{"files", "full", "url"}}
+        }
         Friend Property Rules As DynamicRulesEnv
     End Module
 End Namespace

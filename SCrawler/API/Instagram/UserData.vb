@@ -26,10 +26,16 @@ Namespace API.Instagram
         Private Const Name_LastCursor As String = "LastCursor"
         Private Const Name_FirstLoadingDone As String = "FirstLoadingDone"
         Private Const Name_GetTimeline As String = "GetTimeline"
+        Private Const Name_GetTimeline_VideoPic As String = "GetTimeline_VideoPic"
         Private Const Name_GetReels As String = "GetReels"
+        Private Const Name_GetReels_VideoPic As String = "GetReels_VideoPic"
         Private Const Name_GetStories As String = "GetStories"
+        Private Const Name_GetStories_VideoPic As String = "GetStories_VideoPic"
         Private Const Name_GetStoriesUser As String = "GetStoriesUser"
+        Private Const Name_GetStoriesUser_VideoPic As String = "GetStoriesUser_VideoPic"
         Private Const Name_GetTagged As String = "GetTaggedData"
+        Private Const Name_GetTagged_VideoPic As String = "GetTaggedData_VideoPic"
+        Private Const Name_PutImageVideoFolder As String = "PutImageVideoFolder"
         Private Const Name_TaggedChecked As String = "TaggedChecked"
         Private Const Name_NameTrue As String = "NameTrue"
 #End Region
@@ -79,10 +85,32 @@ Namespace API.Instagram
         Private LastCursor As String = String.Empty
         Private FirstLoadingDone As Boolean = False
         Friend Property GetTimeline As Boolean = True
+        Friend Property GetTimeline_VideoPic As Boolean = True
         Friend Property GetReels As Boolean = False
+        Friend Property GetReels_VideoPic As Boolean = True
         Friend Property GetStories As Boolean
+        Friend Property GetStories_VideoPic As Boolean = True
         Friend Property GetStoriesUser As Boolean
+        Friend Property GetStoriesUser_VideoPic As Boolean = True
         Friend Property GetTaggedData As Boolean
+        Friend Property GetTaggedData_VideoPic As Boolean = True
+        Friend Property PutImageVideoFolder As Boolean = False
+        Private Function ExtractImageFrom(ByVal Section As Sections) As Boolean
+            Select Case Section
+                Case Sections.Timeline : Return GetTimeline_VideoPic
+                Case Sections.Reels : Return GetReels_VideoPic
+                Case Sections.Tagged : Return GetTaggedData_VideoPic
+                Case Sections.Stories : Return GetStories_VideoPic
+                Case Sections.UserStories : Return GetStoriesUser_VideoPic
+                Case Sections.SavedPosts
+                    Try
+                        If Not HOST Is Nothing AndAlso HOST.Key = InstagramSiteKey Then Return MySiteSettings.GetSavedPosts_VideoPic.Value
+                    Catch
+                    End Try
+                    Return True
+                Case Else : Return True
+            End Select
+        End Function
         Protected _NameTrue As String = String.Empty
         Friend ReadOnly Property NameTrue As String
             Get
@@ -98,20 +126,32 @@ Namespace API.Instagram
                     LastCursor = .Value(Name_LastCursor)
                     FirstLoadingDone = .Value(Name_FirstLoadingDone).FromXML(Of Boolean)(False)
                     GetTimeline = .Value(Name_GetTimeline).FromXML(Of Boolean)(CBool(MySiteSettings.GetTimeline.Value))
-                    GetReels = .Value(Name_GetReels).FromXML(Of Boolean)(MySiteSettings.GetReels.Value)
+                    GetTimeline_VideoPic = .Value(Name_GetTimeline_VideoPic).FromXML(Of Boolean)(CBool(MySiteSettings.GetTimeline_VideoPic.Value))
+                    GetReels = .Value(Name_GetReels).FromXML(Of Boolean)(CBool(MySiteSettings.GetReels.Value))
+                    GetReels_VideoPic = .Value(Name_GetReels_VideoPic).FromXML(Of Boolean)(CBool(MySiteSettings.GetReels_VideoPic.Value))
                     GetStories = .Value(Name_GetStories).FromXML(Of Boolean)(CBool(MySiteSettings.GetStories.Value))
-                    GetStoriesUser = .Value(Name_GetStoriesUser).FromXML(Of Boolean)(MySiteSettings.GetStoriesUser.Value)
+                    GetStories_VideoPic = .Value(Name_GetStories_VideoPic).FromXML(Of Boolean)(CBool(MySiteSettings.GetStories_VideoPic.Value))
+                    GetStoriesUser = .Value(Name_GetStoriesUser).FromXML(Of Boolean)(CBool(MySiteSettings.GetStoriesUser.Value))
+                    GetStoriesUser_VideoPic = .Value(Name_GetStoriesUser_VideoPic).FromXML(Of Boolean)(CBool(MySiteSettings.GetStoriesUser_VideoPic.Value))
+                    PutImageVideoFolder = .Value(Name_PutImageVideoFolder).FromXML(Of Boolean)(CBool(MySiteSettings.PutImageVideoFolder.Value))
                     GetTaggedData = .Value(Name_GetTagged).FromXML(Of Boolean)(CBool(MySiteSettings.GetTagged.Value))
+                    GetTaggedData_VideoPic = .Value(Name_GetTagged_VideoPic).FromXML(Of Boolean)(CBool(MySiteSettings.GetTagged_VideoPic.Value))
                     TaggedChecked = .Value(Name_TaggedChecked).FromXML(Of Boolean)(False)
                     _NameTrue = .Value(Name_NameTrue)
                 Else
                     .Add(Name_LastCursor, LastCursor)
                     .Add(Name_FirstLoadingDone, FirstLoadingDone.BoolToInteger)
                     .Add(Name_GetTimeline, GetTimeline.BoolToInteger)
+                    .Add(Name_GetTimeline_VideoPic, GetTimeline_VideoPic.BoolToInteger)
                     .Add(Name_GetReels, GetReels.BoolToInteger)
+                    .Add(Name_GetReels_VideoPic, GetReels_VideoPic.BoolToInteger)
                     .Add(Name_GetStories, GetStories.BoolToInteger)
+                    .Add(Name_GetStories_VideoPic, GetStories_VideoPic.BoolToInteger)
                     .Add(Name_GetStoriesUser, GetStoriesUser.BoolToInteger)
+                    .Add(Name_GetStoriesUser_VideoPic, GetStoriesUser_VideoPic.BoolToInteger)
                     .Add(Name_GetTagged, GetTaggedData.BoolToInteger)
+                    .Add(Name_GetTagged_VideoPic, GetTaggedData_VideoPic.BoolToInteger)
+                    .Add(Name_PutImageVideoFolder, PutImageVideoFolder.BoolToInteger)
                     .Add(Name_TaggedChecked, TaggedChecked.BoolToInteger)
                     .Add(Name_NameTrue, _NameTrue)
                 End If
@@ -130,6 +170,14 @@ Namespace API.Instagram
                     GetStories = .GetStories
                     GetStoriesUser = .GetStoriesUser
                     GetTaggedData = .GetTagged
+
+                    GetTimeline_VideoPic = .GetTimeline_VideoPic
+                    GetReels_VideoPic = .GetReels_VideoPic
+                    GetStories_VideoPic = .GetStories_VideoPic
+                    GetStoriesUser_VideoPic = .GetStoriesUser_VideoPic
+                    GetTaggedData_VideoPic = .GetTagged_VideoPic
+
+                    PutImageVideoFolder = .PutImageVideoFolder
                 End With
             End If
         End Sub
@@ -809,7 +857,7 @@ NextPageBlock:
                                             With j("items")
                                                 For Each jj In .Self
                                                     before = _TempMediaList.Count
-                                                    ObtainMedia(jj, PostsToReparse(i).ID, specFolder)
+                                                    ObtainMedia(jj, PostsToReparse(i).ID, specFolder,,,,,,, IIf(IsTagged, Sections.Tagged, Sections.Timeline))
                                                     If Not before = _TempMediaList.Count Then _TotalPostsParsed += 1
                                                     If _Limit > 0 And _TotalPostsParsed >= _Limit Then Throw New ExitException
                                                 Next
@@ -911,7 +959,7 @@ NextPageBlock:
                                     End Select
                                 End If
                                 before = _TempMediaList.Count
-                                ObtainMedia(.Self, PostIDKV.ID, SpecFolder, PostDate,, PostOriginUrl, State, Attempts)
+                                ObtainMedia(.Self, PostIDKV.ID, SpecFolder, PostDate,, PostOriginUrl, State, Attempts,, Section)
                                 If Not before = _TempMediaList.Count Then _TotalPostsParsed += 1
                                 If _Limit > 0 And _TotalPostsParsed >= _Limit Then Return False
                             End If
@@ -950,6 +998,7 @@ NextPageBlock:
         Protected ObtainMedia_SizeFuncVid As Func(Of EContainer, Sizes) = Nothing
         Protected ObtainMedia_SizeFuncPic As Func(Of EContainer, Sizes) = Nothing
         Protected ObtainMedia_AllowAbstract As Boolean = False
+        Private Const ObtainMedia_NoSection As Integer = -10
         Protected Sub ObtainMedia_SetReelsFunc()
             ObtainMedia_SizeFuncPic = Function(ByVal ss As EContainer) As Sizes
                                           If ss.Value("url").IsEmptyString Then
@@ -971,7 +1020,8 @@ NextPageBlock:
                                   Optional ByVal DateObj As String = Nothing, Optional ByVal InitialType As Integer = -1,
                                   Optional ByVal PostOriginUrl As String = Nothing,
                                   Optional ByVal State As UStates = UStates.Unknown, Optional ByVal Attempts As Integer = 0,
-                                  Optional ByVal TryExtractImage As Boolean = False)
+                                  Optional ByVal TryExtractImage As Boolean = False,
+                                  Optional ByVal Section As Sections = ObtainMedia_NoSection)
             Try
                 Dim maxSize As Func(Of EContainer, Integer) = Function(ByVal _ss As EContainer) As Integer
                                                                   Dim w% = AConvert(Of Integer)(_ss.Value("width"), 0)
@@ -1018,6 +1068,12 @@ NextPageBlock:
                     If TryExtractImage Then
                         t = 1
                         abstractDecision = True
+                        If Not SpecialFolder.IsEmptyString AndAlso PutImageVideoFolder Then
+                            Dim endsAbs As Boolean = SpecialFolder.EndsWith("*")
+                            If endsAbs Then SpecialFolder = SpecialFolder.TrimEnd("*")
+                            If Not SpecialFolder.IsEmptyString Then SpecialFolder = $"{SpecialFolder.TrimEnd("\")}\{VideoFolderName}{IIf(Not endsAbs, "*", String.Empty)}"
+                            If endsAbs Then SpecialFolder &= "*"
+                        End If
                     ElseIf t = -1 And InitialType = 8 And ObtainMedia_AllowAbstract Then
                         If n.Contains(vid) Then
                             t = 2
@@ -1064,7 +1120,8 @@ NextPageBlock:
                                         End If
                                     End With
                                 End If
-                                If Not TryExtractImage Then ObtainMedia(n, PostID, SpecialFolder, DateObj, InitialType, PostOriginUrl, State, Attempts, True)
+                                If Not TryExtractImage And Not Section = ObtainMedia_NoSection And ExtractImageFrom(Section) Then _
+                                   ObtainMedia(n, PostID, SpecialFolder, DateObj, InitialType, PostOriginUrl, State, Attempts, True, Section)
                             Case 8 'gallery
                                 DateObj = mDate(n)
                                 With n("carousel_media").XmlIfNothing
@@ -1165,6 +1222,7 @@ NextPageBlock:
             Dim qStr$, r$
             Dim i% = -1
             Dim jj As EContainer
+            Dim section As Sections = IIf(GetUserStory, Sections.UserStories, Sections.Stories)
             ThrowAny(Token)
             If StoriesList.ListExists Or GetUserStory Then
                 If Not GetUserStory Then tmpList = StoriesList.Take(5)
@@ -1181,7 +1239,7 @@ NextPageBlock:
                         Using j As EContainer = JsonDocument.Parse(r).XmlIfNothing
                             If j.Contains("reels") Then
                                 ProgressPre.ChangeMax(j("reels").Count)
-                                For Each jj In j("reels") : GetStoriesData_ParseSingleHighlight(jj, i, GetUserStory, Token) : Next
+                                For Each jj In j("reels") : GetStoriesData_ParseSingleHighlight(jj, i, GetUserStory, Token, section) : Next
                             End If
                         End Using
                     End If
@@ -1189,7 +1247,8 @@ NextPageBlock:
                 End If
             End If
         End Sub
-        Private Sub GetStoriesData_ParseSingleHighlight(ByVal Node As EContainer, ByRef Index As Integer, ByVal GetUserStory As Boolean, ByVal Token As CancellationToken)
+        Private Sub GetStoriesData_ParseSingleHighlight(ByVal Node As EContainer, ByRef Index As Integer, ByVal GetUserStory As Boolean,
+                                                        ByVal Token As CancellationToken, Optional ByVal Section As Sections = Sections.Stories)
             If Not Node Is Nothing Then
                 With Node
                     ProgressPre.Perform()
@@ -1210,7 +1269,7 @@ NextPageBlock:
                                 pid = storyID & s.Value("id")
                                 If Not _TempPostsList.Contains(pid) Then
                                     ThrowAny(Token)
-                                    ObtainMedia(s, pid, sFolder)
+                                    ObtainMedia(s, pid, sFolder,,,,,,, Section)
                                     _TempPostsList.Add(pid)
                                 End If
                             Next

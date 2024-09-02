@@ -9,6 +9,7 @@
 Imports SCrawler.Plugin.Attributes
 Namespace API.Instagram
     Friend Class EditorExchangeOptions
+#Region "Download"
         <PSetting(Caption:="Get timeline", ToolTip:="Download user timeline")>
         Friend Property GetTimeline As Boolean
         <PSetting(Caption:="Get reels", ToolTip:="Download user reels")>
@@ -19,6 +20,21 @@ Namespace API.Instagram
         Friend Property GetStoriesUser As Boolean
         <PSetting(Caption:="Get tagged posts", ToolTip:="Download user tagged posts")>
         Friend Property GetTagged As Boolean
+#End Region
+#Region "Extract image"
+        <PSetting(Caption:="Extract image from video: timeline")>
+        Friend Property GetTimeline_VideoPic As Boolean
+        <PSetting(Caption:="Extract image from video: reels")>
+        Friend Property GetReels_VideoPic As Boolean
+        <PSetting(Caption:="Extract image from video: stories")>
+        Friend Property GetStories_VideoPic As Boolean
+        <PSetting(Caption:="Extract image from video: stories: user")>
+        Friend Property GetStoriesUser_VideoPic As Boolean
+        <PSetting(Caption:="Extract image from video: tagged posts")>
+        Friend Property GetTagged_VideoPic As Boolean
+#End Region
+        <PSetting(Caption:="Place the extracted image into the video folder")>
+        Friend Property PutImageVideoFolder As Boolean
         Friend Sub New(ByVal u As UserData)
             With u
                 GetTimeline = .GetTimeline
@@ -26,6 +42,14 @@ Namespace API.Instagram
                 GetStories = .GetStories
                 GetStoriesUser = .GetStoriesUser
                 GetTagged = .GetTaggedData
+
+                GetTimeline_VideoPic = .GetTimeline_VideoPic
+                GetReels_VideoPic = .GetReels_VideoPic
+                GetStories_VideoPic = .GetStories_VideoPic
+                GetStoriesUser_VideoPic = .GetStoriesUser_VideoPic
+                GetTagged_VideoPic = .GetTaggedData_VideoPic
+
+                PutImageVideoFolder = .PutImageVideoFolder
             End With
         End Sub
         Friend Sub New(ByVal s As SiteSettings)
@@ -35,6 +59,14 @@ Namespace API.Instagram
                 GetStories = CBool(.GetStories.Value)
                 GetStoriesUser = CBool(.GetStoriesUser.Value)
                 GetTagged = CBool(.GetTagged.Value)
+
+                GetTimeline_VideoPic = CBool(.GetTimeline_VideoPic.Value)
+                GetReels_VideoPic = CBool(.GetReels_VideoPic.Value)
+                GetStories_VideoPic = CBool(.GetStories_VideoPic.Value)
+                GetStoriesUser_VideoPic = CBool(.GetStoriesUser_VideoPic.Value)
+                GetTagged_VideoPic = CBool(.GetTagged_VideoPic.Value)
+
+                PutImageVideoFolder = CBool(.PutImageVideoFolder.Value)
             End With
         End Sub
     End Class
