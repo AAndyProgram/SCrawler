@@ -1,3 +1,28 @@
+# 2024.10.24.0
+
+*2024-10-24*
+
+- Added
+  - YouTube (standalone app)
+    - settings `Embed thumbnail (cover)` and `Allow webm formats`
+    - changed cover selection for music downloads
+    - allow `webm` formats is there are no `mp4` formats via http protocol (issue #211)
+  - Sites:
+    - Instagram
+      - **ability to manually change username**
+      - **mark user as non-existent if user `ID` cannot be obtained**
+    - Twitter: **ability to manually change username**
+  - Main window: add users search button to 'Info' menu
+  - Minor improvements
+- Updated
+  - yt-dlp up to version **2024.10.22**
+  - gallery-dl up to version **1.27.6**
+- Fixed
+  - YouTube (standalone app): adding incorrect playlist lines
+  - Reddit: incorrect UNIX date parsing
+  - Can't change data path (issue #206)
+  - Minor bugs
+
 # 2024.9.2.0
 
 *2024-09-02*

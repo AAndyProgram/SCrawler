@@ -8,6 +8,7 @@
 ' but WITHOUT ANY WARRANTY
 Imports SCrawler.Plugin.Attributes
 Imports DModels = SCrawler.API.Twitter.UserData.DownloadModels
+Imports DN = SCrawler.API.Base.DeclaredNames
 Namespace API.Twitter
     Friend Class EditorExchangeOptions
         Private Const DefaultOffset As Integer = 100
@@ -46,6 +47,8 @@ Namespace API.Twitter
                   Caption:="Force apply",
                   ToolTip:="Force overrides the default parameters for the first download." & vbCr & "Applies to first download only.", LeftOffset:=DefaultOffset)>
         Friend Overridable Property DownloadModelForceApply As Boolean = False
+        <PSetting(Address:=SettingAddress.User, Caption:=DN.UserNameChangeCaption, ToolTip:=DN.UserNameChangeToolTip, LeftOffset:=DefaultOffset)>
+        Friend Overridable Property UserName As String = String.Empty
         Private ReadOnly Property MySettings As Object
         Friend Sub New(ByVal s As SiteSettings)
             GifsDownload = s.GifsDownload.Value
@@ -80,6 +83,7 @@ Namespace API.Twitter
                     DownloadModelLikes = dm.Contains(DModels.Likes)
                 End If
             End If
+            UserName = u.NameTrue(True)
             MySettings = u.HOST.Source
         End Sub
     End Class

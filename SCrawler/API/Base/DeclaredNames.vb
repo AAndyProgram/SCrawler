@@ -28,6 +28,8 @@ Namespace API.Base
         Friend Const GifsDownloadCaption As String = "Download GIFs"
         Friend Const UseMD5ComparisonCaption As String = "Use MD5 comparison"
         Friend Const UseMD5ComparisonToolTip As String = "Each image will be checked for existence using MD5"
+        Friend Const UserNameChangeCaption As String = "UserName"
+        Friend Const UserNameChangeToolTip As String = "If the user has changed their UserName, you can set a new name here. Not required for new users."
         Private Sub New()
         End Sub
     End Class

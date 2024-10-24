@@ -311,6 +311,9 @@ Namespace API.YouTube.Base
         <Browsable(True), GridVisible, XMLVN({"DefaultsVideo"}, 1080), Category("Defaults Video"), DisplayName("Default definition"),
             Description("The default maximum video resolution. -1 for max definition")>
         Public ReadOnly Property DefaultVideoDefinition As XMLValue(Of Integer)
+        <Browsable(True), GridVisible, XMLVN({"DefaultsVideo"}, True), Category("Defaults Video"), DisplayName("Allow webm formats"),
+            Description("Allow webm formats over http if mp4 formats are not available. Default: true.")>
+        Public ReadOnly Property DefaultVideoAllowWebm As XMLValue(Of Boolean)
         <Browsable(True), GridVisible, XMLVN({"DefaultsVideo"}), Category("Defaults Video"), DisplayName("Convert non-AVC codecs to AVC"),
             Description("Convert non-AVC codecs (eg 'VP9') to AVC. Not recommended due to high CPU usage!")>
         Public ReadOnly Property DefaultVideoConvertNonAVC As XMLValue(Of Boolean)
@@ -416,6 +419,9 @@ Namespace API.YouTube.Base
         <Browsable(True), GridVisible, XMLVN({"DefaultsAudio"}, True), Category("Defaults Audio"), DisplayName("Embed thumbnail"),
             Description("Embed thumbnail in the audio as cover art. Default: true.")>
         Public ReadOnly Property DefaultAudioEmbedThumbnail As XMLValue(Of Boolean)
+        <Browsable(True), GridVisible, XMLVN({"DefaultsAudio"}, True), Category("Defaults Audio"), DisplayName("Embed thumbnail (cover)"),
+            Description("Try embedding the playlist cover (if it exists) as cover art. Default: true.")>
+        Public ReadOnly Property DefaultAudioEmbedThumbnail_Cover As XMLValue(Of Boolean)
         <Browsable(True), GridVisible, XMLVN({"DefaultsAudio"}, True), Category("Defaults Audio"), DisplayName("Embed thumbnail (extracted files)"),
             Description("Embed thumbnail in the extracted (additional file ('mp3' only)) audio as cover art. Default: true.")>
         Public ReadOnly Property DefaultAudioEmbedThumbnail_ExtractedFiles As XMLValue(Of Boolean)

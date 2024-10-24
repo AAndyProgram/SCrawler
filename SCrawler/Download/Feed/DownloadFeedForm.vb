@@ -542,6 +542,7 @@ Namespace DownloadObjects
             End Try
         End Sub
 #End Region
+#Region "Move/Copy"
         Private Sub BTT_COPY_MOVE_TO_Click(sender As Object, e As EventArgs) Handles BTT_COPY_TO.Click, BTT_MOVE_TO.Click
             MoveCopyFiles(True, sender, Nothing, Nothing)
         End Sub
@@ -769,6 +770,7 @@ Namespace DownloadObjects
                 Settings.Feeds.UpdateWhereDataReplaced()
             End Try
         End Function
+#End Region
 #Region "Load fav, spec"
         Private Sub BTT_LOAD_FAV_Click(sender As Object, e As EventArgs) Handles BTT_LOAD_FAV.Click
             FeedChangeMode(FeedModes.Special, {FeedSpecial.FavoriteName})
@@ -1312,32 +1314,36 @@ Namespace DownloadObjects
             End Try
         End Sub
         Private Sub RefillAfterDelete()
-            With MyRange
-                Dim indx% = .CurrentIndex
-                Dim indxChanged As Boolean = False
-                .HandlersSuspended = True
-                .Update()
-                If .Count > 0 Then
-                    If indx.ValueBetween(0, .Count - 1) Then
-                        .CurrentIndex = indx
-                    ElseIf (indx - 1).ValueBetween(0, .Count - 1) Then
-                        .CurrentIndex = indx - 1
-                        indxChanged = True
-                    Else
-                        .CurrentIndex = .Count - 1
-                        indxChanged = Not indx = .CurrentIndex
+            Try
+                With MyRange
+                    Dim indx% = .CurrentIndex
+                    Dim indxChanged As Boolean = False
+                    .HandlersSuspended = True
+                    .Update()
+                    If .Count > 0 Then
+                        If indx.ValueBetween(0, .Count - 1) Then
+                            .CurrentIndex = indx
+                        ElseIf (indx - 1).ValueBetween(0, .Count - 1) Then
+                            .CurrentIndex = indx - 1
+                            indxChanged = True
+                        Else
+                            .CurrentIndex = .Count - 1
+                            indxChanged = Not indx = .CurrentIndex
+                        End If
+                        .UpdateControls()
+                        .HandlersSuspended = False
+                        If Not indxChanged Then LatestScrollValueDisabled = True
+                        DirectCast(MyRange.Switcher, RangeSwitcher(Of UserMediaD)).PerformIndexChanged()
+                        If Not indxChanged Then
+                            LatestScrollValueDisabled = False
+                            SetScrollValue(True)
+                        End If
                     End If
-                    .UpdateControls()
                     .HandlersSuspended = False
-                    If Not indxChanged Then LatestScrollValueDisabled = True
-                    DirectCast(MyRange.Switcher, RangeSwitcher(Of UserMediaD)).PerformIndexChanged()
-                    If Not indxChanged Then
-                        LatestScrollValueDisabled = False
-                        SetScrollValue(True)
-                    End If
-                End If
-                .HandlersSuspended = False
-            End With
+                End With
+            Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "[DownloadFeedForm.RefillAfterDelete]")
+            End Try
         End Sub
 #End Region
 #Region "Range"

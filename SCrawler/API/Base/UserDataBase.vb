@@ -947,6 +947,9 @@ BlockNullPicture:
                 LogError(ex, "user information loading error")
             End Try
         End Sub
+        Private Sub UpdateUserInformation_Ex()
+            If _ForceSaveUserInfoOnException Then UpdateUserInformation()
+        End Sub
         Friend Overridable Overloads Sub UpdateUserInformation() Implements IUserData.UpdateUserInformation
             UpdateUserInformation(False)
         End Sub
@@ -1117,6 +1120,7 @@ BlockNullPicture:
         Protected UseClientTokens As Boolean = False
         Protected _ForceSaveUserData As Boolean = False
         Protected _ForceSaveUserInfo As Boolean = False
+        Protected _ForceSaveUserInfoOnException As Boolean = False
         Private _DownloadInProgress As Boolean = False
         Private _EnvirUserExists As Boolean
         Private _EnvirUserSuspended As Boolean
@@ -1136,6 +1140,7 @@ BlockNullPicture:
             _DescriptionEveryTime = Settings.UpdateUserDescriptionEveryTime
             _ForceSaveUserData = False
             _ForceSaveUserInfo = False
+            _ForceSaveUserInfoOnException = False
             _EnvirUserExists = UserExists
             _EnvirUserSuspended = UserSuspended
             _EnvirCreatedByChannel = CreatedByChannel
@@ -1265,9 +1270,11 @@ BlockNullPicture:
                 ThrowIfDisposed()
                 If Not _PictureExists Or _EnvirInvokeUserUpdated Then OnUserUpdated()
             Catch oex As OperationCanceledException When Token.IsCancellationRequested Or TokenPersonal.IsCancellationRequested Or TokenQueue.IsCancellationRequested
+                UpdateUserInformation_Ex()
                 MyMainLOG = $"{ToStringForLog()}: downloading canceled"
                 Canceled = True
             Catch exit_ex As ExitException
+                UpdateUserInformation_Ex()
                 If Not exit_ex.Silent Then
                     If exit_ex.SimpleLogLine Then
                         MyMainLOG = $"{ToStringForLog()}: downloading interrupted (exit) ({exit_ex.Message})"
@@ -1279,6 +1286,7 @@ BlockNullPicture:
             Catch dex As ObjectDisposedException When Disposed
                 Canceled = True
             Catch ex As Exception
+                UpdateUserInformation_Ex()
                 LogError(ex, "downloading data error")
                 HasError = True
             Finally
@@ -1912,6 +1920,7 @@ BlockNullPicture:
                         If m.Contains(IUserData.EraseMode.History) Then
                             If MyFilePosts.Delete(SFO.File, SFODelete.DeleteToRecycleBin, e) Then result = True
                             If MyFileData.Delete(SFO.File, SFODelete.DeleteToRecycleBin, e) Then result = True
+                            If MyMD5File.Delete(SFO.File, SFODelete.DeleteToRecycleBin, e) Then result = True
                             LastUpdated = Nothing
                             EraseData_AdditionalDataFiles()
                             UpdateUserInformation()
@@ -1928,6 +1937,8 @@ BlockNullPicture:
                             _TempMediaList.Clear()
                             _ContentNew.Clear()
                             _ContentList.Clear()
+                            _MD5List.Clear()
+                            _MD5Loaded = False
                         End If
                     End If
                 End If

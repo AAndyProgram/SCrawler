@@ -59,6 +59,7 @@ Namespace API.YouTube
         Public ReadOnly TrueUrlRegEx As RParams = RParams.DM(Base.YouTubeFunctions.TrueUrlPattern, 0, EDP.ReturnValue)
         Friend ReadOnly MusicUrlApply As RParams = RParams.DMS("https://([w\.]*)youtube.com.+", 1, RegexReturn.Replace, EDP.ReturnValue,
                                                                CType(Function(input$) "music.", Func(Of String, String)), String.Empty)
+        Friend ReadOnly M3U8ExcludedSymbols As String() = {".", ",", ":", "/", "\", "(", ")", "[", "]"}
         <Extension> Friend Function ToMusicUrl(ByVal URL As String, ByVal IsMusic As Boolean) As String
             Try : Return If(IsMusic And Not URL.IsEmptyString, CStr(RegexReplace(URL, MusicUrlApply)).IfNullOrEmpty(URL), URL) : Catch : Return URL : End Try
         End Function

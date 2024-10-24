@@ -7,6 +7,7 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports SCrawler.Plugin.Attributes
+Imports DN = SCrawler.API.Base.DeclaredNames
 Namespace API.Instagram
     Friend Class EditorExchangeOptions
 #Region "Download"
@@ -35,6 +36,8 @@ Namespace API.Instagram
 #End Region
         <PSetting(Caption:="Place the extracted image into the video folder")>
         Friend Property PutImageVideoFolder As Boolean
+        <PSetting(Address:=SettingAddress.User, Caption:=DN.UserNameChangeCaption, ToolTip:=DN.UserNameChangeToolTip)>
+        Friend Overridable Property UserName As String = String.Empty
         Friend Sub New(ByVal u As UserData)
             With u
                 GetTimeline = .GetTimeline
@@ -50,6 +53,8 @@ Namespace API.Instagram
                 GetTagged_VideoPic = .GetTaggedData_VideoPic
 
                 PutImageVideoFolder = .PutImageVideoFolder
+
+                UserName = .NameTrue(True)
             End With
         End Sub
         Friend Sub New(ByVal s As SiteSettings)

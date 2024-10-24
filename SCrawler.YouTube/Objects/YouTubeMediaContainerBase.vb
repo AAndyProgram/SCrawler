@@ -175,7 +175,9 @@ Namespace API.YouTube.Objects
         Protected _ThumbnailUrl As String = String.Empty
         <XMLEC> Public Overridable Property ThumbnailUrl As String Implements IDownloadableMedia.ThumbnailUrl
             Get
-                If _ThumbnailUrl.IsEmptyString And Thumbnails.Count > 0 Then
+                If Not CoverURL.IsEmptyString Then
+                    Return CoverURL
+                ElseIf _ThumbnailUrl.IsEmptyString And Thumbnails.Count > 0 Then
                     Return Thumbnails.FirstOrDefault.URL
                 Else
                     Return _ThumbnailUrl
@@ -904,7 +906,8 @@ Namespace API.YouTube.Objects
             Const m3u8DataRow$ = "#EXTINF:{0},{1}" & vbCrLf & "{2}"
             With Element
                 Dim f As SFile = __file.IfNullOrEmpty(.File)
-                Dim __f$ = SymbolsConverter.ASCII.EncodeSymbolsOnly(If(Mode = M3U8CreationMode.Absolute, f.ToString, f.File))
+                Dim fStr$ = f.ToString.StringReplaceSymbols({"\"}, "/", EDP.ReturnValue)
+                Dim __f$ = SymbolsConverter.ASCII.Extended.EncodeSymbolsOnly(If(Mode = M3U8CreationMode.Absolute, fStr, f.File), M3U8ExcludedSymbols)
                 If Mode = M3U8CreationMode.Absolute Then __f = $"file:///{__f}"
                 Dim fName$ = .Title.IfNullOrEmpty(f.Name)
                 If MyYouTubeSettings.MusicPlaylistCreate_M3U8_AppendNumber And .PlaylistIndex > 0 Then fName = $"{ .PlaylistIndex}. {fName}"
@@ -1022,12 +1025,19 @@ Namespace API.YouTube.Objects
                     End If
 
                     Dim cDown As Boolean = False
+                    Dim fCover As SFile = Nothing
+                    Dim cUrl$ = String.Empty
                     For Each elem In Elements
                         With DirectCast(elem, YouTubeMediaContainerBase)
-                            If Not .CoverDownloaded Then .CoverDownloaded = cDown
+                            'If Not .CoverDownloaded Then .CoverDownloaded = cDown
+                            .CoverDownloaded = cDown
+                            .CoverFile = fCover
+                            .CoverURL = cUrl
                             AddHandler .FileDownloadStarted, fDown
                             .Download(UseCookies, Token)
                             cDown = .CoverDownloaded
+                            fCover = .CoverFile
+                            cUrl = .CoverURL
                             RemoveHandler .FileDownloadStarted, fDown
                         End With
                         If Token.IsCancellationRequested Or disposedValue Then Exit For
@@ -1054,6 +1064,8 @@ Namespace API.YouTube.Objects
             End Try
         End Sub
         Protected CoverDownloaded As Boolean = False
+        Protected CoverFile As SFile = Nothing
+        Protected CoverURL As String = String.Empty
         Private Sub DownloadPlaylistCover(ByVal PlsId As String, ByVal f As SFile, ByVal UseCookies As Boolean)
             Try
                 Dim url$ = $"https://{IIf(IsMusic, "music", "www")}.youtube.com/playlist?list={PlsId}"
@@ -1089,7 +1101,8 @@ Namespace API.YouTube.Objects
                                 url = LinkFormatterSecure(u)
                                 f.Name = "cover"
                                 f.Extension = "jpg"
-                                If resp.DownloadFile(url, f, EDP.ReturnValue) And f.Exists Then CoverDownloaded = True : AddFile(f)
+                                If resp.DownloadFile(url, f, EDP.ReturnValue) And f.Exists Then _
+                                   CoverFile = f : CoverURL = url : CoverDownloaded = True : AddFile(f)
                             End If
                         End If
                     End Using
@@ -1270,10 +1283,10 @@ Namespace API.YouTube.Objects
                                     End Sub
                                 Dim embedThumbTo As Action(Of SFile) =
                                     Sub(ByVal dFile As SFile)
-                                        If dFile.Exists And ThumbnailFile.Exists Then
+                                        If dFile.Exists And CoverFile.IfNullOrEmpty(ThumbnailFile).Exists Then
                                             Dim dFileNew As SFile = dFile
                                             dFileNew.Name &= "_NEW"
-                                            .Execute($"ffmpeg -i ""{dFile}"" -i ""{ThumbnailFile}"" -map 0:0 -map 1:0 -c copy -id3v2_version 3 -metadata:s:v title=""Cover"" -metadata:s:v comment=""Cover"" ""{dFileNew}""")
+                                            .Execute($"ffmpeg -i ""{dFile}"" -i ""{CoverFile.IfNullOrEmpty(ThumbnailFile)}"" -map 0:0 -map 1:0 -c copy -id3v2_version 3 -metadata:s:v title=""Cover"" -metadata:s:v comment=""Cover"" ""{dFileNew}""")
                                             If dFileNew.Exists AndAlso dFile.Delete(,, EDP.ReturnValue) Then SFile.Rename(dFileNew, dFile)
                                         End If
                                     End Sub
@@ -1352,6 +1365,10 @@ Namespace API.YouTube.Objects
                                         Next
                                     End If
                                 End If
+
+                                'mp3
+                                If IsMusic And ObjectType = YouTubeMediaType.Single And File.Extension = mp3 And
+                                   Not mp3ThumbEmbedded And CoverFile.Exists And MyYouTubeSettings.DefaultAudioEmbedThumbnail_Cover Then embedThumbTo.Invoke(File)
 
                                 'Update video
                                 ThrowAny(Token)
@@ -1725,6 +1742,7 @@ Namespace API.YouTube.Objects
                 Dim obj As MediaObject
                 Dim nValue#
                 Dim sValue$
+                Dim allowWebm As Boolean = MyYouTubeSettings.DefaultVideoAllowWebm
                 Dim validCodecValue As Func(Of String, Boolean) = Function(codec) Not codec.IsEmptyString AndAlso Not codec = "none"
 
                 For Each ee In e({"formats"})
@@ -1775,12 +1793,13 @@ Namespace API.YouTube.Objects
                             Dim d As MediaObject = Nothing
                             Dim expWebm As Predicate(Of MediaObject) = Function(mo) mo.Extension = webm
                             Dim expAVC As Predicate(Of MediaObject) = Function(mo) mo.Codec.IfNullOrEmpty("/").ToLower.StartsWith(avc)
-                            Dim comp As Func(Of MediaObject, Predicate(Of MediaObject), Boolean, Boolean) =
-                                Function(mo, exp, isTrue) mo.Type = t And exp.Invoke(mo) = isTrue And mo.Width = d.Width
-                            Dim CountWebm As Func(Of MediaObject, Boolean) = Function(mo) comp.Invoke(mo, expWebm, False)
-                            Dim RemoveWebm As Predicate(Of MediaObject) = Function(mo) comp.Invoke(mo, expWebm, True)
-                            Dim CountAVC As Func(Of MediaObject, Boolean) = Function(mo) comp.Invoke(mo, expAVC, True)
-                            Dim RemoveAVC As Predicate(Of MediaObject) = Function(mo) comp.Invoke(mo, expAVC, False)
+                            Dim comp As Func(Of MediaObject, Predicate(Of MediaObject), Boolean, Boolean, Boolean) =
+                                Function(mo, exp, isTrue, checkHttp) mo.Type = t And exp.Invoke(mo) = isTrue And mo.Width = d.Width And
+                                                                     (Not checkHttp OrElse mo.ProtocolType = Protocols.https)
+                            Dim CountWebm As Func(Of MediaObject, Boolean) = Function(mo) comp.Invoke(mo, expWebm, False, allowWebm)
+                            Dim RemoveWebm As Predicate(Of MediaObject) = Function(mo) comp.Invoke(mo, expWebm, True, allowWebm)
+                            Dim CountAVC As Func(Of MediaObject, Boolean) = Function(mo) comp.Invoke(mo, expAVC, True, False)
+                            Dim RemoveAVC As Predicate(Of MediaObject) = Function(mo) comp.Invoke(mo, expAVC, False, False)
                             For Each d In data
                                 If MediaObjects.Count = 0 Then Exit For
                                 If MediaObjects.LongCount(CountWebm) > 0 Then MediaObjects.RemoveAll(RemoveWebm)

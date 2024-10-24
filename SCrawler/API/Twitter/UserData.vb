@@ -31,9 +31,9 @@ Namespace API.Twitter
 #Region "Declarations"
         Private Const Label_Community As String = "Community"
         Private _NameTrue As String = String.Empty
-        Friend Property NameTrue As String
+        Friend Property NameTrue(Optional ByVal Exact As Boolean = False) As String
             Get
-                Return _NameTrue.IfNullOrEmpty(Name)
+                Return If(Exact, _NameTrue, _NameTrue.IfNullOrEmpty(Name))
             End Get
             Set(ByVal NewName As String)
                 _NameTrue = NewName
@@ -98,6 +98,7 @@ Namespace API.Twitter
                     If .DownloadModelProfile Then DownloadModel += DownloadModels.Profile
                     If .DownloadModelSearch Then DownloadModel += DownloadModels.Search
                     If .DownloadModelLikes Then DownloadModel += DownloadModels.Likes
+                    _NameTrue = .UserName
                 End With
             End If
         End Sub

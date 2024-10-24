@@ -26,7 +26,7 @@ I strongly recommend you to **regularly** create backup copies of the settings f
 
 # Most frequently questions about SCrawler
 
-**Is something doesn't download, always check the [SITE'S REQUIREMENTS](https://github.com/AAndyProgram/SCrawler/wiki/Settings#sites-requirements) before asking questions!**
+**If something doesn't download, always check the [SITE'S REQUIREMENTS](https://github.com/AAndyProgram/SCrawler/wiki/Settings#sites-requirements) before asking questions!**
 
 *How to use: find your problem in the list and read the answer.*
 

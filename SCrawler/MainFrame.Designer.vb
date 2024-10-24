@@ -40,12 +40,14 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Dim MENU_DOWN_ALL_SEP_3 As System.Windows.Forms.ToolStripSeparator
         Dim MENU_DOWN_ALL_SEP_4 As System.Windows.Forms.ToolStripSeparator
         Dim MENU_INFO As System.Windows.Forms.ToolStripDropDownButton
+        Dim MENU_INFO_SEP_1 As System.Windows.Forms.ToolStripSeparator
         Dim MENU_VIEW_SEP_1 As System.Windows.Forms.ToolStripSeparator
         Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(MainFrame))
         Me.MENU_INFO_SHOW_INFO = New System.Windows.Forms.ToolStripMenuItem()
         Me.MENU_INFO_SHOW_QUEUE = New System.Windows.Forms.ToolStripMenuItem()
         Me.MENU_INFO_SHOW_MISSING = New System.Windows.Forms.ToolStripMenuItem()
         Me.MENU_INFO_SHOW_USER_METRICS = New System.Windows.Forms.ToolStripMenuItem()
+        Me.MENU_INFO_USER_SEARCH = New System.Windows.Forms.ToolStripMenuItem()
         Me.MENU_SETTINGS = New System.Windows.Forms.ToolStripDropDownButton()
         Me.BTT_SETTINGS = New System.Windows.Forms.ToolStripMenuItem()
         Me.Toolbar_TOP = New System.Windows.Forms.ToolStrip()
@@ -140,6 +142,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         MENU_DOWN_ALL_SEP_3 = New System.Windows.Forms.ToolStripSeparator()
         MENU_DOWN_ALL_SEP_4 = New System.Windows.Forms.ToolStripSeparator()
         MENU_INFO = New System.Windows.Forms.ToolStripDropDownButton()
+        MENU_INFO_SEP_1 = New System.Windows.Forms.ToolStripSeparator()
         MENU_VIEW_SEP_1 = New System.Windows.Forms.ToolStripSeparator()
         Me.Toolbar_TOP.SuspendLayout()
         Me.Toolbar_BOTTOM.SuspendLayout()
@@ -235,7 +238,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         'MENU_INFO
         '
         MENU_INFO.AutoToolTip = False
-        MENU_INFO.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.MENU_INFO_SHOW_INFO, Me.MENU_INFO_SHOW_QUEUE, Me.MENU_INFO_SHOW_MISSING, Me.MENU_INFO_SHOW_USER_METRICS})
+        MENU_INFO.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.MENU_INFO_SHOW_INFO, Me.MENU_INFO_SHOW_QUEUE, Me.MENU_INFO_SHOW_MISSING, MENU_INFO_SEP_1, Me.MENU_INFO_SHOW_USER_METRICS, Me.MENU_INFO_USER_SEARCH})
         MENU_INFO.Image = Global.SCrawler.My.Resources.Resources.InfoPic_32
         MENU_INFO.ImageTransparentColor = System.Drawing.Color.Magenta
         MENU_INFO.Name = "MENU_INFO"
@@ -268,6 +271,11 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.MENU_INFO_SHOW_MISSING.Text = "Missing posts"
         Me.MENU_INFO_SHOW_MISSING.ToolTipText = "Open the 'Missing' form (show information about missing posts)."
         '
+        'MENU_INFO_SEP_1
+        '
+        MENU_INFO_SEP_1.Name = "MENU_INFO_SEP_1"
+        MENU_INFO_SEP_1.Size = New System.Drawing.Size(209, 6)
+        '
         'MENU_INFO_SHOW_USER_METRICS
         '
         Me.MENU_INFO_SHOW_USER_METRICS.AutoToolTip = True
@@ -277,6 +285,13 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.MENU_INFO_SHOW_USER_METRICS.Text = "User metrics"
         Me.MENU_INFO_SHOW_USER_METRICS.ToolTipText = "Open the ""User metrics' form (show information about the user's metrics (such as " &
     "size, number of files, etc.))."
+        '
+        'MENU_INFO_USER_SEARCH
+        '
+        Me.MENU_INFO_USER_SEARCH.Image = Global.SCrawler.My.Resources.Resources.FindPic_16
+        Me.MENU_INFO_USER_SEARCH.Name = "MENU_INFO_USER_SEARCH"
+        Me.MENU_INFO_USER_SEARCH.Size = New System.Drawing.Size(212, 22)
+        Me.MENU_INFO_USER_SEARCH.Text = "Find user"
         '
         'MENU_VIEW_SEP_1
         '
@@ -993,4 +1008,5 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
     Private WithEvents BTT_VIEW_FILTER_SAVE As ToolStripMenuItem
     Private WithEvents BTT_VIEW_FILTER_LOAD As ToolStripMenuItem
     Private WithEvents BTT_VIEW_FILTER_SAVE_AS_GROUP As ToolStripMenuItem
+    Private WithEvents MENU_INFO_USER_SEARCH As ToolStripMenuItem
 End Class

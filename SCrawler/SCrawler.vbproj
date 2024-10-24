@@ -798,6 +798,7 @@
     <Content Include="API\OnlyFans\DynamicRulesAll.txt" />
     <Content Include="API\OnlyFans\OFScraperConfigPatternConstants.txt" />
     <Content Include="Content\Pictures\CutPic_48.png" />
+    <Content Include="Content\Pictures\FindPic_16.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

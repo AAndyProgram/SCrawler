@@ -112,9 +112,9 @@ Namespace API.Instagram
             End Select
         End Function
         Protected _NameTrue As String = String.Empty
-        Friend ReadOnly Property NameTrue As String
+        Friend ReadOnly Property NameTrue(Optional ByVal Exact As Boolean = False) As String
             Get
-                Return _NameTrue.IfNullOrEmpty(Name)
+                Return If(Exact, _NameTrue, _NameTrue.IfNullOrEmpty(Name))
             End Get
         End Property
         Private UserNameRequested As Boolean = False
@@ -178,6 +178,8 @@ Namespace API.Instagram
                     GetTaggedData_VideoPic = .GetTagged_VideoPic
 
                     PutImageVideoFolder = .PutImageVideoFolder
+
+                    _NameTrue = .UserName
                 End With
             End If
         End Sub
@@ -631,7 +633,7 @@ Namespace API.Instagram
                         'Check environment
                         If Not IsSavedPosts Then
                             If ID.IsEmptyString Then GetUserData()
-                            If ID.IsEmptyString Then Throw New Plugin.ExitException("can't get user ID")
+                            If ID.IsEmptyString Then UserExists = False : _ForceSaveUserInfoOnException = True : Throw New Plugin.ExitException("can't get user ID")
                             If _UseGQL And Cursor.IsEmptyString And Not Section = Sections.SavedPosts Then
                                 If Not ValidateBaseTokens() Then GetPageTokens()
                                 If Not ValidateBaseTokens(TokensErrData) Then ValidateBaseTokens_Error(TokensErrData)
@@ -1171,6 +1173,7 @@ NextPageBlock:
                     End Using
                 End If
             Catch ex As Exception
+                UserExists = False
                 If Not __idFound Then
                     If Responser.StatusCode = HttpStatusCode.NotFound Or Responser.StatusCode = HttpStatusCode.BadRequest Then
                         Throw ex

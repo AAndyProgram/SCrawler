@@ -479,6 +479,9 @@ CloseResume:
     Private Sub MENU_INFO_SHOW_USER_METRICS_Click(sender As Object, e As EventArgs) Handles MENU_INFO_SHOW_USER_METRICS.Click
         MyUserMetrics.FormShow(EDP.LogMessageValue)
     End Sub
+    Private Sub MENU_INFO_USER_SEARCH_Click(sender As Object, e As EventArgs) Handles MENU_INFO_USER_SEARCH.Click
+        MySearch.FormShow()
+    End Sub
 #End Region
     Friend Sub ShowFeed() Handles BTT_FEED.Click, BTT_TRAY_FEED_SHOW.Click
         If MyFeed Is Nothing Then

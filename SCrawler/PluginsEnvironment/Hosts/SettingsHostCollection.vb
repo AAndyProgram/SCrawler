@@ -335,7 +335,7 @@ Namespace Plugin.Hosts
                                                         ByVal ColNameOld As String, ByVal ColNameNew As String) As Boolean
             Dim p As PauseModes = NoPauseMode
             Try
-                If UpdateHostPath_CheckDownloader() Then Return False
+                If Not UpdateHostPath_CheckDownloader() Then Return False
                 If Not AEquals(Of String)(PathOld.PathWithSeparator, PathNew.PathWithSeparator) Or Not AEquals(Of String)(ColNameOld, ColNameNew) Then
                     p = Settings.Automation.Pause
                     Settings.Automation.Pause = PauseModes.Unlimited
@@ -365,7 +365,7 @@ Namespace Plugin.Hosts
                                                         Optional ByVal ForceCollections As Boolean = False) As Boolean
             Dim p As PauseModes = NoPauseMode
             Try
-                If UpdateHostPath_CheckDownloader() Then Return False
+                If Not UpdateHostPath_CheckDownloader() Then Return False
                 If Not PathNew.IsEmptyString And Settings.UsersList.Count > 0 Then
                     Dim hp As SFile = Host.Path(False, True)
                     Dim diffPaths As Boolean = (Abs And hp.PathWithSeparator = PathOld.PathWithSeparator) Or
