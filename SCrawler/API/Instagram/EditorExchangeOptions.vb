@@ -9,7 +9,7 @@
 Imports SCrawler.Plugin.Attributes
 Imports DN = SCrawler.API.Base.DeclaredNames
 Namespace API.Instagram
-    Friend Class EditorExchangeOptions
+    Friend NotInheritable Class EditorExchangeOptions
 #Region "Download"
         <PSetting(Caption:="Get timeline", ToolTip:="Download user timeline")>
         Friend Property GetTimeline As Boolean
@@ -37,7 +37,11 @@ Namespace API.Instagram
         <PSetting(Caption:="Place the extracted image into the video folder")>
         Friend Property PutImageVideoFolder As Boolean
         <PSetting(Address:=SettingAddress.User, Caption:=DN.UserNameChangeCaption, ToolTip:=DN.UserNameChangeToolTip)>
-        Friend Overridable Property UserName As String = String.Empty
+        Friend Property UserName As String = String.Empty
+        <PSetting(Address:=SettingAddress.User, Caption:="Force update UserName", ToolTip:="Try to force update UserName if it is not found on the site")>
+        Friend Property ForceUpdateUserName As Boolean = False
+        <PSetting(Address:=SettingAddress.User, Caption:="Force update user information")>
+        Friend Property ForceUpdateUserInfo As Boolean = False
         Friend Sub New(ByVal u As UserData)
             With u
                 GetTimeline = .GetTimeline
@@ -55,6 +59,8 @@ Namespace API.Instagram
                 PutImageVideoFolder = .PutImageVideoFolder
 
                 UserName = .NameTrue(True)
+                ForceUpdateUserName = .ForceUpdateUserName
+                ForceUpdateUserInfo = .ForceUpdateUserInfo
             End With
         End Sub
         Friend Sub New(ByVal s As SiteSettings)

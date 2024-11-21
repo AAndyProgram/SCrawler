@@ -103,7 +103,7 @@ Namespace Editors
 #End Region
 #Region "Exchange, Path, Labels"
         Friend Property MyExchangeOptions As Object = Nothing
-        Private ReadOnly _SpecPathPattern As RParams = RParams.DM("\w:\\.*", 0, EDP.ReturnValue)
+        Private ReadOnly _SpecPathPattern As RParams = RParams.DM("(\w:\\|\\\\).*", 0, EDP.ReturnValue)
         Private ReadOnly Property SpecialPath(ByVal s As SettingsHost) As SFile
             Get
                 If TXT_SPEC_FOLDER.IsEmptyString Then

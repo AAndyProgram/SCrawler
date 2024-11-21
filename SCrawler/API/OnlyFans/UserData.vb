@@ -760,14 +760,20 @@ Namespace API.OnlyFans
         Private _DownloadingException_AuthFileUpdate As Boolean = False
         Protected Overrides Function DownloadingException(ByVal ex As Exception, ByVal Message As String, Optional ByVal FromPE As Boolean = False,
                                                           Optional ByVal EObj As Object = Nothing) As Integer
-            If Responser.StatusCode = Net.HttpStatusCode.BadRequest Then '400
+            If Responser.StatusCode = Net.HttpStatusCode.BadRequest Or
+               (Responser.StatusCode = Net.HttpStatusCode.Unauthorized And CBool(MySettings.UpdateRules401.Value)) Then '400, [401]
                 If Not _DownloadingException_AuthFileUpdate AndAlso Rules.Update(True) Then
                     _DownloadingException_AuthFileUpdate = True
                     Return 2
                 Else
                     MySettings.SessionAborted = True
                     MyMainLOG = $"{ToStringForLog()} [{CInt(Responser.StatusCode)}]: OnlyFans credentials expired"
-                    Return 1
+                    If Responser.StatusCode = Net.HttpStatusCode.BadRequest Then
+                        Return 1
+                    Else
+                        MyMainLOG = $"{ToStringForLog()}: Rules updated (401)"
+                        Return 3
+                    End If
                 End If
             ElseIf Responser.StatusCode = Net.HttpStatusCode.NotFound Then '404
                 UserExists = False

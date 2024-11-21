@@ -58,8 +58,10 @@ Namespace API.Instagram
 #Region "Categories"
         Private Const CAT_DOWN As String = "Download data"
         Private Const CAT_UserDefs_VIDEO As String = DN.CAT_UserDefs & ": extract image from video"
+        Private Const CAT_ERRORS As String = "Errors"
 #End Region
-#Region "Authorization properties"
+#Region "Properties"
+#Region "Authorization"
         Friend Const Header_IG_APP_ID As String = "x-ig-app-id"
         Friend Const Header_IG_WWW_CLAIM As String = "x-ig-www-claim"
         Friend Const Header_CSRF_TOKEN As String = "x-csrftoken"
@@ -68,18 +70,18 @@ Namespace API.Instagram
         Friend Const Header_Browser As String = "Sec-Ch-Ua"
         Friend Const Header_BrowserExt As String = "Sec-Ch-Ua-Full-Version-List"
         Friend Const Header_Platform_Verion As String = "Sec-Ch-Ua-Platform-Version"
-        <PropertyOption(ControlText:="x-csrftoken", ControlToolTip:="Can be automatically extracted from cookies", IsAuth:=True, AllowNull:=True), ControlNumber(2), PClonable(Clone:=False)>
+        <PropertyOption(ControlText:="x-csrftoken", ControlToolTip:="Can be automatically extracted from cookies", IsAuth:=True, AllowNull:=True), PClonable(Clone:=False)>
         Friend ReadOnly Property HH_CSRF_TOKEN As PropertyValue
         <CookieValueExtractor(NameOf(HH_CSRF_TOKEN))>
         Private Function GetValueFromCookies(ByVal PropName As String, ByVal c As CookieKeeper) As String
             Return c.GetCookieValue(Header_CSRF_TOKEN_COOKIE, PropName, NameOf(HH_CSRF_TOKEN))
         End Function
-        <PropertyOption(ControlText:="x-ig-app-id", IsAuth:=True, AllowNull:=False), ControlNumber(3), PClonable(Clone:=False)>
+        <PropertyOption(ControlText:="x-ig-app-id", IsAuth:=True, AllowNull:=False), PClonable(Clone:=False)>
         Friend ReadOnly Property HH_IG_APP_ID As PropertyValue
-        <PropertyOption(ControlText:="x-asbd-id", IsAuth:=True, AllowNull:=True), ControlNumber(4), PClonable(Clone:=False)>
+        <PropertyOption(ControlText:="x-asbd-id", IsAuth:=True, AllowNull:=True), PClonable(Clone:=False)>
         Friend ReadOnly Property HH_ASBD_ID As PropertyValue
         'PropertyOption(ControlText:="x-ig-www-claim", IsAuth:=True, AllowNull:=True)
-        <ControlNumber(5), PClonable(Clone:=False)>
+        <PClonable(Clone:=False)>
         Friend ReadOnly Property HH_IG_WWW_CLAIM As PropertyValue
         Private ReadOnly Property HH_IG_WWW_CLAIM_IS_ZERO As Boolean
             Get
@@ -88,16 +90,16 @@ Namespace API.Instagram
             End Get
         End Property
         <PropertyOption(ControlText:="sec-ch-ua", IsAuth:=True, AllowNull:=True,
-                        InheritanceName:=SettingsCLS.HEADER_DEF_sec_ch_ua), ControlNumber(6), PClonable, PXML(OnlyForChecked:=True)>
+                        InheritanceName:=SettingsCLS.HEADER_DEF_sec_ch_ua), PClonable, PXML(OnlyForChecked:=True)>
         Private ReadOnly Property HH_BROWSER As PropertyValue
         <PropertyOption(ControlText:="sec-ch-ua-full", ControlToolTip:="sec-ch-ua-full-version-list", IsAuth:=True, AllowNull:=True,
-                        InheritanceName:=SettingsCLS.HEADER_DEF_sec_ch_ua_full_version_list), ControlNumber(7), PClonable, PXML(OnlyForChecked:=True)>
+                        InheritanceName:=SettingsCLS.HEADER_DEF_sec_ch_ua_full_version_list), PClonable, PXML(OnlyForChecked:=True)>
         Private ReadOnly Property HH_BROWSER_EXT As PropertyValue
         <PropertyOption(ControlText:="sec-ch-ua-platform-ver", ControlToolTip:="sec-ch-ua-platform-version", IsAuth:=True, AllowNull:=True, LeftOffset:=135,
-                        InheritanceName:=SettingsCLS.HEADER_DEF_sec_ch_ua_platform_version), ControlNumber(8), PClonable, PXML(OnlyForChecked:=True)>
+                        InheritanceName:=SettingsCLS.HEADER_DEF_sec_ch_ua_platform_version), PClonable, PXML(OnlyForChecked:=True)>
         Private ReadOnly Property HH_PLATFORM As PropertyValue
         <PropertyOption(ControlText:="UserAgent", IsAuth:=True, AllowNull:=True,
-                        InheritanceName:=SettingsCLS.HEADER_DEF_UserAgent), ControlNumber(9), PClonable, PXML(OnlyForChecked:=True)>
+                        InheritanceName:=SettingsCLS.HEADER_DEF_UserAgent), PClonable, PXML(OnlyForChecked:=True)>
         Private ReadOnly Property HH_USER_AGENT As PropertyValue
         Friend Overrides Function BaseAuthExists() As Boolean
             Return Responser.CookiesExists And ACheck(HH_IG_APP_ID.Value) And ACheck(HH_CSRF_TOKEN.Value)
@@ -126,113 +128,147 @@ Namespace API.Instagram
             End If
         End Sub
 #Region "HH_IG_WWW_CLAIM"
-        <PropertyOption(ControlText:="ig-www-claim update interval", IsAuth:=True, LeftOffset:=150), PXML, ControlNumber(10), PClonable, HiddenControl>
+        <PropertyOption(ControlText:="ig-www-claim update interval", IsAuth:=True, LeftOffset:=150), PXML, PClonable, HiddenControl>
         Private ReadOnly Property HH_IG_WWW_CLAIM_UPDATE_INTERVAL As PropertyValue
         <PropertyOption(ControlText:="ig-www-claim: always 0", ControlToolTip:="Keep token value always = 0", IsAuth:=True),
-            PXML, ControlNumber(11), PClonable, HiddenControl>
+            PXML, PClonable, HiddenControl>
         Friend ReadOnly Property HH_IG_WWW_CLAIM_ALWAYS_ZERO As PropertyValue
         <PropertyOption(ControlText:="ig-www-claim: reset each session", ControlToolTip:="Set 'x-ig-www-claim' to '0' before each session", IsAuth:=True),
-            PXML, ControlNumber(12), PClonable, HiddenControl>
+            PXML, PClonable, HiddenControl>
         Friend ReadOnly Property HH_IG_WWW_CLAIM_RESET_EACH_SESSION As PropertyValue
         <PropertyOption(ControlText:="ig-www-claim: reset each target", ControlToolTip:="Set 'x-ig-www-claim' to '0' before each target", IsAuth:=True),
-            PXML, ControlNumber(13), PClonable, HiddenControl>
+            PXML, PClonable, HiddenControl>
         Friend ReadOnly Property HH_IG_WWW_CLAIM_RESET_EACH_TARGET As PropertyValue
-        <PropertyOption(ControlText:="ig-www-claim: use in requests", IsAuth:=True), PXML, ControlNumber(14), PClonable, HiddenControl>
+        <PropertyOption(ControlText:="ig-www-claim: use in requests", IsAuth:=True), PXML, PClonable, HiddenControl>
         Friend ReadOnly Property HH_IG_WWW_CLAIM_USE As PropertyValue
-        <PropertyOption(ControlText:="ig-www-claim: use default algorithm to update", IsAuth:=True), PXML, ControlNumber(15), PClonable, HiddenControl>
+        <PropertyOption(ControlText:="ig-www-claim: use default algorithm to update", IsAuth:=True), PXML, PClonable, HiddenControl>
         Friend ReadOnly Property HH_IG_WWW_CLAIM_USE_DEFAULT_ALGO As PropertyValue
         <Provider(NameOf(HH_IG_WWW_CLAIM_UPDATE_INTERVAL), FieldsChecker:=True)>
         Private ReadOnly Property TokenUpdateIntervalProvider As IFormatProvider
 #End Region
-        <PropertyOption(ControlText:="Use GraphQL to download", IsAuth:=True), PXML, ControlNumber(16), PClonable>
+        <PropertyOption(ControlText:="Use GraphQL to download", IsAuth:=True), PXML, PClonable>
         Friend ReadOnly Property USE_GQL As PropertyValue
 #End Region
-#Region "Download properties"
-        <PropertyOption(ControlText:="DownDetector",
-                        ControlToolTip:="Use 'DownDetector' to determine if the site is accessible. -1 to disable." & vbCr &
-                                        "The value represents the average number of error reports over the last 4 hours"),
-            PClonable, PXML, ControlNumber(17)>
-        Private ReadOnly Property DownDetectorValue As PropertyValue
-        <Provider(NameOf(DownDetectorValue), FieldsChecker:=True)>
-        Private ReadOnly Property DownDetectorValueProvider As IFormatProvider
-        <PropertyOption(ControlText:="Add 'DownDetector' information to the log."), PClonable, PXML, ControlNumber(18), HiddenControl>
-        Private ReadOnly Property DownDetectorValueAddToLog As PropertyValue
+#Region "Download data"
+        <PropertyOption(ControlText:="Download timeline", Category:=CAT_DOWN), PXML, PClonable>
+        Friend ReadOnly Property DownloadTimeline As PropertyValue
+        <PXML> Private ReadOnly Property DownloadTimeline_Def As PropertyValue
+        <PropertyOption(ControlText:="Download reels", Category:=CAT_DOWN), PXML, PClonable>
+        Friend ReadOnly Property DownloadReels As PropertyValue
+        <PXML> Private ReadOnly Property DownloadReels_Def As PropertyValue
+        <PropertyOption(ControlText:="Download stories", Category:=CAT_DOWN), PXML, PClonable>
+        Friend ReadOnly Property DownloadStories As PropertyValue
+        <PXML> Private ReadOnly Property DownloadStories_Def As PropertyValue
+        <PropertyOption(ControlText:="Download stories: user", Category:=CAT_DOWN), PXML, PClonable>
+        Friend ReadOnly Property DownloadStoriesUser As PropertyValue
+        <PXML> Private ReadOnly Property DownloadStoriesUser_Def As PropertyValue
+        <PropertyOption(ControlText:="Download tagged posts", Category:=CAT_DOWN), PXML, PClonable>
+        Friend ReadOnly Property DownloadTagged As PropertyValue
+        <PXML> Private ReadOnly Property DownloadTagged_Def As PropertyValue
+#End Region
+#Region "Timers"
         Friend Const TimersUrgentTip As String = vbCr & "It is highly recommended not to change the default value."
         <PropertyOption(ControlText:="Request timer (any)",
                         ControlToolTip:="The timer (in milliseconds) that SCrawler should wait before executing the next request." &
                         vbCr & "The default value is 1'000." & vbCr & "The minimum value is 0." & TimersUrgentTip, AllowNull:=False, Category:=DN.CAT_Timers),
-                        PXML, ControlNumber(19), PClonable>
+                        PXML, PClonable>
         Friend ReadOnly Property RequestsWaitTimer_Any As PropertyValue
         <Provider(NameOf(RequestsWaitTimer_Any), FieldsChecker:=True)>
         Private ReadOnly Property RequestsWaitTimer_AnyProvider As IFormatProvider
         <PropertyOption(ControlText:="Request timer",
                         ControlToolTip:="The time value (in milliseconds) that the program will wait before processing the next 'Request time counter' request." &
                                         vbCr & "The default value is 1'000." & vbCr & "The minimum value is 100." & TimersUrgentTip,
-                        AllowNull:=False, Category:=DN.CAT_Timers), PXML, ControlNumber(20), PClonable>
+                        AllowNull:=False, Category:=DN.CAT_Timers), PXML, PClonable>
         Friend ReadOnly Property RequestsWaitTimer As PropertyValue
         <Provider(NameOf(RequestsWaitTimer), FieldsChecker:=True)>
         Private ReadOnly Property RequestsWaitTimerProvider As IFormatProvider
         <PropertyOption(ControlText:="Request timer counter",
                         ControlToolTip:="How many requests will be sent to Instagram before the program waits 'Request timer'." &
                                         vbCr & "The default value is 1." & vbCr & "The minimum value is 1." & TimersUrgentTip,
-                        AllowNull:=False, LeftOffset:=120, Category:=DN.CAT_Timers), PXML, ControlNumber(21), PClonable>
+                        AllowNull:=False, LeftOffset:=120, Category:=DN.CAT_Timers), PXML, PClonable>
         Friend ReadOnly Property RequestsWaitTimerTaskCount As PropertyValue
         <Provider(NameOf(RequestsWaitTimerTaskCount), FieldsChecker:=True)>
         Private ReadOnly Property RequestsWaitTimerTaskCountProvider As IFormatProvider
         <PropertyOption(ControlText:="Posts limit timer",
                         ControlToolTip:="The time value (in milliseconds) the program will wait before processing the next request after 195 requests." &
                                         vbCr & "The default value is 60'000." & vbCr & "The minimum value is 10'000." & TimersUrgentTip,
-                        AllowNull:=False, Category:=DN.CAT_Timers), PXML, ControlNumber(22), PClonable>
+                        AllowNull:=False, Category:=DN.CAT_Timers), PXML, PClonable>
         Friend ReadOnly Property SleepTimerOnPostsLimit As PropertyValue
         <Provider(NameOf(SleepTimerOnPostsLimit), FieldsChecker:=True)>
         Private ReadOnly Property SleepTimerOnPostsLimitProvider As IFormatProvider
-        <PropertyOption(ControlText:="Get timeline", ControlToolTip:="Default value for new users", Category:=DN.CAT_UserDefs), PXML, ControlNumber(23), PClonable>
+#End Region
+#Region "New user defaults"
+        <PropertyOption(ControlText:="Get timeline", ControlToolTip:="Default value for new users", Category:=DN.CAT_UserDefs), PXML, PClonable>
         Friend ReadOnly Property GetTimeline As PropertyValue
-        <PropertyOption(ControlText:="From timeline", ControlToolTip:="Default value for new users", Category:=CAT_UserDefs_VIDEO), PXML, ControlNumber(23), PClonable>
+        <PropertyOption(ControlText:="From timeline", ControlToolTip:="Default value for new users", Category:=CAT_UserDefs_VIDEO), PXML, PClonable>
         Friend ReadOnly Property GetTimeline_VideoPic As PropertyValue
-        <PropertyOption(ControlText:="Get reels", ControlToolTip:="Default value for new users", Category:=DN.CAT_UserDefs), PXML, ControlNumber(24), PClonable>
+        <PropertyOption(ControlText:="Get reels", ControlToolTip:="Default value for new users", Category:=DN.CAT_UserDefs), PXML, PClonable>
         Friend ReadOnly Property GetReels As PropertyValue
-        <PropertyOption(ControlText:="From reels", ControlToolTip:="Default value for new users", Category:=CAT_UserDefs_VIDEO), PXML, ControlNumber(24), PClonable>
+        <PropertyOption(ControlText:="From reels", ControlToolTip:="Default value for new users", Category:=CAT_UserDefs_VIDEO), PXML, PClonable>
         Friend ReadOnly Property GetReels_VideoPic As PropertyValue
-        <PropertyOption(ControlText:="Get stories", ControlToolTip:="Default value for new users", Category:=DN.CAT_UserDefs), PXML, ControlNumber(25), PClonable>
+        <PropertyOption(ControlText:="Get stories", ControlToolTip:="Default value for new users", Category:=DN.CAT_UserDefs), PXML, PClonable>
         Friend ReadOnly Property GetStories As PropertyValue
-        <PropertyOption(ControlText:="From stories", ControlToolTip:="Default value for new users", Category:=CAT_UserDefs_VIDEO), PXML, ControlNumber(25), PClonable>
+        <PropertyOption(ControlText:="From stories", ControlToolTip:="Default value for new users", Category:=CAT_UserDefs_VIDEO), PXML, PClonable>
         Friend ReadOnly Property GetStories_VideoPic As PropertyValue
-        <PropertyOption(ControlText:="Get stories: user", ControlToolTip:="Default value for new users", Category:=DN.CAT_UserDefs), PXML, ControlNumber(26), PClonable>
+        <PropertyOption(ControlText:="Get stories: user", ControlToolTip:="Default value for new users", Category:=DN.CAT_UserDefs), PXML, PClonable>
         Friend ReadOnly Property GetStoriesUser As PropertyValue
-        <PropertyOption(ControlText:="From stories: user", ControlToolTip:="Default value for new users", Category:=CAT_UserDefs_VIDEO), PXML, ControlNumber(26), PClonable>
+        <PropertyOption(ControlText:="From stories: user", ControlToolTip:="Default value for new users", Category:=CAT_UserDefs_VIDEO), PXML, PClonable>
         Friend ReadOnly Property GetStoriesUser_VideoPic As PropertyValue
-        <PropertyOption(ControlText:="Get tagged posts", ControlToolTip:="Default value for new users", Category:=DN.CAT_UserDefs), PXML, ControlNumber(27), PClonable>
+        <PropertyOption(ControlText:="Get tagged posts", ControlToolTip:="Default value for new users", Category:=DN.CAT_UserDefs), PXML, PClonable>
         Friend ReadOnly Property GetTagged As PropertyValue
-        <PropertyOption(ControlText:="From tagged posts", ControlToolTip:="Default value for new users", Category:=CAT_UserDefs_VIDEO), PXML, ControlNumber(27), PClonable>
+        <PropertyOption(ControlText:="From tagged posts", ControlToolTip:="Default value for new users", Category:=CAT_UserDefs_VIDEO), PXML, PClonable>
         Friend ReadOnly Property GetTagged_VideoPic As PropertyValue
-        <PropertyOption(ControlText:="From saved posts", ControlToolTip:="Default value for new users", Category:=CAT_UserDefs_VIDEO), PXML, ControlNumber(28), PClonable>
+        <PropertyOption(ControlText:="From saved posts", ControlToolTip:="Default value for new users", Category:=CAT_UserDefs_VIDEO), PXML, PClonable>
         Friend ReadOnly Property GetSavedPosts_VideoPic As PropertyValue
-        <PropertyOption(ControlText:="Place the extracted image into the video folder", ControlToolTip:="Default value for new users", Category:=CAT_UserDefs_VIDEO), PXML, ControlNumber(29), PClonable>
+        <PropertyOption(ControlText:="Place the extracted image into the video folder", ControlToolTip:="Default value for new users", Category:=CAT_UserDefs_VIDEO), PXML, PClonable>
         Friend ReadOnly Property PutImageVideoFolder As PropertyValue
+#End Region
+#Region "Errors"
+        Private Const ErrorsDefault As String = "572"
+        <PropertyOption(ControlText:="Skip errors",
+                        ControlToolTip:="Skip the following errors (comma separated)." & vbCr &
+                                        "Facing these errors will not disable the download, but will add a simple line to the log.", Category:=CAT_ERRORS),
+         PClonable, PXML>
+        Private ReadOnly Property SkipErrors As PropertyValue
+        <PropertyOption(ControlText:="Add skipped errors to the log", Category:=CAT_ERRORS), PClonable, PXML>
+        Private ReadOnly Property SkipErrors_AddToLog As PropertyValue
+        <PropertyOption(ControlText:="Skip errors (exclude)",
+                        ControlToolTip:="Exclude the following errors from being added to the log (comma separated)", Category:=CAT_ERRORS), PClonable, PXML>
+        Private ReadOnly Property SkipErrors_AddToLog_Silent As PropertyValue
+        Friend ReadOnly Property ErrorSpecialHandling(ByVal ErrCode As Integer) As Boolean
+            Get
+                With CStr(SkipErrors.Value) : Return Not .IsEmptyString AndAlso .Contains(ErrCode) : End With
+            End Get
+        End Property
+        Friend ReadOnly Property ErrorSpecialHandling_AddToLog(ByVal ErrCode As Integer) As Boolean
+            Get
+                With CStr(SkipErrors_AddToLog_Silent.Value)
+                    Return CBool(SkipErrors_AddToLog.Value) AndAlso (.IsEmptyString OrElse Not .Contains(ErrCode))
+                End With
+            End Get
+        End Property
+        <PropertyOption(ControlText:="Ignore stories downloading errors (560)",
+                        ControlToolTip:="If checked, error 560 will be skipped and the download will continue. Otherwise, the download will be interrupted.",
+                        Category:=CAT_ERRORS), PClonable, PXML>
+        Friend ReadOnly Property IgnoreStoriesDownloadingErrors As PropertyValue
+#End Region
+#Region "Other params"
+        <PropertyOption(ControlText:="DownDetector",
+                        ControlToolTip:="Use 'DownDetector' to determine if the site is accessible. -1 to disable." & vbCr &
+                                        "The value represents the average number of error reports over the last 4 hours"),
+            PClonable, PXML>
+        Private ReadOnly Property DownDetectorValue As PropertyValue
+        <Provider(NameOf(DownDetectorValue), FieldsChecker:=True)>
+        Private ReadOnly Property DownDetectorValueProvider As IFormatProvider
+        <PropertyOption(ControlText:="Add 'DownDetector' information to the log."), PClonable, PXML, HiddenControl>
+        Private ReadOnly Property DownDetectorValueAddToLog As PropertyValue
         <PropertyOption(ControlText:="Tagged notify limit",
                         ControlToolTip:="If the number of tagged posts exceeds this number you will be notified." & vbCr &
-                        "-1 to disable"), PXML, ControlNumber(27), PClonable>
+                        "-1 to disable"), PXML, PClonable>
         Friend ReadOnly Property TaggedNotifyLimit As PropertyValue
         <Provider(NameOf(TaggedNotifyLimit), FieldsChecker:=True)>
         Private ReadOnly Property TaggedNotifyLimitProvider As IFormatProvider
 #End Region
-#Region "Download ready"
-        <PropertyOption(ControlText:="Download timeline", Category:=CAT_DOWN), PXML, ControlNumber(10), PClonable>
-        Friend ReadOnly Property DownloadTimeline As PropertyValue
-        <PXML> Private ReadOnly Property DownloadTimeline_Def As PropertyValue
-        <PropertyOption(ControlText:="Download reels", Category:=CAT_DOWN), PXML, ControlNumber(11), PClonable>
-        Friend ReadOnly Property DownloadReels As PropertyValue
-        <PXML> Private ReadOnly Property DownloadReels_Def As PropertyValue
-        <PropertyOption(ControlText:="Download stories", Category:=CAT_DOWN), PXML, ControlNumber(12), PClonable>
-        Friend ReadOnly Property DownloadStories As PropertyValue
-        <PXML> Private ReadOnly Property DownloadStories_Def As PropertyValue
-        <PropertyOption(ControlText:="Download stories: user", Category:=CAT_DOWN), PXML, ControlNumber(13), PClonable>
-        Friend ReadOnly Property DownloadStoriesUser As PropertyValue
-        <PXML> Private ReadOnly Property DownloadStoriesUser_Def As PropertyValue
-        <PropertyOption(ControlText:="Download tagged posts", Category:=CAT_DOWN), PXML, ControlNumber(14), PClonable>
-        Friend ReadOnly Property DownloadTagged As PropertyValue
-        <PXML> Private ReadOnly Property DownloadTagged_Def As PropertyValue
 #End Region
 #Region "429 bypass"
         <PXML("InstagramDownloadingErrorDate")>
@@ -266,8 +302,40 @@ Namespace API.Instagram
             End Get
         End Property
         Private Const LastDownloadDateResetInterval As Integer = 60
+        Private TooManyRequestsReadyForCatch As Boolean = True
+        Friend Function GetWaitDate() As Date
+            With DownloadingErrorDate
+                If ACheck(Of Date)(.Value) Then
+                    Return CDate(.Value).AddMinutes(If(LastApplyingValue, 10))
+                Else
+                    Return Now
+                End If
+            End With
+        End Function
+        Friend Sub TooManyRequests(ByVal Catched As Boolean)
+            With DownloadingErrorDate
+                If Catched Then
+                    If Not ACheck(Of Date)(.Value) Then
+                        .Value = Now
+                        If TooManyRequestsReadyForCatch Then
+                            LastApplyingValue = If(LastApplyingValue, 0) + 10
+                            TooManyRequestsReadyForCatch = False
+                            MyMainLOG = $"Instagram downloading error: too many requests. Try again after {If(LastApplyingValue, 10)} minutes..."
+                        End If
+                    End If
+                Else
+                    .Value = Nothing
+                    LastApplyingValue = Nothing
+                    TooManyRequestsReadyForCatch = True
+                End If
+            End With
+        End Sub
+#End Region
+#Region "LastRequestsCount, Label"
         <PXML> Private ReadOnly Property LastDownloadDate As PropertyValue
         <PXML> Private ReadOnly Property LastRequestsCount As PropertyValue
+        <PropertyOption(IsInformationLabel:=True)>
+        Private ReadOnly Property LastRequestsCountLabel As PropertyValue
         Private ReadOnly MyLastRequests As Dictionary(Of Date, Integer)
         Private ReadOnly Property MyLastRequestsDate As Date
             Get
@@ -320,36 +388,6 @@ Namespace API.Instagram
             Catch ex As Exception
                 ErrorsDescriber.Execute(EDP.SendToLog, ex, "[SiteSettings.Instagram.RefreshMyLastRequests]")
             End Try
-        End Sub
-        <PropertyOption(IsInformationLabel:=True), ControlNumber(100)>
-        Private ReadOnly Property LastRequestsCountLabel As PropertyValue
-        Private TooManyRequestsReadyForCatch As Boolean = True
-        Friend Function GetWaitDate() As Date
-            With DownloadingErrorDate
-                If ACheck(Of Date)(.Value) Then
-                    Return CDate(.Value).AddMinutes(If(LastApplyingValue, 10))
-                Else
-                    Return Now
-                End If
-            End With
-        End Function
-        Friend Sub TooManyRequests(ByVal Catched As Boolean)
-            With DownloadingErrorDate
-                If Catched Then
-                    If Not ACheck(Of Date)(.Value) Then
-                        .Value = Now
-                        If TooManyRequestsReadyForCatch Then
-                            LastApplyingValue = If(LastApplyingValue, 0) + 10
-                            TooManyRequestsReadyForCatch = False
-                            MyMainLOG = $"Instagram downloading error: too many requests. Try again after {If(LastApplyingValue, 10)} minutes..."
-                        End If
-                    End If
-                Else
-                    .Value = Nothing
-                    LastApplyingValue = Nothing
-                    TooManyRequestsReadyForCatch = True
-                End If
-            End With
         End Sub
 #End Region
 #End Region
@@ -427,9 +465,6 @@ Namespace API.Instagram
             DownloadTagged = New PropertyValue(False)
             DownloadTagged_Def = New PropertyValue(DownloadTagged.Value, GetType(Boolean))
 
-            DownDetectorValue = New PropertyValue(20)
-            DownDetectorValueProvider = New TimersChecker(-1)
-            DownDetectorValueAddToLog = New PropertyValue(False)
             RequestsWaitTimer_Any = New PropertyValue(1000)
             RequestsWaitTimer_AnyProvider = New TimersChecker(0)
             RequestsWaitTimer = New PropertyValue(1000)
@@ -451,6 +486,15 @@ Namespace API.Instagram
             GetTagged_VideoPic = New PropertyValue(True)
             GetSavedPosts_VideoPic = New PropertyValue(True)
             PutImageVideoFolder = New PropertyValue(False)
+
+            SkipErrors = New PropertyValue(ErrorsDefault)
+            SkipErrors_AddToLog = New PropertyValue(True)
+            SkipErrors_AddToLog_Silent = New PropertyValue(String.Empty, GetType(String))
+            IgnoreStoriesDownloadingErrors = New PropertyValue(False)
+
+            DownDetectorValue = New PropertyValue(20)
+            DownDetectorValueProvider = New TimersChecker(-1)
+            DownDetectorValueAddToLog = New PropertyValue(False)
             TaggedNotifyLimit = New PropertyValue(200)
             TaggedNotifyLimitProvider = New TaggedNotifyLimitChecker
 

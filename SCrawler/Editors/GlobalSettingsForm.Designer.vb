@@ -24,16 +24,16 @@ Namespace Editors
         Private Sub InitializeComponent()
             Me.components = New System.ComponentModel.Container()
             Dim TP_BASIS As System.Windows.Forms.TableLayoutPanel
-            Dim ActionButton39 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton1 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(GlobalSettingsForm))
-            Dim ActionButton40 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton2 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim TP_IMAGES As System.Windows.Forms.TableLayoutPanel
-            Dim ActionButton41 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
-            Dim ActionButton42 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
-            Dim ActionButton43 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
-            Dim ActionButton44 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
-            Dim ActionButton45 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
-            Dim ActionButton46 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton3 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton4 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton5 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton6 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton7 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton8 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim TP_FILE_NAME As System.Windows.Forms.TableLayoutPanel
             Dim TP_FILE_PATTERNS As System.Windows.Forms.TableLayoutPanel
             Dim LBL_DATE_POS As System.Windows.Forms.Label
@@ -46,58 +46,58 @@ Namespace Editors
             Dim TP_CHANNELS As System.Windows.Forms.TableLayoutPanel
             Dim TAB_BEHAVIOR As System.Windows.Forms.TabPage
             Dim TP_BEHAVIOR As System.Windows.Forms.TableLayoutPanel
-            Dim ActionButton47 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
-            Dim ActionButton48 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton9 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton10 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim TP_OPEN_INFO As System.Windows.Forms.TableLayoutPanel
             Dim TP_OPEN_PROGRESS As System.Windows.Forms.TableLayoutPanel
             Dim TP_BEHAVIOR_F6 As System.Windows.Forms.TableLayoutPanel
             Dim TAB_DOWN As System.Windows.Forms.TabPage
             Dim TP_DOWNLOADING As System.Windows.Forms.TableLayoutPanel
-            Dim ActionButton49 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
-            Dim ActionButton50 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton11 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton12 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim TP_MISSING_DATA As System.Windows.Forms.TableLayoutPanel
             Dim TAB_FEED As System.Windows.Forms.TabPage
             Dim TP_FEED As System.Windows.Forms.TableLayoutPanel
             Dim TP_FEED_IMG_COUNT As System.Windows.Forms.TableLayoutPanel
             Dim TP_FEED_SES As System.Windows.Forms.TableLayoutPanel
-            Dim ActionButton51 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
-            Dim ActionButton52 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton13 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton14 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim TP_FEED_SPEC_SEARCH As System.Windows.Forms.TableLayoutPanel
             Dim TAB_NOTIFY As System.Windows.Forms.TabPage
             Dim TP_NOTIFY_MAIN As System.Windows.Forms.TableLayoutPanel
             Dim TP_ENVIR As System.Windows.Forms.TableLayoutPanel
-            Dim ActionButton53 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
-            Dim ActionButton54 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
-            Dim ActionButton55 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
-            Dim ActionButton56 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
-            Dim ActionButton57 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
-            Dim ActionButton58 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
-            Dim ActionButton59 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
-            Dim ActionButton60 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
-            Dim ActionButton61 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
-            Dim ActionButton62 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
-            Dim ActionButton63 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
-            Dim ActionButton64 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
-            Dim ActionButton65 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
-            Dim ActionButton66 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton15 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton16 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton17 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton18 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton19 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton20 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton21 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton22 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton23 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton24 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton25 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton26 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton27 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton28 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim TAB_STD As System.Windows.Forms.TabPage
             Dim TP_STD As System.Windows.Forms.TableLayoutPanel
-            Dim ActionButton67 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
-            Dim ListColumn3 As PersonalUtilities.Forms.Controls.Base.ListColumn = New PersonalUtilities.Forms.Controls.Base.ListColumn()
-            Dim ListColumn4 As PersonalUtilities.Forms.Controls.Base.ListColumn = New PersonalUtilities.Forms.Controls.Base.ListColumn()
+            Dim ActionButton29 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ListColumn1 As PersonalUtilities.Forms.Controls.Base.ListColumn = New PersonalUtilities.Forms.Controls.Base.ListColumn()
+            Dim ListColumn2 As PersonalUtilities.Forms.Controls.Base.ListColumn = New PersonalUtilities.Forms.Controls.Base.ListColumn()
             Dim TAB_DESIGN As System.Windows.Forms.TabPage
             Dim TP_DESIGN As System.Windows.Forms.TableLayoutPanel
-            Dim ActionButton68 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
-            Dim ActionButton69 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
-            Dim ActionButton70 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
-            Dim ActionButton71 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton30 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton31 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton32 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton33 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim TP_HEADERS_DEF As System.Windows.Forms.TableLayoutPanel
-            Dim ActionButton72 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
-            Dim ActionButton73 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
-            Dim ActionButton74 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
-            Dim ActionButton75 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
-            Dim ActionButton76 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton34 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton35 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton36 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton37 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton38 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim TAB_HEADERS As System.Windows.Forms.TabPage
-            Dim TP_FEED_SPEC_SEARCH As System.Windows.Forms.TableLayoutPanel
             Me.TXT_GLOBAL_PATH = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_IMAGE_LARGE = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_IMAGE_SMALL = New PersonalUtilities.Forms.Controls.TextBoxExtended()
@@ -151,6 +151,8 @@ Namespace Editors
             Me.CH_FEED_UP_FILE_LOC_MOVE = New System.Windows.Forms.CheckBox()
             Me.CH_DOWN_ALL_F6_NOTIFY = New System.Windows.Forms.CheckBox()
             Me.CH_DOWN_ALL_NOTIFY = New System.Windows.Forms.CheckBox()
+            Me.CH_FEED_SPEC_SEARCH = New System.Windows.Forms.CheckBox()
+            Me.CH_FEED_SPEC_SEARCH_DEEP = New System.Windows.Forms.CheckBox()
             Me.TXT_CHANNELS_ROWS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_CHANNELS_COLUMNS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.CH_DOWN_IMAGES_NATIVE = New System.Windows.Forms.CheckBox()
@@ -210,8 +212,7 @@ Namespace Editors
             Me.TAB_MAIN = New System.Windows.Forms.TabControl()
             Me.TAB_ENVIR = New System.Windows.Forms.TabPage()
             Me.CONTAINER_MAIN = New System.Windows.Forms.ToolStripContainer()
-            Me.CH_FEED_SPEC_SEARCH = New System.Windows.Forms.CheckBox()
-            Me.CH_FEED_SPEC_SEARCH_DEEP = New System.Windows.Forms.CheckBox()
+            Me.CH_FEED_OPEN_CTRLF = New System.Windows.Forms.CheckBox()
             TP_BASIS = New System.Windows.Forms.TableLayoutPanel()
             TP_IMAGES = New System.Windows.Forms.TableLayoutPanel()
             TP_FILE_NAME = New System.Windows.Forms.TableLayoutPanel()
@@ -236,6 +237,7 @@ Namespace Editors
             TP_FEED = New System.Windows.Forms.TableLayoutPanel()
             TP_FEED_IMG_COUNT = New System.Windows.Forms.TableLayoutPanel()
             TP_FEED_SES = New System.Windows.Forms.TableLayoutPanel()
+            TP_FEED_SPEC_SEARCH = New System.Windows.Forms.TableLayoutPanel()
             TAB_NOTIFY = New System.Windows.Forms.TabPage()
             TP_NOTIFY_MAIN = New System.Windows.Forms.TableLayoutPanel()
             TP_ENVIR = New System.Windows.Forms.TableLayoutPanel()
@@ -245,7 +247,6 @@ Namespace Editors
             TP_DESIGN = New System.Windows.Forms.TableLayoutPanel()
             TP_HEADERS_DEF = New System.Windows.Forms.TableLayoutPanel()
             TAB_HEADERS = New System.Windows.Forms.TabPage()
-            TP_FEED_SPEC_SEARCH = New System.Windows.Forms.TableLayoutPanel()
             TP_BASIS.SuspendLayout()
             CType(Me.TXT_GLOBAL_PATH, System.ComponentModel.ISupportInitialize).BeginInit()
             TP_IMAGES.SuspendLayout()
@@ -290,6 +291,7 @@ Namespace Editors
             TP_FEED_SES.SuspendLayout()
             CType(Me.NUM_FEED_STORE_SESSION_DATA, System.ComponentModel.ISupportInitialize).BeginInit()
             CType(Me.NUM_FEED_SES_CURR_LOAD_LAST, System.ComponentModel.ISupportInitialize).BeginInit()
+            TP_FEED_SPEC_SEARCH.SuspendLayout()
             TAB_NOTIFY.SuspendLayout()
             TP_NOTIFY_MAIN.SuspendLayout()
             TP_ENVIR.SuspendLayout()
@@ -318,7 +320,6 @@ Namespace Editors
             Me.TAB_ENVIR.SuspendLayout()
             Me.CONTAINER_MAIN.ContentPanel.SuspendLayout()
             Me.CONTAINER_MAIN.SuspendLayout()
-            TP_FEED_SPEC_SEARCH.SuspendLayout()
             Me.SuspendLayout()
             '
             'TP_BASIS
@@ -349,17 +350,17 @@ Namespace Editors
             TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
             TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
             TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
-            TP_BASIS.Size = New System.Drawing.Size(615, 393)
+            TP_BASIS.Size = New System.Drawing.Size(615, 418)
             TP_BASIS.TabIndex = 0
             '
             'TXT_GLOBAL_PATH
             '
-            ActionButton39.BackgroundImage = CType(resources.GetObject("ActionButton39.BackgroundImage"), System.Drawing.Image)
-            ActionButton39.Name = "Open"
-            ActionButton40.BackgroundImage = CType(resources.GetObject("ActionButton40.BackgroundImage"), System.Drawing.Image)
-            ActionButton40.Name = "Clear"
-            Me.TXT_GLOBAL_PATH.Buttons.Add(ActionButton39)
-            Me.TXT_GLOBAL_PATH.Buttons.Add(ActionButton40)
+            ActionButton1.BackgroundImage = CType(resources.GetObject("ActionButton1.BackgroundImage"), System.Drawing.Image)
+            ActionButton1.Name = "Open"
+            ActionButton2.BackgroundImage = CType(resources.GetObject("ActionButton2.BackgroundImage"), System.Drawing.Image)
+            ActionButton2.Name = "Clear"
+            Me.TXT_GLOBAL_PATH.Buttons.Add(ActionButton1)
+            Me.TXT_GLOBAL_PATH.Buttons.Add(ActionButton2)
             Me.TXT_GLOBAL_PATH.CaptionText = "Data Path"
             Me.TXT_GLOBAL_PATH.CaptionToolTipEnabled = True
             Me.TXT_GLOBAL_PATH.CaptionToolTipText = "Root path for storing users' data"
@@ -420,9 +421,9 @@ Namespace Editors
             '
             'TXT_COLLECTIONS_PATH
             '
-            ActionButton41.BackgroundImage = CType(resources.GetObject("ActionButton41.BackgroundImage"), System.Drawing.Image)
-            ActionButton41.Name = "Clear"
-            Me.TXT_COLLECTIONS_PATH.Buttons.Add(ActionButton41)
+            ActionButton3.BackgroundImage = CType(resources.GetObject("ActionButton3.BackgroundImage"), System.Drawing.Image)
+            ActionButton3.Name = "Clear"
+            Me.TXT_COLLECTIONS_PATH.Buttons.Add(ActionButton3)
             Me.TXT_COLLECTIONS_PATH.CaptionText = "Collections folder"
             Me.TXT_COLLECTIONS_PATH.CaptionToolTipEnabled = True
             Me.TXT_COLLECTIONS_PATH.CaptionToolTipText = "Set collections folder name (name only)"
@@ -434,10 +435,10 @@ Namespace Editors
             '
             'TXT_MAX_JOBS_USERS
             '
-            ActionButton42.BackgroundImage = CType(resources.GetObject("ActionButton42.BackgroundImage"), System.Drawing.Image)
-            ActionButton42.Name = "Refresh"
-            ActionButton42.ToolTipText = "Set to default"
-            Me.TXT_MAX_JOBS_USERS.Buttons.Add(ActionButton42)
+            ActionButton4.BackgroundImage = CType(resources.GetObject("ActionButton4.BackgroundImage"), System.Drawing.Image)
+            ActionButton4.Name = "Refresh"
+            ActionButton4.ToolTipText = "Set to default"
+            Me.TXT_MAX_JOBS_USERS.Buttons.Add(ActionButton4)
             Me.TXT_MAX_JOBS_USERS.CaptionSizeType = System.Windows.Forms.SizeType.Percent
             Me.TXT_MAX_JOBS_USERS.CaptionText = "Maximum downloading tasks of users"
             Me.TXT_MAX_JOBS_USERS.CaptionWidth = 50.0R
@@ -453,10 +454,10 @@ Namespace Editors
             '
             'TXT_MAX_JOBS_CHANNELS
             '
-            ActionButton43.BackgroundImage = CType(resources.GetObject("ActionButton43.BackgroundImage"), System.Drawing.Image)
-            ActionButton43.Name = "Refresh"
-            ActionButton43.ToolTipText = "Set to default"
-            Me.TXT_MAX_JOBS_CHANNELS.Buttons.Add(ActionButton43)
+            ActionButton5.BackgroundImage = CType(resources.GetObject("ActionButton5.BackgroundImage"), System.Drawing.Image)
+            ActionButton5.Name = "Refresh"
+            ActionButton5.ToolTipText = "Set to default"
+            Me.TXT_MAX_JOBS_CHANNELS.Buttons.Add(ActionButton5)
             Me.TXT_MAX_JOBS_CHANNELS.CaptionSizeType = System.Windows.Forms.SizeType.Percent
             Me.TXT_MAX_JOBS_CHANNELS.CaptionText = "Maximum downloading tasks of channels"
             Me.TXT_MAX_JOBS_CHANNELS.CaptionWidth = 50.0R
@@ -483,9 +484,9 @@ Namespace Editors
             '
             'TXT_IMGUR_CLIENT_ID
             '
-            ActionButton44.BackgroundImage = CType(resources.GetObject("ActionButton44.BackgroundImage"), System.Drawing.Image)
-            ActionButton44.Name = "Clear"
-            Me.TXT_IMGUR_CLIENT_ID.Buttons.Add(ActionButton44)
+            ActionButton6.BackgroundImage = CType(resources.GetObject("ActionButton6.BackgroundImage"), System.Drawing.Image)
+            ActionButton6.Name = "Clear"
+            Me.TXT_IMGUR_CLIENT_ID.Buttons.Add(ActionButton6)
             Me.TXT_IMGUR_CLIENT_ID.CaptionText = "Imgur Client ID"
             Me.TXT_IMGUR_CLIENT_ID.Dock = System.Windows.Forms.DockStyle.Fill
             Me.TXT_IMGUR_CLIENT_ID.Location = New System.Drawing.Point(4, 204)
@@ -495,14 +496,14 @@ Namespace Editors
             '
             'TXT_USER_AGENT
             '
-            ActionButton45.BackgroundImage = CType(resources.GetObject("ActionButton45.BackgroundImage"), System.Drawing.Image)
-            ActionButton45.Name = "Refresh"
-            ActionButton45.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Refresh
-            ActionButton46.BackgroundImage = CType(resources.GetObject("ActionButton46.BackgroundImage"), System.Drawing.Image)
-            ActionButton46.Name = "Clear"
-            ActionButton46.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
-            Me.TXT_USER_AGENT.Buttons.Add(ActionButton45)
-            Me.TXT_USER_AGENT.Buttons.Add(ActionButton46)
+            ActionButton7.BackgroundImage = CType(resources.GetObject("ActionButton7.BackgroundImage"), System.Drawing.Image)
+            ActionButton7.Name = "Refresh"
+            ActionButton7.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Refresh
+            ActionButton8.BackgroundImage = CType(resources.GetObject("ActionButton8.BackgroundImage"), System.Drawing.Image)
+            ActionButton8.Name = "Clear"
+            ActionButton8.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
+            Me.TXT_USER_AGENT.Buttons.Add(ActionButton7)
+            Me.TXT_USER_AGENT.Buttons.Add(ActionButton8)
             Me.TXT_USER_AGENT.CaptionText = "UserAgent"
             Me.TXT_USER_AGENT.CaptionToolTipEnabled = True
             Me.TXT_USER_AGENT.CaptionToolTipText = "Default user agent to use in requests"
@@ -1105,6 +1106,31 @@ Namespace Editors
             TT_MAIN.SetToolTip(Me.CH_DOWN_ALL_NOTIFY, "Request confirmation to download all users anyway")
             Me.CH_DOWN_ALL_NOTIFY.UseVisualStyleBackColor = True
             '
+            'CH_FEED_SPEC_SEARCH
+            '
+            Me.CH_FEED_SPEC_SEARCH.AutoSize = True
+            Me.CH_FEED_SPEC_SEARCH.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_FEED_SPEC_SEARCH.Location = New System.Drawing.Point(3, 3)
+            Me.CH_FEED_SPEC_SEARCH.Name = "CH_FEED_SPEC_SEARCH"
+            Me.CH_FEED_SPEC_SEARCH.Size = New System.Drawing.Size(303, 19)
+            Me.CH_FEED_SPEC_SEARCH.TabIndex = 0
+            Me.CH_FEED_SPEC_SEARCH.Text = "Search missing files (special feeds)"
+            TT_MAIN.SetToolTip(Me.CH_FEED_SPEC_SEARCH, "Search for missing file in the entire user folder")
+            Me.CH_FEED_SPEC_SEARCH.UseVisualStyleBackColor = True
+            '
+            'CH_FEED_SPEC_SEARCH_DEEP
+            '
+            Me.CH_FEED_SPEC_SEARCH_DEEP.AutoSize = True
+            Me.CH_FEED_SPEC_SEARCH_DEEP.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_FEED_SPEC_SEARCH_DEEP.Location = New System.Drawing.Point(312, 3)
+            Me.CH_FEED_SPEC_SEARCH_DEEP.Name = "CH_FEED_SPEC_SEARCH_DEEP"
+            Me.CH_FEED_SPEC_SEARCH_DEEP.Size = New System.Drawing.Size(304, 19)
+            Me.CH_FEED_SPEC_SEARCH_DEEP.TabIndex = 1
+            Me.CH_FEED_SPEC_SEARCH_DEEP.Text = "Search missing files (special feeds): deep search"
+            TT_MAIN.SetToolTip(Me.CH_FEED_SPEC_SEARCH_DEEP, "Deep search means that the missing file will be searched in other users' location" &
+        "s as well.")
+            Me.CH_FEED_SPEC_SEARCH_DEEP.UseVisualStyleBackColor = True
+            '
             'TP_CHANNELS_IMGS
             '
             TP_CHANNELS_IMGS.ColumnCount = 2
@@ -1156,7 +1182,7 @@ Namespace Editors
             TAB_BASIS.Location = New System.Drawing.Point(4, 22)
             TAB_BASIS.Name = "TAB_BASIS"
             TAB_BASIS.Padding = New System.Windows.Forms.Padding(3)
-            TAB_BASIS.Size = New System.Drawing.Size(621, 399)
+            TAB_BASIS.Size = New System.Drawing.Size(621, 424)
             TAB_BASIS.TabIndex = 0
             TAB_BASIS.Text = "Basis"
             '
@@ -1166,7 +1192,7 @@ Namespace Editors
             TAB_DEFAULTS.Location = New System.Drawing.Point(4, 22)
             TAB_DEFAULTS.Name = "TAB_DEFAULTS"
             TAB_DEFAULTS.Padding = New System.Windows.Forms.Padding(3)
-            TAB_DEFAULTS.Size = New System.Drawing.Size(621, 399)
+            TAB_DEFAULTS.Size = New System.Drawing.Size(621, 424)
             TAB_DEFAULTS.TabIndex = 1
             TAB_DEFAULTS.Text = "Defaults"
             '
@@ -1192,7 +1218,7 @@ Namespace Editors
             TP_DEFS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_DEFS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_DEFS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_DEFS.Size = New System.Drawing.Size(615, 393)
+            TP_DEFS.Size = New System.Drawing.Size(615, 418)
             TP_DEFS.TabIndex = 0
             '
             'CH_DOWN_IMAGES_NATIVE
@@ -1212,7 +1238,7 @@ Namespace Editors
             TAB_DEFS_CHANNELS.Location = New System.Drawing.Point(4, 22)
             TAB_DEFS_CHANNELS.Name = "TAB_DEFS_CHANNELS"
             TAB_DEFS_CHANNELS.Padding = New System.Windows.Forms.Padding(3)
-            TAB_DEFS_CHANNELS.Size = New System.Drawing.Size(621, 399)
+            TAB_DEFS_CHANNELS.Size = New System.Drawing.Size(621, 424)
             TAB_DEFS_CHANNELS.TabIndex = 4
             TAB_DEFS_CHANNELS.Text = "Channels"
             '
@@ -1238,7 +1264,7 @@ Namespace Editors
             TP_CHANNELS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_CHANNELS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_CHANNELS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_CHANNELS.Size = New System.Drawing.Size(615, 393)
+            TP_CHANNELS.Size = New System.Drawing.Size(615, 418)
             TP_CHANNELS.TabIndex = 0
             '
             'TXT_CHANNEL_USER_POST_LIMIT
@@ -1277,7 +1303,7 @@ Namespace Editors
             TAB_BEHAVIOR.Controls.Add(TP_BEHAVIOR)
             TAB_BEHAVIOR.Location = New System.Drawing.Point(4, 22)
             TAB_BEHAVIOR.Name = "TAB_BEHAVIOR"
-            TAB_BEHAVIOR.Size = New System.Drawing.Size(621, 399)
+            TAB_BEHAVIOR.Size = New System.Drawing.Size(621, 424)
             TAB_BEHAVIOR.TabIndex = 5
             TAB_BEHAVIOR.Text = "Behavior"
             '
@@ -1297,10 +1323,11 @@ Namespace Editors
             TP_BEHAVIOR.Controls.Add(TP_BEHAVIOR_F6, 0, 8)
             TP_BEHAVIOR.Controls.Add(Me.TXT_SCHEDULER_SCRIPT, 0, 9)
             TP_BEHAVIOR.Controls.Add(Me.CH_SCHEDULER_SCRIPT_EX_MANUAL, 0, 10)
+            TP_BEHAVIOR.Controls.Add(Me.CH_FEED_OPEN_CTRLF, 0, 11)
             TP_BEHAVIOR.Dock = System.Windows.Forms.DockStyle.Fill
             TP_BEHAVIOR.Location = New System.Drawing.Point(0, 0)
             TP_BEHAVIOR.Name = "TP_BEHAVIOR"
-            TP_BEHAVIOR.RowCount = 12
+            TP_BEHAVIOR.RowCount = 13
             TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
@@ -1311,19 +1338,20 @@ Namespace Editors
             TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
+            TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_BEHAVIOR.Size = New System.Drawing.Size(621, 399)
+            TP_BEHAVIOR.Size = New System.Drawing.Size(621, 424)
             TP_BEHAVIOR.TabIndex = 0
             '
             'TXT_FOLDER_CMD
             '
             Me.TXT_FOLDER_CMD.AutoShowClearButton = True
-            ActionButton47.BackgroundImage = CType(resources.GetObject("ActionButton47.BackgroundImage"), System.Drawing.Image)
-            ActionButton47.Enabled = False
-            ActionButton47.Name = "Clear"
-            ActionButton47.Visible = False
-            Me.TXT_FOLDER_CMD.Buttons.Add(ActionButton47)
+            ActionButton9.BackgroundImage = CType(resources.GetObject("ActionButton9.BackgroundImage"), System.Drawing.Image)
+            ActionButton9.Enabled = False
+            ActionButton9.Name = "Clear"
+            ActionButton9.Visible = False
+            Me.TXT_FOLDER_CMD.Buttons.Add(ActionButton9)
             Me.TXT_FOLDER_CMD.CaptionMode = PersonalUtilities.Forms.Controls.Base.ICaptionControl.Modes.CheckBox
             Me.TXT_FOLDER_CMD.CaptionText = "Folder cmd"
             Me.TXT_FOLDER_CMD.CaptionToolTipEnabled = True
@@ -1362,11 +1390,11 @@ Namespace Editors
             'TXT_CLOSE_SCRIPT
             '
             Me.TXT_CLOSE_SCRIPT.AutoShowClearButton = True
-            ActionButton48.BackgroundImage = CType(resources.GetObject("ActionButton48.BackgroundImage"), System.Drawing.Image)
-            ActionButton48.Enabled = False
-            ActionButton48.Name = "Clear"
-            ActionButton48.Visible = False
-            Me.TXT_CLOSE_SCRIPT.Buttons.Add(ActionButton48)
+            ActionButton10.BackgroundImage = CType(resources.GetObject("ActionButton10.BackgroundImage"), System.Drawing.Image)
+            ActionButton10.Enabled = False
+            ActionButton10.Name = "Clear"
+            ActionButton10.Visible = False
+            Me.TXT_CLOSE_SCRIPT.Buttons.Add(ActionButton10)
             Me.TXT_CLOSE_SCRIPT.CaptionMode = PersonalUtilities.Forms.Controls.Base.ICaptionControl.Modes.CheckBox
             Me.TXT_CLOSE_SCRIPT.CaptionText = "Close cmd"
             Me.TXT_CLOSE_SCRIPT.CaptionToolTipEnabled = True
@@ -1509,7 +1537,7 @@ Namespace Editors
             TAB_DOWN.Controls.Add(TP_DOWNLOADING)
             TAB_DOWN.Location = New System.Drawing.Point(4, 22)
             TAB_DOWN.Name = "TAB_DOWN"
-            TAB_DOWN.Size = New System.Drawing.Size(621, 399)
+            TAB_DOWN.Size = New System.Drawing.Size(621, 424)
             TAB_DOWN.TabIndex = 6
             TAB_DOWN.Text = "Downloading"
             '
@@ -1545,17 +1573,17 @@ Namespace Editors
             TP_DOWNLOADING.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_DOWNLOADING.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_DOWNLOADING.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_DOWNLOADING.Size = New System.Drawing.Size(621, 399)
+            TP_DOWNLOADING.Size = New System.Drawing.Size(621, 424)
             TP_DOWNLOADING.TabIndex = 1
             '
             'TXT_SCRIPT
             '
-            ActionButton49.BackgroundImage = CType(resources.GetObject("ActionButton49.BackgroundImage"), System.Drawing.Image)
-            ActionButton49.Name = "Open"
-            ActionButton50.BackgroundImage = CType(resources.GetObject("ActionButton50.BackgroundImage"), System.Drawing.Image)
-            ActionButton50.Name = "Clear"
-            Me.TXT_SCRIPT.Buttons.Add(ActionButton49)
-            Me.TXT_SCRIPT.Buttons.Add(ActionButton50)
+            ActionButton11.BackgroundImage = CType(resources.GetObject("ActionButton11.BackgroundImage"), System.Drawing.Image)
+            ActionButton11.Name = "Open"
+            ActionButton12.BackgroundImage = CType(resources.GetObject("ActionButton12.BackgroundImage"), System.Drawing.Image)
+            ActionButton12.Name = "Clear"
+            Me.TXT_SCRIPT.Buttons.Add(ActionButton11)
+            Me.TXT_SCRIPT.Buttons.Add(ActionButton12)
             Me.TXT_SCRIPT.CaptionMode = PersonalUtilities.Forms.Controls.Base.ICaptionControl.Modes.CheckBox
             Me.TXT_SCRIPT.CaptionText = "Script"
             Me.TXT_SCRIPT.CaptionToolTipEnabled = True
@@ -1649,7 +1677,7 @@ Namespace Editors
             TAB_FEED.Controls.Add(TP_FEED)
             TAB_FEED.Location = New System.Drawing.Point(4, 22)
             TAB_FEED.Name = "TAB_FEED"
-            TAB_FEED.Size = New System.Drawing.Size(621, 399)
+            TAB_FEED.Size = New System.Drawing.Size(621, 424)
             TAB_FEED.TabIndex = 7
             TAB_FEED.Text = "Feed"
             '
@@ -1694,7 +1722,7 @@ Namespace Editors
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
-            TP_FEED.Size = New System.Drawing.Size(621, 399)
+            TP_FEED.Size = New System.Drawing.Size(621, 424)
             TP_FEED.TabIndex = 0
             '
             'TP_FEED_IMG_COUNT
@@ -1873,14 +1901,14 @@ Namespace Editors
             '
             'NUM_FEED_SES_CURR_LOAD_LAST
             '
-            ActionButton51.BackgroundImage = CType(resources.GetObject("ActionButton51.BackgroundImage"), System.Drawing.Image)
-            ActionButton51.Name = "Refresh"
-            ActionButton51.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Refresh
-            ActionButton52.BackgroundImage = CType(resources.GetObject("ActionButton52.BackgroundImage"), System.Drawing.Image)
-            ActionButton52.Name = "Clear"
-            ActionButton52.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
-            Me.NUM_FEED_SES_CURR_LOAD_LAST.Buttons.Add(ActionButton51)
-            Me.NUM_FEED_SES_CURR_LOAD_LAST.Buttons.Add(ActionButton52)
+            ActionButton13.BackgroundImage = CType(resources.GetObject("ActionButton13.BackgroundImage"), System.Drawing.Image)
+            ActionButton13.Name = "Refresh"
+            ActionButton13.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Refresh
+            ActionButton14.BackgroundImage = CType(resources.GetObject("ActionButton14.BackgroundImage"), System.Drawing.Image)
+            ActionButton14.Name = "Clear"
+            ActionButton14.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
+            Me.NUM_FEED_SES_CURR_LOAD_LAST.Buttons.Add(ActionButton13)
+            Me.NUM_FEED_SES_CURR_LOAD_LAST.Buttons.Add(ActionButton14)
             Me.NUM_FEED_SES_CURR_LOAD_LAST.CaptionText = "Load last session"
             Me.NUM_FEED_SES_CURR_LOAD_LAST.CaptionToolTipEnabled = True
             Me.NUM_FEED_SES_CURR_LOAD_LAST.CaptionToolTipText = resources.GetString("NUM_FEED_SES_CURR_LOAD_LAST.CaptionToolTipText")
@@ -1930,12 +1958,29 @@ Namespace Editors
             Me.CH_FEED_ESC_TO_CLOSE.Text = "Use the 'Esc' key to close the form"
             Me.CH_FEED_ESC_TO_CLOSE.UseVisualStyleBackColor = True
             '
+            'TP_FEED_SPEC_SEARCH
+            '
+            TP_FEED_SPEC_SEARCH.ColumnCount = 2
+            TP_FEED_SPEC_SEARCH.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
+            TP_FEED_SPEC_SEARCH.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
+            TP_FEED_SPEC_SEARCH.Controls.Add(Me.CH_FEED_SPEC_SEARCH, 0, 0)
+            TP_FEED_SPEC_SEARCH.Controls.Add(Me.CH_FEED_SPEC_SEARCH_DEEP, 1, 0)
+            TP_FEED_SPEC_SEARCH.Dock = System.Windows.Forms.DockStyle.Fill
+            TP_FEED_SPEC_SEARCH.Location = New System.Drawing.Point(1, 374)
+            TP_FEED_SPEC_SEARCH.Margin = New System.Windows.Forms.Padding(0)
+            TP_FEED_SPEC_SEARCH.Name = "TP_FEED_SPEC_SEARCH"
+            TP_FEED_SPEC_SEARCH.RowCount = 1
+            TP_FEED_SPEC_SEARCH.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            TP_FEED_SPEC_SEARCH.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            TP_FEED_SPEC_SEARCH.Size = New System.Drawing.Size(619, 25)
+            TP_FEED_SPEC_SEARCH.TabIndex = 14
+            '
             'TAB_NOTIFY
             '
             TAB_NOTIFY.Controls.Add(TP_NOTIFY_MAIN)
             TAB_NOTIFY.Location = New System.Drawing.Point(4, 22)
             TAB_NOTIFY.Name = "TAB_NOTIFY"
-            TAB_NOTIFY.Size = New System.Drawing.Size(621, 399)
+            TAB_NOTIFY.Size = New System.Drawing.Size(621, 424)
             TAB_NOTIFY.TabIndex = 8
             TAB_NOTIFY.Text = "Notifications"
             '
@@ -1967,7 +2012,7 @@ Namespace Editors
             TP_NOTIFY_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_NOTIFY_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_NOTIFY_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_NOTIFY_MAIN.Size = New System.Drawing.Size(621, 399)
+            TP_NOTIFY_MAIN.Size = New System.Drawing.Size(621, 424)
             TP_NOTIFY_MAIN.TabIndex = 0
             '
             'TP_ENVIR
@@ -1990,24 +2035,24 @@ Namespace Editors
             TP_ENVIR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_ENVIR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_ENVIR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_ENVIR.Size = New System.Drawing.Size(621, 399)
+            TP_ENVIR.Size = New System.Drawing.Size(621, 424)
             TP_ENVIR.TabIndex = 0
             '
             'TXT_YTDLP
             '
-            ActionButton53.BackgroundImage = CType(resources.GetObject("ActionButton53.BackgroundImage"), System.Drawing.Image)
-            ActionButton53.Name = "Open"
-            ActionButton53.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Open
-            ActionButton54.BackgroundImage = CType(resources.GetObject("ActionButton54.BackgroundImage"), System.Drawing.Image)
-            ActionButton54.Name = "Refresh"
-            ActionButton54.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Refresh
-            ActionButton54.ToolTipText = "Try to find this program automatically (in SCrawler and/or system environment)"
-            ActionButton55.BackgroundImage = CType(resources.GetObject("ActionButton55.BackgroundImage"), System.Drawing.Image)
-            ActionButton55.Name = "Clear"
-            ActionButton55.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
-            Me.TXT_YTDLP.Buttons.Add(ActionButton53)
-            Me.TXT_YTDLP.Buttons.Add(ActionButton54)
-            Me.TXT_YTDLP.Buttons.Add(ActionButton55)
+            ActionButton15.BackgroundImage = CType(resources.GetObject("ActionButton15.BackgroundImage"), System.Drawing.Image)
+            ActionButton15.Name = "Open"
+            ActionButton15.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Open
+            ActionButton16.BackgroundImage = CType(resources.GetObject("ActionButton16.BackgroundImage"), System.Drawing.Image)
+            ActionButton16.Name = "Refresh"
+            ActionButton16.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Refresh
+            ActionButton16.ToolTipText = "Try to find this program automatically (in SCrawler and/or system environment)"
+            ActionButton17.BackgroundImage = CType(resources.GetObject("ActionButton17.BackgroundImage"), System.Drawing.Image)
+            ActionButton17.Name = "Clear"
+            ActionButton17.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
+            Me.TXT_YTDLP.Buttons.Add(ActionButton15)
+            Me.TXT_YTDLP.Buttons.Add(ActionButton16)
+            Me.TXT_YTDLP.Buttons.Add(ActionButton17)
             Me.TXT_YTDLP.CaptionText = "yt-dlp"
             Me.TXT_YTDLP.CaptionToolTipEnabled = True
             Me.TXT_YTDLP.CaptionToolTipText = "Path to yt-dlp.exe file"
@@ -2021,19 +2066,19 @@ Namespace Editors
             '
             'TXT_FFMPEG
             '
-            ActionButton56.BackgroundImage = CType(resources.GetObject("ActionButton56.BackgroundImage"), System.Drawing.Image)
-            ActionButton56.Name = "Open"
-            ActionButton56.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Open
-            ActionButton57.BackgroundImage = CType(resources.GetObject("ActionButton57.BackgroundImage"), System.Drawing.Image)
-            ActionButton57.Name = "Refresh"
-            ActionButton57.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Refresh
-            ActionButton57.ToolTipText = "Try to find this program automatically (in SCrawler and/or system environment)"
-            ActionButton58.BackgroundImage = CType(resources.GetObject("ActionButton58.BackgroundImage"), System.Drawing.Image)
-            ActionButton58.Name = "Clear"
-            ActionButton58.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
-            Me.TXT_FFMPEG.Buttons.Add(ActionButton56)
-            Me.TXT_FFMPEG.Buttons.Add(ActionButton57)
-            Me.TXT_FFMPEG.Buttons.Add(ActionButton58)
+            ActionButton18.BackgroundImage = CType(resources.GetObject("ActionButton18.BackgroundImage"), System.Drawing.Image)
+            ActionButton18.Name = "Open"
+            ActionButton18.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Open
+            ActionButton19.BackgroundImage = CType(resources.GetObject("ActionButton19.BackgroundImage"), System.Drawing.Image)
+            ActionButton19.Name = "Refresh"
+            ActionButton19.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Refresh
+            ActionButton19.ToolTipText = "Try to find this program automatically (in SCrawler and/or system environment)"
+            ActionButton20.BackgroundImage = CType(resources.GetObject("ActionButton20.BackgroundImage"), System.Drawing.Image)
+            ActionButton20.Name = "Clear"
+            ActionButton20.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
+            Me.TXT_FFMPEG.Buttons.Add(ActionButton18)
+            Me.TXT_FFMPEG.Buttons.Add(ActionButton19)
+            Me.TXT_FFMPEG.Buttons.Add(ActionButton20)
             Me.TXT_FFMPEG.CaptionText = "ffmpeg"
             Me.TXT_FFMPEG.CaptionToolTipEnabled = True
             Me.TXT_FFMPEG.CaptionToolTipText = "Path to ffmpeg.exe file"
@@ -2047,19 +2092,19 @@ Namespace Editors
             '
             'TXT_CURL
             '
-            ActionButton59.BackgroundImage = CType(resources.GetObject("ActionButton59.BackgroundImage"), System.Drawing.Image)
-            ActionButton59.Name = "Open"
-            ActionButton59.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Open
-            ActionButton60.BackgroundImage = CType(resources.GetObject("ActionButton60.BackgroundImage"), System.Drawing.Image)
-            ActionButton60.Name = "Refresh"
-            ActionButton60.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Refresh
-            ActionButton60.ToolTipText = "Try to find this program automatically (in SCrawler and/or system environment)"
-            ActionButton61.BackgroundImage = CType(resources.GetObject("ActionButton61.BackgroundImage"), System.Drawing.Image)
-            ActionButton61.Name = "Clear"
-            ActionButton61.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
-            Me.TXT_CURL.Buttons.Add(ActionButton59)
-            Me.TXT_CURL.Buttons.Add(ActionButton60)
-            Me.TXT_CURL.Buttons.Add(ActionButton61)
+            ActionButton21.BackgroundImage = CType(resources.GetObject("ActionButton21.BackgroundImage"), System.Drawing.Image)
+            ActionButton21.Name = "Open"
+            ActionButton21.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Open
+            ActionButton22.BackgroundImage = CType(resources.GetObject("ActionButton22.BackgroundImage"), System.Drawing.Image)
+            ActionButton22.Name = "Refresh"
+            ActionButton22.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Refresh
+            ActionButton22.ToolTipText = "Try to find this program automatically (in SCrawler and/or system environment)"
+            ActionButton23.BackgroundImage = CType(resources.GetObject("ActionButton23.BackgroundImage"), System.Drawing.Image)
+            ActionButton23.Name = "Clear"
+            ActionButton23.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
+            Me.TXT_CURL.Buttons.Add(ActionButton21)
+            Me.TXT_CURL.Buttons.Add(ActionButton22)
+            Me.TXT_CURL.Buttons.Add(ActionButton23)
             Me.TXT_CURL.CaptionText = "cURL"
             Me.TXT_CURL.CaptionToolTipEnabled = True
             Me.TXT_CURL.CaptionToolTipText = "Path to curl.exe file"
@@ -2073,19 +2118,19 @@ Namespace Editors
             '
             'TXT_GALLERYDL
             '
-            ActionButton62.BackgroundImage = CType(resources.GetObject("ActionButton62.BackgroundImage"), System.Drawing.Image)
-            ActionButton62.Name = "Open"
-            ActionButton62.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Open
-            ActionButton63.BackgroundImage = CType(resources.GetObject("ActionButton63.BackgroundImage"), System.Drawing.Image)
-            ActionButton63.Name = "Refresh"
-            ActionButton63.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Refresh
-            ActionButton63.ToolTipText = "Try to find this program automatically (in SCrawler and/or system environment)"
-            ActionButton64.BackgroundImage = CType(resources.GetObject("ActionButton64.BackgroundImage"), System.Drawing.Image)
-            ActionButton64.Name = "Clear"
-            ActionButton64.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
-            Me.TXT_GALLERYDL.Buttons.Add(ActionButton62)
-            Me.TXT_GALLERYDL.Buttons.Add(ActionButton63)
-            Me.TXT_GALLERYDL.Buttons.Add(ActionButton64)
+            ActionButton24.BackgroundImage = CType(resources.GetObject("ActionButton24.BackgroundImage"), System.Drawing.Image)
+            ActionButton24.Name = "Open"
+            ActionButton24.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Open
+            ActionButton25.BackgroundImage = CType(resources.GetObject("ActionButton25.BackgroundImage"), System.Drawing.Image)
+            ActionButton25.Name = "Refresh"
+            ActionButton25.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Refresh
+            ActionButton25.ToolTipText = "Try to find this program automatically (in SCrawler and/or system environment)"
+            ActionButton26.BackgroundImage = CType(resources.GetObject("ActionButton26.BackgroundImage"), System.Drawing.Image)
+            ActionButton26.Name = "Clear"
+            ActionButton26.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
+            Me.TXT_GALLERYDL.Buttons.Add(ActionButton24)
+            Me.TXT_GALLERYDL.Buttons.Add(ActionButton25)
+            Me.TXT_GALLERYDL.Buttons.Add(ActionButton26)
             Me.TXT_GALLERYDL.CaptionText = "gallery-dl"
             Me.TXT_GALLERYDL.CaptionToolTipText = "Path to gallery-dl.exe file"
             Me.TXT_GALLERYDL.CaptionWidth = 80.0R
@@ -2098,14 +2143,14 @@ Namespace Editors
             '
             'TXT_CMD_ENCODING
             '
-            ActionButton65.BackgroundImage = CType(resources.GetObject("ActionButton65.BackgroundImage"), System.Drawing.Image)
-            ActionButton65.Name = "Refresh"
-            ActionButton65.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Refresh
-            ActionButton66.BackgroundImage = CType(resources.GetObject("ActionButton66.BackgroundImage"), System.Drawing.Image)
-            ActionButton66.Name = "Clear"
-            ActionButton66.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
-            Me.TXT_CMD_ENCODING.Buttons.Add(ActionButton65)
-            Me.TXT_CMD_ENCODING.Buttons.Add(ActionButton66)
+            ActionButton27.BackgroundImage = CType(resources.GetObject("ActionButton27.BackgroundImage"), System.Drawing.Image)
+            ActionButton27.Name = "Refresh"
+            ActionButton27.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Refresh
+            ActionButton28.BackgroundImage = CType(resources.GetObject("ActionButton28.BackgroundImage"), System.Drawing.Image)
+            ActionButton28.Name = "Clear"
+            ActionButton28.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
+            Me.TXT_CMD_ENCODING.Buttons.Add(ActionButton27)
+            Me.TXT_CMD_ENCODING.Buttons.Add(ActionButton28)
             Me.TXT_CMD_ENCODING.CaptionText = "CMD Encoding"
             Me.TXT_CMD_ENCODING.CaptionToolTipEnabled = True
             Me.TXT_CMD_ENCODING.CaptionToolTipText = "Command line encoding"
@@ -2121,7 +2166,7 @@ Namespace Editors
             TAB_STD.Controls.Add(TP_STD)
             TAB_STD.Location = New System.Drawing.Point(4, 22)
             TAB_STD.Name = "TAB_STD"
-            TAB_STD.Size = New System.Drawing.Size(621, 399)
+            TAB_STD.Size = New System.Drawing.Size(621, 424)
             TAB_STD.TabIndex = 10
             TAB_STD.Text = "Downloader"
             '
@@ -2163,7 +2208,7 @@ Namespace Editors
             TP_STD.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_STD.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_STD.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_STD.Size = New System.Drawing.Size(621, 399)
+            TP_STD.Size = New System.Drawing.Size(621, 424)
             TP_STD.TabIndex = 0
             '
             'TXT_STD_MAX_JOBS_COUNT
@@ -2208,24 +2253,24 @@ Namespace Editors
             '
             'CMB_STD_OPEN_DBL
             '
-            ActionButton67.BackgroundImage = CType(resources.GetObject("ActionButton67.BackgroundImage"), System.Drawing.Image)
-            ActionButton67.Name = "ArrowDown"
-            ActionButton67.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.ArrowDown
-            Me.CMB_STD_OPEN_DBL.Buttons.Add(ActionButton67)
+            ActionButton29.BackgroundImage = CType(resources.GetObject("ActionButton29.BackgroundImage"), System.Drawing.Image)
+            ActionButton29.Name = "ArrowDown"
+            ActionButton29.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.ArrowDown
+            Me.CMB_STD_OPEN_DBL.Buttons.Add(ActionButton29)
             Me.CMB_STD_OPEN_DBL.CaptionMode = PersonalUtilities.Forms.Controls.Base.ICaptionControl.Modes.Label
             Me.CMB_STD_OPEN_DBL.CaptionText = "DoubleClick opens"
             Me.CMB_STD_OPEN_DBL.CaptionToolTipEnabled = True
             Me.CMB_STD_OPEN_DBL.CaptionToolTipText = "What do you want to open when you double click on an item"
             Me.CMB_STD_OPEN_DBL.CaptionVisible = True
-            ListColumn3.DisplayMember = True
-            ListColumn3.Name = "STD_CMB_COL_TEXT"
-            ListColumn3.Text = "Text"
-            ListColumn4.Name = "STD_CMB_COL_VALUE"
-            ListColumn4.Text = "Value"
-            ListColumn4.ValueMember = True
-            ListColumn4.Visible = False
-            Me.CMB_STD_OPEN_DBL.Columns.Add(ListColumn3)
-            Me.CMB_STD_OPEN_DBL.Columns.Add(ListColumn4)
+            ListColumn1.DisplayMember = True
+            ListColumn1.Name = "STD_CMB_COL_TEXT"
+            ListColumn1.Text = "Text"
+            ListColumn2.Name = "STD_CMB_COL_VALUE"
+            ListColumn2.Text = "Value"
+            ListColumn2.ValueMember = True
+            ListColumn2.Visible = False
+            Me.CMB_STD_OPEN_DBL.Columns.Add(ListColumn1)
+            Me.CMB_STD_OPEN_DBL.Columns.Add(ListColumn2)
             Me.CMB_STD_OPEN_DBL.Dock = System.Windows.Forms.DockStyle.Fill
             Me.CMB_STD_OPEN_DBL.Location = New System.Drawing.Point(4, 85)
             Me.CMB_STD_OPEN_DBL.Name = "CMB_STD_OPEN_DBL"
@@ -2262,7 +2307,7 @@ Namespace Editors
             TAB_DESIGN.Controls.Add(TP_DESIGN)
             TAB_DESIGN.Location = New System.Drawing.Point(4, 22)
             TAB_DESIGN.Name = "TAB_DESIGN"
-            TAB_DESIGN.Size = New System.Drawing.Size(621, 399)
+            TAB_DESIGN.Size = New System.Drawing.Size(621, 424)
             TAB_DESIGN.TabIndex = 11
             TAB_DESIGN.Text = "Design"
             '
@@ -2288,15 +2333,15 @@ Namespace Editors
             TP_DESIGN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_DESIGN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_DESIGN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_DESIGN.Size = New System.Drawing.Size(621, 399)
+            TP_DESIGN.Size = New System.Drawing.Size(621, 424)
             TP_DESIGN.TabIndex = 0
             '
             'TXT_PRG_TITLE
             '
-            ActionButton68.BackgroundImage = CType(resources.GetObject("ActionButton68.BackgroundImage"), System.Drawing.Image)
-            ActionButton68.Name = "Clear"
-            ActionButton68.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
-            Me.TXT_PRG_TITLE.Buttons.Add(ActionButton68)
+            ActionButton30.BackgroundImage = CType(resources.GetObject("ActionButton30.BackgroundImage"), System.Drawing.Image)
+            ActionButton30.Name = "Clear"
+            ActionButton30.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
+            Me.TXT_PRG_TITLE.Buttons.Add(ActionButton30)
             Me.TXT_PRG_TITLE.CaptionText = "Program title"
             Me.TXT_PRG_TITLE.CaptionToolTipEnabled = True
             Me.TXT_PRG_TITLE.CaptionToolTipText = "Change the title of the main window if you need to"
@@ -2308,10 +2353,10 @@ Namespace Editors
             '
             'TXT_PRG_DESCR
             '
-            ActionButton69.BackgroundImage = CType(resources.GetObject("ActionButton69.BackgroundImage"), System.Drawing.Image)
-            ActionButton69.Name = "Clear"
-            ActionButton69.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
-            Me.TXT_PRG_DESCR.Buttons.Add(ActionButton69)
+            ActionButton31.BackgroundImage = CType(resources.GetObject("ActionButton31.BackgroundImage"), System.Drawing.Image)
+            ActionButton31.Name = "Clear"
+            ActionButton31.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
+            Me.TXT_PRG_DESCR.Buttons.Add(ActionButton31)
             Me.TXT_PRG_DESCR.CaptionText = "Program description"
             Me.TXT_PRG_DESCR.CaptionToolTipEnabled = True
             Me.TXT_PRG_DESCR.CaptionToolTipText = "Add some additional info to the program info if you need"
@@ -2323,14 +2368,14 @@ Namespace Editors
             '
             'TXT_USER_LIST_IMAGE
             '
-            ActionButton70.BackgroundImage = CType(resources.GetObject("ActionButton70.BackgroundImage"), System.Drawing.Image)
-            ActionButton70.Name = "Open"
-            ActionButton70.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Open
-            ActionButton71.BackgroundImage = CType(resources.GetObject("ActionButton71.BackgroundImage"), System.Drawing.Image)
-            ActionButton71.Name = "Clear"
-            ActionButton71.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
-            Me.TXT_USER_LIST_IMAGE.Buttons.Add(ActionButton70)
-            Me.TXT_USER_LIST_IMAGE.Buttons.Add(ActionButton71)
+            ActionButton32.BackgroundImage = CType(resources.GetObject("ActionButton32.BackgroundImage"), System.Drawing.Image)
+            ActionButton32.Name = "Open"
+            ActionButton32.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Open
+            ActionButton33.BackgroundImage = CType(resources.GetObject("ActionButton33.BackgroundImage"), System.Drawing.Image)
+            ActionButton33.Name = "Clear"
+            ActionButton33.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
+            Me.TXT_USER_LIST_IMAGE.Buttons.Add(ActionButton32)
+            Me.TXT_USER_LIST_IMAGE.Buttons.Add(ActionButton33)
             Me.TXT_USER_LIST_IMAGE.CaptionText = "Userlist image"
             Me.TXT_USER_LIST_IMAGE.CaptionToolTipEnabled = True
             Me.TXT_USER_LIST_IMAGE.CaptionToolTipText = "Background image for user list"
@@ -2399,15 +2444,15 @@ Namespace Editors
             TP_HEADERS_DEF.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_HEADERS_DEF.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
             TP_HEADERS_DEF.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
-            TP_HEADERS_DEF.Size = New System.Drawing.Size(621, 399)
+            TP_HEADERS_DEF.Size = New System.Drawing.Size(621, 424)
             TP_HEADERS_DEF.TabIndex = 0
             '
             'TXT_H_DEF_UserAgent
             '
-            ActionButton72.BackgroundImage = CType(resources.GetObject("ActionButton72.BackgroundImage"), System.Drawing.Image)
-            ActionButton72.Name = "Clear"
-            ActionButton72.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
-            Me.TXT_H_DEF_UserAgent.Buttons.Add(ActionButton72)
+            ActionButton34.BackgroundImage = CType(resources.GetObject("ActionButton34.BackgroundImage"), System.Drawing.Image)
+            ActionButton34.Name = "Clear"
+            ActionButton34.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
+            Me.TXT_H_DEF_UserAgent.Buttons.Add(ActionButton34)
             Me.TXT_H_DEF_UserAgent.CaptionText = "UserAgent"
             Me.TXT_H_DEF_UserAgent.CaptionWidth = 140.0R
             Me.TXT_H_DEF_UserAgent.Dock = System.Windows.Forms.DockStyle.Fill
@@ -2418,10 +2463,10 @@ Namespace Editors
             '
             'TXT_H_DEF_sec_ch_ua
             '
-            ActionButton73.BackgroundImage = CType(resources.GetObject("ActionButton73.BackgroundImage"), System.Drawing.Image)
-            ActionButton73.Name = "Clear"
-            ActionButton73.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
-            Me.TXT_H_DEF_sec_ch_ua.Buttons.Add(ActionButton73)
+            ActionButton35.BackgroundImage = CType(resources.GetObject("ActionButton35.BackgroundImage"), System.Drawing.Image)
+            ActionButton35.Name = "Clear"
+            ActionButton35.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
+            Me.TXT_H_DEF_sec_ch_ua.Buttons.Add(ActionButton35)
             Me.TXT_H_DEF_sec_ch_ua.CaptionText = "sec-ch-ua"
             Me.TXT_H_DEF_sec_ch_ua.CaptionWidth = 140.0R
             Me.TXT_H_DEF_sec_ch_ua.Dock = System.Windows.Forms.DockStyle.Fill
@@ -2432,10 +2477,10 @@ Namespace Editors
             '
             'TXT_H_DEF_sec_ch_ua_full_version_list
             '
-            ActionButton74.BackgroundImage = CType(resources.GetObject("ActionButton74.BackgroundImage"), System.Drawing.Image)
-            ActionButton74.Name = "Clear"
-            ActionButton74.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
-            Me.TXT_H_DEF_sec_ch_ua_full_version_list.Buttons.Add(ActionButton74)
+            ActionButton36.BackgroundImage = CType(resources.GetObject("ActionButton36.BackgroundImage"), System.Drawing.Image)
+            ActionButton36.Name = "Clear"
+            ActionButton36.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
+            Me.TXT_H_DEF_sec_ch_ua_full_version_list.Buttons.Add(ActionButton36)
             Me.TXT_H_DEF_sec_ch_ua_full_version_list.CaptionText = "sec-ch-ua-full-version-list"
             Me.TXT_H_DEF_sec_ch_ua_full_version_list.CaptionWidth = 140.0R
             Me.TXT_H_DEF_sec_ch_ua_full_version_list.Dock = System.Windows.Forms.DockStyle.Fill
@@ -2446,10 +2491,10 @@ Namespace Editors
             '
             'TXT_H_DEF_sec_ch_ua_platform
             '
-            ActionButton75.BackgroundImage = CType(resources.GetObject("ActionButton75.BackgroundImage"), System.Drawing.Image)
-            ActionButton75.Name = "Clear"
-            ActionButton75.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
-            Me.TXT_H_DEF_sec_ch_ua_platform.Buttons.Add(ActionButton75)
+            ActionButton37.BackgroundImage = CType(resources.GetObject("ActionButton37.BackgroundImage"), System.Drawing.Image)
+            ActionButton37.Name = "Clear"
+            ActionButton37.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
+            Me.TXT_H_DEF_sec_ch_ua_platform.Buttons.Add(ActionButton37)
             Me.TXT_H_DEF_sec_ch_ua_platform.CaptionText = "sec-ch-ua-platform"
             Me.TXT_H_DEF_sec_ch_ua_platform.CaptionWidth = 140.0R
             Me.TXT_H_DEF_sec_ch_ua_platform.Dock = System.Windows.Forms.DockStyle.Fill
@@ -2460,10 +2505,10 @@ Namespace Editors
             '
             'TXT_H_DEF_sec_ch_ua_platform_version
             '
-            ActionButton76.BackgroundImage = CType(resources.GetObject("ActionButton76.BackgroundImage"), System.Drawing.Image)
-            ActionButton76.Name = "Clear"
-            ActionButton76.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
-            Me.TXT_H_DEF_sec_ch_ua_platform_version.Buttons.Add(ActionButton76)
+            ActionButton38.BackgroundImage = CType(resources.GetObject("ActionButton38.BackgroundImage"), System.Drawing.Image)
+            ActionButton38.Name = "Clear"
+            ActionButton38.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
+            Me.TXT_H_DEF_sec_ch_ua_platform_version.Buttons.Add(ActionButton38)
             Me.TXT_H_DEF_sec_ch_ua_platform_version.CaptionText = "sec-ch-ua-platform-version"
             Me.TXT_H_DEF_sec_ch_ua_platform_version.CaptionWidth = 140.0R
             Me.TXT_H_DEF_sec_ch_ua_platform_version.Dock = System.Windows.Forms.DockStyle.Fill
@@ -2477,7 +2522,7 @@ Namespace Editors
             TAB_HEADERS.Controls.Add(TP_HEADERS_DEF)
             TAB_HEADERS.Location = New System.Drawing.Point(4, 22)
             TAB_HEADERS.Name = "TAB_HEADERS"
-            TAB_HEADERS.Size = New System.Drawing.Size(621, 399)
+            TAB_HEADERS.Size = New System.Drawing.Size(621, 424)
             TAB_HEADERS.TabIndex = 12
             TAB_HEADERS.Text = "Headers"
             '
@@ -2498,7 +2543,7 @@ Namespace Editors
             Me.TAB_MAIN.Location = New System.Drawing.Point(0, 0)
             Me.TAB_MAIN.Name = "TAB_MAIN"
             Me.TAB_MAIN.SelectedIndex = 0
-            Me.TAB_MAIN.Size = New System.Drawing.Size(629, 425)
+            Me.TAB_MAIN.Size = New System.Drawing.Size(629, 450)
             Me.TAB_MAIN.TabIndex = 1
             '
             'TAB_ENVIR
@@ -2506,7 +2551,7 @@ Namespace Editors
             Me.TAB_ENVIR.Controls.Add(TP_ENVIR)
             Me.TAB_ENVIR.Location = New System.Drawing.Point(4, 22)
             Me.TAB_ENVIR.Name = "TAB_ENVIR"
-            Me.TAB_ENVIR.Size = New System.Drawing.Size(621, 399)
+            Me.TAB_ENVIR.Size = New System.Drawing.Size(621, 424)
             Me.TAB_ENVIR.TabIndex = 9
             Me.TAB_ENVIR.Text = "Environment"
             '
@@ -2516,7 +2561,7 @@ Namespace Editors
             'CONTAINER_MAIN.ContentPanel
             '
             Me.CONTAINER_MAIN.ContentPanel.Controls.Add(Me.TAB_MAIN)
-            Me.CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(629, 425)
+            Me.CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(629, 450)
             Me.CONTAINER_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
             Me.CONTAINER_MAIN.LeftToolStripPanelVisible = False
             Me.CONTAINER_MAIN.Location = New System.Drawing.Point(0, 0)
@@ -2526,47 +2571,18 @@ Namespace Editors
             Me.CONTAINER_MAIN.TabIndex = 0
             Me.CONTAINER_MAIN.TopToolStripPanelVisible = False
             '
-            'TP_FEED_SPEC_SEARCH
+            'CH_FEED_OPEN_CTRLF
             '
-            TP_FEED_SPEC_SEARCH.ColumnCount = 2
-            TP_FEED_SPEC_SEARCH.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
-            TP_FEED_SPEC_SEARCH.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
-            TP_FEED_SPEC_SEARCH.Controls.Add(Me.CH_FEED_SPEC_SEARCH, 0, 0)
-            TP_FEED_SPEC_SEARCH.Controls.Add(Me.CH_FEED_SPEC_SEARCH_DEEP, 1, 0)
-            TP_FEED_SPEC_SEARCH.Dock = System.Windows.Forms.DockStyle.Fill
-            TP_FEED_SPEC_SEARCH.Location = New System.Drawing.Point(1, 374)
-            TP_FEED_SPEC_SEARCH.Margin = New System.Windows.Forms.Padding(0)
-            TP_FEED_SPEC_SEARCH.Name = "TP_FEED_SPEC_SEARCH"
-            TP_FEED_SPEC_SEARCH.RowCount = 1
-            TP_FEED_SPEC_SEARCH.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_FEED_SPEC_SEARCH.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
-            TP_FEED_SPEC_SEARCH.Size = New System.Drawing.Size(619, 25)
-            TP_FEED_SPEC_SEARCH.TabIndex = 14
-            '
-            'CH_FEED_SPEC_SEARCH
-            '
-            Me.CH_FEED_SPEC_SEARCH.AutoSize = True
-            Me.CH_FEED_SPEC_SEARCH.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_FEED_SPEC_SEARCH.Location = New System.Drawing.Point(3, 3)
-            Me.CH_FEED_SPEC_SEARCH.Name = "CH_FEED_SPEC_SEARCH"
-            Me.CH_FEED_SPEC_SEARCH.Size = New System.Drawing.Size(303, 19)
-            Me.CH_FEED_SPEC_SEARCH.TabIndex = 0
-            Me.CH_FEED_SPEC_SEARCH.Text = "Search missing files (special feeds)"
-            TT_MAIN.SetToolTip(Me.CH_FEED_SPEC_SEARCH, "Search for missing file in the entire user folder")
-            Me.CH_FEED_SPEC_SEARCH.UseVisualStyleBackColor = True
-            '
-            'CH_FEED_SPEC_SEARCH_DEEP
-            '
-            Me.CH_FEED_SPEC_SEARCH_DEEP.AutoSize = True
-            Me.CH_FEED_SPEC_SEARCH_DEEP.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_FEED_SPEC_SEARCH_DEEP.Location = New System.Drawing.Point(312, 3)
-            Me.CH_FEED_SPEC_SEARCH_DEEP.Name = "CH_FEED_SPEC_SEARCH_DEEP"
-            Me.CH_FEED_SPEC_SEARCH_DEEP.Size = New System.Drawing.Size(304, 19)
-            Me.CH_FEED_SPEC_SEARCH_DEEP.TabIndex = 1
-            Me.CH_FEED_SPEC_SEARCH_DEEP.Text = "Search missing files (special feeds): deep search"
-            TT_MAIN.SetToolTip(Me.CH_FEED_SPEC_SEARCH_DEEP, "Deep search means that the missing file will be searched in other users' location" &
-        "s as well.")
-            Me.CH_FEED_SPEC_SEARCH_DEEP.UseVisualStyleBackColor = True
+            Me.CH_FEED_OPEN_CTRLF.AutoSize = True
+            Me.CH_FEED_OPEN_CTRLF.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_FEED_OPEN_CTRLF.Location = New System.Drawing.Point(4, 299)
+            Me.CH_FEED_OPEN_CTRLF.Name = "CH_FEED_OPEN_CTRLF"
+            Me.CH_FEED_OPEN_CTRLF.Size = New System.Drawing.Size(613, 19)
+            Me.CH_FEED_OPEN_CTRLF.TabIndex = 11
+            Me.CH_FEED_OPEN_CTRLF.Text = "Use 'Ctrl+F' to open the Feed"
+            TT_MAIN.SetToolTip(Me.CH_FEED_OPEN_CTRLF, "If checked, 'Ctrl+F' will be used to open the Feed. Otherwise, 'Alt+F' will be us" &
+        "ed.")
+            Me.CH_FEED_OPEN_CTRLF.UseVisualStyleBackColor = True
             '
             'GlobalSettingsForm
             '
@@ -2641,6 +2657,8 @@ Namespace Editors
             TP_FEED_SES.ResumeLayout(False)
             CType(Me.NUM_FEED_STORE_SESSION_DATA, System.ComponentModel.ISupportInitialize).EndInit()
             CType(Me.NUM_FEED_SES_CURR_LOAD_LAST, System.ComponentModel.ISupportInitialize).EndInit()
+            TP_FEED_SPEC_SEARCH.ResumeLayout(False)
+            TP_FEED_SPEC_SEARCH.PerformLayout()
             TAB_NOTIFY.ResumeLayout(False)
             TP_NOTIFY_MAIN.ResumeLayout(False)
             TP_NOTIFY_MAIN.PerformLayout()
@@ -2672,8 +2690,6 @@ Namespace Editors
             Me.CONTAINER_MAIN.ContentPanel.ResumeLayout(False)
             Me.CONTAINER_MAIN.ResumeLayout(False)
             Me.CONTAINER_MAIN.PerformLayout()
-            TP_FEED_SPEC_SEARCH.ResumeLayout(False)
-            TP_FEED_SPEC_SEARCH.PerformLayout()
             Me.ResumeLayout(False)
 
         End Sub
@@ -2791,5 +2807,6 @@ Namespace Editors
         Private WithEvents CH_SCHEDULER_SCRIPT_EX_MANUAL As CheckBox
         Private WithEvents CH_FEED_SPEC_SEARCH As CheckBox
         Private WithEvents CH_FEED_SPEC_SEARCH_DEEP As CheckBox
+        Private WithEvents CH_FEED_OPEN_CTRLF As CheckBox
     End Class
 End Namespace

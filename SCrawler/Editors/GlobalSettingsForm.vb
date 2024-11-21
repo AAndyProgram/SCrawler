@@ -80,6 +80,7 @@ Namespace Editors
                         TXT_SCHEDULER_SCRIPT.Text = .AutomationScript
                         TXT_SCHEDULER_SCRIPT.Checked = .AutomationScript.Use
                         CH_SCHEDULER_SCRIPT_EX_MANUAL.Checked = .AutomationScript_ExcludeManual
+                        CH_FEED_OPEN_CTRLF.Checked = .FeedOpenCtrlF
                         'Notifications
                         CH_NOTIFY_SILENT.Checked = .NotificationsSilentMode
                         CH_NOTIFY_SHOW_BASE.Checked = .ShowNotifications
@@ -300,6 +301,7 @@ Namespace Editors
                     .AutomationScript.Value = TXT_SCHEDULER_SCRIPT.Text
                     .AutomationScript.Use = TXT_SCHEDULER_SCRIPT.Checked
                     .AutomationScript_ExcludeManual.Value = CH_SCHEDULER_SCRIPT_EX_MANUAL.Checked
+                    .FeedOpenCtrlF.Value = CH_FEED_OPEN_CTRLF.Checked
                     'Notifications
                     .NotificationsSilentMode = CH_NOTIFY_SILENT.Checked
                     .ShowNotifications.Value = CH_NOTIFY_SHOW_BASE.Checked

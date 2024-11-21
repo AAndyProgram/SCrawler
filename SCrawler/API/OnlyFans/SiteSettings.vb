@@ -19,6 +19,7 @@ Namespace API.OnlyFans
 #Region "Declarations"
 #Region "Categories"
         Private Const CAT_OFS As String = "OF-Scraper support"
+        Private Const CAT_ERRORS As String = "Errors"
 #End Region
 #Region "Options"
         <PropertyOption(ControlText:="Download timeline", ControlToolTip:="Download user timeline", Category:=DN.CAT_UserDefs), PXML, PClonable>
@@ -72,6 +73,19 @@ Namespace API.OnlyFans
             End If
             Return String.Empty
         End Function
+#End Region
+#Region "Errors"
+        <PClonable, PXML("UpdateRules401")> Private ReadOnly Property UpdateRules401_XML As PropertyValue
+        <PropertyOption(ControlText:="Try updating rules when you get a 401 error", Category:=CAT_ERRORS), HiddenControl>
+        Friend ReadOnly Property UpdateRules401 As PropertyValue
+            Get
+                If Not DefaultInstance Is Nothing Then
+                    Return DirectCast(DefaultInstance, SiteSettings).UpdateRules401_XML
+                Else
+                    Return UpdateRules401_XML
+                End If
+            End Get
+        End Property
 #End Region
 #Region "OFScraper"
         <PClonable, PXML("OFScraperPath")> Private ReadOnly Property OFScraperPath_XML As PropertyValue
@@ -177,6 +191,8 @@ Namespace API.OnlyFans
             OFScraperMP4decrypt_XML = New PropertyValue(String.Empty, GetType(String))
             KeyModeDefault_XML = New PropertyValue(KeyModeDefault_Default)
             Keydb_Api_XML = New PropertyValue(String.Empty, GetType(String))
+
+            UpdateRules401_XML = New PropertyValue(False)
 
             UserRegex = RParams.DMS(String.Format(UserRegexDefaultPattern, "onlyfans.com/"), 1, EDP.ReturnValue)
             UrlPatternUser = "https://onlyfans.com/{0}"

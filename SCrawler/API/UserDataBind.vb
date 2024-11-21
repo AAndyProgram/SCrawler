@@ -299,6 +299,24 @@ Namespace API
                 End If
             End Get
         End Property
+        Friend ReadOnly Property ContextDownLimit As ToolStripMenuItem()
+            Get
+                If Count > 0 Then
+                    Return Collections.Select(Function(c) DirectCast(c, UserDataBase).BTT_CONTEXT_DOWN_LIMIT).ToArray
+                Else
+                    Return New ToolStripMenuItem() {}
+                End If
+            End Get
+        End Property
+        Friend ReadOnly Property ContextDownDate As ToolStripMenuItem()
+            Get
+                If Count > 0 Then
+                    Return Collections.Select(Function(c) DirectCast(c, UserDataBase).BTT_CONTEXT_DOWN_DATE).ToArray
+                Else
+                    Return New ToolStripMenuItem() {}
+                End If
+            End Get
+        End Property
         Friend ReadOnly Property ContextEdit As ToolStripMenuItem()
             Get
                 If Count > 0 Then

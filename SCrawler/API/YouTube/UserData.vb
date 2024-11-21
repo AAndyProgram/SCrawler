@@ -345,6 +345,8 @@ Namespace API.YouTube
                         If resp.Status = Net.WebExceptionStatus.ConnectFailure And Round < 2 Then
                             Thread.Sleep(1000)
                             DownloadCommunity(Cursor, Token, Round + 1)
+                        ElseIf resp.StatusCode = Net.HttpStatusCode.NotFound Then
+                            MyMainLOG = $"{ToStringForLog()} {errMsg} (not found)"
                         Else
                             Throw resp.ErrorException
                         End If

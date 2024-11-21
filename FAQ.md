@@ -33,15 +33,15 @@ I strongly recommend you to **regularly** create backup copies of the settings f
 ## General questions
 - **PROFILES**
     - I added a profile but **nothing downloaded** :arrow_forward: check your cookies and [site requirements](https://github.com/AAndyProgram/SCrawler/wiki/Settings#sites-requirements). If there are any optional fields that you don't fill in, do so. Still nothing works - [report it](#how-to-report-a-problem)!
-    - User downloading failed :arrow_forward: check your credentials and **[SITES REQUIREMENTS](https://github.com/AAndyProgram/SCrawler/wiki/Settings#sites-requirements)**. If all settings are set and nothing works, [report it](#how-to-report-a-problem). <u>Don't forget to attach the LOG.</u>
+    - User downloading failed :arrow_forward: check your credentials and **[SITES REQUIREMENTS](https://github.com/AAndyProgram/SCrawler/wiki/Settings#sites-requirements)**. If all settings are set and nothing works, [report it](#how-to-report-a-problem). **Don't forget to attach the LOG.**
     - [How to redownload user](https://github.com/AAndyProgram/SCrawler/wiki#redownload-user)
     - How to **add profile** to download :arrow_forward: copy the **[profile URL](https://github.com/AAndyProgram/SCrawler/wiki#add-user)** and press `Insert` or `Ctrl+Insert`. **ALWAYS PASTE THE USER PROFILE URL**. After that select this user and press `F5` or click the `Download selected` button.
 - How to download **[saved posts](https://github.com/AAndyProgram/SCrawler/wiki#saved-posts)**
 - **[HOW TO ADD COOKIES](https://github.com/AAndyProgram/SCrawler/wiki/Settings#how-to-set-up-cookies)**
 - [How to report a problem](#how-to-report-a-problem)
 - I want you to **add the site** to SCrawler :arrow_forward: **I'm not currently accepting requests to add new sites**, but you can [create a plugin](https://github.com/AAndyProgram/SCrawler/wiki/Plugins) (for your site) for SCrawler.
-- What language is SCrawler written in :arrow_forward: vb.net
-- I don't know vb.net and I can't write a plugin :arrow_forward: you can write a plugin in `C#`
+- What language is SCrawler written in :arrow_forward: `vb.net`
+- I don't know `vb.net` and I can't write a plugin :arrow_forward: you can write a plugin in `C#`
 - I have a suggestion, will it be added :arrow_forward: maybe if it interested me.
 - How to name files using a pattern (e.g. `Site_PostID_Name.jpg`) :arrow_forward: **there is no such functionality and there are no such plans**.
 - **DON'T CHANGE THE DEFAULT SITE SETTINGS UNLESS YOU KNOW EXACTLY WHAT YOU'RE DOING!** SCrawler already has all the default settings to work. You only need to add credentials (where [required](https://github.com/AAndyProgram/SCrawler/wiki/Settings#sites-requirements)).
@@ -61,7 +61,7 @@ I strongly recommend you to **regularly** create backup copies of the settings f
 
 *How to use: find the site you need in the list and read the answer.*
 
-- Reddit: don't use credentials at all or configure [OAuth](https://github.com/AAndyProgram/SCrawler/wiki/Settings#how-to-get-reddit-credentials). **Reddit profiles can be downloaded without any credentials at all. Subreddits require OAuth! If nothing downloads, use OAuth!**
+- Reddit: don't use credentials at all or configure [OAuth](https://github.com/AAndyProgram/SCrawler/wiki/Settings#how-to-get-reddit-credentials). **Reddit profiles can be downloaded without any credentials at all. Subreddits require OAuth! If nothing downloads, use OAuth!** Don't use OAuth token to download saved posts (use cookies only).
 - **META** (**Instagram**, Threads, Facebook): you need **cookies** and fill in **all fields**
 - **Instagram saved posts**: I don't consider questions like "I have 10k saved posts and only 1000 were downloaded". Download posts, remove them from saved posts, delete the `Saved posts` **settings folder**, repeat.
 - TikTok: works via yt-dlp. If something doesn't download, we need to wait until yt-dlp fixes it. TikTok doesn't require cookies to download.

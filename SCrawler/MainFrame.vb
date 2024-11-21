@@ -241,13 +241,13 @@ CloseResume:
 
         If Not b Then
             b = True
-            If e.Control And e.KeyCode = Keys.F Then
+            If Settings.ShortcutOpenFeed = e Then
                 BTT_FEED.PerformClick()
             ElseIf e.Alt And e.KeyCode = Keys.A Then
                 BTT_DOWN_AUTOMATION.PerformClick()
             ElseIf e.Alt And e.KeyCode = Keys.P Then
                 BTT_PR_INFO.PerformClick()
-            ElseIf (e.Alt And (e.KeyCode = Keys.F Or e.KeyCode = Keys.U)) Or (e.Control And e.KeyCode = Keys.U) Then
+            ElseIf Settings.ShortcutOpenSearch = e Or (e.Alt And e.KeyCode = Keys.U) Or (e.Control And e.KeyCode = Keys.U) Then
                 MySearch.FormShow()
             Else
                 b = False
@@ -1520,6 +1520,8 @@ CloseResume:
                 If Not user Is Nothing AndAlso user.IsCollection Then
                     With DirectCast(user, UserDataBind)
                         BTT_CONTEXT_DOWN.DropDownItems.AddRange(.ContextDown)
+                        BTT_CONTEXT_DOWN_LIMITED.DropDownItems.AddRange(.ContextDownLimit)
+                        BTT_CONTEXT_DOWN_DATE_LIMIT.DropDownItems.AddRange(.ContextDownDate)
                         BTT_CONTEXT_EDIT.DropDownItems.AddRange(.ContextEdit)
                         BTT_CONTEXT_DELETE.DropDownItems.AddRange(.ContextDelete)
                         BTT_CONTEXT_ERASE.DropDownItems.AddRange(.ContextErase)
@@ -1529,6 +1531,8 @@ CloseResume:
                 End If
             Else
                 BTT_CONTEXT_DOWN.DropDownItems.Clear()
+                BTT_CONTEXT_DOWN_LIMITED.DropDownItems.Clear()
+                BTT_CONTEXT_DOWN_DATE_LIMIT.DropDownItems.Clear()
                 BTT_CONTEXT_EDIT.DropDownItems.Clear()
                 BTT_CONTEXT_DELETE.DropDownItems.Clear()
                 BTT_CONTEXT_ERASE.DropDownItems.Clear()
@@ -1634,10 +1638,11 @@ CloseResume:
             Return ErrorsDescriber.Execute(EDP.SendToLog + EDP.ReturnValue, ex, "[MainFrame.GetSelectedUserArray]", New List(Of IUserData))
         End Try
     End Function
-    Private Enum DownUserLimits : None : Number : [Date] : End Enum
-    Private Sub DownloadSelectedUser(ByVal UseLimits As DownUserLimits, Optional ByVal IncludeInTheFeed As Boolean = True)
+    Friend Enum DownUserLimits : None : Number : [Date] : End Enum
+    Friend Sub DownloadSelectedUser(ByVal UseLimits As DownUserLimits, Optional ByVal IncludeInTheFeed As Boolean = True,
+                                    Optional ByVal SUser As IUserData = Nothing)
         Const MsgTitle$ = "Download limit"
-        Dim users As List(Of IUserData) = GetSelectedUserArray()
+        Dim users As List(Of IUserData) = If(SUser Is Nothing, GetSelectedUserArray(), New List(Of IUserData) From {SUser})
         If users.ListExists Then
             Dim limit%? = Nothing
             Dim _from As Date? = Nothing
@@ -1704,7 +1709,7 @@ ResumeDownloadingOperation:
                                                $"Do you want to download them all{fStr}?{vbNewLine.StringDup(2)}" &
                                                $"Selected users:{vbNewLine}{uStr}", "Multiple users selected"},
                                               MsgBoxStyle.Question + MsgBoxStyle.YesNo) = MsgBoxResult.Yes Then
-                users.ForEach(Sub(u)
+                users.ForEach(Sub(ByVal u As IUserData)
                                   u.DownloadTopCount = limit
                                   u.DownloadDateFrom = _from
                                   u.DownloadDateTo = _to

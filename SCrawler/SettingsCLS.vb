@@ -10,6 +10,7 @@ Imports PersonalUtilities.Functions.Messaging
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.XML.Base
 Imports PersonalUtilities.Functions.XML.Objects
+Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Forms.Controls
 Imports PersonalUtilities.Forms.Controls.Base
 Imports PersonalUtilities.Tools
@@ -193,6 +194,17 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
     Private ReadOnly UsersSettingsFile As SFile = $"{SettingsFolderName}\Users.xml"
     Private ReadOnly Property SettingsVersion As XMLValue(Of Integer)
     Private Const SettingsVersionCurrent As Integer = 1
+    Friend ShortcutOpenFeed As New ButtonKey(Keys.F, True)
+    Friend ShortcutOpenSearch As New ButtonKey(Keys.F,, True)
+    Private Sub ChangeFeedOpenMode()
+        If FeedOpenCtrlF Then
+            ShortcutOpenFeed = New ButtonKey(Keys.F, True)
+            ShortcutOpenSearch = New ButtonKey(Keys.F,, True)
+        Else
+            ShortcutOpenFeed = New ButtonKey(Keys.F,, True)
+            ShortcutOpenSearch = New ButtonKey(Keys.F, True)
+        End If
+    End Sub
 #End Region
 #Region "Initializer"
     Friend Sub New()
@@ -299,6 +311,9 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         DownloadAll_UseF6 = New XMLValue(Of Boolean)("DownloadAll_UseF6", True, MyXML, n)
         DownloadAll_UseF6_Confirm = New XMLValue(Of Boolean)("DownloadAll_UseF6_Confirm", False, MyXML, n)
         DownloadAll_Confirm = New XMLValue(Of Boolean)("DownloadAll_Confirm", False, MyXML, n)
+        FeedOpenCtrlF = New XMLValue(Of Boolean)("FeedOpenCtrlF", True, MyXML, n)
+        AddHandler FeedOpenCtrlF.ValueChanged, AddressOf ChangeFeedOpenMode
+        ChangeFeedOpenMode()
 
         'Notifications
         n = {"Notifications"}
@@ -925,6 +940,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
     Friend ReadOnly Property DownloadAll_UseF6 As XMLValue(Of Boolean)
     Friend ReadOnly Property DownloadAll_UseF6_Confirm As XMLValue(Of Boolean)
     Friend ReadOnly Property DownloadAll_Confirm As XMLValue(Of Boolean)
+    Friend ReadOnly Property FeedOpenCtrlF As XMLValue(Of Boolean)
 #End Region
 #Region "Notifications"
     Friend Enum NotificationObjects

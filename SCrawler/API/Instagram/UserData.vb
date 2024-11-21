@@ -38,6 +38,8 @@ Namespace API.Instagram
         Private Const Name_PutImageVideoFolder As String = "PutImageVideoFolder"
         Private Const Name_TaggedChecked As String = "TaggedChecked"
         Private Const Name_NameTrue As String = "NameTrue"
+        Private Const Name_ForceUpdateUserName As String = "ForceUpdateUserName"
+        Private Const Name_ForceUpdateUserInfo As String = "ForceUpdateUserInfo"
 #End Region
 #Region "Declarations"
         Protected Structure PostKV : Implements IEContainerProvider
@@ -118,6 +120,8 @@ Namespace API.Instagram
             End Get
         End Property
         Private UserNameRequested As Boolean = False
+        Friend Property ForceUpdateUserName As Boolean = False
+        Friend Property ForceUpdateUserInfo As Boolean = False
 #End Region
 #Region "Loader"
         Protected Overrides Sub LoadUserInformation_OptionalFields(ByRef Container As XmlFile, ByVal Loading As Boolean)
@@ -138,6 +142,8 @@ Namespace API.Instagram
                     GetTaggedData_VideoPic = .Value(Name_GetTagged_VideoPic).FromXML(Of Boolean)(CBool(MySiteSettings.GetTagged_VideoPic.Value))
                     TaggedChecked = .Value(Name_TaggedChecked).FromXML(Of Boolean)(False)
                     _NameTrue = .Value(Name_NameTrue)
+                    ForceUpdateUserName = .Value(Name_ForceUpdateUserName).FromXML(Of Boolean)(False)
+                    ForceUpdateUserInfo = .Value(Name_ForceUpdateUserInfo).FromXML(Of Boolean)(False)
                 Else
                     .Add(Name_LastCursor, LastCursor)
                     .Add(Name_FirstLoadingDone, FirstLoadingDone.BoolToInteger)
@@ -154,6 +160,8 @@ Namespace API.Instagram
                     .Add(Name_PutImageVideoFolder, PutImageVideoFolder.BoolToInteger)
                     .Add(Name_TaggedChecked, TaggedChecked.BoolToInteger)
                     .Add(Name_NameTrue, _NameTrue)
+                    .Add(Name_ForceUpdateUserName, ForceUpdateUserName.BoolToInteger)
+                    .Add(Name_ForceUpdateUserInfo, ForceUpdateUserInfo.BoolToInteger)
                 End If
             End With
         End Sub
@@ -180,6 +188,8 @@ Namespace API.Instagram
                     PutImageVideoFolder = .PutImageVideoFolder
 
                     _NameTrue = .UserName
+                    ForceUpdateUserName = .ForceUpdateUserName
+                    ForceUpdateUserInfo = .ForceUpdateUserInfo
                 End With
             End If
         End Sub
@@ -197,15 +207,32 @@ Namespace API.Instagram
         Private WwwClaimUse As Boolean = True
         Private E560Thrown As Boolean = False
         Friend Err5xx As Integer = -1
+        Private _ErrHandling As Integer = -1
+        Private Property ErrHandling As Integer
+            Get
+                Return _ErrHandling
+            End Get
+            Set(ByVal ErrCode As Integer)
+                _ErrHandling = ErrCode
+                Err5xx = ErrCode
+            End Set
+        End Property
+        Private ErrHandlingLog As Boolean = True
+        Private ErrHandlingSection As Sections = Sections.Timeline
+        Private Const ErrHandlingValue As Integer = 100
+        Private Const ErrHandlingValueStories As Integer = 150
         Private Class ExitException : Inherits Exception
             Friend Property Is560 As Boolean = False
             Friend Property IsTokens As Boolean = False
             Friend Property TokensData As String = String.Empty
             Friend Shared Sub Throw560(ByRef Source As UserData)
-                If Not Source.E560Thrown Then
-                    MyMainLOG = $"{Source.ToStringForLog}: ({IIf(Source.Err5xx > 0, Source.Err5xx, 560)}) Download skipped until next session"
-                    Source.E560Thrown = True
-                End If
+                With Source
+                    If Not .E560Thrown Then
+                        If .ErrHandling = -1 Or .ErrHandlingLog Then _
+                           MyMainLOG = $"{ .ToStringForLog}: ({IIf(.Err5xx > 0, .Err5xx, 560)}) Download skipped {If(.ErrHandling = -1, "until next session", $"({ .ErrHandlingSection})")}"
+                        .E560Thrown = True
+                    End If
+                End With
                 Throw New ExitException With {.Is560 = True}
             End Sub
             Friend Shared Sub ThrowTokens(ByRef Source As UserData, ByVal Data As String)
@@ -366,6 +393,9 @@ Namespace API.Instagram
             Dim errorFound As Boolean = False
             Try
                 Err5xx = -1
+                ErrHandling = -1
+                ErrHandlingLog = True
+                ErrHandlingSection = Sections.Timeline
                 _Limit = If(DownloadTopCount, -1)
                 _TotalPostsParsed = 0
                 LoadSavePostsKV(True)
@@ -638,6 +668,8 @@ Namespace API.Instagram
                                 If Not ValidateBaseTokens() Then GetPageTokens()
                                 If Not ValidateBaseTokens(TokensErrData) Then ValidateBaseTokens_Error(TokensErrData)
                             End If
+                            If ForceUpdateUserName Then GetUserNameById()
+                            If ForceUpdateUserInfo Then GetUserData()
                         End If
 
                         'Create query
@@ -720,6 +752,14 @@ Namespace API.Instagram
                                     Select Case Section
                                         Case Sections.Timeline
                                             With n
+                                                If If(n("user")?.Count, 0) = 0 And Cursor.IsEmptyString Then
+                                                    If Not UserNameRequested Then
+                                                        ForceUpdateUserName = True
+                                                        Continue Do
+                                                    Else
+                                                        UserExists = False
+                                                    End If
+                                                End If
                                                 HasNextPage = .Value("more_available").FromXML(Of Boolean)(False)
                                                 EndCursor = .Value("next_max_id")
                                                 If If(.Item("items")?.Count, 0) > 0 Then
@@ -803,6 +843,11 @@ NextPageBlock:
                         Throw eex
                     Catch ex As Exception
                         dValue = ProcessException(ex, Token, $"data downloading error [{URL}]",, Section, False)
+                        If dValue = ErrHandlingValue Then
+                            ExitException.Throw560(Me)
+                        ElseIf dValue = ErrHandlingValueStories Then
+                            Exit Sub
+                        End If
                     End Try
                 Loop
             Catch jsonNull2 As JsonDocumentException When jsonNull2.State = WebDocumentEventArgs.States.Error And
@@ -1143,6 +1188,7 @@ NextPageBlock:
 #Region "GetUserId, GetUserName"
         Private Sub GetUserData()
             Dim __idFound As Boolean = False
+            If ForceUpdateUserInfo Then ForceUpdateUserInfo = False : _ForceSaveUserInfo = True
             Try
                 ChangeResponserMode(False)
                 UpdateRequestNumber()
@@ -1161,6 +1207,7 @@ NextPageBlock:
                                 If Not eUrl.IsEmptyString AndAlso (descr.IsEmptyString OrElse Not descr.Contains(eUrl)) Then descr.StringAppendLine(eUrl)
                                 UserDescriptionUpdate(descr)
                                 Dim f As New SFile With {.Path = DownloadContentDefault_GetRootDir(), .Name = "ProfilePicture", .Extension = "jpg"}
+                                f = SFile.IndexReindex(f)
                                 If Not f.Exists Then
                                     Dim profilePicture$ = .Value("profile_pic_url_hd")
                                     If profilePicture.IsEmptyString OrElse Not GetWebFile(profilePicture, f, EDP.ReturnValue) Then
@@ -1187,6 +1234,7 @@ NextPageBlock:
         End Sub
         Private Function GetUserNameById() As Boolean
             UserNameRequested = True
+            If ForceUpdateUserName Then ForceUpdateUserName = False : _ForceSaveUserInfo = True
             Try
                 If Not ID.IsEmptyString Then
                     UpdateRequestNumber()
@@ -1203,7 +1251,7 @@ NextPageBlock:
                                         Dim descr$ = $"Username changed from '{oldName}' to '{newName}' ({Now.ToStringDate(ADateTime.Formats.BaseDateTime)})!"
                                         descr.StringAppendLine(UserDescription)
                                         UserDescription = descr
-                                        _ForceSaveUserData = True
+                                        _ForceSaveUserInfo = True
                                     End If
                                     Return True
                                 End If
@@ -1282,20 +1330,15 @@ NextPageBlock:
             End If
         End Sub
         Private Function GetStoriesList() As List(Of String)
-            Try
-                UpdateRequestNumber()
-                Dim r$ = Responser.GetResponse($"https://i.instagram.com/api/v1/highlights/{ID}/highlights_tray/",, EDP.ThrowException)
-                If Not r.IsEmptyString Then
-                    Dim ee As New ErrorsDescriber(EDP.ReturnValue) With {.DeclaredMessage = New MMessage($"{ToStringForLog()}:")}
-                    Using j As EContainer = JsonDocument.Parse(r, ee).XmlIfNothing()("tray").XmlIfNothing
-                        If j.Count > 0 Then Return j.Select(Function(jj) jj.Value("id").Replace("highlight:", String.Empty)).ListIfNothing
-                    End Using
-                End If
-                Return Nothing
-            Catch ex As Exception
-                DownloadingException(ex, "API.Instagram.GetStoriesList", False, Sections.Stories)
-                Return Nothing
-            End Try
+            UpdateRequestNumber()
+            Dim r$ = Responser.GetResponse($"https://i.instagram.com/api/v1/highlights/{ID}/highlights_tray/",, EDP.ThrowException)
+            If Not r.IsEmptyString Then
+                Dim ee As New ErrorsDescriber(EDP.ReturnValue) With {.DeclaredMessage = New MMessage($"{ToStringForLog()}:")}
+                Using j As EContainer = JsonDocument.Parse(r, ee).XmlIfNothing()("tray").XmlIfNothing
+                    If j.Count > 0 Then Return j.Select(Function(jj) jj.Value("id").Replace("highlight:", String.Empty)).ListIfNothing
+                End Using
+            End If
+            Return Nothing
         End Function
 #End Region
 #Region "Download content"
@@ -1341,11 +1384,26 @@ NextPageBlock:
                 MyMainLOG = $"Number of requests before error 429: {RequestsCount}"
                 Return 1
             ElseIf Responser.StatusCode = 560 Or Responser.StatusCode = HttpStatusCode.InternalServerError Then '560, 500
-                MySiteSettings.SkipUntilNextSession = True
-                Err5xx = Responser.StatusCode
+                If Responser.StatusCode = 560 And s = Sections.Stories And MySiteSettings.IgnoreStoriesDownloadingErrors Then
+                    MyMainLOG = $"{ToStringForLog()}: Stories downloading skipped (560)"
+                    Return ErrHandlingValueStories
+                Else
+                    MySiteSettings.SkipUntilNextSession = True
+                    Err5xx = Responser.StatusCode
+                End If
             ElseIf Responser.StatusCode = -1 And Responser.Status = -1 Then
                 MySiteSettings.SkipUntilNextSession = True
                 Err5xx = Responser.StatusCode
+            ElseIf MySiteSettings.ErrorSpecialHandling(Responser.StatusCode) Then
+                ErrHandlingLog = MySiteSettings.ErrorSpecialHandling_AddToLog(Responser.StatusCode)
+                ErrHandling = Responser.StatusCode
+                ErrHandlingSection = s
+                Return ErrHandlingValue
+            ElseIf MySiteSettings.ErrorSpecialHandling(Responser.Status) Then
+                ErrHandlingLog = MySiteSettings.ErrorSpecialHandling_AddToLog(Responser.Status)
+                ErrHandling = Responser.Status
+                ErrHandlingSection = s
+                Return ErrHandlingValue
             Else
                 MyMainLOG = $"Something is wrong. Your credentials may have expired [{CInt(Responser.StatusCode)}/{CInt(Responser.Status)}]: {ToString()} [{s}]"
                 DisableSection(s)

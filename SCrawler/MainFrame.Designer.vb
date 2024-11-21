@@ -679,7 +679,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_CONTEXT_DOWN.Image = Global.SCrawler.My.Resources.Resources.StartPic_Green_16
         Me.BTT_CONTEXT_DOWN.Name = "BTT_CONTEXT_DOWN"
         Me.BTT_CONTEXT_DOWN.Size = New System.Drawing.Size(221, 22)
-        Me.BTT_CONTEXT_DOWN.Text = "Download data"
+        Me.BTT_CONTEXT_DOWN.Text = "Download"
         Me.BTT_CONTEXT_DOWN.ToolTipText = ""
         '
         'BTT_CONTEXT_DOWN_LIMITED
@@ -688,7 +688,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_CONTEXT_DOWN_LIMITED.Image = Global.SCrawler.My.Resources.Resources.StartPic_Green_16
         Me.BTT_CONTEXT_DOWN_LIMITED.Name = "BTT_CONTEXT_DOWN_LIMITED"
         Me.BTT_CONTEXT_DOWN_LIMITED.Size = New System.Drawing.Size(221, 22)
-        Me.BTT_CONTEXT_DOWN_LIMITED.Text = "Download data limited"
+        Me.BTT_CONTEXT_DOWN_LIMITED.Text = "Download (limited)"
         Me.BTT_CONTEXT_DOWN_LIMITED.ToolTipText = "Download top ... posts"
         '
         'BTT_CONTEXT_DOWN_DATE_LIMIT
@@ -696,7 +696,7 @@ Partial Public Class MainFrame : Inherits System.Windows.Forms.Form
         Me.BTT_CONTEXT_DOWN_DATE_LIMIT.Image = Global.SCrawler.My.Resources.Resources.StartPic_Green_16
         Me.BTT_CONTEXT_DOWN_DATE_LIMIT.Name = "BTT_CONTEXT_DOWN_DATE_LIMIT"
         Me.BTT_CONTEXT_DOWN_DATE_LIMIT.Size = New System.Drawing.Size(221, 22)
-        Me.BTT_CONTEXT_DOWN_DATE_LIMIT.Text = "Download data to the date"
+        Me.BTT_CONTEXT_DOWN_DATE_LIMIT.Text = "Download (to the date)"
         Me.BTT_CONTEXT_DOWN_DATE_LIMIT.ToolTipText = ""
         '
         'BTT_CONTEXT_EDIT

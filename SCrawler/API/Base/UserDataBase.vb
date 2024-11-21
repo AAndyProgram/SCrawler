@@ -80,6 +80,8 @@ Namespace API.Base
         Private _CollectionButtonsExists As Boolean = False
         Private _CollectionButtonsColorsSet As Boolean = False
         Friend WithEvents BTT_CONTEXT_DOWN As ToolStripKeyMenuItem
+        Friend WithEvents BTT_CONTEXT_DOWN_LIMIT As ToolStripKeyMenuItem
+        Friend WithEvents BTT_CONTEXT_DOWN_DATE As ToolStripKeyMenuItem
         Friend WithEvents BTT_CONTEXT_EDIT As ToolStripMenuItem
         Friend WithEvents BTT_CONTEXT_DELETE As ToolStripMenuItem
         Friend WithEvents BTT_CONTEXT_ERASE As ToolStripMenuItem
@@ -98,6 +100,8 @@ Namespace API.Base
                 End If
             End With
             BTT_CONTEXT_DOWN = New ToolStripKeyMenuItem(tn, i) With {.Name = tnn("DOWN"), .Tag = Me}
+            BTT_CONTEXT_DOWN_LIMIT = New ToolStripKeyMenuItem(tn, i) With {.Name = tnn("DOWN_LIMIT"), .Tag = Me}
+            BTT_CONTEXT_DOWN_DATE = New ToolStripKeyMenuItem(tn, i) With {.Name = tnn("DOWN_DATE"), .Tag = Me}
             BTT_CONTEXT_EDIT = New ToolStripMenuItem(tn, i) With {.Name = tnn("EDIT"), .Tag = Me}
             BTT_CONTEXT_DELETE = New ToolStripMenuItem(tn, i) With {.Name = tnn("DELETE"), .Tag = Me}
             BTT_CONTEXT_ERASE = New ToolStripMenuItem(tn, i) With {.Name = tnn("ERASE"), .Tag = Me}
@@ -117,7 +121,8 @@ Namespace API.Base
                 cb = MyColor.EditBack
                 cf = MyColor.EditFore
             End If
-            For Each b As ToolStripMenuItem In {BTT_CONTEXT_DOWN, BTT_CONTEXT_EDIT, BTT_CONTEXT_DELETE, BTT_CONTEXT_ERASE,
+            For Each b As ToolStripMenuItem In {BTT_CONTEXT_DOWN, BTT_CONTEXT_DOWN_LIMIT, BTT_CONTEXT_DOWN_DATE,
+                                                BTT_CONTEXT_EDIT, BTT_CONTEXT_DELETE, BTT_CONTEXT_ERASE,
                                                 BTT_CONTEXT_OPEN_PATH, BTT_CONTEXT_OPEN_SITE}
                 If Not b Is Nothing Then b.BackColor = cb : b.ForeColor = cf
             Next
@@ -1282,12 +1287,14 @@ BlockNullPicture:
                         ErrorsDescriber.Execute(EDP.SendToLog, exit_ex, $"{ToStringForLog()}: downloading interrupted (exit)")
                     End If
                 End If
+                If _EnvirInvokeUserUpdated Then OnUserUpdated()
                 Canceled = True
             Catch dex As ObjectDisposedException When Disposed
                 Canceled = True
             Catch ex As Exception
                 UpdateUserInformation_Ex()
                 LogError(ex, "downloading data error")
+                If _EnvirInvokeUserUpdated Then OnUserUpdated()
                 HasError = True
             Finally
                 If Not UserExists Then AddNonExistingUserToLog($"User '{ToStringForLog()}' not found on the site")
@@ -2191,6 +2198,12 @@ BlockNullPicture:
         Private Sub BTT_CONTEXT_DOWN_KeyClick(sender As Object, e As MyKeyEventArgs) Handles BTT_CONTEXT_DOWN.KeyClick
             Downloader.Add(Me, e.IncludeInTheFeed)
         End Sub
+        Private Sub BTT_CONTEXT_DOWN_LIMIT_KeyClick(sender As Object, e As MyKeyEventArgs) Handles BTT_CONTEXT_DOWN_LIMIT.KeyClick
+            ControlInvokeFast(MainFrameObj.MF, Sub() MainFrameObj.MF.DownloadSelectedUser(MainFrame.DownUserLimits.Number, e.IncludeInTheFeed, Me), EDP.SendToLog)
+        End Sub
+        Private Sub BTT_CONTEXT_DOWN_DATE_KeyClick(sender As Object, e As MyKeyEventArgs) Handles BTT_CONTEXT_DOWN_DATE.KeyClick
+            ControlInvokeFast(MainFrameObj.MF, Sub() MainFrameObj.MF.DownloadSelectedUser(MainFrame.DownUserLimits.Date, e.IncludeInTheFeed, Me), EDP.SendToLog)
+        End Sub
         Private Sub BTT_CONTEXT_EDIT_Click(sender As Object, e As EventArgs) Handles BTT_CONTEXT_EDIT.Click
             Using f As New Editors.UserCreatorForm(Me)
                 f.ShowDialog()
@@ -2271,6 +2284,8 @@ BlockNullPicture:
                     If Not ProgressPre Is Nothing Then ProgressPre.Reset() : ProgressPre.Dispose()
                     If Not Responser Is Nothing Then Responser.Dispose()
                     If Not BTT_CONTEXT_DOWN Is Nothing Then BTT_CONTEXT_DOWN.Dispose()
+                    If Not BTT_CONTEXT_DOWN_LIMIT Is Nothing Then BTT_CONTEXT_DOWN_LIMIT.Dispose()
+                    If Not BTT_CONTEXT_DOWN_DATE Is Nothing Then BTT_CONTEXT_DOWN_DATE.Dispose()
                     If Not BTT_CONTEXT_EDIT Is Nothing Then BTT_CONTEXT_EDIT.Dispose()
                     If Not BTT_CONTEXT_DELETE Is Nothing Then BTT_CONTEXT_DELETE.Dispose()
                     If Not BTT_CONTEXT_ERASE Is Nothing Then BTT_CONTEXT_ERASE.Dispose()

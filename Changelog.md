@@ -1,14 +1,37 @@
+# 2024.11.21.0
+
+*2024-11-21*
+
+- Added
+  - Sites:
+    - Instagram:
+      - setting to skip errors without disabling download *(site settings)*
+      - settings to force update of username and/or user information *(user settings)*
+      - setting to continue downloading profile if error 560 occurs while downloading user stories *(site settings)*
+      - improve username update algorithm
+    - YouTube: 404 error handling (community)
+  - Main window: add extra buttons for special download (limited and dated) in collection
+  - Global settings: ability to change the feed opening shortcut (`Ctrl+F`/`Alt+F` *(Settings - Behavior)*)
+  - Minor improvements
+- Updated
+  - yt-dlp up to version **2024.11.18**
+  - gallery-dl up to version **1.27.7**
+- Fixed
+  - Users: network paths aren't working
+  - Main window: in some cases users are not updated in the list
+  - Minor bugs
+
 # 2024.10.24.0
 
 *2024-10-24*
 
 - Added
-  - YouTube (standalone app)
+  - YouTube (standalone app):
     - settings `Embed thumbnail (cover)` and `Allow webm formats`
     - changed cover selection for music downloads
-    - allow `webm` formats is there are no `mp4` formats via http protocol (issue #211)
+    - allow `webm` formats if there are no `mp4` formats via http protocol (issue #211)
   - Sites:
-    - Instagram
+    - Instagram:
       - **ability to manually change username**
       - **mark user as non-existent if user `ID` cannot be obtained**
     - Twitter: **ability to manually change username**
