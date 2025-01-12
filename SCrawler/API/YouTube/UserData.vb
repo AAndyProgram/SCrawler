@@ -33,6 +33,11 @@ Namespace API.YouTube
         Private Const Name_LastDownloadDatePlaylist As String = "YTLastDownloadDatePlaylist"
 #End Region
 #Region "Declarations"
+        Private ReadOnly Property MySettings As SiteSettings
+            Get
+                Return HOST.Source
+            End Get
+        End Property
         Friend Property DownloadYTVideos As Boolean = True
         Friend Property DownloadYTShorts As Boolean = False
         Friend Property DownloadYTPlaylists As Boolean = False
@@ -263,7 +268,17 @@ Namespace API.YouTube
                 If ChannelID.IsEmptyString Then GetChannelID()
                 If ChannelID.IsEmptyString Then Throw New ArgumentNullException("ChannelID", "Channel ID cannot be null")
 
-                URL = $"https://yt.lemnoslife.com/channels?part=community&id={ChannelID}"
+                URL = MySettings.CommunityHost.Value
+                If URL.IsEmptyString Then
+                    If Not CBool(MySettings.IgnoreCommunityErrors.Value) Then _
+                       MyMainLOG = $"{ToStringForLog()}: YouTube API instance host is not specified for downloading communities"
+                    Exit Sub
+                Else
+                    URL = LinkFormatterSecure(URL.Trim, "http").TrimEnd("/")
+                End If
+
+                URL = $"{URL}/channels?part=community&id={ChannelID}"
+                If Not CStr(MySettings.YouTubeAPIKey.Value).IsEmptyString Then URL &= $"&key={CStr(MySettings.YouTubeAPIKey.Value).Trim}"
                 If Not Cursor.IsEmptyString Then URL &= $"&pageToken={Cursor}"
 
                 ProgressPre.ChangeMax(1)

@@ -186,6 +186,7 @@ Namespace API.Pinterest
                 Dim l As List(Of String) = GetDataFromGalleryDL(Board.URL, False, Token)
                 If l.ListExists Then l.RemoveAll(Function(ll) Not ll.Contains("BoardFeedResource/get/"))
                 If l.ListExists Then
+                    Responser.Headers.Add(PwsHeader)
                     ProgressPre.ChangeMax(l.Count)
                     For Each bUrl In l
                         ProgressPre.Perform()
@@ -252,6 +253,8 @@ Namespace API.Pinterest
                 End If
             Catch ex As Exception
                 ProcessException(ex, Token, $"data (gallery-dl images) downloading error [{bUrl}]")
+            Finally
+                Responser.Headers.Remove(PwsHeader)
             End Try
         End Sub
 #End Region

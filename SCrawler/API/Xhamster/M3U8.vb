@@ -93,7 +93,11 @@ Namespace API.Xhamster
                         Dim position% = InStr(URL, sk)
                         If position > 0 Then appender = URL.Remove(position - 1)
                     End If
-                    URL = M3U8Base.CreateUrl(appender, file)
+                    If file.StartsWith("//") Then
+                        URL = LinkFormatterSecure(file.TrimStart("/"))
+                    Else
+                        URL = M3U8Base.CreateUrl(appender, file)
+                    End If
                     Dim l As List(Of M3U8URL) = ParseSecondM3U8(URL, Responser, appender)
                     If l.ListExists Then Return l
                 End If

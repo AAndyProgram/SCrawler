@@ -469,37 +469,59 @@ Namespace Plugin.Hosts
                     Return False
                 End If
             Else
-                Dim a As Boolean = False, n As Boolean = False
+                Dim a As Boolean = False, n As Boolean = False, aDown As Boolean = True
                 Dim t$ = String.Empty
                 Dim tExists As Boolean = False
                 Dim singleHost As Boolean = hnExists AndAlso HostNames.Count = 1
                 Dim m As New MMessage("", "Some of the hosts are unavailable",, vbExclamation)
-                For i% = 0 To Count - 1
-                    If Not hnExists OrElse HostNames.Contains(Hosts(i).AccountName) Then
-                        If Hosts(i).Available(What, True) Then
-                            a = True
-                        Else
-                            n = True
-                            If Not Hosts(i).AvailableText.IsEmptyString Then
-                                t &= vbCr
-                                t.StringAppendLine($"{Name} - {Hosts(i).AccountName.IfNullOrEmpty(SettingsHost.NameAccountNameDefault)}:")
-                                t.StringAppendLine(Hosts(i).AvailableText)
-                                tExists = True
+                If [Default].IsDownDetectorCompatible Then
+                    Dim sh As SettingsHost = Nothing
+                    Dim defdvalue% = [Default].DownDetectorValue
+                    If hnExists AndAlso Not Hosts.All(Function(h) h.DownDetectorValue = defdvalue) Then _
+                       sh = Hosts.Find(Function(h) h.AccountName = HostNames(0))
+                    If sh Is Nothing Then sh = [Default]
+                    aDown = sh.AvailableDownDetector(What, Silent)
+                    Hosts.ForEach(Sub(ByVal h As SettingsHost)
+                                      h.AvailableDownDetectorAsked = True
+                                      If Not aDown And Not Silent Then h.AvailableValue = False : h.AvailableAsked = True
+                                  End Sub)
+                End If
+                If aDown Then
+                    For i% = 0 To Count - 1
+                        If Not hnExists OrElse HostNames.Contains(Hosts(i).AccountName) Then
+                            If Hosts(i).Available(What, True) Then
+                                a = True
                             Else
-                                t.StringAppendLine($"{Name} - {Hosts(i).AccountName.IfNullOrEmpty(SettingsHost.NameAccountNameDefault)}")
+                                n = True
+                                If Not Hosts(i).AvailableText.IsEmptyString Then
+                                    t &= vbCr
+                                    t.StringAppendLine($"{Name} - {Hosts(i).AccountName.IfNullOrEmpty(SettingsHost.NameAccountNameDefault)}:")
+                                    t.StringAppendLine(Hosts(i).AvailableText)
+                                    tExists = True
+                                Else
+                                    t.StringAppendLine($"{Name} - {Hosts(i).AccountName.IfNullOrEmpty(SettingsHost.NameAccountNameDefault)}")
+                                End If
+                                If FillIndexes Then HostsUnavailableIndexes.Add(i)
                             End If
-                            If FillIndexes Then HostsUnavailableIndexes.Add(i)
                         End If
-                    End If
-                Next
+                    Next
+                Else
+                    If Not Silent Then Silent = True
+                    a = False
+                    n = True
+                    If Not [Default].AvailableText.IsEmptyString Then t = [Default].AvailableText : tExists = Not t.IsEmptyString
+                End If
+
                 t = t.StringTrim
                 If singleHost Then
                     m.Text = "The host is unavailable."
                 Else
                     m.Text = "Some of the hosts are unavailable."
                 End If
-                If HostNamesPassed And Not hnExists Then Silent = True
-                If a And Not n Then
+                If HostNamesPassed And Not hnExists And aDown Then Silent = True
+                If Not aDown And Not Silent Then
+                    Return False
+                ElseIf a And Not n Then
                     Return True
                 ElseIf Not a And n Then
                     If Not Silent And tExists Then m.Text &= $"{vbCr}{vbCr}{t}" : m.Show()

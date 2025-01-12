@@ -7,9 +7,11 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports System.Globalization
+Imports PersonalUtilities.Tools.Web.Clients
 Namespace API.Pinterest
     Friend Module Declarations
         Friend ReadOnly DateProvider As ADateTime = GetDateProvider()
+        Friend ReadOnly PwsHeader As New HttpHeader("x-pinterest-pws-handler", "www/[username]/pins.js")
         Private Function GetDateProvider() As ADateTime
             Dim n As DateTimeFormatInfo = CultureInfo.GetCultureInfo("en-us").DateTimeFormat.Clone
             n.FullDateTimePattern = "ddd dd MMM yyyy HH:mm:ss"

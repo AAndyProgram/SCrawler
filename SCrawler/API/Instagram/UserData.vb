@@ -42,7 +42,7 @@ Namespace API.Instagram
         Private Const Name_ForceUpdateUserInfo As String = "ForceUpdateUserInfo"
 #End Region
 #Region "Declarations"
-        Protected Structure PostKV : Implements IEContainerProvider
+        Friend Structure PostKV : Implements IEContainerProvider
             Private Const Name_Code As String = "Code"
             Private Const Name_Section As String = "Section"
             Friend Code As String
@@ -252,24 +252,27 @@ Namespace API.Instagram
                 End If
             End Get
         End Property
-        Protected Sub LoadSavePostsKV(ByVal Load As Boolean)
+        Friend Overloads Shared Sub LoadSavePostsKV(ByVal Load As Boolean, ByVal fPosts As SFile, ByRef List As List(Of PostKV))
             Dim x As XmlFile
-            Dim f As SFile = MyFilePostsKV
+            Dim f As SFile = fPosts
             If Not f.IsEmptyString Then
                 If Load Then
-                    PostsKVIDs.Clear()
+                    List.Clear()
                     x = New XmlFile(f, Protector.Modes.All, False) With {.AllowSameNames = True, .XmlReadOnly = True}
                     x.LoadData()
-                    If x.Count > 0 Then PostsKVIDs.ListAddList(x, LAP.IgnoreICopier)
+                    If x.Count > 0 Then List.ListAddList(x, LAP.IgnoreICopier)
                     x.Dispose()
                 Else
                     x = New XmlFile With {.AllowSameNames = True}
-                    x.AddRange(PostsKVIDs)
+                    x.AddRange(List)
                     x.Name = "Posts"
                     x.Save(f, EDP.SendToLog)
                     x.Dispose()
                 End If
             End If
+        End Sub
+        Protected Overloads Sub LoadSavePostsKV(ByVal Load As Boolean)
+            LoadSavePostsKV(Load, MyFilePostsKV, PostsKVIDs)
         End Sub
         Protected Overloads Function PostKvExists(ByVal pkv As PostKV) As Boolean
             Return PostKvExists(pkv.ID, False, pkv.Section) OrElse PostKvExists(pkv.Code, True, pkv.Section)
@@ -476,7 +479,7 @@ Namespace API.Instagram
                 If Not errorFound Then LoadSavePostsKV(False)
             End Try
         End Sub
-        Private Sub ValidateExtension()
+        Protected Sub ValidateExtension()
             Try
                 Const heic$ = "heic"
                 If _TempMediaList.Count > 0 AndAlso _TempMediaList.Exists(Function(mm) mm.File.Extension = heic) Then
@@ -503,7 +506,7 @@ Namespace API.Instagram
         Protected Overrides Sub Responser_ResponseReceived(ByVal Sender As Object, ByVal e As EventArguments.WebDataResponse)
             Declarations.UpdateResponser(e, Responser, WwwClaimUpdate)
         End Sub
-        Protected Enum Sections : Timeline : Reels : Tagged : Stories : UserStories : SavedPosts : End Enum
+        Friend Enum Sections : Timeline : Reels : Tagged : Stories : UserStories : SavedPosts : End Enum
         Protected Const StoriesFolder As String = "Stories"
         Private Const TaggedFolder As String = "Tagged"
 #Region "429 bypass"

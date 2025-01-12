@@ -15,6 +15,7 @@ Namespace API.Mastodon
         <PSetting(Address:=SettingAddress.None)> Friend Overrides Property DownloadModelSearch As Boolean
         <PSetting(Address:=SettingAddress.None)> Friend Overrides Property DownloadModelForceApply As Boolean
         <PSetting(Address:=SettingAddress.None)> Friend Overrides Property DownloadModelLikes As Boolean
+        <PSetting(Address:=SettingAddress.None)> Friend Overrides Property DownloadBroadcasts As Boolean
         <PSetting(Address:=SettingAddress.None)> Friend Overrides Property UserName As String
         Friend Sub New(ByVal s As SiteSettings)
             MyBase.New(s)

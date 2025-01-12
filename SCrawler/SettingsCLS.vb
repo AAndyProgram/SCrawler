@@ -366,6 +366,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         ReparseMissingInTheRoutine = New XMLValue(Of Boolean)("ReparseMissingInTheRoutine", False, MyXML, n)
         UseDefaultAccountIfMissing = New XMLValue(Of Boolean)("UseDefaultAccountIfMissing", True, MyXML, n)
         AutomationBrushUndownloadedPlansMinutes = New XMLValue(Of Integer)("AutomationBrushUndownloadedPlansMinutes", 10080, MyXML, n)
+        DownDetectorEnabled = New XMLValue(Of Boolean)("DownDetectorEnabled", True, MyXML, n)
 
         'Downloading: file naming
         n = {"Downloading", "FileName"}
@@ -1064,6 +1065,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
     Friend ReadOnly Property ReparseMissingInTheRoutine As XMLValue(Of Boolean)
     Friend ReadOnly Property UseDefaultAccountIfMissing As XMLValue(Of Boolean)
     Friend ReadOnly Property AutomationBrushUndownloadedPlansMinutes As XMLValue(Of Integer)
+    Friend ReadOnly Property DownDetectorEnabled As XMLValue(Of Boolean)
 #End Region
 #Region "Downloading: file naming"
     Friend ReadOnly Property FileAddDateToFileName As XMLValue(Of Boolean)

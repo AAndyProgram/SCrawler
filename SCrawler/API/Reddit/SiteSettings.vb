@@ -17,8 +17,8 @@ Imports PersonalUtilities.Functions.RegularExpressions
 Imports DownDetector = SCrawler.API.Base.DownDetector
 Imports Download = SCrawler.Plugin.ISiteSettings.Download
 Namespace API.Reddit
-    <Manifest(RedditSiteKey), SavedPosts, SpecialForm(False)>
-    Friend Class SiteSettings : Inherits SiteSettingsBase
+    <Manifest(RedditSiteKey), SavedPosts, SpecialForm(False), UseDownDetector>
+    Friend Class SiteSettings : Inherits SiteSettingsBase : Implements DownDetector.IDownDetector
 #Region "Declarations"
 #Region "Authorization"
         <PropertyOption(ControlText:="Login", ControlToolTip:="Your authorization username", IsAuth:=True), PXML, PClonable(Clone:=False)>
@@ -67,6 +67,26 @@ Namespace API.Reddit
         <PropertyOption(ControlText:="Check image: get original", ControlToolTip:="Get the original image if it exists", IsAuth:=False), PXML, PClonable>
         Friend ReadOnly Property CheckImageReturnOrig As PropertyValue
 #End Region
+#Region "IDownDetector Support"
+        Private ReadOnly Property IDownDetector_Value As Integer Implements DownDetector.IDownDetector.Value
+            Get
+                Return 100
+            End Get
+        End Property
+        Private ReadOnly Property IDownDetector_AddToLog As Boolean Implements DownDetector.IDownDetector.AddToLog
+            Get
+                Return False
+            End Get
+        End Property
+        Private ReadOnly Property IDownDetector_CheckSite As String Implements DownDetector.IDownDetector.CheckSite
+            Get
+                Return "reddit"
+            End Get
+        End Property
+        Private Function IDownDetector_Available(ByVal What As Download, ByVal Silent As Boolean) As Boolean Implements DownDetector.IDownDetector.Available
+            Return MDD.Available(What, Silent)
+        End Function
+#End Region
 #End Region
 #Region "Initializer"
         Friend Sub New(ByVal AccName As String, ByVal Temp As Boolean)
@@ -97,6 +117,8 @@ Namespace API.Reddit
             CheckImage = New PropertyValue(False)
             CheckImageReturnOrig = New PropertyValue(True)
 
+            MDD = New MyDownDetector(Me)
+
             UrlPatternUser = "https://www.reddit.com/{0}/{1}/"
             ImageVideoContains = "reddit.com"
             UserRegex = RParams.DM("[htps:/]{7,8}.*?reddit.com/([user]{1,4})/([^/\?&]+)", 0, RegexReturn.ListByMatch, EDP.ReturnValue)
@@ -116,81 +138,48 @@ Namespace API.Reddit
         End Function
 #End Region
 #Region "DownloadStarted, ReadyToDownload, Available, DownloadDone, UpdateRedGifsToken"
-        Private ____DownloadStarted As Boolean = False
-        Friend Overrides Sub DownloadStarted(ByVal What As Download)
-            If What = Download.Main Then ____DownloadStarted = True
-            MyBase.DownloadStarted(What)
-        End Sub
+        Private ReadOnly MDD As MyDownDetector
+        Private Class MyDownDetector : Inherits DownDetector.Checker(Of SiteSettings)
+            Private __TrueValue As Boolean = False
+            Friend Sub New(ByRef _Source As SiteSettings)
+                MyBase.New(_Source)
+            End Sub
+            Protected Overrides Function AvailableImpl(ByVal What As Download, ByVal Silent As Boolean) As Boolean
+                __TrueValue = Source.AvailableTrueValue(What)
+                Return MyBase.AvailableImpl(What, Silent)
+            End Function
+            Protected Overrides Function AvailableImpl_TRUE() As Boolean
+                Return AvailableImpl_TrueValueReturn()
+            End Function
+            Protected Overrides Function AvailableImpl_FALSE_SILENT_NOT_MSG_YES() As Boolean
+                Return AvailableImpl_TrueValueReturn()
+            End Function
+            Private Function AvailableImpl_TrueValueReturn() As Boolean
+                If __TrueValue Then Source.UpdateRedGifsToken()
+                Return __TrueValue AndAlso Source.UpdateTokenIfRequired()
+            End Function
+            Friend Overrides Sub Reset()
+                __TrueValue = False
+                MyBase.Reset()
+            End Sub
+        End Class
         Friend Property SessionInterrupted As Boolean = False
         Friend Overrides Function ReadyToDownload(ByVal What As Download) As Boolean
             If What = Download.Main Then
-                Dim result As Boolean = Not SessionInterrupted
-                If result Then
-                    If ____DownloadStarted And ____AvailableRequested Then
-                        ____AvailableResult = AvailableImpl(What, ____AvailableSilent)
-                        ____AvailableChecked = True
-                        ____AvailableRequested = False
-                        result = ____AvailableResult
-                    ElseIf ____AvailableChecked Then
-                        result = ____AvailableResult
-                    End If
-                End If
-                Return result
+                Return Not SessionInterrupted
             Else
                 Return True
             End If
         End Function
-        Private ____AvailableRequested As Boolean = False
-        Private ____AvailableSilent As Boolean = True
-        Private ____AvailableChecked As Boolean = False
-        Private ____AvailableResult As Boolean = False
         Friend Overrides Function Available(ByVal What As Download, ByVal Silent As Boolean) As Boolean
-            If What = Download.Main And ____DownloadStarted Then
-                ____AvailableRequested = True
-                ____AvailableSilent = Silent
-                Return True
-            Else
-                Return AvailableImpl(What, Silent)
-            End If
+            Return AvailableTrueValue(What)
         End Function
-        Private Function AvailableImpl(ByVal What As Download, ByVal Silent As Boolean) As Boolean
-            Try
-                AvailableText = String.Empty
-                Dim trueValue As Boolean = Not What = Download.SavedPosts OrElse (Responser.CookiesExists And ACheck(SavedPostsUserName.Value))
-                If Not trueValue Then Return False
-                Dim dl As List(Of DownDetector.Data) = DownDetector.GetData("reddit")
-                If dl.ListExists Then
-                    dl = dl.Take(4).ToList
-                    Dim avg% = dl.Average(Function(d) d.Value)
-                    If avg > 100 Then
-                        AvailableText = "Over the past hour, Reddit has received an average of " &
-                                        avg.NumToString(New ANumbers With {.FormatOptions = ANumbers.Options.GroupIntegral}) & " outage reports:" & vbCr &
-                                        dl.ListToString(vbCr)
-                        If Silent Then
-                            Return False
-                        Else
-                            If MsgBoxE({$"{AvailableText}{vbCr}{vbCr}Do you want to continue parsing Reddit data?", "There are outage reports on Reddit"}, vbYesNo) = vbYes Then
-                                If trueValue Then UpdateRedGifsToken()
-                                Return trueValue AndAlso UpdateTokenIfRequired()
-                            Else
-                                Return False
-                            End If
-                        End If
-                    End If
-                End If
-                If trueValue Then UpdateRedGifsToken()
-                Return trueValue AndAlso UpdateTokenIfRequired()
-            Catch ex As Exception
-                Return ErrorsDescriber.Execute(EDP.SendToLog + EDP.ReturnValue, ex, "[API.Reddit.SiteSettings.Available]", True)
-            End Try
+        Private Function AvailableTrueValue(ByVal What As Download) As Boolean
+            Return Not What = Download.SavedPosts OrElse (Responser.CookiesExists And ACheck(SavedPostsUserName.Value))
         End Function
         Friend Overrides Sub DownloadDone(ByVal What As Download)
             SessionInterrupted = False
-            ____DownloadStarted = False
-            ____AvailableRequested = False
-            ____AvailableChecked = False
-            ____AvailableSilent = True
-            ____AvailableResult = False
+            MDD.Reset()
             MyBase.DownloadDone(What)
         End Sub
         Private Sub UpdateRedGifsToken()

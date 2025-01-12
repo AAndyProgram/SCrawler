@@ -10,36 +10,52 @@ Imports SCrawler.Plugin
 Imports SCrawler.Plugin.Attributes
 Imports SCrawler.API.Base
 Imports SCrawler.API.YouTube.Base
+Imports DN = SCrawler.API.Base.DeclaredNames
 Namespace API.YouTube
     <Manifest(YouTubeSiteKey), SpecialForm(True), SpecialForm(False), SeparatedTasks(1)>
     Friend Class SiteSettings : Inherits SiteSettingsBase
+#Region "Categories"
+        Private Const CAT_COMMUNITY As String = "Communities"
+#End Region
 #Region "Declarations"
-        <PXML, PropertyOption(ControlText:="Download user videos"), PClonable>
-        Friend ReadOnly Property DownloadVideos As PropertyValue
-        <PXML, PropertyOption(ControlText:="Download user shorts"), PClonable>
-        Friend ReadOnly Property DownloadShorts As PropertyValue
-        <PXML, PropertyOption(ControlText:="Download user playlists"), PClonable>
-        Friend ReadOnly Property DownloadPlaylists As PropertyValue
-        <PXML, PropertyOption(ControlText:="Download user community: images"), PClonable>
-        Friend ReadOnly Property DownloadCommunityImages As PropertyValue
-        <PXML, PropertyOption(ControlText:="Download user community: videos"), PClonable>
-        Friend ReadOnly Property DownloadCommunityVideos As PropertyValue
-        <PXML, PropertyOption(ControlText:="Ignore community errors", ControlToolTip:="If true, community errors will not be added to the log."), PClonable>
-        Friend ReadOnly Property IgnoreCommunityErrors As PropertyValue
-        <PXML, PropertyOption(ControlText:="Use cookies", ControlToolTip:="Default value for new users." & vbCr & "Use cookies when downloading data."), PClonable>
+        <PXML, PropertyOption(ControlText:="Use cookies", ControlToolTip:="Default value for new users." & vbCr & "Use cookies when downloading data.", IsAuth:=True), PClonable>
         Friend ReadOnly Property UseCookies As PropertyValue
+#Region "New user defaults"
+        <PXML, PropertyOption(ControlText:="Download user videos", Category:=DN.CAT_UserDefs), PClonable>
+        Friend ReadOnly Property DownloadVideos As PropertyValue
+        <PXML, PropertyOption(ControlText:="Download user shorts", Category:=DN.CAT_UserDefs), PClonable>
+        Friend ReadOnly Property DownloadShorts As PropertyValue
+        <PXML, PropertyOption(ControlText:="Download user playlists", Category:=DN.CAT_UserDefs), PClonable>
+        Friend ReadOnly Property DownloadPlaylists As PropertyValue
+        <PXML, PropertyOption(ControlText:="Download user community: images", Category:=DN.CAT_UserDefs), PClonable>
+        Friend ReadOnly Property DownloadCommunityImages As PropertyValue
+        <PXML, PropertyOption(ControlText:="Download user community: videos", Category:=DN.CAT_UserDefs), PClonable>
+        Friend ReadOnly Property DownloadCommunityVideos As PropertyValue
+#End Region
+#Region "Communities"
+        <PXML, PropertyOption(ControlText:="YouTube API host",
+                              ControlToolTip:="YouTube API instance host (YouTube-operational-API). Example: 'localhost/YouTube-operational-API', 'http://localhost/YouTube-operational-API'.",
+                              Category:=CAT_COMMUNITY), PClonable>
+        Friend ReadOnly Property CommunityHost As PropertyValue
+        <PXML, PropertyOption(ControlText:="YouTube API key", ControlToolTip:="YouTube Data API v3 developer key", Category:=CAT_COMMUNITY), PClonable>
+        Friend ReadOnly Property YouTubeAPIKey As PropertyValue
+        <PXML, PropertyOption(ControlText:="Ignore community errors", ControlToolTip:="If true, community errors will not be added to the log.", Category:=CAT_COMMUNITY), PClonable>
+        Friend ReadOnly Property IgnoreCommunityErrors As PropertyValue
+#End Region
 #End Region
 #Region "Initializer"
         Friend Sub New(ByVal AccName As String, ByVal Temp As Boolean)
             MyBase.New(YouTubeSite, "youtube.com", AccName, Temp, My.Resources.SiteYouTube.YouTubeIcon_32, My.Resources.SiteYouTube.YouTubePic_96)
             Responser.Cookies.ChangedAllowInternalDrop = False
+            UseCookies = New PropertyValue(False)
             DownloadVideos = New PropertyValue(True)
             DownloadShorts = New PropertyValue(False)
             DownloadPlaylists = New PropertyValue(False)
             DownloadCommunityImages = New PropertyValue(False)
             DownloadCommunityVideos = New PropertyValue(False)
+            CommunityHost = New PropertyValue(String.Empty, GetType(String))
+            YouTubeAPIKey = New PropertyValue(String.Empty, GetType(String))
             IgnoreCommunityErrors = New PropertyValue(False)
-            UseCookies = New PropertyValue(False)
             _SubscriptionsAllowed = True
             UseNetscapeCookies = True
         End Sub

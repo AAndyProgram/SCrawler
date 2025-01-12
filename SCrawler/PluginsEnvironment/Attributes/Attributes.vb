@@ -60,4 +60,7 @@ Namespace Plugin.Attributes
             PropertyName = _PropertyName
         End Sub
     End Class
+    <AttributeUsage(AttributeTargets.Class, AllowMultiple:=False)>
+    Public Class UseDownDetectorAttribute : Inherits Attribute
+    End Class
 End Namespace

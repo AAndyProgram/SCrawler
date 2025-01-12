@@ -55,7 +55,7 @@ I strongly recommend you to **regularly** create backup copies of the settings f
     - [Video how to configure](#video-how-to-configure)
 - **Antivirus**
     - **Antivirus detects SCrawler as a virus** :arrow_forward: SCrawler doesn't contain any viruses at all. All code is posted on GitHub. You can review it. I have nothing to hide. SCrawler just downloads pictures and videos. That's all. If you trust SCrawler, you should just add it to the antivirus exceptions, as I did. Sometimes antiviruses identify SCawler as a virus. This is usually related to the number of files being edited (users' settings files) and the number of files being downloaded. In this case, the antivirus can also remove these files, which will damage users' settings. **If you don't trust SCrawler, just delete it.**
-    - **Antivirus detects gallery-dl as a virus** :arrow_forward: it's a trustworthy program that is trusted by thousands of people around the world. Antiviruses identify some builds as containing viruses, but this is not true. **If you don't trust gallery-dl, you can simply delete it**. **But if you delete it, you won't be able to download [Twitter & Pinterest](https://github.com/AAndyProgram/SCrawler/wiki/Settings#gallery-dl).** You should decide for yourself.
+    - **Antivirus detects gallery-dl as a virus** :arrow_forward: it's a trustworthy program that is trusted by thousands of people around the world. Antiviruses identify some builds as containing viruses, but this is not true. **If you don't trust gallery-dl, you can simply delete it. But if you delete it, you won't be able to download [Twitter & Pinterest](https://github.com/AAndyProgram/SCrawler/wiki/Settings#gallery-dl).** You should decide for yourself.
 
 ## Sites questions
 
@@ -67,7 +67,7 @@ I strongly recommend you to **regularly** create backup copies of the settings f
 - TikTok: works via yt-dlp. If something doesn't download, we need to wait until yt-dlp fixes it. TikTok doesn't require cookies to download.
 - Porn sites: **COOKIES**!
 - ThisVid: https://github.com/AAndyProgram/SCrawler/wiki/Settings#thisvid-faq
-- **OnlyFans**: cookies + **all fields** + [OF-Scraper (download the correct version that I pointed)](https://github.com/AAndyProgram/SCrawler/wiki/Settings#of-scraper) & [mp4decrypt](https://www.bento4.com/downloads/) to download DRM protected videos. [OF-Scraper support](https://github.com/AAndyProgram/SCrawler/wiki/Settings#of-scraper-support). Also read [this](https://github.com/AAndyProgram/SCrawler/wiki/Settings#onlyfans-faq)
+- **OnlyFans**: cookies + **all fields** + [OF-Scraper (download the correct version that I pointed)](https://github.com/AAndyProgram/SCrawler/wiki/Settings#of-scraper) & [mp4decrypt](https://www.bento4.com/downloads/) & **DRM keys** to download DRM protected videos. [OF-Scraper support](https://github.com/AAndyProgram/SCrawler/wiki/Settings#of-scraper-support). Also read [this](https://github.com/AAndyProgram/SCrawler/wiki/Settings#onlyfans-faq)
 - **JustForFans**: **THE VIDEO ISN'T DOWNLOADING AT THE MOMENT** ([Issue](https://discord.com/channels/1124032649682493462/1205547615199039551/1231349555132366870))
 
 ## Other questions

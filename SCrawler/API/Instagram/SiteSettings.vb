@@ -16,8 +16,8 @@ Imports PersonalUtilities.Tools.Web.Cookies
 Imports Download = SCrawler.Plugin.ISiteSettings.Download
 Imports DN = SCrawler.API.Base.DeclaredNames
 Namespace API.Instagram
-    <Manifest(InstagramSiteKey), SeparatedTasks(1), SavedPosts, SpecialForm(False)>
-    Friend Class SiteSettings : Inherits SiteSettingsBase
+    <Manifest(InstagramSiteKey), SeparatedTasks(1), SavedPosts, SpecialForm(False), UseDownDetector>
+    Friend Class SiteSettings : Inherits SiteSettingsBase : Implements DownDetector.IDownDetector
 #Region "Declarations"
 #Region "Providers"
         Friend Class TimersChecker : Inherits FieldsCheckerProviderBase
@@ -270,6 +270,26 @@ Namespace API.Instagram
         Private ReadOnly Property TaggedNotifyLimitProvider As IFormatProvider
 #End Region
 #End Region
+#Region "IDownDetector Support"
+        Private ReadOnly Property IDownDetector_Value As Integer Implements DownDetector.IDownDetector.Value
+            Get
+                Return DownDetectorValue.Value
+            End Get
+        End Property
+        Private ReadOnly Property IDownDetector_AddToLog As Boolean Implements DownDetector.IDownDetector.AddToLog
+            Get
+                Return DownDetectorValueAddToLog.Value
+            End Get
+        End Property
+        Private ReadOnly Property IDownDetector_CheckSite As String Implements DownDetector.IDownDetector.CheckSite
+            Get
+                Return "instagram"
+            End Get
+        End Property
+        Private Function IDownDetector_Available(ByVal What As Download, ByVal Silent As Boolean) As Boolean Implements DownDetector.IDownDetector.Available
+            Return MDD.Available(What, Silent)
+        End Function
+#End Region
 #Region "429 bypass"
         <PXML("InstagramDownloadingErrorDate")>
         Private ReadOnly Property DownloadingErrorDate As PropertyValue
@@ -504,6 +524,8 @@ Namespace API.Instagram
             LastRequestsCountLabel = New PropertyValue(String.Empty, GetType(String))
             MyLastRequests = New Dictionary(Of Date, Integer)
 
+            MDD = New DownDetector.Checker(Of SiteSettings)(Me)
+
             _AllowUserAgentUpdate = False
             UrlPatternUser = "https://www.instagram.com/{0}/"
             UserRegex = RParams.DMS(String.Format(UserRegexDefaultPattern, "instagram.com/"), 1)
@@ -551,18 +573,10 @@ Namespace API.Instagram
         End Function
 #End Region
 #Region "Downloading"
-        Private ____DownloadStarted As Boolean = False
-        Private ____AvailableRequested As Boolean = False
-        Private ____AvailableSilent As Boolean = True
-        Private ____AvailableChecked As Boolean = False
-        Private ____AvailableResult As Boolean = False
+        Private ReadOnly MDD As DownDetector.Checker(Of SiteSettings)
         Private Sub ResetDownloadOptions()
             If ActiveJobs < 1 Then
-                ____DownloadStarted = False
-                ____AvailableRequested = False
-                ____AvailableChecked = False
-                ____AvailableSilent = True
-                ____AvailableResult = False
+                MDD.Reset()
                 If ActiveSessionRequestsExists Then RefreshMyLastRequests(Now)
                 ActiveSessionRequestsExists = False
                 _NextWNM = UserData.WNM.Notify
@@ -573,69 +587,11 @@ Namespace API.Instagram
             End If
         End Sub
         Friend Overrides Function Available(ByVal What As Download, ByVal Silent As Boolean) As Boolean
-            If MyBase.Available(What, Silent) And ActiveJobs < 2 Then
-                If CInt(DownDetectorValue.Value) >= 0 Then
-                    If ____DownloadStarted Then
-                        ____AvailableRequested = True
-                        ____AvailableSilent = Silent
-                        Return True
-                    Else
-                        Return AvailableImpl(What, Silent)
-                    End If
-                Else
-                    Return True
-                End If
-            Else
-                Return False
-            End If
-        End Function
-#Disable Warning IDE0060
-        Private Function AvailableImpl(ByVal What As Download, ByVal Silent As Boolean) As Boolean
-#Enable Warning
-            Try
-                AvailableText = String.Empty
-                If CInt(DownDetectorValue.Value) = -1 Then
-                    Return True
-                Else
-                    Dim dl As List(Of DownDetector.Data) = DownDetector.GetData("instagram")
-                    If dl.ListExists Then
-                        dl = dl.Take(4).ToList
-                        Dim avg% = dl.Average(Function(d) d.Value)
-                        If avg > CInt(DownDetectorValue.Value) Then
-                            AvailableText = "Over the past hour, Instagram has received an average of " &
-                                            avg.NumToString(New ANumbers With {.FormatOptions = ANumbers.Options.GroupIntegral}) & " outage reports:" & vbCr &
-                                            dl.ListToString(vbCr)
-                            If CBool(DownDetectorValueAddToLog.Value) Then MyMainLOG = AvailableText
-                            If Silent Then
-                                Return False
-                            Else
-                                Return MsgBoxE({$"{AvailableText}{vbCr}{vbCr}Do you want to continue parsing Instagram data?",
-                                               "There are outage reports on Instagram"}, vbYesNo) = vbYes
-                            End If
-                        End If
-                    End If
-                    Return True
-                End If
-            Catch ex As Exception
-                Return ErrorsDescriber.Execute(EDP.SendToLog + EDP.ReturnValue, ex, "[API.Instagram.SiteSettings.Available]", True)
-            End Try
+            Return MyBase.Available(What, Silent) And ActiveJobs < 2
         End Function
         Friend Property SkipUntilNextSession As Boolean = False
         Friend Overrides Function ReadyToDownload(ByVal What As Download) As Boolean
-            If ActiveJobs < 2 AndAlso Not SkipUntilNextSession AndAlso ReadyForDownload AndAlso BaseAuthExists() AndAlso CBool(DownloadTimeline.Value) Then
-                If ____DownloadStarted And ____AvailableRequested Then
-                    ____AvailableResult = AvailableImpl(What, ____AvailableSilent)
-                    ____AvailableChecked = True
-                    ____AvailableRequested = False
-                    Return ____AvailableResult
-                ElseIf ____AvailableChecked Then
-                    Return ____AvailableResult
-                Else
-                    Return True
-                End If
-            Else
-                Return False
-            End If
+            Return ActiveJobs < 2 AndAlso Not SkipUntilNextSession AndAlso ReadyForDownload AndAlso BaseAuthExists() AndAlso CBool(DownloadTimeline.Value)
         End Function
         Private ActiveJobs As Integer = 0
         Private ActiveSessionDate As Date
@@ -645,7 +601,7 @@ Namespace API.Instagram
         Friend Overrides Sub DownloadStarted(ByVal What As Download)
             ResetDownloadOptions()
             ActiveJobs += 1
-            If ActiveJobs = 1 Then ____DownloadStarted = True : ActiveSessionDate = Now
+            If ActiveJobs = 1 Then ActiveSessionDate = Now
             If Not HH_IG_WWW_CLAIM_IS_ZERO AndAlso
                (
                     (CBool(HH_IG_WWW_CLAIM_USE_DEFAULT_ALGO.Value) AndAlso MyLastRequestsDate.AddMinutes(HH_IG_WWW_CLAIM_UPDATE_INTERVAL.Value) < Now) Or

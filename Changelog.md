@@ -1,3 +1,28 @@
+# 2025.1.12.0
+
+*2025-01-12*
+
+- Added
+  - Sites:
+    - YouTube (standalone app):
+      - ability to add channel name to file name (`Add channel to file name`)
+      - adding channel name and video URL to info file
+    - OnlyFans: **built-in usage of DRM keys**
+    - Threads: automatically change `heic` extension to `jpg`
+    - Twitter: download broadcasts *(user option)*
+  - Minor improvements
+- Updated
+  - yt-dlp up to version **2024.12.23**
+  - gallery-dl up to version **1.28.3**
+  - **OF-Scraper** up to version **3.12.9** *(you must update it personally)*
+- Fixed
+  - Sites:
+    - DownDetector: fixed 403 error
+    - OnlyFans: **DRM videos not downloading**
+    - xHamster: some videos are not downloading
+    - YouTube: **communities are not downloading** *(see settings in wiki)*
+  - Minor bugs
+
 # 2024.11.21.0
 
 *2024-11-21*

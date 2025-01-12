@@ -685,10 +685,17 @@ Namespace API.YouTube.Objects
         Friend Sub FileDateUpdate()
             Dim n$ = _File.Name.StringTrim
             Dim s$ = IIf(n.IsEmptyString, String.Empty, " ")
+            Dim c$ = AccountName.IfNullOrEmpty(UserID)
             Select Case MyYouTubeSettings.FileAddDateToFileName.Value
                 Case FileDateMode.Before : n = $"[{DateAdded:yyyy-MM-dd}]{s}{n}"
                 Case FileDateMode.After : n = $"{n}{s}[{DateAdded:yyyy-MM-dd}]"
             End Select
+            If Not c.IsEmptyString Then
+                Select Case MyYouTubeSettings.FileAddChannelToFileName.Value
+                    Case FileDateMode.Before : n = $"[{c}] {n}"
+                    Case FileDateMode.After : n = $"{n} [{c}]"
+                End Select
+            End If
             _File.Name = n
         End Sub
         Public Property FileSettings As SFile
@@ -1214,6 +1221,9 @@ Namespace API.YouTube.Objects
                                     fileDesr.Extension = "txt"
                                     Using fileDesrText As New TextSaver(fileDesr)
                                         If .CreateDescriptionFiles_AddUploadDate Then fileDesrText.Append($"Uploaded: {DateAdded:yyyy-MM-dd HH:mm:ss}")
+                                        fileDesrText.AppendLine($"URL: {URL}")
+                                        fileDesrText.AppendLine($"Channel name: {AccountName}")
+                                        fileDesrText.AppendLine($"Channel ID: {UserID}")
                                         If Not Description.IsEmptyString Then
                                             If Not fileDesrText.IsEmptyString Then fileDesrText.AppendLine.AppendLine()
                                             fileDesrText.Append(Description)

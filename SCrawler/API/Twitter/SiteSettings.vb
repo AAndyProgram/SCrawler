@@ -162,6 +162,13 @@ Namespace API.Twitter
                 Return Nothing
             End If
         End Function
+        Friend Overrides Function IsMyImageVideo(ByVal URL As String) As ExchangeOptions
+            If Not URL.IsEmptyString AndAlso (URL.Contains("twitter") Or URL.Contains("x.com")) Then
+                Return New ExchangeOptions(Site, String.Empty) With {.Exists = True}
+            Else
+                Return Nothing
+            End If
+        End Function
         Friend Overrides Function GetUserUrl(ByVal User As IPluginContentProvider) As String
             Return DirectCast(User, UserData).GetUserUrl
         End Function

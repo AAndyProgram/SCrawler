@@ -473,35 +473,47 @@ Namespace API.ThisVid
                     Dim u As UserMedia
                     Dim n$, r$
                     Dim c% = 0
+                    Dim ii As Byte
+                    Dim repeat As Boolean
                     Progress.Maximum += _TempMediaList.Count
                     For i% = _TempMediaList.Count - 1 To 0 Step -1
                         Progress.Perform()
                         u = _TempMediaList(i)
                         If u.Type = UserMedia.Types.VideoPre Then
                             If Not DownloadTopCount.HasValue OrElse c <= DownloadTopCount.Value Then
-                                ThrowAny(Token)
-                                r = Responser.GetResponse(u.URL,, EDP.ReturnValue)
-                                If Not r.IsEmptyString Then
-                                    n = TitleHtmlConverter(RegexReplace(r, RegExVideoTitle))
-                                    u.Post.ID = u.URL
-                                    If Not n.IsEmptyString Then n = n.Replace("ThisVid.com", String.Empty).StringTrim.StringTrimEnd("-").StringTrim
-                                    If n.IsEmptyString Then n = TitleHtmlConverter(u.URL.Replace("https://thisvid.com/videos/", String.Empty).StringTrim.StringTrimEnd("-").StringTrim)
-                                    If n.IsEmptyString Then n = "VideoFile"
-                                    u.File = $"{n}.mp4"
-                                    u.PictureOption = n
-                                    u.URL = RegexReplace(r, Regex_VideosThumb_OG_IMAGE)
-                                    If u.URL.IsEmptyString Then u.URL = RegexReplace(r, RegExVideosThumb1)
-                                    If u.URL.IsEmptyString Then u.URL = RegexReplace(r, RegExVideosThumb2)
-                                    If Not u.URL.IsEmptyString Then
-                                        u.URL = LinkFormatterSecure(u.URL)
-                                        u.Type = UserMedia.Types.Video
-                                        _TempPostsList.Add(u.Post.ID)
-                                        _TempMediaList(i) = u
-                                        c += 1
-                                    Else
-                                        _TempMediaList.RemoveAt(i)
+                                repeat = False
+                                For ii = 0 To 1
+                                    ThrowAny(Token)
+                                    r = Responser.GetResponse(u.URL,, EDP.ReturnValue)
+                                    If Not r.IsEmptyString Then
+                                        n = TitleHtmlConverter(RegexReplace(r, RegExVideoTitle))
+                                        u.Post.ID = u.URL
+                                        If Not n.IsEmptyString Then n = n.Replace("ThisVid.com", String.Empty).StringTrim.StringTrimEnd("-").StringTrim
+                                        If n.IsEmptyString Then n = TitleHtmlConverter(u.URL.Replace("https://thisvid.com/videos/", String.Empty).StringTrim.StringTrimEnd("-").StringTrim)
+                                        If n.IsEmptyString Then n = "VideoFile"
+                                        u.File = $"{n}.mp4"
+                                        u.PictureOption = n
+                                        u.URL = RegexReplace(r, Regex_VideosThumb_OG_IMAGE)
+                                        If u.URL.IsEmptyString And Not repeat And ii = 0 Then
+                                            Thread.Sleep(250)
+                                            u = _TempMediaList(i)
+                                            repeat = True
+                                            Continue For
+                                        End If
+                                        If u.URL.IsEmptyString Then u.URL = RegexReplace(r, RegExVideosThumb1)
+                                        If u.URL.IsEmptyString Then u.URL = RegexReplace(r, RegExVideosThumb2)
+                                        If Not u.URL.IsEmptyString Then
+                                            u.URL = LinkFormatterSecure(u.URL)
+                                            u.Type = UserMedia.Types.Video
+                                            _TempPostsList.Add(u.Post.ID)
+                                            _TempMediaList(i) = u
+                                            c += 1
+                                        Else
+                                            _TempMediaList.RemoveAt(i)
+                                        End If
                                     End If
-                                End If
+                                    If Not repeat Then Exit For
+                                Next
                             Else
                                 _TempMediaList.RemoveAt(i)
                             End If

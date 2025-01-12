@@ -184,6 +184,16 @@ Namespace Plugin.Hosts
         End Sub
         Friend ReadOnly Property IsSeparatedTasks As Boolean = False
         Friend ReadOnly Property IsSavedPostsCompatible As Boolean = False
+        Friend ReadOnly Property IsDownDetectorCompatible As Boolean = False
+        Friend ReadOnly Property DownDetectorValue As Integer
+            Get
+                If IsDownDetectorCompatible Then
+                    Return DirectCast(Source, DownDetector.IDownDetector).Value
+                Else
+                    Return -1
+                End If
+            End Get
+        End Property
         Private ReadOnly _TaskCountDefined As Integer? = Nothing
         Friend ReadOnly Property TaskCount As Integer
             Get
@@ -296,6 +306,8 @@ Namespace Plugin.Hosts
                         End With
                     ElseIf TypeOf a Is ReplaceInternalPluginAttribute Then
                         Replacer = a
+                    ElseIf TypeOf a Is UseDownDetectorAttribute Then
+                        IsDownDetectorCompatible = True
                     End If
                 Next
             End If
@@ -521,18 +533,34 @@ Namespace Plugin.Hosts
         Friend Function GetUserPostUrl(ByVal User As IPluginContentProvider, ByVal Media As IUserMedia) As String
             Return Source.GetUserPostUrl(User, Media)
         End Function
-        Private _AvailableValue As Boolean = True
-        Private _AvailableAsked As Boolean = False
+        Friend Property AvailableValue As Boolean = True
+        Friend Property AvailableAsked As Boolean = False
+        Friend Property AvailableDownDetectorAsked As Boolean = False
         Private _ActiveTaskCount As Integer = 0
         Friend Property AvailableText As String = String.Empty
+        Friend Function AvailableDownDetector(ByVal What As Download, ByVal Silent As Boolean) As Boolean
+            If Not AvailableDownDetectorAsked Then
+                AvailableDownDetectorAsked = True
+                If IsDownDetectorCompatible Then
+                    AvailableValue = DirectCast(Source, DownDetector.IDownDetector).Available(What, Silent)
+                    If Not AvailableValue Then AvailableText = Source.AvailableText : AvailableAsked = True
+                    Return AvailableValue
+                Else
+                    Return True
+                End If
+            Else
+                Return AvailableValue
+            End If
+        End Function
         Friend Function Available(ByVal What As Download, ByVal Silent As Boolean) As Boolean
             If DownloadSiteData Then
-                If Not _AvailableAsked Then
-                    _AvailableValue = Source.Available(What, Silent)
+                If Not AvailableDownDetectorAsked AndAlso Not AvailableDownDetector(What, Silent) Then Return AvailableValue
+                If Not AvailableAsked Then
+                    AvailableValue = Source.Available(What, Silent)
                     AvailableText = Source.AvailableText
-                    _AvailableAsked = True
+                    AvailableAsked = True
                 End If
-                Return _AvailableValue
+                Return AvailableValue
             Else
                 AvailableText = $"Downloading data for the site {Name} - {AccountName.IfNullOrEmpty(NameAccountNameDefault)} has been disabled by you."
                 If Not Silent Then MsgBoxE({AvailableText, $"{Name} downloading disabled"}, vbExclamation)
@@ -551,7 +579,7 @@ Namespace Plugin.Hosts
         End Sub
         Friend Sub DownloadDone(ByVal What As Download)
             _ActiveTaskCount -= 1
-            If _ActiveTaskCount = 0 Then _AvailableAsked = False : AvailableText = String.Empty
+            If _ActiveTaskCount = 0 Then AvailableAsked = False : AvailableDownDetectorAsked = False : AvailableText = String.Empty
             Source.DownloadDone(What)
         End Sub
         Private Function ConvertUser(ByVal User As IUserData) As Object

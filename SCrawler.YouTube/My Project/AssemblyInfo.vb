@@ -13,7 +13,7 @@ Imports System.Runtime.InteropServices
 <Assembly: AssemblyDescription("YouTube plugin environment")>
 <Assembly: AssemblyCompany("AndyProgram")>
 <Assembly: AssemblyProduct("SCrawler.YouTube")>
-<Assembly: AssemblyCopyright("Copyright © 2024")>
+<Assembly: AssemblyCopyright("Copyright © 2025")>
 <Assembly: AssemblyTrademark("AndyProgram")>
 
 <Assembly: ComVisible(False)>
@@ -32,6 +32,6 @@ Imports System.Runtime.InteropServices
 ' by using the '*' as shown below:
 ' <Assembly: AssemblyVersion("1.0.*")>
 
-<Assembly: AssemblyVersion("2024.10.24.0")>
-<Assembly: AssemblyFileVersion("2024.10.24.0")>
+<Assembly: AssemblyVersion("2025.1.12.0")>
+<Assembly: AssemblyFileVersion("2025.1.12.0")>
 <Assembly: NeutralResourcesLanguage("en")>

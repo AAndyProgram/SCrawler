@@ -44,6 +44,10 @@ Namespace API.Twitter
                   ToolTip:="Download the data using the 'https://x.com/UserName/likes' command.", LeftOffset:=DefaultOffset)>
         Friend Overridable Property DownloadModelLikes As Boolean = False
         <PSetting(Address:=SettingAddress.User,
+                  Caption:="Download 'Broadcasts'",
+                  ToolTip:="Download broadcasts posted by the user using the 'https://x.com/i/broadcasts/abcdef1234567' URLs", LeftOffset:=DefaultOffset)>
+        Friend Overridable Property DownloadBroadcasts As Boolean = False
+        <PSetting(Address:=SettingAddress.User,
                   Caption:="Force apply",
                   ToolTip:="Force overrides the default parameters for the first download." & vbCr & "Applies to first download only.", LeftOffset:=DefaultOffset)>
         Friend Overridable Property DownloadModelForceApply As Boolean = False
@@ -75,6 +79,7 @@ Namespace API.Twitter
             MediaModelAllowNonUserTweets = u.MediaModelAllowNonUserTweets
             If Not TypeOf u Is Mastodon.UserData Then
                 DownloadModelForceApply = u.DownloadModelForceApply
+                DownloadBroadcasts = u.DownloadBroadcasts
                 Dim dm As DModels() = EnumExtract(Of DModels)(u.DownloadModel)
                 If dm.ListExists Then
                     DownloadModelMedia = dm.Contains(DModels.Media)

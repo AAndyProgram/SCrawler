@@ -191,7 +191,7 @@ Namespace API.YouTube.Base
         <Browsable(True), GridVisible, XMLVN({"Defaults"}), Category("Defaults"), DisplayName("Use cookies"),
             Description("By default, use cookies when downloading from YouTube.")>
         Public ReadOnly Property DefaultUseCookies As XMLValue(Of Boolean)
-        <Browsable(True), GridVisible, XMLVN({"Defaults"}, Protocols.Any), Category("Defaults"), DisplayName("Protocol"),
+        <Browsable(True), GridVisible, XMLVN({"Defaults"}, Protocols.https), Category("Defaults"), DisplayName("Protocol"),
             Description("Priority download protocol. Default: 'Any'")>
         Public ReadOnly Property DefaultProtocol As XMLValue(Of Protocols)
         <Browsable(True), GridVisible(False), XMLVN({"Defaults"}), Category("Defaults"),
@@ -267,6 +267,9 @@ Namespace API.YouTube.Base
         <Browsable(True), GridVisible, XMLVN({"Defaults"}), Category("Defaults"), DisplayName("Add date to title: video list"),
             Description("Add video upload date before video title (visual only) in the video list")>
         Public ReadOnly Property FileAddDateToFileName_VideoList As XMLValue(Of Boolean)
+        <Browsable(True), GridVisible, XMLVN({"Defaults"}, FileDateMode.None), Category("Defaults"), DisplayName("Add channel to file name"),
+            Description("Add channel name before/after the file name")>
+        Public ReadOnly Property FileAddChannelToFileName As XMLValue(Of FileDateMode)
 #End Region
 #Region "Defaults ChannelsDownload"
         <Browsable(True), GridVisible, XMLVN({"Defaults", "Channels"}), Category("Defaults"), DisplayName("Default download tabs for channels"),

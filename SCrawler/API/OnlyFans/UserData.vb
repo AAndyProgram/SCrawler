@@ -99,7 +99,7 @@ Namespace API.OnlyFans
                     If Not CCookie Is Nothing Then CCookie.Dispose()
                     CCookie = Responser.Cookies.Copy
                     Responser.Cookies.Clear()
-                    AddHandler Responser.ResponseReceived, AddressOf Responser_ResponseReceived
+                    If MySettings.EnableCookiesUpdate.Value Then AddHandler Responser.ResponseReceived, AddressOf Responser_ResponseReceived
                     UpdateCookieHeader()
 
                     If Not IsSavedPosts Then
@@ -119,7 +119,7 @@ Namespace API.OnlyFans
             End Try
         End Sub
         Protected Overrides Sub Responser_ResponseReceived(ByVal Sender As Object, ByVal e As WebDataResponse)
-            If e.CookiesExists Then
+            If e.CookiesExists And CBool(MySettings.EnableCookiesUpdate.Value) Then
                 CCookie.Update(e.Cookies, CookieKeeper.UpdateModes.ReplaceByNameAll,, EDP.ReturnValue)
                 UpdateCookieHeader()
             End If
@@ -612,7 +612,7 @@ Namespace API.OnlyFans
                     '#If DEBUG Then
                     'Debug.WriteLine(command)
                     '#End If
-                    Using b As New TokenBatch(Token) : b.Execute(command) : End Using
+                    Using b As New TokenBatch(Token) With {.DebugMode = False} : b.Execute(command) : End Using
                     Return SFile.GetFiles(conf, "*.mp4", IO.SearchOption.AllDirectories, EDP.ReturnValue)
                 End If
                 Return Nothing
@@ -623,7 +623,13 @@ Namespace API.OnlyFans
         Private Function OFS_CreateConfig() As SFile
             Try
                 Const confMainPattern$ = "{0}"": ""([^""]*)"""
+                Const confMainPattern_Keys$ = "{0}"": ([^,]*)"
                 Const confMainPatternRulesManual$ = "DYNAMIC_RULE"": (""[^""]*"")"
+
+                Const m1 As Byte = 0 'not rules
+                Const m2 As Byte = 1 'rules
+                Const m3 As Byte = 2 'keys
+
                 If OFSCache Is Nothing Then OFSCache = If(IsSingleObjectDownload, Settings.Cache.NewInstance, CreateCache())
                 Dim currentCache As CacheKeeper = OFSCache.NewInstance
                 currentCache.Validate()
@@ -637,35 +643,47 @@ Namespace API.OnlyFans
                                                     CType(Function(input) replaceValue, Func(Of String, String)), String.Empty, EDP.ReturnValue)
                     Dim ff As SFile
                     configText = f.GetText
-                    Dim updateConf As Action(Of String, String, Boolean) =
-                        Sub(ByVal patternValue As String, ByVal __replaceValue As String, ByVal __isRules As Boolean)
-                            rp.Pattern = String.Format(IIf(__isRules, confMainPatternRulesManual, confMainPattern), patternValue)
+                    Dim updateConf As Action(Of String, String, Byte) =
+                        Sub(ByVal patternValue As String, ByVal __replaceValue As String, ByVal mode As Byte)
+                            Select Case mode
+                                Case m1 : rp.Pattern = String.Format(confMainPattern, patternValue)
+                                Case m2 : rp.Pattern = String.Format(confMainPatternRulesManual, patternValue)
+                                Case m3 : rp.Pattern = String.Format(confMainPattern_Keys, patternValue) : __replaceValue = $"""{__replaceValue}"""
+                                Case Else : Throw New ArgumentException($"Mode '{mode}' is not implemented", "mode")
+                            End Select
                             rp.Nothing = configText
                             replaceValue = __replaceValue
                             configText = RegexReplace(configText, rp)
                         End Sub
                     If Not configText.IsEmptyString Then
-                        updateConf("save_location", cacheRoot.PathNoSeparator.Replace("\", "/"), False)
+                        updateConf("save_location", cacheRoot.PathNoSeparator.Replace("\", "/"), m1)
                         If ACheck(MySettings.OFScraperMP4decrypt.Value) Then
                             ff = CStr(MySettings.OFScraperMP4decrypt.Value)
-                            If ff.Exists Then updateConf("mp4decrypt", ff.ToString.Replace("\", "/"), False)
+                            If ff.Exists Then updateConf("mp4decrypt", ff.ToString.Replace("\", "/"), m1)
                         End If
-                        If Settings.FfmpegFile.Exists Then updateConf("ffmpeg", Settings.FfmpegFile.File.ToString.Replace("\", "/"), False)
-                        updateConf("key-mode-default", CStr(MySettings.KeyModeDefault.Value).IfNullOrEmpty(SiteSettings.KeyModeDefault_Default), False)
-                        updateConf("keydb_api", CStr(MySettings.Keydb_Api.Value), False)
+                        If Settings.FfmpegFile.Exists Then updateConf("ffmpeg", Settings.FfmpegFile.File.ToString.Replace("\", "/"), m1)
+
+                        updateConf("key-mode-default", CStr(MySettings.KeyModeDefault.Value).IfNullOrEmpty(SiteSettings.KeyModeDefault_Default), m1)
+                        updateConf("keydb_api", CStr(MySettings.Keydb_Api.Value), m1)
+
+                        If Not CStr(MySettings.OFS_KEYS_Key.Value).IsEmptyString And Not CStr(MySettings.OFS_KEYS_ClientID.Value).IsEmptyString Then
+                            updateConf("private-key", CStr(MySettings.OFS_KEYS_Key.Value).Replace("\", "/"), m3)
+                            updateConf("client-id", CStr(MySettings.OFS_KEYS_ClientID.Value).Replace("\", "/"), m3)
+                        End If
+
                         If Rules.RulesReplaceConfig Then
                             If Rules.RulesConfigManualMode Then
-                                updateConf(DynamicRulesEnv.DynamicRulesConfig_Mode_NodeName, "manual", False)
+                                updateConf(DynamicRulesEnv.DynamicRulesConfig_Mode_NodeName, "manual", m1)
                                 configText = configText.Replace(DynamicRulesEnv.DynamicRulesConfigNodeName_URL, DynamicRulesEnv.DynamicRulesConfigNodeName_RULES)
-                                updateConf(DynamicRulesEnv.DynamicRulesConfigNodeName_RULES, Rules.CurrentContainerRulesText, True)
+                                updateConf(DynamicRulesEnv.DynamicRulesConfigNodeName_RULES, Rules.CurrentContainerRulesText, m2)
                             Else
                                 Dim confUrlNode$ = If(Rules.RulesConstants.ContainsKey(DynamicRulesEnv.DynamicRulesConfigNodeName_URL_CONST_NAME),
                                                       Rules.RulesConstants(DynamicRulesEnv.DynamicRulesConfigNodeName_URL_CONST_NAME),
                                                       DynamicRulesEnv.DynamicRulesConfigNodeName_URL)
-                                updateConf(DynamicRulesEnv.DynamicRulesConfigNodeName_URL, Rules.CurrentRule.UrlRaw, False)
+                                updateConf(DynamicRulesEnv.DynamicRulesConfigNodeName_URL, Rules.CurrentRule.UrlRaw, m1)
                                 configText = configText.Replace(DynamicRulesEnv.DynamicRulesConfigNodeName_URL, confUrlNode)
                                 If Rules.RulesConstants.ContainsKey(DynamicRulesEnv.DynamicRulesConfig_Mode_NodeName) Then _
-                                   updateConf(DynamicRulesEnv.DynamicRulesConfig_Mode_NodeName, Rules.RulesConstants(DynamicRulesEnv.DynamicRulesConfig_Mode_NodeName), False)
+                                   updateConf(DynamicRulesEnv.DynamicRulesConfig_Mode_NodeName, Rules.RulesConstants(DynamicRulesEnv.DynamicRulesConfig_Mode_NodeName), m1)
                             End If
                         End If
                         f = currentCache

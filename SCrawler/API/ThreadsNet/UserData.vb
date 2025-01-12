@@ -115,6 +115,7 @@ Namespace API.ThreadsNet
                     Responser.Method = "POST"
                     UpdateResponser()
                     MySettings.UpdateResponserData(Responser)
+                    ValidateExtension()
                     If Not errorFound Then LoadSavePostsKV(False)
                 End Try
             End If

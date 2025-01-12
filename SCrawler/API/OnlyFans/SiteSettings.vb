@@ -73,6 +73,10 @@ Namespace API.OnlyFans
             End If
             Return String.Empty
         End Function
+        <PropertyOption(ControlText:="Update cookies during requests",
+                        ControlToolTip:="If unchecked, cookies will not be updated during requests. Initial cookies will always be used.", IsAuth:=True),
+                        PClonable, PXML, HiddenControl>
+        Friend ReadOnly Property EnableCookiesUpdate As PropertyValue
 #End Region
 #Region "Errors"
         <PClonable, PXML("UpdateRules401")> Private ReadOnly Property UpdateRules401_XML As PropertyValue
@@ -112,7 +116,7 @@ Namespace API.OnlyFans
         End Property
         Friend Const KeyModeDefault_Default As String = "cdrm"
         <PClonable, PXML("KeyModeDefault")> Private ReadOnly Property KeyModeDefault_XML As PropertyValue
-        <PropertyOption(ControlText:="key-mode-default", Category:=CAT_OFS)>
+        <PropertyOption(ControlText:="key-mode-default", ControlToolTip:="Examples: cdrm, cdrm2, keydb, manual", Category:=CAT_OFS)>
         Friend ReadOnly Property KeyModeDefault As PropertyValue
             Get
                 If Not DefaultInstance Is Nothing Then
@@ -133,6 +137,62 @@ Namespace API.OnlyFans
                 End If
             End Get
         End Property
+        <PClonable, PXML("KEYS_Key")> Private ReadOnly Property OFS_KEYS_Key_XML As PropertyValue
+        <PropertyOption(ControlText:="Private key", ControlToolTip:="Path to the DRM key file 'private_key.pem'", Category:=CAT_OFS)>
+        Friend ReadOnly Property OFS_KEYS_Key As PropertyValue
+            Get
+                If Not DefaultInstance Is Nothing Then
+                    Return DirectCast(DefaultInstance, SiteSettings).OFS_KEYS_Key_XML
+                Else
+                    Return OFS_KEYS_Key_XML
+                End If
+            End Get
+        End Property
+        <PClonable, PXML("KEYS_ClientID")> Private ReadOnly Property OFS_KEYS_ClientID_XML As PropertyValue
+        <PropertyOption(ControlText:="Client ID", ControlToolTip:="Path to the DRM key file 'client_id.bin'", Category:=CAT_OFS)>
+        Friend ReadOnly Property OFS_KEYS_ClientID As PropertyValue
+            Get
+                If Not DefaultInstance Is Nothing Then
+                    Return DirectCast(DefaultInstance, SiteSettings).OFS_KEYS_ClientID_XML
+                Else
+                    Return OFS_KEYS_ClientID_XML
+                End If
+            End Get
+        End Property
+        <PropertiesDataChecker({NameOf(KeyModeDefault), NameOf(OFS_KEYS_Key), NameOf(OFS_KEYS_ClientID)})>
+        Private Function OFS_KEYS_CHECKER(ByVal p As IEnumerable(Of PropertyData)) As Boolean
+            Const manualMode$ = "manual"
+            If p.ListExists Then
+                Dim m$ = String.Empty, k$ = String.Empty, cid$ = String.Empty
+                For Each pp As PropertyData In p
+                    Select Case pp.Name
+                        Case NameOf(KeyModeDefault) : m = pp.Value
+                        Case NameOf(OFS_KEYS_Key) : k = pp.Value
+                        Case NameOf(OFS_KEYS_ClientID) : cid = pp.Value
+                        Case Else : Throw New ArgumentException($"Property name '{pp.Name}' is not implemented", "Property Name")
+                    End Select
+                Next
+                If k.IsEmptyString And cid.IsEmptyString Then
+                    Return True
+                ElseIf Not k.IsEmptyString And Not cid.IsEmptyString Then
+                    If m = manualMode Then
+                        Return True
+                    Else
+                        Return MsgBoxE({$"You are using key files and have selected '{m}' mode." & vbCr &
+                                        $"To use key files, you should use the '{manualMode}' mode" & vbCr &
+                                        "Are you sure you want to use this mode?", "Incorrect mode"}, vbExclamation + vbYesNo) = vbYes
+                    End If
+                End If
+                Dim t As New MMessage("", "Key missing",, vbCritical)
+                If k.IsEmptyString Then
+                    t.Text = "'Private key' is missing"
+                ElseIf cid.IsEmptyString Then
+                    t.Text = "'Client ID' is missing"
+                End If
+                If Not t.Text.IsEmptyString Then t.Show()
+            End If
+            Return False
+        End Function
 #End Region
 #End Region
 #Region "Initializer"
@@ -171,6 +231,8 @@ Namespace API.OnlyFans
                 UserAgent = New PropertyValue(IIf(.UserAgentExists, .UserAgent, String.Empty), GetType(String), Sub(v) UpdateHeader(NameOf(UserAgent), v))
             End With
 
+            EnableCookiesUpdate = New PropertyValue(True)
+
             DownloadTimeline = New PropertyValue(True)
             DownloadStories = New PropertyValue(True)
             DownloadHighlights = New PropertyValue(True)
@@ -191,6 +253,8 @@ Namespace API.OnlyFans
             OFScraperMP4decrypt_XML = New PropertyValue(String.Empty, GetType(String))
             KeyModeDefault_XML = New PropertyValue(KeyModeDefault_Default)
             Keydb_Api_XML = New PropertyValue(String.Empty, GetType(String))
+            OFS_KEYS_Key_XML = New PropertyValue(String.Empty, GetType(String))
+            OFS_KEYS_ClientID_XML = New PropertyValue(String.Empty, GetType(String))
 
             UpdateRules401_XML = New PropertyValue(False)
 

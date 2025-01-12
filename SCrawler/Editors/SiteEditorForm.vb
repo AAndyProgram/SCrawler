@@ -357,6 +357,9 @@ Namespace Editors
                 MyDefs.InvokeLoaderError(ex)
             End Try
         End Sub
+        Private Sub SiteEditorForm_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
+            If e.Control And e.KeyCode = Keys.Enter Then MyDefs_ButtonOkClick(sender, New KeyHandleEventArgs With {.KeyEventArgs = e})
+        End Sub
         Private Sub SiteEditorForm_Disposed(sender As Object, e As EventArgs) Handles Me.Disposed
             If Host.PropList.Count > 0 Then Host.PropList.ForEach(Sub(p) p.DisposeControl())
             If Not SpecialButton Is Nothing Then SpecialButton.Dispose()
@@ -366,7 +369,11 @@ Namespace Editors
             If Not Cookies Is Nothing Then Cookies.Dispose()
         End Sub
         Private Sub MyDefs_ButtonOkClick(ByVal Sender As Object, ByVal e As KeyHandleEventArgs) Handles MyDefs.ButtonOkClick
-            If MyDefs.MyFieldsChecker.AllParamsOK Then
+            Dim ctrl As Boolean = Not e Is Nothing AndAlso (If(e.KeyEventArgs?.Control, False) OrElse e.Key.Control)
+            If ctrl OrElse MyDefs.MyFieldsChecker.AllParamsOK Then
+                If (Not MyDefs.MyFieldsCheckerE.AllParamsOK(EDP.ReturnValue) And ctrl) AndAlso
+                   MsgBoxE({$"Some required fields are not filled in!{vbCr}{vbCr}{MyDefs.MyFieldsChecker.ComparisonInformation}
+                            {vbCr}{vbCr}Are you sure you want to process?", "Required fields are missing"}, vbCritical,,, {"Process", "Cancel"}) = 1 Then Exit Sub
                 Dim i%, ii%
                 With Host
                     Dim indxList As New List(Of Integer)
@@ -376,6 +383,7 @@ Namespace Editors
                     If indxList.Count > 0 Then
                         Dim pList As New List(Of PropertyData)
                         Dim n$()
+                        Dim errorsDetected As Boolean = False
                         For i = 0 To indxList.Count - 1
                             n = .PropList(indxList(i)).PropertiesChecking
                             For ii = 0 To .PropList.Count - 1
@@ -383,8 +391,13 @@ Namespace Editors
                                     If n.Contains(.Name) Then pList.Add(New PropertyData(.Name, .GetControlValue))
                                 End With
                             Next
-                            If pList.Count > 0 AndAlso Not CBool(.PropList(indxList(i)).PropertiesCheckingMethod.Invoke(.Source, {pList})) Then Exit Sub
+                            If pList.Count > 0 AndAlso Not CBool(.PropList(indxList(i)).PropertiesCheckingMethod.Invoke(.Source, {pList})) Then
+                                If ctrl Then errorsDetected = True Else Exit Sub
+                            End If
                         Next
+                        If (ctrl And errorsDetected) AndAlso MsgBoxE({$"Some settings may be incorrect. Do you still want to save?",
+                                                                      "Incorrect settings detected"},
+                                                                     vbCritical,,, {"Process", "Cancel"}) = 1 Then Exit Sub
                     End If
 
                     If TXT_PATH.Text.IsEmptyString Then TXT_PATH.Text = .PathGenerate.CSFilePS
