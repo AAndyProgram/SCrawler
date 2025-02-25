@@ -35,15 +35,6 @@ Namespace API.Twitter
 #Region "Declarations"
         Private Const BroadCastPartUrl As String = "i/broadcasts"
         Private Const Label_Community As String = "Community"
-        Private _NameTrue As String = String.Empty
-        Friend Property NameTrue(Optional ByVal Exact As Boolean = False) As String
-            Get
-                Return If(Exact, _NameTrue, _NameTrue.IfNullOrEmpty(Name))
-            End Get
-            Set(ByVal NewName As String)
-                _NameTrue = NewName
-            End Set
-        End Property
         Friend Overrides ReadOnly Property SpecialLabels As IEnumerable(Of String)
             Get
                 Return {Label_Community}
@@ -114,7 +105,7 @@ Namespace API.Twitter
                     If .DownloadModelSearch Then DownloadModel += DownloadModels.Search
                     If .DownloadModelLikes Then DownloadModel += DownloadModels.Likes
                     If Not dModel = DownloadModel Then DownloadModelChanged = True
-                    _NameTrue = .UserName
+                    NameTrue = .UserName
                 End With
             End If
         End Sub
@@ -164,12 +155,11 @@ Namespace API.Twitter
                     StartMD5Checked = .Value(Name_StartMD5Checked).FromXML(Of Boolean)(False)
                     MediaModelAllowNonUserTweets = .Value(Name_MediaModelAllowNonUserTweets).FromXML(Of Boolean)(False)
                     IsCommunity = .Value(Name_IsCommunity).FromXML(Of Boolean)(False)
-                    _NameTrue = .Value(Name_TrueName)
                 Else
                     If Name.Contains("@") And Not IsCommunity Then
                         IsCommunity = True
-                        _NameTrue = Name.Split("@")(0)
-                        ID = _NameTrue
+                        NameTrue = Name.Split("@")(0)
+                        ID = NameTrue
                         ParseUserMediaOnly = False
                         Labels.ListAddValue(Label_Community, LNC)
                         Labels.Sort()
@@ -190,7 +180,7 @@ Namespace API.Twitter
                     .Add(Name_StartMD5Checked, StartMD5Checked.BoolToInteger)
                     .Add(Name_MediaModelAllowNonUserTweets, MediaModelAllowNonUserTweets.BoolToInteger)
                     .Add(Name_IsCommunity, IsCommunity.BoolToInteger)
-                    .Add(Name_TrueName, _NameTrue)
+                    .Add(Name_TrueName, NameTrue(True))
                 End If
             End With
         End Sub
@@ -266,8 +256,10 @@ Namespace API.Twitter
             End If
             Return result
         End Function
+        Friend Property GDL_REQUESTS_COUNT As Integer = 0
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
             Try
+                GDL_REQUESTS_COUNT = 0
                 If MySettings.LIMIT_ABORT Then
                     Throw New TwitterLimitException(Me)
                 Else
@@ -426,17 +418,7 @@ Namespace API.Twitter
                                                 userInfoParsed = True
                                                 Dim resValue$ = j.Value({"data", IIf(IsCommunity, "communityResults", "user"), "result"}, "__typename").StringTrim.StringToLower
                                                 Dim icon$
-                                                Dim __getImage As Action(Of String) = Sub(ByVal img As String)
-                                                                                          If Not img.IsEmptyString Then
-                                                                                              Dim __imgFile As SFile = UrlFile(img, True)
-                                                                                              If Not __imgFile.Name.IsEmptyString Then
-                                                                                                  If __imgFile.Extension.IsEmptyString Then __imgFile.Extension = "jpg"
-                                                                                                  __imgFile.Path = MyFile.CutPath.Path
-                                                                                                  If Not __imgFile.Exists Then GetWebFile(img, __imgFile, EDP.None)
-                                                                                                  If __imgFile.Exists Then IconBannerDownloaded = True
-                                                                                              End If
-                                                                                          End If
-                                                                                      End Sub
+                                                Dim fileCrFunc As Func(Of String, SFile) = Function(img) UrlFile(img, True)
                                                 If resValue.IsEmptyString Then
                                                     UserExists = False
                                                     j.Dispose()
@@ -458,7 +440,7 @@ Namespace API.Twitter
 
                                                                                 icon = .Value({"custom_banner_media", "media_info"}, "original_img_url").
                                                                                        IfNullOrEmpty(.Value({"default_banner_media", "media_info"}, "original_img_url"))
-                                                                                If Not icon.IsEmptyString And DownloadIconBanner Then __getImage.Invoke(icon)
+                                                                                If Not icon.IsEmptyString And DownloadIconBanner Then SimpleDownloadAvatar(icon, fileCrFunc)
                                                                             End If
                                                                         End If
                                                                     End With
@@ -484,8 +466,8 @@ Namespace API.Twitter
                                                                         icon = .Value("profile_image_url_https")
                                                                         If Not icon.IsEmptyString Then icon = icon.Replace("_normal", String.Empty)
                                                                         If DownloadIconBanner Then
-                                                                            __getImage.Invoke(.Value("profile_banner_url"))
-                                                                            __getImage.Invoke(icon)
+                                                                            SimpleDownloadAvatar(.Value("profile_banner_url"), fileCrFunc)
+                                                                            SimpleDownloadAvatar(icon, fileCrFunc)
                                                                         End If
                                                                     End If
                                                                 End If
@@ -799,19 +781,87 @@ nextpIndx:
             End Sub
             Private Sub CheckForLimit(ByVal Value As String)
                 If Token.IsCancellationRequested Or (KillOnLimit AndAlso Not ProcessKilled AndAlso
-                   Not Value.IsEmptyString AndAlso Value.ToLower.Contains("for rate limit reset")) Then
+                   Not Value.IsEmptyString AndAlso (Value.ToLower.Contains("for rate limit reset") OrElse
+                                                    Not CStr(RegexReplace(Value, GdlLimitRegEx)).IsEmptyString)) Then
                     LimitReached = True
                     Kill()
                 End If
             End Sub
         End Class
+        Private ReadOnly Property SleepTimerValue(ByVal First As Boolean) As Integer
+            Get
+                Dim fTimer% = If(First, MySettings.SleepTimerBeforeFirst, MySettings.SleepTimer).Value
+                If First And fTimer = SiteSettings.TimerFirstUseTheSame Then fTimer = MySettings.SleepTimer.Value
+                Return fTimer
+            End Get
+        End Property
+        Private ReadOnly Property SleepRequest As String
+            Get
+                Dim s% = SleepTimerValue(False)
+                Return If(s = SiteSettings.TimerDisabled, String.Empty, $" --sleep-request {s}")
+            End Get
+        End Property
+        Private Sub GdlWaitFirstTimer(ByVal fTimer As Integer)
+            If GDL_REQUESTS_COUNT = 0 And Not fTimer = SiteSettings.TimerDisabled And MySettings.UserNumber > 0 Then Thread.Sleep(fTimer * 1000)
+            GDL_REQUESTS_COUNT += 1
+        End Sub
+        Private _GdlPreProgressPerformEnabled As Boolean = False
+        Private Sub GdlPreProgressPerform(ByVal Path As SFile, ByVal UpDir As SFile)
+            Dim f As SFile = Nothing
+            Try
+                Dim c% = -1, lb% = -1, cc%
+                Dim e As New ErrorsDescriber(EDP.ReturnValue)
+                While _GdlPreProgressPerformEnabled
+                    Thread.Sleep(100)
+                    If c > 0 Then
+                        cc = If(SFile.GetFiles(Path,,, e)?.Count, 0)
+                        If cc > c Then
+                            Exit Sub
+                        ElseIf cc > 0 And (lb = -1 Or cc > lb) Then
+                            ProgressPre.Perform(cc - IIf(lb = -1, 0, lb))
+                            lb = cc
+                        End If
+                    ElseIf Path.Exists(SFO.Path, False) Then
+                        Dim files As List(Of SFile) = SFile.GetFiles(Path,,, e)
+                        If files.ListExists Then
+                            f = files.FirstOrDefault(Function(ff) Not ff.Name.IsEmptyString AndAlso ff.Name.StartsWith("01_"))
+                            If UpDir.Exists(SFO.Path, False) Then
+                                Dim fNew As SFile = $"{UpDir.PathWithSeparator}00.txt"
+                                If f.Copy(fNew,, True, SFODelete.DeletePermanently,, e) Then
+                                    f = fNew
+                                    Using j As EContainer = JsonDocument.Parse(f.GetText(e), e)
+                                        If j.ListExists Then
+                                            c = j(GdlPostCoutNumberNodes).XmlIfNothingValue.FromXML(Of Integer)(-1)
+                                            If c > 0 Then c /= 30 : ProgressPre.ChangeMax(c) : Continue While
+                                        End If
+                                    End Using
+                                End If
+                            End If
+                            Exit Sub
+                        End If
+                    End If
+                End While
+            Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, $"{ToStringForLog()}:{vbCr}Path: '{Path.Path}'{vbCr}Path 2: '{UpDir.Path}'")
+            Finally
+                If f.Exists Then f.Delete(SFO.File, SFODelete.DeletePermanently, EDP.ReturnValue)
+            End Try
+        End Sub
+        Private Sub GdlPreProgressPerformWait(ByVal t As Task)
+            _GdlPreProgressPerformEnabled = False
+            Try
+                While t.Status = TaskStatus.Running Or t.Status = TaskStatus.WaitingToRun : Thread.Sleep(100) : End While
+            Catch
+            End Try
+        End Sub
         Private Function GetDataFromGalleryDL(ByVal URL As String, ByVal Cache As CacheKeeper, ByVal UseTempPostList As Boolean,
                                               Optional ByVal Token As CancellationToken = Nothing) As SFile
             Dim command$ = String.Empty
             Try
                 Dim conf As SFile = GdlCreateConf(Cache.NewPath)
-                command = $"""{Settings.GalleryDLFile}"" --verbose --no-download --no-skip --config ""{conf}"" --write-pages "
-                command &= GdlGetIdFilterString()
+                Dim fTimer% = SleepTimerValue(True)
+                command = $"""{Settings.GalleryDLFile}"" --verbose --no-download --no-skip{SleepRequest} --config ""{conf}"" --write-pages "
+                'command &= GdlGetIdFilterString()
                 Dim dir As SFile = Cache.NewPath
                 If dir.Exists(SFO.Path,, EDP.ThrowException) Then
                     Using batch As New TwitterGDL(dir, Token, MySettings.AbortOnLimit.Value)
@@ -823,6 +873,7 @@ nextpIndx:
                         '#If DEBUG Then
                         'Debug.WriteLine(command)
                         '#End If
+                        GdlWaitFirstTimer(fTimer)
                         batch.Execute(command)
                         If batch.LimitReached Then
                             If CBool(MySettings.DownloadAlreadyParsed.Value) And
@@ -867,6 +918,8 @@ nextpIndx:
                 Dim process As Boolean, multiMode As Boolean
                 Dim currentModel As DownloadModels
                 Dim urlPrePattern$ = $"https://x.com{IIf(IsCommunity, SiteSettings.CommunitiesUser, String.Empty)}/"
+                Dim fTimer% = SleepTimerValue(True)
+                Dim t As Task
 
                 If DownloadBroadcasts AndAlso Not dm.Contains(DownloadModels.Profile) Then dm.Add(DownloadModels.Profile)
 
@@ -885,7 +938,7 @@ nextpIndx:
                         dir.Exists(SFO.Path, True, EDP.ThrowException)
                         outList.Add(dir)
                         tgdl.ChangeDirectory(dir)
-                        command = $"""{Settings.GalleryDLFile}"" --verbose --no-download --no-skip --config ""{conf}"" --write-pages "
+                        command = $"""{Settings.GalleryDLFile}"" --verbose --no-download --no-skip{SleepRequest} --config ""{conf}"" --write-pages "
                         If multiMode Then
                             command &= "{0}"
                         Else
@@ -913,7 +966,18 @@ nextpIndx:
                             Else
                                 tgdl.TempPostsList = _TempPostsList
                             End If
+
+                            GdlWaitFirstTimer(fTimer)
+
+                            _GdlPreProgressPerformEnabled = True
+                            t = New Task(Sub() GdlPreProgressPerform(dir, conf))
+                            t.Start()
+
                             tgdl.Execute(command)
+
+                            _GdlPreProgressPerformEnabled = False
+                            GdlPreProgressPerformWait(t)
+
                             If tgdl.LimitReached Then
                                 If CBool(MySettings.DownloadAlreadyParsed.Value) And
                                    SFile.GetFiles(rootDir, "*.txt", IO.SearchOption.AllDirectories, EDP.ReturnValue).Count > 0 Then
@@ -936,6 +1000,8 @@ nextpIndx:
             Catch ex As Exception
                 ProcessException(ex, Token, $"{ToStringForLog()}: GetTimelineFromGalleryDL({command})")
                 Return Nothing
+            Finally
+                _GdlPreProgressPerformEnabled = False
             End Try
         End Function
         Private Function GdlGetIdFilterString(Optional ByVal TL As List(Of String) = Nothing) As String
@@ -945,8 +1011,11 @@ nextpIndx:
         Private Function GdlCreateConf(ByVal Path As SFile) As SFile
             Try
                 Dim conf As SFile = $"{Path.PathWithSeparator}TwitterGdlConfig.conf"
+                Dim __userAgent$ = MySettings.UserAgent
+                If Not __userAgent.IsEmptyString Then __userAgent = $"""user-agent"": ""{__userAgent}"","
                 Dim confText$ = "{""extractor"":{""cookies"": """ & MySettings.CookiesNetscapeFile.ToString.Replace("\", "/") &
-                                """,""cookies-update"": false,""twitter"":{""tweet-endpoint"": ""detail"",""cards"": false,""conversations"": true,""pinned"": false,""quoted"": false,""replies"": true,""retweets"": true,""strategy"": null,""text-tweets"": false,""twitpic"": false,""unique"": true,""users"": ""timeline"",""videos"": true}}}"
+                                 $""",""cookies-update"": {IIf(CBool(MySettings.CookiesUpdate.Value), "true", "false")}," & __userAgent &
+                                 """twitter"":{""tweet-endpoint"": ""detail"",""cards"": false,""conversations"": true,""pinned"": false,""quoted"": false,""replies"": true,""retweets"": true,""strategy"": null,""text-tweets"": false,""twitpic"": false,""unique"": true,""users"": ""timeline"",""videos"": true}}}"
                 If conf.Exists(SFO.Path, True, EDP.ThrowException) Then TextSaver.SaveTextToFile(confText, conf)
                 If Not conf.Exists Then Throw New IO.FileNotFoundException("Can't find Twitter GDL config file", conf)
                 Return conf
@@ -1050,6 +1119,7 @@ nextpIndx:
 #End Region
 #Region "DownloadSingleObject"
         Protected Overrides Sub DownloadSingleObject_GetPosts(ByVal Data As IYouTubeMediaContainer, ByVal Token As CancellationToken)
+            GDL_REQUESTS_COUNT = 0
             Dim um As New UserMedia(Data.URL) With {.State = UStates.Missing}
             If Not Data.URL.IsEmptyString AndAlso Data.URL.Contains(BroadCastPartUrl) Then um.Type = UTypes.m3u8
             _ContentList.Add(um)

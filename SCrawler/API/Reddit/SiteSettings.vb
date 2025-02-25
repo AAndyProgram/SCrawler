@@ -172,7 +172,7 @@ Namespace API.Reddit
             End If
         End Function
         Friend Overrides Function Available(ByVal What As Download, ByVal Silent As Boolean) As Boolean
-            Return AvailableTrueValue(What)
+            Return AvailableTrueValue(What) AndAlso UpdateTokenIfRequired()
         End Function
         Private Function AvailableTrueValue(ByVal What As Download) As Boolean
             Return Not What = Download.SavedPosts OrElse (Responser.CookiesExists And ACheck(SavedPostsUserName.Value))
@@ -199,7 +199,7 @@ Namespace API.Reddit
             End If
         End Function
         Friend Overrides Function GetUserUrl(ByVal User As IPluginContentProvider) As String
-            With DirectCast(User, UserData) : Return String.Format(UrlPatternUser, IIf(.IsChannel, ChannelOption, "user"), .TrueName) : End With
+            With DirectCast(User, UserData) : Return String.Format(UrlPatternUser, IIf(.IsChannel, ChannelOption, "user"), .NameTrue) : End With
         End Function
         Friend Overrides Function GetUserPostUrl(ByVal User As UserDataBase, ByVal Media As UserMedia) As String
             If Not Media.Post.ID.IsEmptyString Then
@@ -250,6 +250,7 @@ Namespace API.Reddit
             Return False
         End Function
         Private Function UpdateTokenIfRequired() As Boolean
+            UpdateRedGifsToken()
             If (CBool(UseTokenForTimelines.Value) Or CBool(UseTokenForSavedPosts.Value)) AndAlso CredentialsExists Then
                 If CDate(BearerTokenDateUpdate.Value).AddMinutes(TokenUpdateInterval.Value) <= Now Then Return UpdateToken()
             End If

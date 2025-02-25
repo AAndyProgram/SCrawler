@@ -29,7 +29,6 @@ Namespace API.Mastodon
                 _UserDomain = d
             End Set
         End Property
-        Friend Property TrueName As String = String.Empty
         Private ReadOnly Property MySettings As SiteSettings
             Get
                 Return HOST.Source
@@ -52,22 +51,21 @@ Namespace API.Mastodon
                                                 Dim l$() = Name.Split("@")
                                                 If l.ListExists(2) Then
                                                     _UserDomain = l(0)
-                                                    TrueName = l(1)
+                                                    NameTrue = l(1)
                                                 Else
                                                     _UserDomain = MySettings.MyDomain.Value
-                                                    TrueName = Name
+                                                    NameTrue = Name
                                                 End If
-                                                If FriendlyName.IsEmptyString Then FriendlyName = TrueName
+                                                If FriendlyName.IsEmptyString Then FriendlyName = NameTrue
                                             End If
                                         End Sub
             If Loading Then
                 _UserDomain = Container.Value(Name_UserDomain)
-                TrueName = Container.Value(Name_TrueName)
                 obtainNames.Invoke
             Else
                 obtainNames.Invoke
                 Container.Add(Name_UserDomain, _UserDomain)
-                Container.Add(Name_TrueName, TrueName)
+                Container.Add(Name_TrueName, NameTrue(True))
                 Container.Value(Name_FriendlyName) = FriendlyName
             End If
         End Sub
@@ -208,12 +206,12 @@ Namespace API.Mastodon
                     Dim url$ = $"https://{MyCredentials.Domain}/api/v1/accounts/lookup?acct="
                     If Not UserDomain.IsEmptyString Then
                         If UserDomain = MyCredentials.Domain Then
-                            url &= $"@{TrueName}"
+                            url &= $"@{NameTrue}"
                         Else
-                            url &= $"@{TrueName}@{UserDomain}"
+                            url &= $"@{NameTrue}@{UserDomain}"
                         End If
                     Else
-                        url &= $"@{TrueName}"
+                        url &= $"@{NameTrue}"
                     End If
                     Dim r$ = Responser.GetResponse(url)
                     If Not r.IsEmptyString Then

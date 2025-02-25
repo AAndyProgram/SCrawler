@@ -38,7 +38,6 @@ Namespace Editors
                         TXT_MAX_JOBS_USERS.Value = .MaxUsersJobsCount.Value
                         TXT_MAX_JOBS_CHANNELS.Value = .ChannelsMaxJobsCount.Value
                         CH_CHECK_VER_START.Checked = .CheckUpdatesAtStart
-                        TXT_USER_AGENT.Text = .UserAgent
                         TXT_IMGUR_CLIENT_ID.Text = .ImgurClientID
                         'Design
                         TXT_PRG_TITLE.Text = .ProgramText
@@ -255,8 +254,6 @@ Namespace Editors
                     .MaxUsersJobsCount.Value = CInt(TXT_MAX_JOBS_USERS.Value)
                     .ChannelsMaxJobsCount.Value = TXT_MAX_JOBS_CHANNELS.Value
                     .CheckUpdatesAtStart.Value = CH_CHECK_VER_START.Checked
-                    .UserAgent.Value = TXT_USER_AGENT.Text
-                    UserAgentChanged = .UserAgent.ChangesDetected
                     .ImgurClientID.Value = TXT_IMGUR_CLIENT_ID.Text
                     'Design
                     .ProgramText.Value = TXT_PRG_TITLE.Text
@@ -276,6 +273,7 @@ Namespace Editors
                                                  .CMDEncoding.ChangesDetected
                     'Headers
                     .HEADER_UserAgent.Value = TXT_H_DEF_UserAgent.Text
+                    UserAgentChanged = .HEADER_UserAgent.ChangesDetected
                     .HEADER_sec_ch_ua.Value = TXT_H_DEF_sec_ch_ua.Text
                     .HEADER_sec_ch_ua_full_version_list.Value = TXT_H_DEF_sec_ch_ua_full_version_list.Text
                     .HEADER_sec_ch_ua_platform.Value = TXT_H_DEF_sec_ch_ua_platform.Text
@@ -406,9 +404,6 @@ Namespace Editors
         End Sub
         Private Sub TXT_MAX_JOBS_CHANNELS_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As EventArgs) Handles TXT_MAX_JOBS_CHANNELS.ActionOnButtonClick
             If Sender.DefaultButton = ADB.Refresh Then TXT_MAX_JOBS_CHANNELS.Value = SettingsCLS.DefaultMaxDownloadingTasks
-        End Sub
-        Private Sub TXT_USER_AGENT_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As ActionButtonEventArgs) Handles TXT_USER_AGENT.ActionOnButtonClick
-            If Sender.DefaultButton = ADB.Refresh Then TXT_USER_AGENT.Text = Settings.UserAgent.Value
         End Sub
         Private Sub ChangePositionControlsEnabling() Handles OPT_FILE_NAME_REPLACE.CheckedChanged, OPT_FILE_NAME_ADD_DATE.CheckedChanged
             Dim b As Boolean = OPT_FILE_NAME_ADD_DATE.Checked And OPT_FILE_NAME_ADD_DATE.Enabled

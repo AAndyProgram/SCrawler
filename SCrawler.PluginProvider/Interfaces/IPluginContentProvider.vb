@@ -17,6 +17,7 @@ Namespace Plugin
         Property Settings As ISiteSettings
         Property AccountName As String
         Property Name As String
+        Property NameTrue As String
         Property ID As String
         Property Options As String
         Property ParseUserMediaOnly As Boolean

@@ -62,15 +62,6 @@ Namespace API.TikTok
         Friend Property TitleUseRegexForTitle_Value As String = String.Empty
         Friend Property TitleUseGlobalRegexOptions As Boolean = True
         Private Property LastDownloadDate As Date? = Nothing
-        Private _TrueName As String = String.Empty
-        Friend Property TrueName As String
-            Get
-                Return _TrueName.IfNullOrEmpty(Name)
-            End Get
-            Set(ByVal NewName As String)
-                _TrueName = NewName
-            End Set
-        End Property
 #End Region
 #Region "Exchange"
         Friend Overrides Function ExchangeOptionsGet() As Object
@@ -98,7 +89,6 @@ Namespace API.TikTok
                     TitleAddVideoID = .Value(Name_TitleAddVideoID).FromXML(Of Boolean)(True)
                     LastDownloadDate = AConvert(Of Date)(.Value(Name_LastDownloadDate), ADateTime.Formats.BaseDateTime, Nothing)
                     If Not LastDownloadDate.HasValue Then LastDownloadDate = LastUpdated
-                    _TrueName = .Value(Name_TrueName)
                     TitleUseRegexForTitle = .Value(Name_TitleUseRegexForTitle).FromXML(Of Boolean)(False)
                     TitleUseRegexForTitle_Value = .Value(Name_TitleUseRegexForTitle_Value)
                     TitleUseGlobalRegexOptions = .Value(Name_TitleUseGlobalRegexOptions).FromXML(Of Boolean)(True)
@@ -107,7 +97,6 @@ Namespace API.TikTok
                     .Add(Name_TitleUseNative, TitleUseNative.BoolToInteger)
                     .Add(Name_TitleAddVideoID, TitleAddVideoID.BoolToInteger)
                     .Add(Name_LastDownloadDate, AConvert(Of String)(LastDownloadDate, AModes.XML, ADateTime.Formats.BaseDateTime, String.Empty))
-                    .Add(Name_TrueName, _TrueName)
                     .Add(Name_TitleUseRegexForTitle, TitleUseRegexForTitle.BoolToInteger)
                     .Add(Name_TitleUseRegexForTitle_Value, TitleUseRegexForTitle_Value)
                     .Add(Name_TitleUseGlobalRegexOptions, TitleUseGlobalRegexOptions.BoolToInteger)
@@ -174,7 +163,7 @@ Namespace API.TikTok
             UserCache = Nothing
         End Sub
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
-            Dim URL$ = $"https://www.tiktok.com/@{TrueName}"
+            Dim URL$ = $"https://www.tiktok.com/@{NameTrue}"
             UserCache = CreateCache()
             Try
                 Dim postID$, title$, postUrl$, newName$
@@ -232,10 +221,7 @@ Namespace API.TikTok
                                         If Not ID.IsEmptyString Then _ForceSaveUserInfo = True
                                     End If
                                     newName = j.Value("uploader")
-                                    If Not newName.IsEmptyString Then
-                                        If Not _TrueName = newName Then _ForceSaveUserInfo = True
-                                        _TrueName = newName
-                                    End If
+                                    If Not newName.IsEmptyString Then NameTrue = newName
                                     newName = j.Value("creator")
                                     If Not newName.IsEmptyString Then UserSiteName = newName
                                 End If

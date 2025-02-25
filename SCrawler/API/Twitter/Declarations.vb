@@ -7,7 +7,7 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports System.Globalization
-Imports PersonalUtilities.Functions.XML.Base
+Imports System.Text.RegularExpressions
 Imports PersonalUtilities.Functions.RegularExpressions
 Namespace API.Twitter
     Friend Module Declarations
@@ -17,6 +17,8 @@ Namespace API.Twitter
         Friend ReadOnly VideoSizeRegEx As RParams = RParams.DMS("\d+x(\d+)", 1, EDP.ReturnValue)
         Friend ReadOnly StatusRegEx As RParams = RParams.DM(".*?(twitter|x)\.com/\S+/status/\d+", 0, EDP.ReturnValue)
         Friend ReadOnly BroadcastsUrls As Object() = {"entities", "urls", 0, "expanded_url"}
+        Friend ReadOnly GdlLimitRegEx As RParams = RParams.DM("Waiting until[\s\W\d\:]+\(rate limit\)", 0, RegexOptions.IgnoreCase, EDP.ReturnValue)
+        Friend ReadOnly GdlPostCoutNumberNodes As String() = {"data", "user", "result", "legacy", "statuses_count"}
         Private Function GetDateProvider() As ADateTime
             Dim n As DateTimeFormatInfo = CultureInfo.GetCultureInfo("en-us").DateTimeFormat.Clone
             n.FullDateTimePattern = "ddd MMM dd HH:mm:ss +ffff yyyy"

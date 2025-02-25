@@ -44,7 +44,6 @@ Namespace API.ThisVid
         Friend Property DownloadPrivate As Boolean = True
         Friend Property DownloadFavourite As Boolean = False
         Friend Property DifferentFolders As Boolean = True
-        Friend Property TrueName As String = String.Empty
         Friend Property SiteMode As SiteModes = SiteModes.User
         Private Property Arguments As String = String.Empty
         Friend Overrides ReadOnly Property SpecialLabels As IEnumerable(Of String)
@@ -80,7 +79,7 @@ Namespace API.ThisVid
             If Not Force OrElse (Not SiteMode = SiteModes.User AndAlso Not NewUrl.IsEmptyString AndAlso MyFileSettings.Exists) Then
                 Dim eObj As Plugin.ExchangeOptions = Nothing
                 If Force Then eObj = MySettings.IsMyUser(NewUrl)
-                If (Force And Not eObj.UserName.IsEmptyString) Or (Not Force And TrueName.IsEmptyString) Then
+                If (Force And Not eObj.UserName.IsEmptyString) Or (Not Force And NameTrue(True).IsEmptyString) Then
                     Dim n$() = If(Force, eObj.UserName, Name).Split("@")
                     If n.ListExists(2) Then
 
@@ -98,8 +97,8 @@ Namespace API.ThisVid
                         End If
                         __TrueName = n(1)
 
-                        If Force AndAlso (Not TrueName = __TrueName Or Not SiteMode = __Mode) Then
-                            If ValidateChangeSearchOptions(ToStringForLog, $"{__Mode}: {__TrueName}", $"{SiteMode}: {TrueName}") Then
+                        If Force AndAlso (Not NameTrue(True) = __TrueName Or Not SiteMode = __Mode) Then
+                            If ValidateChangeSearchOptions(ToStringForLog, $"{__Mode}: {__TrueName}", $"{SiteMode}: {NameTrue(True)}") Then
                                 __ForceApply = True
                             Else
                                 Return False
@@ -109,21 +108,21 @@ Namespace API.ThisVid
                         Arguments = __Arguments
                         Options = If(Force, eObj.Options, Options)
                         If Not Force Then
-                            TrueName = __TrueName
+                            NameTrue = __TrueName
                             SiteMode = __Mode
                             Settings.Labels.Add(SearchRequestLabelName)
                             Labels.ListAddValue(SearchRequestLabelName, LNC)
                             Labels.Sort()
-                            UserSiteName = $"{SiteMode}: {TrueName}"
+                            UserSiteName = $"{SiteMode}: {NameTrue}"
                             If FriendlyName.IsEmptyString Then FriendlyName = UserSiteName
                         ElseIf Force And __ForceApply Then
-                            TrueName = __TrueName
+                            NameTrue = __TrueName
                             SiteMode = __Mode
                         End If
                         Return True
                     Else
                         SiteMode = SiteModes.User
-                        TrueName = Name
+                        NameTrue = Name
                     End If
                 End If
             End If
@@ -136,7 +135,6 @@ Namespace API.ThisVid
                     DownloadPrivate = .Value(Name_DownloadPrivate).FromXML(Of Boolean)(True)
                     DownloadFavourite = .Value(Name_DownloadFavourite).FromXML(Of Boolean)(False)
                     DifferentFolders = .Value(Name_DifferentFolders).FromXML(Of Boolean)(True)
-                    TrueName = .Value(Name_TrueName)
                     SiteMode = .Value(Name_SiteMode).FromXML(Of Integer)(SiteModes.User)
                     Arguments = .Value(Name_Arguments)
                     UpdateUserOptions()
@@ -150,7 +148,7 @@ Namespace API.ThisVid
                     .Add(Name_DownloadPrivate, DownloadPrivate.BoolToInteger)
                     .Add(Name_DownloadFavourite, DownloadFavourite.BoolToInteger)
                     .Add(Name_DifferentFolders, DifferentFolders.BoolToInteger)
-                    .Add(Name_TrueName, TrueName)
+                    .Add(Name_TrueName, NameTrue(True))
                     .Add(Name_SiteMode, CInt(SiteMode))
                     .Add(Name_Arguments, Arguments)
 
@@ -259,18 +257,18 @@ Namespace API.ThisVid
             Dim url$ = String.Empty
             Select Case SiteMode
                 Case SiteModes.Tags
-                    url = $"https://thisvid.com/{SiteSettings.P_Tags}/{TrueName}/"
+                    url = $"https://thisvid.com/{SiteSettings.P_Tags}/{NameTrue}/"
                     If Not Arguments.IsEmptyString Then url &= $"{Arguments}/"
                     If Page > 1 Then url &= $"{Page}/"
                 Case SiteModes.Categories
-                    url = $"https://thisvid.com/{SiteSettings.P_Categories}/{TrueName}/"
+                    url = $"https://thisvid.com/{SiteSettings.P_Categories}/{NameTrue}/"
                     If Not Arguments.IsEmptyString Then url &= $"{Arguments}/"
                     If Page > 1 Then url &= $"{Page}/"
                 Case SiteModes.Search
                     If Not Arguments.IsEmptyString Then
                         url = $"https://thisvid.com/{Arguments}/"
                         If Page > 1 Then url &= $"{Page}/"
-                        url &= $"?q={TrueName}/"
+                        url &= $"?q={NameTrue}/"
                     End If
             End Select
             Return url

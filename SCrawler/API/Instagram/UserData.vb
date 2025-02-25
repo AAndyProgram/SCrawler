@@ -37,7 +37,6 @@ Namespace API.Instagram
         Private Const Name_GetTagged_VideoPic As String = "GetTaggedData_VideoPic"
         Private Const Name_PutImageVideoFolder As String = "PutImageVideoFolder"
         Private Const Name_TaggedChecked As String = "TaggedChecked"
-        Private Const Name_NameTrue As String = "NameTrue"
         Private Const Name_ForceUpdateUserName As String = "ForceUpdateUserName"
         Private Const Name_ForceUpdateUserInfo As String = "ForceUpdateUserInfo"
 #End Region
@@ -113,12 +112,6 @@ Namespace API.Instagram
                 Case Else : Return True
             End Select
         End Function
-        Protected _NameTrue As String = String.Empty
-        Friend ReadOnly Property NameTrue(Optional ByVal Exact As Boolean = False) As String
-            Get
-                Return If(Exact, _NameTrue, _NameTrue.IfNullOrEmpty(Name))
-            End Get
-        End Property
         Private UserNameRequested As Boolean = False
         Friend Property ForceUpdateUserName As Boolean = False
         Friend Property ForceUpdateUserInfo As Boolean = False
@@ -141,7 +134,6 @@ Namespace API.Instagram
                     GetTaggedData = .Value(Name_GetTagged).FromXML(Of Boolean)(CBool(MySiteSettings.GetTagged.Value))
                     GetTaggedData_VideoPic = .Value(Name_GetTagged_VideoPic).FromXML(Of Boolean)(CBool(MySiteSettings.GetTagged_VideoPic.Value))
                     TaggedChecked = .Value(Name_TaggedChecked).FromXML(Of Boolean)(False)
-                    _NameTrue = .Value(Name_NameTrue)
                     ForceUpdateUserName = .Value(Name_ForceUpdateUserName).FromXML(Of Boolean)(False)
                     ForceUpdateUserInfo = .Value(Name_ForceUpdateUserInfo).FromXML(Of Boolean)(False)
                 Else
@@ -159,7 +151,6 @@ Namespace API.Instagram
                     .Add(Name_GetTagged_VideoPic, GetTaggedData_VideoPic.BoolToInteger)
                     .Add(Name_PutImageVideoFolder, PutImageVideoFolder.BoolToInteger)
                     .Add(Name_TaggedChecked, TaggedChecked.BoolToInteger)
-                    .Add(Name_NameTrue, _NameTrue)
                     .Add(Name_ForceUpdateUserName, ForceUpdateUserName.BoolToInteger)
                     .Add(Name_ForceUpdateUserInfo, ForceUpdateUserInfo.BoolToInteger)
                 End If
@@ -187,7 +178,7 @@ Namespace API.Instagram
 
                     PutImageVideoFolder = .PutImageVideoFolder
 
-                    _NameTrue = .UserName
+                    NameTrue = .UserName
                     ForceUpdateUserName = .ForceUpdateUserName
                     ForceUpdateUserInfo = .ForceUpdateUserInfo
                 End With
@@ -480,17 +471,24 @@ Namespace API.Instagram
             End Try
         End Sub
         Protected Sub ValidateExtension()
+            Dim tmpList As List(Of UserMedia) = Nothing
             Try
                 Const heic$ = "heic"
                 If _TempMediaList.Count > 0 AndAlso _TempMediaList.Exists(Function(mm) mm.File.Extension = heic) Then
                     Dim m As UserMedia
-                    For i% = 0 To _TempMediaList.Count - 1
-                        m = _TempMediaList(i)
+                    tmpList = New List(Of UserMedia)
+                    tmpList.ListAddList(_TempMediaList)
+                    _TempMediaList.Clear()
+                    For i% = 0 To tmpList.Count - 1
+                        m = tmpList(i)
+                        _TempMediaList.Add(m)
                         If m.Type = UTypes.Picture AndAlso Not m.File.Extension.IsEmptyString AndAlso m.File.Extension = heic Then _
-                           m.File.Extension = "jpg" : _TempMediaList(i) = m
+                           m.File.Extension = "jpg" : _TempMediaList.Add(m)
                     Next
+                    tmpList.Clear()
                 End If
             Catch ex As Exception
+                If tmpList.ListExists Then _TempMediaList.Clear() : _TempMediaList.ListAddList(tmpList) : tmpList.Clear()
             End Try
         End Sub
         Protected Overridable Sub UpdateResponser()
@@ -1212,11 +1210,8 @@ NextPageBlock:
                                 Dim f As New SFile With {.Path = DownloadContentDefault_GetRootDir(), .Name = "ProfilePicture", .Extension = "jpg"}
                                 f = SFile.IndexReindex(f)
                                 If Not f.Exists Then
-                                    Dim profilePicture$ = .Value("profile_pic_url_hd")
-                                    If profilePicture.IsEmptyString OrElse Not GetWebFile(profilePicture, f, EDP.ReturnValue) Then
-                                        profilePicture = .Value("profile_pic_url")
-                                        If Not profilePicture.IsEmptyString Then GetWebFile(profilePicture, f, EDP.ReturnValue)
-                                    End If
+                                    If SimpleDownloadAvatar(.Value("profile_pic_url_hd"), Function(ff) f).IsEmptyString Then _
+                                       SimpleDownloadAvatar(.Value("profile_pic_url"), Function(ff) f)
                                 End If
                             End With
                         End If
@@ -1249,11 +1244,10 @@ NextPageBlock:
                                 If Not newName.IsEmptyString Then
                                     Dim oldName$ = NameTrue
                                     If Not newName = oldName Then
-                                        MyMainLOG = $"{ToStringForLog()}: username changed from '{oldName}' to '{newName}'"
-                                        _NameTrue = newName
-                                        Dim descr$ = $"Username changed from '{oldName}' to '{newName}' ({Now.ToStringDate(ADateTime.Formats.BaseDateTime)})!"
-                                        descr.StringAppendLine(UserDescription)
-                                        UserDescription = descr
+                                        Dim uStr$ = $"username changed from '{oldName}' to '{newName}'"
+                                        LogError(Nothing, uStr)
+                                        NameTrue = newName
+                                        UserDescriptionUpdate(uStr, True, True, True)
                                         _ForceSaveUserInfo = True
                                     End If
                                     Return True

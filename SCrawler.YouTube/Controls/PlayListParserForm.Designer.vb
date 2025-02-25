@@ -121,9 +121,10 @@ Namespace API.YouTube.Controls
             Me.TXT_LIMIT.Location = New System.Drawing.Point(3, 3)
             Me.TXT_LIMIT.Name = "TXT_LIMIT"
             Me.TXT_LIMIT.PlaceholderEnabled = True
-            Me.TXT_LIMIT.PlaceholderText = "e.g. ABCDE"
+            Me.TXT_LIMIT.PlaceholderText = "e.g. RDAMP"
             Me.TXT_LIMIT.Size = New System.Drawing.Size(378, 22)
             Me.TXT_LIMIT.TabIndex = 2
+            Me.TXT_LIMIT.Text = "RDAMP"
             '
             'CONTAINER_MAIN
             '

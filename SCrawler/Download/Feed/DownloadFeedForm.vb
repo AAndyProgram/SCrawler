@@ -1081,13 +1081,14 @@ Namespace DownloadObjects
             End Try
         End Sub
 #End Region
-        Private Sub BTT_CHECK_ALL_NONE_Click(sender As Object, e As EventArgs) Handles BTT_CHECK_ALL.Click, BTT_CHECK_NONE.Click
+        Private Sub BTT_CHECK_ALL_NONE_Click(sender As Object, e As EventArgs) Handles BTT_CHECK_ALL.Click, BTT_CHECK_NONE.Click, BTT_CHECK_INVERT.Click
             Try
                 Dim checked As Boolean = sender Is BTT_CHECK_ALL
+                Dim isInvert As Boolean = sender Is BTT_CHECK_INVERT
                 ControlInvokeFast(TP_DATA, Sub()
                                                With TP_DATA
                                                    If .Controls.Count > 0 Then
-                                                       For Each cnt As FeedMedia In .Controls : cnt.Checked = checked : Next
+                                                       For Each cnt As FeedMedia In .Controls : cnt.Checked = If(isInvert, Not cnt.Checked, checked) : Next
                                                    End If
                                                End With
                                            End Sub, EDP.None)

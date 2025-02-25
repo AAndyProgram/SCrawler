@@ -18,6 +18,7 @@ Namespace API.Base
         End Enum
         ReadOnly Property Site As String
         ReadOnly Property Name As String
+        Property NameTrue As String
         Property ID As String
         Property Options As String
         Property FriendlyName As String

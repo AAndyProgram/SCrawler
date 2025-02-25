@@ -173,6 +173,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
     Friend ReadOnly Plugins As List(Of PluginHost)
     Friend ReadOnly Property Users As List(Of IUserData)
     Friend ReadOnly Property UsersList As List(Of UserInfo)
+    Private ReadOnly Property UsersListProtected As Boolean = False
     Friend Property Channels As Reddit.ChannelsCollection
     Friend ReadOnly Property Labels As LabelsKeeper
     Friend ReadOnly Property Groups As Groups.DownloadGroupCollection
@@ -193,7 +194,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
     Private ReadOnly BlackListFile As SFile = $"{SettingsFolderName}\BlackList.txt"
     Private ReadOnly UsersSettingsFile As SFile = $"{SettingsFolderName}\Users.xml"
     Private ReadOnly Property SettingsVersion As XMLValue(Of Integer)
-    Private Const SettingsVersionCurrent As Integer = 1
+    Private Const SettingsVersionCurrent As Integer = 2
     Friend ShortcutOpenFeed As New ButtonKey(Keys.F, True)
     Friend ShortcutOpenSearch As New ButtonKey(Keys.F,, True)
     Private Sub ChangeFeedOpenMode()
@@ -228,10 +229,10 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         EnvironmentProgramsList = New List(Of String)
 
         SettingsVersion = New XMLValue(Of Integer)("SettingsVersion", 0, MyXML)
+        UsersListProtected = MyXML.Value("UsersListProtected").FromXML(Of Boolean)(False)
 
         Dim n() As String = {"Scheduler"}
         AutomationFile = New XMLValue(Of String)("File",, MyXML, n)
-        If SettingsVersion.Value = 0 AndAlso MyXML.Contains(AutomationFile.Name) Then AutomationFile.Value = MyXML.Value(AutomationFile.Name)
         AutomationScript = New XMLValueUse(Of String)("Script", String.Empty,, MyXML, n)
         AutomationScript_ExcludeManual = New XMLValue(Of Boolean)("ScriptExcludeManual", True, MyXML, n)
 
@@ -264,7 +265,6 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         MaxSmallImageHeight = New XMLValue(Of Integer)("MaxSmallImageHeight", 15, MyXML, n)
         CollectionsPath = New XMLValue(Of String)("CollectionsPath", CollectionsFolderName, MyXML, n)
         MaxUsersJobsCount = New XMLValue(Of Integer)("MaxJobsCount", DefaultMaxDownloadingTasks, MyXML, n)
-        UserAgent = New XMLValue(Of String)("UserAgent",, MyXML, n)
         ImgurClientID = New XMLValue(Of String)("ImgurClientID", String.Empty, MyXML, {Name_Node_Sites})
 
         'Basis: new version
@@ -333,7 +333,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         DefaultDownloadImages = New XMLValue(Of Boolean)("DownloadImages", True, MyXML, n)
         DefaultDownloadVideos = New XMLValue(Of Boolean)("DownloadVideos", True, MyXML, n)
         DownloadNativeImageFormat = New XMLValue(Of Boolean)("DownloadNativeImageFormat", True, MyXML, n)
-        UserSiteNameAsFriendly = New XMLValue(Of Boolean)("UserSiteNameAsFriendly", False, MyXML, n)
+        UserSiteNameAsFriendly = New XMLValue(Of Boolean)("UserSiteNameAsFriendly", True, MyXML, n)
 
         'STDownloader
         n = {"Downloader"}
@@ -367,6 +367,8 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         UseDefaultAccountIfMissing = New XMLValue(Of Boolean)("UseDefaultAccountIfMissing", True, MyXML, n)
         AutomationBrushUndownloadedPlansMinutes = New XMLValue(Of Integer)("AutomationBrushUndownloadedPlansMinutes", 10080, MyXML, n)
         DownDetectorEnabled = New XMLValue(Of Boolean)("DownDetectorEnabled", True, MyXML, n)
+        'TODELETE: DownDetectorEnabled change
+        If SettingsVersion.Value < SettingsVersionCurrent Then DownDetectorEnabled.Value = False 'SettingsVersionCurrent = 2
 
         'Downloading: file naming
         n = {"Downloading", "FileName"}
@@ -516,6 +518,8 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
 
                 Dim NeedUpdate As Boolean = False
                 Dim i%, indx%
+                Dim errStr As Func(Of Date, String) = Function(d) IIf(UsersListProtected, String.Empty,
+                                                                      $"It will be removed from SCrawler on {d.ToStringDate(DateTimeDefaultProvider)}.")
                 Dim UsersListInitialCount% = UsersList.Count
                 Dim iUser As UserInfo
                 Dim userFileExists As Boolean, pluginFound As Boolean
@@ -531,7 +535,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
                             If .Plugin.IsEmptyString Then
                                 pluginFound = False
                                 If .Site.IsEmptyString Then
-                                    MyMainLOG = $"The corresponding plugin was not found for the user [{ .Name}]. The user was removed from SCrawler."
+                                    MyMainLOG = $"The corresponding plugin was not found for the user [{ .Name}].{IIf(UsersListProtected, String.Empty, " The user has been removed from SCrawler.")}"
                                 Else
                                     indx = __plugins.FindIndex(Function(p) p.Value.ToLower = .Site.ToLower)
                                     If indx >= 0 Then
@@ -561,19 +565,17 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
                                         If .LastSeen.HasValue Then .LastSeen = Nothing : NeedUpdate = True
                                     Else
                                         .LastSeen = Now
-                                        MyMainLOG = $"The user [{ .Site}: { .Name}]  was not found. " &
-                                                    $"It will be removed from SCrawler on { .LastSeen.Value.ToStringDate(DateTimeDefaultProvider)}."
+                                        MyMainLOG = $"The user [{ .Site}: { .Name}]  was not found. " & errStr(.LastSeen.Value)
                                         NeedUpdate = True
                                     End If
                                 ElseIf userFileExists Then
                                     If .Protected Then
                                         If Not .LastSeen.HasValue Then .LastSeen = Now : NeedUpdate = True
-                                        MyMainLOG = $"The corresponding plugin was not found for the user [{ .Site}: { .Name}]. " &
-                                                    $"It will be removed from SCrawler on { .LastSeen.Value.ToStringDate(DateTimeDefaultProvider)}."
+                                        MyMainLOG = $"The corresponding plugin was not found for the user [{ .Site}: { .Name}]. " & errStr(.LastSeen.Value)
                                     Else
                                         If .LastSeen.HasValue Then .LastSeen = Nothing : NeedUpdate = True
                                     End If
-                                ElseIf If(.LastSeen, Now).AddDays(30) < Now Then
+                                ElseIf If(.LastSeen, Now).AddDays(30) < Now And Not UsersListProtected Then
                                     UsersList.RemoveAt(i)
                                     MyMainLOG = $"The user [{ .Site}: { .Name}] was not found and was removed from SCrawler."
                                     NeedUpdate = True
@@ -633,8 +635,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
                                                                                   uu.LastSeen = Now
                                                                                   NeedUpdate = True
                                                                                   UsersList(uIndex) = uu
-                                                                                  MyMainLOG = $"The user [{uu.Site}: {uu.Name}]  was not found. " &
-                                                                                              $"It will be removed from SCrawler on {uu.LastSeen.Value.ToStringDate(DateTimeDefaultProvider)}."
+                                                                                  MyMainLOG = $"The user [{uu.Site}: {uu.Name}]  was not found. " & errStr(uu.LastSeen.Value)
                                                                               End If
                                                                           End If
                                                                           Return uIndex >= 0
@@ -649,7 +650,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
                                                                        __del = False
                                                                        If Not .Item(i).FileExists Then
                                                                            With DirectCast(.Item(i), UserDataBase).User
-                                                                               If Not findWrongUser(.Self) Then
+                                                                               If Not findWrongUser(.Self) And Not UsersListProtected Then
                                                                                    __del = True
                                                                                    MyMainLOG = $"The user [{ .Site}: { .Name}] was not found and was removed from SCrawler."
                                                                                End If
@@ -875,7 +876,11 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         End Get
     End Property
     Friend ReadOnly Property MaxUsersJobsCount As XMLValue(Of Integer)
-    Friend ReadOnly Property UserAgent As XMLValue(Of String)
+    Friend ReadOnly Property UserAgent As String
+        Get
+            Return HEADER_UserAgent
+        End Get
+    End Property
     Friend ReadOnly Property ImgurClientID As XMLValue(Of String)
 #End Region
 #Region "Basis: new version"

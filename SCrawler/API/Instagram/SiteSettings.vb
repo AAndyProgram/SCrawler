@@ -732,9 +732,6 @@ Namespace API.Instagram
                 Using f As New InternalSettingsForm(Options, Me, False) : f.ShowDialog() : End Using
             End If
         End Sub
-        Friend Overrides Function GetUserUrl(ByVal User As IPluginContentProvider) As String
-            Return String.Format(UrlPatternUser, DirectCast(User, UserData).NameTrue)
-        End Function
         Friend Overrides Function GetUserPostUrl(ByVal User As UserDataBase, ByVal Media As UserMedia) As String
             Try
                 Dim code$ = DirectCast(User, UserData).GetPostCodeById(Media.Post.ID)

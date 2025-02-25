@@ -33,7 +33,7 @@ Namespace API.Base
         End Property
         Friend Property AccountName As String Implements ISiteSettings.AccountName
         Friend Property Temporary As Boolean = False Implements ISiteSettings.Temporary
-        Friend Property DefaultInstance As ISiteSettings = Nothing Implements ISiteSettings.DefaultInstance
+        Friend Overridable Property DefaultInstance As ISiteSettings = Nothing Implements ISiteSettings.DefaultInstance
         Protected _UserAgentDefault As String = String.Empty
         Friend Overridable Property UserAgentDefault As String Implements ISiteSettings.UserAgentDefault
             Get
@@ -55,6 +55,11 @@ Namespace API.Base
         Friend Overridable ReadOnly Property Responser As Responser
         Private _UserOptionsExists As Boolean = False
         Private _UserOptionsType As Type = Nothing
+        Protected Overridable Function UserOptionsValid(ByVal Options As Object) As Boolean
+            Return True
+        End Function
+        Protected Overridable Sub UserOptionsSetParameters(ByRef Options As Object)
+        End Sub
         Protected Property UserOptionsType As Type
             Get
                 Return _UserOptionsType
@@ -243,7 +248,7 @@ Namespace API.Base
 #Region "User info"
         Protected UrlPatternUser As String = String.Empty
         Friend Overridable Function GetUserUrl(ByVal User As IPluginContentProvider) As String Implements ISiteSettings.GetUserUrl
-            If Not UrlPatternUser.IsEmptyString Then Return String.Format(UrlPatternUser, User.Name)
+            If Not UrlPatternUser.IsEmptyString Then Return String.Format(UrlPatternUser, User.NameTrue.IfNullOrEmpty(User.Name))
             Return String.Empty
         End Function
         Private Function ISiteSettings_GetUserPostUrl(ByVal User As IPluginContentProvider, ByVal Media As IUserMedia) As String Implements ISiteSettings.GetUserPostUrl
@@ -380,11 +385,40 @@ Namespace API.Base
         End Sub
         Friend Overridable Sub UserOptions(ByRef Options As Object, ByVal OpenForm As Boolean) Implements ISiteSettings.UserOptions
             If _UserOptionsExists Then
-                If Options Is Nothing OrElse Not Options.GetType Is _UserOptionsType Then
-                    Options = AConvert(Me, AModes.Var, _UserOptionsType,, True, Nothing)
+                If Options Is Nothing OrElse (Not Options.GetType Is _UserOptionsType OrElse Not UserOptionsValid(Options)) Then
+                    Dim args% = 0
+                    Dim constructor As ConstructorInfo = Nothing
+                    With _UserOptionsType.GetTypeInfo.DeclaredConstructors
+                        If .ListExists Then
+                            With .Where(Function(ByVal c As ConstructorInfo) As Boolean
+                                            With c.GetParameters
+                                                If .ListExists Then
+                                                    If .Count = 1 Then
+                                                        Return .Self()(0).ParameterType.GetInterfaces.ListIfNothing.Where(Function(i) i Is Me.GetType).Count = 1
+                                                    Else
+                                                        Return False
+                                                    End If
+                                                Else
+                                                    Return True
+                                                End If
+                                            End With
+                                            Return If(c.GetParameters?.Count, 0).ValueBetween(0, 1)
+                                        End Function)
+                                If .ListExists Then
+                                    args = .Max(Of Integer)(Function(c) If(c.GetParameters?.Count, 0))
+                                    constructor = .First(Function(c) If(c.GetParameters?.Count, 0) = args)
+                                End If
+                            End With
+                        End If
+                    End With
+                    If Not constructor Is Nothing Then
+                        If args > 0 AndAlso Not constructor.GetParameters()(0).ParameterType Is GetType(ISiteSettings) Then Throw New Exception
+                        If args = 0 Then Options = constructor.Invoke(Nothing) Else Options = constructor.Invoke({Me})
+                    End If
                     If Options Is Nothing Then Options = Activator.CreateInstance(_UserOptionsType)
+                    If Not Options Is Nothing Then UserOptionsSetParameters(Options)
                 End If
-                If OpenForm Then
+                If Not Options Is Nothing And OpenForm Then
                     Using f As New InternalSettingsForm(Options, Me, False) : f.ShowDialog() : End Using
                 End If
             Else

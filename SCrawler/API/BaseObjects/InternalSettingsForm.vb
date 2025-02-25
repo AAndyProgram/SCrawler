@@ -134,6 +134,7 @@ Namespace API.Base
                                                                                          m.GetMemberCustomAttributes(Of Provider).ListExists
                     Dim m1 As MemberInfo, m2 As MemberInfo
                     Dim tmpObj As Object
+                    Dim maxOffset%
 
                     members = GetObjectMembers(MyObject, Function(m) (m.MemberType = MemberTypes.Field Or m.MemberType = MemberTypes.Property) AndAlso
                                                                      Not m.GetCustomAttribute(Of PSettingAttribute) Is Nothing,, True,
@@ -174,6 +175,9 @@ Namespace API.Base
                     .MyFieldsCheckerE = New FieldsChecker
 
                     If MyMembers.Count > 0 Then
+
+                        maxOffset = MyMembers.Max(Function(mm) mm.LeftOffset)
+                        If maxOffset > 0 Then MyMembers.ForEach(Sub(mm) mm.LeftOffset = maxOffset)
 
                         Dim prov As IEnumerable(Of Provider)
                         Dim _prov As Provider

@@ -29,10 +29,6 @@ Namespace API.PornHub
         Friend ReadOnly Property DownloadGifs As PropertyValue
         <PropertyOption(ControlText:="Download GIFs as mp4", ControlToolTip:="Download gifs in 'mp4' format instead of native 'webm'"), PXML, PClonable>
         Friend ReadOnly Property DownloadGifsAsMp4 As PropertyValue
-        <PropertyOption(ControlText:="Photo ModelHub only",
-                        ControlToolTip:="Download photo only from ModelHub. Prornstar photos hosted on PornHub itself will not be downloaded." & vbCr &
-                                        "Attention! Downloading photos hosted on PornHub is a very heavy job."), PXML, PClonable>
-        Friend ReadOnly Property DownloadPhotoOnlyFromModelHub As PropertyValue
         <PropertyOption(ControlText:=DeclaredNames.SavedPostsUserNameCaption, ControlToolTip:=DeclaredNames.SavedPostsUserNameToolTip), PXML, PClonable(Clone:=False)>
         Friend ReadOnly Property SavedPostsUserName As PropertyValue
 #End Region
@@ -48,7 +44,6 @@ Namespace API.PornHub
             DownloadFavorite = New PropertyValue(False)
             DownloadGifsAsMp4 = New PropertyValue(True)
             DownloadGifs = New PropertyValue(CInt(CheckState.Indeterminate), GetType(Integer))
-            DownloadPhotoOnlyFromModelHub = New PropertyValue(True)
             SavedPostsUserName = New PropertyValue(String.Empty, GetType(String))
 
             _SubscriptionsAllowed = True

@@ -29,7 +29,6 @@ Namespace API.Xhamster
         End Property
         Friend Property IsChannel As Boolean = False
         Friend Property IsCreator As Boolean = False
-        Friend Property TrueName As String = String.Empty
         Friend Property Gender As String = String.Empty
         Friend Property SiteMode As SiteModes = SiteModes.User
         Friend Property Arguments As String = String.Empty
@@ -73,17 +72,17 @@ Namespace API.Xhamster
             If Not Force OrElse (Not SiteMode = SiteModes.User AndAlso Not NewUrl.IsEmptyString AndAlso MyFileSettings.Exists) Then
                 Dim eObj As Plugin.ExchangeOptions = Nothing
                 If Force Then eObj = MySettings.IsMyUser(NewUrl)
-                If (Force And Not eObj.UserName.IsEmptyString) Or (Not Force And TrueName.IsEmptyString) Then
+                If (Force And Not eObj.UserName.IsEmptyString) Or (Not Force And NameTrue(True).IsEmptyString) Then
                     Dim n$() = If(Force, eObj.UserName, Name).Split("@")
                     If n.ListExists Then
                         If n.Length = 2 And If(Force, eObj.Options, Options).IsEmptyString Then
                             If Force Then Return False
-                            TrueName = n(0)
+                            NameTrue = n(0)
                             IsChannel = n(1) = SiteSettings.ChannelOption
                             IsCreator = n(1) = SiteSettings.P_Creators
                         ElseIf IsChannel Then
                             If Force Then Return False
-                            TrueName = Name
+                            NameTrue = Name
                         ElseIf Not If(Force, eObj.Options, Options).IsEmptyString Then
                             Dim __TrueName$, __Arguments$, __Gender$
                             Dim __Mode As SiteModes
@@ -97,10 +96,10 @@ Namespace API.Xhamster
                                 __Arguments = n2(3)
                                 __TrueName = n2.ListTake(3, 100, EDP.ReturnValue).ListToString(String.Empty)
 
-                                If Force AndAlso (Not TrueName = __TrueName Or Not SiteMode = __Mode Or Not Gender = __Gender) Then
+                                If Force AndAlso (Not NameTrue(True) = __TrueName Or Not SiteMode = __Mode Or Not Gender = __Gender) Then
                                     If ValidateChangeSearchOptions(ToStringForLog,
                                                                    $"{__Mode}{IIf(__Gender.IsEmptyString, String.Empty, $" ({__Gender})")}: {__TrueName}",
-                                                                   $"{SiteMode}{IIf(Gender.IsEmptyString, String.Empty, $" ({Gender})")}: {TrueName}") Then
+                                                                   $"{SiteMode}{IIf(Gender.IsEmptyString, String.Empty, $" ({Gender})")}: {NameTrue(True)}") Then
                                         __ForceApply = True
                                     Else
                                         Return False
@@ -110,17 +109,17 @@ Namespace API.Xhamster
                                 Arguments = __Arguments
                                 Options = If(Force, eObj.Options, Options)
                                 If Not Force Then
-                                    TrueName = __TrueName
+                                    NameTrue = __TrueName
                                     SiteMode = __Mode
                                     Gender = __Gender
 
-                                    UserSiteName = $"{SiteMode}: {TrueName}"
+                                    UserSiteName = $"{SiteMode}: {NameTrue}"
                                     If FriendlyName.IsEmptyString Then FriendlyName = UserSiteName
                                     Settings.Labels.Add(SearchRequestLabelName)
                                     Labels.ListAddValue(SearchRequestLabelName, LNC)
                                     Labels.Sort()
                                 ElseIf Force And __ForceApply Then
-                                    TrueName = __TrueName
+                                    NameTrue = __TrueName
                                     SiteMode = __Mode
                                     Gender = __Gender
                                 End If
@@ -132,7 +131,7 @@ Namespace API.Xhamster
                             End If
                         Else
                             If Force Then Return False
-                            TrueName = n(0)
+                            NameTrue = n(0)
                         End If
                     End If
                 End If
@@ -144,7 +143,6 @@ Namespace API.Xhamster
                 If Loading Then
                     IsChannel = .Value(Name_IsChannel).FromXML(Of Boolean)(False)
                     IsCreator = .Value(Name_IsCreator).FromXML(Of Boolean)(False)
-                    TrueName = .Value(Name_TrueName)
                     Gender = .Value(Name_Gender)
                     SiteMode = .Value(Name_SiteMode).FromXML(Of Integer)(SiteModes.User)
                     Arguments = .Value(Name_Arguments)
@@ -157,7 +155,7 @@ Namespace API.Xhamster
                     End If
                     .Add(Name_IsChannel, IsChannel.BoolToInteger)
                     .Add(Name_IsCreator, IsCreator.BoolToInteger)
-                    .Add(Name_TrueName, TrueName)
+                    .Add(Name_TrueName, NameTrue(True))
                     .Add(Name_Gender, Gender)
                     .Add(Name_SiteMode, CInt(SiteMode))
                     .Add(Name_Arguments, Arguments)
@@ -198,7 +196,7 @@ Namespace API.Xhamster
                     Case SiteModes.User : url &= SiteSettings.P_Creators
                     Case Else : Return String.Empty
                 End Select
-                url &= $"/{TrueName}"
+                url &= $"/{NameTrue}"
 
                 Dim args$ = Arguments
                 If (args.IsEmptyString OrElse Not args.Contains(newest)) And Not SiteMode = SiteModes.Search Then url &= newest
@@ -289,14 +287,14 @@ Namespace API.Xhamster
                     URL = $"https://xhamster.com/my/favorites/{IIf(IsVideo, "videos", "photos-and-galleries")}{IIf(Page = 1, String.Empty, $"/{Page}")}"
                     containerNodes.Add(If(IsVideo, {"favoriteVideoListComponent", "models"}, {"favoritesGalleriesAndPhotosCollection"}))
                 ElseIf IsChannel Then
-                    URL = $"https://xhamster.com/channels/{TrueName}/newest{IIf(Page = 1, String.Empty, $"/{Page}")}"
+                    URL = $"https://xhamster.com/channels/{NameTrue}/newest{IIf(Page = 1, String.Empty, $"/{Page}")}"
                 ElseIf SiteMode = SiteModes.Search Then
                     URL = GetNonUserUrl(Page)
                     containerNodes.Add({"searchResult", "models"})
                 ElseIf IsCreator Or SiteMode = SiteModes.Tags Or SiteMode = SiteModes.Categories Or SiteMode = SiteModes.Pornstars Then
                     URL = GetNonUserUrl(Page)
                 Else
-                    URL = $"https://xhamster.com/users/{TrueName}/{IIf(IsVideo, "videos", "photos")}{IIf(Page = 1, String.Empty, $"/{Page}")}"
+                    URL = $"https://xhamster.com/users/{NameTrue}/{IIf(IsVideo, "videos", "photos")}{IIf(Page = 1, String.Empty, $"/{Page}")}"
                 End If
                 ThrowAny(Token)
 

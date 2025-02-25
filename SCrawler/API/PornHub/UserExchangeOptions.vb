@@ -21,8 +21,6 @@ Namespace API.PornHub
         Friend Property DownloadFavorite As Boolean
         <PSetting(Caption:="Download gifs")>
         Friend Property DownloadGifs As Boolean
-        <PSetting(NameOf(SiteSettings.DownloadPhotoOnlyFromModelHub), NameOf(MySettings), Caption:="Download photo only from ModelHub")>
-        Friend Property DownloadPhotoOnlyFromModelHub As Boolean
         Private ReadOnly Property MySettings As SiteSettings
         Friend Sub New(ByVal u As UserData)
             DownloadUHD = u.DownloadUHD
@@ -31,7 +29,6 @@ Namespace API.PornHub
             DownloadPrivate = u.DownloadPrivate
             DownloadFavorite = u.DownloadFavorite
             DownloadGifs = u.DownloadGifs
-            DownloadPhotoOnlyFromModelHub = u.DownloadPhotoOnlyFromModelHub
             QueryString = u.QueryString
             MySettings = u.HOST.Source
         End Sub
@@ -43,7 +40,6 @@ Namespace API.PornHub
             DownloadPrivate = s.DownloadPrivate.Value
             DownloadFavorite = s.DownloadFavorite.Value
             DownloadGifs = Not v = CheckState.Unchecked
-            DownloadPhotoOnlyFromModelHub = s.DownloadPhotoOnlyFromModelHub.Value
             MySettings = s
         End Sub
     End Class

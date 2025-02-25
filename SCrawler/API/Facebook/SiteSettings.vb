@@ -36,6 +36,8 @@ Namespace API.Facebook
         Friend ReadOnly Property ParsePhotoBlock As PropertyValue
         <PropertyOption(ControlText:="Download videos", IsAuth:=False, Category:=DN.CAT_UserDefs), PXML, PClonable>
         Friend ReadOnly Property ParseVideoBlock As PropertyValue
+        <PropertyOption(ControlText:="Download reels", IsAuth:=False, Category:=DN.CAT_UserDefs), PXML, PClonable>
+        Friend ReadOnly Property ParseReelsBlock As PropertyValue
         <PropertyOption(ControlText:="Download stories", IsAuth:=False, Category:=DN.CAT_UserDefs), PXML, PClonable>
         Friend ReadOnly Property ParseStoriesBlock As PropertyValue
 #End Region
@@ -52,6 +54,7 @@ Namespace API.Facebook
             Header_Accept = New PropertyValue(String.Empty, GetType(String))
             ParsePhotoBlock = New PropertyValue(True)
             ParseVideoBlock = New PropertyValue(True)
+            ParseReelsBlock = New PropertyValue(False)
             ParseStoriesBlock = New PropertyValue(True)
 
             UrlPatternUser = "https://www.facebook.com/{0}"

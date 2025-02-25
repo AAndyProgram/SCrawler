@@ -23,9 +23,11 @@ Namespace API.Facebook
         Private Const Name_IsNoNameProfile As String = "IsNoNameProfile"
         Private Const Name_OptionsParsed As String = "OptionsParsed"
         Private Const Name_VideoPageID As String = "VideoPageID"
+        Private Const Name_ReelsPageID As String = "ReelsPageID"
         Private Const Name_StoryBucket As String = "StoryBucket"
         Private Const Name_ParsePhotoBlock As String = "ParsePhotoBlock"
         Private Const Name_ParseVideoBlock As String = "ParseVideoBlock"
+        Private Const Name_ParseReelsBlock As String = "ParseReelsBlock"
         Private Const Name_ParseStoriesBlock As String = "ParseStoriesBlock"
 #End Region
 #Region "Declarations"
@@ -37,15 +39,18 @@ Namespace API.Facebook
         Private IsNoNameProfile As Boolean = False
         Private OptionsParsed As Boolean = False
         Private Property VideoPageID As String = String.Empty
+        Private Property ReelsPageID As String = String.Empty
         Private Property StoryBucket As String = String.Empty
         Friend Property ParsePhotoBlock As Boolean = True
         Friend Property ParseVideoBlock As Boolean = True
+        Friend Property ParseReelsBlock As Boolean = False
         Friend Property ParseStoriesBlock As Boolean = True
         Private Enum PageBlock As Integer
             Timeline = Sections.Timeline
             Stories = Sections.Stories
             Photos = 100
             Videos = 101
+            Reels = Sections.Reels
             Undefined = -1
         End Enum
 #End Region
@@ -67,6 +72,7 @@ Namespace API.Facebook
                 With DirectCast(Obj, UserExchangeOptions)
                     ParsePhotoBlock = .ParsePhotoBlock
                     ParseVideoBlock = .ParseVideoBlock
+                    ParseReelsBlock = .ParseReelsBlock
                     ParseStoriesBlock = .ParseStoriesBlock
                 End With
             End If
@@ -90,18 +96,22 @@ Namespace API.Facebook
                     End If
                     OptionsParsed = .Value(Name_OptionsParsed).FromXML(Of Boolean)(False)
                     VideoPageID = .Value(Name_VideoPageID)
+                    ReelsPageID = .Value(Name_ReelsPageID)
                     StoryBucket = .Value(Name_StoryBucket)
                     ParsePhotoBlock = .Value(Name_ParsePhotoBlock).FromXML(Of Boolean)(True)
                     ParseVideoBlock = .Value(Name_ParseVideoBlock).FromXML(Of Boolean)(True)
+                    ParseReelsBlock = .Value(Name_ParseReelsBlock).FromXML(Of Boolean)(False)
                     ParseStoriesBlock = .Value(Name_ParseStoriesBlock).FromXML(Of Boolean)(True)
                 Else
                     updateNames.Invoke
                     .Add(Name_IsNoNameProfile, IsNoNameProfile.BoolToInteger)
                     .Add(Name_OptionsParsed, OptionsParsed.BoolToInteger)
                     .Add(Name_VideoPageID, VideoPageID)
+                    .Add(Name_ReelsPageID, ReelsPageID)
                     .Add(Name_StoryBucket, StoryBucket)
                     .Add(Name_ParsePhotoBlock, ParsePhotoBlock.BoolToInteger)
                     .Add(Name_ParseVideoBlock, ParseVideoBlock.BoolToInteger)
+                    .Add(Name_ParseReelsBlock, ParseReelsBlock.BoolToInteger)
                     .Add(Name_ParseStoriesBlock, ParseStoriesBlock.BoolToInteger)
                 End If
             End With
@@ -146,6 +156,7 @@ Namespace API.Facebook
                     Else
                         If DownloadImages And ParsePhotoBlock Then DownloadData_Photo(String.Empty, Token)
                         If DownloadVideos And ParseVideoBlock Then DownloadData_Video(String.Empty, Token)
+                        If DownloadVideos And ParseReelsBlock Then DownloadData_Reels(String.Empty, Token)
                         If (DownloadImages Or DownloadVideos) And ParseStoriesBlock Then DownloadData_Stories(Token)
                     End If
                     LoadSavePostsKV(False)
@@ -158,10 +169,12 @@ Namespace API.Facebook
         Private Const Header_fb_fr_name_Video As String = "PagesCometChannelTabAllVideosCardImplPaginationQuery"
         Private Const Header_fb_fr_name_Stories As String = "StoriesSuspenseContentPaneRootWithEntryPointQuery"
         Private Const Header_fb_fr_name_SavedPosts As String = "CometSaveDashboardAllItemsPaginationQuery"
+        Private Const Header_fb_fr_name_Reels As String = "ProfileCometAppCollectionReelsRendererPaginationQuery"
         Private Const DocID_Photo As String = "6684543058255697"
         Private Const DocID_Video As String = "24545934291687581"
         Private Const DocID_Stories As String = "6771064226315961"
         Private Const DocID_SavedPosts As String = "7112228098805003"
+        Private Const DocID_Reels As String = "28517740954539304"
         Private Const Graphql_UrlPattern As String = "https://www.facebook.com/api/graphql?lsd={0}&doc_id={1}&server_timestamps=true&fb_dtsg={3}&fb_api_req_friendly_name={2}&variables={4}"
         Private Const VideoHtmlUrlPattern As String = "https://www.facebook.com/watch/?v={0}"
         Private Sub DownloadData_Photo(ByVal Cursor As String, ByVal Token As CancellationToken)
@@ -238,7 +251,7 @@ Namespace API.Facebook
                 Dim newPostsDetected As Boolean = False
                 Dim pid As PostKV
 
-                If VideoPageID.IsEmptyString Then GetVideoPageID(Token)
+                If VideoPageID.IsEmptyString Then GetVideoPageID(False, Token)
                 If VideoPageID.IsEmptyString Then Throw New TokensException("Unable to obtain 'VideoPageID'", False)
                 ValidateBaseTokens()
 
@@ -353,6 +366,123 @@ Namespace API.Facebook
                 TokensException.SendToLog(Me, tex, "data (stories)")
             Catch ex As Exception
                 ProcessException(ex, Token, $"data (stories) downloading error [{URL}]",, Responser)
+            End Try
+        End Sub
+        Private Sub DownloadData_Reels(ByVal Cursor As String, ByVal Token As CancellationToken)
+            Dim URL$ = String.Empty
+            Const VarPattern$ = """count"":10,""cursor"":{0},""feedLocation"":""COMET_MEDIA_VIEWER"",""feedbackSource"":65,""focusCommentID"":null,""renderLocation"":null,""scale"":1,""useDefaultActor"":true,""id"":""{1}"",""__relay_internal__pv__FBReelsMediaFooter_comet_enable_reels_ads_gkrelayprovider"":true,""__relay_internal__pv__IsWorkUserrelayprovider"":false"
+            Try
+                Dim nextCursor$ = String.Empty
+                Dim newPostsDetected As Boolean = False
+                Dim nodeFound As Boolean = False
+                Dim pid As PostKV = Nothing
+                Dim __urlBase$ = String.Empty
+                Dim lines As List(Of String)
+                Dim j As EContainer, rr As EContainer
+                Dim jDataRoot As EContainer = Nothing
+                Dim indx% = -1
+                Dim s As New List(Of Sizes)
+                Dim videoIdNode$() = {"profile_reel_node", "node", "video", "id"}
+
+                Dim obtainBasePostData As Action = Sub()
+                                                       If indx.ValueBetween(0, jDataRoot.Count - 1) Then
+                                                           With jDataRoot(indx)
+                                                               pid = New PostKV(String.Empty, .Item(videoIdNode).XmlIfNothingValue.
+                                                                                               IfNullOrEmpty(.Value({"node"}, "id")), PageBlock.Reels)
+                                                               pid.Code = $"Reels:{pid.ID}"
+                                                               nextCursor = .Value("cursor")
+                                                               If Not .Item(videoIdNode).XmlIfNothing.IsEmptyString Then
+                                                                   __urlBase = $"https://www.facebook.com/reel/{pid.ID}"
+                                                               Else
+                                                                   __urlBase = String.Empty
+                                                               End If
+                                                           End With
+                                                       Else
+                                                           pid = Nothing
+                                                           nextCursor = String.Empty
+                                                           __urlBase = String.Empty
+                                                       End If
+                                                   End Sub
+                Dim createFile As Func(Of String, SFile, SFile) = Function(ByVal __url As String, ByVal cFile As SFile) As SFile
+                                                                      Dim f As New SFile(RegexReplace(__url, Regex_ReelsFilePattern))
+                                                                      If Not f.IsEmptyString Then Return f Else Return cFile
+                                                                  End Function
+
+                If ReelsPageID.IsEmptyString Then GetVideoPageID(True, Token)
+                If ReelsPageID.IsEmptyString Then Throw New TokensException("Unable to obtain 'ReelsPageID'", False)
+                ValidateBaseTokens()
+
+                URL = String.Format(Graphql_UrlPattern, Token_lsd, DocID_Reels, Header_fb_fr_name_Reels, Token_dtsg_Var,
+                                    SymbolsConverter.ASCII.EncodeSymbolsOnly("{" & String.Format(VarPattern, If(Cursor.IsEmptyString, "null", $"""{Cursor}"""), ReelsPageID) & "}"))
+
+                ResponserApplyDefs(Header_fb_fr_name_Reels)
+                ThrowAny(Token)
+
+                WaitTimer()
+                Dim r$ = Responser.GetResponse(URL)
+                If Not r.IsEmptyString Then
+                    lines = r.StringToList(Of String)(vbCrLf).ListIfNothing
+                    If lines.ListExists Then
+                        For Each line$ In lines
+                            j = JsonDocument.Parse(line, EDP.ReturnValue)
+                            If j.ListExists Then
+                                jDataRoot = j({"data", "node", "aggregated_fb_shorts", "edges"})
+                                If jDataRoot.ListExists Then
+
+                                    With j({"extensions", "all_video_dash_prefetch_representations"})
+                                        If .ListExists Then
+                                            ProgressPre.ChangeMax(.Count)
+                                            For indx = 0 To .Count - 1
+                                                ProgressPre.Perform()
+
+                                                obtainBasePostData()
+                                                If Not pid.ID.IsEmptyString AndAlso Not PostKvExists(pid) Then
+                                                    newPostsDetected = True
+                                                    PostsKVIDs.ListAddValue(pid, LNC)
+                                                    _TempPostsList.Add(pid.Code)
+
+                                                    With .ItemF({indx, "representations"})
+                                                        If .ListExists Then
+                                                            s.Clear()
+                                                            For Each rr In .Self : s.Add(New Sizes(rr.Value("width"), rr.Value("base_url"))) : Next
+                                                            If s.Count > 0 Then s.RemoveAll(Function(ss) ss.Value = 0 Or ss.Data.IsEmptyString)
+                                                            If s.Count > 0 Then
+                                                                s.Sort()
+                                                                _TempMediaList.ListAddValue(New UserMedia(s(0).Data, UTypes.Video) With {
+                                                                                                .URL_BASE = __urlBase.IfNullOrEmpty(.URL_BASE),
+                                                                                                .Post = pid.ID,
+                                                                                                .File = createFile(s(0).Data, .File),
+                                                                                                .SpecialFolder = "Reels*"
+                                                                                            }, LNC)
+                                                                s.Clear()
+                                                            End If
+                                                        End If
+                                                    End With
+
+
+                                                    If Limit > 0 And _TempMediaList.Count >= Limit Then j.Dispose() : Exit Sub
+                                                Else
+                                                    j.Dispose()
+                                                    Exit Sub
+                                                End If
+
+                                            Next
+                                        End If
+                                    End With
+
+                                End If
+
+                                j.Dispose()
+                            End If
+                        Next
+                    End If
+                End If
+
+                If newPostsDetected And Not nextCursor.IsEmptyString Then DownloadData_Reels(nextCursor, Token)
+            Catch tex As TokensException When Not tex.BasicTokens
+                TokensException.SendToLog(Me, tex, "data (reels)")
+            Catch ex As Exception
+                ProcessException(ex, Token, $"data (reels) downloading error [{URL}]",, Responser)
             End Try
         End Sub
         Private Sub DownloadData_SavedPosts(ByVal Cursor As String, ByVal Token As CancellationToken)
@@ -507,13 +637,19 @@ Namespace API.Facebook
                 Return True
             End If
         End Function
-        Private Sub GetVideoPageID(ByVal Token As CancellationToken)
-            Dim URL$ = $"{GetProfileUrl()}\videos"
+        Private Sub GetVideoPageID(ByVal GetReels As Boolean, ByVal Token As CancellationToken)
+            Dim URL$ = $"{GetProfileUrl()}\{IIf(GetReels, "reels", "videos")}"
             Dim resp As Responser = HtmlResponserCreate()
             Try
                 WaitTimer()
                 Dim r$ = resp.GetResponse(URL)
-                If Not r.IsEmptyString Then VideoPageID = RegexReplace(r, Regex_VideoPageID)
+                If Not r.IsEmptyString Then
+                    If GetReels Then
+                        ReelsPageID = RegexReplace(r, Regex_ReelsPageID)
+                    Else
+                        VideoPageID = RegexReplace(r, Regex_VideoPageID)
+                    End If
+                End If
             Catch ex As Exception
                 ProcessException(ex, Token, "get video page ID",, resp)
             Finally
@@ -658,17 +794,39 @@ Namespace API.Facebook
                 HtmlResponserDispose(resp)
             End Try
         End Sub
+        Private Structure VideoResolution : Implements IComparable(Of VideoResolution)
+            Friend W As Integer
+            Friend H As Integer
+            Friend B As Integer
+            Friend U As String
+            Friend ReadOnly Property Wrong As Boolean
+                Get
+                    Return W = 0 Or H = 0 Or B = 0 Or U.IsEmptyString
+                End Get
+            End Property
+            Private Function CompareTo(ByVal Other As VideoResolution) As Integer Implements IComparable(Of VideoResolution).CompareTo
+                Return CLng(Math.Max(W, H) * B).CompareTo(CLng(Math.Max(Other.W, Other.H) * Other.B)) * -1
+            End Function
+        End Structure
         Protected Function ReparseSingleVideo(ByVal m As UserMedia, ByVal resp As Responser, ByRef result As Boolean) As UserMedia
             Const nameSD$ = "browser_native_sd_url"
             Const nameHD$ = "browser_native_hd_url"
+            Const nameDPR$ = "all_video_dash_prefetch_representations"
             Const pattern$ = "<script type=""application/json""[^\>]*data-sjs>([^<]+?{0}[^<]+)<"
             Dim URL$ = String.Empty
             Dim j As EContainer = Nothing
             Try
-                Dim r$, script$, __url$
+                Dim r$ = String.Empty, script$ = String.Empty, __url$ = String.Empty
+                Dim isNewNodes As Boolean = False
+                Dim __date As Date? = Nothing
                 Dim jNode As EContainer
                 Dim jf As Predicate(Of EContainer) = Function(ee) Not ee.Name.IsEmptyString AndAlso (ee.Name.ToLower = nameSD Or ee.Name.ToLower = nameHD)
                 Dim re As RParams = RParams.DMS("", 1, RegexOptions.IgnoreCase, EDP.ReturnValue)
+                Dim nf As New XML.Base.NodeParams(nameDPR, True, True, True, True, 20)
+                Dim __extractScript As Action(Of String) = Sub(ByVal inputName As String)
+                                                               re.Pattern = String.Format(pattern, inputName)
+                                                               script = RegexReplace(r, re)
+                                                           End Sub
                 If m.Post.ID.IsEmptyString Then
                     URL = m.URL_BASE
                 Else
@@ -677,30 +835,47 @@ Namespace API.Facebook
                 WaitTimer()
                 r = resp.GetResponse(URL)
                 If Not r.IsEmptyString Then
-                    re.Pattern = String.Format(pattern, nameHD)
-                    script = RegexReplace(r, re)
-                    If script.IsEmptyString Then
-                        re.Pattern = String.Format(pattern, nameSD)
-                        script = RegexReplace(r, re)
-                    End If
+                    __extractScript(nameHD)
+                    If script.IsEmptyString Then __extractScript(nameSD)
+                    If script.IsEmptyString Then __extractScript(nameDPR) : isNewNodes = True
                     If Not script.IsEmptyString Then
                         j = JsonDocument.Parse(script)
                         If j.ListExists Then
                             j.SetSourceReferences()
-                            jNode = j.Find(jf, True)
-                            If Not jNode Is Nothing Then
-                                With DirectCast(jNode.Source, EContainer)
-                                    __url = .Value(nameHD).IfNullOrEmpty(.Value(nameSD))
-                                    If Not __url.IsEmptyString Then
-                                        m.URL = __url
-                                        m.URL_BASE = URL
-                                        m.Type = UTypes.Video
-                                        m.File = CreateFileFromUrl(__url)
-                                        m.Post.Date = AConvert(Of Date)(.Value("publish_time"), UnixDate32Provider, Nothing)
-                                        result = True
-                                        Return m
-                                    End If
-                                End With
+                            If isNewNodes Then
+                                jNode = j.GetNode({nf})
+                                If Not jNode Is Nothing Then
+                                    With jNode.ItemF({0, "representations"})
+                                        If .ListExists Then
+                                            Dim intE As New ErrorsDescriber(False, False, False, 0)
+                                            Dim intC As Func(Of String, Integer) = Function(__input) AConvert(Of Integer)(__input, intE)
+                                            Dim dataV As List(Of VideoResolution) = .Select(Function(jj) New VideoResolution With {
+                                                                                                .W = intC(jj.Value("width")),
+                                                                                                .H = intC(jj.Value("height")),
+                                                                                                .B = intC(jj.Value("bandwidth")),
+                                                                                                .U = jj.Value("base_url")}).ListIfNothing
+                                            If dataV.ListExists Then dataV.RemoveAll(Function(dd) dd.Wrong)
+                                            If dataV.ListExists Then dataV.Sort() : __url = dataV(0).U : dataV.Clear() : __date = m.Post.Date
+                                        End If
+                                    End With
+                                End If
+                            Else
+                                jNode = j.Find(jf, True)
+                                If Not jNode Is Nothing Then
+                                    With DirectCast(jNode.Source, EContainer)
+                                        __url = .Value(nameHD).IfNullOrEmpty(.Value(nameSD))
+                                        If Not __url.IsEmptyString Then __date = AConvert(Of Date)(.Value("publish_time"), UnixDate32Provider, Nothing)
+                                    End With
+                                End If
+                            End If
+                            If Not __url.IsEmptyString Then
+                                m.URL = __url
+                                m.URL_BASE = URL
+                                m.Type = UTypes.Video
+                                m.File = CreateFileFromUrl(__url)
+                                m.Post.Date = __date
+                                result = True
+                                Return m
                             End If
                         End If
                     End If
@@ -738,7 +913,10 @@ Namespace API.Facebook
 #End Region
 #Region "DownloadSingleObject"
         Protected Overrides Sub DownloadSingleObject_GetPosts(ByVal Data As IYouTubeMediaContainer, ByVal Token As CancellationToken)
-            _ContentList.Add(New UserMedia(Data.URL, UTypes.VideoPre) With {.Post = CStr(AConvert(Of String)(Data.URL, Regex_VideoIDFromURL, String.Empty))})
+            _ContentList.Add(New UserMedia(Data.URL, UTypes.VideoPre) With {
+                                 .Post = CStr(AConvert(Of String)(Data.URL, Regex_VideoIDFromURL, String.Empty)),
+                                 .State = UStates.Missing
+                             })
             ReparseMissing(Token)
         End Sub
 #End Region

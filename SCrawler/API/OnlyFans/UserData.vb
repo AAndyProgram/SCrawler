@@ -467,16 +467,8 @@ Namespace API.OnlyFans
                                 Dim descr$ = j.Value("about")
                                 If Not descr.IsEmptyString Then descr = descr.Replace(brTag, String.Empty)
                                 UserDescriptionUpdate(descr)
-                                Dim a As Action(Of String) = Sub(ByVal address As String)
-                                                                 If Not address.IsEmptyString Then
-                                                                     Dim f As SFile = address
-                                                                     f.Separator = "\"
-                                                                     f.Path = DownloadContentDefault_GetRootDir()
-                                                                     If Not f.Exists Then GetWebFile(address, f, EDP.None)
-                                                                 End If
-                                                             End Sub
-                                a.Invoke(j.Value("avatar"))
-                                a.Invoke(j.Value("header"))
+                                SimpleDownloadAvatar(j.Value("avatar"))
+                                SimpleDownloadAvatar(j.Value("header"))
                             End If
                         End Using
                     End If

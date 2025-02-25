@@ -7,9 +7,8 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports SCrawler.Plugin.Attributes
-Imports DN = SCrawler.API.Base.DeclaredNames
 Namespace API.Instagram
-    Friend NotInheritable Class EditorExchangeOptions
+    Friend NotInheritable Class EditorExchangeOptions : Inherits Base.EditorExchangeOptionsBase
 #Region "Download"
         <PSetting(Caption:="Get timeline", ToolTip:="Download user timeline")>
         Friend Property GetTimeline As Boolean
@@ -36,13 +35,13 @@ Namespace API.Instagram
 #End Region
         <PSetting(Caption:="Place the extracted image into the video folder")>
         Friend Property PutImageVideoFolder As Boolean
-        <PSetting(Address:=SettingAddress.User, Caption:=DN.UserNameChangeCaption, ToolTip:=DN.UserNameChangeToolTip)>
-        Friend Property UserName As String = String.Empty
+        Friend Overrides Property UserName As String
         <PSetting(Address:=SettingAddress.User, Caption:="Force update UserName", ToolTip:="Try to force update UserName if it is not found on the site")>
         Friend Property ForceUpdateUserName As Boolean = False
         <PSetting(Address:=SettingAddress.User, Caption:="Force update user information")>
         Friend Property ForceUpdateUserInfo As Boolean = False
         Friend Sub New(ByVal u As UserData)
+            MyBase.New(u)
             With u
                 GetTimeline = .GetTimeline
                 GetReels = .GetReels
@@ -58,7 +57,6 @@ Namespace API.Instagram
 
                 PutImageVideoFolder = .PutImageVideoFolder
 
-                UserName = .NameTrue(True)
                 ForceUpdateUserName = .ForceUpdateUserName
                 ForceUpdateUserInfo = .ForceUpdateUserInfo
             End With

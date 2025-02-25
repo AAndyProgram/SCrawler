@@ -118,6 +118,12 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="BlueskyIcon_32" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Content\Icons\SiteIcons\BlueskyIcon_32.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="BlueskyPic_32" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Content\Pictures\SitePictures\BlueskyPic_32.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="FacebookIcon_32" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Content\Icons\SiteIcons\FacebookIcon_32.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
@@ -192,6 +198,9 @@
   </data>
   <data name="TikTokPic_192" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Content\Pictures\SitePictures\TikTokPic_192.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="TwitterIconNew_32" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Content\Icons\SiteIcons\TwitterIconNew_32.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="TwitterIcon_32" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Content\Icons\SiteIcons\TwitterIcon_32.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>

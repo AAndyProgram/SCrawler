@@ -86,7 +86,7 @@ Namespace API.Xhamster
                 If Not .SiteMode = SiteModes.User Then
                     Return .GetNonUserUrl(0)
                 Else
-                    Return String.Format(UrlPatternUser, IIf(.IsChannel, ChannelOption, UserOption), .TrueName)
+                    Return String.Format(UrlPatternUser, IIf(.IsChannel, ChannelOption, UserOption), .NameTrue)
                 End If
             End With
         End Function

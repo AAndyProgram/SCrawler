@@ -67,6 +67,26 @@ Namespace My.Resources
         '''<summary>
         '''  Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
         '''</summary>
+        Friend Shared ReadOnly Property BlueskyIcon_32() As System.Drawing.Icon
+            Get
+                Dim obj As Object = ResourceManager.GetObject("BlueskyIcon_32", resourceCulture)
+                Return CType(obj,System.Drawing.Icon)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized resource of type System.Drawing.Bitmap.
+        '''</summary>
+        Friend Shared ReadOnly Property BlueskyPic_32() As System.Drawing.Bitmap
+            Get
+                Dim obj As Object = ResourceManager.GetObject("BlueskyPic_32", resourceCulture)
+                Return CType(obj,System.Drawing.Bitmap)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+        '''</summary>
         Friend Shared ReadOnly Property FacebookIcon_32() As System.Drawing.Icon
             Get
                 Dim obj As Object = ResourceManager.GetObject("FacebookIcon_32", resourceCulture)
@@ -320,6 +340,16 @@ Namespace My.Resources
         Friend Shared ReadOnly Property TwitterIcon_32() As System.Drawing.Icon
             Get
                 Dim obj As Object = ResourceManager.GetObject("TwitterIcon_32", resourceCulture)
+                Return CType(obj,System.Drawing.Icon)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+        '''</summary>
+        Friend Shared ReadOnly Property TwitterIconNew_32() As System.Drawing.Icon
+            Get
+                Dim obj As Object = ResourceManager.GetObject("TwitterIconNew_32", resourceCulture)
                 Return CType(obj,System.Drawing.Icon)
             End Get
         End Property

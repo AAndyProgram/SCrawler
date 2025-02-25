@@ -88,6 +88,7 @@ Namespace Plugin.Hosts
                                           ByRef _Vids As XMLValue(Of Boolean)) As IEnumerable(Of PluginHost)
             Return {New PluginHost(GetType(API.Reddit.SiteSettings), _XML, GlobalPath, _Temp, _Imgs, _Vids),
                     New PluginHost(GetType(API.Twitter.SiteSettings), _XML, GlobalPath, _Temp, _Imgs, _Vids),
+                    New PluginHost(GetType(API.Bluesky.SiteSettings), _XML, GlobalPath, _Temp, _Imgs, _Vids),
                     New PluginHost(GetType(API.Mastodon.SiteSettings), _XML, GlobalPath, _Temp, _Imgs, _Vids),
                     New PluginHost(GetType(API.Instagram.SiteSettings), _XML, GlobalPath, _Temp, _Imgs, _Vids),
                     New PluginHost(GetType(API.ThreadsNet.SiteSettings), _XML, GlobalPath, _Temp, _Imgs, _Vids),

@@ -1,3 +1,35 @@
+# 2025.2.25.0
+
+*2025-02-25*
+
+- Added
+  - Sites:
+    - **Bluesky**
+    - Facebook: **`Reels` downloads**
+    - OnlyFans: default value for `App-Token`
+    - Pinterest: **sub-boards downloading**
+    - Threads: ability to manually change `UserName`
+    - Twitter:
+      - new icon support
+      - **sleep timers to fully download large profiles**
+  - Feed:
+    - ability to invert selection
+    - open post URL when double-clicking on subscription image
+  - Minor improvements
+- Updated
+  - yt-dlp up to version **2025.02.19**
+  - gallery-dl up to version **1.28.5**
+- PluginProvider
+  - `IPluginContentProvider`: added property `NameTrue`
+- Fixed
+  - Sites:
+    - Facebook: videos are not downloading
+    - LPSG: simplified 403 error
+    - PornHub: photos & videos are not downloading
+    - Reddit: **token does not update automatically**
+    - Threads: **data is not downloading**
+  - Minor bugs
+
 # 2025.1.12.0
 
 *2025-01-12*

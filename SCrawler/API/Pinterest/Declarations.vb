@@ -7,11 +7,18 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports System.Globalization
+Imports System.Text.RegularExpressions
 Imports PersonalUtilities.Tools.Web.Clients
+Imports PersonalUtilities.Functions.RegularExpressions
 Namespace API.Pinterest
     Friend Module Declarations
         Friend ReadOnly DateProvider As ADateTime = GetDateProvider()
         Friend ReadOnly PwsHeader As New HttpHeader("x-pinterest-pws-handler", "www/[username]/pins.js")
+        Friend ReadOnly GdlUrlPattern As RParams = RParams.DM(Base.GDL.GDLBatch.UrlLibStart.Replace("[", "\[").Replace("]", "\]") &
+                                                              "([^""]+?)""(GET [^""]+)""", 0, EDP.ReturnValue)
+        Friend ReadOnly SubBoardRegEx As RParams = RParams.DMS("\[pinterest\]\[debug\] Using PinterestSectionExtractor for '[^']+id:(\d+)'", 1,
+                                                               RegexOptions.IgnoreCase, EDP.ReturnValue)
+        Friend ReadOnly BoardInfoRootNode As String() = {"resource_response", "data"}
         Private Function GetDateProvider() As ADateTime
             Dim n As DateTimeFormatInfo = CultureInfo.GetCultureInfo("en-us").DateTimeFormat.Clone
             n.FullDateTimePattern = "ddd dd MMM yyyy HH:mm:ss"

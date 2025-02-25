@@ -178,6 +178,8 @@ Namespace API.Base
 #Region "Additional names"
         Protected Const Name_SiteMode As String = "SiteMode"
         Protected Const Name_TrueName As String = "TrueName"
+        'TODELETE Name_TrueName2
+        <Obsolete> Protected Const Name_TrueName2 As String = "NameTrue"
         Protected Const Name_Arguments As String = "Arguments"
 #End Region
 #End Region
@@ -278,6 +280,21 @@ Namespace API.Base
                 Return User.Name
             End Get
         End Property
+        Private _NameTrue As String = String.Empty
+        Friend Overridable Overloads Property NameTrue As String Implements IUserData.NameTrue, IPluginContentProvider.NameTrue
+            Get
+                Return NameTrue(False)
+            End Get
+            Set(ByVal NewName As String)
+                If Not _NameTrue = NewName Then EnvirChanged(NewName)
+                _NameTrue = NewName
+            End Set
+        End Property
+        Friend Overloads ReadOnly Property NameTrue(ByVal Exact As Boolean) As String
+            Get
+                Return If(Exact, _NameTrue, _NameTrue.IfNullOrEmpty(Name))
+            End Get
+        End Property
         Friend Overridable Property ID As String = String.Empty Implements IUserData.ID, IPluginContentProvider.ID
         Protected _FriendlyName As String = String.Empty
         Friend Overridable Property FriendlyName As String Implements IUserData.FriendlyName
@@ -348,12 +365,20 @@ Namespace API.Base
         Protected Function UserDescriptionNeedToUpdate() As Boolean
             Return (UserDescription.IsEmptyString Or _DescriptionEveryTime) And Not _DescriptionChecked
         End Function
-        Protected Sub UserDescriptionUpdate(ByVal Descr As String)
-            If UserDescriptionNeedToUpdate() Then
+        Protected Sub UserDescriptionUpdate(ByVal Descr As String, Optional ByVal Force As Boolean = False,
+                                            Optional ByVal InsertFirst As Boolean = False, Optional ByVal AppendDate As Boolean = False)
+            If UserDescriptionNeedToUpdate() Or Force Then
+                If AppendDate Then Descr = $"{Now.ToStringDateDef}: {Descr}"
                 If UserDescription.IsEmptyString Then
                     UserDescription = Descr
+                    _ForceSaveUserInfo = True
                 ElseIf Not UserDescription.Contains(Descr) Then
-                    UserDescription &= $"{vbNewLine}----{vbNewLine}{Descr}"
+                    If InsertFirst Then
+                        UserDescription = $"{Descr}{vbNewLine}{UserDescription}"
+                    Else
+                        UserDescription &= $"{vbNewLine}----{vbNewLine}{Descr}"
+                    End If
+                    _ForceSaveUserInfo = True
                 End If
                 _DescriptionChecked = True
             End If
@@ -907,6 +932,10 @@ BlockNullPicture:
                     FileExists = True
                     Using x As New XmlFile(MyFileSettings) With {.XmlReadOnly = True}
                         If User.Name.IsEmptyString Then User.Name = x.Value(Name_UserName)
+                        _NameTrue = x.Value(Name_TrueName)
+#Disable Warning BC40008
+                        If _NameTrue.IsEmptyString AndAlso x.Contains(Name_TrueName2) Then _NameTrue = x.Value(Name_TrueName2)
+#Enable Warning
                         UserExists = x.Value(Name_UserExists).FromXML(Of Boolean)(True)
                         UserSuspended = x.Value(Name_UserSuspended).FromXML(Of Boolean)(False)
                         ID = x.Value(Name_UserID)
@@ -967,6 +996,7 @@ BlockNullPicture:
                     x.Add(Name_Plugin, HOST.Key)
                     x.Add(Name_AccountName, AccountName)
                     x.Add(Name_UserName, User.Name)
+                    x.Add(Name_TrueName, _NameTrue)
                     x.Add(Name_Model_User, CInt(UserModel))
                     x.Add(Name_Model_Collection, CInt(CollectionModel))
                     x.Add(Name_SpecialPath, User.SpecialPath)
@@ -1162,6 +1192,7 @@ BlockNullPicture:
                 Select Case Caller
                     Case NameOf(UserExists) : If Not _EnvirUserExists = CBool(NewValue) Then _EnvirChanged = True : _EnvirInvokeUserUpdated = True
                     Case NameOf(UserSuspended) : If Not _EnvirUserSuspended = CBool(NewValue) Then _EnvirChanged = True : _EnvirInvokeUserUpdated = True
+                    Case NameOf(NameTrue) : _EnvirChanged = True : _EnvirInvokeUserUpdated = True : _ForceSaveUserInfo = True : _ForceSaveUserInfoOnException = True
                     Case Else : _EnvirChanged = True
                 End Select
             End If
@@ -1282,9 +1313,9 @@ BlockNullPicture:
                 UpdateUserInformation_Ex()
                 If Not exit_ex.Silent Then
                     If exit_ex.SimpleLogLine Then
-                        MyMainLOG = $"{ToStringForLog()}: downloading interrupted (exit) ({exit_ex.Message})"
+                        LogError(Nothing, $"downloading interrupted (exit) ({exit_ex.Message})")
                     Else
-                        ErrorsDescriber.Execute(EDP.SendToLog, exit_ex, $"{ToStringForLog()}: downloading interrupted (exit)")
+                        LogError(exit_ex, "downloading interrupted (exit)")
                     End If
                 End If
                 If _EnvirInvokeUserUpdated Then OnUserUpdated()
@@ -1845,6 +1876,31 @@ BlockNullPicture:
 #Region "ChangeFileNameByProvider, RunScript"
         Protected Overridable Function CreateFileFromUrl(ByVal URL As String) As SFile
             Return New SFile(URL)
+        End Function
+        Protected Overridable Function SimpleDownloadAvatar(ByVal ImageAddress As String, Optional ByVal FileCreateFunc As Func(Of String, SFile) = Nothing,
+                                                            Optional ByVal e As ErrorsDescriber = Nothing) As SFile
+            Try
+                If Not ImageAddress.IsEmptyString Then
+                    Dim f As SFile
+                    If FileCreateFunc Is Nothing Then
+                        f = CreateFileFromUrl(ImageAddress)
+                    Else
+                        f = FileCreateFunc.Invoke(ImageAddress)
+                    End If
+                    If Not f.Name.IsEmptyString Then f.Name = f.Name.StringRemoveWinForbiddenSymbols.StringTrim
+                    If Not f.Name.IsEmptyString Then
+                        f.Path = DownloadContentDefault_GetRootDir()
+                        f.Separator = "\"
+                        If f.Extension.IsEmptyString Then f.Extension = "jpg"
+                        If Not f.Exists Then GetWebFile(ImageAddress, f, EDP.ReturnValue)
+                        If f.Exists Then IconBannerDownloaded = True : Return f
+                    End If
+                End If
+                Return Nothing
+            Catch ex As Exception
+                If Not e.Exists Then e = New ErrorsDescriber(EDP.ReturnValue)
+                Return ErrorsDescriber.Execute(e, ex, $"SimpleDownloadAvatar({ImageAddress})", New SFile)
+            End Try
         End Function
         Protected Overridable Function ChangeFileNameByProvider(ByVal f As SFile, ByVal m As UserMedia) As SFile
             Dim ff As SFile = Nothing

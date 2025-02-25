@@ -20,15 +20,12 @@ Namespace API.PornHub
 #Region "Declarations"
 #Region "XML names"
         Private Const Name_PersonType As String = "PersonType"
-        Private Const Name_NameTrue As String = "NameTrue"
-        Private Const Name_PhotoPageModel As String = "PhotoPageModel"
         Private Const Name_DownloadUHD As String = "DownloadUHD"
         Private Const Name_DownloadUploaded As String = "DownloadUploaded"
         Private Const Name_DownloadTagged As String = "DownloadTagged"
         Private Const Name_DownloadPrivate As String = "DownloadPrivate"
         Private Const Name_DownloadFavorite As String = "DownloadFavorite"
         Private Const Name_DownloadGifs As String = "DownloadGifs"
-        Private Const Name_DownloadPhotoOnlyFromModelHub As String = "DownloadPhotoOnlyFromModelHub"
 #End Region
 #Region "Structures"
         Private Structure FlashVar : Implements IRegExCreator
@@ -98,11 +95,6 @@ Namespace API.PornHub
         End Structure
 #End Region
 #Region "Enums"
-        Private Enum PhotoPageModels As Integer
-            Undefined = 0
-            PornHubPage = 1
-            ModelHubPage = 2
-        End Enum
         Private Enum VideoTypes
             Undefined
             Uploaded
@@ -121,7 +113,6 @@ Namespace API.PornHub
 #End Region
 #Region "Person"
         Friend Property PersonType As String
-        Friend Property NameTrue As String
         Friend Overrides Property FriendlyName As String
             Get
                 If _FriendlyName.IsEmptyString Then Return NameTrue Else Return _FriendlyName
@@ -137,14 +128,12 @@ Namespace API.PornHub
                 Return IsUser Or SiteMode = SiteModes.Playlists
             End Get
         End Property
-        Private Property PhotoPageModel As PhotoPageModels = PhotoPageModels.Undefined
         Friend Property DownloadUHD As Boolean = False
         Friend Property DownloadUploaded As Boolean = True
         Friend Property DownloadTagged As Boolean = False
         Friend Property DownloadPrivate As Boolean = False
         Friend Property DownloadFavorite As Boolean = False
         Friend Property DownloadGifs As Boolean
-        Friend Property DownloadPhotoOnlyFromModelHub As Boolean = True
         Friend Overrides ReadOnly Property IsUser As Boolean
             Get
                 Return SiteMode = SiteModes.User
@@ -182,7 +171,6 @@ Namespace API.PornHub
                     DownloadPrivate = .DownloadPrivate
                     DownloadFavorite = .DownloadFavorite
                     DownloadGifs = .DownloadGifs
-                    DownloadPhotoOnlyFromModelHub = .DownloadPhotoOnlyFromModelHub
                     QueryString = .QueryString
                 End With
             End If
@@ -244,29 +232,23 @@ Namespace API.PornHub
             With Container
                 If Loading Then
                     PersonType = .Value(Name_PersonType)
-                    NameTrue = .Value(Name_NameTrue)
-                    PhotoPageModel = .Value(Name_PhotoPageModel).FromXML(Of Integer)(PhotoPageModels.Undefined)
                     DownloadUHD = .Value(Name_DownloadUHD).FromXML(Of Boolean)(False)
                     DownloadUploaded = .Value(Name_DownloadUploaded).FromXML(Of Boolean)(True)
                     DownloadTagged = .Value(Name_DownloadTagged).FromXML(Of Boolean)(False)
                     DownloadPrivate = .Value(Name_DownloadPrivate).FromXML(Of Boolean)(False)
                     DownloadFavorite = .Value(Name_DownloadFavorite).FromXML(Of Boolean)(False)
                     DownloadGifs = .Value(Name_DownloadGifs).FromXML(Of Integer)(False)
-                    DownloadPhotoOnlyFromModelHub = .Value(Name_DownloadPhotoOnlyFromModelHub).FromXML(Of Boolean)(True)
                     SiteMode = .Value(Name_SiteMode).FromXML(Of Integer)(SiteModes.User)
                     UpdateUserOptions()
                 Else
                     If UpdateUserOptions() Then .Value(Name_LabelsName) = LabelsString
                     .Add(Name_PersonType, PersonType)
-                    .Add(Name_NameTrue, NameTrue)
-                    .Add(Name_PhotoPageModel, CInt(PhotoPageModel))
                     .Add(Name_DownloadUHD, DownloadUHD.BoolToInteger)
                     .Add(Name_DownloadUploaded, DownloadUploaded.BoolToInteger)
                     .Add(Name_DownloadTagged, DownloadTagged.BoolToInteger)
                     .Add(Name_DownloadPrivate, DownloadPrivate.BoolToInteger)
                     .Add(Name_DownloadFavorite, DownloadFavorite.BoolToInteger)
                     .Add(Name_DownloadGifs, DownloadGifs.BoolToInteger)
-                    .Add(Name_DownloadPhotoOnlyFromModelHub, DownloadPhotoOnlyFromModelHub.BoolToInteger)
                     .Add(Name_SiteMode, CInt(SiteMode))
 
                     'Debug.WriteLine(GetNonUserUrl(0))
@@ -283,6 +265,7 @@ Namespace API.PornHub
         Private _PageVideosRepeat As Integer = 0
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
             Try
+                UpdateM3U8URLS = False
                 PlaylistToken = String.Empty
                 Responser.ResetStatus()
                 _PageVideosRepeat = 0
@@ -295,7 +278,6 @@ Namespace API.PornHub
 
                 Dim limit% = If(DownloadTopCount, -1)
                 If DownloadVideos Then
-
                     If SiteMode = SiteModes.Playlists Then
                         Responser.Mode = Responser.Modes.Default
                         GetPlaylistToken(Token)
@@ -519,25 +501,12 @@ Namespace API.PornHub
             Dim pFile$ = RegexReplace(URL, Regex_Photo_File)
             If Not pFile.IsEmptyString Then Return New SFile(pFile) Else Return File
         End Function
-        Private Const PhotoUrlPattern_ModelHub As String = "https://www.modelhub.com/{0}/photos"
         Private Const PhotoUrlPattern_PornHub As String = "https://www.pornhub.com/{0}/{1}/photos"
         Private Sub DownloadUserPhotos(ByVal Token As CancellationToken)
             Try
                 If IsSavedPosts Then
                     DownloadUserPhotos_SavedPosts(Token)
-                ElseIf PersonType = PersonTypeModel Then
-                    If PhotoPageModel = PhotoPageModels.Undefined Then
-                        If DownloadUserPhotos_ModelHub(Token) Then PhotoPageModel = PhotoPageModels.ModelHubPage
-                        ThrowAny(Token)
-                        If PhotoPageModel = PhotoPageModels.Undefined AndAlso Not DownloadPhotoOnlyFromModelHub AndAlso
-                           DownloadUserPhotos_PornHub(Token) Then PhotoPageModel = PhotoPageModels.PornHubPage
-                    Else
-                        Select Case PhotoPageModel
-                            Case PhotoPageModels.ModelHubPage : DownloadUserPhotos_ModelHub(Token)
-                            Case PhotoPageModels.PornHubPage : If Not DownloadPhotoOnlyFromModelHub Then DownloadUserPhotos_PornHub(Token)
-                        End Select
-                    End If
-                ElseIf Not DownloadPhotoOnlyFromModelHub Then
+                Else
                     DownloadUserPhotos_PornHub(Token)
                 End If
                 ThrowAny(Token)
@@ -545,48 +514,6 @@ Namespace API.PornHub
                 ProcessException(ex, Token, "photos downloading error")
             End Try
         End Sub
-        Private Function DownloadUserPhotos_ModelHub(ByVal Token As CancellationToken) As Boolean
-            Dim URL$ = String.Empty
-            Try
-                Dim j As EContainer
-                Dim jErr As New ErrorsDescriber(EDP.SendToLog + EDP.ReturnValue)
-                Dim albumName$
-                If PersonType = PersonTypeModel Then
-                    URL = String.Format(PhotoUrlPattern_ModelHub, NameTrue)
-                    Dim r$ = Responser.GetResponse(URL)
-                    If Not r.IsEmptyString Then
-                        Dim l As List(Of PhotoBlock) = RegexFields(Of PhotoBlock)(r, {Regex_Photo_ModelHub_PhotoBlocks}, {1, 2}, EDP.ReturnValue)
-                        If l.ListExists Then l.RemoveAll(Function(ll) ll.Data.IsEmptyString)
-                        If l.ListExists Then
-                            ProgressPre.ChangeMax(l.Count)
-                            Dim albumRegex As RParams = RParams.DMS("", 1, EDP.ReturnValue)
-                            For Each block As PhotoBlock In l
-                                ProgressPre.Perform()
-                                If Not _TempPostsList.Contains(block.AlbumID) Then _TempPostsList.Add(block.AlbumID) Else Continue For
-                                albumRegex.Pattern = "<li id=""" & block.AlbumID & """ class=""modelBox"">[\r\n\s]*?<div class=""modelPhoto"">[\r\n\s]*?\<[^\>]*?alt=""([^""]*)"""
-                                albumName = StringTrim(RegexReplace(r, albumRegex))
-                                If albumName.IsEmptyString Then albumName = block.AlbumID
-                                j = JsonDocument.Parse("{" & block.Data & "}", jErr)
-                                If Not j Is Nothing Then
-                                    If If(j("urls")?.Count, 0) > 0 Then
-                                        _TempMediaList.ListAddList(j("urls").Select(Function(jj) _
-                                                                   New UserMedia(jj.ItemF({0}).XmlIfNothingValue, UTypes.Picture) With {
-                                                                                 .SpecialFolder = $"Albums\{albumName}\",
-                                                                                 .File = CreatePhotoFile(.URL, .File)}), LNC)
-                                    End If
-                                    j.Dispose()
-                                End If
-                            Next
-                            l.Clear()
-                        End If
-                    End If
-                End If
-                Return True
-            Catch ex As Exception
-                ThrowAny(Token)
-                Return False
-            End Try
-        End Function
         Private Overloads Function DownloadUserPhotos_PornHub(ByVal Token As CancellationToken) As Boolean
             Try
                 Dim albumName$
@@ -594,6 +521,7 @@ Namespace API.PornHub
                 Dim r$ = Responser.GetResponse(String.Format(PhotoUrlPattern_PornHub, PersonType, NameTrue))
                 If Not r.IsEmptyString Then
                     Dim l As List(Of PhotoBlock) = RegexFields(Of PhotoBlock)(r, {Regex_Photo_PornHub_PhotoBlocks}, {2, 1}, EDP.ReturnValue)
+                    l.ListAddList(RegexFields(Of PhotoBlock)(r, {Regex_Photo_PornHub_PhotoBlocks2}, {1, 2}, EDP.ReturnValue))
                     If l.ListExists Then l.RemoveAll(Function(ll) ll.AlbumID.IsEmptyString)
                     If l.ListExists Then
                         ProgressPre.ChangeMax(l.Count)
@@ -618,6 +546,14 @@ Namespace API.PornHub
                 Return False
             End Try
         End Function
+        Private Function DownloadUserPhotos_PornHub_ParseSinglePhoto(ByVal r As String) As String
+            Dim url$ = String.Empty
+            With DirectCast(RegexReplace(r, Regex_Photo_PornHub_SinglePhoto), List(Of String))
+                If .ListExists(3) Then url = .Item(2).IfNullOrEmpty(.Item(1)).StringTrim
+            End With
+            If url.IsEmptyString Then url = RegexReplace(r, Regex_Photo_PornHub_SinglePhoto2)
+            Return url
+        End Function
         Private Overloads Function DownloadUserPhotos_PornHub(ByVal Page As Integer, ByVal AlbumID As String, ByVal AlbumName As String,
                                                               ByVal Token As CancellationToken) As Boolean
             Try
@@ -633,7 +569,7 @@ Namespace API.PornHub
                             Try
                                 r = Responser.GetResponse(url)
                                 If Not r.IsEmptyString Then
-                                    url = RegexReplace(r, Regex_Photo_PornHub_SinglePhoto)
+                                    url = DownloadUserPhotos_PornHub_ParseSinglePhoto(r)
                                     If Not url.IsEmptyString Then _
                                        _TempMediaList.ListAddValue(New UserMedia(url, UTypes.Picture) With {
                                                                    .SpecialFolder = $"Albums\{AlbumName}\",
@@ -679,7 +615,7 @@ Namespace API.PornHub
                                     Try
                                         r = Responser.GetResponse(m.URL)
                                         If Not r.IsEmptyString Then
-                                            NewUrl = RegexReplace(r, Regex_Photo_PornHub_SinglePhoto)
+                                            NewUrl = DownloadUserPhotos_PornHub_ParseSinglePhoto(r)
                                             If Not NewUrl.IsEmptyString Then
                                                 m.URL = NewUrl
                                                 pFile = RegexReplace(NewUrl, Regex_Photo_File)
@@ -852,11 +788,34 @@ Namespace API.PornHub
         End Sub
 #End Region
 #Region "Download content"
+        Private UpdateM3U8URLS As Boolean = False
+        Private UpdateM3U8URLS_Error As Boolean = False
         Protected Overrides Sub DownloadContent(ByVal Token As CancellationToken)
-            DownloadContentDefault(Token)
+            Try : DownloadContentDefault(Token) : Finally : UpdateM3U8URLS = False : End Try
         End Sub
-        Protected Overrides Function DownloadM3U8(ByVal URL As String, ByVal Media As UserMedia, ByVal DestinationFile As SFile, ByVal Token As CancellationToken) As SFile
-            Return M3U8.Download(URL, Responser, DestinationFile, DownloadUHD, Token, Progress, Not IsSingleObjectDownload)
+        Protected Overloads Overrides Function DownloadM3U8(ByVal URL As String, ByVal Media As UserMedia, ByVal DestinationFile As SFile,
+                                                            ByVal Token As CancellationToken) As SFile
+            UpdateM3U8URLS_Error = False
+            Return DownloadM3U8(URL, Media, DestinationFile, Token, UpdateM3U8URLS)
+        End Function
+        Private Overloads Function DownloadM3U8(ByVal URL As String, ByVal Media As UserMedia, ByVal DestinationFile As SFile,
+                                                ByVal Token As CancellationToken, ByVal Second As Boolean) As SFile
+            Try
+                If Second Then
+                    Dim r$ = Responser.Curl(Media.URL_BASE,, EDP.ReturnValue)
+                    If Not r.IsEmptyString Then Media.URL = CreateVideoURL(r).IfNullOrEmpty(URL) : URL = Media.URL
+                End If
+                Dim f As SFile = M3U8.Download(URL, Responser, DestinationFile, DownloadUHD, Token, Progress, Not IsSingleObjectDownload)
+                If Not f.Exists And Not Second Then UpdateM3U8URLS = True : f = DownloadM3U8(URL, Media, DestinationFile, Token, True)
+                Return f
+            Catch ex As Exception
+                If Not UpdateM3U8URLS_Error Then
+                    UpdateM3U8URLS_Error = True
+                    Thread.Sleep(1000)
+                    Return DownloadM3U8(URL, Media, DestinationFile, Token, True)
+                End If
+                Return Nothing
+            End Try
         End Function
 #End Region
 #Region "CreateVideoURL"
@@ -953,6 +912,7 @@ Namespace API.PornHub
 #End Region
 #Region "DownloadSingleObject"
         Protected Overrides Sub DownloadSingleObject_GetPosts(ByVal Data As IYouTubeMediaContainer, ByVal Token As CancellationToken)
+            UpdateM3U8URLS = False
             _TempMediaList.Add(New UserMedia(Data.URL, UTypes.VideoPre))
             ReparseVideo(Token, True, Data)
         End Sub

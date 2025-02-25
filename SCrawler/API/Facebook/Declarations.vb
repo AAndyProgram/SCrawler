@@ -18,6 +18,8 @@ Namespace API.Facebook
         Friend ReadOnly Regex_FileName As RParams = RParams.DM("([^/\?]+\..{3,4})(?=(\?|\Z))", 0, EDP.ReturnValue)
         Friend ReadOnly Regex_ProfileUrlID As RParams = RParams.DMS("profile.php\?id=(\d+)", 1, EDP.ReturnValue)
         Friend ReadOnly Regex_VideoPageID As RParams = RParams.DMS("pageid.:.(\d+)", 1, RegexOptions.IgnoreCase, EDP.ReturnValue)
+        Friend ReadOnly Regex_ReelsPageID As RParams = RParams.DMS("\{[^\}]*""tab_key"":""owner_reels"",?[^\}]*""id"":""([^\}""]+)""", 1, RegexOptions.IgnoreCase, EDP.ReturnValue)
+        Friend ReadOnly Regex_ReelsFilePattern As RParams = RParams.DM("[^/]+\.mp4", 0, EDP.ReturnValue)
         Friend ReadOnly Regex_StoryBucket As RParams = RParams.DMS("story_bucket[^\>]*?(\d+)", 1, EDP.ReturnValue)
 
         Friend ReadOnly Regex_VideoIDFromURL As RParams = RParams.DMS("facebook.com/([^/]+/videos/|watch/\D*[\?&]{1}v=)(\d+)", 2, EDP.ReturnValue)

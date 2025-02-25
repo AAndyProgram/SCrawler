@@ -11,13 +11,49 @@ Imports SCrawler.Plugin
 Imports SCrawler.Plugin.Attributes
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Tools.Web.Clients
+Imports PersonalUtilities.Tools.Web.Cookies
 Imports DN = SCrawler.API.Base.DeclaredNames
+Imports IG = SCrawler.API.Instagram.SiteSettings
 Namespace API.Twitter
     <Manifest(TwitterSiteKey), SavedPosts, SeparatedTasks, SpecialForm(False)>
     Friend Class SiteSettings : Inherits SiteSettingsBase
 #Region "Declarations"
+#Region "Icon"
+        <PXML("UseNewIcon")> Private ReadOnly Property UseNewIconXML As PropertyValue
+        <PropertyOption(ControlText:="Use the new Twitter icon (X)", ControlToolTip:="Restart SCrawler to take effect")>
+        Private ReadOnly Property UseNewIcon As PropertyValue
+            Get
+                If Not DefaultInstance Is Nothing Then
+                    Return DirectCast(DefaultInstance, SiteSettings).UseNewIconXML
+                Else
+                    Return UseNewIconXML
+                End If
+            End Get
+        End Property
+        Private Sub UpdateIcon()
+            If CBool(UseNewIcon.Value) Then _Icon = My.Resources.SiteResources.TwitterIconNew_32 : _Image = _Icon.ToBitmap
+        End Sub
+#End Region
 #Region "Categories"
         Private Const CAT_DOWN As String = "Downloading"
+#End Region
+#Region "Auth"
+        <PropertyOption(ControlText:="Update cookies", ControlToolTip:="Update cookies during requests", IsAuth:=True), PXML, PClonable, HiddenControl>
+        Friend ReadOnly Property CookiesUpdate As PropertyValue
+        <PropertyOption(ControlText:="Use UserAgent", ControlToolTip:="Use UserAgent in requests", IsAuth:=True), PXML, PClonable>
+        Friend ReadOnly Property UserAgentUse As PropertyValue
+        <PropertyOption(ControlText:="UserAgent", IsAuth:=True, AllowNull:=True, InheritanceName:=SettingsCLS.HEADER_DEF_UserAgent),
+         PXML("UserAgent", OnlyForChecked:=True), PClonable>
+        Private ReadOnly Property UserAgentXML As PropertyValue
+        Friend ReadOnly Property UserAgent As String
+            Get
+                If CBool(UserAgentUse.Value) AndAlso Not CStr(UserAgentXML.Value).IsEmptyString Then
+                    Return UserAgentXML.Value
+                Else
+                    Return String.Empty
+                End If
+            End Get
+        End Property
 #End Region
 #Region "Other properties"
         <PropertyOption(ControlText:="Use the appropriate model",
@@ -35,10 +71,30 @@ Namespace API.Twitter
         Friend Property UseNewEndPointProfiles As PropertyValue
 #End Region
 #Region "Limits"
+        Friend Const TimerDisabled As Integer = -1
+        Friend Const TimerFirstUseTheSame As Integer = -2
         <PropertyOption(ControlText:="Abort on limit", ControlToolTip:="Abort twitter downloading when limit is reached", Category:=CAT_DOWN), PXML, PClonable>
         Friend Property AbortOnLimit As PropertyValue
         <PropertyOption(ControlText:="Download already parsed", ControlToolTip:="Download already parsed content on abort", Category:=CAT_DOWN), PXML, PClonable>
         Friend Property DownloadAlreadyParsed As PropertyValue
+#End Region
+#Region "Timers"
+        <PropertyOption(ControlText:="Sleep timer",
+                        ControlToolTip:="Use sleep timer in requests." & vbCr &
+                                        "You can set a timer value (in seconds) to wait before each subsequent request." & vbCr &
+                                        "-1 to disable and use the default algorithm." & vbCr &
+                                        "Default: 20", Category:=CAT_DOWN), PXML, PClonable>
+        Friend ReadOnly Property SleepTimer As PropertyValue
+        <Provider(NameOf(SleepTimer), FieldsChecker:=True)>
+        Private ReadOnly Property SleepTimerProvider As IFormatProvider
+        <PropertyOption(ControlText:="Sleep timer at start",
+                        ControlToolTip:="Set a sleep timer (in seconds) before the first request." & vbCr &
+                                        "-1 to disable" & vbCr &
+                                        "-2 to use the 'Sleep timer' value" & vbCr &
+                                        "Default: -2", Category:=CAT_DOWN), PXML, PClonable>
+        Friend ReadOnly Property SleepTimerBeforeFirst As PropertyValue
+        <Provider(NameOf(SleepTimerBeforeFirst), FieldsChecker:=True)>
+        Private ReadOnly Property SleepTimerBeforeFirstProvider As IFormatProvider
 #End Region
         <PropertyOption(ControlText:="Media Model: allow non-user tweets", ControlToolTip:="Allow downloading non-user tweets in the media-model.", Category:=DN.CAT_UserDefs), PXML, PClonable>
         Friend ReadOnly Property MediaModelAllowNonUserTweets As PropertyValue
@@ -76,7 +132,17 @@ Namespace API.Twitter
         <Provider(NameOf(ConcurrentDownloads), FieldsChecker:=True)>
         Private ReadOnly Property MyConcurrentDownloadsProvider As IFormatProvider
 #End Region
+        Friend Overrides Property DefaultInstance As ISiteSettings
+            Get
+                Return MyBase.DefaultInstance
+            End Get
+            Set(ByVal Instance As ISiteSettings)
+                MyBase.DefaultInstance = Instance
+                If Not Instance Is Nothing Then UpdateIcon()
+            End Set
+        End Property
 #End Region
+#Region "Initializer"
         Friend Sub New(ByVal AccName As String, ByVal Temp As Boolean)
             MyBase.New(TwitterSite, "x.com", AccName, Temp, My.Resources.SiteResources.TwitterIcon_32, My.Resources.SiteResources.TwitterIcon_32.ToBitmap)
 
@@ -87,11 +153,28 @@ Namespace API.Twitter
                 .Cookies.Changed = False
             End With
 
+            UseNewIconXML = New PropertyValue(False)
+
+            CookiesUpdate = New PropertyValue(False)
+            UserAgentUse = New PropertyValue(True)
+            UserAgentXML = New PropertyValue(If(Responser.UserAgentExists, Responser.UserAgent, String.Empty), GetType(String),
+                                             Sub(ByVal Value As Object)
+                                                 Responser.UserAgent = CStr(Value)
+                                                 Responser.SaveSettings(, EDP.ReturnValue)
+                                             End Sub)
+
             UseAppropriateModel = New PropertyValue(True)
+
             UseNewEndPointSearch = New PropertyValue(True)
             UseNewEndPointProfiles = New PropertyValue(True)
+
             AbortOnLimit = New PropertyValue(True)
             DownloadAlreadyParsed = New PropertyValue(True)
+            SleepTimer = New PropertyValue(TimerDisabled)
+            SleepTimerProvider = New IG.TimersChecker(TimerDisabled)
+            SleepTimerBeforeFirst = New PropertyValue(TimerFirstUseTheSame)
+            SleepTimerBeforeFirstProvider = New IG.TimersChecker(TimerFirstUseTheSame)
+
             MediaModelAllowNonUserTweets = New PropertyValue(False)
             GifsDownload = New PropertyValue(True)
             GifsSpecialFolder = New PropertyValue(String.Empty, GetType(String))
@@ -101,28 +184,60 @@ Namespace API.Twitter
             ConcurrentDownloads = New PropertyValue(1)
             MyConcurrentDownloadsProvider = New ConcurrentDownloadsProvider
 
+            _AllowUserAgentUpdate = False
             UserRegex = RParams.DMS(String.Format(UserRegexDefaultPattern, $"/(twitter|x).com({CommunitiesUser}|)/"), 3)
             UrlPatternUser = "https://x.com/{0}"
             ImageVideoContains = "twitter"
             CheckNetscapeCookiesOnEndInit = True
             UseNetscapeCookies = True
         End Sub
+        Friend Overrides Sub EndInit()
+            UpdateIcon()
+            MyBase.EndInit()
+        End Sub
+#End Region
+#Region "GetInstance"
         Friend Overrides Function GetInstance(ByVal What As ISiteSettings.Download) As IPluginContentProvider
             Return New UserData
         End Function
-        Friend Const SinglePostPattern As String = "https://x.com/i/web/status/{0}"
-        Friend Overrides Function GetUserPostUrl(ByVal User As UserDataBase, ByVal Media As UserMedia) As String
-            Return String.Format(SinglePostPattern, Media.Post.ID)
-        End Function
+#End Region
+#Region "BaseAuthExists, Available"
         Friend Overrides Function BaseAuthExists() As Boolean
             Return Responser.CookiesExists
         End Function
         Friend Overrides Function Available(ByVal What As ISiteSettings.Download, ByVal Silent As Boolean) As Boolean
             Return Settings.GalleryDLFile.Exists And BaseAuthExists()
         End Function
+#End Region
+#Region "Download"
         Friend Property LIMIT_ABORT As Boolean = False
         Friend ReadOnly Property LimitSkippedUsers As List(Of UserDataBase)
+        Friend Property UserNumber As Integer = -1
+        Friend Overrides Sub DownloadStarted(ByVal What As ISiteSettings.Download)
+            UserNumber = 0
+            MyBase.DownloadStarted(What)
+        End Sub
+        Friend Overrides Sub AfterDownload(ByVal User As Object, ByVal What As ISiteSettings.Download)
+            If Not User Is Nothing AndAlso DirectCast(User, UserData).GDL_REQUESTS_COUNT > 0 Then UserNumber += 1
+            MyBase.AfterDownload(User, What)
+        End Sub
         Friend Overrides Sub DownloadDone(ByVal What As ISiteSettings.Download)
+            If UserNumber > 0 Then
+                If CBool(CookiesUpdate.Value) Then
+                    With CookieKeeper.ParseNetscapeText(CookiesNetscapeFile.GetText(EDP.ReturnValue), EDP.ReturnValue)
+                        If .ListExists Then
+                            Responser.Cookies.Clear()
+                            Responser.Cookies.AddRange(.Self,, EDP.ReturnValue)
+                            Responser.SaveCookies(EDP.ReturnValue)
+                        Else
+                            Update_SaveCookiesNetscape(True)
+                        End If
+                    End With
+                Else
+                    Update_SaveCookiesNetscape(True)
+                End If
+            End If
+            UserNumber = -1
             If LimitSkippedUsers.Count > 0 Then
                 With LimitSkippedUsers
                     If .Count = 1 Then
@@ -137,6 +252,8 @@ Namespace API.Twitter
             LIMIT_ABORT = False
             MyBase.DownloadDone(What)
         End Sub
+#End Region
+#Region "UserOptions, Update"
         Friend Overrides Sub UserOptions(ByRef Options As Object, ByVal OpenForm As Boolean)
             If Options Is Nothing OrElse (Not TypeOf Options Is EditorExchangeOptions OrElse
                                           Not DirectCast(Options, EditorExchangeOptions).SiteKey = TwitterSiteKey) Then _
@@ -152,6 +269,8 @@ Namespace API.Twitter
             End If
             MyBase.Update()
         End Sub
+#End Region
+#Region "IsMyUser, IsMyImageVideo, GetUserPostUrl, GetUserUrl"
         Friend Const CommunitiesUser As String = "/i/communities"
         Friend Overrides Function IsMyUser(ByVal UserURL As String) As ExchangeOptions
             Dim e As ExchangeOptions = MyBase.IsMyUser(UserURL)
@@ -169,8 +288,13 @@ Namespace API.Twitter
                 Return Nothing
             End If
         End Function
+        Friend Const SinglePostPattern As String = "https://x.com/i/web/status/{0}"
+        Friend Overrides Function GetUserPostUrl(ByVal User As UserDataBase, ByVal Media As UserMedia) As String
+            Return String.Format(SinglePostPattern, Media.Post.ID)
+        End Function
         Friend Overrides Function GetUserUrl(ByVal User As IPluginContentProvider) As String
             Return DirectCast(User, UserData).GetUserUrl
         End Function
+#End Region
     End Class
 End Namespace

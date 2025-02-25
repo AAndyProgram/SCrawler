@@ -11,7 +11,7 @@ Imports SCrawler.Plugin
 Imports SCrawler.Plugin.Attributes
 Imports PersonalUtilities.Functions.RegularExpressions
 Namespace API.Pinterest
-    <Manifest("AndyProgram_Pinterest"), SavedPosts, SeparatedTasks>
+    <Manifest("AndyProgram_Pinterest"), SavedPosts, SeparatedTasks, SpecialForm(False)>
     Friend Class SiteSettings : Inherits SiteSettingsBase
 #Region "Declarations"
         <PropertyOption(ControlText:=DeclaredNames.ConcurrentDownloadsCaption,
@@ -30,7 +30,7 @@ Namespace API.Pinterest
             MyConcurrentDownloadsProvider = New ConcurrentDownloadsProvider
             CheckNetscapeCookiesOnEndInit = True
             UseNetscapeCookies = True
-            UserRegex = RParams.DMS("https?://w{0,3}.?[^/]*?.?pinterest.com/([^/]+)/?(?(_)|([^/]*))", 0, RegexReturn.ListByMatch, EDP.ReturnValue)
+            UserRegex = RParams.DMS("https?://w{0,3}.?[^/]*?.?pinterest.com/([^/]+)/?(?(_)|([^/]*))/?([^/\?]*)", 0, RegexReturn.ListByMatch, EDP.ReturnValue)
         End Sub
 #End Region
 #Region "GetInstance, Available"
@@ -41,13 +41,14 @@ Namespace API.Pinterest
             Return Settings.GalleryDLFile.Exists And (Not What = ISiteSettings.Download.SavedPosts OrElse ACheck(SavedPostsUserName.Value))
         End Function
 #End Region
-#Region "IsMyUser, IsMyImageVideo, GetUserUrl, GetUserPostUrl"
+#Region "IsMyUser, IsMyImageVideo, GetUserUrl, GetUserPostUrl, UserOptions"
         Friend Overrides Function IsMyUser(ByVal UserURL As String) As ExchangeOptions
             If Not UserURL.IsEmptyString Then
                 Dim l As List(Of String) = RegexReplace(UserURL, UserRegex)
                 If l.ListExists(3) Then
                     Dim n$ = l(1)
                     If Not l(2).IsEmptyString Then n &= $"@{l(2)}"
+                    If l.Count > 3 AndAlso Not l(3).IsEmptyString Then n &= $"@{l(3)}"
                     Return New ExchangeOptions(Site, n) With {.Exists = True}
                 End If
             End If
@@ -71,6 +72,12 @@ Namespace API.Pinterest
                 Return String.Empty
             End If
         End Function
+        Friend Overrides Sub UserOptions(ByRef Options As Object, ByVal OpenForm As Boolean)
+            If Options Is Nothing Then Options = New EditorExchangeOptions
+            If OpenForm Then
+                Using f As New InternalSettingsForm(Options, Me, False) : f.ShowDialog() : End Using
+            End If
+        End Sub
 #End Region
     End Class
 End Namespace

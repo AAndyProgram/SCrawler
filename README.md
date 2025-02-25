@@ -38,6 +38,7 @@ A program to download photo and video from [any site](#supported-sites) (e.g. Yo
   - Reddit images, galleries of images, videos, saved posts;
   - Redgifs images and videos (https://www.redgifs.com/);
   - Twitter images and videos, saved (bookmarked) posts, likes, communities;
+  - Bluesky images and videos;
   - OnlyFans images and videos, saved (bookmarked) posts, stories;
   - JustForFans images and videos, saved (bookmarked) posts;
   - Mastodon images and videos, saved (bookmarked) posts;
@@ -78,6 +79,7 @@ A program to download photo and video from [any site](#supported-sites) (e.g. Yo
 - **YouTube Music**
 - **Reddit**
 - **Twitter**
+- **Bluesky**
 - **OnlyFans** *(partial support)*[^1]
 - **Instagram**
 - **Threads**
@@ -131,6 +133,7 @@ First, the program downloads the full profile. After the program downloads only 
   - **[SITES REQUIREMENTS](https://github.com/AAndyProgram/SCrawler/wiki/Settings#sites-requirements)**
   - [Reddit](https://github.com/AAndyProgram/SCrawler/wiki/Settings#reddit)
   - [Twitter](https://github.com/AAndyProgram/SCrawler/wiki/Settings#twitter)
+  - [Bluesky](https://github.com/AAndyProgram/SCrawler/wiki/Settings#bluesky)
   - [OnlyFans](https://github.com/AAndyProgram/SCrawler/wiki/Settings#onlyfans)
   - [Mastodon](https://github.com/AAndyProgram/SCrawler/wiki/Settings#mastodon)
   - [Instagram](https://github.com/AAndyProgram/SCrawler/wiki/Settings#instagram)
@@ -214,17 +217,5 @@ F5-->[*]
 # Contact me
 
 Discord server: https://discord.gg/uFNUXvFFmg
-
-<!--
-[e-mail](mailto:andyprogram@proton.me): andyprogram@proton.me
-
-Matrix (Element): https://matrix.to/#/@andyprogram:matrix.org
-
-Discord (contact the developer): andyprogram
-
-Discord server: https://discord.gg/uFNUXvFFmg
-
-[Wire](https://account.wire.com/user-profile/?id=93985052-cf2c-4b72-ac75-bbe3231cf544): @andyprogram
--->
 
 [^1]: Partial support means that I don't have personal accounts on paid porn sites because I don't pay for porn. If this site has stopped downloading and you want me to fix it, please be ready to give me access to an account with at least one active subscription. Otherwise, the download from this site will not be fixed.

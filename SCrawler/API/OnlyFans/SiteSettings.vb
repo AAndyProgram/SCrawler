@@ -36,12 +36,18 @@ Namespace API.OnlyFans
         Private Const HeaderUserID As String = "User-Id"
         Friend Const HeaderXBC As String = "X-Bc"
         Friend Const HeaderAppToken As String = "App-Token"
+        Private Const AppTokenDefault As String = "33d57ade8c02dbc5a333db99ff9ae26a"
         <PropertyOption(ControlText:=HeaderUserID, AllowNull:=False, IsAuth:=True), PClonable(Clone:=False)>
         Friend ReadOnly Property HH_USER_ID As PropertyValue
         <PropertyOption(ControlText:=HeaderXBC, AllowNull:=False, IsAuth:=True), PClonable(Clone:=False)>
         Private ReadOnly Property HH_X_BC As PropertyValue
         <PropertyOption(ControlText:=HeaderAppToken, AllowNull:=False, IsAuth:=True), PClonable(Clone:=False)>
         Private ReadOnly Property HH_APP_TOKEN As PropertyValue
+        <PropertyUpdater(NameOf(HH_APP_TOKEN))>
+        Private Function UpdateAppToken() As Boolean
+            HH_APP_TOKEN.Value = AppTokenDefault
+            Return True
+        End Function
         <PropertyOption(ControlText:=HeaderBrowser, ControlToolTip:="Can be null", AllowNull:=True,
                         InheritanceName:=SettingsCLS.HEADER_DEF_sec_ch_ua, IsAuth:=True), PClonable, PXML(OnlyForChecked:=True)>
         Private ReadOnly Property HH_BROWSER As PropertyValue
@@ -225,13 +231,13 @@ Namespace API.OnlyFans
                     .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.AcceptEncoding))
                     HH_USER_ID = New PropertyValue(.Value(HeaderUserID), GetType(String), Sub(v) UpdateHeader(NameOf(HH_USER_ID), v))
                     HH_X_BC = New PropertyValue(.Value(HeaderXBC), GetType(String), Sub(v) UpdateHeader(NameOf(HH_X_BC), v))
-                    HH_APP_TOKEN = New PropertyValue(.Value(HeaderAppToken), GetType(String), Sub(v) UpdateHeader(NameOf(HH_APP_TOKEN), v))
+                    HH_APP_TOKEN = New PropertyValue(.Value(HeaderAppToken).IfNullOrEmpty(AppTokenDefault), GetType(String), Sub(v) UpdateHeader(NameOf(HH_APP_TOKEN), v))
                     HH_BROWSER = New PropertyValue(.Value(HeaderBrowser), GetType(String), Sub(v) UpdateHeader(NameOf(HH_BROWSER), v))
                 End With
                 UserAgent = New PropertyValue(IIf(.UserAgentExists, .UserAgent, String.Empty), GetType(String), Sub(v) UpdateHeader(NameOf(UserAgent), v))
             End With
 
-            EnableCookiesUpdate = New PropertyValue(True)
+            EnableCookiesUpdate = New PropertyValue(False)
 
             DownloadTimeline = New PropertyValue(True)
             DownloadStories = New PropertyValue(True)
@@ -261,6 +267,15 @@ Namespace API.OnlyFans
             UserRegex = RParams.DMS(String.Format(UserRegexDefaultPattern, "onlyfans.com/"), 1, EDP.ReturnValue)
             UrlPatternUser = "https://onlyfans.com/{0}"
             ImageVideoContains = "onlyfans.com"
+        End Sub
+        Private Const SettingsVersionCurrent As Integer = 1
+        Friend Overrides Sub EndInit()
+            If CInt(SettingsVersion.Value) < SettingsVersionCurrent Then
+                If CStr(HH_APP_TOKEN.Value).IsEmptyString Then HH_APP_TOKEN.Value = AppTokenDefault
+                EnableCookiesUpdate.Value = False
+                SettingsVersion.Value = SettingsVersionCurrent
+            End If
+            MyBase.EndInit()
         End Sub
 #End Region
 #Region "GetInstance"
@@ -312,7 +327,7 @@ Namespace API.OnlyFans
 #Region "GetUserUrl, GetUserPostUrl, UserOptions"
         Friend Const UserPostPattern As String = "https://onlyfans.com/{0}/{1}"
         Friend Overrides Function GetUserUrl(ByVal User As IPluginContentProvider) As String
-            Return String.Format(UrlPatternUser, If(User.ID.IsEmptyString, User.Name, $"u{User.ID}"))
+            Return String.Format(UrlPatternUser, If(User.ID.IsEmptyString, User.NameTrue.IfNullOrEmpty(User.Name), $"u{User.ID}"))
         End Function
         Friend Overrides Function GetUserPostUrl(ByVal User As UserDataBase, ByVal Media As UserMedia) As String
             If Not Media.Post.ID.IsEmptyString Then

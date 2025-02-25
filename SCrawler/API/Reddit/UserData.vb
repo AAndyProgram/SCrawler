@@ -42,7 +42,6 @@ Namespace API.Reddit
             End Get
         End Property
         Friend Property IsChannel As Boolean = False
-        Friend Property TrueName As String = String.Empty
         Friend Overrides ReadOnly Property SpecialLabels As IEnumerable(Of String)
             Get
                 Return {CannelsLabelName, CannelsLabelName_ChannelsForm, UserLabelName}
@@ -173,16 +172,16 @@ Namespace API.Reddit
 #End Region
 #Region "Load and Update user info"
         Private Function UpdateNames() As Boolean
-            If TrueName.IsEmptyString Then
+            If NameTrue(True).IsEmptyString Then
                 Dim n$() = Name.Split("@")
                 If n.ListExists Then
                     If n.Length = 2 Then
-                        TrueName = n(0)
+                        NameTrue = n(0)
                         IsChannel = True
                     ElseIf IsChannel Then
-                        TrueName = Name
+                        NameTrue = Name
                     Else
-                        TrueName = n(0)
+                        NameTrue = n(0)
                     End If
                 End If
                 If Not IsSavedPosts Then
@@ -201,7 +200,6 @@ Namespace API.Reddit
                     ViewMode = .Value(Name_ViewMode).FromXML(Of Integer)(CInt(CView.New))
                     ViewPeriod = .Value(Name_ViewPeriod).FromXML(Of Integer)(CInt(CPeriod.All))
                     IsChannel = .Value(Name_IsChannel).FromXML(Of Boolean)(False)
-                    TrueName = .Value(Name_TrueName)
                     RedGifsAccount = .Value(Name_RedGifsAccount)
                     RedditAccount = .Value(Name_RedditAccount)
                     UpdateNames()
@@ -210,7 +208,7 @@ Namespace API.Reddit
                     .Add(Name_ViewMode, CInt(ViewMode))
                     .Add(Name_ViewPeriod, CInt(ViewPeriod))
                     .Add(Name_IsChannel, IsChannel.BoolToInteger)
-                    .Add(Name_TrueName, TrueName)
+                    .Add(Name_TrueName, NameTrue(True))
                     .Add(Name_RedGifsAccount, RedGifsAccount)
                     .Add(Name_RedditAccount, RedditAccount)
                 End If
@@ -230,7 +228,7 @@ Namespace API.Reddit
             If CreatedByChannel And Settings.FromChannelDownloadTopUse And Settings.FromChannelDownloadTop > 0 Then _
                DownloadTopCount = Settings.FromChannelDownloadTop.Value
             If IsChannel Or IsSavedPosts Then UseMD5Comparison = False
-            If IsSavedPosts Then TrueName = MySiteSettings.SavedPostsUserName.Value
+            If IsSavedPosts Then NameTrue = MySiteSettings.SavedPostsUserName.Value
             UpdateNames()
             If IsChannelForm Then
                 UseMD5Comparison = False
@@ -310,10 +308,10 @@ Namespace API.Reddit
                     Dim NewPostDetected As Boolean = False
                     Dim ExistsDetected As Boolean = False
                     Dim IsCrossPost As Predicate(Of EContainer) = Function(e) Not e.Value(Node_CrosspostRootId).IsEmptyString Or Not e.Value(Node_CrosspostParentId).IsEmptyString Or Not e.Value(Node_CrosspostParent).IsEmptyString
-                    Dim CheckNode As Predicate(Of EContainer) = Function(e) Not ParseUserMediaOnly OrElse If(e("author")?.Value, "/").ToLower.Equals(TrueName.StringToLower)
+                    Dim CheckNode As Predicate(Of EContainer) = Function(e) Not ParseUserMediaOnly OrElse If(e("author")?.Value, "/").ToLower.Equals(NameTrue.StringToLower)
                     Dim _PostID As Func(Of String) = Function() PostTmp.IfNullOrEmpty(PostID)
 
-                    URL = $"https://gateway.reddit.com/desktopapi/v1/user/{TrueName}/posts?rtj=only&allow_quarantined=true&allow_over18=1&include=identity&after={POST}&dist=25&sort={View}&t={Period}&layout=classic"
+                    URL = $"https://gateway.reddit.com/desktopapi/v1/user/{NameTrue}/posts?rtj=only&allow_quarantined=true&allow_over18=1&include=identity&after={POST}&dist=25&sort={View}&t={Period}&layout=classic"
                     ThrowAny(Token)
                     Dim r$ = Responser.GetResponse(URL)
                     If Not r.IsEmptyString Then
@@ -394,10 +392,10 @@ Namespace API.Reddit
                     Dim lDate As Date?
 
                     If IsSavedPosts Then
-                        URL = $"https://www.reddit.com/user/{TrueName}/saved.json?after={POST}"
+                        URL = $"https://www.reddit.com/user/{NameTrue}/saved.json?after={POST}"
                         If Not POST.IsEmptyString Then Thread.Sleep(savedPostsSleepTimer)
                     Else
-                        URL = $"https://reddit.com/r/{TrueName}/{View}.json?allow_quarantined=true&allow_over18=1&include=identity&after={POST}&dist=25&sort={View}&t={Period}&layout=classic"
+                        URL = $"https://reddit.com/r/{NameTrue}/{View}.json?allow_quarantined=true&allow_over18=1&include=identity&after={POST}&dist=25&sort={View}&t={Period}&layout=classic"
                     End If
 
                     ThrowAny(Token)
@@ -480,7 +478,7 @@ Namespace API.Reddit
         Private Sub GetUserInfo()
             Try
                 If Not IsSavedPosts And ChannelInfo Is Nothing Then
-                    Dim r$ = Responser.GetResponse($"https://reddit.com/{IIf(IsChannel, "r", "user")}/{TrueName}/about.json",, EDP.ReturnValue)
+                    Dim r$ = Responser.GetResponse($"https://reddit.com/{IIf(IsChannel, "r", "user")}/{NameTrue}/about.json",, EDP.ReturnValue)
                     If Not r.IsEmptyString Then
                         Using j As EContainer = JsonDocument.Parse(r)
                             If Not j Is Nothing AndAlso j.Contains({"data", "subreddit"}) Then
@@ -489,20 +487,10 @@ Namespace API.Reddit
                                     UserSiteNameUpdate(.Value("title"))
                                     UserDescriptionUpdate(.Value("public_description"))
                                     Dim dir As SFile = MyFile.CutPath
-                                    Dim __getFile As Action(Of String) = Sub(ByVal img As String)
-                                                                             If Not img.IsEmptyString Then
-                                                                                 Dim f As SFile = CreateFileFromUrl(img)
-                                                                                 If Not f.Name.IsEmptyString Then
-                                                                                     If f.Extension.IsEmptyString Then f.Extension = "jpg"
-                                                                                     f.Path = dir.Path
-                                                                                     If Not f.Exists Then GetWebFile(img, f, EDP.ReturnValue)
-                                                                                     If f.Exists Then IconBannerDownloaded = True
-                                                                                 End If
-                                                                             End If
-                                                                         End Sub
+                                    Dim fileCrFunc As Func(Of String, SFile) = Function(img) CreateFileFromUrl(img)
                                     If DownloadIconBanner Then
-                                        __getFile.Invoke(.Value("icon_img"))
-                                        __getFile.Invoke(.Value("banner_img"))
+                                        SimpleDownloadAvatar(.Value("icon_img"), fileCrFunc)
+                                        SimpleDownloadAvatar(.Value("banner_img"), fileCrFunc)
                                     End If
                                 End With
                             End If

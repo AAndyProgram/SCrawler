@@ -168,9 +168,6 @@ Namespace API.YouTube.Base
         <Browsable(True), GridVisible, XMLVN({"Info"}), Category("Info"), DisplayName("Create description files"),
             Description("Create video description files. Default: false.")>
         Public ReadOnly Property CreateDescriptionFiles As XMLValue(Of Boolean)
-        <Browsable(True), GridVisible, XMLVN({"Info"}, True), Category("Info"), DisplayName("Create description files: add upload date"),
-            Description("Add the upload date to the top of the description file. Default: true.")>
-        Public ReadOnly Property CreateDescriptionFiles_AddUploadDate As XMLValue(Of Boolean)
         <Browsable(True), GridVisible, XMLVN({"Info"}, True), Category("Info"), DisplayName("Create description files: create without description"),
             Description("Create a description file with the upload date, even if the description does not exist. Default: true.")>
         Public ReadOnly Property CreateDescriptionFiles_CreateWithNoDescription As XMLValue(Of Boolean)

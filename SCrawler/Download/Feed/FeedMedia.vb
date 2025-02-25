@@ -407,7 +407,7 @@ Namespace DownloadObjects
 #End Region
 #Region "Picture / Video objects"
         Private Sub MyPicture_DoubleClick(sender As Object, e As EventArgs) Handles MyPicture.DoubleClick
-            Try : Process.Start(File) : Catch : End Try
+            Try : Process.Start(IIf(IsSubscription, Post.URL_BASE, File.ToString)) : Catch : End Try
         End Sub
 #End Region
 #Region "Context"

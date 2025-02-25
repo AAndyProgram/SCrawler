@@ -55,8 +55,10 @@ Namespace DownloadObjects
 #Region "FeedsComparer"
         Private Class FeedsComparer : Implements IComparer(Of FeedSpecial)
             Friend Function Compare(ByVal x As FeedSpecial, ByVal y As FeedSpecial) As Integer Implements IComparer(Of FeedSpecial).Compare
-                If x.IsFavorite Then
+                If x.IsFavorite And Not y.IsFavorite Then
                     Return -1
+                ElseIf Not x.IsFavorite And y.IsFavorite Then
+                    Return 1
                 Else
                     Return x.Name.CompareTo(y.Name)
                 End If

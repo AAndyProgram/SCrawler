@@ -61,6 +61,7 @@ Namespace DownloadObjects
             Me.BTT_FEED_DELETE_DAILY_LIST = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_FEED_DELETE_DAILY_DATE = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_CURR_SESSION_SET = New System.Windows.Forms.ToolStripMenuItem()
+            Me.BTT_CURR_SESSION_SET_LAST = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_MERGE_SESSIONS = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_CLEAR_DAILY = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_RESET_DAILY = New System.Windows.Forms.ToolStripMenuItem()
@@ -75,7 +76,7 @@ Namespace DownloadObjects
             Me.BTT_DOWN_SELECTED = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_REFRESH = New System.Windows.Forms.ToolStripButton()
             Me.TP_DATA = New System.Windows.Forms.TableLayoutPanel()
-            Me.BTT_CURR_SESSION_SET_LAST = New System.Windows.Forms.ToolStripMenuItem()
+            Me.BTT_CHECK_INVERT = New System.Windows.Forms.ToolStripMenuItem()
             SEP_1 = New System.Windows.Forms.ToolStripSeparator()
             SEP_2 = New System.Windows.Forms.ToolStripSeparator()
             MENU_VIEW = New System.Windows.Forms.ToolStripDropDownButton()
@@ -187,7 +188,7 @@ Namespace DownloadObjects
             '
             Me.MENU_LOAD_SESSION.AutoToolTip = False
             Me.MENU_LOAD_SESSION.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image
-            Me.MENU_LOAD_SESSION.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_LOAD_SESSION_CURRENT, Me.BTT_LOAD_SESSION_LAST, Me.BTT_LOAD_SESSION_CHOOSE, MENU_LOAD_SEP_0, Me.BTT_COPY_TO, Me.BTT_MOVE_TO, MENU_LOAD_SEP_1, Me.BTT_COPY_SPEC_TO, Me.BTT_MOVE_SPEC_TO, MENU_LOAD_SEP_2, Me.BTT_LOAD_FAV, Me.BTT_LOAD_SPEC, MENU_LOAD_SEP_3, Me.BTT_FEED_ADD_FAV, Me.BTT_FEED_ADD_FAV_REMOVE, Me.BTT_FEED_REMOVE_FAV, MENU_LOAD_SEP_4, Me.BTT_FEED_ADD_SPEC, Me.BTT_FEED_ADD_SPEC_REMOVE, Me.BTT_FEED_REMOVE_SPEC, MENU_LOAD_SEP_5, Me.BTT_FEED_CLEAR_FAV, Me.BTT_FEED_CLEAR_SPEC, Me.BTT_FEED_DELETE_SPEC, Me.BTT_FEED_DELETE_DAILY_LIST, Me.BTT_FEED_DELETE_DAILY_DATE, MENU_LOAD_SEP_6, Me.BTT_CURR_SESSION_SET, Me.BTT_CURR_SESSION_SET_LAST, Me.BTT_MERGE_SESSIONS, Me.BTT_CLEAR_DAILY, Me.BTT_RESET_DAILY, MENU_LOAD_SEP_7, Me.BTT_MERGE_FEEDS, MENU_LOAD_SEP_8, Me.BTT_CHECK_ALL, Me.BTT_CHECK_NONE, MENU_LOAD_SEP_9, Me.BTT_VIEW_SAVE, Me.BTT_VIEW_LOAD})
+            Me.MENU_LOAD_SESSION.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_LOAD_SESSION_CURRENT, Me.BTT_LOAD_SESSION_LAST, Me.BTT_LOAD_SESSION_CHOOSE, MENU_LOAD_SEP_0, Me.BTT_COPY_TO, Me.BTT_MOVE_TO, MENU_LOAD_SEP_1, Me.BTT_COPY_SPEC_TO, Me.BTT_MOVE_SPEC_TO, MENU_LOAD_SEP_2, Me.BTT_LOAD_FAV, Me.BTT_LOAD_SPEC, MENU_LOAD_SEP_3, Me.BTT_FEED_ADD_FAV, Me.BTT_FEED_ADD_FAV_REMOVE, Me.BTT_FEED_REMOVE_FAV, MENU_LOAD_SEP_4, Me.BTT_FEED_ADD_SPEC, Me.BTT_FEED_ADD_SPEC_REMOVE, Me.BTT_FEED_REMOVE_SPEC, MENU_LOAD_SEP_5, Me.BTT_FEED_CLEAR_FAV, Me.BTT_FEED_CLEAR_SPEC, Me.BTT_FEED_DELETE_SPEC, Me.BTT_FEED_DELETE_DAILY_LIST, Me.BTT_FEED_DELETE_DAILY_DATE, MENU_LOAD_SEP_6, Me.BTT_CURR_SESSION_SET, Me.BTT_CURR_SESSION_SET_LAST, Me.BTT_MERGE_SESSIONS, Me.BTT_CLEAR_DAILY, Me.BTT_RESET_DAILY, MENU_LOAD_SEP_7, Me.BTT_MERGE_FEEDS, MENU_LOAD_SEP_8, Me.BTT_CHECK_ALL, Me.BTT_CHECK_NONE, Me.BTT_CHECK_INVERT, MENU_LOAD_SEP_9, Me.BTT_VIEW_SAVE, Me.BTT_VIEW_LOAD})
             Me.MENU_LOAD_SESSION.Image = Global.SCrawler.My.Resources.Resources.ArrowDownPic_Blue_24
             Me.MENU_LOAD_SESSION.ImageTransparentColor = System.Drawing.Color.Magenta
             Me.MENU_LOAD_SESSION.Name = "MENU_LOAD_SESSION"
@@ -347,6 +348,13 @@ Namespace DownloadObjects
             Me.BTT_CURR_SESSION_SET.Text = "Set current session..."
             Me.BTT_CURR_SESSION_SET.ToolTipText = "Select one of the download sessions and set it as the current session"
             '
+            'BTT_CURR_SESSION_SET_LAST
+            '
+            Me.BTT_CURR_SESSION_SET_LAST.Image = Global.SCrawler.My.Resources.Resources.ArrowDownPic_Blue_24
+            Me.BTT_CURR_SESSION_SET_LAST.Name = "BTT_CURR_SESSION_SET_LAST"
+            Me.BTT_CURR_SESSION_SET_LAST.Size = New System.Drawing.Size(352, 22)
+            Me.BTT_CURR_SESSION_SET_LAST.Text = "Set last download session as current session"
+            '
             'BTT_MERGE_SESSIONS
             '
             Me.BTT_MERGE_SESSIONS.AutoToolTip = True
@@ -476,12 +484,11 @@ Namespace DownloadObjects
             Me.TP_DATA.Size = New System.Drawing.Size(484, 436)
             Me.TP_DATA.TabIndex = 1
             '
-            'BTT_CURR_SESSION_SET_LAST
+            'BTT_CHECK_INVERT
             '
-            Me.BTT_CURR_SESSION_SET_LAST.Image = Global.SCrawler.My.Resources.Resources.ArrowDownPic_Blue_24
-            Me.BTT_CURR_SESSION_SET_LAST.Name = "BTT_CURR_SESSION_SET_LAST"
-            Me.BTT_CURR_SESSION_SET_LAST.Size = New System.Drawing.Size(352, 22)
-            Me.BTT_CURR_SESSION_SET_LAST.Text = "Set last download session as current session"
+            Me.BTT_CHECK_INVERT.Name = "BTT_CHECK_INVERT"
+            Me.BTT_CHECK_INVERT.Size = New System.Drawing.Size(352, 22)
+            Me.BTT_CHECK_INVERT.Text = "Invert selection"
             '
             'DownloadFeedForm
             '
@@ -543,5 +550,6 @@ Namespace DownloadObjects
         Private WithEvents BTT_MOVE_SPEC_TO As ToolStripMenuItem
         Private WithEvents BTT_RESET_DAILY As ToolStripMenuItem
         Private WithEvents BTT_CURR_SESSION_SET_LAST As ToolStripMenuItem
+        Private WithEvents BTT_CHECK_INVERT As ToolStripMenuItem
     End Class
 End Namespace

@@ -48,6 +48,7 @@ Namespace Plugin.Hosts
                 .Thrower = Me
                 .LogProvider = LogConnector
                 .Name = Name
+                .NameTrue = NameTrue(True)
                 .ID = ID
                 .Options = Options
                 .ParseUserMediaOnly = ParseUserMediaOnly
@@ -78,6 +79,7 @@ Namespace Plugin.Hosts
                 UserDescriptionUpdate(.UserDescription)
                 UserExists = .UserExists
                 UserSuspended = .UserSuspended
+                NameTrue = .NameTrue
             End With
         End Sub
         Friend Overrides Sub DownloadSingleObject(ByVal Data As IYouTubeMediaContainer, ByVal Token As CancellationToken)

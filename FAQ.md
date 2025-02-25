@@ -63,6 +63,7 @@ I strongly recommend you to **regularly** create backup copies of the settings f
 
 - Reddit: don't use credentials at all or configure [OAuth](https://github.com/AAndyProgram/SCrawler/wiki/Settings#how-to-get-reddit-credentials). **Reddit profiles can be downloaded without any credentials at all. Subreddits require OAuth! If nothing downloads, use OAuth!** Don't use OAuth token to download saved posts (use cookies only).
 - **META** (**Instagram**, Threads, Facebook): you need **cookies** and fill in **all fields**
+- **Instagram [TIPS](https://github.com/AAndyProgram/SCrawler/wiki/Settings#instagram-tips)**
 - **Instagram saved posts**: I don't consider questions like "I have 10k saved posts and only 1000 were downloaded". Download posts, remove them from saved posts, delete the `Saved posts` **settings folder**, repeat.
 - TikTok: works via yt-dlp. If something doesn't download, we need to wait until yt-dlp fixes it. TikTok doesn't require cookies to download.
 - Porn sites: **COOKIES**!

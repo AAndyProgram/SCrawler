@@ -168,6 +168,7 @@
     <Compile Include="API\Base\Declarations.vb" />
     <Compile Include="API\Base\DeclaredNames.vb" />
     <Compile Include="API\Base\DownDetector.vb" />
+    <Compile Include="API\Base\EditorExchangeOptionsBase.vb" />
     <Compile Include="API\Base\GDL.vb" />
     <Compile Include="API\Base\IUserData.vb" />
     <Compile Include="API\Base\M3U8Base.vb" />
@@ -189,6 +190,10 @@
     <Compile Include="API\Base\Structures.vb" />
     <Compile Include="API\Base\TokenBatch.vb" />
     <Compile Include="API\Base\YTDLP.vb" />
+    <Compile Include="API\Bluesky\Declarations.vb" />
+    <Compile Include="API\Bluesky\M3U8.vb" />
+    <Compile Include="API\Bluesky\SiteSettings.vb" />
+    <Compile Include="API\Bluesky\UserData.vb" />
     <Compile Include="API\Facebook\Declarations.vb" />
     <Compile Include="API\Facebook\SiteSettings.vb" />
     <Compile Include="API\Facebook\UserData.vb" />
@@ -227,6 +232,7 @@
     <Compile Include="API\PathPlugin\SiteSettings.vb" />
     <Compile Include="API\PathPlugin\UserData.vb" />
     <Compile Include="API\Pinterest\Declarations.vb" />
+    <Compile Include="API\Pinterest\EditorExchangeOptions.vb" />
     <Compile Include="API\Pinterest\SiteSettings.vb" />
     <Compile Include="API\Pinterest\UserData.vb" />
     <Compile Include="API\PornHub\Declarations.vb" />
@@ -660,6 +666,7 @@
   <ItemGroup>
     <None Include=".editorconfig" />
     <None Include="API\OnlyFans\OFScraperConfigPattern.json" />
+    <None Include="Content\Icons\SiteIcons\TwitterIconNew_32.ico" />
     <None Include="Content\Pictures\ApplicationPic_16.png" />
     <None Include="Content\Pictures\BookmarkBlack_16.png" />
     <None Include="Content\Pictures\DBPic_32.png" />
@@ -797,6 +804,8 @@
     <Content Include="API\OnlyFans\DynamicRules.txt" />
     <Content Include="API\OnlyFans\DynamicRulesAll.txt" />
     <Content Include="API\OnlyFans\OFScraperConfigPatternConstants.txt" />
+    <Content Include="Content\Icons\SiteIcons\BlueskyIcon_32.ico" />
+    <Content Include="Content\Pictures\SitePictures\BlueskyPic_32.png" />
     <Content Include="Content\Pictures\CutPic_48.png" />
     <Content Include="Content\Pictures\FindPic_16.png" />
   </ItemGroup>

@@ -13,6 +13,8 @@ Namespace API.Facebook
         Friend Property ParsePhotoBlock As Boolean = True
         <PSetting(NameOf(SiteSettings.ParseVideoBlock), NameOf(MySettings))>
         Friend Property ParseVideoBlock As Boolean = True
+        <PSetting(NameOf(SiteSettings.ParseReelsBlock), NameOf(MySettings))>
+        Friend Property ParseReelsBlock As Boolean = False
         <PSetting(NameOf(SiteSettings.ParseStoriesBlock), NameOf(MySettings))>
         Friend Property ParseStoriesBlock As Boolean = True
         Private ReadOnly Property MySettings As SiteSettings
@@ -20,12 +22,14 @@ Namespace API.Facebook
             MySettings = u.HostCollection.Default.Source
             ParsePhotoBlock = u.ParsePhotoBlock
             ParseVideoBlock = u.ParseVideoBlock
+            ParseReelsBlock = u.ParseReelsBlock
             ParseStoriesBlock = u.ParseStoriesBlock
         End Sub
         Friend Sub New(ByVal s As SiteSettings)
             MySettings = s
             ParsePhotoBlock = s.ParsePhotoBlock.Value
             ParseVideoBlock = s.ParseVideoBlock.Value
+            ParseReelsBlock = s.ParseReelsBlock.Value
             ParseStoriesBlock = s.ParseStoriesBlock.Value
         End Sub
     End Class

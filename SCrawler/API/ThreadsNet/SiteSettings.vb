@@ -15,7 +15,7 @@ Imports PersonalUtilities.Functions.RegularExpressions
 Imports IG = SCrawler.API.Instagram.SiteSettings
 Imports DN = SCrawler.API.Base.DeclaredNames
 Namespace API.ThreadsNet
-    <Manifest("AndyProgram_ThreadsNet"), SavedPosts, SeparatedTasks(1)>
+    <Manifest("AndyProgram_ThreadsNet"), SavedPosts, SeparatedTasks(1), SpecialForm(False)>
     Friend Class SiteSettings : Inherits SiteSettingsBase
 #Region "Declarations"
 #Region "Authorization"
@@ -155,6 +155,7 @@ Namespace API.ThreadsNet
             UrlPatternUser = "https://www.threads.net/@{0}"
             UserRegex = RParams.DMS(String.Format(UserRegexDefaultPattern, "threads.net/@"), 1)
             ImageVideoContains = "threads.net"
+            UserOptionsType = GetType(EditorExchangeOptionsBase)
         End Sub
 #End Region
 #Region "UpdateResponserData"
@@ -179,9 +180,6 @@ Namespace API.ThreadsNet
 #Region "BaseAuthExists, GetUserUrl, GetUserPostUrl"
         Friend Overrides Function BaseAuthExists() As Boolean
             Return Responser.CookiesExists And {HH_CSRF_TOKEN, HH_IG_APP_ID}.All(Function(v) ACheck(Of String)(v.Value)) And CBool(DownloadData_Impl.Value)
-        End Function
-        Friend Overrides Function GetUserUrl(ByVal User As IPluginContentProvider) As String
-            Return String.Format(UrlPatternUser, DirectCast(User, UserData).NameTrue)
         End Function
         Friend Overrides Function GetUserPostUrl(ByVal User As UserDataBase, ByVal Media As UserMedia) As String
             Try

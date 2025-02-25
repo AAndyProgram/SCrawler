@@ -8,11 +8,10 @@
 ' but WITHOUT ANY WARRANTY
 Imports SCrawler.Plugin.Attributes
 Imports DModels = SCrawler.API.Twitter.UserData.DownloadModels
-Imports DN = SCrawler.API.Base.DeclaredNames
 Namespace API.Twitter
-    Friend Class EditorExchangeOptions
+    Friend Class EditorExchangeOptions : Inherits Base.EditorExchangeOptionsBase
         Private Const DefaultOffset As Integer = 100
-        Friend Property SiteKey As String = TwitterSiteKey
+        Friend Overrides Property SiteKey As String = TwitterSiteKey
         <PSetting(NameOf(SiteSettings.GifsDownload), NameOf(MySettings), LeftOffset:=DefaultOffset)>
         Friend Property GifsDownload As Boolean
         <PSetting(NameOf(SiteSettings.GifsSpecialFolder), NameOf(MySettings), LeftOffset:=DefaultOffset)>
@@ -51,8 +50,6 @@ Namespace API.Twitter
                   Caption:="Force apply",
                   ToolTip:="Force overrides the default parameters for the first download." & vbCr & "Applies to first download only.", LeftOffset:=DefaultOffset)>
         Friend Overridable Property DownloadModelForceApply As Boolean = False
-        <PSetting(Address:=SettingAddress.User, Caption:=DN.UserNameChangeCaption, ToolTip:=DN.UserNameChangeToolTip, LeftOffset:=DefaultOffset)>
-        Friend Overridable Property UserName As String = String.Empty
         Private ReadOnly Property MySettings As Object
         Friend Sub New(ByVal s As SiteSettings)
             GifsDownload = s.GifsDownload.Value
@@ -71,6 +68,7 @@ Namespace API.Twitter
             MySettings = s
         End Sub
         Friend Sub New(ByVal u As UserData)
+            MyBase.New(u)
             GifsDownload = u.GifsDownload
             GifsSpecialFolder = u.GifsSpecialFolder
             GifsPrefix = u.GifsPrefix
@@ -88,7 +86,6 @@ Namespace API.Twitter
                     DownloadModelLikes = dm.Contains(DModels.Likes)
                 End If
             End If
-            UserName = u.NameTrue(True)
             MySettings = u.HOST.Source
         End Sub
     End Class

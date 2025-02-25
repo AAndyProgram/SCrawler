@@ -171,12 +171,12 @@ Namespace API.Mastodon
             With DirectCast(User, UserData)
                 If UserRelatedToMyDomain.Value Then
                     If MyDomain.Value = .UserDomain Then
-                        Return $"https://{ .UserDomain}/@{ .TrueName}"
+                        Return $"https://{ .UserDomain}/@{ .NameTrue}"
                     Else
-                        Return $"https://{MyDomain.Value}/@{ .TrueName}@{ .UserDomain}"
+                        Return $"https://{MyDomain.Value}/@{ .NameTrue}@{ .UserDomain}"
                     End If
                 Else
-                    Return $"https://{ .UserDomain}/@{ .TrueName}"
+                    Return $"https://{ .UserDomain}/@{ .NameTrue}"
                 End If
             End With
         End Function

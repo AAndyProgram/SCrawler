@@ -36,11 +36,12 @@ Namespace API.PornHub
         Friend ReadOnly Regex_Gif_UrlName As RParams = RParams.DMS("""name"":.*?""([^""]*)""[^\}]+?""contentUrl"":.*?""([^""]+)""", 0, RegexReturn.ListByMatch, EDP.ReturnValue)
 #End Region
 #Region "Declarations photo"
-        Friend ReadOnly Regex_Photo_ModelHub_PhotoBlocks As RParams = RParams.DM("var PHOTOS_ARRAY_(\d+) = \{[\r\n\s]*?(urls:.*?\[[^]]*\])", 0, RegexReturn.List, EDP.ReturnValue)
         Friend ReadOnly Regex_Photo_PornHub_PhotoBlocks As RParams = RParams.DM("photoAlbumListContainer[\r\n\s\S]+?title=""([^""]+)""[\r\n\s\S]+?a href=""(/album/\d+)""", 0, RegexReturn.List)
-        Friend ReadOnly Regex_Photo_PornHub_AlbumPhotoArr As RParams = RParams.DMS("\<a href=""(/photo/\d+)""", 1, RegexReturn.List, EDP.ReturnValue,
+        Friend ReadOnly Regex_Photo_PornHub_PhotoBlocks2 As RParams = RParams.DM("albumInfoTitle"" href=""([^""]+)""\>([^\<]+)", 0, RegexReturn.List)
+        Friend ReadOnly Regex_Photo_PornHub_AlbumPhotoArr As RParams = RParams.DMS("href=""(/photo/\d+)""", 1, RegexReturn.List, EDP.ReturnValue,
                                                                                    CType(Function(Input$) If(Input.IsEmptyString, String.Empty, $"https://www.pornhub.com{Input.Trim}"), Func(Of String, String)))
-        Friend ReadOnly Regex_Photo_PornHub_SinglePhoto As RParams = RParams.DMS("(?<!thumbImage.+?)<img src=""(https://[^""]+\d+[^""]+)""", 1, EDP.ReturnValue)
+        Friend ReadOnly Regex_Photo_PornHub_SinglePhoto As RParams = RParams.DM("data-image=""([^""]+)""\s*src=""([^""]+)""", 0, RegexReturn.ListByMatch, EDP.ReturnValue)
+        Friend ReadOnly Regex_Photo_PornHub_SinglePhoto2 As RParams = RParams.DMS("image:src"" content=""([^""]+)""", 1, EDP.ReturnValue)
         Friend ReadOnly Regex_Photo_File As RParams = RParams.DM("\d+\.[\w]{3,4}", 0, EDP.ReturnValue)
 #End Region
     End Module

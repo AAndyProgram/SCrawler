@@ -106,7 +106,8 @@ Namespace API.LPSG
         End Sub
         Protected Overrides Function DownloadingException(ByVal ex As Exception, ByVal Message As String, Optional ByVal FromPE As Boolean = False,
                                                           Optional ByVal EObj As Object = Nothing) As Integer
-            If Responser.StatusCode = Net.HttpStatusCode.ServiceUnavailable Then '503
+            If Responser.StatusCode = Net.HttpStatusCode.ServiceUnavailable Or
+               Responser.StatusCode = Net.HttpStatusCode.Forbidden Then '503, 403
                 MyMainLOG = $"{ToStringForLog()}: LPSG not available"
                 Return 1
             ElseIf Responser.StatusCode = Net.HttpStatusCode.NotFound Then '404

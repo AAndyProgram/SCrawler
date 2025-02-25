@@ -45,7 +45,6 @@ Namespace API.XVIDEOS
             End Get
         End Property
         Private Property SiteMode As SiteModes = SiteModes.User
-        Private Property TrueName As String = String.Empty
         Private Property Arguments As String = String.Empty
         Private Property PersonType As String = String.Empty
         Friend Overrides ReadOnly Property IsUser As Boolean
@@ -92,14 +91,14 @@ Namespace API.XVIDEOS
             If Not Force OrElse (Not SiteMode = SiteModes.User AndAlso Not NewUrl.IsEmptyString AndAlso MyFileSettings.Exists) Then
                 Dim eObj As Plugin.ExchangeOptions = Nothing
                 If Force Then eObj = MySettings.IsMyUser(NewUrl)
-                If (Force And Not eObj.UserName.IsEmptyString) Or (Not Force And TrueName.IsEmptyString) Then
+                If (Force And Not eObj.UserName.IsEmptyString) Or (Not Force And NameTrue(True).IsEmptyString) Then
                     Dim n$() = If(Force, eObj.UserName, Name).Split("@")
                     If n.ListExists(2) Then
                         Dim opt$ = If(Force, eObj.Options, Options)
                         If opt.IsEmptyString AndAlso Not IsNumeric(n(0)) Then
                             If Not Force Then
                                 PersonType = n(0)
-                                TrueName = If(Force, eObj.UserName, Name).Replace($"{PersonType}@", String.Empty)
+                                NameTrue = If(Force, eObj.UserName, Name).Replace($"{PersonType}@", String.Empty)
                             End If
                         ElseIf Not opt.IsEmptyString Then
                             Dim n2$() = opt.Split("@")
@@ -108,8 +107,8 @@ Namespace API.XVIDEOS
                             Dim __Arguments$ = opt.Replace($"{__TrueName}@", String.Empty)
                             Dim __ForceApply As Boolean = False
 
-                            If Force AndAlso (Not TrueName = __TrueName Or Not SiteMode = __SiteMode) Then
-                                If ValidateChangeSearchOptions(ToStringForLog, $"{__SiteMode}: {__TrueName}", $"{SiteMode}: {TrueName}") Then
+                            If Force AndAlso (Not NameTrue(True) = __TrueName Or Not SiteMode = __SiteMode) Then
+                                If ValidateChangeSearchOptions(ToStringForLog, $"{__SiteMode}: {__TrueName}", $"{SiteMode}: {NameTrue(True)}") Then
                                     __ForceApply = True
                                 Else
                                     Return False
@@ -120,15 +119,15 @@ Namespace API.XVIDEOS
                             Options = opt
                             If Not Force Then
                                 SiteMode = __SiteMode
-                                TrueName = __TrueName
-                                UserSiteName = $"{SiteMode}: {TrueName}"
+                                NameTrue = __TrueName
+                                UserSiteName = $"{SiteMode}: {NameTrue}"
                                 If FriendlyName.IsEmptyString Then FriendlyName = UserSiteName
                                 Settings.Labels.Add(SearchRequestLabelName)
                                 Labels.ListAddValue(SearchRequestLabelName, LNC)
                                 Labels.Sort()
                             ElseIf Force And __ForceApply Then
                                 SiteMode = __SiteMode
-                                TrueName = __TrueName
+                                NameTrue = __TrueName
                             End If
 
                             Return True
@@ -142,14 +141,13 @@ Namespace API.XVIDEOS
             With Container
                 If Loading Then
                     SiteMode = .Value(Name_SiteMode).FromXML(Of Integer)(SiteModes.User)
-                    TrueName = .Value(Name_TrueName)
                     Arguments = .Value(Name_Arguments)
                     PersonType = .Value(Name_PersonType)
-                    If PersonType.IsEmptyString And TrueName.IsEmptyString And Not Name.IsEmptyString Then
+                    If PersonType.IsEmptyString And NameTrue(True).IsEmptyString And Not Name.IsEmptyString Then
                         If Not Name.Contains("@") Then
                             Dim n$() = Name.Split("_")
                             PersonType = n(0)
-                            TrueName = Name.Replace($"{PersonType}_", String.Empty)
+                            NameTrue = Name.Replace($"{PersonType}_", String.Empty)
                         End If
                     End If
                     UpdateUserOptions()
@@ -160,7 +158,7 @@ Namespace API.XVIDEOS
                         .Value(Name_FriendlyName) = FriendlyName
                     End If
                     .Add(Name_SiteMode, CInt(SiteMode))
-                    .Add(Name_TrueName, TrueName)
+                    .Add(Name_TrueName, NameTrue(True))
                     .Add(Name_Arguments, Arguments)
                     .Add(Name_PersonType, PersonType)
 
@@ -181,19 +179,19 @@ Namespace API.XVIDEOS
         Friend Function GetUserUrl(ByVal Page As Integer) As String
             Dim url$ = String.Empty
             If SiteMode = SiteModes.User Then
-                url = $"https://xvideos.com/{PersonType}/{TrueName}"
+                url = $"https://xvideos.com/{PersonType}/{NameTrue}"
             ElseIf SiteMode = SiteModes.Categories Then
                 url = "https://xvideos.com/c/"
                 If Not Arguments.IsEmptyString Then url &= $"{Arguments}/"
-                url &= TrueName
+                url &= NameTrue
                 If Page > 1 Then url &= $"/{Page - 1}"
             ElseIf SiteMode = SiteModes.Tags Then
                 url = "https://www.xvideos.com/tags/"
                 If Not Arguments.IsEmptyString Then url &= $"{Arguments}/"
-                url &= $"{TrueName}/"
+                url &= $"{NameTrue}/"
                 If Page > 1 Then url &= Page - 1
             ElseIf SiteMode = SiteModes.Search Then
-                url = $"https://www.xvideos.com/?k={TrueName}"
+                url = $"https://www.xvideos.com/?k={NameTrue}"
                 If Not Arguments.IsEmptyString Then url &= $"&{Arguments}"
                 If Page > 1 Then url &= $"&p={Page - 1}"
             End If

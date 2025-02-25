@@ -1215,12 +1215,12 @@ Namespace API.YouTube.Objects
                             End If
 
                             With MyYouTubeSettings
-                                If .CreateDescriptionFiles And (Not Description.IsEmptyString Or
-                                                                (.CreateDescriptionFiles_CreateWithNoDescription And .CreateDescriptionFiles_AddUploadDate)) Then
+                                If .CreateDescriptionFiles And (Not Description.IsEmptyString Or .CreateDescriptionFiles_CreateWithNoDescription) Then
                                     Dim fileDesr As SFile = File
                                     fileDesr.Extension = "txt"
                                     Using fileDesrText As New TextSaver(fileDesr)
-                                        If .CreateDescriptionFiles_AddUploadDate Then fileDesrText.Append($"Uploaded: {DateAdded:yyyy-MM-dd HH:mm:ss}")
+                                        fileDesrText.Append($"Uploaded: {DateAdded:yyyy-MM-dd HH:mm:ss}")
+                                        fileDesrText.AppendLine()
                                         fileDesrText.AppendLine($"URL: {URL}")
                                         fileDesrText.AppendLine($"Channel name: {AccountName}")
                                         fileDesrText.AppendLine($"Channel ID: {UserID}")
