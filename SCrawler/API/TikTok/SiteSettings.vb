@@ -13,6 +13,15 @@ Imports PersonalUtilities.Functions.RegularExpressions
 Namespace API.TikTok
     <Manifest("AndyProgram_TikTok"), SpecialForm(False), SeparatedTasks(1)>
     Friend Class SiteSettings : Inherits SiteSettingsBase
+#Region "Categories"
+        Private Const CAT_DOWN As String = "Download"
+#End Region
+#Region "Download"
+        <PropertyOption(ControlText:="Download videos", Category:=CAT_DOWN), PXML, PClonable>
+        Friend ReadOnly Property DownloadTTVideos As PropertyValue
+        <PropertyOption(ControlText:="Download photos", Category:=CAT_DOWN), PXML, PClonable>
+        Friend ReadOnly Property DownloadTTPhotos As PropertyValue
+#End Region
         <PropertyOption(ControlText:="Remove tags from title"), PXML, PClonable>
         Friend ReadOnly Property RemoveTagsFromTitle As PropertyValue
         <PropertyOption(ControlText:="Use native title", ControlToolTip:="Use a user-created video title for the filename instead of the video ID."), PXML, PClonable>
@@ -36,6 +45,10 @@ Namespace API.TikTok
         Friend ReadOnly Property UseParsedVideoDateSTD As PropertyValue
         Friend Sub New(ByVal AccName As String, ByVal Temp As Boolean)
             MyBase.New("TikTok", "www.tiktok.com", AccName, Temp, My.Resources.SiteResources.TikTokIcon_32, My.Resources.SiteResources.TikTokPic_192)
+
+            DownloadTTVideos = New PropertyValue(True)
+            DownloadTTPhotos = New PropertyValue(True)
+
             RemoveTagsFromTitle = New PropertyValue(False)
             TitleUseNative = New PropertyValue(True)
             TitleUseNativeSTD = New PropertyValue(True)
@@ -45,6 +58,7 @@ Namespace API.TikTok
             TitleUseRegexForTitle_Value = New PropertyValue(String.Empty, GetType(String))
             UseParsedVideoDate = New PropertyValue(True)
             UseParsedVideoDateSTD = New PropertyValue(False)
+
             UseNetscapeCookies = True
             UrlPatternUser = "https://www.tiktok.com/@{0}/"
             UserRegex = RParams.DMS(String.Format(UserRegexDefaultPattern, "tiktok.com/@"), 1)

@@ -394,7 +394,7 @@ Namespace API.Base
                                             With c.GetParameters
                                                 If .ListExists Then
                                                     If .Count = 1 Then
-                                                        Return .Self()(0).ParameterType.GetInterfaces.ListIfNothing.Where(Function(i) i Is Me.GetType).Count = 1
+                                                        Return .Self()(0).ParameterType Is Me.GetType
                                                     Else
                                                         Return False
                                                     End If
@@ -412,7 +412,8 @@ Namespace API.Base
                         End If
                     End With
                     If Not constructor Is Nothing Then
-                        If args > 0 AndAlso Not constructor.GetParameters()(0).ParameterType Is GetType(ISiteSettings) Then Throw New Exception
+                        If args > 0 AndAlso constructor.GetParameters()(0).ParameterType.GetInterface(GetType(ISiteSettings).Name) Is Nothing Then _
+                           Throw New Exception("Class Interface type is incompatible")
                         If args = 0 Then Options = constructor.Invoke(Nothing) Else Options = constructor.Invoke({Me})
                     End If
                     If Options Is Nothing Then Options = Activator.CreateInstance(_UserOptionsType)

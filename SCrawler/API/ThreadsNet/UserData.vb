@@ -128,10 +128,13 @@ Namespace API.ThreadsNet
                 If IsSavedPosts Then
                     Return False
                 Else
-                    If MaxLastDownDate.HasValue Then
-                        Dim d As Date? = AConvert(Of Date)(Items(Index).ItemF(DefaultParser_ElemNode_Default).Value("taken_at"), UnixDate32Provider, Nothing)
-                        If d.HasValue Then Return d.Value < MaxLastDownDate.Value
-                    End If
+                    With Items(Index).ItemF(DefaultParser_ElemNode)
+                        Return .Value({"text_post_app_info", "pinned_post_info"}, "is_pinned_to_profile").FromXML(Of Boolean)(False)
+                        If MaxLastDownDate.HasValue Then
+                            Dim d As Date? = AConvert(Of Date)(.Value("taken_at"), UnixDate32Provider, Nothing)
+                            If d.HasValue Then Return d.Value <= MaxLastDownDate.Value
+                        End If
+                    End With
                     Return Not FirstLoadingDone
                 End If
             Catch ex As Exception

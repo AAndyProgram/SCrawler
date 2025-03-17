@@ -638,7 +638,7 @@ Namespace API.Facebook
             End If
         End Function
         Private Sub GetVideoPageID(ByVal GetReels As Boolean, ByVal Token As CancellationToken)
-            Dim URL$ = $"{GetProfileUrl()}\{IIf(GetReels, "reels", "videos")}"
+            Dim URL$ = $"{GetProfileUrl()}{IIf(IsNoNameProfile, "&sk=", "/")}{IIf(GetReels, IIf(IsNoNameProfile, "reels_tab", "reels"), "videos")}"
             Dim resp As Responser = HtmlResponserCreate()
             Try
                 WaitTimer()

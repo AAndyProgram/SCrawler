@@ -31,6 +31,7 @@ Namespace API.Pinterest
             CheckNetscapeCookiesOnEndInit = True
             UseNetscapeCookies = True
             UserRegex = RParams.DMS("https?://w{0,3}.?[^/]*?.?pinterest.com/([^/]+)/?(?(_)|([^/]*))/?([^/\?]*)", 0, RegexReturn.ListByMatch, EDP.ReturnValue)
+            UserOptionsType = GetType(EditorExchangeOptions)
         End Sub
 #End Region
 #Region "GetInstance, Available"
@@ -72,12 +73,6 @@ Namespace API.Pinterest
                 Return String.Empty
             End If
         End Function
-        Friend Overrides Sub UserOptions(ByRef Options As Object, ByVal OpenForm As Boolean)
-            If Options Is Nothing Then Options = New EditorExchangeOptions
-            If OpenForm Then
-                Using f As New InternalSettingsForm(Options, Me, False) : f.ShowDialog() : End Using
-            End If
-        End Sub
 #End Region
     End Class
 End Namespace

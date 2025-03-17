@@ -170,6 +170,7 @@ Namespace API.Pinterest
                 urls.ListAddList(GetDataFromGalleryDL(URL, True, Token), LNC)
                 If urls.ListExists Then urls.RemoveAll(Function(__url) Not __url.Contains("BoardsResource/get/"))
                 If urls.ListExists Then
+                    Responser.Headers.Add(PwsHeader)
                     ProgressPre.ChangeMax(urls.Count)
                     For Each URL In urls
                         ProgressPre.Perform()
@@ -193,6 +194,8 @@ Namespace API.Pinterest
             Catch ex As Exception
                 ProcessException(ex, Token, $"data (gallery-dl boards) downloading error [{URL}]")
                 Return Nothing
+            Finally
+                Responser.Headers.Remove(PwsHeader)
             End Try
         End Function
         Private Sub DownloadBoardImages(ByRef Board As BoardInfo, ByVal Token As CancellationToken)

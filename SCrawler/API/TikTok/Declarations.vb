@@ -6,11 +6,14 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
+Imports System.Text.RegularExpressions
 Imports PersonalUtilities.Functions.RegularExpressions
 Namespace API.TikTok
     Friend Module Declarations
         Friend ReadOnly SimpleDateConverter As New ADateTime("yyyyMMdd")
         Friend ReadOnly RegexTagsReplacer As RParams = RParams.DM("#\w+\s?", -1, RegexReturn.Replace,
                                                                   CType(Function(input$) String.Empty, Func(Of String, String)), EDP.ReturnValue)
+        Friend ReadOnly RegexPhotoJson As RParams = RParams.DMS("UNIVERSAL_DATA_FOR_REHYDRATION__"" type=""application/json""\>([^\<]+)\<", 1,
+                                                                RegexOptions.IgnoreCase, EDP.ReturnValue)
     End Module
 End Namespace

@@ -1,3 +1,17 @@
+# 2025.3.17.0
+
+*2025-03-17*
+
+- Added
+  - **TikTok: downloading photos**
+- Updated
+  - gallery-dl up to version **1.29.2**
+- Fixed
+  - Sites
+    - Facebook: reels aren't downloaded from noname profiles
+    - PornHub: newly added users aren't downloading
+    - Threads: users aren't updated if there is a pinned post
+
 # 2025.2.25.0
 
 *2025-02-25*

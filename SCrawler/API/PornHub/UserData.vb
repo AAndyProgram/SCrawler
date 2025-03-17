@@ -195,7 +195,7 @@ Namespace API.PornHub
             If Not Force OrElse (Not IsUser AndAlso Not SiteMode = SiteModes.Playlists AndAlso Not NewUrl.IsEmptyString AndAlso MyFileSettings.Exists) Then
                 Dim eObj As Plugin.ExchangeOptions = Nothing
                 If Force Then eObj = MySettings.IsMyUser(NewUrl)
-                If (Force And Not eObj.UserName.IsEmptyString) Or (Not Force And Not Name.IsEmptyString And NameTrue.IsEmptyString) Then
+                If (Force And Not eObj.UserName.IsEmptyString) Or (Not Force And Not Name.IsEmptyString And NameTrue(True).IsEmptyString) Then
                     If Not If(Force, eObj.Options, Options).IsEmptyString Then
                         If (IsUser Or SiteMode = SiteModes.Playlists) And Force Then
                             Return False
@@ -241,7 +241,7 @@ Namespace API.PornHub
                     SiteMode = .Value(Name_SiteMode).FromXML(Of Integer)(SiteModes.User)
                     UpdateUserOptions()
                 Else
-                    If UpdateUserOptions() Then .Value(Name_LabelsName) = LabelsString
+                    If UpdateUserOptions() Then .Value(Name_LabelsName) = LabelsString : .Value(Name_TrueName) = NameTrue(True)
                     .Add(Name_PersonType, PersonType)
                     .Add(Name_DownloadUHD, DownloadUHD.BoolToInteger)
                     .Add(Name_DownloadUploaded, DownloadUploaded.BoolToInteger)

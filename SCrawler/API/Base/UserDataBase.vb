@@ -1461,6 +1461,7 @@ BlockNullPicture:
                     Data.DownloadState = UserMediaStates.Missing
                 End If
                 YouTube.Objects.YouTubeMediaContainerBase.Update(_ContentNew(0), Data)
+                If _ContentNew.Count > 1 Then Data.Files.ListAddList(_ContentNew.Select(Function(cc) cc.File), LNC)
                 If ResetTitle And Not _ContentNew(0).File.Name.IsEmptyString Then Data.Title = _ContentNew(0).File.Name
             Else
                 Data.DownloadState = UserMediaStates.Missing
