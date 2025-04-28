@@ -24,7 +24,6 @@ Namespace Editors
         Private Sub InitializeComponent()
             Me.components = New System.ComponentModel.Container()
             Dim TP_MAIN As System.Windows.Forms.TableLayoutPanel
-            Dim TP_BUTTONS As System.Windows.Forms.TableLayoutPanel
             Dim ActionButton1 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(BugReporterForm))
             Dim ActionButton2 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
@@ -33,31 +32,32 @@ Namespace Editors
             Dim ActionButton5 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim ActionButton6 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim ActionButton7 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim TP_BUTTONS As System.Windows.Forms.TableLayoutPanel
             Dim ActionButton8 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim ActionButton9 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
-            Me.BTT_EMAIL = New System.Windows.Forms.Button()
-            Me.BTT_GITHUB = New System.Windows.Forms.Button()
-            Me.BTT_COPY = New System.Windows.Forms.Button()
-            Me.BTT_CANCEL = New System.Windows.Forms.Button()
-            Me.BTT_ANON = New System.Windows.Forms.Button()
-            Me.TT_MAIN = New System.Windows.Forms.ToolTip(Me.components)
             Me.TXT_DESCR = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_URL_PROFILE = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_URL_POST = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_REPRODUCE = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_EXPECT = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_LOG = New PersonalUtilities.Forms.Controls.TextBoxExtended()
+            Me.BTT_EMAIL = New System.Windows.Forms.Button()
+            Me.BTT_GITHUB = New System.Windows.Forms.Button()
+            Me.BTT_COPY = New System.Windows.Forms.Button()
+            Me.BTT_CANCEL = New System.Windows.Forms.Button()
+            Me.BTT_ANON = New System.Windows.Forms.Button()
             Me.TXT_FILES = New PersonalUtilities.Forms.Controls.TextBoxExtended()
+            Me.TT_MAIN = New System.Windows.Forms.ToolTip(Me.components)
             TP_MAIN = New System.Windows.Forms.TableLayoutPanel()
             TP_BUTTONS = New System.Windows.Forms.TableLayoutPanel()
             TP_MAIN.SuspendLayout()
-            TP_BUTTONS.SuspendLayout()
             CType(Me.TXT_DESCR, System.ComponentModel.ISupportInitialize).BeginInit()
             CType(Me.TXT_URL_PROFILE, System.ComponentModel.ISupportInitialize).BeginInit()
             CType(Me.TXT_URL_POST, System.ComponentModel.ISupportInitialize).BeginInit()
             CType(Me.TXT_REPRODUCE, System.ComponentModel.ISupportInitialize).BeginInit()
             CType(Me.TXT_EXPECT, System.ComponentModel.ISupportInitialize).BeginInit()
             CType(Me.TXT_LOG, System.ComponentModel.ISupportInitialize).BeginInit()
+            TP_BUTTONS.SuspendLayout()
             CType(Me.TXT_FILES, System.ComponentModel.ISupportInitialize).BeginInit()
             Me.SuspendLayout()
             '
@@ -87,6 +87,123 @@ Namespace Editors
             TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 30.0!))
             TP_MAIN.Size = New System.Drawing.Size(584, 461)
             TP_MAIN.TabIndex = 0
+            '
+            'TXT_DESCR
+            '
+            ActionButton1.BackgroundImage = CType(resources.GetObject("ActionButton1.BackgroundImage"), System.Drawing.Image)
+            ActionButton1.Dock = System.Windows.Forms.DockStyle.Top
+            ActionButton1.Name = "Clear"
+            ActionButton1.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
+            Me.TXT_DESCR.Buttons.Add(ActionButton1)
+            Me.TXT_DESCR.CaptionDock = System.Windows.Forms.DockStyle.Top
+            Me.TXT_DESCR.CaptionMode = PersonalUtilities.Forms.Controls.Base.ICaptionControl.Modes.None
+            Me.TXT_DESCR.CaptionVisible = False
+            Me.TXT_DESCR.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.TXT_DESCR.GroupBoxed = True
+            Me.TXT_DESCR.GroupBoxText = "Describe the bug or write your message"
+            Me.TXT_DESCR.Location = New System.Drawing.Point(3, 3)
+            Me.TXT_DESCR.Multiline = True
+            Me.TXT_DESCR.Name = "TXT_DESCR"
+            Me.TXT_DESCR.Size = New System.Drawing.Size(578, 69)
+            Me.TXT_DESCR.TabIndex = 0
+            Me.TXT_DESCR.TextToolTip = "A clear and concise description of what the bug is"
+            Me.TXT_DESCR.TextToolTipEnabled = True
+            '
+            'TXT_URL_PROFILE
+            '
+            ActionButton2.BackgroundImage = CType(resources.GetObject("ActionButton2.BackgroundImage"), System.Drawing.Image)
+            ActionButton2.Name = "Clear"
+            ActionButton2.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
+            Me.TXT_URL_PROFILE.Buttons.Add(ActionButton2)
+            Me.TXT_URL_PROFILE.CaptionText = "Profile URL"
+            Me.TXT_URL_PROFILE.CaptionWidth = 75.0R
+            Me.TXT_URL_PROFILE.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.TXT_URL_PROFILE.Location = New System.Drawing.Point(3, 78)
+            Me.TXT_URL_PROFILE.Name = "TXT_URL_PROFILE"
+            Me.TXT_URL_PROFILE.Size = New System.Drawing.Size(578, 22)
+            Me.TXT_URL_PROFILE.TabIndex = 1
+            '
+            'TXT_URL_POST
+            '
+            ActionButton3.BackgroundImage = CType(resources.GetObject("ActionButton3.BackgroundImage"), System.Drawing.Image)
+            ActionButton3.Name = "Clear"
+            ActionButton3.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
+            Me.TXT_URL_POST.Buttons.Add(ActionButton3)
+            Me.TXT_URL_POST.CaptionText = "Post URL"
+            Me.TXT_URL_POST.CaptionWidth = 75.0R
+            Me.TXT_URL_POST.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.TXT_URL_POST.Location = New System.Drawing.Point(3, 106)
+            Me.TXT_URL_POST.Name = "TXT_URL_POST"
+            Me.TXT_URL_POST.Size = New System.Drawing.Size(578, 22)
+            Me.TXT_URL_POST.TabIndex = 2
+            '
+            'TXT_REPRODUCE
+            '
+            ActionButton4.BackgroundImage = CType(resources.GetObject("ActionButton4.BackgroundImage"), System.Drawing.Image)
+            ActionButton4.Dock = System.Windows.Forms.DockStyle.Top
+            ActionButton4.Name = "Clear"
+            ActionButton4.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
+            Me.TXT_REPRODUCE.Buttons.Add(ActionButton4)
+            Me.TXT_REPRODUCE.CaptionDock = System.Windows.Forms.DockStyle.Top
+            Me.TXT_REPRODUCE.CaptionMode = PersonalUtilities.Forms.Controls.Base.ICaptionControl.Modes.None
+            Me.TXT_REPRODUCE.CaptionVisible = False
+            Me.TXT_REPRODUCE.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.TXT_REPRODUCE.GroupBoxed = True
+            Me.TXT_REPRODUCE.GroupBoxText = "Steps to reproduce"
+            Me.TXT_REPRODUCE.Location = New System.Drawing.Point(3, 134)
+            Me.TXT_REPRODUCE.Multiline = True
+            Me.TXT_REPRODUCE.Name = "TXT_REPRODUCE"
+            Me.TXT_REPRODUCE.Size = New System.Drawing.Size(578, 69)
+            Me.TXT_REPRODUCE.TabIndex = 3
+            Me.TXT_REPRODUCE.TextToolTip = "Steps to reproduce the behavior:" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "1. Do something" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "2. See error"
+            Me.TXT_REPRODUCE.TextToolTipEnabled = True
+            '
+            'TXT_EXPECT
+            '
+            ActionButton5.BackgroundImage = CType(resources.GetObject("ActionButton5.BackgroundImage"), System.Drawing.Image)
+            ActionButton5.Dock = System.Windows.Forms.DockStyle.Top
+            ActionButton5.Name = "Clear"
+            ActionButton5.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
+            Me.TXT_EXPECT.Buttons.Add(ActionButton5)
+            Me.TXT_EXPECT.CaptionDock = System.Windows.Forms.DockStyle.Top
+            Me.TXT_EXPECT.CaptionMode = PersonalUtilities.Forms.Controls.Base.ICaptionControl.Modes.None
+            Me.TXT_EXPECT.CaptionVisible = False
+            Me.TXT_EXPECT.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.TXT_EXPECT.GroupBoxed = True
+            Me.TXT_EXPECT.GroupBoxText = "Expected behavior"
+            Me.TXT_EXPECT.Location = New System.Drawing.Point(3, 209)
+            Me.TXT_EXPECT.Multiline = True
+            Me.TXT_EXPECT.Name = "TXT_EXPECT"
+            Me.TXT_EXPECT.Size = New System.Drawing.Size(578, 69)
+            Me.TXT_EXPECT.TabIndex = 4
+            Me.TXT_EXPECT.TextToolTip = "A clear and concise description of what you expected to happen."
+            Me.TXT_EXPECT.TextToolTipEnabled = True
+            '
+            'TXT_LOG
+            '
+            ActionButton6.BackgroundImage = CType(resources.GetObject("ActionButton6.BackgroundImage"), System.Drawing.Image)
+            ActionButton6.Dock = System.Windows.Forms.DockStyle.Top
+            ActionButton6.Name = "Open"
+            ActionButton6.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Open
+            ActionButton6.ToolTipText = "Select log files to add their text to the message"
+            ActionButton7.BackgroundImage = CType(resources.GetObject("ActionButton7.BackgroundImage"), System.Drawing.Image)
+            ActionButton7.Dock = System.Windows.Forms.DockStyle.Top
+            ActionButton7.Name = "Clear"
+            ActionButton7.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
+            ActionButton7.ToolTipText = "Empty"
+            Me.TXT_LOG.Buttons.Add(ActionButton6)
+            Me.TXT_LOG.Buttons.Add(ActionButton7)
+            Me.TXT_LOG.CaptionDock = System.Windows.Forms.DockStyle.Top
+            Me.TXT_LOG.CaptionMode = PersonalUtilities.Forms.Controls.Base.ICaptionControl.Modes.None
+            Me.TXT_LOG.CaptionVisible = False
+            Me.TXT_LOG.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.TXT_LOG.GroupBoxed = True
+            Me.TXT_LOG.GroupBoxText = "Log data"
+            Me.TXT_LOG.Location = New System.Drawing.Point(3, 284)
+            Me.TXT_LOG.Multiline = True
+            Me.TXT_LOG.Name = "TXT_LOG"
+            Me.TXT_LOG.Size = New System.Drawing.Size(578, 69)
+            Me.TXT_LOG.TabIndex = 5
             '
             'TP_BUTTONS
             '
@@ -119,7 +236,7 @@ Namespace Editors
             Me.BTT_EMAIL.Name = "BTT_EMAIL"
             Me.BTT_EMAIL.Size = New System.Drawing.Size(94, 24)
             Me.BTT_EMAIL.TabIndex = 1
-            Me.BTT_EMAIL.Text = "email"
+            Me.BTT_EMAIL.Text = "Email"
             Me.TT_MAIN.SetToolTip(Me.BTT_EMAIL, "Create a message to send via email.")
             Me.BTT_EMAIL.UseVisualStyleBackColor = True
             '
@@ -167,129 +284,6 @@ Namespace Editors
             Me.TT_MAIN.SetToolTip(Me.BTT_ANON, resources.GetString("BTT_ANON.ToolTip"))
             Me.BTT_ANON.UseVisualStyleBackColor = True
             '
-            'TXT_DESCR
-            '
-            ActionButton1.BackgroundImage = CType(resources.GetObject("ActionButton1.BackgroundImage"), System.Drawing.Image)
-            ActionButton1.Dock = System.Windows.Forms.DockStyle.Top
-            ActionButton1.Name = "Clear"
-            ActionButton1.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
-            Me.TXT_DESCR.Buttons.Add(ActionButton1)
-            Me.TXT_DESCR.CaptionDock = System.Windows.Forms.DockStyle.Top
-            Me.TXT_DESCR.CaptionMode = PersonalUtilities.Forms.Controls.Base.ICaptionControl.Modes.None
-            Me.TXT_DESCR.CaptionVisible = False
-            Me.TXT_DESCR.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_DESCR.GroupBoxed = True
-            Me.TXT_DESCR.GroupBoxText = "Describe the bug or write your message"
-            Me.TXT_DESCR.Lines = New String(-1) {}
-            Me.TXT_DESCR.Location = New System.Drawing.Point(3, 3)
-            Me.TXT_DESCR.Multiline = True
-            Me.TXT_DESCR.Name = "TXT_DESCR"
-            Me.TXT_DESCR.Size = New System.Drawing.Size(578, 69)
-            Me.TXT_DESCR.TabIndex = 0
-            Me.TXT_DESCR.TextToolTip = "A clear and concise description of what the bug is"
-            Me.TXT_DESCR.TextToolTipEnabled = True
-            '
-            'TXT_URL_PROFILE
-            '
-            ActionButton2.BackgroundImage = CType(resources.GetObject("ActionButton2.BackgroundImage"), System.Drawing.Image)
-            ActionButton2.Name = "Clear"
-            ActionButton2.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
-            Me.TXT_URL_PROFILE.Buttons.Add(ActionButton2)
-            Me.TXT_URL_PROFILE.CaptionText = "Profile URL"
-            Me.TXT_URL_PROFILE.CaptionWidth = 75.0R
-            Me.TXT_URL_PROFILE.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_URL_PROFILE.Lines = New String(-1) {}
-            Me.TXT_URL_PROFILE.Location = New System.Drawing.Point(3, 78)
-            Me.TXT_URL_PROFILE.Name = "TXT_URL_PROFILE"
-            Me.TXT_URL_PROFILE.Size = New System.Drawing.Size(578, 22)
-            Me.TXT_URL_PROFILE.TabIndex = 1
-            '
-            'TXT_URL_POST
-            '
-            ActionButton3.BackgroundImage = CType(resources.GetObject("ActionButton3.BackgroundImage"), System.Drawing.Image)
-            ActionButton3.Name = "Clear"
-            ActionButton3.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
-            Me.TXT_URL_POST.Buttons.Add(ActionButton3)
-            Me.TXT_URL_POST.CaptionText = "Post URL"
-            Me.TXT_URL_POST.CaptionWidth = 75.0R
-            Me.TXT_URL_POST.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_URL_POST.Lines = New String(-1) {}
-            Me.TXT_URL_POST.Location = New System.Drawing.Point(3, 106)
-            Me.TXT_URL_POST.Name = "TXT_URL_POST"
-            Me.TXT_URL_POST.Size = New System.Drawing.Size(578, 22)
-            Me.TXT_URL_POST.TabIndex = 2
-            '
-            'TXT_REPRODUCE
-            '
-            ActionButton4.BackgroundImage = CType(resources.GetObject("ActionButton4.BackgroundImage"), System.Drawing.Image)
-            ActionButton4.Dock = System.Windows.Forms.DockStyle.Top
-            ActionButton4.Name = "Clear"
-            ActionButton4.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
-            Me.TXT_REPRODUCE.Buttons.Add(ActionButton4)
-            Me.TXT_REPRODUCE.CaptionDock = System.Windows.Forms.DockStyle.Top
-            Me.TXT_REPRODUCE.CaptionMode = PersonalUtilities.Forms.Controls.Base.ICaptionControl.Modes.None
-            Me.TXT_REPRODUCE.CaptionVisible = False
-            Me.TXT_REPRODUCE.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_REPRODUCE.GroupBoxed = True
-            Me.TXT_REPRODUCE.GroupBoxText = "To Reproduce"
-            Me.TXT_REPRODUCE.Lines = New String(-1) {}
-            Me.TXT_REPRODUCE.Location = New System.Drawing.Point(3, 134)
-            Me.TXT_REPRODUCE.Multiline = True
-            Me.TXT_REPRODUCE.Name = "TXT_REPRODUCE"
-            Me.TXT_REPRODUCE.Size = New System.Drawing.Size(578, 69)
-            Me.TXT_REPRODUCE.TabIndex = 3
-            Me.TXT_REPRODUCE.TextToolTip = "Steps to reproduce the behavior:" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "1. Do something" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "2. See error"
-            Me.TXT_REPRODUCE.TextToolTipEnabled = True
-            '
-            'TXT_EXPECT
-            '
-            ActionButton5.BackgroundImage = CType(resources.GetObject("ActionButton5.BackgroundImage"), System.Drawing.Image)
-            ActionButton5.Dock = System.Windows.Forms.DockStyle.Top
-            ActionButton5.Name = "Clear"
-            ActionButton5.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
-            Me.TXT_EXPECT.Buttons.Add(ActionButton5)
-            Me.TXT_EXPECT.CaptionDock = System.Windows.Forms.DockStyle.Top
-            Me.TXT_EXPECT.CaptionMode = PersonalUtilities.Forms.Controls.Base.ICaptionControl.Modes.None
-            Me.TXT_EXPECT.CaptionVisible = False
-            Me.TXT_EXPECT.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_EXPECT.GroupBoxed = True
-            Me.TXT_EXPECT.GroupBoxText = "Expected behavior"
-            Me.TXT_EXPECT.Lines = New String(-1) {}
-            Me.TXT_EXPECT.Location = New System.Drawing.Point(3, 209)
-            Me.TXT_EXPECT.Multiline = True
-            Me.TXT_EXPECT.Name = "TXT_EXPECT"
-            Me.TXT_EXPECT.Size = New System.Drawing.Size(578, 69)
-            Me.TXT_EXPECT.TabIndex = 4
-            Me.TXT_EXPECT.TextToolTip = "A clear and concise description of what you expected to happen."
-            Me.TXT_EXPECT.TextToolTipEnabled = True
-            '
-            'TXT_LOG
-            '
-            ActionButton6.BackgroundImage = CType(resources.GetObject("ActionButton6.BackgroundImage"), System.Drawing.Image)
-            ActionButton6.Dock = System.Windows.Forms.DockStyle.Top
-            ActionButton6.Name = "Open"
-            ActionButton6.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Open
-            ActionButton6.ToolTipText = "Select log files to add their text to the message"
-            ActionButton7.BackgroundImage = CType(resources.GetObject("ActionButton7.BackgroundImage"), System.Drawing.Image)
-            ActionButton7.Dock = System.Windows.Forms.DockStyle.Top
-            ActionButton7.Name = "Clear"
-            ActionButton7.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.Clear
-            ActionButton7.ToolTipText = "Empty"
-            Me.TXT_LOG.Buttons.Add(ActionButton6)
-            Me.TXT_LOG.Buttons.Add(ActionButton7)
-            Me.TXT_LOG.CaptionDock = System.Windows.Forms.DockStyle.Top
-            Me.TXT_LOG.CaptionMode = PersonalUtilities.Forms.Controls.Base.ICaptionControl.Modes.None
-            Me.TXT_LOG.CaptionVisible = False
-            Me.TXT_LOG.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_LOG.GroupBoxed = True
-            Me.TXT_LOG.GroupBoxText = "Log data"
-            Me.TXT_LOG.Lines = New String(-1) {}
-            Me.TXT_LOG.Location = New System.Drawing.Point(3, 284)
-            Me.TXT_LOG.Multiline = True
-            Me.TXT_LOG.Name = "TXT_LOG"
-            Me.TXT_LOG.Size = New System.Drawing.Size(578, 69)
-            Me.TXT_LOG.TabIndex = 5
-            '
             'TXT_FILES
             '
             ActionButton8.BackgroundImage = CType(resources.GetObject("ActionButton8.BackgroundImage"), System.Drawing.Image)
@@ -310,7 +304,6 @@ Namespace Editors
             Me.TXT_FILES.Dock = System.Windows.Forms.DockStyle.Fill
             Me.TXT_FILES.GroupBoxed = True
             Me.TXT_FILES.GroupBoxText = "Files"
-            Me.TXT_FILES.Lines = New String(-1) {}
             Me.TXT_FILES.Location = New System.Drawing.Point(3, 359)
             Me.TXT_FILES.Multiline = True
             Me.TXT_FILES.Name = "TXT_FILES"
@@ -332,13 +325,13 @@ Namespace Editors
             Me.Name = "BugReporterForm"
             Me.Text = "New message"
             TP_MAIN.ResumeLayout(False)
-            TP_BUTTONS.ResumeLayout(False)
             CType(Me.TXT_DESCR, System.ComponentModel.ISupportInitialize).EndInit()
             CType(Me.TXT_URL_PROFILE, System.ComponentModel.ISupportInitialize).EndInit()
             CType(Me.TXT_URL_POST, System.ComponentModel.ISupportInitialize).EndInit()
             CType(Me.TXT_REPRODUCE, System.ComponentModel.ISupportInitialize).EndInit()
             CType(Me.TXT_EXPECT, System.ComponentModel.ISupportInitialize).EndInit()
             CType(Me.TXT_LOG, System.ComponentModel.ISupportInitialize).EndInit()
+            TP_BUTTONS.ResumeLayout(False)
             CType(Me.TXT_FILES, System.ComponentModel.ISupportInitialize).EndInit()
             Me.ResumeLayout(False)
 
