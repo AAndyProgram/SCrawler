@@ -27,6 +27,7 @@ Imports CookieUpdateModes = PersonalUtilities.Tools.Web.Cookies.CookieKeeper.Upd
 Namespace API.Base
     Friend MustInherit Class UserDataBase : Implements IUserData, IPluginContentProvider, IThrower
         Friend Const UserFileAppender As String = "User"
+        Friend Const PostTextSpecialFolderDefault As String = "txt"
 #Region "Events"
         Private ReadOnly UserUpdatedEventHandlers As List(Of IUserData.UserUpdatedEventHandler)
         Friend Custom Event UserUpdated As IUserData.UserUpdatedEventHandler Implements IUserData.UserUpdated
@@ -152,6 +153,9 @@ Namespace API.Base
         Private Const Name_IsSubscription As String = UserInfo.Name_IsSubscription
         Private Const Name_Temporary As String = "Temporary"
         Private Const Name_Favorite As String = "Favorite"
+        Private Const Name_DownloadText As String = "DownloadText"
+        Private Const Name_DownloadTextPosts As String = "DownloadTextPosts"
+        Private Const Name_DownloadTextSpecialFolder As String = "DownloadTextSpecialFolder"
         Private Const Name_BackColor As String = "BackColor"
         Private Const Name_ForeColor As String = "ForeColor"
         Private Const Name_CreatedByChannel As String = "CreatedByChannel"
@@ -167,6 +171,7 @@ Namespace API.Base
 
         Private Const Name_VideoCount As String = "VideoCount"
         Private Const Name_PicturesCount As String = "PicturesCount"
+        Private Const Name_TextCount As String = "TextCount"
         Private Const Name_LastUpdated As String = "LastUpdated"
 
         Private Const Name_ScriptUse As String = "ScriptUse"
@@ -639,6 +644,9 @@ BlockNullPicture:
         Friend Overridable Property ReadyForDownload As Boolean = True Implements IUserData.ReadyForDownload
         Friend Property DownloadImages As Boolean = True Implements IUserData.DownloadImages
         Friend Property DownloadVideos As Boolean = True Implements IUserData.DownloadVideos
+        Friend Overridable Property DownloadText As Boolean = False
+        Friend Overridable Property DownloadTextPosts As Boolean = False
+        Friend Overridable Property DownloadTextSpecialFolder As Boolean = True
         Friend Property DownloadMissingOnly As Boolean = False Implements IUserData.DownloadMissingOnly
         Private _IconBannerDownloaded As Boolean = False
         Friend WriteOnly Property IconBannerDownloaded As Boolean
@@ -750,9 +758,23 @@ BlockNullPicture:
                 End If
             End Set
         End Property
+        Private _DownloadedTextsTotal As Integer = 0
+        Private _DownloadedTextsSession As Integer = 0
+        Friend Property DownloadedTexts(ByVal Total As Boolean) As Integer Implements IUserData.DownloadedTexts
+            Get
+                Return IIf(Total, _DownloadedTextsTotal, _DownloadedTextsSession)
+            End Get
+            Set(ByVal NewValue As Integer)
+                If Total Then
+                    _DownloadedTextsTotal = NewValue
+                Else
+                    _DownloadedTextsSession = NewValue
+                End If
+            End Set
+        End Property
         Friend Overridable ReadOnly Property DownloadedTotal(Optional ByVal Total As Boolean = True) As Integer Implements IUserData.DownloadedTotal
             Get
-                Return DownloadedPictures(Total) + DownloadedVideos(Total)
+                Return DownloadedPictures(Total) + DownloadedVideos(Total) + DownloadedTexts(Total)
             End Get
         End Property
         Friend ReadOnly Property DownloadedInformation As String Implements IUserData.DownloadedInformation
@@ -963,9 +985,13 @@ BlockNullPicture:
                         ReadyForDownload = x.Value(Name_ReadyForDownload).FromXML(Of Boolean)(True)
                         DownloadImages = x.Value(Name_DownloadImages).FromXML(Of Boolean)(True)
                         DownloadVideos = x.Value(Name_DownloadVideos).FromXML(Of Boolean)(True)
+                        DownloadText = x.Value(Name_DownloadText).FromXML(Of Boolean)(False)
+                        DownloadTextPosts = x.Value(Name_DownloadTextPosts).FromXML(Of Boolean)(False)
+                        DownloadTextSpecialFolder = x.Value(Name_DownloadTextSpecialFolder).FromXML(Of Boolean)(True)
                         _IconBannerDownloaded = x.Value(Name_IconBannerDownloaded).FromXML(Of Boolean)(False)
                         DownloadedVideos(True) = x.Value(Name_VideoCount).FromXML(Of Integer)(0)
                         DownloadedPictures(True) = x.Value(Name_PicturesCount).FromXML(Of Integer)(0)
+                        DownloadedTexts(True) = x.Value(Name_TextCount).FromXML(Of Integer)(0)
                         LastUpdated = AConvert(Of Date)(x.Value(Name_LastUpdated), ADateTime.Formats.BaseDateTime, Nothing)
                         ScriptUse = x.Value(Name_ScriptUse).FromXML(Of Boolean)(False)
                         ScriptData = x.Value(Name_ScriptData)
@@ -1025,9 +1051,13 @@ BlockNullPicture:
                     x.Add(Name_ReadyForDownload, ReadyForDownload.BoolToInteger)
                     x.Add(Name_DownloadImages, DownloadImages.BoolToInteger)
                     x.Add(Name_DownloadVideos, DownloadVideos.BoolToInteger)
+                    x.Add(Name_DownloadText, DownloadText.BoolToInteger)
+                    x.Add(Name_DownloadTextPosts, DownloadTextPosts.BoolToInteger)
+                    x.Add(Name_DownloadTextSpecialFolder, DownloadTextSpecialFolder.BoolToInteger)
                     x.Add(Name_IconBannerDownloaded, _IconBannerDownloaded.BoolToInteger)
                     x.Add(Name_VideoCount, DownloadedVideos(True))
                     x.Add(Name_PicturesCount, DownloadedPictures(True))
+                    x.Add(Name_TextCount, DownloadedTexts(True))
                     x.Add(Name_LastUpdated, AConvert(Of String)(LastUpdated, ADateTime.Formats.BaseDateTime, String.Empty))
                     x.Add(Name_ScriptUse, ScriptUse.BoolToInteger)
                     x.Add(Name_ScriptData, ScriptData)
@@ -1246,6 +1276,7 @@ BlockNullPicture:
                     If Not DownloadImages Then _TempMediaList.RemoveAll(Function(m) m.Type = UTypes.GIF Or m.Type = UTypes.Picture)
                     If Not DownloadVideos Then _TempMediaList.RemoveAll(Function(m) m.Type = UTypes.Video Or
                                                                                     m.Type = UTypes.VideoPre Or m.Type = UTypes.m3u8)
+                    If Not DownloadTextPosts Then _TempMediaList.RemoveAll(Function(m) m.Type = UTypes.Text)
                     If DownloadMissingOnly Then _TempMediaList.RemoveAll(Function(m) Not m.State = UStates.Missing)
                 End If
 
@@ -1659,7 +1690,8 @@ BlockNullPicture:
                 Dim dCount% = 0, dTotal% = 0
                 ThrowAny(Token)
                 If _ContentNew.Count > 0 Then
-                    _ContentNew.RemoveAll(Function(c) c.URL.IsEmptyString)
+                    _ContentNew.RemoveAll(Function(c) Not c.Type = UTypes.Text And c.URL.IsEmptyString)
+                    If Not DownloadText Or Not DownloadTextPosts Then _ContentNew.RemoveAll(Function(c) c.Type = UTypes.Text)
                     If _ContentNew.Count > 0 Then
                         If UseMD5Comparison Then LoadMD5()
                         MyFile.Exists(SFO.Path)
@@ -1668,7 +1700,7 @@ BlockNullPicture:
                         Dim vsf As Boolean = SeparateVideoFolderF
                         Dim __isVideo As Boolean
                         Dim __interrupt As Boolean
-                        Dim f As SFile
+                        Dim f As SFile, fTxt As SFile
                         Dim v As UserMedia
                         Dim __fileDeleted As Boolean
                         Dim fileNumProvider As SFileNumbers = SFileNumbers.Default
@@ -1682,18 +1714,20 @@ BlockNullPicture:
                                                                                ErrorsDescriber.Execute(EDP.SendToLog, file_del_ex)
                                                                            End Try
                                                                        End Sub
-                        Dim updateDownCount As Action = Sub()
-                                                            Dim __n% = IIf(__fileDeleted, -1, 1)
-                                                            If __isVideo Then
-                                                                v.Type = UTypes.Video
-                                                                DownloadedVideos(False) += __n
-                                                            ElseIf v.Type = UTypes.GIF Then
-                                                                DownloadedPictures(False) += __n
-                                                            Else
-                                                                v.Type = UTypes.Picture
-                                                                DownloadedPictures(False) += __n
-                                                            End If
-                                                        End Sub
+                        Dim updateDownCount As Action(Of Boolean) = Sub(ByVal forceText As Boolean)
+                                                                        Dim __n% = IIf(__fileDeleted And Not forceText, -1, 1)
+                                                                        If v.Type = UTypes.Text Or forceText Then
+                                                                            DownloadedTexts(False) += __n
+                                                                        ElseIf __isVideo Then
+                                                                            v.Type = UTypes.Video
+                                                                            DownloadedVideos(False) += __n
+                                                                        ElseIf v.Type = UTypes.GIF Then
+                                                                            DownloadedPictures(False) += __n
+                                                                        Else
+                                                                            v.Type = UTypes.Picture
+                                                                            DownloadedPictures(False) += __n
+                                                                        End If
+                                                                    End Sub
 
                         Using w As New OptionalWebClient(Me)
                             If vsf Then CSFileP($"{MyDir}\{VideoFolderName}\").Exists(SFO.Path)
@@ -1726,8 +1760,9 @@ BlockNullPicture:
 
                                 __fileDeleted = False
 
-                                If Not f.IsEmptyString And Not v.URL.IsEmptyString Then
+                                If (v.Type = UTypes.Text And DownloadText) Or (Not f.IsEmptyString And Not v.URL.IsEmptyString) Then
                                     Try
+                                        If v.Type = UTypes.Text Then GoTo stxt
                                         __isVideo = v.Type = UTypes.Video Or f.Extension = "mp4" Or v.Type = UTypes.m3u8
 
                                         If f.Extension.IsEmptyString Then
@@ -1770,7 +1805,7 @@ BlockNullPicture:
                                             End If
                                         End If
 
-                                        updateDownCount()
+                                        updateDownCount(False)
 
                                         v.File = ChangeFileNameByProvider(f, v)
                                         v.State = UStates.Downloaded
@@ -1781,7 +1816,7 @@ BlockNullPicture:
                                                 If Not v.MD5.IsEmptyString Then
                                                     If _MD5List.Contains(v.MD5) Then
                                                         __fileDeleted = v.File.Delete(SFO.File, SFODelete.DeletePermanently, EDP.ReturnValue)
-                                                        If __fileDeleted Then dCount -= 1 : updateDownCount()
+                                                        If __fileDeleted Then dCount -= 1 : updateDownCount(False)
                                                     Else
                                                         _MD5List.Add(v.MD5)
                                                     End If
@@ -1790,7 +1825,33 @@ BlockNullPicture:
                                                 dCount -= 1
                                             End If
                                         End If
+stxt:
+                                        If DownloadText And Not v.PostText.IsEmptyString And (v.Type = UTypes.Text Or v.File.Exists) Then
+                                            fTxt = v.File
+                                            If fTxt.IsEmptyString Then
+                                                If DownloadTextPosts And Not f.IsEmptyString Then
+                                                    fTxt = f
+                                                    If v.Type = UTypes.Text Then fTxt.Name &= IIf(fTxt.Name.IsEmptyString, String.Empty, "_") &
+                                                                                              v.Post.ID.StringRemoveWinForbiddenSymbols
+                                                    If fTxt.IsEmptyString Then Throw New ArgumentNullException("Text", "Error downloading text") With {.HelpLink = 10}
+                                                Else
+                                                    Continue For
+                                                End If
+                                            End If
+                                            v.PostTextFileSpecialFolder = DownloadTextSpecialFolder
+                                            If DownloadTextSpecialFolder Then fTxt.Path = $"{fTxt.Path.StringTrimEnd("\")}\{PostTextSpecialFolderDefault}"
+                                            fTxt.Extension = "txt"
+                                            v.PostTextFile = TextSaver.SaveTextToFile(v.PostText, fTxt,,, Settings.FeedShowTextPosts_LogErrors_E)
+                                            If Not v.PostTextFile.Exists Then Throw New ArgumentNullException("Text", "Error downloading text") With {.HelpLink = 10}
+                                            If v.Type = UTypes.Text Then v.File = v.PostTextFile
+                                            v.State = UStates.Downloaded
+                                            updateDownCount(Not v.Type = UTypes.Text)
+                                            If v.URL.IsEmptyString Then v.URL = v.PostTextFile.File
+                                            If v.URL_BASE.IsEmptyString Then v.URL_BASE = v.URL
+                                        End If
                                         dCount += 1
+                                    Catch anex As ArgumentNullException When anex.HelpLink = 10
+                                        LogError(anex, anex.Message, Settings.FeedShowTextPosts_LogErrors_E)
                                     Catch woex As OperationCanceledException When Token.IsCancellationRequested
                                         __deleteFile.Invoke(f, v.URL_BASE)
                                         v.State = UStates.Missing
@@ -1798,7 +1859,7 @@ BlockNullPicture:
                                         _ContentNew(i) = v
                                         Throw woex
                                     Catch wex As Exception
-                                        If DownloadContentDefault_ProcessDownloadException() Then
+                                        If Not v.Type = UTypes.Text AndAlso DownloadContentDefault_ProcessDownloadException() Then
                                             v.Attempts += 1
                                             v.State = UStates.Missing
                                             If MissingErrorsAdd Then ErrorDownloading(f, v.URL)
@@ -1991,7 +2052,7 @@ BlockNullPicture:
                         End If
                         If m.Contains(IUserData.EraseMode.Data) Then
                             Dim files As List(Of SFile) = SFile.GetFiles(DownloadContentDefault_GetRootDir.CSFileP,, SearchOption.AllDirectories, e)
-                            If files.ListExists Then files.RemoveAll(Function(f) Not f.Extension.IsEmptyString AndAlso (f.Extension = "txt" Or f.Extension = "xml"))
+                            If files.ListExists Then files.RemoveAll(Function(f) Not f.Extension.IsEmptyString AndAlso ((f.Path.EndsWith(SettingsFolderName) And f.Extension = "txt") Or f.Extension = "xml"))
                             If files.ListExists Then files.ForEach(Sub(f) f.Delete(SFO.File, Settings.DeleteMode, e))
                             LatestData.Clear()
                             result = True
@@ -2233,6 +2294,17 @@ BlockNullPicture:
 #End Region
         Friend Function ToStringForLog() As String
             Return $"{IIf(IncludedInCollection, $"[{CollectionName}] - ", String.Empty)}[{Site}] - {Name}"
+        End Function
+        Friend Overloads Function ToStringExt(ByVal UseFriendlyName As Boolean) As String
+            Return $"{IIf(IncludedInCollection, $"[{CollectionName}] - ", String.Empty)}[{Site}] - {String.Format(CStr(IIf(Not FriendlyName.IsEmptyString And
+                                                                                                    UseFriendlyName, "{1} ({0})", "{0}")), Name, FriendlyName)}"
+        End Function
+        Friend Overloads Shared Function ToStringExt(ByVal User As UserInfo) As String
+            If Not IsDBNull(User) Then
+                With User : Return $"{IIf(.IncludedInCollection, $"[{ .CollectionName}] - ", String.Empty)}[{ .Site}] - { .Name}" : End With
+            Else
+                Return String.Empty
+            End If
         End Function
         Public Overrides Function ToString() As String
             If IsCollection Then

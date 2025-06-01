@@ -18,6 +18,7 @@ Namespace API.YouTube.Base
         Public Const TrueUrlPattern As String = "https?://[^/]*?youtube.com/[^\?/&]+((\??[^\?/&]+|/[^\?/&]+))"
         '2 - type; 5 - id
         Public Const UrlTypePattern As String = "(?<=https?://[^/]*?youtube.com/)((@|[^\?/&]+))([/\?]{0,1}(list=|v=|)([^\?/&]*))(?=(\S+|\Z|))"
+        Public Const UrlTypePattern_BE As String = "(?<=https?://[^/]*?youtu.be/)([^\?/&]+)"
         Private Sub New()
         End Sub
         Public Shared Function StandardizeURL(ByVal URL As String) As String
@@ -36,6 +37,7 @@ Namespace API.YouTube.Base
                             Next
                             data.Clear()
                         End If
+                        If val.IsEmptyString Then val = RegexReplace(URL, RParams.DMS(UrlTypePattern_BE, 0, EDP.ReturnValue))
                         If Not val.IsEmptyString Then Return $"https://www.youtube.com/watch?v={val}"
                     End If
                 End If
@@ -100,6 +102,9 @@ Namespace API.YouTube.Base
                                 Return YouTubeMediaType.Channel
                         End Select
                     End If
+                Else
+                    Dim v$ = RegexReplace(URL, RParams.DMS(UrlTypePattern_BE, 0, EDP.ReturnValue))
+                    If Not v.IsEmptyString Then Return YouTubeMediaType.Single
                 End If
             End If
             Return YouTubeMediaType.Undefined

@@ -203,7 +203,11 @@ Partial Friend Module MainMod
                    IsSubscription = Other.IsSubscription And (Not Plugin = PathPlugin.PluginKey Or SpecialPath = Other.SpecialPath)
         End Function
         Public Overloads Overrides Function Equals(ByVal Obj As Object) As Boolean
-            Return Equals(DirectCast(Obj, UserInfo))
+            If Not IsDBNull(Obj) Then
+                Return Equals(DirectCast(Obj, UserInfo))
+            Else
+                Return False
+            End If
         End Function
 #End Region
     End Structure

@@ -39,6 +39,7 @@ Public Class MainFrame
 #Region "Initializer"
     Public Sub New()
         InitializeComponent()
+        FormFont = Font
         Settings = New SettingsCLS
         With Settings.Plugins
             If .Count > 0 Then

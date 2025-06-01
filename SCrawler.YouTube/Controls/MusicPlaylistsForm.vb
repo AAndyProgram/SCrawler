@@ -155,7 +155,7 @@ Namespace API.YouTube.Controls
             With DirectCast(MyContainer, YouTubeMediaContainerBase)
                 Select Case Sender.DefaultButton
                     Case ADB.Open
-                        Using f As New SimpleListForm(Of String)(IIf(isLyrics, AvailableSubtitlesFormats, AvailableAudioFormats)) With {
+                        Using f As New SimpleListForm(Of String)(If(isLyrics, AvailableSubtitlesFormats, AvailableAudioFormats)) With {
                             .DesignXML = DesignXML,
                             .DesignXMLNodeName = SimpleArraysFormNode,
                             .FormText = DirectCast(e.AssociatedControl, TextBoxExtended).CaptionText,

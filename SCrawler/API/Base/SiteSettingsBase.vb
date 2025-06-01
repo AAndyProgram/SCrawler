@@ -14,6 +14,7 @@ Imports PersonalUtilities.Tools.Web.Cookies
 Imports PersonalUtilities.Tools.Web.Clients
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports Download = SCrawler.Plugin.ISiteSettings.Download
+Imports DN = SCrawler.API.Base.DeclaredNames
 Namespace API.Base
     Friend MustInherit Class SiteSettingsBase : Implements ISiteSettings, IResponserContainer
 #Region "Declarations"
@@ -69,6 +70,14 @@ Namespace API.Base
                 _UserOptionsExists = Not t Is Nothing
             End Set
         End Property
+#Region "New user defaults"
+        <PropertyOption(ControlText:=DN.DownloadTextCaption, ControlToolTip:=DN.DownloadTextTip, Category:=DN.CAT_UserDefs), PXML, PClonable>
+        Friend Overridable Property DownloadText As PropertyValue
+        <PropertyOption(ControlText:=DN.DownloadTextPostsCaption, ControlToolTip:=DN.DownloadTextPostsTip, Category:=DN.CAT_UserDefs), PXML, PClonable>
+        Friend Overridable Property DownloadTextPosts As PropertyValue
+        <PropertyOption(ControlText:=DN.DownloadTextSpecialFolderCaption, ControlToolTip:=DN.DownloadTextSpecialFolderTip, Category:=DN.CAT_UserDefs), PXML, PClonable>
+        Friend Overridable Property DownloadTextSpecialFolder As PropertyValue
+#End Region
 #End Region
 #Region "EnvironmentPrograms"
         Private Property CMDEncoding As String Implements ISiteSettings.CMDEncoding
@@ -124,6 +133,9 @@ Namespace API.Base
             _Image = __Image
             Responser = New Responser With {.DeclaredError = EDP.ThrowException}
             SettingsVersion = New PropertyValue(0)
+            DownloadText = New PropertyValue(False)
+            DownloadTextPosts = New PropertyValue(False)
+            DownloadTextSpecialFolder = New PropertyValue(True)
             UpdateResponserFile()
         End Sub
         Friend Sub New(ByVal SiteName As String, ByVal CookiesDomain As String, ByVal AccName As String, ByVal Temp As Boolean,

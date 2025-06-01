@@ -36,6 +36,8 @@ Namespace DownloadObjects
             Dim MENU_LOAD_SEP_0 As System.Windows.Forms.ToolStripSeparator
             Dim MENU_LOAD_SEP_8 As System.Windows.Forms.ToolStripSeparator
             Dim MENU_LOAD_SEP_9 As System.Windows.Forms.ToolStripSeparator
+            Dim SEP_FILTER As System.Windows.Forms.ToolStripSeparator
+            Dim SEP_FILTER_1 As System.Windows.Forms.ToolStripSeparator
             Me.OPT_DEFAULT = New System.Windows.Forms.ToolStripMenuItem()
             Me.OPT_SUBSCRIPTIONS = New System.Windows.Forms.ToolStripMenuItem()
             Me.ToolbarTOP = New System.Windows.Forms.ToolStrip()
@@ -47,6 +49,11 @@ Namespace DownloadObjects
             Me.BTT_MOVE_TO = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_COPY_SPEC_TO = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_MOVE_SPEC_TO = New System.Windows.Forms.ToolStripMenuItem()
+            Me.BTT_FILTER = New System.Windows.Forms.ToolStripMenuItem()
+            Me.BTT_FILTER_SIMPLE = New System.Windows.Forms.ToolStripMenuItem()
+            Me.BTT_FILTER_DISABLE = New System.Windows.Forms.ToolStripMenuItem()
+            Me.BTT_FILTER_SAVE = New System.Windows.Forms.ToolStripMenuItem()
+            Me.BTT_FILTER_MANAGE = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_LOAD_FAV = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_LOAD_SPEC = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_FEED_ADD_FAV = New System.Windows.Forms.ToolStripMenuItem()
@@ -68,6 +75,7 @@ Namespace DownloadObjects
             Me.BTT_MERGE_FEEDS = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_CHECK_ALL = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_CHECK_NONE = New System.Windows.Forms.ToolStripMenuItem()
+            Me.BTT_CHECK_INVERT = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_VIEW_SAVE = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_VIEW_LOAD = New System.Windows.Forms.ToolStripMenuItem()
             Me.SEP_0 = New System.Windows.Forms.ToolStripSeparator()
@@ -76,7 +84,6 @@ Namespace DownloadObjects
             Me.BTT_DOWN_SELECTED = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_REFRESH = New System.Windows.Forms.ToolStripButton()
             Me.TP_DATA = New System.Windows.Forms.TableLayoutPanel()
-            Me.BTT_CHECK_INVERT = New System.Windows.Forms.ToolStripMenuItem()
             SEP_1 = New System.Windows.Forms.ToolStripSeparator()
             SEP_2 = New System.Windows.Forms.ToolStripSeparator()
             MENU_VIEW = New System.Windows.Forms.ToolStripDropDownButton()
@@ -90,6 +97,8 @@ Namespace DownloadObjects
             MENU_LOAD_SEP_0 = New System.Windows.Forms.ToolStripSeparator()
             MENU_LOAD_SEP_8 = New System.Windows.Forms.ToolStripSeparator()
             MENU_LOAD_SEP_9 = New System.Windows.Forms.ToolStripSeparator()
+            SEP_FILTER = New System.Windows.Forms.ToolStripSeparator()
+            SEP_FILTER_1 = New System.Windows.Forms.ToolStripSeparator()
             Me.ToolbarTOP.SuspendLayout()
             Me.SuspendLayout()
             '
@@ -175,6 +184,16 @@ Namespace DownloadObjects
             MENU_LOAD_SEP_9.Name = "MENU_LOAD_SEP_9"
             MENU_LOAD_SEP_9.Size = New System.Drawing.Size(349, 6)
             '
+            'SEP_FILTER
+            '
+            SEP_FILTER.Name = "SEP_FILTER"
+            SEP_FILTER.Size = New System.Drawing.Size(349, 6)
+            '
+            'SEP_FILTER_1
+            '
+            SEP_FILTER_1.Name = "SEP_FILTER_1"
+            SEP_FILTER_1.Size = New System.Drawing.Size(190, 6)
+            '
             'ToolbarTOP
             '
             Me.ToolbarTOP.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden
@@ -188,7 +207,7 @@ Namespace DownloadObjects
             '
             Me.MENU_LOAD_SESSION.AutoToolTip = False
             Me.MENU_LOAD_SESSION.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image
-            Me.MENU_LOAD_SESSION.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_LOAD_SESSION_CURRENT, Me.BTT_LOAD_SESSION_LAST, Me.BTT_LOAD_SESSION_CHOOSE, MENU_LOAD_SEP_0, Me.BTT_COPY_TO, Me.BTT_MOVE_TO, MENU_LOAD_SEP_1, Me.BTT_COPY_SPEC_TO, Me.BTT_MOVE_SPEC_TO, MENU_LOAD_SEP_2, Me.BTT_LOAD_FAV, Me.BTT_LOAD_SPEC, MENU_LOAD_SEP_3, Me.BTT_FEED_ADD_FAV, Me.BTT_FEED_ADD_FAV_REMOVE, Me.BTT_FEED_REMOVE_FAV, MENU_LOAD_SEP_4, Me.BTT_FEED_ADD_SPEC, Me.BTT_FEED_ADD_SPEC_REMOVE, Me.BTT_FEED_REMOVE_SPEC, MENU_LOAD_SEP_5, Me.BTT_FEED_CLEAR_FAV, Me.BTT_FEED_CLEAR_SPEC, Me.BTT_FEED_DELETE_SPEC, Me.BTT_FEED_DELETE_DAILY_LIST, Me.BTT_FEED_DELETE_DAILY_DATE, MENU_LOAD_SEP_6, Me.BTT_CURR_SESSION_SET, Me.BTT_CURR_SESSION_SET_LAST, Me.BTT_MERGE_SESSIONS, Me.BTT_CLEAR_DAILY, Me.BTT_RESET_DAILY, MENU_LOAD_SEP_7, Me.BTT_MERGE_FEEDS, MENU_LOAD_SEP_8, Me.BTT_CHECK_ALL, Me.BTT_CHECK_NONE, Me.BTT_CHECK_INVERT, MENU_LOAD_SEP_9, Me.BTT_VIEW_SAVE, Me.BTT_VIEW_LOAD})
+            Me.MENU_LOAD_SESSION.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_LOAD_SESSION_CURRENT, Me.BTT_LOAD_SESSION_LAST, Me.BTT_LOAD_SESSION_CHOOSE, MENU_LOAD_SEP_0, Me.BTT_COPY_TO, Me.BTT_MOVE_TO, MENU_LOAD_SEP_1, Me.BTT_COPY_SPEC_TO, Me.BTT_MOVE_SPEC_TO, MENU_LOAD_SEP_2, Me.BTT_FILTER, SEP_FILTER, Me.BTT_LOAD_FAV, Me.BTT_LOAD_SPEC, MENU_LOAD_SEP_3, Me.BTT_FEED_ADD_FAV, Me.BTT_FEED_ADD_FAV_REMOVE, Me.BTT_FEED_REMOVE_FAV, MENU_LOAD_SEP_4, Me.BTT_FEED_ADD_SPEC, Me.BTT_FEED_ADD_SPEC_REMOVE, Me.BTT_FEED_REMOVE_SPEC, MENU_LOAD_SEP_5, Me.BTT_FEED_CLEAR_FAV, Me.BTT_FEED_CLEAR_SPEC, Me.BTT_FEED_DELETE_SPEC, Me.BTT_FEED_DELETE_DAILY_LIST, Me.BTT_FEED_DELETE_DAILY_DATE, MENU_LOAD_SEP_6, Me.BTT_CURR_SESSION_SET, Me.BTT_CURR_SESSION_SET_LAST, Me.BTT_MERGE_SESSIONS, Me.BTT_CLEAR_DAILY, Me.BTT_RESET_DAILY, MENU_LOAD_SEP_7, Me.BTT_MERGE_FEEDS, MENU_LOAD_SEP_8, Me.BTT_CHECK_ALL, Me.BTT_CHECK_NONE, Me.BTT_CHECK_INVERT, MENU_LOAD_SEP_9, Me.BTT_VIEW_SAVE, Me.BTT_VIEW_LOAD})
             Me.MENU_LOAD_SESSION.Image = Global.SCrawler.My.Resources.Resources.ArrowDownPic_Blue_24
             Me.MENU_LOAD_SESSION.ImageTransparentColor = System.Drawing.Color.Magenta
             Me.MENU_LOAD_SESSION.Name = "MENU_LOAD_SESSION"
@@ -247,6 +266,41 @@ Namespace DownloadObjects
             Me.BTT_MOVE_SPEC_TO.Size = New System.Drawing.Size(352, 22)
             Me.BTT_MOVE_SPEC_TO.Text = "Move feed/session files to..."
             Me.BTT_MOVE_SPEC_TO.ToolTipText = "Move all the files of the loaded feed/session to..."
+            '
+            'BTT_FILTER
+            '
+            Me.BTT_FILTER.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_FILTER_SIMPLE, Me.BTT_FILTER_DISABLE, Me.BTT_FILTER_SAVE, SEP_FILTER_1, Me.BTT_FILTER_MANAGE})
+            Me.BTT_FILTER.Name = "BTT_FILTER"
+            Me.BTT_FILTER.Size = New System.Drawing.Size(352, 22)
+            Me.BTT_FILTER.Text = "Filter"
+            '
+            'BTT_FILTER_SIMPLE
+            '
+            Me.BTT_FILTER_SIMPLE.AutoToolTip = True
+            Me.BTT_FILTER_SIMPLE.Name = "BTT_FILTER_SIMPLE"
+            Me.BTT_FILTER_SIMPLE.Size = New System.Drawing.Size(193, 22)
+            Me.BTT_FILTER_SIMPLE.Text = "Simple filter"
+            Me.BTT_FILTER_SIMPLE.ToolTipText = "Apply filter to current feed/session"
+            '
+            'BTT_FILTER_DISABLE
+            '
+            Me.BTT_FILTER_DISABLE.Image = Global.SCrawler.My.Resources.Resources.DeletePic_24
+            Me.BTT_FILTER_DISABLE.Name = "BTT_FILTER_DISABLE"
+            Me.BTT_FILTER_DISABLE.Size = New System.Drawing.Size(193, 22)
+            Me.BTT_FILTER_DISABLE.Text = "Disable filter"
+            '
+            'BTT_FILTER_SAVE
+            '
+            Me.BTT_FILTER_SAVE.Name = "BTT_FILTER_SAVE"
+            Me.BTT_FILTER_SAVE.Size = New System.Drawing.Size(193, 22)
+            Me.BTT_FILTER_SAVE.Text = "Save current filter"
+            '
+            'BTT_FILTER_MANAGE
+            '
+            Me.BTT_FILTER_MANAGE.Image = Global.SCrawler.My.Resources.Resources.PencilPic_16
+            Me.BTT_FILTER_MANAGE.Name = "BTT_FILTER_MANAGE"
+            Me.BTT_FILTER_MANAGE.Size = New System.Drawing.Size(193, 22)
+            Me.BTT_FILTER_MANAGE.Text = "Managing saved filters"
             '
             'BTT_LOAD_FAV
             '
@@ -404,6 +458,12 @@ Namespace DownloadObjects
             Me.BTT_CHECK_NONE.Size = New System.Drawing.Size(352, 22)
             Me.BTT_CHECK_NONE.Text = "Select none"
             '
+            'BTT_CHECK_INVERT
+            '
+            Me.BTT_CHECK_INVERT.Name = "BTT_CHECK_INVERT"
+            Me.BTT_CHECK_INVERT.Size = New System.Drawing.Size(352, 22)
+            Me.BTT_CHECK_INVERT.Text = "Invert selection"
+            '
             'BTT_VIEW_SAVE
             '
             Me.BTT_VIEW_SAVE.Name = "BTT_VIEW_SAVE"
@@ -484,12 +544,6 @@ Namespace DownloadObjects
             Me.TP_DATA.Size = New System.Drawing.Size(484, 436)
             Me.TP_DATA.TabIndex = 1
             '
-            'BTT_CHECK_INVERT
-            '
-            Me.BTT_CHECK_INVERT.Name = "BTT_CHECK_INVERT"
-            Me.BTT_CHECK_INVERT.Size = New System.Drawing.Size(352, 22)
-            Me.BTT_CHECK_INVERT.Text = "Invert selection"
-            '
             'DownloadFeedForm
             '
             Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
@@ -551,5 +605,10 @@ Namespace DownloadObjects
         Private WithEvents BTT_RESET_DAILY As ToolStripMenuItem
         Private WithEvents BTT_CURR_SESSION_SET_LAST As ToolStripMenuItem
         Private WithEvents BTT_CHECK_INVERT As ToolStripMenuItem
+        Private WithEvents BTT_FILTER As ToolStripMenuItem
+        Private WithEvents BTT_FILTER_SIMPLE As ToolStripMenuItem
+        Private WithEvents BTT_FILTER_DISABLE As ToolStripMenuItem
+        Private WithEvents BTT_FILTER_SAVE As ToolStripMenuItem
+        Private WithEvents BTT_FILTER_MANAGE As ToolStripMenuItem
     End Class
 End Namespace

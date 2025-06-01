@@ -33,6 +33,9 @@ Namespace API.Xhamster
                         ControlToolTip:="If enabled and the video is downloaded in a non-native format, the video will be re-encoded." & vbCr &
                                         "Attention! Enabling this setting results in maximum CPU usage."), PXML, PClonable>
         Friend ReadOnly Property ReencodeVideos As PropertyValue
+        <DoNotUse> Friend Overrides Property DownloadText As PropertyValue
+        <DoNotUse> Friend Overrides Property DownloadTextPosts As PropertyValue
+        <DoNotUse> Friend Overrides Property DownloadTextSpecialFolder As PropertyValue
 #End Region
 #Region "Initializer"
         Friend Sub New(ByVal AccName As String, ByVal Temp As Boolean)

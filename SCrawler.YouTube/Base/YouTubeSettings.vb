@@ -33,6 +33,7 @@ Namespace API.YouTube.Base
 #Region "Declarations"
         <Browsable(False)> Private ReadOnly Property XML As XmlFile Implements IXMLValuesContainer.XML
         <Browsable(False)> Friend ReadOnly Property DesignXml As XmlFile
+        <Browsable(False)> Friend ReadOnly Property FILTER As Controls.YTDataFilter
         <Browsable(False)> Private Property Mode As GridUpdateModes = GridUpdateModes.OnConfirm Implements IGridValuesContainer.Mode
         <Browsable(False), XMLVV(-1)> Friend ReadOnly Property PlaylistFormSplitterDistance As XMLValue(Of Integer)
         <Browsable(False)> Friend ReadOnly Property DownloadLocations As DownloadLocationsCollection
@@ -514,6 +515,7 @@ Namespace API.YouTube.Base
             XML.LoadData(EDP.None)
             DesignXml = New XmlFile("Settings\DesignDownloader.xml", Protector.Modes.All, False)
             DesignXml.LoadData(EDP.None)
+            FILTER = New Controls.YTDataFilter
             InitializeXMLValueProperties(Me)
             AddHandler ShowNotificationsEveryDownload.TempValueChanged, AddressOf ShowNotificationsEveryDownload_TempValueChanged
             Cookies = New CookieKeeper

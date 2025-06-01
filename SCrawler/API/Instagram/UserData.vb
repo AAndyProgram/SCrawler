@@ -164,6 +164,7 @@ Namespace API.Instagram
         Friend Overrides Sub ExchangeOptionsSet(ByVal Obj As Object)
             If Not Obj Is Nothing AndAlso TypeOf Obj Is EditorExchangeOptions Then
                 With DirectCast(Obj, EditorExchangeOptions)
+                    .ApplyBase(Me)
                     GetTimeline = .GetTimeline
                     GetReels = .GetReels
                     GetStories = .GetStories
@@ -178,7 +179,6 @@ Namespace API.Instagram
 
                     PutImageVideoFolder = .PutImageVideoFolder
 
-                    NameTrue = .UserName
                     ForceUpdateUserName = .ForceUpdateUserName
                     ForceUpdateUserInfo = .ForceUpdateUserInfo
                 End With
@@ -385,6 +385,20 @@ Namespace API.Instagram
 
             Dim s As Sections = Sections.Timeline
             Dim errorFound As Boolean = False
+            Dim firstWait As Boolean = False
+            Dim __firstWait As Action = Sub()
+                                            With MySiteSettings
+                                                If Not firstWait And .ActiveSessionLastProfileRequests And CInt(.SleepTimerRequestsNextProfile.Value) <> -1 Then
+                                                    Dim ____v% = 0
+                                                    If CInt(.SleepTimerRequestsNextProfile.Value) = -2 Then
+                                                        ____v = .SleepTimerRequestsNextProfileMax
+                                                    Else
+                                                        ____v = CInt(.SleepTimerRequestsNextProfile.Value)
+                                                    End If
+                                                    If ____v > 0 Then firstWait = True : Thread.Sleep(____v)
+                                                End If
+                                            End With
+                                        End Sub
             Try
                 Err5xx = -1
                 ErrHandling = -1
@@ -401,6 +415,7 @@ Namespace API.Instagram
                 If dt.Invoke And Not LastCursor.IsEmptyString Then
                     s = IIf(IsSavedPosts, Sections.SavedPosts, Sections.Timeline)
                     upClaimRequest.Invoke
+                    __firstWait.Invoke
                     DownloadData(LastCursor, s, Token)
                     ProgressPre.Done()
                     ThrowAny(Token)
@@ -410,6 +425,7 @@ Namespace API.Instagram
                     s = IIf(IsSavedPosts, Sections.SavedPosts, Sections.Timeline)
                     upClaimRequest.Invoke
                     ChangeResponserMode(_UseGQL)
+                    __firstWait.Invoke
                     DownloadData(String.Empty, s, Token)
                     ProgressPre.Done()
                     ThrowAny(Token)
@@ -425,6 +441,7 @@ Namespace API.Instagram
                         DefaultParser_ElemNode = {"node", "media"}
                         upClaimRequest.Invoke
                         ChangeResponserMode(True)
+                        __firstWait.Invoke
                         DownloadData(String.Empty, s, Token)
                         GetReelsGQL_SetEnvir = False
                         ProgressPre.Done()
@@ -434,6 +451,7 @@ Namespace API.Instagram
                     If CBool(MySiteSettings.DownloadStories.Value) And GetStories Then
                         s = Sections.Stories
                         upClaimRequest.Invoke
+                        __firstWait.Invoke
                         DownloadData(String.Empty, s, Token)
                         ProgressPre.Done()
                     End If
@@ -442,6 +460,7 @@ Namespace API.Instagram
                     If CBool(MySiteSettings.DownloadStoriesUser.Value) And GetStoriesUser Then
                         s = Sections.UserStories
                         upClaimRequest.Invoke
+                        __firstWait.Invoke
                         DownloadData(String.Empty, s, Token)
                         ProgressPre.Done()
                     End If
@@ -450,6 +469,7 @@ Namespace API.Instagram
                     If CBool(MySiteSettings.DownloadTagged.Value) And GetTaggedData Then
                         s = Sections.Tagged
                         upClaimRequest.Invoke
+                        __firstWait.Invoke
                         DownloadData(String.Empty, s, Token)
                         ProgressPre.Done()
                         DefaultParser_ElemNode = Nothing
@@ -968,10 +988,12 @@ NextPageBlock:
                 Dim PostIDKV As PostKV
                 Dim Pinned As Boolean
                 Dim PostDate$, PostOriginUrl$
+                Dim PostText$ = String.Empty
                 Dim i%, before%
                 Dim usePinFunc As Boolean = Not DefaultParser_Pinned Is Nothing
                 Dim skipPostFuncExists As Boolean = Not DefaultParser_SkipPost Is Nothing
                 Dim nn As EContainer
+                Dim textMedia As UserMedia
                 If SpecFolder.IsEmptyString Then
                     Select Case Section
                         Case Sections.Tagged : SpecFolder = TaggedFolder
@@ -1006,9 +1028,17 @@ NextPageBlock:
                                         Case DateResult.Exit : If Not Pinned Then Return False
                                     End Select
                                 End If
+                                If DownloadTextPosts Then PostText = DefaultParser_GetCaption(.Self)
                                 before = _TempMediaList.Count
-                                ObtainMedia(.Self, PostIDKV.ID, SpecFolder, PostDate,, PostOriginUrl, State, Attempts,, Section)
-                                If Not before = _TempMediaList.Count Then _TotalPostsParsed += 1
+                                ObtainMedia(.Self, PostIDKV.ID, SpecFolder, PostDate,, PostOriginUrl, State, Attempts,, Section, PostText)
+                                If Not before = _TempMediaList.Count Then
+                                    _TotalPostsParsed += 1
+                                ElseIf DownloadTextPosts And DownloadText And Not PostText.IsEmptyString Then
+                                    textMedia = MediaFromData(UTypes.Text, PostIDKV.ID, PostIDKV.ID, PostDate, SpecFolder, PostOriginUrl, State, Attempts, PostText)
+                                    textMedia.URL = PostIDKV.ID
+                                    textMedia.PostTextFile = $"{PostIDKV.ID}.txt"
+                                    _TempMediaList.ListAddValue(textMedia, LNC)
+                                End If
                                 If _Limit > 0 And _TotalPostsParsed >= _Limit Then Return False
                             End If
                         Else
@@ -1020,6 +1050,9 @@ NextPageBlock:
             Else
                 Return False
             End If
+        End Function
+        Protected Overridable Function DefaultParser_GetCaption(ByVal e As EContainer) As String
+            Return e.Value({"caption"}, "text")
         End Function
 #End Region
 #Region "Code ID converters"
@@ -1069,7 +1102,8 @@ NextPageBlock:
                                   Optional ByVal PostOriginUrl As String = Nothing,
                                   Optional ByVal State As UStates = UStates.Unknown, Optional ByVal Attempts As Integer = 0,
                                   Optional ByVal TryExtractImage As Boolean = False,
-                                  Optional ByVal Section As Sections = ObtainMedia_NoSection)
+                                  Optional ByVal Section As Sections = ObtainMedia_NoSection,
+                                  Optional ByVal Text As String = Nothing)
             Try
                 Dim maxSize As Func(Of EContainer, Integer) = Function(ByVal _ss As EContainer) As Integer
                                                                   Dim w% = AConvert(Of Integer)(_ss.Value("width"), 0)
@@ -1104,6 +1138,7 @@ NextPageBlock:
                                                            End Function
                 If Not ObtainMedia_SizeFuncVid Is Nothing Then ssVid = ObtainMedia_SizeFuncVid
                 If Not ObtainMedia_SizeFuncPic Is Nothing Then ssPic = ObtainMedia_SizeFuncPic
+                If DownloadTextPosts And Text.IsEmptyString Then Text = DefaultParser_GetCaption(n)
                 If n.Count > 0 Then
                     Dim l As New List(Of Sizes)
                     Dim d As EContainer
@@ -1145,7 +1180,7 @@ NextPageBlock:
                                                 If l.Count > 0 Then l.RemoveAll(wrongData)
                                                 If l.Count > 0 Then
                                                     l.Sort()
-                                                    _TempMediaList.ListAddValue(MediaFromData(UTypes.Picture, l.First.Data, PostID, DateObj, SpecialFolder, PostOriginUrl, State, Attempts), LNC)
+                                                    _TempMediaList.ListAddValue(MediaFromData(UTypes.Picture, l.First.Data, PostID, DateObj, SpecialFolder, PostOriginUrl, State, Attempts, Text), LNC)
                                                     l.Clear()
                                                 End If
                                             End If
@@ -1162,19 +1197,19 @@ NextPageBlock:
                                             If l.Count > 0 Then l.RemoveAll(wrongData)
                                             If l.Count > 0 Then
                                                 l.Sort()
-                                                _TempMediaList.ListAddValue(MediaFromData(UTypes.Video, l.First.Data, PostID, DateObj, SpecialFolder, PostOriginUrl, State, Attempts), LNC)
+                                                _TempMediaList.ListAddValue(MediaFromData(UTypes.Video, l.First.Data, PostID, DateObj, SpecialFolder, PostOriginUrl, State, Attempts, Text), LNC)
                                                 l.Clear()
                                             End If
                                         End If
                                     End With
                                 End If
                                 If Not TryExtractImage And Not Section = ObtainMedia_NoSection And ExtractImageFrom(Section) Then _
-                                   ObtainMedia(n, PostID, SpecialFolder, DateObj, InitialType, PostOriginUrl, State, Attempts, True, Section)
+                                   ObtainMedia(n, PostID, SpecialFolder, DateObj, InitialType, PostOriginUrl, State, Attempts, True, Section, Text)
                             Case 8 'gallery
                                 DateObj = mDate(n)
                                 With n("carousel_media").XmlIfNothing
                                     If .Count > 0 Then
-                                        For Each d In .Self : ObtainMedia(d, PostID, SpecialFolder, DateObj, 8, PostOriginUrl) : Next
+                                        For Each d In .Self : ObtainMedia(d, PostID, SpecialFolder, DateObj, 8, PostOriginUrl,,,,, Text) : Next
                                     End If
                                 End With
                         End Select
@@ -1438,13 +1473,16 @@ NextPageBlock:
 #Region "Create media"
         Private Function MediaFromData(ByVal t As UTypes, ByVal _URL As String, ByVal PostID As String, ByVal PostDate As String,
                                        Optional ByVal SpecialFolder As String = Nothing, Optional ByVal PostOriginUrl As String = Nothing,
-                                       Optional ByVal State As UStates = UStates.Unknown, Optional ByVal Attempts As Integer = 0) As UserMedia
+                                       Optional ByVal State As UStates = UStates.Unknown, Optional ByVal Attempts As Integer = 0,
+                                       Optional ByVal Text As String = Nothing) As UserMedia
             _URL = LinkFormatterSecure(RegexReplace(_URL.Replace("\", String.Empty), LinkPattern))
             Dim m As New UserMedia(_URL, t) With {.URL_BASE = PostOriginUrl.IfNullOrEmpty(_URL), .Post = New UserPost With {.ID = PostID}}
             If Not m.URL.IsEmptyString Then m.File = CStr(RegexReplace(m.URL, FilesPattern))
             If Not PostDate.IsEmptyString Then m.Post.Date = AConvert(Of Date)(PostDate, UnixDate32Provider, Nothing) Else m.Post.Date = Nothing
             m.SpecialFolder = SpecialFolder
             If State = UStates.Missing Then m.State = UStates.Missing : m.Attempts = Attempts
+            m.PostText = Text
+            m.PostTextFileSpecialFolder = DownloadTextSpecialFolder
             Return m
         End Function
 #End Region

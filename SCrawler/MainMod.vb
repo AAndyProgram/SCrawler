@@ -74,6 +74,8 @@ Friend Module MainMod
     Friend UserListLoader As ListImagesLoader
     Friend MyProgressForm As ActiveDownloadingProgress
     Friend MainFrameObj As MainFrameObjects
+    Friend FormFont As Font = Nothing
+    Friend TextImageWidth As Integer = 300
     ''' <summary>Alt+F1</summary>
     Friend ReadOnly ShowUsersButtonKey As New PersonalUtilities.Forms.ButtonKey(Keys.F1,, True)
     Friend ReadOnly DateTimeDefaultProvider As New ADateTime(ADateTime.Formats.BaseDateTime)

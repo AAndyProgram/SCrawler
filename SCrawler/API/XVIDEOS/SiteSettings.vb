@@ -35,6 +35,9 @@ Namespace API.XVIDEOS
                                         "This playlist must be entered by pattern: https://www.xvideos.com/favorite/01234567/playlistname.",
                         LeftOffset:=130), PXML, PClonable(Clone:=False)>
         Friend ReadOnly Property SavedVideosPlaylist As PropertyValue
+        <DoNotUse> Friend Overrides Property DownloadText As PropertyValue
+        <DoNotUse> Friend Overrides Property DownloadTextPosts As PropertyValue
+        <DoNotUse> Friend Overrides Property DownloadTextSpecialFolder As PropertyValue
 #End Region
 #Region "Initializer"
         Friend Sub New(ByVal AccName As String, ByVal Temp As Boolean)

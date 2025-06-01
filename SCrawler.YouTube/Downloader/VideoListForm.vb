@@ -39,6 +39,7 @@ Namespace DownloadObjects.STDownloader
             MyView = New FormView(Me)
             MyProgress = New MyProgress(TOOLBAR_BOTTOM, PR_MAIN, LBL_INFO)
             MyJob = New JobThread(Of MediaItem)
+            BTT_FILTER.Image = My.Resources.FilterPic
         End Sub
 #End Region
 #Region "Form handlers"
@@ -95,15 +96,18 @@ Namespace DownloadObjects.STDownloader
             Dim b As Boolean = True
             Select Case e.KeyCode
                 Case Keys.Insert : BTT_ADD.PerformClick()
-                Case Keys.F5 : BTT_DOWN.PerformClick()
+                Case Keys.F5
+                    If e.Control Then LoadData(True) Else BTT_DOWN.PerformClick()
                 Case Else : b = False
             End Select
             If b Then e.Handled = True
         End Sub
 #End Region
 #Region "Refill, save list"
-        Protected Sub LoadData()
+        Protected Sub LoadData(Optional ByVal ClearTable As Boolean = False)
+            If ClearTable Then RemoveControls(,, False)
             Dim c As List(Of IYouTubeMediaContainer) = LoadData_GetFiles()
+            If c.ListExists Then MyYouTubeSettings.FILTER.RemoveAll(c)
             If c.ListExists Then
                 c.Sort(New ContainerDateComparer)
                 SuspendLayout()
@@ -415,6 +419,12 @@ Namespace DownloadObjects.STDownloader
                 Return ErrorsDescriber.Execute(EDP.SendToLog + EDP.ReturnValue, ex, "[VideoListForm.ValidateContainerURL]", True)
             End Try
         End Function
+        Private Sub BTT_FILTER_Click(sender As Object, e As EventArgs) Handles BTT_FILTER.Click
+            Using f As New FilterForm(LoadData_GetFiles)
+                f.ShowDialog()
+                If f.DialogResult = DialogResult.OK Or f.DialogResult = DialogResult.Abort Then LoadData(True)
+            End Using
+        End Sub
         Private Sub BTT_DOWN_Click(sender As Object, e As EventArgs) Handles BTT_DOWN.Click
             With TP_CONTROLS
                 If .Controls.Count > 0 Then
@@ -494,7 +504,8 @@ Namespace DownloadObjects.STDownloader
         Protected Sub CheckVersionImpl(ByVal Force As Boolean)
             CheckVersion(Force)
         End Sub
-        Protected Overloads Sub RemoveControls(Optional ByVal Predicate As Predicate(Of MediaItem) = Nothing, Optional ByVal RemoveFiles As Boolean = False)
+        Protected Overloads Sub RemoveControls(Optional ByVal Predicate As Predicate(Of MediaItem) = Nothing, Optional ByVal RemoveFiles As Boolean = False,
+                                               Optional ByVal ProcessDelete As Boolean = True)
             ControlInvokeFast(TP_CONTROLS, Sub()
                                                With TP_CONTROLS
                                                    If .Controls.Count > 0 Then
@@ -509,7 +520,10 @@ Namespace DownloadObjects.STDownloader
                                                            For i = rCnt.Count - 1 To 0 Step -1
                                                                cnt = .Controls(rCnt(i))
                                                                .Controls.RemoveAt(rCnt(i))
-                                                               If Not cnt.MyContainer Is Nothing Then cnt.MyContainer.Delete(RemoveFiles) : cnt.MyContainer.Dispose()
+                                                               If Not cnt.MyContainer Is Nothing Then
+                                                                   If ProcessDelete Then cnt.MyContainer.Delete(RemoveFiles)
+                                                                   cnt.MyContainer.Dispose()
+                                                               End If
                                                                cnt.Dispose()
                                                            Next
                                                        End If

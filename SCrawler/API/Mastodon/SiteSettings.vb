@@ -76,6 +76,9 @@ Namespace API.Mastodon
         <PropertyOption(IsAuth:=False, ControlText:="User related to my domain",
                         ControlToolTip:="Open user profiles and user posts through my domain."), PXML, PClonable>
         Friend ReadOnly Property UserRelatedToMyDomain As PropertyValue
+        <DoNotUse> Friend Overrides Property DownloadText As PropertyValue
+        <DoNotUse> Friend Overrides Property DownloadTextPosts As PropertyValue
+        <DoNotUse> Friend Overrides Property DownloadTextSpecialFolder As PropertyValue
 #End Region
 #End Region
 #Region "Initializer"

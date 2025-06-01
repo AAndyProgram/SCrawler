@@ -116,7 +116,9 @@ Namespace API.YouTube.Objects
         <XMLEC> Public Property IsShorts As Boolean = False Implements IYouTubeMediaContainer.IsShorts
         <XMLEC> Public Property ID As String Implements IYouTubeMediaContainer.ID, IUserMedia.PostID
         <XMLEC> Public Property Title As String Implements IDownloadableMedia.Title
-        <XMLEC> Public Property Description As String Implements IYouTubeMediaContainer.Description
+        <XMLEC> Public Property Description As String Implements IYouTubeMediaContainer.Description, IUserMedia.PostText
+        Private Property IUserMedia_PostTextFile As String Implements IUserMedia.PostTextFile
+        Private Property IUserMedia_PostTextFileSpecialFolder As Boolean Implements IUserMedia.PostTextFileSpecialFolder
         <XMLEC> Public Property PlaylistID As String Implements IYouTubeMediaContainer.PlaylistID
         <XMLEC> Public Property PlaylistTitle As String Implements IYouTubeMediaContainer.PlaylistTitle
         <XMLEC> Public Property UserID As String Implements IYouTubeMediaContainer.UserID

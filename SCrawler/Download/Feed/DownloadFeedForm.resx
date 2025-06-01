@@ -130,9 +130,9 @@
   <data name="MENU_VIEW.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
-        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAABkSURBVDhPY6AKyO86WFDQfeg/iIYKkQZAmkNbnvyXta76
-        DxViYGFi+Y8PQ5VBAMhmkGYgJs8FAw9GA5EKILFiWUFixfL/IBoqRBoAafYsOvpf0jiTvEAE2QzSLGmU
-        MeQCkYEBAD3tUdo+/cEPAAAAAElFTkSuQmCC
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAABkSURBVDhPY2CgBsjvOlhQ0H3oP4hGlyMKgDSHtjz5L2td
+        9R8mxsLE8h8fRjEAZDNIs6x1FXkuGHgwGohUAIkVywoSK5b/B9HockQBkGbPoqP/JY0zyQtEkM0gzZJG
+        GeS5YEABAD3tUdqXHMg6AAAAAElFTkSuQmCC
 </value>
   </data>
   <metadata name="MENU_LOAD_SEP_1.GenerateMember" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
@@ -163,6 +163,12 @@
     <value>False</value>
   </metadata>
   <metadata name="MENU_LOAD_SEP_9.GenerateMember" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>False</value>
+  </metadata>
+  <metadata name="SEP_FILTER.GenerateMember" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>False</value>
+  </metadata>
+  <metadata name="SEP_FILTER_1.GenerateMember" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>False</value>
   </metadata>
   <metadata name="ToolbarTOP.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">

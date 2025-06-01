@@ -61,6 +61,8 @@ Namespace Editors
             Dim ActionButton11 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim ActionButton12 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim TP_FEED_SPEC_SEARCH As System.Windows.Forms.TableLayoutPanel
+            Dim TP_FEED_1 As System.Windows.Forms.TableLayoutPanel
+            Dim TP_FEED_2 As System.Windows.Forms.TableLayoutPanel
             Dim TAB_NOTIFY As System.Windows.Forms.TabPage
             Dim TP_NOTIFY_MAIN As System.Windows.Forms.TableLayoutPanel
             Dim TP_ENVIR As System.Windows.Forms.TableLayoutPanel
@@ -96,6 +98,7 @@ Namespace Editors
             Dim ActionButton35 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim ActionButton36 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim TAB_HEADERS As System.Windows.Forms.TabPage
+            Dim TP_FEED_3 As System.Windows.Forms.TableLayoutPanel
             Me.TXT_GLOBAL_PATH = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_IMAGE_LARGE = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_IMAGE_SMALL = New PersonalUtilities.Forms.Controls.TextBoxExtended()
@@ -151,6 +154,7 @@ Namespace Editors
             Me.CH_FEED_SPEC_SEARCH = New System.Windows.Forms.CheckBox()
             Me.CH_FEED_SPEC_SEARCH_DEEP = New System.Windows.Forms.CheckBox()
             Me.CH_FEED_OPEN_CTRLF = New System.Windows.Forms.CheckBox()
+            Me.CH_FEED_TEXT = New System.Windows.Forms.CheckBox()
             Me.TXT_CHANNELS_ROWS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_CHANNELS_COLUMNS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.CH_DOWN_IMAGES_NATIVE = New System.Windows.Forms.CheckBox()
@@ -174,17 +178,17 @@ Namespace Editors
             Me.TXT_FEED_ROWS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_FEED_COLUMNS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.CH_FEED_ENDLESS = New System.Windows.Forms.CheckBox()
-            Me.CH_FEED_ADD_SESSION = New System.Windows.Forms.CheckBox()
-            Me.CH_FEED_ADD_DATE = New System.Windows.Forms.CheckBox()
             Me.TXT_FEED_CENTER_IMAGE = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.COLORS_FEED = New SCrawler.Editors.ColorPicker()
             Me.CH_FEED_SHOW_FRIENDLY = New System.Windows.Forms.CheckBox()
             Me.CH_FEED_SHOW_SPEC_MEDIAITEM = New System.Windows.Forms.CheckBox()
             Me.NUM_FEED_STORE_SESSION_DATA = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.NUM_FEED_SES_CURR_LOAD_LAST = New PersonalUtilities.Forms.Controls.TextBoxExtended()
+            Me.CH_FEED_ESC_TO_CLOSE = New System.Windows.Forms.CheckBox()
+            Me.CH_FEED_ADD_SESSION = New System.Windows.Forms.CheckBox()
             Me.CH_FEED_ADD_SITE = New System.Windows.Forms.CheckBox()
             Me.CH_FEED_ADD_TYPE = New System.Windows.Forms.CheckBox()
-            Me.CH_FEED_ESC_TO_CLOSE = New System.Windows.Forms.CheckBox()
+            Me.CH_FEED_ADD_DATE = New System.Windows.Forms.CheckBox()
             Me.TXT_YTDLP = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_FFMPEG = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_CURL = New PersonalUtilities.Forms.Controls.TextBoxExtended()
@@ -210,6 +214,7 @@ Namespace Editors
             Me.TAB_MAIN = New System.Windows.Forms.TabControl()
             Me.TAB_ENVIR = New System.Windows.Forms.TabPage()
             Me.CONTAINER_MAIN = New System.Windows.Forms.ToolStripContainer()
+            Me.CH_FEED_TEXT_ALWAYS_MOVE = New System.Windows.Forms.CheckBox()
             TP_BASIS = New System.Windows.Forms.TableLayoutPanel()
             TP_IMAGES = New System.Windows.Forms.TableLayoutPanel()
             TP_FILE_NAME = New System.Windows.Forms.TableLayoutPanel()
@@ -235,6 +240,8 @@ Namespace Editors
             TP_FEED_IMG_COUNT = New System.Windows.Forms.TableLayoutPanel()
             TP_FEED_SES = New System.Windows.Forms.TableLayoutPanel()
             TP_FEED_SPEC_SEARCH = New System.Windows.Forms.TableLayoutPanel()
+            TP_FEED_1 = New System.Windows.Forms.TableLayoutPanel()
+            TP_FEED_2 = New System.Windows.Forms.TableLayoutPanel()
             TAB_NOTIFY = New System.Windows.Forms.TabPage()
             TP_NOTIFY_MAIN = New System.Windows.Forms.TableLayoutPanel()
             TP_ENVIR = New System.Windows.Forms.TableLayoutPanel()
@@ -244,6 +251,7 @@ Namespace Editors
             TP_DESIGN = New System.Windows.Forms.TableLayoutPanel()
             TP_HEADERS_DEF = New System.Windows.Forms.TableLayoutPanel()
             TAB_HEADERS = New System.Windows.Forms.TabPage()
+            TP_FEED_3 = New System.Windows.Forms.TableLayoutPanel()
             TP_BASIS.SuspendLayout()
             CType(Me.TXT_GLOBAL_PATH, System.ComponentModel.ISupportInitialize).BeginInit()
             TP_IMAGES.SuspendLayout()
@@ -288,6 +296,8 @@ Namespace Editors
             CType(Me.NUM_FEED_STORE_SESSION_DATA, System.ComponentModel.ISupportInitialize).BeginInit()
             CType(Me.NUM_FEED_SES_CURR_LOAD_LAST, System.ComponentModel.ISupportInitialize).BeginInit()
             TP_FEED_SPEC_SEARCH.SuspendLayout()
+            TP_FEED_1.SuspendLayout()
+            TP_FEED_2.SuspendLayout()
             TAB_NOTIFY.SuspendLayout()
             TP_NOTIFY_MAIN.SuspendLayout()
             TP_ENVIR.SuspendLayout()
@@ -316,6 +326,7 @@ Namespace Editors
             Me.TAB_ENVIR.SuspendLayout()
             Me.CONTAINER_MAIN.ContentPanel.SuspendLayout()
             Me.CONTAINER_MAIN.SuspendLayout()
+            TP_FEED_3.SuspendLayout()
             Me.SuspendLayout()
             '
             'TP_BASIS
@@ -343,7 +354,7 @@ Namespace Editors
             TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
             TP_BASIS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
-            TP_BASIS.Size = New System.Drawing.Size(615, 418)
+            TP_BASIS.Size = New System.Drawing.Size(615, 393)
             TP_BASIS.TabIndex = 0
             '
             'TXT_GLOBAL_PATH
@@ -935,7 +946,7 @@ Namespace Editors
             '
             Me.CH_FEED_OPEN_LAST_MODE.AutoSize = True
             Me.CH_FEED_OPEN_LAST_MODE.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_FEED_OPEN_LAST_MODE.Location = New System.Drawing.Point(4, 247)
+            Me.CH_FEED_OPEN_LAST_MODE.Location = New System.Drawing.Point(4, 221)
             Me.CH_FEED_OPEN_LAST_MODE.Name = "CH_FEED_OPEN_LAST_MODE"
             Me.CH_FEED_OPEN_LAST_MODE.Size = New System.Drawing.Size(613, 19)
             Me.CH_FEED_OPEN_LAST_MODE.TabIndex = 9
@@ -1048,7 +1059,7 @@ Namespace Editors
             '
             Me.CH_FEED_UP_FILE_LOC_MOVE.AutoSize = True
             Me.CH_FEED_UP_FILE_LOC_MOVE.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_FEED_UP_FILE_LOC_MOVE.Location = New System.Drawing.Point(4, 325)
+            Me.CH_FEED_UP_FILE_LOC_MOVE.Location = New System.Drawing.Point(4, 299)
             Me.CH_FEED_UP_FILE_LOC_MOVE.Name = "CH_FEED_UP_FILE_LOC_MOVE"
             Me.CH_FEED_UP_FILE_LOC_MOVE.Size = New System.Drawing.Size(613, 19)
             Me.CH_FEED_UP_FILE_LOC_MOVE.TabIndex = 12
@@ -1118,6 +1129,18 @@ Namespace Editors
         "ed.")
             Me.CH_FEED_OPEN_CTRLF.UseVisualStyleBackColor = True
             '
+            'CH_FEED_TEXT
+            '
+            Me.CH_FEED_TEXT.AutoSize = True
+            Me.CH_FEED_TEXT.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_FEED_TEXT.Location = New System.Drawing.Point(3, 3)
+            Me.CH_FEED_TEXT.Name = "CH_FEED_TEXT"
+            Me.CH_FEED_TEXT.Size = New System.Drawing.Size(303, 19)
+            Me.CH_FEED_TEXT.TabIndex = 0
+            Me.CH_FEED_TEXT.Text = "Show text posts"
+            TT_MAIN.SetToolTip(Me.CH_FEED_TEXT, "If checked, downloaded text posts will be displayed in the feed (as an image)")
+            Me.CH_FEED_TEXT.UseVisualStyleBackColor = True
+            '
             'TP_CHANNELS_IMGS
             '
             TP_CHANNELS_IMGS.ColumnCount = 2
@@ -1169,7 +1192,7 @@ Namespace Editors
             TAB_BASIS.Location = New System.Drawing.Point(4, 22)
             TAB_BASIS.Name = "TAB_BASIS"
             TAB_BASIS.Padding = New System.Windows.Forms.Padding(3)
-            TAB_BASIS.Size = New System.Drawing.Size(621, 424)
+            TAB_BASIS.Size = New System.Drawing.Size(621, 399)
             TAB_BASIS.TabIndex = 0
             TAB_BASIS.Text = "Basis"
             '
@@ -1179,7 +1202,7 @@ Namespace Editors
             TAB_DEFAULTS.Location = New System.Drawing.Point(4, 22)
             TAB_DEFAULTS.Name = "TAB_DEFAULTS"
             TAB_DEFAULTS.Padding = New System.Windows.Forms.Padding(3)
-            TAB_DEFAULTS.Size = New System.Drawing.Size(621, 424)
+            TAB_DEFAULTS.Size = New System.Drawing.Size(621, 399)
             TAB_DEFAULTS.TabIndex = 1
             TAB_DEFAULTS.Text = "Defaults"
             '
@@ -1205,7 +1228,7 @@ Namespace Editors
             TP_DEFS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_DEFS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_DEFS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_DEFS.Size = New System.Drawing.Size(615, 418)
+            TP_DEFS.Size = New System.Drawing.Size(615, 393)
             TP_DEFS.TabIndex = 0
             '
             'CH_DOWN_IMAGES_NATIVE
@@ -1225,7 +1248,7 @@ Namespace Editors
             TAB_DEFS_CHANNELS.Location = New System.Drawing.Point(4, 22)
             TAB_DEFS_CHANNELS.Name = "TAB_DEFS_CHANNELS"
             TAB_DEFS_CHANNELS.Padding = New System.Windows.Forms.Padding(3)
-            TAB_DEFS_CHANNELS.Size = New System.Drawing.Size(621, 424)
+            TAB_DEFS_CHANNELS.Size = New System.Drawing.Size(621, 399)
             TAB_DEFS_CHANNELS.TabIndex = 4
             TAB_DEFS_CHANNELS.Text = "Channels"
             '
@@ -1251,7 +1274,7 @@ Namespace Editors
             TP_CHANNELS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_CHANNELS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_CHANNELS.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_CHANNELS.Size = New System.Drawing.Size(615, 418)
+            TP_CHANNELS.Size = New System.Drawing.Size(615, 393)
             TP_CHANNELS.TabIndex = 0
             '
             'TXT_CHANNEL_USER_POST_LIMIT
@@ -1290,7 +1313,7 @@ Namespace Editors
             TAB_BEHAVIOR.Controls.Add(TP_BEHAVIOR)
             TAB_BEHAVIOR.Location = New System.Drawing.Point(4, 22)
             TAB_BEHAVIOR.Name = "TAB_BEHAVIOR"
-            TAB_BEHAVIOR.Size = New System.Drawing.Size(621, 424)
+            TAB_BEHAVIOR.Size = New System.Drawing.Size(621, 399)
             TAB_BEHAVIOR.TabIndex = 5
             TAB_BEHAVIOR.Text = "Behavior"
             '
@@ -1328,7 +1351,7 @@ Namespace Editors
             TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_BEHAVIOR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_BEHAVIOR.Size = New System.Drawing.Size(621, 424)
+            TP_BEHAVIOR.Size = New System.Drawing.Size(621, 399)
             TP_BEHAVIOR.TabIndex = 0
             '
             'TXT_FOLDER_CMD
@@ -1524,7 +1547,7 @@ Namespace Editors
             TAB_DOWN.Controls.Add(TP_DOWNLOADING)
             TAB_DOWN.Location = New System.Drawing.Point(4, 22)
             TAB_DOWN.Name = "TAB_DOWN"
-            TAB_DOWN.Size = New System.Drawing.Size(621, 424)
+            TAB_DOWN.Size = New System.Drawing.Size(621, 399)
             TAB_DOWN.TabIndex = 6
             TAB_DOWN.Text = "Downloading"
             '
@@ -1560,7 +1583,7 @@ Namespace Editors
             TP_DOWNLOADING.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_DOWNLOADING.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_DOWNLOADING.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_DOWNLOADING.Size = New System.Drawing.Size(621, 424)
+            TP_DOWNLOADING.Size = New System.Drawing.Size(621, 399)
             TP_DOWNLOADING.TabIndex = 1
             '
             'TXT_SCRIPT
@@ -1664,7 +1687,7 @@ Namespace Editors
             TAB_FEED.Controls.Add(TP_FEED)
             TAB_FEED.Location = New System.Drawing.Point(4, 22)
             TAB_FEED.Name = "TAB_FEED"
-            TAB_FEED.Size = New System.Drawing.Size(621, 424)
+            TAB_FEED.Size = New System.Drawing.Size(621, 399)
             TAB_FEED.TabIndex = 7
             TAB_FEED.Text = "Feed"
             '
@@ -1675,26 +1698,24 @@ Namespace Editors
             TP_FEED.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
             TP_FEED.Controls.Add(TP_FEED_IMG_COUNT, 0, 0)
             TP_FEED.Controls.Add(Me.CH_FEED_ENDLESS, 0, 3)
-            TP_FEED.Controls.Add(Me.CH_FEED_ADD_SESSION, 0, 4)
-            TP_FEED.Controls.Add(Me.CH_FEED_ADD_DATE, 0, 7)
             TP_FEED.Controls.Add(Me.TXT_FEED_CENTER_IMAGE, 0, 1)
             TP_FEED.Controls.Add(Me.COLORS_FEED, 0, 2)
-            TP_FEED.Controls.Add(Me.CH_FEED_OPEN_LAST_MODE, 0, 9)
-            TP_FEED.Controls.Add(Me.CH_FEED_SHOW_FRIENDLY, 0, 10)
-            TP_FEED.Controls.Add(Me.CH_FEED_SHOW_SPEC_MEDIAITEM, 0, 11)
-            TP_FEED.Controls.Add(Me.CH_FEED_UP_FILE_LOC_MOVE, 0, 12)
-            TP_FEED.Controls.Add(TP_FEED_SES, 0, 8)
-            TP_FEED.Controls.Add(Me.CH_FEED_ADD_SITE, 0, 5)
-            TP_FEED.Controls.Add(Me.CH_FEED_ADD_TYPE, 0, 6)
-            TP_FEED.Controls.Add(Me.CH_FEED_ESC_TO_CLOSE, 0, 13)
-            TP_FEED.Controls.Add(TP_FEED_SPEC_SEARCH, 0, 14)
+            TP_FEED.Controls.Add(Me.CH_FEED_OPEN_LAST_MODE, 0, 8)
+            TP_FEED.Controls.Add(Me.CH_FEED_SHOW_FRIENDLY, 0, 9)
+            TP_FEED.Controls.Add(Me.CH_FEED_SHOW_SPEC_MEDIAITEM, 0, 10)
+            TP_FEED.Controls.Add(Me.CH_FEED_UP_FILE_LOC_MOVE, 0, 11)
+            TP_FEED.Controls.Add(TP_FEED_SES, 0, 7)
+            TP_FEED.Controls.Add(Me.CH_FEED_ESC_TO_CLOSE, 0, 12)
+            TP_FEED.Controls.Add(TP_FEED_SPEC_SEARCH, 0, 13)
+            TP_FEED.Controls.Add(TP_FEED_1, 0, 4)
+            TP_FEED.Controls.Add(TP_FEED_2, 0, 5)
+            TP_FEED.Controls.Add(TP_FEED_3, 0, 6)
             TP_FEED.Dock = System.Windows.Forms.DockStyle.Fill
             TP_FEED.Location = New System.Drawing.Point(0, 0)
             TP_FEED.Name = "TP_FEED"
-            TP_FEED.RowCount = 16
+            TP_FEED.RowCount = 15
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
-            TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
@@ -1709,7 +1730,8 @@ Namespace Editors
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
             TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
-            TP_FEED.Size = New System.Drawing.Size(621, 424)
+            TP_FEED.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
+            TP_FEED.Size = New System.Drawing.Size(621, 399)
             TP_FEED.TabIndex = 0
             '
             'TP_FEED_IMG_COUNT
@@ -1772,28 +1794,6 @@ Namespace Editors
             Me.CH_FEED_ENDLESS.Text = "Endless feed"
             Me.CH_FEED_ENDLESS.UseVisualStyleBackColor = True
             '
-            'CH_FEED_ADD_SESSION
-            '
-            Me.CH_FEED_ADD_SESSION.AutoSize = True
-            Me.CH_FEED_ADD_SESSION.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_FEED_ADD_SESSION.Location = New System.Drawing.Point(4, 114)
-            Me.CH_FEED_ADD_SESSION.Name = "CH_FEED_ADD_SESSION"
-            Me.CH_FEED_ADD_SESSION.Size = New System.Drawing.Size(613, 19)
-            Me.CH_FEED_ADD_SESSION.TabIndex = 4
-            Me.CH_FEED_ADD_SESSION.Text = "Add the session number to the post title"
-            Me.CH_FEED_ADD_SESSION.UseVisualStyleBackColor = True
-            '
-            'CH_FEED_ADD_DATE
-            '
-            Me.CH_FEED_ADD_DATE.AutoSize = True
-            Me.CH_FEED_ADD_DATE.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_FEED_ADD_DATE.Location = New System.Drawing.Point(4, 192)
-            Me.CH_FEED_ADD_DATE.Name = "CH_FEED_ADD_DATE"
-            Me.CH_FEED_ADD_DATE.Size = New System.Drawing.Size(613, 19)
-            Me.CH_FEED_ADD_DATE.TabIndex = 7
-            Me.CH_FEED_ADD_DATE.Text = "Add the date to the post title"
-            Me.CH_FEED_ADD_DATE.UseVisualStyleBackColor = True
-            '
             'TXT_FEED_CENTER_IMAGE
             '
             Me.TXT_FEED_CENTER_IMAGE.CaptionMode = PersonalUtilities.Forms.Controls.Base.ICaptionControl.Modes.CheckBox
@@ -1830,7 +1830,7 @@ Namespace Editors
             '
             Me.CH_FEED_SHOW_FRIENDLY.AutoSize = True
             Me.CH_FEED_SHOW_FRIENDLY.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_FEED_SHOW_FRIENDLY.Location = New System.Drawing.Point(4, 273)
+            Me.CH_FEED_SHOW_FRIENDLY.Location = New System.Drawing.Point(4, 247)
             Me.CH_FEED_SHOW_FRIENDLY.Name = "CH_FEED_SHOW_FRIENDLY"
             Me.CH_FEED_SHOW_FRIENDLY.Size = New System.Drawing.Size(613, 19)
             Me.CH_FEED_SHOW_FRIENDLY.TabIndex = 10
@@ -1841,7 +1841,7 @@ Namespace Editors
             '
             Me.CH_FEED_SHOW_SPEC_MEDIAITEM.AutoSize = True
             Me.CH_FEED_SHOW_SPEC_MEDIAITEM.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_FEED_SHOW_SPEC_MEDIAITEM.Location = New System.Drawing.Point(4, 299)
+            Me.CH_FEED_SHOW_SPEC_MEDIAITEM.Location = New System.Drawing.Point(4, 273)
             Me.CH_FEED_SHOW_SPEC_MEDIAITEM.Name = "CH_FEED_SHOW_SPEC_MEDIAITEM"
             Me.CH_FEED_SHOW_SPEC_MEDIAITEM.Size = New System.Drawing.Size(613, 19)
             Me.CH_FEED_SHOW_SPEC_MEDIAITEM.TabIndex = 11
@@ -1856,7 +1856,7 @@ Namespace Editors
             TP_FEED_SES.Controls.Add(Me.NUM_FEED_STORE_SESSION_DATA, 0, 0)
             TP_FEED_SES.Controls.Add(Me.NUM_FEED_SES_CURR_LOAD_LAST, 1, 0)
             TP_FEED_SES.Dock = System.Windows.Forms.DockStyle.Fill
-            TP_FEED_SES.Location = New System.Drawing.Point(1, 215)
+            TP_FEED_SES.Location = New System.Drawing.Point(1, 189)
             TP_FEED_SES.Margin = New System.Windows.Forms.Padding(0)
             TP_FEED_SES.Name = "TP_FEED_SES"
             TP_FEED_SES.RowCount = 1
@@ -1912,33 +1912,11 @@ Namespace Editors
             Me.NUM_FEED_SES_CURR_LOAD_LAST.TabIndex = 1
             Me.NUM_FEED_SES_CURR_LOAD_LAST.Text = "0"
             '
-            'CH_FEED_ADD_SITE
-            '
-            Me.CH_FEED_ADD_SITE.AutoSize = True
-            Me.CH_FEED_ADD_SITE.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_FEED_ADD_SITE.Location = New System.Drawing.Point(4, 140)
-            Me.CH_FEED_ADD_SITE.Name = "CH_FEED_ADD_SITE"
-            Me.CH_FEED_ADD_SITE.Size = New System.Drawing.Size(613, 19)
-            Me.CH_FEED_ADD_SITE.TabIndex = 5
-            Me.CH_FEED_ADD_SITE.Text = "Add the site name to the post title"
-            Me.CH_FEED_ADD_SITE.UseVisualStyleBackColor = True
-            '
-            'CH_FEED_ADD_TYPE
-            '
-            Me.CH_FEED_ADD_TYPE.AutoSize = True
-            Me.CH_FEED_ADD_TYPE.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_FEED_ADD_TYPE.Location = New System.Drawing.Point(4, 166)
-            Me.CH_FEED_ADD_TYPE.Name = "CH_FEED_ADD_TYPE"
-            Me.CH_FEED_ADD_TYPE.Size = New System.Drawing.Size(613, 19)
-            Me.CH_FEED_ADD_TYPE.TabIndex = 6
-            Me.CH_FEED_ADD_TYPE.Text = "Add the file type to the post title"
-            Me.CH_FEED_ADD_TYPE.UseVisualStyleBackColor = True
-            '
             'CH_FEED_ESC_TO_CLOSE
             '
             Me.CH_FEED_ESC_TO_CLOSE.AutoSize = True
             Me.CH_FEED_ESC_TO_CLOSE.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CH_FEED_ESC_TO_CLOSE.Location = New System.Drawing.Point(4, 351)
+            Me.CH_FEED_ESC_TO_CLOSE.Location = New System.Drawing.Point(4, 325)
             Me.CH_FEED_ESC_TO_CLOSE.Name = "CH_FEED_ESC_TO_CLOSE"
             Me.CH_FEED_ESC_TO_CLOSE.Size = New System.Drawing.Size(613, 19)
             Me.CH_FEED_ESC_TO_CLOSE.TabIndex = 13
@@ -1953,7 +1931,7 @@ Namespace Editors
             TP_FEED_SPEC_SEARCH.Controls.Add(Me.CH_FEED_SPEC_SEARCH, 0, 0)
             TP_FEED_SPEC_SEARCH.Controls.Add(Me.CH_FEED_SPEC_SEARCH_DEEP, 1, 0)
             TP_FEED_SPEC_SEARCH.Dock = System.Windows.Forms.DockStyle.Fill
-            TP_FEED_SPEC_SEARCH.Location = New System.Drawing.Point(1, 374)
+            TP_FEED_SPEC_SEARCH.Location = New System.Drawing.Point(1, 348)
             TP_FEED_SPEC_SEARCH.Margin = New System.Windows.Forms.Padding(0)
             TP_FEED_SPEC_SEARCH.Name = "TP_FEED_SPEC_SEARCH"
             TP_FEED_SPEC_SEARCH.RowCount = 1
@@ -1962,12 +1940,90 @@ Namespace Editors
             TP_FEED_SPEC_SEARCH.Size = New System.Drawing.Size(619, 25)
             TP_FEED_SPEC_SEARCH.TabIndex = 14
             '
+            'TP_FEED_1
+            '
+            TP_FEED_1.ColumnCount = 2
+            TP_FEED_1.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
+            TP_FEED_1.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
+            TP_FEED_1.Controls.Add(Me.CH_FEED_ADD_SESSION, 0, 0)
+            TP_FEED_1.Controls.Add(Me.CH_FEED_ADD_SITE, 1, 0)
+            TP_FEED_1.Dock = System.Windows.Forms.DockStyle.Fill
+            TP_FEED_1.Location = New System.Drawing.Point(1, 111)
+            TP_FEED_1.Margin = New System.Windows.Forms.Padding(0)
+            TP_FEED_1.Name = "TP_FEED_1"
+            TP_FEED_1.RowCount = 1
+            TP_FEED_1.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            TP_FEED_1.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            TP_FEED_1.Size = New System.Drawing.Size(619, 25)
+            TP_FEED_1.TabIndex = 4
+            '
+            'CH_FEED_ADD_SESSION
+            '
+            Me.CH_FEED_ADD_SESSION.AutoSize = True
+            Me.CH_FEED_ADD_SESSION.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_FEED_ADD_SESSION.Location = New System.Drawing.Point(3, 3)
+            Me.CH_FEED_ADD_SESSION.Name = "CH_FEED_ADD_SESSION"
+            Me.CH_FEED_ADD_SESSION.Size = New System.Drawing.Size(303, 19)
+            Me.CH_FEED_ADD_SESSION.TabIndex = 0
+            Me.CH_FEED_ADD_SESSION.Text = "Add the session number to the post title"
+            Me.CH_FEED_ADD_SESSION.UseVisualStyleBackColor = True
+            '
+            'CH_FEED_ADD_SITE
+            '
+            Me.CH_FEED_ADD_SITE.AutoSize = True
+            Me.CH_FEED_ADD_SITE.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_FEED_ADD_SITE.Location = New System.Drawing.Point(312, 3)
+            Me.CH_FEED_ADD_SITE.Name = "CH_FEED_ADD_SITE"
+            Me.CH_FEED_ADD_SITE.Size = New System.Drawing.Size(304, 19)
+            Me.CH_FEED_ADD_SITE.TabIndex = 1
+            Me.CH_FEED_ADD_SITE.Text = "Add the site name to the post title"
+            Me.CH_FEED_ADD_SITE.UseVisualStyleBackColor = True
+            '
+            'TP_FEED_2
+            '
+            TP_FEED_2.ColumnCount = 2
+            TP_FEED_2.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
+            TP_FEED_2.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
+            TP_FEED_2.Controls.Add(Me.CH_FEED_ADD_TYPE, 0, 0)
+            TP_FEED_2.Controls.Add(Me.CH_FEED_ADD_DATE, 1, 0)
+            TP_FEED_2.Dock = System.Windows.Forms.DockStyle.Fill
+            TP_FEED_2.Location = New System.Drawing.Point(1, 137)
+            TP_FEED_2.Margin = New System.Windows.Forms.Padding(0)
+            TP_FEED_2.Name = "TP_FEED_2"
+            TP_FEED_2.RowCount = 1
+            TP_FEED_2.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            TP_FEED_2.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            TP_FEED_2.Size = New System.Drawing.Size(619, 25)
+            TP_FEED_2.TabIndex = 5
+            '
+            'CH_FEED_ADD_TYPE
+            '
+            Me.CH_FEED_ADD_TYPE.AutoSize = True
+            Me.CH_FEED_ADD_TYPE.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_FEED_ADD_TYPE.Location = New System.Drawing.Point(3, 3)
+            Me.CH_FEED_ADD_TYPE.Name = "CH_FEED_ADD_TYPE"
+            Me.CH_FEED_ADD_TYPE.Size = New System.Drawing.Size(303, 19)
+            Me.CH_FEED_ADD_TYPE.TabIndex = 0
+            Me.CH_FEED_ADD_TYPE.Text = "Add the file type to the post title"
+            Me.CH_FEED_ADD_TYPE.UseVisualStyleBackColor = True
+            '
+            'CH_FEED_ADD_DATE
+            '
+            Me.CH_FEED_ADD_DATE.AutoSize = True
+            Me.CH_FEED_ADD_DATE.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_FEED_ADD_DATE.Location = New System.Drawing.Point(312, 3)
+            Me.CH_FEED_ADD_DATE.Name = "CH_FEED_ADD_DATE"
+            Me.CH_FEED_ADD_DATE.Size = New System.Drawing.Size(304, 19)
+            Me.CH_FEED_ADD_DATE.TabIndex = 1
+            Me.CH_FEED_ADD_DATE.Text = "Add the date to the post title"
+            Me.CH_FEED_ADD_DATE.UseVisualStyleBackColor = True
+            '
             'TAB_NOTIFY
             '
             TAB_NOTIFY.Controls.Add(TP_NOTIFY_MAIN)
             TAB_NOTIFY.Location = New System.Drawing.Point(4, 22)
             TAB_NOTIFY.Name = "TAB_NOTIFY"
-            TAB_NOTIFY.Size = New System.Drawing.Size(621, 424)
+            TAB_NOTIFY.Size = New System.Drawing.Size(621, 399)
             TAB_NOTIFY.TabIndex = 8
             TAB_NOTIFY.Text = "Notifications"
             '
@@ -1999,7 +2055,7 @@ Namespace Editors
             TP_NOTIFY_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_NOTIFY_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_NOTIFY_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_NOTIFY_MAIN.Size = New System.Drawing.Size(621, 424)
+            TP_NOTIFY_MAIN.Size = New System.Drawing.Size(621, 399)
             TP_NOTIFY_MAIN.TabIndex = 0
             '
             'TP_ENVIR
@@ -2022,7 +2078,7 @@ Namespace Editors
             TP_ENVIR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_ENVIR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_ENVIR.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_ENVIR.Size = New System.Drawing.Size(621, 424)
+            TP_ENVIR.Size = New System.Drawing.Size(621, 399)
             TP_ENVIR.TabIndex = 0
             '
             'TXT_YTDLP
@@ -2153,7 +2209,7 @@ Namespace Editors
             TAB_STD.Controls.Add(TP_STD)
             TAB_STD.Location = New System.Drawing.Point(4, 22)
             TAB_STD.Name = "TAB_STD"
-            TAB_STD.Size = New System.Drawing.Size(621, 424)
+            TAB_STD.Size = New System.Drawing.Size(621, 399)
             TAB_STD.TabIndex = 10
             TAB_STD.Text = "Downloader"
             '
@@ -2195,7 +2251,7 @@ Namespace Editors
             TP_STD.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_STD.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_STD.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_STD.Size = New System.Drawing.Size(621, 424)
+            TP_STD.Size = New System.Drawing.Size(621, 399)
             TP_STD.TabIndex = 0
             '
             'TXT_STD_MAX_JOBS_COUNT
@@ -2294,7 +2350,7 @@ Namespace Editors
             TAB_DESIGN.Controls.Add(TP_DESIGN)
             TAB_DESIGN.Location = New System.Drawing.Point(4, 22)
             TAB_DESIGN.Name = "TAB_DESIGN"
-            TAB_DESIGN.Size = New System.Drawing.Size(621, 424)
+            TAB_DESIGN.Size = New System.Drawing.Size(621, 399)
             TAB_DESIGN.TabIndex = 11
             TAB_DESIGN.Text = "Design"
             '
@@ -2320,7 +2376,7 @@ Namespace Editors
             TP_DESIGN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_DESIGN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             TP_DESIGN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_DESIGN.Size = New System.Drawing.Size(621, 424)
+            TP_DESIGN.Size = New System.Drawing.Size(621, 399)
             TP_DESIGN.TabIndex = 0
             '
             'TXT_PRG_TITLE
@@ -2431,7 +2487,7 @@ Namespace Editors
             TP_HEADERS_DEF.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_HEADERS_DEF.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
             TP_HEADERS_DEF.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
-            TP_HEADERS_DEF.Size = New System.Drawing.Size(621, 424)
+            TP_HEADERS_DEF.Size = New System.Drawing.Size(621, 399)
             TP_HEADERS_DEF.TabIndex = 0
             '
             'TXT_H_DEF_UserAgent
@@ -2509,7 +2565,7 @@ Namespace Editors
             TAB_HEADERS.Controls.Add(TP_HEADERS_DEF)
             TAB_HEADERS.Location = New System.Drawing.Point(4, 22)
             TAB_HEADERS.Name = "TAB_HEADERS"
-            TAB_HEADERS.Size = New System.Drawing.Size(621, 424)
+            TAB_HEADERS.Size = New System.Drawing.Size(621, 399)
             TAB_HEADERS.TabIndex = 12
             TAB_HEADERS.Text = "Headers"
             '
@@ -2530,7 +2586,7 @@ Namespace Editors
             Me.TAB_MAIN.Location = New System.Drawing.Point(0, 0)
             Me.TAB_MAIN.Name = "TAB_MAIN"
             Me.TAB_MAIN.SelectedIndex = 0
-            Me.TAB_MAIN.Size = New System.Drawing.Size(629, 450)
+            Me.TAB_MAIN.Size = New System.Drawing.Size(629, 425)
             Me.TAB_MAIN.TabIndex = 1
             '
             'TAB_ENVIR
@@ -2538,7 +2594,7 @@ Namespace Editors
             Me.TAB_ENVIR.Controls.Add(TP_ENVIR)
             Me.TAB_ENVIR.Location = New System.Drawing.Point(4, 22)
             Me.TAB_ENVIR.Name = "TAB_ENVIR"
-            Me.TAB_ENVIR.Size = New System.Drawing.Size(621, 424)
+            Me.TAB_ENVIR.Size = New System.Drawing.Size(621, 399)
             Me.TAB_ENVIR.TabIndex = 9
             Me.TAB_ENVIR.Text = "Environment"
             '
@@ -2548,29 +2604,58 @@ Namespace Editors
             'CONTAINER_MAIN.ContentPanel
             '
             Me.CONTAINER_MAIN.ContentPanel.Controls.Add(Me.TAB_MAIN)
-            Me.CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(629, 450)
+            Me.CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(629, 425)
             Me.CONTAINER_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
             Me.CONTAINER_MAIN.LeftToolStripPanelVisible = False
             Me.CONTAINER_MAIN.Location = New System.Drawing.Point(0, 0)
             Me.CONTAINER_MAIN.Name = "CONTAINER_MAIN"
             Me.CONTAINER_MAIN.RightToolStripPanelVisible = False
-            Me.CONTAINER_MAIN.Size = New System.Drawing.Size(629, 450)
+            Me.CONTAINER_MAIN.Size = New System.Drawing.Size(629, 425)
             Me.CONTAINER_MAIN.TabIndex = 0
             Me.CONTAINER_MAIN.TopToolStripPanelVisible = False
+            '
+            'TP_FEED_3
+            '
+            TP_FEED_3.ColumnCount = 2
+            TP_FEED_3.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
+            TP_FEED_3.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
+            TP_FEED_3.Controls.Add(Me.CH_FEED_TEXT, 0, 0)
+            TP_FEED_3.Controls.Add(Me.CH_FEED_TEXT_ALWAYS_MOVE, 1, 0)
+            TP_FEED_3.Dock = System.Windows.Forms.DockStyle.Fill
+            TP_FEED_3.Location = New System.Drawing.Point(1, 163)
+            TP_FEED_3.Margin = New System.Windows.Forms.Padding(0)
+            TP_FEED_3.Name = "TP_FEED_3"
+            TP_FEED_3.RowCount = 1
+            TP_FEED_3.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            TP_FEED_3.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
+            TP_FEED_3.Size = New System.Drawing.Size(619, 25)
+            TP_FEED_3.TabIndex = 6
+            '
+            'CH_FEED_TEXT_ALWAYS_MOVE
+            '
+            Me.CH_FEED_TEXT_ALWAYS_MOVE.AutoSize = True
+            Me.CH_FEED_TEXT_ALWAYS_MOVE.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_FEED_TEXT_ALWAYS_MOVE.Location = New System.Drawing.Point(312, 3)
+            Me.CH_FEED_TEXT_ALWAYS_MOVE.Name = "CH_FEED_TEXT_ALWAYS_MOVE"
+            Me.CH_FEED_TEXT_ALWAYS_MOVE.Size = New System.Drawing.Size(304, 19)
+            Me.CH_FEED_TEXT_ALWAYS_MOVE.TabIndex = 1
+            Me.CH_FEED_TEXT_ALWAYS_MOVE.Text = "Auto-move linked text"
+            TT_MAIN.SetToolTip(Me.CH_FEED_TEXT_ALWAYS_MOVE, "Always move the linked text file along with the original file")
+            Me.CH_FEED_TEXT_ALWAYS_MOVE.UseVisualStyleBackColor = True
             '
             'GlobalSettingsForm
             '
             Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
             Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-            Me.ClientSize = New System.Drawing.Size(629, 450)
+            Me.ClientSize = New System.Drawing.Size(629, 425)
             Me.Controls.Add(Me.CONTAINER_MAIN)
             Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle
             Me.Icon = Global.SCrawler.My.Resources.Resources.SettingsIcon_48
             Me.KeyPreview = True
             Me.MaximizeBox = False
-            Me.MaximumSize = New System.Drawing.Size(645, 489)
+            Me.MaximumSize = New System.Drawing.Size(645, 464)
             Me.MinimizeBox = False
-            Me.MinimumSize = New System.Drawing.Size(645, 489)
+            Me.MinimumSize = New System.Drawing.Size(645, 464)
             Me.Name = "GlobalSettingsForm"
             Me.ShowInTaskbar = False
             Me.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide
@@ -2632,6 +2717,10 @@ Namespace Editors
             CType(Me.NUM_FEED_SES_CURR_LOAD_LAST, System.ComponentModel.ISupportInitialize).EndInit()
             TP_FEED_SPEC_SEARCH.ResumeLayout(False)
             TP_FEED_SPEC_SEARCH.PerformLayout()
+            TP_FEED_1.ResumeLayout(False)
+            TP_FEED_1.PerformLayout()
+            TP_FEED_2.ResumeLayout(False)
+            TP_FEED_2.PerformLayout()
             TAB_NOTIFY.ResumeLayout(False)
             TP_NOTIFY_MAIN.ResumeLayout(False)
             TP_NOTIFY_MAIN.PerformLayout()
@@ -2663,6 +2752,8 @@ Namespace Editors
             Me.CONTAINER_MAIN.ContentPanel.ResumeLayout(False)
             Me.CONTAINER_MAIN.ResumeLayout(False)
             Me.CONTAINER_MAIN.PerformLayout()
+            TP_FEED_3.ResumeLayout(False)
+            TP_FEED_3.PerformLayout()
             Me.ResumeLayout(False)
 
         End Sub
@@ -2780,5 +2871,7 @@ Namespace Editors
         Private WithEvents CH_FEED_SPEC_SEARCH As CheckBox
         Private WithEvents CH_FEED_SPEC_SEARCH_DEEP As CheckBox
         Private WithEvents CH_FEED_OPEN_CTRLF As CheckBox
+        Private WithEvents CH_FEED_TEXT As CheckBox
+        Private WithEvents CH_FEED_TEXT_ALWAYS_MOVE As CheckBox
     End Class
 End Namespace

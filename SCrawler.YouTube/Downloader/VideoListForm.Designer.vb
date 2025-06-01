@@ -33,6 +33,7 @@ Namespace DownloadObjects.STDownloader
             Me.BTT_CLEAR_DONE = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_CLEAR_ALL = New System.Windows.Forms.ToolStripMenuItem()
             Me.BTT_SELECT_ALL = New System.Windows.Forms.ToolStripMenuItem()
+            Me.BTT_SELECT_NONE = New System.Windows.Forms.ToolStripMenuItem()
             Me.TOOLBAR_BOTTOM = New System.Windows.Forms.StatusStrip()
             Me.PR_MAIN = New System.Windows.Forms.ToolStripProgressBar()
             Me.LBL_INFO = New System.Windows.Forms.ToolStripStatusLabel()
@@ -43,6 +44,7 @@ Namespace DownloadObjects.STDownloader
             Me.MENU_ADD = New System.Windows.Forms.ToolStripDropDownButton()
             Me.BTT_ADD = New PersonalUtilities.Forms.Controls.KeyClick.ToolStripMenuItemKeyClick()
             Me.BTT_ADD_PLS_ARR = New PersonalUtilities.Forms.Controls.KeyClick.ToolStripMenuItemKeyClick()
+            Me.BTT_FILTER = New System.Windows.Forms.ToolStripButton()
             Me.BTT_DOWN = New System.Windows.Forms.ToolStripButton()
             Me.BTT_STOP = New System.Windows.Forms.ToolStripButton()
             Me.SEP_LOG = New System.Windows.Forms.ToolStripSeparator()
@@ -50,7 +52,7 @@ Namespace DownloadObjects.STDownloader
             Me.BTT_INFO = New System.Windows.Forms.ToolStripButton()
             Me.BTT_DONATE = New System.Windows.Forms.ToolStripButton()
             Me.BTT_BUG_REPORT = New System.Windows.Forms.ToolStripButton()
-            Me.BTT_SELECT_NONE = New System.Windows.Forms.ToolStripMenuItem()
+            Me.SEP_FILTER = New System.Windows.Forms.ToolStripSeparator()
             SEP_2 = New System.Windows.Forms.ToolStripSeparator()
             SEP_3 = New System.Windows.Forms.ToolStripSeparator()
             MENU_DEL_CLEAR = New System.Windows.Forms.ToolStripDropDownButton()
@@ -134,6 +136,12 @@ Namespace DownloadObjects.STDownloader
             Me.BTT_SELECT_ALL.Size = New System.Drawing.Size(185, 22)
             Me.BTT_SELECT_ALL.Text = "Select all"
             '
+            'BTT_SELECT_NONE
+            '
+            Me.BTT_SELECT_NONE.Name = "BTT_SELECT_NONE"
+            Me.BTT_SELECT_NONE.Size = New System.Drawing.Size(185, 22)
+            Me.BTT_SELECT_NONE.Text = "Select none"
+            '
             'TOOLBAR_BOTTOM
             '
             Me.TOOLBAR_BOTTOM.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.PR_MAIN, Me.LBL_INFO})
@@ -169,7 +177,7 @@ Namespace DownloadObjects.STDownloader
             'TOOLBAR_TOP
             '
             Me.TOOLBAR_TOP.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden
-            Me.TOOLBAR_TOP.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_SETTINGS, Me.SEP_1, Me.MENU_ADD, SEP_2, Me.BTT_DOWN, Me.BTT_STOP, SEP_3, MENU_DEL_CLEAR, Me.SEP_LOG, Me.BTT_LOG, Me.BTT_INFO, Me.BTT_DONATE, Me.BTT_BUG_REPORT})
+            Me.TOOLBAR_TOP.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BTT_SETTINGS, Me.SEP_1, Me.MENU_ADD, Me.SEP_FILTER, Me.BTT_FILTER, SEP_2, Me.BTT_DOWN, Me.BTT_STOP, SEP_3, MENU_DEL_CLEAR, Me.SEP_LOG, Me.BTT_LOG, Me.BTT_INFO, Me.BTT_DONATE, Me.BTT_BUG_REPORT})
             Me.TOOLBAR_TOP.Location = New System.Drawing.Point(0, 0)
             Me.TOOLBAR_TOP.Name = "TOOLBAR_TOP"
             Me.TOOLBAR_TOP.Size = New System.Drawing.Size(584, 25)
@@ -222,6 +230,15 @@ Namespace DownloadObjects.STDownloader
             Me.BTT_ADD_PLS_ARR.Text = "Add URL array"
             Me.BTT_ADD_PLS_ARR.ToolTipText = "Click to add." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Ctrl+click to use cookies for download (if supported)." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Shift to a" &
     "dd without downloading."
+            '
+            'BTT_FILTER
+            '
+            Me.BTT_FILTER.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image
+            Me.BTT_FILTER.Image = CType(resources.GetObject("BTT_FILTER.Image"), System.Drawing.Image)
+            Me.BTT_FILTER.ImageTransparentColor = System.Drawing.Color.Magenta
+            Me.BTT_FILTER.Name = "BTT_FILTER"
+            Me.BTT_FILTER.Size = New System.Drawing.Size(23, 22)
+            Me.BTT_FILTER.Text = "Filter"
             '
             'BTT_DOWN
             '
@@ -286,11 +303,10 @@ Namespace DownloadObjects.STDownloader
             Me.BTT_BUG_REPORT.Size = New System.Drawing.Size(23, 22)
             Me.BTT_BUG_REPORT.Text = "Bug report"
             '
-            'BTT_SELECT_NONE
+            'SEP_FILTER
             '
-            Me.BTT_SELECT_NONE.Name = "BTT_SELECT_NONE"
-            Me.BTT_SELECT_NONE.Size = New System.Drawing.Size(185, 22)
-            Me.BTT_SELECT_NONE.Text = "Select none"
+            Me.SEP_FILTER.Name = "SEP_FILTER"
+            Me.SEP_FILTER.Size = New System.Drawing.Size(6, 25)
             '
             'VideoListForm
             '
@@ -337,5 +353,7 @@ Namespace DownloadObjects.STDownloader
         Private WithEvents BTT_CLEAR_SELECTED As ToolStripMenuItem
         Private WithEvents BTT_SELECT_ALL As ToolStripMenuItem
         Private WithEvents BTT_SELECT_NONE As ToolStripMenuItem
+        Public WithEvents BTT_FILTER As ToolStripButton
+        Public WithEvents SEP_FILTER As ToolStripSeparator
     End Class
 End Namespace

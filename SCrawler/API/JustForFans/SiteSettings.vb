@@ -34,6 +34,9 @@ Namespace API.JustForFans
                 Case NameOf(UserAgent) : If Not HeaderValue.IsEmptyString Then Responser.UserAgent = HeaderValue
             End Select
         End Sub
+        <DoNotUse> Friend Overrides Property DownloadText As PropertyValue
+        <DoNotUse> Friend Overrides Property DownloadTextPosts As PropertyValue
+        <DoNotUse> Friend Overrides Property DownloadTextSpecialFolder As PropertyValue
         Friend Sub New(ByVal AccName As String, ByVal Temp As Boolean)
             MyBase.New("JustForFans", "justfor.fans", AccName, Temp, My.Resources.SiteResources.JFFIcon_64, My.Resources.SiteResources.JFFPic_76)
 

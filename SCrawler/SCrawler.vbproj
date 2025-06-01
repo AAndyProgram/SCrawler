@@ -300,6 +300,13 @@
     <Compile Include="Download\Feed\FeedCopyToForm.vb">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="Download\Feed\FeedFilter.vb" />
+    <Compile Include="Download\Feed\FeedFilterForm.Designer.vb">
+      <DependentUpon>FeedFilterForm.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Download\Feed\FeedFilterForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Download\Feed\FeedMedia.Designer.vb">
       <DependentUpon>FeedMedia.vb</DependentUpon>
     </Compile>
@@ -584,6 +591,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Download\Feed\FeedCopyToForm.resx">
       <DependentUpon>FeedCopyToForm.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Download\Feed\FeedFilterForm.resx">
+      <DependentUpon>FeedFilterForm.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Download\Feed\FeedMedia.resx">
       <DependentUpon>FeedMedia.vb</DependentUpon>

@@ -27,6 +27,9 @@ Namespace API.ThisVid
                                               "If true, then public videos will be stored in the 'Public' folder, private - in the 'Private' folder." & vbCr &
                                               "If false, all videos will be stored in the 'Video' folder."), PClonable>
         Friend ReadOnly Property DifferentFolders As PropertyValue
+        <DoNotUse> Friend Overrides Property DownloadText As PropertyValue
+        <DoNotUse> Friend Overrides Property DownloadTextPosts As PropertyValue
+        <DoNotUse> Friend Overrides Property DownloadTextSpecialFolder As PropertyValue
 #End Region
 #Region "Initializer"
         Friend Sub New(ByVal AccName As String, ByVal Temp As Boolean)

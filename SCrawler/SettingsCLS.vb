@@ -422,6 +422,11 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         FeedEscToClose = New XMLValue(Of Boolean)("EscToClose", True, MyXML, n)
         FeedSpecialSearchForMissing = New XMLValue(Of Boolean)("FeedSpecialSearchForMissing", True, MyXML, n)
         FeedSpecialSearchForMissing_Deep = New XMLValue(Of Boolean)("FeedSpecialSearchForMissing_Deep", False, MyXML, n)
+        FeedShowTextPosts = New XMLValue(Of Boolean)("FeedShowTextPosts", True, MyXML, n)
+        FeedShowTextPostsAlwaysMove = New XMLValue(Of Boolean)("FeedShowTextPostsAlwaysMove", True, MyXML, n)
+        FeedShowTextPosts_LogErrors = New XMLValue(Of Boolean)("FeedShowTextPosts_LogErrors", False, MyXML, n)
+        AddHandler FeedShowTextPosts_LogErrors.ValueChanged, AddressOf FeedShowTextPosts_LogErrors_ValueChanged
+        FeedShowTextPosts_LogErrors_ValueChanged(Nothing, Nothing)
         n = {"Feed", "MoveCopy"}
         FeedMoveCopyLastLocation = New XMLValue(Of SFile)("LastLocation",, MyXML, n)
         FeedMoveCopyUpdateFileLocationOnMove = New XMLValue(Of Boolean)("UpdateFileLocationOnMove", True, MyXML, n)
@@ -1137,6 +1142,18 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
     Friend ReadOnly Property FeedEscToClose As XMLValue(Of Boolean)
     Friend ReadOnly Property FeedSpecialSearchForMissing As XMLValue(Of Boolean)
     Friend ReadOnly Property FeedSpecialSearchForMissing_Deep As XMLValue(Of Boolean)
+    Friend ReadOnly Property FeedShowTextPosts As XMLValue(Of Boolean)
+    Friend ReadOnly Property FeedShowTextPostsAlwaysMove As XMLValue(Of Boolean)
+    Friend ReadOnly Property FeedShowTextPosts_LogErrors As XMLValue(Of Boolean)
+    Private _FeedShowTextPosts_LogErrors_E As ErrorsDescriber
+    Friend ReadOnly Property FeedShowTextPosts_LogErrors_E As ErrorsDescriber
+        Get
+            Return _FeedShowTextPosts_LogErrors_E
+        End Get
+    End Property
+    Private Sub FeedShowTextPosts_LogErrors_ValueChanged(ByVal Sender As Object, ByVal e As EventArgs)
+        _FeedShowTextPosts_LogErrors_E = New ErrorsDescriber(If(FeedShowTextPosts_LogErrors, EDP.SendToLog, EDP.None) + EDP.ReturnValue)
+    End Sub
 #Region "MoveCopy"
     Friend ReadOnly Property FeedMoveCopyLastLocation As XMLValue(Of SFile)
     Friend ReadOnly Property FeedMoveCopyUpdateFileLocationOnMove As XMLValue(Of Boolean)

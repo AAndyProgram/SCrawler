@@ -19,7 +19,7 @@ Namespace DownloadObjects
                 If SeparateVideoFolder Then
                     Dim f$ = Destination.PathWithSeparator
                     With Media.Data
-                        If Not (.Type = UTypes.Picture Or .Type = UTypes.GIF) Then f &= "Video\"
+                        If Not (.Type = UTypes.Picture Or .Type = UTypes.GIF Or .Type = UTypes.Text) Then f &= "Video\"
                     End With
                     Return f
                 Else

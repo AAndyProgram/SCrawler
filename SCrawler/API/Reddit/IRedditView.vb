@@ -12,6 +12,8 @@ Namespace API.Reddit
             [New] = 0
             Hot = 1
             Top = 2
+            Best = 3
+            Rising = 4
         End Enum
         Enum Period As Integer
             All = 0
@@ -23,6 +25,9 @@ Namespace API.Reddit
         End Enum
         Property ViewMode As View
         Property ViewPeriod As Period
+        Property DownloadText As Boolean
+        Property DownloadTextPosts As Boolean
+        Property DownloadTextSpecialFolder As Boolean
         Property RedGifsAccount As String
         Property RedditAccount As String
         Sub SetView(ByVal Options As IRedditView)
@@ -34,14 +39,27 @@ Namespace API.Reddit
         Friend Const Name_RedditAccount As String = "RedditAccount"
         Friend Property ViewMode As IRedditView.View Implements IRedditView.ViewMode
         Friend Property ViewPeriod As IRedditView.Period Implements IRedditView.ViewPeriod
+        Friend Property DownloadText As Boolean Implements IRedditView.DownloadText
+        Friend Property DownloadTextPosts As Boolean Implements IRedditView.DownloadTextPosts
+        Friend Property DownloadTextSpecialFolder As Boolean Implements IRedditView.DownloadTextSpecialFolder
         Friend Property RedGifsAccount As String Implements IRedditView.RedGifsAccount
         Friend Property RedditAccount As String Implements IRedditView.RedditAccount
+        Friend Sub New()
+        End Sub
+        Friend Sub New(ByVal Options As IRedditView)
+            SetView(Options)
+        End Sub
         Friend Sub SetView(ByVal Options As IRedditView) Implements IRedditView.SetView
             If Not Options Is Nothing Then
-                ViewMode = Options.ViewMode
-                ViewPeriod = Options.ViewPeriod
-                RedGifsAccount = Options.RedGifsAccount
-                RedditAccount = Options.RedditAccount
+                With Options
+                    ViewMode = .ViewMode
+                    ViewPeriod = .ViewPeriod
+                    DownloadText = .DownloadText
+                    DownloadTextPosts = .DownloadTextPosts
+                    DownloadTextSpecialFolder = .DownloadTextSpecialFolder
+                    RedGifsAccount = .RedGifsAccount
+                    RedditAccount = .RedditAccount
+                End With
             End If
         End Sub
     End Class

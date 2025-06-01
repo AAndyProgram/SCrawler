@@ -157,6 +157,8 @@ Namespace Editors
                         CH_FEED_ADD_SITE.Checked = .FeedAddSiteToCaption
                         CH_FEED_ADD_TYPE.Checked = .FeedAddTypeToCaption
                         CH_FEED_ADD_DATE.Checked = .FeedAddDateToCaption
+                        CH_FEED_TEXT.Checked = .FeedShowTextPosts
+                        CH_FEED_TEXT_ALWAYS_MOVE.Checked = .FeedShowTextPostsAlwaysMove
                         NUM_FEED_STORE_SESSION_DATA.Checked = .FeedStoreSessionsData
                         NUM_FEED_STORE_SESSION_DATA.Value = .FeedStoredSessionsNumber.Value
                         NUM_FEED_SES_CURR_LOAD_LAST.Value = .FeedCurrentTryLoadLastSession.Value
@@ -375,6 +377,8 @@ Namespace Editors
                     .FeedAddSiteToCaption.Value = CH_FEED_ADD_SITE.Checked
                     .FeedAddTypeToCaption.Value = CH_FEED_ADD_TYPE.Checked
                     .FeedAddDateToCaption.Value = CH_FEED_ADD_DATE.Checked
+                    .FeedShowTextPosts.Value = CH_FEED_TEXT.Checked
+                    .FeedShowTextPostsAlwaysMove.Value = CH_FEED_TEXT_ALWAYS_MOVE.Checked
                     .FeedStoreSessionsData.Value = NUM_FEED_STORE_SESSION_DATA.Checked
                     .FeedStoredSessionsNumber.Value = NUM_FEED_STORE_SESSION_DATA.Value
                     .FeedCurrentTryLoadLastSession.Value = NUM_FEED_SES_CURR_LOAD_LAST.Value

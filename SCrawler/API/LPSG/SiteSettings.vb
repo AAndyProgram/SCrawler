@@ -12,6 +12,9 @@ Imports PersonalUtilities.Functions.RegularExpressions
 Namespace API.LPSG
     <Manifest("AndyProgram_LPSG")>
     Friend Class SiteSettings : Inherits Base.SiteSettingsBase
+        <DoNotUse> Friend Overrides Property DownloadText As PropertyValue
+        <DoNotUse> Friend Overrides Property DownloadTextPosts As PropertyValue
+        <DoNotUse> Friend Overrides Property DownloadTextSpecialFolder As PropertyValue
         Friend Sub New(ByVal AccName As String, ByVal Temp As Boolean)
             MyBase.New("LPSG", "www.lpsg.com", AccName, Temp, My.Resources.SiteResources.LPSGIcon_48, My.Resources.SiteResources.LPSGPic_32)
             UrlPatternUser = "https://www.lpsg.com/threads/{0}/"

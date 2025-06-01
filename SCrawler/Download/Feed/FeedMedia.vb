@@ -15,10 +15,13 @@ Namespace DownloadObjects
     <ToolboxItem(False), DesignTimeVisible(False)>
     Public Class FeedMedia
 #Region "Events"
+        Friend Delegate Sub MediaMoveCopyEventHandler(ByVal Sender As FeedMedia, ByVal MCTOptions As FeedMoveCopyTo, ByRef Result As Boolean)
         Friend Event MediaDeleted(ByVal Sender As Object)
+        Friend Event MediaDeletedText(ByVal Sender As Object)
         Friend Event MediaDownload As EventHandler
         Friend Event FeedAddWithRemove(ByVal Sender As FeedMedia, ByVal Feeds As IEnumerable(Of String), ByVal Media As UserMediaD, ByVal RemoveOperation As Boolean)
-        Friend Event MediaMove(ByVal Sender As FeedMedia, ByVal MCTOptions As FeedMoveCopyTo, ByRef Result As Boolean)
+        Friend Event MediaMove As MediaMoveCopyEventHandler
+        Friend Event MediaCopy As MediaMoveCopyEventHandler
 #End Region
 #Region "Declarations"
         Private Const VideoHeight As Integer = 450
@@ -32,6 +35,7 @@ Namespace DownloadObjects
         End Property
         Friend ReadOnly Property HasError As Boolean
         Friend ReadOnly File As SFile
+        Private ReadOnly IsText As Boolean = False
         Public Shadows Property Width(Optional ByVal UpdateImage As Boolean = True) As Integer
             Get
                 Return MyBase.Width
@@ -158,10 +162,19 @@ Namespace DownloadObjects
         End Function
 #End Region
 #Region "Initializers"
+        Private Sub FileCheckSpecialFolders(ByRef f As SFile, ByVal ExtractText As Boolean)
+            If Not File.Exists Then
+                If ExtractText Then
+                    f.Path = $"{File.Path.CSFilePS}{UserDataBase.PostTextSpecialFolderDefault}"
+                ElseIf Media.Data.Type = UserMedia.Types.Video Then
+                    f.Path = $"{File.Path.CSFilePS}Video"
+                End If
+            End If
+        End Sub
         Public Sub New()
             InitializeComponent()
         End Sub
-        Friend Sub New(ByVal Media As UserMediaD, ByVal Width As Integer, ByVal Height As Integer, ByVal IsSession As Boolean)
+        Friend Sub New(ByVal Media As UserMediaD, ByVal Width As Integer, ByVal Height As Integer, ByVal IsSession As Boolean, ByVal ExtractText As Boolean)
             Try
                 InitializeComponent()
                 Me.Media = Media
@@ -207,32 +220,47 @@ Namespace DownloadObjects
                     TP_MAIN.Controls.Remove(LBL_TITLE)
                     LBL_TITLE.Dispose()
                     TP_MAIN.RowStyles(1).Height = 0
-                    File = Media.Data.File
-                    If Not File.Exists And Media.Data.Type = UserMedia.Types.Video Then File.Path = $"{File.Path.CSFilePS}Video"
+                    File = If(ExtractText, Media.Data.PostTextFile, Media.Data.File)
+                    FileCheckSpecialFolders(File, ExtractText)
                 End If
 
                 If Not File.Exists And Not IsSubscription Then
                     If Not Media.Data.SpecialFolder.IsEmptyString Then
+                        File = If(ExtractText, Media.Data.PostTextFile, Media.Data.File)
                         File.Path = $"{File.Path.CSFilePS}{Media.Data.SpecialFolder}".CSFileP
-                        If Not File.Exists And Media.Data.Type = UserMedia.Types.Video Then File.Path = $"{File.Path.CSFilePS}Video"
+                        FileCheckSpecialFolders(File, ExtractText)
                     End If
                 End If
 
                 If File.Exists Then
-                    Information = $"Type: {Media.Data.Type}"
+                    Information = $"Type: {IIf(ExtractText, UserMedia.Types.Text.ToString, Media.Data.Type.ToString)}"
                     Information.StringAppendLine($"File: {File.File}")
                     Information.StringAppendLine($"Address: {File}")
                     Information.StringAppendLine($"Downloaded: {Media.Date.ToStringDateDef}")
                     If Media.Data.Post.Date.HasValue Then Information.StringAppendLine($"Post date: {Media.Data.Post.Date.Value.ToStringDateDef}")
                     Dim infoType As UserMedia.Types = If(IsSubscription, UserMedia.Types.Picture, Media.Data.Type)
+                    If ExtractText Then infoType = UserMedia.Types.Text
                     Dim h%
                     Dim s As Size
 
                     Post = Media.Data
 
                     Select Case infoType
-                        Case UserMedia.Types.Picture, UserMedia.Types.GIF
-                            Dim tmpMediaFile As SFile = ConvertWebp(File, True)
+                        Case UserMedia.Types.Picture, UserMedia.Types.GIF, UserMedia.Types.Text
+                            Dim tmpMediaFile As SFile = File
+                            If infoType = UserMedia.Types.Text Or ExtractText Then
+                                IsText = True
+                                tmpMediaFile = $"{Settings.Cache.RootDirectory.PathWithSeparator}Text\{File.GetHashCode}.png"
+                                If Not tmpMediaFile.Exists Then tmpMediaFile.Exists(SFO.Path) : UserImage.CreateImageFromText(File.GetText, tmpMediaFile)
+                                If Not tmpMediaFile.Exists Then
+                                    If Settings.FeedShowTextPosts_LogErrors Then
+                                        Throw New Exception($"Unable to create an image preview for text [{File}]")
+                                    Else
+                                        Throw New ArgumentNullException("TextImage", $"Unable to create an image preview for text [{File}]") With {.HelpLink = 1}
+                                    End If
+                                End If
+                            End If
+                            tmpMediaFile = ConvertWebp(tmpMediaFile, True)
                             If tmpMediaFile.IsEmptyString Then Throw New ArgumentNullException With {.HelpLink = 1}
                             Try
                                 MyImage = New ImageRenderer(tmpMediaFile, EDP.ThrowException)
@@ -258,8 +286,9 @@ Namespace DownloadObjects
                                 .ContextMenuStrip = CONTEXT_DATA
                             }
                             TP_MAIN.Controls.Add(MyPicture, 0, 2)
-                            BTT_CONTEXT_OPEN_MEDIA.Text &= " picture"
-                            BTT_CONTEXT_DELETE.Text &= " picture"
+                            Dim openWhat$ = IIf(infoType = UserMedia.Types.Text Or ExtractText, " text", " picture")
+                            BTT_CONTEXT_OPEN_MEDIA.Text &= openWhat
+                            BTT_CONTEXT_DELETE.Text &= openWhat
                         Case UserMedia.Types.Video, UserMedia.Types.m3u8
                             infoType = UserMedia.Types.Video
                             MyVideo = New FeedVideo(File) With {.Tag = File, .Dock = DockStyle.Fill, .ContextMenuStrip = CONTEXT_DATA}
@@ -291,6 +320,12 @@ Namespace DownloadObjects
                                 info &= $"{site}{CStr(IIf(Not .FriendlyName.IsEmptyString And Not .IncludedInCollection, .FriendlyName, .Name)).IfNullOrEmpty(otherName)}"
                             End If
                         End With
+                    End If
+
+                    If Media.Data.Type = UserMedia.Types.Text Or ExtractText Then
+                        Information.StringAppendLine(String.Empty,, False)
+                        Information.StringAppendLine("Text:")
+                        Information.StringAppendLine(If(ExtractText, Media.Data.PostTextFile, Media.Data.File).GetText)
                     End If
 
                     If Settings.FeedAddSessionToCaption And IsSession Then info = $"[{Media.Session}] {info}"
@@ -511,7 +546,8 @@ Namespace DownloadObjects
                     If Not moveOptions.Destination.IsEmptyString Then
                         ff.Path = moveOptions.DestinationTrue(Media).Path
                         If isCopy Then
-                            result = File.Copy(ff)
+                            'result = File.Copy(ff)
+                            RaiseEvent MediaCopy(Me, moveOptions, result)
                         Else
                             RaiseEvent MediaMove(Me, moveOptions, result)
                         End If
@@ -573,8 +609,21 @@ Namespace DownloadObjects
             Try
                 If Silent OrElse MsgBoxE({$"Are you sure you want to delete the [{File.File}] file?{vbCr}{File}", msgTitle}, vbExclamation,,, {"Process", "Cancel"}) = 0 Then
                     If Not MyVideo Is Nothing Then MyVideo.Stop()
-                    If File.Delete(SFO.File, Settings.DeleteMode, EDP.ThrowException) Then
-                        If Not Silent Then RaiseEvent MediaDeleted(Me) : MsgBoxE({"File deleted", msgTitle})
+                    Dim process As Boolean = False
+                    Dim deletedMainFile As Boolean = False
+                    If Not IsText Or Media.Data.Type = UserMedia.Types.Text Then
+                        process = File.Delete(SFO.File, Settings.DeleteMode, EDP.ThrowException)
+                        deletedMainFile = True
+                    Else
+                        process = Media.Data.PostTextFile.Delete(SFO.File, Settings.DeleteMode, EDP.ReturnValue)
+                    End If
+                    If process Then
+                        If deletedMainFile And (Not Settings.FeedShowTextPosts Or Settings.FeedShowTextPostsAlwaysMove) And Not Media.Data.PostTextFile.IsEmptyString Then _
+                           Media.Data.PostTextFile.Delete(SFO.File, Settings.DeleteMode, EDP.ReturnValue)
+                        If Not Silent Then
+                            If deletedMainFile Then RaiseEvent MediaDeleted(Me) Else RaiseEvent MediaDeletedText(Me)
+                            MsgBoxE({"File deleted", msgTitle})
+                        End If
                         LBL_INFO.Height = 0
                         Height = 0
                         Return True

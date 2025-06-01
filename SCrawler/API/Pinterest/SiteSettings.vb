@@ -21,6 +21,9 @@ Namespace API.Pinterest
         Private ReadOnly Property MyConcurrentDownloadsProvider As IFormatProvider
         <PropertyOption(ControlText:=DeclaredNames.SavedPostsUserNameCaption, ControlToolTip:=DeclaredNames.SavedPostsUserNameToolTip), PXML, PClonable(Clone:=False)>
         Friend ReadOnly Property SavedPostsUserName As PropertyValue
+        <DoNotUse> Friend Overrides Property DownloadText As PropertyValue
+        <DoNotUse> Friend Overrides Property DownloadTextPosts As PropertyValue
+        <DoNotUse> Friend Overrides Property DownloadTextSpecialFolder As PropertyValue
 #End Region
 #Region "Initializer"
         Friend Sub New(ByVal AccName As String, ByVal Temp As Boolean)

@@ -8,7 +8,7 @@
 ' but WITHOUT ANY WARRANTY
 Imports SCrawler.Plugin.Attributes
 Namespace API.OnlyFans
-    Friend Class UserExchangeOptions
+    Friend Class UserExchangeOptions : Inherits Base.EditorExchangeOptionsBase
         <PSetting(NameOf(SiteSettings.DownloadTimeline), NameOf(MySettings))>
         Friend Property DownloadTimeline As Boolean
         <PSetting(NameOf(SiteSettings.DownloadStories), NameOf(MySettings))>
@@ -18,7 +18,12 @@ Namespace API.OnlyFans
         <PSetting(NameOf(SiteSettings.DownloadChatMedia), NameOf(MySettings))>
         Friend Property DownloadChatMedia As Boolean
         Private ReadOnly MySettings As SiteSettings
+        <PSetting(Address:=SettingAddress.None)> Friend Overrides Property UserName As String
+        Private Sub New()
+        End Sub
         Friend Sub New(ByVal u As UserData)
+            MyBase.New(u)
+            _ApplyBase_Name = False
             DownloadTimeline = u.MediaDownloadTimeline
             DownloadStories = u.MediaDownloadStories
             DownloadHighlights = u.MediaDownloadHighlights
@@ -26,6 +31,8 @@ Namespace API.OnlyFans
             MySettings = u.HOST.Source
         End Sub
         Friend Sub New(ByVal s As SiteSettings)
+            MyBase.New(s)
+            _ApplyBase_Name = False
             DownloadTimeline = s.DownloadTimeline.Value
             DownloadStories = s.DownloadStories.Value
             DownloadHighlights = s.DownloadHighlights.Value

@@ -96,6 +96,7 @@ Namespace API.Reddit
             With Responser
                 Dim d% = .Decoders.Count
                 .Decoders.ListAddList({SymbolsConverter.Converters.Unicode, SymbolsConverter.Converters.HTML}, LAP.NotContainsOnly)
+                .Accept = "application/json"
                 token = .Headers.Value(DeclaredNames.Header_Authorization)
             End With
 
@@ -104,7 +105,7 @@ Namespace API.Reddit
             ApiClientID = New PropertyValue(String.Empty, GetType(String))
             ApiClientSecret = New PropertyValue(String.Empty, GetType(String))
             BearerToken = New PropertyValue(token, GetType(String), Sub(v) Responser.Headers.Add(DeclaredNames.Header_Authorization, v))
-            BearerTokenUseCurl = New PropertyValue(True)
+            BearerTokenUseCurl = New PropertyValue(False)
             TokenUpdateInterval = New PropertyValue(360)
             TokenUpdateIntervalProvider = New TokenRefreshIntervalProvider
             BearerTokenDateUpdate = New PropertyValue(Now.AddYears(-1))
@@ -123,11 +124,11 @@ Namespace API.Reddit
             ImageVideoContains = "reddit.com"
             UserRegex = RParams.DM("[htps:/]{7,8}.*?reddit.com/([user]{1,4})/([^/\?&]+)", 0, RegexReturn.ListByMatch, EDP.ReturnValue)
         End Sub
-        Private Const SettingsVersionCurrent As Integer = 1
+        Private Const SettingsVersionCurrent As Integer = 2
         Friend Overrides Sub EndInit()
             If CInt(SettingsVersion.Value) < SettingsVersionCurrent Then
                 SettingsVersion.Value = SettingsVersionCurrent
-                TokenUpdateInterval.Value = 360
+                BearerTokenUseCurl.Value = False
             End If
             MyBase.EndInit()
         End Sub

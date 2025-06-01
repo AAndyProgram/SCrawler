@@ -33,7 +33,8 @@ Namespace API.Reddit
         End Property
         Private ReadOnly Property DateTrueProvider(ByVal IsChannel As Boolean) As IFormatProvider
             Get
-                Return If(IsChannel, UnixDate32ProviderReddit, UnixDate64Provider)
+                Return UnixDate32Provider
+                'Return If(IsChannel, UnixDate32ProviderReddit, UnixDate64Provider)
             End Get
         End Property
         Private ReadOnly Property UseM3U8 As Boolean
@@ -126,10 +127,15 @@ Namespace API.Reddit
         Friend Property ViewPeriod As CPeriod Implements IRedditView.ViewPeriod
         Friend Sub SetView(ByVal Options As IRedditView) Implements IRedditView.SetView
             If Not Options Is Nothing Then
-                ViewMode = Options.ViewMode
-                ViewPeriod = Options.ViewPeriod
-                RedGifsAccount = Options.RedGifsAccount
-                RedditAccount = Options.RedditAccount
+                With Options
+                    ViewMode = .ViewMode
+                    ViewPeriod = .ViewPeriod
+                    DownloadText = .DownloadText
+                    DownloadTextPosts = .DownloadTextPosts
+                    DownloadTextSpecialFolder = .DownloadTextSpecialFolder
+                    RedGifsAccount = .RedGifsAccount
+                    RedditAccount = .RedditAccount
+                End With
             End If
         End Sub
         Private ReadOnly Property View As String
@@ -137,6 +143,8 @@ Namespace API.Reddit
                 Select Case ViewMode
                     Case CView.Hot : Return "hot"
                     Case CView.Top : Return "top"
+                    Case CView.Best : Return "best"
+                    Case CView.Rising : Return "rising"
                     Case Else : Return "new"
                 End Select
             End Get
@@ -157,6 +165,9 @@ Namespace API.Reddit
                 End If
             End Get
         End Property
+        Friend Overrides Property DownloadText As Boolean Implements IRedditView.DownloadText
+        Friend Overrides Property DownloadTextPosts As Boolean Implements IRedditView.DownloadTextPosts
+        Friend Overrides Property DownloadTextSpecialFolder As Boolean Implements IRedditView.DownloadTextSpecialFolder
 #End Region
 #Region "Initializer"
         Friend Sub New()
@@ -215,7 +226,7 @@ Namespace API.Reddit
             End With
         End Sub
         Friend Overrides Function ExchangeOptionsGet() As Object
-            Return New RedditViewExchange With {.ViewMode = ViewMode, .ViewPeriod = ViewPeriod, .RedGifsAccount = RedGifsAccount, .RedditAccount = RedditAccount}
+            Return New RedditViewExchange(Me)
         End Function
         Friend Overrides Sub ExchangeOptionsSet(ByVal Obj As Object)
             If Not Obj Is Nothing AndAlso TypeOf Obj Is IRedditView Then SetView(DirectCast(Obj, IRedditView))
@@ -274,8 +285,13 @@ Namespace API.Reddit
                 Else
                     GetUserInfo()
                 End If
-                If SaveToCache AndAlso Not Responser.Decoders.Contains(SymbolsConverter.Converters.HTML) Then _
-                   Responser.Decoders.Add(SymbolsConverter.Converters.HTML)
+                If SaveToCache Then
+                    DownloadText = False
+                    DownloadTextPosts = False
+                    DownloadTextSpecialFolder = False
+                    If Not Responser.Decoders.Contains(SymbolsConverter.Converters.HTML) Then _
+                       Responser.Decoders.Add(SymbolsConverter.Converters.HTML)
+                End If
                 DownloadDataChannel(String.Empty, Token)
                 If ChannelInfo Is Nothing Then _TempPostsList.ListAddList(_TempMediaList.Select(Function(m) m.Post.ID), LNC)
             Else
@@ -311,52 +327,56 @@ Namespace API.Reddit
                     Dim CheckNode As Predicate(Of EContainer) = Function(e) Not ParseUserMediaOnly OrElse If(e("author")?.Value, "/").ToLower.Equals(NameTrue.StringToLower)
                     Dim _PostID As Func(Of String) = Function() PostTmp.IfNullOrEmpty(PostID)
 
-                    URL = $"https://gateway.reddit.com/desktopapi/v1/user/{NameTrue}/posts?rtj=only&allow_quarantined=true&allow_over18=1&include=identity&after={POST}&dist=25&sort={View}&t={Period}&layout=classic"
+                    'URL = $"https://gateway.reddit.com/desktopapi/v1/user/{NameTrue}/posts?rtj=only&allow_quarantined=true&allow_over18=1&include=identity&after={POST}&dist=25&sort={View}&t={Period}&layout=classic"
+                    URL = $"https://oauth.reddit.com/user/{NameTrue}/submitted.json?rtj=only&allow_quarantined=true&allow_over18=1&include=identity&after={POST}&dist=25&sort={View}&t={Period}&layout=classic"
                     ThrowAny(Token)
                     Dim r$ = Responser.GetResponse(URL)
                     If Not r.IsEmptyString Then
                         Using w As EContainer = JsonDocument.Parse(r).XmlIfNothing
                             If w.Count > 0 Then
-                                n = w.GetNode(JsonNodesJson)
-                                If Not n Is Nothing AndAlso n.Count > 0 Then
+                                'n = w.GetNode(JsonNodesJson)
+                                n = w.GetNode(ChannelJsonNodes)
+                                If n.ListExists Then
                                     ProgressPre.ChangeMax(n.Count)
                                     For Each nn In n
                                         ProgressPre.Perform()
                                         ThrowAny(Token)
-                                        If nn.Count > 0 Then
-                                            If CheckNode(nn) Then
+                                        With nn("data")
+                                            If .ListExists Then
+                                                If CheckNode(.Self) Then
 
-                                                'Obtain post ID
-                                                PostTmp = nn.Name
-                                                If PostTmp.IsEmptyString Then PostTmp = nn.Value("id")
-                                                If PostTmp.IsEmptyString Then Continue For
-                                                'Check for CrossPost
-                                                If IsCrossPost(nn) Then
-                                                    _CrossPosts.ListAddList({nn.Value(Node_CrosspostRootId),
-                                                                             nn.Value(Node_CrosspostParentId),
-                                                                             nn.Value(Node_CrosspostParent)}, LNC)
-                                                    Continue For
-                                                Else
-                                                    If Not _CrossPosts.Contains(PostTmp) Then PostID = PostTmp : PostTmp = String.Empty
+                                                    'Obtain post ID
+                                                    PostTmp = .Value("name") '.Name
+                                                    If PostTmp.IsEmptyString Then PostTmp = .Value("id")
+                                                    If PostTmp.IsEmptyString Then Continue For
+                                                    'Check for CrossPost
+                                                    If IsCrossPost(.Self) Then
+                                                        _CrossPosts.ListAddList({ .Value(Node_CrosspostRootId),
+                                                                                  .Value(Node_CrosspostParentId),
+                                                                                  .Value(Node_CrosspostParent)}, LNC)
+                                                        Continue For
+                                                    Else
+                                                        If Not _CrossPosts.Contains(PostTmp) Then PostID = PostTmp : PostTmp = String.Empty
+                                                    End If
+
+                                                    'Download decision
+                                                    If Not _TempPostsList.Contains(_PostID()) Then
+                                                        NewPostDetected = True
+                                                        _TempPostsList.Add(_PostID())
+                                                    Else
+                                                        If Not _CrossPosts.Contains(_PostID()) Then ExistsDetected = True
+                                                        Continue For
+                                                    End If
+                                                    PostDate = If(.Item("created")?.Value, String.Empty)
+                                                    Select Case CheckDatesLimit(PostDate, DateTrueProvider(IsChannel))
+                                                        Case DateResult.Skip : Continue For
+                                                        Case DateResult.Exit : Exit Sub
+                                                    End Select
+
+                                                    ParseContainer(.Self, _PostID(), PostDate,,, GetTextDocument(.Self))
                                                 End If
-
-                                                'Download decision
-                                                If Not _TempPostsList.Contains(_PostID()) Then
-                                                    NewPostDetected = True
-                                                    _TempPostsList.Add(_PostID())
-                                                Else
-                                                    If Not _CrossPosts.Contains(_PostID()) Then ExistsDetected = True
-                                                    Continue For
-                                                End If
-                                                If nn.Contains("created") Then PostDate = nn("created").Value Else PostDate = String.Empty
-                                                Select Case CheckDatesLimit(PostDate, DateTrueProvider(IsChannel))
-                                                    Case DateResult.Skip : Continue For
-                                                    Case DateResult.Exit : Exit Sub
-                                                End Select
-
-                                                ParseContainer(nn, _PostID(), PostDate)
                                             End If
-                                        End If
+                                        End With
                                     Next
                                 End If
                             End If
@@ -450,7 +470,7 @@ Namespace API.Reddit
                                                 Continue For
                                             End If
 
-                                            ParseContainer(s, PostID, PostDate, _UserID)
+                                            ParseContainer(s, PostID, PostDate, _UserID,, If(Not SaveToCache, GetTextDocument(s), String.Empty))
                                         End If
                                     Next
                                 End If
@@ -503,7 +523,7 @@ Namespace API.Reddit
 #End Region
 #Region "ParseContainer"
         Private Function ParseContainer(ByVal e As EContainer, ByVal PostID As String, ByVal PostDate As String, Optional ByVal UserID As String = Nothing,
-                                        Optional ByVal AllowReparse As Boolean = True) As Boolean
+                                        Optional ByVal AllowReparse As Boolean = True, Optional ByVal PostText As String = Nothing) As Boolean
             If Not e Is Nothing Then
                 Dim UPicType As Func(Of String, UTypes) = Function(input) IIf(input = "image", UTypes.Picture, UTypes.GIF)
                 Dim eCount As Predicate(Of EContainer) = Function(item) item.Count > 0
@@ -513,24 +533,24 @@ Namespace API.Reddit
                     If SaveToCache Then
                         tmpUrl = e.Value({"media", "oembed"}, "thumbnail_url")
                         If Not tmpUrl.IsEmptyString Then
-                            _TempMediaList.ListAddValue(MediaFromData(UTypes.Picture, tmpUrl, PostID, PostDate, UserID), LNC)
+                            _TempMediaList.ListAddValue(MediaFromData(UTypes.Picture, tmpUrl, PostID, PostDate, UserID,, PostText), LNC)
                             _TotalPostsDownloaded += 1
                         Else
                             added = False
                         End If
                     Else
-                        _TempMediaList.ListAddValue(MediaFromData(UTypes.VideoPre, tmpUrl, PostID, PostDate, UserID), LNC)
+                        _TempMediaList.ListAddValue(MediaFromData(UTypes.VideoPre, tmpUrl, PostID, PostDate, UserID,, PostText), LNC)
                         _TotalPostsDownloaded += 1
                     End If
-                ElseIf CreateImgurMedia(tmpUrl, PostID, PostDate, UserID, IsChannel) Then
+                ElseIf CreateImgurMedia(tmpUrl, PostID, PostDate, UserID, IsChannel, PostText) Then
                     _TotalPostsDownloaded += 1
-                ElseIf DownloadGallery(e, PostID, PostDate, UserID, SaveToCache) Then
+                ElseIf DownloadGallery(e, PostID, PostDate, UserID, SaveToCache, PostText) Then
                     _TotalPostsDownloaded += 1
                 ElseIf Not If(e({"media"}, "type")?.Value, String.Empty).IsEmptyString Then
                     With e("media")
                         Dim t$ = .Item("type").Value
                         Select Case t
-                            Case "gallery" : If DownloadGallery(.Self, PostID, PostDate) Then _TotalPostsDownloaded += 1 Else added = False
+                            Case "gallery" : If DownloadGallery(.Self, PostID, PostDate,,, PostText) Then _TotalPostsDownloaded += 1 Else added = False
                             Case "image", "gifvideo"
 
                                 Dim resolution As Sizes = Nothing
@@ -565,17 +585,17 @@ Namespace API.Reddit
                                 End If
 
                                 If Not chosenVal.IsEmptyString Then
-                                    _TempMediaList.ListAddValue(MediaFromData(UPicType(t), chosenVal, PostID, PostDate, UserID), LNC)
+                                    _TempMediaList.ListAddValue(MediaFromData(UPicType(t), chosenVal, PostID, PostDate, UserID,, PostText), LNC)
                                     _TotalPostsDownloaded += 1
                                 Else
                                     added = False
                                 End If
                             Case "video"
                                 If UseM3U8 AndAlso .Item("hlsUrl").XmlIfNothingValue("/").ToLower.Contains("m3u8") Then
-                                    _TempMediaList.ListAddValue(MediaFromData(UTypes.m3u8, .Value("hlsUrl"), PostID, PostDate, UserID), LNC)
+                                    _TempMediaList.ListAddValue(MediaFromData(UTypes.m3u8, .Value("hlsUrl"), PostID, PostDate, UserID,, PostText), LNC)
                                     _TotalPostsDownloaded += 1
                                 ElseIf Not UseM3U8 AndAlso .Item("fallback_url").XmlIfNothingValue("/").ToLower.Contains("mp4") Then
-                                    _TempMediaList.ListAddValue(MediaFromData(UTypes.Video, .Value("fallback_url"), PostID, PostDate, UserID), LNC)
+                                    _TempMediaList.ListAddValue(MediaFromData(UTypes.Video, .Value("fallback_url"), PostID, PostDate, UserID,, PostText), LNC)
                                     _TotalPostsDownloaded += 1
                                 Else
                                     added = False
@@ -588,16 +608,16 @@ Namespace API.Reddit
                     If SaveToCache Then
                         tmpUrl = GetVideoRedditPreview(e)
                         If Not tmpUrl.IsEmptyString Then
-                            _TempMediaList.ListAddValue(MediaFromData(UTypes.Picture, tmpUrl, PostID, PostDate, UserID, False), LNC)
+                            _TempMediaList.ListAddValue(MediaFromData(UTypes.Picture, tmpUrl, PostID, PostDate, UserID, False, PostText), LNC)
                             _TotalPostsDownloaded += 1
                         Else
                             added = False
                         End If
                     ElseIf UseM3U8 AndAlso Not If(e({"media", "reddit_video"}, "hls_url")?.Value, String.Empty).IsEmptyString Then
-                        _TempMediaList.ListAddValue(MediaFromData(UTypes.m3u8, e.Value({"media", "reddit_video"}, "hls_url"), PostID, PostDate, UserID), LNC)
+                        _TempMediaList.ListAddValue(MediaFromData(UTypes.m3u8, e.Value({"media", "reddit_video"}, "hls_url"), PostID, PostDate, UserID,, PostText), LNC)
                         _TotalPostsDownloaded += 1
                     Else
-                        _TempMediaList.ListAddValue(MediaFromData(UTypes.Video, tmpUrl, PostID, PostDate, UserID), LNC)
+                        _TempMediaList.ListAddValue(MediaFromData(UTypes.Video, tmpUrl, PostID, PostDate, UserID,, PostText), LNC)
                         _TotalPostsDownloaded += 1
                     End If
                 Else
@@ -606,7 +626,7 @@ Namespace API.Reddit
                 If Not added Then
                     If AllowReparse Then
                         If If(e.ItemF({"crosspost_parent_list", 0})?.Count, 0) > 0 Then
-                            added = ParseContainer(e.ItemF({"crosspost_parent_list", 0}), PostID, PostDate, UserID, True)
+                            added = ParseContainer(e.ItemF({"crosspost_parent_list", 0}), PostID, PostDate, UserID, True, PostText)
                         Else
                             Dim tPostId$ = e.Value(Node_CrosspostParent).IfNullOrEmpty(e.Value(Node_CrosspostParentId)).IfNullOrEmpty(e.Value(Node_CrosspostRootId))
                             If Not PostID.IsEmptyString Then
@@ -615,7 +635,7 @@ Namespace API.Reddit
                                     Using j As EContainer = JsonDocument.Parse(r, EDP.ReturnValue)
                                         If j.ListExists Then
                                             With j.ItemF({0, "data", "children", 0, "data"})
-                                                If .ListExists Then added = ParseContainer(.Self, PostID, PostDate, UserID, False)
+                                                If .ListExists Then added = ParseContainer(.Self, PostID, PostDate, UserID, False, PostText)
                                             End With
                                         End If
                                     End Using
@@ -637,7 +657,7 @@ Namespace API.Reddit
                                 End Select
                             End With
                             If Not tmpType = UTypes.Undefined Then
-                                _TempMediaList.ListAddValue(MediaFromData(tmpType, node.Value, PostID, PostDate, UserID), LNC)
+                                _TempMediaList.ListAddValue(MediaFromData(tmpType, node.Value, PostID, PostDate, UserID,, PostText), LNC)
                                 added = True
                             End If
                         End If
@@ -660,7 +680,7 @@ Namespace API.Reddit
                                         If Not tmpUrl.IsEmptyString Then tmpType = UTypes.Picture
                                     End If
                                     If Not tmpUrl.IsEmptyString And Not tmpType = UTypes.Undefined Then
-                                        Dim m As UserMedia = MediaFromData(tmpType, tmpUrl, PostID, PostDate, UserID)
+                                        Dim m As UserMedia = MediaFromData(tmpType, tmpUrl, PostID, PostDate, UserID,, PostText)
                                         If tmpType = UTypes.Video Then m.File.Extension = "mp4"
                                         _TempMediaList.ListAddValue(m, LNC)
                                         _TotalPostsDownloaded += 1
@@ -671,6 +691,7 @@ Namespace API.Reddit
                         End If
                     End If
                 End If
+                If Not added And Not PostText.IsEmptyString Then _TempMediaList.ListAddValue(MediaFromData(UTypes.Text, String.Empty, PostID, PostDate, UserID,, PostText))
                 Return added
             Else
                 Return False
@@ -693,28 +714,45 @@ Namespace API.Reddit
                 Return False
             End Try
         End Function
+        Private Function GetTextDocument(ByVal e As EContainer) As String
+            Dim t$ = String.Empty
+            Try
+                t = e.Value("title")
+                With e({"rtjson", "document"})
+                    If .ListExists Then
+                        For Each tt As EContainer In .Self
+                            t.StringAppendLine(vbCrLf,, False)
+                            t.StringAppendLine(If(tt.ItemF({"c", 0, "t"})?.Value, String.Empty))
+                        Next
+                    End If
+                End With
+            Catch
+            End Try
+            Return t
+        End Function
 #End Region
 #Region "Download Base Functions"
         Private Function CreateImgurMedia(ByVal _URL As String, ByVal PostID As String, ByVal PostDate As String,
-                                          Optional ByVal _UserID As String = "", Optional ByVal IsChannel As Boolean = False) As Boolean
+                                          Optional ByVal _UserID As String = "", Optional ByVal IsChannel As Boolean = False,
+                                          Optional ByVal PostText As String = Nothing) As Boolean
             If Not _URL.IsEmptyString AndAlso _URL.Contains("imgur") Then
                 If _URL.StringContains({".jpg", ".png", ".jpeg"}) Then
-                    _TempMediaList.ListAddValue(MediaFromData(UTypes.Picture, _URL, PostID, PostDate, _UserID), LNC)
+                    _TempMediaList.ListAddValue(MediaFromData(UTypes.Picture, _URL, PostID, PostDate, _UserID,, PostText), LNC)
                 ElseIf _URL.Contains(".gifv") Then
                     If SaveToCache Then
-                        _TempMediaList.ListAddValue(MediaFromData(UTypes.Picture, _URL.Replace(".gifv", ".gif"), PostID, PostDate, _UserID), LNC)
+                        _TempMediaList.ListAddValue(MediaFromData(UTypes.Picture, _URL.Replace(".gifv", ".gif"), PostID, PostDate, _UserID,, PostText), LNC)
                     Else
-                        _TempMediaList.ListAddValue(MediaFromData(UTypes.Video, _URL.Replace(".gifv", ".mp4"), PostID, PostDate, _UserID), LNC)
+                        _TempMediaList.ListAddValue(MediaFromData(UTypes.Video, _URL.Replace(".gifv", ".mp4"), PostID, PostDate, _UserID,, PostText), LNC)
                     End If
                 ElseIf _URL.Contains(".mp4") Then
-                    _TempMediaList.ListAddValue(MediaFromData(UTypes.Video, _URL, PostID, PostDate, _UserID), LNC)
+                    _TempMediaList.ListAddValue(MediaFromData(UTypes.Video, _URL, PostID, PostDate, _UserID,, PostText), LNC)
                 ElseIf _URL.Contains(".gif") Then
-                    _TempMediaList.ListAddValue(MediaFromData(UTypes.GIF, _URL, PostID, PostDate, _UserID), LNC)
+                    _TempMediaList.ListAddValue(MediaFromData(UTypes.GIF, _URL, PostID, PostDate, _UserID,, PostText), LNC)
                 Else
                     Dim obj As IEnumerable(Of UserMedia) = Imgur.Envir.GetVideoInfo(_URL, EDP.ReturnValue)
                     If Not obj.ListExists Then
                         If Not TryFile(_URL) Then _URL &= ".jpg"
-                        _TempMediaList.ListAddValue(MediaFromData(UTypes.Picture, _URL, PostID, PostDate, _UserID), LNC)
+                        _TempMediaList.ListAddValue(MediaFromData(UTypes.Picture, _URL, PostID, PostDate, _UserID,, PostText), LNC)
                     Else
                         Dim ut As UTypes
                         Dim m As UserMedia
@@ -729,7 +767,7 @@ Namespace API.Reddit
                                             Case "gif" : ut = UTypes.GIF
                                             Case Else : ut = UTypes.Picture : .File.Extension = "jpg"
                                         End Select
-                                        m = MediaFromData(ut, _URL, PostID, PostDate, _UserID)
+                                        m = MediaFromData(ut, _URL, PostID, PostDate, _UserID,, PostText)
                                         m.URL = .URL
                                         m.File = .File.File
                                         _TempMediaList.ListAddValue(m, LNC)
@@ -745,7 +783,8 @@ Namespace API.Reddit
             End If
         End Function
         Private Function DownloadGallery(ByVal e As EContainer, ByVal PostID As String, ByVal PostDate As String,
-                                         Optional ByVal _UserID As String = Nothing, Optional ByVal FirstOnly As Boolean = False) As Boolean
+                                         Optional ByVal _UserID As String = Nothing, Optional ByVal FirstOnly As Boolean = False,
+                                         Optional ByVal PostText As String = Nothing) As Boolean
             Try
                 Dim added As Boolean = False
                 Dim node As EContainer = Nothing
@@ -759,7 +798,7 @@ Namespace API.Reddit
                     For Each n As EContainer In node
                         t = n.ItemF({"s", "u"})
                         If Not t Is Nothing AndAlso Not t.Value.IsEmptyString Then
-                            _TempMediaList.ListAddValue(MediaFromData(UTypes.Picture, t.Value, PostID, PostDate, _UserID), LNC)
+                            _TempMediaList.ListAddValue(MediaFromData(UTypes.Picture, t.Value, PostID, PostDate, _UserID,, PostText), LNC)
                             added = True
                             If FirstOnly Then Exit For
                         End If
@@ -876,7 +915,7 @@ Namespace API.Reddit
                             If Not r.IsEmptyString Then
                                 v = RegexReplace(r, VideoRegEx)
                                 If Not v.IsEmptyString Then
-                                    _TempMediaList(i) = New UserMedia With {.Type = UTypes.Video, .URL = v, .File = v, .Post = m.Post}
+                                    _TempMediaList(i) = New UserMedia With {.Type = UTypes.Video, .URL = v, .File = v, .Post = m.Post, .PostText = m.PostText, .PostTextFile = m.PostTextFile}
                                 Else
                                     _TempMediaList.RemoveAt(i)
                                 End If
@@ -924,7 +963,7 @@ Namespace API.Reddit
                                     If j.Count > 0 Then
                                         lastCount = _TempMediaList.Count
                                         With j.GetNode(SingleJsonNodes)
-                                            If .ListExists AndAlso ParseContainer(.Self, m.Post.ID, String.Empty) Then
+                                            If .ListExists AndAlso ParseContainer(.Self, m.Post.ID, String.Empty,,, GetTextDocument(.Self)) Then
                                                 If lastCount <> _TempMediaList.Count Then
                                                     For li = IIf(lastCount < 0, 0, lastCount) To _TempMediaList.Count - 1
                                                         m2 = _TempMediaList(i)
@@ -971,13 +1010,15 @@ Namespace API.Reddit
 #End Region
 #Region "Structure creator"
         Private Function MediaFromData(ByVal t As UTypes, ByVal _URL As String, ByVal PostID As String, ByVal PostDate As String,
-                                       Optional ByVal _UserID As String = "", Optional ByVal ReplacePreview As Boolean = True) As UserMedia
+                                       Optional ByVal _UserID As String = "", Optional ByVal ReplacePreview As Boolean = True,
+                                       Optional ByVal PostText As String = Nothing) As UserMedia
             If _URL.IsEmptyString And t = UTypes.Picture Then Return Nothing
             _URL = LinkFormatterSecure(RegexReplace(_URL.Replace("\", String.Empty), LinkPattern))
             Dim m As New UserMedia(_URL, t) With {.Post = New UserPost With {.ID = PostID, .UserID = _UserID}}
             If t = UTypes.Picture Or t = UTypes.GIF Then m.File = CreateFileFromUrl(m.URL) Else m.File = Nothing
             If ReplacePreview And m.URL.Contains("preview") And Not t = UTypes.Picture Then m.URL = $"https://i.redd.it/{m.File.File}"
             If Not PostDate.IsEmptyString Then m.Post.Date = AConvert(Of Date)(PostDate, DateTrueProvider(IsChannel Or IsSavedPosts), Nothing) Else m.Post.Date = Nothing
+            If Not PostText.IsEmptyString Then m.PostText = PostText
             Return m
         End Function
         Private Function TryFile(ByVal URL As String) As Boolean

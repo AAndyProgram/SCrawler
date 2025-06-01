@@ -1,3 +1,45 @@
+# 2025.6.1.0
+
+*2025-06-01*
+
+- Added
+  - Sites:
+    - YouTube (standalone app):
+      - support for **youtu.be** domain
+      - **filters**
+      - hotkey `Ctrl+F5` for refresh
+    - **Bluesky, Instagram, OnlyFans, Reddit, Threads, Twitter: the ability to download text posts**
+    - OnlyFans:
+      - updated `DynamicRules`
+      - `backend` option *(`aio` & `httpx`)*
+    - Reddit: add `Best` and `Rising` view modes
+    - TikTok: downloading of avatar, site name and description
+  - Feed:
+    - **filters**
+    - add the ability to show test posts
+  - Minor improvements
+- Updated
+  - yt-dlp up to version **2025.05.22**
+  - gallery-dl up to version **1.29.7**
+- PluginProvider
+  - IUserMedia: properties `PostText`, `PostTextFile`, `PostTextFileSpecialFolder`
+- Fixed
+  - Sites:
+    - OnlyFans:
+      - DRM videos are not downloading in some cases *(only if you can't download video try changing `backend` option to `httpx`)*
+      - incorrect open posts
+      - while limited downloading, the first time, the profile still loads completely
+    - Reddit:
+      - **data is not downloading**
+      - post date is incorrect
+    - Threads
+      - change domain from `net` to `com`
+      - data is not downloading
+    - Twitter
+      - fix JSON error
+      - data is not downloaded in some cases
+  - Minor bugs
+
 # 2025.3.17.0
 
 *2025-03-17*

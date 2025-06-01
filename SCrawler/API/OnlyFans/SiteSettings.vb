@@ -37,6 +37,8 @@ Namespace API.OnlyFans
         Friend Const HeaderXBC As String = "X-Bc"
         Friend Const HeaderAppToken As String = "App-Token"
         Private Const AppTokenDefault As String = "33d57ade8c02dbc5a333db99ff9ae26a"
+        Private Const BackendDefault As String = "aio"
+        Private Const Backendhttpx As String = "httpx"
         <PropertyOption(ControlText:=HeaderUserID, AllowNull:=False, IsAuth:=True), PClonable(Clone:=False)>
         Friend ReadOnly Property HH_USER_ID As PropertyValue
         <PropertyOption(ControlText:=HeaderXBC, AllowNull:=False, IsAuth:=True), PClonable(Clone:=False)>
@@ -199,6 +201,24 @@ Namespace API.OnlyFans
             End If
             Return False
         End Function
+        <PClonable, PXML("OFS_BACKEND")> Private ReadOnly Property OFS_BACKEND_XML As PropertyValue
+        <PropertyOption(ControlText:="backend", ControlToolTip:="The value of 'advanced_options' in the configuration" & vbCr &
+                                                                "If you can't download the video, try using 'httpx'", AllowNull:=False, Category:=CAT_OFS)>
+        Friend ReadOnly Property OFS_BACKEND As PropertyValue
+            Get
+                If Not DefaultInstance Is Nothing Then
+                    Return DirectCast(DefaultInstance, SiteSettings).OFS_BACKEND_XML
+                Else
+                    Return OFS_BACKEND_XML
+                End If
+            End Get
+        End Property
+        <PropertyUpdater(NameOf(OFS_BACKEND))>
+        Private Function OFS_BACKEND_Update() As Boolean
+            DirectCast(If(DefaultInstance, Me), SiteSettings).OFS_BACKEND_XML.Value =
+                CStr(IIf(MsgBoxE({"Select a value for the 'backend' option", "'backend' value"}, vbQuestion,,, {BackendDefault, Backendhttpx}) = 0, BackendDefault, Backendhttpx))
+            Return True
+        End Function
 #End Region
 #End Region
 #Region "Initializer"
@@ -261,6 +281,7 @@ Namespace API.OnlyFans
             Keydb_Api_XML = New PropertyValue(String.Empty, GetType(String))
             OFS_KEYS_Key_XML = New PropertyValue(String.Empty, GetType(String))
             OFS_KEYS_ClientID_XML = New PropertyValue(String.Empty, GetType(String))
+            OFS_BACKEND_XML = New PropertyValue(BackendDefault)
 
             UpdateRules401_XML = New PropertyValue(False)
 
@@ -343,7 +364,8 @@ Namespace API.OnlyFans
                 If p.IsEmptyString Then
                     Return GetUserUrl(User)
                 Else
-                    Return String.Format(UserPostPattern, p, If(User.ID.IsEmptyString, User.Name, $"u{User.ID}"))
+                    'Return String.Format(UserPostPattern, p, If(User.ID.IsEmptyString, User.Name, $"u{User.ID}"))
+                    Return String.Format(UserPostPattern, p, User.NameTrue)
                 End If
             Else
                 Return String.Empty

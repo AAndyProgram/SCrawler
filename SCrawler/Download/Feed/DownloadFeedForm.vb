@@ -12,8 +12,10 @@ Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Forms.Toolbars
 Imports PersonalUtilities.Tools
 Imports RCI = PersonalUtilities.Forms.Toolbars.RangeSwitcherToolbar.ControlItem
+Imports UTypes = SCrawler.API.Base.UserMedia.Types
 Imports UserMediaD = SCrawler.DownloadObjects.TDownloader.UserMediaD
 Imports DTSModes = PersonalUtilities.Forms.DateTimeSelectionForm.Modes
+Imports ETC = PersonalUtilities.Forms.Toolbars.EditToolbar.ControlItem
 Namespace DownloadObjects
     Friend Class DownloadFeedForm
 #Region "Events"
@@ -42,6 +44,36 @@ Namespace DownloadObjects
                 Return OPT_SUBSCRIPTIONS.Checked
             End Get
         End Property
+#Region "Filter options"
+        Friend ReadOnly Property FILTERS As FeedFilterCollection
+        Private ReadOnly Property CurrentFilter As FeedFilter
+            Get
+                Return FILTERS.Current
+            End Get
+        End Property
+        Private ReadOnly FilterTypesConversion As Func(Of UTypes, UserMediaD, Boolean) = Function(ByVal t As UTypes, ByVal d As UserMediaD) As Boolean
+                                                                                             Select Case t
+                                                                                                 Case UTypes.Video : Return d.Data.IsVideoType
+                                                                                                 Case UTypes.Picture : Return d.Data.Type = UTypes.Picture
+                                                                                                 Case UTypes.GIF : Return d.Data.Type = UTypes.GIF
+                                                                                                 Case UTypes.Text : Return d.Data.Type = UTypes.Text
+                                                                                                 Case Else : Return False
+                                                                                             End Select
+                                                                                         End Function
+        Private ReadOnly DataFilterPredicate As New FPredicate(Of UserMediaD)(
+            Function(ByVal d As UserMediaD) As Boolean
+                If Not CurrentFilter Is Nothing Then
+                    With CurrentFilter
+                        If .Types.Count > 0 AndAlso Not .Types.Any(Function(t) FilterTypesConversion(t, d)) Then Return False
+#Disable Warning BC42109
+                        If .Users.Count > 0 AndAlso Not .Users.Contains(d.UserInfo) Then Return False
+#Enable Warning
+                    End With
+                End If
+                Return True
+            End Function)
+        Private ReadOnly DataFilterPredicateInv As New FPredicate(Of UserMediaD)(Function(d) Not DataFilterPredicate.Invoke(d))
+#End Region
 #Region "Feeds options"
         Private Enum FeedModes : Current : Saved : Special : End Enum
         Private FeedMode As FeedModes = FeedModes.Current
@@ -112,6 +144,7 @@ Namespace DownloadObjects
 #Region "Initializer"
         Friend Sub New()
             InitializeComponent()
+            FormFont = ControlInvokeFast(Of Font)(Me, Function() Font.Clone, Nothing)
             MyDefs = New DefaultFormOptions(Me, Settings.Design)
             MyRange = New RangeSwitcherToolbar(Of UserMediaD)(ToolbarTOP)
             DataList = New List(Of UserMediaD)
@@ -123,6 +156,10 @@ Namespace DownloadObjects
                 .Image = My.Resources.DeletePic_24,
                 .DisplayStyle = ToolStripItemDisplayStyle.ImageAndText
             }
+            FILTERS = New FeedFilterCollection
+            BTT_FILTER.Image = My.Resources.FilterPic
+            BTT_FILTER_SIMPLE.Image = My.Resources.FilterPic
+            BTT_FILTER_SAVE.Image = PersonalUtilities.My.Resources.SaveAsPic_Black_16
         End Sub
 #End Region
 #Region "Form handlers"
@@ -383,6 +420,8 @@ Namespace DownloadObjects
         End Sub
 #End Region
 #Region "Refill"
+        Private _RefillListProcessTable As Boolean = True
+        Private _RefillListIgnoreFilter As Boolean = False
         Private Overloads Sub RefillList(Optional ByVal RememberPosition As Boolean? = Nothing)
             If IsSession Then
                 RefillList(FeedMode = FeedModes.Current, If(RememberPosition, True))
@@ -391,6 +430,7 @@ Namespace DownloadObjects
             End If
         End Sub
         Private Overloads Sub RefillList(ByVal RefillDataList As Boolean, ByVal RememberPosition As Boolean)
+            UpdateFilterControls()
             DataPopulated = False
             Dim rIndx% = -1
             If RememberPosition Then rIndx = MyRange.CurrentIndex
@@ -401,17 +441,20 @@ Namespace DownloadObjects
                 DataList.Clear()
                 DataList.ListAddList(Downloader.Files.Where(If(IsSubscription, FilterSubscriptions, FilterUsers)), LAP.NotContainsOnly)
             End If
-            MyRange.Source = DataList
-            If rIndx >= 0 Then
-                If Not rIndx.ValueBetween(0, MyRange.Count - 1) Then rIndx -= 1
-                If rIndx.ValueBetween(0, MyRange.Count - 1) Then MyRange.CurrentIndex = rIndx
-            End If
-            ControlInvokeFast(ToolbarTOP, BTT_REFRESH, Sub() BTT_REFRESH.ToolTipText = BttRefreshToolTipText)
-            BTT_REFRESH.ControlDropColor(ToolbarTOP)
-            If DataList.Count = 0 Then
-                ClearTable()
-            ElseIf Not DataPopulated Then
-                MyRange_IndexChanged(MyRange, Nothing)
+            If Not _RefillListIgnoreFilter And Not CurrentFilter Is Nothing And DataList.Count > 0 Then DataList.RemoveAll(DataFilterPredicateInv)
+            If _RefillListProcessTable Then
+                MyRange.Source = DataList
+                If rIndx >= 0 Then
+                    If Not rIndx.ValueBetween(0, MyRange.Count - 1) Then rIndx -= 1
+                    If rIndx.ValueBetween(0, MyRange.Count - 1) Then MyRange.CurrentIndex = rIndx
+                End If
+                ControlInvokeFast(ToolbarTOP, BTT_REFRESH, Sub() BTT_REFRESH.ToolTipText = BttRefreshToolTipText)
+                BTT_REFRESH.ControlDropColor(ToolbarTOP)
+                If DataList.Count = 0 Then
+                    ClearTable()
+                ElseIf Not DataPopulated Then
+                    MyRange_IndexChanged(MyRange, Nothing)
+                End If
             End If
         End Sub
         Private Sub CleanDataList()
@@ -555,7 +598,7 @@ Namespace DownloadObjects
             Try
                 Dim isCopy As Boolean = Not Sender Is Nothing AndAlso (Sender Is BTT_COPY_TO OrElse Sender Is BTT_COPY_SPEC_TO)
                 Dim moveOptions As FeedMoveCopyTo = Nothing
-                Dim ff As SFile = Nothing, df As SFile
+                Dim ff As SFile = Nothing, ffInit As SFile = Nothing, df As SFile = Nothing
                 Dim data As IEnumerable(Of UserMediaD) = Nothing
                 Dim dd As UserMediaD
                 Dim __user As UserInfo
@@ -565,10 +608,11 @@ Namespace DownloadObjects
                 Dim mm As UserMediaD
                 Dim mm_data As API.Base.UserMedia
                 Dim indx%
+                Dim indxR As Byte
                 Dim renameExisting As Boolean = False
                 Dim downloaderFilesUpdated As Boolean = False
                 Dim eFiles As IEnumerable(Of SFile)
-                Dim finder As Predicate(Of UserMediaD) = Function(media) media.Data.File = ff
+                Dim finder As Predicate(Of UserMediaD) = Function(media) media.Data.File = ffInit
                 Dim x As XmlFile
                 Dim sessionData As New List(Of UserMediaD)
                 Dim sesFile As SFile
@@ -671,39 +715,57 @@ Namespace DownloadObjects
 
                         End If
                         For Each dd In data
-                            If Not dd.Data.File.IsEmptyString Then
-                                ff = dd.Data.File
-                                df = ff
-                                df.Path = moveOptions.DestinationTrue(dd).Path
-                                If isCopy Then
-                                    If ff.Copy(df) Then new_files.Add(df) : result = True
-                                Else
-                                    If df.Exists And renameExisting Then df = SFile.IndexReindex(df,,,, New ErrorsDescriber(False, False, False, df))
-                                    If SFile.Move(ff, df) Then
-                                        new_files.Add(df)
-                                        result = True
-                                        If updateFileLocations Then
-                                            filesReplace.Add(New KeyValuePair(Of SFile, SFile)(ff, df))
-                                            indx = Downloader.Files.FindIndex(finder)
-                                            If indx >= 0 Then
-                                                mm = Downloader.Files(indx)
-                                                __user = mm.UserInfo
-                                                mm_data = mm.Data
-                                                mm_data.File = df
-                                                __isSavedPosts = mm.IsSavedPosts And moveOptions.ReplaceUserProfile_Profile Is Nothing
-                                                postUrl = mm.PostUrl(True)
-                                                mm = New UserMediaD(mm_data, If(moveOptions.ReplaceUserProfile_Profile, mm.User), mm.Session, mm.Date) With {
-                                                    .IsSavedPosts = __isSavedPosts,
-                                                    .PostUrl = postUrl
-                                                }
-                                                If __isSavedPosts Then mm.UserInfo = __user
-                                                Downloader.Files(indx) = mm
-                                                downloaderFilesUpdated = True
+                            For indxR = 0 To 1
+                                ff = If(indxR = 0, dd.Data.File, dd.Data.PostTextFile)
+                                If Not ff.IsEmptyString AndAlso ff.Exists Then
+                                    If indxR = 0 Then
+                                        ffInit = ff
+                                        df = ff
+                                        df.Path = moveOptions.DestinationTrue(dd).Path
+                                    ElseIf Not Settings.FeedShowTextPosts Or Settings.FeedShowTextPostsAlwaysMove Then
+                                        df.Name = ff.Name
+                                        df.Extension = ff.Extension
+                                    Else
+                                        Exit For
+                                    End If
+                                    If isCopy Then
+                                        If ff.Copy(df) Then new_files.Add(df) : result = True
+                                    Else
+                                        If df.Exists And renameExisting Then df = SFile.IndexReindex(df,,,, New ErrorsDescriber(False, False, False, df))
+                                        If SFile.Move(ff, df) Then
+                                            If indxR = 0 Then
+                                                new_files.Add(df)
+                                                result = True
+                                            End If
+                                            If updateFileLocations Then
+                                                If indxR = 0 Then filesReplace.Add(New KeyValuePair(Of SFile, SFile)(ff, df))
+                                                indx = Downloader.Files.FindIndex(finder)
+                                                If indx >= 0 Then
+                                                    mm = Downloader.Files(indx)
+                                                    __user = mm.UserInfo
+                                                    mm_data = mm.Data
+                                                    If indxR = 0 Then
+                                                        mm_data.File = df
+                                                        ffInit = df
+                                                    Else
+                                                        mm_data.PostTextFile = df
+                                                        mm_data.PostTextFileSpecialFolder = False
+                                                    End If
+                                                    __isSavedPosts = mm.IsSavedPosts And moveOptions.ReplaceUserProfile_Profile Is Nothing
+                                                    postUrl = mm.PostUrl(True)
+                                                    mm = New UserMediaD(mm_data, If(moveOptions.ReplaceUserProfile_Profile, mm.User), mm.Session, mm.Date) With {
+                                                        .IsSavedPosts = __isSavedPosts,
+                                                        .PostUrl = postUrl
+                                                    }
+                                                    If __isSavedPosts Then mm.UserInfo = __user
+                                                    Downloader.Files(indx) = mm
+                                                    downloaderFilesUpdated = True
+                                                End If
                                             End If
                                         End If
                                     End If
                                 End If
-                            End If
+                            Next
                         Next
                         If Not isCopy And updateFileLocations Then
                             If downloaderFilesUpdated Then Downloader.FilesSave()
@@ -718,6 +780,7 @@ Namespace DownloadObjects
                                     If sessionData.Count > 0 Then
                                         For Each rfile As KeyValuePair(Of SFile, SFile) In filesReplace
                                             ff = rfile.Key
+                                            ffInit = ff
                                             df = rfile.Value
                                             indx = sessionData.FindIndex(finder)
                                             If indx >= 0 Then
@@ -770,6 +833,130 @@ Namespace DownloadObjects
                 Settings.Feeds.UpdateWhereDataReplaced()
             End Try
         End Function
+#End Region
+#Region "Filters"
+        Private Sub BTT_FILTER_Click(sender As Object, e As EventArgs) Handles BTT_FILTER.Click, BTT_FILTER_SIMPLE.Click
+            Dim changer As Action(Of Boolean) = Sub(ByVal start As Boolean)
+                                                    _RefillListIgnoreFilter = start
+                                                    _RefillListProcessTable = Not start
+                                                End Sub
+            Try
+                changer.Invoke(True)
+                RefillList(True)
+                Using f As New FeedFilterForm(CurrentFilter, DataList, True)
+                    f.ShowDialog()
+                    If f.DialogResult = DialogResult.OK Then
+                        FILTERS.TEMP = f.MyFilter.Copy
+                    ElseIf f.DialogResult = DialogResult.Abort Then
+                        FILTERS.TEMP = Nothing
+                        FILTERS.Disable(False, Not FILTERS.Current(False, False) Is Nothing AndAlso
+                                               MsgBoxE({$"Want to apply the '{FILTERS.Current(False, False).Name}' filter?", "Apply saved filter"},
+                                                       vbExclamation + vbYesNo) = vbYes, True)
+                    Else
+                        Exit Sub
+                    End If
+                    changer.Invoke(False)
+                    RefillList(True)
+                End Using
+            Catch
+            Finally
+                changer.Invoke(False)
+            End Try
+        End Sub
+        Private Sub BTT_FILTER_DISABLE_Click(sender As Object, e As EventArgs) Handles BTT_FILTER_DISABLE.Click
+            If Not CurrentFilter Is Nothing Then FILTERS.Disable() : RefillList(False)
+        End Sub
+        Private Sub BTT_FILTER_SAVE_Click(sender As Object, e As EventArgs) Handles BTT_FILTER_SAVE.Click
+            If CurrentFilter Is Nothing Then
+                MsgBoxE({"No filters to save", "Save filter"}, vbCritical)
+            Else
+                Dim names As New List(Of String)
+                Dim n$ = String.Empty
+                If FILTERS.Count > 0 Then names.AddRange(FILTERS.Select(Function(ff) ff.Name))
+                Do
+                    n = InputBoxE("Enter a new filter name here:", "Filter name", n)
+                    If n.IsEmptyString Then
+                        ShowOperationCanceledMsg()
+                        Exit Sub
+                    ElseIf names.Count > 0 AndAlso names.Contains(n) Then
+                        If MsgBoxE({"You have entered a name that already exists", "Incorrect name"}, vbCritical,,, {"Try again", "Cancel"}) = 1 Then _
+                           ShowOperationCanceledMsg() : Exit Sub
+                    Else
+                        Exit Do
+                    End If
+                Loop
+                If Not n.IsEmptyString Then
+                    Dim f As FeedFilter = CurrentFilter.Copy
+                    f.Name = n
+                    FILTERS.Add(f, True)
+                    RefillList(True)
+                End If
+            End If
+        End Sub
+        Private Sub BTT_FILTER_MANAGE_Click(sender As Object, e As EventArgs) Handles BTT_FILTER_MANAGE.Click
+            Try
+                Using f As New SimpleListForm(Of FeedFilter)(FILTERS, Settings.Design, True) With {
+                    .DesignXMLNodeName = "FeedFilters",
+                    .MultiSelect = False,
+                    .Mode = SimpleListFormModes.SelectedItems,
+                    .FormText = "Filters",
+                    .Icon = My.Resources.FilterIcon
+                }
+                    Dim updateSource As Action = Sub()
+                                                     f.Clear()
+                                                     f.DataSource = FILTERS
+                                                     f.Update()
+                                                 End Sub
+                    Dim __edit As EventHandler(Of SimpleListFormEventArgs) = Sub(ByVal __sender As Object, ByVal __e As SimpleListFormEventArgs)
+                                                                                 If Not __e.Item Is Nothing Then
+                                                                                     Using ff As New FeedFilterForm(__e.Item) With {.ShowAllUsers = True}
+                                                                                         ff.ShowDialog()
+                                                                                         If ff.DialogResult = DialogResult.OK AndAlso FILTERS.Update(ff.MyFilter) Then updateSource()
+                                                                                     End Using
+                                                                                 End If
+                                                                                 __e.Result = False
+                                                                             End Sub
+                    Dim __delete As EventHandler(Of SimpleListFormEventArgs) = Sub(ByVal __sender As Object, ByVal __e As SimpleListFormEventArgs)
+                                                                                   If Not __e.Item Is Nothing Then
+                                                                                       If MsgBoxE({$"Are you sure you want to delete the '{DirectCast(__e.Item, FeedFilter).Name}' filter", "Delete filter"}, vbCritical + vbYesNo) = vbYes AndAlso
+                                                                                          FILTERS.Delete(__e.Item) Then updateSource()
+                                                                                   End If
+                                                                                   __e.Result = False
+                                                                               End Sub
+                    Dim __clone As EventHandler = Sub(ByVal __sender As Object, ByVal __e As EventArgs)
+                                                      If f.CMB_DATA.SelectedIndex >= 0 Then
+                                                          Using ff As New FeedFilterForm(FILTERS(f.CMB_DATA.SelectedIndex).Copy) With {.ShowAllUsers = True, .AllowNameEdit = True}
+                                                              ff.ShowDialog()
+                                                              If ff.DialogResult = DialogResult.OK AndAlso FILTERS.Add(ff.MyFilter.Copy) >= 0 Then updateSource()
+                                                          End Using
+                                                      End If
+                                                  End Sub
+                    Dim bClone As New ToolStripButton("Clone", My.Resources.PlusPic_24, __clone)
+                    With f
+                        .Buttons = {ETC.Edit, ETC.Delete, New ToolStripSeparator, bClone}
+                        AddHandler .EditClick, __edit
+                        AddHandler .DeleteClick, __delete
+                        f.ShowDialog()
+                        If f.DialogResult = DialogResult.OK AndAlso f.DataResult.Count > 0 Then _
+                           FILTERS.CurrentFilterName = f.DataResult.First.Name : RefillList(False)
+                    End With
+                    bClone.Dispose()
+                End Using
+            Catch ex As Exception
+                ErrorsDescriber.Execute(EDP.SendToLog, ex, "[DownloadFeedForm.BTT_FILTER_MANAGE_Click]")
+            End Try
+        End Sub
+        Private Sub UpdateFilterControls()
+            Const fStr$ = " (filtered)"
+            ControlInvokeFast(ToolbarTOP, BTT_FILTER, Sub() BTT_FILTER.ControlChangeColor(True, CurrentFilter Is Nothing), EDP.None)
+            Try : ControlInvokeFast(Me, Sub()
+                                            If CurrentFilter Is Nothing Then
+                                                If Text.Contains(fStr) Then Text = Text.Replace(fStr, String.Empty)
+                                            Else
+                                                If Not Text.Contains(fStr) Then Text &= fStr
+                                            End If
+                                        End Sub, EDP.None) : Catch : End Try
+        End Sub
 #End Region
 #Region "Load fav, spec"
         Private Sub BTT_LOAD_FAV_Click(sender As Object, e As EventArgs) Handles BTT_LOAD_FAV.Click
@@ -1181,10 +1368,19 @@ Namespace DownloadObjects
         Private Sub FeedMedia_MediaMove(ByVal Sender As FeedMedia, ByVal MCTOptions As FeedMoveCopyTo, ByRef Result As Boolean)
             Result = MoveCopyFiles(False, Nothing, MCTOptions, Sender)
         End Sub
+        Private Sub FeedMedia_MediaCopy(ByVal Sender As FeedMedia, ByVal MCTOptions As FeedMoveCopyTo, ByRef Result As Boolean)
+            Result = MoveCopyFiles(False, BTT_COPY_TO, MCTOptions, Sender)
+        End Sub
         Private Sub FeedMedia_MediaDeleted(ByVal Sender As FeedMedia)
+            FeedMedia_MediaDeleted_F(Sender, True)
+        End Sub
+        Private Sub FeedMedia_MediaDeletedText(ByVal Sender As FeedMedia)
+            FeedMedia_MediaDeleted_F(Sender, False)
+        End Sub
+        Private Sub FeedMedia_MediaDeleted_F(ByVal Sender As FeedMedia, ByVal MainFile As Boolean)
             Try
                 ControlInvoke(TP_DATA, Sub() TPRemoveControl(Sender, True))
-                DataList.RemoveAll(Function(dd) dd.Data.File = Sender.File)
+                If MainFile Then DataList.RemoveAll(Function(dd) dd.Data.File = Sender.File)
                 RefillAfterDelete()
             Catch
             End Try
@@ -1406,20 +1602,36 @@ Namespace DownloadObjects
                         Dim w% = GetWidth()
                         Dim h% = GetHeight()
                         Dim p As New TPCELL(DataRows, DataColumns)
+                        Dim eText As Byte
+                        Dim eTextLim As Byte = IIf(Settings.FeedShowTextPosts, 1, 0)
                         Dim fmList As New List(Of FeedMedia)
+                        TextImageWidth = w
                         d.ForEach(Sub(ByVal de As UserMediaD)
-                                      fmList.Add(New FeedMedia(de, w, h, IsSession))
-                                      With fmList.Last
-                                          AddHandler .MediaDeleted, AddressOf FeedMedia_MediaDeleted
-                                          AddHandler .MediaDownload, AddressOf FeedMedia_Download
-                                          AddHandler .MediaMove, AddressOf FeedMedia_MediaMove
-                                          AddHandler .FeedAddWithRemove, AddressOf FeedMedia_FeedAddWithRemove
-                                      End With
+                                      If Not de.Data.Type = UTypes.Text Or eTextLim = 1 Then
+                                          For eText = 0 To eTextLim
+                                              fmList.Add(New FeedMedia(de, w, h, IsSession, eText))
+                                              With fmList.Last
+                                                  AddHandler .MediaDeleted, AddressOf FeedMedia_MediaDeleted
+                                                  AddHandler .MediaDeletedText, AddressOf FeedMedia_MediaDeletedText
+                                                  AddHandler .MediaDownload, AddressOf FeedMedia_Download
+                                                  AddHandler .MediaMove, AddressOf FeedMedia_MediaMove
+                                                  AddHandler .MediaCopy, AddressOf FeedMedia_MediaCopy
+                                                  AddHandler .FeedAddWithRemove, AddressOf FeedMedia_FeedAddWithRemove
+                                              End With
+                                              If de.Data.Type = UTypes.Text OrElse de.Data.PostTextFile.IsEmptyString Then Exit For
+                                          Next
+                                      End If
                                   End Sub)
                         If fmList.Count > 0 Then fmList.ListDisposeRemoveAll(Function(fm) fm Is Nothing OrElse fm.HasError)
                         If fmList.Count > 0 Then
                             For i = 0 To fmList.Count - 1
-                                ControlInvoke(TP_DATA, Sub() TP_DATA.Controls.Add(fmList(i), p.Column, p.Row))
+                                ControlInvoke(TP_DATA, Sub()
+                                                           If p.Row > TP_DATA.RowStyles.Count - 1 And p.Column = 0 Then
+                                                               TP_DATA.RowStyles.Add(New RowStyle(SizeType.Absolute, 0))
+                                                               TP_DATA.RowCount += 1
+                                                           End If
+                                                           TP_DATA.Controls.Add(fmList(i), p.Column, p.Row)
+                                                       End Sub)
                                 p = p.Next
                             Next
                         End If

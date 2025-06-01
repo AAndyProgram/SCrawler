@@ -55,7 +55,7 @@ Namespace API.ThreadsNet
             Return New EditorExchangeOptionsBase(Me)
         End Function
         Friend Overrides Sub ExchangeOptionsSet(ByVal Obj As Object)
-            If Not Obj Is Nothing AndAlso TypeOf Obj Is EditorExchangeOptionsBase Then NameTrue = DirectCast(Obj, EditorExchangeOptionsBase).UserName
+            If Not Obj Is Nothing AndAlso TypeOf Obj Is EditorExchangeOptionsBase Then DirectCast(Obj, EditorExchangeOptionsBase).ApplyBase(Me)
         End Sub
 #End Region
 #Region "Initializer"
@@ -63,7 +63,7 @@ Namespace API.ThreadsNet
             ObtainMedia_SetReelsFunc()
             ObtainMedia_AllowAbstract = True
             DefaultParser_ElemNode = DefaultParser_ElemNode_Default
-            DefaultParser_PostUrlCreator = Function(post) $"https://www.threads.net/@{NameTrue}/post/{post.Code}"
+            DefaultParser_PostUrlCreator = Function(post) $"https://www.threads.com/@{NameTrue}/post/{post.Code}"
             _ResponserAutoUpdateCookies = True
             _ResponserAddResponseReceivedHandler = True
             DefaultParser_Pinned = AddressOf IsPinnedPost
@@ -157,8 +157,8 @@ Namespace API.ThreadsNet
                    Responser.Headers.Add(IGS.Header_CSRF_TOKEN, csrf)
             End If
         End Sub
-        'Private Const GQL_Q As String = "https://www.threads.net/api/graphql?lsd={0}&fb_dtsg={1}&doc_id={2}&fb_api_req_friendly_name={3}&server_timestamps=true&variables={4}"
-        Private Const GQL_Q2 As String = "https://www.threads.net/graphql/query"
+        'Private Const GQL_Q As String = "https://www.threads.com/api/graphql?lsd={0}&fb_dtsg={1}&doc_id={2}&fb_api_req_friendly_name={3}&server_timestamps=true&variables={4}"
+        Private Const GQL_Q2 As String = "https://www.threads.com/graphql/query"
         Private Const PayloadData As String = "lsd={0}&fb_dtsg={1}&doc_id={2}&fb_api_req_friendly_name={3}&server_timestamps=true&variables={4}"
         Private Const GQL_P_DOC_ID As String = "9039187972876777" '"8779269398849532" '"6371597506283707"
         Private Const GQL_P_NAME As String = "BarcelonaProfileThreadsTabRefetchableDirectQuery" '"BarcelonaProfileThreadsTabRefetchableQuery"
@@ -223,7 +223,7 @@ Namespace API.ThreadsNet
 
                 With Responser
                     .Method = "POST"
-                    .Referer = $"https://www.threads.net/@{NameTrue}"
+                    .Referer = $"https://www.threads.com/@{NameTrue}"
                     .ContentType = "application/x-www-form-urlencoded"
                     With .Headers
                         .Add(GQL_HEADER_FB_LSD, Token_lsd)
@@ -286,7 +286,7 @@ Namespace API.ThreadsNet
 
                 With Responser
                     .Method = "POST"
-                    .Referer = "https://www.threads.net/"
+                    .Referer = "https://www.threads.com/"
                     .ContentType = "application/x-www-form-urlencoded"
                     With .Headers
                         .Add(GQL_HEADER_FB_LSD, Token_lsd)
@@ -358,7 +358,7 @@ Namespace API.ThreadsNet
         End Function
         Private _IdChanged As Boolean = False
         Private Function UpdateCredentials(Optional ByVal e As ErrorsDescriber = Nothing) As Boolean
-            Dim URL$ = If(IsSavedPosts, "https://www.threads.net/", $"https://www.threads.net/@{NameTrue}")
+            Dim URL$ = If(IsSavedPosts, "https://www.threads.com/", $"https://www.threads.com/@{NameTrue}")
             ResetBaseTokens()
             Dim headers As New HttpHeaderCollection
             headers.AddRange(Responser.Headers)
@@ -369,8 +369,8 @@ Namespace API.ThreadsNet
                     With .Headers
                         .Clear()
                         .Add("dnt", 1)
-                        .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.Authority, "www.threads.net"))
-                        .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.Origin, "https://www.threads.net"))
+                        .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.Authority, "www.threads.com"))
+                        .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.Origin, "https://www.threads.com"))
                         .Add("Sec-Ch-Ua-Model", "")
                         .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.SecChUaMobile, "?0"))
                         .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.SecChUaPlatform, """Windows"""))
@@ -432,7 +432,7 @@ Namespace API.ThreadsNet
             'Const varsPattern$ = """postID"":""{0}"",""userID"":""{1}"",""__relay_internal__pv__BarcelonaIsLoggedInrelayprovider"":true,""__relay_internal__pv__BarcelonaIsFeedbackHubEnabledrelayprovider"":false"
             Const varsPattern$ = """postID"":""{0}"",""__relay_internal__pv__BarcelonaIsLoggedInrelayprovider"":true,""__relay_internal__pv__BarcelonaShouldShowFediverseM1Featuresrelayprovider"":true,""__relay_internal__pv__BarcelonaShareableListsrelayprovider"":true,""__relay_internal__pv__BarcelonaIsSearchDiscoveryEnabledrelayprovider"":false,""__relay_internal__pv__BarcelonaOptionalCookiesEnabledrelayprovider"":true,""__relay_internal__pv__BarcelonaQuotedPostUFIEnabledrelayprovider"":false,""__relay_internal__pv__BarcelonaIsCrawlerrelayprovider"":false,""__relay_internal__pv__BarcelonaHasDisplayNamesrelayprovider"":false,""__relay_internal__pv__BarcelonaCanSeeSponsoredContentrelayprovider"":false,""__relay_internal__pv__BarcelonaShouldShowFediverseM075Featuresrelayprovider"":true,""__relay_internal__pv__BarcelonaShouldShowTagRedesignrelayprovider"":false,""__relay_internal__pv__BarcelonaIsInternalUserrelayprovider"":false,""__relay_internal__pv__BarcelonaInlineComposerEnabledrelayprovider"":false"
             'Const varsPattern$ = "{""postID"":""{0}"",""__relay_internal__pv__BarcelonaIsLoggedInrelayprovider"":true,""__relay_internal__pv__BarcelonaIsFeedbackHubEnabledrelayprovider"":false}"
-            'Const urlPattern$ = "https://www.threads.net/api/graphql?lsd={0}&variables={1}&fb_api_req_friendly_name=BarcelonaPostPageQuery&server_timestamps=true&fb_dtsg={2}&doc_id=25460088156920903"
+            'Const urlPattern$ = "https://www.threads.com/api/graphql?lsd={0}&variables={1}&fb_api_req_friendly_name=BarcelonaPostPageQuery&server_timestamps=true&fb_dtsg={2}&doc_id=25460088156920903"
             Dim rList As New List(Of Integer)
             DefaultParser_ElemNode = Nothing
             DefaultParser_IgnorePass = True
@@ -440,7 +440,7 @@ Namespace API.ThreadsNet
                 If ContentMissingExists Then
                     Responser.Method = "POST"
                     Responser.ContentType = "application/x-www-form-urlencoded"
-                    Responser.Referer = $"https://www.threads.net/@{NameTrue}"
+                    Responser.Referer = $"https://www.threads.com/@{NameTrue}"
                     If Not IsSingleObjectDownload AndAlso Not UpdateCredentials() Then Throw New Exception("Failed to update credentials")
                     Dim m As UserMedia
                     Dim vars$

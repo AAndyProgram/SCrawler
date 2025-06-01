@@ -31,6 +31,9 @@ Namespace API.RedGifs
         <Provider(NameOf(TokenUpdateInterval), FieldsChecker:=True)>
         Private ReadOnly Property TokenUpdateIntervalProvider As IFormatProvider
 #End Region
+        <DoNotUse> Friend Overrides Property DownloadText As PropertyValue
+        <DoNotUse> Friend Overrides Property DownloadTextPosts As PropertyValue
+        <DoNotUse> Friend Overrides Property DownloadTextSpecialFolder As PropertyValue
 #End Region
 #Region "Initializer"
         Friend Sub New(ByVal AccName As String, ByVal Temp As Boolean)

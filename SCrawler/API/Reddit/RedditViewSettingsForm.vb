@@ -38,6 +38,8 @@ Namespace API.Reddit
                     Select Case MyOptions.ViewMode
                         Case CView.Hot : OPT_VIEW_MODE_HOT.Checked = True
                         Case CView.Top : OPT_VIEW_MODE_TOP.Checked = True
+                        Case CView.Best : OPT_VIEW_MODE_BEST.Checked = True
+                        Case CView.Rising : OPT_VIEW_MODE_RISING.Checked = True
                         Case Else : OPT_VIEW_MODE_NEW.Checked = True
                     End Select
                     Select Case MyOptions.ViewPeriod
@@ -50,11 +52,15 @@ Namespace API.Reddit
                     End Select
                     ChangePeriodEnabled()
 
+                    CH_TXT_DOWN_TXT.Checked = MyOptions.DownloadText
+                    CH_TXT_DOWN_POSTS.Checked = MyOptions.DownloadTextPosts
+                    CH_TXT_DOWN_SPEC_FOLDER.Checked = MyOptions.DownloadTextSpecialFolder
+
                     PopulateCMB(Settings(RedditSiteKey), CMB_REDDIT_ACC, MyOptions.RedditAccount)
                     PopulateCMB(Settings(RedGifs.RedGifsSiteKey), CMB_REDGIFS_ACC, MyOptions.RedGifsAccount)
                     If IsUserSettings Then
                         TP_MAIN.Controls.Remove(CMB_REDDIT_ACC)
-                        TP_MAIN.RowStyles(2).Height = 0
+                        TP_MAIN.RowStyles(3).Height = 0
                         TP_MAIN.Refresh()
                         Dim s As Size = Size
                         s.Height -= 28
@@ -100,6 +106,8 @@ Namespace API.Reddit
                 Select Case True
                     Case OPT_VIEW_MODE_HOT.Checked : .ViewMode = CView.Hot
                     Case OPT_VIEW_MODE_TOP.Checked : .ViewMode = CView.Top
+                    Case OPT_VIEW_MODE_BEST.Checked : .ViewMode = CView.Best
+                    Case OPT_VIEW_MODE_RISING.Checked : .ViewMode = CView.Rising
                     Case Else : .ViewMode = CView.New
                 End Select
                 Select Case True
@@ -110,6 +118,9 @@ Namespace API.Reddit
                     Case OPT_PERIOD_YEAR.Checked : .ViewPeriod = CPeriod.Year
                     Case Else : .ViewPeriod = CPeriod.All
                 End Select
+                .DownloadText = CH_TXT_DOWN_TXT.Checked
+                .DownloadTextPosts = CH_TXT_DOWN_POSTS.Checked
+                .DownloadTextSpecialFolder = CH_TXT_DOWN_SPEC_FOLDER.Checked
                 .RedGifsAccount = CMB_REDGIFS_ACC.Text
                 If Not IsUserSettings Then .RedditAccount = CMB_REDDIT_ACC.Text
             End With

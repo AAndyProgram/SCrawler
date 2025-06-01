@@ -88,14 +88,22 @@ Namespace API.Reddit
         End Property
         Friend Property ViewMode As View = View.New Implements IRedditView.ViewMode
         Friend Property ViewPeriod As Period = Period.All Implements IRedditView.ViewPeriod
+        Friend Property DownloadText As Boolean = False Implements IRedditView.DownloadText
+        Friend Property DownloadTextPosts As Boolean = False Implements IRedditView.DownloadTextPosts
+        Friend Property DownloadTextSpecialFolder As Boolean = False Implements IRedditView.DownloadTextSpecialFolder
         Friend Property RedGifsAccount As String = String.Empty Implements IRedditView.RedGifsAccount
         Friend Property RedditAccount As String = String.Empty Implements IRedditView.RedditAccount
         Friend Sub SetView(ByVal Options As IRedditView) Implements IRedditView.SetView
             If Not Options Is Nothing Then
-                ViewMode = Options.ViewMode
-                ViewPeriod = Options.ViewPeriod
-                RedditAccount = Options.RedditAccount
-                RedGifsAccount = Options.RedGifsAccount
+                With Options
+                    ViewMode = .ViewMode
+                    ViewPeriod = .ViewPeriod
+                    DownloadText = .DownloadText
+                    DownloadTextPosts = .DownloadTextPosts
+                    DownloadTextSpecialFolder = .DownloadTextSpecialFolder
+                    RedditAccount = .RedditAccount
+                    RedGifsAccount = .RedGifsAccount
+                End With
             End If
         End Sub
 #Region "Statistics support"

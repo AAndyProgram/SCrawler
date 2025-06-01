@@ -89,7 +89,7 @@ Namespace API.ThreadsNet
 #End Region
 #Region "Initializer"
         Friend Sub New(ByVal AccName As String, ByVal Temp As Boolean)
-            Me.New("Threads", "threads.net", AccName, Temp, My.Resources.SiteResources.ThreadsIcon_192, My.Resources.SiteResources.ThreadsIcon_192.ToBitmap)
+            Me.New("Threads", "threads.com", AccName, Temp, My.Resources.SiteResources.ThreadsIcon_192, My.Resources.SiteResources.ThreadsIcon_192.ToBitmap)
         End Sub
         Protected Sub New(ByVal SiteName As String, ByVal CookiesDomain As String, ByVal AccName As String, ByVal Temp As Boolean,
                           Optional ByVal __Icon As Icon = Nothing, Optional ByVal __Image As Image = Nothing)
@@ -118,8 +118,8 @@ Namespace API.ThreadsNet
                         browserExt = .Value(IG.Header_BrowserExt)
                         platform = .Value(IG.Header_Platform_Verion)
                     End If
-                    .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.Authority, "www.threads.net"))
-                    .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.Origin, "https://www.threads.net"))
+                    .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.Authority, "www.threads.com"))
+                    .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.Origin, "https://www.threads.com"))
                     .Add("Upgrade-Insecure-Requests", 1)
                     .Add("Sec-Ch-Ua-Model", "")
                     .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.SecChUaMobile, "?0"))
@@ -152,9 +152,9 @@ Namespace API.ThreadsNet
             RequestsWaitTimer_AnyProvider = New IG.TimersChecker(0)
             DownloadData_Impl = New PropertyValue(True)
 
-            UrlPatternUser = "https://www.threads.net/@{0}"
-            UserRegex = RParams.DMS(String.Format(UserRegexDefaultPattern, "threads.net/@"), 1)
-            ImageVideoContains = "threads.net"
+            UrlPatternUser = "https://www.threads.com/@{0}"
+            UserRegex = RParams.DMS(String.Format(UserRegexDefaultPattern, "threads.(net|com)/@"), 2)
+            ImageVideoContains = "threads.com"
             UserOptionsType = GetType(EditorExchangeOptionsBase)
         End Sub
 #End Region
@@ -185,7 +185,7 @@ Namespace API.ThreadsNet
             Try
                 Dim code$ = DirectCast(User, UserData).GetPostCodeById(Media.Post.ID)
                 Dim name$ = DirectCast(User, UserData).NameTrue
-                If Not code.IsEmptyString Then Return $"https://www.threads.net/@{name}/post/{code}/" Else Return String.Empty
+                If Not code.IsEmptyString Then Return $"https://www.threads.com/@{name}/post/{code}/" Else Return String.Empty
             Catch ex As Exception
                 Return ErrorsDescriber.Execute(EDP.SendToLog, ex, "Can't open user's post", String.Empty)
             End Try

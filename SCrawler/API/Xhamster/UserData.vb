@@ -615,7 +615,7 @@ Namespace API.Xhamster
                     If m.Post.ID.IsEmptyString Then m.Post.ID = m.URL.Split("/").LastOrDefault
                     If m.PictureOption.IsEmptyString Then m.PictureOption = TitleHtmlConverter(j.Value("titleLocalized"))
                     If m.PictureOption.IsEmptyString Then m.PictureOption = m.Post.ID
-                    If setSpecialFolder Then m.SpecialFolder = m.PictureOption
+                    If setSpecialFolder Then m.SpecialFolder = IIf(t = UTypes.Picture, "Photo\", String.Empty) & m.PictureOption
 
                     If processFile Then
                         If Not m.PictureOption.IsEmptyString Then

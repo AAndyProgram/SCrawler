@@ -35,6 +35,9 @@ Namespace Plugin
         Public Property DownloadState As UserMediaStates Implements IUserMedia.DownloadState
         Public Property PostID As String Implements IUserMedia.PostID
         Public Property PostDate As Date? Implements IUserMedia.PostDate
+        Public Property PostText As String Implements IUserMedia.PostText
+        Public Property PostTextFile As String Implements IUserMedia.PostTextFile
+        Public Property PostTextFileSpecialFolder As Boolean Implements IUserMedia.PostTextFileSpecialFolder
         Public Property SpecialFolder As String Implements IUserMedia.SpecialFolder
         Public Property Attempts As Integer Implements IUserMedia.Attempts
         Public Property [Object] As Object Implements IUserMedia.Object
@@ -48,6 +51,9 @@ Namespace Plugin
         Property DownloadState As UserMediaStates
         Property PostID As String
         Property PostDate As Date?
+        Property PostText As String
+        Property PostTextFile As String
+        Property PostTextFileSpecialFolder As Boolean
         Property SpecialFolder As String
         Property Attempts As Integer
         Property [Object] As Object

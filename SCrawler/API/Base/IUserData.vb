@@ -57,6 +57,7 @@ Namespace API.Base
         Property FileExists As Boolean
         Property DownloadedPictures(ByVal Total As Boolean) As Integer
         Property DownloadedVideos(ByVal Total As Boolean) As Integer
+        Property DownloadedTexts(ByVal Total As Boolean) As Integer
         ReadOnly Property DownloadedTotal(Optional ByVal Total As Boolean = True) As Integer
         ReadOnly Property DownloadedInformation As String
         Property HasError As Boolean

@@ -31,6 +31,9 @@ Namespace API.YouTube
         Friend ReadOnly Property DownloadCommunityImages As PropertyValue
         <PXML, PropertyOption(ControlText:="Download user community: videos", Category:=DN.CAT_UserDefs), PClonable>
         Friend ReadOnly Property DownloadCommunityVideos As PropertyValue
+        <DoNotUse> Friend Overrides Property DownloadText As PropertyValue
+        <DoNotUse> Friend Overrides Property DownloadTextPosts As PropertyValue
+        <DoNotUse> Friend Overrides Property DownloadTextSpecialFolder As PropertyValue
 #End Region
 #Region "Communities"
         <PXML, PropertyOption(ControlText:="YouTube API host",

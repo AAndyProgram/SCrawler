@@ -32,6 +32,8 @@ Namespace API.Base
             Private Const Name_MediaPostID As String = "ID"
             Private Const Name_MediaPostDate As String = "Date"
             Private Const Name_SpecialFolder As String = "SpecialFolder"
+            Private Const Name_PostTextFile As String = "PostTextFile"
+            Private Const Name_PostTextFileSpecialFolder As String = "PostTextFileSpecialFolder"
 #End Region
             Friend Enum Types As Integer
                 Undefined = 0
@@ -46,12 +48,25 @@ Namespace API.Base
             End Enum
             Friend Enum States As Integer : Unknown = 0 : Tried = 1 : Downloaded = 2 : Skipped = 3 : Missing = 4 : End Enum
             Friend [Type] As Types
+            Friend ReadOnly Property IsVideoType As Boolean
+                Get
+                    Return Type = Types.m3u8 Or Type = Types.Video Or Type = Types.VideoPre
+                End Get
+            End Property
+            Friend ReadOnly Property IsAudioType As Boolean
+                Get
+                    Return Type = Types.Audio Or Type = Types.AudioPre
+                End Get
+            End Property
             Friend URL_BASE As String
             Friend URL As String
             Friend MD5 As String
             Friend [File] As SFile
             Friend Post As UserPost
             Friend PictureOption As String
+            Friend PostText As String
+            Friend PostTextFile As SFile
+            Friend PostTextFileSpecialFolder As Boolean
             Friend State As States
             Friend Attempts As Integer
             ''' <summary>
@@ -125,6 +140,30 @@ Namespace API.Base
                     Post = New UserPost(Post.ID, PostDate)
                 End Set
             End Property
+            Private Property IUserMedia_PostText As String Implements IUserMedia.PostText
+                Get
+                    Return PostText
+                End Get
+                Set(ByVal NewText As String)
+                    PostText = NewText
+                End Set
+            End Property
+            Private Property IUserMedia_PostTextFile As String Implements IUserMedia.PostTextFile
+                Get
+                    Return PostTextFile.ToString
+                End Get
+                Set(ByVal NewPostFile As String)
+                    If Not NewPostFile.IsEmptyString Then PostTextFile = New SFile(NewPostFile) Else PostTextFile = Nothing
+                End Set
+            End Property
+            Private Property IUserMedia_PostTextFileSpecialFolder As Boolean Implements IUserMedia.PostTextFileSpecialFolder
+                Get
+                    Return PostTextFileSpecialFolder
+                End Get
+                Set(ByVal IsSpecialFolder As Boolean)
+                    PostTextFileSpecialFolder = IsSpecialFolder
+                End Set
+            End Property
             Private Property IUserMedia_SpecialFolder As String Implements IUserMedia.SpecialFolder
                 Get
                     Return SpecialFolder
@@ -171,6 +210,9 @@ Namespace API.Base
                 SpecialFolder = m.SpecialFolder
                 Attempts = m.Attempts
                 Me.Object = m.Object
+                PostText = m.PostText
+                PostTextFile = m.PostTextFile
+                PostTextFileSpecialFolder = m.PostTextFileSpecialFolder
             End Sub
             Friend Sub New(ByVal e As EContainer, ByVal UserInstance As IUserData)
                 Type = e.Attribute(Name_MediaType).Value.FromXML(Of Integer)(CInt(Types.Undefined))
@@ -180,6 +222,8 @@ Namespace API.Base
                 URL_BASE = e.Value
                 MD5 = e.Attribute(Name_MediaHash).Value
                 File = e.Attribute(Name_MediaFile).Value
+                PostTextFile = e.Attribute(Name_PostTextFile).Value
+                PostTextFileSpecialFolder = e.Attribute(Name_PostTextFileSpecialFolder).Value.FromXML(Of Boolean)(False)
 
                 Dim vp As Boolean? = Nothing
                 Dim upath$ = String.Empty
@@ -194,7 +238,13 @@ Namespace API.Base
                 SpecialFolder = e.Attribute(Name_SpecialFolder).Value
                 If Not SpecialFolder.IsEmptyString Then upath &= $"{SpecialFolder}\"
                 If vp.HasValue AndAlso vp.Value Then upath &= $"Video\"
-                If Not upath.IsEmptyString Then File = $"{upath.CSFilePS}{File.File}"
+                If Not upath.IsEmptyString Then
+                    File = $"{upath.CSFilePS}{File.File}"
+                    If Not PostTextFile.IsEmptyString Then
+                        PostTextFile = $"{upath.CSFilePS}{IIf(PostTextFileSpecialFolder, $"{UserDataBase.PostTextSpecialFolderDefault}\", String.Empty)}{PostTextFile.File}"
+                        If Type = Types.Text Then File = PostTextFile
+                    End If
+                End If
 
                 Post = New UserPost With {
                     .ID = e.Attribute(Name_MediaPostID).Value,
@@ -234,7 +284,9 @@ Namespace API.Base
                                                                  New EAttribute(Name_MediaURL, URL),
                                                                  New EAttribute(Name_MediaHash, MD5),
                                                                  New EAttribute(Name_MediaFile, File.File),
+                                                                 New EAttribute(Name_PostTextFile, PostTextFile.File),
                                                                  New EAttribute(Name_SpecialFolder, SpecialFolder),
+                                                                 New EAttribute(Name_PostTextFileSpecialFolder, PostTextFileSpecialFolder.BoolToInteger),
                                                                  New EAttribute(Name_MediaPostID, Post.ID),
                                                                  New EAttribute(Name_MediaPostDate, AConvert(Of String)(Post.Date, DateTimeDefaultProvider, String.Empty))
                                                                 }

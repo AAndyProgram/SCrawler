@@ -94,4 +94,7 @@ Friend Class UserImage : Inherits ImageRenderer
         Small.Save(_SmallAddress)
         Large.Save(_LargeAddress)
     End Sub
+    Friend Overloads Shared Function CreateImageFromText(ByVal Text As String, ByVal File As SFile) As Boolean
+        Return CreateImageFromText(Text, FormFont, Color.Black, TextImageWidth, File, Color.White,, EDP.ThrowException)
+    End Function
 End Class

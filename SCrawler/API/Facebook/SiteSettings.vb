@@ -40,6 +40,9 @@ Namespace API.Facebook
         Friend ReadOnly Property ParseReelsBlock As PropertyValue
         <PropertyOption(ControlText:="Download stories", IsAuth:=False, Category:=DN.CAT_UserDefs), PXML, PClonable>
         Friend ReadOnly Property ParseStoriesBlock As PropertyValue
+        <DoNotUse> Friend Overrides Property DownloadText As PropertyValue
+        <DoNotUse> Friend Overrides Property DownloadTextPosts As PropertyValue
+        <DoNotUse> Friend Overrides Property DownloadTextSpecialFolder As PropertyValue
 #End Region
 #End Region
 #Region "Initializer"

@@ -21,6 +21,6 @@ Namespace API.Reddit
         Friend ReadOnly UrlBasePattern As RParams = RParams.DM("(?<=/)([^/]+?\.[\w]{3,4})(?=(\?|\Z))", 0)
         Friend ReadOnly VideoRegEx As RParams = RParams.DM("http.{0,1}://[^" & Chr(34) & "]+?mp4", 0)
         Private ReadOnly EUR_PROVIDER As New ANumbers(ANumbers.Cultures.EUR)
-        Friend ReadOnly UnixDate32ProviderReddit As New CustomProvider(Function(v, d, p, n, e) ADateTime.ParseUnix32(AConvert(Of Double)(v, EUR_PROVIDER, v), n, e))
+        <Obsolete("Use 'UnixDate32Provider'", True)> Friend ReadOnly UnixDate32ProviderReddit As New CustomProvider(Function(v, d, p, n, e) ADateTime.ParseUnix32(AConvert(Of Double)(v, EUR_PROVIDER, v), n, e))
     End Module
 End Namespace

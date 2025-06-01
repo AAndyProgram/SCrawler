@@ -196,6 +196,18 @@ Namespace API.Instagram
         Friend ReadOnly Property SleepTimerOnPostsLimit As PropertyValue
         <Provider(NameOf(SleepTimerOnPostsLimit), FieldsChecker:=True)>
         Private ReadOnly Property SleepTimerOnPostsLimitProvider As IFormatProvider
+        <PropertyOption(ControlText:="Next profile timer",
+                        ControlToolTip:="The time value (in milliseconds) the program will wait before processing the next profile." &
+                                        vbCr & "-2 to use max timer." & vbCr & "-1 to disable." & vbCr & "The default value is -2" & TimersUrgentTip,
+                        AllowNull:=False, Category:=DN.CAT_Timers), PXML, PClonable>
+        Friend ReadOnly Property SleepTimerRequestsNextProfile As PropertyValue
+        Friend ReadOnly Property SleepTimerRequestsNextProfileMax As Integer
+            Get
+                Return {RequestsWaitTimer_Any, RequestsWaitTimer, SleepTimerOnPostsLimit}.Max(Function(obj) CInt(obj.Value))
+            End Get
+        End Property
+        <Provider(NameOf(SleepTimerRequestsNextProfile), FieldsChecker:=True)>
+        Private ReadOnly Property SleepTimerRequestsNextProfileProvider As IFormatProvider
 #End Region
 #Region "New user defaults"
         <PropertyOption(ControlText:="Get timeline", ControlToolTip:="Default value for new users", Category:=DN.CAT_UserDefs), PXML, PClonable>
@@ -493,6 +505,8 @@ Namespace API.Instagram
             RequestsWaitTimerTaskCountProvider = New TimersChecker(1)
             SleepTimerOnPostsLimit = New PropertyValue(60000)
             SleepTimerOnPostsLimitProvider = New TimersChecker(10000)
+            SleepTimerRequestsNextProfile = New PropertyValue(-2)
+            SleepTimerRequestsNextProfileProvider = New TimersChecker(-2)
 
             GetTimeline = New PropertyValue(True)
             GetTimeline_VideoPic = New PropertyValue(True)
@@ -579,6 +593,7 @@ Namespace API.Instagram
                 MDD.Reset()
                 If ActiveSessionRequestsExists Then RefreshMyLastRequests(Now)
                 ActiveSessionRequestsExists = False
+                ActiveSessionLastProfileRequests = False
                 _NextWNM = UserData.WNM.Notify
                 _NextTagged = True
                 SkipUntilNextSession = False
@@ -596,6 +611,7 @@ Namespace API.Instagram
         Private ActiveJobs As Integer = 0
         Private ActiveSessionDate As Date
         Private ActiveSessionRequestsExists As Boolean = False
+        Friend ActiveSessionLastProfileRequests As Boolean = False
         Private _NextWNM As UserData.WNM = UserData.WNM.Notify
         Private _NextTagged As Boolean = True
         Friend Overrides Sub DownloadStarted(ByVal What As Download)
@@ -632,6 +648,7 @@ Namespace API.Instagram
                 _NextWNM = .WaitNotificationMode
                 If _NextWNM = UserData.WNM.SkipTemp Or _NextWNM = UserData.WNM.SkipCurrent Then _NextWNM = UserData.WNM.Notify
                 _NextTagged = .TaggedCheckSession
+                If MyLastRequestsCount <> .RequestsCountSession Then ActiveSessionLastProfileRequests = True
                 MyLastRequestsCount = .RequestsCountSession
                 If .RequestsCountSession > 0 Then ActiveSessionRequestsExists = True
                 _FieldsChangerSuspended = True

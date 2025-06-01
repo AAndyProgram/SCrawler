@@ -124,12 +124,19 @@
     <Compile Include="Controls\ChannelTabsChooserForm.vb">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="Controls\FilterForm.Designer.vb">
+      <DependentUpon>FilterForm.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\FilterForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Controls\PlayListParserForm.Designer.vb">
       <DependentUpon>PlayListParserForm.vb</DependentUpon>
     </Compile>
     <Compile Include="Controls\PlayListParserForm.vb">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="Controls\YTDataFilter.vb" />
     <Compile Include="Downloader\DownloadLocationsCollection.vb" />
     <Compile Include="Downloader\IDownloaderSettings.vb" />
     <Compile Include="Downloader\Notificator.vb" />
@@ -219,6 +226,9 @@
   <ItemGroup>
     <EmbeddedResource Include="Controls\ChannelTabsChooserForm.resx">
       <DependentUpon>ChannelTabsChooserForm.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Controls\FilterForm.resx">
+      <DependentUpon>FilterForm.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Controls\PlayListParserForm.resx">
       <DependentUpon>PlayListParserForm.vb</DependentUpon>

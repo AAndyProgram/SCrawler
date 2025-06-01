@@ -43,6 +43,9 @@ Namespace API.TikTok
         <PropertyOption(ControlText:="Use video date as file date (standalone downloader)",
                         ControlToolTip:="Set the file date to the date the video was added (website) (if available)."), PXML, PClonable>
         Friend ReadOnly Property UseParsedVideoDateSTD As PropertyValue
+        <DoNotUse> Friend Overrides Property DownloadText As PropertyValue
+        <DoNotUse> Friend Overrides Property DownloadTextPosts As PropertyValue
+        <DoNotUse> Friend Overrides Property DownloadTextSpecialFolder As PropertyValue
         Friend Sub New(ByVal AccName As String, ByVal Temp As Boolean)
             MyBase.New("TikTok", "www.tiktok.com", AccName, Temp, My.Resources.SiteResources.TikTokIcon_32, My.Resources.SiteResources.TikTokPic_192)
 

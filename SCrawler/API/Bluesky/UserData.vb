@@ -36,7 +36,7 @@ Namespace API.Bluesky
         End Function
         Friend Overrides Sub ExchangeOptionsSet(ByVal Obj As Object)
             If Not Obj Is Nothing AndAlso TypeOf Obj Is EditorExchangeOptionsBase AndAlso
-               DirectCast(Obj, EditorExchangeOptionsBase).SiteKey = BlueskySiteKey Then NameTrue = DirectCast(Obj, EditorExchangeOptionsBase).UserName
+               DirectCast(Obj, EditorExchangeOptionsBase).SiteKey = BlueskySiteKey Then DirectCast(Obj, EditorExchangeOptionsBase).ApplyBase(Me)
         End Sub
 #End Region
 #Region "Initializer"
@@ -117,7 +117,7 @@ Namespace API.Bluesky
         Private Function DefaultParser(ByVal e As EContainer, Optional ByVal CheckDateLimits As Boolean = True, Optional ByRef NextCursor As String = Nothing,
                                        Optional ByVal CheckTempPosts As Boolean = True, Optional ByVal State As UStates = UStates.Unknown) As Integer
             Const exitReturn% = CInt(DateResult.Exit) * -1
-            Dim postID$, postDate$, __url$, __urlBase$
+            Dim postID$, postDate$, __url$, __urlBase$, __txt$
             Dim updateUrl As Boolean
             Dim c% = 0
             Dim m As UserMedia
@@ -127,6 +127,7 @@ Namespace API.Bluesky
                     postID = GetPostID(.Value("uri"))
                     postDate = String.Empty
                     __urlBase = String.Empty
+                    __txt = String.Empty
                     With .Item({"record"})
                         If .ListExists Then
                             '2025-01-28T02:42:12.415Z
@@ -152,12 +153,17 @@ Namespace API.Bluesky
                                 .URL_BASE = __urlBase,
                                 .File = CreateFileFromUrl(url, type),
                                 .Post = New UserPost(postID, If(AConvert(Of Date)(postDate, DateProvider, Nothing, EDP.ReturnValue), Nothing)),
-                                .State = State
+                                .State = State,
+                                .PostText = __txt,
+                                .PostTextFileSpecialFolder = DownloadTextSpecialFolder
                             }
+                            If type = UTypes.Text Then m.PostTextFile = $"{postID}.txt"
                             _TempMediaList.ListAddValue(m, LNC)
                             c += 1
                             Return m
                         End Function
+
+                    __txt = .Value({"record"}, "text").IfNullOrEmpty(__txt)
 
                     For Each SecondExtraction As Boolean In {False, True}
                         With If(SecondExtraction, .Item({"record", "embed"}), .Item("embed"))
@@ -177,8 +183,15 @@ Namespace API.Bluesky
 
                                 If Not .Value("playlist").IsEmptyString Then createMedia(.Value("playlist"), UTypes.m3u8)
 
-                                If If(.Item("external")?.Count, 0) > 0 Then createMedia(.Value({"external"}, "uri"), UTypes.GIF)
+                                If If(.Item("external")?.Count, 0) > 0 Then
+                                    __txt = .Value({"external"}, "title").IfNullOrEmpty(__txt)
+                                    createMedia(.Value({"external"}, "uri"), UTypes.GIF)
+                                End If
 
+                                If If(.Item({"media"}, "external")?.Count, 0) > 0 Then
+                                    __txt = .Value({"media", "external"}, "title").IfNullOrEmpty(__txt)
+                                    createMedia(.Value({"media", "external"}, "uri"), UTypes.GIF)
+                                End If
                             End If
                         End With
 

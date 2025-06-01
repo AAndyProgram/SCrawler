@@ -66,6 +66,7 @@ Namespace API.OnlyFans
         Friend Overrides Sub ExchangeOptionsSet(ByVal Obj As Object)
             If Not Obj Is Nothing AndAlso TypeOf Obj Is UserExchangeOptions Then
                 With DirectCast(Obj, UserExchangeOptions)
+                    .ApplyBase(Me)
                     MediaDownloadTimeline = .DownloadTimeline
                     MediaDownloadStories = .DownloadStories
                     MediaDownloadHighlights = .DownloadHighlights
@@ -84,6 +85,7 @@ Namespace API.OnlyFans
         Private _OFScraperExists As Boolean = False
         Private OFSCache As CacheKeeper = Nothing
         Private _AbsMediaIndex As Integer = 0
+        Private _DownloadedPostsSession As Integer = 0
         Private FunctionErr As Integer = FunctionErrDef
         Private Const FunctionErrDef As Integer = -100
         Private Sub ValidateOFScraper()
@@ -95,6 +97,7 @@ Namespace API.OnlyFans
                 If Not MySettings.SessionAborted Then
                     ValidateOFScraper()
                     _AbsMediaIndex = 0
+                    _DownloadedPostsSession = 0
                     FunctionErr = FunctionErrDef
                     If Not CCookie Is Nothing Then CCookie.Dispose()
                     CCookie = Responser.Cookies.Copy
@@ -144,7 +147,7 @@ Namespace API.OnlyFans
                     Dim tmpCursor$ = String.Empty
                     Dim hasMore As Boolean = False
                     Dim path$ = String.Empty
-                    Dim postDate$, postID$
+                    Dim postDate$, postID$, txt$
                     Dim n As EContainer
                     Dim mediaList As List(Of UserMedia)
                     Dim mediaResult As Boolean
@@ -189,9 +192,21 @@ Namespace API.OnlyFans
                                                     Case DateResult.Exit : Exit Sub
                                                 End Select
 
+                                                txt = n.Value("text")
+
                                                 mediaResult = False
-                                                mediaList = TryCreateMedia(n, postID, postDate, mediaResult)
-                                                If mediaResult Then _TempMediaList.ListAddList(mediaList, LNC)
+                                                mediaList = TryCreateMedia(n, postID, postDate, mediaResult,,,,, txt)
+                                                If mediaResult Then
+                                                    _TempMediaList.ListAddList(mediaList, LNC)
+                                                    _DownloadedPostsSession += 1
+                                                ElseIf Not txt.IsEmptyString Then
+                                                    _TempMediaList.ListAddValue(New UserMedia(postID, UTypes.Text) With {
+                                                                                .Post = New UserPost(postID, AConvert(Of Date)(postDate, DateProvider, Nothing)),
+                                                                                .PostText = txt,
+                                                                                .PostTextFileSpecialFolder = DownloadTextSpecialFolder,
+                                                                                .PostTextFile = $"{postID}.txt"
+                                                                                }, LNC)
+                                                End If
                                             Next
                                         Else
                                             hasMore = False
@@ -202,7 +217,10 @@ Namespace API.OnlyFans
                         End If
                     End If
 
-                    If hasMore Then
+                    If DownloadTopCount.HasValue AndAlso DownloadTopCount.Value <= _DownloadedPostsSession Then
+                        _complete = True
+                        Exit Sub
+                    ElseIf hasMore Then
                         If IsSavedPosts Then tmpCursor = CInt(Cursor.IfNullOrEmpty(0)) + 10
                         DownloadTimeline(tmpCursor, Token)
                     End If
@@ -405,7 +423,7 @@ Namespace API.OnlyFans
         Private Function TryCreateMedia(ByVal n As EContainer, ByVal PostID As String, Optional ByVal PostDate As String = Nothing,
                                         Optional ByRef Result As Boolean = False, Optional ByVal IsHL As Boolean = False,
                                         Optional ByVal SpecFolder As String = Nothing, Optional ByVal PostUserID As String = Nothing,
-                                        Optional ByVal TryUseOFS As Boolean = True) As List(Of UserMedia)
+                                        Optional ByVal TryUseOFS As Boolean = True, Optional ByVal PostText As String = Nothing) As List(Of UserMedia)
             Dim postUrl$, postUrlBase$, ext$
             Dim t As UTypes
             Dim mList As New List(Of UserMedia)
@@ -438,7 +456,9 @@ Namespace API.OnlyFans
                         If Not t = UTypes.Undefined And (Not postUrl.IsEmptyString Or t = UTypes.VideoPre) Then
                             Dim media As New UserMedia(postUrl.IfNullOrEmpty(IIf(t = UTypes.VideoPre, $"{t}{_AbsMediaIndex}", String.Empty)), t) With {
                                 .Post = New UserPost(PostID, AConvert(Of Date)(PostDate, DateProvider, Nothing)),
-                                .SpecialFolder = SpecFolder
+                                .SpecialFolder = SpecFolder,
+                                .PostText = PostText,
+                                .PostTextFileSpecialFolder = DownloadTextSpecialFolder
                             }
                             If postUrlBase.IsEmptyString And Not IsSingleObjectDownload Then postUrlBase = GetPostUrl(Me, media)
                             If Not postUrlBase.IsEmptyString Then media.URL_BASE = postUrlBase
@@ -451,16 +471,20 @@ Namespace API.OnlyFans
             End With
             Return mList
         End Function
-        Private Sub GetUserID()
+        Private _NameUpdated As Boolean = False
+        Private Sub GetUserID(Optional ByVal UpdateNameOnly As Boolean = False)
             Const brTag$ = "<br />"
-            Dim path$ = $"/api2/v2/users/{Name}"
+            Dim path$ = $"/api2/v2/users/{IIf(UpdateNameOnly, $"u{ID}", Name)}"
             Dim url$ = String.Format(BaseUrlPattern, path)
             Try
-                If ID.IsEmptyString AndAlso UpdateSignature(path) Then
+                If (ID.IsEmptyString Or UpdateNameOnly) AndAlso UpdateSignature(path) Then
                     Dim r$ = Responser.GetResponse(url)
                     If Not r.IsEmptyString Then
                         Using j As EContainer = JsonDocument.Parse(r)
                             If j.ListExists Then
+                                NameTrue = j.Value("username")
+                                _NameUpdated = True
+                                If UpdateNameOnly Then Exit Sub
                                 ID = j.Value("id")
                                 If Not ID.IsEmptyString Then _ForceSaveUserInfo = True
                                 UserSiteNameUpdate(j.Value("name"))
@@ -600,6 +624,7 @@ Namespace API.OnlyFans
                 Const requestPattern$ = """{0}"" manual --config ""{1}"" --url {2}"
                 Dim conf As SFile = OFS_CreateConfig()
                 If conf.Exists Then
+                    If Not _NameUpdated Then GetUserID(True)
                     Dim command$ = String.Format(requestPattern, MySettings.OFScraperPath.Value, conf, URL)
                     '#If DEBUG Then
                     'Debug.WriteLine(command)
@@ -657,6 +682,7 @@ Namespace API.OnlyFans
 
                         updateConf("key-mode-default", CStr(MySettings.KeyModeDefault.Value).IfNullOrEmpty(SiteSettings.KeyModeDefault_Default), m1)
                         updateConf("keydb_api", CStr(MySettings.Keydb_Api.Value), m1)
+                        updateConf("backend", CStr(MySettings.OFS_BACKEND.Value), m1)
 
                         If Not CStr(MySettings.OFS_KEYS_Key.Value).IsEmptyString And Not CStr(MySettings.OFS_KEYS_ClientID.Value).IsEmptyString Then
                             updateConf("private-key", CStr(MySettings.OFS_KEYS_Key.Value).Replace("\", "/"), m3)
@@ -730,6 +756,7 @@ Namespace API.OnlyFans
                 If IsSingleObjectDownload Then
                     URL = Media.URL_BASE
                 Else
+                    If Not _NameUpdated Then GetUserID(True)
                     URL = GetPostUrl(Me, Media)
                 End If
                 If Not URL.IsEmptyString Then

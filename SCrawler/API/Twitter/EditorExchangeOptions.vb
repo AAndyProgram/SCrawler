@@ -52,6 +52,7 @@ Namespace API.Twitter
         Friend Overridable Property DownloadModelForceApply As Boolean = False
         Private ReadOnly Property MySettings As Object
         Friend Sub New(ByVal s As SiteSettings)
+            MyBase.New(s)
             GifsDownload = s.GifsDownload.Value
             GifsSpecialFolder = s.GifsSpecialFolder.Value
             GifsPrefix = s.GifsPrefix.Value

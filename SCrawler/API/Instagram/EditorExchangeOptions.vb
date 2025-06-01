@@ -62,6 +62,7 @@ Namespace API.Instagram
             End With
         End Sub
         Friend Sub New(ByVal s As SiteSettings)
+            MyBase.New(s)
             With s
                 GetTimeline = CBool(.GetTimeline.Value)
                 GetReels = CBool(.GetReels.Value)

@@ -30,6 +30,13 @@ Namespace API.Base
         Friend Const UseMD5ComparisonToolTip As String = "Each image will be checked for existence using MD5"
         Friend Const UserNameChangeCaption As String = "UserName"
         Friend Const UserNameChangeToolTip As String = "If the user has changed their UserName, you can set a new name here. Not required for new users."
+
+        Friend Const DownloadTextCaption As String = "Download text"
+        Friend Const DownloadTextTip As String = "Download text (if available) for posts with image and video" & vbCr & "If this checkbox is checked, the post text will be downloaded along with the file and saved under the same name but with the 'txt' extension."
+        Friend Const DownloadTextPostsCaption As String = "Download text posts"
+        Friend Const DownloadTextPostsTip As String = "Download text (if available) for text posts (no image and video)"
+        Friend Const DownloadTextSpecialFolderCaption As String = "Text special folder"
+        Friend Const DownloadTextSpecialFolderTip As String = "If checked, text files will be saved to a separate folder"
         Private Sub New()
         End Sub
     End Class

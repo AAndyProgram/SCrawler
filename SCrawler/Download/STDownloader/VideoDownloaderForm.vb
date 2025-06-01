@@ -29,6 +29,8 @@ Namespace DownloadObjects.STDownloader
             BTT_ADD_URLS_EXTERNAL = New ToolStripMenuItemKeyClick With {.Tag = TAG_EXTERNAL}
             MENU_ADD.DropDownItems.Insert(1, BTT_ADD_URLS_ARR)
             Text = "Video downloader"
+            SEP_FILTER.Visible = False
+            BTT_FILTER.Visible = False
         End Sub
         Protected Overrides Sub VideoListForm_Disposed(sender As Object, e As EventArgs)
             ExternalUrlsTemp.Clear()

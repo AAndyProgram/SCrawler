@@ -188,6 +188,7 @@ Namespace API.TikTok
                 Dim photoNode As Object() = GetPhotoNode()
                 Dim c%, cc%, i%
                 Dim errDef As New ErrorsDescriber(EDP.ReturnValue)
+                Dim infoParsed As Boolean = False
 
                 If _ContentList.Count > 0 Then
                     With (From d In _ContentList Where d.Post.Date.HasValue Select d.Post.Date.Value)
@@ -309,6 +310,29 @@ Namespace API.TikTok
                                                 Case DateResult.Skip : Continue For
                                                 Case DateResult.Exit : Exit For 'Exit Sub
                                             End Select
+
+                                            If Not infoParsed Then
+                                                With .Item("author")
+                                                    If .ListExists Then
+                                                        infoParsed = True
+                                                        SimpleDownloadAvatar(.Value("avatarLarger").IfNullOrEmpty(.Value("avatarMedium")).IfNullOrEmpty(.Value("avatarThumb")),
+                                                                             Function(ByVal ____url As String) As SFile
+                                                                                 Dim ____f As SFile = CreateFileFromUrl(____url)
+                                                                                 If Not ____f.Name.IsEmptyString Then ____f.Name = ____f.Name.Replace(":", "_").Replace("~", "-")
+                                                                                 If Not ____f.Extension.IsEmptyString Then
+                                                                                     If Not (____f.Extension = "jpg" Or ____f.Extension = "jpeg") Then
+                                                                                         ____f.Extension = RegexReplace(____f.Extension, RParams.DMS("(.+)\?", 1, EDP.ReturnValue))
+                                                                                         If Not ____f.Extension.IsEmptyString AndAlso Not (____f.Extension = "jpg" Or ____f.Extension = "jpeg") Then ____f.Extension = String.Empty
+                                                                                     End If
+                                                                                 End If
+                                                                                 Return ____f
+                                                                             End Function)
+                                                        UserSiteNameUpdate(.Value("nickname"))
+                                                        UserDescriptionUpdate(.Value("signature"))
+                                                    End If
+                                                End With
+                                            End If
+
                                             title = GetNewFileName(j.Value({"imagePost"}, "title").StringRemoveWinForbiddenSymbols,
                                                                    TitleUseNative, RemoveTagsFromTitle, TitleAddVideoID, postID, titleRegex)
                                             postUrl = $"https://www.tiktok.com/@{Name}/photo/{postID}"

@@ -89,6 +89,7 @@ Namespace API.Twitter
         Friend Overrides Sub ExchangeOptionsSet(ByVal Obj As Object)
             If Not Obj Is Nothing AndAlso TypeOf Obj Is EditorExchangeOptions Then
                 With DirectCast(Obj, EditorExchangeOptions)
+                    .ApplyBase(Me)
                     GifsDownload = .GifsDownload
                     GifsSpecialFolder = .GifsSpecialFolder
                     GifsPrefix = .GifsPrefix
@@ -105,7 +106,6 @@ Namespace API.Twitter
                     If .DownloadModelSearch Then DownloadModel += DownloadModels.Search
                     If .DownloadModelLikes Then DownloadModel += DownloadModels.Likes
                     If Not dModel = DownloadModel Then DownloadModelChanged = True
-                    NameTrue = .UserName
                 End With
             End If
         End Sub
@@ -257,9 +257,13 @@ Namespace API.Twitter
             Return result
         End Function
         Friend Property GDL_REQUESTS_COUNT As Integer = 0
+        Private Const DEBUG_PROFILE As Boolean = False
+        Private Const DEBUG_LEAVE_CACHE As Boolean = False
+        Private JsonNullErr As Boolean = False
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
             Try
                 GDL_REQUESTS_COUNT = 0
+                JsonNullErr = False
                 If MySettings.LIMIT_ABORT Then
                     Throw New TwitterLimitException(Me)
                 Else
@@ -277,6 +281,7 @@ Namespace API.Twitter
                         LikesPosts.Clear()
                         If _ContentList.Count > 0 Then _DataNames.ListAddList(_ContentList.Select(Function(c) c.File.File), LAP.ClearBeforeAdd, LAP.NotContainsOnly)
                         DownloadData_Timeline(Token)
+                        If _TempMediaList.Count = 0 And LikesPosts.Count = 0 And JsonNullErr Then Throw New Plugin.ExitException("No deserialized data found")
                         LoadSavePostsKV(False)
                         If LikesPosts.Count > 0 Then
                             _ReparseLikes = True
@@ -289,10 +294,20 @@ Namespace API.Twitter
                 _ReparseLikes = False
             End Try
         End Sub
+        Private Class WebDocumentEventArgsT : Inherits WebDocumentEventArgs
+            Public Overloads Overrides Sub Reset()
+                State = States.None
+            End Sub
+            Public Overloads Sub Reset(ByVal Token As CancellationToken)
+                Reset()
+                Me.Token = Token
+            End Sub
+        End Class
         Private Sub DownloadData_Timeline(ByVal Token As CancellationToken)
             Dim URL$ = String.Empty
             Dim tCache As CacheKeeper = Nothing
             Dim likesDetected As Boolean = False
+            Dim jsonArgs As New WebDocumentEventArgsT With {.DeclaredError = New ErrorsDescriber(EDP.ReturnValue)}
             Try
                 Const entry$ = "entry"
                 Dim PostID$ = String.Empty
@@ -340,6 +355,8 @@ Namespace API.Twitter
                             ElseIf dirIndx = 3 Then
                             ElseIf isPins Then
                                 Return False
+                            ElseIf Not FirstDownloadComplete Then
+                                Return True
                             Else
                                 ExistsDetected = Not multiMode
                                 Return multiMode
@@ -379,13 +396,24 @@ Namespace API.Twitter
                         Return True
                     End Function
 
-                tCache = CreateCache()
+                If Not DEBUG_PROFILE Then tCache = CreateCache()
 
                 '0 - media
                 '1 - profile
                 '2 - search
                 '3 - likes
-                Dim dirs As List(Of SFile) = GetTimelineFromGalleryDL(tCache, Token)
+                Dim dirs As List(Of SFile)
+                If Not DEBUG_PROFILE Then
+                    dirs = GetTimelineFromGalleryDL(tCache, Token)
+                Else
+                    dirs = SFile.GetDirectories($"{DownloadContentDefault_GetRootDir()}\_tCache\".CSFileP)
+                    If dirs.ListExists(2) Then
+                        dirs = SFile.GetDirectories(dirs(1))
+                    Else
+                        dirs = New List(Of SFile)
+                    End If
+                End If
+
                 If dirs.ListExists Then
                     For Each dir As SFile In dirs
                         dirIndx += 1
@@ -408,12 +436,18 @@ Namespace API.Twitter
                             If timelineFiles.ListExists Then
                                 ResetFileNameProvider(Math.Max(timelineFiles.Count.ToString.Length, 2))
                                 'rename files
-                                For i = 0 To timelineFiles.Count - 1 : timelineFiles(i) = RenameGdlFile(timelineFiles(i), i) : Next
+                                If Not DEBUG_PROFILE Then
+                                    For i = 0 To timelineFiles.Count - 1 : timelineFiles(i) = RenameGdlFile(timelineFiles(i), i) : Next
+                                End If
                                 'parse files
                                 For i = 0 To timelineFiles.Count - 1
-                                    j = JsonDocument.Parse(timelineFiles(i).GetText)
+                                    j = JsonDocument.Parse(timelineFiles(i).GetText, jsonArgs)
+                                    If jsonArgs.State = WebDocumentEventArgs.States.Error Then
+                                        jsonArgs.Reset(Token)
+                                        Continue For
+                                    End If
                                     If Not j Is Nothing Then
-                                        If i = 0 And Not indxChanged Then
+                                        If Not userInfoParsed Or (i = 0 And Not indxChanged) Then
                                             If Not userInfoParsed Then
                                                 userInfoParsed = True
                                                 Dim resValue$ = j.Value({"data", IIf(IsCommunity, "communityResults", "user"), "result"}, "__typename").StringTrim.StringToLower
@@ -498,6 +532,8 @@ Namespace API.Twitter
                                                     Select Case dirIndx
                                                         Case 0, 1, 3
                                                             rootNode = j({"data", "user", "result", "timeline_v2", "timeline", "instructions"})
+                                                            If Not rootNode.ListExists Then rootNode = j({"data", "user", "result", "timeline", "timeline", "instructions"})
+                                                            If Not rootNode.ListExists Then rootNode = j({"data", "search_by_raw_query", "search_timeline", "timeline", "instructions"})
                                                             If rootNode.ListExists Then
                                                                 If dirIndx = 3 Then
                                                                     p = entriesNode
@@ -589,8 +625,9 @@ nextpIndx:
             Catch ex As Exception
                 ProcessException(ex, Token, $"data downloading error [{URL}]")
             Finally
-                If Not tCache Is Nothing Then tCache.Dispose()
+                If Not tCache Is Nothing And Not DEBUG_PROFILE And Not DEBUG_LEAVE_CACHE Then tCache.Dispose()
                 If _TempPostsList.Count > 0 And Not likesDetected Then _TempPostsList.Sort()
+                jsonArgs.DisposeIfReady(False)
             End Try
         End Sub
         Private Sub DownloadData_SavedPosts(ByVal Token As CancellationToken)
@@ -642,30 +679,42 @@ nextpIndx:
             Dim s As EContainer = e({"extended_entities", "media"})
             If If(s?.Count, 0) = 0 Then s = e({"retweeted_status", "extended_entities", "media"})
             If If(s?.Count, 0) = 0 Then s = e({"retweeted_status_result", "result", "legacy", "extended_entities", "media"})
+            Dim txt$ = If(DownloadText, e.Value("full_text"), String.Empty)
 
+            Dim mUrl$
+            Dim media As UserMedia
+            Dim setMediaDef As Action = Sub()
+                                            If Not SpecialFolder.IsEmptyString Then media.SpecialFolder = SpecialFolder
+                                            media.PostText = txt
+                                            media.PostTextFileSpecialFolder = DownloadTextSpecialFolder
+                                        End Sub
             If If(s?.Count, 0) > 0 Then
-                Dim mUrl$
-                Dim media As UserMedia
                 For Each m As EContainer In s
-                    If Not CheckVideoNode(m, PostID, PostDate, State, SpecialFolder) Then
+                    If Not CheckVideoNode(m, PostID, PostDate, State, SpecialFolder, txt) Then
                         mUrl = m.Value("media_url").IfNullOrEmpty(m.Value("media_url_https"))
                         If Not mUrl.IsEmptyString Then
                             Dim dName$ = UrlFile(mUrl)
                             If Not dName.IsEmptyString AndAlso Not _DataNames.Contains(dName) Then
                                 _DataNames.Add(dName)
                                 media = MediaFromData(mUrl, PostID, PostDate, GetPictureOption(m), State, UTypes.Picture, Attempts)
-                                If Not SpecialFolder.IsEmptyString Then media.SpecialFolder = SpecialFolder
+                                setMediaDef()
                                 _TempMediaList.ListAddValue(media, LNC)
                             End If
                         End If
                     End If
                 Next
+            ElseIf Not txt.IsEmptyString And DownloadTextPosts Then
+                media = MediaFromData(PostID, PostID, PostDate, String.Empty, State, UTypes.Text, Attempts)
+                setMediaDef()
+                media.PostTextFile = $"{PostID}.txt"
+                _TempMediaList.ListAddValue(media, LNC)
             End If
         End Sub
         Private Function CheckVideoNode(ByVal w As EContainer, ByVal PostID As String, ByVal PostDate As String,
-                                        Optional ByVal State As UStates = UStates.Unknown, Optional ByVal SpecialFolder As String = Nothing) As Boolean
+                                        Optional ByVal State As UStates = UStates.Unknown, Optional ByVal SpecialFolder As String = Nothing,
+                                        Optional ByVal PostText As String = Nothing) As Boolean
             Try
-                If CheckForGif(w, PostID, PostDate, State, SpecialFolder) Then Return True
+                If CheckForGif(w, PostID, PostDate, State, SpecialFolder, PostText) Then Return True
                 Dim URL$ = GetVideoNodeURL(w)
                 If Not URL.IsEmptyString Then
                     Dim f$ = UrlFile(URL)
@@ -673,6 +722,7 @@ nextpIndx:
                         _DataNames.Add(f)
                         Dim m As UserMedia = MediaFromData(URL, PostID, PostDate,, State, UTypes.Video)
                         If Not SpecialFolder.IsEmptyString Then m.SpecialFolder = SpecialFolder
+                        m.PostText = PostText
                         _TempMediaList.ListAddValue(m, LNC)
                     End If
                     Return True
@@ -684,7 +734,8 @@ nextpIndx:
             End Try
         End Function
         Private Function CheckForGif(ByVal w As EContainer, ByVal PostID As String, ByVal PostDate As String,
-                                     Optional ByVal State As UStates = UStates.Unknown, Optional ByVal SpecialFolder As String = Nothing) As Boolean
+                                     Optional ByVal State As UStates = UStates.Unknown, Optional ByVal SpecialFolder As String = Nothing,
+                                     Optional ByVal PostText As String = Nothing) As Boolean
             Try
                 Dim gifUrl As Predicate(Of EContainer) = Function(e) Not e.Value("content_type").IsEmptyString AndAlso
                                                                      e.Value("content_type").Contains("mp4") AndAlso
@@ -710,6 +761,7 @@ nextpIndx:
                                                     If Not m.SpecialFolder.IsEmptyString Then m.SpecialFolder &= "\"
                                                     m.SpecialFolder &= $"{GifsSpecialFolder}*"
                                                 End If
+                                                m.PostText = PostText
                                                 _TempMediaList.ListAddValue(m, LNC)
                                             End If
                                             Return True
