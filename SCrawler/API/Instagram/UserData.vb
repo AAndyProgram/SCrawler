@@ -1234,7 +1234,6 @@ NextPageBlock:
                         If Not j Is Nothing AndAlso j.Contains({"data", "user"}) Then
                             With j({"data", "user"})
                                 ID = .Value("id")
-                                _ForceSaveUserData = True
                                 __idFound = True
                                 UserSiteNameUpdate(.Value("full_name"))
                                 Dim descr$ = .Value("biography")

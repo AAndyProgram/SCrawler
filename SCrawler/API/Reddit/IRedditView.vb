@@ -32,22 +32,26 @@ Namespace API.Reddit
         Property RedditAccount As String
         Sub SetView(ByVal Options As IRedditView)
     End Interface
-    Friend Class RedditViewExchange : Implements IRedditView
+    Friend Class RedditViewExchange : Inherits Base.EditorExchangeOptionsBase : Implements IRedditView
         Friend Const Name_ViewMode As String = "ViewMode"
         Friend Const Name_ViewPeriod As String = "ViewPeriod"
         Friend Const Name_RedGifsAccount As String = "RedGifsAccount"
         Friend Const Name_RedditAccount As String = "RedditAccount"
         Friend Property ViewMode As IRedditView.View Implements IRedditView.ViewMode
         Friend Property ViewPeriod As IRedditView.Period Implements IRedditView.ViewPeriod
-        Friend Property DownloadText As Boolean Implements IRedditView.DownloadText
-        Friend Property DownloadTextPosts As Boolean Implements IRedditView.DownloadTextPosts
-        Friend Property DownloadTextSpecialFolder As Boolean Implements IRedditView.DownloadTextSpecialFolder
+        Friend Overrides Property DownloadText As Boolean Implements IRedditView.DownloadText
+        Friend Overrides Property DownloadTextPosts As Boolean Implements IRedditView.DownloadTextPosts
+        Friend Overrides Property DownloadTextSpecialFolder As Boolean Implements IRedditView.DownloadTextSpecialFolder
         Friend Property RedGifsAccount As String Implements IRedditView.RedGifsAccount
         Friend Property RedditAccount As String Implements IRedditView.RedditAccount
-        Friend Sub New()
-        End Sub
         Friend Sub New(ByVal Options As IRedditView)
+            MyBase.New(DirectCast(Options, UserData))
             SetView(Options)
+            _ApplyBase_Name = False
+        End Sub
+        Friend Sub New(ByVal s As SiteSettings)
+            MyBase.New(s)
+            _ApplyBase_Name = False
         End Sub
         Friend Sub SetView(ByVal Options As IRedditView) Implements IRedditView.SetView
             If Not Options Is Nothing Then

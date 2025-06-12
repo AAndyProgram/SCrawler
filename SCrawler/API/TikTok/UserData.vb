@@ -256,10 +256,7 @@ Namespace API.TikTok
                                 If j.Value("_type").StringToLower = "video" Then
                                     If Not baseDataObtained Then
                                         baseDataObtained = True
-                                        If ID.IsEmptyString Then
-                                            ID = j.Value("uploader_id")
-                                            If Not ID.IsEmptyString Then _ForceSaveUserInfo = True
-                                        End If
+                                        If ID.IsEmptyString Then ID = j.Value("uploader_id")
                                         newName = j.Value("uploader")
                                         If Not newName.IsEmptyString Then NameTrue = newName
                                         newName = j.Value("creator")

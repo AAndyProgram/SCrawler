@@ -10,6 +10,7 @@ Imports System.Threading
 Imports PersonalUtilities.Tools
 Imports PersonalUtilities.Tools.Web
 Imports PersonalUtilities.Functions.Messaging
+Imports PersonalUtilities.Functions.RegularExpressions
 Imports SCrawler.DownloadObjects.STDownloader
 Public Module MainModShared
     Public Property BATCH As BatchExecutor
@@ -135,9 +136,11 @@ Namespace Editors
         Public Shared Function GetProgramEnvirText(ByVal EnvirData As IDownloaderSettings, ByVal IsYouTube As Boolean) As String
             Try
                 Dim output$ = String.Empty
+                Dim verAfter As RParams = RParams.DM("\A\w\:\\.*", 0, EDP.ReturnValue)
                 Using b As New BatchExecutor(True)
                     Dim f As SFile
                     Dim cmd$, ff$, vText$
+                    Dim ii%
 
                     For i% = 0 To IIf(IsYouTube, 1, 3)
                         cmd = "--version"
@@ -154,7 +157,17 @@ Namespace Editors
                             Else
                                 b.Reset()
                                 b.Execute($"""{f}"" {cmd}", EDP.None)
-                                If b.OutputData.Count > 3 Then vText = b.OutputData(3) Else vText = "undefined"
+                                'If b.OutputData.Count > 3 Then vText = b.OutputData(3) Else vText = "undefined"
+
+                                vText = String.Empty
+                                With b.OutputData
+                                    If .Count > 0 Then
+                                        ii = .FindIndex(Function(bb) Not CStr(RegexReplace(bb, verAfter)).IsEmptyString)
+                                        If ii >= 0 And ii + 1 <= .Count - 1 Then vText = .Item(ii + 1)
+                                    End If
+                                End With
+                                If vText.IsEmptyString Then vText = "undefined"
+
                                 output.StringAppendLine($"{ff} version: {vText}")
                             End If
                         End If

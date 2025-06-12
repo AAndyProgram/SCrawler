@@ -487,10 +487,7 @@ Namespace API.Twitter
                                                 Else
                                                     With j({"data", "user", "result"})
                                                         If .ListExists Then
-                                                            If ID.IsEmptyString Then
-                                                                ID = .Value("rest_id")
-                                                                If Not ID.IsEmptyString Then _ForceSaveUserInfo = True
-                                                            End If
+                                                            If ID.IsEmptyString Then ID = .Value("rest_id")
                                                             With .Item({"legacy"})
                                                                 If .ListExists Then
                                                                     If .Value("screen_name").StringToLower = NameTrue.ToLower Then

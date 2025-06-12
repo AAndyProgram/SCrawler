@@ -116,6 +116,7 @@ Namespace API.OnlyFans
                         If MediaDownloadHighlights And FunctionErr = FunctionErrDef Then DownloadHighlights(Token)
                         If MediaDownloadChatMedia And FunctionErr = FunctionErrDef Then DownloadChatMedia(0, Token)
                     End If
+                    If _TempMediaList.Count > 0 And Not _NameUpdated Then GetUserID(True)
                 End If
             Finally
                 Responser_ResponseReceived_RemoveHandler()
@@ -486,7 +487,6 @@ Namespace API.OnlyFans
                                 _NameUpdated = True
                                 If UpdateNameOnly Then Exit Sub
                                 ID = j.Value("id")
-                                If Not ID.IsEmptyString Then _ForceSaveUserInfo = True
                                 UserSiteNameUpdate(j.Value("name"))
                                 Dim descr$ = j.Value("about")
                                 If Not descr.IsEmptyString Then descr = descr.Replace(brTag, String.Empty)

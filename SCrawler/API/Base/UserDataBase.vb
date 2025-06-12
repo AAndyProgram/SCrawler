@@ -252,7 +252,20 @@ Namespace API.Base
 #End Region
 #Region "User name, ID, exist, suspend, options"
         Friend User As UserInfo
+        Private _IsSavedPosts As Boolean = False
         Friend Property IsSavedPosts As Boolean Implements IPluginContentProvider.IsSavedPosts
+            Get
+                Return _IsSavedPosts
+            End Get
+            Set(ByVal __IsSavedPosts As Boolean)
+                _IsSavedPosts = __IsSavedPosts
+                If _IsSavedPosts Then
+                    DownloadText = True
+                    DownloadTextPosts = True
+                    DownloadTextSpecialFolder = True
+                End If
+            End Set
+        End Property
         Private _UserExists As Boolean = True
         Friend Overridable Property UserExists As Boolean Implements IUserData.Exists, IPluginContentProvider.UserExists
             Get
@@ -300,7 +313,16 @@ Namespace API.Base
                 Return If(Exact, _NameTrue, _NameTrue.IfNullOrEmpty(Name))
             End Get
         End Property
-        Friend Overridable Property ID As String = String.Empty Implements IUserData.ID, IPluginContentProvider.ID
+        Private _ID As String = String.Empty
+        Friend Property ID As String Implements IUserData.ID, IPluginContentProvider.ID
+            Get
+                Return _ID
+            End Get
+            Set(ByVal NewId As String)
+                If Not _ID = NewId Then EnvirChanged(NewId)
+                _ID = NewId
+            End Set
+        End Property
         Protected _FriendlyName As String = String.Empty
         Friend Overridable Property FriendlyName As String Implements IUserData.FriendlyName
             Get
@@ -985,8 +1007,8 @@ BlockNullPicture:
                         ReadyForDownload = x.Value(Name_ReadyForDownload).FromXML(Of Boolean)(True)
                         DownloadImages = x.Value(Name_DownloadImages).FromXML(Of Boolean)(True)
                         DownloadVideos = x.Value(Name_DownloadVideos).FromXML(Of Boolean)(True)
-                        DownloadText = x.Value(Name_DownloadText).FromXML(Of Boolean)(False)
-                        DownloadTextPosts = x.Value(Name_DownloadTextPosts).FromXML(Of Boolean)(False)
+                        DownloadText = x.Value(Name_DownloadText).FromXML(Of Boolean)(IsSavedPosts)
+                        DownloadTextPosts = x.Value(Name_DownloadTextPosts).FromXML(Of Boolean)(IsSavedPosts)
                         DownloadTextSpecialFolder = x.Value(Name_DownloadTextSpecialFolder).FromXML(Of Boolean)(True)
                         _IconBannerDownloaded = x.Value(Name_IconBannerDownloaded).FromXML(Of Boolean)(False)
                         DownloadedVideos(True) = x.Value(Name_VideoCount).FromXML(Of Integer)(0)
@@ -1222,7 +1244,8 @@ BlockNullPicture:
                 Select Case Caller
                     Case NameOf(UserExists) : If Not _EnvirUserExists = CBool(NewValue) Then _EnvirChanged = True : _EnvirInvokeUserUpdated = True
                     Case NameOf(UserSuspended) : If Not _EnvirUserSuspended = CBool(NewValue) Then _EnvirChanged = True : _EnvirInvokeUserUpdated = True
-                    Case NameOf(NameTrue) : _EnvirChanged = True : _EnvirInvokeUserUpdated = True : _ForceSaveUserInfo = True : _ForceSaveUserInfoOnException = True
+                    Case NameOf(NameTrue) : _EnvirChanged = True : _ForceSaveUserInfo = True : _ForceSaveUserInfoOnException = True
+                    Case NameOf(ID) : _EnvirChanged = True : _ForceSaveUserInfo = True : _ForceSaveUserInfoOnException = True
                     Case Else : _EnvirChanged = True
                 End Select
             End If

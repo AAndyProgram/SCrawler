@@ -1,3 +1,17 @@
+# 2025.6.12.0
+
+*2025-06-12*
+
+- Updated
+  - yt-dlp up to version **2025.06.09**
+- Fixed
+  - Sites:
+    - YouTube: audio formats of protocol `m3u8` are not handled correctly
+    - BlueSky: data is not downloaded in some cases
+    - Reddit: new users do not inherit default text settings
+    - Saved posts: text downloading with saved posts
+  - Environment incorrect output
+
 # 2025.6.1.0
 
 *2025-06-01*

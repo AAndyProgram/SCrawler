@@ -738,6 +738,7 @@ Namespace API.YouTube.Objects
 #Region "Command"
         <XMLEC> Public Property UseCookies As Boolean = MyYouTubeSettings.DefaultUseCookies Implements IYouTubeMediaContainer.UseCookies
         Protected Const mp3 As String = "mp3"
+        Private Const mp4 As String = "mp4"
         Private Const aac As String = "aac"
         Private Const ac3 As String = "ac3"
         Protected PostProcessing_AudioAC3 As Boolean = False
@@ -773,7 +774,12 @@ Namespace API.YouTube.Objects
                         '2023.3.4 -> 2023.7.6
                         'cmd.StringAppend($"ba*[format_id={SelectedAudio.ID}]", "+")
                         cmd.StringAppend(SelectedAudio.ID, "+")
-                        If OutputAudioCodec.StringToLower = ac3 Then
+                        If SelectedVideoIndex >= 0 And SelectedAudio.ProtocolType = Protocols.m3u8 And
+                           (SelectedAudio.Codec.StringToLower = mp4 Or OutputAudioCodec.StringToLower = mp4) Then
+                            PostProcessing_AudioAC3 = True
+                            formats.StringAppend($"--merge-output-format ""{mp4}{IIf(OutputVideoExtension.IsEmptyString, String.Empty, $"/{OutputVideoExtension.StringToLower}")}""", " ")
+                            atCodec = aac
+                        ElseIf OutputAudioCodec.StringToLower = ac3 Then
                             PostProcessing_AudioAC3 = True
                             formats.StringAppend($"--audio-format {aac}", " ")
                             atCodec = aac
@@ -1753,9 +1759,12 @@ Namespace API.YouTube.Objects
             If If(e({"formats"})?.Count, 0) > 0 Then
                 Dim obj As MediaObject
                 Dim nValue#
-                Dim sValue$
+                Dim sValue$ = String.Empty
                 Dim allowWebm As Boolean = MyYouTubeSettings.DefaultVideoAllowWebm
-                Dim validCodecValue As Func(Of String, Boolean) = Function(codec) Not codec.IsEmptyString AndAlso Not codec = "none"
+                Dim validCodecValue As Func(Of String, Boolean) = Function(ByVal codec As String) As Boolean
+                                                                      sValue = codec
+                                                                      Return Not codec.IsEmptyString AndAlso Not codec = "none"
+                                                                  End Function
 
                 For Each ee In e({"formats"})
                     obj = New MediaObject With {
@@ -1779,19 +1788,30 @@ Namespace API.YouTube.Objects
                     If obj.Size <= 0 And obj.Bitrate > 0 And Duration.TotalSeconds > 0 Then _
                        obj.Size = (obj.Bitrate / 8 * Duration.TotalSeconds).RoundVal(2)
 
-                    sValue = ee.Value("vcodec")
-                    If validCodecValue(sValue) Then
+                    'sValue = ee.Value("vcodec")
+                    If validCodecValue(ee.Value("vcodec")) Then
                         obj.Type = UMTypes.Video
                         obj.Codec = sValue.Split(".").First
                         If validCodecValue(ee.Value("acodec")) Then obj.Type = av
+                    ElseIf validCodecValue(ee.Value("acodec")) Then
+                        obj.Type = UMTypes.Audio
+                        obj.Codec = sValue.Split(".").First
                     Else
-                        sValue = ee.Value("acodec")
-                        If validCodecValue(sValue) Then
-                            obj.Type = UMTypes.Audio
-                            obj.Codec = sValue.Split(".").First
-                        Else
-                            Continue For
+                        Dim fd As Boolean = False
+                        sValue = ee.Value("format_note")
+                        If Not sValue.IsEmptyString Then
+                            With ListAddList(Nothing, sValue.Split(","), CType(Function(v) CStr(v).StringToLower.StringTrim, Func(Of Object, Object)), EDP.ReturnValue)
+                                If .ListContains({"high", "low"}) Then
+                                    obj.Type = UMTypes.Audio
+                                    obj.Codec = ee.Value("ext")
+                                    If obj.Protocol.StringToLower.StartsWith("m3u8") Then obj.Protocol = "m3u8"
+                                    If obj.Bitrate <= 0 Then obj.Bitrate = IIf(.Contains("high"), 129, 53)
+                                    If obj.Size <= 0 Then obj.Size = 1
+                                    fd = True
+                                End If
+                            End With
                         End If
+                        If Not fd Then Continue For
                     End If
                     MediaObjects.Add(obj)
                 Next
@@ -1803,8 +1823,9 @@ Namespace API.YouTube.Objects
                         Dim data As New List(Of MediaObject)(MediaObjects.Where(Function(mo) mo.Type = t And mo.Extension = webm))
                         If data.Count > 0 Then
                             Dim d As MediaObject = Nothing
-                            Dim expWebm As Predicate(Of MediaObject) = Function(mo) mo.Extension = webm
-                            Dim expAVC As Predicate(Of MediaObject) = Function(mo) mo.Codec.IfNullOrEmpty("/").ToLower.StartsWith(avc)
+                            Dim allWebm As Boolean = False, allAVC As Boolean = False
+                            Dim expWebm As Predicate(Of MediaObject) = Function(mo) Not allWebm And mo.Extension = webm
+                            Dim expAVC As Predicate(Of MediaObject) = Function(mo) Not allAVC And mo.Codec.IfNullOrEmpty("/").ToLower.StartsWith(avc)
                             Dim comp As Func(Of MediaObject, Predicate(Of MediaObject), Boolean, Boolean, Boolean) =
                                 Function(mo, exp, isTrue, checkHttp) mo.Type = t And exp.Invoke(mo) = isTrue And mo.Width = d.Width And
                                                                      (Not checkHttp OrElse mo.ProtocolType = Protocols.https)
@@ -1812,6 +1833,8 @@ Namespace API.YouTube.Objects
                             Dim RemoveWebm As Predicate(Of MediaObject) = Function(mo) comp.Invoke(mo, expWebm, True, allowWebm)
                             Dim CountAVC As Func(Of MediaObject, Boolean) = Function(mo) comp.Invoke(mo, expAVC, True, False)
                             Dim RemoveAVC As Predicate(Of MediaObject) = Function(mo) comp.Invoke(mo, expAVC, False, False)
+                            allWebm = data.All(FPredicate(Of MediaObject).ToFunc(expWebm))
+                            allAVC = data.All(FPredicate(Of MediaObject).ToFunc(expAVC))
                             For Each d In data
                                 If MediaObjects.Count = 0 Then Exit For
                                 If MediaObjects.LongCount(CountWebm) > 0 Then MediaObjects.RemoveAll(RemoveWebm)

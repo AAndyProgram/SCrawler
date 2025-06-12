@@ -212,7 +212,7 @@ Namespace API.Reddit
 #End Region
 #Region "UserOptions"
         Friend Overrides Sub UserOptions(ByRef Options As Object, ByVal OpenForm As Boolean)
-            If Options Is Nothing OrElse Not TypeOf Options Is RedditViewExchange Then Options = New RedditViewExchange
+            If Options Is Nothing OrElse Not TypeOf Options Is RedditViewExchange Then Options = New RedditViewExchange(Me)
             If OpenForm Then
                 Using f As New RedditViewSettingsForm(Options, True) : f.ShowDialog() : End Using
             End If

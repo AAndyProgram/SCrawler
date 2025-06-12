@@ -35,15 +35,15 @@ A program to download photo and video from [any site](#supported-sites) (e.g. Yo
 # What can program do:
 - Download pictures and videos from user profiles:
   - YouTube videos, shorts, community feeds, users, artists, playlists, music, tracks;
-  - Reddit images, galleries of images, videos, saved posts;
+  - Reddit images, galleries of images, videos, text, saved posts;
   - Redgifs images and videos (https://www.redgifs.com/);
-  - Twitter images and videos, saved (bookmarked) posts, likes, communities;
-  - Bluesky images and videos;
-  - OnlyFans images and videos, saved (bookmarked) posts, stories;
+  - Twitter images and videos, text, saved (bookmarked) posts, likes, communities;
+  - Bluesky images and videos, text;
+  - OnlyFans images and videos, text, saved (bookmarked) posts, stories;
   - JustForFans images and videos, saved (bookmarked) posts;
   - Mastodon images and videos, saved (bookmarked) posts;
-  - Instagram images and videos, tagged posts, stories, saved posts;
-  - Threads images and videos, saved posts;
+  - Instagram images and videos, text, tagged posts, stories, saved posts;
+  - Threads images and videos, text, saved posts;
   - Facebook images and videos, stories, saved posts;
   - TikTok images and videos;
   - Pinterest boards, users, saved posts;

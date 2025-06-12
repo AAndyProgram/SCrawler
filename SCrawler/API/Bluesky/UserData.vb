@@ -27,6 +27,7 @@ Namespace API.Bluesky
                 Return If(ID.IsEmptyString, String.Empty, SymbolsConverter.ASCII.EncodeSymbolsOnly(ID))
             End Get
         End Property
+        Private ReadOnly _TmpPosts2 As List(Of String)
 #End Region
 #Region "Loader"
         Protected Overrides Sub LoadUserInformation_OptionalFields(ByRef Container As XmlFile, ByVal Loading As Boolean)
@@ -42,6 +43,7 @@ Namespace API.Bluesky
 #Region "Initializer"
         Friend Sub New()
             UseInternalM3U8Function = True
+            _TmpPosts2 = New List(Of String)
         End Sub
 #End Region
 #Region "Token"
@@ -62,11 +64,17 @@ Namespace API.Bluesky
 #Region "Download"
         Private _PostCount As Integer = 0
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
-            If Not CBool(MySettings.CookiesEnabled.Value) Then Responser.Cookies.Clear()
-            UpdateToken(, True)
-            _TokenUpdateCount = 0
-            _PostCount = 0
-            DownloadData(String.Empty, Token)
+            _TmpPosts2.Clear()
+            Try
+                If Not CBool(MySettings.CookiesEnabled.Value) Then Responser.Cookies.Clear()
+                UpdateToken(, True)
+                _TokenUpdateCount = 0
+                _PostCount = 0
+                DownloadData(String.Empty, Token)
+            Finally
+                _TempPostsList.ListAddList(_TmpPosts2, LNC)
+                _TmpPosts2.Clear()
+            End Try
         End Sub
         Private Overloads Sub DownloadData(ByVal Cursor As String, ByVal Token As CancellationToken)
             Dim URL$ = String.Empty
@@ -117,7 +125,8 @@ Namespace API.Bluesky
         Private Function DefaultParser(ByVal e As EContainer, Optional ByVal CheckDateLimits As Boolean = True, Optional ByRef NextCursor As String = Nothing,
                                        Optional ByVal CheckTempPosts As Boolean = True, Optional ByVal State As UStates = UStates.Unknown) As Integer
             Const exitReturn% = CInt(DateResult.Exit) * -1
-            Dim postID$, postDate$, __url$, __urlBase$, __txt$
+            Const skipReturn% = CInt(DateResult.Skip) * -1
+            Dim postID$, postDate$, __url$, __urlBase$, __txt$, __userId$
             Dim updateUrl As Boolean
             Dim c% = 0
             Dim m As UserMedia
@@ -128,6 +137,7 @@ Namespace API.Bluesky
                     postDate = String.Empty
                     __urlBase = String.Empty
                     __txt = String.Empty
+                    __userId = .Value({"author"}, "did")
                     With .Item({"record"})
                         If .ListExists Then
                             '2025-01-28T02:42:12.415Z
@@ -135,14 +145,18 @@ Namespace API.Bluesky
                             NextCursor = postDate
                             If CheckDateLimits Then
                                 Select Case CheckDatesLimit(postDate, DateProvider)
-                                    Case DateResult.Skip : Return CInt(DateResult.Skip) * -1 'Continue For
+                                    Case DateResult.Skip : Return skipReturn 'Continue For
                                     Case DateResult.Exit : Return exitReturn 'Exit Sub
                                 End Select
                             End If
 
                             If CheckTempPosts Then
-                                If _TempPostsList.Contains(postID) Then Return exitReturn Else _TempPostsList.Add(postID)
+                                'If _TempPostsList.Contains(postID) Then Return exitReturn Else _TempPostsList.Add(postID)
+                                If _TempPostsList.Contains(postID) Then Return exitReturn Else _TmpPosts2.Add(postID)
                             End If
+
+                            If ParseUserMediaOnly And Not ID.IsEmptyString And Not __userId.IsEmptyString And Not ID = __userId Then Return skipReturn
+
                             __urlBase = $"https://bsky.app/profile/{NameTrue}/post/{postID}"
                         End If
                     End With
@@ -338,6 +352,12 @@ Namespace API.Bluesky
                 Return 0
             End If
         End Function
+#End Region
+#Region "IDisposable Support"
+        Protected Overrides Sub Dispose(ByVal disposing As Boolean)
+            If disposing Then _TmpPosts2.Clear()
+            MyBase.Dispose(disposing)
+        End Sub
 #End Region
     End Class
 End Namespace

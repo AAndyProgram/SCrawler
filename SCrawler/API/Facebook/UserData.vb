@@ -676,10 +676,7 @@ Namespace API.Facebook
                     End If
                     Token_Photosby = RegexReplace(r, Regex_Photos_by)
                     If StoryBucket.IsEmptyString Then StoryBucket = RegexReplace(r, Regex_StoryBucket)
-                    If ID.IsEmptyString Then
-                        ID = RegexReplace(r, Regex_UserID)
-                        If Not ID.IsEmptyString Then _ForceSaveUserInfo = True
-                    End If
+                    If ID.IsEmptyString Then ID = RegexReplace(r, Regex_UserID)
                 End If
             Catch ex As Exception
                 ProcessException(ex, Token, "get user token",, resp)
