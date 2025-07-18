@@ -169,6 +169,7 @@
     <Compile Include="API\Base\DeclaredNames.vb" />
     <Compile Include="API\Base\DownDetector.vb" />
     <Compile Include="API\Base\EditorExchangeOptionsBase.vb" />
+    <Compile Include="API\Base\EditorExchangeOptionsBase_P.vb" />
     <Compile Include="API\Base\GDL.vb" />
     <Compile Include="API\Base\IUserData.vb" />
     <Compile Include="API\Base\M3U8Base.vb" />
@@ -268,7 +269,6 @@
     <Compile Include="API\XVIDEOS\M3U8.vb" />
     <Compile Include="API\XVIDEOS\SiteSettings.vb" />
     <Compile Include="API\XVIDEOS\UserData.vb" />
-    <Compile Include="API\XVIDEOS\UserExchangeOptions.vb" />
     <Compile Include="API\YouTube\SiteSettings.vb" />
     <Compile Include="API\YouTube\UserData.vb" />
     <Compile Include="API\YouTube\UserExchangeOptions.vb" />

@@ -2288,6 +2288,7 @@ stxt:
         End Function
 #End Region
 #Region "Errors functions"
+        ''' <summary>ToStringForLog(): Message</summary>
         Protected Sub LogError(ByVal ex As Exception, ByVal Message As String, Optional ByVal e As ErrorsDescriber = Nothing)
             ErrorsDescriber.Execute(If(e.Exists, e, New ErrorsDescriber(EDP.SendToLog)), ex, $"{ToStringForLog()}: {Message}")
         End Sub

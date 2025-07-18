@@ -6,9 +6,10 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
+Imports SCrawler.API.Base
 Imports SCrawler.Plugin.Attributes
 Namespace API.PornHub
-    Friend Class UserExchangeOptions : Inherits Xhamster.UserExchangeOptions
+    Friend Class UserExchangeOptions : Inherits EditorExchangeOptionsBase_P
         <PSetting(NameOf(SiteSettings.DownloadUHD), NameOf(MySettings))>
         Friend Property DownloadUHD As Boolean
         <PSetting(NameOf(SiteSettings.DownloadUploaded), NameOf(MySettings))>
@@ -23,16 +24,17 @@ Namespace API.PornHub
         Friend Property DownloadGifs As Boolean
         Private ReadOnly Property MySettings As SiteSettings
         Friend Sub New(ByVal u As UserData)
+            MyBase.New(u)
             DownloadUHD = u.DownloadUHD
             DownloadUploaded = u.DownloadUploaded
             DownloadTagged = u.DownloadTagged
             DownloadPrivate = u.DownloadPrivate
             DownloadFavorite = u.DownloadFavorite
             DownloadGifs = u.DownloadGifs
-            QueryString = u.QueryString
             MySettings = u.HOST.Source
         End Sub
         Friend Sub New(ByVal s As SiteSettings)
+            MyBase.New(s)
             Dim v As CheckState = CInt(s.DownloadGifs.Value)
             DownloadUHD = s.DownloadUHD.Value
             DownloadUploaded = s.DownloadUploaded.Value
@@ -41,6 +43,17 @@ Namespace API.PornHub
             DownloadFavorite = s.DownloadFavorite.Value
             DownloadGifs = Not v = CheckState.Unchecked
             MySettings = s
+        End Sub
+        Friend Overrides Sub Apply(ByRef u As IPSite)
+            MyBase.Apply(u)
+            With DirectCast(u, UserData)
+                .DownloadUHD = DownloadUHD
+                .DownloadUploaded = DownloadUploaded
+                .DownloadTagged = DownloadTagged
+                .DownloadPrivate = DownloadPrivate
+                .DownloadFavorite = DownloadFavorite
+                .DownloadGifs = DownloadGifs
+            End With
         End Sub
     End Class
 End Namespace

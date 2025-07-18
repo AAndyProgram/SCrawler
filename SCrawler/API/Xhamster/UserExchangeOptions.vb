@@ -6,16 +6,22 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
+Imports SCrawler.API.Base
 Imports SCrawler.Plugin.Attributes
 Namespace API.Xhamster
-    Friend Class UserExchangeOptions
-        <PSetting(Address:=SettingAddress.User, Caption:="Query",
-                  ToolTip:="Query string. Don't change this field when creating a user! Change it only for the same request.")>
-        Friend Property QueryString As String
+    Friend NotInheritable Class UserExchangeOptions : Inherits API.Base.EditorExchangeOptionsBase_P
+        <PSetting(Address:=SettingAddress.User, Caption:="Get moments")>
+        Friend Property GetMoments As Boolean = False
         Friend Sub New()
+            MyBase.New
         End Sub
-        Friend Sub New(ByVal u As UserData)
-            QueryString = u.QueryString
+        Friend Sub New(ByVal u As IPSite)
+            MyBase.New(DirectCast(u, UserData))
+            GetMoments = DirectCast(u, UserData).GetMoments
+        End Sub
+        Friend Overrides Sub Apply(ByRef u As IPSite)
+            MyBase.Apply(u)
+            DirectCast(u, UserData).GetMoments = GetMoments
         End Sub
     End Class
 End Namespace

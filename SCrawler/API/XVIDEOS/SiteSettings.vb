@@ -50,6 +50,7 @@ Namespace API.XVIDEOS
 
             _SubscriptionsAllowed = True
             UrlPatternUser = "https://xvideos.com/{0}"
+            UserOptionsType = GetType(EditorExchangeOptionsBase_P)
         End Sub
         Friend Overrides Sub EndInit()
             Domains.PopulateInitialDomains(SiteDomains.Value)
@@ -151,14 +152,6 @@ Namespace API.XVIDEOS
             End If
             Return Nothing
         End Function
-#End Region
-#Region "UserOptions"
-        Friend Overrides Sub UserOptions(ByRef Options As Object, ByVal OpenForm As Boolean)
-            If Options Is Nothing OrElse Not TypeOf Options Is UserExchangeOptions Then Options = New UserExchangeOptions
-            If OpenForm Then
-                Using f As New InternalSettingsForm(Options, Me, False) : f.ShowDialog() : End Using
-            End If
-        End Sub
 #End Region
 #Region "IDisposable Support"
         Protected Overrides Sub Dispose(ByVal disposing As Boolean)

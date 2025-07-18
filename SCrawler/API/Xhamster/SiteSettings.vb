@@ -51,6 +51,7 @@ Namespace API.Xhamster
             UrlPatternUser = "https://xhamster.com/{0}/{1}"
             UserRegex = RParams.DMS($"/({UserOption}|{ChannelOption}|{P_Creators})/([^/]+)(\Z|.*)", 0, RegexReturn.ListByMatch)
             ImageVideoContains = "xhamster"
+            UserOptionsType = GetType(UserExchangeOptions)
         End Sub
         Friend Overrides Sub EndInit()
             Domains.PopulateInitialDomains(SiteDomains.Value)
@@ -162,14 +163,6 @@ Namespace API.Xhamster
             End If
             Return Nothing
         End Function
-#End Region
-#Region "UserOptions"
-        Friend Overrides Sub UserOptions(ByRef Options As Object, ByVal OpenForm As Boolean)
-            If Options Is Nothing OrElse Not TypeOf Options Is UserExchangeOptions Then Options = New UserExchangeOptions
-            If OpenForm Then
-                Using f As New InternalSettingsForm(Options, Me, False) : f.ShowDialog() : End Using
-            End If
-        End Sub
 #End Region
 #Region "IDisposable Support"
         Protected Overrides Sub Dispose(ByVal disposing As Boolean)

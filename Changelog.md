@@ -1,3 +1,21 @@
+# 2025.7.18.0
+
+*2025-07-18*
+
+- Added
+  - Sites:
+    - OnlyFans:
+      - **bypass unpurchased videos**
+      - support for GIF files
+    - Reddit: extended `429` error handling
+    - Xhamster: support for downloading 'moments'
+  - Minor improvements
+- Updated
+  - yt-dlp up to version **2025.06.30**
+  - gallery-dl up to version **1.30.0**
+- Fixed
+  - Minor bugs
+
 # 2025.6.12.0
 
 *2025-06-12*

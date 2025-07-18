@@ -14,7 +14,7 @@ Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Tools
 Imports PersonalUtilities.Tools.Web.Documents.JSON
 Namespace API.ThisVid
-    Friend Class UserData : Inherits UserDataBase
+    Friend Class UserData : Inherits UserDataBase : Implements IPSite
 #Region "XML names"
         Private Const Name_DownloadPublic As String = "DownloadPublic"
         Private Const Name_DownloadPrivate As String = "DownloadPrivate"
@@ -51,7 +51,7 @@ Namespace API.ThisVid
                 Return {SearchRequestLabelName}
             End Get
         End Property
-        Friend Property QueryString As String
+        Friend Property QueryString As String Implements IPSite.QueryString
             Get
                 If SiteMode = SiteModes.User Then
                     Return String.Empty
@@ -161,15 +161,7 @@ Namespace API.ThisVid
             Return New UserExchangeOptions(Me)
         End Function
         Friend Overrides Sub ExchangeOptionsSet(ByVal Obj As Object)
-            If Not Obj Is Nothing AndAlso TypeOf Obj Is UserExchangeOptions Then
-                With DirectCast(Obj, UserExchangeOptions)
-                    DownloadPublic = .DownloadPublic
-                    DownloadPrivate = .DownloadPrivate
-                    DownloadFavourite = .DownloadFavourite
-                    DifferentFolders = .DifferentFolders
-                    QueryString = .QueryString
-                End With
-            End If
+            If Not Obj Is Nothing AndAlso TypeOf Obj Is UserExchangeOptions Then DirectCast(Obj, UserExchangeOptions).Apply(Me)
         End Sub
 #End Region
 #Region "Initializer"

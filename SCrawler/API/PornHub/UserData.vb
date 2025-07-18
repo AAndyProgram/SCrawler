@@ -15,7 +15,7 @@ Imports PersonalUtilities.Tools.Web.Clients
 Imports PersonalUtilities.Tools.Web.Documents.JSON
 Imports UTypes = SCrawler.API.Base.UserMedia.Types
 Namespace API.PornHub
-    Friend Class UserData : Inherits UserDataBase
+    Friend Class UserData : Inherits UserDataBase : Implements IPSite
         Private Const UrlPattern As String = "https://www.pornhub.com/{0}"
 #Region "Declarations"
 #Region "XML names"
@@ -140,7 +140,7 @@ Namespace API.PornHub
             End Get
         End Property
         Friend Property SiteMode As SiteModes = SiteModes.User
-        Friend Property QueryString As String
+        Friend Property QueryString As String Implements IPSite.QueryString
             Get
                 If IsUser Then
                     Return String.Empty
@@ -163,17 +163,7 @@ Namespace API.PornHub
             Return New UserExchangeOptions(Me)
         End Function
         Friend Overrides Sub ExchangeOptionsSet(ByVal Obj As Object)
-            If Not Obj Is Nothing AndAlso TypeOf Obj Is UserExchangeOptions Then
-                With DirectCast(Obj, UserExchangeOptions)
-                    DownloadUHD = .DownloadUHD
-                    DownloadUploaded = .DownloadUploaded
-                    DownloadTagged = .DownloadTagged
-                    DownloadPrivate = .DownloadPrivate
-                    DownloadFavorite = .DownloadFavorite
-                    DownloadGifs = .DownloadGifs
-                    QueryString = .QueryString
-                End With
-            End If
+            If Not Obj Is Nothing AndAlso TypeOf Obj Is UserExchangeOptions Then DirectCast(Obj, UserExchangeOptions).Apply(Me)
         End Sub
 #End Region
         Private ReadOnly Property MySettings As SiteSettings

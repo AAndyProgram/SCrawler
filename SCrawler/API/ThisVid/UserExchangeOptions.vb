@@ -6,9 +6,10 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
+Imports SCrawler.API.Base
 Imports SCrawler.Plugin.Attributes
 Namespace API.ThisVid
-    Friend Class UserExchangeOptions : Inherits Xhamster.UserExchangeOptions
+    Friend Class UserExchangeOptions : Inherits EditorExchangeOptionsBase_P
         <PSetting(Caption:="Download public videos")>
         Friend Property DownloadPublic As Boolean = True
         <PSetting(Caption:="Download private videos")>
@@ -19,6 +20,7 @@ Namespace API.ThisVid
         Friend Property DifferentFolders As Boolean = True
         Private ReadOnly Property MySettings As SiteSettings
         Friend Sub New(ByVal s As SiteSettings)
+            MyBase.New(s)
             DownloadPublic = s.DownloadPublic.Value
             DownloadPrivate = s.DownloadPrivate.Value
             DownloadFavourite = s.DownloadFavourite.Value
@@ -26,12 +28,21 @@ Namespace API.ThisVid
             MySettings = s
         End Sub
         Friend Sub New(ByVal u As UserData)
+            MyBase.New(u)
             DownloadPublic = u.DownloadPublic
             DownloadPrivate = u.DownloadPrivate
             DownloadFavourite = u.DownloadFavourite
             DifferentFolders = u.DifferentFolders
-            QueryString = u.QueryString
             MySettings = u.HOST.Source
+        End Sub
+        Friend Overrides Sub Apply(ByRef u As IPSite)
+            MyBase.Apply(u)
+            With DirectCast(u, UserData)
+                .DownloadPublic = DownloadPublic
+                .DownloadPrivate = DownloadPrivate
+                .DownloadFavourite = DownloadFavourite
+                .DifferentFolders = DifferentFolders
+            End With
         End Sub
     End Class
 End Namespace

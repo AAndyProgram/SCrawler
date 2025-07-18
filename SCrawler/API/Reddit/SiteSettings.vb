@@ -9,6 +9,7 @@
 Imports SCrawler.API.Base
 Imports SCrawler.Plugin
 Imports SCrawler.Plugin.Attributes
+Imports System.Reflection
 Imports PersonalUtilities.Tools.Web.Clients
 Imports PersonalUtilities.Tools.Web.Clients.Base
 Imports PersonalUtilities.Tools.Web.Documents.JSON
@@ -58,6 +59,48 @@ Namespace API.Reddit
                 Return {AuthUserName.Value, AuthPassword.Value, ApiClientID.Value, ApiClientSecret.Value}.All(Function(v$) Not v.IsEmptyString)
             End Get
         End Property
+        <PropertiesDataChecker({NameOf(AuthUserName), NameOf(AuthPassword), NameOf(ApiClientID), NameOf(ApiClientSecret),
+                                NameOf(UseTokenForTimelines), NameOf(UseCookiesForTimelines)})>
+        Private Function OAuthCredentialsChecker(ByVal p As IEnumerable(Of PropertyData)) As Boolean
+            Const msgTitle$ = "OAuth credentials"
+            If p.ListExists Then
+                Dim useToken As Boolean = False, useCookies As Boolean = False
+                Dim d$ = String.Empty
+                Dim dCount As Byte = 0
+                Dim members As IEnumerable(Of MemberInfo) = GetObjectMembers(Me)
+                Dim getPropText As Func(Of String, String) = Function(name) members.First(Function(m) m.Name = name).GetCustomAttribute(Of PropertyOption).ControlText
+                Dim dataStr As Action(Of String, String) = Sub(dd, name) If dd.IsEmptyString Then d.StringAppendLine(getPropText(name)) : dCount += 1
+                For Each pp As PropertyData In p
+                    Select Case pp.Name
+                        Case NameOf(AuthUserName) : dataStr(pp.Value, NameOf(AuthUserName))
+                        Case NameOf(AuthPassword) : dataStr(pp.Value, NameOf(AuthPassword))
+                        Case NameOf(ApiClientID) : dataStr(pp.Value, NameOf(ApiClientID))
+                        Case NameOf(ApiClientSecret) : dataStr(pp.Value, NameOf(ApiClientSecret))
+                        Case NameOf(UseTokenForTimelines) : useToken = pp.Value
+                        Case NameOf(UseCookiesForTimelines) : useCookies = pp.Value
+                        Case Else : Throw New ArgumentException($"Property name '{pp.Name}' is not implemented", "Property Name")
+                    End Select
+                Next
+                If d.IsEmptyString Then
+                    If useToken And useCookies Then
+                        Return True
+                    Else
+                        If Not useToken Then d.StringAppendLine(getPropText(NameOf(UseTokenForTimelines)))
+                        If Not useCookies Then d.StringAppendLine(getPropText(NameOf(UseCookiesForTimelines)))
+                        MsgBoxE({$"You need to check the following options:{vbCr}{d}", msgTitle}, vbCritical)
+                        Return False
+                    End If
+                ElseIf dCount = 4 Then
+                    Return MsgBoxE({$"You haven't configured OAuth. It's highly recommended to use OAuth.{vbCr}Do you still want to continue?", msgTitle},
+                                   vbExclamation,,, {"Process", "Cancel"}) = 0
+                Else
+                    MsgBoxE({$"You haven't filled in the following fields:{vbCr}{d}.{vbCr}{vbCr}" &
+                            "To use OAuth authorization, you must fill in all authorization fields.", msgTitle}, vbCritical)
+                    Return False
+                End If
+            End If
+            Return True
+        End Function
 #End Region
 #Region "Other"
         <PropertyOption(ControlText:="Use M3U8", ControlToolTip:="Use M3U8 or mp4 for Reddit videos", IsAuth:=False), PXML, PClonable>
@@ -233,23 +276,6 @@ Namespace API.Reddit
         End Sub
 #End Region
 #Region "Token"
-        <PropertiesDataChecker({NameOf(AuthUserName), NameOf(AuthPassword), NameOf(ApiClientID), NameOf(ApiClientSecret)})>
-        Private Function TokenPropertiesChecker(ByVal p As IEnumerable(Of PropertyData)) As Boolean
-            If p.ListExists Then
-                Dim wrong As New List(Of String)
-                For i% = 0 To p.Count - 1
-                    If CStr(p(i).Value).IsEmptyString Then wrong.Add(p(i).Name)
-                Next
-                If wrong.Count > 0 And wrong.Count <> 4 Then
-                    MsgBoxE({$"You have not completed the following fields: {wrong.ListToString}." & vbCr &
-                            "To use OAuth authorization, all authorization fields must be filled in.", "Validate token fields"}, vbCritical)
-                    Return False
-                Else
-                    Return True
-                End If
-            End If
-            Return False
-        End Function
         Private Function UpdateTokenIfRequired() As Boolean
             UpdateRedGifsToken()
             If (CBool(UseTokenForTimelines.Value) Or CBool(UseTokenForSavedPosts.Value)) AndAlso CredentialsExists Then

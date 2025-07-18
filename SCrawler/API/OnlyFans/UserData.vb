@@ -431,7 +431,7 @@ Namespace API.OnlyFans
             Result = False
             With n("media")
                 If .ListExists Then
-                    For Each m In .Self
+                    For Each m As EContainer In .Self
                         postUrl = GetMediaURL(m)
                         'If IsHL Then
                         '    'postUrl = m.Value({"files", "source"}, "url")
@@ -440,32 +440,34 @@ Namespace API.OnlyFans
                         '    'postUrl = m.Value({"source"}, "source").IfNullOrEmpty(m.Value("full"))
                         '    postUrl = GetMediaURL(m)
                         'End If
-                        postUrlBase = String.Empty
-                        Select Case m.Value("type")
-                            Case "photo" : t = UTypes.Picture : ext = "jpg"
-                            Case "video"
-                                t = UTypes.Video
-                                ext = "mp4"
-                                If postUrl.IsEmptyString And Not IsHL And TryUseOFS Then
-                                    t = UTypes.VideoPre
-                                    _AbsMediaIndex += 1
-                                    If Not PostUserID.IsEmptyString And IsSingleObjectDownload Then _
-                                       postUrlBase = String.Format(SiteSettings.UserPostPattern, PostID, $"u{PostUserID}")
-                                End If
-                            Case Else : t = UTypes.Undefined : ext = String.Empty
-                        End Select
-                        If Not t = UTypes.Undefined And (Not postUrl.IsEmptyString Or t = UTypes.VideoPre) Then
-                            Dim media As New UserMedia(postUrl.IfNullOrEmpty(IIf(t = UTypes.VideoPre, $"{t}{_AbsMediaIndex}", String.Empty)), t) With {
-                                .Post = New UserPost(PostID, AConvert(Of Date)(PostDate, DateProvider, Nothing)),
-                                .SpecialFolder = SpecFolder,
-                                .PostText = PostText,
-                                .PostTextFileSpecialFolder = DownloadTextSpecialFolder
-                            }
-                            If postUrlBase.IsEmptyString And Not IsSingleObjectDownload Then postUrlBase = GetPostUrl(Me, media)
-                            If Not postUrlBase.IsEmptyString Then media.URL_BASE = postUrlBase
-                            media.File.Extension = ext
-                            Result = True
-                            mList.Add(media)
+                        If m.Value("canView").FromXML(Of Boolean)(True) Then
+                            postUrlBase = String.Empty
+                            Select Case m.Value("type")
+                                Case "photo" : t = UTypes.Picture : ext = "jpg"
+                                Case "video", "gif"
+                                    t = UTypes.Video
+                                    ext = "mp4"
+                                    If postUrl.IsEmptyString And Not IsHL And TryUseOFS Then
+                                        t = UTypes.VideoPre
+                                        _AbsMediaIndex += 1
+                                        If Not PostUserID.IsEmptyString And IsSingleObjectDownload Then _
+                                           postUrlBase = String.Format(SiteSettings.UserPostPattern, PostID, $"u{PostUserID}")
+                                    End If
+                                Case Else : t = UTypes.Undefined : ext = String.Empty
+                            End Select
+                            If Not t = UTypes.Undefined And (Not postUrl.IsEmptyString Or t = UTypes.VideoPre) Then
+                                Dim media As New UserMedia(postUrl.IfNullOrEmpty(IIf(t = UTypes.VideoPre, $"{t}{_AbsMediaIndex}", String.Empty)), t) With {
+                                    .Post = New UserPost(PostID, AConvert(Of Date)(PostDate, DateProvider, Nothing)),
+                                    .SpecialFolder = SpecFolder,
+                                    .PostText = PostText,
+                                    .PostTextFileSpecialFolder = DownloadTextSpecialFolder
+                                }
+                                If postUrlBase.IsEmptyString And Not IsSingleObjectDownload Then postUrlBase = GetPostUrl(Me, media)
+                                If Not postUrlBase.IsEmptyString Then media.URL_BASE = postUrlBase
+                                media.File.Extension = ext
+                                Result = True
+                                mList.Add(media)
+                            End If
                         End If
                     Next
                 End If

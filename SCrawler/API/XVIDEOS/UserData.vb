@@ -15,7 +15,7 @@ Imports PersonalUtilities.Tools.Web.Clients
 Imports PersonalUtilities.Tools.Web.Documents.JSON
 Imports UTypes = SCrawler.API.Base.UserMedia.Types
 Namespace API.XVIDEOS
-    Friend Class UserData : Inherits UserDataBase
+    Friend Class UserData : Inherits UserDataBase : Implements IPSite
 #Region "XML names"
         Private Const Name_PersonType As String = "PersonType"
 #End Region
@@ -62,7 +62,7 @@ Namespace API.XVIDEOS
                 Return {SearchRequestLabelName}
             End Get
         End Property
-        Friend Property QueryString As String
+        Friend Property QueryString As String Implements IPSite.QueryString
             Get
                 If SiteMode = SiteModes.User Then
                     Return String.Empty
@@ -82,10 +82,10 @@ Namespace API.XVIDEOS
 #End Region
 #Region "Load"
         Friend Overrides Function ExchangeOptionsGet() As Object
-            Return New UserExchangeOptions(Me)
+            Return New EditorExchangeOptionsBase_P(Me)
         End Function
         Friend Overrides Sub ExchangeOptionsSet(ByVal Obj As Object)
-            If Not Obj Is Nothing AndAlso TypeOf Obj Is UserExchangeOptions Then QueryString = DirectCast(Obj, UserExchangeOptions).QueryString
+            If Not Obj Is Nothing AndAlso TypeOf Obj Is EditorExchangeOptionsBase_P Then DirectCast(Obj, EditorExchangeOptionsBase_P).Apply(Me)
         End Sub
         Private Function UpdateUserOptions(Optional ByVal Force As Boolean = False, Optional ByVal NewUrl As String = Nothing) As Boolean
             If Not Force OrElse (Not SiteMode = SiteModes.User AndAlso Not NewUrl.IsEmptyString AndAlso MyFileSettings.Exists) Then

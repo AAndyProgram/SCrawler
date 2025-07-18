@@ -1151,12 +1151,30 @@ NextPageBlock:
                     If TryExtractImage Then
                         t = 1
                         abstractDecision = True
-                        If Not SpecialFolder.IsEmptyString AndAlso PutImageVideoFolder Then
-                            Dim endsAbs As Boolean = SpecialFolder.EndsWith("*")
-                            If endsAbs Then SpecialFolder = SpecialFolder.TrimEnd("*")
-                            If Not SpecialFolder.IsEmptyString Then SpecialFolder = $"{SpecialFolder.TrimEnd("\")}\{VideoFolderName}{IIf(Not endsAbs, "*", String.Empty)}"
-                            If endsAbs Then SpecialFolder &= "*"
+                        Dim endsAbs As Boolean
+                        Dim newFolderName$
+                        If PutImageVideoFolder Then
+                            If SpecialFolder.IsEmptyString Then
+                                newFolderName = $"{VideoFolderName}\*"
+                            Else
+                                endsAbs = SpecialFolder.EndsWith("*")
+                                SpecialFolder = SpecialFolder.TrimEnd({CChar("\"), CChar("*")})
+                                If Not endsAbs Then SpecialFolder = $"{SpecialFolder}\{VideoFolderName}"
+                                newFolderName = $"{SpecialFolder}*"
+                            End If
+                            'Dim endsAbs As Boolean = SpecialFolder.EndsWith("*")
+                            'If endsAbs Then SpecialFolder = SpecialFolder.TrimEnd("*")
+                            'If Not SpecialFolder.IsEmptyString Then SpecialFolder = $"{SpecialFolder.TrimEnd("\")}\{VideoFolderName}{IIf(Not endsAbs, "*", String.Empty)}"
+                            'If endsAbs Then SpecialFolder &= "*"
+                        ElseIf Not SpecialFolder.IsEmptyString Then
+                            endsAbs = SpecialFolder.EndsWith("*")
+                            SpecialFolder = SpecialFolder.TrimEnd({CChar("\"), CChar("*")})
+                            If endsAbs Then SpecialFolder = $"{SpecialFolder}\Photos"
+                            newFolderName = $"{SpecialFolder}*"
+                        Else
+                            newFolderName = SpecialFolder
                         End If
+                        SpecialFolder = newFolderName
                     ElseIf t = -1 And InitialType = 8 And ObtainMedia_AllowAbstract Then
                         If n.Contains(vid) Then
                             t = 2

@@ -135,6 +135,7 @@ Namespace API.Reddit
                     DownloadTextSpecialFolder = .DownloadTextSpecialFolder
                     RedGifsAccount = .RedGifsAccount
                     RedditAccount = .RedditAccount
+                    If TypeOf Options Is RedditViewExchange Then DirectCast(Options, RedditViewExchange).ApplyBase(Me)
                 End With
             End If
         End Sub
@@ -1089,25 +1090,28 @@ Namespace API.Reddit
                 ElseIf .StatusCode = HttpStatusCode.Forbidden Then '403
                     UserSuspended = True
                 ElseIf .StatusCode = HttpStatusCode.BadGateway Or .StatusCode = HttpStatusCode.ServiceUnavailable Then '502, 503
-                    MyMainLOG = $"{ToStringForLog()}: [{CInt(Responser.StatusCode)}] Reddit is currently unavailable"
+                    LogError(Nothing, $"[{CInt(Responser.StatusCode)}] Reddit is currently unavailable")
                     Throw New Plugin.ExitException With {.Silent = True}
                 ElseIf .StatusCode = HttpStatusCode.GatewayTimeout Then '504
                     Return 1
                 ElseIf .StatusCode = HttpStatusCode.Unauthorized Then '401
-                    MyMainLOG = $"{ToStringForLog()}: [{CInt(Responser.StatusCode)}] Reddit credentials expired"
+                    LogError(Nothing, $"[{CInt(Responser.StatusCode)}] Reddit credentials expired")
                     MySiteSettings.SessionInterrupted = True
                     Throw New Plugin.ExitException With {.Silent = True}
                 ElseIf .StatusCode = HttpStatusCode.InternalServerError Then '500
                     If Not IsNothing(EObj) AndAlso IsNumeric(EObj) AndAlso CInt(EObj) = HttpStatusCode.InternalServerError Then Return 1
                     Return HttpStatusCode.InternalServerError
-                ElseIf .StatusCode = 429 And IsSavedPosts And Err429Count = 0 Then
+                ElseIf .StatusCode = 429 And IsSavedPosts And Err429Count = 0 Then '429 (saved)
                     Err429Count += 1
                     Return 429
-                ElseIf .StatusCode = 429 AndAlso
-                       ((Not IsSavedPosts And CBool(MySiteSettings.UseTokenForTimelines.Value)) Or (IsSavedPosts And CBool(MySiteSettings.UseTokenForSavedPosts.Value))) AndAlso
-                       Not MySiteSettings.CredentialsExists Then '429
-                    MyMainLOG = $"{ToStringForLog()}: [{CInt(Responser.StatusCode)}] You should use OAuth authorization or disable " &
-                                IIf(IsSavedPosts, "token usage for downloading saved posts", "the use of token and cookies for downloading timelines")
+                ElseIf .StatusCode = 429 Then '429 (all)
+                    If ((Not IsSavedPosts And CBool(MySiteSettings.UseTokenForTimelines.Value)) Or (IsSavedPosts And CBool(MySiteSettings.UseTokenForSavedPosts.Value))) AndAlso
+                       Not MySiteSettings.CredentialsExists Then
+                        LogError(Nothing, $"[{CInt(Responser.StatusCode)}] You should use OAuth authorization or disable " &
+                                          IIf(IsSavedPosts, "token usage for downloading saved posts", "the use of token and cookies for downloading timelines"))
+                    Else
+                        LogError(Nothing, "Too many requests (429). Try again later!")
+                    End If
                     MySiteSettings.SessionInterrupted = True
                     Throw New Plugin.ExitException With {.Silent = True}
                 Else
