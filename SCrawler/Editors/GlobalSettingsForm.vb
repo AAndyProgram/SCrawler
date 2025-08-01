@@ -187,24 +187,24 @@ Namespace Editors
         Private Sub MyDefs_ButtonOkClick(ByVal Sender As Object, ByVal e As KeyHandleEventArgs) Handles MyDefs.ButtonOkClick
             If MyDefs.MyFieldsChecker.AllParamsOK Then
                 With Settings
-                    Dim a As Func(Of String, Object, Integer) =
-                        Function(t, v) MsgBoxE({$"You are set up higher than default count of along {t} downloading tasks." & vbNewLine &
-                                                $"Default: {SettingsCLS.DefaultMaxDownloadingTasks}" & vbNewLine &
-                                                $"Your value: {CInt(v)}" & vbNewLine &
-                                                "Increasing this value may lead to higher CPU usage." & vbNewLine &
-                                                "Do you really want to continue?",
-                                                "Increasing download tasks"},
-                                               vbExclamation,,, {"Confirm", $"Set to default ({SettingsCLS.DefaultMaxDownloadingTasks})", "Cancel"})
+                    Dim a As Func(Of String, Integer, Object, Integer) =
+                        Function(t, vc, v) MsgBoxE({$"You are set up higher than default count of along {t} downloading tasks." & vbNewLine &
+                                                    $"Default: {vc}" & vbNewLine &
+                                                    $"Your value: {CInt(v)}" & vbNewLine &
+                                                    "Increasing this value may lead to higher CPU usage." & vbNewLine &
+                                                    "Do you really want to continue?",
+                                                    "Increasing download tasks"},
+                                                   vbExclamation,,, {"Confirm", $"Set to default ({vc})", "Cancel"})
 
                     If CInt(TXT_MAX_JOBS_USERS.Value) > SettingsCLS.DefaultMaxDownloadingTasks Then
-                        Select Case a.Invoke("users", TXT_MAX_JOBS_USERS.Value)
+                        Select Case a.Invoke("users", SettingsCLS.DefaultMaxDownloadingTasks, TXT_MAX_JOBS_USERS.Value)
                             Case 1 : TXT_MAX_JOBS_USERS.Value = SettingsCLS.DefaultMaxDownloadingTasks
                             Case 2 : Exit Sub
                         End Select
                     End If
-                    If CInt(TXT_MAX_JOBS_CHANNELS.Value) > SettingsCLS.DefaultMaxDownloadingTasks Then
-                        Select Case a.Invoke("channels", TXT_MAX_JOBS_CHANNELS.Value)
-                            Case 1 : TXT_MAX_JOBS_CHANNELS.Value = SettingsCLS.DefaultMaxDownloadingTasks
+                    If CInt(TXT_MAX_JOBS_CHANNELS.Value) > SettingsCLS.DefaultMaxDownloadingTasks_Channels Then
+                        Select Case a.Invoke("channels", SettingsCLS.DefaultMaxDownloadingTasks_Channels, TXT_MAX_JOBS_CHANNELS.Value)
+                            Case 1 : TXT_MAX_JOBS_CHANNELS.Value = SettingsCLS.DefaultMaxDownloadingTasks_Channels
                             Case 2 : Exit Sub
                         End Select
                     End If
@@ -407,7 +407,7 @@ Namespace Editors
             If Sender.DefaultButton = ADB.Refresh Then TXT_MAX_JOBS_USERS.Value = SettingsCLS.DefaultMaxDownloadingTasks
         End Sub
         Private Sub TXT_MAX_JOBS_CHANNELS_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As EventArgs) Handles TXT_MAX_JOBS_CHANNELS.ActionOnButtonClick
-            If Sender.DefaultButton = ADB.Refresh Then TXT_MAX_JOBS_CHANNELS.Value = SettingsCLS.DefaultMaxDownloadingTasks
+            If Sender.DefaultButton = ADB.Refresh Then TXT_MAX_JOBS_CHANNELS.Value = SettingsCLS.DefaultMaxDownloadingTasks_Channels
         End Sub
         Private Sub ChangePositionControlsEnabling() Handles OPT_FILE_NAME_REPLACE.CheckedChanged, OPT_FILE_NAME_ADD_DATE.CheckedChanged
             Dim b As Boolean = OPT_FILE_NAME_ADD_DATE.Checked And OPT_FILE_NAME_ADD_DATE.Enabled

@@ -50,6 +50,10 @@ Namespace API.Twitter
                   Caption:="Force apply",
                   ToolTip:="Force overrides the default parameters for the first download." & vbCr & "Applies to first download only.", LeftOffset:=DefaultOffset)>
         Friend Overridable Property DownloadModelForceApply As Boolean = False
+        <PSetting(Address:=SettingAddress.User,
+                  Caption:="Large profile",
+                  ToolTip:="This setting is only used on the first download and is intended to temporarily override the default site settings if they are incompatible with downloading large profiles. After the first download is complete, this option will be disabled and cannot be enabled again.")>
+        Friend Overridable Property LargeProfile As Boolean = False
         Private ReadOnly Property MySettings As Object
         Friend Sub New(ByVal s As SiteSettings)
             MyBase.New(s)
@@ -76,6 +80,7 @@ Namespace API.Twitter
             UseMD5Comparison = u.UseMD5Comparison
             RemoveExistingDuplicates = u.RemoveExistingDuplicates
             MediaModelAllowNonUserTweets = u.MediaModelAllowNonUserTweets
+            LargeProfile = u.LargeProfile
             If Not TypeOf u Is Mastodon.UserData Then
                 DownloadModelForceApply = u.DownloadModelForceApply
                 DownloadBroadcasts = u.DownloadBroadcasts

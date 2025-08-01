@@ -23,6 +23,7 @@ Imports DoubleClickBehavior = SCrawler.DownloadObjects.STDownloader.DoubleClickB
 Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
 #Region "Constants: defaults"
     Friend Const DefaultMaxDownloadingTasks As Integer = 5
+    Friend Const DefaultMaxDownloadingTasks_Channels As Integer = 1
     Friend Const TaskStackNamePornSite As String = "Porn sites"
     Friend Const Name_Node_Sites As String = "Sites"
     Private Const SitesValuesSeparator As String = ","
@@ -194,7 +195,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
     Private ReadOnly BlackListFile As SFile = $"{SettingsFolderName}\BlackList.txt"
     Private ReadOnly UsersSettingsFile As SFile = $"{SettingsFolderName}\Users.xml"
     Private ReadOnly Property SettingsVersion As XMLValue(Of Integer)
-    Private Const SettingsVersionCurrent As Integer = 2
+    Private Const SettingsVersionCurrent As Integer = 3
     Friend ShortcutOpenFeed As New ButtonKey(Keys.F, True)
     Friend ShortcutOpenSearch As New ButtonKey(Keys.F,, True)
     Private Sub ChangeFeedOpenMode()
@@ -366,9 +367,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         ReparseMissingInTheRoutine = New XMLValue(Of Boolean)("ReparseMissingInTheRoutine", False, MyXML, n)
         UseDefaultAccountIfMissing = New XMLValue(Of Boolean)("UseDefaultAccountIfMissing", True, MyXML, n)
         AutomationBrushUndownloadedPlansMinutes = New XMLValue(Of Integer)("AutomationBrushUndownloadedPlansMinutes", 10080, MyXML, n)
-        DownDetectorEnabled = New XMLValue(Of Boolean)("DownDetectorEnabled", True, MyXML, n)
-        'TODELETE: DownDetectorEnabled change
-        If SettingsVersion.Value < SettingsVersionCurrent Then DownDetectorEnabled.Value = False 'SettingsVersionCurrent = 2
+        DownDetectorEnabled = New XMLValue(Of Boolean)("DownDetectorEnabled", False, MyXML, n)
 
         'Downloading: file naming
         n = {"Downloading", "FileName"}
@@ -392,7 +391,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         ChannelsDefaultReadyForDownload = New XMLValue(Of Boolean)("ChannelsDefaultReadyForDownload", False, MyXML, n)
         ChannelsDefaultTemporary = New XMLValue(Of Boolean)("ChannelsDefaultTemporary", True, MyXML, n)
         ChannelsHideExistsUser = New XMLValue(Of Boolean)("HideExistsUser", True, MyXML, n)
-        ChannelsMaxJobsCount = New XMLValue(Of Integer)("MaxJobsCount", DefaultMaxDownloadingTasks, MyXML, n)
+        ChannelsMaxJobsCount = New XMLValue(Of Integer)("MaxJobsCount", DefaultMaxDownloadingTasks_Channels, MyXML, n)
         n = {Name_Node_Sites, "Channels", "Users"}
         FromChannelDownloadTop = New XMLValue(Of Integer)("FromChannelDownloadTop", 10, MyXML, n)
         FromChannelDownloadTopUse = New XMLValue(Of Boolean)("FromChannelDownloadTopUse", False, MyXML, n)
@@ -497,6 +496,8 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         AdvancedFilter.IsViewFilter = True
         Labels.AddRange({AdvancedFilter}.GetGroupsLabels, False)
 
+        'TODELETE: DefaultMaxDownloadingTasks_Channels
+        If Not SettingsVersion = SettingsVersionCurrent Then ChannelsMaxJobsCount.Value = DefaultMaxDownloadingTasks_Channels 'SettingsVersionCurrent = 3
         SettingsVersion.Value = SettingsVersionCurrent
 
         MyXML.EndUpdate()

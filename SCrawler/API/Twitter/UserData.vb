@@ -30,6 +30,7 @@ Namespace API.Twitter
         Private Const Name_GifsSpecialFolder As String = "GifsSpecialFolder"
         Private Const Name_GifsPrefix As String = "GifsPrefix"
         Private Const Name_IsCommunity As String = "IsCommunity"
+        Private Const Name_LargeProfile As String = "LargeProfile"
         Private Const Name_DownloadModelChanged As String = "DownloadModelChanged"
 #End Region
 #Region "Declarations"
@@ -62,6 +63,47 @@ Namespace API.Twitter
         Friend Property GifsSpecialFolder As String = String.Empty
         Friend Property GifsPrefix As String = String.Empty
         Friend Property IsCommunity As Boolean = False
+#Region "LargeProfile"
+        Friend Property LargeProfile As Boolean = False
+        Private ReadOnly Property LargeProfileOverride As Boolean
+            Get
+                Return LargeProfile And Not FirstDownloadComplete
+            End Get
+        End Property
+        Private ReadOnly Property CookiesUpdate As Boolean
+            Get
+                If LargeProfileOverride Then
+                    MySettings.CookiesUpdateForce = True
+                    Return True
+                Else
+                    Return MySettings.CookiesUpdate.Value
+                End If
+            End Get
+        End Property
+        Private ReadOnly Property UserAgent As String
+            Get
+                If LargeProfileOverride Then
+                    Return MySettings.UserAgent(True).IfNullOrEmpty(Settings.UserAgent)
+                Else
+                    Return MySettings.UserAgent
+                End If
+            End Get
+        End Property
+        Private ReadOnly Property SleepTimerBeforeFirst As Integer
+            Get
+                Dim v% = MySettings.SleepTimerBeforeFirst.Value
+                If LargeProfileOverride And v <= 0 And v <> SiteSettings.TimerFirstUseTheSame Then v = SiteSettings.TimerFirstUseTheSame
+                Return v
+            End Get
+        End Property
+        Private ReadOnly Property SleepTimer As Integer
+            Get
+                Dim v% = MySettings.SleepTimer.Value
+                If LargeProfileOverride And v <= 0 Then v = SiteSettings.TimerDefault
+                Return v
+            End Get
+        End Property
+#End Region
         Private ReadOnly LikesPosts As List(Of String)
         Private ReadOnly PostsKV As List(Of PKV)
         Private ReadOnly _DataNames As List(Of String)
@@ -100,6 +142,7 @@ Namespace API.Twitter
                     DownloadModelForceApply = .DownloadModelForceApply
                     MediaModelAllowNonUserTweets = .MediaModelAllowNonUserTweets
                     DownloadBroadcasts = .DownloadBroadcasts
+                    LargeProfile = .LargeProfile
                     Dim dModel As DownloadModels = DownloadModel
                     If .DownloadModelMedia Then DownloadModel += DownloadModels.Media
                     If .DownloadModelProfile Or .DownloadBroadcasts Then DownloadModel += DownloadModels.Profile
@@ -155,6 +198,7 @@ Namespace API.Twitter
                     StartMD5Checked = .Value(Name_StartMD5Checked).FromXML(Of Boolean)(False)
                     MediaModelAllowNonUserTweets = .Value(Name_MediaModelAllowNonUserTweets).FromXML(Of Boolean)(False)
                     IsCommunity = .Value(Name_IsCommunity).FromXML(Of Boolean)(False)
+                    LargeProfile = .Value(Name_LargeProfile).FromXML(Of Boolean)(False)
                 Else
                     If Name.Contains("@") And Not IsCommunity Then
                         IsCommunity = True
@@ -180,6 +224,7 @@ Namespace API.Twitter
                     .Add(Name_StartMD5Checked, StartMD5Checked.BoolToInteger)
                     .Add(Name_MediaModelAllowNonUserTweets, MediaModelAllowNonUserTweets.BoolToInteger)
                     .Add(Name_IsCommunity, IsCommunity.BoolToInteger)
+                    .Add(Name_LargeProfile, LargeProfile.BoolToInteger)
                     .Add(Name_TrueName, NameTrue(True))
                 End If
             End With
@@ -615,6 +660,7 @@ nextpIndx:
                 End If
                 DownloadModelForceApply = False
                 FirstDownloadComplete = True
+                LargeProfile = False
             Catch jsonNull_ex As JsonDocumentException When jsonNull_ex.State = WebDocumentEventArgs.States.Error
                 Throw New Plugin.ExitException("No deserialized data found")
             Catch limit_ex As TwitterLimitException
@@ -839,8 +885,8 @@ nextpIndx:
         End Class
         Private ReadOnly Property SleepTimerValue(ByVal First As Boolean) As Integer
             Get
-                Dim fTimer% = If(First, MySettings.SleepTimerBeforeFirst, MySettings.SleepTimer).Value
-                If First And fTimer = SiteSettings.TimerFirstUseTheSame Then fTimer = MySettings.SleepTimer.Value
+                Dim fTimer% = If(First, SleepTimerBeforeFirst, SleepTimer)
+                If First And fTimer = SiteSettings.TimerFirstUseTheSame Then fTimer = SleepTimer
                 Return fTimer
             End Get
         End Property
@@ -1060,10 +1106,10 @@ nextpIndx:
         Private Function GdlCreateConf(ByVal Path As SFile) As SFile
             Try
                 Dim conf As SFile = $"{Path.PathWithSeparator}TwitterGdlConfig.conf"
-                Dim __userAgent$ = MySettings.UserAgent
+                Dim __userAgent$ = UserAgent
                 If Not __userAgent.IsEmptyString Then __userAgent = $"""user-agent"": ""{__userAgent}"","
                 Dim confText$ = "{""extractor"":{""cookies"": """ & MySettings.CookiesNetscapeFile.ToString.Replace("\", "/") &
-                                 $""",""cookies-update"": {IIf(CBool(MySettings.CookiesUpdate.Value), "true", "false")}," & __userAgent &
+                                 $""",""cookies-update"": {IIf(CookiesUpdate, "true", "false")}," & __userAgent &
                                  """twitter"":{""tweet-endpoint"": ""detail"",""cards"": false,""conversations"": true,""pinned"": false,""quoted"": false,""replies"": true,""retweets"": true,""strategy"": null,""text-tweets"": false,""twitpic"": false,""unique"": true,""users"": ""timeline"",""videos"": true}}}"
                 If conf.Exists(SFO.Path, True, EDP.ThrowException) Then TextSaver.SaveTextToFile(confText, conf)
                 If Not conf.Exists Then Throw New IO.FileNotFoundException("Can't find Twitter GDL config file", conf)

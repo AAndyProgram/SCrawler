@@ -8,19 +8,20 @@
 ' but WITHOUT ANY WARRANTY
 Imports System.Net
 Imports System.Threading
+Imports PersonalUtilities.Functions.RegularExpressions
+Imports PersonalUtilities.Functions.XML
+Imports PersonalUtilities.Tools.ImageRenderer
+Imports PersonalUtilities.Tools.Web.Clients
+Imports PersonalUtilities.Tools.Web.Clients.Base
+Imports PersonalUtilities.Tools.Web.Documents.JSON
 Imports SCrawler.API.Base
 Imports SCrawler.API.Reddit.RedditViewExchange
 Imports SCrawler.API.YouTube.Objects
 Imports SCrawler.Plugin.Hosts
-Imports PersonalUtilities.Functions.XML
-Imports PersonalUtilities.Functions.RegularExpressions
-Imports PersonalUtilities.Tools.ImageRenderer
-Imports PersonalUtilities.Tools.Web.Clients
-Imports PersonalUtilities.Tools.Web.Documents.JSON
+Imports CPeriod = SCrawler.API.Reddit.IRedditView.Period
+Imports CView = SCrawler.API.Reddit.IRedditView.View
 Imports UStates = SCrawler.API.Base.UserMedia.States
 Imports UTypes = SCrawler.API.Base.UserMedia.Types
-Imports CView = SCrawler.API.Reddit.IRedditView.View
-Imports CPeriod = SCrawler.API.Reddit.IRedditView.Period
 Namespace API.Reddit
     Friend Class UserData : Inherits UserDataBase : Implements IChannelLimits, IRedditView
 #Region "Declarations"
@@ -269,6 +270,8 @@ Namespace API.Reddit
                 End If
             End With
 
+            Responser.ProcessExceptionDecision = AddressOf Err429Process
+
             _TotalPostsDownloaded = 0
             If IsSavedPosts Then
                 Responser.DecodersError = EDP.ReturnValue
@@ -304,6 +307,7 @@ Namespace API.Reddit
 #End Region
 #Region "Download Functions (User, Channel)"
         Private Err429Count As Integer = 0
+        Private Err429TryAgain As Boolean = False
         Private _TotalPostsDownloaded As Integer = 0
         Private ReadOnly _CrossPosts As List(Of String)
         Private Const SiteGfycatKey As String = "gfycat"
@@ -311,6 +315,28 @@ Namespace API.Reddit
         Private Const Node_CrosspostRootId As String = "crosspostRootId"
         Private Const Node_CrosspostParentId As String = "crosspostParentId"
         Private Const Node_CrosspostParent As String = "crosspost_parent"
+        Private Sub Wait429()
+            With MySiteSettings
+                If Not Err429TryAgain Then .RequestCount += 1
+                Err429TryAgain = False
+                If (.RequestCount Mod 100) = 0 Then Thread.Sleep(60100)
+            End With
+        End Sub
+        Private Function Err429Process(ByVal Status As IResponserStatus, ByVal NullArg As Object, ByVal CurrErr As ErrorsDescriber) As ErrorsDescriber
+            If Not Status Is Nothing AndAlso Status.StatusCode = 429 Then
+                If Err429Count = 0 Then
+                    Err429Count += 1
+                    MySiteSettings.RequestCount = 100
+                    Err429TryAgain = True
+                    Return EDP.ReturnValue
+                End If
+            End If
+            Return CurrErr
+        End Function
+        Private Sub Err429Reset()
+            Err429Count = 0
+            Err429TryAgain = False
+        End Sub
         Private Sub DownloadDataUser(ByVal POST As String, ByVal Token As CancellationToken)
             Dim eObj% = 0
             Dim round% = 0
@@ -331,8 +357,10 @@ Namespace API.Reddit
                     'URL = $"https://gateway.reddit.com/desktopapi/v1/user/{NameTrue}/posts?rtj=only&allow_quarantined=true&allow_over18=1&include=identity&after={POST}&dist=25&sort={View}&t={Period}&layout=classic"
                     URL = $"https://oauth.reddit.com/user/{NameTrue}/submitted.json?rtj=only&allow_quarantined=true&allow_over18=1&include=identity&after={POST}&dist=25&sort={View}&t={Period}&layout=classic"
                     ThrowAny(Token)
+                    Wait429()
                     Dim r$ = Responser.GetResponse(URL)
                     If Not r.IsEmptyString Then
+                        Err429Reset()
                         Using w As EContainer = JsonDocument.Parse(r).XmlIfNothing
                             If w.Count > 0 Then
                                 'n = w.GetNode(JsonNodesJson)
@@ -347,6 +375,7 @@ Namespace API.Reddit
                                                 If CheckNode(.Self) Then
 
                                                     'Obtain post ID
+                                                    PostID = String.Empty
                                                     PostTmp = .Value("name") '.Name
                                                     If PostTmp.IsEmptyString Then PostTmp = .Value("id")
                                                     If PostTmp.IsEmptyString Then Continue For
@@ -354,8 +383,9 @@ Namespace API.Reddit
                                                     If IsCrossPost(.Self) Then
                                                         _CrossPosts.ListAddList({ .Value(Node_CrosspostRootId),
                                                                                   .Value(Node_CrosspostParentId),
-                                                                                  .Value(Node_CrosspostParent)}, LNC)
-                                                        Continue For
+                                                                                  .Value(Node_CrosspostParent),
+                                                                                  PostTmp}, LNC)
+                                                        If ParseUserMediaOnly Then Continue For
                                                     Else
                                                         If Not _CrossPosts.Contains(PostTmp) Then PostID = PostTmp : PostTmp = String.Empty
                                                     End If
@@ -384,6 +414,8 @@ Namespace API.Reddit
                         End Using
                         If POST.IsEmptyString And ExistsDetected Then Exit Sub
                         If Not _PostID().IsEmptyString And NewPostDetected Then DownloadDataUser(_PostID(), Token)
+                    ElseIf Err429TryAgain Then
+                        Continue Do
                     End If
                     _completed = True
                 Catch ex As Exception
@@ -420,9 +452,11 @@ Namespace API.Reddit
                     End If
 
                     ThrowAny(Token)
+                    Wait429()
                     Dim r$ = Responser.GetResponse(URL)
-                    If IsSavedPosts Then Err429Count = 0
+                    'If IsSavedPosts Then Err429Count = 0
                     If Not r.IsEmptyString Then
+                        Err429Reset()
                         Using w As EContainer = JsonDocument.Parse(r).XmlIfNothing
                             If w.Count > 0 Then
                                 n = w.GetNode(ChannelJsonNodes)
@@ -479,6 +513,8 @@ Namespace API.Reddit
                         End Using
                         If POST.IsEmptyString And ExistsDetected Then Exit Sub
                         If Not PostID.IsEmptyString And NewPostDetected Then DownloadDataChannel(PostID, Token)
+                    ElseIf Err429TryAgain Then
+                        Continue Do
                     End If
                     _completed = True
                 Catch ex As Exception
@@ -496,11 +532,13 @@ Namespace API.Reddit
         End Sub
 #End Region
 #Region "GetUserInfo"
-        Private Sub GetUserInfo()
+        Private Sub GetUserInfo(Optional ByVal Round As Integer = 0)
             Try
                 If Not IsSavedPosts And ChannelInfo Is Nothing Then
+                    Wait429()
                     Dim r$ = Responser.GetResponse($"https://reddit.com/{IIf(IsChannel, "r", "user")}/{NameTrue}/about.json",, EDP.ReturnValue)
                     If Not r.IsEmptyString Then
+                        Err429Reset()
                         Using j As EContainer = JsonDocument.Parse(r)
                             If Not j Is Nothing AndAlso j.Contains({"data", "subreddit"}) Then
                                 If ID.IsEmptyString Then ID = j.Value({"data"}, "id")
@@ -516,6 +554,8 @@ Namespace API.Reddit
                                 End With
                             End If
                         End Using
+                    ElseIf Err429TryAgain And Round < 2 Then
+                        GetUserInfo(Round + 1)
                     End If
                 End If
             Catch ex As Exception
@@ -631,16 +671,21 @@ Namespace API.Reddit
                         Else
                             Dim tPostId$ = e.Value(Node_CrosspostParent).IfNullOrEmpty(e.Value(Node_CrosspostParentId)).IfNullOrEmpty(e.Value(Node_CrosspostRootId))
                             If Not PostID.IsEmptyString Then
-                                Dim r$ = Responser.GetResponse($"https://www.reddit.com/comments/{tPostId.Split("_").LastOrDefault}/.json",, EDP.ReturnValue)
-                                If Not r.IsEmptyString Then
-                                    Using j As EContainer = JsonDocument.Parse(r, EDP.ReturnValue)
-                                        If j.ListExists Then
-                                            With j.ItemF({0, "data", "children", 0, "data"})
-                                                If .ListExists Then added = ParseContainer(.Self, PostID, PostDate, UserID, False, PostText)
-                                            End With
-                                        End If
-                                    End Using
-                                End If
+                                For ri% = 0 To 1
+                                    Wait429()
+                                    Dim r$ = Responser.GetResponse($"https://www.reddit.com/comments/{tPostId.Split("_").LastOrDefault}/.json",, EDP.ReturnValue)
+                                    If Not r.IsEmptyString Then
+                                        Err429Reset()
+                                        Using j As EContainer = JsonDocument.Parse(r, EDP.ReturnValue)
+                                            If j.ListExists Then
+                                                With j.ItemF({0, "data", "children", 0, "data"})
+                                                    If .ListExists Then added = ParseContainer(.Self, PostID, PostDate, UserID, False, PostText)
+                                                End With
+                                            End If
+                                        End Using
+                                        Exit For
+                                    End If
+                                Next
                             End If
                         End If
                     End If
@@ -906,7 +951,10 @@ Namespace API.Reddit
                                         End If
                                         Continue For
                                     Else
+                                        Wait429()
                                         r = Responser.GetResponse(m.URL,, e)
+                                        If r.IsEmptyString And Err429TryAgain Then _repeatForRedgifs = True
+                                        If Not r.IsEmptyString Then Err429Reset()
                                     End If
                                 Loop While _repeatForRedgifs
                             Else
@@ -944,11 +992,13 @@ Namespace API.Reddit
                     RedGifsResponser = RedGifsHost.Responser.Copy
                     Dim respNoHeaders As Responser = Responser.Copy
                     Dim m As UserMedia, m2 As UserMedia
-                    Dim r$, url$
+                    Dim r$ = String.Empty, url$
+                    Dim ri As Byte
                     Dim j As EContainer
                     Dim lastCount%, li%
                     Dim rv As New ErrorsDescriber(EDP.ReturnValue)
                     respNoHeaders.Headers.Clear()
+                    respNoHeaders.ProcessExceptionDecision = AddressOf Err429Process
                     ProgressPre.ChangeMax(_ContentList.Count)
                     For i% = 0 To _ContentList.Count - 1
                         m = _ContentList(i)
@@ -956,9 +1006,14 @@ Namespace API.Reddit
                         If m.State = UStates.Missing AndAlso Not m.Post.ID.IsEmptyString Then
                             ThrowAny(Token)
                             url = $"https://www.reddit.com/comments/{m.Post.ID.Split("_").LastOrDefault}/.json"
-                            r = Responser.GetResponse(url,, rv)
-                            If r.IsEmptyString Then r = respNoHeaders.GetResponse(url,, rv)
+                            For ri = 0 To 1
+                                Wait429()
+                                r = Responser.GetResponse(url,, rv)
+                                If r.IsEmptyString Then Wait429() : r = respNoHeaders.GetResponse(url,, rv)
+                                If Not (r.IsEmptyString And Err429TryAgain) Then Exit For
+                            Next
                             If Not r.IsEmptyString Then
+                                Err429Reset()
                                 j = JsonDocument.Parse(r, rv)
                                 If Not j Is Nothing Then
                                     If j.Count > 0 Then
@@ -1101,13 +1156,22 @@ Namespace API.Reddit
                 ElseIf .StatusCode = HttpStatusCode.InternalServerError Then '500
                     If Not IsNothing(EObj) AndAlso IsNumeric(EObj) AndAlso CInt(EObj) = HttpStatusCode.InternalServerError Then Return 1
                     Return HttpStatusCode.InternalServerError
-                ElseIf .StatusCode = 429 And IsSavedPosts And Err429Count = 0 Then '429 (saved)
-                    Err429Count += 1
-                    Return 429
+                    'ElseIf .StatusCode = 429 And IsSavedPosts And Err429Count = 0 Then '429 (saved)
+                    '    Err429Count += 1
+                    '    Return 429
                 ElseIf .StatusCode = 429 Then '429 (all)
+                    'If ((Not IsSavedPosts And CBool(MySiteSettings.UseTokenForTimelines.Value)) Or (IsSavedPosts And CBool(MySiteSettings.UseTokenForSavedPosts.Value))) AndAlso
+                    '   Not MySiteSettings.CredentialsExists Then
+                    '    LogError(Nothing, "[429] You should use OAuth authorization or disable " &
+                    '                      IIf(IsSavedPosts, "token usage for downloading saved posts", "the use of token and cookies for downloading timelines"))
+                    'Else
+                    '    LogError(Nothing, "Too many requests (429). Try again later!")
+                    'End If
+                    'MySiteSettings.SessionInterrupted = True
+                    'Throw New Plugin.ExitException With {.Silent = True}
                     If ((Not IsSavedPosts And CBool(MySiteSettings.UseTokenForTimelines.Value)) Or (IsSavedPosts And CBool(MySiteSettings.UseTokenForSavedPosts.Value))) AndAlso
                        Not MySiteSettings.CredentialsExists Then
-                        LogError(Nothing, $"[{CInt(Responser.StatusCode)}] You should use OAuth authorization or disable " &
+                        LogError(Nothing, "[429] You should use OAuth authorization or disable " &
                                           IIf(IsSavedPosts, "token usage for downloading saved posts", "the use of token and cookies for downloading timelines"))
                     Else
                         LogError(Nothing, "Too many requests (429). Try again later!")

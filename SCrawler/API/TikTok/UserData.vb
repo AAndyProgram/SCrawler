@@ -422,7 +422,11 @@ Namespace API.TikTok
             End If
             If DateBefore.HasValue Then command &= $"--datebefore {DateBefore.Value.AddDays(1).ToStringDate(SimpleDateConverter)} "
             If DateAfter.HasValue Then command &= $"--dateafter {DateAfter.Value.AddDays(-1).ToStringDate(SimpleDateConverter)} "
-            If Not CBool(If(IsSingleObjectDownload, MySettings.UseParsedVideoDateSTD, MySettings.UseParsedVideoDate).Value) Then command &= "--no-mtime "
+            If Not CBool(If(IsSingleObjectDownload, MySettings.UseParsedVideoDateSTD, MySettings.UseParsedVideoDate).Value) Then
+                command &= "--no-mtime "
+            Else
+                command &= "--mtime "
+            End If
             If MySettings.CookiesNetscapeFile.Exists Then command &= $"--no-cookies-from-browser --cookies ""{MySettings.CookiesNetscapeFile}"" "
             command &= $"{URL} "
             If SupportOutput Then

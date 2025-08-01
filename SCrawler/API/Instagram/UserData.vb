@@ -412,6 +412,7 @@ Namespace API.Instagram
                 ThrowAny(Token)
                 HasError = False
                 Dim dt As Func(Of Boolean) = Function() (CBool(MySiteSettings.DownloadTimeline.Value) And GetTimeline) Or IsSavedPosts
+                If FirstLoadingDone Then LastCursor = String.Empty
                 If dt.Invoke And Not LastCursor.IsEmptyString Then
                     s = IIf(IsSavedPosts, Sections.SavedPosts, Sections.Timeline)
                     upClaimRequest.Invoke

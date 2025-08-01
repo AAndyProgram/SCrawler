@@ -36,6 +36,7 @@ Namespace API.RedGifs
 #End Region
 #Region "Download functions"
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
+            If Not MySettings.UseCookies.Value Then Responser.Cookies.Clear()
             DownloadData(1, Token)
         End Sub
         Private Overloads Sub DownloadData(ByVal Page As Integer, ByVal Token As CancellationToken)

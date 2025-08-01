@@ -22,6 +22,7 @@ Namespace API.RedGifs
         Friend ReadOnly Property Token As PropertyValue
         <PropertyOption, ControlNumber(2), PClonable, HiddenControl>
         Private ReadOnly Property UserAgent As PropertyValue
+        <PXML> Friend ReadOnly Property UseCookies As PropertyValue
         <PXML> Friend ReadOnly Property TokenLastDateUpdated As PropertyValue
         Private Const TokenName As String = "authorization"
 #Region "TokenUpdateInterval"
@@ -47,6 +48,7 @@ Namespace API.RedGifs
             End With
             Token = New PropertyValue(t, GetType(String), Sub(v) UpdateResponse(NameOf(Token), v))
             UserAgent = New PropertyValue(If(Responser.UserAgentExists, Responser.UserAgent, String.Empty), GetType(String), Sub(v) UpdateResponse(NameOf(UserAgent), v))
+            UseCookies = New PropertyValue(False)
             TokenLastDateUpdated = New PropertyValue(Now.AddYears(-1), GetType(Date))
             TokenUpdateInterval = New PropertyValue(60 * 12, GetType(Integer))
             TokenUpdateIntervalProvider = New TokenRefreshIntervalProvider

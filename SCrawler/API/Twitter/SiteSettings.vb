@@ -38,6 +38,7 @@ Namespace API.Twitter
         Private Const CAT_DOWN As String = "Downloading"
 #End Region
 #Region "Auth"
+        Friend Property CookiesUpdateForce As Boolean = False
         <PropertyOption(ControlText:="Update cookies", ControlToolTip:="Update cookies during requests", IsAuth:=True), PXML, PClonable, HiddenControl>
         Friend ReadOnly Property CookiesUpdate As PropertyValue
         <PropertyOption(ControlText:="Use UserAgent", ControlToolTip:="Use UserAgent in requests", IsAuth:=True), PXML, PClonable>
@@ -45,9 +46,9 @@ Namespace API.Twitter
         <PropertyOption(ControlText:="UserAgent", IsAuth:=True, AllowNull:=True, InheritanceName:=SettingsCLS.HEADER_DEF_UserAgent),
          PXML("UserAgent", OnlyForChecked:=True), PClonable>
         Private ReadOnly Property UserAgentXML As PropertyValue
-        Friend ReadOnly Property UserAgent As String
+        Friend ReadOnly Property UserAgent(Optional ByVal Force As Boolean = False) As String
             Get
-                If CBool(UserAgentUse.Value) AndAlso Not CStr(UserAgentXML.Value).IsEmptyString Then
+                If (CBool(UserAgentUse.Value) Or Force) AndAlso Not CStr(UserAgentXML.Value).IsEmptyString Then
                     Return UserAgentXML.Value
                 Else
                     Return String.Empty
@@ -73,6 +74,7 @@ Namespace API.Twitter
 #Region "Limits"
         Friend Const TimerDisabled As Integer = -1
         Friend Const TimerFirstUseTheSame As Integer = -2
+        Friend Const TimerDefault As Integer = 20
         <PropertyOption(ControlText:="Abort on limit", ControlToolTip:="Abort twitter downloading when limit is reached", Category:=CAT_DOWN), PXML, PClonable>
         Friend Property AbortOnLimit As PropertyValue
         <PropertyOption(ControlText:="Download already parsed", ControlToolTip:="Download already parsed content on abort", Category:=CAT_DOWN), PXML, PClonable>
@@ -143,6 +145,7 @@ Namespace API.Twitter
         End Property
 #End Region
 #Region "Initializer"
+        Private Const SettingsVersionCurrent As Integer = 1
         Friend Sub New(ByVal AccName As String, ByVal Temp As Boolean)
             MyBase.New(TwitterSite, "x.com", AccName, Temp, My.Resources.SiteResources.TwitterIcon_32, My.Resources.SiteResources.TwitterIcon_32.ToBitmap)
 
@@ -153,7 +156,7 @@ Namespace API.Twitter
                 .Cookies.Changed = False
             End With
 
-            UseNewIconXML = New PropertyValue(False)
+            UseNewIconXML = New PropertyValue(True)
 
             CookiesUpdate = New PropertyValue(False)
             UserAgentUse = New PropertyValue(True)
@@ -192,6 +195,10 @@ Namespace API.Twitter
             UseNetscapeCookies = True
         End Sub
         Friend Overrides Sub EndInit()
+            If Not SettingsVersion.Value = SettingsVersionCurrent Then
+                UseNewIconXML.Value = True
+                SettingsVersion.Value = SettingsVersionCurrent
+            End If
             UpdateIcon()
             MyBase.EndInit()
         End Sub
@@ -223,7 +230,7 @@ Namespace API.Twitter
         End Sub
         Friend Overrides Sub DownloadDone(ByVal What As ISiteSettings.Download)
             If UserNumber > 0 Then
-                If CBool(CookiesUpdate.Value) Then
+                If CBool(CookiesUpdate.Value) Or CookiesUpdateForce Then
                     With CookieKeeper.ParseNetscapeText(CookiesNetscapeFile.GetText(EDP.ReturnValue), EDP.ReturnValue)
                         If .ListExists Then
                             Responser.Cookies.Clear()
@@ -250,6 +257,7 @@ Namespace API.Twitter
                 End With
             End If
             LIMIT_ABORT = False
+            CookiesUpdateForce = False
             MyBase.DownloadDone(What)
         End Sub
 #End Region

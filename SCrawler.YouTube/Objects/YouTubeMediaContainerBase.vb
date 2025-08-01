@@ -823,7 +823,9 @@ Namespace API.YouTube.Objects
                         'cmd = $"yt-dlp -f ""{cmd}"""
                         'cmd = $"yt-dlp -f {cmd}"
                         cmd = $"{YTDLP_NAME} -f {cmd}"
-                        If Not MyYouTubeSettings.ReplaceModificationDate Then cmd &= " --no-mtime"
+                        'yt-dlp 2025.07.21
+                        'If Not MyYouTubeSettings.ReplaceModificationDate Then cmd &= " --no-mtime"
+                        cmd &= $" --{IIf(MyYouTubeSettings.ReplaceModificationDate.Value, String.Empty, "no-")}mtime"
                         cmd.StringAppend(formats, " ")
                         cmd.StringAppend(subs, " ")
                         cmd.StringAppend(YouTubeFunctions.GetCookiesCommand(WithCookies, YouTubeCookieNetscapeFile), " ")

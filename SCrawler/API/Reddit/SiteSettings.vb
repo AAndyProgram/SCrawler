@@ -15,21 +15,32 @@ Imports PersonalUtilities.Tools.Web.Clients.Base
 Imports PersonalUtilities.Tools.Web.Documents.JSON
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.RegularExpressions
+Imports DN = SCrawler.API.Base.DeclaredNames
 Imports DownDetector = SCrawler.API.Base.DownDetector
 Imports Download = SCrawler.Plugin.ISiteSettings.Download
 Namespace API.Reddit
-    <Manifest(RedditSiteKey), SavedPosts, SpecialForm(False), UseDownDetector>
+    <Manifest(RedditSiteKey), SavedPosts, SeparatedTasks, SpecialForm(False), UseDownDetector>
     Friend Class SiteSettings : Inherits SiteSettingsBase : Implements DownDetector.IDownDetector
 #Region "Declarations"
 #Region "Authorization"
+        Private Const ApiClientID_Default As String = "dYctRA-SIJxyykHe27lGZg"
+        Private Const ApiClientSecret_Default As String = "_5D6KzplRPDga-es1YlpzDIe9hiFlg"
         <PropertyOption(ControlText:="Login", ControlToolTip:="Your authorization username", IsAuth:=True), PXML, PClonable(Clone:=False)>
         Friend ReadOnly Property AuthUserName As PropertyValue
         <PropertyOption(ControlText:="Password", ControlToolTip:="Your authorization password", IsAuth:=True), PXML, PClonable(Clone:=False)>
         Friend ReadOnly Property AuthPassword As PropertyValue
         <PropertyOption(ControlText:="Client ID", ControlToolTip:="Your registered app client ID", IsAuth:=True), PXML, PClonable(Clone:=False)>
         Friend ReadOnly Property ApiClientID As PropertyValue
+        <PropertyUpdater(NameOf(ApiClientID))> Private Function ApiClientID_SetDefault() As Boolean
+            ApiClientID.Value = ApiClientID_Default
+            Return True
+        End Function
         <PropertyOption(ControlText:="Client Secret", ControlToolTip:="Your registered app client secret", IsAuth:=True), PXML, PClonable(Clone:=False)>
         Friend ReadOnly Property ApiClientSecret As PropertyValue
+        <PropertyUpdater(NameOf(ApiClientSecret))> Private Function ApiClientSecret_SetDefault() As Boolean
+            ApiClientSecret.Value = ApiClientSecret_Default
+            Return True
+        End Function
         <PropertyOption(ControlText:="Bearer token",
                         ControlToolTip:="Bearer token (can be null)." & vbCr &
                                         "If you are using cookies to download the timeline, it is highly recommended that you add a token." & vbCr &
@@ -103,12 +114,15 @@ Namespace API.Reddit
         End Function
 #End Region
 #Region "Other"
-        <PropertyOption(ControlText:="Use M3U8", ControlToolTip:="Use M3U8 or mp4 for Reddit videos", IsAuth:=False), PXML, PClonable>
+        <PropertyOption(ControlText:="Use M3U8", ControlToolTip:="Use M3U8 or mp4 for Reddit videos"), PXML, PClonable, HiddenControl>
         Friend ReadOnly Property UseM3U8 As PropertyValue
-        <PropertyOption(ControlText:="Check image", ControlToolTip:="Check the image if it exists before downloading (it makes downloading very slow)", IsAuth:=False), PXML, PClonable>
+        <PropertyOption(ControlText:="Check image", ControlToolTip:="Check the image if it exists before downloading (it makes downloading very slow)"), PXML, PClonable, HiddenControl>
         Friend ReadOnly Property CheckImage As PropertyValue
-        <PropertyOption(ControlText:="Check image: get original", ControlToolTip:="Get the original image if it exists", IsAuth:=False), PXML, PClonable>
+        <PropertyOption(ControlText:="Check image: get original", ControlToolTip:="Get the original image if it exists"), PXML, PClonable, HiddenControl>
         Friend ReadOnly Property CheckImageReturnOrig As PropertyValue
+        <PropertyOption(ControlText:=DN.ConcurrentDownloadsCaption,
+                        ControlToolTip:=DN.ConcurrentDownloadsToolTip, AllowNull:=False), PXML, TaskCounter, PClonable>
+        Friend ReadOnly Property ConcurrentDownloads As PropertyValue
 #End Region
 #Region "IDownDetector Support"
         Private ReadOnly Property IDownDetector_Value As Integer Implements DownDetector.IDownDetector.Value
@@ -160,6 +174,7 @@ Namespace API.Reddit
             UseM3U8 = New PropertyValue(True)
             CheckImage = New PropertyValue(False)
             CheckImageReturnOrig = New PropertyValue(True)
+            ConcurrentDownloads = New PropertyValue(1)
 
             MDD = New MyDownDetector(Me)
 
@@ -167,10 +182,13 @@ Namespace API.Reddit
             ImageVideoContains = "reddit.com"
             UserRegex = RParams.DM("[htps:/]{7,8}.*?reddit.com/([user]{1,4})/([^/\?&]+)", 0, RegexReturn.ListByMatch, EDP.ReturnValue)
         End Sub
-        Private Const SettingsVersionCurrent As Integer = 2
+        Private Const SettingsVersionCurrent As Integer = 3
         Friend Overrides Sub EndInit()
             If CInt(SettingsVersion.Value) < SettingsVersionCurrent Then
                 SettingsVersion.Value = SettingsVersionCurrent
+                UseM3U8.Value = True
+                CheckImage.Value = False
+                CheckImageReturnOrig.Value = True
                 BearerTokenUseCurl.Value = False
             End If
             MyBase.EndInit()
@@ -208,6 +226,7 @@ Namespace API.Reddit
             End Sub
         End Class
         Friend Property SessionInterrupted As Boolean = False
+        Friend Property RequestCount As Integer = 0
         Friend Overrides Function ReadyToDownload(ByVal What As Download) As Boolean
             If What = Download.Main Then
                 Return Not SessionInterrupted
@@ -223,6 +242,7 @@ Namespace API.Reddit
         End Function
         Friend Overrides Sub DownloadDone(ByVal What As Download)
             SessionInterrupted = False
+            RequestCount = 0
             MDD.Reset()
             MyBase.DownloadDone(What)
         End Sub

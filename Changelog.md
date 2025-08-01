@@ -1,12 +1,26 @@
+# 2025.8.1.0
+
+*2025-08-01*
+
+- Added
+  - Sites:
+    - Reddit: **bypass error `429`**
+    - Twitter: **[large profile option](https://github.com/AAndyProgram/SCrawler/wiki/Settings#twitter-user-settings) in user settings**
+  - Minor improvements
+- Updated
+  - yt-dlp up to version **2025.27.21**
+  - gallery-dl up to version **1.30.2**
+- Fixed
+  - Reddit: in some cases crossposts don't download
+  - Minor bugs
+
 # 2025.7.18.0
 
 *2025-07-18*
 
 - Added
   - Sites:
-    - OnlyFans:
-      - **bypass unpurchased videos**
-      - support for GIF files
+    - OnlyFans: support for GIF files
     - Reddit: extended `429` error handling
     - Xhamster: support for downloading 'moments'
   - Minor improvements
@@ -14,6 +28,7 @@
   - yt-dlp up to version **2025.06.30**
   - gallery-dl up to version **1.30.0**
 - Fixed
+  - OnlyFans: **hanging on purchased content**
   - Minor bugs
 
 # 2025.6.12.0
