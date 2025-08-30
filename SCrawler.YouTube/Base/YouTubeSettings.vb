@@ -319,8 +319,11 @@ Namespace API.YouTube.Base
             Description("Convert non-AVC codecs (eg 'VP9') to AVC. Not recommended due to high CPU usage!")>
         Public ReadOnly Property DefaultVideoConvertNonAVC As XMLValue(Of Boolean)
         <Browsable(True), GridVisible, XMLVN({"DefaultsVideo"}, False), Category("Defaults Video"), DisplayName("Embed thumbnail (video)"),
-            Description("Embed thumbnail in the video as cover art. Default: true.")>
+            Description("Embed thumbnail in the video as cover art. Default: false.")>
         Public ReadOnly Property DefaultVideoEmbedThumbnail As XMLValue(Of Boolean)
+        <Browsable(True), GridVisible, XMLVN({"DefaultsVideo"}, True), Category("Defaults Video"), DisplayName("Embed chapters"),
+            Description("Embed chapters in the video. Default: true.")>
+        Public ReadOnly Property DefaultVideoEmbedChapters As XMLValue(Of Boolean)
         <Browsable(True), GridVisible, XMLVN({"DefaultsVideo"}), Category("Defaults Video"), DisplayName("Include zero size formats"),
             Description("Include formats with zero size (or undefined size).")>
         Public ReadOnly Property DefaultVideoIncludeNullSize As XMLValue(Of Boolean)
@@ -495,6 +498,26 @@ Namespace API.YouTube.Base
             TypeConverter(GetType(ValueCollectionConverter)),
             Description("Additional format for downloading subtitles. This means that all subtitles will be converted to the formats you choose and saved as separate files.")>
         Public ReadOnly Property DefaultSubtitlesFormatAddit As XMLValuesCollection(Of String)
+#End Region
+#Region "Trim"
+        <Browsable(True), GridVisible, XMLVN({"DefaultsTrim"}, False), Category("Defaults Trimming"), DisplayName("Delete original file"),
+            Description("If true, the original file will be deleted after trimming")>
+        Public ReadOnly Property TrimDeleteOriginalFile As XMLValue(Of Boolean)
+        <Browsable(True), GridVisible, XMLVN({"DefaultsTrim"}, False), Category("Defaults Trimming"), DisplayName("Add to M3U8"),
+            Description("If true, the trimmed files will be added to the M3U8 playlist (if selected)")>
+        Public ReadOnly Property TrimAddTrimmedFilesToM3U8 As XMLValue(Of Boolean)
+        <Browsable(True), GridVisible, XMLVN({"DefaultsTrim"}, False), Category("Defaults Trimming"), DisplayName("Separate folder"),
+            Description("Place the trimmed files in a separate folder")>
+        Public ReadOnly Property TrimSeparateFolder As XMLValue(Of Boolean)
+        Friend Const TrimSeparateFolderNameDefault As String = "Trim"
+        <Browsable(True), GridVisible, XMLVN({"DefaultsTrim"}, TrimSeparateFolderNameDefault), Category("Defaults Trimming"), DisplayName("Separate folder name"),
+            Description("Name of a separate folder")>
+        Public ReadOnly Property TrimSeparateFolderName As XMLValue(Of String)
+#End Region
+#Region "Errors"
+        <Browsable(True), GridVisible, XMLVN({"Errors"}, True), Category("ERRORS"), DisplayName("Ignore downloading errors"),
+            Description("Ignore download errors if some files are missing (e.g. subtitles) and continue downloading")>
+        Public ReadOnly Property ErrorsIgnore As XMLValue(Of Boolean)
 #End Region
 #End Region
 #Region "Initializer"

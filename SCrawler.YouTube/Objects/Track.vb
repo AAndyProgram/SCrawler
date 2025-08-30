@@ -30,6 +30,11 @@ Namespace API.YouTube.Objects
                 _File = CleanFileName(_File)
             End If
         End Sub
+        Protected Friend Overrides Sub FileForceArtist()
+            Dim __artistName$ = UserTitle.IfNullOrEmpty(AccountName)
+            If Not _File.Name.IsEmptyString AndAlso Not _File.Name.ToLower.Contains(__artistName.ToLower) Then _
+               _File.Name = $"{__artistName} - {_File.Name}"
+        End Sub
         Public Overrides Function ToString(ByVal ForMediaItem As Boolean) As String
             Dim s$ = SizeStr
             If Not s.IsEmptyString Then s = $" [{s}]"

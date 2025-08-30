@@ -136,4 +136,34 @@ Namespace API.YouTube.Base
             End If
         End Function
     End Structure
+    Public Structure TrimOption : Implements IComparable(Of TrimOption)
+        Public Name As String
+        Public Start As Integer
+        Public ReadOnly Property StartTime As TimeSpan
+            Get
+                Return TimeSpan.FromSeconds(Start)
+            End Get
+        End Property
+        Public [End] As Integer
+        Public ReadOnly Property EndTime As TimeSpan
+            Get
+                Return TimeSpan.FromSeconds([End])
+            End Get
+        End Property
+        Public Shared Widening Operator CType(ByVal t As TrimOption) As String
+            Return t.ToString
+        End Operator
+        Public Overrides Function ToString() As String
+            Dim v$ = $"{Start} - {[End]}"
+            If Not Name.IsEmptyString Then v = $"[{v}] - {Name}"
+            Return v
+        End Function
+        Public Overrides Function Equals(ByVal Obj As Object) As Boolean
+            Try : With DirectCast(Obj, TrimOption) : Return Start = .Start And [End] = .End : End With : Catch : End Try
+            Return False
+        End Function
+        Private Function CompareTo(ByVal Other As TrimOption) As Integer Implements IComparable(Of TrimOption).CompareTo
+            Return Start.CompareTo(Other.Start)
+        End Function
+    End Structure
 End Namespace

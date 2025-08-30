@@ -356,6 +356,14 @@ Namespace API.YouTube.Objects
             End If
         End Sub
 #End Region
+#Region "Chapters, Trimming"
+        Friend ReadOnly Property Chapters As List(Of TrimOption)
+        Friend ReadOnly Property TrimOptions As List(Of TrimOption)
+        Friend Property TrimDeleteOriginalFile As Boolean = False
+        Friend Property TrimAddTrimmedFilesToM3U8 As Boolean = False
+        Friend Property TrimSeparateFolder As Boolean = False
+        Friend Property TrimOptionsSet As Boolean = False
+#End Region
 #Region "IUserMedia Support"
         <XMLEC> Private Property Attempts As Integer Implements IUserMedia.Attempts
         Private _Object As Object = Nothing
@@ -684,6 +692,8 @@ Namespace API.YouTube.Objects
                 End If
             End Set
         End Property
+        Protected Friend Overridable Sub FileForceArtist()
+        End Sub
         Friend Sub FileDateUpdate()
             Dim n$ = _File.Name.StringTrim
             Dim s$ = IIf(n.IsEmptyString, String.Empty, " ")
@@ -826,8 +836,10 @@ Namespace API.YouTube.Objects
                         'yt-dlp 2025.07.21
                         'If Not MyYouTubeSettings.ReplaceModificationDate Then cmd &= " --no-mtime"
                         cmd &= $" --{IIf(MyYouTubeSettings.ReplaceModificationDate.Value, String.Empty, "no-")}mtime"
+                        If MyYouTubeSettings.DefaultVideoEmbedChapters Then cmd &= " --embed-chapters --add-chapters"
                         cmd.StringAppend(formats, " ")
                         cmd.StringAppend(subs, " ")
+                        If MyYouTubeSettings.ErrorsIgnore Then cmd &= " --no-abort-on-error --ignore-errors"
                         cmd.StringAppend(YouTubeFunctions.GetCookiesCommand(WithCookies, YouTubeCookieNetscapeFile), " ")
                         cmd &= $" {URL} -o ""{File.PathWithSeparator}{File.Name}"""
                         File.Exists(SFO.Path, True)
@@ -845,6 +857,8 @@ Namespace API.YouTube.Objects
             _Subtitles = New List(Of Subtitles)
             _SubtitlesDelegated = New List(Of Subtitles)
             SubtitlesSelectedIndexes = New List(Of Integer)
+            Chapters = New List(Of TrimOption)
+            TrimOptions = New List(Of TrimOption)
             MediaObjects = New List(Of MediaObject)
             _Files = New List(Of SFile)
 
@@ -1267,6 +1281,7 @@ Namespace API.YouTube.Objects
                                 Dim fPatternFiles$ = $"{File.Name}*." & "{0}"
                                 Dim fAacAudio As New TempFileConversion(New SFile(String.Format(fPattern, aac)), Me)
                                 Dim mp3ThumbEmbedded As Boolean = False
+                                Dim audioFiles As New List(Of SFile)
 
                                 Dim tempFilesList As New List(Of TempFileConversion)
                                 Dim ttFile As TempFileConversion
@@ -1374,13 +1389,17 @@ Namespace API.YouTube.Objects
                                             format = format.StringToLower
                                             f = String.Format(fPattern, format)
                                             AddFile(f)
+                                            audioFiles.Add(f)
                                             If Not f.Exists Then
                                                 tryToConvert.Invoke(format, f)
                                                 updateBitrate(f)
-                                                If format = mp3 And Not mp3ThumbEmbedded And MyYouTubeSettings.DefaultAudioEmbedThumbnail_ExtractedFiles Then _
-                                                   embedThumbTo.Invoke(f) : mp3ThumbEmbedded = True
-                                                If Not M3U8_PlaylistFiles.ListExists AndAlso f.Exists Then M3U8_Append(f)
-                                                If format = mp3 AndAlso f.Exists AndAlso MyYouTubeSettings.VideoPlaylist_AddExtractedMP3.Value Then M3U8_Append(f)
+                                                If f.Exists Then
+                                                    If format = mp3 And Not mp3ThumbEmbedded And MyYouTubeSettings.DefaultAudioEmbedThumbnail_ExtractedFiles Then _
+                                                       embedThumbTo.Invoke(f) : mp3ThumbEmbedded = True
+                                                    If M3U8_PlaylistFiles.ListExists OrElse
+                                                       (format = mp3 AndAlso MyYouTubeSettings.VideoPlaylist_AddExtractedMP3.Value) Then _
+                                                       M3U8_Append(f)
+                                                End If
                                             End If
                                         Next
                                     End If
@@ -1432,6 +1451,43 @@ Namespace API.YouTube.Objects
                                     'Update video FPS
                                     If OutputVideoFPS > 0 AndAlso SelectedVideo.Bitrate <> OutputVideoFPS Then _
                                        reencodeFile("ffmpeg -i ""{0}"" -filter:v fps=" & OutputVideoFPS.ToString.Replace(", ", ".") & " -c:a copy ""{1}""")
+                                End If
+
+                                'Trimming
+                                If TrimOptions.Count > 0 AndAlso File.Exists Then
+                                    Const trimCommand$ = "ffmpeg -i ""{0}"" -ss {1} -to {2} -c:v copy -c:a copy ""{3}"""
+                                    Dim trimFirstFile As SFile = Nothing
+                                    Dim trimFirstAdded As Boolean = False
+                                    Dim processTrim As Action(Of TrimOption, SFile) =
+                                        Sub(ByVal opt As TrimOption, ByVal pFile As SFile)
+                                            Dim fNew As SFile = pFile
+                                            fNew.Name &= $"_{opt.Name}"
+                                            If TrimSeparateFolder Then fNew = $"{fNew.PathNoSeparator}\{MyYouTubeSettings.TrimSeparateFolderName.Value.IfNullOrEmpty(YouTubeSettings.TrimSeparateFolderNameDefault)}\{fNew.File}" : fNew.Exists(SFO.Path)
+                                            format = fNew.Extension.StringToLower
+                                            .Execute(String.Format(trimCommand,
+                                                                   pFile,
+                                                                   AConvert(Of String)(opt.StartTime, TimeToStringProvider),
+                                                                   AConvert(Of String)(opt.EndTime, TimeToStringProvider),
+                                                                   fNew))
+                                            If fNew.Exists Then
+                                                If trimFirstFile.IsEmptyString Then trimFirstFile = fNew
+                                                AddFile(fNew)
+                                                If format = mp3 And MyYouTubeSettings.DefaultAudioEmbedThumbnail_ExtractedFiles Then _
+                                                   embedThumbTo.Invoke(fNew) : mp3ThumbEmbedded = True
+                                                If (TrimAddTrimmedFilesToM3U8 Or (TrimDeleteOriginalFile And Not trimFirstAdded)) AndAlso
+                                                   (M3U8_PlaylistFiles.ListExists OrElse
+                                                   (format = mp3 AndAlso MyYouTubeSettings.VideoPlaylist_AddExtractedMP3.Value)) Then _
+                                                   M3U8_Append(fNew) : trimFirstAdded = True
+                                            End If
+                                        End Sub
+                                    For Each tr As TrimOption In TrimOptions
+                                        processTrim(tr, File)
+                                        If audioFiles.Count > 0 Then
+                                            For Each f In audioFiles : processTrim(tr, f) : Next
+                                        End If
+                                    Next
+                                    If TrimDeleteOriginalFile Then File.Delete() : File = trimFirstFile
+
                                 End If
                             End If
                         End If
@@ -1692,6 +1748,8 @@ Namespace API.YouTube.Objects
                         ParseThumbnails(.Self)
 
                         ParseSubtitles(.Self)
+
+                        ParseChapters(.Self)
                     End With
                     Return True
                 End If
@@ -1957,6 +2015,15 @@ Namespace API.YouTube.Objects
                 End With
             End If
         End Sub
+        Protected Sub ParseChapters(ByVal e As EContainer)
+            With e({"chapters"})
+                If .ListExists Then Chapters.AddRange(.Select(Function(ee) New TrimOption With {
+                                                                  .Start = CInt(AConvert(Of Double)(ee.Value("start_time"), 0, EDP.ReturnValue)),
+                                                                  .[End] = CInt(AConvert(Of Double)(ee.Value("end_time"), 0, EDP.ReturnValue)),
+                                                                  .Name = CleanFileName(New SFile With {.Name = ee.Value("title")}).Name
+                                                                  }))
+            End With
+        End Sub
 #End Region
 #Region "IEContainerProvider Support"
         Private Function GetElementsChecked() As IEnumerable(Of EContainer)
@@ -2031,6 +2098,8 @@ Namespace API.YouTube.Objects
                     _Subtitles.Clear()
                     _SubtitlesDelegated.Clear()
                     SubtitlesSelectedIndexes.Clear()
+                    Chapters.Clear()
+                    TrimOptions.Clear()
                     MediaObjects.Clear()
                     _Files.Clear()
                     PostProcessing_OutputAudioFormats.Clear()

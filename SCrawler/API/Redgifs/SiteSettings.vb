@@ -64,11 +64,16 @@ Namespace API.RedGifs
                 Case NameOf(Token) : Responser.Headers.Add(TokenName, Value)
                 Case NameOf(UserAgent) : Responser.UserAgent = Value
             End Select
-            Responser.SaveSettings()
+            Responser.SaveSettings(, New ErrorsDescriber(EDP.ReturnValue + If(_TokenUpdating, EDP.None, EDP.SendToLog)))
         End Sub
 #End Region
 #Region "Token updaters"
+        Private _TokenUpdating As Boolean = False
         Friend Function UpdateTokenIfRequired() As Boolean
+            While _TokenUpdating : Threading.Thread.Sleep(100) : End While
+            Return UpdateTokenIfRequired_Impl()
+        End Function
+        Private Function UpdateTokenIfRequired_Impl() As Boolean
             Dim d As Date? = AConvert(Of Date)(TokenLastDateUpdated.Value, AModes.Var, Nothing)
             If Not d.HasValue OrElse d.Value < Now.AddMinutes(-CInt(TokenUpdateInterval.Value)) Then
                 Return UpdateToken()
@@ -78,7 +83,12 @@ Namespace API.RedGifs
         End Function
         <PropertyUpdater(NameOf(Token))>
         Friend Function UpdateToken() As Boolean
+            While _TokenUpdating : Threading.Thread.Sleep(100) : End While
+            Return UpdateToken_Impl()
+        End Function
+        Private Function UpdateToken_Impl() As Boolean
             Try
+                _TokenUpdating = True
                 Dim r$
                 Dim NewToken$ = String.Empty, NewAgent$ = String.Empty
                 Using resp As New Responser : r = resp.GetResponse("https://api.redgifs.com/v2/auth/temporary",, EDP.ThrowException) : End Using
@@ -100,6 +110,8 @@ Namespace API.RedGifs
                 End If
             Catch ex As Exception
                 Return ErrorsDescriber.Execute(EDP.SendToLog, ex, "[API.RedGifs.SiteSettings.UpdateToken]", False)
+            Finally
+                _TokenUpdating = False
             End Try
         End Function
 #End Region

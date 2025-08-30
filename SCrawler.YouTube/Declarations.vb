@@ -54,6 +54,7 @@ Namespace API.YouTube
         Friend ReadOnly DateBaseProvider As New ADateTime(ADateTime.Formats.BaseDateTime)
         Friend ReadOnly DateAddedProvider As New ADateTime(ADateTime.Formats.yyyymmdd) With {.DateSeparator = String.Empty}
         Friend ReadOnly TimeToStringProvider As IFormatProvider = New TimeToStringConverter
+        Friend ReadOnly TimeToStringProviderH As IFormatProvider = New TimeToStringConverter(True)
         Friend ReadOnly TitleHtmlConverter As Func(Of String, String) = Function(Input) Input.StringRemoveWinForbiddenSymbols().StringTrim()
         Friend ReadOnly ProgressProvider As IMyProgressNumberProvider = MyProgressNumberProvider.Percentage
         Public ReadOnly TrueUrlRegEx As RParams = RParams.DM(Base.YouTubeFunctions.TrueUrlPattern, 0, EDP.ReturnValue)
@@ -80,11 +81,15 @@ Namespace API.YouTube
         Private Class TimeToStringConverter : Implements ICustomProvider
             Private ReadOnly _Provider As New ADateTime("mm\:ss") With {.TimeParseMode = ADateTime.TimeModes.TimeSpan}
             Private ReadOnly _ProviderWithHours As New ADateTime("h\:mm\:ss") With {.TimeParseMode = ADateTime.TimeModes.TimeSpan}
+            Private ReadOnly ForceHours As Boolean
             Private ReadOnly Property Provider(ByVal t As TimeSpan) As IFormatProvider
                 Get
-                    Return If(t.Hours > 0, _ProviderWithHours, _Provider)
+                    Return If(t.Hours > 0 Or ForceHours, _ProviderWithHours, _Provider)
                 End Get
             End Property
+            Friend Sub New(Optional ByVal ForceHours As Boolean = False)
+                Me.ForceHours = ForceHours
+            End Sub
             Private Function Convert(ByVal Value As Object, ByVal DestinationType As Type, ByVal Provider As IFormatProvider,
                                      Optional ByVal NothingArg As Object = Nothing, Optional ByVal e As ErrorsDescriber = Nothing) As Object Implements ICustomProvider.Convert
                 If Not IsNothing(Value) Then

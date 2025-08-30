@@ -124,6 +124,12 @@
     <Compile Include="Controls\ChannelTabsChooserForm.vb">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="Controls\ChaptersForm.Designer.vb">
+      <DependentUpon>ChaptersForm.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\ChaptersForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Controls\FilterForm.Designer.vb">
       <DependentUpon>FilterForm.vb</DependentUpon>
     </Compile>
@@ -134,6 +140,18 @@
       <DependentUpon>PlayListParserForm.vb</DependentUpon>
     </Compile>
     <Compile Include="Controls\PlayListParserForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Controls\TrimOptionForm.Designer.vb">
+      <DependentUpon>TrimOptionForm.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\TrimOptionForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Controls\VideoOptionsTrimForm.Designer.vb">
+      <DependentUpon>VideoOptionsTrimForm.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\VideoOptionsTrimForm.vb">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Controls\YTDataFilter.vb" />
@@ -227,11 +245,20 @@
     <EmbeddedResource Include="Controls\ChannelTabsChooserForm.resx">
       <DependentUpon>ChannelTabsChooserForm.vb</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Controls\ChaptersForm.resx">
+      <DependentUpon>ChaptersForm.vb</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Controls\FilterForm.resx">
       <DependentUpon>FilterForm.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Controls\PlayListParserForm.resx">
       <DependentUpon>PlayListParserForm.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Controls\TrimOptionForm.resx">
+      <DependentUpon>TrimOptionForm.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Controls\VideoOptionsTrimForm.resx">
+      <DependentUpon>VideoOptionsTrimForm.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Downloader\MediaItem.resx">
       <DependentUpon>MediaItem.vb</DependentUpon>

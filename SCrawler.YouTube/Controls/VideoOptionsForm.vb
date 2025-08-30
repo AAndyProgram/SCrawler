@@ -465,6 +465,9 @@ Namespace API.YouTube.Controls
                 TXT_FILE.Text = f
             End If
         End Sub
+        Private Sub BTT_TRIM_Click(sender As Object, e As EventArgs) Handles BTT_TRIM.Click
+            Using f As New VideoOptionsTrimForm(MyContainer) : f.ShowDialog() : End Using
+        End Sub
         Private Sub TXT_SUBS_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As ActionButtonEventArgs) Handles TXT_SUBS.ActionOnButtonClick
             Select Case Sender.DefaultButton
                 Case ADB.Open

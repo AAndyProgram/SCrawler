@@ -1,3 +1,21 @@
+# 2025.8.30.0
+
+*2025-08-30*
+
+- Added
+  - YouTube:
+    - **video trim** *(button `Trim`)*
+    - embed chapters into video file
+    - add artist name when downloading audio
+  - Correct handling of `webp` files
+  - Minor improvements
+- Updated
+  - yt-dlp up to version **2025.08.27**
+  - gallery-dl up to version **1.30.5**
+- Fixed
+  - **YouTube: downloading error**
+  - Minor bugs
+
 # 2025.8.1.0
 
 *2025-08-01*
@@ -8,7 +26,7 @@
     - Twitter: **[large profile option](https://github.com/AAndyProgram/SCrawler/wiki/Settings#twitter-user-settings) in user settings**
   - Minor improvements
 - Updated
-  - yt-dlp up to version **2025.27.21**
+  - yt-dlp up to version **2025.07.21**
   - gallery-dl up to version **1.30.2**
 - Fixed
   - Reddit: in some cases crossposts don't download

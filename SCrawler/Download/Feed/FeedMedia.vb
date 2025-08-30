@@ -7,9 +7,10 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports System.ComponentModel
-Imports SCrawler.API.Base
+Imports System.IO
 Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Tools
+Imports SCrawler.API.Base
 Imports UserMediaD = SCrawler.DownloadObjects.TDownloader.UserMediaD
 Namespace DownloadObjects
     <ToolboxItem(False), DesignTimeVisible(False)>
@@ -137,28 +138,18 @@ Namespace DownloadObjects
         End Sub
 #End Region
 #Region "Converter"
-        Private Const ExtWebp As String = "webp"
-        Private Const ExtJpg As String = "jpg"
-        Private Function ConvertWebp(ByVal file As SFile, Optional ByVal NewCacheDir As Boolean = False) As SFile
-            If file.Extension = ExtWebp Then
-                If Settings.FfmpegFile.Exists Then
-                    Dim dir As SFile
-                    If NewCacheDir Then dir = Settings.Cache.NewPath Else dir = Settings.Cache
-                    Dim f As SFile = file
-                    f.Path = dir.Path
-                    f.Extension = ExtJpg
-                    Using imgBatch As New BatchExecutor
-                        With imgBatch
-                            .ChangeDirectory(dir)
-                            .Execute($"""{Settings.FfmpegFile}"" -i ""{file}"" ""{f}""")
-                        End With
-                    End Using
-                    If f.Exists Then Return f
-                End If
-            Else
-                Return file
-            End If
-            Return Nothing
+        Private Const ExtWebp As String = UserImage.ExtWebp
+        Private Const ExtJpg As String = UserImage.ExtJpg
+        Private Function ConvertOptional(ByVal file As SFile, ByVal GetError As Boolean, ByRef IsWebP As Boolean) As ImageRenderer
+            Dim ir As ImageRenderer2 = Nothing
+            Try
+                ir = New ImageRenderer2(file, EDP.ThrowException)
+                If ir.HasError Then Throw If(ir.ImgErr, New Exception) Else Return ir
+            Catch ex As Exception
+                IsWebP = ir?.NativeFormat.IfNullOrEmpty(ExtJpg) = ExtWebp
+                ir.DisposeIfReady
+                If GetError Then Throw ex Else Return Nothing
+            End Try
         End Function
 #End Region
 #Region "Initializers"
@@ -174,6 +165,42 @@ Namespace DownloadObjects
         Public Sub New()
             InitializeComponent()
         End Sub
+        Private Class ImageRenderer2 : Inherits ImageRenderer
+            Friend NativeFormat As String = Nothing
+            Friend ImgErr As Exception = Nothing
+            Friend Sub New(ByVal ImgPath As SFile, Optional ByVal e As ErrorsDescriber = Nothing)
+                MyBase.New()
+                Try
+                    If ImgPath.Exists(SFO.File, False) Then
+                        OriginalImageBytes = SFile.GetBytes(ImgPath, EDP.ThrowException)
+                        Try
+                            OriginalImage = GetImage(OriginalImageBytes)
+                        Catch exInternal As Exception
+                            HasError = True
+                            ImgErr = exInternal
+                            NativeFormat = GetTrueFormat(OriginalImageBytes, EDP.ReturnValue)
+                        End Try
+                    End If
+                    Address = ImgPath
+                Catch ex As Exception
+                    HasError = True
+                    NativeFormat = GetTrueFormat(OriginalImageBytes, EDP.ReturnValue)
+                    If Not e.Exists Then e = EDP.ThrowException
+                    ErrorsDescriber.Execute(e, ex, $"ImageRenderer2.New({ImgPath})")
+                End Try
+            End Sub
+            Friend Shared Function GetTrueFormat(ByVal Img() As Byte, Optional ByVal e As ErrorsDescriber = Nothing) As String
+                Try
+                    Using ms As New MemoryStream(Img, 0, Img.Length)
+                        Return System.Windows.Media.Imaging.BitmapDecoder.Create(ms, Windows.Media.Imaging.BitmapCreateOptions.PreservePixelFormat,
+                                                                                 Windows.Media.Imaging.BitmapCacheOption.OnLoad).Metadata.Format
+                    End Using
+                Catch ex As Exception
+                    If Not e.Exists Then e = EDP.ThrowException
+                    Return ErrorsDescriber.Execute(e, ex, "[ImageRenderer2.GetTrueFormat()]")
+                End Try
+            End Function
+        End Class
         Friend Sub New(ByVal Media As UserMediaD, ByVal Width As Integer, ByVal Height As Integer, ByVal IsSession As Boolean, ByVal ExtractText As Boolean)
             Try
                 InitializeComponent()
@@ -211,7 +238,7 @@ Namespace DownloadObjects
                         End With
                         If Not imgFile.Exists Then
                             Settings.Cache.Validate()
-                            If GetWebFile(Media.Data.URL, imgFile, EDP.None) AndAlso imgFile.Exists Then File = ConvertWebp(imgFile)
+                            If GetWebFile(Media.Data.URL, imgFile, EDP.None) AndAlso imgFile.Exists Then File = UserImage.ConvertWebp(imgFile, Nothing)
                         Else
                             File = imgFile
                         End If
@@ -260,10 +287,17 @@ Namespace DownloadObjects
                                     End If
                                 End If
                             End If
-                            tmpMediaFile = ConvertWebp(tmpMediaFile, True)
+                            Dim webpConverted As Boolean = False
+                            Dim isWebp As Boolean = False
+                            tmpMediaFile = UserImage.ConvertWebp(tmpMediaFile, Nothing,,, webpConverted)
                             If tmpMediaFile.IsEmptyString Then Throw New ArgumentNullException With {.HelpLink = 1}
                             Try
-                                MyImage = New ImageRenderer(tmpMediaFile, EDP.ThrowException)
+                                For kConv As Byte = 0 To 1
+                                    If kConv = 1 Then tmpMediaFile = UserImage.ConvertWebp(tmpMediaFile, Nothing, True, isWebp, webpConverted)
+                                    If Not tmpMediaFile.IsEmptyString Then MyImage = ConvertOptional(tmpMediaFile, kConv = 1 Or webpConverted, isWebp)
+                                    If Not MyImage Is Nothing Then Exit For
+                                Next
+                                If MyImage Is Nothing Then Throw New Exception
                             Catch
                                 MyImage.DisposeIfReady
                                 MyImage = New ImageRenderer(New Bitmap(10, 10))

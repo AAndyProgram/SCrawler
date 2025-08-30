@@ -6,6 +6,7 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
+Imports System.IO
 Imports PersonalUtilities.Tools
 Friend Class UserImage : Inherits ImageRenderer
     Friend Const ImagePrefix As String = "UserPicture"
@@ -96,5 +97,57 @@ Friend Class UserImage : Inherits ImageRenderer
     End Sub
     Friend Overloads Shared Function CreateImageFromText(ByVal Text As String, ByVal File As SFile) As Boolean
         Return CreateImageFromText(Text, FormFont, Color.Black, TextImageWidth, File, Color.White,, EDP.ThrowException)
+    End Function
+    Friend Const ExtWebp As String = "webp"
+    Friend Const ExtJpg As String = "jpg"
+    Friend Shared Function ConvertWebp(ByVal InitFile As SFile, ByVal DestFile As SFile,
+                                       Optional ByVal Force As Boolean = False, Optional ByVal ToWebP As Boolean = False,
+                                       Optional ByRef Result As Boolean = False) As SFile
+        Result = False
+        If InitFile.Extension = ExtWebp Or Force Then
+            If Settings.FfmpegFile.Exists Or ToWebP Then
+                Dim dir As SFile
+                Dim postfix$ = String.Empty
+                If DestFile.IsEmptyString Then
+                    dir = $"{Settings.Cache.RootDirectory.PathWithSeparator}ConvWebp\"
+                    Settings.Cache.AddPath(dir)
+                    postfix = $"_{InitFile.GetHashCode}"
+                Else
+                    dir = New SFile With {.Path = DestFile.Path}
+                End If
+                dir.Exists(SFO.Path)
+                Dim f As SFile = DestFile.IfNullOrEmpty(InitFile)
+                f.Path = dir.PathNoSeparator
+                If Not postfix.IsEmptyString Then f.Name &= postfix
+                f.Extension = IIf(ToWebP, ExtWebp, ExtJpg)
+
+                If DestFile.IsEmptyString AndAlso f.Exists AndAlso Not f.Extension = ExtWebp Then Return f
+
+                If ToWebP Then
+                    If Not f.Exists Then InitFile.Copy(f)
+                    If f.Exists Then
+                        InitFile = f
+                        f.Extension = ExtJpg
+                    Else
+                        Throw New ArgumentNullException With {.HelpLink = 1}
+                    End If
+                End If
+                If Not ConvertWebpTryImageMagick(InitFile, f) Then
+                    Using imgBatch As New BatchExecutor
+                        With imgBatch
+                            .ChangeDirectory(dir)
+                            .Execute($"""{Settings.FfmpegFile}"" -i ""{InitFile}"" ""{f}""")
+                        End With
+                    End Using
+                End If
+                If f.Exists Then Result = True : Return f
+            End If
+        Else
+            Return InitFile
+        End If
+        Return Nothing
+    End Function
+    Private Shared Function ConvertWebpTryImageMagick(ByVal InitFile As SFile, ByVal DestFile As SFile) As Boolean
+        Return ImageRendererExt.ConvertWebp(InitFile, DestFile, EDP.SendToLog + EDP.ReturnValue)
     End Function
 End Class

@@ -73,6 +73,7 @@ Namespace API.YouTube.Controls
             Me.OPT_VIDEO = New System.Windows.Forms.RadioButton()
             Me.OPT_AUDIO = New System.Windows.Forms.RadioButton()
             Me.LBL_AUDIO_CODEC = New System.Windows.Forms.Label()
+            Me.BTT_TRIM = New System.Windows.Forms.Button()
             Me.TXT_FPS = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TXT_AUDIO_BITRATE = New PersonalUtilities.Forms.Controls.TextBoxExtended()
             Me.TP_HEADER_BASE = New System.Windows.Forms.TableLayoutPanel()
@@ -545,20 +546,32 @@ Namespace API.YouTube.Controls
             Me.LBL_AUDIO_CODEC.TextAlign = System.Drawing.ContentAlignment.MiddleRight
             TT_MAIN.SetToolTip(Me.LBL_AUDIO_CODEC, "Output Audio Codec")
             '
+            'BTT_TRIM
+            '
+            Me.BTT_TRIM.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.BTT_TRIM.Location = New System.Drawing.Point(541, 3)
+            Me.BTT_TRIM.Name = "BTT_TRIM"
+            Me.BTT_TRIM.Size = New System.Drawing.Size(45, 22)
+            Me.BTT_TRIM.TabIndex = 2
+            Me.BTT_TRIM.Text = "Trim"
+            TT_MAIN.SetToolTip(Me.BTT_TRIM, "Trim the file by setting trimming options and/or selecting chapters")
+            Me.BTT_TRIM.UseVisualStyleBackColor = True
+            '
             'TP_FPS_BITRATE
             '
-            TP_FPS_BITRATE.ColumnCount = 2
+            TP_FPS_BITRATE.ColumnCount = 3
             TP_FPS_BITRATE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
             TP_FPS_BITRATE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
+            TP_FPS_BITRATE.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 51.0!))
             TP_FPS_BITRATE.Controls.Add(Me.TXT_FPS, 0, 0)
             TP_FPS_BITRATE.Controls.Add(Me.TXT_AUDIO_BITRATE, 1, 0)
+            TP_FPS_BITRATE.Controls.Add(Me.BTT_TRIM, 2, 0)
             TP_FPS_BITRATE.Dock = System.Windows.Forms.DockStyle.Fill
             TP_FPS_BITRATE.Location = New System.Drawing.Point(6, 93)
             TP_FPS_BITRATE.Margin = New System.Windows.Forms.Padding(6, 0, 6, 0)
             TP_FPS_BITRATE.Name = "TP_FPS_BITRATE"
             TP_FPS_BITRATE.RowCount = 1
             TP_FPS_BITRATE.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_FPS_BITRATE.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             TP_FPS_BITRATE.Size = New System.Drawing.Size(589, 28)
             TP_FPS_BITRATE.TabIndex = 6
             '
@@ -577,7 +590,7 @@ Namespace API.YouTube.Controls
             Me.TXT_FPS.Location = New System.Drawing.Point(3, 2)
             Me.TXT_FPS.Margin = New System.Windows.Forms.Padding(3, 2, 3, 3)
             Me.TXT_FPS.Name = "TXT_FPS"
-            Me.TXT_FPS.Size = New System.Drawing.Size(288, 22)
+            Me.TXT_FPS.Size = New System.Drawing.Size(263, 22)
             Me.TXT_FPS.TabIndex = 0
             Me.TXT_FPS.TextBoxWidthMinimal = 30
             '
@@ -593,9 +606,9 @@ Namespace API.YouTube.Controls
     " to change."
             Me.TXT_AUDIO_BITRATE.CaptionWidth = 75.0R
             Me.TXT_AUDIO_BITRATE.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.TXT_AUDIO_BITRATE.Location = New System.Drawing.Point(297, 3)
+            Me.TXT_AUDIO_BITRATE.Location = New System.Drawing.Point(272, 3)
             Me.TXT_AUDIO_BITRATE.Name = "TXT_AUDIO_BITRATE"
-            Me.TXT_AUDIO_BITRATE.Size = New System.Drawing.Size(289, 22)
+            Me.TXT_AUDIO_BITRATE.Size = New System.Drawing.Size(263, 22)
             Me.TXT_AUDIO_BITRATE.TabIndex = 1
             '
             'TP_HEADER_BASE
@@ -920,5 +933,6 @@ Namespace API.YouTube.Controls
         Private WithEvents CMB_PLS As PersonalUtilities.Forms.Controls.ComboBoxExtended
         Private WithEvents BTT_PLS_BROWSE As SCrawler.API.YouTube.Controls.ButtonRC
         Private WithEvents TXT_AUDIO_BITRATE As PersonalUtilities.Forms.Controls.TextBoxExtended
+        Private WithEvents BTT_TRIM As Button
     End Class
 End Namespace

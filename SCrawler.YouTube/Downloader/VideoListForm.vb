@@ -336,6 +336,7 @@ Namespace DownloadObjects.STDownloader
                         pForm.Dispose()
                     End If
                     If Not c Is Nothing Then
+                        If Not c.HasElements Then DirectCast(c, YouTubeMediaContainerBase).FileForceArtist()
                         Dim f As Form
                         Select Case c.ObjectType
                             Case YouTubeMediaType.Single : f = New VideoOptionsForm(c) With {.UseCookies = useCookies}

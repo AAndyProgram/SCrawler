@@ -1723,6 +1723,7 @@ BlockNullPicture:
                         Dim vsf As Boolean = SeparateVideoFolderF
                         Dim __isVideo As Boolean
                         Dim __interrupt As Boolean
+                        Dim postProcessWebp As Boolean
                         Dim f As SFile, fTxt As SFile
                         Dim v As UserMedia
                         Dim __fileDeleted As Boolean
@@ -1782,6 +1783,7 @@ BlockNullPicture:
                                 If v.URL_BASE.IsEmptyString Then v.URL_BASE = v.URL
 
                                 __fileDeleted = False
+                                postProcessWebp = False
 
                                 If (v.Type = UTypes.Text And DownloadText) Or (Not f.IsEmptyString And Not v.URL.IsEmptyString) Then
                                     Try
@@ -1794,8 +1796,9 @@ BlockNullPicture:
                                                 Case UTypes.Video, UTypes.m3u8 : f.Extension = "mp4"
                                                 Case UTypes.GIF : f.Extension = "gif"
                                             End Select
-                                        ElseIf f.Extension = "webp" And Settings.DownloadNativeImageFormat Then
-                                            f.Extension = "jpg"
+                                        ElseIf f.Extension = UserImage.ExtWebp And Settings.DownloadNativeImageFormat And Settings.FfmpegFile.Exists Then
+                                            'f.Extension = "jpg"
+                                            postProcessWebp = True
                                         End If
 
                                         If Not v.SpecialFolder.IsEmptyString Then
@@ -1830,7 +1833,7 @@ BlockNullPicture:
 
                                         updateDownCount(False)
 
-                                        v.File = ChangeFileNameByProvider(f, v)
+                                        v.File = DownloadContentDefault_ConvertWebp(ChangeFileNameByProvider(f, v), postProcessWebp)
                                         v.State = UStates.Downloaded
                                         DownloadContentDefault_PostProcessing(v, f, Token)
                                         If UseMD5Comparison And (v.Type = UTypes.GIF Or v.Type = UTypes.Picture) Then
@@ -1930,6 +1933,22 @@ stxt:
         End Function
         Protected Overridable Sub DownloadContentDefault_PostProcessing(ByRef m As UserMedia, ByVal File As SFile, ByVal Token As CancellationToken)
         End Sub
+        Protected Overridable Function DownloadContentDefault_ConvertWebp(ByVal WebpFile As SFile, ByVal Process As Boolean) As SFile
+            Dim f As SFile = WebpFile
+            If Process AndAlso f.Exists Then
+                f.Path = $"{f.PathWithSeparator}Sources"
+                f.Exists(SFO.Path)
+                If WebpFile.Copy(f) Then
+                    Dim newFile As SFile = WebpFile
+                    newFile.Extension = UserImage.ExtJpg
+                    f = UserImage.ConvertWebp(f, newFile)
+                    If f.Exists Then WebpFile.Delete(SFO.File, SFODelete.DeletePermanently, EDP.ReturnValue)
+                Else
+                    f = WebpFile
+                End If
+            End If
+            Return f
+        End Function
         Protected Overridable Function DownloadContentDefault_ProcessDownloadException() As Boolean
             Return True
         End Function
