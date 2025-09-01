@@ -20,7 +20,7 @@ Namespace API.PornHub
         Friend ReadOnly RegexVideo_FlashVars_Vars As RParams = RParams.DM("var ([\w\d]{10,})=("".+?)(?=(;|\Z))", 0, RegexReturn.List)
         Friend ReadOnly RegexVideo_FlashVars_Compiler As RParams = RParams.DM("(?<=\*/)([\w\d\S]{10,})", 0, RegexReturn.List)
         Friend ReadOnly RegexVideo_FlashVars_UrlResolution As RParams = RParams.DMS("/(\d+)[^/]+\.mp4", 1, EDP.ReturnValue)
-        Friend ReadOnly RegexUserVideos As RParams = RParams.DM("(\<li class=""pcVideoListItem)((?:(?!/li\>).)*?)(\<div.class=.private-vid-title((?:(?!/li\>).)*?)|)(\<a.href=.([^""]+?)"".title=.([^""]*?)"")(((?:(?!/li\>).)+?)(\<div class=.videoUploaderBlock)|)((?:(?!/li\>).)*?)(\</li\>)",
+        Friend ReadOnly RegexUserVideos As RParams = RParams.DM("(\<li class=""pcVideoListItem)((?:(?!/li\>).)*?)(\<div.class=.private-vid-title((?:(?!/li\>).)*?)|)(\<a.href=.([^""]+?)"".title=.([^""]*?)"")(((?:(?!/li\>).)+?)(\<div class=.videoUploaderBlock.*?href=""([^""]+)"")|)((?:(?!/li\>).)*?)(\</li\>)",
                                                                 0, RegexOptions.Singleline, RegexReturn.List, EDP.ReturnValue, UnicodeHexConverter)
         Friend ReadOnly RegexVideo_Video_VideoKey As RParams = RParams.DMS("viewkey=([\w\d]+)", 1, EDP.ReturnValue)
         Friend ReadOnly RegexVideoPageTitle As RParams = RParams.DMS("meta (property|name)=""[^:]+?:title"" content=""([^""]+)""", 2, EDP.ReturnValue)

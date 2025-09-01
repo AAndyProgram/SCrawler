@@ -50,6 +50,7 @@ Namespace API.PornHub
             Friend URL As String
             Friend ID As String
             Friend Title As String
+            Friend UserRef As String
             Friend Type As VideoTypes
             Friend Function ToUserMedia(Optional ByVal SpecialFolder As String = Nothing) As UserMedia
                 Return New UserMedia(URL, UTypes.VideoPre) With {
@@ -66,14 +67,16 @@ Namespace API.PornHub
                         URL = String.Empty
                     Else
                         URL = String.Format(UrlPattern, URL.TrimStart("/"))
+
                         Title = TitleHtmlConverter(ParamsArray(1))
                         If Not ParamsArray(2).IsEmptyString Then
                             Type = VideoTypes.Private
-                        ElseIf Not ParamsArray(3).IsEmptyString Then
-                            Type = VideoTypes.Tagged
+                            'ElseIf Not ParamsArray(3).IsEmptyString Then
+                            '    Type = VideoTypes.Tagged
                         Else
                             Type = VideoTypes.Uploaded
                         End If
+                        If Not ParamsArray(3).IsEmptyString Then UserRef = ParamsArray(3).StringTrim
                     End If
                 End If
                 Return Me
@@ -338,10 +341,13 @@ Namespace API.PornHub
                 Dim tryNextPage As Boolean = False
                 Dim limit% = If(DownloadTopCount, -1)
                 Dim cBefore% = _TempMediaList.Count
+                Dim usrRef$ = String.Empty
+                Dim npd$ = "?"
                 If IsUser Then
                     URL = $"https://www.pornhub.com/{PersonType}/{NameTrue}"
+                    usrRef = $"/{PersonType}/{NameTrue}"
                     If Type = VideoTypes.Uploaded Then
-                        URL &= "/videos/upload"
+                        If Not PersonType = PersonTypeCannel Then URL &= "/videos/upload?o=mr" : npd = "&"
                     ElseIf Type = VideoTypes.Tagged Then
                         If Not SecondMode Then URL &= "/videos"
                         specFolder = "Tagged"
@@ -354,7 +360,7 @@ Namespace API.PornHub
                     Else
                         Throw New ArgumentException($"Type '{Type}' is not implemented in the video download function", "Type")
                     End If
-                    If Page > 1 Then URL &= $"?page={Page}"
+                    If Page > 1 Then URL &= $"{npd}page={Page}"
                 ElseIf SiteMode = SiteModes.Playlists Then
                     If PlaylistToken.IsEmptyString Then Throw New ArgumentNullException("PlaylistToken", "Unable to get 'PlaylistToken'")
                     URL = String.Format(PlayListUrlPattern, NameTrue, PlaylistToken, Page)
@@ -367,12 +373,21 @@ Namespace API.PornHub
                 'Debug.WriteLine(URL)
                 Dim r$ = Responser.GetResponse(URL)
                 If Not r.IsEmptyString Then
-                    Dim l As List(Of UserVideo) = RegexFields(Of UserVideo)(r, {RegexUserVideos}, {6, 7, 3, 10})
+                    Dim l As List(Of UserVideo) = RegexFields(Of UserVideo)(r, {RegexUserVideos}, {6, 7, 3, 11})
                     'If l.ListExists And Not SiteMode = SiteModes.Playlists Then l = l.ListTake(3, l.Count).ToList
-                    If l.ListExists And Not SiteMode = SiteModes.Playlists Then l = l.ListTake(1, l.Count).ToList
+                    If l.ListExists And Not SiteMode = SiteModes.Playlists And Not IsUser Then l = l.ListTake(1, l.Count).ToList
                     If l.ListExists Then
                         If IsUser Then
-                            If Type = VideoTypes.Favorite Then
+                            If Type = VideoTypes.Tagged Then
+                                l = l.ListTake(4, l.Count)
+                                If l.ListExists Then l.RemoveAll(Function(uv) Not uv.UserRef.IsEmptyString AndAlso uv.UserRef = usrRef)
+                            ElseIf Type = VideoTypes.Uploaded Then
+                                If PersonType = PersonTypeCannel Then
+                                    l = l.ListTake(4, l.Count)
+                                Else
+                                    l.RemoveAll(Function(uv) uv.UserRef.IsEmptyString OrElse Not uv.UserRef = usrRef)
+                                End If
+                            ElseIf Type = VideoTypes.Favorite Then
                                 l.RemoveAll(Function(uv) uv.Type = VideoTypes.Private)
                             ElseIf Not PersonType = PersonTypeCannel Then
                                 l.RemoveAll(Function(uv) Not uv.Type = Type)
