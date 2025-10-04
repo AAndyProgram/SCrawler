@@ -79,22 +79,33 @@ Namespace API.Bluesky
         Private Overloads Sub DownloadData(ByVal Cursor As String, ByVal Token As CancellationToken)
             Dim URL$ = String.Empty
             Try
-                If ID.IsEmptyString Then GetProfileInfo(Token)
-                If ID.IsEmptyString Then Throw New ArgumentNullException("ID", "ID is null")
+                If Not IsSavedPosts And ID.IsEmptyString Then GetProfileInfo(Token)
+                If Not IsSavedPosts And ID.IsEmptyString Then Throw New ArgumentNullException("ID", "ID is null")
                 If UpdateToken() Then
                     Dim nextCursor$ = String.Empty
                     Dim c%
-                    URL = $"https://bsky.social/xrpc/app.bsky.feed.getAuthorFeed?actor={ID_Encoded}&filter=posts_and_author_threads&includePins=false&limit=99"
-                    If Not Cursor.IsEmptyString Then URL &= $"&cursor={SymbolsConverter.ASCII.EncodeSymbolsOnly(Cursor)}"
+                    Dim n$(), p$()
+                    If IsSavedPosts Then
+                        URL = "https://bsky.social/xrpc/app.bsky.bookmark.getBookmarks"
+                        If Not Cursor.IsEmptyString Then URL &= $"?cursor={Cursor}"
+                        n = {"bookmarks"}
+                        p = {"item"}
+                    Else
+                        URL = $"https://bsky.social/xrpc/app.bsky.feed.getAuthorFeed?actor={ID_Encoded}&filter=posts_and_author_threads&includePins=false&limit=99"
+                        If Not Cursor.IsEmptyString Then URL &= $"&cursor={SymbolsConverter.ASCII.EncodeSymbolsOnly(Cursor)}"
+                        n = {"feed"}
+                        p = {"post"}
+                    End If
                     Dim r$ = Responser.GetResponse(URL)
                     TokenUpdateCountReset()
                     If Not r.IsEmptyString Then
                         Using j As EContainer = JsonDocument.Parse(r)
                             If j.ListExists Then
-                                With j("feed")
+                                nextCursor = j.Value("cursor")
+                                With j(n)
                                     If .ListExists Then
                                         For Each post As EContainer In .Self
-                                            With post({"post"})
+                                            With post(p)
                                                 c = DefaultParser(.Self,, nextCursor)
                                                 Select Case c
                                                     Case CInt(DateResult.Skip) * -1 : Continue For
@@ -104,6 +115,8 @@ Namespace API.Bluesky
                                                 If DownloadTopCount.HasValue AndAlso DownloadTopCount.Value <= _PostCount Then Exit Sub
                                             End With
                                         Next
+                                    ElseIf IsSavedPosts Then
+                                        nextCursor = String.Empty
                                     End If
                                 End With
                             End If
@@ -126,7 +139,7 @@ Namespace API.Bluesky
                                        Optional ByVal CheckTempPosts As Boolean = True, Optional ByVal State As UStates = UStates.Unknown) As Integer
             Const exitReturn% = CInt(DateResult.Exit) * -1
             Const skipReturn% = CInt(DateResult.Skip) * -1
-            Dim postID$, postDate$, __url$, __urlBase$, __txt$, __userId$
+            Dim postID$, postDate$, __url$, __urlBase$, __txt$, __userId$, __postAuthor$
             Dim updateUrl As Boolean
             Dim c% = 0
             Dim m As UserMedia
@@ -138,11 +151,12 @@ Namespace API.Bluesky
                     __urlBase = String.Empty
                     __txt = String.Empty
                     __userId = .Value({"author"}, "did")
+                    __postAuthor = String.Empty
                     With .Item({"record"})
                         If .ListExists Then
                             '2025-01-28T02:42:12.415Z
                             postDate = .Value("createdAt")
-                            NextCursor = postDate
+                            If Not IsSavedPosts Then NextCursor = postDate
                             If CheckDateLimits Then
                                 Select Case CheckDatesLimit(postDate, DateProvider)
                                     Case DateResult.Skip : Return skipReturn 'Continue For
@@ -155,9 +169,10 @@ Namespace API.Bluesky
                                 If _TempPostsList.Contains(postID) Then Return exitReturn Else _TmpPosts2.Add(postID)
                             End If
 
-                            If ParseUserMediaOnly And Not ID.IsEmptyString And Not __userId.IsEmptyString And Not ID = __userId Then Return skipReturn
+                            If ParseUserMediaOnly And Not IsSavedPosts And Not ID.IsEmptyString And Not __userId.IsEmptyString And Not ID = __userId Then Return skipReturn
 
-                            __urlBase = $"https://bsky.app/profile/{NameTrue}/post/{postID}"
+                            __postAuthor = e.Value({"author"}, "did")
+                            __urlBase = $"https://bsky.app/profile/{If(IsSavedPosts, __postAuthor, NameTrue)}/post/{postID}"
                         End If
                     End With
 
@@ -190,7 +205,11 @@ Namespace API.Bluesky
                                             __url = d.Value("fullsize")
                                             If __url.IsEmptyString Then __url = d.Value({"image", "ref"}, "$link") : updateUrl = True
                                             If __url.IsEmptyString And SecondExtraction Then updateUrl = False : __url = e.Value({"embed"}, "thumb")
-                                            If Not __url.IsEmptyString Then createMedia(__url, UTypes.Picture)
+                                            If Not __url.IsEmptyString Then
+                                                If updateUrl AndAlso Not __url.StartsWith("http") Then _
+                                                   __url = $"https://cdn.bsky.app/img/feed_fullsize/plain/{__postAuthor}/{__url}@jpeg"
+                                                createMedia(__url, UTypes.Picture)
+                                            End If
                                         Next
                                     End With
                                 End If

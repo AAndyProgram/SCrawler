@@ -1716,11 +1716,19 @@ Namespace API.YouTube.Objects
                             If Not tmpPls.IsEmptyString Then PlaylistTitle = tmpPls
                         End If
 
+                        Dim tmpTitle$
                         UserID = .Value("uploader_id")
                         UserTitle = TitleHtmlConverter.Invoke(.Value("uploader"))
                         If Not UserTitle.IsEmptyString Then
-                            Dim tmpTitle$ = UserTitle.Replace("Topic", String.Empty).StringTrimEnd(" ", "-")
+                            tmpTitle = UserTitle.Replace("Topic", String.Empty).StringTrimEnd(" ", "-")
                             If Not tmpTitle.IsEmptyString Then UserTitle = tmpTitle
+                        End If
+                        If MyYouTubeSettings.ParseLongUserTitle Or UserTitle.IsEmptyString Then
+                            tmpTitle = TitleHtmlConverter.Invoke(.Value("artist"))
+                            If Not tmpTitle.IsEmptyString Then
+                                If Not UserTitle.IsEmptyString AndAlso Not tmpTitle.Contains(UserTitle) Then tmpTitle = $"{UserTitle}, {tmpTitle}"
+                                UserTitle = ListAddList(Nothing, tmpTitle.Split(","), CType(Function(v$) v.StringTrim, Func(Of Object, Object)), EDP.ReturnValue).ListToString(" & ").IfNullOrEmpty(UserTitle)
+                            End If
                         End If
 
                         Dim ext$ = IIf(IsMusic,

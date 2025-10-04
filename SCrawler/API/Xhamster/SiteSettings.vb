@@ -75,6 +75,8 @@ Namespace API.Xhamster
             Return New UserData
         End Function
         Friend Overrides Function Available(ByVal What As ISiteSettings.Download, ByVal Silent As Boolean) As Boolean
+            'TODELETE: xHamster disabled
+            Return False
             If Settings.UseM3U8 AndAlso MyBase.Available(What, Silent) Then
                 If What = ISiteSettings.Download.SavedPosts Then
                     Return Responser.CookiesExists

@@ -6,14 +6,15 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
+Imports System.Text
 Imports System.Threading
-Imports SCrawler.API.Base
-Imports SCrawler.API.YouTube.Objects
+Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.XML.Base
-Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Tools.Web.Clients
 Imports PersonalUtilities.Tools.Web.Documents.JSON
+Imports SCrawler.API.Base
+Imports SCrawler.API.YouTube.Objects
 Imports UTypes = SCrawler.API.Base.UserMedia.Types
 Namespace API.Xhamster
     Friend Class UserData : Inherits UserDataBase : Implements IPSite
@@ -564,13 +565,83 @@ Namespace API.Xhamster
                 Return ErrorsDescriber.Execute(EDP.ReturnValue, ex, $"[{ToStringForLog()}]: API.Xhamster.GetM3U8({URL})", False)
             End Try
         End Function
-        Private Overloads Function GetM3U8(ByRef m As UserMedia, ByVal j As EContainer, ByVal SpecFolder As String) As Boolean
-            Dim node As EContainer = j({"xplayerSettings", "sources", "hls"})
+        Private Overloads Function GetM3U8(ByRef m As UserMedia, ByVal j As EContainer, ByVal SpecFolder As String, Optional ByVal r As Integer = 0) As Boolean
+            Const urlNode$ = "url"
+            Dim node As EContainer = j({"xplayerSettings", "sources", If(r = 0, "hls", "standard")})
             If node.ListExists Then
-                Dim url$ = node.GetNode({New NodeParams("url", True, True, True, True, 2)}).XmlIfNothingValue
-                If Not url.IsEmptyString Then m.URL = url : m.Type = UTypes.m3u8 : Return True
+                Dim url$ 'node.GetNode({New NodeParams("url", True, True, True, True, 2)}).XmlIfNothingValue
+                Dim jn As EContainer, jn2 As EContainer
+                Dim __getUrl As Func(Of EContainer, String) = Function(jj) If(jj.Contains(urlNode), Decipher_URL(jj.Value(urlNode)), String.Empty)
+                url = __getUrl(node)
+                If url.IsEmptyString Then
+                    For Each jn In node
+                        If jn.Contains(urlNode) Then
+                            url = __getUrl(jn)
+                        ElseIf jn.Count > 0 Then
+                            For Each jn2 In jn
+                                url = __getUrl(jn2)
+                                If Not url.IsEmptyString Then Exit For
+                            Next
+                        End If
+                        If Not url.IsEmptyString Then Exit For
+                    Next
+                End If
+                If Not url.IsEmptyString Then
+                    m.URL = url
+                    m.Type = UTypes.m3u8
+                    Return True
+                End If
             End If
+            If r = 0 Then Return GetM3U8(m, j, SpecFolder, r + 1)
             Return False
+        End Function
+#End Region
+#Region "Decipher"
+        'https://github.com/yt-dlp/yt-dlp/blob/5513036104ed9710f624c537fb3644b07a0680db/yt_dlp/extractor/xhamster.py#L146-L165
+        Private Function Decipher_URL(ByVal Input As String) As String
+            If Input.IsEmptyString Then Return String.Empty
+
+            Dim _XOR_KEY As Byte() = Encoding.ASCII.GetBytes("xh7999")
+            Dim cipher_type$ = String.Empty
+            Dim ciphertext$ = String.Empty
+
+            Try
+                Dim decoded$ = Encoding.ASCII.GetString(Convert.FromBase64String(Input))
+                Dim parts$() = decoded.Split(New Char() {"_"c}, 2)
+                If parts.Length = 2 Then cipher_type = parts(0) : ciphertext = parts(1)
+            Catch
+            End Try
+
+            If cipher_type.IsEmptyString Or ciphertext.IsEmptyString Then Return String.Empty
+
+            If cipher_type = "xor" Then
+                Dim ciphertextBytes() As Byte = Encoding.ASCII.GetBytes(ciphertext)
+                Dim resultBytes(ciphertextBytes.Length - 1) As Byte
+                For i% = 0 To ciphertextBytes.Length - 1
+                    resultBytes(i) = ciphertextBytes(i) Xor _XOR_KEY(i Mod _XOR_KEY.Length)
+                Next
+                Return Encoding.ASCII.GetString(resultBytes)
+            End If
+
+            If cipher_type = "rot13" Then Return Decipher_URL_Rot13(ciphertext)
+
+            Return String.Empty
+        End Function
+        Private Function Decipher_URL_Rot13(ByVal Input As String) As String
+            Dim result As New Text.StringBuilder(Input.Length)
+            For Each c As Char In Input
+                Dim offset%
+                If c >= "a"c AndAlso c <= "z"c Then
+                    offset = Asc("a"c)
+                    result.Append(ChrW((Asc(c) - offset + 13) Mod 26 + offset))
+                ElseIf c >= "A"c AndAlso c <= "Z"c Then
+                    offset = Asc("A"c)
+                    result.Append(ChrW((Asc(c) - offset + 13) Mod 26 + offset))
+                Else
+                    result.Append(c)
+                End If
+            Next
+            Return result.ToString
         End Function
 #End Region
 #Region "DownloadSingleObject"

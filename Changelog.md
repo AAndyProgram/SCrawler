@@ -1,11 +1,35 @@
-# 2025.9.1.0
+# Program versions
+- [ffmpeg](https://github.com/AAndyProgram/SCrawler/wiki/Settings#ffmpeg)
+  - x64 version - [release](https://github.com/GyanD/codexffmpeg/releases/tag/5.1.2); [zip](https://github.com/GyanD/codexffmpeg/releases/download/5.1.2/ffmpeg-5.1.2-full_build.zip); **version `5.1.2-full_build-www.gyan.dev`**
+  - x86 version - [release](https://github.com/yt-dlp/FFmpeg-Builds/releases/tag/autobuild-2022-11-30-12-57); [zip](https://github.com/yt-dlp/FFmpeg-Builds/releases/download/autobuild-2022-11-30-12-57/ffmpeg-N-109274-gd7a5f068c2-win32-gpl.zip); **version `N-109457-geeb280f351-20221226`**
+- [Gallery-dl](https://github.com/AAndyProgram/SCrawler/wiki/Settings#gallery-dl) - **1.30.9**
+- [YT-DLP](https://github.com/AAndyProgram/SCrawler/wiki/Settings#yt-dlp) - **2025.09.26**
+- [OF-Scraper](https://github.com/AAndyProgram/SCrawler/wiki/Settings#of-scraper) - **3.12.9** ([release](https://github.com/datawhores/OF-Scraper/releases/tag/3.12.9))
+
+# 2025
+## 2025.10.4.0
+
+*2025-10-04*
+
+**xHamster downloads are temporarily disabled**
+
+- Added
+  - Sites:
+    - Bluesky: **saved posts downloading**
+    - xHamster: **temporarily disable the plugin**
+  - Minor improvements
+- Updated
+  - yt-dlp up to version **2025.09.26**
+  - gallery-dl up to version **1.30.9**
+
+## 2025.9.1.0
 
 *2025-09-01*
 
 - Fixed
   - PornHub: data is not downloading
 
-# 2025.8.30.0
+## 2025.8.30.0
 
 *2025-08-30*
 
@@ -23,7 +47,7 @@
   - **YouTube: downloading error**
   - Minor bugs
 
-# 2025.8.1.0
+## 2025.8.1.0
 
 *2025-08-01*
 
@@ -39,7 +63,7 @@
   - Reddit: in some cases crossposts don't download
   - Minor bugs
 
-# 2025.7.18.0
+## 2025.7.18.0
 
 *2025-07-18*
 
@@ -56,7 +80,7 @@
   - OnlyFans: **hanging on purchased content**
   - Minor bugs
 
-# 2025.6.12.0
+## 2025.6.12.0
 
 *2025-06-12*
 
@@ -70,7 +94,7 @@
     - Saved posts: text downloading with saved posts
   - Environment incorrect output
 
-# 2025.6.1.0
+## 2025.6.1.0
 
 *2025-06-01*
 
@@ -112,7 +136,7 @@
       - data is not downloaded in some cases
   - Minor bugs
 
-# 2025.3.17.0
+## 2025.3.17.0
 
 *2025-03-17*
 
@@ -126,7 +150,7 @@
     - PornHub: newly added users aren't downloading
     - Threads: users aren't updated if there is a pinned post
 
-# 2025.2.25.0
+## 2025.2.25.0
 
 *2025-02-25*
 
@@ -158,7 +182,7 @@
     - Threads: **data is not downloading**
   - Minor bugs
 
-# 2025.1.12.0
+## 2025.1.12.0
 
 *2025-01-12*
 
@@ -183,7 +207,8 @@
     - YouTube: **communities are not downloading** *(see settings in wiki)*
   - Minor bugs
 
-# 2024.11.21.0
+# 2024
+## 2024.11.21.0
 
 *2024-11-21*
 
@@ -206,7 +231,7 @@
   - Main window: in some cases users are not updated in the list
   - Minor bugs
 
-# 2024.10.24.0
+## 2024.10.24.0
 
 *2024-10-24*
 
@@ -231,7 +256,7 @@
   - Can't change data path (issue #206)
   - Minor bugs
 
-# 2024.9.2.0
+## 2024.9.2.0
 
 *2024-09-02*
 
@@ -247,7 +272,7 @@
   - YouTube (SCrawler): incorrect parsing of video page
   - Minor bugs
 
-# 2024.8.10.0
+## 2024.8.10.0
 
 *2024-08-10*
 
@@ -259,7 +284,7 @@
 - Fixed
   - YouTube (standalone app): **video is being parsed using cookies but is not downloading** *(Issue #205)*
 
-# 2024.8.1.0
+## 2024.8.1.0
 
 *2024-08-01*
 
@@ -268,7 +293,7 @@
 - Updated
   - yt-dlp up to version **2024.08.01**
 
-# 2024.7.24.0
+## 2024.7.24.0
 
 *2024-07-24*
 
@@ -291,7 +316,7 @@
   - OnlyFans: rules parsing bug
   - Minor bugs
 
-# 2024.6.25.0
+## 2024.6.25.0
 
 *2024-06-25*
 
@@ -305,7 +330,7 @@
 - Fixed
   - Minor bugs
 
-# 2024.6.10.0
+## 2024.6.10.0
 
 *2024-06-10*
 
@@ -318,7 +343,7 @@
 - Fixed
   - Minor bugs
 
-# 2024.6.6.0
+## 2024.6.6.0
 
 *2024-06-06*
 
@@ -334,7 +359,7 @@
   - OnlyFans: **data is not downloading**
   - Minor bugs
 
-# 2024.6.4.0
+## 2024.6.4.0
 
 *2024-06-04*
 
@@ -353,7 +378,7 @@
   - Twitter: deleting user directory when redownloading missing posts
   - Minor bugs
 
-# 2024.5.19.0
+## 2024.5.19.0
 
 *2024-05-19*
 
@@ -362,7 +387,7 @@
 - Fixed
   - YouTube (SCrawler): advanced settings are not saved when changed
 
-# 2024.5.18.0
+## 2024.5.18.0
 
 *2024-05-18*
 
@@ -389,7 +414,7 @@
     - Twitter: **data is not downloading due to domain change from twitter.com to x.com**
   - Minor bugs
 
-# 2024.5.4.0
+## 2024.5.4.0
 
 *2024-05-04*
 
@@ -404,7 +429,7 @@
     - Reddit: token update error
     - Threads: unable to obtain credentials (`ID`)
 
-# 2024.4.26.0
+## 2024.4.26.0
 
 *2024-04-26*
 
@@ -417,14 +442,14 @@
 - Fixed
   - xHamster: **saved posts aren't downloading**
 
-# 2024.4.14.0
+## 2024.4.14.0
 
 *2024-04-14*
 
 - Fixed
   - Facebook: can't get tokens
 
-# 2024.4.13.0
+## 2024.4.13.0
 
 *2024-04-13*
 
@@ -438,7 +463,7 @@
     - YouTube: remove last download date when erasing history data
     - Instagram: **saved posts aren't downloading**
 
-# 2024.4.10.0
+## 2024.4.10.0
 
 *2024-04-10*
 
@@ -506,7 +531,7 @@
   - Feed: a scrolling bug where the feed scrolls up after returning to it
   - Minor bugs
 
-# 2024.2.25.0
+## 2024.2.25.0
 
 *2024-02-25*
 
@@ -540,7 +565,7 @@
   - TikTok: files with long names aren't downloaded
   - Minor bugs
 
-# 2024.1.26.0
+## 2024.1.26.0
 
 *2024-01-26*
 
@@ -552,7 +577,7 @@
   - Instagram: stories (user) downloading with the wrong aspect ratio for some users
   - Minor bugs
 
-# 2024.1.20.0
+## 2024.1.20.0
 
 *2024-01-20*
 
@@ -560,7 +585,7 @@
   - Instagram: **the ability to download reels**
   - LPSG: handle 404 error
 
-# 2024.1.18.0
+## 2024.1.18.0
 
 *2024-01-18*
 
@@ -570,7 +595,7 @@
   - YouTube (standalone app): URL array form doesn't show scrollbars
   - Minor bugs
 
-# 2024.1.12.1
+## 2024.1.12.1
 
 *2024-01-12*
 
@@ -583,7 +608,7 @@
   - YouTube: incorrect opening of a post from the feed
   - YouTube: wrong date to data parsing
 
-# 2024.1.12.0
+## 2024.1.12.0
 
 *2024-01-12*
 
@@ -599,7 +624,8 @@
   - xHamster: profiles are not downloading
   - Minor bugs
 
-# 2023.12.27.0
+# 2023
+## 2023.12.27.0
 
 *2023-12-27*
 
@@ -613,7 +639,7 @@
   - Saved posts: session file is not updated when new data is added
   - Minor bugs
 
-# 2023.12.15.0
+## 2023.12.15.0
 
 *2023-12-15*
 
@@ -621,7 +647,7 @@
   - Twitter: some twitter profiles don't download completely
   - Minor bugs
 
-# 2023.12.14.0
+## 2023.12.14.0
 
 *2023-12-14*
 
@@ -629,7 +655,7 @@
   - YouTube: options `Create thumbnail files (video)` and `Create thumbnail files (music)`
   - YouTube: `Select all` and `Select none` buttons
 
-# 2023.12.13.0
+## 2023.12.13.0
 
 *2023-12-13*
 
@@ -641,7 +667,7 @@
   - Feed: saved posts are added to the end of the feed
   - xHamster: some videos won't download
 
-# 2023.12.10.0
+## 2023.12.10.0
 
 *2023-12-10*
 
@@ -650,7 +676,7 @@
 - Fixed
   - Twitter: data is not downloading
 
-# 2023.12.7.0
+## 2023.12.7.0
 
 *2023-12-07*
 
@@ -666,14 +692,14 @@
   - Standalone downloader: URL files are not deleted along with the file
   - Minor bugs
 
-# 2023.11.25.0
+## 2023.11.25.0
 
 *2023-11-25*
 
 - Fixed
   - Reddit: missing refresh token button in the settings form
 
-# 2023.11.24.0
+## 2023.11.24.0
 
 *2023-11-24*
 
@@ -697,7 +723,7 @@ For those of you who use TikTok, I recommend updating [TikTok plugin](https://gi
   - YouTube: path not set when adding array to download
   - Minor bugs
 
-# 2023.11.17.0
+## 2023.11.17.0
 
 *2023-11-17*
 
@@ -727,7 +753,7 @@ For those of you who use TikTok, I recommend updating [TikTok plugin](https://gi
   - Automation: handle automation start error (in some cases) when changing scheduler
   - Minor bugs
 
-# 2023.10.10.0
+## 2023.10.10.0
 
 *2023-10-10*
 
@@ -753,7 +779,7 @@ For those of you who use TikTok, I recommend updating [TikTok plugin](https://gi
   - Standalone downloader: cached thumbnail is not removed when item is removed from the list
   - Minor bugs
 
-# 2023.10.1.0
+## 2023.10.1.0
 
 *2023-10-01*
 
@@ -768,14 +794,14 @@ For those of you who use TikTok, I recommend updating [TikTok plugin](https://gi
   - JustForFans: some profiles won't download
   - Minor bugs
 
-# 2023.9.21.0
+## 2023.9.21.0
 
 *2023-09-21*
 
 - Fixed
   - PornHub: videos are not downloading
 
-# 2023.9.20.0
+## 2023.9.20.0
 
 *2023-09-20*
 
@@ -791,7 +817,7 @@ For those of you who use TikTok, I recommend updating [TikTok plugin](https://gi
   - Instagram: handle error 500
   - Collections: update labels only for the added user
 
-# 2023.8.27.0
+## 2023.8.27.0
 
 *2023-08-27*
 
@@ -810,7 +836,7 @@ For those of you who use TikTok, I recommend updating [TikTok plugin](https://gi
   - Auto downloader: downloading stuck
   - Minor bugs
 
-# 2023.8.6.0
+## 2023.8.6.0
 
 *2023-08-06*
 
@@ -898,7 +924,7 @@ For those of you who use TikTok, I recommend updating [TikTok plugin](https://gi
   - YouTube: a bug that caused the video to redownload
   - Minor bugs
 
-# 2023.6.19.0
+## 2023.6.19.0
 
 *2023-06-19*
 
@@ -918,7 +944,7 @@ For those of you who use TikTok, I recommend updating [TikTok plugin](https://gi
   - Progress bar bugs
   - Minor bugs
 
-# 2023.6.9.0
+## 2023.6.9.0
 
 *2023-06-09*
 
@@ -927,7 +953,7 @@ For those of you who use TikTok, I recommend updating [TikTok plugin](https://gi
   - Twitter: make the algorithm faster
   - Make progress more informative
 
-# 2023.6.8.0
+## 2023.6.8.0
 
 *2023-06-08*
 
@@ -939,7 +965,7 @@ For those of you who use TikTok, I recommend updating [TikTok plugin](https://gi
   - Twitter: profile not fully downloaded
   - Corrected form size for small monitors (Issue #136)
 
-# 2023.6.5.0
+## 2023.6.5.0
 
 *2023-06-05*
 
@@ -958,7 +984,7 @@ For those of you who use TikTok, I recommend updating [TikTok plugin](https://gi
   - Saved posts: remove main progress perform when downloading saved posts
   - Minor bugs
 
-# 2023.5.12.0
+## 2023.5.12.0
 
 *2023-05-12*
 
@@ -976,7 +1002,7 @@ For those of you who use TikTok, I recommend updating [TikTok plugin](https://gi
   - Reddit: missing & broken images bug
   - Main window: collection pointing bug 
 
-# 2023.4.28.0
+## 2023.4.28.0
 
 *2023-04-28*
 
@@ -1020,7 +1046,7 @@ For those of you who use TikTok, I recommend updating [TikTok plugin](https://gi
   - PornHub: photo galleries bug (Issue #115)
   - Minor bugs
 
-# 2023.3.5.0
+## 2023.3.5.0
 
 *2023-03-05*
 
@@ -1029,7 +1055,7 @@ For those of you who use TikTok, I recommend updating [TikTok plugin](https://gi
   - An error that could occur during Twitter MD5 comparison.
   - A bug in the ffmpeg file parts concatenation algorithm that could occur in some cases.
 
-# 2023.3.1.0
+## 2023.3.1.0
 
 *2023-03-01*
 
@@ -1051,7 +1077,7 @@ For those of you who use TikTok, I recommend updating [TikTok plugin](https://gi
   - (Issue #106) problem with non-Latin characters
   - ffmpeg: maximum input length error when merging parts of files
 
-# 2023.2.5.0
+## 2023.2.5.0
 
 *2023-02-05*
 
@@ -1060,7 +1086,7 @@ For those of you who use TikTok, I recommend updating [TikTok plugin](https://gi
 - Fixed
   - (Issue #101) Failed download Gfycat video in some cases
 
-# 2023.1.27.0
+## 2023.1.27.0
 
 *2023-01-27*
 
@@ -1074,7 +1100,7 @@ For those of you who use TikTok, I recommend updating [TikTok plugin](https://gi
     - `Interaction` option to the `Provider` attribute
     - `IPropertyProvider` interface
 
-# 2023.1.24.1
+## 2023.1.24.1
 
 *2023-01-24*
 
@@ -1083,7 +1109,7 @@ For those of you who use TikTok, I recommend updating [TikTok plugin](https://gi
 - Fixed
   - (Issue #100) some Imgur albums won't download
 
-# 2023.1.24.0
+## 2023.1.24.0
 
 *2023-01-24*
 
@@ -1091,7 +1117,7 @@ For those of you who use TikTok, I recommend updating [TikTok plugin](https://gi
   - (Issue #100) Imgur albums not downloading
   - When deleting a collection with the 'ban' option, users in the collection are not banned
 
-# 2023.1.2.0
+## 2023.1.2.0
 
 *2023-01-02*
 
@@ -1106,7 +1132,8 @@ For those of you who use TikTok, I recommend updating [TikTok plugin](https://gi
   - Fixed a bug in the user list loading algorithm
   - Notifications: pressing any button opens SCrawler
 
-# 2022.12.27.0
+# 2022
+## 2022.12.27.0
 
 *2022-12-27*
 
@@ -1116,7 +1143,7 @@ For those of you who use TikTok, I recommend updating [TikTok plugin](https://gi
 - Fixed
   - XVideos not downloading (sorry, I broke it in a previous release)
 
-# 2022.12.26.0
+## 2022.12.26.0
 
 *2022-12-26*
 
@@ -1139,7 +1166,7 @@ For those of you who use TikTok, I recommend updating [TikTok plugin](https://gi
   - (Issue #69) **RedGifs data is not downloading**. Again.
   - Minor bugs
 
-# 2022.11.16.0
+## 2022.11.16.0
 
 *2022-11-16*
 
@@ -1173,7 +1200,7 @@ For those of you who use TikTok, I recommend updating [TikTok plugin](https://gi
   - Users search form doesn't remember last size
   - Minor bugs
 
-# 2022.10.23.0
+## 2022.10.23.0
 
 *2022-10-23*
 
@@ -1192,7 +1219,7 @@ For those of you who use TikTok, I recommend updating [TikTok plugin](https://gi
   - (Issue #69) **RedGifs data is not downloading**. Requires token.
   - Minor bugs
 
-# 2022.10.18.0
+## 2022.10.18.0
 
 *2022-10-18*
 
@@ -1227,7 +1254,7 @@ For those of you who use TikTok, I recommend updating [TikTok plugin](https://gi
   - When trying to delete multiple collections, each collection asked for confirmation to delete
   - Minor bugs
 
-# 2022.9.24.0
+## 2022.9.24.0
 
 *2022-09-24*
 
@@ -1245,7 +1272,7 @@ For those of you who use TikTok, I recommend updating [TikTok plugin](https://gi
   - Bug in the XVIDEOS downloader
   - Minor bugs
 
-# 2022.9.17.0
+## 2022.9.17.0
 
 *2022-09-17*
 
@@ -1261,7 +1288,7 @@ For those of you who use TikTok, I recommend updating [TikTok plugin](https://gi
   - Incorrect feed sorting algorithm
   - Minor bugs
 
-# 2022.9.16.0
+## 2022.9.16.0
 
 *2022-09-16*
 
@@ -1270,7 +1297,7 @@ For those of you who use TikTok, I recommend updating [TikTok plugin](https://gi
   - Incorrect rendering of the 'Feed' table when the number of columns is more than one
   - Minor design bugs
 
-# 2022.9.13.0
+## 2022.9.13.0
 
 *2022-09-13*
 
@@ -1280,21 +1307,21 @@ For those of you who use TikTok, I recommend updating [TikTok plugin](https://gi
   - (Issue #70) Instagram posts not downloading if there are pinned posts that have already been downloaded
   - Minor bugs
 
-# 2022.9.10.0
+## 2022.9.10.0
 
 *2022-09-10*
 
 - Fixed
   - The memory is still leaking. This time because of the video. *Using WMP was not the best choice.*
 
-# 2022.9.8.1
+## 2022.9.8.1
 
 *2022-09-08*
 
 - Fixed
   - Unexpected memory leak when using the 'Feed' form
 
-# 2022.9.8.0
+## 2022.9.8.0
 
 *2022-09-08*
 
@@ -1305,7 +1332,7 @@ For those of you who use TikTok, I recommend updating [TikTok plugin](https://gi
 - Fixed
   - (Issue #67) Saved Instagram posts not downloading
 
-# 2022.8.28.0
+## 2022.8.28.0
 
 *2022-08-28*
 
@@ -1314,7 +1341,7 @@ For those of you who use TikTok, I recommend updating [TikTok plugin](https://gi
 - Fixed
   - Incorrect number of posts displayed in the Reddit channels downloader.
 
-# 2022.8.22.0
+## 2022.8.22.0
 
 *2022-08-22*
 
@@ -1328,7 +1355,7 @@ For those of you who use TikTok, I recommend updating [TikTok plugin](https://gi
   - AutoDownloader option ```Show notifications``` not saved
   - Minor bugs
 
-# 2022.7.7.0
+## 2022.7.7.0
 
 *2022-07-07*
 
@@ -1346,7 +1373,7 @@ For those of you who use TikTok, I recommend updating [TikTok plugin](https://gi
   - In some cases, Twitter image is not downloading
   - Minor bugs
 
-# 2022.6.10.0
+## 2022.6.10.0
 
 *2022-06-10*
 
@@ -1355,7 +1382,7 @@ For those of you who use TikTok, I recommend updating [TikTok plugin](https://gi
 - Fixed
   - Can't get Instagram user ID
 
-# 2022.6.6.0
+## 2022.6.6.0
 
 *2022-06-06*
 
@@ -1365,7 +1392,7 @@ For those of you who use TikTok, I recommend updating [TikTok plugin](https://gi
   - GIFs from Twitter not downloading
   - Not quite correct algorithm for stopping automation
 
-# 2022.6.3.0
+## 2022.6.3.0
 
 *2022-06-03*
 
@@ -1380,7 +1407,7 @@ Changed version numbering method. From now on, new versions will be numbered by 
   - Videos hosted on Reddit that are downloaded via m3u8 playlists are missing an audio track.
   - Instagram hash not able to be auto-filled from cookies
 
-# 3.0.0.10
+## 3.0.0.10
 
 *2022-05-23*
 
@@ -1403,7 +1430,7 @@ Changed version numbering method. From now on, new versions will be numbered by 
   - In some cases, the date and time are not added to the filename
   - Unable to download photos from Twitter in full resolution (4K)
 
-# 3.0.0.9
+## 3.0.0.9
 
 *2022-04-24*
 
@@ -1415,7 +1442,7 @@ Changed version numbering method. From now on, new versions will be numbered by 
   - Removed adding "No Parsed" internal label when not needed
   - Redownloading Instagram Stories
 
-# 3.0.0.8
+## 3.0.0.8
 
 *2022-04-19*
 
@@ -1425,7 +1452,7 @@ Changed version numbering method. From now on, new versions will be numbered by 
 - Fixed
   - The script does not run after the user download is complete
 
-# 3.0.0.7
+## 3.0.0.7
 
 *2022-04-14*
 
@@ -1437,7 +1464,7 @@ Changed version numbering method. From now on, new versions will be numbered by 
   - (Issue #33) Instagram Stories downloading error
   - LPSG downloader does not download all content
 
-# 3.0.0.6
+## 3.0.0.6
 
 *2022-04-04*
 
@@ -1450,14 +1477,14 @@ Changed version numbering method. From now on, new versions will be numbered by 
   - Incorrect behavior of the main progress bar when downloading saved posts
   - (Issue #25) Date and Time not added for Stories and Tagged Photos
 
-# 3.0.0.5
+## 3.0.0.5
 
 *2022-04-02*
 
 - Added
   - ```New```, ```Hot```, ```Top``` Reddit channel and user download modes
 
-# 3.0.0.4
+## 3.0.0.4
 
 *2022-03-26*
 
@@ -1465,7 +1492,7 @@ Changed version numbering method. From now on, new versions will be numbered by 
   - External plugins do not save information about downloaded files
   - The user cannot be added to the collection if a special path has been specified.
 
-# 3.0.0.3
+## 3.0.0.3
 
 *2022-03-24*
 
@@ -1478,7 +1505,7 @@ Changed version numbering method. From now on, new versions will be numbered by 
   - Typo when applying "Download UHD" in XVIDEOS plugin
   - The sites filter does not work unless the "Fast profiles loading" option is enabled.
 
-# 3.0.0.2
+## 3.0.0.2
 
 *2022-03-22*
 
@@ -1490,7 +1517,7 @@ Changed version numbering method. From now on, new versions will be numbered by 
 - Fixed
   - Minor bugs
 
-# 3.0.0.1
+## 3.0.0.1
 
 *2022-03-20*
 
@@ -1505,7 +1532,7 @@ Changed version numbering method. From now on, new versions will be numbered by 
   - Some design fixes
   - Minor bugs
 
-# 3.0.0.0
+## 3.0.0.0
 
 *2022-03-17*
 
@@ -1547,7 +1574,7 @@ Changed version numbering method. From now on, new versions will be numbered by 
 
 At the requests of some users, I added [screenshots](ProgramScreenshots) of the program and added screenshots to [ReadMe](README.md) and the [guide](https://github.com/AAndyProgram/SCrawler/wiki).
 
-# 2.0.0.4
+## 2.0.0.4
 
 *2022-02-07*
 
@@ -1563,7 +1590,7 @@ At the requests of some users, I added [screenshots](ProgramScreenshots) of the 
   - **Error when specifying network paths**
   - Minor bugs
 
-# 2.0.0.3
+## 2.0.0.3
 
 *2022-02-02*
 
@@ -1580,7 +1607,7 @@ At the requests of some users, I added [screenshots](ProgramScreenshots) of the 
   - Collection ignored when validated when creating a new user
   - Incorrect number of Instagram profiles downloads per session
 
-# 2.0.0.2
+## 2.0.0.2
 
 *2022-01-23*
 
@@ -1604,7 +1631,8 @@ At the requests of some users, I added [screenshots](ProgramScreenshots) of the 
 - Fixed
   - The program was showing incorrect information about the total numbers of images and videos downloaded when a Reddit user was created from a channel
 
-# 2.0.0.1
+# 2021
+## 2.0.0.1
 
 *2021-12-29*
 
@@ -1614,7 +1642,7 @@ At the requests of some users, I added [screenshots](ProgramScreenshots) of the 
   - Incorrect filling of user parameters in the user creation form
   - In some cases, the global settings cannot be saved.
 
-# 2.0.0.0
+## 2.0.0.0
 
 *2021-12-27*
 
@@ -1633,7 +1661,7 @@ At the requests of some users, I added [screenshots](ProgramScreenshots) of the 
   - Suspended profiles do not change status if the profile is no longer suspended
   - Limited download for Twitter not implemented
 
-# 1.0.1.0
+## 1.0.1.0
 
 *2021-12-20*
 
@@ -1656,7 +1684,7 @@ At the requests of some users, I added [screenshots](ProgramScreenshots) of the 
   - Users in the main window are not refreshed if new users are added by a list that includes banned and/or unrecognized users.
   - Minor bugs
 
-# 1.0.0.4
+## 1.0.0.4
 
 *2021-12-12*
 
@@ -1666,7 +1694,7 @@ At the requests of some users, I added [screenshots](ProgramScreenshots) of the 
 - Fixed
   - Images hosted on Imgur won't download
 
-# 1.0.0.3
+## 1.0.0.3
 
 *2021-12-11*
 
@@ -1674,7 +1702,7 @@ At the requests of some users, I added [screenshots](ProgramScreenshots) of the 
   - Custom "Download videos" option is not saved
   - The "Download all" button is not activated after changing modes
 
-# 1.0.0.2
+## 1.0.0.2
 
 *2021-12-10*
 
@@ -1684,7 +1712,7 @@ At the requests of some users, I added [screenshots](ProgramScreenshots) of the 
 - Fixed
   - In some cases, the "Stop" button is not activated after download start
 
-# 1.0.0.1
+## 1.0.0.1
 
 *2021-12-09*
 

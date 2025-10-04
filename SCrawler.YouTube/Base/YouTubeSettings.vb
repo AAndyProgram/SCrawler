@@ -268,6 +268,9 @@ Namespace API.YouTube.Base
         <Browsable(True), GridVisible, XMLVN({"Defaults"}, FileDateMode.None), Category("Defaults"), DisplayName("Add channel to file name"),
             Description("Add channel name before/after the file name")>
         Public ReadOnly Property FileAddChannelToFileName As XMLValue(Of FileDateMode)
+        <Browsable(True), GridVisible, XMLVN({"Defaults"}, True), Category("Defaults"), DisplayName("Parse long user titles"),
+            Description("Suitable for multiple artists")>
+        Public ReadOnly Property ParseLongUserTitle As XMLValue(Of Boolean)
 #End Region
 #Region "Defaults ChannelsDownload"
         <Browsable(True), GridVisible, XMLVN({"Defaults", "Channels"}), Category("Defaults"), DisplayName("Default download tabs for channels"),

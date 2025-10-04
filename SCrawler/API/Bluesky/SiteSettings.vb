@@ -14,7 +14,7 @@ Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Tools.Web.Clients
 Imports PersonalUtilities.Tools.Web.Documents.JSON
 Namespace API.Bluesky
-    <Manifest(BlueskySiteKey), SpecialForm(False)>
+    <Manifest(BlueskySiteKey), SpecialForm(False), SavedPosts>
     Friend Class SiteSettings : Inherits SiteSettingsBase
         <PropertyOption(ControlText:="Cookies enabled", ControlToolTip:="If checked, cookies will be used in requests", IsAuth:=True), PXML, PClonable, HiddenControl>
         Friend ReadOnly Property CookiesEnabled As PropertyValue
