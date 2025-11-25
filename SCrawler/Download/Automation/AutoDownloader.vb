@@ -17,11 +17,6 @@ Namespace DownloadObjects
     Friend Class AutoDownloader : Inherits GroupParameters : Implements IIndexable, IEContainerProvider, IComparable(Of AutoDownloader)
         Friend Event PauseChanged(ByVal Value As PauseModes)
         Friend Event PlanChanged As Scheduler.PlanChangedEventHandler
-        Friend Enum Modes As Integer
-            None = 0
-            Specified = 3
-            Groups = 4
-        End Enum
         Friend Const NoPauseMode As Integer = -100
         Friend Enum PauseModes As Integer
             Disabled = -2
@@ -188,8 +183,9 @@ Namespace DownloadObjects
         End Class
 #End Region
 #Region "XML Names"
-        Private Const Name_Mode As String = "Mode"
-        Private Const Name_Groups As String = "Groups"
+        'TODELETE: AutoDownloader.Modes
+        <Obsolete> Private Const Name_Mode As String = "Mode"
+        Private Const Name_Enabled As String = "Enabled"
         Private Const Name_IsManual As String = "IsManual"
         Private Const Name_Timer As String = "Timer"
         Private Const Name_StartupDelay As String = "StartupDelay"
@@ -247,17 +243,16 @@ Namespace DownloadObjects
             End Get
         End Property
         Friend Property Source As Scheduler
-        Private _Mode As Modes = Modes.None
-        Friend Property Mode As Modes
+        Private _Enabled As Boolean = False
+        Friend Property Enabled As Boolean
             Get
-                Return _Mode
+                Return _Enabled
             End Get
-            Set(ByVal m As Modes)
-                _Mode = m
-                If _Mode = Modes.None Then [Stop]()
+            Set(ByVal e As Boolean)
+                _Enabled = e
+                If Not _Enabled Then [Stop]()
             End Set
         End Property
-        Friend ReadOnly Property Groups As List(Of String)
         Friend Property IsManual As Boolean = False
         Friend Property Timer As Integer = DefaultTimer
         Friend Property StartupDelay As Integer = 1
@@ -371,7 +366,6 @@ Namespace DownloadObjects
             End Get
         End Property
         Friend Sub New(Optional ByVal IsNewPlan As Boolean = False)
-            Groups = New List(Of String)
             UserKeys = New List(Of NotifiedUser)
             _IsNewPlan = IsNewPlan
             Initialization = False
@@ -379,10 +373,17 @@ Namespace DownloadObjects
         Friend Sub New(ByVal x As EContainer)
             Me.New
             Initialization = True
-            Mode = x.Value(Name_Mode).FromXML(Of Integer)(Modes.None)
             Import(x)
+#Disable Warning BC40008
+            If x.Contains(Name_Mode) Then
+                Dim g% = x.Value(Name_Mode).FromXML(Of Integer)(0)
+                If g = 4 Then GroupsOnly = True
+                Enabled = g
+            Else
+                Enabled = x.Value(Name_Enabled).FromXML(Of Boolean)(False)
+            End If
+#Enable Warning
             If Name.IsEmptyString Then Name = "Default"
-            Groups.ListAddList(x.Value(Name_Groups).StringToList(Of String)("|"), LAP.NotContainsOnly)
 
             IsManual = x.Value(Name_IsManual).FromXML(Of Boolean)(False)
             Timer = x.Value(Name_Timer).FromXML(Of Integer)(DefaultTimer)
@@ -408,7 +409,7 @@ Namespace DownloadObjects
             newObj.Copy(Me)
             With newObj
                 .Name = String.Empty
-                ._Mode = _Mode
+                .Enabled = Enabled
                 .Groups.ListAddList(Groups, LAP.ClearBeforeAdd)
                 .IsManual = IsManual
                 .Timer = Timer
@@ -441,8 +442,7 @@ Namespace DownloadObjects
         End Sub
         Private Function ToEContainer(Optional ByVal e As ErrorsDescriber = Nothing) As EContainer Implements IEContainerProvider.ToEContainer
             Return Export(New EContainer(Scheduler.Name_Plan, String.Empty) From {
-                                         New EContainer(Name_Mode, CInt(Mode)),
-                                         New EContainer(Name_Groups, Groups.ListToString("|")),
+                                         New EContainer(Name_Enabled, Enabled.BoolToInteger),
                                          New EContainer(Name_IsManual, IsManual.BoolToInteger),
                                          New EContainer(Name_Timer, Timer),
                                          New EContainer(Name_StartupDelay, StartupDelay),
@@ -467,7 +467,7 @@ Namespace DownloadObjects
             If Not IsManual Or Force Then
                 If Init Then _StartTime = Now
                 _IsNewPlan = False
-                If Not Working And Not Mode = Modes.None Then _Working = True
+                If Not Working And Enabled Then _Working = True
                 RaiseEvent PlanChanged(Me)
             End If
         End Sub
@@ -556,12 +556,12 @@ Namespace DownloadObjects
             Get
                 If _StopRequested Then _Working = False
                 Return (Working Or IsManual) And ((IsManual And _ForceStartRequested) Or (Not IsManual And NextExecutionDate < Now And (Not IsPaused Or IgnorePause)) Or _ForceStartRequested) And
-                       Not _StopRequested And Not Mode = Modes.None And (Not Downloader.Working Or IgnoreDownloaderWorking)
+                       Not _StopRequested And Enabled And (Not Downloader.Working Or IgnoreDownloaderWorking)
             End Get
         End Property
         Friend ReadOnly Property NextDate As Date?
             Get
-                If Not _StopRequested And Not Mode = Modes.None Then
+                If Not _StopRequested And Enabled Then
                     If IsManual Or _ForceStartRequested Then
                         Return Now.AddYears(-10)
                     ElseIf Not IsPaused And Not IsManual And Working Then
@@ -583,8 +583,6 @@ Namespace DownloadObjects
             Dim Keys As New List(Of String)
             Try
                 Dim users As New List(Of IUserData)
-                Dim GName$
-                Dim i%
                 Dim doRound% = -1, doLim% = Settings.Plugins.Count
                 Dim DownloadedUsersCount% = 0
                 Dim DownloadedSubscriptionsCount% = 0
@@ -614,16 +612,9 @@ Namespace DownloadObjects
                                            Catch n_ex As Exception
                                            End Try
                                        End Sub
-                Select Case Mode
-                    Case Modes.Specified : users.ListAddList(DownloadGroup.GetUsers(Me))
-                    Case Modes.Groups
-                        If Groups.Count > 0 And Settings.Groups.Count > 0 Then
-                            For Each GName In Groups
-                                i = Settings.Groups.IndexOf(GName)
-                                If i >= 0 Then users.ListAddList(Settings.Groups(i).GetUsers, LAP.IgnoreICopier, LAP.NotContainsOnly)
-                            Next
-                        End If
-                End Select
+
+                If Enabled Then users.ListAddList(DownloadGroup.GetUsers(Me))
+
                 If users.Count > 0 Then
                     Keys.ListAddList(users.Select(Function(u) u.Key))
                     With Downloader

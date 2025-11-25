@@ -8,7 +8,7 @@
 ' but WITHOUT ANY WARRANTY
 Imports SCrawler.Plugin.Attributes
 Namespace API.TikTok
-    Friend Class UserExchangeOptions
+    Friend Class UserExchangeOptions : Inherits Base.EditorExchangeOptionsBase
         <PSetting(NameOf(SiteSettings.RemoveTagsFromTitle), NameOf(MySettings))>
         Friend Property RemoveTagsFromTitle As Boolean
         <PSetting(NameOf(SiteSettings.TitleUseNative), NameOf(MySettings))>
@@ -21,8 +21,11 @@ Namespace API.TikTok
         Friend Property TitleUseRegexForTitle_Value As String
         <PSetting(Caption:="Use global regex", ToolTip:="Use the global regex from the site settings to clean the video title")>
         Friend Property TitleUseGlobalRegexOptions As Boolean = True
+        <PSetting(Address:=SettingAddress.None)> Friend Overrides Property UserName As String
         Private ReadOnly MySettings As SiteSettings
         Friend Sub New(ByVal u As UserData)
+            MyBase.New(u)
+            _ApplyBase_Name = False
             MySettings = u.HOST.Source
             RemoveTagsFromTitle = u.RemoveTagsFromTitle
             TitleUseNative = u.TitleUseNative
@@ -32,6 +35,8 @@ Namespace API.TikTok
             TitleUseGlobalRegexOptions = u.TitleUseGlobalRegexOptions
         End Sub
         Friend Sub New(ByVal s As SiteSettings)
+            MyBase.New(s)
+            _ApplyBase_Name = False
             MySettings = s
             RemoveTagsFromTitle = s.RemoveTagsFromTitle.Value
             TitleUseNative = s.TitleUseNative.Value

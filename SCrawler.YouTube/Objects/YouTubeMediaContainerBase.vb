@@ -827,6 +827,7 @@ Namespace API.YouTube.Objects
                         subs = ListAddList(Nothing, Subtitles.Select(Function(s, i) If(SubtitlesSelectedIndexes.Contains(i), s.FullID, String.Empty)),
                                            LAP.NotContainsOnly, EDP.ReturnValue).ListToString(",")
                         subs = $"--write-subs --write-auto-subs --sub-format {OutputSubtitlesFormat.StringToLower} --sub-langs ""{subs}"" --convert-subs {OutputSubtitlesFormat.StringToLower}"
+                        If MyYouTubeSettings.DefaultSubtitlesEmbed Then subs = $"--write-auto-sub --embed-subs {subs}"
                     End If
                     If Not cmd.IsEmptyString Then
                         '2023.3.4 -> 2023.7.6
@@ -1458,8 +1459,10 @@ Namespace API.YouTube.Objects
                                     Const trimCommand$ = "ffmpeg -i ""{0}"" -ss {1} -to {2} -c:v copy -c:a copy ""{3}"""
                                     Dim trimFirstFile As SFile = Nothing
                                     Dim trimFirstAdded As Boolean = False
-                                    Dim processTrim As Action(Of TrimOption, SFile) =
-                                        Sub(ByVal opt As TrimOption, ByVal pFile As SFile)
+                                    Dim trimSingleReplace As Boolean = TrimOptions.Count = 1 And TrimDeleteOriginalFile
+                                    Dim audioReplace As New Dictionary(Of SFile, SFile)
+                                    Dim processTrim As Action(Of TrimOption, SFile, Boolean) =
+                                        Sub(ByVal opt As TrimOption, ByVal pFile As SFile, ByVal isAudio As Boolean)
                                             Dim fNew As SFile = pFile
                                             fNew.Name &= $"_{opt.Name}"
                                             If TrimSeparateFolder Then fNew = $"{fNew.PathNoSeparator}\{MyYouTubeSettings.TrimSeparateFolderName.Value.IfNullOrEmpty(YouTubeSettings.TrimSeparateFolderNameDefault)}\{fNew.File}" : fNew.Exists(SFO.Path)
@@ -1471,22 +1474,46 @@ Namespace API.YouTube.Objects
                                                                    fNew))
                                             If fNew.Exists Then
                                                 If trimFirstFile.IsEmptyString Then trimFirstFile = fNew
-                                                AddFile(fNew)
+                                                If Not trimSingleReplace Then AddFile(fNew)
+                                                If isAudio And trimSingleReplace And Not audioReplace.ContainsKey(pFile) Then audioReplace.Add(pFile, fNew)
                                                 If format = mp3 And MyYouTubeSettings.DefaultAudioEmbedThumbnail_ExtractedFiles Then _
                                                    embedThumbTo.Invoke(fNew) : mp3ThumbEmbedded = True
-                                                If (TrimAddTrimmedFilesToM3U8 Or (TrimDeleteOriginalFile And Not trimFirstAdded)) AndAlso
+                                                If Not trimSingleReplace AndAlso
+                                                   (TrimAddTrimmedFilesToM3U8 Or (TrimDeleteOriginalFile And Not trimFirstAdded)) AndAlso
                                                    (M3U8_PlaylistFiles.ListExists OrElse
                                                    (format = mp3 AndAlso MyYouTubeSettings.VideoPlaylist_AddExtractedMP3.Value)) Then _
                                                    M3U8_Append(fNew) : trimFirstAdded = True
                                             End If
                                         End Sub
                                     For Each tr As TrimOption In TrimOptions
-                                        processTrim(tr, File)
+                                        processTrim(tr, File, False)
                                         If audioFiles.Count > 0 Then
-                                            For Each f In audioFiles : processTrim(tr, f) : Next
+                                            For Each f In audioFiles : processTrim(tr, f, True) : Next
                                         End If
                                     Next
-                                    If TrimDeleteOriginalFile Then File.Delete() : File = trimFirstFile
+                                    If TrimDeleteOriginalFile Then
+                                        Dim silentEDP As New ErrorsDescriber(EDP.ReturnValue)
+                                        File.Delete(,, silentEDP)
+                                        If trimSingleReplace Then
+                                            File = SFile.Rename(trimFirstFile, File,, New ErrorsDescriber(False, False, False, trimFirstFile))
+                                            If audioReplace.Count > 0 Then
+                                                For Each kvf As KeyValuePair(Of SFile, SFile) In audioReplace
+                                                    If kvf.Key.Exists And kvf.Value.Exists Then
+                                                        kvf.Key.Delete(,, silentEDP)
+                                                        SFile.Rename(kvf.Value, kvf.Key,, silentEDP)
+                                                    End If
+                                                Next
+                                                audioReplace.Clear()
+                                            End If
+                                        Else
+                                            File = trimFirstFile
+                                            If audioFiles.Count > 0 Then
+                                                For Each f In audioFiles
+                                                    If Not f = File Then f.Delete(,, silentEDP)
+                                                Next
+                                            End If
+                                        End If
+                                    End If
 
                                 End If
                             End If

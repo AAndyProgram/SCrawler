@@ -2,11 +2,40 @@
 - [ffmpeg](https://github.com/AAndyProgram/SCrawler/wiki/Settings#ffmpeg)
   - x64 version - [release](https://github.com/GyanD/codexffmpeg/releases/tag/5.1.2); [zip](https://github.com/GyanD/codexffmpeg/releases/download/5.1.2/ffmpeg-5.1.2-full_build.zip); **version `5.1.2-full_build-www.gyan.dev`**
   - x86 version - [release](https://github.com/yt-dlp/FFmpeg-Builds/releases/tag/autobuild-2022-11-30-12-57); [zip](https://github.com/yt-dlp/FFmpeg-Builds/releases/download/autobuild-2022-11-30-12-57/ffmpeg-N-109274-gd7a5f068c2-win32-gpl.zip); **version `N-109457-geeb280f351-20221226`**
-- [Gallery-dl](https://github.com/AAndyProgram/SCrawler/wiki/Settings#gallery-dl) - **1.30.9**
-- [YT-DLP](https://github.com/AAndyProgram/SCrawler/wiki/Settings#yt-dlp) - **2025.09.26**
+- [Gallery-dl](https://github.com/AAndyProgram/SCrawler/wiki/Settings#gallery-dl) - **1.30.10**
+- [YT-DLP](https://github.com/AAndyProgram/SCrawler/wiki/Settings#yt-dlp) - **2025.11.12**
+- [Deno](https://github.com/AAndyProgram/SCrawler/wiki/Settings#deno) - latest *(`2.0.0` or higher)*
 - [OF-Scraper](https://github.com/AAndyProgram/SCrawler/wiki/Settings#of-scraper) - **3.12.9** ([release](https://github.com/datawhores/OF-Scraper/releases/tag/3.12.9))
 
 # 2025
+
+## 2025.11.25.0
+
+*2025-11-25*
+
+**ATTENTION!**
+
+**An external JavaScript runtime is now required for full YouTube support**
+yt-dlp now requires users to have an external JavaScript runtime ([Deno](https://github.com/AAndyProgram/SCrawler/wiki/Settings#deno)) installed in order to solve the JavaScript challenges presented by YouTube.
+
+**xHamster is back.** 🥳🎉 xHamster's downloading algorithms now partially utilize yt-dlp, so yt-dlp is now required for this site.
+
+- Added
+  - Sites:
+    - TikTok: **download descriptions**
+  - Download groups: groups downloading among other options (more [here](https://github.com/AAndyProgram/SCrawler/wiki/Settings#download-groups))
+  - Saved posts: hotkey `Esc` to close the form
+  - Minor improvements
+- Updated
+  - yt-dlp up to version **2025.11.12**
+  - gallery-dl up to version **1.30.10**
+  - AutoDownloader: the modes are now removed. Now you can only enable/disable the auto download plan. All options can now be combined.
+- Fixed
+  - Sites:
+    - Twitter: the site name, description and avatar are not downloading
+    - xHamster: **data is not downloading**
+  - Minor bugs
+
 ## 2025.10.4.0
 
 *2025-10-04*

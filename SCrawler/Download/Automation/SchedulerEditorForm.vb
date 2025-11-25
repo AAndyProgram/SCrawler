@@ -507,24 +507,7 @@ Namespace DownloadObjects
         Private Sub ShowPlanUsers()
             Try
                 If _LatestSelected.ValueBetween(0, Settings.Automation.Count - 1) Then
-                    With Settings.Automation(_LatestSelected)
-                        Dim users As New List(Of API.Base.IUserData)
-                        If Not .Mode = AutoDownloader.Modes.None Then
-                            If .Mode = AutoDownloader.Modes.Groups Then
-                                If .Groups.Count > 0 Then
-                                    Dim i%
-                                    For Each groupName$ In .Groups
-                                        i = Settings.Groups.IndexOf(groupName)
-                                        If i >= 0 Then users.ListAddList(Groups.DownloadGroup.GetUsers(Settings.Groups(i)), LAP.NotContainsOnly, LAP.IgnoreICopier)
-                                    Next
-                                End If
-                            Else
-                                users.ListAddList(Groups.DownloadGroup.GetUsers(.Self))
-                            End If
-                        End If
-                        Groups.GroupUsersViewer.Show(users, $"S { .Name}")
-                        users.Clear()
-                    End With
+                    With Settings.Automation(_LatestSelected) : Groups.GroupUsersViewer.Show(Groups.DownloadGroup.GetUsers(.Self), $"S { .Name}") : End With
                 End If
             Catch ex As Exception
                 ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Show plan users")

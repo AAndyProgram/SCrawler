@@ -16,6 +16,7 @@ Namespace DownloadObjects
         Friend Event DownloadDone As NotificationEventHandler
         Friend Event ProgressChanged(ByVal Main As Boolean, ByVal IsMaxValue As Boolean, ByVal IsDone As Boolean)
         Friend Event FeedFilesChanged As TDownloader.FeedFilesChangedEventHandler
+        Friend Event KeyDown As KeyEventHandler
 #End Region
 #Region "Declarations"
 #Region "Controls"
@@ -126,6 +127,10 @@ Namespace DownloadObjects
                 TP_MAIN.Controls.Add(LBL_INFO, 0, 1)
             End If
 
+            For Each btt As Button In {BTT_OPEN, BTT_START, BTT_STOP}
+                If Not btt Is Nothing Then AddHandler btt.KeyDown, AddressOf BTT_KeyDown
+            Next
+
             With Job
                 .Progress = New MyProgressExt(PR_MAIN, PR_PRE, LBL_INFO) With {.ResetProgressOnMaximumChanges = False}
                 With DirectCast(.Progress, MyProgressExt)
@@ -148,6 +153,9 @@ Namespace DownloadObjects
                 .Text = String.Empty,
                 .Dock = DockStyle.Fill
             }
+        End Sub
+        Private Sub BTT_KeyDown(ByVal Sender As Object, ByVal e As KeyEventArgs)
+            RaiseEvent KeyDown(Sender, e)
         End Sub
 #End Region
         Friend Function [Get]() As TableLayoutPanel

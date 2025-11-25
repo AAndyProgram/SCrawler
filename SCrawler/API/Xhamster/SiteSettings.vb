@@ -15,6 +15,7 @@ Namespace API.Xhamster
     <Manifest(XhamsterSiteKey), SavedPosts, SpecialForm(True), SpecialForm(False), TaskGroup(SettingsCLS.TaskStackNamePornSite)>
     Friend Class SiteSettings : Inherits SiteSettingsBase
 #Region "Declarations"
+        Private Const CAT_YTDLP As String = "yt-dlp support"
         <PXML("Domains"), PClonable> Private ReadOnly Property SiteDomains As PropertyValue
         Private Shadows ReadOnly Property DefaultInstance As SiteSettings
             Get
@@ -33,6 +34,17 @@ Namespace API.Xhamster
                         ControlToolTip:="If enabled and the video is downloaded in a non-native format, the video will be re-encoded." & vbCr &
                                         "Attention! Enabling this setting results in maximum CPU usage."), PXML, PClonable>
         Friend ReadOnly Property ReencodeVideos As PropertyValue
+        <PropertyOption(ControlText:="Use yt-dlp to get file info", ControlToolTip:="If checked, yt-dlp will be used to get information about the file", Category:=CAT_YTDLP), PXML, PClonable, HiddenControl>
+        Friend ReadOnly Property UseYTDLPJSON As PropertyValue
+        <PropertyOption(ControlText:="Use yt-dlp to download the file", ControlToolTip:="If checked, yt-dlp will be used to download the file instead of the internal algorithm", Category:=CAT_YTDLP), PXML, PClonable, HiddenControl>
+        Friend ReadOnly Property UseYTDLPDownload As PropertyValue
+        Private ReadOnly Property UseYtDlp As Boolean
+            Get
+                Return CBool(UseYTDLPJSON.Value) Or CBool(UseYTDLPDownload.Value)
+            End Get
+        End Property
+        <PropertyOption(ControlText:="Disable internal algorithm", ControlToolTip:="If checked, the internal algorithm will be forcibly disabled and replaced with yt-dlp", Category:=CAT_YTDLP), PXML, PClonable, HiddenControl>
+        Friend ReadOnly Property UseYTDLPForceDisableInternal As PropertyValue
         <DoNotUse> Friend Overrides Property DownloadText As PropertyValue
         <DoNotUse> Friend Overrides Property DownloadTextPosts As PropertyValue
         <DoNotUse> Friend Overrides Property DownloadTextSpecialFolder As PropertyValue
@@ -46,12 +58,16 @@ Namespace API.Xhamster
             Domains.DestinationProp = SiteDomains
             DownloadUHD = New PropertyValue(False)
             ReencodeVideos = New PropertyValue(False)
+            UseYTDLPJSON = New PropertyValue(True)
+            UseYTDLPDownload = New PropertyValue(True)
+            UseYTDLPForceDisableInternal = New PropertyValue(False)
 
             _SubscriptionsAllowed = True
             UrlPatternUser = "https://xhamster.com/{0}/{1}"
             UserRegex = RParams.DMS($"/({UserOption}|{ChannelOption}|{P_Creators})/([^/]+)(\Z|.*)", 0, RegexReturn.ListByMatch)
             ImageVideoContains = "xhamster"
             UserOptionsType = GetType(UserExchangeOptions)
+            UseNetscapeCookies = True
         End Sub
         Friend Overrides Sub EndInit()
             Domains.PopulateInitialDomains(SiteDomains.Value)
@@ -75,9 +91,7 @@ Namespace API.Xhamster
             Return New UserData
         End Function
         Friend Overrides Function Available(ByVal What As ISiteSettings.Download, ByVal Silent As Boolean) As Boolean
-            'TODELETE: xHamster disabled
-            Return False
-            If Settings.UseM3U8 AndAlso MyBase.Available(What, Silent) Then
+            If (Not UseYtDlp Or (UseYtDlp And Settings.YtdlpFile.Exists)) AndAlso Settings.UseM3U8 AndAlso MyBase.Available(What, Silent) Then
                 If What = ISiteSettings.Download.SavedPosts Then
                     Return Responser.CookiesExists
                 Else
@@ -98,7 +112,7 @@ Namespace API.Xhamster
         End Function
 #Region "IsMyUser, IsMyImageVideo"
         Friend Const ChannelOption As String = "channels"
-        Private Const UserOption As String = "users"
+        Friend Const UserOption As String = "users/profiles"
         Friend Const P_Search As String = "search"
         Friend Const P_Tags As String = "tags"
         Friend Const P_Categories As String = "categories"

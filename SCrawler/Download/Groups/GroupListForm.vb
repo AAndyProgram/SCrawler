@@ -311,28 +311,15 @@ Namespace DownloadObjects.Groups
                     Dim users As New List(Of API.Base.IUserData)
                     If Not IsViewFilter Then
                         i = Settings.Groups.IndexOf(MyGroups(_LatestSelected))
-                        If i >= 0 Then users.ListAddList(DownloadGroup.GetUsers(Settings.Groups(i))) : n = $"F {Settings.Groups(i).Name}"
+                        If i >= 0 Then users.ListAddList(DownloadGroup.GetUsers(Settings.Groups(i)), LAP.IgnoreICopier) : n = $"F {Settings.Groups(i).Name}"
                     ElseIf _LatestSelected.ValueBetween(0, MyGroupParams.Count - 1) Then
                         With MyGroupParams(_LatestSelected)
+                            users.ListAddList(DownloadGroup.GetUsers(.Self), LAP.IgnoreICopier)
+                            n = .Name
                             If TypeOf .Self Is AutoDownloader Then
-                                With DirectCast(.Self, AutoDownloader)
-                                    If Not .Mode = AutoDownloader.Modes.None Then
-                                        If .Mode = AutoDownloader.Modes.Groups Then
-                                            If .Groups.Count > 0 Then
-                                                For Each groupName$ In .Groups
-                                                    i = Settings.Groups.IndexOf(groupName)
-                                                    If i >= 0 Then users.ListAddList(DownloadGroup.GetUsers(Settings.Groups(i)), LAP.NotContainsOnly, LAP.IgnoreICopier)
-                                                Next
-                                            End If
-                                        Else
-                                            users.ListAddList(DownloadGroup.GetUsers(.Self))
-                                        End If
-                                    End If
-                                    n = $"S { .Name}"
-                                End With
+                                n = $"S {n}"
                             ElseIf TypeOf .Self Is DownloadGroup Then
-                                i = Settings.Groups.IndexOf(.Name, .IsViewFilter)
-                                If i >= 0 Then users.ListAddList(DownloadGroup.GetUsers(Settings.Groups(i))) : n = $"G {Settings.Groups(i).Name}"
+                                n = $"G {n}"
                             End If
                         End With
                     End If

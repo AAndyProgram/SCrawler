@@ -35,13 +35,13 @@ Namespace DownloadObjects.Groups
             'CONTAINER_MAIN.ContentPanel
             '
             CONTAINER_MAIN.ContentPanel.Controls.Add(Me.DEFS_GROUP)
-            CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(476, 328)
+            CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(476, 331)
             CONTAINER_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
             CONTAINER_MAIN.LeftToolStripPanelVisible = False
             CONTAINER_MAIN.Location = New System.Drawing.Point(0, 0)
             CONTAINER_MAIN.Name = "CONTAINER_MAIN"
             CONTAINER_MAIN.RightToolStripPanelVisible = False
-            CONTAINER_MAIN.Size = New System.Drawing.Size(476, 328)
+            CONTAINER_MAIN.Size = New System.Drawing.Size(476, 356)
             CONTAINER_MAIN.TabIndex = 0
             CONTAINER_MAIN.TopToolStripPanelVisible = False
             '
@@ -53,7 +53,7 @@ Namespace DownloadObjects.Groups
             Me.DEFS_GROUP.Dock = System.Windows.Forms.DockStyle.Fill
             Me.DEFS_GROUP.Location = New System.Drawing.Point(0, 0)
             Me.DEFS_GROUP.Name = "DEFS_GROUP"
-            Me.DEFS_GROUP.RowCount = 13
+            Me.DEFS_GROUP.RowCount = 14
             Me.DEFS_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 0!))
             Me.DEFS_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             Me.DEFS_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
@@ -66,23 +66,24 @@ Namespace DownloadObjects.Groups
             Me.DEFS_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             Me.DEFS_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             Me.DEFS_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
+            Me.DEFS_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             Me.DEFS_GROUP.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            Me.DEFS_GROUP.Size = New System.Drawing.Size(476, 328)
+            Me.DEFS_GROUP.Size = New System.Drawing.Size(476, 331)
             Me.DEFS_GROUP.TabIndex = 0
             '
             'GroupEditorForm
             '
             Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
             Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-            Me.ClientSize = New System.Drawing.Size(476, 328)
+            Me.ClientSize = New System.Drawing.Size(476, 356)
             Me.Controls.Add(CONTAINER_MAIN)
             Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle
             Me.Icon = Global.SCrawler.My.Resources.Resources.GroupByIcon_16
             Me.KeyPreview = True
             Me.MaximizeBox = False
-            Me.MaximumSize = New System.Drawing.Size(492, 367)
+            Me.MaximumSize = New System.Drawing.Size(492, 395)
             Me.MinimizeBox = False
-            Me.MinimumSize = New System.Drawing.Size(492, 367)
+            Me.MinimumSize = New System.Drawing.Size(492, 395)
             Me.Name = "GroupEditorForm"
             Me.ShowInTaskbar = False
             Me.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide

@@ -144,7 +144,7 @@ Namespace DownloadObjects
 
                     If UpdateBase Then UpdateBaseButton(Not p = PauseModes.Disabled)
                     If Not VerifyAll OrElse Settings.Automation.All(Function(ByVal plan As AutoDownloader) As Boolean
-                                                                        If plan.Mode = AutoDownloader.Modes.None Then
+                                                                        If Not plan.Enabled Then
                                                                             Return True
                                                                         Else
                                                                             Return plan.Pause = p

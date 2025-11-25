@@ -10,10 +10,11 @@ Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Forms.Controls
 Imports PersonalUtilities.Forms.Controls.Base
 Imports ADB = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons
+Imports CaptionModes = PersonalUtilities.Forms.Controls.Base.ICaptionControl.Modes
 Namespace DownloadObjects.Groups
     Public Class GroupDefaults : Inherits TableLayoutPanel
 #Region "Constants"
-        Friend Const CaptionWidthDefault As Integer = 55
+        Friend Const CaptionWidthDefault As Integer = 60 '55
 #End Region
 #Region "Declarations"
         Private ReadOnly TP_1 As TableLayoutPanel 'CH_REGULAR, CH_TEMPORARY, CH_FAV
@@ -49,13 +50,20 @@ Namespace DownloadObjects.Groups
 
         Private WithEvents TXT_LABELS As TextBoxExtended
         Private WithEvents TXT_SITES As TextBoxExtended
+        Private WithEvents TXT_GROUPS As TextBoxExtended
         Friend WithEvents TXT_NAME As TextBoxExtended
 
         Private ReadOnly Labels As List(Of String)
         Private ReadOnly LabelsExcluded As List(Of String)
         Private ReadOnly Sites As List(Of String)
         Private ReadOnly SitesExcluded As List(Of String)
+        Private ReadOnly Groups As List(Of String)
         Private ReadOnly TT_MAIN As ToolTip
+        Friend ReadOnly Property GroupsOnly As Boolean
+            Get
+                Return TXT_GROUPS.Checked
+            End Get
+        End Property
 #End Region
 #Region "Initializer"
         Public Sub New()
@@ -63,6 +71,7 @@ Namespace DownloadObjects.Groups
             LabelsExcluded = New List(Of String)
             Sites = New List(Of String)
             SitesExcluded = New List(Of String)
+            Groups = New List(Of String)
             TT_MAIN = New ToolTip
 
             InitTextBox(TXT_LABELS, "Labels", {New ActionButton(ADB.Edit) With {.ToolTipText = "Edit selected labels"},
@@ -72,6 +81,16 @@ Namespace DownloadObjects.Groups
             InitTextBox(TXT_SITES, "Sites", {New ActionButton(ADB.Edit) With {.ToolTipText = "Edit selected sites"},
                                              New ActionButton(ADB.Delete) With {.ToolTipText = "Edit excluded sites"}, ADB.Clear})
             TXT_SITES.TextBoxReadOnly = True
+
+            InitTextBox(TXT_GROUPS, "Groups", {New ActionButton(ADB.Edit) With {.ToolTipText = "Edit selected groups"}, ADB.Clear}, CaptionModes.CheckBox)
+            With TXT_GROUPS
+                .TextBoxReadOnly = True
+                .CaptionCheckAlign = ContentAlignment.MiddleLeft
+                .ChangeControlsEnableOnCheckedChange = False
+                .CaptionToolTipText = "If checked, only the selected groups will be downloaded. All other options will be ignored."
+                .CaptionToolTipEnabled = True
+                .EndInit()
+            End With
 
             InitTextBox(TXT_NAME, "Name", {ADB.Clear})
 
@@ -209,12 +228,14 @@ Namespace DownloadObjects.Groups
                 .EndInit()
             End With
         End Sub
-        Private Sub InitTextBox(ByRef TXT As TextBoxExtended, ByVal Caption As String, ByVal Buttons As ActionButton())
+        Private Sub InitTextBox(ByRef TXT As TextBoxExtended, ByVal Caption As String, ByVal Buttons As ActionButton(),
+                                Optional ByVal CaptionMode As CaptionModes = CaptionModes.Label)
             TXT = New TextBoxExtended
             With TXT
                 .BeginInit()
                 .Buttons.AddRange(Buttons)
                 .CaptionText = Caption
+                .CaptionMode = CaptionMode
                 .CaptionWidth = CaptionWidthDefault
                 .Dock = DockStyle.Fill
                 .EndInit()
@@ -240,7 +261,7 @@ Namespace DownloadObjects.Groups
                 CellBorderStyle = TableLayoutPanelCellBorderStyle.Single
                 ColumnCount = 1
                 ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 100))
-                RowCount = 13
+                RowCount = 14
                 RowStyles.Add(New RowStyle(SizeType.Absolute, 25))
                 RowStyles.Add(New RowStyle(SizeType.Absolute, 28))
                 RowStyles.Add(New RowStyle(SizeType.Absolute, 25))
@@ -251,6 +272,7 @@ Namespace DownloadObjects.Groups
                 RowStyles.Add(New RowStyle(SizeType.Absolute, 28))
                 RowStyles.Add(New RowStyle(SizeType.Absolute, 28))
                 RowStyles.Add(New RowStyle(SizeType.Absolute, 25))
+                RowStyles.Add(New RowStyle(SizeType.Absolute, 28))
                 RowStyles.Add(New RowStyle(SizeType.Absolute, 28))
                 RowStyles.Add(New RowStyle(SizeType.Absolute, 28))
                 RowStyles.Add(New RowStyle(SizeType.Percent, 100))
@@ -269,6 +291,7 @@ Namespace DownloadObjects.Groups
 
             Controls.Add(TXT_LABELS, 0, 10)
             Controls.Add(TXT_SITES, 0, 11)
+            Controls.Add(TXT_GROUPS, 0, 12)
         End Sub
 #End Region
 #Region "Control handlers"
@@ -277,6 +300,7 @@ Namespace DownloadObjects.Groups
             LabelsExcluded.Clear()
             Sites.Clear()
             SitesExcluded.Clear()
+            Groups.Clear()
             CH_REGULAR.Dispose()
             CH_TEMPORARY.Dispose()
             CH_FAV.Dispose()
@@ -296,6 +320,7 @@ Namespace DownloadObjects.Groups
             NUM_DAYS.Dispose()
             TXT_LABELS.Dispose()
             TXT_SITES.Dispose()
+            TXT_GROUPS.Dispose()
             TXT_NAME.Dispose()
             TT_MAIN.Dispose()
             ClearTP(TP_1)
@@ -357,6 +382,20 @@ Namespace DownloadObjects.Groups
                 Case ADB.Clear : Sites.Clear() : SitesExcluded.Clear() : TXT_SITES.Clear() : UpdateSitesText()
             End Select
         End Sub
+        Private Sub TXT_GROUPS_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As ActionButtonEventArgs) Handles TXT_GROUPS.ActionOnButtonClick
+            Select Case Sender.DefaultButton
+                Case ADB.Edit
+                    Using f As New LabelsForm(Groups, (From g As DownloadGroup In Settings.Groups Where Not g.IsViewFilter Select g.Name)) With {
+                        .Text = "Groups (F3 to edit)",
+                        .Icon = My.Resources.GroupByIcon_16,
+                        .IsGroups = True
+                    }
+                        f.ShowDialog()
+                        If f.DialogResult = DialogResult.OK Then Groups.ListAddList(f.LabelsList, LAP.ClearBeforeAdd) : UpdateGroupsText()
+                    End Using
+                Case ADB.Clear : Groups.Clear() : TXT_GROUPS.Clear() : UpdateGroupsText()
+            End Select
+        End Sub
         Private Sub UpdateLabelsText()
             TXT_LABELS.Clear()
             If Not _JustExcludeOptions Then TXT_LABELS.Text = Labels.ListToString
@@ -366,6 +405,10 @@ Namespace DownloadObjects.Groups
             TXT_SITES.Clear()
             If Not _JustExcludeOptions Then TXT_SITES.Text = Sites.ListToString
             If SitesExcluded.Count > 0 Then TXT_SITES.Text.StringAppend($"EXCLUDED: {SitesExcluded.ListToString}", "; ")
+        End Sub
+        Private Sub UpdateGroupsText()
+            TXT_GROUPS.Clear()
+            TXT_GROUPS.Text = Groups.ListToString
         End Sub
 #End Region
 #Region "Get/set"
@@ -410,6 +453,9 @@ Namespace DownloadObjects.Groups
                     .Sites.ListAddList(Sites)
                     .SitesExcluded.Clear()
                     .SitesExcluded.ListAddList(SitesExcluded)
+                    .Groups.Clear()
+                    .Groups.ListAddList(Groups)
+                    .GroupsOnly = GroupsOnly
                 End With
             End If
         End Sub
@@ -457,6 +503,10 @@ Namespace DownloadObjects.Groups
                     Sites.ListAddList(.Sites)
                     SitesExcluded.ListAddList(.SitesExcluded)
                     UpdateSitesText()
+
+                    Groups.ListAddList(.Groups)
+                    TXT_GROUPS.Checked = .GroupsOnly
+                    UpdateGroupsText()
                 End With
             End If
         End Sub
@@ -481,8 +531,26 @@ Namespace DownloadObjects.Groups
                 NUM_DAYS.Enabled = e
                 TXT_LABELS.Enabled = e
                 TXT_SITES.Enabled = e
+                TXT_GROUPS.Enabled = e
                 UpdateLabelsText()
                 UpdateSitesText()
+                UpdateGroupsText()
+            End Set
+        End Property
+        Friend Property GroupsEnabled As Boolean
+            Get
+                Return TXT_GROUPS.Enabled
+            End Get
+            Set(ByVal e As Boolean)
+                TXT_GROUPS.Enabled = e
+            End Set
+        End Property
+        Friend Property LabelsEnabled As Boolean
+            Get
+                Return TXT_LABELS.Enabled
+            End Get
+            Set(ByVal e As Boolean)
+                TXT_LABELS.Enabled = e
             End Set
         End Property
 #End Region

@@ -533,16 +533,19 @@ Namespace API.Twitter
                                                     With j({"data", "user", "result"})
                                                         If .ListExists Then
                                                             If ID.IsEmptyString Then ID = .Value("rest_id")
+                                                            icon = .Value({"avatar"}, "image_url")
+                                                            UserSiteNameUpdate(.Value({"core"}, "name"))
+                                                            Dim tScreenName$ = .Value({"core"}, "screen_name")
                                                             With .Item({"legacy"})
                                                                 If .ListExists Then
-                                                                    If .Value("screen_name").StringToLower = NameTrue.ToLower Then
+                                                                    If .Value("screen_name").IfNullOrEmpty(tScreenName).StringToLower = NameTrue.ToLower Then
                                                                         UserSiteNameUpdate(.Value("name"))
                                                                         UserDescriptionUpdate(.Value("description"))
 
-                                                                        icon = .Value("profile_image_url_https")
+                                                                        If icon.IsEmptyString Then icon = .Value("profile_image_url_https")
                                                                         If Not icon.IsEmptyString Then icon = icon.Replace("_normal", String.Empty)
                                                                         If DownloadIconBanner Then
-                                                                            SimpleDownloadAvatar(.Value("profile_banner_url"), fileCrFunc)
+                                                                            SimpleDownloadAvatar(.Value("profile_banner_url").IfNullOrEmpty(.Value({"legacy"}, "profile_banner_url")), fileCrFunc)
                                                                             SimpleDownloadAvatar(icon, fileCrFunc)
                                                                         End If
                                                                     End If
@@ -852,9 +855,7 @@ nextpIndx:
             Private ReadOnly KillOnLimit As Boolean
             Friend LimitReached As Boolean = False
             Friend Sub New(ByVal Dir As SFile, ByVal _Token As CancellationToken, ByVal _KillOnLimit As Boolean)
-                MyBase.New(_Token)
-                Commands.Clear()
-                If Not Dir.IsEmptyString Then ChangeDirectory(Dir)
+                MyBase.New(_Token,, Dir)
                 KillOnLimit = _KillOnLimit
             End Sub
             Protected Overrides Async Function Validate(ByVal Value As String) As Task

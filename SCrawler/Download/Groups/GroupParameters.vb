@@ -16,6 +16,8 @@ Namespace DownloadObjects.Groups
         Property LabelsExcludedIgnore As Boolean
         ReadOnly Property Sites As List(Of String)
         ReadOnly Property SitesExcluded As List(Of String)
+        ReadOnly Property Groups As List(Of String)
+        Property GroupsOnly As Boolean
         Property Regular As Boolean
         Property Temporary As Boolean
         Property Favorite As Boolean
@@ -56,6 +58,8 @@ Namespace DownloadObjects.Groups
         Protected Const Name_LabelsExcludedIgnore As String = "LabelsExcludedIgnore"
         Protected Const Name_Sites As String = "Sites"
         Protected Const Name_Sites_Excluded As String = "SitesExcluded"
+        Protected Const Name_Groups As String = "Groups"
+        Protected Const Name_GroupsOnly As String = "GroupsOnly"
         Protected Const Name_DaysNumber As String = "DaysNumber"
         Protected Const Name_DaysIsDownloaded As String = "DaysIsDownloaded"
         Protected Const Name_UserDeleted As String = "UserDeleted"
@@ -74,6 +78,8 @@ Namespace DownloadObjects.Groups
         Friend Property LabelsExcludedIgnore As Boolean = False Implements IGroup.LabelsExcludedIgnore
         Friend ReadOnly Property Sites As List(Of String) Implements IGroup.Sites
         Friend ReadOnly Property SitesExcluded As List(Of String) Implements IGroup.SitesExcluded
+        Friend ReadOnly Property Groups As List(Of String) Implements IGroup.Groups
+        Friend Property GroupsOnly As Boolean = False Implements IGroup.GroupsOnly
         Friend Property Regular As Boolean = True Implements IGroup.Regular
         Friend Property Temporary As Boolean = True Implements IGroup.Temporary
         Friend Property Favorite As Boolean = True Implements IGroup.Favorite
@@ -98,6 +104,7 @@ Namespace DownloadObjects.Groups
             LabelsExcluded = New List(Of String)
             Sites = New List(Of String)
             SitesExcluded = New List(Of String)
+            Groups = New List(Of String)
         End Sub
 #End Region
 #Region "Base functions"
@@ -121,6 +128,8 @@ Namespace DownloadObjects.Groups
                 LabelsExcludedIgnore = .LabelsExcludedIgnore
                 Sites.ListAddList(.Sites, LAP.ClearBeforeAdd)
                 SitesExcluded.ListAddList(.SitesExcluded, LAP.ClearBeforeAdd)
+                Groups.ListAddList(.Groups, LAP.ClearBeforeAdd)
+                GroupsOnly = .GroupsOnly
                 Regular = .Regular
                 Temporary = .Temporary
                 Favorite = .Favorite
@@ -153,6 +162,8 @@ Namespace DownloadObjects.Groups
             LabelsExcludedIgnore = e.Value(Name_LabelsExcludedIgnore).FromXML(Of Boolean)(False)
             If Not e.Value(Name_Sites).IsEmptyString Then Sites.ListAddList(e.Value(Name_Sites).Split("|"), l)
             If Not e.Value(Name_Sites_Excluded).IsEmptyString Then SitesExcluded.ListAddList(e.Value(Name_Sites_Excluded).Split("|"), l)
+            If Not e.Value(Name_Groups).IsEmptyString Then Groups.ListAddList(e.Value(Name_Groups).Split("|"), l)
+            GroupsOnly = e.Value(Name_GroupsOnly).FromXML(Of Boolean)(False)
 
             Regular = e.Value(Name_Regular).FromXML(Of Boolean)(True)
             Temporary = e.Value(Name_Temporary).FromXML(Of Boolean)(True)
@@ -190,6 +201,8 @@ Namespace DownloadObjects.Groups
                         New EContainer(Name_LabelsExcludedIgnore, LabelsExcludedIgnore.BoolToInteger),
                         New EContainer(Name_Sites, Sites.ListToString("|")),
                         New EContainer(Name_Sites_Excluded, SitesExcluded.ListToString("|")),
+                        New EContainer(Name_Groups, Groups.ListToString("|")),
+                        New EContainer(Name_GroupsOnly, GroupsOnly.BoolToInteger),
                         New EContainer(Name_Regular, Regular.BoolToInteger),
                         New EContainer(Name_Temporary, Temporary.BoolToInteger),
                         New EContainer(Name_Favorite, Favorite.BoolToInteger),
@@ -219,6 +232,7 @@ Namespace DownloadObjects.Groups
                     LabelsExcluded.Clear()
                     Sites.Clear()
                     SitesExcluded.Clear()
+                    Groups.Clear()
                 End If
                 disposedValue = True
             End If

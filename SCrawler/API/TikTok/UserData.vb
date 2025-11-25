@@ -73,6 +73,7 @@ Namespace API.TikTok
         Friend Overrides Sub ExchangeOptionsSet(ByVal Obj As Object)
             If Not Obj Is Nothing AndAlso TypeOf Obj Is UserExchangeOptions Then
                 With DirectCast(Obj, UserExchangeOptions)
+                    .ApplyBase(Me)
                     RemoveTagsFromTitle = .RemoveTagsFromTitle
                     TitleUseNative = .TitleUseNative
                     TitleAddVideoID = .TitleAddVideoID
@@ -175,7 +176,7 @@ Namespace API.TikTok
             UserCache = CreateCache()
             Try
                 Const photoPrefix$ = "photo_"
-                Dim postID$, title$, postUrl$, newName$, t$, postID2$, imgUrl$
+                Dim postID$, title$, postUrl$, newName$, t$, postID2$, imgUrl$, pText$
                 Dim postDate As Date?
                 Dim dateAfterC As Date? = Nothing
                 Dim dateBefore As Date? = DownloadDateTo
@@ -216,17 +217,14 @@ Namespace API.TikTok
 
                 If DownloadVideos And Settings.YtdlpFile.Exists And CBool(MySettings.DownloadTTVideos.Value) Then
                     With UserCache.NewInstance : .Validate() : vPath = .RootDirectory : End With
-                    Using b As New YTDLP.YTDLPBatch(Token) With {.TempPostsList = _TempPostsList}
-                        b.Commands.Clear()
-                        b.ChangeDirectory(vPath)
-                        b.Encoding = BatchExecutor.UnicodeEncoding
+                    Using b As New YTDLP.YTDLPBatch(Token,, vPath) With {.TempPostsList = _TempPostsList}
                         b.Execute(CreateYTCommand(vPath, URL, False, dateBefore, dateAfter))
                     End Using
                 End If
 
                 If DownloadImages And Settings.GalleryDLFile.Exists And CBool(MySettings.DownloadTTPhotos.Value) Then
                     With UserCache.NewInstance : .Validate() : pPath = .RootDirectory : End With
-                    Using b As New GDL.GDLBatch(Token)
+                    Using b As New GDL.GDLBatch(Token,, pPath)
                         With b
                             If PhotosDownloaded And _TempPostsList.Count > 0 Then
                                 .TempPostsList = (From p As String In _TempPostsList
@@ -235,8 +233,6 @@ Namespace API.TikTok
                             Else
                                 .TempPostsList = New List(Of String)
                             End If
-                            .ChangeDirectory(pPath)
-                            .Encoding = BatchExecutor.UnicodeEncoding
                             .Execute(CreateGDLCommand(URL))
                             If Not PhotosDownloaded Then _ForceSaveUserInfo = True : _ForceSaveUserInfoOnException = True
                             PhotosDownloaded = True
@@ -270,6 +266,8 @@ Namespace API.TikTok
                                     End If
                                     title = GetNewFileName(j.Value("title").StringRemoveWinForbiddenSymbols,
                                                            TitleUseNative, RemoveTagsFromTitle, TitleAddVideoID, postID, titleRegex)
+                                    pText = j.Value("title")
+                                    If Not j.Value("description").IsEmptyString Then pText &= vbCr & vbCr & j.Value("description")
                                     postDate = AConvert(Of Date)(j.Value("timestamp"), UnixDate32Provider, Nothing)
                                     If Not postDate.HasValue Then postDate = AConvert(Of Date)(j.Value("upload_date"), SimpleDateConverter, Nothing)
                                     Select Case CheckDatesLimit(postDate, SimpleDateConverter)
@@ -280,7 +278,12 @@ Namespace API.TikTok
                                     postUrl = j.Value("webpage_url")
                                     If postUrl.IsEmptyString Then postUrl = $"https://www.tiktok.com/@{Name}/video/{postID}"
                                     _TempMediaList.Add(New UserMedia(postUrl, UTypes.Video) With {
-                                                       .File = $"{title}.mp4", .Post = New UserPost(postID, postDate)})
+                                                       .File = $"{title}.mp4",
+                                                       .Post = New UserPost(postID, postDate),
+                                                       .PostText = pText,
+                                                       .PostTextFileSpecialFolder = DownloadTextSpecialFolder,
+                                                       .PostTextFile = $"{ .File.Name}.txt"
+                                                       })
                                 End If
                                 j.Dispose()
                             End If
@@ -302,7 +305,7 @@ Namespace API.TikTok
                                             postID = .Value("id")
                                             postID2 = $"{photoPrefix}{postID}"
                                             If Not _TempPostsList.Contains(postID2) Then _TempPostsList.ListAddValue(postID2, LNC) Else Exit For 'Exit Sub
-                                            postDate = AConvert(Of Date)(j.Value("createTime"), UnixDate32Provider, Nothing)
+                                            postDate = AConvert(Of Date)(.Value("createTime"), UnixDate32Provider, Nothing)
                                             Select Case CheckDatesLimit(postDate, SimpleDateConverter)
                                                 Case DateResult.Skip : Continue For
                                                 Case DateResult.Exit : Exit For 'Exit Sub
@@ -330,8 +333,10 @@ Namespace API.TikTok
                                                 End With
                                             End If
 
-                                            title = GetNewFileName(j.Value({"imagePost"}, "title").StringRemoveWinForbiddenSymbols,
+                                            title = GetNewFileName(.Value({"imagePost"}, "title").StringRemoveWinForbiddenSymbols,
                                                                    TitleUseNative, RemoveTagsFromTitle, TitleAddVideoID, postID, titleRegex)
+                                            pText = .Value({"imagePost"}, "title")
+                                            If Not .Value("desc").IsEmptyString Then pText &= vbCr & vbCr & .Value("desc")
                                             postUrl = $"https://www.tiktok.com/@{Name}/photo/{postID}"
                                             With .Item({"imagePost", "images"})
                                                 If .ListExists Then
@@ -346,7 +351,11 @@ Namespace API.TikTok
                                                                               .URL_BASE = postUrl,
                                                                               .SpecialFolder = "Photo",
                                                                               .File = $"{title}{IIf(c > 1, $"_{i.NumToString(ANumbers.Formats.NumberGroup, cc)}", String.Empty)}.jpg",
-                                                                              .Post = New UserPost(postID, postDate)})
+                                                                              .Post = New UserPost(postID, postDate),
+                                                                              .PostText = pText,
+                                                                              .PostTextFileSpecialFolder = DownloadTextSpecialFolder,
+                                                                              .PostTextFile = $"{ .File.Name}.txt"
+                                                                              })
                                                     Next
                                                 End If
                                             End With
@@ -456,7 +465,6 @@ Namespace API.TikTok
         End Function
         Protected Overrides Function DownloadFile(ByVal URL As String, ByVal Media As UserMedia, ByVal DestinationFile As SFile, ByVal Token As CancellationToken) As SFile
             Using b As New TokenBatch(Token) With {.FileExchanger = RootCacheTikTok}
-                b.Encoding = BatchExecutor.UnicodeEncoding
                 b.Execute(CreateYTCommand(DestinationFile, URL, True))
             End Using
             If DestinationFile.Exists Then Return DestinationFile Else Return Nothing
@@ -477,7 +485,6 @@ Namespace API.TikTok
                 t = UTypes.Video
                 If CBool(MySettings.TitleUseNativeSTD.Value) Then
                     Using b As New BatchExecutor(True) With {
-                        .Encoding = BatchExecutor.UnicodeEncoding,
                         .CleanAutomaticallyViaRegEx = True,
                         .CleanAutomaticallyViaRegExRemoveAllCommands = True
                     }
@@ -498,11 +505,7 @@ Namespace API.TikTok
                 Data.Title = defName
                 Dim dir As SFile
                 With If(Cache, Settings.Cache).NewInstance() : .Validate() : dir = .RootDirectory : End With
-                Using b As New GDL.GDLBatch(Token)
-                    b.ChangeDirectory(dir)
-                    b.Encoding = BatchExecutor.UnicodeEncoding
-                    b.Execute(CreateGDLCommand(Data.URL))
-                End Using
+                Using b As New GDL.GDLBatch(Token,, dir) : b.Execute(CreateGDLCommand(Data.URL)) : End Using
                 Dim file As SFile = SFile.GetFiles(dir, "*.txt",, EDP.ReturnValue).FirstOrDefault
                 If file.Exists Then
                     Dim r$ = file.GetText(EDP.ReturnValue)

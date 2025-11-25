@@ -801,29 +801,6 @@ CloseResume:
                     f.ShowDialog()
                     If f.DialogResult = DialogResult.OK Then
                         Dim filter As GroupParameters = f.FilterSelected
-                        If Not filter Is Nothing AndAlso TypeOf filter Is AutoDownloader Then
-                            With DirectCast(filter, AutoDownloader)
-                                If .Mode = AutoDownloader.Modes.Groups Then
-                                    If .Groups.Count = 0 Then
-                                        MsgBoxE({"The scheduler plan you select doesn't contain any group!", msgTitle}, vbCritical)
-                                        Exit Sub
-                                    ElseIf .Groups.Count > 1 Then
-                                        MsgBoxE({"The scheduler plan you select contains more than one group." & vbCr &
-                                                 "You need to choose a plan with one group or without groups!", msgTitle}, vbCritical)
-                                        Exit Sub
-                                    Else
-                                        Dim i% = Settings.Groups.IndexOf(.Groups(0))
-                                        If i >= 0 Then
-                                            filter = Settings.Groups(i).Copy
-                                        Else
-                                            MsgBoxE({$"A group named '{ .Groups(0)}' cannot be found in existing groups.", msgTitle}, vbCritical)
-                                            filter = Nothing
-                                            Exit Sub
-                                        End If
-                                    End If
-                                End If
-                            End With
-                        End If
                         If Not filter Is Nothing Then
                             If filter.IsViewFilter Then
                                 With DirectCast(filter, DownloadGroup)

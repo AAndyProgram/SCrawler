@@ -58,6 +58,11 @@ Namespace API.Base
                     Return Type = Types.Audio Or Type = Types.AudioPre
                 End Get
             End Property
+            Friend ReadOnly Property IsPhotoType As Boolean
+                Get
+                    Return Type = Types.Picture Or Type = Types.GIF
+                End Get
+            End Property
             Friend URL_BASE As String
             Friend URL As String
             Friend MD5 As String

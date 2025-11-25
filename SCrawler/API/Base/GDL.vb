@@ -10,10 +10,8 @@ Namespace API.Base.GDL
     Friend Class GDLBatch : Inherits TokenBatch
         Friend Const UrlLibStart As String = "[urllib3.connectionpool][debug]"
         Friend Const UrlTextStart As String = UrlLibStart & " https"
-        Friend Sub New(ByVal _Token As Threading.CancellationToken)
-            MyBase.New(_Token)
-            MainProcessName = "gallery-dl"
-            ChangeDirectory(Settings.GalleryDLFile.File)
+        Friend Sub New(ByVal _Token As Threading.CancellationToken, Optional ByVal __MainProcessName As String = Nothing, Optional ByVal WorkingDir As SFile = Nothing)
+            MyBase.New(_Token, __MainProcessName.IfNullOrEmpty(Settings.GalleryDLFile.File.Name), WorkingDir.IfNullOrEmpty(Settings.GalleryDLFile.File))
         End Sub
         Protected Overrides Async Sub OutputDataReceiver(ByVal Sender As Object, ByVal e As DataReceivedEventArgs)
             If Not ProcessKilled Then

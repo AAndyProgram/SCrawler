@@ -8,11 +8,8 @@
 ' but WITHOUT ANY WARRANTY
 Namespace API.Base.YTDLP
     Friend Class YTDLPBatch : Inherits GDL.GDLBatch
-        Friend Sub New(ByVal _Token As Threading.CancellationToken)
-            MyBase.New(_Token)
-            Commands.Clear()
-            MainProcessName = Settings.YtdlpFile.File.Name '"yt-dlp"
-            ChangeDirectory(Settings.YtdlpFile.File)
+        Friend Sub New(ByVal _Token As Threading.CancellationToken, Optional ByVal __MainProcessName As String = Nothing, Optional ByVal WorkingDir As SFile = Nothing)
+            MyBase.New(_Token, __MainProcessName.IfNullOrEmpty(Settings.YtdlpFile.File.Name), WorkingDir.IfNullOrEmpty(Settings.YtdlpFile.File))
         End Sub
     End Class
 End Namespace

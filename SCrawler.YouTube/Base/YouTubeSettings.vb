@@ -501,6 +501,9 @@ Namespace API.YouTube.Base
             TypeConverter(GetType(ValueCollectionConverter)),
             Description("Additional format for downloading subtitles. This means that all subtitles will be converted to the formats you choose and saved as separate files.")>
         Public ReadOnly Property DefaultSubtitlesFormatAddit As XMLValuesCollection(Of String)
+        <Browsable(True), GridVisible, XMLVN({"DefaultsSubtitles"}), Category("Defaults Subtitles"), DisplayName("Embed subtitles"),
+            Description("Embed subtitles in the video (only for mp4, webm and mkv videos)")>
+        Public ReadOnly Property DefaultSubtitlesEmbed As XMLValue(Of Boolean)
 #End Region
 #Region "Trim"
         <Browsable(True), GridVisible, XMLVN({"DefaultsTrim"}, False), Category("Defaults Trimming"), DisplayName("Delete original file"),

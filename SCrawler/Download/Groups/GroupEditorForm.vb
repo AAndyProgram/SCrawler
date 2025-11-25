@@ -78,6 +78,8 @@ Namespace DownloadObjects.Groups
                 .MyFieldsChecker.EndLoaderOperations()
                 .EndLoaderOperations()
                 .MyOkCancel.EnableOK = True
+                If Settings.Labels.Count = 0 Then DEFS_GROUP.LabelsEnabled = False
+                If Settings.Groups.Count = 0 Then DEFS_GROUP.GroupsEnabled = False
             End With
         End Sub
         Private Sub GroupEditorForm_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown

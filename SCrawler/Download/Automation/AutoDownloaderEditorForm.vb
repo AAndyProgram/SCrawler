@@ -9,17 +9,14 @@
 Imports SCrawler.DownloadObjects.Groups
 Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Forms.Controls.Base
-Imports DModes = SCrawler.DownloadObjects.AutoDownloader.Modes
 Namespace DownloadObjects
     Friend Class AutoDownloaderEditorForm
         Private WithEvents MyDefs As DefaultFormOptions
-        Private ReadOnly MyGroups As List(Of String)
         Private ReadOnly Property Plan As AutoDownloader
         Friend Sub New(ByRef _Plan As AutoDownloader)
             InitializeComponent()
             Plan = _Plan
             MyDefs = New DefaultFormOptions(Me, Settings.Design)
-            MyGroups.ListAddList(Plan.Groups, LAP.NotContainsOnly)
         End Sub
         Private Class AutomationTimerChecker : Inherits FieldsCheckerProviderBase
             Public Overrides Property ErrorMessage As String
@@ -45,19 +42,12 @@ Namespace DownloadObjects
                 .MyViewInitialize(True)
                 .AddOkCancelToolbar()
                 With Plan
-                    Select Case .Mode
-                        Case DModes.None : OPT_DISABLED.Checked = True
-                        Case DModes.Specified : OPT_SPEC.Checked = True
-                        Case DModes.Groups : OPT_GROUP.Checked = True
-                    End Select
+                    If Enabled Then OPT_ENABLED.Checked = True Else OPT_DISABLED.Checked = True
 
-                    TXT_GROUPS.CaptionWidth = GroupDefaults.CaptionWidthDefault
                     TXT_TIMER.CaptionWidth = GroupDefaults.CaptionWidthDefault
                     NUM_DELAY.CaptionWidth = GroupDefaults.CaptionWidthDefault
 
                     DEF_GROUP.Set(Plan)
-                    If MyGroups.Count > 0 Then TXT_GROUPS.Text = MyGroups.ListToString
-                    If Settings.Groups.Count = 0 Then TXT_GROUPS.Clear() : TXT_GROUPS.Enabled = False
                     CH_NOTIFY.Checked = .ShowNotifications
                     CH_NOTIFY_SIMPLE.Checked = .ShowSimpleNotification
                     CH_SHOW_PIC.Checked = .ShowPictureDownloaded
@@ -79,27 +69,14 @@ Namespace DownloadObjects
                 If DEF_GROUP.TXT_NAME.IsEmptyString And Settings.Automation.Count = 0 Then DEF_GROUP.TXT_NAME.Text = "Default"
             End With
         End Sub
-        Private Sub AutoDownloaderEditorForm_Disposed(sender As Object, e As EventArgs) Handles Me.Disposed
-            MyGroups.Clear()
-        End Sub
         Private Sub AutoDownloaderEditorForm_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
             Try
                 If e = ShowUsersButtonKey AndAlso Not OPT_DISABLED.Checked Then
                     Dim users As New List(Of API.Base.IUserData)
-                    If OPT_GROUP.Checked Then
-                        If MyGroups.Count > 0 Then
-                            Dim i%
-                            For Each groupName$ In MyGroups
-                                i = Settings.Groups.IndexOf(groupName)
-                                If i >= 0 Then users.ListAddList(DownloadGroup.GetUsers(Settings.Groups(i)), LAP.NotContainsOnly, LAP.IgnoreICopier)
-                            Next
-                        End If
-                    Else
-                        Using g As New GroupParameters
-                            DEF_GROUP.Get(g)
-                            users.ListAddList(DownloadGroup.GetUsers(g))
-                        End Using
-                    End If
+                    Using g As New GroupParameters
+                        DEF_GROUP.Get(g)
+                        users.ListAddList(DownloadGroup.GetUsers(g), LAP.IgnoreICopier)
+                    End Using
                     GroupUsersViewer.Show(users, $"S {DEF_GROUP.TXT_NAME.Text}")
                     users.Clear()
                 End If
@@ -110,14 +87,8 @@ Namespace DownloadObjects
         Private Sub MyDefs_ButtonOkClick(ByVal Sender As Object, ByVal e As KeyHandleEventArgs) Handles MyDefs.ButtonOkClick
             If MyDefs.MyFieldsChecker.AllParamsOK Then
                 With Plan
-                    Select Case True
-                        Case OPT_DISABLED.Checked : .Mode = DModes.None
-                        Case OPT_SPEC.Checked : .Mode = DModes.Specified
-                        Case OPT_GROUP.Checked : .Mode = DModes.Groups
-                    End Select
+                    .Enabled = OPT_ENABLED.Checked
                     DEF_GROUP.Get(Plan)
-                    .Groups.Clear()
-                    .Groups.ListAddList(MyGroups)
                     .ShowNotifications = CH_NOTIFY.Checked
                     .ShowSimpleNotification = CH_NOTIFY_SIMPLE.Checked
                     .ShowPictureDownloaded = CH_SHOW_PIC.Checked
@@ -131,42 +102,20 @@ Namespace DownloadObjects
                 MyDefs.CloseForm()
             End If
         End Sub
-        Private Sub TXT_GROUPS_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As EventArgs) Handles TXT_GROUPS.ActionOnButtonClick
-            Select Case Sender.DefaultButton
-                Case ActionButton.DefaultButtons.Edit
-                    Using f As New LabelsForm(MyGroups, (From g As DownloadGroup In Settings.Groups Where Not g.IsViewFilter Select g.Name)) With {
-                        .Text = "Groups (F3 to edit)",
-                        .Icon = My.Resources.GroupByIcon_16,
-                        .IsGroups = True
-                    }
-                        f.ShowDialog()
-                        If f.DialogResult = DialogResult.OK Then MyGroups.ListAddList(f.LabelsList, LAP.ClearBeforeAdd) : TXT_GROUPS.Text = MyGroups.ListToString
-                    End Using
-                Case ActionButton.DefaultButtons.Clear : MyGroups.Clear()
-                Case ActionButton.DefaultButtons.Info
-                    Try
-                        If MyGroups.Count > 0 Then
-                            Dim i% = Settings.Groups.IndexOf(MyGroups(0))
-                            If i >= 0 Then
-                                Using gf As New GroupEditorForm(Settings.Groups(i)) : gf.ShowDialog() : End Using
-                            End If
-                        End If
-                    Catch ex As Exception
-                        ErrorsDescriber.Execute(EDP.LogMessageValue, ex, "Show group")
-                    End Try
-            End Select
-        End Sub
         Private Sub ChangeEnabled() Handles OPT_DISABLED.CheckedChanged,
-                                            OPT_SPEC.CheckedChanged, OPT_GROUP.CheckedChanged,
+                                            OPT_ENABLED.CheckedChanged,
                                             CH_NOTIFY.CheckedChanged, CH_NOTIFY_SIMPLE.CheckedChanged
-            DEF_GROUP.Enabled = OPT_SPEC.Checked
-            TXT_GROUPS.Enabled = OPT_GROUP.Checked
-            TXT_TIMER.Enabled = Not OPT_DISABLED.Checked
-            NUM_DELAY.Enabled = Not OPT_DISABLED.Checked
-            CH_NOTIFY.Enabled = Not OPT_DISABLED.Checked
+            Dim __enabled As Boolean = Not OPT_DISABLED.Checked
+            DEF_GROUP.Enabled = __enabled
+            TXT_TIMER.Enabled = __enabled
+            NUM_DELAY.Enabled = __enabled
+            CH_NOTIFY.Enabled = __enabled
             CH_NOTIFY_SIMPLE.Enabled = CH_NOTIFY.Enabled And CH_NOTIFY.Checked
             CH_SHOW_PIC.Enabled = CH_NOTIFY.Checked And Not OPT_DISABLED.Checked And Not CH_NOTIFY_SIMPLE.Checked
             CH_SHOW_PIC_USER.Enabled = CH_NOTIFY.Checked And Not OPT_DISABLED.Checked And Not CH_NOTIFY_SIMPLE.Checked
+
+            If Settings.Labels.Count = 0 Then DEF_GROUP.LabelsEnabled = False
+            If Settings.Groups.Count = 0 Then DEF_GROUP.GroupsEnabled = False
         End Sub
         Private Sub NUM_DELAY_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As EventArgs) Handles NUM_DELAY.ActionOnButtonClick
             If Sender.DefaultButton = ActionButton.DefaultButtons.Clear Then NUM_DELAY.Value = 0

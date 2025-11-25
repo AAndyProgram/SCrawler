@@ -13,10 +13,16 @@ Namespace API.Base
         Friend Property TempPostsList As List(Of String)
         Protected ReadOnly Token As CancellationToken
         Friend Property DebugMode As Boolean = False
-        Friend Sub New(ByVal _Token As CancellationToken)
+        Friend Sub New(ByVal _Token As CancellationToken, Optional ByVal _MainProcessName As String = Nothing, Optional ByVal WorkingDir As SFile = Nothing)
             MyBase.New(True)
             Token = _Token
+            MainProcessName = _MainProcessName
+            If Not WorkingDir.IsEmptyString Then ChangeDirectory(WorkingDir)
         End Sub
+        Protected Overrides Function Internal_Execute(ByVal Commands As IEnumerable(Of String), ByVal e As ErrorsDescriber) As Boolean
+            If Not Encoding.HasValue Then Encoding = UnicodeEncoding
+            Return MyBase.Internal_Execute(Commands, e)
+        End Function
         Public Overrides Sub Create()
             If TempPostsList Is Nothing Then TempPostsList = New List(Of String)
             MyBase.Create()

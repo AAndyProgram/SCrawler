@@ -245,7 +245,7 @@ Namespace DownloadObjects.Groups
                 If Not Settings.Automation Is Nothing AndAlso Settings.Automation.Count > 0 Then
                     Dim aIncl As New List(Of String)
                     For Each plan As AutoDownloader In Settings.Automation
-                        If plan.Mode = AutoDownloader.Modes.Groups AndAlso plan.Groups.Count > 0 AndAlso plan.Groups.Contains(Name) Then aIncl.Add(plan.Name)
+                        If plan.Groups.Count > 0 AndAlso plan.Groups.Contains(Name) Then aIncl.Add(plan.Name)
                     Next
                     If aIncl.Count > 0 Then
                         MsgBoxE({$"The '{Name}' group cannot be deleted because it is included in the following scheduler plans:{vbCr}{vbCr}" &
@@ -285,6 +285,7 @@ Namespace DownloadObjects.Groups
             Try
                 If Settings.Users.Count > 0 Then
                     With Instance
+                        If TypeOf .Self Is AutoDownloader AndAlso Not DirectCast(.Self, AutoDownloader).Enabled Then Return Nothing
                         Dim downDate As Date? = Nothing
                         If .DaysNumber > 0 Then
                             With Now.AddDays(- .DaysNumber) : downDate = New Date(.Year, .Month, .Day, 0, 0, 0) : End With
@@ -363,10 +364,20 @@ Namespace DownloadObjects.Groups
                         Dim CheckSites As Predicate(Of IUserData) = Function(user) _
                             (.Sites.Count = 0 OrElse .Sites.Contains(user.Site)) AndAlso
                             (.SitesExcluded.Count = 0 OrElse Not .SitesExcluded.Contains(user.Site))
-                        Dim users As IEnumerable(Of IUserData) =
-                            Settings.GetUsers(Function(user) CheckLabels.Invoke(user) AndAlso CheckSites.Invoke(user) AndAlso
-                                                             CheckParams.Invoke(user) AndAlso CheckSubscription.Invoke(user) AndAlso
-                                                             CheckDays.Invoke(user) AndAlso CheckDateRange.Invoke(user))
+                        Dim users As New List(Of IUserData)
+                        If Not .GroupsOnly Or (.GroupsOnly And .Groups.Count = 0) Then
+                            users.ListAddList(Settings.GetUsers(Function(user) CheckLabels.Invoke(user) AndAlso CheckSites.Invoke(user) AndAlso
+                                                                               CheckParams.Invoke(user) AndAlso CheckSubscription.Invoke(user) AndAlso
+                                                                               CheckDays.Invoke(user) AndAlso CheckDateRange.Invoke(user)), LAP.IgnoreICopier)
+                        End If
+                        If .Groups.Count > 0 And Settings.Groups.Count > 0 Then
+                            Dim i%
+                            For Each groupName$ In .Groups
+                                i = Settings.Groups.IndexOf(groupName)
+                                If i >= 0 Then users.ListAddList(Settings.Groups(i).GetUsers, LAP.NotContainsOnly, LAP.IgnoreICopier)
+                            Next
+                        End If
+
                         If .UsersCount <> 0 And users.ListExists Then
                             users = users.ListTake(If(.UsersCount > 0, -1, -2), Math.Abs(.UsersCount))
                             If .UsersCount < 0 Then users = users.ListReverse

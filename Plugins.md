@@ -8,3 +8,4 @@ List of available plugins:
 
 Tools:
 - [image2post](https://github.com/unknown81311/SCrawler-image2post) by @unknown81311: **get reddit post URL from file.**
+- [Update-SCrawler-Tools](https://github.com/cjb900/Update-SCrawler-Tools) by @cjb900: **a tool for updating third-party programs such as yt-dlp and gallery-dl**

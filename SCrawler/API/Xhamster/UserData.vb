@@ -11,6 +11,7 @@ Imports System.Threading
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.XML.Base
+Imports PersonalUtilities.Tools
 Imports PersonalUtilities.Tools.Web.Clients
 Imports PersonalUtilities.Tools.Web.Documents.JSON
 Imports SCrawler.API.Base
@@ -176,10 +177,16 @@ Namespace API.Xhamster
         Friend Overrides Sub ExchangeOptionsSet(ByVal Obj As Object)
             If Not Obj Is Nothing AndAlso TypeOf Obj Is UserExchangeOptions Then DirectCast(Obj, UserExchangeOptions).Apply(Me)
         End Sub
+        Private MyCache As CacheKeeper = Nothing
+        Private Sub ResetCache()
+            MyCache.DisposeIfReady(False)
+            MyCache = Nothing
+        End Sub
 #End Region
 #Region "Initializer"
         Friend Sub New()
             UseInternalM3U8Function = True
+            UseInternalDownloadFileFunction = True
             UseClientTokens = True
             _TempPhotoData = New List(Of UserMedia)
             SessionPosts = New List(Of String)
@@ -235,6 +242,9 @@ Namespace API.Xhamster
         Private SearchPostsCount As Integer = 0
         Private ReadOnly SessionPosts As List(Of String)
         Private _PageVideosRepeat As Integer = 0
+        Friend Overrides Sub DownloadData(Token As CancellationToken)
+            Try : MyBase.DownloadData(Token) : Finally : ResetCache() : End Try
+        End Sub
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
             Try
                 _TempPhotoData.Clear()
@@ -243,7 +253,7 @@ Namespace API.Xhamster
                 SessionPosts.Clear()
                 Responser.CookiesAsHeader = True
                 If DownloadVideos Then DownloadData(1, True, False, Token)
-                If GetMoments Then DownloadData(1, True, True, Token)
+                If DownloadVideos And GetMoments Then DownloadData(1, True, True, Token)
                 If Not IsChannel And Not IsCreator And DownloadImages And Not IsSubscription Then
                     DownloadData(1, False, False, Token)
                     ReparsePhoto(Token)
@@ -302,7 +312,7 @@ Namespace API.Xhamster
                 ElseIf IsCreator Or SiteMode = SiteModes.Tags Or SiteMode = SiteModes.Categories Or SiteMode = SiteModes.Pornstars Then
                     URL = GetNonUserUrl(Page)
                 Else
-                    URL = $"https://xhamster.com/users/{NameTrue}/{If(GetMoments, "moments", IIf(IsVideo, "videos", "photos"))}{IIf(Page = 1, String.Empty, $"/{Page}")}"
+                    URL = $"https://xhamster.com/{SiteSettings.UserOption}/{NameTrue}/{If(GetMoments, "moments", IIf(IsVideo, "videos", "photos"))}{IIf(Page = 1, String.Empty, $"/{Page}")}"
                 End If
                 ThrowAny(Token)
 
@@ -402,9 +412,9 @@ Namespace API.Xhamster
                             If _TempMediaList(i).Type = UTypes.VideoPre Then
                                 m = _TempMediaList(i)
                                 If Not m.URL_BASE.IsEmptyString Then
-                                    m2 = Nothing
+                                    m2 = m
                                     ThrowAny(Token)
-                                    If GetM3U8(m2, m.URL_BASE, m.SpecialFolder) Then
+                                    If GetM3U8_Init(m2, m.URL_BASE, m.SpecialFolder, i) Then
                                         m2.URL_BASE = m.URL_BASE
                                         _TempMediaList(i) = m2
                                     Else
@@ -432,9 +442,9 @@ Namespace API.Xhamster
                             If Not DownloadTopCount.HasValue OrElse c <= DownloadTopCount.Value Then
                                 m = _TempMediaList(i)
                                 If Not m.URL_BASE.IsEmptyString Then
-                                    m2 = Nothing
+                                    m2 = m
                                     ThrowAny(Token)
-                                    If GetM3U8(m2, m.URL_BASE, String.Empty) Then
+                                    If GetM3U8_Init(m2, m.URL_BASE, String.Empty, i) Then
                                         m2.URL_BASE = m.URL_BASE
                                         _TempMediaList(i) = m2
                                         c += 1
@@ -473,7 +483,7 @@ Namespace API.Xhamster
                 If Not r.IsEmptyString Then
                     Using j As EContainer = JsonDocument.Parse(r).XmlIfNothing
                         If j.Count > 0 Then
-                            MaxPage = j.Value({"pagination"}, "maxPage").FromXML(Of Integer)(-1)
+                            MaxPage = j.Value({"pagination"}, "maxPage").IfNullOrEmpty(j.Value({"galleryPage", "paginationProps"}, "lastPageNumber")).FromXML(Of Integer)(-1)
                             With j({"photosGalleryModel"}, "photos")
                                 If .ListExists Then
                                     For Each e In .Self
@@ -515,7 +525,7 @@ Namespace API.Xhamster
                         If m.State = UserMedia.States.Missing AndAlso Not m.URL_BASE.IsEmptyString Then
                             ThrowAny(Token)
                             m2 = Nothing
-                            If GetM3U8(m2, m.URL_BASE, m.SpecialFolder) Then
+                            If GetM3U8_Init(m2, m.URL_BASE, m.SpecialFolder, i) Then
                                 m2.URL_BASE = m.URL_BASE
                                 m2.State = UserMedia.States.Missing
                                 m2.Attempts = m.Attempts
@@ -536,25 +546,85 @@ Namespace API.Xhamster
         End Sub
 #End Region
 #Region "GetM3U8"
-        Private Overloads Function GetM3U8(ByRef m As UserMedia, ByVal URL As String, ByVal SpecFolder As String) As Boolean
+        Private Structure XMMediaInfo : Implements IComparable(Of XMMediaInfo)
+            Friend URL As String
+            Friend Type As UTypes
+            Friend IsInternal As Boolean
+            Friend Thumb As String
+            Friend FormatID As String
+            Friend Width As Integer
+            Friend Height As Integer
+            Friend Title As String
+            Private Function CompareTo(ByVal Other As XMMediaInfo) As Integer Implements IComparable(Of XMMediaInfo).CompareTo
+                Return Width.CompareTo(Other.Width) * -1
+            End Function
+        End Structure
+        Private Function GetM3U8_Init(ByRef m As UserMedia, ByVal URL As String, ByVal SpecFolder As String, ByVal n As Integer) As Boolean
             Try
                 If Not URL.IsEmptyString Then
-                    Dim r$ = Responser.GetResponse(URL)
-                    If Not r.IsEmptyString Then r = RegexReplace(r, HtmlScript)
+                    Dim IsInternal As Boolean = False
+                    Dim r$ = GetMediaInfo(URL, n, IsInternal)
                     If Not r.IsEmptyString Then
                         Using j As EContainer = JsonDocument.Parse(r)
                             If j.ListExists Then
-                                m = ExtractMedia(j("videoModel"), UTypes.VideoPre,,,, SpecFolder)
-                                m.URL_BASE = URL
-                                If IsSubscription Then
-                                    With j("videoModel")
-                                        If .ListExists Then
-                                            m.URL = .Value("thumbURL").IfNullOrEmpty(.Value("previewThumbURL"))
-                                            Return Not m.URL.IsEmptyString
-                                        End If
-                                    End With
+                                If IsInternal AndAlso GetM3U8_Internal(m, URL, j, SpecFolder) Then
+                                    Return True
                                 Else
-                                    Return GetM3U8(m, j, SpecFolder)
+                                    Dim xmm As New XMMediaInfo
+                                    Dim __checkURL As Func(Of EContainer, XMMediaInfo, XMMediaInfo) =
+                                        Function(ByVal jj As EContainer, ByVal __xmm As XMMediaInfo) As XMMediaInfo
+                                            With jj.Value("url").StringToLower
+                                                If Not .IsEmptyString AndAlso .EndsWith(".m3u8") Or .EndsWith(".mp4") Then __xmm.URL = .Self
+                                            End With
+                                            Return __xmm
+                                        End Function
+                                    Dim __applyXMM As Func(Of EContainer, XMMediaInfo, XMMediaInfo) =
+                                        Function(ByVal jj As EContainer, ByVal __xmm As XMMediaInfo) As XMMediaInfo
+                                            With jj
+                                                __xmm.Type = IIf(__xmm.URL.ToLower.EndsWith(".m3u8"), UTypes.m3u8, UTypes.Video)
+                                                __xmm.Width = AConvert(Of Integer)(.Value("width"), 1, EDP.ReturnValue)
+                                                __xmm.Height = AConvert(Of Integer)(.Value("height"), 1, EDP.ReturnValue)
+                                                __xmm.FormatID = .Value("format_id")
+                                            End With
+                                            Return __xmm
+                                        End Function
+                                    xmm = __checkURL(j, xmm)
+                                    If Not xmm.URL.IsEmptyString Then
+                                        xmm = __applyXMM(j, xmm)
+                                    Else
+                                        With j("formats")
+                                            If .ListExists Then
+                                                Dim l As New List(Of XMMediaInfo)
+                                                Dim tmpXMM As XMMediaInfo
+                                                For Each format As EContainer In .Self
+                                                    tmpXMM = New XMMediaInfo
+                                                    tmpXMM = __checkURL(format, tmpXMM)
+                                                    If Not tmpXMM.URL.IsEmptyString Then
+                                                        tmpXMM = __applyXMM(format, tmpXMM)
+                                                        l.Add(tmpXMM)
+                                                    End If
+                                                Next
+                                                If l.Count > 0 Then
+                                                    If Not CBool(MySettings.DownloadUHD.Value) AndAlso l.LongCount(Function(v) v.Height <= 1080) > 0 Then _
+                                                       l.RemoveAll(Function(v) v.Height > 1080)
+                                                    l.Sort()
+                                                    xmm = l.First
+                                                    l.Clear()
+                                                End If
+                                            End If
+                                        End With
+                                    End If
+                                    If Not xmm.URL.IsEmptyString Then
+                                        xmm.IsInternal = False
+                                        xmm.Thumb = j.Value("thumbnail")
+                                        xmm.Title = TitleHtmlConverter(j.Value("title").IfNullOrEmpty(j.Value("fulltitle")))
+                                        If Not xmm.Title.IsEmptyString Then m.File.Name = xmm.Title
+                                        m.Type = xmm.Type
+                                        m.URL = IIf(IsSubscription, xmm.Thumb, xmm.URL)
+                                        m.Object = xmm
+                                        m.SpecialFolder = SpecFolder
+                                        Return True
+                                    End If
                                 End If
                             End If
                         End Using
@@ -562,16 +632,74 @@ Namespace API.Xhamster
                 End If
                 Return False
             Catch ex As Exception
-                Return ErrorsDescriber.Execute(EDP.ReturnValue, ex, $"[{ToStringForLog()}]: API.Xhamster.GetM3U8({URL})", False)
+                Return ErrorsDescriber.Execute(EDP.ReturnValue, ex, $"[{ToStringForLog()}]: API.Xhamster.GetM3U8_Init({URL})", False)
             End Try
         End Function
-        Private Overloads Function GetM3U8(ByRef m As UserMedia, ByVal j As EContainer, ByVal SpecFolder As String, Optional ByVal r As Integer = 0) As Boolean
+        Private Function GetMediaInfo(ByVal URL As String, ByVal n As Integer, ByRef IsInternal As Boolean) As String
+            Try
+                If Not URL.IsEmptyString Then
+                    Dim r$ = String.Empty
+                    Dim f As SFile
+                    If IsSubscription Then
+                        Try
+                            If Not CBool(MySettings.UseYTDLPForceDisableInternal.Value) Then r = Responser.GetResponse(URL)
+                        Catch exr As Exception
+                            ErrorsDescriber.Execute(EDP.SendToLog, exr, $"[{ToStringForLog()}]: API.Xhamster.GetMediaInfo({URL})", False)
+                        End Try
+                        If Not r.IsEmptyString Then r = RegexReplace(r, HtmlScript)
+                        If Not r.IsEmptyString Then
+                            IsInternal = True
+                            Return r
+                        Else
+                            f = YTDLPGetInfo(URL, n)
+                            If f.Exists Then IsInternal = False : Return f.GetText
+                        End If
+                    Else
+                        f = YTDLPGetInfo(URL, n)
+                        If f.Exists Then IsInternal = False : Return f.GetText
+                    End If
+                End If
+                Return String.Empty
+            Catch ex As Exception
+                Return ErrorsDescriber.Execute(EDP.SendToLog + EDP.ReturnValue, ex, $"[{ToStringForLog()}]: API.Xhamster.GetMediaInfo({URL})", String.Empty)
+            End Try
+        End Function
+        Private Function GetM3U8_Internal(ByRef m As UserMedia, ByVal URL As String, ByVal j As EContainer, ByVal SpecFolder As String) As Boolean
+            Try
+                If j.ListExists Then
+                    m = ExtractMedia(j("videoModel"), UTypes.VideoPre,,,, SpecFolder)
+                    m.URL_BASE = URL
+                    m.SpecialFolder = SpecFolder
+                    If IsSubscription Then
+                        With j("videoModel")
+                            If .ListExists Then
+                                m.URL = .Value("thumbURL").IfNullOrEmpty(.Value("previewThumbURL"))
+                                m.Object = New XMMediaInfo With {
+                                    .IsInternal = True,
+                                    .Thumb = m.URL,
+                                    .URL = URL,
+                                    .Type = UTypes.VideoPre
+                                }
+                                Return Not m.URL.IsEmptyString
+                            End If
+                        End With
+                    Else
+                        Return GetM3U8_Internal_GetURL(m, j)
+                    End If
+                End If
+                Return False
+            Catch ex As Exception
+                Return ErrorsDescriber.Execute(EDP.ReturnValue, ex, $"[{ToStringForLog()}]: API.Xhamster.GetM3U8_Internal({URL})", False)
+            End Try
+        End Function
+        Private Function GetM3U8_Internal_GetURL(ByRef m As UserMedia, ByVal j As EContainer, Optional ByVal r As Integer = 0) As Boolean
             Const urlNode$ = "url"
             Dim node As EContainer = j({"xplayerSettings", "sources", If(r = 0, "hls", "standard")})
+            Dim t As UTypes = UTypes.Undefined
             If node.ListExists Then
                 Dim url$ 'node.GetNode({New NodeParams("url", True, True, True, True, 2)}).XmlIfNothingValue
                 Dim jn As EContainer, jn2 As EContainer
-                Dim __getUrl As Func(Of EContainer, String) = Function(jj) If(jj.Contains(urlNode), Decipher_URL(jj.Value(urlNode)), String.Empty)
+                Dim __getUrl As Func(Of EContainer, String) = Function(jj) If(jj.Contains(urlNode), jj.Value(urlNode), String.Empty)
                 url = __getUrl(node)
                 If url.IsEmptyString Then
                     For Each jn In node
@@ -587,61 +715,40 @@ Namespace API.Xhamster
                     Next
                 End If
                 If Not url.IsEmptyString Then
-                    m.URL = url
-                    m.Type = UTypes.m3u8
-                    Return True
+                    If url.ToLower.EndsWith(".m3u8") Then
+                        t = UTypes.m3u8
+                    ElseIf url.ToLower.EndsWith(".mp4") Then
+                        t = UTypes.Video
+                    End If
+                    If Not t = UTypes.Undefined Then
+                        m.URL = url
+                        m.Type = t
+                        m.Object = New XMMediaInfo With {
+                            .IsInternal = True,
+                            .Type = t,
+                            .URL = url,
+                            .Thumb = j.Value({"videoModel"}, "thumbURL").IfNullOrEmpty(j.Value({"videoModel"}, "previewThumbURL"))
+                        }
+                        Return True
+                    End If
                 End If
             End If
-            If r = 0 Then Return GetM3U8(m, j, SpecFolder, r + 1)
+            If r = 0 Then Return GetM3U8_Internal_GetURL(m, j, r + 1)
             Return False
         End Function
 #End Region
-#Region "Decipher"
-        'https://github.com/yt-dlp/yt-dlp/blob/5513036104ed9710f624c537fb3644b07a0680db/yt_dlp/extractor/xhamster.py#L146-L165
-        Private Function Decipher_URL(ByVal Input As String) As String
-            If Input.IsEmptyString Then Return String.Empty
-
-            Dim _XOR_KEY As Byte() = Encoding.ASCII.GetBytes("xh7999")
-            Dim cipher_type$ = String.Empty
-            Dim ciphertext$ = String.Empty
-
+#Region "yt-dlp support"
+        Private Function YTDLPGetInfo(ByVal URL As String, ByVal n As Integer) As SFile
             Try
-                Dim decoded$ = Encoding.ASCII.GetString(Convert.FromBase64String(Input))
-                Dim parts$() = decoded.Split(New Char() {"_"c}, 2)
-                If parts.Length = 2 Then cipher_type = parts(0) : ciphertext = parts(1)
-            Catch
+                If MyCache Is Nothing Then MyCache = CreateCache() : MyCache.Validate()
+                Dim path As SFile = MyCache.NewPath
+                Dim c$ = If(MySettings.CookiesNetscapeFile.Exists, $" --no-cookies-from-browser --cookies ""{MySettings.CookiesNetscapeFile}""", String.Empty)
+                Dim cmd$ = $"{Settings.YtdlpFile} --write-info-json --skip-download{c} {URL} -o ""{path.PathWithSeparator}file"""
+                Using ytdlp As New YTDLP.YTDLPBatch(TokenPersonal,, path) : ytdlp.Encoding = Settings.CMDEncoding : ytdlp.Execute(cmd) : End Using
+                Return SFile.GetFiles(path, "*.json",, EDP.ReturnValue).FirstOrDefault
+            Catch ex As Exception
+                Return ErrorsDescriber.Execute(EDP.SendToLog + EDP.ReturnValue, ex, $"API.Xhamster.UserData.YTDLPGetInfo({URL})", New SFile)
             End Try
-
-            If cipher_type.IsEmptyString Or ciphertext.IsEmptyString Then Return String.Empty
-
-            If cipher_type = "xor" Then
-                Dim ciphertextBytes() As Byte = Encoding.ASCII.GetBytes(ciphertext)
-                Dim resultBytes(ciphertextBytes.Length - 1) As Byte
-                For i% = 0 To ciphertextBytes.Length - 1
-                    resultBytes(i) = ciphertextBytes(i) Xor _XOR_KEY(i Mod _XOR_KEY.Length)
-                Next
-                Return Encoding.ASCII.GetString(resultBytes)
-            End If
-
-            If cipher_type = "rot13" Then Return Decipher_URL_Rot13(ciphertext)
-
-            Return String.Empty
-        End Function
-        Private Function Decipher_URL_Rot13(ByVal Input As String) As String
-            Dim result As New Text.StringBuilder(Input.Length)
-            For Each c As Char In Input
-                Dim offset%
-                If c >= "a"c AndAlso c <= "z"c Then
-                    offset = Asc("a"c)
-                    result.Append(ChrW((Asc(c) - offset + 13) Mod 26 + offset))
-                ElseIf c >= "A"c AndAlso c <= "Z"c Then
-                    offset = Asc("A"c)
-                    result.Append(ChrW((Asc(c) - offset + 13) Mod 26 + offset))
-                Else
-                    result.Append(c)
-                End If
-            Next
-            Return result.ToString
         End Function
 #End Region
 #Region "DownloadSingleObject"
@@ -654,9 +761,35 @@ Namespace API.Xhamster
         Protected Overrides Sub DownloadContent(ByVal Token As CancellationToken)
             DownloadContentDefault(Token)
         End Sub
+        Private Function XMMObjectExists(ByVal Media As UserMedia) As Boolean
+            Return Not IsNothing(Media.Object) AndAlso TypeOf Media.Object Is XMMediaInfo
+        End Function
         Protected Overrides Function DownloadM3U8(ByVal URL As String, ByVal Media As UserMedia, ByVal DestinationFile As SFile, ByVal Token As CancellationToken) As SFile
-            Media.File = DestinationFile
-            Return M3U8.Download(Media, Responser, MySettings.DownloadUHD.Value, Token, Progress, Not IsSingleObjectDownload, MySettings.ReencodeVideos.Value)
+            If CBool(MySettings.UseYTDLPDownload.Value) Then
+                If XMMObjectExists(Media) Then Return YTDLPDownload(Media, DestinationFile, Token)
+                Return Nothing
+            Else
+                Media.File = DestinationFile
+                Return M3U8.Download(Media, Responser, MySettings.DownloadUHD.Value, Token, Progress, Not IsSingleObjectDownload, MySettings.ReencodeVideos.Value)
+            End If
+        End Function
+        Protected Overrides Function ValidateDownloadFile(ByVal URL As String, ByVal Media As UserMedia, ByRef Interrupt As Boolean) As Boolean
+            If Not Media.IsPhotoType AndAlso CBool(MySettings.UseYTDLPDownload.Value) Then
+                If Not Media.URL_BASE.IsEmptyString And XMMObjectExists(Media) AndAlso
+                   Not DirectCast(Media.Object, XMMediaInfo).FormatID.IsEmptyString Then Return True
+                Interrupt = True
+            End If
+            Return False
+        End Function
+        Protected Overrides Function DownloadFile(ByVal URL As String, ByVal Media As UserMedia, ByVal DestinationFile As SFile, ByVal Token As CancellationToken) As SFile
+            Return YTDLPDownload(Media, DestinationFile, Token)
+        End Function
+        Private Function YTDLPDownload(ByVal Media As UserMedia, ByVal DestinationFile As SFile, ByVal Token As CancellationToken) As SFile
+            DestinationFile.Extension = "mp4"
+            Dim c$ = If(MySettings.CookiesNetscapeFile.Exists, $" --no-cookies-from-browser --cookies ""{MySettings.CookiesNetscapeFile}""", String.Empty)
+            Dim cmd$ = $"{Settings.YtdlpFile} --format {DirectCast(Media.Object, XMMediaInfo).FormatID}{c} {Media.URL_BASE} -o ""{DestinationFile}"""
+            Using ytdlp As New YTDLP.YTDLPBatch(TokenPersonal,, DestinationFile) : ytdlp.Encoding = Settings.CMDEncoding : ytdlp.Execute(cmd) : End Using
+            Return DestinationFile
         End Function
 #End Region
 #Region "Create media"
@@ -722,7 +855,7 @@ Namespace API.Xhamster
 #End Region
 #Region "IDisposable support"
         Protected Overrides Sub Dispose(ByVal disposing As Boolean)
-            If Not disposedValue And disposing Then _TempPhotoData.Clear() : SessionPosts.Clear()
+            If Not disposedValue And disposing Then _TempPhotoData.Clear() : SessionPosts.Clear() : ResetCache()
             MyBase.Dispose(disposing)
         End Sub
 #End Region

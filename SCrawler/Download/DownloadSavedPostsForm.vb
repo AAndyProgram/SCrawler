@@ -43,6 +43,7 @@ Friend Class DownloadSavedPostsForm
             For Each j As DownloadProgress In JobsList
                 AddHandler j.DownloadDone, AddressOf Jobs_DownloadDone
                 AddHandler j.FeedFilesChanged, AddressOf Jobs_FeedFilesChanged
+                AddHandler j.KeyDown, AddressOf DownloadSavedPostsForm_KeyDown
                 TP_MAIN.RowStyles.Add(New RowStyle(SizeType.Absolute, 60))
                 TP_MAIN.RowCount += 1
                 TP_MAIN.Controls.Add(j.Get, 0, TP_MAIN.RowStyles.Count - 1)
@@ -53,6 +54,9 @@ Friend Class DownloadSavedPostsForm
             Size = s
             MaximumSize = s
         End If
+    End Sub
+    Private Sub DownloadSavedPostsForm_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown, BTT_DOWN_ALL.KeyDown, BTT_STOP_ALL.KeyDown
+        If e.KeyCode = Keys.Escape Then Close()
     End Sub
     Private Sub DownloadSavedPostsForm_Closing(sender As Object, e As CancelEventArgs) Handles Me.Closing
         e.Cancel = True
