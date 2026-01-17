@@ -525,7 +525,7 @@ Namespace API.Instagram
         Protected Overrides Sub Responser_ResponseReceived(ByVal Sender As Object, ByVal e As EventArguments.WebDataResponse)
             Declarations.UpdateResponser(e, Responser, WwwClaimUpdate)
         End Sub
-        Friend Enum Sections : Timeline : Reels : Tagged : Stories : UserStories : SavedPosts : End Enum
+        Friend Enum Sections : Timeline : Reels : Tagged : Stories : UserStories : SavedPosts : Reposts : Likes : End Enum
         Protected Const StoriesFolder As String = "Stories"
         Private Const TaggedFolder As String = "Tagged"
 #Region "429 bypass"

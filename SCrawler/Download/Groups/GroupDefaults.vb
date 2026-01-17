@@ -58,6 +58,7 @@ Namespace DownloadObjects.Groups
         Private ReadOnly Sites As List(Of String)
         Private ReadOnly SitesExcluded As List(Of String)
         Private ReadOnly Groups As List(Of String)
+        Private ReadOnly GroupsExcluded As List(Of String)
         Private ReadOnly TT_MAIN As ToolTip
         Friend ReadOnly Property GroupsOnly As Boolean
             Get
@@ -72,6 +73,7 @@ Namespace DownloadObjects.Groups
             Sites = New List(Of String)
             SitesExcluded = New List(Of String)
             Groups = New List(Of String)
+            GroupsExcluded = New List(Of String)
             TT_MAIN = New ToolTip
 
             InitTextBox(TXT_LABELS, "Labels", {New ActionButton(ADB.Edit) With {.ToolTipText = "Edit selected labels"},
@@ -82,7 +84,8 @@ Namespace DownloadObjects.Groups
                                              New ActionButton(ADB.Delete) With {.ToolTipText = "Edit excluded sites"}, ADB.Clear})
             TXT_SITES.TextBoxReadOnly = True
 
-            InitTextBox(TXT_GROUPS, "Groups", {New ActionButton(ADB.Edit) With {.ToolTipText = "Edit selected groups"}, ADB.Clear}, CaptionModes.CheckBox)
+            InitTextBox(TXT_GROUPS, "Groups", {New ActionButton(ADB.Edit) With {.ToolTipText = "Edit selected groups"},
+                                               New ActionButton(ADB.Delete) With {.ToolTipText = "Edit excluded groups"}, ADB.Clear}, CaptionModes.CheckBox)
             With TXT_GROUPS
                 .TextBoxReadOnly = True
                 .CaptionCheckAlign = ContentAlignment.MiddleLeft
@@ -301,6 +304,7 @@ Namespace DownloadObjects.Groups
             Sites.Clear()
             SitesExcluded.Clear()
             Groups.Clear()
+            GroupsExcluded.Clear()
             CH_REGULAR.Dispose()
             CH_TEMPORARY.Dispose()
             CH_FAV.Dispose()
@@ -363,7 +367,7 @@ Namespace DownloadObjects.Groups
                             End If
                         End Using
                     End With
-                Case ADB.Clear : Labels.Clear() : LabelsExcluded.Clear() : TXT_LABELS.Clear() : UpdateLabelsText()
+                Case ADB.Clear : Labels.Clear() : LabelsExcluded.Clear() : UpdateLabelsText()
             End Select
         End Sub
         Private Sub TXT_SITES_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As ActionButtonEventArgs) Handles TXT_SITES.ActionOnButtonClick
@@ -379,36 +383,38 @@ Namespace DownloadObjects.Groups
                             End If
                         End Using
                     End With
-                Case ADB.Clear : Sites.Clear() : SitesExcluded.Clear() : TXT_SITES.Clear() : UpdateSitesText()
+                Case ADB.Clear : Sites.Clear() : SitesExcluded.Clear() : UpdateSitesText()
             End Select
         End Sub
         Private Sub TXT_GROUPS_ActionOnButtonClick(ByVal Sender As ActionButton, ByVal e As ActionButtonEventArgs) Handles TXT_GROUPS.ActionOnButtonClick
             Select Case Sender.DefaultButton
-                Case ADB.Edit
-                    Using f As New LabelsForm(Groups, (From g As DownloadGroup In Settings.Groups Where Not g.IsViewFilter Select g.Name)) With {
-                        .Text = "Groups (F3 to edit)",
-                        .Icon = My.Resources.GroupByIcon_16,
-                        .IsGroups = True
-                    }
-                        f.ShowDialog()
-                        If f.DialogResult = DialogResult.OK Then Groups.ListAddList(f.LabelsList, LAP.ClearBeforeAdd) : UpdateGroupsText()
-                    End Using
-                Case ADB.Clear : Groups.Clear() : TXT_GROUPS.Clear() : UpdateGroupsText()
+                Case ADB.Edit, ADB.Delete
+                    With If(Sender.DefaultButton = ADB.Edit, Groups, GroupsExcluded)
+                        Using f As New LabelsForm(.Self, (From g As DownloadGroup In Settings.Groups Where Not g.IsViewFilter Select g.Name)) With {
+                            .Text = $"Groups {IIf(Sender.DefaultButton = ADB.Delete, "excluded ", String.Empty)}(F3 to edit)",
+                            .Icon = My.Resources.GroupByIcon_16,
+                            .IsGroups = True
+                        }
+                            f.ShowDialog()
+                            If f.DialogResult = DialogResult.OK Then .ListAddList(f.LabelsList, LAP.ClearBeforeAdd) : UpdateGroupsText()
+                        End Using
+                    End With
+                Case ADB.Clear : Groups.Clear() : GroupsExcluded.Clear() : UpdateGroupsText()
             End Select
         End Sub
         Private Sub UpdateLabelsText()
-            TXT_LABELS.Clear()
-            If Not _JustExcludeOptions Then TXT_LABELS.Text = Labels.ListToString
-            If LabelsExcluded.Count > 0 Then TXT_LABELS.Text.StringAppend($"EXCLUDED: {LabelsExcluded.ListToString}", "; ")
+            __UpdateTextImpl(TXT_LABELS, Labels, LabelsExcluded)
         End Sub
         Private Sub UpdateSitesText()
-            TXT_SITES.Clear()
-            If Not _JustExcludeOptions Then TXT_SITES.Text = Sites.ListToString
-            If SitesExcluded.Count > 0 Then TXT_SITES.Text.StringAppend($"EXCLUDED: {SitesExcluded.ListToString}", "; ")
+            __UpdateTextImpl(TXT_SITES, Sites, SitesExcluded)
         End Sub
         Private Sub UpdateGroupsText()
-            TXT_GROUPS.Clear()
-            TXT_GROUPS.Text = Groups.ListToString
+            __UpdateTextImpl(TXT_GROUPS, Groups, GroupsExcluded)
+        End Sub
+        Private Sub __UpdateTextImpl(ByRef txt As TextBoxExtended, ByVal filter As List(Of String), ByVal excluded As List(Of String))
+            txt.Clear()
+            txt.Text = filter.ListToString
+            If excluded.Count > 0 Then txt.Text.StringAppend($"EXCLUDED: {excluded.ListToString}", "; ")
         End Sub
 #End Region
 #Region "Get/set"
@@ -455,6 +461,7 @@ Namespace DownloadObjects.Groups
                     .SitesExcluded.ListAddList(SitesExcluded)
                     .Groups.Clear()
                     .Groups.ListAddList(Groups)
+                    .GroupsExcluded.ListAddList(GroupsExcluded)
                     .GroupsOnly = GroupsOnly
                 End With
             End If
@@ -505,6 +512,7 @@ Namespace DownloadObjects.Groups
                     UpdateSitesText()
 
                     Groups.ListAddList(.Groups)
+                    GroupsExcluded.ListAddList(.GroupsExcluded)
                     TXT_GROUPS.Checked = .GroupsOnly
                     UpdateGroupsText()
                 End With
@@ -513,14 +521,12 @@ Namespace DownloadObjects.Groups
 #End Region
 #Region "Enabled"
         Private _Enabled As Boolean = True
-        Private _JustExcludeOptions As Boolean = False
         Friend Overloads Property Enabled() As Boolean
             Get
                 Return _Enabled
             End Get
             Set(ByVal e As Boolean)
                 _Enabled = e
-                _JustExcludeOptions = False
                 TP_1.Enabled = e
                 TP_2.Enabled = e
                 TP_3.Enabled = e

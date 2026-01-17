@@ -10,11 +10,13 @@ Imports SCrawler.API.Base
 Imports SCrawler.Plugin
 Imports SCrawler.Plugin.Attributes
 Imports PersonalUtilities.Functions.RegularExpressions
+Imports DN = SCrawler.API.Base.DeclaredNames
 Namespace API.TikTok
     <Manifest("AndyProgram_TikTok"), SpecialForm(False), SeparatedTasks(1)>
     Friend Class SiteSettings : Inherits SiteSettingsBase
 #Region "Categories"
         Private Const CAT_DOWN As String = "Download"
+        Private Const CAT_UserDefs_Title As String = DN.CAT_UserDefs & " (Title)"
 #End Region
 #Region "Download"
         <PropertyOption(ControlText:="Download videos", Category:=CAT_DOWN), PXML, PClonable>
@@ -22,21 +24,34 @@ Namespace API.TikTok
         <PropertyOption(ControlText:="Download photos", Category:=CAT_DOWN), PXML, PClonable>
         Friend ReadOnly Property DownloadTTPhotos As PropertyValue
 #End Region
-        <PropertyOption(ControlText:="Remove tags from title"), PXML, PClonable>
+#Region "User defaults"
+#Region "Sections"
+        <PropertyOption(ControlText:="Get Timeline", Category:=DN.CAT_UserDefs), PXML, PClonable>
+        Friend ReadOnly Property GetTimeline As PropertyValue
+        <PropertyOption(ControlText:="Get User Stories", Category:=DN.CAT_UserDefs), PXML, PClonable>
+        Friend ReadOnly Property GetStoriesUser As PropertyValue
+        <PropertyOption(ControlText:="Get Reposts", Category:=DN.CAT_UserDefs), PXML, PClonable>
+        Friend ReadOnly Property GetReposts As PropertyValue
+#End Region
+#Region "Title"
+        <PropertyOption(ControlText:="Remove tags from title", Category:=CAT_UserDefs_Title), PXML, PClonable>
         Friend ReadOnly Property RemoveTagsFromTitle As PropertyValue
-        <PropertyOption(ControlText:="Use native title", ControlToolTip:="Use a user-created video title for the filename instead of the video ID."), PXML, PClonable>
+        <PropertyOption(ControlText:="Use native title", ControlToolTip:="Use a user-created video title for the filename instead of the video ID.",
+                        Category:=CAT_UserDefs_Title), PXML, PClonable>
         Friend ReadOnly Property TitleUseNative As PropertyValue
         <PropertyOption(ControlText:="Use native title (standalone downloader)",
-                        ControlToolTip:="Use a user-created video title for the filename instead of the video ID."), PXML, PClonable>
+                        ControlToolTip:="Use a user-created video title for the filename instead of the video ID.", Category:=CAT_UserDefs_Title), PXML, PClonable>
         Friend ReadOnly Property TitleUseNativeSTD As PropertyValue
-        <PropertyOption(ControlText:="Add video ID to video title"), PXML, PClonable>
+        <PropertyOption(ControlText:="Add video ID to video title", Category:=CAT_UserDefs_Title), PXML, PClonable>
         Friend ReadOnly Property TitleAddVideoID As PropertyValue
-        <PropertyOption(ControlText:="Add video ID to video title (standalone downloader)"), PXML, PClonable>
+        <PropertyOption(ControlText:="Add video ID to video title (standalone downloader)", Category:=CAT_UserDefs_Title), PXML, PClonable>
         Friend ReadOnly Property TitleAddVideoIDSTD As PropertyValue
-        <PropertyOption(ControlText:="Use regex to clean video title"), PXML, PClonable>
+        <PropertyOption(ControlText:="Use regex to clean video title", Category:=CAT_UserDefs_Title), PXML, PClonable>
         Friend ReadOnly Property TitleUseRegexForTitle As PropertyValue
-        <PropertyOption(ControlText:="Title regex", ControlToolTip:="Regex to clean video title"), PXML, PClonable>
+        <PropertyOption(ControlText:="Title regex", ControlToolTip:="Regex to clean video title", Category:=CAT_UserDefs_Title), PXML, PClonable>
         Friend ReadOnly Property TitleUseRegexForTitle_Value As PropertyValue
+#End Region
+#End Region
         <PropertyOption(ControlText:="Use video date as file date",
                         ControlToolTip:="Set the file date to the date the video was added (website) (if available)."), PXML, PClonable>
         Friend ReadOnly Property UseParsedVideoDate As PropertyValue
@@ -45,6 +60,10 @@ Namespace API.TikTok
         Friend ReadOnly Property UseParsedVideoDateSTD As PropertyValue
         Friend Sub New(ByVal AccName As String, ByVal Temp As Boolean)
             MyBase.New("TikTok", "www.tiktok.com", AccName, Temp, My.Resources.SiteResources.TikTokIcon_32, My.Resources.SiteResources.TikTokPic_192)
+
+            GetTimeline = New PropertyValue(True)
+            GetStoriesUser = New PropertyValue(False)
+            GetReposts = New PropertyValue(False)
 
             DownloadTTVideos = New PropertyValue(True)
             DownloadTTPhotos = New PropertyValue(True)
@@ -76,5 +95,10 @@ Namespace API.TikTok
                 Using f As New InternalSettingsForm(Options, Me, False) : f.ShowDialog() : End Using
             End If
         End Sub
+        Friend Overrides Function GetUserPostUrl(ByVal User As UserDataBase, ByVal Media As UserMedia) As String
+            Dim url$ = MyBase.GetUserPostUrl(User, Media)
+            If Not url.IsEmptyString AndAlso url.EndsWith(UserData.GDL_POSTFIX) Then url = url.Replace(UserData.GDL_POSTFIX, String.Empty)
+            Return url
+        End Function
     End Class
 End Namespace

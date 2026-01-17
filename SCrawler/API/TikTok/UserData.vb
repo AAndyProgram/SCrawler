@@ -7,16 +7,21 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports System.Threading
-Imports SCrawler.API.Base
-Imports SCrawler.API.YouTube.Objects
-Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.RegularExpressions
+Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Tools
 Imports PersonalUtilities.Tools.Web.Documents.JSON
+Imports SCrawler.API.Base
+Imports SCrawler.API.YouTube.Objects
+Imports SCrawler.Plugin.Attributes
+Imports Sections = SCrawler.API.Instagram.UserData.Sections
 Imports UTypes = SCrawler.API.Base.UserMedia.Types
 Namespace API.TikTok
     Friend Class UserData : Inherits UserDataBase
 #Region "XML names"
+        Private Const Name_GetTimeline As String = "GetTimeline"
+        Private Const Name_GetStoriesUser As String = "GetStoriesUser"
+        Private Const Name_GetReposts As String = "GetReposts"
         Private Const Name_RemoveTagsFromTitle As String = "RemoveTagsFromTitle"
         Private Const Name_TitleUseNative As String = "TitleUseNative"
         Private Const Name_TitleAddVideoID As String = "TitleAddVideoID"
@@ -27,6 +32,7 @@ Namespace API.TikTok
         Private Const Name_PhotosDownloaded As String = "PhotosDownloaded"
 #End Region
 #Region "Declarations"
+        Friend Const GDL_POSTFIX As String = "--GDL"
         Private ReadOnly Property MySettings As SiteSettings
             Get
                 Return HOST.Source
@@ -57,6 +63,9 @@ Namespace API.TikTok
                 End If
             End Get
         End Property
+        Friend Property GetTimeline As Boolean = True
+        Friend Property GetStoriesUser As Boolean = False
+        Friend Property GetReposts As Boolean = False
         Friend Property RemoveTagsFromTitle As Boolean = False
         Friend Property TitleUseNative As Boolean = True
         Friend Property TitleAddVideoID As Boolean = True
@@ -74,6 +83,9 @@ Namespace API.TikTok
             If Not Obj Is Nothing AndAlso TypeOf Obj Is UserExchangeOptions Then
                 With DirectCast(Obj, UserExchangeOptions)
                     .ApplyBase(Me)
+                    GetTimeline = .GetTimeline
+                    GetStoriesUser = .GetStoriesUser
+                    GetReposts = .GetReposts
                     RemoveTagsFromTitle = .RemoveTagsFromTitle
                     TitleUseNative = .TitleUseNative
                     TitleAddVideoID = .TitleAddVideoID
@@ -88,6 +100,9 @@ Namespace API.TikTok
         Protected Overrides Sub LoadUserInformation_OptionalFields(ByRef Container As XmlFile, ByVal Loading As Boolean)
             With Container
                 If Loading Then
+                    GetTimeline = .Value(Name_GetTimeline).FromXML(Of Boolean)(True)
+                    GetStoriesUser = .Value(Name_GetStoriesUser).FromXML(Of Boolean)(False)
+                    GetReposts = .Value(Name_GetReposts).FromXML(Of Boolean)(False)
                     RemoveTagsFromTitle = .Value(Name_RemoveTagsFromTitle).FromXML(Of Boolean)(False)
                     TitleUseNative = .Value(Name_TitleUseNative).FromXML(Of Boolean)(True)
                     TitleAddVideoID = .Value(Name_TitleAddVideoID).FromXML(Of Boolean)(True)
@@ -98,6 +113,9 @@ Namespace API.TikTok
                     TitleUseGlobalRegexOptions = .Value(Name_TitleUseGlobalRegexOptions).FromXML(Of Boolean)(True)
                     PhotosDownloaded = .Value(Name_PhotosDownloaded).FromXML(Of Boolean)(False)
                 Else
+                    .Add(Name_GetTimeline, GetTimeline.BoolToInteger)
+                    .Add(Name_GetStoriesUser, GetStoriesUser.BoolToInteger)
+                    .Add(Name_GetReposts, GetReposts.BoolToInteger)
                     .Add(Name_RemoveTagsFromTitle, RemoveTagsFromTitle.BoolToInteger)
                     .Add(Name_TitleUseNative, TitleUseNative.BoolToInteger)
                     .Add(Name_TitleAddVideoID, TitleAddVideoID.BoolToInteger)
@@ -166,17 +184,25 @@ Namespace API.TikTok
         Private Function GetPhotoNode() As Object()
             Return {"imageURL", "urlList", 0, 0}
         End Function
+        Private Sub ValidateCache()
+            If If(UserCache?.Disposed, True) Then UserCache = CreateCache()
+        End Sub
         Friend Overrides Sub DownloadData(ByVal Token As CancellationToken)
             MyBase.DownloadData(Token)
             UserCache.DisposeIfReady(False)
             UserCache = Nothing
         End Sub
-        Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
+        Protected Overloads Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
+            ValidateCache()
+            If GetTimeline Then DownloadDataF(Sections.Timeline, Token)
+            If GetStoriesUser Then DownloadDataF(Sections.UserStories, Token)
+            If GetReposts Then DownloadDataF(Sections.Reposts, Token)
+        End Sub
+        Protected Overloads Sub DownloadDataF(ByVal Section As Sections, ByVal Token As CancellationToken)
             Dim URL$ = $"https://www.tiktok.com/@{NameTrue}"
-            UserCache = CreateCache()
             Try
                 Const photoPrefix$ = "photo_"
-                Dim postID$, title$, postUrl$, newName$, t$, postID2$, imgUrl$, pText$
+                Dim postID$, title$, postUrl$, newName$, t$, tOrig$, postID2$, imgUrl$, pText$
                 Dim postDate As Date?
                 Dim dateAfterC As Date? = Nothing
                 Dim dateBefore As Date? = DownloadDateTo
@@ -185,11 +211,23 @@ Namespace API.TikTok
                 Dim titleRegex As RParams = GetTitleRegex()
                 Dim vPath As SFile = Nothing, pPath As SFile = Nothing
                 Dim file As SFile
-                Dim j As EContainer, photo As EContainer
+                Dim j As EContainer = Nothing, photo As EContainer, item As EContainer
                 Dim photoNode As Object() = GetPhotoNode()
                 Dim c%, cc%, i%
                 Dim errDef As New ErrorsDescriber(EDP.ReturnValue)
                 Dim infoParsed As Boolean = False
+
+                Dim gdlTmpIDs As New Dictionary(Of String, Integer)
+                Dim gdlCmd$ = String.Empty
+                Dim gdlIsNativeJson As Boolean
+
+                Dim __specFolder$ = String.Empty
+                Dim __specFolder_Cr As Func(Of String, String) = Function(_sp$) String.Empty.StringAppend(__specFolder).StringAppend(_sp, "\") &
+                                                                                IIf(__specFolder.IsEmptyString, String.Empty, "*")
+                Select Case Section
+                    Case Sections.UserStories : URL &= "/stories" : __specFolder = "Stories (user)" : gdlCmd = "-o videos -o photos"
+                    Case Sections.Reposts : URL &= "/reposts" : __specFolder = "Reposts"
+                End Select
 
                 If _ContentList.Count > 0 Then
                     With (From d In _ContentList Where d.Post.Date.HasValue Select d.Post.Date.Value)
@@ -215,7 +253,7 @@ Namespace API.TikTok
                     End If
                 End If
 
-                If DownloadVideos And Settings.YtdlpFile.Exists And CBool(MySettings.DownloadTTVideos.Value) Then
+                If Section = Sections.Timeline And DownloadVideos And Settings.YtdlpFile.Exists And CBool(MySettings.DownloadTTVideos.Value) Then
                     With UserCache.NewInstance : .Validate() : vPath = .RootDirectory : End With
                     Using b As New YTDLP.YTDLPBatch(Token,, vPath) With {.TempPostsList = _TempPostsList}
                         b.Execute(CreateYTCommand(vPath, URL, False, dateBefore, dateAfter))
@@ -233,7 +271,7 @@ Namespace API.TikTok
                             Else
                                 .TempPostsList = New List(Of String)
                             End If
-                            .Execute(CreateGDLCommand(URL))
+                            .Execute(CreateGDLCommand(URL, gdlCmd))
                             If Not PhotosDownloaded Then _ForceSaveUserInfo = True : _ForceSaveUserInfoOnException = True
                             PhotosDownloaded = True
                         End With
@@ -243,6 +281,7 @@ Namespace API.TikTok
                 ThrowAny(Token)
 
                 Dim files As List(Of SFile)
+                'YTDLP
                 If Not vPath.IsEmptyString AndAlso vPath.Exists(SFO.Path, False) Then
                     files = SFile.GetFiles(vPath, "*.json",, errDef)
                     If files.ListExists Then
@@ -250,7 +289,7 @@ Namespace API.TikTok
                             j = JsonDocument.Parse(file.GetText, errDef)
                             If j.ListExists Then
                                 If j.Value("_type").StringToLower = "video" Then
-                                    If Not baseDataObtained Then
+                                    If Not baseDataObtained And Section = Sections.Timeline Then
                                         baseDataObtained = True
                                         If ID.IsEmptyString Then ID = j.Value("uploader_id")
                                         newName = j.Value("uploader")
@@ -262,7 +301,8 @@ Namespace API.TikTok
                                     If Not _TempPostsList.Contains(postID) Then
                                         _TempPostsList.ListAddValue(postID, LNC)
                                     Else
-                                        Exit For 'Exit Sub
+                                        'Exit For 'Exit Sub
+                                        Continue For
                                     End If
                                     title = GetNewFileName(j.Value("title").StringRemoveWinForbiddenSymbols,
                                                            TitleUseNative, RemoveTagsFromTitle, TitleAddVideoID, postID, titleRegex)
@@ -279,6 +319,7 @@ Namespace API.TikTok
                                     If postUrl.IsEmptyString Then postUrl = $"https://www.tiktok.com/@{Name}/video/{postID}"
                                     _TempMediaList.Add(New UserMedia(postUrl, UTypes.Video) With {
                                                        .File = $"{title}.mp4",
+                                                       .SpecialFolder = __specFolder_Cr(String.Empty),
                                                        .Post = New UserPost(postID, postDate),
                                                        .PostText = pText,
                                                        .PostTextFileSpecialFolder = DownloadTextSpecialFolder,
@@ -291,76 +332,183 @@ Namespace API.TikTok
                     End If
                 End If
 
+                j.DisposeIfReady
+
+                'GDL
                 If Not pPath.IsEmptyString AndAlso pPath.Exists(SFO.Path, False) Then
                     files = SFile.GetFiles(pPath, "*.txt",, errDef)
                     If files.ListExists Then
+
+                        If Not Section = Sections.Timeline Then
+                            GDLResetFileNameProvider(Math.Max(files.Count.ToString.Length, 2))
+                            For i = 0 To files.Count - 1 : files(i) = GDLRenameFile(files(i), i) : Next
+                        End If
+
                         For Each file In files
                             t = file.GetText(errDef)
-                            If Not t.IsEmptyString Then t = RegexReplace(t, RegexPhotoJson)
+                            tOrig = t
+                            gdlIsNativeJson = False
+                            If Not t.IsEmptyString And Not Section = Sections.UserStories Then
+                                t = RegexReplace(t, RegexPhotoJson)
+                                If t.IsEmptyString Then t = tOrig : gdlIsNativeJson = True
+                            End If
                             If Not t.IsEmptyString Then
                                 j = JsonDocument.Parse(t, errDef)
                                 If j.ListExists Then
-                                    With j.ItemF({0, "webapp.video-detail", "itemInfo", "itemStruct"})
-                                        If .ListExists Then
-                                            postID = .Value("id")
-                                            postID2 = $"{photoPrefix}{postID}"
-                                            If Not _TempPostsList.Contains(postID2) Then _TempPostsList.ListAddValue(postID2, LNC) Else Exit For 'Exit Sub
-                                            postDate = AConvert(Of Date)(.Value("createTime"), UnixDate32Provider, Nothing)
-                                            Select Case CheckDatesLimit(postDate, SimpleDateConverter)
-                                                Case DateResult.Skip : Continue For
-                                                Case DateResult.Exit : Exit For 'Exit Sub
-                                            End Select
+                                    If Section = Sections.UserStories Then
+                                        With j("itemList")
+                                            If .ListExists Then
+                                                For Each item In .Self
+                                                    With item
+                                                        postID = .Value("id")
+                                                        postDate = AConvert(Of Date)(.Value("createTime"), UnixDate32Provider, Nothing)
+                                                        If Not _TempPostsList.Contains(postID) Then
+                                                            _TempPostsList.Add(postID)
+                                                            postUrl = $"https://www.tiktok.com/@{Name}/video/{postID}{GDL_POSTFIX}"
+                                                            If postDate.HasValue Then
+                                                                title = CStr(AConvert(Of String)(postDate.Value, SimpleDateConverterWithTime, String.Empty)).StringAppend(postID, " ")
+                                                            Else
+                                                                title = postID
+                                                            End If
+                                                            _TempMediaList.Add(New UserMedia(postUrl, UTypes.Video) With {
+                                                                               .URL_BASE = postUrl,
+                                                                               .SpecialFolder = __specFolder_Cr(String.Empty),
+                                                                               .File = $"{title}.mp4",
+                                                                               .Post = New UserPost(postID, postDate)
+                                                                               })
+                                                            With .Item("video")
+                                                                If .ListExists AndAlso Not .Value("cover").IsEmptyString Then _
+                                                                   _TempMediaList.Add(New UserMedia(.Value("cover"), UTypes.Picture) With {
+                                                                                      .URL_BASE = postUrl,
+                                                                                      .SpecialFolder = __specFolder_Cr("Photo"),
+                                                                                      .File = $"{title}.jpg"
+                                                                                      })
+                                                            End With
+                                                        Else
+                                                            Continue For
+                                                        End If
+                                                    End With
+                                                Next
+                                            End If
+                                        End With
+                                    ElseIf Section = Sections.Reposts And gdlIsNativeJson Then
+                                        With j("itemList")
+                                            If .ListExists Then
+                                                For Each item In .Self
+                                                    With item
+                                                        postID = .Value("id")
+                                                        postID2 = $"{photoPrefix}{postID}"
+                                                        If Not _TempPostsList.Contains(postID) And Not _TempPostsList.Contains(postID2) Then
+                                                            title = GetNewFileName(.Value("title").StringRemoveWinForbiddenSymbols,
+                                                                                   TitleUseNative, RemoveTagsFromTitle, TitleAddVideoID, postID, titleRegex)
+                                                            pText = .Value("title")
+                                                            If Not .Value("desc").IsEmptyString Then
+                                                                pText &= vbCr & vbCr & .Value("desc")
+                                                                If title.IsEmptyString Then title = GetNewFileName(.Value("desc").StringRemoveWinForbiddenSymbols,
+                                                                                                                   TitleUseNative, RemoveTagsFromTitle, TitleAddVideoID, postID, titleRegex)
+                                                            End If
+                                                            postDate = AConvert(Of Date)(j.Value("createTime"), UnixDate32Provider, Nothing)
+                                                            If postDate.HasValue Then
+                                                                Select Case CheckDatesLimit(postDate, SimpleDateConverter)
+                                                                    Case DateResult.Skip : Continue For
+                                                                    Case DateResult.Exit : Exit For 'Exit Sub
+                                                                End Select
+                                                            End If
 
-                                            If Not infoParsed Then
-                                                With .Item("author")
-                                                    If .ListExists Then
-                                                        infoParsed = True
-                                                        SimpleDownloadAvatar(.Value("avatarLarger").IfNullOrEmpty(.Value("avatarMedium")).IfNullOrEmpty(.Value("avatarThumb")),
-                                                                             Function(ByVal ____url As String) As SFile
-                                                                                 Dim ____f As SFile = CreateFileFromUrl(____url)
-                                                                                 If Not ____f.Name.IsEmptyString Then ____f.Name = ____f.Name.Replace(":", "_").Replace("~", "-")
-                                                                                 If Not ____f.Extension.IsEmptyString Then
-                                                                                     If Not (____f.Extension = "jpg" Or ____f.Extension = "jpeg") Then
-                                                                                         ____f.Extension = RegexReplace(____f.Extension, RParams.DMS("(.+)\?", 1, EDP.ReturnValue))
-                                                                                         If Not ____f.Extension.IsEmptyString AndAlso Not (____f.Extension = "jpg" Or ____f.Extension = "jpeg") Then ____f.Extension = String.Empty
+                                                            postUrl = .Value({"author"}, "uniqueId")
+                                                            If Not postUrl.IsEmptyString Then
+                                                                postUrl = $"https://www.tiktok.com/@{postUrl}/video/{postID}"
+                                                                _TempMediaList.Add(New UserMedia(postUrl, UTypes.Video) With {
+                                                                                   .File = $"{title}.mp4",
+                                                                                   .SpecialFolder = __specFolder_Cr(String.Empty),
+                                                                                   .Post = New UserPost(postID, postDate),
+                                                                                   .PostText = pText,
+                                                                                   .PostTextFileSpecialFolder = DownloadTextSpecialFolder,
+                                                                                   .PostTextFile = $"{ .File.Name}.txt"
+                                                                                   })
+                                                                If Not gdlTmpIDs.ContainsKey(postID) Then gdlTmpIDs.Add(postID, _TempMediaList.Count - 1)
+                                                            End If
+                                                        Else
+                                                            Continue For
+                                                        End If
+                                                    End With
+                                                Next
+                                            End If
+                                        End With
+                                    Else
+                                        With j.ItemF({0, "webapp.video-detail", "itemInfo", "itemStruct"})
+                                            If .ListExists Then
+                                                postID = .Value("id")
+                                                postID2 = $"{photoPrefix}{postID}"
+                                                'If Not _TempPostsList.Contains(postID2) Then _TempPostsList.ListAddValue(postID2, LNC) Else Exit For 'Exit Sub
+                                                postDate = AConvert(Of Date)(.Value("createTime"), UnixDate32Provider, Nothing)
+                                                If Not Section = Sections.UserStories Then
+                                                    Select Case CheckDatesLimit(postDate, SimpleDateConverter)
+                                                        Case DateResult.Skip : Continue For
+                                                        Case DateResult.Exit : Exit For 'Exit Sub
+                                                    End Select
+                                                End If
+
+                                                If Not infoParsed Then
+                                                    With .Item("author")
+                                                        If .ListExists Then
+                                                            infoParsed = True
+                                                            SimpleDownloadAvatar(.Value("avatarLarger").IfNullOrEmpty(.Value("avatarMedium")).IfNullOrEmpty(.Value("avatarThumb")),
+                                                                                 Function(ByVal ____url As String) As SFile
+                                                                                     Dim ____f As SFile = CreateFileFromUrl(____url)
+                                                                                     If Not ____f.Name.IsEmptyString Then ____f.Name = ____f.Name.Replace(":", "_").Replace("~", "-")
+                                                                                     If Not ____f.Extension.IsEmptyString Then
+                                                                                         If Not (____f.Extension = "jpg" Or ____f.Extension = "jpeg") Then
+                                                                                             ____f.Extension = RegexReplace(____f.Extension, RParams.DMS("(.+)\?", 1, EDP.ReturnValue))
+                                                                                             If Not ____f.Extension.IsEmptyString AndAlso Not (____f.Extension = "jpg" Or ____f.Extension = "jpeg") Then ____f.Extension = String.Empty
+                                                                                         End If
                                                                                      End If
-                                                                                 End If
-                                                                                 Return ____f
-                                                                             End Function)
-                                                        UserSiteNameUpdate(.Value("nickname"))
-                                                        UserDescriptionUpdate(.Value("signature"))
+                                                                                     Return ____f
+                                                                                 End Function)
+                                                            UserSiteNameUpdate(.Value("nickname"))
+                                                            UserDescriptionUpdate(.Value("signature"))
+                                                        End If
+                                                    End With
+                                                End If
+
+                                                title = GetNewFileName(.Value({"imagePost"}, "title").StringRemoveWinForbiddenSymbols,
+                                                                       TitleUseNative, RemoveTagsFromTitle, TitleAddVideoID, postID, titleRegex)
+                                                pText = .Value({"imagePost"}, "title")
+                                                If Not .Value("desc").IsEmptyString Then pText &= vbCr & vbCr & .Value("desc")
+                                                postUrl = $"https://www.tiktok.com/@{Name}/photo/{postID}"
+                                                With .Item({"imagePost", "images"})
+                                                    If .ListExists Then
+                                                        If Not _TempPostsList.Contains(postID2) Then
+                                                            _TempPostsList.ListAddValue(postID2, LNC)
+                                                            If gdlTmpIDs.ContainsKey(postID) Then
+                                                                _TempMediaList.RemoveAt(gdlTmpIDs(postID))
+                                                                gdlTmpIDs.Remove(postID)
+                                                            End If
+                                                        Else
+                                                            Continue For 'Exit Sub
+                                                        End If
+                                                        i = 0
+                                                        c = .Count
+                                                        cc = Math.Max(c.ToString.Length, 3)
+                                                        For Each photo In .Self
+                                                            i += 1
+                                                            imgUrl = photo.ItemF(photoNode).XmlIfNothingValue
+                                                            If Not imgUrl.IsEmptyString Then _
+                                                               _TempMediaList.Add(New UserMedia(imgUrl, UTypes.Picture) With {
+                                                                                  .URL_BASE = postUrl,
+                                                                                  .SpecialFolder = __specFolder_Cr("Photo"),
+                                                                                  .File = $"{title}{IIf(c > 1, $"_{i.NumToString(ANumbers.Formats.NumberGroup, cc)}", String.Empty)}.jpg",
+                                                                                  .Post = New UserPost(postID, postDate),
+                                                                                  .PostText = pText,
+                                                                                  .PostTextFileSpecialFolder = DownloadTextSpecialFolder,
+                                                                                  .PostTextFile = $"{ .File.Name}.txt"
+                                                                                  })
+                                                        Next
                                                     End If
                                                 End With
                                             End If
-
-                                            title = GetNewFileName(.Value({"imagePost"}, "title").StringRemoveWinForbiddenSymbols,
-                                                                   TitleUseNative, RemoveTagsFromTitle, TitleAddVideoID, postID, titleRegex)
-                                            pText = .Value({"imagePost"}, "title")
-                                            If Not .Value("desc").IsEmptyString Then pText &= vbCr & vbCr & .Value("desc")
-                                            postUrl = $"https://www.tiktok.com/@{Name}/photo/{postID}"
-                                            With .Item({"imagePost", "images"})
-                                                If .ListExists Then
-                                                    i = 0
-                                                    c = .Count
-                                                    cc = Math.Max(c.ToString.Length, 3)
-                                                    For Each photo In .Self
-                                                        i += 1
-                                                        imgUrl = photo.ItemF(photoNode).XmlIfNothingValue
-                                                        If Not imgUrl.IsEmptyString Then _
-                                                           _TempMediaList.Add(New UserMedia(imgUrl, UTypes.Picture) With {
-                                                                              .URL_BASE = postUrl,
-                                                                              .SpecialFolder = "Photo",
-                                                                              .File = $"{title}{IIf(c > 1, $"_{i.NumToString(ANumbers.Formats.NumberGroup, cc)}", String.Empty)}.jpg",
-                                                                              .Post = New UserPost(postID, postDate),
-                                                                              .PostText = pText,
-                                                                              .PostTextFileSpecialFolder = DownloadTextSpecialFolder,
-                                                                              .PostTextFile = $"{ .File.Name}.txt"
-                                                                              })
-                                                    Next
-                                                End If
-                                            End With
-                                        End If
-                                    End With
+                                        End With
+                                    End If
                                     j.Dispose()
                                 End If
                             End If
@@ -368,6 +516,9 @@ Namespace API.TikTok
                     End If
                 End If
 
+                j.DisposeIfReady
+                _TempPostsList.ListAddList(gdlTmpIDs.Keys)
+                gdlTmpIDs.Clear()
                 If _TempMediaList.Count > 0 Then LastDownloadDate = Now
             Catch ex As Exception
                 ProcessException(ex, Token, $"data downloading error [{URL}]")
@@ -452,8 +603,17 @@ Namespace API.TikTok
         End Function
 #End Region
 #Region "GDL Support"
-        Private Function CreateGDLCommand(ByVal URL As String) As String
-            Return $"""{Settings.GalleryDLFile}"" --verbose --no-download --no-skip --write-pages {URL}"
+        Private Function CreateGDLCommand(ByVal URL As String, Optional ByVal SectionCommand As String = Nothing,
+                                          Optional ByVal IsDownload As Boolean = False, Optional ByVal Output As SFile = Nothing) As String
+            Dim command$ = $"""{Settings.GalleryDLFile}"" "
+            If Not IsDownload Then
+                command &= "--verbose --no-download --no-skip --write-pages "
+            Else
+                command &= $"--dest ""{Output.PathNoSeparator}"" "
+            End If
+            If Not CBool(If(IsSingleObjectDownload, MySettings.UseParsedVideoDateSTD, MySettings.UseParsedVideoDate).Value) Then command &= "--no-mtime "
+            command &= $"{SectionCommand} {URL}"
+            Return command
         End Function
 #End Region
 #Region "DownloadContent, DownloadFile"
@@ -465,7 +625,16 @@ Namespace API.TikTok
         End Function
         Protected Overrides Function DownloadFile(ByVal URL As String, ByVal Media As UserMedia, ByVal DestinationFile As SFile, ByVal Token As CancellationToken) As SFile
             Using b As New TokenBatch(Token) With {.FileExchanger = RootCacheTikTok}
-                b.Execute(CreateYTCommand(DestinationFile, URL, True))
+                If URL.EndsWith(GDL_POSTFIX) Then
+                    ValidateCache()
+                    Dim tmpPath As SFile
+                    With UserCache.NewInstance : .Validate() : tmpPath = .RootDirectory : End With
+                    b.Execute(CreateGDLCommand(URL.Replace(GDL_POSTFIX, String.Empty),, True, tmpPath))
+                    tmpPath = SFile.GetFiles(tmpPath, "*.mp4", IO.SearchOption.AllDirectories, EDP.ReturnValue).FirstOrDefault
+                    If Not tmpPath.IsEmptyString Then SFile.Move(tmpPath, DestinationFile)
+                Else
+                    b.Execute(CreateYTCommand(DestinationFile, URL, True))
+                End If
             End Using
             If DestinationFile.Exists Then Return DestinationFile Else Return Nothing
         End Function

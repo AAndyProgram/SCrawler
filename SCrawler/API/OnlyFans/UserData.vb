@@ -88,6 +88,7 @@ Namespace API.OnlyFans
         Private _DownloadedPostsSession As Integer = 0
         Private FunctionErr As Integer = FunctionErrDef
         Private Const FunctionErrDef As Integer = -100
+        Private _TimelineDownloading As Boolean = False
         Private Sub ValidateOFScraper()
             _OFScraperExists = ACheck(MySettings.OFScraperPath.Value) AndAlso CStr(MySettings.OFScraperPath.Value).CSFile.Exists
         End Sub
@@ -110,7 +111,9 @@ Namespace API.OnlyFans
                         If ID.IsEmptyString Then Throw New ArgumentNullException("ID", "Unable to get user ID")
                     End If
 
+                    _TimelineDownloading = True
                     If MediaDownloadTimeline Then DownloadTimeline(IIf(IsSavedPosts, 0, String.Empty), Token)
+                    _TimelineDownloading = False
                     If Not IsSavedPosts Then
                         If MediaDownloadStories And FunctionErr = FunctionErrDef Then DownloadStories(Token)
                         If MediaDownloadHighlights And FunctionErr = FunctionErrDef Then DownloadHighlights(Token)
@@ -826,6 +829,8 @@ Namespace API.OnlyFans
                 MyMainLOG = $"{ToStringForLog()} [{CInt(Responser.StatusCode)}]: OnlyFans credentials expired"
                 Return 3
             ElseIf Responser.StatusCode = Net.HttpStatusCode.InternalServerError Then '500
+                Return 3
+            ElseIf Not _TimelineDownloading And Responser.StatusCode = Net.HttpStatusCode.BadGateway Then '502
                 Return 3
             Else
                 Return 0

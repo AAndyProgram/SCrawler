@@ -410,7 +410,6 @@ Namespace DownloadObjects
             With newObj
                 .Name = String.Empty
                 .Enabled = Enabled
-                .Groups.ListAddList(Groups, LAP.ClearBeforeAdd)
                 .IsManual = IsManual
                 .Timer = Timer
                 .StartupDelay = StartupDelay
@@ -690,7 +689,6 @@ Namespace DownloadObjects
             If Not disposedValue And disposing Then
                 [Stop]()
                 UserKeys.ListClearDispose()
-                Groups.Clear()
             End If
             MyBase.Dispose(disposing)
         End Sub

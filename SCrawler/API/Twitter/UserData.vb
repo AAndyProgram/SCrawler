@@ -112,14 +112,6 @@ Namespace API.Twitter
                 Return HOST.Source
             End Get
         End Property
-        Private FileNameProvider As ANumbers = Nothing
-        Private Sub ResetFileNameProvider(Optional ByVal GroupSize As Integer? = Nothing)
-            FileNameProvider = New ANumbers With {.FormatOptions = ANumbers.Options.FormatNumberGroup + ANumbers.Options.Groups}
-            FileNameProvider.GroupSize = If(GroupSize, 3)
-        End Sub
-        Private Function RenameGdlFile(ByVal Input As SFile, ByVal i As Integer) As SFile
-            Return SFile.Rename(Input, $"{Input.PathWithSeparator}{i.NumToString(FileNameProvider)}.{Input.Extension}",, EDP.ThrowException)
-        End Function
         Friend Function GetUserUrl() As String
             Return $"https://x.com{IIf(IsCommunity, SiteSettings.CommunitiesUser, String.Empty)}/{NameTrue}"
         End Function
@@ -479,10 +471,10 @@ Namespace API.Twitter
                             ThrowAny(Token)
                             Dim timelineFiles As List(Of SFile) = SFile.GetFiles(dir, "*.txt",, EDP.ReturnValue)
                             If timelineFiles.ListExists Then
-                                ResetFileNameProvider(Math.Max(timelineFiles.Count.ToString.Length, 2))
+                                GDLResetFileNameProvider(Math.Max(timelineFiles.Count.ToString.Length, 2))
                                 'rename files
                                 If Not DEBUG_PROFILE Then
-                                    For i = 0 To timelineFiles.Count - 1 : timelineFiles(i) = RenameGdlFile(timelineFiles(i), i) : Next
+                                    For i = 0 To timelineFiles.Count - 1 : timelineFiles(i) = GDLRenameFile(timelineFiles(i), i) : Next
                                 End If
                                 'parse files
                                 For i = 0 To timelineFiles.Count - 1
@@ -681,14 +673,14 @@ nextpIndx:
                 Dim f As SFile = GetDataFromGalleryDL("https://x.com/i/bookmarks", Settings.Cache, True, Token)
                 Dim files As List(Of SFile) = SFile.GetFiles(f, "*.txt")
                 If files.ListExists Then
-                    ResetFileNameProvider(Math.Max(files.Count.ToString.Length, 3))
+                    GDLResetFileNameProvider(Math.Max(files.Count.ToString.Length, 3))
                     Dim id$
                     Dim nodes As List(Of String()) = GetContainerSubnodes()
                     Dim node$()
                     Dim j As EContainer, jj As EContainer
                     Dim jErr As New ErrorsDescriber(EDP.ReturnValue)
                     For i% = 0 To files.Count - 1
-                        f = RenameGdlFile(files(i), i)
+                        f = GDLRenameFile(files(i), i)
                         j = JsonDocument.Parse(f.GetText, jErr)
                         If Not j Is Nothing Then
                             With j.ItemF({"data", 0, "timeline", "instructions", 0, "entries"})
@@ -1140,7 +1132,7 @@ nextpIndx:
                     Dim files As List(Of SFile)
                     Dim lim%
                     Dim specFolder$ = IIf(_ReparseLikes, "Likes", String.Empty)
-                    ResetFileNameProvider()
+                    GDLResetFileNameProvider()
                     cache = If(IsSingleObjectDownload, Settings.Cache, CreateCache())
                     If _ReparseLikes Then lim = LikesPosts.Count Else lim = _ContentList.Count
                     ProgressPre.ChangeMax(lim)
@@ -1166,7 +1158,7 @@ nextpIndx:
                                     files = SFile.GetFiles(f, "*.txt")
                                     If files.ListExists Then
                                         For ii = 0 To files.Count - 1
-                                            f = RenameGdlFile(files(ii), ii)
+                                            f = GDLRenameFile(files(ii), ii)
                                             j = JsonDocument.Parse(f.GetText)
                                             If Not j Is Nothing Then
                                                 With j.ItemF({"data", 0, "instructions", 0, "entries"})

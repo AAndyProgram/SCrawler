@@ -10,7 +10,7 @@ Imports SCrawler.API.Base
 Imports SCrawler.Plugin.Attributes
 Namespace API.Xhamster
     Friend NotInheritable Class UserExchangeOptions : Inherits API.Base.EditorExchangeOptionsBase_P
-        <PSetting(Address:=SettingAddress.User, Caption:="Get moments")>
+        <PSetting(Address:=SettingAddress.User, Caption:=SiteSettings.GetMomentsCaption)>
         Friend Property GetMoments As Boolean = False
         Friend Sub New()
             MyBase.New
@@ -18,6 +18,10 @@ Namespace API.Xhamster
         Friend Sub New(ByVal u As IPSite)
             MyBase.New(DirectCast(u, UserData))
             GetMoments = DirectCast(u, UserData).GetMoments
+        End Sub
+        Friend Sub New(ByVal s As SiteSettings)
+            MyBase.New(s)
+            GetMoments = s.GetMoments.Value
         End Sub
         Friend Overrides Sub Apply(ByRef u As IPSite)
             MyBase.Apply(u)

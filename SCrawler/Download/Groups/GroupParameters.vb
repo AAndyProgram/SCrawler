@@ -17,6 +17,7 @@ Namespace DownloadObjects.Groups
         ReadOnly Property Sites As List(Of String)
         ReadOnly Property SitesExcluded As List(Of String)
         ReadOnly Property Groups As List(Of String)
+        ReadOnly Property GroupsExcluded As List(Of String)
         Property GroupsOnly As Boolean
         Property Regular As Boolean
         Property Temporary As Boolean
@@ -59,6 +60,7 @@ Namespace DownloadObjects.Groups
         Protected Const Name_Sites As String = "Sites"
         Protected Const Name_Sites_Excluded As String = "SitesExcluded"
         Protected Const Name_Groups As String = "Groups"
+        Protected Const Name_GroupsExcluded As String = "GroupsExcluded"
         Protected Const Name_GroupsOnly As String = "GroupsOnly"
         Protected Const Name_DaysNumber As String = "DaysNumber"
         Protected Const Name_DaysIsDownloaded As String = "DaysIsDownloaded"
@@ -79,6 +81,7 @@ Namespace DownloadObjects.Groups
         Friend ReadOnly Property Sites As List(Of String) Implements IGroup.Sites
         Friend ReadOnly Property SitesExcluded As List(Of String) Implements IGroup.SitesExcluded
         Friend ReadOnly Property Groups As List(Of String) Implements IGroup.Groups
+        Friend ReadOnly Property GroupsExcluded As List(Of String) Implements IGroup.GroupsExcluded
         Friend Property GroupsOnly As Boolean = False Implements IGroup.GroupsOnly
         Friend Property Regular As Boolean = True Implements IGroup.Regular
         Friend Property Temporary As Boolean = True Implements IGroup.Temporary
@@ -105,6 +108,7 @@ Namespace DownloadObjects.Groups
             Sites = New List(Of String)
             SitesExcluded = New List(Of String)
             Groups = New List(Of String)
+            GroupsExcluded = New List(Of String)
         End Sub
 #End Region
 #Region "Base functions"
@@ -129,6 +133,7 @@ Namespace DownloadObjects.Groups
                 Sites.ListAddList(.Sites, LAP.ClearBeforeAdd)
                 SitesExcluded.ListAddList(.SitesExcluded, LAP.ClearBeforeAdd)
                 Groups.ListAddList(.Groups, LAP.ClearBeforeAdd)
+                GroupsExcluded.ListAddList(.GroupsExcluded, LAP.ClearBeforeAdd)
                 GroupsOnly = .GroupsOnly
                 Regular = .Regular
                 Temporary = .Temporary
@@ -163,6 +168,7 @@ Namespace DownloadObjects.Groups
             If Not e.Value(Name_Sites).IsEmptyString Then Sites.ListAddList(e.Value(Name_Sites).Split("|"), l)
             If Not e.Value(Name_Sites_Excluded).IsEmptyString Then SitesExcluded.ListAddList(e.Value(Name_Sites_Excluded).Split("|"), l)
             If Not e.Value(Name_Groups).IsEmptyString Then Groups.ListAddList(e.Value(Name_Groups).Split("|"), l)
+            If Not e.Value(Name_GroupsExcluded).IsEmptyString Then GroupsExcluded.ListAddList(e.Value(Name_GroupsExcluded).Split("|"), l)
             GroupsOnly = e.Value(Name_GroupsOnly).FromXML(Of Boolean)(False)
 
             Regular = e.Value(Name_Regular).FromXML(Of Boolean)(True)
@@ -202,6 +208,7 @@ Namespace DownloadObjects.Groups
                         New EContainer(Name_Sites, Sites.ListToString("|")),
                         New EContainer(Name_Sites_Excluded, SitesExcluded.ListToString("|")),
                         New EContainer(Name_Groups, Groups.ListToString("|")),
+                        New EContainer(Name_GroupsExcluded, GroupsExcluded.ListToString("|")),
                         New EContainer(Name_GroupsOnly, GroupsOnly.BoolToInteger),
                         New EContainer(Name_Regular, Regular.BoolToInteger),
                         New EContainer(Name_Temporary, Temporary.BoolToInteger),
@@ -233,6 +240,7 @@ Namespace DownloadObjects.Groups
                     Sites.Clear()
                     SitesExcluded.Clear()
                     Groups.Clear()
+                    GroupsExcluded.Clear()
                 End If
                 disposedValue = True
             End If

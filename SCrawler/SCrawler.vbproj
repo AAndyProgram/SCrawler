@@ -255,6 +255,7 @@
     <Compile Include="API\ThisVid\SiteSettings.vb" />
     <Compile Include="API\ThisVid\UserData.vb" />
     <Compile Include="API\ThisVid\UserExchangeOptions.vb" />
+    <Compile Include="API\ThreadsNet\Declarations.vb" />
     <Compile Include="API\ThreadsNet\SiteSettings.vb" />
     <Compile Include="API\ThreadsNet\UserData.vb" />
     <Compile Include="API\TikTok\Declarations.vb" />

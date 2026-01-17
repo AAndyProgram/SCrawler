@@ -14,6 +14,9 @@ Imports PersonalUtilities.Functions.RegularExpressions
 Namespace API.Xhamster
     <Manifest(XhamsterSiteKey), SavedPosts, SpecialForm(True), SpecialForm(False), TaskGroup(SettingsCLS.TaskStackNamePornSite)>
     Friend Class SiteSettings : Inherits SiteSettingsBase
+#Region "Consts"
+        Friend Const GetMomentsCaption As String = "Get moments (short videos)"
+#End Region
 #Region "Declarations"
         Private Const CAT_YTDLP As String = "yt-dlp support"
         <PXML("Domains"), PClonable> Private ReadOnly Property SiteDomains As PropertyValue
@@ -45,6 +48,8 @@ Namespace API.Xhamster
         End Property
         <PropertyOption(ControlText:="Disable internal algorithm", ControlToolTip:="If checked, the internal algorithm will be forcibly disabled and replaced with yt-dlp", Category:=CAT_YTDLP), PXML, PClonable, HiddenControl>
         Friend ReadOnly Property UseYTDLPForceDisableInternal As PropertyValue
+        <PropertyOption(ControlText:=GetMomentsCaption, Category:=DeclaredNames.CAT_UserDefs), PXML, PClonable>
+        Friend ReadOnly Property GetMoments As PropertyValue
         <DoNotUse> Friend Overrides Property DownloadText As PropertyValue
         <DoNotUse> Friend Overrides Property DownloadTextPosts As PropertyValue
         <DoNotUse> Friend Overrides Property DownloadTextSpecialFolder As PropertyValue
@@ -61,10 +66,11 @@ Namespace API.Xhamster
             UseYTDLPJSON = New PropertyValue(True)
             UseYTDLPDownload = New PropertyValue(True)
             UseYTDLPForceDisableInternal = New PropertyValue(False)
+            GetMoments = New PropertyValue(True)
 
             _SubscriptionsAllowed = True
             UrlPatternUser = "https://xhamster.com/{0}/{1}"
-            UserRegex = RParams.DMS($"/({UserOption}|{ChannelOption}|{P_Creators})/([^/]+)(\Z|.*)", 0, RegexReturn.ListByMatch)
+            UserRegex = RParams.DMS($"/({UserOption}|{UserOption2}|{ChannelOption}|{P_Creators})/([^/]+)(\Z|.*)", 0, RegexReturn.ListByMatch)
             ImageVideoContains = "xhamster"
             UserOptionsType = GetType(UserExchangeOptions)
             UseNetscapeCookies = True
@@ -113,6 +119,7 @@ Namespace API.Xhamster
 #Region "IsMyUser, IsMyImageVideo"
         Friend Const ChannelOption As String = "channels"
         Friend Const UserOption As String = "users/profiles"
+        Private Const UserOption2 As String = "users"
         Friend Const P_Search As String = "search"
         Friend Const P_Tags As String = "tags"
         Friend Const P_Categories As String = "categories"

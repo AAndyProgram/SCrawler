@@ -219,12 +219,12 @@ Namespace API.OnlyFans
             DynamicRulesXml.Extension = "xml"
             ReplacePattern_RepoToRaw = New RParams("(.*github.com/([^/]+)/([^/]+)/blob/(.+))", Nothing, 0,
                                                    RegexReturn.ReplaceChangeListMatch, EDP.ReturnValue) With {
-                                                   .PatternReplacement = "https://raw.githubusercontent.com/{2}/{3}/{4}"}
+                                                   .PatternReplacement = "https://raw.githubusercontent.com/{2}/{3}/refs/heads/{4}"}
             ReplacePattern_JsonInfo = ReplacePattern_RepoToRaw.Copy
             ReplacePattern_JsonInfo.PatternReplacement = "https://github.com/{2}/{3}/latest-commit/{4}"
             ReplacePattern_RawToRepo = ReplacePattern_RepoToRaw.Copy
-            ReplacePattern_RawToRepo.Pattern = "(.*raw.githubusercontent.com/([^/]+)/([^/]+)/([^/]+)/(.+))"
-            ReplacePattern_RawToRepo.PatternReplacement = "https://github.com/{2}/{3}/blob/{4}/{5}"
+            ReplacePattern_RawToRepo.Pattern = "(.*raw.githubusercontent.com/([^/]+)/([^/]+)(/refs/heads)?/([^/]+)/(.+))"
+            ReplacePattern_RawToRepo.PatternReplacement = "https://github.com/{2}/{3}/blob/{5}/{6}"
             ConfigRulesExtract = RParams.DMS("DYNAMIC_RULE"":(\{.+?\}[\r\n]+)", 1, RegexOptions.Singleline, EDP.ReturnValue)
             OFLOG = New TextSaver($"LOGs\OF_{Now:yyyyMMdd_HHmmss}.txt") With {.LogMode = True, .AutoSave = True, .AutoClear = True}
             AddHandler OFLOG.TextSaved, AddressOf OFLOG_TextSaved

@@ -385,7 +385,7 @@ Namespace API.PornHub
                                 If PersonType = PersonTypeCannel Then
                                     l = l.ListTake(4, l.Count)
                                 Else
-                                    l.RemoveAll(Function(uv) uv.UserRef.IsEmptyString OrElse Not uv.UserRef = usrRef)
+                                    l.RemoveAll(Function(uv) Not uv.UserRef.IsEmptyString AndAlso Not uv.UserRef = usrRef)
                                 End If
                             ElseIf Type = VideoTypes.Favorite Then
                                 l.RemoveAll(Function(uv) uv.Type = VideoTypes.Private)

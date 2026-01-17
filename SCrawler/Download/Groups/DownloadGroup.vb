@@ -365,17 +365,29 @@ Namespace DownloadObjects.Groups
                             (.Sites.Count = 0 OrElse .Sites.Contains(user.Site)) AndAlso
                             (.SitesExcluded.Count = 0 OrElse Not .SitesExcluded.Contains(user.Site))
                         Dim users As New List(Of IUserData)
+                        Dim l As New ListAddParams(LAP.IgnoreICopier)
                         If Not .GroupsOnly Or (.GroupsOnly And .Groups.Count = 0) Then
                             users.ListAddList(Settings.GetUsers(Function(user) CheckLabels.Invoke(user) AndAlso CheckSites.Invoke(user) AndAlso
                                                                                CheckParams.Invoke(user) AndAlso CheckSubscription.Invoke(user) AndAlso
-                                                                               CheckDays.Invoke(user) AndAlso CheckDateRange.Invoke(user)), LAP.IgnoreICopier)
+                                                                               CheckDays.Invoke(user) AndAlso CheckDateRange.Invoke(user)), l)
                         End If
-                        If .Groups.Count > 0 And Settings.Groups.Count > 0 Then
+                        If Settings.Groups.Count > 0 Then
                             Dim i%
-                            For Each groupName$ In .Groups
-                                i = Settings.Groups.IndexOf(groupName)
-                                If i >= 0 Then users.ListAddList(Settings.Groups(i).GetUsers, LAP.NotContainsOnly, LAP.IgnoreICopier)
-                            Next
+                            Dim groupName$
+                            l.NotContainsOnly = True
+                            If .Groups.Count > 0 Then
+                                For Each groupName In .Groups
+                                    i = Settings.Groups.IndexOf(groupName)
+                                    If i >= 0 Then users.ListAddList(Settings.Groups(i).GetUsers, l)
+                                Next
+                            End If
+                            l.DisableDispose = True
+                            If .GroupsExcluded.Count > 0 Then
+                                For Each groupName In .GroupsExcluded
+                                    i = Settings.Groups.IndexOf(groupName)
+                                    If i >= 0 Then users.ListDisposeRemove(Settings.Groups(i).GetUsers, l)
+                                Next
+                            End If
                         End If
 
                         If .UsersCount <> 0 And users.ListExists Then

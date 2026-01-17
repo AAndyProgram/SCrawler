@@ -388,8 +388,10 @@ Namespace API.ThreadsNet
                 Dim newID$
                 Dim idStr$ = String.Empty
                 If Not r.IsEmptyString Then
+                    UserSiteNameUpdate(RegexReplace(r, RegexUserName))
+                    UserDescriptionUpdate(RegexReplace(r, RegexUserDescr))
                     ParseTokens(r, 0)
-                    newID = RegexReplace(r, RParams.DMS("""props"":\{[^\{\}]*?""user_id"":""(\d+)""", 1, EDP.ReturnValue))
+                    newID = RegexReplace(r, RegexUserID)
                     If ID.IsEmptyString OrElse ID = newID Then
                         _IdChanged = ID.IsEmptyString
                         ID = newID

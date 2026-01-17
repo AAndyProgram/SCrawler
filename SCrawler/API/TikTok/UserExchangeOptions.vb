@@ -6,9 +6,16 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
+Imports SCrawler.Plugin
 Imports SCrawler.Plugin.Attributes
 Namespace API.TikTok
     Friend Class UserExchangeOptions : Inherits Base.EditorExchangeOptionsBase
+        <PSetting(NameOf(SiteSettings.GetTimeline), NameOf(MySettings))>
+        Friend Property GetTimeline As Boolean
+        <PSetting(NameOf(SiteSettings.GetStoriesUser), NameOf(MySettings))>
+        Friend Property GetStoriesUser As Boolean
+        <PSetting(NameOf(SiteSettings.GetReposts), NameOf(MySettings))>
+        Friend Property GetReposts As Boolean
         <PSetting(NameOf(SiteSettings.RemoveTagsFromTitle), NameOf(MySettings))>
         Friend Property RemoveTagsFromTitle As Boolean
         <PSetting(NameOf(SiteSettings.TitleUseNative), NameOf(MySettings))>
@@ -27,6 +34,9 @@ Namespace API.TikTok
             MyBase.New(u)
             _ApplyBase_Name = False
             MySettings = u.HOST.Source
+            GetTimeline = u.GetTimeline
+            GetStoriesUser = u.GetStoriesUser
+            GetReposts = u.GetReposts
             RemoveTagsFromTitle = u.RemoveTagsFromTitle
             TitleUseNative = u.TitleUseNative
             TitleAddVideoID = u.TitleAddVideoID
@@ -38,6 +48,9 @@ Namespace API.TikTok
             MyBase.New(s)
             _ApplyBase_Name = False
             MySettings = s
+            GetTimeline = s.GetTimeline.Value
+            GetStoriesUser = s.GetStoriesUser.Value
+            GetReposts = s.GetReposts.Value
             RemoveTagsFromTitle = s.RemoveTagsFromTitle.Value
             TitleUseNative = s.TitleUseNative.Value
             TitleAddVideoID = s.TitleAddVideoID.Value

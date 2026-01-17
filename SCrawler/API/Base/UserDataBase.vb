@@ -1439,6 +1439,16 @@ BlockNullPicture:
             Cache.Validate()
             Return Cache
         End Function
+#Region "GDL File Names"
+        Protected GDLFileNameProvider As ANumbers = Nothing
+        Protected Sub GDLResetFileNameProvider(Optional ByVal GroupSize As Integer? = Nothing)
+            GDLFileNameProvider = New ANumbers With {.FormatOptions = ANumbers.Options.FormatNumberGroup + ANumbers.Options.Groups}
+            GDLFileNameProvider.GroupSize = If(GroupSize, 3)
+        End Sub
+        Protected Function GDLRenameFile(ByVal Input As SFile, ByVal i As Integer) As SFile
+            Return SFile.Rename(Input, $"{Input.PathWithSeparator}{i.NumToString(GDLFileNameProvider)}.{Input.Extension}",, EDP.ThrowException)
+        End Function
+#End Region
 #Region "DownloadSingleObject"
         Protected IsSingleObjectDownload As Boolean = False
         Friend Overridable Sub DownloadSingleObject(ByVal Data As YouTube.Objects.IYouTubeMediaContainer, ByVal Token As CancellationToken) Implements IUserData.DownloadSingleObject
@@ -2453,6 +2463,7 @@ stxt:
                     _TempPostsList.Clear()
                     _MD5List.Clear()
                     TokenPersonal = Nothing
+                    GDLFileNameProvider = Nothing
                     If Not ProgressPre Is Nothing Then ProgressPre.Reset() : ProgressPre.Dispose()
                     If Not Responser Is Nothing Then Responser.Dispose()
                     If Not BTT_CONTEXT_DOWN Is Nothing Then BTT_CONTEXT_DOWN.Dispose()

@@ -2,10 +2,31 @@
 - [ffmpeg](https://github.com/AAndyProgram/SCrawler/wiki/Settings#ffmpeg)
   - x64 version - [release](https://github.com/GyanD/codexffmpeg/releases/tag/5.1.2); [zip](https://github.com/GyanD/codexffmpeg/releases/download/5.1.2/ffmpeg-5.1.2-full_build.zip); **version `5.1.2-full_build-www.gyan.dev`**
   - x86 version - [release](https://github.com/yt-dlp/FFmpeg-Builds/releases/tag/autobuild-2022-11-30-12-57); [zip](https://github.com/yt-dlp/FFmpeg-Builds/releases/download/autobuild-2022-11-30-12-57/ffmpeg-N-109274-gd7a5f068c2-win32-gpl.zip); **version `N-109457-geeb280f351-20221226`**
-- [Gallery-dl](https://github.com/AAndyProgram/SCrawler/wiki/Settings#gallery-dl) - **1.30.10**
-- [YT-DLP](https://github.com/AAndyProgram/SCrawler/wiki/Settings#yt-dlp) - **2025.11.12**
+- [Gallery-dl](https://github.com/AAndyProgram/SCrawler/wiki/Settings#gallery-dl) - **1.31.3**
+- [YT-DLP](https://github.com/AAndyProgram/SCrawler/wiki/Settings#yt-dlp) - **2025.12.08**
 - [Deno](https://github.com/AAndyProgram/SCrawler/wiki/Settings#deno) - latest *(`2.0.0` or higher)*
 - [OF-Scraper](https://github.com/AAndyProgram/SCrawler/wiki/Settings#of-scraper) - **3.12.9** ([release](https://github.com/datawhores/OF-Scraper/releases/tag/3.12.9))
+
+# 2026
+
+## 2026.1.17.0
+
+*2026-01-17*
+
+- Add
+  - Sites:
+    - OnlyFans: handling error `502`
+    - Threads: user name and description extraction
+    - TikTok: **downloading `Stories` and `Reposts`**
+  - Download groups: excluded groups
+- Updated
+  - yt-dlp up to version **2025.12.08**
+  - gallery-dl up to version **1.31.3**
+- Fixed
+  - Sites:
+    - PornHub: videos aren't downloading
+    - TikTok: new videos aren't downloading
+    - xHamster: new users aren't added in some cases
 
 # 2025
 
@@ -1765,7 +1786,7 @@ At the requests of some users, I added [screenshots](ProgramScreenshots) of the 
   - Wrong some Reddit videos parsing
   - Wrong some Reddit images parsing
 
-# 1.0.0.0
+## 1.0.0.0
 
 *2021-12-07*
 

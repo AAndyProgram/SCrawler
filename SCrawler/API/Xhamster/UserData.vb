@@ -740,10 +740,17 @@ Namespace API.Xhamster
 #Region "yt-dlp support"
         Private Function YTDLPGetInfo(ByVal URL As String, ByVal n As Integer) As SFile
             Try
-                If MyCache Is Nothing Then MyCache = CreateCache() : MyCache.Validate()
-                Dim path As SFile = MyCache.NewPath
+                Dim cc As CacheKeeper
+                If IsSingleObjectDownload Then
+                    cc = Settings.Cache
+                Else
+                    If MyCache Is Nothing Then MyCache = CreateCache() : MyCache.Validate()
+                    cc = MyCache
+                End If
+                Dim path As SFile = cc.NewPath
                 Dim c$ = If(MySettings.CookiesNetscapeFile.Exists, $" --no-cookies-from-browser --cookies ""{MySettings.CookiesNetscapeFile}""", String.Empty)
                 Dim cmd$ = $"{Settings.YtdlpFile} --write-info-json --skip-download{c} {URL} -o ""{path.PathWithSeparator}file"""
+                path.Exists()
                 Using ytdlp As New YTDLP.YTDLPBatch(TokenPersonal,, path) : ytdlp.Encoding = Settings.CMDEncoding : ytdlp.Execute(cmd) : End Using
                 Return SFile.GetFiles(path, "*.json",, EDP.ReturnValue).FirstOrDefault
             Catch ex As Exception
