@@ -545,18 +545,17 @@ Namespace API.Instagram
             UserRegex = RParams.DMS(String.Format(UserRegexDefaultPattern, "instagram.com/"), 1)
             ImageVideoContains = "instagram.com"
         End Sub
-        Private Const SettingsVersionCurrent As Integer = 2
+        Private Const SettingsVersionCurrent As Integer = 3
         Friend Overrides Sub EndInit()
             Try : MyLastRequests.Add(LastDownloadDate.Value, LastRequestsCount.Value) : Catch : End Try
             If Not CBool(HH_IG_WWW_CLAIM_USE.Value) Then Responser.Headers.Remove(Header_IG_WWW_CLAIM)
             If CInt(SettingsVersion.Value) < SettingsVersionCurrent Then
                 SettingsVersion.Value = SettingsVersionCurrent
-                HH_IG_WWW_CLAIM_UPDATE_INTERVAL.Value = 120
-                HH_IG_WWW_CLAIM_ALWAYS_ZERO.Value = False
-                HH_IG_WWW_CLAIM_RESET_EACH_SESSION.Value = True
-                HH_IG_WWW_CLAIM_RESET_EACH_TARGET.Value = True
-                HH_IG_WWW_CLAIM_USE.Value = True
-                HH_IG_WWW_CLAIM_USE_DEFAULT_ALGO.Value = True
+                HH_IG_WWW_CLAIM_RESET_EACH_TARGET.Value = False
+                RequestsWaitTimer_Any.Value = 5000
+                TaggedNotifyLimit.Value = 50
+                DownDetectorValue.Value = 30
+                DownDetectorValueAddToLog.Value = True
             End If
             MyBase.EndInit()
         End Sub

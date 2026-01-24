@@ -99,6 +99,19 @@ Namespace API.OnlyFans
             End Get
         End Property
 #End Region
+#Region "Other"
+        <PClonable, PXML("OpenPostsUsingID")> Private ReadOnly Property OpenPostsUsingID_XML As PropertyValue
+        <PropertyOption(ControlText:="Open posts using ID", ControlToolTip:="Open posts using the user ID instead of the user name"), HiddenControl>
+        Private ReadOnly Property OpenPostsUsingID As PropertyValue
+            Get
+                If Not DefaultInstance Is Nothing Then
+                    Return DirectCast(DefaultInstance, SiteSettings).OpenPostsUsingID_XML
+                Else
+                    Return OpenPostsUsingID_XML
+                End If
+            End Get
+        End Property
+#End Region
 #Region "OFScraper"
         <PClonable, PXML("OFScraperPath")> Private ReadOnly Property OFScraperPath_XML As PropertyValue
         <PropertyOption(ControlText:="OF-Scraper path", ControlToolTip:="The path to the 'ofscraper.exe'", Category:=CAT_OFS)>
@@ -285,6 +298,8 @@ Namespace API.OnlyFans
 
             UpdateRules401_XML = New PropertyValue(False)
 
+            OpenPostsUsingID_XML = New PropertyValue(True)
+
             UserRegex = RParams.DMS(String.Format(UserRegexDefaultPattern, "onlyfans.com/"), 1, EDP.ReturnValue)
             UrlPatternUser = "https://onlyfans.com/{0}"
             ImageVideoContains = "onlyfans.com"
@@ -363,8 +378,9 @@ Namespace API.OnlyFans
                 End If
                 If p.IsEmptyString Then
                     Return GetUserUrl(User)
+                ElseIf CBool(OpenPostsUsingID.Value) Then
+                    Return String.Format(UserPostPattern, p, If(User.ID.IsEmptyString, User.NameTrue, $"u{User.ID}"))
                 Else
-                    'Return String.Format(UserPostPattern, p, If(User.ID.IsEmptyString, User.Name, $"u{User.ID}"))
                     Return String.Format(UserPostPattern, p, User.NameTrue)
                 End If
             Else

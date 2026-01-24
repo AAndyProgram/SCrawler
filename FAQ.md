@@ -33,6 +33,7 @@ I strongly recommend you to **regularly** create backup copies of the settings f
 ## General questions
 - **PROFILES**
     - I added a profile but **nothing downloaded** :arrow_forward: check your cookies and [site requirements](https://github.com/AAndyProgram/SCrawler/wiki/Settings#sites-requirements). If there are any optional fields that you don't fill in, do so. Still nothing works - [report it](#how-to-report-a-problem)!
+    - :exclamation: **Try to avoid Chinese/Japanese symbols in the paths.**
     - User downloading failed :arrow_forward: check your credentials and **[SITES REQUIREMENTS](https://github.com/AAndyProgram/SCrawler/wiki/Settings#sites-requirements)**. If all settings are set and nothing works, [report it](#how-to-report-a-problem). **Don't forget to attach the LOG.**
     - [How to redownload user](https://github.com/AAndyProgram/SCrawler/wiki#redownload-user)
     - How to **add profile** to download :arrow_forward: copy the **[profile URL](https://github.com/AAndyProgram/SCrawler/wiki#add-user)** and press `Insert` or `Ctrl+Insert`. **ALWAYS PASTE THE USER PROFILE URL**. After that select this user and press `F5` or click the `Download selected` button.

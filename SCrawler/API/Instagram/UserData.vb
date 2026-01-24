@@ -1434,7 +1434,7 @@ NextPageBlock:
                 MyMainLOG = $"Number of requests before error 429: {RequestsCount}"
                 Return 1
             ElseIf Responser.StatusCode = 560 Or Responser.StatusCode = HttpStatusCode.InternalServerError Then '560, 500
-                If Responser.StatusCode = 560 And s = Sections.Stories And MySiteSettings.IgnoreStoriesDownloadingErrors Then
+                If Responser.StatusCode = 560 And s = Sections.Stories And MySiteSettings.IgnoreStoriesDownloadingErrors.Value Then
                     MyMainLOG = $"{ToStringForLog()}: Stories downloading skipped (560)"
                     Return ErrHandlingValueStories
                 Else
