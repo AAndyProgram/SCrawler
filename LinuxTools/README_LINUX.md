@@ -14,13 +14,24 @@ This directory contains Python-based tools for scraping OnlyFans content on Linu
 ### 1. `of_playwright.py` (Recommended)
 Uses a real browser context to capture network traffic and handle signing/Cloudflare automatically.
 
+#### Cross-Platform & Browser Agnostic
+This tool is designed to run on **Linux, Windows, and macOS**. It supports multiple browser engines to avoid detection:
+- **Firefox** (Default): `--browser firefox`
+- **Chrome/Edge**: `--browser chromium`
+- **Safari**: `--browser webkit`
+
 #### Setup
-1.  Launch the script:
+1.  Install dependencies:
     ```bash
-    python3 of_playwright.py [USERNAME]
+    pip install playwright playwright-stealth
+    playwright install
     ```
-2.  A Firefox window will open. **Login manually** to OnlyFans.
-3.  The session is saved in `./of_profile` so you won't need to login every time.
+2.  Launch the script:
+    ```bash
+    python3 of_playwright.py [USERNAME] --browser chromium
+    ```
+3.  A browser window will open. **Login manually** to OnlyFans.
+4.  The session is saved in `./of_profile` so you won't need to login every time.
 
 #### Usage
 - **Media Tab:** `python3 of_playwright.py [USERNAME]`
