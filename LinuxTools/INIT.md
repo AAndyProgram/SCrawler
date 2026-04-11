@@ -56,8 +56,8 @@ ofscraper's `check_auth` → `me.scrape_user` fails → "auth failed quitting on
     "user_agent": "Mozilla/5.0 (X11; Linux x86_64; rv:149.0) Gecko/20100101 Firefox/149.0",
     "app-token": "33d57ade8c02dbc5a333db99ff9ae26a",
     "x-bc": "54175fa2598f42e21e02586fce10a75449d327b4",
-    "auth_id": "19933344",
-    "sess": "uu1bppn8jee5nvlhnpe508bpqb",
+    "auth_id": "<YOUR_AUTH_ID>",
+    "sess": "<YOUR_SESS_COOKIE>",
     "auth_uid_": ""
   }
 }
@@ -79,7 +79,7 @@ ofscraper's `check_auth` → `me.scrape_user` fails → "auth failed quitting on
     - Captured metadata saved to `downloads/{username}_captured.json`.
 - **Download Fix:** Large video files caused Playwright buffer timeouts (`EPIPE`).
 - **Solution:** Integrated `curl` for file downloads. Script exports browser cookies to Netscape format and spawns `curl -L -b cookies.txt`.
-- **Results:** Successfully bypassed all WAF/Auth blocks. 50+ files downloaded from `baddslayer`.
+- **Results:** Successfully bypassed all WAF/Auth blocks.
 - **Status:** Functional but manual. Session persistence in `of_profile` directory needs tuning to avoid re-login.
 
 ---
@@ -94,7 +94,7 @@ ofscraper's `check_auth` → `me.scrape_user` fails → "auth failed quitting on
 | `./of_profile/` | Playwright persistent browser session |
 
 ## User context
-- auth_id: `19933344`
-- Logs in via X.com OAuth (complicates cookie extraction)
-- Targets: `baddslayer` (paid, was `bdsmae`), `sinfuldeeds` (free)
+- auth_id: `<YOUR_AUTH_ID>`
+- Logs in via OAuth (complicates cookie extraction)
+- Targets: `<TARGET_USERNAME>`
 - OF has been aggressively invalidating sessions every scrape attempt

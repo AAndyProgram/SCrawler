@@ -386,6 +386,11 @@ FodyWeavers.xsd
 *.msm
 *.msp
 
+# LinuxTools specific
+LinuxTools/downloads/
+LinuxTools/of_profile/
+/tmp/of_cookies_*.txt
+
 # JetBrains Rider
 .idea/
 *.sln.iml
