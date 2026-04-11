@@ -71,71 +71,27 @@ ofscraper's `check_auth` → `me.scrape_user` fails → "auth failed quitting on
 - **Result:** API consistently returns `401 Unauthorized "Please refresh the page"`. 
 - **Conclusion:** The signature is likely perfect, but the session cookie (`sess`) is fully invalidated on the server-side, OR the absence of `auth_uid_<id>` for X.com OAuth accounts strictly prevents API access outside the browser. A fresh manual login (Email/Password) is absolutely required to proceed.
 
-## Patched ofscraper files
-- `/home/mario/.local/lib/python3.14/site-packages/ofscraper/constants.py`
-  DYNAMIC → `https://raw.githubusercontent.com/DATAHOARDERS/dynamic-rules/main/onlyfans.json`
-- `/home/mario/.local/lib/python3.14/site-packages/ofscraper/utils/auth.py`
-  `get_request_auth` now handles both `format` field and legacy `start`/`end`
-
-## Flow trace (for resume)
-1. `ofscraper -u baddslayer -o timeline`
-2. `commands/scraper.py::scrapper()` → `check_auth()`
-3. `check_auth` → `init.getstatus(headers)` → `me.scrape_user(headers)`
-4. `scrape_user` hits `/api2/v2/users/me` with signing → **fails** (exception)
-5. Retries 10x (tenacity), then `getstatus` returns "DOWN"
-6. Logs "Auth Failed", calls `auth.make_auth()` interactively
-7. In non-TTY context: silent exit with "auth failed quitting on error"
-
-## Next steps to try
-- [ ] Capture actual HTTP response from `/api2/v2/users/me` call
-      (patch `me.py::_scraper_user_helper` to print/log `r.status_code` + `r.text`)
-- [ ] Verify sess cookie still valid via raw curl:
-      `curl -H "user-agent: Mozilla/5.0 ... Firefox/149.0" -H "cookie: sess=...; auth_id=19933344" https://onlyfans.com/api2/v2/users/me`
-      (will fail signing but should show CF / session status)
-- [ ] Re-login to OF in Firefox with email/password (not X.com OAuth) to get
-      a complete cookie set including `auth_uid_<id>`
-- [ ] Check for Cloudflare `__cf_bm` cookie — may need to forward it too
-- [ ] Consider running ofscraper inside firefox-profile-aware wrapper
-
----
-
-## Better Tools Available
-
-### 1. ofscraper (in progress)
-**Repo:** https://github.com/datawhores/OF-Scraper
-Full-featured Python CLI. Blocked on auth — see Status above.
-
-### 2. yt-dlp (limited)
-Only free/public content. No signing.
-
-### 3. SCrawler via Windows VM
-Proxmox available. Spin up lightweight Windows VM, run natively.
-**Recommended fallback** — Wine already proven to not work.
-
-### 4. SCrawler via Wine — TRIED, FAILED
-Stuck at "wine configuration updating". Uninstalled.
-
----
-
-## Dynamic Rules Sources (from DynamicRulesAll.txt)
-```
-https://github.com/DATAHOARDERS/dynamic-rules/blob/main/onlyfans.json       ← works
-https://github.com/DIGITALCRIMINAL/dynamic-rules/blob/main/onlyfans.json
-https://github.com/datawhores/onlyfans-dynamic-rules/blob/main/dynamicRules.json
-https://github.com/riley-access-labs/onlyfans-dynamic-rules-1/blob/main/dynamicRules.json
-```
+### Session 6 (Gemini + Caveman) — Playwright Shift
+- **Pivot:** Abandoned pure Python signature replication due to aggressive OF fingerprinting (HTTP/3, specific cookie ordering, `x-hash` / `x-of-rev` dependencies).
+- **Tool:** Implemented `of_playwright.py` using Playwright (Firefox).
+- **Strategy:** Persistent browser context + Network Traffic Capture.
+    - Script opens browser -> User logs in manually -> Script listens for `/api2/v2/users/...` traffic.
+    - Captured metadata saved to `downloads/{username}_captured.json`.
+- **Download Fix:** Large video files caused Playwright buffer timeouts (`EPIPE`).
+- **Solution:** Integrated `curl` for file downloads. Script exports browser cookies to Netscape format and spawns `curl -L -b cookies.txt`.
+- **Results:** Successfully bypassed all WAF/Auth blocks. 50+ files downloaded from `baddslayer`.
+- **Status:** Functional but manual. Session persistence in `of_profile` directory needs tuning to avoid re-login.
 
 ---
 
 ## Key Files
 | File | Purpose |
 |------|---------|
-| `of_scraper.py` | Gemini/Claude custom scraper (deprioritized) |
+| `of_scraper.py` | Signature-based scraper (deprecated but fixed) |
+| `of_playwright.py` | Current reliable browser-based scraper |
 | `INIT.md` | This file |
-| `../SCrawler/API/OnlyFans/` | VB reference for signing |
-| `~/.config/ofscraper/main_profile/auth.json` | ofscraper auth config |
-| `~/.config/ofscraper/logging/main_profile_*/` | ofscraper debug logs |
-| `~/onlyfans_cookies.json` | Extracted Firefox cookies |
+| `~/Downloads/OnlyFans/` | New default download target |
+| `./of_profile/` | Playwright persistent browser session |
 
 ## User context
 - auth_id: `19933344`
