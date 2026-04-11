@@ -11,8 +11,8 @@ USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64; rv:149.0) Gecko/20100101 Firefox/1
 
 # Dynamic rules sources (tried in order, mirrors SCrawler's DynamicRulesAll.txt)
 RULES_SOURCES = [
-    "https://raw.githubusercontent.com/DATAHOARDERS/dynamic-rules/main/onlyfans.json",
     "https://raw.githubusercontent.com/DIGITALCRIMINAL/dynamic-rules/main/onlyfans.json",
+    "https://raw.githubusercontent.com/DATAHOARDERS/dynamic-rules/main/onlyfans.json",
     "https://raw.githubusercontent.com/datawhores/onlyfans-dynamic-rules/main/dynamicRules.json",
 ]
 
@@ -42,7 +42,10 @@ def create_signature(path, rules, auth_id):
     # Revert to Unix milliseconds as required by OF
     timestamp = str(round(time.time() * 1000))
 
-    payload = "\n".join([static_param, timestamp, path, auth_id])
+    # Restoring the auth_id in the payload
+    sign_auth_id = auth_id
+
+    payload = "\n".join([static_param, timestamp, path, sign_auth_id])
     sha1_hex = hashlib.sha1(payload.encode("utf-8")).hexdigest()
 
     indexes = rules["checksum_indexes"]
@@ -51,41 +54,18 @@ def create_signature(path, rules, auth_id):
     base_constant = rules["checksum_constant"]
 
     checksum = 0
-    for i, idx in enumerate(indexes):
+    for idx in indexes:
         char_val = ord(sha1_hex[idx])
-        checksum += char_val + (constants[i] if i < len(constants) else 0)
+        checksum += char_val
     checksum += base_constant
 
-    # Match SCrawler's String.Format(pattern, hash, Math.Abs(hashSum))
-    # Python's format with {} uses positional args but the pattern in onlyfans.json is:
-    # "{}:{}:{:x}:{}" which expects 4 args in format, BUT wait!
-    # In C#, `"{0}:{1}:{2:x}:{3}"` is explicit indexing. If the pattern from github has `{}` without indices, we need to know what it is.
-    # The actual pattern in onlyfans.json is: "{}::{}:{:08x}:{}" - WAIT. Let's see what pattern is.
-    # Actually, the string format uses the list of things. Let's just split and join if it's "{}:{}:{:x}:{}"
-    # Wait, `rules["format"]` might be like `"{}:{}:{:x}:{}"` so `rules["format"].format(...)` won't work with only 2 arguments!
-    # Let's fix it by parsing the format string, or replacing `{}` with actual values.
-    # In C# String.Format("pattern", arg0, arg1) the pattern would be "{0}:{1:x}" etc.
-    # If the pattern is literally "{}:{}:{:x}:{}", it's not a C# format string! 
-    # WAIT! In python we need to match the placeholders.
-    # Let's just use the exact format from onlyfans.json.
-    # We can inject sha1_hex and abs(checksum) by inspecting SCrawler.
-    
-    # Let's look at SCrawler: `String.Format(pattern, hash, Math.Abs(hashSum))`
-    # If pattern is e.g. "{0}:{1}:{2:x}:{3}", SCrawler doesn't pass 4 args.
-    # Ah! The pattern in OnlyFans JSON used to be `"{}:{}:{:x}:{}"` for python but in VB it must be `"{0}:{1:x}"`.
-    # Let's check `DynamicRulesEnv.GetFormat(j)`. SCrawler transforms it!
-    # Yes! SCrawler replaces `{}` with `{0}` and `{:x}` with `{1:x}`.
-    
-    # Python equivalent of SCrawler's transformed format:
-    # If rules["format"] has `{}` and `{:x}`, we can format it by passing arguments based on the original `{}:{}:{:x}:{}`.
-    # Wait, the rule is usually "sha1_part1:sha1_part2:checksum_hex:sha1_part3".
-    # No, it's `format.format(sha1_hex, abs(checksum))` but python needs args to match placeholder count.
-    # Actually, the datahoarder JSON format is already pre-formatted for Python:
-    # it expects `static_param`, `timestamp`, `path`, `auth_id`, `sha1_hex`, `abs(checksum)`.
-    # Let's just print the rule format and use a safe fallback.
-    
     pattern = rules["format"]
-    sign = pattern.format(sha1_hex, abs(checksum))
+    
+    # onlyfans.json format is usually "{}:{}:{:x}:{}"
+    # Let's map it to use sha1_hex and checksum.
+    python_pattern = pattern.replace("{}", "{0}").replace("{:x}", "{1:x}")
+    sign = python_pattern.format(sha1_hex, abs(checksum))
+        
     return sign, timestamp
 
 def get_fresh_cf_cookies(headers_base):
@@ -97,30 +77,38 @@ def get_fresh_cf_cookies(headers_base):
     if "Cookie" in temp_headers:
         del temp_headers["Cookie"]
     
-    r = requests.get(url, headers=temp_headers, impersonate="chrome110")
+    r = requests.get(url, headers=temp_headers, impersonate="firefox144")
     print(f"DEBUG: Received cookies: {r.cookies.get_dict()}")
     return r.cookies.get_dict()
 
-def build_headers(cookies, rules, auth_id, x_bc):
-    remove = [h.lower() for h in rules.get("remove_headers", [])]
-    
-    # We will build the header dictionary.
+def build_headers(cookies, rules, auth_id, x_bc, x_hash, x_of_rev):
+    # We will build the header dictionary based on browser observations.
     headers = {
         "accept": "application/json, text/plain, */*",
+        "accept-language": "en-US,en;q=0.9",
         "user-agent": USER_AGENT,
         "app-token": rules["app_token"],
         "x-bc": x_bc,
+        "x-hash": x_hash,
+        "x-of-rev": x_of_rev,
+        "origin": "https://onlyfans.com",
+        "referer": "https://onlyfans.com/my/notifications",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-id": auth_id,
     }
-    if "user-id" not in remove:
-        headers["user-id"] = auth_id
         
     cf_cookies = get_fresh_cf_cookies(headers)
     
-    # Update our cookies dict with the fresh CF cookies
-    for k, v in cf_cookies.items():
-        cookies[k] = v
+    # Updated cookie string based on browser Network Tab
+    cookie_str = f"fp={x_bc}; sess={cookies.get('sess', '')}; auth_id={auth_id}; st={cookies.get('st', '')}; csrf={cookies.get('csrf', '')}"
+    if "__cf_bm" in cf_cookies:
+        cookie_str += f"; __cf_bm={cf_cookies['__cf_bm']}"
+    if "_cfuvid" in cf_cookies:
+        cookie_str += f"; _cfuvid={cf_cookies['_cfuvid']}"
         
-    headers["cookie"] = "; ".join(f"{k}={v}" for k, v in cookies.items())
+    headers["cookie"] = cookie_str
     
     return headers
 
@@ -131,12 +119,7 @@ def api_get(url_path, headers, rules, auth_id):
     headers["time"] = ts
     
     url = f"https://onlyfans.com{url_path}"
-    print(f"DEBUG: GET {url}")
-    print(f"DEBUG: Headers: {headers}")
-    
-    # Try using Chrome fingerprint with Chrome User-Agent if Firefox fails
-    r = requests.get(url, headers=headers, impersonate="chrome110")
-    print(f"DEBUG: Response {r.status_code}: {r.text[:500]}")
+    r = requests.get(url, headers=headers, impersonate="firefox144")
     return r
 
 def fetch_all_media(uid, headers, rules, auth_id):
@@ -172,7 +155,7 @@ def fetch_all_media(uid, headers, rules, auth_id):
 
     return all_media
 
-def run_scraper(username, cookies_file):
+def run_scraper(username, cookies_file, x_hash, x_of_rev):
     if not os.path.exists(cookies_file):
         print(f"Error: Cookies file not found at {cookies_file}")
         return
@@ -181,16 +164,25 @@ def run_scraper(username, cookies_file):
         cookies = json.load(f)
 
     auth_id = cookies.get("auth_id", "")
-    x_bc = cookies.get("fp", "")  # fingerprint token — matches SCrawler's GetValueFromCookies
+    x_bc = cookies.get("fp", "")
 
     if not auth_id:
         print("Error: 'auth_id' missing from cookies file")
         return
 
     rules = get_dynamic_rules()
-    headers = build_headers(cookies, rules, auth_id, x_bc)
+    headers = build_headers(cookies, rules, auth_id, x_bc, x_hash, x_of_rev)
 
-    # Step 1: resolve username -> user ID
+    # Step 1: test /api2/v2/users/me to verify auth
+    me_path = "/api2/v2/users/me"
+    resp_me = api_get(me_path, headers, rules, auth_id)
+    if resp_me.status_code != 200:
+        print(f"Error fetching /me: {resp_me.status_code} - {resp_me.text[:300]}")
+        return
+        
+    print("Auth /me successful!")
+    
+    # Step 2: resolve username -> user ID
     path = f"/api2/v2/users/{username}"
     resp = api_get(path, headers, rules, auth_id)
     if resp.status_code != 200:
@@ -250,5 +242,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="OnlyFans scraper (Linux)")
     parser.add_argument("username", help="OnlyFans username")
     parser.add_argument("--cookies", default=DEFAULT_COOKIES_FILE, help="Path to cookies JSON")
+    parser.add_argument("--x-hash", required=True, help="x-hash header from browser")
+    parser.add_argument("--x-of-rev", required=True, help="x-of-rev header from browser")
     args = parser.parse_args()
-    run_scraper(args.username, args.cookies)
+    run_scraper(args.username, args.cookies, args.x_hash, args.x_of_rev)

@@ -389,7 +389,11 @@ FodyWeavers.xsd
 # LinuxTools specific
 LinuxTools/downloads/
 LinuxTools/of_profile/
+LinuxTools/*.local.md
+LinuxTools/*.json
 /tmp/of_cookies_*.txt
+!LinuxTools/package.json
+!LinuxTools/requirements.txt
 
 # JetBrains Rider
 .idea/
