@@ -5,17 +5,25 @@ import argparse
 import base64
 import subprocess
 import time
+import sys
 from playwright.async_api import async_playwright
 
-USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64; rv:149.0) Gecko/20100101 Firefox/149.0"
-DOWNLOAD_BASE = os.path.expanduser("~/Downloads/OnlyFans")
+# Generic User Agent - Playwright will override this based on chosen browser
+DEFAULT_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+
+# Platform-agnostic download base
+if sys.platform == "win32":
+    DOWNLOAD_BASE = os.path.join(os.environ.get("USERPROFILE", "C:\\"), "Downloads", "OnlyFans")
+else:
+    DOWNLOAD_BASE = os.path.expanduser("~/Downloads/OnlyFans")
 
 class OFScraper:
-    def __init__(self, username, profile_dir):
+    def __init__(self, username, profile_dir, user_agent=DEFAULT_UA):
         self.username = username
         self.profile_dir = os.path.abspath(profile_dir)
         self.download_dir = os.path.join(DOWNLOAD_BASE, username)
         self.metadata_dir = os.path.join(self.download_dir, "metadata")
+        self.user_agent = user_agent
         os.makedirs(self.metadata_dir, exist_ok=True)
         
         self.captured_media = {} # id -> data
@@ -29,38 +37,29 @@ class OFScraper:
         if response.status != 200: return
         
         try:
-            # 1. User Info
             if f"/api2/v2/users/{self.username}" in url and "medias" not in url:
                 data = await response.json()
                 self.user_info = data
                 self.uid = data.get("id")
                 print(f"\r  [Capture] User info for {self.username} (UID: {self.uid})")
-            
-            # 2. Media Tab / Timeline Media
             elif "/posts/medias" in url:
                 data = await response.json()
                 items = data.get("list", [])
                 self.extract_media(items, "media_tab")
                 print(f"\r  [Capture] {len(items)} items from Media tab (Total unique: {len(self.captured_media)})", end="")
-            
-            # 3. Timeline Posts (includes text)
             elif "/posts" in url and "medias" not in url:
                 data = await response.json()
                 items = data.get("list", [])
                 self.captured_posts.extend(items)
                 self.extract_media(items, "timeline")
                 print(f"\r  [Capture] {len(items)} items from Timeline (Total unique: {len(self.captured_media)})", end="")
-
-            # 4. Messages
             elif "/messages" in url:
                 data = await response.json()
                 items = data.get("list", [])
                 self.captured_messages.extend(items)
                 self.extract_media(items, "messages")
                 print(f"\r  [Capture] {len(items)} items from Messages (Total unique: {len(self.captured_media)})", end="")
-
-        except Exception as e:
-            pass
+        except: pass
 
     def extract_media(self, items, source_tag):
         for item in items:
@@ -68,12 +67,7 @@ class OFScraper:
             for m in media_list:
                 m_id = str(m.get("id"))
                 if not m_id: continue
-                
-                source_url = (
-                    m.get("source", {}).get("source")
-                    or next((m.get("files", {}).get(k, {}).get("url") for k in ("source", "full") if m.get("files", {}).get(k, {}).get("url")), None)
-                )
-                
+                source_url = m.get("source", {}).get("source") or next((m.get("files", {}).get(k, {}).get("url") for k in ("source", "full") if m.get("files", {}).get(k, {}).get("url")), None)
                 if source_url and m_id not in self.captured_media:
                     self.captured_media[m_id] = {
                         "id": m_id,
@@ -99,9 +93,13 @@ class OFScraper:
                 last_height = new_height
             if await page.query_selector(".b-loader"): await asyncio.sleep(1)
 
-    async def run(self, mode="media"):
+    async def run(self, mode="media", browser_type="firefox"):
         async with async_playwright() as p:
-            context = await p.firefox.launch_persistent_context(
+            if browser_type == "chromium": bt = p.chromium
+            elif browser_type == "webkit": bt = p.webkit
+            else: bt = p.firefox
+
+            context = await bt.launch_persistent_context(
                 self.profile_dir,
                 headless=False,
                 viewport={'width': 1280, 'height': 720}
@@ -115,7 +113,7 @@ class OFScraper:
             
             page.on("response", self.handle_response)
             
-            print(f"Opening OnlyFans...")
+            print(f"Opening OnlyFans via {browser_type}...")
             await page.goto("https://onlyfans.com/")
             
             try:
@@ -131,46 +129,36 @@ class OFScraper:
             elif mode == "messages":
                 print(f"Targeting Chats/Messages...")
                 await page.goto(f"https://onlyfans.com/my/chats")
-                print("Please open the specific chat you want to scrape and scroll up to load history.")
-                await asyncio.get_event_loop().run_in_executor(None, input, "Press Enter when done capturing messages...")
+                print("Open the chat you want to scrape and scroll up.")
+                await asyncio.get_event_loop().run_in_executor(None, input, "Press Enter when done capturing...")
             
-            # Save metadata
-            with open(os.path.join(self.metadata_dir, "user_info.json"), "w") as f:
-                json.dump(self.user_info, f, indent=2)
-            with open(os.path.join(self.metadata_dir, "media_list.json"), "w") as f:
-                json.dump(list(self.captured_media.values()), f, indent=2)
+            # Metadata & Cookies
+            with open(os.path.join(self.metadata_dir, "user_info.json"), "w") as f: json.dump(self.user_info, f, indent=2)
+            with open(os.path.join(self.metadata_dir, "media_list.json"), "w") as f: json.dump(list(self.captured_media.values()), f, indent=2)
             
-            # Export cookies
             browser_cookies = await context.cookies()
-            cookie_file = f"/tmp/of_cookies_{self.username}.txt"
+            cookie_file = os.path.join(self.download_dir, f"cookies_{self.username}.txt")
             with open(cookie_file, "w") as f:
                 for c in browser_cookies:
                     domain = c['domain'] if c['domain'].startswith('.') else '.' + c['domain']
                     f.write(f"{domain}\tTRUE\t{c['path']}\t{str(c['secure']).upper()}\t{int(c.get('expires', 0))}\t{c['name']}\t{c['value']}\n")
             
             print(f"\nCapture summary: {len(self.captured_media)} items.")
-            print("Closing browser context. Starting downloads...")
             await context.close()
-            
             self.download_all(cookie_file)
 
     def download_all(self, cookie_file):
         media_list = list(self.captured_media.values())
         photos = [m for m in media_list if m["type"] == "photo"]
         videos = [m for m in media_list if m["type"] == "video"]
-        
-        # Sort queue: photos first, then videos
         queue = photos + videos
         
         print(f"\nDownloading to: {self.download_dir}")
-        print(f"Total Queue: {len(queue)} (Photos: {len(photos)}, Videos: {len(videos)})")
-        
         downloaded = skipped = errors = 0
         for i, m in enumerate(queue):
             subfolder = "Photos" if m["type"] == "photo" else "Videos"
             target_path = os.path.join(self.download_dir, subfolder)
             os.makedirs(target_path, exist_ok=True)
-            
             ext = "mp4" if m["type"] == "video" else "jpg"
             filepath = os.path.join(target_path, f"{m['id']}.{ext}")
             
@@ -180,16 +168,17 @@ class OFScraper:
                 
             print(f"  [{i+1}/{len(queue)}] {m['id']}.{ext}... ", end="", flush=True)
             try:
-                cmd = ["curl", "-L", "-s", "--fail", "-o", filepath, "-H", f"User-Agent: {USER_AGENT}", "-b", cookie_file, m["source"]]
+                # Use curl if available, fallback to simple request
+                cmd = ["curl", "-L", "-s", "--fail", "-o", filepath, "-A", self.user_agent, "-b", cookie_file, m["source"]]
                 res = subprocess.run(cmd, timeout=600)
                 if res.returncode == 0:
                     downloaded += 1
                     print("Success.")
                 else:
-                    print(f"Failed (Exit {res.returncode}).")
+                    print(f"Failed.")
                     errors += 1
-            except Exception as e:
-                print(f"Error: {e}")
+            except:
+                print("Error.")
                 errors += 1
             time.sleep(0.1)
 
@@ -201,7 +190,8 @@ if __name__ == "__main__":
     parser.add_argument("username", help="OF username")
     parser.add_argument("--profile", default="./of_profile", help="Browser profile directory")
     parser.add_argument("--mode", choices=["media", "messages"], default="media", help="Scrape media tab or messages")
+    parser.add_argument("--browser", choices=["firefox", "chromium", "webkit"], default="firefox", help="Browser engine")
     args = parser.parse_args()
     
     scraper = OFScraper(args.username, args.profile)
-    asyncio.run(scraper.run(args.mode))
+    asyncio.run(scraper.run(args.mode, args.browser))
