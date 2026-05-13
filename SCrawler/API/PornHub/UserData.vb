@@ -6,13 +6,14 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
+Imports System.Security.Policy
 Imports System.Threading
-Imports SCrawler.API.Base
-Imports SCrawler.API.YouTube.Objects
-Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.RegularExpressions
+Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Tools.Web.Clients
 Imports PersonalUtilities.Tools.Web.Documents.JSON
+Imports SCrawler.API.Base
+Imports SCrawler.API.YouTube.Objects
 Imports UTypes = SCrawler.API.Base.UserMedia.Types
 Namespace API.PornHub
     Friend Class UserData : Inherits UserDataBase : Implements IPSite
@@ -95,6 +96,9 @@ Namespace API.PornHub
                 End If
                 Return Me
             End Function
+        End Structure
+        Private Structure PHObj : Implements IThumbList
+            Friend Property Thumbs As List(Of String) Implements IThumbList.Thumbs
         End Structure
 #End Region
 #Region "Enums"
@@ -647,6 +651,21 @@ Namespace API.PornHub
 #End Region
 #End Region
 #Region "ReparseVideo"
+        Private Function GetVideoTitle(ByVal r As String, ByVal URL As String) As String
+            Dim tmpName$ = String.Empty
+            Dim rr As RParams
+            For i As Byte = 0 To 3
+                Select Case i
+                    Case 0 : rr = RegexVideoPageTitle
+                    Case 1 : rr = RegexVideoPageTitle2
+                    Case 2 : rr = RegexVideoPageTitle3
+                    Case Else : rr = RegexVideoPageTitle_NoTitle
+                End Select
+                tmpName = RegexReplace(IIf(i = 3, URL, r), rr)
+                If Not tmpName.IsEmptyString Then Exit For
+            Next
+            Return tmpName
+        End Function
         Protected Overloads Overrides Sub ReparseVideo(ByVal Token As CancellationToken)
             If IsSubscription Then
                 ReparseVideoSubscriptions(Token)
@@ -662,6 +681,7 @@ Namespace API.PornHub
                 If _TempMediaList.Count > 0 AndAlso _TempMediaList.Exists(Function(tm) tm.Type = UTypes.VideoPre) Then
                     Dim m As UserMedia
                     Dim r$, NewUrl$, tmpName$
+                    Dim isCurl%
                     ProgressPre.ChangeMax(_TempMediaList.Count)
                     For i% = _TempMediaList.Count - 1 To 0 Step -1
                         ProgressPre.Perform()
@@ -670,27 +690,30 @@ Namespace API.PornHub
                             ThrowAny(Token)
                             Try
                                 URL = m.URL
-                                r = Responser.Curl(URL)
-                                If Not r.IsEmptyString Then
-                                    NewUrl = CreateVideoURL(r)
-                                    If NewUrl.IsEmptyString Then
-                                        Throw New Exception With {.HelpLink = ERR_NEW_URL}
-                                    Else
-                                        m.URL = NewUrl
-                                        m.Type = UTypes.m3u8
-                                        If CreateFileName Then
-                                            tmpName = RegexReplace(r, RegexVideoPageTitle)
-                                            If Not tmpName.IsEmptyString Then
-                                                If Not Data Is Nothing Then Data.Title = tmpName
-                                                m.File.Name = TitleHtmlConverter(tmpName)
-                                                m.File.Extension = "mp4"
+                                For isCurl = 1 To 0 Step -1
+                                    If CBool(isCurl) Then r = Responser.Curl(URL) Else r = Responser.GetResponse(URL)
+                                    If Not r.IsEmptyString Then
+                                        NewUrl = CreateVideoURL(r)
+                                        If NewUrl.IsEmptyString Then
+                                            Throw New Exception With {.HelpLink = ERR_NEW_URL}
+                                        Else
+                                            m.URL = NewUrl
+                                            m.Type = UTypes.m3u8
+                                            If CreateFileName Then
+                                                tmpName = GetVideoTitle(r, URL)
+                                                If Not tmpName.IsEmptyString Then
+                                                    If Not Data Is Nothing Then Data.Title = tmpName
+                                                    m.File.Name = TitleHtmlConverter(tmpName)
+                                                    m.File.Extension = "mp4"
+                                                End If
                                             End If
+                                            _TempMediaList(i) = m
                                         End If
-                                        _TempMediaList(i) = m
+                                        Exit For
+                                    ElseIf Not CBool(isCurl) Then
+                                        _TempMediaList.RemoveAt(i)
                                     End If
-                                Else
-                                    _TempMediaList.RemoveAt(i)
-                                End If
+                                Next
                             Catch mid_ex As Exception
                                 If mid_ex.HelpLink = ERR_NEW_URL OrElse DownloadingException(mid_ex, "") = 1 Then
                                     m.State = UserMedia.States.Missing
@@ -712,6 +735,10 @@ Namespace API.PornHub
                     Dim m As UserMedia
                     Dim r$, URL$, tmpName$, thumb$
                     Dim c% = 0
+                    Dim thumbObj As PHObj
+                    Dim thumbAdded As Boolean
+                    Dim rp As RParams
+                    Dim rpa() As RParams = {RegexVideoAdditImg, RegexVideoAdditImg2}
                     Dim rErr As New ErrorsDescriber(EDP.ReturnValue)
                     Progress.Maximum += _TempMediaList.Count
                     For i% = _TempMediaList.Count - 1 To 0 Step -1
@@ -726,10 +753,24 @@ Namespace API.PornHub
                                     If Not r.IsEmptyString Then
                                         m.Type = UTypes.m3u8
 
+                                        thumbObj = New PHObj With {.Thumbs = New List(Of String)}
+                                        thumbAdded = False
                                         thumb = RegexReplace(r, Regex_VideosThumb_OG_IMAGE)
-                                        If Not thumb.IsEmptyString Then m.URL = thumb
+                                        If Not thumb.IsEmptyString Then m.URL = thumb : thumbAdded = True
+                                        For Each rp In rpa
+                                            thumb = RegexReplace(r, rp)
+                                            If Not thumb.IsEmptyString Then
+                                                If Not thumbAdded Then
+                                                    m.URL = thumb
+                                                    thumbAdded = True
+                                                Else
+                                                    thumbObj.Thumbs.Add(thumb)
+                                                End If
+                                            End If
+                                        Next
+                                        If thumbObj.Thumbs.Count > 0 Then m.Object = thumbObj
 
-                                        tmpName = RegexReplace(r, RegexVideoPageTitle)
+                                        tmpName = GetVideoTitle(r, URL)
                                         If Not tmpName.IsEmptyString Then
                                             m.File.Name = TitleHtmlConverter(tmpName)
                                             m.File.Extension = "mp4"
@@ -784,10 +825,7 @@ Namespace API.PornHub
             Catch ex As Exception
                 ProcessException(ex, Token, "missing data downloading error")
             Finally
-                If rList.Count > 0 Then
-                    For i% = rList.Count - 1 To 0 Step -1 : _ContentList.RemoveAt(rList(i)) : Next
-                    rList.Clear()
-                End If
+                ReparseMissing_ClearList(rList)
             End Try
         End Sub
 #End Region

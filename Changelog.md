@@ -2,12 +2,30 @@
 - [ffmpeg](https://github.com/AAndyProgram/SCrawler/wiki/Settings#ffmpeg)
   - x64 version - [release](https://github.com/GyanD/codexffmpeg/releases/tag/5.1.2); [zip](https://github.com/GyanD/codexffmpeg/releases/download/5.1.2/ffmpeg-5.1.2-full_build.zip); **version `5.1.2-full_build-www.gyan.dev`**
   - x86 version - [release](https://github.com/yt-dlp/FFmpeg-Builds/releases/tag/autobuild-2022-11-30-12-57); [zip](https://github.com/yt-dlp/FFmpeg-Builds/releases/download/autobuild-2022-11-30-12-57/ffmpeg-N-109274-gd7a5f068c2-win32-gpl.zip); **version `N-109457-geeb280f351-20221226`**
-- [Gallery-dl](https://github.com/AAndyProgram/SCrawler/wiki/Settings#gallery-dl) - **1.31.9**
+- [Gallery-dl](https://github.com/AAndyProgram/SCrawler/wiki/Settings#gallery-dl) - **1.32.0**
 - [YT-DLP](https://github.com/AAndyProgram/SCrawler/wiki/Settings#yt-dlp) - **2026.03.17**
 - [Deno](https://github.com/AAndyProgram/SCrawler/wiki/Settings#deno) - latest *(`2.0.0` or higher)*
 - [OF-Scraper](https://github.com/AAndyProgram/SCrawler/wiki/Settings#of-scraper) - **3.12.9** ([release](https://github.com/datawhores/OF-Scraper/releases/tag/3.12.9))
 
 # 2026
+
+## 2026.5.13.0
+
+*2026-05-13*
+
+- Added
+  - Sites
+    - ThisVid: download undownloaded videos
+  - Feed: the most frequently used buttons are added to the top
+  - Minor improvements
+- Updated
+  - gallery-dl up to version **1.32.0**
+- Fixed
+  - Sites:
+    - **Instagram: data is not downloading**
+    - OnlyFans: cookies error
+    - PornHub: subscriptions are not downloading
+  - Minor bugs
 
 ## 2026.3.23.0
 

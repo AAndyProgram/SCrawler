@@ -27,13 +27,17 @@ Namespace API.Instagram
             Token_dtsg = String.Empty
             Token_lsd = String.Empty
         End Sub
+        Protected Property BlockVersionID As String = String.Empty
 #End Region
 #Region "Headers"
         Friend Const GQL_HEADER_FB_FRINDLY_NAME As String = "x-fb-friendly-name"
         Friend Const GQL_HEADER_FB_LSD As String = "x-fb-lsd"
+        Friend Const GQL_HEADER_BLOCK_VERSION_ID As String = "x-bloks-version-id"
+        Friend Const GQL_HEADER_ROOT_FIELD_NAME As String = "x-root-field-name"
+        Friend Const GQL_HEADER_ROOT_FIELD_NAME_Value As String = "fetch__XDTUserDict"
 #End Region
 #Region "Data constants"
-        Private Const GQL_UserData_DocId As String = "7381344031985950"
+        Private Const GQL_UserData_DocId As String = "35710877621861450" '"7381344031985950"
         Private Const GQL_UserData_FbFriendlyName As String = "PolarisProfilePageContentQuery"
 
         Private Const GQL_Highlights_DocId As String = "8298007123561120"
@@ -61,18 +65,31 @@ Namespace API.Instagram
         Private Const GQL_URL_Q As String = "https://www.instagram.com/graphql/query"
 #End Region
 #Region "Download functions"
-        Protected Sub UpdateHeadersGQL(ByVal HeaderValue As String)
-            Responser.Headers.Add(GQL_HEADER_FB_FRINDLY_NAME, HeaderValue)
-            Responser.Headers.Add(GQL_HEADER_FB_LSD, Token_lsd)
+        Protected Sub UpdateHeadersGQL(ByVal HeaderValue As String, Optional ByVal Add As Boolean = True)
+            With Responser.Headers
+                If Add Then
+                    .Add(GQL_HEADER_FB_FRINDLY_NAME, HeaderValue)
+                    .Add(GQL_HEADER_FB_LSD, Token_lsd)
+                    '.Add(GQL_HEADER_BLOCK_VERSION_ID, BlockVersionID)
+                    '.Add(GQL_HEADER_ROOT_FIELD_NAME, GQL_HEADER_ROOT_FIELD_NAME_Value)
+                Else
+                    .Remove(GQL_HEADER_FB_FRINDLY_NAME)
+                    .Remove(GQL_HEADER_FB_LSD)
+                    '.Remove(GQL_HEADER_BLOCK_VERSION_ID)
+                    '.Remove(GQL_HEADER_ROOT_FIELD_NAME)
+                End If
+            End With
         End Sub
         '<Obsolete("Use 'GET' function: 'GetUserData'", False)>
         Private Function GetUserDataGQL(ByVal Token As CancellationToken) As String
+            'Dim vars$ = String.Format(GQL_URL_PATTERN_VARS, GQL_UserData_DocId, Token_lsd, Token_dtsg_Var, GQL_UserData_FbFriendlyName,
+            '                          SymbolsConverter.ASCII.EncodeSymbolsOnly("{" & $"""id"":""{ID}"",""relay_header"":false,""render_surface"":""PROFILE""" & "}"))
             Dim vars$ = String.Format(GQL_URL_PATTERN_VARS, GQL_UserData_DocId, Token_lsd, Token_dtsg_Var, GQL_UserData_FbFriendlyName,
-                                      SymbolsConverter.ASCII.EncodeSymbolsOnly("{" & $"""id"":""{ID}"",""relay_header"":false,""render_surface"":""PROFILE""" & "}"))
+                                      SymbolsConverter.ASCII.EncodeSymbolsOnly("{" & $"""enable_integrity_filters"":true,""id"":""{ID}"",""__relay_internal__pv__PolarisCannesGuardianExperienceEnabledrelayprovider"":true,""__relay_internal__pv__PolarisCASB976ProfileEnabledrelayprovider"":false,""__relay_internal__pv__PolarisWebSchoolsEnabledrelayprovider"":false,""__relay_internal__pv__PolarisRepostsConsumptionEnabledrelayprovider"":true" & "}"))
             UpdateRequestNumber()
             ChangeResponserMode(True)
             UpdateHeadersGQL(GQL_UserData_FbFriendlyName)
-            Dim r$ = Responser.GetResponse(GQL_URL, vars)
+            Dim r$ = Responser.GetResponse(GQL_URL_Q, vars)
             Return r
             'If Not r.IsEmptyString Then
             '    Using j As EContainer = JsonDocument.Parse(r)
@@ -344,6 +361,7 @@ Namespace API.Instagram
                                     .MatchSub = 1
                                     .WhatGet = RegexReturn.Value
                                 End With
+                                BlockVersionID = RegexReplace(r, Regex_BlockVersionID)
                                 For Each tt In tokens
                                     If Not Token_lsd.IsEmptyString And Not Token_dtsg.IsEmptyString Then
                                         Exit For
@@ -362,6 +380,7 @@ Namespace API.Instagram
                         Case 1
                             Token_dtsg = RegexReplace(r, Regex_UserToken_dtsg)
                             Token_lsd = RegexReplace(r, Regex_UserToken_lsd)
+                            BlockVersionID = RegexReplace(r, Regex_BlockVersionID)
                     End Select
                     If Not ValidateBaseTokens() And Attempt = 0 Then ParseTokens(r, Attempt + 1)
                 End If

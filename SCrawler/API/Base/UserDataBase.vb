@@ -1550,6 +1550,12 @@ BlockNullPicture:
         ''' </summary>
         Protected Overridable Sub ReparseMissing(ByVal Token As CancellationToken)
         End Sub
+        Protected Sub ReparseMissing_ClearList(ByRef rList As List(Of Integer))
+            If rList.Count > 0 Then
+                For i% = rList.Count - 1 To 0 Step -1 : _ContentList.RemoveAt(rList(i)) : Next
+                rList.Clear()
+            End If
+        End Sub
 #End Region
 #Region "MD5 support"
         Private Const VALIDATE_MD5_ERROR As String = "VALIDATE_MD5_ERROR"

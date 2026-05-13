@@ -362,8 +362,7 @@ Namespace API.Instagram
                         With .Headers
                             .Remove("origin")
                             .Remove("authority")
-                            .Remove(GQL_HEADER_FB_FRINDLY_NAME)
-                            .Remove(GQL_HEADER_FB_LSD)
+                            UpdateHeadersGQL(String.Empty, False)
                             Dim hv$ = MySiteSettings.Responser.Headers.Value(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.SecFetchDest)).IfNullOrEmpty("empty")
                             .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.SecFetchDest, hv))
                             hv = MySiteSettings.Responser.Headers.Value(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.SecFetchMode)).IfNullOrEmpty("cors")

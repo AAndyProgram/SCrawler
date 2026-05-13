@@ -403,6 +403,30 @@ Namespace API.ThisVid
         End Sub
 #End Region
 #Region "ReparseVideo"
+        Protected Overrides Sub ReparseMissing(ByVal Token As CancellationToken)
+            Dim rList As New List(Of Integer)
+            Try
+                If Not IsSubscription And ContentMissingExists Then
+                    Dim m As UserMedia
+                    ProgressPre.ChangeMax(_ContentList.Count)
+                    For i% = 0 To _ContentList.Count - 1
+                        ProgressPre.Perform()
+                        m = _ContentList(i)
+                        If m.State = UserMedia.States.Missing AndAlso Not m.URL_BASE.IsEmptyString Then
+                            ThrowAny(Token)
+                            m.URL = m.URL_BASE
+                            m.Type = UserMedia.Types.VideoPre
+                            _TempMediaList.ListAddValue(m, LNC)
+                            rList.Add(i)
+                        End If
+                    Next
+                End If
+            Catch ex As Exception
+                ProcessException(ex, Token, "missing data downloading error")
+            Finally
+                ReparseMissing_ClearList(rList)
+            End Try
+        End Sub
         Protected Overrides Sub ReparseVideo(ByVal Token As CancellationToken)
             If IsSubscription Then
                 ReparseVideoSubscriptions(Token)
@@ -440,11 +464,12 @@ Namespace API.ThisVid
                                     If n.IsEmptyString Then n = u.Post.ID
                                     If n.IsEmptyString Then n = "VideoFile"
                                     u.File = $"{n}.mp4"
-                                    If u.URL.IsEmptyString OrElse (Not u.Post.ID.IsEmptyString AndAlso _TempPostsList.Contains(u.Post.ID)) Then
+                                    If Not u.State = UserMedia.States.Missing AndAlso
+                                       (u.URL.IsEmptyString OrElse (Not u.Post.ID.IsEmptyString AndAlso _TempPostsList.Contains(u.Post.ID))) Then
                                         _TempMediaList.RemoveAt(i)
                                     Else
                                         u.Type = UserMedia.Types.Video
-                                        _TempPostsList.Add(u.Post.ID)
+                                        _TempPostsList.ListAddValue(u.Post.ID, LNC)
                                         _TempMediaList(i) = u
                                     End If
                                     e.Dispose()

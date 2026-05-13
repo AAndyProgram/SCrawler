@@ -26,7 +26,16 @@ Namespace DownloadObjects
         Friend WithEvents MyDefs As DefaultFormOptions
         Private WithEvents MyRange As RangeSwitcherToolbar(Of UserMediaD)
         Private ReadOnly DataList As List(Of UserMediaD)
+#Region "Buttons"
         Private WithEvents BTT_DELETE_SELECTED As ToolStripButton
+        Private WithEvents BTT_COPY_SELECTED_T As ToolStripButton
+        Private WithEvents BTT_MOVE_SELECTED_T As ToolStripButton
+        Private WithEvents BTT_FAV_T As ToolStripButton
+        Private WithEvents BTT_FEED_ADD_T As ToolStripDropDownButton
+        Private WithEvents BTT_SELECT_ALL_T As ToolStripButton
+        Private WithEvents BTT_SELECT_NONE_T As ToolStripButton
+        Private WithEvents BTT_INVERT_T As ToolStripButton
+#End Region
         Private DataRows As Integer = 10
         Private DataColumns As Integer = 1
         Private FeedEndless As Boolean = False
@@ -157,13 +166,61 @@ Namespace DownloadObjects
             MyRange = New RangeSwitcherToolbar(Of UserMediaD)(ToolbarTOP)
             DataList = New List(Of UserMediaD)
             LoadedFeedNames = New List(Of String)
+
             BTT_DELETE_SELECTED = New ToolStripButton With {
-                .Text = "Delete selected",
+                .Text = "Delete",
                 .AutoToolTip = True,
-                .ToolTipText = "Delete marked files",
+                .ToolTipText = "Delete selected files",
                 .Image = My.Resources.DeletePic_24,
                 .DisplayStyle = ToolStripItemDisplayStyle.ImageAndText
             }
+            BTT_COPY_SELECTED_T = New ToolStripButton With {
+                .Text = "Copy",
+                .AutoToolTip = True,
+                .ToolTipText = "Copy selected files",
+                .Image = My.Resources.PastePic_32,
+                .DisplayStyle = ToolStripItemDisplayStyle.ImageAndText
+            }
+            BTT_MOVE_SELECTED_T = New ToolStripButton With {
+                .Text = "Move",
+                .AutoToolTip = True,
+                .ToolTipText = "Move selected files",
+                .Image = My.Resources.CutPic_48,
+                .DisplayStyle = ToolStripItemDisplayStyle.ImageAndText
+            }
+            BTT_FAV_T = New ToolStripButton With {
+                .Text = "Favorite",
+                .AutoToolTip = True,
+                .ToolTipText = "Add checked to Favorite",
+                .Image = My.Resources.HeartPic_32,
+                .DisplayStyle = ToolStripItemDisplayStyle.ImageAndText
+            }
+            BTT_FEED_ADD_T = New ToolStripDropDownButton With {
+                .Text = "Add",
+                .AutoToolTip = True,
+                .ToolTipText = "Add checked to special feed..." & vbCr & "Right click to add to multiple feeds",
+                .Image = My.Resources.RSSPic_512,
+                .DisplayStyle = ToolStripItemDisplayStyle.ImageAndText
+            }
+            BTT_SELECT_ALL_T = New ToolStripButton With {
+                .Text = "All",
+                .AutoToolTip = True,
+                .ToolTipText = "Select all",
+                .DisplayStyle = ToolStripItemDisplayStyle.Text
+            }
+            BTT_SELECT_NONE_T = New ToolStripButton With {
+                .Text = "None",
+                .AutoToolTip = True,
+                .ToolTipText = "Select none",
+                .DisplayStyle = ToolStripItemDisplayStyle.Text
+            }
+            BTT_INVERT_T = New ToolStripButton With {
+                .Text = "Invert",
+                .AutoToolTip = True,
+                .ToolTipText = "Invert selection",
+                .DisplayStyle = ToolStripItemDisplayStyle.Text
+            }
+
             FILTERS = New FeedFilterCollection
             BTT_FILTER.Image = My.Resources.FilterPic
             BTT_FILTER_SIMPLE.Image = My.Resources.FilterPic
@@ -189,7 +246,10 @@ Namespace DownloadObjects
                     .ToolTip(RCI.GoTo) = "GoTo (Ctrl+G)"
                     .AddThisToolbar()
                 End With
-                ToolbarTOP.Items.AddRange({New ToolStripSeparator, BTT_DELETE_SELECTED})
+                ToolbarTOP.Items.AddRange({New ToolStripSeparator, BTT_DELETE_SELECTED,
+                                           New ToolStripSeparator, BTT_COPY_SELECTED_T, BTT_MOVE_SELECTED_T,
+                                           New ToolStripSeparator, BTT_FAV_T, BTT_FEED_ADD_T,
+                                           New ToolStripSeparator, BTT_SELECT_ALL_T, BTT_SELECT_NONE_T, BTT_INVERT_T})
                 With Settings
                     With .Feeds
                         .Load()
@@ -200,6 +260,7 @@ Namespace DownloadObjects
                                 If Not feed.IsFavorite Then
                                     AddNewFeedItem(BTT_LOAD_SPEC, feed, My.Resources.RSSPic_512, AddressOf Feed_SPEC_LOAD)
                                     AddNewFeedItem(BTT_FEED_ADD_SPEC, feed, My.Resources.RSSPic_512, AddressOf Feed_SPEC_ADD)
+                                    AddNewFeedItem(BTT_FEED_ADD_T, feed, My.Resources.RSSPic_512, AddressOf Feed_SPEC_ADD)
                                     AddNewFeedItem(BTT_FEED_ADD_SPEC_REMOVE, feed, My.Resources.RSSPic_512, AddressOf Feed_SPEC_ADD_REMOVE)
                                     AddNewFeedItem(BTT_FEED_REMOVE_SPEC, feed, My.Resources.RSSPic_512, AddressOf Feed_SPEC_REMOVE)
                                     AddNewFeedItem(BTT_FEED_DELETE_SPEC, feed, My.Resources.DeletePic_24, AddressOf Feed_SPEC_DELETE)
@@ -268,11 +329,11 @@ Namespace DownloadObjects
         End Sub
 #End Region
 #Region "Feeds handlers"
-        Private Overloads Sub AddNewFeedItem(ByVal Destination As ToolStripMenuItem, ByVal Feed As FeedSpecial, ByVal Image As Image,
-                                             ByVal Handler As EventHandler, Optional ByVal Insert As Boolean = False)
+        Private Overloads Sub AddNewFeedItem(Of T As ToolStripDropDownItem)(ByVal Destination As T, ByVal Feed As FeedSpecial, ByVal Image As Image,
+                                                                            ByVal Handler As EventHandler, Optional ByVal Insert As Boolean = False)
             AddNewFeedItem(Destination, ToolbarTOP, Feed, Image, Handler, Insert)
         End Sub
-        Friend Overloads Shared Function AddNewFeedItem(ByVal Destination As ToolStripMenuItem, ByVal Toolbar As ToolStrip,
+        Friend Overloads Shared Function AddNewFeedItem(ByVal Destination As ToolStripDropDownItem, ByVal Toolbar As ToolStrip,
                                                         ByVal Feed As FeedSpecial, ByVal Image As Image,
                                                         ByVal Handler As EventHandler, Optional ByVal Insert As Boolean = False) As ToolStripMenuItem
             Dim item As New ToolStripMenuItem(Feed.Name, Image) With {.Tag = Feed}
@@ -289,6 +350,7 @@ Namespace DownloadObjects
         Private Sub Feed_FeedAdded(ByVal Source As FeedSpecialCollection, ByVal Feed As FeedSpecial)
             AddNewFeedItem(BTT_LOAD_SPEC, Feed, My.Resources.RSSPic_512, AddressOf Feed_SPEC_LOAD, True)
             AddNewFeedItem(BTT_FEED_ADD_SPEC, Feed, My.Resources.RSSPic_512, AddressOf Feed_SPEC_ADD, True)
+            AddNewFeedItem(BTT_FEED_ADD_T, Feed, My.Resources.RSSPic_512, AddressOf Feed_SPEC_ADD, True)
             AddNewFeedItem(BTT_FEED_ADD_SPEC_REMOVE, Feed, My.Resources.RSSPic_512, AddressOf Feed_SPEC_ADD_REMOVE, True)
             AddNewFeedItem(BTT_FEED_REMOVE_SPEC, Feed, My.Resources.RSSPic_512, AddressOf Feed_SPEC_REMOVE, True)
             AddNewFeedItem(BTT_FEED_DELETE_SPEC, Feed, My.Resources.DeletePic_24, AddressOf Feed_SPEC_DELETE, True)
@@ -297,14 +359,15 @@ Namespace DownloadObjects
         Private Overloads Sub Feed_FeedRemoved(ByVal Source As FeedSpecialCollection, ByVal Feed As FeedSpecial)
             Feed_FeedRemoved(BTT_LOAD_SPEC, Feed)
             Feed_FeedRemoved(BTT_FEED_ADD_SPEC, Feed)
+            Feed_FeedRemoved(BTT_FEED_ADD_T, Feed)
             Feed_FeedRemoved(BTT_FEED_REMOVE_SPEC, Feed)
             Feed_FeedRemoved(BTT_FEED_DELETE_SPEC, Feed)
             Feed_FeedRemoved(BTT_FEED_CLEAR_SPEC, Feed)
         End Sub
-        Private Overloads Sub Feed_FeedRemoved(ByVal Destination As ToolStripMenuItem, ByVal Feed As FeedSpecial)
+        Private Overloads Sub Feed_FeedRemoved(ByVal Destination As ToolStripDropDownItem, ByVal Feed As FeedSpecial)
             Feed_FeedRemoved(Destination, ToolbarTOP, Feed)
         End Sub
-        Friend Overloads Shared Sub Feed_FeedRemoved(ByVal Destination As ToolStripMenuItem, ByVal Toolbar As ToolStrip, ByVal Feed As FeedSpecial)
+        Friend Overloads Shared Sub Feed_FeedRemoved(ByVal Destination As ToolStripDropDownItem, ByVal Toolbar As ToolStrip, ByVal Feed As FeedSpecial)
             Try
                 With Destination
                     ControlInvokeFast(Toolbar, .Self,
@@ -594,7 +657,7 @@ Namespace DownloadObjects
         End Sub
 #End Region
 #Region "Move/Copy"
-        Private Sub BTT_COPY_MOVE_TO_Click(sender As Object, e As EventArgs) Handles BTT_COPY_TO.Click, BTT_MOVE_TO.Click
+        Private Sub BTT_COPY_MOVE_TO_Click(sender As Object, e As EventArgs) Handles BTT_COPY_TO.Click, BTT_MOVE_TO.Click, BTT_COPY_SELECTED_T.Click, BTT_MOVE_SELECTED_T.Click
             MoveCopyFiles(True, sender, Nothing, Nothing)
         End Sub
         Private Sub BTT_COPY_MOVE_SPEC_TO_Click(sender As Object, e As EventArgs) Handles BTT_COPY_SPEC_TO.Click, BTT_MOVE_SPEC_TO.Click
@@ -604,7 +667,7 @@ Namespace DownloadObjects
                                        ByVal FeedMediaData As FeedMedia, Optional ByVal GetChecked As Boolean = True) As Boolean
             Dim MsgTitle$ = "Copy/Move checked files"
             Try
-                Dim isCopy As Boolean = Not Sender Is Nothing AndAlso (Sender Is BTT_COPY_TO OrElse Sender Is BTT_COPY_SPEC_TO)
+                Dim isCopy As Boolean = Not Sender Is Nothing AndAlso (Sender Is BTT_COPY_TO OrElse Sender Is BTT_COPY_SPEC_TO OrElse Sender Is BTT_COPY_SELECTED_T)
                 Dim moveOptions As FeedMoveCopyTo = Nothing
                 Dim ff As SFile = Nothing, ffInit As SFile = Nothing, df As SFile = Nothing
                 Dim data As IEnumerable(Of UserMediaD) = Nothing
@@ -1004,7 +1067,7 @@ Namespace DownloadObjects
         End Sub
 #End Region
 #Region "Add remove fav spec"
-        Private Sub BTT_FEED_ADD_FAV_Click(sender As Object, e As EventArgs) Handles BTT_FEED_ADD_FAV.Click, BTT_FEED_ADD_FAV_REMOVE.Click
+        Private Sub BTT_FEED_ADD_FAV_Click(sender As Object, e As EventArgs) Handles BTT_FEED_ADD_FAV.Click, BTT_FEED_ADD_FAV_REMOVE.Click, BTT_FAV_T.Click
             Dim m As IEnumerable(Of UserMediaD) = GetCheckedMedia()
             If m.ListExists Then
                 Settings.Feeds.Favorite.Add(m)
@@ -1017,6 +1080,9 @@ Namespace DownloadObjects
                 Settings.Feeds.Favorite.Remove(m)
                 If FeedMode = FeedModes.Special Then FeedRemoveCheckedMedia(m, {FeedSpecial.FavoriteName}.ToList,,, False)
             End If
+        End Sub
+        Private Sub BTT_FEED_ADD_T_MouseDown(sender As Object, e As MouseEventArgs) Handles BTT_FEED_ADD_T.MouseDown
+            If e.Button = MouseButtons.Right Then BTT_FEED_ADD_SPEC_Click(sender, e)
         End Sub
         Private Sub BTT_FEED_ADD_SPEC_Click(sender As Object, e As EventArgs) Handles BTT_FEED_ADD_SPEC.Click, BTT_FEED_ADD_SPEC_REMOVE.Click
             Dim c As IEnumerable(Of UserMediaD) = GetCheckedMedia()
@@ -1276,10 +1342,10 @@ Namespace DownloadObjects
             End Try
         End Sub
 #End Region
-        Private Sub BTT_CHECK_ALL_NONE_Click(sender As Object, e As EventArgs) Handles BTT_CHECK_ALL.Click, BTT_CHECK_NONE.Click, BTT_CHECK_INVERT.Click
+        Private Sub BTT_CHECK_ALL_NONE_Click(sender As Object, e As EventArgs) Handles BTT_CHECK_ALL.Click, BTT_CHECK_NONE.Click, BTT_CHECK_INVERT.Click, BTT_SELECT_ALL_T.Click, BTT_SELECT_NONE_T.Click, BTT_INVERT_T.Click
             Try
-                Dim checked As Boolean = sender Is BTT_CHECK_ALL
-                Dim isInvert As Boolean = sender Is BTT_CHECK_INVERT
+                Dim checked As Boolean = sender Is BTT_CHECK_ALL Or sender Is BTT_SELECT_ALL_T
+                Dim isInvert As Boolean = sender Is BTT_CHECK_INVERT Or sender Is BTT_INVERT_T
                 ControlInvokeFast(TP_DATA, Sub()
                                                With TP_DATA
                                                    If .Controls.Count > 0 Then

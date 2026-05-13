@@ -253,6 +253,7 @@ Namespace API.OnlyFans
                 .CookiesUpdateMode = CookieKeeper.UpdateModes.Disabled
                 .Cookies.ChangedAllowInternalDrop = False
                 .Cookies.Changed = False
+                .Cookies.DateProvider = New CookieDateProvider
                 With .Headers
                     .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.SecChUaPlatform))
                     .Add(HttpHeaderCollection.GetSpecialHeader(MyHeaderTypes.SecChUaMobile))

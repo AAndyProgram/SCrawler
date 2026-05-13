@@ -24,7 +24,12 @@ Namespace API.PornHub
                                                                 0, RegexOptions.Singleline, RegexReturn.List, EDP.ReturnValue, UnicodeHexConverter)
         Friend ReadOnly RegexVideo_Video_VideoKey As RParams = RParams.DMS("viewkey=([\w\d]+)", 1, EDP.ReturnValue)
         Friend ReadOnly RegexVideoPageTitle As RParams = RParams.DMS("meta (property|name)=""[^:]+?:title"" content=""([^""]+)""", 2, EDP.ReturnValue)
+        Friend ReadOnly RegexVideoPageTitle2 As RParams = RParams.DMS("\<title\>([^\<]+)\</title>", 1, EDP.ReturnValue)
+        Friend ReadOnly RegexVideoPageTitle3 As RParams = RParams.DMS("videoTitle...([^""]+)", 1, EDP.ReturnValue)
+        Friend ReadOnly RegexVideoPageTitle_NoTitle As RParams = RParams.DMS("(?<=(\=|/))([\w\d]+)(?=(\?|\&|\Z))", 2, EDP.ReturnValue)
         Friend ReadOnly RegexDataToken As RParams = RParams.DMS("data-token=""([^""]+)", 1, EDP.ReturnValue)
+        Friend ReadOnly RegexVideoAdditImg As RParams = RParams.DMS("twitter.image..content=""([^""]+)""", 1, EDP.ReturnValue)
+        Friend ReadOnly RegexVideoAdditImg2 As RParams = RParams.DMS("thumbnailUrl""[^""]*?""([^""]+)""", 1, EDP.ReturnValue)
 #End Region
 #Region "Declarations M3U8"
         Friend ReadOnly Regex_M3U8_FilesList As RParams = RParams.DM("RESOLUTION=\d+x(\d+).*?[\r\n]*?(.+?m3u8.*)", 0, RegexReturn.List, EDP.ReturnValue)

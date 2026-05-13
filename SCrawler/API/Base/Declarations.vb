@@ -11,6 +11,9 @@ Imports PersonalUtilities.Forms
 Imports PersonalUtilities.Functions.RegularExpressions
 Namespace API.Base
     Friend Module Declarations
+        Friend Interface IThumbList
+            Property Thumbs As List(Of String)
+        End Interface
         Friend Const UserLabelName As String = "User"
         Friend Const SearchRequestLabelName As String = "Search request"
         Friend ReadOnly LNC As New ListAddParams(LAP.NotContainsOnly)

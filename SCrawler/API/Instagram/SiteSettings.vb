@@ -70,7 +70,7 @@ Namespace API.Instagram
         Friend Const Header_Browser As String = "Sec-Ch-Ua"
         Friend Const Header_BrowserExt As String = "Sec-Ch-Ua-Full-Version-List"
         Friend Const Header_Platform_Verion As String = "Sec-Ch-Ua-Platform-Version"
-        <PropertyOption(ControlText:="x-csrftoken", ControlToolTip:="Can be automatically extracted from cookies", IsAuth:=True, AllowNull:=True), PClonable(Clone:=False)>
+        <PropertyOption(ControlText:="x-csrftoken", ControlToolTip:="Can be automatically extracted from cookies", IsAuth:=True, AllowNull:=False), PClonable(Clone:=False)>
         Friend ReadOnly Property HH_CSRF_TOKEN As PropertyValue
         <CookieValueExtractor(NameOf(HH_CSRF_TOKEN))>
         Private Function GetValueFromCookies(ByVal PropName As String, ByVal c As CookieKeeper) As String
@@ -78,7 +78,7 @@ Namespace API.Instagram
         End Function
         <PropertyOption(ControlText:="x-ig-app-id", IsAuth:=True, AllowNull:=False), PClonable(Clone:=False)>
         Friend ReadOnly Property HH_IG_APP_ID As PropertyValue
-        <PropertyOption(ControlText:="x-asbd-id", IsAuth:=True, AllowNull:=True), PClonable(Clone:=False)>
+        <PropertyOption(ControlText:="x-asbd-id", IsAuth:=True, AllowNull:=False), PClonable(Clone:=False)>
         Friend ReadOnly Property HH_ASBD_ID As PropertyValue
         'PropertyOption(ControlText:="x-ig-www-claim", IsAuth:=True, AllowNull:=True)
         <PClonable(Clone:=False)>
@@ -89,16 +89,16 @@ Namespace API.Instagram
                 Return Not v.IsEmptyString AndAlso v = "0"
             End Get
         End Property
-        <PropertyOption(ControlText:="sec-ch-ua", IsAuth:=True, AllowNull:=True,
+        <PropertyOption(ControlText:="sec-ch-ua", IsAuth:=True, AllowNull:=False,
                         InheritanceName:=SettingsCLS.HEADER_DEF_sec_ch_ua), PClonable, PXML(OnlyForChecked:=True)>
         Private ReadOnly Property HH_BROWSER As PropertyValue
-        <PropertyOption(ControlText:="sec-ch-ua-full", ControlToolTip:="sec-ch-ua-full-version-list", IsAuth:=True, AllowNull:=True,
+        <PropertyOption(ControlText:="sec-ch-ua-full", ControlToolTip:="sec-ch-ua-full-version-list", IsAuth:=True, AllowNull:=False,
                         InheritanceName:=SettingsCLS.HEADER_DEF_sec_ch_ua_full_version_list), PClonable, PXML(OnlyForChecked:=True)>
         Private ReadOnly Property HH_BROWSER_EXT As PropertyValue
-        <PropertyOption(ControlText:="sec-ch-ua-platform-ver", ControlToolTip:="sec-ch-ua-platform-version", IsAuth:=True, AllowNull:=True, LeftOffset:=135,
+        <PropertyOption(ControlText:="sec-ch-ua-platform-ver", ControlToolTip:="sec-ch-ua-platform-version", IsAuth:=True, AllowNull:=False, LeftOffset:=135,
                         InheritanceName:=SettingsCLS.HEADER_DEF_sec_ch_ua_platform_version), PClonable, PXML(OnlyForChecked:=True)>
         Private ReadOnly Property HH_PLATFORM As PropertyValue
-        <PropertyOption(ControlText:="UserAgent", IsAuth:=True, AllowNull:=True,
+        <PropertyOption(ControlText:="UserAgent", IsAuth:=True, AllowNull:=False,
                         InheritanceName:=SettingsCLS.HEADER_DEF_UserAgent), PClonable, PXML(OnlyForChecked:=True)>
         Private ReadOnly Property HH_USER_AGENT As PropertyValue
         Friend Overrides Function BaseAuthExists() As Boolean
@@ -146,7 +146,7 @@ Namespace API.Instagram
         <Provider(NameOf(HH_IG_WWW_CLAIM_UPDATE_INTERVAL), FieldsChecker:=True)>
         Private ReadOnly Property TokenUpdateIntervalProvider As IFormatProvider
 #End Region
-        <PropertyOption(ControlText:="Use GraphQL to download", IsAuth:=True), PXML, PClonable>
+        <PropertyOption(ControlText:="Use GraphQL to download", ControlToolTip:="This feature is in test mode", IsAuth:=True), PXML, PClonable>
         Friend ReadOnly Property USE_GQL As PropertyValue
         <PropertyOption(ControlText:="Use GraphQL to download user data", IsAuth:=True), PXML, PClonable, HiddenControl>
         Friend ReadOnly Property USE_GQL_UserData As PropertyValue

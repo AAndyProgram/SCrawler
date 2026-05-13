@@ -204,7 +204,17 @@ Namespace DownloadObjects
                         End With
                         If Not imgFile.Exists Then
                             Settings.Cache.Validate()
-                            If GetWebFile(Media.Data.URL, imgFile, EDP.None) AndAlso imgFile.Exists Then File = UserImage.ConvertWebp(imgFile, Nothing)
+                            If GetWebFile(Media.Data.URL, imgFile, EDP.None) AndAlso imgFile.Exists Then
+                                File = UserImage.ConvertWebp(imgFile, Nothing)
+                            ElseIf Not IsNothing(Media.Data.Object) AndAlso TypeOf Media.Data.Object Is IThumbList AndAlso
+                                   DirectCast(Media.Data.Object, IThumbList).Thumbs.ListExists Then
+                                With DirectCast(Media.Data.Object, IThumbList).Thumbs
+                                    For Each __tmpUrl$ In .Self
+                                        If GetWebFile(__tmpUrl, imgFile, EDP.None) AndAlso imgFile.Exists Then _
+                                           File = UserImage.ConvertWebp(imgFile, Nothing) : Exit For
+                                    Next
+                                End With
+                            End If
                         Else
                             File = imgFile
                         End If
@@ -225,7 +235,7 @@ Namespace DownloadObjects
                     End If
                 End If
 
-                If File.Exists Then
+                If File.Exists Or IsSubscription Then
                     Information = $"Type: {IIf(ExtractText, UserMedia.Types.Text.ToString, Media.Data.Type.ToString)}"
                     Information.StringAppendLine($"File: {File.File}")
                     Information.StringAppendLine($"Address: {File}")
@@ -256,7 +266,7 @@ Namespace DownloadObjects
                             Dim webpConverted As Boolean = False
                             Dim isWebp As Boolean = False
                             tmpMediaFile = UserImage.ConvertWebp(tmpMediaFile, Nothing,,, webpConverted)
-                            If tmpMediaFile.IsEmptyString Then Throw New ArgumentNullException With {.HelpLink = 1}
+                            If tmpMediaFile.IsEmptyString And Not IsSubscription Then Throw New ArgumentNullException With {.HelpLink = 1}
                             Try
                                 For kConv As Byte = 0 To 1
                                     If kConv = 1 Then tmpMediaFile = UserImage.ConvertWebp(tmpMediaFile, Nothing, True, isWebp, webpConverted)
