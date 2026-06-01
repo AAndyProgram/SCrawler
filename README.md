@@ -1,6 +1,5 @@
-<!--
 # 🏳️‍🌈 Happy LGBT Pride Month 🎉
--->
+
 # 🏳️‍🌈 Social networks crawler 🏳️‍🌈
 
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/AAndyProgram/SCrawler)](https://github.com/AAndyProgram/SCrawler/releases/latest)
