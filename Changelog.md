@@ -2,12 +2,45 @@
 - [ffmpeg](https://github.com/AAndyProgram/SCrawler/wiki/Settings#ffmpeg)
   - x64 version - [release](https://github.com/GyanD/codexffmpeg/releases/tag/5.1.2); [zip](https://github.com/GyanD/codexffmpeg/releases/download/5.1.2/ffmpeg-5.1.2-full_build.zip); **version `5.1.2-full_build-www.gyan.dev`**
   - x86 version - [release](https://github.com/yt-dlp/FFmpeg-Builds/releases/tag/autobuild-2022-11-30-12-57); [zip](https://github.com/yt-dlp/FFmpeg-Builds/releases/download/autobuild-2022-11-30-12-57/ffmpeg-N-109274-gd7a5f068c2-win32-gpl.zip); **version `N-109457-geeb280f351-20221226`**
-- [Gallery-dl](https://github.com/AAndyProgram/SCrawler/wiki/Settings#gallery-dl) - **1.32.9**
-- [YT-DLP](https://github.com/AAndyProgram/SCrawler/wiki/Settings#yt-dlp) - **2026.07.04**
+- [Gallery-dl](https://github.com/AAndyProgram/SCrawler/wiki/Settings#gallery-dl) - **1.32.13**
+- [YT-DLP](https://github.com/AAndyProgram/SCrawler/wiki/Settings#yt-dlp) - **2026.08.19**
 - [Deno](https://github.com/AAndyProgram/SCrawler/wiki/Settings#deno) - latest *(`2.0.0` or higher)*
 - [OF-Scraper](https://github.com/AAndyProgram/SCrawler/wiki/Settings#of-scraper) - **3.12.9** ([release](https://github.com/datawhores/OF-Scraper/releases/tag/3.12.9))
 
 # 2026
+
+## 2026.9.21.0
+
+*2026-09-21*
+
+**ATTENTION!**
+
+To download **OnlyFans** DRM-protected content, you need to download and run this [script](https://github.com/AAndyProgram/SCrawler/blob/main/Tools/Install-OFScraper.ps1) and follow the instructions. **Without this script, downloading DRM-protected content will be impossible!** The script was written by @cjb900. @cjb900, you are the best!🩵 Thank you so much for your invaluable help!🩵
+
+**Reddit** `REST` API has been restored. To use it, you need to remove your `OAuth` credentials from SCrawler. **Don't forget to add cookies!**
+
+- Added
+  - Sites:
+    - BlueSky:
+      - MD5 comparison support
+      - handling errors `502` and `504`
+    - Instagram: **completely moved to `GraphQL`**
+    - Reddit: **restore `REST` API support** *(requires cookies)*
+  - Settings: new option `Add 'missing' users to log` *(Settings - [Downloading](https://github.com/AAndyProgram/SCrawler/wiki/Settings#downloading))*
+  - Minor improvements
+- Removed
+  - Mastodon support
+  - Imgur support
+- Updated
+  - gallery-dl up to version **1.32.13**
+  - yt-dlp up to version **2026.08.19**
+- Fixed
+  - Sites:
+    - OnlyFans: **DRM-protected content is not downloading** (special thanks to @cjb900 🩵)
+    - PornHub: **photos and videos are not downloading**
+    - Reddit: some carousels are not downloading
+  - YouTube downloader: unable to download videos that have audio and video combined into one container
+  - Minor bugs
 
 ## 2026.8.7.0
 

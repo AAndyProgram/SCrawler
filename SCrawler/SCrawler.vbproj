@@ -211,11 +211,6 @@
     <Compile Include="API\LPSG\Declarations.vb" />
     <Compile Include="API\LPSG\SiteSettings.vb" />
     <Compile Include="API\LPSG\UserData.vb" />
-    <Compile Include="API\Mastodon\Credentials.vb" />
-    <Compile Include="API\Mastodon\Declarations.vb" />
-    <Compile Include="API\Mastodon\EditorExchangeOptions.vb" />
-    <Compile Include="API\Mastodon\SiteSettings.vb" />
-    <Compile Include="API\Mastodon\UserData.vb" />
     <Compile Include="API\OnlyFans\Declarations.vb" />
     <Compile Include="API\OnlyFans\DynamicRulesEnv.vb" />
     <Compile Include="API\OnlyFans\OFResources.Designer.vb">
@@ -425,7 +420,6 @@
     <Compile Include="PluginsEnvironment\Hosts\UserDataHost.vb" />
     <Compile Include="API\Base\UserDataBase.vb" />
     <Compile Include="API\Gfycat\Envir.vb" />
-    <Compile Include="API\Imgur\Envir.vb" />
     <Compile Include="API\Instagram\Declarations.vb" />
     <Compile Include="API\Instagram\SiteSettings.vb" />
     <Compile Include="API\Instagram\UserData.vb" />
@@ -672,6 +666,7 @@
       <CustomToolNamespace>My.Resources</CustomToolNamespace>
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>SiteResources.Designer.vb</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="UserSearchForm.resx">
       <DependentUpon>UserSearchForm.vb</DependentUpon>
@@ -787,12 +782,6 @@
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Content\Pictures\SitePictures\MastodonPic_48.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Content\Icons\SiteIcons\MastodonIcon_48.ico" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Content\Pictures\SitePictures\OnlyFansPic_32.png" />

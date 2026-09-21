@@ -89,7 +89,6 @@ Namespace Plugin.Hosts
             Return {New PluginHost(GetType(API.Reddit.SiteSettings), _XML, GlobalPath, _Temp, _Imgs, _Vids),
                     New PluginHost(GetType(API.Twitter.SiteSettings), _XML, GlobalPath, _Temp, _Imgs, _Vids),
                     New PluginHost(GetType(API.Bluesky.SiteSettings), _XML, GlobalPath, _Temp, _Imgs, _Vids),
-                    New PluginHost(GetType(API.Mastodon.SiteSettings), _XML, GlobalPath, _Temp, _Imgs, _Vids),
                     New PluginHost(GetType(API.Instagram.SiteSettings), _XML, GlobalPath, _Temp, _Imgs, _Vids),
                     New PluginHost(GetType(API.ThreadsNet.SiteSettings), _XML, GlobalPath, _Temp, _Imgs, _Vids),
                     New PluginHost(GetType(API.Facebook.SiteSettings), _XML, GlobalPath, _Temp, _Imgs, _Vids),

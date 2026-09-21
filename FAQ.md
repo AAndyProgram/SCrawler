@@ -62,14 +62,14 @@ I strongly recommend you to **regularly** create backup copies of the settings f
 
 *How to use: find the site you need in the list and read the answer.*
 
-- Reddit: don't use credentials at all or configure [OAuth](https://github.com/AAndyProgram/SCrawler/wiki/Settings#how-to-get-reddit-credentials). **Reddit profiles can be downloaded without any credentials at all. Subreddits require OAuth! If nothing downloads, use OAuth!** Don't use OAuth token to download saved posts (use cookies only).
+- Reddit: add cookies and/or configure [OAuth](https://github.com/AAndyProgram/SCrawler/wiki/Settings#how-to-get-reddit-credentials). **Reddit profiles can be downloaded without credentials using cookies. Subreddits require OAuth! If nothing downloads, use OAuth!** Don't use OAuth token to download saved posts (use cookies only).
 - **META** (**Instagram**, Threads, Facebook): you need **cookies** and fill in **all fields**
 - **Instagram [TIPS](https://github.com/AAndyProgram/SCrawler/wiki/Settings#instagram-tips)**
 - **Instagram saved posts**: I don't consider questions like "I have 10k saved posts and only 1000 were downloaded". Download posts, remove them from saved posts, delete the `Saved posts` **settings folder**, repeat.
-- TikTok: works via yt-dlp. If something doesn't download, we need to wait until yt-dlp fixes it. TikTok doesn't require cookies to download.
+- TikTok: works via yt-dlp. If something doesn't download, we need to wait until yt-dlp fixes it. TikTok doesn't require cookies to download. Photos are downloaded using gallery-dl.
 - Porn sites: **COOKIES**!
 - ThisVid: https://github.com/AAndyProgram/SCrawler/wiki/Settings#thisvid-faq
-- **OnlyFans**: cookies + **all fields** + [OF-Scraper (download the correct version that I pointed)](https://github.com/AAndyProgram/SCrawler/wiki/Settings#of-scraper) & [mp4decrypt](https://www.bento4.com/downloads/) & **DRM keys** to download DRM protected videos. [OF-Scraper support](https://github.com/AAndyProgram/SCrawler/wiki/Settings#of-scraper-support). Also read [this](https://github.com/AAndyProgram/SCrawler/wiki/Settings#onlyfans-faq)
+- **OnlyFans**: cookies + **all fields** + [OF-Scraper (download the correct version that I pointed)](https://github.com/AAndyProgram/SCrawler/wiki/Settings#of-scraper) & **DRM keys** to download DRM protected videos. [OF-Scraper support](https://github.com/AAndyProgram/SCrawler/wiki/Settings#of-scraper-support). Also read [this](https://github.com/AAndyProgram/SCrawler/wiki/Settings#onlyfans-faq)
 - **JustForFans**: **THE VIDEO ISN'T DOWNLOADING AT THE MOMENT** ([Issue](https://discord.com/channels/1124032649682493462/1205547615199039551/1231349555132366870))
 
 ## Other questions

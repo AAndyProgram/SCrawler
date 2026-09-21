@@ -202,8 +202,6 @@ Namespace DownloadObjects.STDownloader
             If Not URL.IsEmptyString Then
                 If URL.Contains("gfycat") Then
                     Return API.Gfycat.Envir.GetSingleMediaInstance(URL, OutputFile)
-                ElseIf URL.Contains("imgur.com") Then
-                    Return API.Imgur.Envir.GetSingleMediaInstance(URL, OutputFile)
                 Else
                     For i% = 0 To Settings.Plugins.Count - 1
                         With Settings.Plugins(i).Settings

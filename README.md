@@ -1,5 +1,4 @@
-# 🏳️‍🌈 Happy LGBT Pride Month 🎉
-
+<!---# 🏳️‍🌈 Happy LGBT Pride Month 🎉--->
 # 🏳️‍🌈 Social networks crawler 🏳️‍🌈
 
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/AAndyProgram/SCrawler)](https://github.com/AAndyProgram/SCrawler/releases/latest)
@@ -41,14 +40,11 @@ A program to download photo and video from [any site](#supported-sites) (e.g. Yo
   - Bluesky images and videos, text;
   - OnlyFans images and videos, text, saved (bookmarked) posts, stories;
   - JustForFans images and videos, saved (bookmarked) posts;
-  - Mastodon images and videos, saved (bookmarked) posts;
   - Instagram images and videos, text, tagged posts, stories, saved posts;
   - Threads images and videos, text, saved posts;
   - Facebook images and videos, stories, saved posts;
   - TikTok images and videos;
   - Pinterest boards, users, saved posts;
-  - Imgur images, galleries and videos;
-  - Gfycat videos;
   - PornHub images, videos, save (liked) posts, search queries, search categories;
   - XHamster images, videos, saved posts, search queries, search categories, search tags;
   - XVIDEOS videos, saved posts, search queries, search categories;
@@ -85,12 +81,9 @@ A program to download photo and video from [any site](#supported-sites) (e.g. Yo
 - **Threads**
 - **Facebook**
 - JustForFans *(partial support) ([video issue](https://discord.com/channels/1124032649682493462/1205547615199039551/1231349555132366870))*[^1]
-- Mastodon *(out of support)*
 - TikTok
 - RedGifs
 - Pinterest
-- Imgur *(out of support)*
-- Gfycat
 - LPSG
 - **PornHub**
 - **XHamster**
@@ -135,7 +128,6 @@ First, the program downloads the full profile. After the program downloads only 
   - [Twitter](https://github.com/AAndyProgram/SCrawler/wiki/Settings#twitter)
   - [Bluesky](https://github.com/AAndyProgram/SCrawler/wiki/Settings#bluesky)
   - [OnlyFans](https://github.com/AAndyProgram/SCrawler/wiki/Settings#onlyfans)
-  - [Mastodon](https://github.com/AAndyProgram/SCrawler/wiki/Settings#mastodon)
   - [Instagram](https://github.com/AAndyProgram/SCrawler/wiki/Settings#instagram)
   - [Threads](https://github.com/AAndyProgram/SCrawler/wiki/Settings#threads)
   - [Facebook](https://github.com/AAndyProgram/SCrawler/wiki/Settings#facebook)

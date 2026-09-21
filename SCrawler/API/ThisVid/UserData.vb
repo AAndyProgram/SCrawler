@@ -179,7 +179,7 @@ Namespace API.ThisVid
                 If Not IsSavedPosts Then
                     Dim r$ = Responser.GetResponse($"https://thisvid.com/members/{ID}/")
                     If Not r.IsEmptyString Then
-                        Dim rr As New RParams("", Nothing, 1, EDP.ReturnValue)
+                        Dim rr As RParams = RParams.DMS("", 1, EDP.ReturnValue)
                         Dim __getValue As Func(Of String, Boolean, String) = Function(ByVal member As String, ByVal appendMember As Boolean) As String
                                                                                  rr.Pattern = String.Format(ProfileDataPattern, member)
                                                                                  Dim v$ = CStr(RegexReplace(r, rr)).StringTrim
@@ -190,13 +190,14 @@ Namespace API.ThisVid
                         If Not UserSiteName.IsEmptyString And FriendlyName.IsEmptyString Then FriendlyName = UserSiteName : _ForceSaveUserData = True
                         Dim descr$ = String.Empty
                         descr.StringAppendLine(__getValue("Birth date", True))
-                        descr.StringAppendLine(__getValue("Country", True))
-                        descr.StringAppendLine(__getValue("City", True))
+                        descr.StringAppendLine(__getValue("Location", True))
+                        'descr.StringAppendLine(__getValue("City", True))
                         descr.StringAppendLine(__getValue("Gender", True))
                         descr.StringAppendLine(__getValue("Orientation", True))
                         descr.StringAppendLine(__getValue("Relationship status", True))
                         descr.StringAppendLine(__getValue("Favourite category", True))
                         descr.StringAppendLine(__getValue("My interests", True))
+                        descr.StringAppendLine(__getValue("Favorite niche", True))
                         rr.Pattern = DescriptionPattern
                         descr.StringAppendLine(CStr(RegexReplace(r, rr)).StringTrim)
                         UserDescriptionUpdate(descr)

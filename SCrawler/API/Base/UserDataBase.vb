@@ -183,8 +183,6 @@ Namespace API.Base
 #Region "Additional names"
         Protected Const Name_SiteMode As String = "SiteMode"
         Protected Const Name_TrueName As String = "TrueName"
-        'TODELETE Name_TrueName2
-        <Obsolete> Protected Const Name_TrueName2 As String = "NameTrue"
         Protected Const Name_Arguments As String = "Arguments"
 #End Region
 #End Region
@@ -977,9 +975,6 @@ BlockNullPicture:
                     Using x As New XmlFile(MyFileSettings) With {.XmlReadOnly = True}
                         If User.Name.IsEmptyString Then User.Name = x.Value(Name_UserName)
                         _NameTrue = x.Value(Name_TrueName)
-#Disable Warning BC40008
-                        If _NameTrue.IsEmptyString AndAlso x.Contains(Name_TrueName2) Then _NameTrue = x.Value(Name_TrueName2)
-#Enable Warning
                         UserExists = x.Value(Name_UserExists).FromXML(Of Boolean)(True)
                         UserSuspended = x.Value(Name_UserSuspended).FromXML(Of Boolean)(False)
                         ID = x.Value(Name_UserID)
@@ -1224,15 +1219,15 @@ BlockNullPicture:
             _DownloadInProgress = True
             _DescriptionChecked = False
             _DescriptionEveryTime = Settings.UpdateUserDescriptionEveryTime
-            _ForceSaveUserData = False
-            _ForceSaveUserInfo = False
             _EnvirUserExists = UserExists
             _EnvirUserSuspended = UserSuspended
-            _EnvirCreatedByChannel = CreatedByChannel
-            _EnvirChanged = False
-            _EnvirInvokeUserUpdated = False
             UserExists = True
             UserSuspended = False
+            _EnvirCreatedByChannel = CreatedByChannel
+            _ForceSaveUserData = False
+            _ForceSaveUserInfo = False
+            _EnvirChanged = False
+            _EnvirInvokeUserUpdated = False
             DownloadedPictures(False) = 0
             DownloadedVideos(False) = 0
             _PictureExists = Settings.ViewModeIsPicture AndAlso Not GetPicture(Of Image)(False) Is Nothing
@@ -1240,8 +1235,8 @@ BlockNullPicture:
         Private Sub EnvirChanged(ByVal NewValue As Object, <CallerMemberName> Optional ByVal Caller As String = Nothing)
             If _DownloadInProgress Then
                 Select Case Caller
-                    Case NameOf(UserExists) : If Not _EnvirUserExists = CBool(NewValue) Then _EnvirChanged = True : _EnvirInvokeUserUpdated = True
-                    Case NameOf(UserSuspended) : If Not _EnvirUserSuspended = CBool(NewValue) Then _EnvirChanged = True : _EnvirInvokeUserUpdated = True
+                    Case NameOf(UserExists) : If Not _EnvirUserExists = CBool(NewValue) Then _EnvirChanged = True : _EnvirInvokeUserUpdated = True : _ForceSaveUserInfo = True
+                    Case NameOf(UserSuspended) : If Not _EnvirUserSuspended = CBool(NewValue) Then _EnvirChanged = True : _EnvirInvokeUserUpdated = True : _ForceSaveUserInfo = True
                     Case NameOf(NameTrue) : _EnvirChanged = True : _ForceSaveUserInfo = True
                     Case NameOf(ID) : _EnvirChanged = True : _ForceSaveUserInfo = True
                     Case Else : _EnvirChanged = True
@@ -1440,8 +1435,10 @@ BlockNullPicture:
 #Region "GDL File Names"
         Protected GDLFileNameProvider As ANumbers = Nothing
         Protected Sub GDLResetFileNameProvider(Optional ByVal GroupSize As Integer? = Nothing)
-            GDLFileNameProvider = New ANumbers With {.FormatOptions = ANumbers.Options.FormatNumberGroup + ANumbers.Options.Groups}
-            GDLFileNameProvider.GroupSize = If(GroupSize, 3)
+            GDLFileNameProvider = New ANumbers With {
+                .FormatOptions = ANumbers.Options.FormatNumberGroup + ANumbers.Options.Groups,
+                .GroupSize = If(GroupSize, 3)
+            }
         End Sub
         Protected Function GDLRenameFile(ByVal Input As SFile, ByVal i As Integer) As SFile
             Return SFile.Rename(Input, $"{Input.PathWithSeparator}{i.NumToString(GDLFileNameProvider)}.{Input.Extension}",, EDP.ThrowException)
@@ -1732,7 +1729,7 @@ BlockNullPicture:
                     If _ContentNew.Count > 0 Then
                         If UseMD5Comparison Then LoadMD5()
                         MyFile.Exists(SFO.Path)
-                        Dim MissingErrorsAdd As Boolean = Settings.AddMissingErrorsToLog
+                        Dim MissingErrorsAdd As Boolean = Settings.AddMissingToLog And Settings.AddMissingErrorsToLog
                         Dim MyDir$ = DownloadContentDefault_GetRootDir()
                         Dim vsf As Boolean = SeparateVideoFolderF
                         Dim __isVideo As Boolean
@@ -2349,7 +2346,7 @@ stxt:
             ErrorsDescriber.Execute(If(e.Exists, e, New ErrorsDescriber(EDP.SendToLog)), ex, $"{ToStringForLog()}: {Message}")
         End Sub
         Protected Sub ErrorDownloading(ByVal f As SFile, ByVal URL As String)
-            If Not f.Exists Then MyMainLOG = $"Error downloading from [{URL}] to [{f}]"
+            If Not f.Exists Then LogError(Nothing, $"error downloading{vbCr}{URL}{vbCr}{f}")
         End Sub
         ''' <exception cref="ObjectDisposedException"></exception>
         Protected Sub ThrowIfDisposed()

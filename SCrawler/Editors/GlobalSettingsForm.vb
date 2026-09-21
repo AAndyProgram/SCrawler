@@ -38,7 +38,6 @@ Namespace Editors
                         TXT_MAX_JOBS_USERS.Value = .MaxUsersJobsCount.Value
                         TXT_MAX_JOBS_CHANNELS.Value = .ChannelsMaxJobsCount.Value
                         CH_CHECK_VER_START.Checked = .CheckUpdatesAtStart
-                        TXT_IMGUR_CLIENT_ID.Text = .ImgurClientID
                         'Design
                         TXT_PRG_TITLE.Text = .ProgramText
                         TXT_PRG_DESCR.Text = .ProgramDescription
@@ -124,6 +123,7 @@ Namespace Editors
                         TXT_DOWN_COMPLETE_SCRIPT.Checked = .DownloadsCompleteCommand.Attribute
                         CH_ADD_MISSING_TO_LOG.Checked = .AddMissingToLog
                         CH_ADD_MISSING_ERROS_TO_LOG.Checked = .AddMissingErrorsToLog
+                        CH_ADD_MISSING_USERS_TO_LOG.Checked = .AddMissingPostUsersToLog
                         CH_DOWN_REPARSE_MISSING.Checked = .ReparseMissingInTheRoutine
                         CH_USE_DEF_ACC.Checked = .UseDefaultAccountIfMissing
                         TXT_AUTO_BRUSH_MIN.Value = .AutomationBrushUndownloadedPlansMinutes.Value
@@ -256,7 +256,6 @@ Namespace Editors
                     .MaxUsersJobsCount.Value = CInt(TXT_MAX_JOBS_USERS.Value)
                     .ChannelsMaxJobsCount.Value = TXT_MAX_JOBS_CHANNELS.Value
                     .CheckUpdatesAtStart.Value = CH_CHECK_VER_START.Checked
-                    .ImgurClientID.Value = TXT_IMGUR_CLIENT_ID.Text
                     'Design
                     .ProgramText.Value = TXT_PRG_TITLE.Text
                     .ProgramDescription.Value = TXT_PRG_DESCR.Text
@@ -343,6 +342,7 @@ Namespace Editors
                     .DownloadsCompleteCommand.Attribute.Value = TXT_DOWN_COMPLETE_SCRIPT.Checked
                     .AddMissingToLog.Value = CH_ADD_MISSING_TO_LOG.Checked
                     .AddMissingErrorsToLog.Value = CH_ADD_MISSING_ERROS_TO_LOG.Checked
+                    .AddMissingPostUsersToLog.Value = CH_ADD_MISSING_USERS_TO_LOG.Checked
                     .ReparseMissingInTheRoutine.Value = CH_DOWN_REPARSE_MISSING.Checked
                     .UseDefaultAccountIfMissing.Value = CH_USE_DEF_ACC.Checked
                     .AutomationBrushUndownloadedPlansMinutes.Value = TXT_AUTO_BRUSH_MIN.Value

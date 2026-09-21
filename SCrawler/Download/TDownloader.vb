@@ -311,6 +311,7 @@ Namespace DownloadObjects
         End Sub
 #End Region
         Friend ReadOnly Property Downloaded As List(Of IUserData)
+        Private ReadOnly MissingPostsUsers As List(Of String)
         Private ReadOnly NProv As IFormatProvider
 #End Region
 #Region "Working, Count"
@@ -479,6 +480,7 @@ Namespace DownloadObjects
         Friend Sub New()
             Files = New List(Of UserMediaD)
             Downloaded = New List(Of IUserData)
+            MissingPostsUsers = New List(Of String)
             NProv = New ANumbers With {.FormatOptions = ANumbers.Options.GroupIntegral}
             Pool = New List(Of Job)
         End Sub
@@ -562,6 +564,7 @@ Namespace DownloadObjects
                 MainProgress.Visible = True
                 If Not AutoDownloaderWorking AndAlso InfoForm.ReadyToOpen Then InfoForm.Show() : MainFrameObj.Focus()
                 MissingPostsDetected = False
+                MissingPostsUsers.Clear()
                 Session += 1
                 CheckerThread = New Thread(New ThreadStart(AddressOf JobsChecker))
                 CheckerThread.SetApartmentState(ApartmentState.MTA)
@@ -593,8 +596,15 @@ Namespace DownloadObjects
                 If Pool.Count > 0 Then Pool.ForEach(Sub(p) If Not p.Progress Is Nothing Then p.Progress.Maximum = 0)
                 ExecuteCommand(Settings.DownloadsCompleteCommand)
                 UpdateJobsLabel()
-                If MissingPostsDetected And Settings.AddMissingToLog Then _
-                   MyMainLOG = "Some posts didn't download. You can see them in the 'Missing posts' form."
+                If MissingPostsDetected And Settings.AddMissingToLog Then
+                    MyMainLOG = "Some posts didn't download. You can see them in the 'Missing posts' form."
+                    If Settings.AddMissingToLog And Settings.AddMissingPostUsersToLog And MissingPostsUsers.Count > 0 Then
+                        MissingPostsUsers.Sort()
+                        With MissingPostsUsers.Distinct
+                            If .ListExists Then MyMainLOG = "List of users whose posts are missing" : .ListForEach(Sub(mu, mi) MyMainLOG = mu, EDP.None)
+                        End With
+                    End If
+                End If
                 Files.Sort()
                 FilesChanged = Not fBefore = Files.Count
                 RaiseEvent Downloading(False)
@@ -715,7 +725,9 @@ Namespace DownloadObjects
                                 If i >= 0 Then
                                     If KeysSkipped.Count = 0 OrElse Not KeysSkipped.Contains(k) Then
                                         With _Job.Items(i)
-                                            If DirectCast(.Self, UserDataBase).ContentMissingExists Then MissingPostsDetected = True
+                                            With DirectCast(.Self, UserDataBase)
+                                                If .ContentMissingExists Then MissingPostsDetected = True : MissingPostsUsers.Add(.ToStringForLog)
+                                            End With
                                             RaiseEvent UserDownloadStateChanged(.Self, False)
                                             host = _Job.UserHost(.Self)
                                             host.AfterDownload(.Self, Download.Main)
@@ -754,31 +766,36 @@ Namespace DownloadObjects
         End Sub
 #End Region
 #Region "Add"
-        Private Sub AddItem(ByVal Item As IUserData, ByVal _UpdateJobsLabel As Boolean, ByVal _IncludedInTheFeed As Boolean)
-            ReconfPool()
-            If Item.IsCollection Then
-                DirectCast(Item, API.UserDataBind).DownloadData(Nothing, _IncludedInTheFeed)
-            Else
-                If Not Contains(Item) Then
-                    If Pool.Count > 0 Then
-                        For i% = 0 To Pool.Count - 1
-                            If Pool(i).Add(Item, _IncludedInTheFeed) Then Exit For
-                        Next
+        Private Function AddItem(ByVal Item As IUserData, ByVal _UpdateJobsLabel As Boolean, ByVal _IncludedInTheFeed As Boolean) As Boolean
+            Dim added As Boolean = False
+            If Not Item Is Nothing Then
+                ReconfPool()
+                If Item.IsCollection Then
+                    DirectCast(Item, API.UserDataBind).DownloadData(Nothing, _IncludedInTheFeed)
+                Else
+                    If Not Item.Disposed AndAlso Not Contains(Item) AndAlso
+                       Not Item.HOST.Key.IsEmptyString AndAlso Not Item.HOST.Key = API.PathPlugin.PluginKey Then
+                        If Pool.Count > 0 Then
+                            For i% = 0 To Pool.Count - 1
+                                If Pool(i).Add(Item, _IncludedInTheFeed) Then added = True : Exit For
+                            Next
+                        End If
+                        If _UpdateJobsLabel Then UpdateJobsLabel()
                     End If
-                    If _UpdateJobsLabel Then UpdateJobsLabel()
                 End If
             End If
-        End Sub
+            Return added
+        End Function
         Friend Sub Add(ByVal Item As IUserData, ByVal _IncludedInTheFeed As Boolean)
-            AddItem(Item, True, _IncludedInTheFeed)
-            Start()
+            If AddItem(Item, True, _IncludedInTheFeed) Then Start()
         End Sub
         Friend Sub AddRange(ByVal _Items As IEnumerable(Of IUserData), ByVal _IncludedInTheFeed As Boolean)
             If _Items.ListExists Then
-                For i% = 0 To _Items.Count - 1 : AddItem(_Items(i), False, _IncludedInTheFeed) : Next
+                Dim added% = 0
+                For i% = 0 To _Items.Count - 1 : added += AddItem(_Items(i), False, _IncludedInTheFeed).BoolToInteger : Next
                 UpdateJobsLabel()
+                If added <> 0 Then Start()
             End If
-            Start()
         End Sub
 #End Region
 #Region "Contains, Remove"
@@ -804,6 +821,7 @@ Namespace DownloadObjects
                     Pool.ListClearDispose
                     Files.Clear()
                     Downloaded.Clear()
+                    MissingPostsUsers.Clear()
                 End If
                 disposedValue = True
             End If

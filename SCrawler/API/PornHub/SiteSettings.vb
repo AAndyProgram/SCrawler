@@ -14,7 +14,14 @@ Imports PersonalUtilities.Tools.Web.Clients
 Namespace API.PornHub
     <Manifest("AndyProgram_PornHub"), SavedPosts, SpecialForm(False), SeparatedTasks(1)>
     Friend Class SiteSettings : Inherits SiteSettingsBase
+#Region "Categories"
+        Private Const CAT_YTDLP As String = "yt-dlp support"
+#End Region
 #Region "Declarations"
+#Region "Auth"
+        <PropertyOption(ControlText:="Use cookies", ControlToolTip:="Use cookies to download", IsAuth:=True), PXML, PClonable>
+        Friend Property CookiesUse As PropertyValue
+#End Region
         <PropertyOption(ControlText:="Download UHD", ControlToolTip:="Download UHD (4K) content"), PXML, PClonable>
         Friend Property DownloadUHD As PropertyValue
         <PropertyOption(ControlText:="Download uploaded", ControlToolTip:="Download uploaded videos"), PXML, PClonable>
@@ -34,12 +41,19 @@ Namespace API.PornHub
         <DoNotUse> Friend Overrides Property DownloadText As PropertyValue
         <DoNotUse> Friend Overrides Property DownloadTextPosts As PropertyValue
         <DoNotUse> Friend Overrides Property DownloadTextSpecialFolder As PropertyValue
+#Region "YT-DLP"
+        <PropertyOption(ControlText:="Use yt-dlp", ControlToolTip:="Use yt-dlp to download videos", Category:=CAT_YTDLP), PXML, PClonable>
+        Friend Property YTDLP_Use As PropertyValue
+        <PropertyOption(ControlText:="yt-dlp use cookies", ControlToolTip:="Using cookies in yt-dlp commands", Category:=CAT_YTDLP), PXML, PClonable>
+        Friend Property YTDLP_UseCookies As PropertyValue
+#End Region
 #End Region
 #Region "Initializer"
         Friend Sub New(ByVal AccName As String, ByVal Temp As Boolean)
             MyBase.New("PornHub", "pornhub.com", AccName, Temp, My.Resources.SiteResources.PornHubIcon_16, My.Resources.SiteResources.PornHubPic_16)
             With Responser : .CurlSslNoRevoke = True : .CurlInsecure = True : End With
 
+            CookiesUse = New PropertyValue(False)
             DownloadUHD = New PropertyValue(False)
             DownloadUploaded = New PropertyValue(True)
             DownloadTagged = New PropertyValue(False)
@@ -49,10 +63,14 @@ Namespace API.PornHub
             DownloadGifs = New PropertyValue(CInt(CheckState.Indeterminate), GetType(Integer))
             SavedPostsUserName = New PropertyValue(String.Empty, GetType(String))
 
+            YTDLP_Use = New PropertyValue(True)
+            YTDLP_UseCookies = New PropertyValue(False)
+
             _SubscriptionsAllowed = True
             UrlPatternUser = "https://www.pornhub.com/{0}/{1}"
             UserRegex = RParams.DMS("pornhub.com/(model|user[s]?|pornstar|channel[s]?)/([^/]+).*?", 0, RegexReturn.ListByMatch)
             ImageVideoContains = "pornhub.com"
+            UseNetscapeCookies = True
         End Sub
 #End Region
 #Region "GetInstance"

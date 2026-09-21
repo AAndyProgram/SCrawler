@@ -385,6 +385,7 @@ Namespace DownloadObjects
         End Function
         Private Sub Feed_FeedAdded(ByVal Source As FeedSpecialCollection, ByVal Feed As FeedSpecial)
             AddNewFeedItem(BTT_LOAD_SPEC, Feed, My.Resources.RSSPic_512, AddressOf Feed_SPEC_LOAD, True)
+            AddNewFeedItem(BTT_LOAD_T, Feed, My.Resources.RSSPic_512, AddressOf Feed_SPEC_LOAD, True)
             AddNewFeedItem(BTT_FEED_ADD_SPEC, Feed, My.Resources.RSSPic_512, AddressOf Feed_SPEC_ADD, True)
             AddNewFeedItem(BTT_FEED_ADD_T, Feed, My.Resources.RSSPic_512, AddressOf Feed_SPEC_ADD, True)
             AddNewFeedItem(BTT_FEED_ADD_SPEC_REMOVE, Feed, My.Resources.RSSPic_512, AddressOf Feed_SPEC_ADD_REMOVE, True)
@@ -394,6 +395,7 @@ Namespace DownloadObjects
         End Sub
         Private Overloads Sub Feed_FeedRemoved(ByVal Source As FeedSpecialCollection, ByVal Feed As FeedSpecial)
             Feed_FeedRemoved(BTT_LOAD_SPEC, Feed)
+            Feed_FeedRemoved(BTT_LOAD_T, Feed)
             Feed_FeedRemoved(BTT_FEED_ADD_SPEC, Feed)
             Feed_FeedRemoved(BTT_FEED_ADD_T, Feed)
             Feed_FeedRemoved(BTT_FEED_REMOVE_SPEC, Feed)

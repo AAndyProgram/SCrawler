@@ -23,24 +23,14 @@ Namespace API.Reddit
     Friend Class SiteSettings : Inherits SiteSettingsBase : Implements DownDetector.IDownDetector
 #Region "Declarations"
 #Region "Authorization"
-        Private Const ApiClientID_Default As String = "dYctRA-SIJxyykHe27lGZg"
-        Private Const ApiClientSecret_Default As String = "_5D6KzplRPDga-es1YlpzDIe9hiFlg"
         <PropertyOption(ControlText:="Login", ControlToolTip:="Your authorization username", IsAuth:=True), PXML, PClonable(Clone:=False)>
         Friend ReadOnly Property AuthUserName As PropertyValue
         <PropertyOption(ControlText:="Password", ControlToolTip:="Your authorization password", IsAuth:=True), PXML, PClonable(Clone:=False)>
         Friend ReadOnly Property AuthPassword As PropertyValue
         <PropertyOption(ControlText:="Client ID", ControlToolTip:="Your registered app client ID", IsAuth:=True), PXML, PClonable(Clone:=False)>
         Friend ReadOnly Property ApiClientID As PropertyValue
-        <PropertyUpdater(NameOf(ApiClientID))> Private Function ApiClientID_SetDefault() As Boolean
-            ApiClientID.Value = ApiClientID_Default
-            Return True
-        End Function
         <PropertyOption(ControlText:="Client Secret", ControlToolTip:="Your registered app client secret", IsAuth:=True), PXML, PClonable(Clone:=False)>
         Friend ReadOnly Property ApiClientSecret As PropertyValue
-        <PropertyUpdater(NameOf(ApiClientSecret))> Private Function ApiClientSecret_SetDefault() As Boolean
-            ApiClientSecret.Value = ApiClientSecret_Default
-            Return True
-        End Function
         <PropertyOption(ControlText:="Bearer token",
                         ControlToolTip:="Bearer token (can be null)." & vbCr &
                                         "If you are using cookies to download the timeline, it is highly recommended that you add a token." & vbCr &
@@ -238,7 +228,14 @@ Namespace API.Reddit
             Return AvailableTrueValue(What) AndAlso UpdateTokenIfRequired()
         End Function
         Private Function AvailableTrueValue(ByVal What As Download) As Boolean
-            Return Not What = Download.SavedPosts OrElse (Responser.CookiesExists And ACheck(SavedPostsUserName.Value))
+            'Return Not What = Download.SavedPosts OrElse (Responser.CookiesExists And ACheck(SavedPostsUserName.Value))
+            If What = Download.SavedPosts Then
+                Return Responser.CookiesExists And ACheck(SavedPostsUserName.Value)
+            ElseIf CredentialsExists Then
+                Return Not CBool(UseCookiesForTimelines.Value) OrElse Responser.CookiesExists
+            Else
+                Return Responser.CookiesExists
+            End If
         End Function
         Friend Overrides Sub DownloadDone(ByVal What As Download)
             SessionInterrupted = False

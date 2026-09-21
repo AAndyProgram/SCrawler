@@ -182,6 +182,14 @@ Namespace API.Xhamster
             MyCache.DisposeIfReady(False)
             MyCache = Nothing
         End Sub
+        Private Function GetCache() As CacheKeeper
+            If IsSingleObjectDownload Then
+                Return Settings.Cache
+            Else
+                If MyCache Is Nothing Then MyCache = CreateCache()
+                Return MyCache
+            End If
+        End Function
 #End Region
 #Region "Initializer"
         Friend Sub New()
@@ -744,15 +752,11 @@ Namespace API.Xhamster
         End Function
 #End Region
 #Region "yt-dlp support"
+#Disable Warning IDE0060
         Private Function YTDLPGetInfo(ByVal URL As String, ByVal n As Integer) As SFile
+#Enable Warning
             Try
-                Dim cc As CacheKeeper
-                If IsSingleObjectDownload Then
-                    cc = Settings.Cache
-                Else
-                    If MyCache Is Nothing Then MyCache = CreateCache()
-                    cc = MyCache
-                End If
+                Dim cc As CacheKeeper = GetCache()
                 cc.Validate()
                 Dim path As SFile = cc.NewPath
                 Dim c$ = If(MySettings.CookiesNetscapeFile.Exists, $" --no-cookies-from-browser --cookies ""{MySettings.CookiesNetscapeFile}""", String.Empty)
@@ -802,7 +806,12 @@ Namespace API.Xhamster
             DestinationFile.Extension = "mp4"
             Dim c$ = If(MySettings.CookiesNetscapeFile.Exists, $" --no-cookies-from-browser --cookies ""{MySettings.CookiesNetscapeFile}""", String.Empty)
             Dim cmd$ = $"""{Settings.YtdlpFile}"" --format {DirectCast(Media.Object, XMMediaInfo).FormatID}{c} {Media.URL_BASE} -o ""{DestinationFile}"""
-            Using ytdlp As New YTDLP.YTDLPBatch(TokenPersonal,, DestinationFile) : ytdlp.Encoding = Settings.CMDEncoding : ytdlp.Execute(cmd) : End Using
+            Using ytdlp As New YTDLP.YTDLPBatch(Token,, DestinationFile)
+                ytdlp.Encoding = Settings.CMDEncoding
+                ytdlp.CreateFileExchanger(GetCache)
+                If IsSingleObjectDownload Then ytdlp.SetProgress(Progress)
+                ytdlp.Execute(cmd)
+            End Using
             Return DestinationFile
         End Function
         Protected Overrides Function DownloadContentDefault_ConvertWebp(ByVal m As UserMedia, ByVal Process As Boolean) As SFile

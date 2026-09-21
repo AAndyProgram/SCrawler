@@ -951,7 +951,6 @@ Namespace API.YouTube.Objects
                 Return String.Format(m3u8DataRow, CInt(.Duration.TotalSeconds), fName, __f)
             End With
         End Function
-        Private ReadOnly DownloadProgressPattern As RParams = RParams.DMS("\[download\]\s*([\d\.,]+)", 1, EDP.ReturnValue)
         Public Property Progress As MyProgress Implements IYouTubeMediaContainer.Progress
         Private Property IDownloadableMedia_Progress As Object Implements IDownloadableMedia.Progress
             Get
@@ -1191,13 +1190,7 @@ Namespace API.YouTube.Objects
                 If MediaState = UMStates.Downloaded Or Not Checked Then Exit Sub
                 RaiseEvent FileDownloadStarted(Me, Nothing)
                 Using batch As New BatchExecutor(True) With {.Encoding = 65001}
-                    Dim h As DataReceivedEventHandler = Sub(ByVal Sender As Object, ByVal e As DataReceivedEventArgs)
-                                                            If Not e.Data.IsEmptyString Then
-                                                                Dim v# = AConvert(Of Double)(RegexReplace(e.Data, DownloadProgressPattern), NumberProvider, -1)
-                                                                If v >= 0 Then Progress.Value = v : Progress.Perform(0)
-                                                                If Token.IsCancellationRequested Then batch.Kill()
-                                                            End If
-                                                        End Sub
+                    Dim h As DataReceivedEventHandler = CreateYtdlpProgressHandler(Progress, Token, batch)
                     With batch
                         Dim prExists As Boolean = Not Progress Is Nothing
                         If prExists Then
@@ -1698,6 +1691,7 @@ Namespace API.YouTube.Objects
 #End Region
 #Region "Parse"
         Friend Const DRC As String = "drc"
+        Friend Const TypeAudioVideo As UMTypes = UMTypes.Audio + UMTypes.Video
         Public Overridable Function Parse(ByVal Container As EContainer, ByVal Path As SFile, ByVal IsMusic As Boolean,
                                           Optional ByVal Token As CancellationToken = Nothing, Optional ByVal Progress As IMyProgress = Nothing) As Boolean Implements IYouTubeMediaContainer.Parse
             Try
@@ -1850,7 +1844,6 @@ Namespace API.YouTube.Objects
             Return _Exists
         End Function
         Protected Sub ParseFormats(ByVal e As EContainer)
-            Const av As UMTypes = UMTypes.Audio + UMTypes.Video
             If If(e({"formats"})?.Count, 0) > 0 Then
                 Dim obj As MediaObject
                 Dim nValue#
@@ -1887,7 +1880,7 @@ Namespace API.YouTube.Objects
                     If validCodecValue(ee.Value("vcodec")) Then
                         obj.Type = UMTypes.Video
                         obj.Codec = sValue.Split(".").First
-                        If validCodecValue(ee.Value("acodec")) Then obj.Type = av
+                        If validCodecValue(ee.Value("acodec")) Then obj.Type = TypeAudioVideo
                     ElseIf validCodecValue(ee.Value("acodec")) Then
                         obj.Type = UMTypes.Audio
                         obj.Codec = sValue.Split(".").First

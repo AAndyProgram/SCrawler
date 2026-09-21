@@ -9,12 +9,18 @@
 Imports SCrawler.API.Base
 Imports SCrawler.Plugin.Attributes
 Namespace API.Bluesky
-    Friend Class EditorExchangeOptions : Inherits Base.EditorExchangeOptionsBase
+    Friend Class EditorExchangeOptions : Inherits EditorExchangeOptionsBase
         Friend Overrides Property SiteKey As String = BlueskySiteKey
         <PSetting(NameOf(SiteSettings.DownloadModelMedia), NameOf(MySettings), Address:=SettingAddress.User)>
         Friend Overridable Property DownloadModelMedia As Boolean = False
         <PSetting(NameOf(SiteSettings.DownloadModelProfile), NameOf(MySettings), Address:=SettingAddress.User)>
         Friend Overridable Property DownloadModelProfile As Boolean = False
+        <PSetting(NameOf(Twitter.SiteSettings.UseMD5Comparison), NameOf(MySettings))>
+        Friend Property UseMD5Comparison As Boolean = False
+        <PSetting(Caption:="Remove existing duplicates",
+                  ToolTip:="Existing files will be checked for duplicates and duplicates removed." & vbCr &
+                           "Works only on the first activation 'Use MD5 comparison'.")>
+        Friend Property RemoveExistingDuplicates As Boolean = False
         Private ReadOnly Property MySettings As Object
         Friend Sub New(ByVal s As SiteSettings)
             MyBase.New(s)
@@ -26,6 +32,8 @@ Namespace API.Bluesky
             MyBase.New(u)
             DownloadModelMedia = u.DownloadModelMedia
             DownloadModelProfile = u.DownloadModelProfile
+            UseMD5Comparison = u.UseMD5Comparison
+            RemoveExistingDuplicates = u.RemoveExistingDuplicates
             MySettings = u.HOST.Source
         End Sub
         Friend Overrides Sub Apply(ByRef u As UserDataBase)
@@ -40,6 +48,8 @@ Namespace API.Bluesky
             With DirectCast(u, UserData)
                 .DownloadModelMedia = DownloadModelMedia
                 .DownloadModelProfile = DownloadModelProfile
+                .UseMD5Comparison = UseMD5Comparison
+                .RemoveExistingDuplicates = RemoveExistingDuplicates
             End With
         End Sub
     End Class

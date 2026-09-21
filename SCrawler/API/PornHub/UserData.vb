@@ -6,13 +6,16 @@
 '
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
+Imports System.IO
 Imports System.Security.Policy
 Imports System.Threading
 Imports PersonalUtilities.Functions.RegularExpressions
 Imports PersonalUtilities.Functions.XML
+Imports PersonalUtilities.Tools
 Imports PersonalUtilities.Tools.Web.Clients
 Imports PersonalUtilities.Tools.Web.Documents.JSON
 Imports SCrawler.API.Base
+Imports SCrawler.API.Base.YTDLP
 Imports SCrawler.API.YouTube.Objects
 Imports UTypes = SCrawler.API.Base.UserMedia.Types
 Namespace API.PornHub
@@ -53,11 +56,12 @@ Namespace API.PornHub
             Friend Title As String
             Friend UserRef As String
             Friend Type As VideoTypes
-            Friend Function ToUserMedia(Optional ByVal SpecialFolder As String = Nothing) As UserMedia
-                Return New UserMedia(URL, UTypes.VideoPre) With {
-                    .File = If(Title.IsEmptyString, .File, New SFile($"{Title}.mp4")),
+            Friend Function ToUserMedia(Optional ByVal SpecialFolder As String = Nothing, Optional ByVal UseYTDLP As Boolean = False) As UserMedia
+                Return New UserMedia(URL, If(UseYTDLP, UTypes.Video, UTypes.VideoPre)) With {
+                    .File = If(Title.IsEmptyString, .File, New SFile($"{TitleHtmlConverter(Title)}.mp4")),
                     .Post = ID,
-                    .SpecialFolder = SpecialFolder
+                    .SpecialFolder = SpecialFolder,
+                    .Type = If(UseYTDLP And Not Title.IsEmptyString, UTypes.Video, UTypes.VideoPre)
                 }
             End Function
             Private Function CreateFromArray(ByVal ParamsArray() As String) As Object Implements IRegExCreator.CreateFromArray
@@ -178,6 +182,7 @@ Namespace API.PornHub
                 Return DirectCast(HOST.Source, SiteSettings)
             End Get
         End Property
+        Private MyCache As CacheKeeper = Nothing
 #End Region
 #Region "Initializer"
         Friend Sub New()
@@ -264,8 +269,10 @@ Namespace API.PornHub
             Try
                 PlaylistToken = String.Empty
                 Responser.ResetStatus()
+                If Not CBool(MySettings.CookiesUse.Value) Then Responser.Cookies.Clear()
                 _PageVideosRepeat = 0
                 SessionPosts.Clear()
+                UseInternalDownloadFileFunction = MySettings.YTDLP_Use.Value
 
                 If IsSavedPosts Then
                     PersonType = PersonTypeUser
@@ -304,7 +311,7 @@ Namespace API.PornHub
                         End If
                     End If
 
-                    If _TempMediaList.Count > 0 Then
+                    If Not CBool(MySettings.YTDLP_Use.Value) And _TempMediaList.Count > 0 Then
                         _TempMediaList.RemoveAll(Function(m) Not m.Type = UTypes.m3u8 And Not m.Type = UTypes.VideoPre)
                         If limit > 0 And _TempMediaList.Count > limit Then _TempMediaList.ListAddList(_TempMediaList.ListTake(-1, limit), LAP.ClearBeforeAdd)
                     End If
@@ -341,6 +348,7 @@ Namespace API.PornHub
             ProgressPre.ChangeMax(1)
             Try
                 Dim specFolder$ = String.Empty
+                Dim useYtdlp As Boolean = MySettings.YTDLP_Use.Value
                 Dim tryNextPage As Boolean = False
                 Dim limit% = If(DownloadTopCount, -1)
                 Dim cBefore% = _TempMediaList.Count
@@ -408,7 +416,7 @@ Namespace API.PornHub
                                                 _TempPostsList.Add(uv.ID)
                                                 newPostsFound = True
                                                 Return False
-                                            ElseIf SessionPosts.Count > 0 AndAlso SessionPosts.Contains(uv.id) Then
+                                            ElseIf SessionPosts.Count > 0 AndAlso SessionPosts.Contains(uv.ID) Then
                                                 prevPostsFound = True
                                                 Return True
                                             Else
@@ -420,7 +428,7 @@ Namespace API.PornHub
                             'Debug.WriteLineIf(l.Count > 0, l.Select(Function(ll) ll.Title).ListToString(vbNewLine))
                             If prevPostsFound And Not pageRepeatSet And Not newPostsFound Then pageRepeatSet = True : _PageVideosRepeat += 1
                             If prevPostsFound And newPostsFound And pageRepeatSet Then _PageVideosRepeat -= 1
-                            If l.Count > 0 Then _TempMediaList.ListAddList(l.Select(Function(uv) uv.ToUserMedia(specFolder)))
+                            If l.Count > 0 Then _TempMediaList.ListAddList(l.Select(Function(uv) uv.ToUserMedia(specFolder, useYtdlp)))
                             SessionPosts.ListAddList(newLastPageIDs, LNC)
                             newLastPageIDs.Clear()
 
@@ -560,6 +568,7 @@ Namespace API.PornHub
                 If .ListExists(3) Then url = .Item(2).IfNullOrEmpty(.Item(1)).StringTrim
             End With
             If url.IsEmptyString Then url = RegexReplace(r, Regex_Photo_PornHub_SinglePhoto2)
+            If url.IsEmptyString Then url = RegexReplace(r, Regex_Photo_PornHub_SinglePhoto3)
             Return url
         End Function
         Private Overloads Function DownloadUserPhotos_PornHub(ByVal Page As Integer, ByVal AlbumID As String, ByVal AlbumName As String,
@@ -677,6 +686,7 @@ Namespace API.PornHub
                                            Optional ByRef Data As IYouTubeMediaContainer = Nothing)
             Const ERR_NEW_URL$ = "ERR_NEW_URL"
             Dim URL$ = String.Empty
+            Dim useYtdlp As Boolean = MySettings.YTDLP_Use.Value
             Try
                 If _TempMediaList.Count > 0 AndAlso _TempMediaList.Exists(Function(tm) tm.Type = UTypes.VideoPre) Then
                     Dim m As UserMedia
@@ -693,13 +703,18 @@ Namespace API.PornHub
                                 For isCurl = 1 To 0 Step -1
                                     If CBool(isCurl) Then r = Responser.Curl(URL) Else r = Responser.GetResponse(URL)
                                     If Not r.IsEmptyString Then
-                                        NewUrl = CreateVideoURL(r)
-                                        If NewUrl.IsEmptyString Then
+                                        NewUrl = String.Empty
+                                        If Not useYtdlp Then NewUrl = CreateVideoURL(r)
+                                        If Not useYtdlp And NewUrl.IsEmptyString Then
                                             Throw New Exception With {.HelpLink = ERR_NEW_URL}
                                         Else
-                                            m.URL = NewUrl
-                                            m.Type = UTypes.m3u8
-                                            If CreateFileName Then
+                                            If useYtdlp Then
+                                                m.Type = UTypes.Video
+                                            Else
+                                                m.URL = NewUrl
+                                                m.Type = UTypes.m3u8
+                                            End If
+                                            If CreateFileName Or useYtdlp Then
                                                 tmpName = GetVideoTitle(r, URL)
                                                 If Not tmpName.IsEmptyString Then
                                                     If Not Data Is Nothing Then Data.Title = tmpName
@@ -799,6 +814,7 @@ Namespace API.PornHub
 #Region "ReparseMissing"
         Protected Overrides Sub ReparseMissing(ByVal Token As CancellationToken)
             Dim rList As New List(Of Integer)
+            If CBool(MySettings.YTDLP_Use.Value) Then UseInternalDownloadFileFunction = True
             Try
                 If ContentMissingExists Then
                     Dim m As UserMedia
@@ -810,13 +826,20 @@ Namespace API.PornHub
                         m = _ContentList(i)
                         If m.State = UserMedia.States.Missing AndAlso Not m.URL_BASE.IsEmptyString Then
                             ThrowAny(Token)
-                            r = Responser.Curl(m.URL_BASE,, eCurl)
-                            If Not r.IsEmptyString Then
-                                Dim NewUrl$ = CreateVideoURL(r)
-                                If Not NewUrl.IsEmptyString Then
-                                    m.URL = NewUrl
-                                    _TempMediaList.ListAddValue(m, LNC)
-                                    rList.Add(i)
+                            If CBool(MySettings.YTDLP_Use.Value) Then
+                                m.URL = m.URL_BASE
+                                m.Type = UTypes.Video
+                                _TempMediaList.ListAddValue(m, LNC)
+                                rList.Add(i)
+                            Else
+                                r = Responser.Curl(m.URL_BASE,, eCurl)
+                                If Not r.IsEmptyString Then
+                                    Dim NewUrl$ = CreateVideoURL(r)
+                                    If Not NewUrl.IsEmptyString Then
+                                        m.URL = NewUrl
+                                        _TempMediaList.ListAddValue(m, LNC)
+                                        rList.Add(i)
+                                    End If
                                 End If
                             End If
                         End If
@@ -856,6 +879,34 @@ Namespace API.PornHub
                 End If
                 Return Nothing
             End Try
+        End Function
+        Protected Overrides Function ValidateDownloadFile(ByVal URL As String, ByVal Media As UserMedia, ByRef Interrupt As Boolean) As Boolean
+            Return Media.Type = UTypes.Video
+        End Function
+        Protected Overrides Function DownloadFile(ByVal URL As String, ByVal Media As UserMedia, ByVal DestinationFile As SFile, ByVal Token As CancellationToken) As SFile
+            Dim cc As CacheKeeper
+            If IsSingleObjectDownload Then
+                cc = Settings.Cache
+            Else
+                If MyCache Is Nothing Then MyCache = CreateCache()
+                cc = MyCache
+            End If
+            cc.Validate()
+            Dim cmd$ = YTDLP_CreateCommand(URL, cc)
+            Dim f As SFile = Nothing
+            If Not cmd.IsEmptyString Then
+                Dim path As SFile = cc.NewPath
+                path.Exists()
+                cmd &= $" -o ""{DestinationFile}"""
+                Using b As New YTDLPBatch(Token)
+                    b.Encoding = Settings.CMDEncoding
+                    b.CreateFileExchanger(cc)
+                    If IsSingleObjectDownload Then b.SetProgress(Progress)
+                    b.Execute(cmd)
+                End Using
+                If DestinationFile.Exists Then f = DestinationFile
+            End If
+            Return f
         End Function
 #End Region
 #Region "CreateVideoURL"
@@ -950,8 +1001,43 @@ Namespace API.PornHub
             End Try
         End Function
 #End Region
+#Region "YT-DLP support"
+        Private Function YTDLP_CreateCommand(ByVal URL As String, ByRef Cache As CacheKeeper) As String
+            Dim path As SFile = Cache.NewPath
+            Dim c$ = If(CBool(MySettings.YTDLP_UseCookies.Value) And MySettings.CookiesNetscapeFile.Exists,
+                        $" --no-cookies-from-browser --cookies ""{MySettings.CookiesNetscapeFile}""", String.Empty)
+            Dim cmd$ = $"""{Settings.YtdlpFile}"" --write-info-json --skip-download{c} {URL} -o ""{path.PathWithSeparator}file"""
+            path.Exists()
+            Using ytdlp As New YTDLPBatch(TokenPersonal,, path) : ytdlp.Encoding = Settings.CMDEncoding : ytdlp.Execute(cmd) : End Using
+            cmd = String.Empty
+            Dim f As SFile = SFile.GetFiles(path, "*.json",, EDP.ReturnValue).FirstOrDefault
+            If f.Exists Then
+                Using j As EContainer = JsonDocument.Parse(f.GetText(EDP.ReturnValue), EDP.ReturnValue)
+                    If j.ListExists Then
+                        With j("formats")
+                            If .ListExists Then
+                                Dim formats As List(Of Sizes) = Nothing
+                                Try : formats = .Select(Function(ee) New Sizes(CInt(ee.Value("height")), ee.Value("format_id"))).ListIfNothing : Catch : End Try
+                                If formats.ListExists Then
+                                    formats.RemoveAll(Function(ff) ff.Value <= 0 Or (Not CBool(MySettings.DownloadUHD.Value) AndAlso ff.Value > 1080) Or ff.Data.IsEmptyString)
+                                    If formats.Count > 0 Then
+                                        formats.Sort()
+                                        cmd = $"-f {formats(0).Data} "
+                                        formats.Clear()
+                                    End If
+                                End If
+                            End If
+                        End With
+                    End If
+                End Using
+            End If
+            Return $"""{Settings.YtdlpFile}"" {cmd}{URL}"
+        End Function
+#End Region
 #Region "DownloadSingleObject"
         Protected Overrides Sub DownloadSingleObject_GetPosts(ByVal Data As IYouTubeMediaContainer, ByVal Token As CancellationToken)
+            If CBool(MySettings.YTDLP_Use.Value) Then UseInternalDownloadFileFunction = True
+            If Not CBool(MySettings.CookiesUse.Value) Then Responser.Cookies.Clear()
             _TempMediaList.Add(New UserMedia(Data.URL, UTypes.VideoPre))
             ReparseVideo(Token, True, Data)
         End Sub
@@ -973,7 +1059,7 @@ Namespace API.PornHub
 #End Region
 #Region "IDisposable Support"
         Protected Overrides Sub Dispose(ByVal disposing As Boolean)
-            If Not disposedValue And disposing Then SessionPosts.Clear()
+            If Not disposedValue And disposing Then SessionPosts.Clear() : MyCache.DisposeIfReady
             MyBase.Dispose(disposing)
         End Sub
 #End Region

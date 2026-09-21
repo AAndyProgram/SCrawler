@@ -183,8 +183,6 @@ Namespace DownloadObjects
         End Class
 #End Region
 #Region "XML Names"
-        'TODELETE: AutoDownloader.Modes
-        <Obsolete> Private Const Name_Mode As String = "Mode"
         Private Const Name_Enabled As String = "Enabled"
         Private Const Name_IsManual As String = "IsManual"
         Private Const Name_Timer As String = "Timer"
@@ -374,15 +372,7 @@ Namespace DownloadObjects
             Me.New
             Initialization = True
             Import(x)
-#Disable Warning BC40008
-            If x.Contains(Name_Mode) Then
-                Dim g% = x.Value(Name_Mode).FromXML(Of Integer)(0)
-                If g = 4 Then GroupsOnly = True
-                Enabled = g
-            Else
-                Enabled = x.Value(Name_Enabled).FromXML(Of Boolean)(False)
-            End If
-#Enable Warning
+            Enabled = x.Value(Name_Enabled).FromXML(Of Boolean)(False)
             If Name.IsEmptyString Then Name = "Default"
 
             IsManual = x.Value(Name_IsManual).FromXML(Of Boolean)(False)

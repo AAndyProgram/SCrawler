@@ -65,14 +65,6 @@ Namespace API.Twitter
             MediaModelAllowNonUserTweets = s.MediaModelAllowNonUserTweets.Value
             MySettings = s
         End Sub
-        Friend Sub New(ByVal s As Mastodon.SiteSettings)
-            MyBase.New(s)
-            GifsDownload = s.GifsDownload.Value
-            GifsSpecialFolder = s.GifsSpecialFolder.Value
-            GifsPrefix = s.GifsPrefix.Value
-            UseMD5Comparison = s.UseMD5Comparison.Value
-            MySettings = s
-        End Sub
         Friend Sub New(ByVal u As UserData)
             MyBase.New(u)
             GifsDownload = u.GifsDownload
@@ -82,16 +74,14 @@ Namespace API.Twitter
             RemoveExistingDuplicates = u.RemoveExistingDuplicates
             MediaModelAllowNonUserTweets = u.MediaModelAllowNonUserTweets
             LargeProfile = u.LargeProfile
-            If Not TypeOf u Is Mastodon.UserData Then
-                DownloadModelForceApply = u.DownloadModelForceApply
-                DownloadBroadcasts = u.DownloadBroadcasts
-                Dim dm As DModels() = EnumExtract(Of DModels)(u.DownloadModel)
-                If dm.ListExists Then
-                    DownloadModelMedia = dm.Contains(DModels.Media)
-                    DownloadModelProfile = dm.Contains(DModels.Profile)
-                    DownloadModelSearch = dm.Contains(DModels.Search)
-                    DownloadModelLikes = dm.Contains(DModels.Likes)
-                End If
+            DownloadModelForceApply = u.DownloadModelForceApply
+            DownloadBroadcasts = u.DownloadBroadcasts
+            Dim dm As DModels() = EnumExtract(Of DModels)(u.DownloadModel)
+            If dm.ListExists Then
+                DownloadModelMedia = dm.Contains(DModels.Media)
+                DownloadModelProfile = dm.Contains(DModels.Profile)
+                DownloadModelSearch = dm.Contains(DModels.Search)
+                DownloadModelLikes = dm.Contains(DModels.Likes)
             End If
             MySettings = u.HOST.Source
         End Sub

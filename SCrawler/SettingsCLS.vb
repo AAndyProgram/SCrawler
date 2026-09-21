@@ -266,7 +266,6 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         MaxSmallImageHeight = New XMLValue(Of Integer)("MaxSmallImageHeight", 15, MyXML, n)
         CollectionsPath = New XMLValue(Of String)("CollectionsPath", CollectionsFolderName, MyXML, n)
         MaxUsersJobsCount = New XMLValue(Of Integer)("MaxJobsCount", DefaultMaxDownloadingTasks, MyXML, n)
-        ImgurClientID = New XMLValue(Of String)("ImgurClientID", String.Empty, MyXML, {Name_Node_Sites})
 
         'Basis: new version
         n = {"ProgramVersion"}
@@ -363,6 +362,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
         UpdateUserIconBannerEveryTime = New XMLValue(Of Boolean)("UpdateUserIconBannerEveryTime", True, MyXML, n)
         AddMissingToLog = New XMLValue(Of Boolean)("AddMissingToLog", True, MyXML, n)
         AddMissingErrorsToLog = New XMLValue(Of Boolean)("AddMissingErrorsToLog", False, MyXML, n)
+        AddMissingPostUsersToLog = New XMLValue(Of Boolean)("AddMissingPostUsersToLog", False, MyXML, n)
         DownloadsCompleteCommand = New XMLValueAttribute(Of String, Boolean)("DownloadsCompleteCommand", "Use",,, MyXML, n)
         ReparseMissingInTheRoutine = New XMLValue(Of Boolean)("ReparseMissingInTheRoutine", False, MyXML, n)
         UseDefaultAccountIfMissing = New XMLValue(Of Boolean)("UseDefaultAccountIfMissing", True, MyXML, n)
@@ -887,7 +887,6 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
             Return HEADER_UserAgent
         End Get
     End Property
-    Friend ReadOnly Property ImgurClientID As XMLValue(Of String)
 #End Region
 #Region "Basis: new version"
     Friend ReadOnly Property CheckUpdatesAtStart As XMLValue(Of Boolean)
@@ -1072,6 +1071,7 @@ Friend Class SettingsCLS : Implements IDownloaderSettings, IDisposable
     Friend ReadOnly Property UpdateUserIconBannerEveryTime As XMLValue(Of Boolean)
     Friend ReadOnly Property AddMissingToLog As XMLValue(Of Boolean)
     Friend ReadOnly Property AddMissingErrorsToLog As XMLValue(Of Boolean)
+    Friend ReadOnly Property AddMissingPostUsersToLog As XMLValue(Of Boolean)
     Friend ReadOnly Property DownloadsCompleteCommand As XMLValueAttribute(Of String, Boolean)
     Friend ReadOnly Property ReparseMissingInTheRoutine As XMLValue(Of Boolean)
     Friend ReadOnly Property UseDefaultAccountIfMissing As XMLValue(Of Boolean)

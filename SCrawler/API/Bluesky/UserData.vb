@@ -7,10 +7,12 @@
 ' This program is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY
 Imports System.Threading
+Imports SCrawler.Plugin
 Imports SCrawler.API.Base
 Imports SCrawler.API.YouTube.Objects
 Imports PersonalUtilities.Functions.XML
 Imports PersonalUtilities.Functions.RegularExpressions
+Imports PersonalUtilities.Tools.Web.Clients
 Imports PersonalUtilities.Tools.Web.Documents.JSON
 Imports UTypes = SCrawler.API.Base.UserMedia.Types
 Imports UStates = SCrawler.API.Base.UserMedia.States
@@ -56,6 +58,8 @@ Namespace API.Bluesky
                         DownloadModelProfile = Not ParseUserMediaOnly
                     End If
                     ForceParseProfileInfo = .Value(Name_ForceParseProfileInfo).FromXML(Of Boolean)(False)
+                    UseMD5Comparison = .Value(Name_UseMD5Comparison).FromXML(Of Boolean)(False)
+                    RemoveExistingDuplicates = .Value(Name_RemoveExistingDuplicates).FromXML(Of Boolean)(False)
                 Else
                     If ID.IsEmptyString Then
                         UpdateUserOptions()
@@ -64,6 +68,8 @@ Namespace API.Bluesky
                     .Add(Name_DownloadModelMedia, DownloadModelMedia.BoolToInteger)
                     .Add(Name_DownloadModelProfile, DownloadModelProfile.BoolToInteger)
                     .Add(Name_ForceParseProfileInfo, ForceParseProfileInfo.BoolToInteger)
+                    .Add(Name_UseMD5Comparison, UseMD5Comparison.BoolToInteger)
+                    .Add(Name_RemoveExistingDuplicates, RemoveExistingDuplicates.BoolToInteger)
                 End If
             End With
         End Sub
@@ -98,6 +104,7 @@ Namespace API.Bluesky
 #Region "Download"
         Private _PostCount As Integer = 0
         Protected Overrides Sub DownloadDataF(ByVal Token As CancellationToken)
+            _CurlProfileTried = False
             _TmpPosts2.Clear()
             Try
                 If Not DownloadModelMedia And Not DownloadModelProfile Then
@@ -169,7 +176,11 @@ Namespace API.Bluesky
                     End If
                 End If
             Catch ex As Exception
-                ProcessException(ex, Token, $"DownloadData({URL})")
+                Select Case ProcessException(ex, Token, $"DownloadData({URL})")
+                    Case 1 : DownloadData(Cursor, Token)
+                    Case 2 : Throw ex
+                    Case Else : Throw New ExitException($"StatusCode = {CInt(Responser.StatusCode)}", ex) With {.Silent = True}
+                End Select
             End Try
         End Sub
 #End Region
@@ -279,21 +290,40 @@ Namespace API.Bluesky
         End Function
 #End Region
 #Region "GetProfileInfo"
-        Private Sub GetProfileInfo(ByVal Token As CancellationToken)
+        Private _CurlProfileTried As Boolean = False
+        Private Sub GetProfileInfo(ByVal Token As CancellationToken, Optional ByVal UseCurl As Boolean = False)
             Try
                 If ForceParseProfileInfo Then ForceParseProfileInfo = False : _ForceSaveUserInfo = True
-                If UpdateToken() Then
+                If UseCurl OrElse UpdateToken() Then
+                    If UseCurl Then
+                        With Responser
+                            .Mode = Responser.Modes.Curl
+                            .CurlSslNoRevoke = True
+                            .CurlInsecure = True
+                        End With
+                        _CurlProfileTried = True
+                    End If
                     Dim r$ = Responser.GetResponse($"https://bsky.social/xrpc/app.bsky.actor.getProfile?actor={ID.IfNullOrEmpty(NameTrue)}")
                     TokenUpdateCountReset()
                     If Not r.IsEmptyString Then
                         Using j As EContainer = JsonDocument.Parse(r)
                             If j.ListExists Then
-                                ID = j.Value("did")
-                                UserSiteNameUpdate(j.Value("displayName"))
-                                UserDescriptionUpdate(j.Value("description"))
-                                NameTrue = j.Value("handle")
-                                SimpleDownloadAvatar(j.Value("avatar"))
-                                SimpleDownloadAvatar(j.Value("banner"))
+                                If UseCurl Then
+                                    If j.Value("error").StringToLower = "accountdeactivated" OrElse
+                                      (j.Value("error").StringToLower = "invalidrequest" And j.Value("message").StringToLower = "profile not found") Then
+                                        UserExists = False
+                                        Throw New ExitException(r) With {.Silent = True}
+                                    Else
+                                        Throw New Exception(r)
+                                    End If
+                                Else
+                                    ID = j.Value("did")
+                                    UserSiteNameUpdate(j.Value("displayName"))
+                                    UserDescriptionUpdate(j.Value("description"))
+                                    NameTrue = j.Value("handle")
+                                    SimpleDownloadAvatar(j.Value("avatar"))
+                                    SimpleDownloadAvatar(j.Value("banner"))
+                                End If
                             End If
                         End Using
                     End If
@@ -302,6 +332,8 @@ Namespace API.Bluesky
                 End If
             Catch ex As Exception
                 ProcessException(ex, Token, "GetProfileInfo")
+            Finally
+                If UseCurl Then Responser.Mode = Responser.Modes.Default
             End Try
         End Sub
 #End Region
@@ -409,11 +441,17 @@ Namespace API.Bluesky
         Protected Overrides Function DownloadingException(ByVal ex As Exception, ByVal Message As String, Optional ByVal FromPE As Boolean = False,
                                                           Optional ByVal EObj As Object = Nothing) As Integer
             If Responser.StatusCode = Net.HttpStatusCode.BadRequest Then '400
-                If _TokenUpdateCount = 0 AndAlso UpdateToken(True) Then
+                If Not _CurlProfileTried Then
+                    GetProfileInfo(Nothing, True)
+                    Return 1
+                ElseIf _TokenUpdateCount = 0 AndAlso UpdateToken(True) Then
+                    If _CurlProfileTried Then GetProfileInfo(Nothing, True) : _CurlProfileTried = False
                     Return 1
                 Else
-                    Return 0
+                    Return 2
                 End If
+            ElseIf Responser.StatusCode = Net.HttpStatusCode.BadGateway Or Responser.StatusCode = Net.HttpStatusCode.GatewayTimeout Then '502, 504
+                Return 3
             Else
                 Return 0
             End If

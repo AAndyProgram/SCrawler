@@ -31,6 +31,7 @@ Namespace API.OnlyFans
         Friend Property CCookie As CookieKeeper = Nothing
         Private Const HeaderSign As String = "Sign"
         Private Const HeaderTime As String = "Time"
+        Private Const LabelDRM As String = "DRM"
         Private ReadOnly HighlightsList As List(Of String)
         Friend Property MediaDownloadTimeline As Boolean = True
         Friend Property MediaDownloadStories As Boolean = True
@@ -39,6 +40,11 @@ Namespace API.OnlyFans
         Private ReadOnly Property MySettings As SiteSettings
             Get
                 Return HOST.Source
+            End Get
+        End Property
+        Friend Overrides ReadOnly Property SpecialLabels As IEnumerable(Of String)
+            Get
+                Return {LabelDRM}
             End Get
         End Property
 #End Region
@@ -626,6 +632,7 @@ Namespace API.OnlyFans
 #Region "OFScraper support"
         Private Function OFS_DownloadFile(ByVal URL As String, ByVal Token As CancellationToken) As List(Of SFile)
             Try
+                If Labels.Count = 0 OrElse Not Labels.Contains(LabelDRM) Then Labels.Add(LabelDRM) : _ForceSaveUserInfo = True
                 Const requestPattern$ = """{0}"" manual --config ""{1}"" --url {2}"
                 Dim conf As SFile = OFS_CreateConfig()
                 If conf.Exists Then
@@ -790,6 +797,7 @@ Namespace API.OnlyFans
                             End If
                         End If
                     End If
+                    If Not f.Exists Then f = Nothing
                     Return f
                 End If
                 Return Nothing

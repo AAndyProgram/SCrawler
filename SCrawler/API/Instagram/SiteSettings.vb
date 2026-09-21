@@ -146,7 +146,7 @@ Namespace API.Instagram
         <Provider(NameOf(HH_IG_WWW_CLAIM_UPDATE_INTERVAL), FieldsChecker:=True)>
         Private ReadOnly Property TokenUpdateIntervalProvider As IFormatProvider
 #End Region
-        <PropertyOption(ControlText:="Use GraphQL to download", ControlToolTip:="This feature is in test mode", IsAuth:=True), PXML, PClonable>
+        <PropertyOption(ControlText:="Use GraphQL to download", IsAuth:=True), PXML, PClonable, HiddenControl>
         Friend ReadOnly Property USE_GQL As PropertyValue
         <PropertyOption(ControlText:="Use GraphQL to download user data", IsAuth:=True), PXML, PClonable, HiddenControl>
         Friend ReadOnly Property USE_GQL_UserData As PropertyValue
@@ -492,11 +492,11 @@ Namespace API.Instagram
             HH_IG_WWW_CLAIM_UPDATE_INTERVAL = New PropertyValue(120)
             HH_IG_WWW_CLAIM_ALWAYS_ZERO = New PropertyValue(False)
             HH_IG_WWW_CLAIM_RESET_EACH_SESSION = New PropertyValue(True)
-            HH_IG_WWW_CLAIM_RESET_EACH_TARGET = New PropertyValue(True)
+            HH_IG_WWW_CLAIM_RESET_EACH_TARGET = New PropertyValue(False)
             HH_IG_WWW_CLAIM_USE = New PropertyValue(True)
             HH_IG_WWW_CLAIM_USE_DEFAULT_ALGO = New PropertyValue(True)
             TokenUpdateIntervalProvider = New TokenRefreshIntervalProvider
-            USE_GQL = New PropertyValue(False)
+            USE_GQL = New PropertyValue(True)
             USE_GQL_UserData = New PropertyValue(True)
             USE_GQL_Highlights = New PropertyValue(True)
 
@@ -515,7 +515,7 @@ Namespace API.Instagram
             PostNumberVerifiedNot = New PropertyValue(12)
             PostNumberVerifiedNotProvider = New TimersChecker(12)
 
-            RequestsWaitTimer_Any = New PropertyValue(1000)
+            RequestsWaitTimer_Any = New PropertyValue(5000)
             RequestsWaitTimer_AnyProvider = New TimersChecker(0)
             RequestsWaitTimer = New PropertyValue(1000)
             RequestsWaitTimerProvider = New TimersChecker(100)
@@ -544,10 +544,10 @@ Namespace API.Instagram
             SkipErrors_AddToLog_Silent = New PropertyValue(String.Empty, GetType(String))
             IgnoreStoriesDownloadingErrors = New PropertyValue(False)
 
-            DownDetectorValue = New PropertyValue(20)
+            DownDetectorValue = New PropertyValue(30)
             DownDetectorValueProvider = New TimersChecker(-1)
-            DownDetectorValueAddToLog = New PropertyValue(False)
-            TaggedNotifyLimit = New PropertyValue(200)
+            DownDetectorValueAddToLog = New PropertyValue(True)
+            TaggedNotifyLimit = New PropertyValue(50)
             TaggedNotifyLimitProvider = New TaggedNotifyLimitChecker
 
             DownloadingErrorDate = New PropertyValue(Now.AddYears(-10), GetType(Date))
@@ -563,17 +563,13 @@ Namespace API.Instagram
             UserRegex = RParams.DMS(String.Format(UserRegexDefaultPattern, "instagram.com/"), 1)
             ImageVideoContains = "instagram.com"
         End Sub
-        Private Const SettingsVersionCurrent As Integer = 3
+        Private Const SettingsVersionCurrent As Integer = 4
         Friend Overrides Sub EndInit()
             Try : MyLastRequests.Add(LastDownloadDate.Value, LastRequestsCount.Value) : Catch : End Try
             If Not CBool(HH_IG_WWW_CLAIM_USE.Value) Then Responser.Headers.Remove(Header_IG_WWW_CLAIM)
             If CInt(SettingsVersion.Value) < SettingsVersionCurrent Then
                 SettingsVersion.Value = SettingsVersionCurrent
-                HH_IG_WWW_CLAIM_RESET_EACH_TARGET.Value = False
-                RequestsWaitTimer_Any.Value = 5000
-                TaggedNotifyLimit.Value = 50
-                DownDetectorValue.Value = 30
-                DownDetectorValueAddToLog.Value = True
+                USE_GQL.Value = True
             End If
             MyBase.EndInit()
         End Sub

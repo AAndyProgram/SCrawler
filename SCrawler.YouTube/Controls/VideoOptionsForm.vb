@@ -137,6 +137,19 @@ Namespace API.YouTube.Controls
                     End If
                     CMB_FORMAT.Enabled = OPT_VIDEO.Checked
 
+                    With .MediaObjects
+                        Dim disableOpts As Boolean = False
+                        If .Count = 0 Or .Count = 1 Then
+                            disableOpts = True
+                        ElseIf .Exists(Function(mm) mm.Type = UMTypes.Video Or mm.Type = YouTubeMediaContainerBase.TypeAudioVideo) And
+                               .Exists(Function(mm) mm.Type = UMTypes.Audio) Then
+                            disableOpts = False
+                        Else
+                            disableOpts = True
+                        End If
+                        If disableOpts Then OPT_AUDIO.Enabled = False : OPT_VIDEO.Enabled = False
+                    End With
+
                     arr = AvailableVideoFormats
                     CMB_FORMAT.Items.AddRange(arr)
                     If InheritsFromContainer Then
@@ -232,7 +245,7 @@ Namespace API.YouTube.Controls
                     data = .Elements.Select(Function(ee) New MediaItem(ee, True) With {.Dock = DockStyle.Fill, .Checked = ee.Checked, .UseCookies = UseCookies})
                 Else
                     data = (From m As MediaObject In .Self.MediaObjects
-                            Where m.Type = __contentType
+                            Where m.Type = __contentType Or (__contentType = UMTypes.Video And m.Type = YouTubeMediaContainerBase.TypeAudioVideo)
                             Select New VideoOption(m, audio) With {.Dock = DockStyle.Fill, .Checked = m.Index = MyContainer.SelectedVideoIndex})
                 End If
 

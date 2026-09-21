@@ -57,6 +57,7 @@ Namespace API.YouTube
         Friend ReadOnly TimeToStringProviderH As IFormatProvider = New TimeToStringConverter(True)
         Friend ReadOnly TitleHtmlConverter As Func(Of String, String) = Function(Input) Input.StringRemoveWinForbiddenSymbols().StringTrim()
         Friend ReadOnly ProgressProvider As IMyProgressNumberProvider = MyProgressNumberProvider.Percentage
+        Friend ReadOnly DownloadProgressPattern As RParams = RParams.DMS("\[download\]\s*([\d\.,]+)", 1, EDP.ReturnValue)
         Public ReadOnly TrueUrlRegEx As RParams = RParams.DM(Base.YouTubeFunctions.TrueUrlPattern, 0, EDP.ReturnValue)
         Friend ReadOnly MusicUrlApply As RParams = RParams.DMS("https://([w\.]*)youtube.com.+", 1, RegexReturn.Replace, EDP.ReturnValue,
                                                                CType(Function(input$) "music.", Func(Of String, String)), String.Empty)
@@ -77,6 +78,15 @@ Namespace API.YouTube
             Else
                 Return f
             End If
+        End Function
+        Public Function CreateYtdlpProgressHandler(ByVal Progress As MyProgress, ByVal Token As Threading.CancellationToken, ByVal Batch As BatchExecutor) As DataReceivedEventHandler
+            Return Sub(ByVal Sender As Object, ByVal e As DataReceivedEventArgs)
+                       If Not e.Data.IsEmptyString Then
+                           Dim v# = AConvert(Of Double)(RegexReplace(e.Data, DownloadProgressPattern), NumberProvider, -1)
+                           If v >= 0 Then Progress.Value = v : Progress.Perform(0)
+                           If Token.IsCancellationRequested Then Batch.Kill()
+                       End If
+                   End Sub
         End Function
         Private Class TimeToStringConverter : Implements ICustomProvider
             Private ReadOnly _Provider As New ADateTime("mm\:ss") With {.TimeParseMode = ADateTime.TimeModes.TimeSpan}

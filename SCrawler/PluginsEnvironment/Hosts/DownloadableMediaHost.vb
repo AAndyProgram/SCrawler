@@ -45,7 +45,9 @@ Namespace Plugin.Hosts
         End Property
         Public Overrides Sub Delete(ByVal RemoveFiles As Boolean)
             MyBase.Delete(RemoveFiles)
-            If Not RemoveFiles And Not Settings.STDownloader_SnapshotsKeepWithFiles And Settings.STDownloader_SnapShotsCachePermamnent And Not ThumbAlong Then _
+            If Not RemoveFiles And Not Settings.STDownloader_SnapshotsKeepWithFiles And
+               Settings.STDownloader_SnapShotsCachePermamnent And Not ThumbAlong And
+               (Files.Count = 0 OrElse Not Files.Contains(ThumbnailFile)) Then _
                ThumbnailFile.Delete(SFO.File, SFODelete.DeleteToRecycleBin, EDP.None)
         End Sub
         Friend Sub New(ByVal URL As String, ByVal OutputFile As SFile)
@@ -61,8 +63,6 @@ Namespace Plugin.Hosts
                     If Not SiteKey.IsEmptyString Then
                         If SiteKey = API.Gfycat.Envir.SiteKey Then
                             Instance = New API.Gfycat.Envir
-                        ElseIf SiteKey = API.Imgur.Envir.SiteKey Then
-                            Instance = New API.Imgur.Envir
                         Else
                             plugin = Settings(SiteKey)
                             If plugin Is Nothing Then

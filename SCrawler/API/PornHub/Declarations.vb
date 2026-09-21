@@ -47,6 +47,7 @@ Namespace API.PornHub
                                                                                    CType(Function(Input$) If(Input.IsEmptyString, String.Empty, $"https://www.pornhub.com{Input.Trim}"), Func(Of String, String)))
         Friend ReadOnly Regex_Photo_PornHub_SinglePhoto As RParams = RParams.DM("data-image=""([^""]+)""\s*src=""([^""]+)""", 0, RegexReturn.ListByMatch, EDP.ReturnValue)
         Friend ReadOnly Regex_Photo_PornHub_SinglePhoto2 As RParams = RParams.DMS("image:src"" content=""([^""]+)""", 1, EDP.ReturnValue)
+        Friend ReadOnly Regex_Photo_PornHub_SinglePhoto3 As RParams = RParams.DMS("div id=""photoImageSection"".*?a href=""[^""\d]+\d+""\>[\r\n\s\t]*\<img src=""([^""]+)""", 1, RegexOptions.Singleline, EDP.ReturnValue)
         Friend ReadOnly Regex_Photo_File As RParams = RParams.DM("\d+\.[\w]{3,4}", 0, EDP.ReturnValue)
 #End Region
     End Module

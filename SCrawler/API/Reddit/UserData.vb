@@ -355,7 +355,11 @@ Namespace API.Reddit
                     Dim _PostID As Func(Of String) = Function() PostTmp.IfNullOrEmpty(PostID)
 
                     'URL = $"https://gateway.reddit.com/desktopapi/v1/user/{NameTrue}/posts?rtj=only&allow_quarantined=true&allow_over18=1&include=identity&after={POST}&dist=25&sort={View}&t={Period}&layout=classic"
-                    URL = $"https://oauth.reddit.com/user/{NameTrue}/submitted.json?rtj=only&allow_quarantined=true&allow_over18=1&include=identity&after={POST}&dist=25&sort={View}&t={Period}&layout=classic"
+                    If MySiteSettings.CredentialsExists Then
+                        URL = $"https://oauth.reddit.com/user/{NameTrue}/submitted.json?rtj=only&allow_quarantined=true&allow_over18=1&include=identity&after={POST}&dist=25&sort={View}&t={Period}&layout=classic"
+                    Else
+                        URL = $"https://www.reddit.com/user/{NameTrue}/.json?raw_json=1&rtj=only&allow_quarantined=true&allow_over18=1&include=identity&after={POST}&dist=25&sort={View}&t={Period}&layout=classic"
+                    End If
                     ThrowAny(Token)
                     Wait429()
                     Dim r$ = Responser.GetResponse(URL)
@@ -583,8 +587,6 @@ Namespace API.Reddit
                         _TempMediaList.ListAddValue(MediaFromData(UTypes.VideoPre, tmpUrl, PostID, PostDate, UserID,, PostText), LNC)
                         _TotalPostsDownloaded += 1
                     End If
-                ElseIf CreateImgurMedia(tmpUrl, PostID, PostDate, UserID, IsChannel, PostText) Then
-                    _TotalPostsDownloaded += 1
                 ElseIf DownloadGallery(e, PostID, PostDate, UserID, SaveToCache, PostText) Then
                     _TotalPostsDownloaded += 1
                 ElseIf Not If(e({"media"}, "type")?.Value, String.Empty).IsEmptyString Then
@@ -778,62 +780,15 @@ Namespace API.Reddit
         End Function
 #End Region
 #Region "Download Base Functions"
-        Private Function CreateImgurMedia(ByVal _URL As String, ByVal PostID As String, ByVal PostDate As String,
-                                          Optional ByVal _UserID As String = "", Optional ByVal IsChannel As Boolean = False,
-                                          Optional ByVal PostText As String = Nothing) As Boolean
-            If Not _URL.IsEmptyString AndAlso _URL.Contains("imgur") Then
-                If _URL.StringContains({".jpg", ".png", ".jpeg"}) Then
-                    _TempMediaList.ListAddValue(MediaFromData(UTypes.Picture, _URL, PostID, PostDate, _UserID,, PostText), LNC)
-                ElseIf _URL.Contains(".gifv") Then
-                    If SaveToCache Then
-                        _TempMediaList.ListAddValue(MediaFromData(UTypes.Picture, _URL.Replace(".gifv", ".gif"), PostID, PostDate, _UserID,, PostText), LNC)
-                    Else
-                        _TempMediaList.ListAddValue(MediaFromData(UTypes.Video, _URL.Replace(".gifv", ".mp4"), PostID, PostDate, _UserID,, PostText), LNC)
-                    End If
-                ElseIf _URL.Contains(".mp4") Then
-                    _TempMediaList.ListAddValue(MediaFromData(UTypes.Video, _URL, PostID, PostDate, _UserID,, PostText), LNC)
-                ElseIf _URL.Contains(".gif") Then
-                    _TempMediaList.ListAddValue(MediaFromData(UTypes.GIF, _URL, PostID, PostDate, _UserID,, PostText), LNC)
-                Else
-                    Dim obj As IEnumerable(Of UserMedia) = Imgur.Envir.GetVideoInfo(_URL, EDP.ReturnValue)
-                    If Not obj.ListExists Then
-                        If Not TryFile(_URL) Then _URL &= ".jpg"
-                        _TempMediaList.ListAddValue(MediaFromData(UTypes.Picture, _URL, PostID, PostDate, _UserID,, PostText), LNC)
-                    Else
-                        Dim ut As UTypes
-                        Dim m As UserMedia
-                        For Each data As UserMedia In obj
-                            With data
-                                If Not .URL.IsEmptyString Then
-                                    If Not .File.IsEmptyString Then
-                                        Select Case .File.Extension
-                                            Case "jpg", "png", "jpeg" : ut = UTypes.Picture
-                                            Case "gifv" : ut = IIf(SaveToCache, UTypes.Picture, UTypes.Video)
-                                            Case "mp4" : ut = UTypes.Video
-                                            Case "gif" : ut = UTypes.GIF
-                                            Case Else : ut = UTypes.Picture : .File.Extension = "jpg"
-                                        End Select
-                                        m = MediaFromData(ut, _URL, PostID, PostDate, _UserID,, PostText)
-                                        m.URL = .URL
-                                        m.File = .File.File
-                                        _TempMediaList.ListAddValue(m, LNC)
-                                    End If
-                                End If
-                            End With
-                        Next
-                    End If
-                End If
-                Return True
-            Else
-                Return False
-            End If
-        End Function
         Private Function DownloadGallery(ByVal e As EContainer, ByVal PostID As String, ByVal PostDate As String,
                                          Optional ByVal _UserID As String = Nothing, Optional ByVal FirstOnly As Boolean = False,
                                          Optional ByVal PostText As String = Nothing) As Boolean
             Try
                 Dim added As Boolean = False
                 Dim node As EContainer = Nothing
+                Dim m As UserMedia
+                Dim isGif As Boolean
+                Dim i%
                 If e.Contains("media_metadata") Then
                     node = e("media_metadata")
                 ElseIf e.Contains("mediaMetadata") Then
@@ -842,12 +797,25 @@ Namespace API.Reddit
                 If If(node?.Count, 0) > 0 Then
                     Dim t As EContainer
                     For Each n As EContainer In node
-                        t = n.ItemF({"s", "u"})
-                        If Not t Is Nothing AndAlso Not t.Value.IsEmptyString Then
-                            _TempMediaList.ListAddValue(MediaFromData(UTypes.Picture, t.Value, PostID, PostDate, _UserID,, PostText), LNC)
-                            added = True
-                            If FirstOnly Then Exit For
-                        End If
+                        isGif = False
+                        Select Case n.Value("e")
+                            Case "AnimatedImage" : isGif = True : t = Nothing
+                            Case Else : t = n.ItemF({"s", "u"})
+                        End Select
+                        For i = 0 To IIf(isGif, 1, 0)
+                            If isGif Then t = If(i = 0, n.ItemF({"s", "gif"}), n.ItemF({"s", "mp4"}))
+                            If Not t Is Nothing AndAlso Not t.Value.IsEmptyString Then
+                                m = MediaFromData(IIf(i = 0, IIf(isGif, UTypes.GIF, UTypes.Picture), UTypes.GIF), t.Value, PostID, PostDate, _UserID,, PostText)
+                                If isGif And i = 1 Then
+                                    m.File = CreateFileFromUrl(t.Value)
+                                    m.File.Extension = "mp4"
+                                    m.URL = t.Value
+                                End If
+                                _TempMediaList.ListAddValue(m, LNC)
+                                added = True
+                                If FirstOnly Then Exit For
+                            End If
+                        Next
                     Next
                 End If
                 Return added

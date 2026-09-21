@@ -66,7 +66,12 @@ Namespace DownloadObjects
             MUsers.Clear()
         End Sub
         Private Sub MissingPostsForm_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
-            If e.KeyCode = Keys.F1 Then ShowPostInformation() : e.Handled = True
+            If e.KeyCode = Keys.F1 Then
+                ShowPostInformation()
+                e.Handled = True
+            ElseIf e.KeyCode = Keys.Escape Then
+                Close()
+            End If
         End Sub
 #End Region
 #Region "RefillList"

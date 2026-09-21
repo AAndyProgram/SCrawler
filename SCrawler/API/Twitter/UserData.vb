@@ -695,7 +695,7 @@ nextpIndx:
         End Sub
         Private Sub DownloadData_SavedPosts(ByVal Token As CancellationToken)
             Try
-                Dim f As SFile = GetDataFromGalleryDL("https://x.com/i/bookmarks", Settings.Cache, True, Token)
+                Dim f As SFile = GetDataFromGalleryDL("https://x.com/i/history", Settings.Cache, True, Token)
                 Dim files As List(Of SFile) = SFile.GetFiles(f, "*.txt")
                 If files.ListExists Then
                     GDLResetFileNameProvider(Math.Max(files.Count.ToString.Length, 3))
@@ -1108,7 +1108,7 @@ nextpIndx:
                                     If ID.IsEmptyString Then
                                         process = False
                                     Else
-                                        command &= $"https://twitter.com/intent/user?user_id={ID}"
+                                        command &= $"https://x.com/intent/user?user_id={ID}"
                                         currentModel = DownloadModels.Media
                                         process = True
                                     End If
