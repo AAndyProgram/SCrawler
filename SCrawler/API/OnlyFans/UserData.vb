@@ -165,7 +165,11 @@ Namespace API.OnlyFans
                     If IsSavedPosts Then
                         path = $"/api2/v2/posts/bookmarks/all/?format=infinite&limit=10&offset={Cursor}"
                     Else
-                        path = $"/api2/v2/users/{ID}/posts/medias?limit=50&order=publish_date_desc&skip_users=all&format=infinite&counters=1"
+                        If DownloadTextPosts And DownloadText Then
+                            path = $"/api2/v2/users/{ID}/posts?limit=10&order=publish_date_desc&skip_users=all&format=infinite&pinned=0"
+                        Else
+                            path = $"/api2/v2/users/{ID}/posts/medias?limit=50&order=publish_date_desc&skip_users=all&format=infinite&counters=1"
+                        End If
                         If Not Cursor.IsEmptyString Then path &= $"&counters=0&beforePublishTime={Cursor}" Else path &= "&counters=1"
                     End If
 
@@ -500,7 +504,7 @@ Namespace API.OnlyFans
                                 ID = j.Value("id")
                                 UserSiteNameUpdate(j.Value("name"))
                                 Dim descr$ = j.Value("about")
-                                If Not descr.IsEmptyString Then descr = descr.Replace(brTag, String.Empty)
+                                If Not descr.IsEmptyString Then descr = descr.Replace(brTag, vbCrLf)
                                 UserDescriptionUpdate(descr)
                                 SimpleDownloadAvatar(j.Value("avatar"))
                                 SimpleDownloadAvatar(j.Value("header"))

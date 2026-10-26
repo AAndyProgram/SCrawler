@@ -113,6 +113,51 @@ Namespace API.YouTube.Base
                 Return Protocols.Undefined
             End Get
         End Property
+        Public Language As String
+        Public ReadOnly Property LanguageCaption(Optional ByVal IncludeNote As Boolean = False) As String
+            Get
+                Dim c$ = String.Empty
+                If Not Language.IsEmptyString Then c = $"[{Language}]"
+                If Not FormatNote.IsEmptyString And IncludeNote Then c.StringAppend($"({FormatNoteClean.IfNullOrEmpty(FormatNote)})", " ")
+                Return c
+            End Get
+        End Property
+        Public FormatNote As String
+        Public FormatNoteClean As String
+        Public ReadOnly Property IsAI As Boolean
+            Get
+                Return Not FormatNote.IsEmptyString AndAlso FormatNote.ToLower.Contains("dubbed-auto")
+            End Get
+        End Property
+        Public ReadOnly Property IsOriginalLanguage As Boolean
+            Get
+                Return Not FormatNote.IsEmptyString AndAlso FormatNote.ToLower.Contains("original")
+            End Get
+        End Property
+        Public ReadOnly Property IsDefaultLanguage As Boolean
+            Get
+                Return Not FormatNote.IsEmptyString AndAlso FormatNote.ToLower.Contains("default")
+            End Get
+        End Property
+        Public ReadOnly Property IsDefaultOrOriginal As Boolean
+            Get
+                Return IsDefaultLanguage Or IsOriginalLanguage
+            End Get
+        End Property
+        Public ReadOnly Property FormatQuality As String
+            Get
+                If Not FormatNote.IsEmptyString Then
+                    If FormatNote.Contains("high") Then
+                        Return "high"
+                    ElseIf FormatNote.Contains("medium") Then
+                        Return "medium"
+                    ElseIf FormatNote.Contains("low") Then
+                        Return "low"
+                    End If
+                End If
+                Return String.Empty
+            End Get
+        End Property
         Public URL As String
         Public Property Index As Integer Implements IIndexable.Index
         Private Function SetIndex(ByVal Obj As Object, ByVal Index As Integer) As Object Implements IIndexable.SetIndex

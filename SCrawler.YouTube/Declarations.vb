@@ -56,6 +56,7 @@ Namespace API.YouTube
         Friend ReadOnly TimeToStringProvider As IFormatProvider = New TimeToStringConverter
         Friend ReadOnly TimeToStringProviderH As IFormatProvider = New TimeToStringConverter(True)
         Friend ReadOnly TitleHtmlConverter As Func(Of String, String) = Function(Input) Input.StringRemoveWinForbiddenSymbols().StringTrim()
+        Friend ReadOnly MediaObjParseLang As RParams = RParams.DM("(?i)^(.+?)(?:\s*-\s*( .+?))?(?=\s*(?:,\s*)?(?:low|medium|high|DRC)\b|$)", 0, EDP.ReturnValue)
         Friend ReadOnly ProgressProvider As IMyProgressNumberProvider = MyProgressNumberProvider.Percentage
         Friend ReadOnly DownloadProgressPattern As RParams = RParams.DMS("\[download\]\s*([\d\.,]+)", 1, EDP.ReturnValue)
         Public ReadOnly TrueUrlRegEx As RParams = RParams.DM(Base.YouTubeFunctions.TrueUrlPattern, 0, EDP.ReturnValue)
@@ -79,11 +80,12 @@ Namespace API.YouTube
                 Return f
             End If
         End Function
-        Public Function CreateYtdlpProgressHandler(ByVal Progress As MyProgress, ByVal Token As Threading.CancellationToken, ByVal Batch As BatchExecutor) As DataReceivedEventHandler
+        Public Function CreateYtdlpProgressHandler(ByVal Progress As MyProgress, ByVal Token As Threading.CancellationToken, ByVal Batch As BatchExecutor,
+                                                   Optional ByVal ValCalc As Func(Of Double, Double) = Nothing) As DataReceivedEventHandler
             Return Sub(ByVal Sender As Object, ByVal e As DataReceivedEventArgs)
                        If Not e.Data.IsEmptyString Then
                            Dim v# = AConvert(Of Double)(RegexReplace(e.Data, DownloadProgressPattern), NumberProvider, -1)
-                           If v >= 0 Then Progress.Value = v : Progress.Perform(0)
+                           If v >= 0 Then v = If(ValCalc Is Nothing, v, ValCalc.Invoke(v)) : Progress.Value = v : Progress.Perform(0)
                            If Token.IsCancellationRequested Then Batch.Kill()
                        End If
                    End Sub

@@ -413,6 +413,15 @@ Namespace API.YouTube.Base
         Private Function AvailableAudioFormats_Impl() As String()
             Return AvailableAudioFormats
         End Function
+        <Browsable(True), GridVisible, XMLVN({"DefaultsAudio"}, True), Category("Defaults Audio"), DisplayName("Language: exclude AI"),
+            Description("Exclude AI from results. Default: true.")>
+        Public ReadOnly Property DefaultAudioLanguage_ExcludeAI As XMLValue(Of Boolean)
+        <Browsable(True), GridVisible, XMLVN({"DefaultsAudio"}, True), Category("Defaults Audio"), DisplayName("Language: exclude not default"),
+            Description("Exclude non-default or non-original languages from the results. Default: true.")>
+        Public ReadOnly Property DefaultAudioLanguage_ExcludeNonDefault As XMLValue(Of Boolean)
+        <Browsable(True), GridVisible, XMLVN({"DefaultsAudio"}, True), Category("Defaults Audio"), DisplayName("Use default"),
+            Description("Use the original or default language. Default: true.")>
+        Public ReadOnly Property DefaultAudioLanguageUseDefault As XMLValue(Of Boolean)
         <Browsable(True), GridVisible, XMLVN({"DefaultsAudio"}, "MP3"), Category("Defaults Audio"), DisplayName("Default codec for music"),
             TypeConverter(GetType(FieldsTypeConverter)), GridStandardValuesProvider(NameOf(AvailableAudioFormats_Impl)),
             Description("The default audio format for downloading music.")>

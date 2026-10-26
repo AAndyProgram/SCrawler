@@ -727,7 +727,7 @@ Namespace API.Instagram
                                 processGetResponse = False
                             Case Sections.SavedPosts
                                 ChangeResponserMode(False)
-                                EndCursor = SavedPostsDownload(String.Empty, Token)
+                                EndCursor = DownloadSavedPosts(Cursor, Token)
                                 HasNextPage = Not EndCursor.IsEmptyString
                                 MySiteSettings.TooManyRequests(False)
                                 ThrowAny(Token)
@@ -965,7 +965,7 @@ NextPageBlock:
             End Try
         End Sub
         ''' <summary>Cursor</summary>
-        Private Function SavedPostsDownload(ByVal Cursor As String, ByVal Token As CancellationToken) As String
+        Private Function DownloadSavedPosts(ByVal Cursor As String, ByVal Token As CancellationToken) As String
             Dim URL$ = $"https://www.instagram.com/api/v1/feed/saved/posts/?max_id={Cursor}"
             Dim HasNextPage As Boolean = False
             Dim NextCursor$ = String.Empty

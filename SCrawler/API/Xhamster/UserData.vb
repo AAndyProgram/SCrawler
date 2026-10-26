@@ -809,7 +809,7 @@ Namespace API.Xhamster
             Using ytdlp As New YTDLP.YTDLPBatch(Token,, DestinationFile)
                 ytdlp.Encoding = Settings.CMDEncoding
                 ytdlp.CreateFileExchanger(GetCache)
-                If IsSingleObjectDownload Then ytdlp.SetProgress(Progress)
+                If IsSingleObjectDownload Then ytdlp.SetProgress(Progress, Function(v) v / 100)
                 ytdlp.Execute(cmd)
             End Using
             Return DestinationFile

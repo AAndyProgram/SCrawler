@@ -20,6 +20,7 @@ Imports UMTypes = SCrawler.Plugin.UserMediaTypes
 Imports ADB = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons
 Namespace API.YouTube.Controls
     Friend Class VideoOptionsForm : Implements IDesignXMLContainer
+        Friend Event AudioIndexChanged As EventHandler
 #Region "Declarations"
         Private MyView As FormView
         Private ReadOnly MyFieldsChecker As FieldsChecker
@@ -29,6 +30,7 @@ Namespace API.YouTube.Controls
         Private Const ControlsRow As Integer = 7
         Private ReadOnly Property CNT_PROCESSOR As TableControlsProcessor
         Friend Property MyContainer As YouTubeMediaContainerBase
+        Private ReadOnly AVControls As List(Of VideoOption)
         Private Initialization As Boolean = True
         Private ReadOnly InheritsFromContainer As Boolean
         Private ReadOnly M3U8Files As List(Of SFile)
@@ -63,6 +65,7 @@ Namespace API.YouTube.Controls
             InitializeComponent()
             M3U8Files = New List(Of SFile)
             MyContainer = Container
+            AVControls = New List(Of VideoOption)
             CNT_PROCESSOR = New TableControlsProcessor(TP_CONTROLS)
             Me.InheritsFromContainer = InheritsFromContainer
             MyFieldsChecker = New FieldsChecker
@@ -210,6 +213,7 @@ Namespace API.YouTube.Controls
             MyView.DisposeIfReady()
             MyFieldsChecker.DisposeIfReady()
             M3U8Files.Clear()
+            AVControls.ListClearDispose
         End Sub
 #End Region
 #Region "Refill"
@@ -218,6 +222,7 @@ Namespace API.YouTube.Controls
             Dim h% = -1
             Dim rh% = IIf(MyContainer.HasElements, 60, 25)
             Dim s As New Size(Width, h)
+            Dim codecW% = 0
             Dim CalculateSize As Action(Of Integer) =
                 Sub(ByVal InitHeight As Integer)
                     With TP_MAIN.RowStyles(ControlsRow) : .SizeType = SizeType.Absolute : .Height = InitHeight : End With
@@ -230,7 +235,7 @@ Namespace API.YouTube.Controls
             Dim __contentType As UMTypes = IIf(OPT_VIDEO.Checked, UMTypes.Video, UMTypes.Audio)
             With TP_CONTROLS
                 If .Controls.Count > 0 Then
-                    For Each cnt As Control In .Controls : cnt.Dispose() : Next
+                    'For Each cnt As Control In .Controls : cnt.Dispose() : Next
                     .Controls.Clear()
                 End If
                 .RowStyles.Clear()
@@ -239,14 +244,29 @@ Namespace API.YouTube.Controls
             With MyContainer
                 Dim audio As MediaObject = Nothing
                 If __contentType = UMTypes.Video Then audio = .SelectedAudio
-                Dim data As IEnumerable(Of Control)
+                Dim data As IEnumerable(Of Control) = Nothing
 
                 If .HasElements Then
                     data = .Elements.Select(Function(ee) New MediaItem(ee, True) With {.Dock = DockStyle.Fill, .Checked = ee.Checked, .UseCookies = UseCookies})
                 Else
-                    data = (From m As MediaObject In .Self.MediaObjects
-                            Where m.Type = __contentType Or (__contentType = UMTypes.Video And m.Type = YouTubeMediaContainerBase.TypeAudioVideo)
-                            Select New VideoOption(m, audio) With {.Dock = DockStyle.Fill, .Checked = m.Index = MyContainer.SelectedVideoIndex})
+                    If AVControls.Count = 0 Then
+                        AVControls.AddRange(From m As MediaObject In .Self.MediaObjects
+                                            Where m.Type = UMTypes.Audio Or m.Type = UMTypes.Video Or m.Type = YouTubeMediaContainerBase.TypeAudioVideo
+                                            Select New VideoOption(m, audio) With {
+                                                .Dock = DockStyle.Fill,
+                                                .Checked = m.Index = If(m.Type = UMTypes.Audio, MyContainer.SelectedAudioIndex, MyContainer.SelectedVideoIndex)
+                                                })
+                        If AVControls.Count > 0 Then
+                            AVControls.ForEach(Sub(ByVal av As VideoOption)
+                                                   AddHandler av.CheckedChanged, AddressOf VideoOption_CheckedChanged
+                                                   av.SetAudioChangingHandler(Me)
+                                               End Sub)
+                        End If
+                    End If
+                    'data = (From m As MediaObject In .Self.MediaObjects
+                    '        Where m.Type = __contentType Or (__contentType = UMTypes.Video And m.Type = YouTubeMediaContainerBase.TypeAudioVideo)
+                    '        Select New VideoOption(m, audio) With {.Dock = DockStyle.Fill, .Checked = m.Index = MyContainer.SelectedVideoIndex})
+                    If AVControls.Count > 0 Then data = AVControls.Where(Function(av) av.ContentType = __contentType)
                 End If
 
                 If data.ListExists Then
@@ -312,6 +332,16 @@ Namespace API.YouTube.Controls
                         End With
                     End If
 
+                    If Not .HasElements Then
+                        codecW = AVControls.Max(Function(av) av.CodecLength)
+                        Dim baseW% = DirectCast(TP_CONTROLS.Controls(0), VideoOption).CodecLengthBase
+                        If baseW + codecW + 12 + 30 > Width Then
+                            s.Width += Math.Abs((Size.Width - baseW - codecW - 12 - 30))
+                            'MinimumSize = s
+                            'Size = s
+                        End If
+                    End If
+
                     With TP_CONTROLS
                         .PerformLayout()
                         .Select()
@@ -331,6 +361,16 @@ Namespace API.YouTube.Controls
 #Region "Media items' handlers"
         Private Sub MediaItem_CheckedChanged(ByVal Sender As MediaItem, ByVal Container As IYouTubeMediaContainer)
             ControlInvokeFast(TP_CONTROLS, Sub() Container.Checked = Sender.Checked, EDP.None)
+        End Sub
+        Private Sub VideoOption_CheckedChanged(ByVal Sender As Object, ByVal e As EventArgs)
+            If Not Sender Is Nothing Then
+                With DirectCast(Sender, VideoOption)
+                    If .MyMedia.Type = UMTypes.Audio And .Checked Then
+                        MyContainer.SelectedAudioIndex = .MyMedia.Index
+                        RaiseEvent AudioIndexChanged(Sender, e)
+                    End If
+                End With
+            End If
         End Sub
         Private Sub MediaItem_BeforeOpenEditor(ByVal Sender As MediaItem, ByVal Container As IYouTubeMediaContainer)
             MediaItem_BeforeOpenEditorImpl(Sender, Container, False)

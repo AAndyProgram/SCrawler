@@ -1866,6 +1866,12 @@ Namespace API.YouTube.Objects
                     obj.FPS = AConvert(Of Double)(ee.Value("fps"), NumberProvider, -1)
                     obj.Bitrate = AConvert(Of Double)(ee.Value("tbr"), NumberProvider, -1)
                     obj.Protocol = ee.Value("protocol")
+                    obj.FormatNote = ee.Value("format_note")
+                    If Not obj.FormatNote.IsEmptyString Then
+                        obj.FormatNoteClean = RegexReplace(obj.FormatNote, MediaObjParseLang)
+                        If Not obj.FormatNoteClean.IsEmptyString Then obj.FormatNoteClean = obj.FormatNoteClean.StringTrimEnd({CChar(" "), CChar("-"), CChar(",")})
+                    End If
+                    obj.Language = ee.Value("language")
                     If Not obj.Protocol.IsEmptyString Then obj.Protocol = obj.Protocol.Split("_").FirstOrDefault
                     nValue = AConvert(Of Double)(ee.Value("filesize"), NumberProvider, -1)
                     If nValue > 0 Then obj.Size = (nValue / 1024).RoundVal(2)
@@ -1886,24 +1892,30 @@ Namespace API.YouTube.Objects
                         obj.Codec = sValue.Split(".").First
                     Else
                         Dim fd As Boolean = False
-                        sValue = ee.Value("format_note")
-                        If Not sValue.IsEmptyString Then
-                            With ListAddList(Nothing, sValue.Split(","), CType(Function(v) CStr(v).StringToLower.StringTrim, Func(Of Object, Object)), EDP.ReturnValue)
-                                If .ListContains({"high", "low"}) Then
-                                    obj.Type = UMTypes.Audio
-                                    obj.Codec = ee.Value("ext")
-                                    If obj.Protocol.StringToLower.StartsWith("m3u8") Then obj.Protocol = "m3u8"
-                                    If obj.Bitrate <= 0 Then obj.Bitrate = IIf(.Contains("high"), 129, 53)
-                                    If obj.Size <= 0 Then obj.Size = 1
-                                    fd = True
-                                End If
-                            End With
+                        If Not obj.FormatQuality.IsEmptyString Or ee.Value("resolution") = "audio only" Then
+                            obj.Type = UMTypes.Audio
+                            obj.Codec = ee.Value("ext")
+                            If obj.Protocol.StringToLower.StartsWith("m3u8") Then obj.Protocol = "m3u8"
+                            If obj.Bitrate <= 0 Then obj.Bitrate = IIf(obj.FormatQuality = "high", 129, 53)
+                            If obj.Size <= 0 Then obj.Size = 1
+                            fd = True
                         End If
                         If Not fd Then Continue For
                     End If
                     MediaObjects.Add(obj)
                 Next
                 MediaObjects.RemoveAll(Function(m) (m.Type = UMTypes.Video And (m.Width <= 0 Or m.Height <= 0)) Or m.URL.IsEmptyString)
+
+                With MyYouTubeSettings
+                    If .DefaultAudioLanguage_ExcludeAI Or .DefaultAudioLanguage_ExcludeNonDefault Then
+                        If .DefaultAudioLanguage_ExcludeAI.Value AndAlso MediaObjects.LongCount(Function(m) m.Type = UMTypes.Audio And Not m.IsAI) > 0 Then _
+                           MediaObjects.RemoveAll(Function(m) m.Type = UMTypes.Audio And m.IsAI)
+                        If MediaObjects.Count > 0 AndAlso .DefaultAudioLanguage_ExcludeNonDefault.Value AndAlso
+                           MediaObjects.LongCount(Function(m) m.Type = UMTypes.Audio And m.IsDefaultOrOriginal) > 0 Then _
+                           MediaObjects.RemoveAll(Function(m) m.Type = UMTypes.Audio And Not m.IsDefaultOrOriginal)
+                    End If
+                End With
+
                 Dim DupRemover As Action(Of UMTypes) =
                     Sub(ByVal t As UMTypes)
                         Const webm$ = "webm"

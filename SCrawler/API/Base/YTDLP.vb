@@ -14,8 +14,8 @@ Namespace API.Base.YTDLP
         Friend Sub New(ByVal _Token As Threading.CancellationToken, Optional ByVal __MainProcessName As String = Nothing, Optional ByVal WorkingDir As SFile = Nothing)
             MyBase.New(_Token, __MainProcessName.IfNullOrEmpty(Settings.YtdlpFile.File.Name), WorkingDir.IfNullOrEmpty(Settings.YtdlpFile.File))
         End Sub
-        Friend Sub SetProgress(ByVal Progress As MyProgress)
-            If Not Progress Is Nothing Then AddHandler OutputDataReceived, CreateYtdlpProgressHandler(Progress, Token, Me)
+        Friend Sub SetProgress(ByVal Progress As MyProgress, Optional ByVal ValCalc As Func(Of Double, Double) = Nothing)
+            If Not Progress Is Nothing Then AddHandler OutputDataReceived, CreateYtdlpProgressHandler(Progress, Token, Me, ValCalc)
         End Sub
         Friend Sub CreateFileExchanger(ByVal cache As CacheKeeper, Optional ByVal root As SFile = Nothing)
             FileExchanger = cache.NewInstance(Of BatchFileExchanger)(root, EDP.ReturnValue)

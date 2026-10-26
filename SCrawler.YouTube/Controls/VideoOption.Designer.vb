@@ -22,37 +22,36 @@ Namespace API.YouTube.Controls
         Private components As System.ComponentModel.IContainer
         <System.Diagnostics.DebuggerStepThrough()>
         Private Sub InitializeComponent()
-            Dim TP_MAIN As System.Windows.Forms.TableLayoutPanel
+            Me.TP_MAIN = New System.Windows.Forms.TableLayoutPanel()
             Me.OPT_CHECKED = New System.Windows.Forms.RadioButton()
             Me.LBL_DEFINITION_INFO = New System.Windows.Forms.Label()
             Me.LBL_DEFINITION = New System.Windows.Forms.Label()
             Me.LBL_CODECS = New System.Windows.Forms.Label()
             Me.LBL_SIZE = New System.Windows.Forms.Label()
-            TP_MAIN = New System.Windows.Forms.TableLayoutPanel()
-            TP_MAIN.SuspendLayout()
+            Me.TP_MAIN.SuspendLayout()
             Me.SuspendLayout()
             '
             'TP_MAIN
             '
-            TP_MAIN.ColumnCount = 5
-            TP_MAIN.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 36.0!))
-            TP_MAIN.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 110.0!))
-            TP_MAIN.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 58.0!))
-            TP_MAIN.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_MAIN.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 71.0!))
-            TP_MAIN.Controls.Add(Me.OPT_CHECKED, 0, 0)
-            TP_MAIN.Controls.Add(Me.LBL_DEFINITION_INFO, 1, 0)
-            TP_MAIN.Controls.Add(Me.LBL_DEFINITION, 2, 0)
-            TP_MAIN.Controls.Add(Me.LBL_CODECS, 3, 0)
-            TP_MAIN.Controls.Add(Me.LBL_SIZE, 4, 0)
-            TP_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
-            TP_MAIN.Location = New System.Drawing.Point(0, 0)
-            TP_MAIN.Margin = New System.Windows.Forms.Padding(0)
-            TP_MAIN.Name = "TP_MAIN"
-            TP_MAIN.RowCount = 1
-            TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            TP_MAIN.Size = New System.Drawing.Size(459, 30)
-            TP_MAIN.TabIndex = 0
+            Me.TP_MAIN.ColumnCount = 5
+            Me.TP_MAIN.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 36.0!))
+            Me.TP_MAIN.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 110.0!))
+            Me.TP_MAIN.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 58.0!))
+            Me.TP_MAIN.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            Me.TP_MAIN.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 71.0!))
+            Me.TP_MAIN.Controls.Add(Me.OPT_CHECKED, 0, 0)
+            Me.TP_MAIN.Controls.Add(Me.LBL_DEFINITION_INFO, 1, 0)
+            Me.TP_MAIN.Controls.Add(Me.LBL_DEFINITION, 2, 0)
+            Me.TP_MAIN.Controls.Add(Me.LBL_CODECS, 3, 0)
+            Me.TP_MAIN.Controls.Add(Me.LBL_SIZE, 4, 0)
+            Me.TP_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.TP_MAIN.Location = New System.Drawing.Point(0, 0)
+            Me.TP_MAIN.Margin = New System.Windows.Forms.Padding(0)
+            Me.TP_MAIN.Name = "TP_MAIN"
+            Me.TP_MAIN.RowCount = 1
+            Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            Me.TP_MAIN.Size = New System.Drawing.Size(459, 30)
+            Me.TP_MAIN.TabIndex = 0
             '
             'OPT_CHECKED
             '
@@ -115,11 +114,11 @@ Namespace API.YouTube.Controls
             '
             Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
             Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-            Me.Controls.Add(TP_MAIN)
+            Me.Controls.Add(Me.TP_MAIN)
             Me.Name = "VideoOption"
             Me.Size = New System.Drawing.Size(459, 30)
-            TP_MAIN.ResumeLayout(False)
-            TP_MAIN.PerformLayout()
+            Me.TP_MAIN.ResumeLayout(False)
+            Me.TP_MAIN.PerformLayout()
             Me.ResumeLayout(False)
 
         End Sub
@@ -128,5 +127,6 @@ Namespace API.YouTube.Controls
         Private WithEvents LBL_DEFINITION As Label
         Private WithEvents LBL_CODECS As Label
         Private WithEvents LBL_SIZE As Label
+        Private WithEvents TP_MAIN As TableLayoutPanel
     End Class
 End Namespace

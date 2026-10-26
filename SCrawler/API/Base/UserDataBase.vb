@@ -28,6 +28,7 @@ Namespace API.Base
     Friend MustInherit Class UserDataBase : Implements IUserData, IPluginContentProvider, IThrower
         Friend Const UserFileAppender As String = "User"
         Friend Const PostTextSpecialFolderDefault As String = "txt"
+        Friend Const PostTextTEXTSpecialFolderDefault As String = "Text"
 #Region "Events"
         Private ReadOnly UserUpdatedEventHandlers As List(Of IUserData.UserUpdatedEventHandler)
         Friend Custom Event UserUpdated As IUserData.UserUpdatedEventHandler Implements IUserData.UserUpdated
@@ -1876,8 +1877,13 @@ stxt:
                                                     Continue For
                                                 End If
                                             End If
+                                            If Not fTxt.Path.StartsWith(MyDir) Then fTxt.Path = MyDir
                                             v.PostTextFileSpecialFolder = DownloadTextSpecialFolder
-                                            If DownloadTextSpecialFolder Then fTxt.Path = $"{fTxt.Path.StringTrimEnd("\")}\{PostTextSpecialFolderDefault}"
+                                            If v.Type = UTypes.Text Then
+                                                fTxt.Path = $"{fTxt.Path.StringTrimEnd("\")}\{PostTextTEXTSpecialFolderDefault}"
+                                            ElseIf DownloadTextSpecialFolder Then
+                                                fTxt.Path = $"{fTxt.Path.StringTrimEnd("\")}\{PostTextSpecialFolderDefault}"
+                                            End If
                                             fTxt.Extension = "txt"
                                             v.PostTextFile = TextSaver.SaveTextToFile(v.PostText, fTxt,,, Settings.FeedShowTextPosts_LogErrors_E)
                                             If Not v.PostTextFile.Exists Then Throw New ArgumentNullException("Text", "Error downloading text") With {.HelpLink = 10}
