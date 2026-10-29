@@ -45,7 +45,7 @@ Namespace API.Instagram
         Private Const GQL_Highlights_FbFriendlyName As String = "PolarisProfileStoryHighlightsTrayContentQuery"
         Private Const GQL_Highlights_FbFriendlyName_Second As String = "PolarisStoriesV3HighlightsPageQuery"
 
-        Private Const GQL_UserStories_DocId As String = "25231722019806941"
+        Private Const GQL_UserStories_DocId As String = "29170422829314651" '"25231722019806941"
         Private Const GQL_UserStories_FbFriendlyName As String = "PolarisStoriesV3ReelPageStandaloneQuery"
 
         Private Const GQL_Timeline_DocId As String = "7268577773270422" '"34579740524958711" '"7268577773270422"
@@ -246,7 +246,7 @@ Namespace API.Instagram
             UpdateTokens(Not ValidateBaseTokens())
             '"{" & $"""user_id"":""{ID}""" & "}"
             Dim vars$ = String.Format(GQL_URL_PATTERN_VARS, GQL_UserStories_DocId, Token_lsd, Token_dtsg_Var, GQL_UserStories_FbFriendlyName,
-                                      SymbolsConverter.ASCII.EncodeSymbolsOnly("{" & $"""reel_ids_arr"":[""{ID}""]" & "}"))
+                                      SymbolsConverter.ASCII.EncodeSymbolsOnly("{" & $"""reel_ids_arr"":[""{ID}""],""__relay_internal__pv__PolarisCommunityNoteStoriesLabelEnabledrelayprovider"":true" & "}"))
             UpdateRequestNumber()
             ChangeResponserMode(True)
             UpdateHeadersGQL(GQL_UserStories_FbFriendlyName)
