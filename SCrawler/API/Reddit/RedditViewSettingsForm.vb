@@ -56,11 +56,14 @@ Namespace API.Reddit
                     CH_TXT_DOWN_POSTS.Checked = MyOptions.DownloadTextPosts
                     CH_TXT_DOWN_SPEC_FOLDER.Checked = MyOptions.DownloadTextSpecialFolder
 
+                    CH_USER_EXISTS.Checked = MyOptions.UserExists
+                    CH_USER_SUSPENDED.Checked = MyOptions.UserSuspended
+
                     PopulateCMB(Settings(RedditSiteKey), CMB_REDDIT_ACC, MyOptions.RedditAccount)
                     PopulateCMB(Settings(RedGifs.RedGifsSiteKey), CMB_REDGIFS_ACC, MyOptions.RedGifsAccount)
                     If IsUserSettings Then
                         TP_MAIN.Controls.Remove(CMB_REDDIT_ACC)
-                        TP_MAIN.RowStyles(3).Height = 0
+                        TP_MAIN.RowStyles(4).Height = 0
                         TP_MAIN.Refresh()
                         Dim s As Size = Size
                         s.Height -= 28
@@ -121,6 +124,8 @@ Namespace API.Reddit
                 .DownloadText = CH_TXT_DOWN_TXT.Checked
                 .DownloadTextPosts = CH_TXT_DOWN_POSTS.Checked
                 .DownloadTextSpecialFolder = CH_TXT_DOWN_SPEC_FOLDER.Checked
+                .UserExists = CH_USER_EXISTS.Checked
+                .UserSuspended = CH_USER_SUSPENDED.Checked
                 .RedGifsAccount = CMB_REDGIFS_ACC.Text
                 If Not IsUserSettings Then .RedditAccount = CMB_REDDIT_ACC.Text
             End With

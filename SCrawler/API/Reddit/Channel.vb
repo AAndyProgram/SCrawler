@@ -91,20 +91,12 @@ Namespace API.Reddit
         Friend Property DownloadText As Boolean = False Implements IRedditView.DownloadText
         Friend Property DownloadTextPosts As Boolean = False Implements IRedditView.DownloadTextPosts
         Friend Property DownloadTextSpecialFolder As Boolean = False Implements IRedditView.DownloadTextSpecialFolder
+        Friend Property UserExists As Boolean Implements IRedditView.UserExists
+        Friend Property UserSuspended As Boolean Implements IRedditView.UserSuspended
         Friend Property RedGifsAccount As String = String.Empty Implements IRedditView.RedGifsAccount
         Friend Property RedditAccount As String = String.Empty Implements IRedditView.RedditAccount
         Friend Sub SetView(ByVal Options As IRedditView) Implements IRedditView.SetView
-            If Not Options Is Nothing Then
-                With Options
-                    ViewMode = .ViewMode
-                    ViewPeriod = .ViewPeriod
-                    DownloadText = .DownloadText
-                    DownloadTextPosts = .DownloadTextPosts
-                    DownloadTextSpecialFolder = .DownloadTextSpecialFolder
-                    RedditAccount = .RedditAccount
-                    RedGifsAccount = .RedGifsAccount
-                End With
-            End If
+            RedditViewExchange.SetView(Me, Options)
         End Sub
 #Region "Statistics support"
         Private ReadOnly CountOfAddedUsers As List(Of Integer)

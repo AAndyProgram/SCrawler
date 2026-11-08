@@ -27,10 +27,11 @@ Namespace API.Reddit
             Dim TP_VIEW_MODE As System.Windows.Forms.TableLayoutPanel
             Dim LBL_VIEW_MODE As System.Windows.Forms.Label
             Dim LBL_PERIOD As System.Windows.Forms.Label
-            Dim ActionButton3 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton7 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(RedditViewSettingsForm))
-            Dim ActionButton4 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
+            Dim ActionButton8 As PersonalUtilities.Forms.Controls.Base.ActionButton = New PersonalUtilities.Forms.Controls.Base.ActionButton()
             Dim TP_TEXT As System.Windows.Forms.TableLayoutPanel
+            Dim TP_USER_ES As System.Windows.Forms.TableLayoutPanel
             Me.TP_MAIN = New System.Windows.Forms.TableLayoutPanel()
             Me.OPT_VIEW_MODE_NEW = New System.Windows.Forms.RadioButton()
             Me.OPT_VIEW_MODE_HOT = New System.Windows.Forms.RadioButton()
@@ -48,13 +49,16 @@ Namespace API.Reddit
             Me.CMB_REDDIT_ACC = New PersonalUtilities.Forms.Controls.ComboBoxExtended()
             Me.CH_TXT_DOWN_TXT = New System.Windows.Forms.CheckBox()
             Me.CH_TXT_DOWN_POSTS = New System.Windows.Forms.CheckBox()
-            Me.TT_MAIN = New System.Windows.Forms.ToolTip(Me.components)
             Me.CH_TXT_DOWN_SPEC_FOLDER = New System.Windows.Forms.CheckBox()
+            Me.CH_USER_EXISTS = New System.Windows.Forms.CheckBox()
+            Me.CH_USER_SUSPENDED = New System.Windows.Forms.CheckBox()
+            Me.TT_MAIN = New System.Windows.Forms.ToolTip(Me.components)
             CONTAINER_MAIN = New System.Windows.Forms.ToolStripContainer()
             TP_VIEW_MODE = New System.Windows.Forms.TableLayoutPanel()
             LBL_VIEW_MODE = New System.Windows.Forms.Label()
             LBL_PERIOD = New System.Windows.Forms.Label()
             TP_TEXT = New System.Windows.Forms.TableLayoutPanel()
+            TP_USER_ES = New System.Windows.Forms.TableLayoutPanel()
             CONTAINER_MAIN.ContentPanel.SuspendLayout()
             CONTAINER_MAIN.SuspendLayout()
             Me.TP_MAIN.SuspendLayout()
@@ -63,6 +67,7 @@ Namespace API.Reddit
             CType(Me.CMB_REDGIFS_ACC, System.ComponentModel.ISupportInitialize).BeginInit()
             CType(Me.CMB_REDDIT_ACC, System.ComponentModel.ISupportInitialize).BeginInit()
             TP_TEXT.SuspendLayout()
+            TP_USER_ES.SuspendLayout()
             Me.SuspendLayout()
             '
             'CONTAINER_MAIN
@@ -71,13 +76,13 @@ Namespace API.Reddit
             'CONTAINER_MAIN.ContentPanel
             '
             CONTAINER_MAIN.ContentPanel.Controls.Add(Me.TP_MAIN)
-            CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(477, 222)
+            CONTAINER_MAIN.ContentPanel.Size = New System.Drawing.Size(477, 247)
             CONTAINER_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
             CONTAINER_MAIN.LeftToolStripPanelVisible = False
             CONTAINER_MAIN.Location = New System.Drawing.Point(0, 0)
             CONTAINER_MAIN.Name = "CONTAINER_MAIN"
             CONTAINER_MAIN.RightToolStripPanelVisible = False
-            CONTAINER_MAIN.Size = New System.Drawing.Size(477, 222)
+            CONTAINER_MAIN.Size = New System.Drawing.Size(477, 247)
             CONTAINER_MAIN.TabIndex = 0
             CONTAINER_MAIN.TopToolStripPanelVisible = False
             '
@@ -88,20 +93,22 @@ Namespace API.Reddit
             Me.TP_MAIN.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
             Me.TP_MAIN.Controls.Add(TP_VIEW_MODE, 0, 0)
             Me.TP_MAIN.Controls.Add(Me.TP_PERIOD, 0, 1)
-            Me.TP_MAIN.Controls.Add(Me.CMB_REDGIFS_ACC, 0, 4)
-            Me.TP_MAIN.Controls.Add(Me.CMB_REDDIT_ACC, 0, 3)
+            Me.TP_MAIN.Controls.Add(Me.CMB_REDGIFS_ACC, 0, 5)
+            Me.TP_MAIN.Controls.Add(Me.CMB_REDDIT_ACC, 0, 4)
             Me.TP_MAIN.Controls.Add(TP_TEXT, 0, 2)
+            Me.TP_MAIN.Controls.Add(TP_USER_ES, 0, 3)
             Me.TP_MAIN.Dock = System.Windows.Forms.DockStyle.Fill
             Me.TP_MAIN.Location = New System.Drawing.Point(0, 0)
             Me.TP_MAIN.Name = "TP_MAIN"
-            Me.TP_MAIN.RowCount = 6
+            Me.TP_MAIN.RowCount = 7
             Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 56.0!))
             Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 56.0!))
+            Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
             Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
             Me.TP_MAIN.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-            Me.TP_MAIN.Size = New System.Drawing.Size(477, 222)
+            Me.TP_MAIN.Size = New System.Drawing.Size(477, 247)
             Me.TP_MAIN.TabIndex = 0
             '
             'TP_VIEW_MODE
@@ -220,7 +227,7 @@ Namespace API.Reddit
             Me.TP_PERIOD.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
             Me.TP_PERIOD.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
             Me.TP_PERIOD.Size = New System.Drawing.Size(475, 56)
-            Me.TP_PERIOD.TabIndex = 2
+            Me.TP_PERIOD.TabIndex = 1
             '
             'LBL_PERIOD
             '
@@ -307,38 +314,38 @@ Namespace API.Reddit
             '
             'CMB_REDGIFS_ACC
             '
-            ActionButton3.BackgroundImage = CType(resources.GetObject("ActionButton3.BackgroundImage"), System.Drawing.Image)
-            ActionButton3.Name = "ArrowDown"
-            ActionButton3.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.ArrowDown
-            Me.CMB_REDGIFS_ACC.Buttons.Add(ActionButton3)
+            ActionButton7.BackgroundImage = CType(resources.GetObject("ActionButton7.BackgroundImage"), System.Drawing.Image)
+            ActionButton7.Name = "ArrowDown"
+            ActionButton7.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.ArrowDown
+            Me.CMB_REDGIFS_ACC.Buttons.Add(ActionButton7)
             Me.CMB_REDGIFS_ACC.CaptionMode = PersonalUtilities.Forms.Controls.Base.ICaptionControl.Modes.Label
             Me.CMB_REDGIFS_ACC.CaptionSizeType = System.Windows.Forms.SizeType.Percent
             Me.CMB_REDGIFS_ACC.CaptionText = "RedGifs account"
             Me.CMB_REDGIFS_ACC.CaptionVisible = True
             Me.CMB_REDGIFS_ACC.CaptionWidth = 26.0R
             Me.CMB_REDGIFS_ACC.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CMB_REDGIFS_ACC.Location = New System.Drawing.Point(4, 173)
+            Me.CMB_REDGIFS_ACC.Location = New System.Drawing.Point(4, 199)
             Me.CMB_REDGIFS_ACC.Name = "CMB_REDGIFS_ACC"
             Me.CMB_REDGIFS_ACC.Size = New System.Drawing.Size(469, 22)
-            Me.CMB_REDGIFS_ACC.TabIndex = 4
+            Me.CMB_REDGIFS_ACC.TabIndex = 5
             Me.CMB_REDGIFS_ACC.TextBoxBorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
             '
             'CMB_REDDIT_ACC
             '
-            ActionButton4.BackgroundImage = CType(resources.GetObject("ActionButton4.BackgroundImage"), System.Drawing.Image)
-            ActionButton4.Name = "ArrowDown"
-            ActionButton4.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.ArrowDown
-            Me.CMB_REDDIT_ACC.Buttons.Add(ActionButton4)
+            ActionButton8.BackgroundImage = CType(resources.GetObject("ActionButton8.BackgroundImage"), System.Drawing.Image)
+            ActionButton8.Name = "ArrowDown"
+            ActionButton8.Tag = PersonalUtilities.Forms.Controls.Base.ActionButton.DefaultButtons.ArrowDown
+            Me.CMB_REDDIT_ACC.Buttons.Add(ActionButton8)
             Me.CMB_REDDIT_ACC.CaptionMode = PersonalUtilities.Forms.Controls.Base.ICaptionControl.Modes.Label
             Me.CMB_REDDIT_ACC.CaptionSizeType = System.Windows.Forms.SizeType.Percent
             Me.CMB_REDDIT_ACC.CaptionText = "Reddit account"
             Me.CMB_REDDIT_ACC.CaptionVisible = True
             Me.CMB_REDDIT_ACC.CaptionWidth = 26.0R
             Me.CMB_REDDIT_ACC.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.CMB_REDDIT_ACC.Location = New System.Drawing.Point(4, 144)
+            Me.CMB_REDDIT_ACC.Location = New System.Drawing.Point(4, 170)
             Me.CMB_REDDIT_ACC.Name = "CMB_REDDIT_ACC"
             Me.CMB_REDDIT_ACC.Size = New System.Drawing.Size(469, 22)
-            Me.CMB_REDDIT_ACC.TabIndex = 3
+            Me.CMB_REDDIT_ACC.TabIndex = 4
             Me.CMB_REDDIT_ACC.TextBoxBorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
             '
             'TP_TEXT
@@ -357,7 +364,7 @@ Namespace API.Reddit
             TP_TEXT.RowCount = 1
             TP_TEXT.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
             TP_TEXT.Size = New System.Drawing.Size(475, 25)
-            TP_TEXT.TabIndex = 5
+            TP_TEXT.TabIndex = 2
             '
             'CH_TXT_DOWN_TXT
             '
@@ -395,19 +402,58 @@ Namespace API.Reddit
             Me.TT_MAIN.SetToolTip(Me.CH_TXT_DOWN_SPEC_FOLDER, "If checked, text files will be saved to a separate folder")
             Me.CH_TXT_DOWN_SPEC_FOLDER.UseVisualStyleBackColor = True
             '
+            'TP_USER_ES
+            '
+            TP_USER_ES.ColumnCount = 2
+            TP_USER_ES.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
+            TP_USER_ES.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
+            TP_USER_ES.Controls.Add(Me.CH_USER_EXISTS, 0, 0)
+            TP_USER_ES.Controls.Add(Me.CH_USER_SUSPENDED, 1, 0)
+            TP_USER_ES.Dock = System.Windows.Forms.DockStyle.Fill
+            TP_USER_ES.Location = New System.Drawing.Point(1, 141)
+            TP_USER_ES.Margin = New System.Windows.Forms.Padding(0)
+            TP_USER_ES.Name = "TP_USER_ES"
+            TP_USER_ES.RowCount = 1
+            TP_USER_ES.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+            TP_USER_ES.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+            TP_USER_ES.Size = New System.Drawing.Size(475, 25)
+            TP_USER_ES.TabIndex = 3
+            '
+            'CH_USER_EXISTS
+            '
+            Me.CH_USER_EXISTS.AutoSize = True
+            Me.CH_USER_EXISTS.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_USER_EXISTS.Location = New System.Drawing.Point(3, 3)
+            Me.CH_USER_EXISTS.Name = "CH_USER_EXISTS"
+            Me.CH_USER_EXISTS.Size = New System.Drawing.Size(231, 19)
+            Me.CH_USER_EXISTS.TabIndex = 0
+            Me.CH_USER_EXISTS.Text = "User exists"
+            Me.CH_USER_EXISTS.UseVisualStyleBackColor = True
+            '
+            'CH_USER_SUSPENDED
+            '
+            Me.CH_USER_SUSPENDED.AutoSize = True
+            Me.CH_USER_SUSPENDED.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.CH_USER_SUSPENDED.Location = New System.Drawing.Point(240, 3)
+            Me.CH_USER_SUSPENDED.Name = "CH_USER_SUSPENDED"
+            Me.CH_USER_SUSPENDED.Size = New System.Drawing.Size(232, 19)
+            Me.CH_USER_SUSPENDED.TabIndex = 1
+            Me.CH_USER_SUSPENDED.Text = "User suspended"
+            Me.CH_USER_SUSPENDED.UseVisualStyleBackColor = True
+            '
             'RedditViewSettingsForm
             '
             Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
             Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-            Me.ClientSize = New System.Drawing.Size(477, 222)
+            Me.ClientSize = New System.Drawing.Size(477, 247)
             Me.Controls.Add(CONTAINER_MAIN)
             Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle
             Me.Icon = Global.SCrawler.My.Resources.SiteResources.RedditIcon_128
             Me.KeyPreview = True
             Me.MaximizeBox = False
-            Me.MaximumSize = New System.Drawing.Size(493, 261)
+            Me.MaximumSize = New System.Drawing.Size(493, 286)
             Me.MinimizeBox = False
-            Me.MinimumSize = New System.Drawing.Size(493, 261)
+            Me.MinimumSize = New System.Drawing.Size(493, 286)
             Me.Name = "RedditViewSettingsForm"
             Me.ShowInTaskbar = False
             Me.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide
@@ -424,6 +470,8 @@ Namespace API.Reddit
             CType(Me.CMB_REDDIT_ACC, System.ComponentModel.ISupportInitialize).EndInit()
             TP_TEXT.ResumeLayout(False)
             TP_TEXT.PerformLayout()
+            TP_USER_ES.ResumeLayout(False)
+            TP_USER_ES.PerformLayout()
             Me.ResumeLayout(False)
 
         End Sub
@@ -446,5 +494,7 @@ Namespace API.Reddit
         Private WithEvents TT_MAIN As ToolTip
         Private WithEvents CH_TXT_DOWN_POSTS As CheckBox
         Private WithEvents CH_TXT_DOWN_SPEC_FOLDER As CheckBox
+        Private WithEvents CH_USER_EXISTS As CheckBox
+        Private WithEvents CH_USER_SUSPENDED As CheckBox
     End Class
 End Namespace

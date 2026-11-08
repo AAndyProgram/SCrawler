@@ -428,7 +428,7 @@ Namespace API.PornHub
                             'Debug.WriteLineIf(l.Count > 0, l.Select(Function(ll) ll.Title).ListToString(vbNewLine))
                             If prevPostsFound And Not pageRepeatSet And Not newPostsFound Then pageRepeatSet = True : _PageVideosRepeat += 1
                             If prevPostsFound And newPostsFound And pageRepeatSet Then _PageVideosRepeat -= 1
-                            If l.Count > 0 Then _TempMediaList.ListAddList(l.Select(Function(uv) uv.ToUserMedia(specFolder, useYtdlp)))
+                            If l.Count > 0 Then _TempMediaList.ListAddList(l.Select(Function(uv) uv.ToUserMedia(specFolder, useYtdlp And Not IsSubscription)))
                             SessionPosts.ListAddList(newLastPageIDs, LNC)
                             newLastPageIDs.Clear()
 

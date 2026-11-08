@@ -128,16 +128,8 @@ Namespace API.Reddit
         Friend Property ViewPeriod As CPeriod Implements IRedditView.ViewPeriod
         Friend Sub SetView(ByVal Options As IRedditView) Implements IRedditView.SetView
             If Not Options Is Nothing Then
-                With Options
-                    ViewMode = .ViewMode
-                    ViewPeriod = .ViewPeriod
-                    DownloadText = .DownloadText
-                    DownloadTextPosts = .DownloadTextPosts
-                    DownloadTextSpecialFolder = .DownloadTextSpecialFolder
-                    RedGifsAccount = .RedGifsAccount
-                    RedditAccount = .RedditAccount
-                    If TypeOf Options Is RedditViewExchange Then DirectCast(Options, RedditViewExchange).Apply(Me)
-                End With
+                RedditViewExchange.SetView(Me, Options)
+                If TypeOf Options Is RedditViewExchange Then DirectCast(Options, RedditViewExchange).Apply(Me)
             End If
         End Sub
         Private ReadOnly Property View As String
@@ -168,8 +160,45 @@ Namespace API.Reddit
             End Get
         End Property
         Friend Overrides Property DownloadText As Boolean Implements IRedditView.DownloadText
+            Get
+                Return MyBase.DownloadText
+            End Get
+            Set(ByVal d As Boolean)
+                MyBase.DownloadText = d
+            End Set
+        End Property
         Friend Overrides Property DownloadTextPosts As Boolean Implements IRedditView.DownloadTextPosts
+            Get
+                Return MyBase.DownloadTextPosts
+            End Get
+            Set(ByVal d As Boolean)
+                MyBase.DownloadTextPosts = d
+            End Set
+        End Property
         Friend Overrides Property DownloadTextSpecialFolder As Boolean Implements IRedditView.DownloadTextSpecialFolder
+            Get
+                Return MyBase.DownloadTextSpecialFolder
+            End Get
+            Set(ByVal d As Boolean)
+                MyBase.DownloadTextSpecialFolder = d
+            End Set
+        End Property
+        Friend Overrides Property UserExists As Boolean Implements IRedditView.UserExists
+            Get
+                Return MyBase.UserExists
+            End Get
+            Set(ByVal e As Boolean)
+                MyBase.UserExists = e
+            End Set
+        End Property
+        Friend Overrides Property UserSuspended As Boolean Implements IRedditView.UserSuspended
+            Get
+                Return MyBase.UserSuspended
+            End Get
+            Set(ByVal s As Boolean)
+                MyBase.UserSuspended = s
+            End Set
+        End Property
 #End Region
 #Region "Initializer"
         Friend Sub New()
@@ -451,6 +480,8 @@ Namespace API.Reddit
                     If IsSavedPosts Then
                         URL = $"https://www.reddit.com/user/{NameTrue}/saved.json?after={POST}"
                         If Not POST.IsEmptyString Then Thread.Sleep(savedPostsSleepTimer)
+                    ElseIf MySiteSettings.CredentialsExists Then
+                        URL = $"https://oauth.reddit.com/r/{NameTrue}/{View}.json?allow_quarantined=true&allow_over18=1&include=identity&after={POST}&dist=25&sort={View}&t={Period}&layout=classic"
                     Else
                         URL = $"https://reddit.com/r/{NameTrue}/{View}.json?allow_quarantined=true&allow_over18=1&include=identity&after={POST}&dist=25&sort={View}&t={Period}&layout=classic"
                     End If

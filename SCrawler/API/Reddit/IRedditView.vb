@@ -28,6 +28,8 @@ Namespace API.Reddit
         Property DownloadText As Boolean
         Property DownloadTextPosts As Boolean
         Property DownloadTextSpecialFolder As Boolean
+        Property UserExists As Boolean
+        Property UserSuspended As Boolean
         Property RedGifsAccount As String
         Property RedditAccount As String
         Sub SetView(ByVal Options As IRedditView)
@@ -42,6 +44,8 @@ Namespace API.Reddit
         Friend Overrides Property DownloadText As Boolean Implements IRedditView.DownloadText
         Friend Overrides Property DownloadTextPosts As Boolean Implements IRedditView.DownloadTextPosts
         Friend Overrides Property DownloadTextSpecialFolder As Boolean Implements IRedditView.DownloadTextSpecialFolder
+        Friend Overrides Property UserExists As Boolean Implements IRedditView.UserExists
+        Friend Overrides Property UserSuspended As Boolean Implements IRedditView.UserSuspended
         Friend Property RedGifsAccount As String Implements IRedditView.RedGifsAccount
         Friend Property RedditAccount As String Implements IRedditView.RedditAccount
         Friend Sub New(ByVal Options As IRedditView)
@@ -54,16 +58,19 @@ Namespace API.Reddit
             _ApplyBase_Name = False
         End Sub
         Friend Sub SetView(ByVal Options As IRedditView) Implements IRedditView.SetView
-            If Not Options Is Nothing Then
-                With Options
-                    ViewMode = .ViewMode
-                    ViewPeriod = .ViewPeriod
-                    DownloadText = .DownloadText
-                    DownloadTextPosts = .DownloadTextPosts
-                    DownloadTextSpecialFolder = .DownloadTextSpecialFolder
-                    RedGifsAccount = .RedGifsAccount
-                    RedditAccount = .RedditAccount
-                End With
+            SetView(Me, Options)
+        End Sub
+        Friend Shared Sub SetView(ByVal Dest As IRedditView, ByVal Source As IRedditView)
+            If Not Dest Is Nothing And Not Source Is Nothing Then
+                Dest.ViewMode = Source.ViewMode
+                Dest.ViewPeriod = Source.ViewPeriod
+                Dest.DownloadText = Source.DownloadText
+                Dest.DownloadTextPosts = Source.DownloadTextPosts
+                Dest.DownloadTextSpecialFolder = Source.DownloadTextSpecialFolder
+                Dest.UserExists = Source.UserExists
+                Dest.UserSuspended = Source.UserSuspended
+                Dest.RedGifsAccount = Source.RedGifsAccount
+                Dest.RedditAccount = Source.RedditAccount
             End If
         End Sub
     End Class
